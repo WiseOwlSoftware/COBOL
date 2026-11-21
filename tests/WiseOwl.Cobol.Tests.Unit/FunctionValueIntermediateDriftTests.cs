@@ -105,7 +105,7 @@ public sealed class FunctionValueIntermediateDriftTests : WiseOwlCobolTestBase
         @"FormatFloatStore\(CobolDec\.FromApproximation\(\(double\)\(__sendval\d+_MOVE\)\)", RegexOptions.Compiled);
 
     /// <summary>⛔ AN EXACT VALUE WHOSE EVERY RECEIVER IS FLOATING-POINT IS HELD IN THE RECEIVERS' OWN BINARY FORMAT, AND A
-    /// BINARY32 SET NEVER ON A BINARY64 (kb/Work PB3268, review R2-1). ISO §2023:14.6.8.3 GR2 converts the value to a
+    /// BINARY32 SET NEVER ON A BINARY64 (kb/Work PB3268, review R2-1). ISO §2023:14.6.8.3 rule 2 converts the value to a
     /// binary32 receiver "in a manner consistent with the specifications of ISO/IEC 60559" — one rounding; a binary64
     /// intermediate narrowed into a binary32 receiver is two (kb/Work PB1110). A binary32 receiver beside a binary64 one,
     /// and a floating-point receiver beside a fixed-point one, have no float format that converts once for both and no
@@ -130,7 +130,7 @@ public sealed class FunctionValueIntermediateDriftTests : WiseOwlCobolTestBase
         string types = IntermediateTypes(Compile(programId, reference, standardDecimal: false,
             receivers: $"       01 Q1 {clause1}.\n       01 Q2 {clause2}.\n"));
         Assert.True(types == expected,
-            $"ISO §2023:14.6.8.3 GR2 / §2023:14.9.25.4 GR1 — MOVE {reference} TO Q1 ({clause1}) Q2 ({clause2}): the intermediate is "
+            $"ISO §2023:14.6.8.3 rule 2 / §2023:14.9.25.4 GR1 — MOVE {reference} TO Q1 ({clause1}) Q2 ({clause2}): the intermediate is "
             + $"[{types}], expected [{expected}] (kb/Work PB3268 review R2-1, R1-1, R1-2: each receiver is owed the one "
             + "conversion its single-receiver MOVE makes)");
     }

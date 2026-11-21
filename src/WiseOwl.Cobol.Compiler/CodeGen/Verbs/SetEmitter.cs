@@ -300,7 +300,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// index-name field or index data item takes the integer value UNCHANGED (§2023:14.9.39.4 GR2a/2b — an index IS its
     /// occurrence number); a numeric data item takes it through its own PICTURE store (GR2c).
     /// <para>⛔ PRECONDITION — <paramref name="value"/> SHALL ALREADY HAVE COME THROUGH <see cref="LandAmount"/>
-    /// when the target is an index (kb/Work PB459): the integrality (§2023:14.9.39.4 GR2a.1.a and implementor-range
+    /// when the target is an index (kb/Work PB459): the integrality (§2023:14.9.39.4 GR2 a) 1. a) and implementor-range
     /// (GR2 a) 1. b / §2023:13.18.38.4 GR2) guards are stated over the value BEFORE it reaches the <c>long</c> carrier,
     /// so they cannot be applied here — by the time this renders, a fraction and a 64-bit overflow are already
     /// gone. Both of this method's callers land first (<see cref="EmitSetTo"/>, and
@@ -337,7 +337,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// BIND (§2023:14.9.39.2 Format 2's receiving operand is index-name-3; COBOL2112, kb/Work PB449) — this comment
     /// used to say "the edition validator will diagnose it", and no validator did: the statement compiled and
     /// ran. The numeric arm survives because PERFORM VARYING and SEARCH reach this same augment.
-    /// <para>⛔ THE INDEX ARMS ARE GUARDED (kb/Work PB459). §2023:14.9.39.4 GR4a and §2023:13.18.38.4 GR2 — which names
+    /// <para>⛔ THE INDEX ARMS ARE GUARDED (kb/Work PB459). §2023:14.9.39.4 GR4 a) and §2023:13.18.38.4 GR2 — which names
     /// PERFORM VARYING and SEARCH beside SET as the three statements that may modify an index — make a result
     /// "outside the range of the values allowed by the implementor" the EC-RANGE-INDEX case with the receiving
     /// operand unchanged. The former <c>{ix} += (long)(…)</c> formed the sum IN the carrier, so the boundary was a
@@ -364,7 +364,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
                 // The windowed twin of the StoreSetTarget arm (Step D): decode → augment → re-encode.
                 // sending: false — an INDEX data item's class and category are INDEX, not numeric
-                // (§2023:13.18.60.4 GR10), so §2023:14.6.13.2 GR2 ("a numeric sending item") is not about it.
+                // (§2023:13.18.60.4 GR10), so §2023:14.6.13.2 rule 2 ("a numeric sending item") is not about it.
                 string cur = p.Item.StoreAsImage
                     ? RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending: false)
                     : PlaceRenderer.Read(p);

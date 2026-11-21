@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// measured instead of remembered.
 ///
 /// <para>ISO §2023:5.2.2 / §2023:5.2.3: a keyword or optional word standing where its general format prints it is a USE of
-/// the word, outside §2023:8.3.2.1 SR1 ("Reserved words shall not be used as user-defined words or system-names").
+/// the word, outside §2023:8.3.2.1 rule 1 ("Reserved words shall not be used as user-defined words or system-names").
 /// A §2023:8.9-reserved word with NO lexer token arrives as IDENTIFIER, and the §2023:8.9 funnel
 /// (<c>VersionConformancePass.VisitCobolWord</c>) screens every IDENTIFIER <c>cobolWord</c> position-blind — so a
 /// grammar rule that matches such a keyword through <c>cobolWord</c> draws a FALSE COBOL0901 at every edition

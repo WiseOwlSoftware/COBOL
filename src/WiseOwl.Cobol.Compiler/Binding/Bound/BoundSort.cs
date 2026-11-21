@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// (GR8 → §2023:8.8.4.2.4 — never through a collating sequence, and <paramref name="Item"/> carries the leaf whose
 /// profile decodes the window), a NATIONAL key decodes its byte pairs and compares under the GR5 national sequence
 /// (§2023:8.8.4.2.9), and an alphanumeric or ordinary group key compares as characters under the GR5 alphanumeric
-/// sequence (§2023:8.8.4.2.7). (A BOOLEAN key is not a legal key — §2023:14.9.40.3 SR6c, SR14 c); §2023:14.9.24.3 SR4c.)
+/// sequence (§2023:8.8.4.2.7). (A BOOLEAN key is not a legal key — §2023:14.9.40.3 SR6 c), SR14 c); §2023:14.9.24.3 SR4 c).)
 /// <para><paramref name="LayoutRecord"/> is the place of the key's record when a variable-length member precedes
 /// the key (kb/Work PB1025; docs/CONFORMANCE.md §3 D-KWV): <paramref name="Offset"/> is then the key's offset in
 /// that record's FIXED run, and the runtime locates it in each record through the record type's layout. Null for
@@ -33,7 +33,7 @@ public sealed record BoundSortMergeKey(
 /// <summary>The RECORD IS VARYING model of an SD/FD bound for the sort verbs (ISO §2023:13.18.43): the resolved
 /// DEPENDING ON place — RELEASE takes each record's length from it (GR13a), RETURN restores each returned record's
 /// length into it (GR15) — and the min/max record sizes (the EC-SORT-MERGE-RELEASE bounds, §2023:14.9.40.4 GR12b;
-/// §2023:13.18.43.4 GR14b / GR19 b) for the RELEASE statement — tested by CobolSort, kb/Work PB1036).
+/// §2023:13.18.43.4 GR14 b) / GR19 b) for the RELEASE statement — tested by CobolSort, kb/Work PB1036).
 /// <paramref name="Depending"/> is null for a variable-length SD/FD with no DEPENDING phrase (RECORD m TO n —
 /// GR13b/c: each record then releases/writes at its own size; there is no length register to restore).</summary>
 public sealed record SortVaryingInfo(Place? Depending, int Min, int Max);
@@ -140,7 +140,7 @@ public sealed record BoundMerge(
 /// <summary><c>RELEASE record-name-1 [FROM x]</c> (ISO §2023:14.9.32): release the SD record's image to the initial
 /// phase of the active sort (GR2). FROM ≡ <c>MOVE x TO record-name-1</c> then the same RELEASE (GR4). A varying SD
 /// releases at the length the RECORD VARYING DEPENDING ON item holds (§2023:13.18.43.4 GR13); a fixed SD at its ONE record
-/// size, the largest record description's (§2023:13.18.43.4 GR5a — a shorter record description sends the record area's
+/// size, the largest record description's (§2023:13.18.43.4 GR5 a) — a shorter record description sends the record area's
 /// image, kb/Work PB322 F). A short USING-file record is filled by §2023:14.9.40.4 GR7, the USING transfer's own rule
 /// (kb/Work PB1140), and a short RETURNed record for a GIVING file by GR16. <paramref name="RangeFailsStatement"/> is
 /// the compile edition's answer for a record outside the SD's record range with checking off: COBOL-85 makes the

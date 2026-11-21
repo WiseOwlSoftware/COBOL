@@ -248,7 +248,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         return new BoundSetContent(stores);
     }
 
-    /// <summary>§2023:14.9.39.4 GR32b / GR36 b) — the IN-ARITHMETIC-RANGE phrase: the content is set either to the
+    /// <summary>§2023:14.9.39.4 GR32 b) / GR36 b) — the IN-ARITHMETIC-RANGE phrase: the content is set either to the
     /// receiver's own extreme or to "the value … permitted by the specifications appropriate to the mode of
     /// arithmetic", whichever is CLOSER to zero for FARTHEST-FROM-ZERO and FARTHER from zero for NEAREST-TO-ZERO.
     /// The mode's extremes are <see cref="ArithmeticModes.IntermediateExtremes"/>; the comparison is exact
@@ -1217,7 +1217,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// literal are excluded by the same sentence — none of them is an alphanumeric or national literal — and a
     /// §2023:8.8.3 concatenation expression has folded, because §2023:8.8.3.3 GR3 makes it "equivalent to a literal of
     /// the same class and value". The name is FORMED by the ONE program-name reader CALL and CANCEL use
-    /// (<see cref="ProgramNameLiteral"/>): GR1 sends literal-1 through 8.3.2.2 exactly as §2023:14.9.4.4 GR3b does.
+    /// (<see cref="ProgramNameLiteral"/>): GR1 sends literal-1 through 8.3.2.2 exactly as §2023:14.9.4.4 GR3 b) does.
     /// Returns null having reported.</summary>
     private string? ProgramAddressLiteral(ProgramNameOperand literal1, string site)
     {
@@ -1651,7 +1651,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// <c>SET SIZE OF D TO n</c> and <c>SET D TO n</c> are the SAME format with the same rules — and the
     /// SIZE-OF-absent arm used to be a separate peek that refused to resolve anything carrying a
     /// <c>dataReferenceSuffix</c>. That test was aimed at subscripts, but a suffix ALSO carries QUALIFICATION,
-    /// so <c>SET D OF G TO 2</c> — legal source (§2023:8.4.2.2.3 SR2: "a name may be qualified even though it does
+    /// so <c>SET D OF G TO 2</c> — legal source (§2023:8.4.2.2.3 rule 2: "a name may be qualified even though it does
     /// not need qualification"; §2023:13.16.3 SR18 leaves an OCCURS clause impossible here, so the subscript half had
     /// nothing legal to exclude) — fell into the Format-1 numeric store and died at run time. The ONE receiver
     /// resolution is <see cref="ExpressionBinder.ResolveReceiving"/>, the same one the explicit arm always used;

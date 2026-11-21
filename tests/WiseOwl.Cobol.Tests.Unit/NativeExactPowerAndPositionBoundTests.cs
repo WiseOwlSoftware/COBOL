@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para><b>PB2617.</b> A scaled or SDIDI base raised to an integer exponent is the exact power (§2023:8.8.1.3's native
 /// method follows GnuCOBOL's <c>mpz_pow_ui</c>, CLAUDE.md rule 1): <c>CobolExact.Pow</c> at run time,
 /// <c>CobolWide.Pow</c> for a compile-time literal exponent. <b>PB2616.</b> A directly rendered position is
-/// evaluated in the host's <c>long</c> only when its digit bound proves it cannot wrap (§2023:8.4.2.3.4 GR1b).</para>
+/// evaluated in the host's <c>long</c> only when its digit bound proves it cannot wrap (§2023:8.4.2.3.4 1) b)).</para>
 /// </summary>
 public sealed class NativeExactPowerAndPositionBoundTests
 {
@@ -42,7 +42,7 @@ public sealed class NativeExactPowerAndPositionBoundTests
         => Assert.Equal(Int128.Parse("253776255119685728762"),
             CobolExact.Pow(CobolExact.FromDec(CobolDec.From(11234567891, 10)), 8).Image.ToUnscaledIntermediate(20, CobolRounding.Truncation));
 
-    // §2023:8.8.1.2 GR6a: a zero base needs an exponent greater than zero.
+    // §2023:8.8.1.2 rule 6 a): a zero base needs an exponent greater than zero.
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]

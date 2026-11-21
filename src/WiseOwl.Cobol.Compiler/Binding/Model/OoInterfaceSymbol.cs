@@ -41,7 +41,7 @@ public sealed class OoInterfaceSymbol
     public List<OoInterfaceSymbol> Inherits { get; } = [];
 
     /// <summary>The emitted C# types a COBOL reference to THIS interface selects when the rule asks whether an
-    /// object IMPLEMENTS it — ISO/IEC 1989:2023 §2023:14.9.49.4 GR14b: "the exception object that was raised is
+    /// object IMPLEMENTS it — ISO/IEC 1989:2023 §2023:14.9.49.4 GR14 b): "the exception object that was raised is
     /// described with an IMPLEMENTS clause that references interface-name-1". The twin of
     /// <see cref="OoClassSymbol.FactoryOrInstanceClrNames"/>, and the answer is a SET for the same reason: one
     /// COBOL name is not one C# type by construction, it is one by MEASUREMENT. Today it measures ONE — a
@@ -68,7 +68,7 @@ public sealed class OoInterfaceSymbol
     }
 
     /// <summary>This interface's OWN prototype of the given roster key (<see cref="OoMethodSymbol.RosterKey"/>),
-    /// or null — the question §2023:11.7.3 SR4b asks of every interface in the INHERITS closure.</summary>
+    /// or null — the question §2023:11.7.3 SR4 b) asks of every interface in the INHERITS closure.</summary>
     internal OoMethodSymbol? FindOwnPrototype(ExternalizedMethodName key) => _protos.GetValueOrDefault(key);
 
     /// <summary>Every interface this one inherits from, directly or indirectly (§2023:9.3.10 — "the inheriting interface has

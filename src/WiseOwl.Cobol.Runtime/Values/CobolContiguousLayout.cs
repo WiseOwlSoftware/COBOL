@@ -180,7 +180,7 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
     /// second program describing the same file as <c>RECORD CONTAINS 20</c> over <c>PIC X(20)</c> must read the
     /// same bytes. A record with variable-length members therefore occupies the one shape every record of the file
     /// shares — each member at the position it has when it holds its MAXIMUM size (§2023:8.5.1.10.1 — the number
-    /// §2023:13.18.43.4 GR8b sums for the record), padded with spaces — and <see cref="Decompose"/> takes each member back at that width and
+    /// §2023:13.18.43.4 GR8 b) sums for the record), padded with spaces — and <see cref="Decompose"/> takes each member back at that width and
     /// drops the padding: a space in a fixed-size field is padding, never data.
     /// <para>The padding is the space of the member's own unit (<see cref="CobolVarGroup.SpacesFor"/>, the unit its
     /// layout code names): the space character for an alphanumeric member, the national space (the UTF-16BE pair) for a

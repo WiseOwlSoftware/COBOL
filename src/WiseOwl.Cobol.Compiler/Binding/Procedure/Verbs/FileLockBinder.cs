@@ -67,7 +67,7 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
     /// INDEPENDENT selection from the retention bracket. Enforces the two syntax rules that name the phrase:
     /// <list type="bullet">
     /// <item>SR3 — <i>"The LOCK phrase shall not be specified in the same READ statement as the IGNORING LOCK
-    /// phrase."</i> ⚠ "The LOCK phrase" is WITH LOCK and NOT WITH NO LOCK: §2023:14.9.30.4 GR11b names "the NO LOCK
+    /// phrase."</i> ⚠ "The LOCK phrase" is WITH LOCK and NOT WITH NO LOCK: §2023:14.9.30.4 GR11 b) names "the NO LOCK
     /// phrase" and GR11 d) "the LOCK phrase" as different phrases in this same statement, so
     /// <c>IGNORING LOCK WITH NO LOCK</c> is legal and shall compile.</item>
     /// <item>SR4 — the AUTOMATIC-locking ban lists IGNORING LOCK among its three phrases, so it applies here too.

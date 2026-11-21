@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A RECEIVING OBJECT PROPERTY IS ACCESSED WHEN ITS STATEMENT REACHES IT — ONE CLAIM, ONE PLACEMENT (kb/Work PB2078).
-/// ISO §2023:14.7.7 GR4b stores an arithmetic statement's result in each receiver "in the left-to-right order" with "Item
+/// ISO §2023:14.7.7 4) b) stores an arithmetic statement's result in each receiver "in the left-to-right order" with "Item
 /// identification for the receiving data items … done as each data item is accessed"; §2023:14.9.25.4 GR1 says the same of
 /// MOVE. A property is its data item's stand-in (§2023:8.4.3.9.4), so its GET and SET go around ITS access and store. The
 /// pair of facts that makes that automatic for the next arithmetic statement is structural, and this pins it:
@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///     each target through <c>Receive</c>;</item>
 ///   <item>nobody else claims: a claim from a binder whose emitter never calls <c>Receive</c> would fail the compilation
 ///     of a legal program (<c>ReceiverBracketEmitter.Emit</c> throws on an unplaced bracket);</item>
-///   <item>a statement that identifies its receivers at its START (ISO §2023:14.6.4 GR7: STRING, UNSTRING, CALL) opens their
+///   <item>a statement that identifies its receivers at its START (ISO §2023:14.6.4 7): STRING, UNSTRING, CALL) opens their
 ///     brackets there (<c>ReceiverBracketEmitter.Identify</c>), so a subscript an earlier receiver changes does not move a
 ///     later one, and SETs each with its store, before its phrase bodies;</item>
 ///   <item>a statement with no phrase body that identifies at its start (INSPECT) claims nothing: the statement-level
@@ -90,7 +90,7 @@ public sealed class ReceiverBracketDriftTests
         Assert.Contains("brackets.Identify(receivers);", call);
         // The bare arm, the successful-return arm and the accessor-less arm (which closes nothing and only marks it placed).
         Assert.Equal(3, Regex.Matches(call, @"brackets\.Settle\(receivers\);").Count);
-        // ⛔ The successful-return SET runs AFTER the activation's catch arms, never inside its try (§2023:14.9.4.4 GR3i: a
+        // ⛔ The successful-return SET runs AFTER the activation's catch arms, never inside its try (§2023:14.9.4.4 3) i): a
         // condition the SET method raises arises after a successful call; CallPropertyReceiverPartitionTests).
         int guarded = call.IndexOf("using (w.Block($\"if ({called})\")) brackets.Settle(receivers);", StringComparison.Ordinal);
         Assert.True(guarded > call.LastIndexOf("catch (CobolCallException __cp", StringComparison.Ordinal),

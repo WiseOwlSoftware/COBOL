@@ -248,7 +248,7 @@ public sealed class GlobalNameClassDriftTests
     /// <summary>⛔ THE METHOD TIER ASKS EVERY NAME INDEX OF THE METHOD (the kb/Work PB3165 merge-queue bounce). A method
     /// is a source element of its own (§2023:10.5), its names the NEAREST tier a reference in it can reach, so a method's
     /// declaration of a spelling in ANY name class hides the class's constant-name or symbolic-character of it
-    /// (§2023:8.4.6.1, §2023:8.4.6.2.1 GR3a). When PB3165 moved a method's CAPACITY registers out of the binder's index into
+    /// (§2023:8.4.6.1, §2023:8.4.6.2.1 3) a)). When PB3165 moved a method's CAPACITY registers out of the binder's index into
     /// the method's own register index (since listing step 6b <c>SymbolTable.MethodNames</c>), the binder's hand-written method predicate kept asking the
     /// old index, and <c>conformance-suite/cases/_unassigned/pb3154_half_capacity_register_hides_symbolic.cob</c> displayed the
     /// figurative <c>CCC</c> for the method's own register. Every table of a method is the symbol table's
@@ -308,7 +308,7 @@ public sealed class GlobalNameClassDriftTests
                 + "method-local name of the spelling in another name class would not hide the object's (ISO §2023:11.7.4 GR5).");
     }
 
-    /// <summary>⛔ A REPORT SECTION ENTRY TAKES PART IN §2023:8.4.6.2.1 GR3 IN THE ONE NARROWING, NEVER IN A CALLER (kb/Work
+    /// <summary>⛔ A REPORT SECTION ENTRY TAKES PART IN §2023:8.4.6.2.1 3) IN THE ONE NARROWING, NEVER IN A CALLER (kb/Work
     /// PB4196). A report entry is a data-name of the source element that declares its report (§2023:8.4.2.2.3 SR1), so "if the
     /// name is declared in source element B, the item in source element B is the referenced item" ranks it with the data
     /// items: a contained program's report entry <c>PV</c> hides its container's GLOBAL <c>PV</c>. The lookup took a lone
@@ -332,7 +332,7 @@ public sealed class GlobalNameClassDriftTests
             .ToList();
         Assert.True(bare.Count == 0,
             "a lookup outside SymbolTable calls NearestDeclaring directly, skipping the report entries a nearer source element "
-            + $"declares (use NearestDeclaringData / NearestDeclaringConditions, ISO §2023:8.4.6.2.1 GR3a): "
+            + $"declares (use NearestDeclaringData / NearestDeclaringConditions, ISO §2023:8.4.6.2.1 3) a)): "
             + string.Join(", ", bare.Select(Path.GetFileName)));
 
         // Every narrowing asks the ONE resolver (kb/Work PB5975), whose ReportEntry arm reads the report entries

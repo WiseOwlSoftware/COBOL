@@ -150,7 +150,7 @@ internal enum ArgPredicateKind
     NotStrongGroup,
     /// <summary>"shall be of CATEGORY alphanumeric or national" (§2023:15.68.3 r1 and, through §2023:15.94.3 r1,
     /// TEST-NUMVAL-C; §2023:15.67.3 r1 / §2023:15.69.3 r1 say "an alphanumeric or national … data item", which §2023:8.5.2.1's
-    /// closing sentence and §2023:8.5.2.3 GR4 / §2023:8.5.2.10 GR4 — "Such an item is referred to as an alphanumeric [a
+    /// closing sentence and §2023:8.5.2.3 4) / §2023:8.5.2.10 4) — "Such an item is referred to as an alphanumeric [a
     /// national] data item", each item listed being of that CATEGORY — read as the category) — the
     /// FINER axis under the position's class kind (kb/Work PB658). Table 2 puts the edited categories
     /// (numeric-edited, alphanumeric-edited, national-edited) in class alphanumeric or national, so the class kind
@@ -507,8 +507,8 @@ internal static partial class IntrinsicArgumentRules
     /// <see cref="ClassOfPlace"/>'s answer through <see cref="Name"/>, so a message never states a class of its own.
     /// <para>⛔ ONE RULE, ONE PLACE (kb/Work PB1400). <c>ExpressionBinder.NonNumericOperandKind</c> spelled the class
     /// itself — <c>"group item … (class alphanumeric, ISO §2023:8.5)"</c> for EVERY group and <c>"class alphanumeric"</c>
-    /// for every reference-modified operand — so a <c>GROUP-USAGE BIT</c> group (class boolean, §2023:8.5.2.5 GR3), a
-    /// <c>GROUP-USAGE NATIONAL</c> group (class national, §2023:8.5.2.10 GR3) and a reference-modified national item
+    /// for every reference-modified operand — so a <c>GROUP-USAGE BIT</c> group (class boolean, §2023:8.5.2.5 3)), a
+    /// <c>GROUP-USAGE NATIONAL</c> group (class national, §2023:8.5.2.10 3)) and a reference-modified national item
     /// (class national, §2023:8.4.3.3.4 GR6 b)/c)) were each told they were alphanumeric while LENGTH, MOVE and the
     /// class screen itself read them correctly.</para>
     /// <para>⚠ The ONE place this differs from <see cref="ClassOfItem"/> is the strongly-typed group, and it is
@@ -699,7 +699,7 @@ internal static partial class IntrinsicArgumentRules
     /// ⛔ <see cref="CobolClass"/> IS NOT THE CLASS COLUMN. One of its members is FINER than the class it
     /// belongs to, kept apart on purpose so a CATEGORY-worded rule can see the category Table 2 folds away:
     /// <see cref="CobolClass.NumericEditedDeEditing"/> is category numeric-edited, whose CLASS is alphanumeric.
-    /// §2023:8.4.3.3.4 GR6c says it in words — "the categories numeric and numeric-edited are considered class and
+    /// §2023:8.4.3.3.4 GR6 c) says it in words — "the categories numeric and numeric-edited are considered class and
     /// category national if the usage is national; otherwise they are considered class and category
     /// alphanumeric" — and §2023:8.5.2.1's own closing sentence is why the distinction has to exist at all: "Use of
     /// the name of a data class or data category in the rules of COBOL refers to the category unless class is
@@ -838,7 +838,7 @@ internal static partial class IntrinsicArgumentRules
     /// <summary>The words that say WHY a function-identifier of <paramref name="category"/> is not usage display or
     /// national — the one spelling STRING and INSPECT put in their diagnostic (ISO §2023:15.2 2), 4), 5), 6)).</summary>
     public static string FunctionUsageReason(PicCategory category) => category == PicCategory.Boolean
-        ? "a boolean function, which §2023:15.2 GR2 gives the implicit usage bit"
+        ? "a boolean function, which §2023:15.2 2) gives the implicit usage bit"
         : "a numeric, integer or index function, to which §2023:15.2 4), 5) and 6) give no usage";
 
     /// <summary>ONE kind for every position — the shape most §15.x.3 argument rules actually have ("argument-1
@@ -1130,7 +1130,7 @@ internal static partial class IntrinsicArgumentRules
             // The NUMVAL family — argument-1 "an alphanumeric or national literal or … data item":
             // ⛔ CATEGORY vs CLASS, ROW BY ROW (kb/Work PB658). §2023:15.67.3 r1 / §2023:15.69.3 r1 say "an alphanumeric or
             // national … data item" and §2023:15.68.3 r1 says "of category alphanumeric or national": the CATEGORY
-            // column (§2023:8.5.2.1's closing sentence; §2023:8.5.2.3 GR4 / §2023:8.5.2.10 GR4 name the data item by category), so
+            // column (§2023:8.5.2.1's closing sentence; §2023:8.5.2.3 4) / §2023:8.5.2.10 4) name the data item by category), so
             // the edited categories are out — the CharacterCategory predicate. §2023:15.93.3 r1 and §2023:15.95.3 r1 say "a
             // data item of CLASS alphanumeric or national", which Table 2 gives numeric-edited (display), so the
             // two TEST- twins of the class-worded kind carry NO predicate; the golden
@@ -1612,7 +1612,7 @@ internal static partial class IntrinsicArgumentRules
     /// to lead with it. It defines the term for an identifier operand as "a <b>fixed-point</b> numeric data
     /// item, other than an intrinsic function, whose description does not include any digit positions to the
     /// right of the radix point" (--check verified), which is exactly this arm plus the scale arm in one
-    /// sentence — but §2023:5.5 SR2 scopes itself to "a syntax rule", and §2023:5.3.1 says "Except for intrinsic
+    /// sentence — but §2023:5.5 2) scopes itself to "a syntax rule", and §2023:5.3.1 says "Except for intrinsic
     /// functions, rules are categorized as syntax rules and general rules. Intrinsic functions have argument
     /// rules and returned value rules INSTEAD". §2023:15.15.3 r1 ("Argument-1 shall be an integer") is an ARGUMENT
     /// rule, so §2023:5.5 reaches it only as the standard's own usage of the word, never as its definition here.
@@ -1794,7 +1794,7 @@ internal static partial class IntrinsicArgumentRules
         // stores 0.9999, so an argument proved integral by the fold alone was rewritten to the literal 1 (`IntegralForm`) and
         // `FUNCTION ABS (1 / 3 * 3)` returned 1 where `COMPUTE X = 1 / 3 * 3` stores 0.9999. A quotient whose exact value has a
         // non-terminating decimal expansion, or a terminating one longer than the fraction digits the arithmetic keeps
-        // (`1 / 1048576 * 1048576`, PB4794), therefore voids the proof (§2023:15.3 AR6 asks for an expression that "will always result in
+        // (`1 / 1048576 * 1048576`, PB4794), therefore voids the proof (§2023:15.3 6) asks for an expression that "will always result in
         // an integer value", and that value is the one the arithmetic produces); the argument stays a Numeric one and the type 6 screen does not prove it (it is undecided, kb/Work PB5889: its exact value is 1, so it is checked at run time).
         _ when ExactValue(e) is { } v => v.IsInteger && QuotientsAreExact(e),
         // Category NUMERIC only: any other operand an extension admits (a de-edited numeric-edited item, say) is
@@ -1821,7 +1821,7 @@ internal static partial class IntrinsicArgumentRules
     };
 
     /// <summary>⛔ THE SCALE-0 FORM OF AN ARGUMENT THAT <see cref="ProvablyIntegral"/> PROVED INTEGRAL (kb/Work PB4709, review R1-1).
-    /// An integer function "has an operational sign and no digits to the right of the decimal point" (§2023:15.2 GR5), and ABS, MAX, MIN,
+    /// An integer function "has an operational sign and no digits to the right of the decimal point" (§2023:15.2 5)), and ABS, MAX, MIN,
     /// RANGE and SUM return their argument's value at the argument's own scale, so an argument integral by VALUE but written with
     /// fraction digits (<c>I2 + 1.0</c>, <c>1.5 + 0.5</c>, <c>4 / 2</c>) would return <c>4.0</c> from a function whose type says it has
     /// none: <c>MOVE FUNCTION ABS(I2 + 1.0) TO A10</c> stored <c>4.0</c>. The rewrite replaces every integral-valued subtree WRITTEN with

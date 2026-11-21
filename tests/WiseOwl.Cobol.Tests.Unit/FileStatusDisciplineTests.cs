@@ -20,7 +20,7 @@ public sealed class FileStatusDisciplineTests
     private const int SeqAccess = 0;   // KeyedAccess.Sequential
 
     /// <summary>A relative ACCESS SEQUENTIAL connector loaded with <paramref name="records"/> and reopened I-O
-    /// — the §2023:9.1.13.7 GR3 DELETE-gate scenario's starting state.</summary>
+    /// — the §2023:9.1.13.7 3) DELETE-gate scenario's starting state.</summary>
     private static (FileRegistry reg, string host) SeqRelativeIo(params string[] records)
     {
         var reg = new FileRegistry();
@@ -33,7 +33,7 @@ public sealed class FileStatusDisciplineTests
         return (reg, host);
     }
 
-    // §2023:9.1.13.7 GR3: UNLOCK is in §2023:9.1.13.1's statement set, so a READ / UNLOCK / DELETE sequence must answer
+    // §2023:9.1.13.7 3): UNLOCK is in §2023:9.1.13.1's statement set, so a READ / UNLOCK / DELETE sequence must answer
     // '43' — the record survives and a fresh READ re-arms the gate. (The old hand-cleared flag survived
     // UNLOCK: the DELETE answered '00' and removed the record.)
     [Fact]
@@ -54,7 +54,7 @@ public sealed class FileStatusDisciplineTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    // §2023:9.1.13.7 GR3 + item 1: the already-open OPEN ('41') is an executed input-output statement — the third
+    // §2023:9.1.13.7 3) + item 1: the already-open OPEN ('41') is an executed input-output statement — the third
     // leak site (the '41' arm returned before the hand reset ran).
     [Fact]
     public void ReadGate_AlreadyOpen41DropsIt_DeleteIs43()
@@ -70,7 +70,7 @@ public sealed class FileStatusDisciplineTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    // §2023:9.1.13.7 GR3: DELETE FILE (on the open connector — '41', §2023:14.9.10.4 GR13) likewise drops the gate.
+    // §2023:9.1.13.7 3): DELETE FILE (on the open connector — '41', §2023:14.9.10.4 GR13) likewise drops the gate.
     [Fact]
     public void ReadGate_DeleteFile41DropsIt_DeleteIs43()
     {
@@ -186,7 +186,7 @@ public sealed class FileStatusDisciplineTests
     }
 
     // §2023:14.9.10.4 GR17 vs §2023:9.1.13.6 item 1: a medium that refuses deletion (Windows ERROR_WRITE_PROTECT,
-    // Unix EROFS) is '37'; the host's SHARING refusal is §2023:9.1.13.9 GR2's '62' (kb/Work PB860 — this assertion
+    // Unix EROFS) is '37'; the host's SHARING refusal is §2023:9.1.13.9 2)'s '62' (kb/Work PB860 — this assertion
     // used to pin ERROR_SHARING_VIOLATION as the "other" case and so held the '30' defect green); any other
     // IOException stays the generic '30'.
     [Fact]

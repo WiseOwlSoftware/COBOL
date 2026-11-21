@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ISO §2023:5.5 SR1 — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and associated rules, it
+/// ISO §2023:5.5 1) — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and associated rules, it
 /// refers to a fixed-point integer literal that shall be unsigned and nonzero unless otherwise specified in the
 /// associated rules" — enforced by the ONE screen, <c>Validation/IntegerOperandPass</c> (COBOL2386, kb/Work
 /// PB859). The rejections sample the DEFAULT across divisions (a data clause, a file clause, a statement, a

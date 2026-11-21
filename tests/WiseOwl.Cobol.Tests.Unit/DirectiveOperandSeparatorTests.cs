@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO §2023:8.3.5 SR2: "The COBOL characters comma and semicolon, immediately followed by a space, are separators that may be
+/// ISO §2023:8.3.5 2): "The COBOL characters comma and semicolon, immediately followed by a space, are separators that may be
 /// used anywhere the separator space is used" — read ONCE for every directive operand, by the directive-line parse
 /// (<see cref="CompilerDirectiveLine"/>), and not by each stage's tokenizer (kb/Work PB1373). Every stage that splits its
 /// operand on the space used to reject the legal spelling.
@@ -56,7 +56,7 @@ public sealed class DirectiveOperandSeparatorTests
     }
 
     [Fact] // the closed-word rows too: the central COBOL1911 check reads the same operand, and the separator may stand
-    // right after the directive word itself, where a space would (§2023:8.3.5 SR2).
+    // right after the directive word itself, where a space would (§2023:8.3.5 2)).
     public void ClosedWordRow_TakesASeparatorAfterTheDirectiveWord()
     {
         var bag = new DiagnosticBag();

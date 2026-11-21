@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 public sealed class LiteralScreenTests
 {
     /// <summary>Laid out in FIXED form (<see cref="FixedFormLayout"/>): an 8,192-position literal cannot be written on
-    /// one free-form line (§2023:6.1 SR3a — at most 255 positions, COBOL2653) and is continued as fixed form continues it.</summary>
+    /// one free-form line (§2023:6.1 3) a) — at most 255 positions, COBOL2653) and is continued as fixed form continues it.</summary>
     private static string Program(string id, string data, string proc, string special = "", bool classic = false) =>
         FixedFormLayout.Source("IDENTIFICATION DIVISION.\nPROGRAM-ID. " + id + ".\n"
         + (special.Length > 0 ? "ENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\n" + special + "\n" : "")

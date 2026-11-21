@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ VARIANCE, STANDARD-DEVIATION, PRESENT-VALUE AND ANNUITY OVER A NESTED SELECTION OF A FLOAT ITEM ARE BINARY64 (kb/Work PB4979;
-/// docs/CONFORMANCE.md DOC-A.1-92b). MAX returns "the content of the argument" (§2023:15.59.4 RV1), so a float item's content may reach these
+/// docs/CONFORMANCE.md DOC-A.1-92b). MAX returns "the content of the argument" (§2023:15.59.4 1)), so a float item's content may reach these
 /// bodies as an exact value carrying the item's binary64 (<see cref="CobolExact.TryBinary64"/>); the body then evaluates the equivalent
 /// arithmetic expression in binary64 as the float lane does for the item written directly, and the value is an approximation (the
 /// floating-math family: it lands by its shortest round-trip decimal). A list of fixed-point values stays exact. The expected values are

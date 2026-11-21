@@ -27,7 +27,7 @@ using Core = CobolParserCore;
 /// alphanumeric (the X"…" hexadecimal format included, §2023:8.3.3.2), boolean or national, a figurative constant
 /// (SR1: "a figurative constant may be specified as one or both operands"), or one of the two WORDS that stand for
 /// a literal: a constant-name (§2023:13.10.3 SR2 — "anywhere that a format specifies a literal of the class and category
-/// of constant-name-1") and a symbolic-character, which §2023:12.3.7.4 GR11a makes a figurative constant. The words
+/// of constant-name-1") and a symbolic-character, which §2023:12.3.7.4 GR11 a) makes a figurative constant. The words
 /// resolve through the fold's <see cref="LiteralEnvironment"/>.</para>
 /// <para><b>The class is a LEFT FOLD, not a vote.</b> The grammar flattens the left-recursive format to
 /// <c>operand (&amp; operand)+</c>, so <c>a &amp; b &amp; c</c> IS <c>(a &amp; b) &amp; c</c>, and §2023:8.8.3.3 GR1 is
@@ -320,7 +320,7 @@ internal static class ConcatFolder
                 + "concatenation-expression operand shall be of class alphanumeric, boolean, or national (ISO §2023:8.8.3.2 SR1)");
             return Term.Refusal(word);
         }
-        // §2023:12.3.7.4 GR11a: a symbolic-character is a figurative constant — one character here (§2023:8.3.3.6.4 GR3a).
+        // §2023:12.3.7.4 GR11 a): a symbolic-character is a figurative constant — one character here (§2023:8.3.3.6.4 GR3a).
         if (env.IsSymbolicCharacter(word))
         {
             if (env.RefusesSymbolicCharacters)

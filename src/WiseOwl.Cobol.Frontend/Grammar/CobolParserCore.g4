@@ -283,7 +283,7 @@ defaultRoundedClause
 // `reservedGatedWord`. §2023:5.2.2: "Keywords are reserved words or context-sensitive words … required in order to
 // select the functionality associated with that keyword"; §2023:5.2.3 makes the uncapitalized ones optional words. A
 // word standing where its own general format prints it is a USE OF that word, never the user-defined word or
-// system-name §2023:8.3.2.1 SR1 governs — so a keyword slot may not borrow `cobolWord` (DESIGN-frontend-grammar
+// system-name §2023:8.3.2.1 rule 1 governs — so a keyword slot may not borrow `cobolWord` (DESIGN-frontend-grammar
 // "A KEYWORD SLOT MAY NOT BORROW cobolWord"), whose every occurrence the §2023:8.9 funnel screens as a name.
 // Some keywords cannot take a lexer token (LOCALE must stay a bare word inside `LOWER-CASE(x LOCALE …)`, which
 // IntrinsicBinder reads by text; the LC_ categories and CLASSIFICATION are §2023:8.10 context-sensitive), so they ride
@@ -306,7 +306,7 @@ entryConventionClause
     ;
 
 // { COBOL | entry-convention-name-1 } — COBOL is the format's KEYWORD (a formatWord, kb/Work PB764);
-// entry-convention-name-1 is a SYSTEM-NAME (§2023:8.3.2.3.1), which §2023:8.3.2.1 SR1 forbids a reserved word to be, so it
+// entry-convention-name-1 is a SYSTEM-NAME (§2023:8.3.2.3.1), which §2023:8.3.2.1 rule 1 forbids a reserved word to be, so it
 // stays a cobolWord the §2023:8.9 funnel screens.
 entryConventionName
     : {wordAhead("COBOL")}? formatWord
@@ -800,10 +800,10 @@ qualification
 // stay ONE reference whose qualifier chain the resolver splits by symbol (ReferenceResolver.ResolveObjectProperty —
 // a property-name is not a qualifier, and only the declared names tell the two apart). What a word chain cannot spell
 // is THIS suffix: SELF, SUPER (§2023:8.4.3.8.3 SR3 names "the object in an object-property identifier" as one of SUPER's
-// two homes, and `object-class-name-1 OF SUPER` is the chain `name OF SUPER`), an object-view (§2023:8.4.3.1.4 GR1c
+// two homes, and `object-class-name-1 OF SUPER` is the chain `name OF SUPER`), an object-view (§2023:8.4.3.1.4 GR1 c)
 // applies a view before d) applies OF, so `P OF U AS C` is P of the view), a function-identifier, and NULL — refused
 // by §2023:8.4.3.9.3 SR2 by name, the P3 superset parse. It FOLLOWS `qualification` so ANTLR's lowest-alternative choice
-// keeps `P OF A OF U AS C` a property of `U AS C` (the view binds to the identifier on its left, §2023:8.4.3.1.4 GR1c).
+// keeps `P OF A OF U AS C` a property of `U AS C` (the view binds to the identifier on its left, §2023:8.4.3.1.4 GR1 c)).
 propertyObject
     : OF (objectView | SELF | SUPER | predefinedNull | functionCall)
     ;
@@ -824,7 +824,7 @@ propertyObject
 // resolved symbol says whether the word before it names a function or a table), so an item is ALL or any
 // functionArgument: the superset parse. The binder decides which the reference is and screens the items against that
 // reading — a subscript must be an arithmetic expression or ALL (ReferenceResolver), an argument whatever its function
-// admits (IntrinsicBinder) — and a bare COMMA (no space after it, so no separator: §2023:8.3.5 SR2) parses so SeparatorRule
+// admits (IntrinsicBinder) — and a bare COMMA (no space after it, so no separator: §2023:8.3.5 2)) parses so SeparatorRule
 // can name it (COBOL2631) instead of a raw parse error.
 // ⛔ THE GROUP MAY BE EMPTY (kb/Work PB969). §2023:8.4.3.2.2 prints the argument list `[ ( [ {argument-1 | OMITTED} ] … ) ]`
 // — the arguments bracketed INSIDE the parentheses, so `F()` is the zero-argument spelling, and for a function-pointer
@@ -946,7 +946,7 @@ paragraphName
 
 // A procedure-name (§2023:14.4.1: "a word used to refer to a paragraph or section") is a user-defined word (§2023:8.3.2.2),
 // in a DEFINITION (sectionName / paragraphName above) and in every REFERENCE (PERFORM, GO TO, ALTER, RESUME AT,
-// the SORT / MERGE procedures) alike, and §2023:8.3.2.1 SR1 "Reserved words shall not be used as user-defined words or
+// the SORT / MERGE procedures) alike, and §2023:8.3.2.1 1) "Reserved words shall not be used as user-defined words or
 // system-names" holds in both. The `reservedGatedWord` alternative keeps a reservation-gated word parseable HERE,
 // in the one rule every procedure-name slot shares, so the slot itself answers for the word (kb/Work PB4206):
 // - where §2023:8.9 RESERVES it, the match stands and VersionConformancePass.VisitReservedGatedWord answers the
@@ -1077,7 +1077,7 @@ statement
 // that names data items EXEC, SQL and END-EXEC parses as written. Only EmbeddedBlockReading mints EMBEDDED_BLOCK, before
 // the parse, for a source whose every EXEC opens a block: the block becomes this one token where a statement may begin, so
 // a block that is the only statement of an IF, an ELSE, a WHEN or an inline PERFORM leaves that construct whole and draws
-// no cascade (§2023:14.9.19.3 SR1: statement-1 and statement-2 are statements); CobolErrorStrategy consumes it as nothing where
+// no cascade (§2023:14.9.19.3 1): statement-1 and statement-2 are statements); CobolErrorStrategy consumes it as nothing where
 // no statement may begin. A keyword-token-led arm of a token no source can spell, so no decision's lookahead changes. The
 // node never reaches the binder: EmbeddedBlockReading reports COBOL5818 for it, an error, and such a source never parses.
 embeddedBlockStatement
@@ -2177,7 +2177,7 @@ resumeStatement
 // PDF page 661 (GOBACK, folio 631) and PDF page 653 (EXIT Format 2, folio 623): `RAISING`, `LAST` and the
 // FIRST `EXCEPTION` are underlined; the `EXCEPTION` after `LAST` is NOT, and §2023:5.2.3 makes a non-underlined
 // uppercase word an optional word. `GOBACK RAISING LAST.` and `EXIT PROGRAM RAISING LAST.` are therefore legal
-// and were rejected outright. §2023:7.3.21.4 GR2 is third-party evidence inside the standard: the PROPAGATE rule
+// and were rejected outright. §2023:7.3.21.4 rule 2 is third-party evidence inside the standard: the PROPAGATE rule
 // writes the phrase back as "as though a GOBACK RAISING LAST statement were executed".
 // ⛔ identifier-1 IS THE OBJECT-REFERENCE OPERAND RULE, NOT A BARE `dataReference` (kb/Work PB1425): §2023:14.9.18.3 SR4 /
 // §2023:14.9.14.3 SR5 ask "Identifier-1 shall be an object reference", a CLASS question §2023:8.4.3.1.3 SR1 lets any identifier

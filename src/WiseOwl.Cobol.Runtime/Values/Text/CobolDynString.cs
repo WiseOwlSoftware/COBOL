@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// dynamic-length item read as a SENDER, in a comparison, under reference modification, or in FUNCTION
 /// LENGTH/BYTE-LENGTH uses the plain string at its current length (§2023:8.5.1.10.4) — through <see cref="Agree"/> when
 /// the read's description does not own the storage (a LINKAGE formal, a shared cell-backed member), whose
-/// DYNAMIC LENGTH clause the content may not agree with (§2023:14.6.13.2 GR5, kb/Work PB1118).
+/// DYNAMIC LENGTH clause the content may not agree with (§2023:14.6.13.2 rule 5, kb/Work PB1118).
 /// <para>⛔ EVERY entry point takes the item's MAXIMUM SIZE (§2023:8.5.1.10.1), never "the LIMIT phrase or a sentinel".
 /// <see cref="MaxSizeOf"/> is the ONE place that rule is written, and <see cref="MaxLength"/> is the implementor
 /// maximum it falls back to — so a dynamic-length item ALWAYS has a real bound and the <c>(int)</c> narrowings
@@ -67,7 +67,7 @@ public static class CobolDynString
 
     /// <summary>
     /// The SENDING read of a dynamic-length item whose storage another description may have written (ISO
-    /// §2023:14.6.13.2 GR5, kb/Work PB1118): "When the internal format of a dynamic-length elementary item is not
+    /// §2023:14.6.13.2 rule 5, kb/Work PB1118): "When the internal format of a dynamic-length elementary item is not
     /// correctly formed or does not agree with the corresponding DYNAMIC LENGTH clause an EC-DATA-INCOMPATIBLE
     /// exception condition is set to exist." <paramref name="maxSize"/> is THIS description's §2023:8.5.1.10.1 maximum
     /// size; content longer than it does not agree, and with EC-DATA-INCOMPATIBLE checking enabled the fatal
@@ -86,7 +86,7 @@ public static class CobolDynString
         if (value.Length > maxSize && ExceptionState.DataIncompatibleChecking)
             ExceptionState.DataIncompatibleError(
                 $"a dynamic-length item holds {value.Length} characters and its DYNAMIC LENGTH clause allows at most "
-                + $"{maxSize} (ISO §2023:14.6.13.2 GR5)");
+                + $"{maxSize} (ISO §2023:14.6.13.2 rule 5)");
         return value;
     }
 

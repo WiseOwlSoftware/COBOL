@@ -58,7 +58,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// </remarks>
 public static partial class CobolIntrinsics
 {
-    // ── NATIVE EXPONENTIATION (ISO §2023:8.8.1.2 GR6; fix-queue PB18 + PB28) ──────────────────────────────────────
+    // ── NATIVE EXPONENTIATION (ISO §2023:8.8.1.2 rule 6; fix-queue PB18 + PB28) ──────────────────────────────────────
 
     /// <summary>
     /// ⛔ THE §2023:8.8.1.2 RULE-6 SCREEN, WRITTEN ONCE FOR EVERY NATIVE ARM (fix-queue PB28).

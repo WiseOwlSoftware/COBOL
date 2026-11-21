@@ -46,7 +46,7 @@ public sealed partial class SpecialNamesBinder
             ? (s.Value, s.National) : null;
 
     /// <summary>Whether a nearer declaration of <paramref name="word"/> hides the symbolic-character of that spelling
-    /// (§2023:8.4.6.1, §2023:8.4.6.2.1 GR3; kb/Work PB3154 review R1-1): an inherited one a nearer source element's data-,
+    /// (§2023:8.4.6.1, §2023:8.4.6.2.1 3); kb/Work PB3154 review R1-1): an inherited one a nearer source element's data-,
     /// condition- or index-name hides (<see cref="InheritStep.DropShadowed"/>), or any one the method being bound
     /// declares a name of (<see cref="OoDataBinder.ActiveMethodDeclares"/>). Asked by every symbolic lookup, the resolving and the
     /// predicate alike, so they cannot disagree.</summary>
@@ -197,7 +197,7 @@ public sealed partial class SpecialNamesBinder
         {
             string symName = names[i].GetText();
             _host.DeclareUserWord(symName, UserWordKind.SymbolicCharacter);   // §2023:8.3.2.2 (kb/Work PB1083)
-            // integer-1 is an INTEGERLIT — unsigned digits by the grammar (§2023:5.5 SR1) — or an integer constant-name
+            // integer-1 is an INTEGERLIT — unsigned digits by the grammar (§2023:5.5 1)) — or an integer constant-name
             // (§2023:13.10.3 SR2, read by the same reader: kb/Work PB1948) — so only its magnitude can be wrong. ⛔ It used to be read with `int.TryParse` and a failure `continue`d: an ordinal too long
             // for an int bound NOTHING and drew NO diagnostic, and the name then surfaced as "not defined" at
             // its first use (kb/Work PB1557's sibling). It is an integer-n, so it is read by THE ONE integer-n

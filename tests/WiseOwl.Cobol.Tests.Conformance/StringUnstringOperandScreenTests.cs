@@ -141,7 +141,7 @@ public sealed class StringUnstringOperandScreenTests
         Refuses("PB1182" + pid, "", statement, "COBOL1626", "numeric one without the symbol P", fromEdition: 85);
 
     /// <summary>§2023:14.9.48.3 SR4 on the GROUP receivers the screen used to exempt wholesale: a BIT group is class and
-    /// category boolean (§2023:13.18.29.4 GR1a) and a strongly-typed group's category is its type-name (§2023:8.5.2.1) —
+    /// category boolean (§2023:13.18.29.4 GR1 a)) and a strongly-typed group's category is its type-name (§2023:8.5.2.1) —
     /// neither is "usage display and category alphabetic, alphanumeric, or numeric".</summary>
     [Theory]
     [InlineData("U4C", BitGroup, "UNSTRING S DELIMITED BY \",\" INTO BG M.")]

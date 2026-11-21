@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Binding;
 /// (<c>IndexCandidates</c> returns null; without this every index-first consumer would silently
 /// bind the subscript/SET target to the OBJECT's index cell — a torn read/write of the wrong storage).</item>
 /// <item>§2023:11.7.4 GR5 index privacy — a method-local index-name has its OWN cell, never the shared global one.</item>
-/// <item>§2023:8.4.6.2.1 GR3 for a CONTAINED program — the unit map holds its own names and every container's global
+/// <item>§2023:8.4.6.2.1 3) for a CONTAINED program — the unit map holds its own names and every container's global
 /// names, each at its nesting depth, and <see cref="NearestDeclaring{T}"/> narrows a qualified candidate set to the
 /// nearest declaring source element (kb/Work PB1047 / PB1243).</item>
 /// </list>
@@ -77,7 +77,7 @@ public sealed partial class SymbolTable
         return false;
     }
 
-    /// <summary>⛔ ISO §2023:8.4.6.2.1 GR3 — THE NEAREST-DECLARING-ELEMENT RULE for data-names and condition-names
+    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) — THE NEAREST-DECLARING-ELEMENT RULE for data-names and condition-names
     /// (kb/Work PB1047 / PB1243), the data-name twin of the index-name table's depth tiers (<c>IndexNameTable.Candidates</c>). A
     /// contained program's name set holds its own names AND every container's global names (rule 1), so after the
     /// reference's qualifiers have been applied over that WHOLE set (rule 1: "the normal rules for qualification …
@@ -107,7 +107,7 @@ public sealed partial class SymbolTable
         return tier;
     }
 
-    /// <summary>⛔ ISO §2023:8.4.6.2.1 GR3 FOR A DATA-NAME REFERENCE — THE ONE NARROWING OF A QUALIFIED SET, in every lookup that has one
+    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) FOR A DATA-NAME REFERENCE — THE ONE NARROWING OF A QUALIFIED SET, in every lookup that has one
     /// (<see cref="TryResolveUnqualified"/>; <see cref="DataNameCandidates"/>, which applies the qualifier walk and passes the
     /// survivors): <see cref="NearestDeclaring{T}"/> keeps the survivors of the nearest declaring source element, and that tier
     /// stands only when no declaration of ANOTHER class of §1985:X.1.3.8.2 GR1's set, reached by the written
@@ -144,7 +144,7 @@ public sealed partial class SymbolTable
 
     /// <summary>Is <see cref="NearestDeclaringConditions"/>' empty answer for <paramref name="candidates"/> (the
     /// level-88s the written <paramref name="qualifiers"/> reach) the work of an ordinary DATA ITEM of the spelling
-    /// declared in a nearer source element (ISO §2023:8.4.6.2.1 GR3a)? A condition-only position then meets a reference that
+    /// declared in a nearer source element (ISO §2023:8.4.6.2.1 3) a))? A condition-only position then meets a reference that
     /// names a data item, which is neither a misqualified condition-name nor an undeclared one (kb/Work PB4219 review
     /// R1-1).</summary>
     private bool NearerDataItemHidesConditions(List<Condition88> candidates, string name, IReadOnlyList<string> qualifiers)
@@ -155,12 +155,12 @@ public sealed partial class SymbolTable
     }
 
     /// <summary>The candidates an UNQUALIFIED data-name reference can name: <see cref="TryResolve"/>'s set narrowed
-    /// by <see cref="NearestDeclaringData"/> (ISO §2023:8.4.6.2.1 GR3 — with no qualifier to apply, the nearest declaring
+    /// by <see cref="NearestDeclaringData"/> (ISO §2023:8.4.6.2.1 3) — with no qualifier to apply, the nearest declaring
     /// source element's items are the whole set, and a report entry of a nearer one hides them all). False when the
     /// word names no data item here, or only items a nearer report entry hides. ⛔ A caller that picks among the
     /// candidates BY KIND (the FUNCTION-POINTER of §2023:8.4.3.2.3 SR4, a dynamic-capacity table) filters THIS set, never the
     /// raw one: filtering first skips a nearer declaration of another kind — or counts a container's hidden global of
-    /// the same kind as a rival — and so resolves the name to an item §2023:8.4.6.2.1 GR3a makes inaccessible (wave 69 Z,
+    /// the same kind as a rival — and so resolves the name to an item §2023:8.4.6.2.1 3) a) makes inaccessible (wave 69 Z,
     /// found by the train-68b review on <c>IntrinsicBinder.FunctionPointerNamed</c>).</summary>
     private bool TryResolveUnqualified(string name, Scope scope, out List<DataItem> items)
     {
@@ -196,7 +196,7 @@ public sealed partial class SymbolTable
 
 
 
-    /// <summary>⛔ ISO §2023:8.4.6.2.1 GR3 FOR A NAME CLASS THAT THE ORDINARY LOOKUPS DO NOT RANK — an index-name
+    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) FOR A NAME CLASS THAT THE ORDINARY LOOKUPS DO NOT RANK — an index-name
     /// (<c>IndexCandidates</c>) or a named CAPACITY register (<c>ReferenceResolver.CapacityRegisterFor</c>), resolved before the
     /// data-name lookup — against EVERY other class of §1985:X.1.3.8.2's set (<see cref="NearestInNameSet"/>): is the spelling,
     /// reached by the written <paramref name="qualifiers"/>, declared in a class other than <paramref name="own"/> in a source element

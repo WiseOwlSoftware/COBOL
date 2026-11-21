@@ -207,7 +207,7 @@ internal static class RecordLayout
     /// times the occurrences of each table level on its path: the most a reference that names the item without subscripts (a whole
     /// table, <c>PlaceBuilder.WholeTable</c>) can hold, which is what X3.23-1985 USE FOR DEBUGGING general rule 15 sizes DEBUG-CONTENTS
     /// by ("large enough to contain the data required by the following general rules"; rule 24 c, kb/Work PB4855). A fixed or OCCURS
-    /// DEPENDING level counts its maximum (§2023:8.5.1.8). A dynamic-capacity level has no maximum (§2023:8.5.1.9.1 GR2, so it counts
+    /// DEPENDING level counts its maximum (§2023:8.5.1.8). A dynamic-capacity level has no maximum (§2023:8.5.1.9.1 2), so it counts
     /// its expected capacity (TO integer-5), else its initial capacity (FROM integer-4), at least one; an image past the register's
     /// width is truncated by the rule 11 move (docs/CONFORMANCE.md D-DEBUG-WHOLE-TABLE (4)). Equal to <see cref="ImageWidth"/> for an
     /// item in no table.</summary>
@@ -434,17 +434,17 @@ internal static class RecordLayout
     public readonly record struct KeyWindow(int Offset, int Bytes, bool FollowsVariable, long MaxEnd);
 
     /// <summary>⛔ THE ONE ANSWER TO "WHERE IS THIS KEY IN THE RECORD, AND HOW FAR CAN IT REACH?" — for a SORT/MERGE
-    /// key (§2023:14.9.40.3 SR6g / §2023:14.9.24.3 SR4g) and an indexed RECORD KEY / ALTERNATE RECORD KEY (§2023:12.4.5.12.3
+    /// key (§2023:14.9.40.3 SR6 g) / §2023:14.9.24.3 SR4 g)) and an indexed RECORD KEY / ALTERNATE RECORD KEY (§2023:12.4.5.12.3
     /// SR4 / §2023:12.4.5.6.3 SR5), whose rules are the same sentence: in a file of variable-length records every key
     /// "shall be contained within the first n bytes of the record, where n equals the minimum record size".
     /// <para>A variable-length record is sent and held as its CONTIGUOUS image (§2023:8.5.1.11.2 — "behaves in all
     /// respects as though it were in fact contiguous with its neighbors"; determination D-FRA), so a key that a
     /// dynamic-length item PRECEDES has no one position (a dynamic-capacity table cannot be in a record —
-    /// §2023:8.5.1.9.1 SR3, COBOL1526; <see cref="FileModel.MaxDynamicExtent"/>): it starts at its offset in the
+    /// §2023:8.5.1.9.1 3), COBOL1526; <see cref="FileModel.MaxDynamicExtent"/>): it starts at its offset in the
     /// record's FIXED run plus whatever those members hold in THIS record. Such a key is
     /// <see cref="KeyWindow.FollowsVariable"/>, its <see cref="KeyWindow.Offset"/> is the FIXED-run offset the
     /// record type's runtime layout (<c>CobolContiguousLayout.Position</c>) starts from, and its
-    /// <see cref="KeyWindow.MaxEnd"/> charges every preceding member its MAXIMUM extent (§2023:13.18.43.4 GR8b) — the
+    /// <see cref="KeyWindow.MaxEnd"/> charges every preceding member its MAXIMUM extent (§2023:13.18.43.4 GR8 b)) — the
     /// furthest byte the key can occupy in any record, which is what "contained within the first n bytes" has to
     /// hold for. Every other key keeps <see cref="OffsetInRecord"/>'s fixed window, unchanged.</para>
     /// <para>Null when the key does not lie in <paramref name="root"/>'s area, or is subject to OCCURS.</para></summary>
@@ -567,12 +567,12 @@ internal static class RecordLayout
     // ⛔ TWO RULES, TWO ENTRY POINTS (kb/Work PB354). One method used to answer both, with the SR6 b) test —
     // "leftmost position coincides AND no longer than the key" — standing in for BOTH the "this IS a record key"
     // question READ asks and the "this is a legal GENERIC key" question START asks. That conflation is what let
-    // §2023:14.9.41.3 SR6b 2.'s class/category/usage condition sit unimplemented behind a doc comment (it has no
+    // §2023:14.9.41.3 SR6 b) 2.'s class/category/usage condition sit unimplemented behind a doc comment (it has no
     // meaning for READ, so it could not be added to the shared body), and it made READ's §2023:14.9.30.3 SR11 — which
     // carries NO generic-key arm at all — accept a short item where the rule names the key itself. The two rules
     // now have one method each, and each names the clause it enforces.
 
-    /// <summary>ISO §2023:14.9.41.3 SR6a / §2023:14.9.30.3 SR11 — the operand IS a prime or alternate record key of
+    /// <summary>ISO §2023:14.9.41.3 SR6 a) / §2023:14.9.30.3 SR11 — the operand IS a prime or alternate record key of
     /// <paramref name="file"/> (−1 = prime, i = the i-th alternate, null = it is not a key of this file): the
     /// declared key item itself, or the item occupying the IDENTICAL byte positions in another record
     /// description entry of the same file. §2023:12.4.5.12.4 GR4 — <i>"the identical byte positions … in any one
@@ -608,7 +608,7 @@ internal static class RecordLayout
         return item;
     }
 
-    /// <summary>ISO §2023:14.9.41.3 SR6b — START's GENERIC key: a data item that is not itself a record key but
+    /// <summary>ISO §2023:14.9.41.3 SR6 b) — START's GENERIC key: a data item that is not itself a record key but
     /// <b>b) 1.</b> whose leftmost character position <i>within a record of the file</i> corresponds to a record
     /// key's leftmost character position, <b>b) 2.</b> which has the same class, category and usage as that
     /// record key, and <b>b) 3.</b> whose length is not greater than that key's. All three conditions are
@@ -618,7 +618,7 @@ internal static class RecordLayout
     /// PB698 transcription repair returned them to their printed level).
     /// <para>b) 1. also requires the key to be <i>"defined without the SOURCE phrase"</i>: a SOURCE-form key
     /// (kb/Work PB1099) has no data item of its own to coincide with, and <see cref="KeyIndexAtOffset"/> passes
-    /// over it — the same exclusion START's §2023:14.9.41.3 SR6a and READ's §2023:14.9.30.3 SR11 get, since a SOURCE-form
+    /// over it — the same exclusion START's §2023:14.9.41.3 SR6 a) and READ's §2023:14.9.30.3 SR11 get, since a SOURCE-form
     /// key is named only by its record-key-name (§2023:14.9.41.3 SR7).</para></summary>
     public static int? GenericKeyIndex(FileModel file, DataItem operand, IReadOnlyList<int> occurrence)
     {
@@ -649,7 +649,7 @@ internal static class RecordLayout
     }
 
     /// <summary>The item's 01 record description entry is one of <paramref name="file"/>'s records — ISO
-    /// §2023:14.9.41.3 SR6b 1.'s <i>"within a record of the file"</i>, and the same predicate the file control
+    /// §2023:14.9.41.3 SR6 b) 1.'s <i>"within a record of the file"</i>, and the same predicate the file control
     /// entry's own key rules are stated on: §2023:12.4.5.12.3 SR2 and §2023:12.4.5.6.3 SR2 REQUIRE it of a record key,
     /// §2023:12.4.5.13.3 SR3 FORBIDS it of the relative key. ONE predicate for all four (<c>FileControlKeyRules</c>).
     /// <para>A null item is NOT in a record of the file — a data-name-1 that referenced nothing describable is a
@@ -666,14 +666,14 @@ internal static class RecordLayout
     private static int? KeyIndexAtOffset(FileModel file, int off, Func<DataItem, bool> admits)
     {
         // Only data-name-1 keys: a SOURCE-form key (Item null) is no data item, so no operand's byte positions are
-        // it (§2023:14.9.41.3 SR6b.1 "defined without the SOURCE phrase"; kb/Work PB1099).
+        // it (§2023:14.9.41.3 SR6 b) 1. "defined without the SOURCE phrase"; kb/Work PB1099).
         if (file.PrimeKey is { Item: { } prime } primeKey && OffsetOf(prime, primeKey.Subscripts) == off && admits(prime)) return -1;
         for (int i = 0; i < file.AlternateKeys.Count; i++)
             if (file.AlternateKeys[i].Key is { Item: { } alt } altKey && OffsetOf(alt, altKey.Subscripts) == off && admits(alt)) return i;
         return null;
     }
 
-    /// <summary>ISO §2023:14.9.41.3 SR6b.2 — <i>"It has the same class, category, and usage as that record key."</i>
+    /// <summary>ISO §2023:14.9.41.3 SR6 b) 2. — <i>"It has the same class, category, and usage as that record key."</i>
     /// Class comes from the ONE §2023:8.5.2.1 Table-2 classifier (<see cref="IntrinsicArgumentRules.ClassOfItem"/>),
     /// never a second copy of that table, and category from the ONE spelling of a Table 2 category
     /// (<see cref="ItemCategory.CategoryName(PicInfo)"/>), which tells alphanumeric-edited and national-edited from

@@ -14,9 +14,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// docs/rearchitecture; kb/Work PB3335). Within a run unit every connector over a physical file attaches to ONE store
 /// (<see cref="StoreTable"/>), so a sibling's change is visible at once; across run units the FILE is the truth, and a
 /// coherent statement learns of another run unit's change by reading ONE page — page 2, the work meta — and, when its
-/// generation moved, adopts page 2 and DROPS the page cache instead of reloading anything. ISO §2023:9.1.15 GR3, <i>"The sharing
+/// generation moved, adopts page 2 and DROPS the page cache instead of reloading anything. ISO §2023:9.1.15 3), <i>"The sharing
 /// with all other mode allows concurrent access to a physical file through other file connectors specifying input, I-O, or
-/// extend mode"</i>; §2023:9.1.15 GR2, <i>"restricts concurrent access to a physical file through file connectors other than this
+/// extend mode"</i>; §2023:9.1.15 2), <i>"restricts concurrent access to a physical file through file connectors other than this
 /// one, to input mode"</i>. Every case runs both organizations, and every expected value is the design text's or a general
 /// rule's, never what the engine happens to do:
 /// <list type="bullet">
@@ -221,7 +221,7 @@ public sealed class StoreCoherenceTests
     }
 
     /// <summary>A reader's entry writes nothing. B's CLOSE is refused at its committed-slot write, so its promotion answers
-    /// '30' (§2023:9.1.13.6 GR1, <i>"A permanent error exists and no further information is available concerning the
+    /// '30' (§2023:9.1.13.6 1), <i>"A permanent error exists and no further information is available concerning the
     /// input-output operation"</i>) and leaves PROMOTING set on page 2 (2.2.1.6 R5). In run unit A, whose store is writable
     /// because its I-O connector A1 is open, the INPUT connector A2 READs: it holds the mutex shared, so it adopts B's
     /// record but writes NOTHING and leaves the flag set. A1's next READ holds the mutex exclusively and resolves it (R5's
@@ -580,7 +580,7 @@ public sealed class StoreCoherenceTests
     /// questions: its release (<c>SequentialConnector.ReleaseRecord</c>'s flush) asks about ANY other connector, a reader
     /// as well as a writer, through the ONE read <c>FileConnector.OtherConnectorsMayShare</c> (kb/Work PB670 review R1-1, which
     /// adds to the mode's answer the COBOL-85 rule that only an open sibling is owed; kb/Work PB1587: §2023:14.9.51.4 GR12 releases the record to the operating environment at the WRITE,
-    /// and §2023:9.1.15 GR2 admits an INPUT reader beside a READ ONLY writer), while its shared append stream (its append
+    /// and §2023:9.1.15 2) admits an INPUT reader beside a READ ONLY writer), while its shared append stream (its append
     /// position), its ordinal count (the release's and the <c>OPEN EXTEND</c>'s) and its reader's re-anchoring ask only
     /// about another WRITER (<see cref="FileLockPosture.AdmitsAnotherWriter"/>).
     /// Behaviourally: a <c>SHARING WITH NO OTHER</c> sequential writer keeps its record in its input-output area until the

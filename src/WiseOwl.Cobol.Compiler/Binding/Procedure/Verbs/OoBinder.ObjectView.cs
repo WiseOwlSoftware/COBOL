@@ -31,7 +31,7 @@ using Core = CobolParserCore;
 internal sealed partial class OoBinder
 {
     /// <summary>Bind one object-view and return the expression that READS it — a <see cref="BoundNumRef"/> over the
-    /// view's temporary. Each AS phrase applies to the identifier on its left (§2023:8.4.3.1.4 GR1c), so a repeated phrase
+    /// view's temporary. Each AS phrase applies to the identifier on its left (§2023:8.4.3.1.4 GR1 c)), so a repeated phrase
     /// re-views the previous view.</summary>
     internal BoundExpr OoBindObjectView(Core.ObjectViewContext ov)
     {
@@ -106,7 +106,7 @@ internal sealed partial class OoBinder
     }
 
     /// <summary>The resolver's view edge (<c>ObjectPropertyResolver.ApplyObjectView</c>): the object-view of a qualified data
-    /// item written as one chain, <c>A OF G AS C</c> (§2023:8.4.3.1.4 GR1a before c)), over the item already resolved.
+    /// item written as one chain, <c>A OF G AS C</c> (§2023:8.4.3.1.4 GR1 a) before c)), over the item already resolved.
     /// §2023:8.4.3.5.3 SR1 asks identifier-1's class here as it does for every other subject. Null having reported.</summary>
     internal Place? OoApplyObjectView(Place subject, Core.ObjectViewContext ov, string written)
     {

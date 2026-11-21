@@ -52,7 +52,7 @@ public sealed class ParseRecoveryHintTruthTests
     }
 
     /// <summary>An explicit scope terminator terminates "the most-recently preceding unterminated statement having the
-    /// statement-name for which that scope terminator is defined" (ISO §2023:14.5.3.2 GR1), so one written where no such
+    /// statement-name for which that scope terminator is defined" (ISO §2023:14.5.3.2 1)), so one written where no such
     /// statement is unterminated draws COBOL0306 naming the statement it lacks, ONCE, on the fault's one report. The
     /// rows from PBHT13 are kb/Work PB3832's review R2-2: where the parse's prediction looked past the terminator (a
     /// statement follows it), the report reads the rules open at the terminator off a re-simulation of the parse, and

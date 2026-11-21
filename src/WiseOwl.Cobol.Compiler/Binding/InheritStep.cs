@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Binding;
 /// ⛔ THE INHERITANCE MERGE of a contained program (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1); kb/Work
 /// PB2296): ISO §2023:13.18.27.4 GR1 ("A constant-name, data-name, file-name, report-name, or screen-name described using a
 /// GLOBAL clause is a global name") and GR2 (a program contained directly or indirectly within the program that describes
-/// a global name "may reference that name without describing it again"), with §2023:8.4.6.2.1 GR3's nearest-declaration rule.
+/// a global name "may reference that name without describing it again"), with §2023:8.4.6.2.1 3)'s nearest-declaration rule.
 /// The containers are read nearest first, and a parent binds before its children, so each container is complete when its
 /// child reads it. Run by <c>BinderDriver.BindUnitData</c> for every program unit, in two halves:
 /// <list type="bullet">
@@ -29,7 +29,7 @@ internal static class InheritStep
     public static void Seed(BoundUnit unit, DataBinder data, ElementBinders binders)
     {
         var inherited = data.State.Inherited;
-        // The containers' GLOBAL reports (§2023:13.18.27.3 SR1e / §2023:13.18.27.4 GR1–GR2; kb/Work PB369) and GLOBAL data roots,
+        // The containers' GLOBAL reports (§2023:13.18.27.3 SR1 e) / §2023:13.18.27.4 GR1–GR2; kb/Work PB369) and GLOBAL data roots,
         // OFFERED here and made visible by the unit's own data division at the end of its declaration half
         // (ReportSectionBinder.InheritContainerReports / InheritContainerGlobalData), so the unit's own clauses that name one
         // (FILE STATUS, RECORD / RELATIVE KEY, OCCURS … DEPENDING ON, ASSIGN … USING) see it (kb/Work PB3766).
@@ -50,7 +50,7 @@ internal static class InheritStep
             data.Symbols.InheritFiles(binders.Of(anc).Data.State.Files.Declared, binders.Of(anc).Data.Linkage.GlobalRoots, depth);
         }
         // The member names every container's GLOBAL root will occupy in this unit's class (kb/Work PB1047): the bridges are
-        // emitted for every global root (Merge), so a LOCAL root spelled like one (the §2023:8.4.6.2.1 GR3a shadowing case)
+        // emitted for every global root (Merge), so a LOCAL root spelled like one (the §2023:8.4.6.2.1 3) a) shadowing case)
         // must take another C# name — its stem too, or a member DERIVED from the stem (a REDEFINES backing) would re-spell
         // the bridge (LinkageBinder.InheritedMemberNamesOf).
         foreach (var (anc, g, _) in ContainerBridgedRootsOf(unit, binders))
@@ -85,14 +85,14 @@ internal static class InheritStep
         }
 
         // Every tier is in place now — this unit's own names and every container's globals — so an inherited constant a
-        // NEARER data-name hides can leave (§2023:8.4.6.2.1 GR3; kb/Work PB1009 / PB1047).
+        // NEARER data-name hides can leave (§2023:8.4.6.2.1 3); kb/Work PB1009 / PB1047).
         DropShadowed(data);
     }
 
     /// <summary>Once <paramref name="data"/>'s DATA DIVISION is bound AND every container's global data is inherited, an
-    /// inherited GLOBAL constant, and an inherited symbolic-character (§2023:12.3.7.4 GR11a, is SHADOWED by a data-name,
+    /// inherited GLOBAL constant, and an inherited symbolic-character (§2023:12.3.7.4 GR11 a), is SHADOWED by a data-name,
     /// condition-name or index-name of the same spelling declared in a NEARER source element — this unit's own, or a nearer
-    /// container's global one — by ISO §2023:8.4.6.2.1 GR3 ("a) If the name is declared in source element B, the item in source
+    /// container's global one — by ISO §2023:8.4.6.2.1 3) ("a) If the name is declared in source element B, the item in source
     /// element B is the referenced item. b) … 1. The item in source element A if the name is declared in source element
     /// A"), so a shadowed constant leaves the table (<see cref="SymbolTable.DropShadowedConstants"/>) before any procedure reference can
     /// substitute it (kb/Work PB1009; the nearer-container half kb/Work PB1047 — an outer program's constant used to beat
@@ -106,7 +106,7 @@ internal static class InheritStep
     {
         data.Symbols.DropShadowedConstants(data.Symbols.Declared.DeclaredNearerThan);
         data.Symbols.HideShadowedSymbolics(data.Symbols.Declared.DeclaredNearerThan);
-        // An inherited GLOBAL file-name is hidden the same way (§2023:8.4.6.2.1 GR3a; §1985:X.1.3.8.2 GR3a; kb/Work PB5786): a
+        // An inherited GLOBAL file-name is hidden the same way (§2023:8.4.6.2.1 3) a); §1985:X.1.3.8.2 GR3a; kb/Work PB5786): a
         // data-name, condition-name or index-name of its spelling declared in a nearer source element is the referenced item.
         data.Symbols.HideShadowedFiles(data.Symbols.Declared.DeclaredNearerThan);
         // An inherited GLOBAL report-name too (§1985:X.1.3.8.2 GR3a; kb/Work PB5973): a contained program's own `01 R1` is what
@@ -116,11 +116,11 @@ internal static class InheritStep
 
     /// <summary>⛔ THE ONE LIST OF A UNIT'S INHERITED GLOBAL DATA ROOTS: every named GLOBAL root of every container of
     /// <paramref name="unit"/>, nearest container first, each with its container and how many containment levels out it
-    /// lives (the nesting distance ISO §2023:8.4.6.2.1 GR3 selects on). EVERY global root joins, shadowed spelling or not (kb/Work
-    /// PB1047 / PB1243): §2023:8.4.6.2.1 GR1 puts "all global names that are defined in source element A and in any source
+    /// lives (the nesting distance ISO §2023:8.4.6.2.1 3) selects on). EVERY global root joins, shadowed spelling or not (kb/Work
+    /// PB1047 / PB1243): §2023:8.4.6.2.1 1) puts "all global names that are defined in source element A and in any source
     /// elements that directly or indirectly contain source element A" in the set, and §2023:8.4.6.2.2 makes every data-name
     /// subordinate to a global name a global name in its own right — so a local 01 G hides the container's G, never its
-    /// subordinate Y. WHICH candidate a reference names is §2023:8.4.6.2.1 GR3's nearest-declaring-element rule, applied after
+    /// subordinate Y. WHICH candidate a reference names is §2023:8.4.6.2.1 3)'s nearest-declaring-element rule, applied after
     /// qualification (SymbolTable.NearestDeclaring); the depth is what it reads. The names are inherited from it by
     /// <c>DataBinder.InheritContainerGlobalData</c>, the C# bridges are built from it by <see cref="Merge"/>.</summary>
     private static List<(BoundUnit Container, DataItem Root, int Depth)> ContainerGlobalRootsOf(BoundUnit unit, ElementBinders binders)

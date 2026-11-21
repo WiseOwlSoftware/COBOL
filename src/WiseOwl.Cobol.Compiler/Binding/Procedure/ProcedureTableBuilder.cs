@@ -1141,7 +1141,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     // ordinary shape (a common exit point, then a paragraph that STOPs the run) executed only in part, on every
     // invocation path (§2023:14.9.49.4 GR7/GR12/GR13 and the Format-2 BEFORE REPORTING hook alike). The standard
     // leaves no room for it: §2023:14.9.49.3 SR1 makes the use procedure the WHOLE remainder of the section, §2023:14.4.2
-    // ends the section only at the next section header or END DECLARATIVES, §2023:14.6.3 GR1 puts the implied
+    // ends the section only at the next section header or END DECLARATIVES, §2023:14.6.3 rule 1 puts the implied
     // transfer back to the controlling USE at "the last statement" of "the last procedure in the range", and
     // §2023:14.9.14.4 GR7's NOTE names USE among the return mechanisms that sit AFTER the section's last paragraph.
 

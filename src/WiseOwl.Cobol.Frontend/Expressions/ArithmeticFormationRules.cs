@@ -31,7 +31,7 @@ using Core = CobolParserCore;
 /// <para><b>Why a screen and not a grammar tier.</b> §2023:8.8.4.11.3's Table 5 excludes its identical cell
 /// structurally, because <c>unaryLogicalExpression</c> was written non-self-recursive, and converging Table 3 on
 /// that shape was the first candidate. It does not work, and the reason is a MEASURED property of the lexer:
-/// §2023:8.3.3.3.2 SR2 makes a leading sign part of a numeric literal ("A fixed-point numeric literal is a
+/// §2023:8.3.3.3.2 rule 2 makes a leading sign part of a numeric literal ("A fixed-point numeric literal is a
 /// character-string … If a sign is used, it shall appear as the leftmost character of the literal"), and a
 /// character-string is contiguous — so <c>- -2</c> is (unary, LITERAL) = <b>P, permissible</b>, while <c>- - 2</c>
 /// is (unary, unary) = invalid. In the DEFAULT lexer mode both spellings produce the same token sequence
@@ -59,7 +59,7 @@ public static class ArithmeticFormationRules
         $"{edition.CiteRule("§1985:VI.6.2.3 SR3", "§2023:8.8.1.2 Table 3")} (combinations of symbols in arithmetic expressions): the pair "
         + "(unary '+' or '−', unary '+' or '−') is an invalid pair — a unary operator may not be immediately "
         + "followed by another unary operator. Note that a sign written ADJACENT to the digits is part of the "
-        + $"numeric literal ({edition.Cite("§1985:IV.4.2.2.2.2 SR2", "§2023:8.3.3.3.2 SR2")}), so '- -2' is the permissible (unary, literal) pair; only a "
+        + $"numeric literal ({edition.Cite("§1985:IV.4.2.2.2.2 SR2", "§2023:8.3.3.3.2 rule 2")}), so '- -2' is the permissible (unary, literal) pair; only a "
         + "SEPARATED second sign is a second unary operator";
 
     /// <summary>The §2023:8.8.2 Table 4 message — the boolean counterpart of the same cell.</summary>
@@ -110,19 +110,19 @@ public static class ArithmeticFormationRules
     /// arithmetic operator where rule 2 requires the end) all parse. Returns the count's first token when the count
     /// is not a single identifier or literal, else null.
     /// <para><b>Why a screen and not a narrower grammar rule</b> — the same measured lexer fact as
-    /// <see cref="StackedUnarySign"/>: a signed integer literal <c>-1</c> is an integer literal (§2023:5.5 SR2a routes
+    /// <see cref="StackedUnarySign"/>: a signed integer literal <c>-1</c> is an integer literal (§2023:5.5 2) a) routes
     /// to §2023:8.3.3.3.2, which admits the leftmost sign) while <c>- 1</c> is a unary operator, and the default-mode
     /// lexer emits MINUS INTEGERLIT for both. Only the token POSITIONS separate them, through
     /// <see cref="SoleOperand.NumericLiteral"/>'s contiguity test — so the one rule that must read positions owns
     /// the whole cell rather than splitting it between a grammar tier and a screen. Whether the single operand is
-    /// an INTEGER (an integer literal, an integer data item, an integer function — §2023:5.5 SR2) is a binding fact
+    /// an INTEGER (an integer literal, an integer data item, an integer function — §2023:5.5 2)) is a binding fact
     /// each lane asks after this: the runtime binder through the ONE integer classifier, the compile-time
     /// evaluator through the literal's form.</para></summary>
     public static IToken? ShiftCountNotSoleOperand(Core.BooleanShiftSuffixContext shift)
     {
         var count = shift.arithmeticExpression();
         if (count is null) return null;                                   // an already-errored parse
-        if (SoleOperand.NumericLiteral(count) is not null) return null;   // a literal, its sign contiguous (§2023:8.3.3.3.2 SR2)
+        if (SoleOperand.NumericLiteral(count) is not null) return null;   // a literal, its sign contiguous (§2023:8.3.3.3.2 2))
         // An identifier — a data reference, a function-identifier or an inline method invocation (§2023:8.4.3.1.2) —
         // or the figurative ZERO the token rewriter hands an arithmetic slot. A PARENTHESIZED primary is the
         // invalid (shift, '(') pair.
@@ -131,7 +131,7 @@ public static class ArithmeticFormationRules
 
     /// <summary>The §2023:8.8.2 Table 4 / rule 5 message for a shift count that is not a single identifier or literal.</summary>
     public static string ShiftCountMessage(Core.BooleanShiftSuffixContext shift) =>
-        $"ISO §2023:8.8.2 SR5 and Table 4 (combination of symbols in boolean expressions): the second operand of "
+        $"ISO §2023:8.8.2 rule 5 and Table 4 (combination of symbols in boolean expressions): the second operand of "
         + $"{shift.GetChild(0).GetText()} shall be an integer operand, and the only symbol Table 4 permits after a "
         + $"boolean shift operator is a single identifier or literal — '{Parsing.WrittenSource.Of(shift.arithmeticExpression())}' is "
         + "an arithmetic expression. A parenthesized count or a separated sign is an invalid pair, and an arithmetic "
@@ -145,7 +145,7 @@ public static class ArithmeticFormationRules
     /// primaryExpression</c> nests, so a nested <c>addOp</c> is present for BOTH <c>- - 2</c> (two unary
     /// operators — invalid) and <c>- -2</c> (a unary operator then a signed numeric literal — permissible,
     /// row 'Unary + or −' × column 'Identifier or literal' = P). The trees are identical because the default-mode
-    /// lexer emits MINUS MINUS INTEGERLIT for both. §2023:8.3.3.3.2 SR2 decides between them, and its criterion is
+    /// lexer emits MINUS MINUS INTEGERLIT for both. §2023:8.3.3.3.2 rule 2 decides between them, and its criterion is
     /// CONTIGUITY — the literal is "a character-string", and a space is a separator (§2023:8.3.5) — so the test is
     /// whether the second sign abuts a numeric literal that is the whole operand.</para></summary>
     public static IToken? StackedUnarySign(Core.UnaryExpressionContext u)
@@ -186,7 +186,7 @@ public static class ArithmeticFormationRules
         return n is Core.NumericLiteralCoreContext or ITerminalNode { Parent: Core.NumericLiteralCoreContext };
     }
 
-    /// <summary>⛔ THE ONE CONTIGUITY TEST of §2023:8.3.3.3.2 SR2 — the sign and the literal's first character are
+    /// <summary>⛔ THE ONE CONTIGUITY TEST of §2023:8.3.3.3.2 rule 2 — the sign and the literal's first character are
     /// ONE character-string exactly when the sign's last character index immediately precedes the literal's first
     /// on the input stream (a space, and equally a line break, is a separator — §2023:8.3.5). Measured on the TOKENS'
     /// stream indices, never on <c>GetText()</c>, which concatenates a node's tokens with the whitespace stripped
@@ -197,7 +197,7 @@ public static class ArithmeticFormationRules
     public static bool SignAbuts(IToken sign, IToken first) =>
         first.Line == sign.Line && first.StartIndex == sign.StopIndex + 1;
 
-    /// <summary>§2023:8.3.3.3.2 SR2 as written, for every diagnostic that cites it, in the words and the citation of the
+    /// <summary>§2023:8.3.3.3.2 rule 2 as written, for every diagnostic that cites it, in the words and the citation of the
     /// edition in force (kb/Work PB4950): COBOL-85 states it as "A literal must not contain more than one sign character"
     /// (§1985:IV.4.2.2.2.2 SR2).</summary>
     public static string SignRuleQuote(EditionInfo edition) => edition.Cite(
@@ -206,7 +206,7 @@ public static class ArithmeticFormationRules
         SignRuleQuote2023);
 
     private const string SignRuleQuote2023 = "\"A literal shall not contain more than one sign character. If a sign is "
-        + "used, it shall appear as the leftmost character of the literal\" (ISO §2023:8.3.3.3.2 SR2)";
+        + "used, it shall appear as the leftmost character of the literal\" (ISO §2023:8.3.3.3.2 2))";
 
     /// <summary>What is wrong with a unary-tier operand written as SIGNS in front of a bare numeric literal, where
     /// the position admits only a literal (no arithmetic expression) — "it contains more than one sign character"

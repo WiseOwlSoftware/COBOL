@@ -22,11 +22,11 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// has the same observable: second 59, never 60.</para>
 ///
 /// <para>Expected values are derived from the layout rules applied to the pinned instant, never copied from a run:
-/// ACCEPT TIME is HHMMSShh (§2023:14.9.1.4 GR11) → hours 23, minutes 59, seconds 59, and "hundredths of a second past the
+/// ACCEPT TIME is HHMMSShh (§2023:14.9.1.4 11)) → hours 23, minutes 59, seconds 59, and "hundredths of a second past the
 /// second, in the range 00 through 99" → 0.9999999 s past the second is 99 completed hundredths; CURRENT-DATE is the
-/// §2023:15.21.3 RV1 21-character layout with the same time fields and a zero UTC offset rendered '+' ("the same as or ahead
+/// §2023:15.21.3 1) 21-character layout with the same time fields and a zero UTC offset rendered '+' ("the same as or ahead
 /// of Coordinated Universal time") "00" "00"; FORMATTED-CURRENT-DATE("YYYYMMDDThhmmss") is the basic combined format
-/// (§2023:15.3.3.7, §2023:15.38.4 RV1). A renderer that ROUNDED the sub-second tail, or carried it into the seconds field under ON
+/// (§2023:15.3.3.7, §2023:15.38.4 1)). A renderer that ROUNDED the sub-second tail, or carried it into the seconds field under ON
 /// (where §2023:15.3.3.3 lets a formatted-time seconds subfield ARGUMENT be 60 — the side pb65_leap_second_on pins), would
 /// report 23:59:60 or roll to the next day; the determination says it never does.</para>
 ///

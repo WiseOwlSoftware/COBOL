@@ -14,7 +14,7 @@ using Core = CobolParserCore;
 /// <summary>What one <c>integer-n</c> operand position of a general format admits.</summary>
 internal enum IntegerSlotKind
 {
-    /// <summary>§2023:5.5 SR1's default — "unsigned and nonzero". The unsigned half is the grammar's own shape
+    /// <summary>§2023:5.5 1)'s default — "unsigned and nonzero". The unsigned half is the grammar's own shape
     /// (<c>integerLiteral : INTEGERLIT</c>); the nonzero half is this pass.</summary>
     NonZero,
 
@@ -35,7 +35,7 @@ internal enum IntegerSlotKind
 /// format"). Zero for every other kind.</param>
 internal readonly record struct IntegerSlot(IntegerSlotKind Kind, string Basis, int Since = 0)
 {
-    internal static readonly IntegerSlot Default = new(IntegerSlotKind.NonZero, "ISO §2023:5.5 SR1");
+    internal static readonly IntegerSlot Default = new(IntegerSlotKind.NonZero, "ISO §2023:5.5 1)");
     internal static IntegerSlot Zero(string basis) => new(IntegerSlotKind.ZeroPermitted, basis);
 
     /// <summary>Zero permitted by a rule that first appears in edition <paramref name="since"/> (kb/Work PB5196).</summary>
@@ -48,7 +48,7 @@ internal readonly record struct IntegerSlot(IntegerSlotKind Kind, string Basis, 
 }
 
 /// <summary>
-/// ⛔ THE ONE SCREEN for ISO §2023:5.5 SR1 — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and
+/// ⛔ THE ONE SCREEN for ISO §2023:5.5 1) — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and
 /// associated rules, it refers to a fixed-point integer literal that shall be unsigned and nonzero unless otherwise
 /// specified in the associated rules." (kb/Work PB859.)
 ///
@@ -95,7 +95,7 @@ internal sealed class IntegerOperandPass(EditionContext edition) : CursorFollowi
     }
 }
 
-/// <summary>The per-position exceptions to §2023:5.5 SR1's NONZERO default, and nothing else (see
+/// <summary>The per-position exceptions to §2023:5.5 1)'s NONZERO default, and nothing else (see
 /// <see cref="IntegerOperandPass"/>).</summary>
 internal static class IntegerOperandRules
 {
@@ -148,7 +148,7 @@ internal static class IntegerOperandRules
 
         // ── REPORT WRITER ───────────────────────────────────────────────────────────────────────────────────
         [typeof(Core.ReportPageClauseContext)] = Nonzero,      // §2023:13.18.39.3 SR6 — "shall be greater than zero"
-        [typeof(Core.ReportPageWidthContext)] = Nonzero,       // integer-2 COLUMNS — §2023:5.5 SR1 NONZERO default (SR6 lists integer-1 and 3–7)
+        [typeof(Core.ReportPageWidthContext)] = Nonzero,       // integer-2 COLUMNS — §2023:5.5 1) NONZERO default (SR6 lists integer-1 and 3–7)
         [typeof(Core.ReportPageSubclauseContext)] = Nonzero,   // ditto
         [typeof(Core.ReportLineOperandContext)] = ReportLine,
         [typeof(Core.ReportNextGroupClauseContext)] = Nonzero, // §2023:13.18.37 NEXT GROUP integer-1 / PLUS integer-2
@@ -207,7 +207,7 @@ internal static class IntegerOperandRules
     /// <summary>⛔ EVERY grammar rule that may still spell a BARE <c>integerLiteral</c>, each with the REASON a constant-name
     /// does not need the <c>integerOperand</c> rule there (kb/Work PB1948, completing PB1947). ISO §2023:13.10.3 SR2 —
     /// "constant-name-1 may be used anywhere that a format specifies a literal of the class and category of
-    /// constant-name-1" — makes every <c>integer-n</c> (§2023:5.5 SR1) a position a constant-name stands in, so a clause that
+    /// constant-name-1" — makes every <c>integer-n</c> (§2023:5.5 1)) a position a constant-name stands in, so a clause that
     /// prints an <c>integer-n</c> writes <c>integerOperand</c> and this table is where the exceptions are argued, never
     /// the default. <c>IntegerOperandSlotDriftTests</c> derives the rules that write a bare <c>integerLiteral</c> from the
     /// generated parser and holds them to THIS set in both directions: a new clause that forgets <c>integerOperand</c>
@@ -400,19 +400,19 @@ internal static class IntegerOperandRules
             "ISO §2023:4.5: \"Translation may be unsuccessful due to factors other than lack of conformance of a compilation group\" — the limits of an implementation");
 
     /// <summary>The slot of <paramref name="operand"/>, from the grammar rule that spells it. A rule the table
-    /// does not name takes §2023:5.5 SR1's default — the drift test keeps that from being silent.</summary>
+    /// does not name takes §2023:5.5 1)'s default — the drift test keeps that from being silent.</summary>
     internal static IntegerSlot Classify(ParserRuleContext operand, int dialectLevel) =>
         OwnerOf(operand) is { } owner && Slots.TryGetValue(owner.GetType(), out var classify)
             ? classify(owner, operand).At(dialectLevel)
             : IntegerSlot.Default;
 
-    /// <summary>The refusal of a zero <c>integer-n</c>, citing the rule of the targeted edition: §2023:5.5 SR1 from 2002 (its
+    /// <summary>The refusal of a zero <c>integer-n</c>, citing the rule of the targeted edition: §2023:5.5 1) from 2002 (its
     /// rule is the one 2023 prints), §1985:III.2 below (kb/Work PB5196).</summary>
     internal static string ZeroMessage(string where, string subject, int dialectLevel) =>
         EditionInfo.Of(dialectLevel).Cite(
             $"{where}: {subject} shall be nonzero — §1985:III.2: an integer \"must be neither signed nor zero unless "
               + "explicitly allowed by the rules for that format\", and no rule of this format permits zero here",
-            $"{where}: {subject} shall be nonzero — ISO §2023:5.5 SR1: an integer-n \"shall be unsigned and nonzero unless "
+            $"{where}: {subject} shall be nonzero — ISO §2023:5.5 1): an integer-n \"shall be unsigned and nonzero unless "
               + "otherwise specified in the associated rules\", and no rule of this format permits zero here");
 
     /// <summary>The construct named in the diagnostic: the source text of the clause or phrase that spells the

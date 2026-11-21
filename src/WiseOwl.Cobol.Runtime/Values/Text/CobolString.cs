@@ -101,14 +101,14 @@ public static class CobolString
             + $"{size}-position {what} ({ExceptionState.EditionRule("§1985:IV.4.3.8.4.4 GR4", "ISO §2023:8.4.3.3.4 item 5c")})");
 
     /// <summary>A NUMERIC data item as a reference-modifier leftmost-position or length, decoded through the
-    /// item's own profile (ISO §2023:8.4.3.3.4 GR5)c); fix-queue PB41): "If the evaluation of leftmost-position or
+    /// item's own profile (ISO §2023:8.4.3.3.4 rule 5)c); fix-queue PB41): "If the evaluation of leftmost-position or
     /// length results in a non-integer value, a zero value, or a value that references a position outside the
     /// area of identifier-1, the EC-BOUND-REF-MOD exception condition is set to exist." §2023:8.4.3.3.3 SR4 makes both
     /// positions arithmetic expressions, so a scaled numeric item is legal there and its VALUE — not its unscaled
     /// storage — is the ordinal position; the scale is the profile's <see cref="NumProfile.FractionDigits"/>.
     /// <para>The exact twin of <c>CobolTable.Occ(…, in NumProfile)</c> for the subscript position, differing ONLY
     /// in which Table 13 condition it names; the shared de-scale/integrality arithmetic is
-    /// <c>CobolNum.HasFraction</c>/<c>PositionOf</c>, and the character-image arm is the SAME §2023:14.6.13.2 GR2
+    /// <c>CobolNum.HasFraction</c>/<c>PositionOf</c>, and the character-image arm is the SAME §2023:14.6.13.2 rule 2
     /// checked read (<see cref="CobolNum.ParseImageSending"/>): a position is item identification, which rule 1
     /// names as checked even inside a class condition (kb/Work PB1117 — the tolerant digit scan it replaced made
     /// EC-DATA-INCOMPATIBLE unreachable here and dropped a signed image's sign). Returns <c>long</c> because the
@@ -135,7 +135,7 @@ public static class CobolString
 
     /// <inheritdoc cref="RefModPosition(long, in NumProfile)"/>
     /// <remarks>Read as the UNSIGNED-WIDE value it is — never narrowed through <see cref="Int128"/> first, which a value
-    /// at or above 2^127 does not fit — so §2023:8.4.3.3.4 GR5)c)'s integrality and the position both see the value itself
+    /// at or above 2^127 does not fit — so §2023:8.4.3.3.4 rule 5)c)'s integrality and the position both see the value itself
     /// (the twin of <c>CobolTable.Occ(UInt128, in NumProfile)</c>: a scale that divides it back inside <c>long</c>'s range
     /// makes it a valid position, and a fraction is a violation whatever the magnitude).</remarks>
     public static Occurrence RefModPosition(UInt128 unscaled, in NumProfile item)
@@ -343,7 +343,7 @@ public static class CobolString
     /// positions are the ref-mod's, not the base item's — and with a computed leftmost-position/length that
     /// count does not exist at compile time at all. The compiler previously tabulated the width per operand
     /// KIND, which silently answered every <c>X(1:1) = LOW-VALUE</c> over a wider X with FALSE (the pad in
-    /// §2023:8.8.4.2.7 GR2 is a SPACE, so only SPACE-valued tests came out right).</para>
+    /// §2023:8.8.4.2.7 rule 2 is a SPACE, so only SPACE-valued tests came out right).</para>
     /// <para><paramref name="figIsLeft"/> says which side carries the figurative SEED (one fill character, or
     /// literal-1); the other side is the associated operand, rendered once by the caller. Both figurative and
     /// both non-figurative relations use plain <see cref="Compare(string?,string?,char)"/> instead — with two
@@ -387,7 +387,7 @@ public static class CobolString
     /// <see cref="CompareFig(string?,string?,bool,char)"/> stands to <see cref="Compare(string?,string?,char)"/>.
     /// <para>ISO §2023:8.3.3.6.4 GR2 sizes a figurative to "the associated data item", and in a range test that item is
     /// the one being tested for membership — <paramref name="read"/> — for BOTH ends, because both ends are
-    /// compared against it (§2023:14.9.13.4 GR4a 5.: "selection-subject &gt;= left-part AND selection-subject &lt;=
+    /// compared against it (§2023:14.9.13.4 GR4 a) 5.: "selection-subject &gt;= left-part AND selection-subject &lt;=
     /// right-part"). The sizing runs BEFORE the §2023:14.7.8 GR2 inversion test, so <c>LOW-VALUE THRU HIGH-VALUE</c>
     /// is weighed at the tested item's own width rather than one character against one character.</para>
     /// <para>⛔ IT LIVES HERE, NOT IN THE EMITTER (kb/Work PB401). The generated form would otherwise have to

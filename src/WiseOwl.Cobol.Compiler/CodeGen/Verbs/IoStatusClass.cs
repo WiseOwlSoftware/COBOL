@@ -16,14 +16,14 @@ namespace WiseOwl.Cobol.CodeGen;
 ///   <c>'0x'</c>): the NOT AT END / NOT INVALID KEY / NOT END-OF-PAGE / NOT ON EXCEPTION imperatives.</item>
 /// <item><b>At end</b> — <i>"A sequential READ statement was unsuccessfully executed as a result of an at end
 ///   condition"</i> (§2023:9.1.13.1), whose values are §2023:9.1.13.4's '10' and '14': the AT END imperative
-///   (§2023:14.9.30.4 GR24c).</item>
+///   (§2023:14.9.30.4 GR24 c)).</item>
 /// <item><b>Invalid key</b> — §2023:9.1.13.5's <c>'2x'</c> values: the INVALID KEY imperative (§2023:9.1.14).</item>
 /// </list>
 /// <para>⛔ <b>EVERY OTHER UNSUCCESSFUL STATUS TAKES NO PHRASE, and that is a rule, not a default.</b> The
 /// determination of kb/Work PB810: §2023:14.9.30.4 GR21 sets '46' for a sequential READ whose previous READ or START
 /// was unsuccessful and says execution <i>"proceeds as indicated in General rule 24"</i>, but GR24's actions are
 /// conditioned on its own first words — <i>"If, during the execution of the READ statement, the at end condition
-/// exists"</i> — and '46' is not the at end condition: §2023:9.1.13.7 GR6 makes it a LOGIC ERROR, which §2023:9.1.13.1
+/// exists"</i> — and '46' is not the at end condition: §2023:9.1.13.7 6) makes it a LOGIC ERROR, which §2023:9.1.13.1
 /// defines as <i>"unsuccessfully executed as a result of an improper sequence of input-output operations"</i>.
 /// The rule that therefore governs is §2023:14.9.30.4 GR13: <i>"If neither an at end nor an invalid key condition
 /// occurs during the execution of a READ statement, the AT END phrase or the INVALID KEY phrase is ignored"</i>,
@@ -51,7 +51,7 @@ internal static class IoStatusClass
 
     /// <summary>An attempt to WRITE outside the externally defined boundaries of the file — the '34' of
     /// §2023:14.9.51.4 GR20 (sequential organization: "the I-O status value of the write file connector is set to '34'") and
-    /// the '24' of §2023:14.9.51.4 GR33b (relative or indexed organization: "the I-O status associated with the write file
+    /// the '24' of §2023:14.9.51.4 GR33 b) (relative or indexed organization: "the I-O status associated with the write file
     /// connector is set to '24'"). The one condition SORT GR15 / MERGE GR12's implicit WRITE loop terminates on
     /// (kb/Work PB837). Whole-value, not a class test: '2x' and '3x' each hold values that are not this.</summary>
     public static string WriteBoundary(string status) => $"({status} == \"24\" || {status} == \"34\")";

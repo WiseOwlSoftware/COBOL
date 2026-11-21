@@ -298,7 +298,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     private string SourceMoveRule() => ctx.Edition.Edition.Cite("§1985:XIII.3.18.3 SR2", "§2023:13.18.53.3 SR2");
 
     /// <summary>⛔ THE VALUE EACH ROLLED ADDITION ADDS (ISO §2023:13.18.54.4 GR6; kb/Work PB1294) — bound once every
-    /// report's own clauses are, because a rolled total may name an entry of ANOTHER report (§2023:13.18.54.3 SR4g).
+    /// report's own clauses are, because a rolled total may name an entry of ANOTHER report (§2023:13.18.54.3 SR4 g)).
     /// "If data-name-1 specifies an item whose entry contains a SUM clause, the value added is that of the
     /// corresponding sum counter. … If data-name-1 specifies an item whose entry has a SOURCE or VALUE clause, the
     /// value added is that of the operand of the SOURCE or VALUE clause" — as a number, because GR3 adds it

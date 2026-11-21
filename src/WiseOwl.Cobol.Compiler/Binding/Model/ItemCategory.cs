@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// conjunct alone) and completely, but privately, in <c>DataBinder.GroupValue</c>. The incomplete copy is the
 /// one every rule above reads, so each of them admitted a strongly-typed group and a variable-length group,
 /// which GR3 excludes by name. <see cref="IsAlphanumericGroup"/> is now the ONE spelling and
-/// <c>DataBinder.GroupValue</c> calls it. The INTO-receiver rules of §2023:14.9.30.3 SR1b and §2023:14.9.34.3 SR2b,
+/// <c>DataBinder.GroupValue</c> calls it. The INTO-receiver rules of §2023:14.9.30.3 SR1 b) and §2023:14.9.34.3 SR2 b),
 /// which name the same operand set, were given their first implementation through it rather than through a
 /// fourth copy.</para>
 /// <para>THE GROUP ARM IS §2023:13.18.29.4 GR3 — <i>"If a GROUP-USAGE clause is not specified or implied for a group
@@ -57,8 +57,8 @@ public static class ItemCategory
     public static bool IsAlphanumeric(DataItem item) => Admits(item, national: false);
 
     /// <summary>Category ALPHANUMERIC or category NATIONAL — the operand set §2023:12.4.5.12.3 SR2 and §2023:12.4.5.6.3 SR2
-    /// name for a record key, and the elementary half of §2023:14.9.30.3 SR1b / §2023:14.9.34.3 SR2b's INTO-receiver
-    /// set. A <c>GROUP-USAGE NATIONAL</c> group qualifies through its as-if <c>PIC N(m)</c> — §2023:13.18.29.4 GR2b
+    /// name for a record key, and the elementary half of §2023:14.9.30.3 SR1 b) / §2023:14.9.34.3 SR2 b)'s INTO-receiver
+    /// set. A <c>GROUP-USAGE NATIONAL</c> group qualifies through its as-if <c>PIC N(m)</c> — §2023:13.18.29.4 GR2 b)
     /// makes a national group "treated as though it were an elementary data item of usage national … described
     /// with PICTURE N(m)", which is exactly the shape those rules name; a <c>GROUP-USAGE BIT</c> group does not
     /// (GR1 makes it category boolean).</summary>
@@ -98,7 +98,7 @@ public static class ItemCategory
     /// variable-length groups, or strongly-typed group items and shall not be described with level-number
     /// 66"</i> — a rule that names FOUR of the five kinds. Asked as <c>item.IsGroup</c> it admitted the fifth: a
     /// <c>GROUP-USAGE BIT</c> group passed, and the statement then executed as a silent no-op, because
-    /// §2023:14.7.6 GR3 requires both items of an implied ADD/SUBTRACT pair to be numeric and every child of a bit
+    /// §2023:14.7.6 rule 3 requires both items of an implied ADD/SUBTRACT pair to be numeric and every child of a bit
     /// group is category boolean — which is exactly WHY SR6 leaves bit groups out. A scalar predicate where the
     /// rule names a set is <c>feedback_model_the_rule_shape_not_one_case</c>, and it cost in both directions.</para>
     /// <para>⛔ AND IT IS FLAGS, NOT AN ORDERED CLASSIFICATION. Four of the five kinds are mutually exclusive by
@@ -190,7 +190,7 @@ public static class ItemCategory
     /// <summary>
     /// ⛔ THE ONE READER of the USAGE a data item OPERATES with — the axis every rule worded <i>"a data item
     /// with usage display or usage national"</i> asks about (ISO §2023:14.9.18.3 SR6 / §2023:14.9.42.3 SR2, the
-    /// termination-status operand; §2023:8.4.3.3.4 GR6's unique data item; §2023:14.9.41.3 SR6b 2.'s key comparison).
+    /// termination-status operand; §2023:8.4.3.3.4 GR6's unique data item; §2023:14.9.41.3 SR6 b) 2.'s key comparison).
     /// <para>⛔ THE GROUP ANSWER IS §2023:8.5.2.1's OWN SENTENCE — <i>"An alphanumeric group item is treated as
     /// though it had a usage of display."</i> Every site that instead asked <see cref="DataItem.OperandPic"/>
     /// alone read a NULL for such a group and concluded "no usage", which is not what the standard says: the
@@ -219,7 +219,7 @@ public static class ItemCategory
     /// explicitly as usage display or national") and §2023:14.9.22.3 SR1/SR2 (INSPECT: "an elementary item described
     /// implicitly or explicitly as usage display or national") state in the same words (kb/Work PB3228). It reads
     /// the usage through <see cref="UsageOf"/>, the one reader, so a bit group answers usage bit
-    /// (§2023:13.18.29.4 GR1b, a national group usage national (GR2 b) and an alphanumeric group display
+    /// (§2023:13.18.29.4 GR1 b), a national group usage national (GR2 b) and an alphanumeric group display
     /// (§2023:8.5.2.1); only the STRONGLY-TYPED group, whose class and category are its type-name and which the
     /// standard gives no usage, is read off the elementary items it is made of
     /// (<see cref="UsageOutsideDisplayOrNational"/>). Asked of a rule that also requires an ELEMENTARY item
@@ -365,11 +365,11 @@ public static class ItemCategory
     /// ⛔ CLASS index, message-tag, object or pointer (ISO §2023:8.5.2) — the four-class set that THREE rules name
     /// with word-for-word identical text, and which therefore gets ONE predicate:
     /// <list type="bullet">
-    /// <item>§2023:13.16.3 SR24e — <i>"A data item of the class index, message-tag, object, or pointer"</i> may not
+    /// <item>§2023:13.16.3 SR24 e) — <i>"A data item of the class index, message-tag, object, or pointer"</i> may not
     /// be a conditional variable;</item>
     /// <item>§2023:13.18.60.3 SR11 — <i>"An elementary data item of class index, message-tag, object, or pointer shall
     /// not be a conditional variable"</i>, the same prohibition stated the other way round;</item>
-    /// <item>§2023:14.7.6 GR4 — <i>"Neither data item contains an OCCURS, REDEFINES, or RENAMES clause or is of
+    /// <item>§2023:14.7.6 rule 4 — <i>"Neither data item contains an OCCURS, REDEFINES, or RENAMES clause or is of
     /// class index, message-tag, object, or pointer"</i>, the CORRESPONDING-phrase exclusion (kb/Work PB391,
     /// which found the third asker holding a private one-usage copy: <c>Pic?.Usage is not Usage.Index</c>, so a
     /// POINTER namesake pair was excluded only by the accident of a private Table-16 copy's

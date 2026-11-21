@@ -137,7 +137,7 @@ public sealed class CobolWordsMap
     }
 
     /// <summary>What a synonym of <paramref name="original"/> is besides a synonym: reserved, when §2023:8.9 reserves the
-    /// original (GR2, GR4: it "shall be treated as a synonym for" the word, so §2023:8.3.2.1 SR1 keeps it from being a
+    /// original (GR2, GR4: it "shall be treated as a synonym for" the word, so §2023:8.3.2.1 rule 1 keeps it from being a
     /// user-defined word), and a word that begins no statement, when the original begins a compiler directing statement
     /// (GR6).</summary>
     private void NoteSynonym(string synonym, string original, CobolWordsOp op)
@@ -220,7 +220,7 @@ public sealed class CobolWordsMap
     /// <summary>⛔ A SYNONYM OF A RESERVED WORD IS RESERVED (ISO §2023:7.3.10.4 GR2, GR4; kb/Work PB4488): a fresh user word
     /// (EQUATE literal-2 / SUBSTITUTE literal-5) → the §2023:8.9 reserved word it stands for, for every synonym whose original
     /// word §2023:8.9 reserves at <see cref="DirectiveEdition"/>. It is "treated as a synonym for" that word, and "Reserved words
-    /// shall not be used as user-defined words or system-names" (§2023:8.3.2.1 SR1). The lexer's retype
+    /// shall not be used as user-defined words or system-names" (§2023:8.3.2.1 rule 1). The lexer's retype
     /// (<c>CobolWordsRewriter.Plan</c>) makes a synonym its original's keyword TOKEN only where the original HAS a token, so
     /// a synonym of COPY, REPLACE, LOCALE, NESTED, ANYCASE, SYSTEM-DEFAULT, USER-DEFAULT, EXCEPTION-OBJECT, COMMA or MINUS
     /// stays an <c>IDENTIFIER</c> and only this set keeps it from being a name. A synonym of a context-sensitive word (§2023:8.10)
@@ -262,8 +262,8 @@ public sealed class CobolWordsMap
     /// (removal tested against the ORIGINAL written name, then the synonym applied).
     /// </summary>
     /// <param name="written">The word as written in the source. A de-reserved keyword is found on its basic letters
-    /// alone (<see cref="CobolKeywords.Comparer"/>; ISO §2023:8.1.3.2 GR3a, SR2/GR1 — case-insensitive), a synonym by the
-    /// Annex C fold of the fresh user word that stands for it (<see cref="CobolNames.Comparer"/>; §2023:8.1.3.2 GR4b).</param>
+    /// alone (<see cref="CobolKeywords.Comparer"/>; ISO §2023:8.1.3.2 3) a), SR2/GR1 — case-insensitive), a synonym by the
+    /// Annex C fold of the fresh user word that stands for it (<see cref="CobolNames.Comparer"/>; §2023:8.1.3.2 4) b)).</param>
     /// <returns>The canonical word, or <paramref name="written"/> in its KEYWORD SPELLING
     /// (<see cref="CobolKeywords.Spelling"/>: the basic letters raised, every other character as written) when the
     /// directives leave it alone, so a caller that compares the result with an upper-case keyword is handed the word

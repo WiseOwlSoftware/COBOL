@@ -111,7 +111,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     /// <summary>⛔ THE CONNECTOR'S KEY INDEX of the file's i-th ALTERNATE RECORD KEY clause (kb/Work PB5567); -1 (the prime key) and a
     /// non-indexed file's index pass through. The physical file's key table is the order the keys are registered in and
     /// <c>FixedFileAttributes.Conflicts</c> compares it positionally, so every description of one physical file must register the
-    /// same keys in the same order whatever order its clauses were written in (§2023:12.4.5.3 GR1k / §1985:IX.2.3.3 SR1 leave the
+    /// same keys in the same order whatever order its clauses were written in (§2023:12.4.5.3 GR1 k) / §1985:IX.2.3.3 SR1 leave the
     /// clause order out of the specification) and whether or not its entry is EXTERNAL (one external connector is shared by every
     /// describer, and the verbs name a key by this index). The order is the keys' own physical descriptors: the byte windows
     /// numerically (so the usual entry, whose keys are written in record order, keeps its clause order), then DUPLICATES, collation
@@ -230,7 +230,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         // ⛔ UNCONDITIONALLY (kb/Work PB683). Governance is a RUN-TIME fact — §2023:9.1.15 lets an OPEN statement's
         // own SHARING phrase override the file control entry — so no property of the SELECT or of this
         // statement can decide it. And the runtime GOVERNS EVERY CONNECTOR, not only the ones that opted in:
-        // a connector absent from the posture map is given §2023:12.4.5.9.4 GR1b 2.'s implementor default and the
+        // a connector absent from the posture map is given §2023:12.4.5.9.4 GR1 b) 2.'s implementor default and the
         // same governed body runs — it used to fall through to the ungoverned one, which is how a clause-less
         // connector read, rewrote and DELETED records another connector held locked (kb/Work PB669).
         // ⛔ THE GOVERNED SHAPE IS PER FORMAT, NOT PER ORGANIZATION (kb/Work PB340). A Format-1 NEXT/PREVIOUS
@@ -295,7 +295,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         // '0x' (success) → INTO move + NOT AT END / NOT INVALID KEY; '1x' (10/14, the at-end family,
         // §2023:9.1.13.4) → AT END imperative; any other unsuccessful status takes NO branch — §2023:14.9.30.4 GR13
         // ignores both phrases when neither condition occurs and GR13 b) routes it through §2023:9.1.12's
-        // exception processing. That includes GR21's '46', a LOGIC ERROR (§2023:9.1.13.7 GR6), not the at end
+        // exception processing. That includes GR21's '46', a LOGIC ERROR (§2023:9.1.13.7 6)), not the at end
         // condition GR24 is conditioned on; the determination is on IoStatusClass (kb/Work PB810).
         bool into = rd.IntoMove is not null && area is not null;
         bool hasInv = rd.InvalidKey?.Invalid is not null;
@@ -342,7 +342,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         var w = ctx.Writer;
         FileModel file = wr.File;
         string name = FileKeyExpr(file);
-        if (wr.FromMove is { } fromMove) move.Emit(fromMove);   // §2023:14.9.51.4 GR5a — the BOUND implicit MOVE
+        if (wr.FromMove is { } fromMove) move.Emit(fromMove);   // §2023:14.9.51.4 GR5 a) — the BOUND implicit MOVE
         Debug.LandBeforeIo();   // X3.23-1985 USE FOR DEBUGGING general rule 5 a / 6 a: after the FROM move, before the I-O (docs/CONTROL_FLOW_DESIGN.md D20)
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
@@ -390,7 +390,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         var w = ctx.Writer;
         FileModel file = rw.File;
         string name = FileKeyExpr(file);
-        if (rw.FromMove is { } fromMove) move.Emit(fromMove);   // §2023:14.9.35.4 GR7a — the BOUND implicit MOVE
+        if (rw.FromMove is { } fromMove) move.Emit(fromMove);   // §2023:14.9.35.4 GR7 a) — the BOUND implicit MOVE
         Debug.LandBeforeIo();   // X3.23-1985 USE FOR DEBUGGING general rule 5 a / 6 a: after the FROM move, before the I-O (docs/CONTROL_FLOW_DESIGN.md D20)
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
@@ -520,7 +520,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         }
         else
         {
-            // ⛔ §2023:14.9.41.4 GR17a SOURCES THE SEARCH KEY FROM THE RECORD AREA, NOT FROM data-name-1
+            // ⛔ §2023:14.9.41.4 GR17 a) SOURCES THE SEARCH KEY FROM THE RECORD AREA, NOT FROM data-name-1
             // (kb/Work PB355): "The specified key is set up by moving the relevant parts of the record area into
             // a temporary data area." The "specified key" is GR16's KEY OF REFERENCE — "The key specified in the
             // KEY phrase, or that shares a leftmost character with the data item specified in the KEY phrase,

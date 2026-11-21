@@ -245,7 +245,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     /// starting with data-name-2 … and concluding with data-name-3" — they are those ELEMENTARY items
     /// (<see cref="RenamesInfo.IncludedElementaryItems"/>).
     /// <para>⚠ DETERMINATION (docs/CONFORMANCE.md §3 D-CORRFILLER, kb/Work PB229): A FILLER GROUP IS WALKED THROUGH,
-    /// NOT CUT OFF. §2023:14.7.6 GR1 asks of the two data items themselves that they "are not implicitly or explicitly
+    /// NOT CUT OFF. §2023:14.7.6 rule 1 asks of the two data items themselves that they "are not implicitly or explicitly
     /// described with the keyword FILLER and have the same data-name and the same qualifiers, if any, up to, but not
     /// including, D1 and D2", and §2023:8.4.2.2.1 defines the qualifiers as "superordinate names from the hierarchy to
     /// which a user-defined name belongs". A FILLER group has no name to be one (§2023:13.18.20.4: "Under no circumstances
@@ -256,7 +256,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     /// excluded every FILLER group's whole subtree on "the legacy/NIST-proven reading", an oracle and not the rule;
     /// measured, <c>ADD CORRESPONDING</c> silently skipped such an item. The rule-6 universe
     /// (<see cref="NamesakeCounts"/>) already stood FILLER subordinates at this level, so the two now agree.</para>
-    /// <para>⚠ DETERMINATION (docs/CONFORMANCE.md §3 D-CORR66, kb/Work PB966): §2023:14.7.6 GR1 compares "the same
+    /// <para>⚠ DETERMINATION (docs/CONFORMANCE.md §3 D-CORR66, kb/Work PB966): §2023:14.7.6 rule 1 compares "the same
     /// qualifiers, if any, up to, but not including, D1 and D2", and an alias is in no included item's
     /// qualifier chain — the items are subordinate to the renamed RECORD, not to the alias. Read with GR2's own
     /// wording, the alias includes elementary items and no groups, so each included item stands directly in D1
@@ -298,7 +298,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         }
     }
 
-    /// <summary>§2023:14.7.6 GR5 — "Neither data item is subordinate to a group item that is subordinate to D1 or D2
+    /// <summary>§2023:14.7.6 rule 5 — "Neither data item is subordinate to a group item that is subordinate to D1 or D2
     /// when the group item contains an OCCURS or REDEFINES clause" — asked of one intermediate group: ANY OCCURS
     /// (fixed or a Format-4 dynamic table, D9) or a REDEFINES. The matcher never descends into such a group (it fails
     /// <see cref="CorrEligible"/>); this is the same question for the groups it walks THROUGH rather than into: a
@@ -306,7 +306,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     private static bool RuleFiveExcludesSubordinates(DataItem group) =>
         group.IsTable || group.RedefinesTargetName is not null;
 
-    /// <summary>⛔ THE RULE-6 UNIVERSE (§2023:14.7.6 GR6, kb/Work PB1111): how many data items answer to each name
+    /// <summary>⛔ THE RULE-6 UNIVERSE (§2023:14.7.6 rule 6, kb/Work PB1111): how many data items answer to each name
     /// AT THIS QUALIFICATION LEVEL of one CORRESPONDING operand — every subordinate item named so, ELIGIBLE OR NOT
     /// (an OCCURS or REDEFINES entry, a level-66 alias), because "DU OF G1" identifies each of them. A nameless
     /// group (FILLER) contributes no qualifier, so its subordinates stand at THIS level too and are counted; a
@@ -354,7 +354,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     /// ObjectReference categories and a MessageTag usage). A POINTER namesake pair was excluded only by the
     /// ACCIDENT of the private Table-16 copy's <c>_ =&gt; false</c> default, measured: with that copy deleted and
     /// this leg absent, <c>MOVE CORRESPONDING</c> over two <c>TYPE PT</c> groups would have silently copied a
-    /// pointer. <see cref="ItemCategory.IsIndexMessageTagObjectOrPointer"/> is §2023:13.16.3 SR24e's and
+    /// pointer. <see cref="ItemCategory.IsIndexMessageTagObjectOrPointer"/> is §2023:13.16.3 SR24 e)'s and
     /// §2023:13.18.60.3 SR11's population too — one class test, three rules.</para>
     /// <para>⛔ AND "IS IT A DATA ITEM AT ALL" IS SCREENED HERE, not inside the rule-2 filter where it used to
     /// sit. A PICTURE-less entry with no subordinates is neither elementary (§2023:8.5.1.3.1 — "The most basic
@@ -372,7 +372,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         && !ItemCategory.IsIndexMessageTagObjectOrPointer(item);
 
     /// <summary>
-    /// ⛔ ISO §2023:14.7.6 GR2's move-validity filter, WHICH IS NOT A RULE WRITTEN HERE — it is a DELEGATION, and
+    /// ⛔ ISO §2023:14.7.6 rule 2's move-validity filter, WHICH IS NOT A RULE WRITTEN HERE — it is a DELEGATION, and
     /// must stay one. Rule 2 reads <i>"In a MOVE statement, at least one of the data items is an elementary data
     /// item and the resulting move is valid according to the rules for the MOVE statement"</i>, so the question
     /// belongs to <see cref="MoveTable16"/> — the ONE home of §2023:14.9.25.3 SR10, Table 16 — and asking it a second
@@ -455,7 +455,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         /// <para>⛔ THE SWITCH IS OVER THE STORAGE FORM, SO IT ASKS <see cref="Place.Undecorated"/> (kb/Work
         /// PB393). An occurs-depending group operand resolves to an <c>OdoGroupPlace</c> WRAPPING the member
         /// place, and a decoration answers a question about the group's whole-group IMAGE EXTENT — a question
-        /// CORRESPONDING never asks, because §2023:14.7.6 GR4 excludes every OCCURS item from correspondence, so
+        /// CORRESPONDING never asks, because §2023:14.7.6 rule 4 excludes every OCCURS item from correspondence, so
         /// the pairs are exactly the fixed members at their fixed offsets. Switching on the decorated place sent
         /// the operand to the default arm, and `SUBTRACT CORRESPONDING` over two occurs-depending groups —
         /// §2023:14.9.44.3 SR6 admits the kind by name — aborted the run unit.</para></summary>

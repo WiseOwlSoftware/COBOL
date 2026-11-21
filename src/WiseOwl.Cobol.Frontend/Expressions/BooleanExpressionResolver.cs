@@ -8,7 +8,7 @@ using Core = CobolParserCore;
 
 /// <summary>
 /// The ONE boolean-expression precedence resolver (ISO/IEC 1989:2023 §2023:8.8.2). It walks a parsed
-/// <c>booleanExpression</c> and combines its operands in the order §2023:8.8.2 GR7 requires, returning a caller-typed
+/// <c>booleanExpression</c> and combines its operands in the order §2023:8.8.2 rule 7 requires, returning a caller-typed
 /// result. It exists because the <b>context-inherited precedence of the shift operators cannot be expressed by a
 /// context-free grammar</b>: rule 7b makes a boolean shift take the precedence of the operator immediately
 /// preceding it (B-AND if none), so the grouping of e.g. <c>A B-AND B B-SHIFT-L 2</c> depends on a token that a CFG

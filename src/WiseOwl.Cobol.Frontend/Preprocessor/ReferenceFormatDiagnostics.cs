@@ -94,7 +94,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     internal bool HasProgramTextFloatingComment(IReadOnlySet<int> commentTextLines)
         => _survivingFloatingComments.Any(c => !commentTextLines.Contains(c.TextLine));
 
-    /// <summary>A floating literal continuation indicator (§2023:6.2.3.1, §2023:6.5 GR4) — introduced with the floating
+    /// <summary>A floating literal continuation indicator (§2023:6.2.3.1, §2023:6.5 4)) — introduced with the floating
     /// indicators at COBOL-2002 (row <c>floating-literal-continuation-2002</c>). Gated once per compilation, at its
     /// first use, in either reference format.</summary>
     public void OnFloatingLiteralContinuation(string file, int line, int column)
@@ -137,7 +137,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     public void NoteDebuggingLineBetweenLiteralParts(string file, int line, int indicatorColumn)
         => _debuggingLinesBetweenLiteralParts[new SourceOrigin(file, line)] = indicatorColumn;
 
-    /// <summary>§2023:6.3.5 SR2 - COBOL3473: every debugging line in <paramref name="sourceLines"/> (the origins of the lines
+    /// <summary>§2023:6.3.5 2) - COBOL3473: every debugging line in <paramref name="sourceLines"/> (the origins of the lines
     /// <c>DebuggingLineRewriter</c> kept as source) that stands between the parts of a continued literal. Only a comment
     /// line or a blank line may; a source line there is what GnuCOBOL rejects with -fdebugging-line ("continuation
     /// character expected"). Reported at the line's indicator.</summary>
@@ -148,7 +148,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
                 diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.DebuggingLineBetweenLiteralParts.Code,
                     "a debugging line (indicator D or >>D) is source under WITH DEBUGGING MODE, and a source line shall not stand "
                     + "between the parts of a continued literal: only comment lines and blank lines may ("
-                    + Edition.CiteRule("§1985:IV.7.2.2", "§2023:6.3.5 SR2") + ")",
+                    + Edition.CiteRule("§1985:IV.7.2.2", "§2023:6.3.5 2)") + ")",
                     At(origin.File, origin.Line, indicatorColumn), default);
     }
 
@@ -202,7 +202,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             + "characters of a multiple-character floating indicator shall be on the same line (ISO §2023:6.2.3.2 SR3)",
             At(file, line, FixedFormLine.IndicatorColumn), default);
 
-    /// <summary>§2023:6.3.5 SR2 — COBOL2688: a continuation line completes a multiple-character separator or invocation
+    /// <summary>§2023:6.3.5 2) — COBOL2688: a continuation line completes a multiple-character separator or invocation
     /// operator (<c>==</c>, <c>::</c>) begun at the end of the latest logical line. COBOL-85 states it of the one such
     /// separator it has, the pseudo-text delimiter, in §1985:IV.7.2.2 (kb/Work PB4950).</summary>
     public void OnSplitSeparator(string file, int line, string token)
@@ -210,21 +210,21 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             $"{token} is split across a continued line and its continuation line; "
             + Edition.Cite(
                 "both characters composing the separator '==' must be on the same line (§1985:IV.7.2.2)",
-                "all the characters of a multiple-character separator or operator shall be on the same line (ISO §2023:6.3.5 SR2)"),
+                "all the characters of a multiple-character separator or operator shall be on the same line (ISO §2023:6.3.5 2))"),
             At(file, line, FixedFormLine.IndicatorColumn), default);
 
-    /// <summary>§2023:6.2.3.2 SR6 / §2023:6.3.5 SR2 / §2023:6.4.2 — COBOL2684: the first nonblank character of a literal's
+    /// <summary>§2023:6.2.3.2 SR6 / §2023:6.3.5 2) / §2023:6.4.2 — COBOL2684: the first nonblank character of a literal's
     /// continuation line is not the quotation symbol of its opening delimiter.</summary>
     public void OnContinuationQuote(string file, int line, int column, char quote)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.LiteralContinuationQuote.Code,
             $"the first nonblank character of a continuation line of a literal shall be {QuoteName(quote)}, the quotation "
             + $"symbol used in the literal's opening delimiter ({Edition.CiteRule("§1985:IV.7.2.2", "§2023:6.2.3.2 SR6")})", At(file, line, column), default);
 
-    /// <summary>§2023:6.3.5 SR2 — COBOL2685: a national literal continued by the fixed continuation indicator.</summary>
+    /// <summary>§2023:6.3.5 2) — COBOL2685: a national literal continued by the fixed continuation indicator.</summary>
     public void OnNationalFixedContinuation(string file, int line)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.NationalLiteralFixedContinuation.Code,
             "a national literal may be continued only with a floating literal continuation indicator, not the fixed "
-            + "continuation indicator (ISO §2023:6.3.5 SR2)", At(file, line, FixedFormLine.IndicatorColumn), default);
+            + "continuation indicator (ISO §2023:6.3.5 2))", At(file, line, FixedFormLine.IndicatorColumn), default);
 
     /// <summary>§2023:6.2.3.2 SR5 — COBOL2686: a floating literal continuation indicator on a line that holds the fixed
     /// continuation indicator.</summary>
@@ -267,11 +267,11 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             "this line continues the compiler directive on the line above; a compiler directive shall be specified on "
             + "one line (ISO §2023:7.3.3 SR1)", At(file, line, column), default);
 
-    /// <summary>§2023:6.1 SR3a — COBOL2653: a free-form line of more than 255 character positions (kb/Work PB1496).
+    /// <summary>§2023:6.1 3) a) — COBOL2653: a free-form line of more than 255 character positions (kb/Work PB1496).
     /// Every such line is reported, at the first position past the limit; it is then read in full.</summary>
     public void OnFreeFormLineTooLong(string file, int line, int positions)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FreeFormLineTooLong.Code,
-            $"this free-form line has {positions} character positions; ISO §2023:6.1 SR3a allows at most "
+            $"this free-form line has {positions} character positions; ISO §2023:6.1 3) a) allows at most "
             + $"{ReferenceFormatProcessor.FreeFormMaxPositions} (a tab counts the positions it advances over, DOC-A.1-157)",
             At(file, line, ReferenceFormatProcessor.FreeFormMaxPositions), default);
 

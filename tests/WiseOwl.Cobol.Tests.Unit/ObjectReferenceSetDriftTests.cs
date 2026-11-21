@@ -21,10 +21,10 @@ public sealed class ObjectReferenceSetDriftTests
 {
     /// <summary>The refusal texts only the table writes: a second copy of an arm in the compiler would spell one.</summary>
     [Theory]
-    [InlineData("(ISO §2023:14.9.39.3 SR12a2.)")]
-    [InlineData("(ISO §2023:14.9.39.3 SR12b2.)")]
-    [InlineData("(ISO §2023:14.9.39.3 SR10a)")]
-    [InlineData("(ISO §2023:14.9.39.3 SR14a)")]
+    [InlineData("(ISO §2023:14.9.39.3 SR12 a)2.)")]
+    [InlineData("(ISO §2023:14.9.39.3 SR12 b)2.)")]
+    [InlineData("(ISO §2023:14.9.39.3 SR10 a))")]
+    [InlineData("(ISO §2023:14.9.39.3 SR14 a))")]
     public void NoCompilerSource_SpellsAnArmOfTheTable(string refusal)
     {
         var offenders = Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Compiler"), "*.cs", SearchOption.AllDirectories)

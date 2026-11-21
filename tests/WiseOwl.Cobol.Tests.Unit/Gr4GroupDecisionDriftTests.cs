@@ -96,7 +96,7 @@ public sealed class Gr4GroupDecisionDriftTests
         Assert.Matches(@"Usage\.Bit\s*=>\s*RuntimeApi\.BitsPackAll\(", codec.Groups["b"].Value);
     }
 
-    /// <summary>The temporary that stands for a boolean function's returned value has usage BIT (ISO §2023:15.13.4 RV1, §2023:15.2 GR2),
+    /// <summary>The temporary that stands for a boolean function's returned value has usage BIT (ISO §2023:15.13.4 1), §2023:15.2 2)),
     /// so the storage image of a MOVE's sender (<c>OperandText.AsStorageImage</c>) is its packed bits (kb/Work PB3562).
     /// <c>CharacterUsage</c> answered DISPLAY for it, and the group move copied the carrier text.</summary>
     [Fact]

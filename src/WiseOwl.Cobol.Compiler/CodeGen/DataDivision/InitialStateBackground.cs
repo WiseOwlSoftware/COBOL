@@ -31,7 +31,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <para><b>⛔ EVERY STORAGE POSITION TAKES THE FILL, NUMERIC ITEMS INCLUDED</b> (owner decision kb/Work R53,
 /// overturning the former "a native-numeric carrier takes its zero" determination; kb/Work PB1134). §2023:14.6.2.3.2
 /// action 1 sets "the storage allocated for the implied or associated sections" to the specified-fill-character
-/// with no exception for numeric items, and §2023:13.18.63.4 GR4c's "undefined" latitude is the NO-clause baseline
+/// with no exception for numeric items, and §2023:13.18.63.4 GR4 c)'s "undefined" latitude is the NO-clause baseline
 /// (§2023:11.9.10.4 GR6), not a license to ignore a clause the program wrote. So a VALUE-less fixed-point numeric item
 /// of a governed section is given IMAGE storage at bind time (<c>StorageFormPass</c>, the same promotion a group
 /// move's receiver gets) and its image is the fill: a USAGE DISPLAY item holds the fill CHARACTERS, a BINARY /
@@ -42,7 +42,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// effective OPTIONS clause (<c>StorageFormPass</c> step 5b). Two carve-outs, each from a RULE rather than from
 /// convenience:</para>
 /// <list type="bullet">
-///   <item><b>Class object / message-tag / pointer take NULL, never the fill.</b> §2023:13.18.63.4 GR4c states this
+///   <item><b>Class object / message-tag / pointer take NULL, never the fill.</b> §2023:13.18.63.4 GR4 c) states this
 ///     as a positive requirement — those items "are initialized to null" — in the same sentence that leaves
 ///     every other item undefined. A rule beats a background.</item>
 ///   <item><b>USAGE BIT keeps its packed zero seed</b> (D19 / kb/Work PB43). Its storage is ceil(n/8) PACKED

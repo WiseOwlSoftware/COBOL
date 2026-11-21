@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A COHERENT STATEMENT'S ENTRY HAS ONLY I-O STATUSES AS OUTCOMES — never an escaping exception
 /// (kb/Work PB2842). For both keyed organizations the entry is the keyed store engine's read of page 2
 /// (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7; kb/Work PB3333, PB3334): a page 2 that does not validate
-/// under a live store is answered '30' by a writer, which cannot know what another run unit completed. ISO §2023:9.1.13.6 GR1:
+/// under a live store is answered '30' by a writer, which cannot know what another run unit completed. ISO §2023:9.1.13.6 1):
 /// <i>"A permanent error exists and no further information is available"</i> is I-O status '30'. A keyed connector whose
 /// file another run unit may write (every sharing mode but <c>SHARING WITH NO OTHER</c>) reads page 2 at the start of a
 /// statement (<c>KeyedConnector.BeginStatement</c>), and a page 2 torn under it used to be an escaping exception's
@@ -185,7 +185,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
     }
 
     /// <summary>The sharing modes a refused page write or sync is answered under: <c>ALL OTHER</c>, <c>READ ONLY</c>
-    /// (kb/Work PB1587: a READ ONLY writer is coherent, §2023:9.1.15 GR2 admits another run unit's INPUT reader beside it, and
+    /// (kb/Work PB1587: a READ ONLY writer is coherent, §2023:9.1.15 2) admits another run unit's INPUT reader beside it, and
     /// its WRITE releases the record to the file at the statement, §2023:14.9.51.4 GR12) and the clause-less
     /// <c>NO OTHER</c> default (null).</summary>
     private static readonly FileSharing?[] Sharings = [FileSharing.AllOther, FileSharing.ReadOnly, null];
@@ -210,7 +210,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
     }
 
     /// <summary>⛔ THE ENGINE WRITES AT EVERY STATEMENT, SO A WRITE THE HOST REFUSES IS THE STATEMENT'S '30', WHATEVER ITS
-    /// SHARING MODE (docs/rearchitecture/DESIGN-runtime-library.md sections 2.2.1.3 (decision 6) and 2.2.1.9; kb/Work PB3333): §2023:9.1.13.6 GR1's
+    /// SHARING MODE (docs/rearchitecture/DESIGN-runtime-library.md sections 2.2.1.3 (decision 6) and 2.2.1.9; kb/Work PB3333): §2023:9.1.13.6 1)'s
     /// permanent error at the WRITE, REWRITE or DELETE that met it, never deferred to a CLOSE, and in effect until the
     /// CLOSE (§2023:9.1.13.1). The file is as the previous statement left it: the next OPEN reads the seeded records
     /// unchanged. A refused SYNC at the CLOSE's promotion is the CLOSE's '30', and the records the statements wrote
@@ -283,7 +283,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
 
     /// <summary>⛔ A CLOSE THAT OWES NO PROMOTION STILL SYNCS, AND A SYNC THE HOST REFUSES IS THE CLOSE'S '30', NEVER '00'
     /// (docs/rearchitecture/DESIGN-runtime-library.md section 2.2.1.7; kb/Work PB3333, PB3382): a connector that changed
-    /// nothing since its OPEN's fence (it did nothing, or it only READ) writes no page at its CLOSE, but §2023:9.1.13.6 GR1's
+    /// nothing since its OPEN's fence (it did nothing, or it only READ) writes no page at its CLOSE, but §2023:9.1.13.6 1)'s
     /// permanent error ("A permanent error exists and no further information is available concerning the input-output
     /// operation") is the refused sync's status, and the program must not believe the file durable when the host refused.
     /// The records the file held are untouched, and the connector is closed either way.</summary>

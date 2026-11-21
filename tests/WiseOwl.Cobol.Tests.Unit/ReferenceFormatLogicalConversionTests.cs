@@ -27,14 +27,14 @@ public sealed class ReferenceFormatLogicalConversionTests
 
     private static string[] Codes(DiagnosticBag bag) => bag.Diagnostics.Select(d => d.Code).ToArray();
 
-    [Theory] // kb/Work PB1362 — §2023:7.3.24.3 GR2 "The default reference format of a compilation group is fixed form":
+    [Theory] // kb/Work PB1362 — §2023:7.3.24.3 2) "The default reference format of a compilation group is fixed form":
     // with no directive and no selection, a non-numeric or blank sequence area and text past margin R stay fixed.
     [InlineData("ABC001 DISPLAY \"X\".\n", "DISPLAY \"X\".")]
     [InlineData("       DISPLAY \"X\".                                                     TAG00001\n", "DISPLAY \"X\".")]
     public void NoDirective_NoSelection_IsReadInFixedForm(string src, string expectedLine)
         => Assert.Equal(expectedLine, Convert(src).Text.Text.Split('\n')[0].Trim());
 
-    [Fact] // kb/Work PB1362 — the Free selection reads the same text from column 1 (the §2023:4.2.10 GR3 mechanism).
+    [Fact] // kb/Work PB1362 — the Free selection reads the same text from column 1 (the §2023:4.2.10 3) mechanism).
     public void FreeSelection_ReadsFromColumnOne()
         => Assert.Equal("ABC001 DISPLAY \"X\".",
             Convert("ABC001 DISPLAY \"X\".\n", initial: InitialReferenceFormat.Free).Text.Text.Split('\n')[0]);
@@ -83,7 +83,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         Assert.Equal(line.Replace("<debug>", ReferenceFormatProcessor.DebugLineCarrier), m.Text.Split('\n')[0]);
     }
 
-    [Fact] // kb/Work PB1494 — §2023:6.5 GR5: a source line's program-text area is copied. The comment-entry reading of
+    [Fact] // kb/Work PB1494 — §2023:6.5 5): a source line's program-text area is copied. The comment-entry reading of
     // AUTHOR / INSTALLATION / DATE-WRITTEN / DATE-COMPILED / SECURITY / REMARKS belongs to the IDENTIFICATION DIVISION;
     // a PROCEDURE DIVISION paragraph so named and the lines after it were silently dropped.
     public void CommentEntryParagraphs_AreOnlyInTheIdentificationDivision()
@@ -124,7 +124,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         Assert.Equal("REMARKS.", lines[7]);                            // a procedure paragraph is program text
     }
 
-    [Fact] // §2023:6.5 GR8: the line a floating literal continuation indicator asks for is the literal's continuation line,
+    [Fact] // §2023:6.5 8): the line a floating literal continuation indicator asks for is the literal's continuation line,
            // whatever its first word spells (here read with COBOL2684, its opening quotation symbol missing), never a
            // comment-entry header.
     public void FreeFormFloatingContinuationLine_IsNeverACommentEntryHeader()
@@ -190,17 +190,17 @@ public sealed class ReferenceFormatLogicalConversionTests
                    + "000800 01 Y PIC X.\n";
         var (m, bag) = Convert(src);
         var lines = m.Text.Split('\n');
-        // §2023:6.5 GR6a: appended to the LATEST LOGICAL line, the continued line space-filled to margin R (DOC-A.1-157)
+        // §2023:6.5 6) a): appended to the LATEST LOGICAL line, the continued line space-filled to margin R (DOC-A.1-157)
         Assert.Equal("01 X PIC X(80) VALUE \"AB" + new string(' ', 41) + "CD\".", lines[1]);
         Assert.Equal(2, m.Lines[1].Origin.Line);
-        Assert.Equal("", lines[2]);                    // §2023:6.5 GR2: the interspersed line is discarded, its slot kept
+        Assert.Equal("", lines[2]);                    // §2023:6.5 2): the interspersed line is discarded, its slot kept
         Assert.Equal(3, m.Lines[2].Origin.Line);
         Assert.Equal("01 Y PIC X.", lines[3].Trim()); // the continuation occupies no line; Y keeps its number
         Assert.Equal(5, m.Lines[3].Origin.Line);
         Assert.DoesNotContain(bag.Diagnostics, d => d.IsError);
     }
 
-    [Fact] // §2023:6.5 GR3 on a CONTINUATION line: the comment goes before the next continuation is appended to the line.
+    [Fact] // §2023:6.5 3) on a CONTINUATION line: the comment goes before the next continuation is appended to the line.
     public void InlineCommentOnAContinuationLine_IsRemovedBeforeTheNextJoin()
     {
         string src = "000100 01 X PIC X(8) VALUE\n"
@@ -210,7 +210,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         Assert.Equal("01 X PIC X(8) VALUE\"CD\".", m.Text.Split('\n')[0]);
     }
 
-    [Fact] // §2023:6.3.4 SR1 / §2023:6.5 GR2: no comment-text reaches a later stage — the lexer's picture mode included.
+    [Fact] // §2023:6.3.4 1) / §2023:6.5 2): no comment-text reaches a later stage — the lexer's picture mode included.
     public void CommentLines_BecomeEmpty_InBothReferenceFormats()
     {
         var (fixedForm, _) = Convert("000100 01 X PIC\n000200* comment\n000300     X(4).\n");

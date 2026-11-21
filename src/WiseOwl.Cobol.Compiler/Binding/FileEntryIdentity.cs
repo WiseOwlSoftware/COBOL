@@ -95,12 +95,12 @@ internal static class FileEntryIdentity
             new("COLL", "the COLLATING SEQUENCE clauses", $"{fileColl};{keyColl}"),
             new("KEY", "the RECORD KEY clause", f.RecordKeyOperand is { } rk ? ClauseKey(rk.Name, f.RecordKeySource, f.PrimeKey?.Item, f.RecordKeySubscripts) : ""),
             new("ALT", "the ALTERNATE RECORD KEY clauses",
-                // §2023:12.4.5.3 GR1k and §1985:IX.2.3.4 GR1 name the alternate keys' number, descriptions and DUPLICATES
+                // §2023:12.4.5.3 GR1 k) and §1985:IX.2.3.4 GR1 name the alternate keys' number, descriptions and DUPLICATES
                 // phrases, not their order, and §1985:IX.2.3.3 SR1 lets the clauses appear in any order: sorted like COLL.
                 string.Join(",", f.AlternateKeyNames.Select(AlternateEntry).Order(StringComparer.Ordinal))),
             new("SHARE", "the sharing mode", $"{f.Sharing}"),
             new("LOCK", "the lock mode", f.LockMode is { } lm ? $"{lm.Kind},{lm.Multiple}" : ""),
-            // §1985:VII.2.7.4 GR6 / §2002:12.3.4.3 GR1h "The same specification of the PADDING CHARACTER clause" (kb/Work
+            // §1985:VII.2.7.4 GR6 / §2002:12.3.4.3 GR1 h) "The same specification of the PADDING CHARACTER clause" (kb/Work
             // PB5069): literal-1's character, or data-name-1's corresponding external data item (its identity, the
             // RELATIVE KEY rule's reading of "the same"). Empty where no clause is written, so the editions that have no
             // such clause (2014 and later) compare equal.

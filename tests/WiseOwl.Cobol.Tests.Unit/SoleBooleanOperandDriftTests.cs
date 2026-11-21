@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A BOOLEAN OPERAND THAT IS A SOLE IDENTIFIER IS CLASSIFIED AND BOUND IN ONE PLACE, WHOEVER HOSTS IT (kb/Work
 /// PB3565). ISO §2023:8.8.2 admits "an identifier referencing a boolean data item" and "a boolean expression enclosed in
-/// parentheses" as a boolean expression, §2023:15.2 GR2 makes a boolean function one such identifier and §2023:13.10.4 GR1 makes
+/// parentheses" as a boolean expression, §2023:15.2 2) makes a boolean function one such identifier and §2023:13.10.4 1) makes
 /// a boolean constant-name the boolean literal it stands for. COMPUTE's sole right-hand operand parses as Format 1's
 /// arithmetic expression, so the binder re-routes it to Format 2; that re-route read an unparenthesized DATA
 /// reference only, and a sole boolean function, a parenthesized boolean item and a boolean constant-name were each

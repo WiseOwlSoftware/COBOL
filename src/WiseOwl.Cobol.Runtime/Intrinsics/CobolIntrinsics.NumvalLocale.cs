@@ -6,8 +6,8 @@ using WiseOwl.Cobol.Runtime.Globalization;
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// NUMVAL-C / TEST-NUMVAL-C — the LOCALE arm (ISO/IEC 1989:2023 §2023:15.68.3 AR5, imported whole into
-/// TEST-NUMVAL-C by §2023:15.94.3 r1; DESIGN-locale-facility §4.6; kb/Work PB64 T6). ⛔ §2023:15.68.3 AR4 opens "If the
+/// NUMVAL-C / TEST-NUMVAL-C — the LOCALE arm (ISO/IEC 1989:2023 §2023:15.68.3 rule 5, imported whole into
+/// TEST-NUMVAL-C by §2023:15.94.3 r1; DESIGN-locale-facility §4.6; kb/Work PB64 T6). ⛔ §2023:15.68.3 rule 4 opens "If the
 /// LOCALE keyword is not specified", so NOTHING of the r4 arm is inherited here: the two fixed formats, CR/DB as
 /// sign indicators, the period/comma roles and their DECIMAL-POINT IS COMMA swap, and the invariant ANYCASE fold
 /// are all r4-only — the admissible language is generated from the locale's LC_MONETARY snapshot
@@ -57,7 +57,7 @@ public static partial class CobolIntrinsics
             ? DigitCapExceeded("NUMVAL-C", digitCap + 1, digitCap, "ISO §2023:15.68.3 rules 6-7")
             : Exceptions.ExceptionState.ArgumentError(
                 $"NUMVAL-C argument-1 \"{text}\" is not in a format consistent with locale category LC_MONETARY "
-                + $"in the locale in use (ISO §2023:15.68.3 AR5 b; first character in error at position {p.ErrPos}; "
+                + $"in the locale in use (ISO §2023:15.68.3 rule 5 b; first character in error at position {p.ErrPos}; "
                 + "§2023:15.94 TEST-NUMVAL-C reports the same position)");
 
     /// <summary>One template's token kinds — the layout order comes from the convention, spaces are admitted at

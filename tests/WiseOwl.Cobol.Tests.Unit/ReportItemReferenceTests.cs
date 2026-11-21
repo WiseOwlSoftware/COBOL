@@ -88,7 +88,7 @@ public sealed class ReportItemReferenceTests
         Assert.DoesNotContain(d, x => x.Contains("COBOL1639"));
     }
 
-    /// <summary>§2023:13.8.6.2.3 SR1 — "Sum counters may be inspected or altered in the procedure division": the SUM entry's
+    /// <summary>§2023:13.8.6.2.3 1) — "Sum counters may be inspected or altered in the procedure division": the SUM entry's
     /// data-name stays referenceable, and only the printable-item faces around it are refused.</summary>
     [Fact]
     public void ASumCounter_IsStillReferenceableInTheProcedureDivision()
@@ -97,7 +97,7 @@ public sealed class ReportItemReferenceTests
         Assert.DoesNotContain(d, x => x.Contains("error"));
     }
 
-    /// <summary>§2023:13.8.6.2.3 SR2 — GENERATE names the DETAIL group, by name and qualified by the report-name.</summary>
+    /// <summary>§2023:13.8.6.2.3 2) — GENERATE names the DETAIL group, by name and qualified by the report-name.</summary>
     [Theory]
     [InlineData("GENERATE DL")]
     [InlineData("GENERATE DL OF RR")]
@@ -255,7 +255,7 @@ public sealed class ReportItemReferenceTests
 
     /// <summary>kb/Work PB4226: a SEARCH ALL Format 2 condition-name operand the written reference does not reach is the
     /// condition binder's verdict, given once: a report entry of a NEARER source element is the referenced item (ISO
-    /// §2023:8.4.6.2.1 GR3a) and draws the report-item refusal alone, and a misqualified condition-name the misqualified
+    /// §2023:8.4.6.2.1 3) a)) and draws the report-item refusal alone, and a misqualified condition-name the misqualified
     /// wording alone. The SEARCH ALL screen used to add its own COBOL1965 to both, calling the report entry a
     /// condition-name.</summary>
     [Theory]

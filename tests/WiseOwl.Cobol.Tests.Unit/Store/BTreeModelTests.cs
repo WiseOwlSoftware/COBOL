@@ -304,7 +304,7 @@ public sealed class BTreeModelTests
     }
 
     /// <summary><c>ALPHABET IS "ZYX…A"</c>: the 26 letters specified in reverse, every other character after them in native
-    /// order (§2023:12.3.7.4 GR7k, so the WEIGHTED order differs from the bytes' order for every pair of letters.</summary>
+    /// order (§2023:12.3.7.4 GR7 k), so the WEIGHTED order differs from the bytes' order for every pair of letters.</summary>
     internal static AlphanumericCollation ReversedAlphabet()
     {
         var codes = Enumerable.Range('A', 26).Select(c => (ushort)c).ToArray();

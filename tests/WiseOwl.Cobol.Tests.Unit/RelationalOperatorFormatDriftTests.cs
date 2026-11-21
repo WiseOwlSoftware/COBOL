@@ -87,7 +87,7 @@ public sealed class RelationalOperatorFormatDriftTests
             "comparisonOperator lacks printed spellings: " + string.Join(" | ", missing));
     }
 
-    /// <summary>The compile-time relation (§2023:7.3.8.2 SR1a) is "formed according to the rules in 8.8.4.2", so it
+    /// <summary>The compile-time relation (§2023:7.3.8.2 SR1 a)) is "formed according to the rules in 8.8.4.2", so it
     /// takes comparisonOperator as it stands: a free <c>IS? NOT?</c> written before the operator is a second,
     /// unscreened NOT (`&gt;&gt;IF X NOT &gt;= 3`).</summary>
     [Fact]

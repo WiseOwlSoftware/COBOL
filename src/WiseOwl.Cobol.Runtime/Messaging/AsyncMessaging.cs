@@ -65,11 +65,11 @@ public static class AsyncMessaging
 
     /// <summary>The capacity of a message area that holds an OCCURS DYNAMIC table: it has no allocated maximum (§2023:8.5.1.9.1 - the number of occurrences is the implementor's
     /// maximum), and a RECEIVE recreates the table to the message, so no message is too long for it (kb/Work PB4744). The size the area then took, which the run unit's end
-    /// answers an unanswered message with (§2023:14.6.11 GR7), is stated by the program after its store (<see cref="Received"/>).</summary>
+    /// answers an unanswered message with (§2023:14.6.11 7)), is stated by the program after its store (<see cref="Received"/>).</summary>
     public const int UnboundedCapacity = int.MaxValue;
 
     /// <summary>After a successful RECEIVE into an area of <see cref="UnboundedCapacity"/> has stored the message: the area is <paramref name="size"/> character positions, the
-    /// temporary's size an implicit SEND at the run unit's end uses for the message <paramref name="tag"/> names (ISO §2023:14.6.11 GR7, §2023:14.6.12).</summary>
+    /// temporary's size an implicit SEND at the run unit's end uses for the message <paramref name="tag"/> names (ISO §2023:14.6.11 7), §2023:14.6.12).</summary>
     public static void Received(MessageTag tag, int size) => RunUnit.Current.Messaging.Received(tag, size);
 
     /// <summary>RECEIVE (§2023:14.9.31.4): <paramref name="capacity"/> is identifier-1's maximum length in character positions, or <see cref="UnboundedCapacity"/>.</summary>
@@ -137,7 +137,7 @@ public static class AsyncMessaging
     private const string ContinueLessThanZero = "EC-CONTINUE-LESS-THAN-ZERO";
 
     /// <param name="lessThanZero">A RECEIVE whose CONTINUE AFTER value is negative (§0 Q5): the value is zero, and EC-CONTINUE-LESS-THAN-ZERO is set to exist as
-    /// §2023:14.9.9.4 GR1b does for the CONTINUE statement; nonfatal, and a RECEIVE that also failed reports its own condition instead.</param>
+    /// §2023:14.9.9.4 GR1 b) does for the CONTINUE statement; nonfatal, and a RECEIVE that also failed reports its own condition instead.</param>
     private static MessageOutcome Outcome(StatementResult result, string checking, bool lessThanZero = false)
     {
         string? raised = null;

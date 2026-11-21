@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// kb/Work PB1629 — a fault of PLACEMENT born at a TYPE or SAME AS reference is positioned at the entry that wrote
 /// the clause, never at the declaration the description is copied from. ISO §2023:13.18.57.4 GR1 and §2023:13.18.49.4 GR1 make
-/// the clause's effect "as though" the description "had been coded in place", so the rule broken (§2023:8.5.1.9.1 SR3: a
+/// the clause's effect "as though" the description "had been coded in place", so the rule broken (§2023:8.5.1.9.1 3): a
 /// dynamic-capacity table "may be defined in any place, other than the file section"; §2023:13.18.38.3 SR1(b)/SR10/SR17/
 /// SR20/SR22, §2023:13.18.44.3 SR5 and SR10's seven-subscript limit for an OCCURS DEPENDING ON table or a nest of tables)
 /// is the reference's, and the declaration, legal on its own, is not where the user edits. The codes are pinned by
@@ -68,7 +68,7 @@ public sealed class ReferenceSitePositionTests
         "       MAIN-PARA.\n" +
         "           STOP RUN.\n";
 
-    /// <summary>§2023:8.5.1.9.1 SR3: COBOL1526 at the entry that put the table in the file section, on each route.</summary>
+    /// <summary>§2023:8.5.1.9.1 3): COBOL1526 at the entry that put the table in the file section, on each route.</summary>
     [Theory]
     [InlineData("PB1629F1", "       FD F.\n       01 R-TYPE TYPE TT.\n       SD S.\n       01 SR PIC X.\n", "R-TYPE TYPE TT", "TDECL OCCURS")]
     [InlineData("PB1629F2", "       FD F.\n       01 R.\n          05 A PIC X(2).\n          05 G-TYPE TYPE TT.\n       SD S.\n       01 SR PIC X.\n", "G-TYPE TYPE TT", "TDECL OCCURS")]

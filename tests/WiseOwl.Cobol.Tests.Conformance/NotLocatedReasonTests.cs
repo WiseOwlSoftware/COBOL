@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// part of how the runtime system "attempts to locate" a program, ISO §2023:14.9.4.4 GR3b) finds <c>&lt;name&gt;.dll</c> beside
 /// the run; when that module is present but does not carry the name, the miss is "set to exist" (§2023:8.4.3.13.4 GR4 for a
 /// program-address-identifier, §2023:8.4.3.12.4 GR4 for a function-address-identifier, cite.py OK) and its reason rides the
-/// termination message the fatal default prints (§2023:14.6.13.1.3 GR7).
+/// termination message the fatal default prints (§2023:14.6.13.1.3 7)).
 /// <para>The companion <c>PROGRAM-ID. P2847Q AS "P2847R"</c> compiles to <c>P2847Q.dll</c> but registers only the
 /// externalized name P2847R (§2023:11.10.4 GR1), so a lookup of P2847Q finds the module and then not the program: a reason
 /// every surface must carry. CALL and ADDRESS OF PROGRAM carried it; <c>SET … TO ENTRY</c> and
@@ -66,7 +66,7 @@ public sealed class NotLocatedReasonTests
 
     /// <summary>One caller program: the working-storage every case needs, then <paramref name="procedure"/>. The function
     /// definition comes FIRST, because the caller's REPOSITORY names it, and a definition answers a function specifier
-    /// only when it is "specified previously in the same compilation group" (ISO §2023:12.3.8.4 GR11a); the caller stays the main program, which is
+    /// only when it is "specified previously in the same compilation group" (ISO §2023:12.3.8.4 GR11 a)); the caller stays the main program, which is
     /// the first program definition.</summary>
     private static string Caller(string programId, string name, string procedure) => $"""
         {Function}

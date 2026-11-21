@@ -342,7 +342,7 @@ internal static class CompiledProgramCache
     // ───────────────────────────── the store ─────────────────────────────
 
     /// <summary>A stored compilation. <paramref name="CompileOutput"/> is what the compilation itself transferred
-    /// (the DISPLAY directive's lines, ISO §2023:7.3.12.4 GR1): part of the result, so a hit replays it. <paramref name="Library"/>
+    /// (the DISPLAY directive's lines, ISO §2023:7.3.12.4 1)): part of the result, so a hit replays it. <paramref name="Library"/>
     /// is the result's <see cref="CompilerDriver.Result.Library"/>; <paramref name="Diagnostics"/> its
     /// <see cref="CompilerDriver.Result.Diagnostics"/>.</summary>
     private sealed record Entry(int Format, string Status, List<string> Errors, List<string> Warnings,

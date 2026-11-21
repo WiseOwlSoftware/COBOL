@@ -251,10 +251,10 @@ internal readonly record struct ReceiverContext(
     /// ⛔ WHAT PB647 ORIGINALLY CLOSED, KEPT BECAUSE IT IS WHY THE FINAL-TRANSFER ARM READS AS IT DOES. The
     /// quantizer hard-coded <see cref="CobolRounding.NearestAwayFromZero"/> at the working scale in BOTH
     /// positions, so with <c>S PIC 9V9(9)</c>, <c>MOVE FUNCTION SQRT(3) TO S</c> gave 1.732050807
-    /// (§2023:14.6.8.2 GR4 — "the data is aligned by decimal point and is transferred to the receiving digits with
+    /// (§2023:14.6.8.2 rule 4 — "the data is aligned by decimal point and is transferred to the receiving digits with
     /// zero fill or truncation on either end") while <c>COMPUTE S = FUNCTION SQRT(3)</c> gave 1.732050808, and
     /// <c>SQRT(0.9999999999)</c> into <c>PIC 9V9</c> split across a whole tenth (0.9 against 1.0). The same
-    /// hard-coding made the ROUNDED phrase a NO-OP on this family, where §2023:14.7.4.3 GR2 says "If the ROUNDED
+    /// hard-coding made the ROUNDED phrase a NO-OP on this family, where §2023:14.7.4.3 rule 2 says "If the ROUNDED
     /// phrase is not specified, execution is as if ROUNDED MODE IS TRUNCATION had been specified".
     /// </para>
     /// <para>

@@ -117,7 +117,7 @@ public static class FigurativeAssociation
             ConstructRegistry.Check(edition, sink, Constructs.MoveAlphanumericFigurativeRemoved2023, where);
     }
 
-    /// <summary>⛔ THE ONE GATE FOR §2023:8.3.3.6.3 SR1a's ALL HALF (kb/Work PB1415): "If the literal is restricted to a
+    /// <summary>⛔ THE ONE GATE FOR §2023:8.3.3.6.3 SR1 a)'s ALL HALF (kb/Work PB1415): "If the literal is restricted to a
     /// numeric literal, the only figurative constant permitted is ZERO (ZEROS, ZEROES) WITHOUT the ALL phrase."
     /// The caller has established both facts — the position is numeric-restricted (the VALUE clause of a numeric
     /// subject, §2023:13.18.63.3 SR2; an arithmetic-expression operand, §2023:8.8.1.1) and the operand is ZERO written WITH

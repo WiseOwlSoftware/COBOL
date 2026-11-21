@@ -149,7 +149,7 @@ public sealed class RecordClauseRuleDriftTests
     }
 
     /// <summary>⛔ THE ABSENCES ARE DERIVED, NOT ASSUMED. The table deliberately carries no row for SR7 or SR8,
-    /// and the whole justification is §2023:5.5 SR1's sentence about what <c>integer-n</c> IS: "a fixed-point integer
+    /// and the whole justification is §2023:5.5 1)'s sentence about what <c>integer-n</c> IS: "a fixed-point integer
     /// literal that shall be unsigned and nonzero unless otherwise specified in the associated rules". UNSIGNED
     /// is what makes a negative integer-2 unwritable — so the general format, not a screen, discharges those two
     /// rules — and "unless otherwise specified" is what makes SR7/SR8 the express permission for ZERO. If that

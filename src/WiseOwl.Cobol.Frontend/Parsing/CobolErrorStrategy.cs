@@ -136,7 +136,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 _lastReported = (_lastReported.From, Math.Max(_lastReported.Through, word.Through));
                 _orphansItsTail = true;
             }
-            // ⛔ ONE WORD, ONE VIOLATION (kb/Work PB4283): a reserved word named as a procedure is §2023:8.3.2.1 SR1's one violation
+            // ⛔ ONE WORD, ONE VIOLATION (kb/Work PB4283): a reserved word named as a procedure is §2023:8.3.2.1 1)'s one violation
             // however many sentences name it, and the bound-tree funnel of a word the gate reads (`reservedGatedWord`) says it once,
             // at the first. So a verb reserved at every edition (`PERFORM READ.` and its paragraph header `READ.`) is said once too:
             // the first sentence in source order names it, and the others are recovered silently, as the funnel's are accepted.
@@ -204,7 +204,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     }
 
     /// <summary>⛔ THE TERMINATOR OF A LEFT STATEMENT IS ITS OWN WHERE AN OLDER OPEN STATEMENT'S OPTIONAL TERMINATOR WOULD
-    /// MATCH IT (kb/Work PB4447; ISO §2023:14.5.3.2 GR1). <c>IF A EVALUATE W WHEN 1 IF B ELSE DISPLAY X END-IF DISPLAY "Y"
+    /// MATCH IT (kb/Work PB4447; ISO §2023:14.5.3.2 1)). <c>IF A EVALUATE W WHEN 1 IF B ELSE DISPLAY X END-IF DISPLAY "Y"
     /// END-EVALUATE END-IF.</c>: the inner IF has no statement-1 and is left by the recovery, the WHEN group's block ends
     /// at the END-IF it cannot take, the EVALUATE (whose END-EVALUATE is optional) returns, and the outer IF's optional
     /// END-IF matches the left IF's END-IF without any failure, so no recovery sees it: the EVALUATE was closed early with
@@ -235,7 +235,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     }
 
     /// <summary>⛔ THE NEXT PHRASE OF A CONTAINING STATEMENT ENDS THE LEFT STATEMENTS INSIDE IT (kb/Work PB4447 review R1-1;
-    /// ISO §2023:14.5.3.3 GR4b). A conditional statement contained within another is implicitly terminated by "the next phrase
+    /// ISO §2023:14.5.3.3 4) b)). A conditional statement contained within another is implicitly terminated by "the next phrase
     /// of any containing statement", and "any phrase encountered is the next phrase of the most-recently preceding
     /// unterminated statement with which that phrase may be syntactically associated". <c>IF A IF B ELSE DISPLAY X ELSE
     /// DISPLAY Y END-IF END-IF.</c>: the inner IF is left at its first ELSE (its statement-1 is missing), has taken the one
@@ -272,7 +272,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// <summary>Can a token of type <paramref name="type"/> begin a statement (<c>statement</c>'s first set, read once from the
     /// ATN)? Such a word at a synchronization point inside the statement before it is the next statement's start, which an
     /// enclosing statement's block takes (<see cref="OpenStatementTaking"/> finds that statement open), and no phrase of any
-    /// statement: it ends no left statement (ISO §2023:14.5.3.3 GR4b ends a contained statement at "the next phrase of any
+    /// statement: it ends no left statement (ISO §2023:14.5.3.3 4) b) ends a contained statement at "the next phrase of any
     /// containing statement", not at the next statement of a containing block).</summary>
     private static bool BeginsAStatement(Parser recognizer, int type)
         => (_statementStarts ??= recognizer.Atn.NextTokens(recognizer.Atn.ruleToStartState[CobolParserCore.RULE_statement])).Contains(type);
@@ -309,7 +309,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// first IF before it, and the ELSE (the next WHEN or the WHEN OTHER of an EVALUATE or a SEARCH, the NOT phrase of a
     /// statement with paired conditional phrases) meets no open statement that takes it. The statement is left by the
     /// recovery and the word is its own: "Any phrase encountered is the next phrase of the most-recently preceding
-    /// unterminated statement with which that phrase may be syntactically associated" (ISO §2023:14.5.3.3 GR4), so the one fault was
+    /// unterminated statement with which that phrase may be syntactically associated" (ISO §2023:14.5.3.3 4)), so the one fault was
     /// reported and the word is no second: the tail it begins belongs to the construct the parse already left
     /// (<see cref="OrphansItsTail"/>), and the resynchronization discards it to the unit's period, as for every construct
     /// the prediction closed early. "If all permitted occurrences of a phrase have already been specified for a given
@@ -372,7 +372,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             if (HoldsAPeriod(stream, left.Start, token.TokenIndex)) { _leftByRecovery.RemoveRange(0, i + 1); return false; }
             // The statement went on after all and ended with its own terminator: nothing is due to it.
             if (EndedWithItsTerminator(recognizer, left.Statement)) { _leftByRecovery.RemoveAt(i); continue; }
-            // The statement enclosing it ended: its scope terminator (or its end) terminated this one with it (§2023:14.5.3.2 GR2),
+            // The statement enclosing it ended: its scope terminator (or its end) terminated this one with it (§2023:14.5.3.2 2)),
             // so no terminator of its own is still due.
             if (!StillOpen(recognizer, left.Enclosing)) { _leftByRecovery.RemoveAt(i); continue; }
             if (!takes(left)) continue;
@@ -501,7 +501,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// does not end in its own terminator, could have taken the faulted statement into that block had it been
     /// well-formed: its block ended at the fault, so it and each unterminated statement down its last branch are
     /// recorded (<see cref="NoteLeft"/>), the innermost last. A statement that ends in its terminator is whole, and
-    /// the statements inside it end with it (§2023:14.5.3.2 GR2).</summary>
+    /// the statements inside it end with it (§2023:14.5.3.2 2)).</summary>
     private void NoteLeftBefore(Parser recognizer, RuleContext faulted)
     {
         // Every statement enclosing the faulted one is a candidate to follow a statement the prediction ended early: the
@@ -547,7 +547,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// scope terminator of ANOTHER kind closes, or null. That statement's terminator terminates this one with it: "any
     /// unterminated statements that appear between that statement-name and the explicit scope terminator" (ISO §2023:14.5.3.2
     /// 2)). A statement of the same kind enclosing it does not: the first END-IF belongs to the "most-recently preceding
-    /// unterminated" IF (§2023:14.5.3.2 GR1), the left one, wherever the recovery's parse nested it.</summary>
+    /// unterminated" IF (§2023:14.5.3.2 1)), the left one, wherever the recovery's parse nested it.</summary>
     private static RuleContext? EnclosingStatement(Parser recognizer, RuleContext statement, int rule)
     {
         string name = recognizer.RuleNames[rule];
@@ -560,7 +560,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     /// <summary>Is the statement enclosing a left one still unended (null: in no statement a terminator closes, the
     /// sentence the period ends)? A statement left by the recovery is awaiting its own terminator while the statement
-    /// enclosing it has not ended with ITS terminator (ISO §2023:14.5.3.2 GR2): that terminator ended the left one too. The
+    /// enclosing it has not ended with ITS terminator (ISO §2023:14.5.3.2 2)): that terminator ended the left one too. The
     /// enclosing statement is unended while the parser stands inside it, and also where it returned without its
     /// terminator, which its optional END-x lets it do wherever the next token is not its own: an IF faulting at its ELSE
     /// as the first statement of a WHEN group is followed by the DISPLAY the EVALUATE's prediction ended before, and the
@@ -627,7 +627,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// review R1-1). Before the parse, <see cref="EmbeddedBlockReading"/> made each <c>EXEC … END-EXEC</c> block one
     /// <c>EMBEDDED_BLOCK</c> token, which it reports. Where a statement may begin, the parse takes the token as one
     /// (<c>embeddedBlockStatement</c>), so a block that is the only statement of an IF's or an ELSE's branch, a WHEN, an
-    /// inline PERFORM or an AT END phrase leaves that construct whole (ISO §2023:14.9.19.3 SR1). Elsewhere (an entry of
+    /// inline PERFORM or an AT END phrase leaves that construct whole (ISO §2023:14.9.19.3 1)). Elsewhere (an entry of
     /// WORKING-STORAGE, a record's subordinate entries) the precompiler writes nothing a statement could be, so the token
     /// is nothing: it is consumed at the decision before it, and a separator period after it that the parse cannot take
     /// there (an entry's, where the block was the whole of it) with it. The hot path (every decision of every parse) is
@@ -679,7 +679,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// The §2023:8.9 message for a syntax error on a reserved word §2023:8.9 reserves at this edition
     /// (<see cref="CobolParserCoreBase.ReservedUserWordViolation"/>: a reservation-gated word or a verb), or null where
     /// the report is the strategy's own. Such a word is never a <c>cobolWord</c>, so a REFERENCE to it cannot parse and
-    /// never reaches the bound-tree funnel: naming ISO §2023:8.3.2.1 SR1 ("Reserved words shall not be used as user-defined
+    /// never reaches the bound-tree funnel: naming ISO §2023:8.3.2.1 1) ("Reserved words shall not be used as user-defined
     /// words or system-names") is what keeps <c>DISPLAY CONSTANT.</c> at --std 2002 from degrading to "unexpected
     /// 'CONSTANT'", and <c>MOVE CONTINUE TO W-X.</c> from a COBOL0001 and a COBOL2269 at TO.
     /// <para>But where §2023:8.9 reserves the word the token IS its keyword, and the rule is broken only by a USE of it as a
@@ -747,7 +747,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// OF THE TWO THE ONE THAT GOES FURTHER IS THE ONE THE REPORT NAMES (review R3-1): the statement reading when it took
     /// more of the source than the word read as the user-defined word it would stand for
     /// (<see cref="OffendingPosition.NameReach"/>: <c>ADD 1</c> is no receiver list, so the name reading stops at the 1,
-    /// while <c>DISPLAY RECEIVE W-X.</c> is a DISPLAY of two operands). A tie keeps the name, the reading §2023:8.3.2.1 SR1
+    /// while <c>DISPLAY RECEIVE W-X.</c> is a DISPLAY of two operands). A tie keeps the name, the reading §2023:8.3.2.1 1)
     /// names, so <c>MOVE W-X TO MOVE W-Y.</c> is one COBOL0901; and a name that carries the source past the statement
     /// reading's stop, to a later fault in the same sentence (<c>MOVE W-X TO RECEIVE W-Y</c> then <c>DISPLAY W-Z UPON.</c>),
     /// is still the name, whatever lies between: the later fault is the sentence's, and is reported too.</summary>
@@ -913,7 +913,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 && OwningStatement(recognizer, recognizer.Context) is { Start: { } ownerStart } owner)
                 NoteLeft(recognizer, owner.RuleIndex, ownerStart.TokenIndex, owner, e.OffendingToken);
             // A fault AT the statement's own terminator (IF W-N = 1 END-IF) is the one fault, and the terminator is consumed
-            // with it, as the statement's rule would have matched it (§2023:14.5.3.2 GR1). Left to the resynchronization it would
+            // with it, as the statement's rule would have matched it (§2023:14.5.3.2 1)). Left to the resynchronization it would
             // be taken by the statement ENCLOSING it, whose recovery set holds the same word (IF A IF B END-IF END-IF),
             // and the enclosing statement's own terminator would be a stray one.
             if (input.LT(1) is { } at && at.TokenIndex == e.OffendingToken?.TokenIndex
@@ -926,7 +926,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             }
             // A fault AT a phrase word of the statement that failed (the ELSE of `IF A ELSE …`, whose statement-1 is missing) is
             // that statement's own word: "Any phrase encountered is the next phrase of the most-recently preceding
-            // unterminated statement with which that phrase may be syntactically associated" (§2023:14.5.3.3 GR4), and the failed
+            // unterminated statement with which that phrase may be syntactically associated" (§2023:14.5.3.3 4)), and the failed
             // statement is the most recent. It is consumed with the fault, as its terminator is: left to the
             // resynchronization, an ENCLOSING statement whose recovery set holds the same word would take it for ITS phrase
             // (`IF A EVALUATE W WHEN 1 IF B ELSE …`: the outer IF's ELSE), and everything after the word would be read as that
@@ -1265,7 +1265,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         Report(recognizer, recognizer.CurrentToken, null, ErrorKind.UnwantedToken);
     }
 
-    /// <summary>⛔ A PARENTHESIZED GROUP IS NEVER A RESYNCHRONIZATION POINT (kb/Work PB2152). ISO §2023:8.3.5 SR4: "Except in
+    /// <summary>⛔ A PARENTHESIZED GROUP IS NEVER A RESYNCHRONIZATION POINT (kb/Work PB2152). ISO §2023:8.3.5 4): "Except in
     /// pseudo-text, parentheses may appear only in balanced pairs of left and right parentheses" — so a '(' the parser
     /// skips while recovering opens a group whose content belongs to the construct that failed, never to the next one.
     /// ANTLR's resync consumes token by token until one is in the recovery set, and a token INSIDE the group can be in
@@ -1336,7 +1336,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     /// <summary>⛔ A REFERENCE REFUSED AS A RESERVED WORD IS CONSUMED AS THE NAME IT WAS WRITTEN AS (kb/Work PB3248). A
     /// syntax error on a reserved word §2023:8.9 reserves at this edition, written where a user-defined word stands, is
-    /// reported as that word's §2023:8.9 violation (COBOL0901, <see cref="ReservedWordUse"/>), and ISO §2023:8.3.2.1 SR1 ("Reserved
+    /// reported as that word's §2023:8.9 violation (COBOL0901, <see cref="ReservedWordUse"/>), and ISO §2023:8.3.2.1 1) ("Reserved
     /// words shall not be used as user-defined words") is broken once, by that occurrence. A verb such as RECEIVE, SEND or
     /// CONTINUE begins a statement, so it is in every statement-level recovery set, and the base recovery resumed AT it:
     /// <c>DISPLAY RECEIVE.</c> then parsed RECEIVE as a RECEIVE statement and refused the period, a second diagnostic
@@ -1364,7 +1364,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         => ReservedWordUse(recognizer, new OffendingPosition(recognizer, token)) is not null;
 
     /// <summary><para>The other half of the same rule: single-token deletion never deletes a '(' (kb/Work PB2152). Deleting
-    /// one paren of a balanced pair (§2023:8.3.5 SR4 orphans the other, so <c>DISPLAY (W-S).</c> recovered by dropping the
+    /// one paren of a balanced pair (§2023:8.3.5 4) orphans the other, so <c>DISPLAY (W-S).</c> recovered by dropping the
     /// '(' and then reported its ')' as a second error. Declining here sends the error to <see cref="ConsumeUntil"/>,
     /// which consumes the group whole.</para>
     /// <para>⛔ AND NEVER THE TOKEN THAT ENDS AN EMPTY REQUIRED BLOCK (kb/Work PB911). Where one statement written here
@@ -1651,7 +1651,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     // ── COBOL-specific heuristics ──
 
-    /// <summary>The sentence for a word this implementation reserves for a nonstandard extension (ISO §2023:4.2.10 GR3,
+    /// <summary>The sentence for a word this implementation reserves for a nonstandard extension (ISO §2023:4.2.10 3),
     /// docs/CONFORMANCE.md D-RW1) that the source wrote as a user-defined word: which reservation refuses it, and the
     /// synonym as written (kb/Work PB4239, PB4604). It ends without a full stop, for the caller's tail.
     /// <para>⛔ The directive that wrote a synonym decides what becomes of the original (kb/Work PB4239): EQUATE keeps the
@@ -1696,7 +1696,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // never an edition gate. Every ISO reservation-word introduction gate now fires at BIND (superset parse +
         // bind-time ConstructRegistry.Check → the VersionConformancePass), so the former ReservedWordEditionHints
         // reverse-signature recogniser is gone (residue migration complete, DESIGN-version-conformance-pipeline.md).
-        // ⛔ The word is reserved for that extension (ISO §2023:4.2.10 GR3, docs/CONFORMANCE.md D-RW1), so it surfaces here as a
+        // ⛔ The word is reserved for that extension (ISO §2023:4.2.10 3), docs/CONFORMANCE.md D-RW1), so it surfaces here as a
         // vendor statement AND as a user-defined word the program tried to declare or name (`01 JSON`, `MOVE A TO JSON`, a
         // >>COBOL-WORDS synonym `JS` of it): the sentence says which reservation refuses it, and the synonym as written
         // (kb/Work PB4239).
@@ -1914,7 +1914,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, sentenceMsg, 0));
 
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not
-        // separated is §2023:8.3.5 SR5's violation, and SeparatorRule reports it — for every literal token, whether or
+        // separated is §2023:8.3.5 rule 5's violation, and SeparatorRule reports it — for every literal token, whether or
         // not the parse happens to fail there — as COBOL2633. The two recovery hints that stood here (COBOL0301 /
         // COBOL0302) stated that rule a second time, only on a parse error, and only for a quotation-mark delimiter.
 
@@ -2131,7 +2131,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var probe = walk.Probe();
         // A token that may begin what follows the period is the missing period's, unless it HEADS a longer literal: the
         // comma decimal `1,5` begins with INTEGERLIT, but it is one character-string (a comma that no space follows is
-        // no separator, ISO §2023:8.3.5 SR2), never a level-number — the data division's run cannot hold it (kb/Work PB3390).
+        // no separator, ISO §2023:8.3.5 2)), never a level-number — the data division's run cannot hold it (kb/Work PB3390).
         // A word refused where its prediction failed is exempt (kb/Work PB3391, above).
         // A token that begins its fixed-form line in area A begins what follows the period whatever the walk collects: the
         // reference format says so (OffendingPosition.OpensAreaA, kb/Work PB6011).
@@ -2833,7 +2833,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     /// <summary>Whether the failure is at the empty parenthesis pair of an inline method invocation segment —
     /// <c>:: literal-1 ( )</c> (§2023:8.4.3.4.2), with <paramref name="token"/> its '(' or its ')'. The §2023:8.7.4 operator has
-    /// no other role (§2023:8.3.5 SR7 makes '::' one lexical unit), so the four default-channel tokens are this format and
+    /// no other role (§2023:8.3.5 rule 7 makes '::' one lexical unit), so the four default-channel tokens are this format and
     /// nothing else. literal-1 is a literal token or the constant-name word that spells it (§2023:13.10.3 SR2, kb/Work PB780).
     /// GROUPING-PAREN-ONLY: a '(' after literal-1 is always the plain token — the lexer retypes a '(' to
     /// FNARG_LPAREN only after <c>FUNCTION</c> function-name (§2023:8.4.3.2.3 SR6) and to REF_LPAREN only after a word that

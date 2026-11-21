@@ -32,7 +32,7 @@ public sealed class RepositoryRoundTripCorpusTests
     /// reference format). The one enumeration both corpus Facts read (this class's and
     /// <c>HostEntryShapeDriftTests.EveryOutermostUnitOfTheCorpus_PublishesExactlyOneEntryAndRecord</c>). A multi-unit case
     /// whose build compiles a unit before its own source (DESIGN-external-repository §17.1) is not in it: its program resolves
-    /// REPOSITORY specifiers against those separately compiled assemblies (ISO §2023:12.3.8.4 GR10c), which an in-process bind of
+    /// REPOSITORY specifiers against those separately compiled assemblies (ISO §2023:12.3.8.4 GR10 c)), which an in-process bind of
     /// its source alone does not have, and its own run is the suite's (<c>ConformanceSuiteRunner</c>).</summary>
     internal static IReadOnlyList<(int Edition, string Id, string Path, InitialReferenceFormat Format)> Corpus()
     {

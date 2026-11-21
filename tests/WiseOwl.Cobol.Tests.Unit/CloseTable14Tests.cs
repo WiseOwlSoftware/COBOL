@@ -143,7 +143,7 @@ public sealed class CloseTable14Tests
     /// (b) or (c) — a medium that DOES permit rewinding — the first assertion below throws instead of reporting
     /// '07', because <c>FileRegistry.NoRewindPhraseEffect</c> refuses a category it has no rule for; the row
     /// must then be re-adjudicated rather than inherit its closure, exactly as the owner-signed determination for
-    /// the CLOSE twin (§2023:14.9.6.4 GR3e 1., carried in row <c>GR-14.9.6.4-3</c>'s notes since kb/Work PB55) says.
+    /// the CLOSE twin (§2023:14.9.6.4 GR3 e) 1., carried in row <c>GR-14.9.6.4-3</c>'s notes since kb/Work PB55) says.
     /// </para></summary>
     [Fact]
     public void OpenNoRewind_IsTheCloseArmsTwinOnTheSameMedium()
@@ -158,7 +158,7 @@ public sealed class CloseTable14Tests
             reg.OpenNoRewindStatic("S", FileOpenMode.Output);
             Assert.Equal(FileStatusCode.PhraseOnNonReelMedium, reg.Status("S"));
 
-            // §2023:14.9.27.4 GR25a — an UNSUCCESSFUL open keeps the value naming why it failed; GR11's warning is
+            // §2023:14.9.27.4 GR25 a) — an UNSUCCESSFUL open keeps the value naming why it failed; GR11's warning is
             // an overlay on a successful open, never a replacement for a diagnosis. Here the connector is
             // already open, so GR2 owes '41' and the phrase must not overwrite it.
             reg.OpenNoRewindStatic("S", FileOpenMode.Input);

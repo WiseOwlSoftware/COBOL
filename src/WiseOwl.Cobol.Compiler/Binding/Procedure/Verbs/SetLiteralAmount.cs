@@ -38,7 +38,7 @@ internal static class SetLiteralAmount
     /// <summary>The value of <paramref name="amount"/> when it is integer-1 / integer-2 — an operand that
     /// CONSISTS OF a single integer literal — or null when it is arithmetic-expression-4 / -5 and the format's
     /// general rule governs instead.
-    /// <para>§2023:5.5 SR1 is what makes this a literal test and not a value test: "When the term 'integer-n'
+    /// <para>§2023:5.5 rule 1 is what makes this a literal test and not a value test: "When the term 'integer-n'
     /// (n = 1, 2, …) is used in a general format and associated rules, it refers to a fixed-point integer
     /// literal that shall be unsigned and nonzero unless otherwise specified in the associated rules." SR30's
     /// "shall be nonnegative" and SR34's "shall be non-negative" are that otherwise-specification, which is why

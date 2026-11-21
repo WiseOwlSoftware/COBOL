@@ -135,14 +135,14 @@ public sealed class OoClassSymbol
     public string HalfKey(bool factory) => ProgramTable.ClassHalfPath(ExternalizedName, factory);
 
     /// <summary>The emitted C# types a COBOL reference to THIS class selects when the rule names the class
-    /// WITHOUT distinguishing the two object kinds — ISO/IEC 1989:2023 §2023:14.9.49.4 GR14a: "the exception
+    /// WITHOUT distinguishing the two object kinds — ISO/IEC 1989:2023 §2023:14.9.49.4 GR14 a): "the exception
     /// object that was raised is a factory object or instance object of object-class-name-1 or of a subclass
     /// of object-class-name-1". A COBOL class is emitted as TWO DISJOINT C# hierarchies —
     /// <see cref="ClrName"/> rooted at its base's instance half, <see cref="FactoryClrName"/> at its base's
     /// FACTORY half — so ONE COBOL class-name is a SET of C# types, never one, and a single
     /// <c>is ClrName</c> test silently answers false for every factory object (kb/Work PB366). Both halves
     /// mirror INHERITS, so the pair of C# type tests covers "or of a subclass" in both hierarchies.
-    /// A rule that names only ONE kind takes the single name it means instead — §2023:13.18.60.4 GR22d.1.b:
+    /// A rule that names only ONE kind takes the single name it means instead — §2023:13.18.60.4 GR22 d) 1. b):
     /// "If the FACTORY phrase is not specified, the object referenced by this data item shall be an instance
     /// object of the specified class or of a subclass of the specified class" (the typed OBJECT REFERENCE
     /// narrow in <c>OoEmitter.EmitSetObjectRef</c> is instance-only for exactly that reason).</summary>

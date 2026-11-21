@@ -51,14 +51,14 @@ internal sealed class ValidateEmitter(EmitContext ctx, ConditionRenderer cond, E
         }
 
         // Stage one — format validation (GR6 a): every element with a PICTURE, SIGN or USAGE check, in definition order.
-        w.Line("// VALIDATE — stage one, format validation (ISO §2023:14.9.50.4 GR6 a; §2002:14.8.46.3 GR6a");
+        w.Line("// VALIDATE — stage one, format validation (ISO §2023:14.9.50.4 GR6 a; §2002:14.8.46.3 GR6 a)");
         EmitFormat(v.Steps, indicators);
 
         // Stage five — error indication (GR6 e): "If any of these internal indicators is set to invalid on format, an EC-VALIDATE-FORMAT exception
         // condition is set to exist". EC-VALIDATE-FORMAT is nonfatal, so execution continues as if it had not been set (GR6).
-        w.Line("// VALIDATE — stage five, error indication (ISO §2023:14.9.50.4 GR6e");
+        w.Line("// VALIDATE — stage five, error indication (ISO §2023:14.9.50.4 GR6 e)");
         using (w.Block($"if ({string.Join(" || ", indicators.Values.Select(i => $"{i} == {InvalidOnFormat}"))})"))
-            ec.EmitConditionRaise(FormatEc, "VALIDATE: an element is invalid on format (ISO §2023:14.9.50.4 GR6e");
+            ec.EmitConditionRaise(FormatEc, "VALIDATE: an element is invalid on format (ISO §2023:14.9.50.4 GR6 e)");
     }
 
     private void EmitFormat(IReadOnlyList<ValidateStep> steps, Dictionary<ValidateElement, string> indicators)

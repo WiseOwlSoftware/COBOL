@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ABI, registers NOTHING. ISO/IEC 1989:2023 §2023:8.3.2.2 2) (cite.py OK): "Within a run unit, all instances of a given name
 /// that is externalized to the operating environment shall identify the same kind of entity or item ... when two or more
 /// source elements identify something with the same externalized name, they refer to the same instance." A refusal is
-/// §2023:14.9.4.4 GR3b's EC-PROGRAM-NOT-FOUND ("If the program cannot be located", cite.py OK).</summary>
+/// §2023:14.9.4.4 GR3 b)'s EC-PROGRAM-NOT-FOUND ("If the program cannot be located", cite.py OK).</summary>
 public sealed class ModuleRegistrationTests
 {
     private sealed class Stub : ICobolProgram
@@ -151,7 +151,7 @@ public sealed class ModuleRegistrationTests
 
     /// <summary>kb/Work PB2843: a registrar that repeats a path, inside its module or across modules, is a compiler
     /// defect, refused LOUDLY rather than replacing a node another unit registered. Like every registrar fault it is
-    /// §2023:14.9.4.4 GR3b's EC-PROGRAM-NOT-FOUND naming the module and the fault (DESIGN-external-repository §11.2, kb/Work
+    /// §2023:14.9.4.4 GR3 b)'s EC-PROGRAM-NOT-FOUND naming the module and the fault (DESIGN-external-repository §11.2, kb/Work
     /// PB2101): the module registers nothing.</summary>
     [Fact]
     public void ARepeatedPath_IsRefusedLoudly_NeverReplacingANode()

@@ -313,7 +313,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // keeps its Format-2 verdict. It is the ONE reading: §2023:14.5.3.3's phrase association asks it too, so the SIZE
         // ERROR pair a Format-1 reading admits was associated with this COMPUTE at parse (kb/Work PB3830 review
         // R2-1). The operand is then read by the ONE arithmetic-operand reading (ComputeZeroOperand), so `ALL ZERO`
-        // meets §2023:8.3.3.6.3 SR1a's edition gate exactly as `ADD ALL ZERO TO X` does ("the only figurative constant
+        // meets §2023:8.3.3.6.3 SR1 a)'s edition gate exactly as `ADD ALL ZERO TO X` does ("the only figurative constant
         // permitted is ZERO (ZEROS, ZEROES) without the ALL phrase": COBOL0902 from 2002; kb/Work PB1415) — the
         // re-route built a bare zero and compiled `COMPUTE X = ALL ZERO` clean at 2023.
         // ⚠ AND IT IS GATED ON A NON-BOOLEAN RECEIVER: with a boolean receiver GR4's boolean reading is the right

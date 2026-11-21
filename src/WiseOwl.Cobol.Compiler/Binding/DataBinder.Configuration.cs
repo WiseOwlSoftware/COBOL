@@ -131,7 +131,7 @@ public sealed partial class DataBinder
                 + $"(ISO §2023:13.10.3 SR2) and of {(dataItems == 1 ? "a data item" : $"{dataItems} data items")} "
                 + "(§2023:8.3.2.2 exception 3 lets them share a spelling), and a constant-name cannot be qualified: \"For each non unique "
                 + "user-defined name that is explicitly referenced, uniqueness shall be established through a sequence of qualifiers "
-                + "that precludes any ambiguity of reference\" (ISO §2023:8.4.2.2.3 SR1; §2023:8.4.2.2.1 SR1)";
+                + "that precludes any ambiguity of reference\" (ISO §2023:8.4.2.2.3 SR1; §2023:8.4.2.2.1 rule 1)";
             if (Edition.Permissive)
                 Edition.Warning(DiagnosticCatalog.UndefinedReference, msg + "; --permissive resolves to the constant");
             else

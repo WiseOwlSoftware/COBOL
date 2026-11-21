@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>ToString().ToLowerInvariant()</c> described a numeric-edited subscript, CALL / CANCEL target, BY VALUE argument or
 /// report CODE operand as "class numericediteddeediting"; and <c>ExpressionBinder.NonNumericOperandKind</c> wrote the class OUT as a literal —
 /// "group item … (class alphanumeric, ISO §2023:8.5)" — for every group, which told the user a GROUP-USAGE BIT group (class
-/// boolean, §2023:8.5.2.5 GR3) and a GROUP-USAGE NATIONAL group (class national, §2023:8.5.2.10 GR3) were alphanumeric.
+/// boolean, §2023:8.5.2.5 3)) and a GROUP-USAGE NATIONAL group (class national, §2023:8.5.2.10 3)) were alphanumeric.
 /// <para>The class of a place is spelled by <c>IntrinsicArgumentRules.ClassNameOf</c> (or <c>Name</c> over a class the
 /// caller already holds); this sweep fails on an interpolated class word built from an enum's <c>ToString()</c>, and
 /// on the literal group-class text that stood in the arithmetic-operand screen.</para>

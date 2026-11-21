@@ -150,7 +150,7 @@ public sealed class DataClausePlacementDriftTests
         Assert.Equal("A", binder.Linkage.ExternalBackings[0].Record.CobolName);
     }
 
-    /// <summary>§2023:13.18.38.3 SR1a (kb/Work PB1260) — "The OCCURS clause shall not be specified in a data description
+    /// <summary>§2023:13.18.38.3 SR1 a) (kb/Work PB1260) — "The OCCURS clause shall not be specified in a data description
     /// entry that: a) Has a level-number of 01, 66, 77, or 88". The row refuses a level-01 or level-77 table in every
     /// section, and its legal twin (the table one level below a group) binds clean.</summary>
     [Theory]
@@ -164,7 +164,7 @@ public sealed class DataClausePlacementDriftTests
     {
         Bind("OCCLVL", section, "       77  N PIC 9.\r\n" + entry + "\r\n", out var diags);
         Assert.Contains(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal)
-                                    && d.Contains("§2023:13.18.38.3 SR1a", StringComparison.Ordinal));
+                                    && d.Contains("§2023:13.18.38.3 SR1 a)", StringComparison.Ordinal));
     }
 
     /// <summary>§2023:13.16.3 SR16 (kb/Work PB516) — "The BASED clause may be specified only in data description entries in

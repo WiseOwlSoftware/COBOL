@@ -29,7 +29,7 @@ internal static class FigurativeConstants
     /// <see cref="CobolLiteral.Decode"/> apply to it. At most one is non-null; both null means an ordinary
     /// literal, which every caller stores or compares verbatim. <paramref name="BeginsWithAll"/> is whether the
     /// operand was WRITTEN with the word ALL — always true for Format 6, and for Formats 1–5 the optional word
-    /// the fill semantics ignore but a rule may not: §2023:8.3.3.6.3 SR1a admits ZERO in a numeric-restricted
+    /// the fill semantics ignore but a rule may not: §2023:8.3.3.6.3 SR1 a) admits ZERO in a numeric-restricted
     /// position only "without the ALL phrase" (kb/Work PB1415), so the strip must never lose it.</summary>
     public readonly record struct FigurativeOperand(char? Kind, string? AllLiteral, bool BeginsWithAll = false);
 

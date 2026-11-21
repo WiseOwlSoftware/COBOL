@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// used to cover fixed-point formals only, and a float formal's description has ZERO digit positions, so the
 /// fixed-point landing's capacity reduction (<c>value % 10^0</c>) stored 0. The float lane lands through
 /// <see cref="FloatResultant"/> — the one transfer of an arithmetic value into a float resultant identifier —
-/// under implied TRUNCATION (§2023:14.7.4.3 GR10: the nearest representable value nearer to zero).
+/// under implied TRUNCATION (§2023:14.7.4.3 rule 10: the nearest representable value nearer to zero).
 /// <para>RED BEFORE THE FIX: the kb/Work PB1114 repro (a <c>PIC 9(3)V99</c> 12.5 BY CONTENT to a FLOAT-LONG formal of a
 /// NESTED activation) printed <c>IN-S [0]</c> — the same zero the first row below asserts away — because
 /// <c>LandForFormal</c>'s guard admitted fixed-point formals only and the callee's <c>Num</c> landed the fixed-point
@@ -58,7 +58,7 @@ public sealed class CallAbiFloatLandingTests
         Assert.Equal(12.5d, CobolArgAdapt.Num<double>([landed], 0, FloatLong, 0).Value);
     }
 
-    /// <summary>The landing is the un-ROUNDED COMPUTE: 0.1 is not a binary32 value, so §2023:14.7.4.3 GR10 lands the
+    /// <summary>The landing is the un-ROUNDED COMPUTE: 0.1 is not a binary32 value, so §2023:14.7.4.3 rule 10 lands the
     /// nearest value NEARER TO ZERO — the binary32 just below 0.1, never the round-to-nearest 0.1000000015. Landed in
     /// ONE rounding from the exact scaled value, not through a binary64 first.</summary>
     [Fact]

@@ -61,12 +61,12 @@ public struct CheckingFlags
 
     /// <summary>EC-DATA-OVERFLOW — a MOVE whose finite sending algebraic value is farther from zero than a
     /// standard-float receiver's usage can represent — "the algebraic value of the sending operand is farther from
-    /// zero than is permitted by the usage specifications of the receiving data item" (§2023:14.9.25.4 GR6d4.a, which
+    /// zero than is permitted by the usage specifications of the receiving data item" (§2023:14.9.25.4 GR6 d)4.a, which
     /// is MOVE-specific). NOT EC-SIZE-OVERFLOW, which this doc named until kb/Work PB676.</summary>
     public bool FloatOverflow;
 
     /// <summary>EC-DATA-INCOMPATIBLE — a de-editing MOVE whose numeric-edited sender holds content that is not a
-    /// possible result of any editing operation in that item (§2023:14.6.13.2 GR4; kb/Work PB66).</summary>
+    /// possible result of any editing operation in that item (§2023:14.6.13.2 rule 4; kb/Work PB66).</summary>
     public bool DataIncompatible;
 
     /// <summary>EC-DATA-PTR-NULL — a reference through a NULL data-address pointer (§2023:13.18.5.4 GR3), or a NULL
@@ -222,8 +222,8 @@ public struct CheckingFlags
     public bool SortMergeFileOpen;
 
     /// <summary>EC-SORT-MERGE-RELEASE — a released record's size outside the sort-merge file's record range, by
-    /// a RELEASE statement (§2023:13.18.43.4 GR14b / GR19 b)) or by the implicit USING release (§2023:14.9.40.4 GR12b,
-    /// §2023:14.9.24.4 GR7b; kb/Work PB1036).</summary>
+    /// a RELEASE statement (§2023:13.18.43.4 GR14 b) / GR19 b)) or by the implicit USING release (§2023:14.9.40.4 GR12 b),
+    /// §2023:14.9.24.4 GR7 b); kb/Work PB1036).</summary>
     public bool SortMergeRelease;
 
     /// <summary>EC-SORT-MERGE-SEQUENCE — a MERGE USING file whose records are not ordered as the KEY phrases

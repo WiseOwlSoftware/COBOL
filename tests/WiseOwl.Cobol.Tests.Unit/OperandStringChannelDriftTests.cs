@@ -166,7 +166,7 @@ public sealed class OperandStringChannelDriftTests
         // Every leaf is DELEGATED (the shared rule), DIVERGENT BY DESIGN, or ADMITTED PER-FUNCTION (PB59 —
         // the conditional arm the pin test above owns). A leaf in no bucket is one nobody has decided about,
         // which is how PB25 shipped.
-        // BoundCurrentRecord (kb/Work PB339) is DELEGATED: its image is the ISO §2023:14.9.30.4 GR4b current
+        // BoundCurrentRecord (kb/Work PB339) is DELEGATED: its image is the ISO §2023:14.9.30.4 GR4 b) current
         // record — the record area sliced to the §2023:13.18.43.4 GR16 byte count — written down once in
         // OperandText.CurrentRecordImage, so the intrinsic-argument channel forwards rather than going loud.
         // No intrinsic argument can BE one today (it is built only for a READ/RETURN INTO implicit MOVE), and

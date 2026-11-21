@@ -174,7 +174,7 @@ public sealed class RunUnitFileLockDriftTests
 
                 Assert.False(opened[0][0] == '0' && opened[1][0] == '0',
                     $"Round {round}: both run units opened {host} SHARING WITH NO OTHER ('{opened[0]}' and "
-                    + $"'{opened[1]}') — §2023:9.1.15 GR1 'specifies exclusive access to a physical file'.");
+                    + $"'{opened[1]}') — §2023:9.1.15 1) 'specifies exclusive access to a physical file'.");
                 a.CloseAll();
                 b.CloseAll();
             }

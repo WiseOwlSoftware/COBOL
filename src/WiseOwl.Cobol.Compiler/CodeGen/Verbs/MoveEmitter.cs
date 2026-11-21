@@ -152,7 +152,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         }
     }
 
-    /// <summary>⛔ ISO §2023:14.6.10 GR1 / Annex A.2 item 36 — operands that overlap have an UNDEFINED result, so what
+    /// <summary>⛔ ISO §2023:14.6.10 1) / Annex A.2 item 36 — operands that overlap have an UNDEFINED result, so what
     /// WiseOwl COBOL does is documented (docs/CONFORMANCE.md §3 D-OVL1/D-OVL2, kb/Work PB1907, PB1910): the receiver
     /// is written while the sender is still being read, exactly as GnuCOBOL's <c>libcob</c> does. The decision was
     /// made at bind time (<see cref="MoveOverlap"/>, carried on <see cref="MoveStore.Overlap"/>) and applies only
@@ -202,7 +202,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
             OverlapStoreKind.DisplayToPacked => RuntimeApi.OverlapDisplayToPacked(
                 senderImage, receiverImage, overlap.ReceiverAt, from.Item.ProfileName, toProfile),
             _ => RuntimeApi.OverlapAlphanumericToDisplay(
-                // The mode of the unit that DESCRIBES the receiver (§2023:12.3.7.4 GR14b, never the emitting unit's.
+                // The mode of the unit that DESCRIBES the receiver (§2023:12.3.7.4 GR14 b), never the emitting unit's.
                 senderImage, receiverImage, overlap.ReceiverAt, toProfile, target.Item.Pic!.DecimalPointIsComma),
         };
         if (target is RedefViewPlace || target.Item.StoreAsImage)
@@ -276,7 +276,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
 
     /// <summary>⛔ THE CHARACTERS AN ELEMENTARY MOVE DELIVERS TO A CHARACTER RECEIVER — alphanumeric,
     /// alphanumeric-edited, national, national-edited, numeric-edited (the GR5 alphanumeric-sender read aside) and
-    /// boolean, whole item or reference-modified slice (kb/Work PB3512). ISO §2023:14.9.25.4 GR6a: "If the sending
+    /// boolean, whole item or reference-modified slice (kb/Work PB3512). ISO §2023:14.9.25.4 GR6 a): "If the sending
     /// operand is described as being signed numeric, the operational sign is not moved; if the operational sign
     /// occupies a separate character position, that character is not moved and the size of the sending operand is
     /// considered to be one less than its actual size." GR6's own lead sentence performs the alphanumeric-to-national
@@ -744,7 +744,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
     /// expression of a <see cref="MoveSending"/>, which the activating element renders from its argument: see
     /// <c>CallEmitter.MoveSendingText</c>). It is what an activated unit registers for each non-numeric elementary formal
     /// (<see cref="MoveLanding"/>), so a CALL that could not see the formal — a CALL by data-name or through a
-    /// program-pointer, or a prototype whose details §2023:12.3.8.4 GR10c takes from the external repository — fills the
+    /// program-pointer, or a prototype whose details §2023:12.3.8.4 GR10 c) takes from the external repository — fills the
     /// record exactly as one that could.
     /// <para>The receiving half is THIS emitter's, arm for arm: GR4's group move (<see cref="GroupRecord"/>), a figurative
     /// constant repeated to the record's size (§2023:8.3.3.6.4 GR2, edited by an edited receiver exactly as
@@ -757,7 +757,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         string fill = RuntimeApi.MoveSendingFill(sending);
         string wN = $"{pic.Length}";
         // §2023:8.3.3.6.4 GR2: the fill repeated to the record's character positions — never for a dynamic-length record, which
-        // has no fixed size, so a figurative's one character is its whole content (§2023:8.3.3.6.4 GR3b).
+        // has no fixed size, so a figurative's one character is its whole content (§2023:8.3.3.6.4 GR3 b)).
         string repeated = RuntimeApi.StrStore(RuntimeApi.StrRepeat(chars, wN), wN);
         string elementary =
             record.IsDynamicLength ? CharacterStore(record, chars, "")
@@ -799,7 +799,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
 
     /// <summary>⛔ THE RECEIVING HALF OF AN ELEMENTARY MOVE OF CHARACTERS (kb/Work PB2587) — the store of
     /// <paramref name="chars"/> (a C# string expression holding the sending operand's characters, its operational sign
-    /// already dropped, §2023:14.9.25.4 GR6a) into an elementary receiver of <paramref name="target"/>'s non-numeric
+    /// already dropped, §2023:14.9.25.4 GR6 a)) into an elementary receiver of <paramref name="target"/>'s non-numeric
     /// description, at <paramref name="width"/> (the PICTURE length, or an ANY LENGTH receiver's runtime length). ONE
     /// place for both the MOVE statement (<see cref="ConvertSource"/>) and §2023:14.2.3 GR9's record at the activation boundary
     /// (<see cref="MovedRecord"/>), so a receiving rule cannot be taught to one and not the other:
@@ -966,7 +966,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
                     ?? num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric, keepWide: true);
                 // A FLOATING-POINT numeric-edited receiver (D21/PB66) takes the sender's EXACT form — no alignment to a
                 // mask scale (it has none) — and the transfer's mode rounds the significand to the mask's digits
-                // (kb/Work PB2638): TRUNCATION for a MOVE (§2023:14.6.8.4 GR2), the clause's own for the report's rounded
+                // (kb/Work PB2638): TRUNCATION for a MOVE (§2023:14.6.8.4 rule 2), the clause's own for the report's rounded
                 // implicit COMPUTE (kb/Work PB3990 review finding R1-1's sibling: it always truncated). A wide value reaches
                 // it as the SDIDI (round-to-odd), which every mask of at most 32 digit positions rounds as the exact value.
                 if (pic.IsFloatEdited)
@@ -1034,7 +1034,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
                             $"ConvertSource: a raising implicit COMPUTE into the floating-point item {target.CobolName} (kb/Work PB4031)");
                     bool sameUsage = source is BoundFieldOperand fsrc
                         && fsrc.Place.Item.Pic is { IsFloat: true } sp && sp.Usage == pic.Usage;
-                    // ⛔ A SAME-USAGE FLOAT MOVE IS A COPY, NOT A CONVERSION (kb/Work PB961). §2023:14.9.25.4 GR6c:
+                    // ⛔ A SAME-USAGE FLOAT MOVE IS A COPY, NOT A CONVERSION (kb/Work PB961). §2023:14.9.25.4 GR6 c):
                     // "When the receiving data item is described with the same usage specification as the sending
                     // operand, the data in the sending operand is transferred to the receiving data item without
                     // change" — NOTE 3 names NaN representations as what that preserves. The algebraic path below
@@ -1047,7 +1047,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
                         return target.StoreAsImage ? RuntimeApi.NumFormatImageFloat(raw, target.ProfileName, pic.IsSingle) : raw;
                     }
                     NumX fsrcNum = num.AsNum(source, ReceiverContext.None, SendingRef.MoveToNumeric);
-                    // §2023:14.9.25.4 GR6d4.a: "If the algebraic value of the sending operand is farther from zero than
+                    // §2023:14.9.25.4 GR6 d)4.a: "If the algebraic value of the sending operand is farther from zero than
                     // is permitted by the usage specifications of the receiving data item, the EC-DATA-OVERFLOW
                     // exception condition is set to exist" — a FATAL condition (Table 13), MOVE-only, armed by
                     // EcBinder. THE TEST IS ON THE ALGEBRAIC VALUE, so a decimal sender is handed over WHOLE:

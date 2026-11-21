@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ EVERY RESIDENCE A GLOBAL NAME CAN HAVE IS REACHABLE FROM A CONTAINED PROGRAM (kb/Work PB1009).
 /// </summary>
 /// <remarks>
-/// ISO §2023:13.18.27.3 SR1b admits GLOBAL on a level-1 entry "specified in the file, working-storage, local-storage,
+/// ISO §2023:13.18.27.3 SR1 b) admits GLOBAL on a level-1 entry "specified in the file, working-storage, local-storage,
 /// or linkage section", and §2023:13.18.27.4 GR2 lets a contained program "reference that name without describing it
 /// again" — the storage stays the container's, reached through a ref-bridge to each container member a reference
 /// renders. Those members differ by residence: a plain field, a Tier-B backing, the cell behind a cell-backed class,

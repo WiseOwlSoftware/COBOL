@@ -162,9 +162,9 @@ public sealed class ExceptionCatalogTests
         Assert.True(ExceptionCatalog.IsFatalIoStatus("48"));
         Assert.True(ExceptionCatalog.IsFatalIoStatus("90"));
         // ⛔ AND THE BOUNDARY OF THE CORRESPONDENCE (kb/Work PB526). '90' is this implementation's
-        // §2023:9.1.13.11 implementor-defined status, which it uses for the §2023:13.18.34.4 GR6b LINAGE
+        // §2023:9.1.13.11 implementor-defined status, which it uses for the §2023:13.18.34.4 GR6 b) LINAGE
         // value-rule violation — and the correspondence answers EC-I-O-IMP for it, because a '9' is
-        // all a status can say. The condition §2023:13.18.34.4 GR6b 2 NAMES is EC-I-O-LINAGE, which is
+        // all a status can say. The condition §2023:13.18.34.4 GR6 b) 2 NAMES is EC-I-O-LINAGE, which is
         // not in §2023:9.1.13.1's list at all, so the connector carries the name beside the status and
         // FileRegistry.IoConditionName is the ONE place the two are combined. This assertion is the
         // reason that override exists: delete it and every LINAGE violation raises EC-I-O-IMP.

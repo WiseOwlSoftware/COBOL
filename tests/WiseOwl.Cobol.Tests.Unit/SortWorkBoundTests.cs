@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// the floor limit (64 KiB) and its own work directory, releases many times the limit, and checks three things: the
 /// result equals the order the standard prescribes, computed here independently (a stable sort — LINQ's OrderBy is
 /// stable — for §2023:14.9.40.4 GR3 a)/b) "The order in which these records are released by an input procedure"; the
-/// stream-ordered merge for §2023:14.9.24.4 GR4a "Follows the order of the associated input files as specified in the MERGE
+/// stream-ordered merge for §2023:14.9.24.4 GR4 a) "Follows the order of the associated input files as specified in the MERGE
 /// statement"); the MEASURED peak of the store's resident records never passed the limit while the input was at least
 /// eight times it; and after the statement's end the work directory is empty.
 /// </summary>
@@ -193,7 +193,7 @@ public sealed class SortWorkBoundTests : IDisposable
     }
 
     /// <summary>A MERGE of three ordered USING streams many times the limit: equal keys follow the input files' order
-    /// (§2023:14.9.24.4 GR4a) and each file keeps its own order (GR4 b)), and the streams' runs are deleted at the end.</summary>
+    /// (§2023:14.9.24.4 GR4 a)) and each file keeps its own order (GR4 b)), and the streams' runs are deleted at the end.</summary>
     [Fact]
     public void AMergeManyTimesTheLimit_KeepsInputFileOrder_WithinTheLimit()
     {

@@ -232,7 +232,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
             IF WS-EOF = "N" GO TO DUMP-1.
         """;
 
-    /// <summary>MERGE orders two USING files holding signed-COMP keys by ALGEBRAIC value (§2023:14.9.24.4 GR3a via
+    /// <summary>MERGE orders two USING files holding signed-COMP keys by ALGEBRAIC value (§2023:14.9.24.4 GR3 a) via
     /// §2023:8.8.4.2.4), negatives first: −8000 &lt; −20 &lt; −14 &lt; 0 &lt; +5 &lt; +99. The merge key window is decoded
     /// through the key item's own profile, exactly as the SORT key is — a byte-wise compare would put every negative
     /// (high bit set: 0x80.. and above) after every positive, SILENTLY.</summary>
@@ -360,7 +360,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
                 MinusFourteenThenFive('A'), FiveThenMinusFourteen('B')),
             "K=-0014\nK=-0003\nK=+0005\nFIRST-DONE\nEC=EC-SORT-MERGE-SEQUENCE\nSECOND-DONE");
 
-    /// <summary>The DESCENDING direction (§2023:14.9.24.4 GR3b), WITH a declarative: FA holds +5 then −14 — descending
+    /// <summary>The DESCENDING direction (§2023:14.9.24.4 GR3 b)), WITH a declarative: FA holds +5 then −14 — descending
     /// by VALUE although its bytes (0x0005, 0xFFF2) ascend — so the checked MERGE raises nothing; FB holds −14 then
     /// +5 and raises. A check that judged a DESCENDING merge by the ascending order would reverse both verdicts.</summary>
     [Fact]
@@ -371,7 +371,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
 
     /// <summary>The same two verdicts WITHOUT a USE declarative (ASCENDING): the in-order merge completes; the
     /// out-of-order one raises the fatal condition, no declarative applies, so the statement alone is terminated
-    /// (§2023:14.6.13.1.3 GR2, docs/CONFORMANCE.md §3 D-SMA (b)): its output procedure never runs, nothing is displayed for
+    /// (§2023:14.6.13.1.3 2), docs/CONFORMANCE.md §3 D-SMA (b)): its output procedure never runs, nothing is displayed for
     /// the condition, and the run unit continues to SECOND-DONE.</summary>
     [Fact]
     public void Merge_SignedBinaryKey_SequenceCheck_Ascending_WithoutDeclarative_TerminatesTheStatementOnly()

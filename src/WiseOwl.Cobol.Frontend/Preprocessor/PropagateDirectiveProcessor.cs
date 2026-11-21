@@ -23,7 +23,7 @@ public sealed record PropagateEvent(int Line, bool On);
 /// compilation group; the default is <c>PROPAGATE OFF</c> (GR4). This stage COLLECTS the ON/OFF toggles into a
 /// <see cref="DirectiveTimeline{T}"/> (the PUSH/POP history of §2023:7.3.20 / §2023:7.3.22 replayed over them, like every other
 /// line-scoped directive) and blanks each line, line-count preserving (the <c>&gt;&gt;TURN</c> H3 discipline). The
-/// binder folds the timeline per source element (<c>PropagateState</c>) and the emitter applies §2023:14.6.13.1.3 GR6 and
+/// binder folds the timeline per source element (<c>PropagateState</c>) and the emitter applies §2023:14.6.13.1.3 6) and
 /// §2023:14.6.13.1.5's EXIT/GOBACK item 3 where the element's fatal default is decided (kb/Work PB1119).
 /// <para><b>§2023:7.3.21.3 SR1 (the directive shall not be specified WITHIN a compilation unit) is judged by the ONE
 /// placement pass</b> — the <c>propagate-directive-2002</c> row's <c>directivePlacement</c> data,

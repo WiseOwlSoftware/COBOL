@@ -31,8 +31,8 @@ public sealed class PerformFrame
     /// stamped by <see cref="ExceptionEngine.PushPerformFrame"/>, never by the emitted code. A WHEN phrase selects
     /// only a condition raised in its OWN activation (kb/Work PB442): an exception status indicator "exists for each
     /// function, method, or program" (ISO §2023:14.6.13.1.1), and a condition reaches an activator only by propagation,
-    /// which raises it "in the activating runtime element" (§2023:14.9.18.4 GR1b, §2023:14.6.13.1.3 GR6) at the activating
-    /// statement (§2023:14.9.33.4 GR2a.2). <see cref="ExceptionEngine.RunTopFrame"/> stops at the first frame of
+    /// which raises it "in the activating runtime element" (§2023:14.9.18.4 GR1 b), §2023:14.6.13.1.3 6)) at the activating
+    /// statement (§2023:14.9.33.4 GR2 a) 2.). <see cref="ExceptionEngine.RunTopFrame"/> stops at the first frame of
     /// another activation.</summary>
     internal long Activation { get; set; }
 

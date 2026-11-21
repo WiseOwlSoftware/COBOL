@@ -365,7 +365,7 @@ public sealed partial class SpecialNamesBinder
     /// national arm used to keep its own copy under a different name.</summary>
     private static bool IsAlphabetFigurativeWord(string word) => AlphabetFigurative(word) is not null;
 
-    /// <summary>⛔ THE ONE literal-phrase alphabet builder (ISO §2023:12.3.7.4 GR7k, for the ALPHANUMERIC arm and the
+    /// <summary>⛔ THE ONE literal-phrase alphabet builder (ISO §2023:12.3.7.4 GR7 k), for the ALPHANUMERIC arm and the
     /// <c>FOR NATIONAL</c> arm alike. GR7 k states its six sub-rules once, "<i>where the native coded character set
     /// is the type of coded character set or collating sequence being defined, either alphanumeric or national</i>",
     /// and both native sets are the 65,536 UTF-16 code units here (implementor item 188 / D-N1) — so there is ONE

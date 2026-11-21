@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// EACH RECORD ALIKE AND READ THE RECORDS THE FILE HOLDS NOW (kb/Work PB2692, the sequential arm of PB2660). ISO
 /// §2023:9.1.16: <i>"While locked by a given file connector, a record is not accessible to another file connector in the
 /// same or a different run unit, except by the execution of a READ statement with the IGNORING LOCK phrase"</i>;
-/// §2023:9.1.13.8 GR1: <i>"I-O status = 51. The input-output statement is unsuccessful due to an attempt to access a record
+/// §2023:9.1.13.8 1): <i>"I-O status = 51. The input-output statement is unsuccessful due to an attempt to access a record
 /// that is currently locked by another file connector"</i>.
 /// <para>Before PB2692 the sequential connector published no record lock (it had no <c>RecordLocks</c> endpoint), so a
 /// second run unit's READ WITH LOCK of a record the first held answered '00'; its reader served a record another run
@@ -85,7 +85,7 @@ public sealed class CrossRunUnitSequentialLockDriftTests
 
             Assert.Equal("00", Read(a, "A", FileRecordLock.WithLock, out string first));   // A's buffer now holds the file
             Assert.Equal("AAAA", first);
-            // §2023:9.1.16 / §2023:9.1.13.8 GR1 — record 1 is not accessible to B, in another run unit.
+            // §2023:9.1.16 / §2023:9.1.13.8 1) — record 1 is not accessible to B, in another run unit.
             Assert.Equal("51", Read(b, "B", FileRecordLock.WithLock, out _));
             // §2023:14.9.30.4 GR12 — IGNORING LOCK makes it available "even if it is locked".
             Assert.Equal("00", Read(b, "B", FileRecordLock.None, out string ignored, ignoringLock: true));
@@ -157,7 +157,7 @@ public sealed class CrossRunUnitSequentialLockDriftTests
     /// A's lock; the forced interleaving (<see cref="FileRegistry.ReadLockWindow"/>, at each attempt of A's grant) has B lock
     /// record 1 in that instant. §2023:14.9.30.4 GR11c: under automatic locking the lock of a successfully accessed record "is
     /// set", and §2023:9.1.16 makes the record inaccessible to another run unit's connector, so A cannot both succeed and not
-    /// hold it: A's READ is '51' (§2023:9.1.13.8 GR1) and makes no record available. It is the record operation conflict
+    /// hold it: A's READ is '51' (§2023:9.1.13.8 1)) and makes no record available. It is the record operation conflict
     /// condition, so §2023:14.9.30.4 GR10a holds: "The file position indicator is unchanged" — once B gives the record back,
     /// A's next READ makes record 1 available, and A then holds its lock.</summary>
     [Theory]

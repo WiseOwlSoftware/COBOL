@@ -11,7 +11,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ ISO §2023:5.5 SR1's NONZERO default is enforced by ONE screen (<c>Validation/IntegerOperandPass</c>, kb/Work PB859)
+/// ⛔ ISO §2023:5.5 1)'s NONZERO default is enforced by ONE screen (<c>Validation/IntegerOperandPass</c>, kb/Work PB859)
 /// over every <c>integerLiteral</c> — "the term 'integer-n' … refers to a fixed-point integer literal that shall be
 /// unsigned and nonzero unless otherwise specified in the associated rules". The screen is automatic; what is NOT
 /// automatic is the EXCEPTION question — does this format's rule otherwise-specify? — and a new grammar rule that
@@ -44,7 +44,7 @@ public sealed class IntegerOperandSlotDriftTests
 
     /// <summary>⛔ EVERY integer-n POSITION OF THE GRAMMAR IS A LITERAL POSITION A CONSTANT-NAME STANDS IN (kb/Work
     /// PB1947 for the report writer, PB1948 for the rest). ISO §2023:13.10.3 SR2 — "constant-name-1 may be used anywhere that
-    /// a format specifies a literal of the class and category of constant-name-1" — and §2023:5.5 SR1 calls every
+    /// a format specifies a literal of the class and category of constant-name-1" — and §2023:5.5 1) calls every
     /// <c>integer-n</c> "a fixed-point integer literal", so a clause that prints one writes <c>integerOperand</c>
     /// (a literal or a constant-name), never the bare <c>integerLiteral</c>. The set of rules that still write the bare
     /// one is DERIVED from the generated parser and must equal <see cref="IntegerOperandRules.LiteralOnlySlots"/>,
@@ -87,7 +87,7 @@ public sealed class IntegerOperandSlotDriftTests
         var missing = derived.Where(t => !IntegerOperandRules.Slots.ContainsKey(t)).Select(t => t.Name).ToArray();
         Assert.True(missing.Length == 0,
             "grammar rule(s) write integerLiteral but are not classified in IntegerOperandRules.Slots — read the "
-            + "format's associated rules for a zero permission (§2023:5.5 SR1 'unless otherwise specified') and add a row: "
+            + "format's associated rules for a zero permission (§2023:5.5 1) 'unless otherwise specified') and add a row: "
             + string.Join(", ", missing));
     }
 

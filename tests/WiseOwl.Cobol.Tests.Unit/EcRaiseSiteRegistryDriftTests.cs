@@ -68,7 +68,7 @@ public sealed class EcRaiseSiteRegistryDriftTests
     ];
 
     /// <summary>The names raised at the ACTIVATION BOUNDARY, in the ACTIVATING element, for a name the propagation machinery
-    /// chooses at RUN time (§2023:14.9.18.4 GR1b 3a, §2023:14.6.13.1.5 EXIT/GOBACK item 4). The activating statement carries its own
+    /// chooses at RUN time (§2023:14.9.18.4 GR1 b) 3a, §2023:14.6.13.1.5 EXIT/GOBACK item 4). The activating statement carries its own
     /// <see cref="EcCheckingProfile"/> (<c>EcBinder.StampActivators</c>), which answers for ANY catalogued name, so no
     /// statement declares these; the raise site is <c>ExceptionState.StageLastName</c> / <c>ConvertObjectPropagationToNamed</c>.
     /// The evidence that each is raised is the raise site itself (<c>Raised</c>), never the register: a test reads no
@@ -149,7 +149,7 @@ public sealed class EcRaiseSiteRegistryDriftTests
     }
 
     /// <summary>The EC-I-O names a connector can set to exist: §2023:9.1.13.1's status map over every two-digit status, and the
-    /// three §2023:13.18.34.4 GR6b 2 / §2023:14.9.51.4 GR27a names a rule gives outright.</summary>
+    /// three §2023:13.18.34.4 GR6 b) 2 / §2023:14.9.51.4 GR27 a) names a rule gives outright.</summary>
     private static IEnumerable<string> IoRaised()
     {
         for (int i = 0; i < 100; i++)

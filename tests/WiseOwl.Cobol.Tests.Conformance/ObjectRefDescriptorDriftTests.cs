@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 ///                  ⎢ [ FACTORY OF ] ACTIVE-CLASS                 ⎥
 ///                  ⎣ [ FACTORY OF ] object-class-name-1 [ ONLY ] ⎦
 /// </code>
-/// — plus the bare form §2023:13.18.60.4 GR22b calls a universal object reference: EIGHT writable shapes. The
+/// — plus the bare form §2023:13.18.60.4 GR22 b) calls a universal object reference: EIGHT writable shapes. The
 /// compiler modelled ONE axis (a nullable class name), so ACTIVE-CLASS and ONLY were rejected outright as legal
 /// COBOL-2002+ source, FACTORY OF was loud-staged, and every §2023:14.9.39.3 SET format-5 rule that discriminates on
 /// an unmodelled axis had no expressible subject.
@@ -73,7 +73,7 @@ public sealed class ObjectRefDescriptorDriftTests
         if (shape.Length == 0)
         {
             Assert.True(ok, "a UNIVERSAL receiver accepts any object reference (ISO §2023:14.9.39.3 SR8; "
-                            + "§2023:13.18.60.4 GR22b): " + detail);
+                            + "§2023:13.18.60.4 GR22 b)): " + detail);
             return;
         }
         Assert.False(ok, $"USAGE OBJECT REFERENCE{shape} accepted a UNIVERSAL sender — SR10 / SR12 / SR14 each "

@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE SIMPLE-INSERTION DRIFT PIN. ISO §2023:13.18.40.5 GR3 names the simple insertion editing symbols once —
+/// ⛔ THE SIMPLE-INSERTION DRIFT PIN. ISO §2023:13.18.40.5 rule 3 names the simple insertion editing symbols once —
 /// "the symbols 'B', '0', '/', ',' and, if literal=1 is specified, character-1 are used as the simple insertion
 /// editing symbols" — and rules 6 and 7 both spend that set again, in identical words: "Any of the simple
 /// insertion editing symbols embedded in this string or to the immediate right of this string are part of the

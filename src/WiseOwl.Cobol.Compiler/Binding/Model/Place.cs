@@ -491,7 +491,7 @@ public sealed record NationalWindow(int Positions) : WindowCoding
         item is { IsElementary: true, Pic.Usage: Usage.National } ? item.ElementaryImageWidth : null;
 
     /// <summary>⛔ THE POSITION COUNT OF A MEMBER'S OWN WINDOW (kb/Work PB1653) — <see cref="PositionsOf"/> for an
-    /// elementary national item, and for a NATIONAL GROUP its as-if <c>PICTURE N(m)</c> length: §2023:13.18.29.4 GR2b
+    /// elementary national item, and for a NATIONAL GROUP its as-if <c>PICTURE N(m)</c> length: §2023:13.18.29.4 GR2 b)
     /// "a national group is treated as though it were an elementary data item of usage national and class and
     /// category national described with PICTURE N(m), where m is the length of the group". The window of a national
     /// group (<see cref="RedefViewPlace.For"/>) is therefore a NATIONAL window exactly as a bit group's is a bit
@@ -617,7 +617,7 @@ public sealed record DynSlotWindow(AccessPath Cell, Position Ordinal) : CellWind
 
 /// <summary>⛔ THE ONE MODEL OF A CELL-BACKED AREA'S VARIABLE-LENGTH COMPONENTS (kb/Work PB1026, PB1042). A component
 /// is a dynamic-length elementary item (<see cref="DynSlotWindow.CarriedBySlot"/>) or a dynamic-capacity table: ISO
-/// §2023:8.5.1.9.1 SR3 lets the table be "defined in any place, other than the file section, in which a fixed-capacity table
+/// §2023:8.5.1.9.1 3) lets the table be "defined in any place, other than the file section, in which a fixed-capacity table
 /// may be defined", so an EXTERNAL or ADDRESS-OF-taken record may hold one. Each rides its own managed slot of the
 /// cell (<c>StorageCell.DynAt</c> / <c>DynTableAt</c>), numbered in storage order with one slot per OCCURRENCE of
 /// every enclosing fixed table, and a table's elements are element cells that are a SCOPE of their own: the element's
@@ -1335,7 +1335,7 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
 
     /// <summary>The storage width, in BITS, of ONE position <see cref="PositionCount"/> counts — the unit a
     /// reference modifier's leftmost position is multiplied by to reach a byte displacement (kb/Work PB1407): 1 for
-    /// a bit position (§2023:8.4.3.3.4 GR5a, 16 for a national character (D-N1: two bytes, UTF-16BE) and 8 for every
+    /// a bit position (§2023:8.4.3.3.4 GR5 a), 16 for a national character (D-N1: two bytes, UTF-16BE) and 8 for every
     /// other character position. It reads the same <see cref="DataItem.OperandPic"/> discriminant
     /// <see cref="PositionCount"/> does, so the two cannot disagree about what a position is.</summary>
     public static int PositionBits(DataItem inner) => inner.OperandPic switch
@@ -1350,11 +1350,11 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
 
     /// <summary>⛔ <b>THE MOST POSITIONS identifier-1 can have</b> — the bound every slice of it lies within, which is
     /// the capacity §2023:14.9.25.4 GR1's intermediate result item needs (<c>SendingValueTemp.OfPlace</c>) and the maximum
-    /// extent §2023:14.8.2.2 SR1 measures a run-time-length slice by (<c>ActivationDescriptions.OfReferenceModification</c>,
+    /// extent §2023:14.8.2.2 rule 1 measures a run-time-length slice by (<c>ActivationDescriptions.OfReferenceModification</c>,
     /// docs/CONFORMANCE.md D-RM1 a)). It is identifier-1's <see cref="PositionCount"/> for every item whose description
     /// fixes a bound: its static count, or for a DYNAMIC LENGTH item its §2023:8.5.1.10.1 maximum size (it "is smallest of": "the
     /// value declared in the LIMIT phrase", …, "the maximum permitted by the implementor"), of which a reference-modified one's
-    /// current length (§2023:8.5.1.10.4) is never more. An ANY LENGTH item's description fixes none: §2023:13.18.2.4 GR1b gives it
+    /// current length (§2023:8.5.1.10.4) is never more. An ANY LENGTH item's description fixes none: §2023:13.18.2.4 GR1 b) gives it
     /// "n repetitions of the picture symbol … where n is the length of the corresponding argument", so its bound is the
     /// largest character string the run time holds, <see cref="WiseOwl.Cobol.Runtime.CobolDynString.MaxLength"/> (the
     /// carrier's own ceiling, the implementor maximum a dynamic-length item without a LIMIT takes). ⛔ Never
@@ -1366,7 +1366,7 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
 
     /// <summary>identifier-1's positions when its length is a COMPILE-TIME quantity — the <c>innerLength</c> a static
     /// reader passes to <see cref="StaticLength"/> — or null for an ANY LENGTH or DYNAMIC LENGTH identifier-1, whose
-    /// length is a run-time value (§2023:13.18.2.4 GR1b; §2023:8.5.1.10.4); a reader that needs a bound for those asks
+    /// length is a run-time value (§2023:13.18.2.4 GR1 b); §2023:8.5.1.10.4); a reader that needs a bound for those asks
     /// <see cref="MaximumInnerPositions"/>. ⛔ A GROUP'S length is static too: reading it through
     /// <see cref="DataItem.OperandPic"/>, which an alphanumeric group lacks, measured <c>G(3:)</c> as a run-time slice
     /// and every slice of a group as zero positions (kb/Work PB2077 review R1-1).</summary>

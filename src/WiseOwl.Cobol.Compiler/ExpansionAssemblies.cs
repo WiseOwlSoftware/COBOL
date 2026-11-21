@@ -127,7 +127,7 @@ internal static class ExpansionAssemblies
 
     private static string Named(string text, string temp, string expansion) =>
         text.Replace(temp, $"the text of the expansion '{expansion}'", StringComparison.Ordinal);
-    /// <summary>The most positions of a line this writes (ISO §2023:6.1 SR3a allows 255): room is left for a floating literal continuation
+    /// <summary>The most positions of a line this writes (ISO §2023:6.1 3) a) allows 255): room is left for a floating literal continuation
     /// indicator and its quotation symbol.</summary>
     private const int LineLimit = 200;
 
@@ -135,7 +135,7 @@ internal static class ExpansionAssemblies
     /// where the text had a space BETWEEN words — a space inside an alphanumeric, boolean or national literal is the literal's content, so
     /// the text is split into words by the literals' delimiters, not by every space — and a literal too long for the rest of a line is
     /// continued by the floating literal continuation indicator (ISO §2023:6.2.3.1: the quotation symbol and hyphen that end the line;
-    /// §2023:6.5 GR8: the continuation line begins with the matching quotation symbol and the literal goes on after it).
+    /// §2023:6.5 8): the continuation line begins with the matching quotation symbol and the literal goes on after it).
     /// <para>ISO §2023:6.4.2: "At least one alphanumeric character, national character, or hexadecimal digit of the literal content shall be
     /// specified on the continued line and on each continuation line", and "A pair of quotation symbols indicating a single quotation symbol
     /// within a literal shall be specified on the same line". So a continuation indicator never follows the opening delimiter directly: a

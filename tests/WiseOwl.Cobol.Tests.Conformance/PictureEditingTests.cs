@@ -97,7 +97,7 @@ public sealed class PictureEditingTests
     }
 
     /// <summary>A FLOATING character-1 (the same character-1 twice or more under a FOR phrase) is a floating
-    /// insertion string — §2023:13.18.40.5 GR6 lists "the extended editing sign control symbols, if specified" among
+    /// insertion string — §2023:13.18.40.5 rule 6 lists "the extended editing sign control symbols, if specified" among
     /// the floating insertion symbols. Annex D.24: <c>PIC IS LLLL9.99F</c> with <c>"("</c> and <c>")"</c> renders
     /// -123.45 as 'b(123.45)'. GR14's 'es' sizes it at "one occurrence of literal-2 or literal-3 … plus one
     /// character for each repetition of character-1": 1 + 3 for the L's, 1 for the F, 4 for "9.99" — 9.</summary>

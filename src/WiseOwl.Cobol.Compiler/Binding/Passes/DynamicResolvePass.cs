@@ -159,7 +159,7 @@ internal sealed class DynamicResolvePass : IBindPass
             // ⛔ "ELSEWHERE IN THE SOURCE ELEMENT" IS THIS ELEMENT'S OWN NAMES (kb/Work PB3766 review R2-1): a contained
             // program inherits its containers' GLOBAL data-names and CAPACITY registers before this pass runs
             // (InheritContainerGlobalData), and those are defined in ANOTHER source element — this element's own
-            // declaration of the spelling hides them (§2023:8.4.6.2.1 GR3 — so only the depth-0 names and registers are the
+            // declaration of the spelling hides them (§2023:8.4.6.2.1 3) — so only the depth-0 names and registers are the
             // duplicates SR30 forbids (DeclaresOwnDataName; DeclaringDepth).
             // ⛔ "DEFINED ELSEWHERE" COMPARES DEFINITIONS, NOT EXPANSIONS (kb/Work PB2988): data-name-3 written once in a
             // type declaration (or under a SAME AS operand) is reproduced by every TYPE / SAME AS copy of its entry,

@@ -291,11 +291,11 @@ public sealed class ScreenFacilityConstructDriftTests
 
     /// <summary>⛔ THE DRIFT GATE FOR THE WORDS, the twin of
     /// <see cref="EveryScreenClauseAlternative_HasAScreenFacilityRow"/> for the clauses.
-    /// <para>ISO §2023:8.3.2.1 SR3 — "Context-sensitive words may be used as user-defined words and system-names in
+    /// <para>ISO §2023:8.3.2.1 rule 3 — "Context-sensitive words may be used as user-defined words and system-names in
     /// contexts other than the language construct in which they are defined" — so the fifteen §2023:8.10 screen words
     /// (AUTO, BELL, BLINK, BACKGROUND-COLOR, EOL, EOS, ERASE, FOREGROUND-COLOR, FULL, HIGHLIGHT, LOWLIGHT,
     /// REQUIRED, REVERSE-VIDEO, SECURE, UNDERLINE) are legal user-defined words at EVERY edition, declining
-    /// Annex A.4.2 notwithstanding. ISO §2023:8.3.2.1 SR1 — "Reserved words shall not be used as user-defined words
+    /// Annex A.4.2 notwithstanding. ISO §2023:8.3.2.1 rule 1 — "Reserved words shall not be used as user-defined words
     /// or system-names" — so the seven §2023:8.9 screen words (COL, COLS, COLUMN, COLUMNS, CRT, CURSOR, SCREEN) are
     /// barred exactly where §2023:8.9 reserves them, and §2023:8.9 adds all but COLUMN in 2002, which leaves them legal
     /// COBOL-85 user words.</para>
@@ -326,12 +326,12 @@ public sealed class ScreenFacilityConstructDriftTests
         if (!reserved)
         {
             Assert.True(ok, $"'{word}' is a lexer token the screen surface needs, and §2023:8.9 does not reserve it at "
-                + $"COBOL-{edition} — §2023:8.3.2.1 SR3 makes it a legal user-defined word there and declining "
+                + $"COBOL-{edition} — §2023:8.3.2.1 rule 3 makes it a legal user-defined word there and declining "
                 + $"Annex A.4.2 must not cost it:\n{string.Join("\n", errors)}");
             return;
         }
 
-        Assert.False(ok, $"§2023:8.9 reserves '{word}' at COBOL-{edition}, so §2023:8.3.2.1 SR1 bars it from a "
+        Assert.False(ok, $"§2023:8.9 reserves '{word}' at COBOL-{edition}, so §2023:8.3.2.1 rule 1 bars it from a "
             + "user-defined-word slot");
         Assert.True(Has(errors, "COBOL0901"), $"'{word}' must be refused BY NAME at COBOL-{edition} (§2023:8.9 via "
             + $"the reservation gate's `reservedGatedWord` twin), never as a raw parse error:\n"
@@ -349,7 +349,7 @@ public sealed class ScreenFacilityConstructDriftTests
     /// <summary>⛔ THE SCREEN ENTRY'S NAME SLOT IS THE DATA ENTRY'S (kb/Work PB4890). ISO §2023:13.17.2 prints
     /// <c>level-number [ entry-name-clause ]</c>, and the entry-name clause is §2023:13.18.20, the rule the data and report
     /// group description entries read too, so a word §2023:8.9 reserves draws the same COBOL0901 there as in WORKING-STORAGE
-    /// (§2023:8.3.2.1 SR1: "Reserved words shall not be used as user-defined words or system-names"). The screen arm had a
+    /// (§2023:8.3.2.1 1): "Reserved words shall not be used as user-defined words or system-names"). The screen arm had a
     /// name rule of its own that admitted no reservation-gated word, so <c>01 SCREEN LINE 1.</c> left the section loop the
     /// constant entry as its one surviving reading and drew COBOL5506 "expected CONSTANT". Where §2023:8.9 leaves the word
     /// free (COBOL-85 for every member but COLUMN) it is the entry's name. ⚠ SCREEN at COBOL-85 names the item and the

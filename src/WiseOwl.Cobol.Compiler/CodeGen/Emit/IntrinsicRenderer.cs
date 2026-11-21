@@ -66,7 +66,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // source, i.e. an unhandled exception at the wrong stage.
         if (ic.ResultCategory is PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean)
             // sending: false — the §2023:8.8.1.1 screen already rejected this shape under STRICT conformance, so
-            // this arm IS the DA6 permissive leniency and not a MOVE; §2023:14.9.25.4 GR6d 1's condition has no
+            // this arm IS the DA6 permissive leniency and not a MOVE; §2023:14.9.25.4 GR6 d) 1's condition has no
             // scope over an arithmetic operand (kb/Work PB844).
             return new NumX(RuntimeApi.NumFromAlphanumeric(RenderString(ic), sending: false), 0);
 
@@ -407,7 +407,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "Ord":                                                         // §2023:15.70 — PCS-relative ordinal (H5: weights only when flagged)
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}{Collate(ic)}"), 0);
             case "Length" or "ByteLength" when ic.OverCurrentImage && ic.Args[0] is BoundFieldOperand { Place: { } vg }:
-                // §2023:15.50.4 RV7 / §2023:15.14.4 RV6 over a variable-length group's CURRENT-EXTENT IMAGE (kb/Work PB244):
+                // §2023:15.50.4 rule 7 / §2023:15.14.4 rule 6 over a variable-length group's CURRENT-EXTENT IMAGE (kb/Work PB244):
                 // the same string DISPLAY shows (A.1 item 57), whose storage characters are bytes.
                 return new NumX(RuntimeApi.Intrinsic("ByteLength",
                     PlaceRenderer.VarGroupCurrentImage(vg, $"FUNCTION {sig.Name} of", transfer: true)), 0);
@@ -578,7 +578,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// substitute's result IS the approximation: ATAN (≤ 1), and SQRT for a scaled operand (½). A float operand IS
     /// its binary64 and keeps the double body. <c>WholeRangeBodiesDriftTests</c> pins the runtime overload each
     /// member needs and the values each arm owes.</para>
-    /// <para>⛔ A domain member still passes the ONE argument-domain screen (§2023:15.3 AR14; kb/Work PB952): its
+    /// <para>⛔ A domain member still passes the ONE argument-domain screen (§2023:15.3 rule 14; kb/Work PB952): its
     /// operand is <c>CobolIntrinsics.DomainDecAdmitted</c>, <c>DomainDec</c>'s predicate returning the admitted
     /// carrier instead of its binary64, so the rule is decided in one place on either lane.</para>
     /// </remarks>
@@ -721,7 +721,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // ⛔ THE KIND OF THE BINARY64 IS ASKED ONCE, BY THE RULE THE BIND-TIME PREDICTION ASKS TOO (kb/Work PB4622): an engine
         // APPROXIMATION (the floating-math family, or a function of approximations only) lands by its shortest round-trip decimal;
         // a value derived from a float ITEM's content (ABS, MAX, FRACTION-PART, SUM ... of it) lands by its exact binary value, as
-        // the item itself does (§2023:15.59.4 RV1 "the content of the argument", §2023:15.4.1).
+        // the item itself does (§2023:15.59.4 1) "the content of the argument", §2023:15.4.1).
         bool approximation = IntrinsicCarrierRules.Binary64ResultIsApproximation(ic.Sig.Float, AnyFloatItemArgument(ic));
         // ⛔ THE ARITHMETIC MODE IS TESTED BEFORE THE RECEIVER SHAPE, AND THE COMMENT BELOW SAYS WHY EACH ARM IS
         // WHERE IT IS (kb/Work PB253). §2023:15.4.1: "When standard-decimal arithmetic or standard-binary arithmetic is
@@ -782,8 +782,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // ReceiverContext (kb/Work PB647, then PB653 — ReceiverContext.FloatLanding carries the derivation):
         // the FINAL TRANSFER into a fixed-point resultant lands at THAT identifier's scale with the statement's
         // ROUNDED mode (§2023:14.7.4.1 — "truncation is relative to the size provided for the resultant identifier";
-        // §2023:14.7.4.3 GR2 — no ROUNDED phrase IS ROUNDED MODE IS TRUNCATION), which is exactly the landing
-        // `MOVE FUNCTION SQRT(3) TO S` performs (§2023:14.6.8.2 GR4), so §2023:15.4.1's one-returned-value identity
+        // §2023:14.7.4.3 rule 2 — no ROUNDED phrase IS ROUNDED MODE IS TRUNCATION), which is exactly the landing
+        // `MOVE FUNCTION SQRT(3) TO S` performs (§2023:14.6.8.2 rule 4), so §2023:15.4.1's one-returned-value identity
         // holds across the two channels. EVERY OTHER SHAPE — a nested intermediate, a float receiver, a
         // receiver-less render — keeps the binary64, because there is no transfer here to quantize FOR.
         var landing = num.Receiver.FloatLanding(num.Outermost);
@@ -1194,7 +1194,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// and split at run time.</summary>
     /// <param name="lead">The LEADING argument's own intake (PRESENT-VALUE's screened discount base), in place of
     /// <paramref name="render"/>. ⛔ Also when that argument is itself a table(ALL) (kb/Work PB1000): the lead then
-    /// renders the enumeration's FIRST element — argument-1 (ISO §2023:15.3 AR14's left-to-right order) — from the
+    /// renders the enumeration's FIRST element — argument-1 (ISO §2023:15.3 rule 14's left-to-right order) — from the
     /// element operand, inside the walk (<c>CobolTable.AllArgs</c>'s lead lambda), before it joins the list.
     /// Screening the list's <c>[0]</c> instead read a binary64 image: a legal rate −0.99999999999999999999 had
     /// already become −1.0 there and was refused under §2023:15.74.3 r2.</param>
@@ -1438,8 +1438,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "RemScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RemExact", $"{mode}, {ExactValueArg(ic, 0)}, {ExactValueArg(ic, 1)}")),
             "OrdMax" when !num.StandardDecimal => new NumX(RuntimeApi.Intrinsic("OrdMaxExact", ExactValueArgList(ic)), 0),
             "OrdMin" when !num.StandardDecimal => new NumX(RuntimeApi.Intrinsic("OrdMinExact", ExactValueArgList(ic)), 0),
-            // ⛔ A SELECTION RETURNS THE SELECTED ARGUMENT'S CONTENT, WHOLE (kb/Work PB4730): §2023:15.59.4 RV1 "the content of the argument-1
-            // having the greatest value", §2023:15.63.4 RV1, §2023:15.61.1. The selected value is an EXACT value (NumX.Exact), not an SDIDI
+            // ⛔ A SELECTION RETURNS THE SELECTED ARGUMENT'S CONTENT, WHOLE (kb/Work PB4730): §2023:15.59.4 1) "the content of the argument-1
+            // having the greatest value", §2023:15.63.4 1), §2023:15.61.1. The selected value is an EXACT value (NumX.Exact), not an SDIDI
             // content: a float item's expansion (DP = 2.5E+40 is 25000000000000000155002161260194579873792) keeps all 41 digits to its
             // receiver, where the SDIDI's 34 stored 00000 for 73792.
             "MaxScaled" when !num.StandardDecimal => Exact("MaxExact", ExactValueArgList(ic), null),
@@ -1448,8 +1448,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "RangeScaled" when !num.StandardDecimal => Exact("RangeExact", $"{mode}, {ExactValueArgList(ic)}", null),
             "MeanScaled" when !num.StandardDecimal => Exact("MeanExact", $"{mode}, {ExactValueArgList(ic)}", null),
             // ⛔ A MEDIAN DECIDES ITS PARITY, ITS MIDDLE PAIR AND THEIR KINDS AT RUN TIME (kb/Work PB4827, PB4859, PB4891). An odd count selects
-            // (§2023:15.61.4 RV1, the exact lane keeps the selected argument's own kind); an even count is the mean of the two middle values
-            // (§2023:15.61.4 RV2), a new value that is the binary64 mean when a MIDDLE value is binary64 (DOC-A.1-92b), as the float lane forms it for
+            // (§2023:15.61.4 1), the exact lane keeps the selected argument's own kind); an even count is the mean of the two middle values
+            // (§2023:15.61.4 2)), a new value that is the binary64 mean when a MIDDLE value is binary64 (DOC-A.1-92b), as the float lane forms it for
             // a count the binder knows (IntrinsicCarrierRules.ReturnsMeanOfMiddlePair), and the exact mean when both are fixed-point. Which values
             // are the middle pair is a run-time fact, and so is the kind of a nested selection's returned content (MAX (F M2) returns F's or
             // M2's), so the body reads each middle's binary64-ness off its exact value (CobolExact.TryBinary64), never off the written operands.

@@ -41,7 +41,7 @@ public static class CompilationVariableTimeline
     /// GR1/GR3 restore the whole table, §2023:7.3.22.4 GR3), or null when that DEFINE specified OFF, supplied no PARAMETER
     /// value, or no DEFINE of the name precedes the site — the name's defined condition is then false (§2023:7.3.11.4
     /// GR2). The match ignores case: "COBOL basic letters appearing elsewhere within the compilation group are treated
-    /// in a case-insensitive manner" (§2023:8.1.3.2 GR3a).</summary>
+    /// in a case-insensitive manner" (§2023:8.1.3.2 3) a)).</summary>
     public static CompilationVariableEvent? DefinitionAt(
         this DirectiveTimeline<CompilationVariableEvent> timeline, string name, int siteLine) =>
         timeline.TryLastInEffectBefore(siteLine, ev => ev.Line, out var last,

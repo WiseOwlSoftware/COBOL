@@ -312,7 +312,7 @@ public sealed class CompileTimeExpressionEvaluator
     /// <para>⛔ THE DESCENT IS <see cref="SoleOperand.NumericLiteral"/>, NOT A LOCAL COPY (kb/Work PB400). This
     /// used to walk its own spine and TOGGLE the sign through a stacked unary chain, which reclassified
     /// <c>- -5</c> — an operand that does not CONSIST OF a single literal — as the literal 5. The shared descent
-    /// applies §2023:8.3.3.3.2 SR2's contiguity test instead, so exactly one ADJACENT sign is part of the literal
+    /// applies §2023:8.3.3.3.2 rule 2's contiguity test instead, so exactly one ADJACENT sign is part of the literal
     /// and everything else is an arithmetic-expression operand (and is therefore §2023:7.3.6.3 GR3-truncated, which
     /// the toggling version silently skipped).</para></summary>
     private static string? SoleNumericLiteral(Core.ArithmeticExpressionContext expr) => SoleOperand.NumericLiteral(expr);
@@ -426,12 +426,12 @@ public sealed class CompileTimeExpressionEvaluator
         return null;
     }
 
-    /// <summary>Apply one boolean shift suffix (<c>(B-SHIFT-L|R|LC|RC) integer</c>, §2023:8.8.2 GR8). The second
+    /// <summary>Apply one boolean shift suffix (<c>(B-SHIFT-L|R|LC|RC) integer</c>, §2023:8.8.2 rule 8). The second
     /// operand is an INTEGER operand (rule 5). Its SHAPE — a single identifier or literal (Table 4) — was already
     /// screened by <see cref="FormationViolation"/> through the shared <see cref="ArithmeticFormationRules"/>, so it
     /// is one literal or one compilation-variable name here (kb/Work PB1370). Either way the operand the rule sees
     /// is a LITERAL (a name is used "where a literal of the category associated with the name is permitted",
-    /// §2023:7.3.11.4 GR1, and stands for its value), and §2023:5.5 SR2a requires an INTEGER literal —
+    /// §2023:7.3.11.4 GR1, and stands for its value), and §2023:5.5 2) a) requires an INTEGER literal —
     /// a FORM test (<see cref="WiseOwl.Cobol.Common.NumericLiteral.IsIntegerLiteralForm"/>), so <c>1.0</c> is refused
     /// though its value is integral, and a name holding 1.5 is refused rather than truncated. A negative count is
     /// rejected (the spec defines only counts ≥ 1). Result length = the first operand's length.</summary>
@@ -445,11 +445,11 @@ public sealed class CompileTimeExpressionEvaluator
         {
             ReportDirective(where, $"the second operand of a boolean shift shall be an integer operand (ISO §2023:8.8.2 "
                 + $"rule 5) — '{count.Literal}' is not an integer literal: \"An integer literal is a fixed-point numeric "
-                + "literal that contains no decimal point\" (ISO §2023:8.3.3.3.2; §2023:5.5 SR2a)");
+                + "literal that contains no decimal point\" (ISO §2023:8.3.3.3.2; §2023:5.5 2) a))");
             return null;
         }
         if (count.Value.Sig < 0)
-        { ReportDirective(where, "a boolean shift count shall not be negative (ISO §2023:8.8.2 GR8)"); return null; }
+        { ReportDirective(where, "a boolean shift count shall not be negative (ISO §2023:8.8.2 rule 8)"); return null; }
         // Reduce the count to a small equivalent BEFORE the (long) cast so an astronomically large literal count
         // cannot overflow the cast: a LOGICAL shift by ≥ the length is all boolean zeros (cap at the length), and a
         // CIRCULAR shift is periodic in the length (mod). A zero-length operand shifts to itself. The count is an
@@ -480,7 +480,7 @@ public sealed class CompileTimeExpressionEvaluator
             if (IsRefusedName(w)) return null;   // its DEFINE was reported (PB3119)
         }
         ReportDirective(where, $"'{WrittenSource.Of(dref)}' — the second operand of a boolean shift shall be an integer "
-            + "operand (ISO §2023:8.8.2 SR5): an integer literal or a previously-defined numeric compilation variable "
+            + "operand (ISO §2023:8.8.2 rule 5): an integer literal or a previously-defined numeric compilation variable "
             + "holding one (§2023:7.3.11.4 GR1)");
         return null;
     }

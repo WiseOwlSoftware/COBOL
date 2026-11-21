@@ -46,7 +46,7 @@ public static class CobolDate
     // ── The four 1989 integer-date conversions (§2023:15.22 / §2023:15.24 / §2023:15.46 / §2023:15.47) ─────────────
     // ⛔ ONE PROLEPTIC GREGORIAN DAY COUNT, AND THE YEAR'S UPPER BOUND IS THE EDITION'S (kb/Work PB5130). From 2002 the
     // integer date form ends at 9999-12-31 (§2023:15.5.2: a value "shall be less than or equal to the value of FUNCTION
-    // INTEGER-OF-DATE (99991231), which is 3,067,671"; §2023:15.46.3 AR1a "greater than 1600 and less than 10000"; the
+    // INTEGER-OF-DATE (99991231), which is 3,067,671"; §2023:15.46.3 AR1 a) "greater than 1600 and less than 10000"; the
     // 2002 text words both the same). The 1989 intrinsic function module bounds the year BELOW only: §1989:A.2.16.3 AR1
     // a. "It must be an integer greater than 1600", §1989:A.2.12.3 AR1 "a positive integer that represents a number of
     // days succeeding December 31, 1600", and the returned value is the number of days the date succeeds December 31,
@@ -783,7 +783,7 @@ public static class CobolDate
         else if (hasOrd) integerDate = (new DateTime(yy, 1, 1).AddDays(doy - 1) - Epoch).Days + 1;
         // ⛔ THE WEEK DATE IS COMPUTED IN INTEGER ARITHMETIC, NOT VIA ISOWeek.ToDateTime, AND THAT IS THE FIX
         // (fix-queue PB23). `ISOWeek.ToDateTime(9999, 52, Saturday)` is 10000-01-01 and THROWS
-        // ArgumentOutOfRangeException — a raw CLR fault escaping from three intrinsics, where §2023:15.3 AR14 permits
+        // ArgumentOutOfRangeException — a raw CLR fault escaping from three intrinsics, where §2023:15.3 rule 14 permits
         // only EC-ARGUMENT-FUNCTION or the implementor-defined result. The input is VALID (every §2023:15.3.1.7 subfield
         // rule is met), so the fault cannot be prevented by tightening the range table; the arithmetic must simply
         // not overflow. Week 1 is the week containing Jan 4 (§2023:15.3.1.7: "The first week of a given year is the week
@@ -799,7 +799,7 @@ public static class CobolDate
 
         // §2023:15.5.2 — a value in integer date form "shall be greater than zero and shall be less than or equal to
         // … 3,067,671". A date whose subfields are each permissible can still have NO integer date form; the caller
-        // that must produce one raises EC-ARGUMENT-FUNCTION (§2023:15.3 AR14, "an incorrect value for that argument
+        // that must produce one raises EC-ARGUMENT-FUNCTION (§2023:15.3 rule 14, "an incorrect value for that argument
         // OR FOR THE RETURNED VALUE"), while the callers that only validate the FORMAT are unaffected.
         // ⚠ Applied to EVERY path, not just the week one: the calendar and ordinal paths are bounded today only
         // because the range table correlates day-with-month and day-of-year-with-year (measured — "99990231" and
@@ -819,7 +819,7 @@ public static class CobolDate
         if (e != 0)
             return Exceptions.ExceptionState.ArgumentError($"INTEGER-OF-FORMATTED-DATE: '{data}' is not valid per '{format}' (§2023:15.48.3)");
         // §2023:15.48.4 r1 makes the returned value "the integer date form equivalent" — and past §2023:15.5.2's 3,067,671
-        // ceiling there is none, so §2023:15.3 AR14's "incorrect value … for the returned value" arm applies. The
+        // ceiling there is none, so §2023:15.3 rule 14's "incorrect value … for the returned value" arm applies. The
         // data itself is VALID (§2023:15.3.1.7), which is why this is a RETURNED-VALUE error and not an argument one.
         return representable
             ? id

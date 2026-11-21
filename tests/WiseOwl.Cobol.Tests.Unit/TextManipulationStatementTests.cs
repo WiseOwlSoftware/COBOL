@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// kb/Work PB1357 / PB1358 / PB1353 / PB1356 — the COPY and REPLACE statements as the text-manipulation stage reads
 /// them: the §2023:7.2.4.4 GR4–GR7 REPLACE state machine (ALSO pushes, LAST pops, OFF cancels), a REPLACE statement
 /// recognized wherever REPLACE is a text-word (§2023:7.2.4.3 SR1), the operand content rules shared word for word by
-/// §2023:7.2.3.3 and §2023:7.2.4.3 (one screen), the §2023:8.3.5 SR6 pseudo-text delimiter separation, and the rules on the text a
+/// §2023:7.2.3.3 and §2023:7.2.4.3 (one screen), the §2023:8.3.5 6) pseudo-text delimiter separation, and the rules on the text a
 /// replacing action produces (§2023:7.2.3.4 GR12 / GR13, §2023:7.2.4.4 GR9). Every case runs the real merged driver.
 /// </summary>
 public sealed class TextManipulationStatementTests : IDisposable
@@ -150,7 +150,7 @@ public sealed class TextManipulationStatementTests : IDisposable
         Rejects(bag, "COBOL2449", "REPLACE is glued");
     }
 
-    // ── PB1353: the operand content rules (§2023:7.2.3.3 / §2023:7.2.4.3 — one screen) and §2023:8.3.5 SR6 ──────────────────────
+    // ── PB1353: the operand content rules (§2023:7.2.3.3 / §2023:7.2.4.3 — one screen) and §2023:8.3.5 6) ──────────────────────
 
     [Theory]
     [InlineData(" REPLACE ==,== BY ==AAA==.\n", "§2023:7.2.4.3 SR3")]
@@ -179,7 +179,7 @@ public sealed class TextManipulationStatementTests : IDisposable
         Rejects(bag, "COBOL2572", rule);
     }
 
-    /// <summary>kb/Work PB4176 — a literal its line ends inside (§2023:6.3.5 SR1, §2023:6.4.2: open at a line's end only where a
+    /// <summary>kb/Work PB4176 — a literal its line ends inside (§2023:6.3.5 1), §2023:6.4.2: open at a line's end only where a
     /// continuation line continues it), consumed by a COPY or REPLACE statement, is named as not closed (COBOL5563) and is
     /// the statement's ONE diagnostic: not "not an alphanumeric literal" (COBOL2450), and nothing for the next line's
     /// words, which the open literal swallowed.</summary>
@@ -301,7 +301,7 @@ public sealed class TextManipulationStatementTests : IDisposable
         Assert.Equal("A1 \"A==B\" Q", string.Join(' ', Shown(text).Single().Split(' ', StringSplitOptions.RemoveEmptyEntries)));
     }
 
-    [Theory] // §2023:8.3.5 SR6: an opening == is preceded by a space; a closing == is followed by a space, ',' ';' or '.'.
+    [Theory] // §2023:8.3.5 6): an opening == is preceded by a space; a closing == is followed by a space, ',' ';' or '.'.
     [InlineData(" REPLACE ==XX==BY ==DISPLAY==.\n", "closing ==")]
     [InlineData(" REPLACE ==XX== BY==DISPLAY==.\n", "opening ==")]
     public void PseudoTextDelimiters_AreSeparated(string source, string which)
@@ -375,7 +375,7 @@ public sealed class TextManipulationStatementTests : IDisposable
         Assert.Equal(["MOVE", "1", "TO", "X", "."], TextWordScanner.MatchWords(text, directiveLines: true).Select(w => w.Value));
     }
 
-    [Fact] // §2023:6.5 GR2: a blank line written inside pseudo-text-2 was logically discarded before text manipulation, so the
+    [Fact] // §2023:6.5 2): a blank line written inside pseudo-text-2 was logically discarded before text manipulation, so the
            // replacement produces no blank line (the NIST SM208A shape); an operand that never matches produces nothing.
     public void ReplaceResult_ABlankLineInPseudoText2_IsDiscarded_AndAnUnmatchedOperandProducesNothing()
     {

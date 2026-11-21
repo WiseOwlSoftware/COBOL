@@ -67,7 +67,7 @@ internal sealed class DispatchState
     public int? F3HandlerBasePc { get; set; }
 
     /// <summary>The unit contains a RESUME statement (<c>EcFeatures.HasResume</c>) — so a <c>ResumeSignal</c> can
-    /// be thrown at all, and a PERFORM that enters a declarative needs its §2023:14.9.33.4 GR2b landing. Set per unit
+    /// be thrown at all, and a PERFORM that enters a declarative needs its §2023:14.9.33.4 GR2 b) landing. Set per unit
     /// beside <see cref="DeclCount"/>; a unit without RESUME emits byte-identical PERFORMs.</summary>
     public bool UnitHasResume { get; set; }
 
@@ -225,7 +225,7 @@ internal sealed class DispatchState
 
     /// <summary>⛔ AN EXPLICIT TRANSFER — GO TO (and its alterable / DEPENDING forms) or a RESUME AT landing — is NOT a
     /// paragraph falling off its end (kb/Work PB1148). The dispatcher's return test
-    /// (<c>__atExit &amp;&amp; __pc == __exitPc + 1</c>) is the §2023:14.6.3 GR1 implied return "from the last statement in
+    /// (<c>__atExit &amp;&amp; __pc == __exitPc + 1</c>) is the §2023:14.6.3 rule 1 implied return "from the last statement in
     /// the procedure", so it must fire only for control that LEAVES the exit paragraph by completing it: fall-through,
     /// EXIT PARAGRAPH (§2023:14.9.14.4 GR6), EXIT SECTION (GR7), NEXT SENTENCE in a last sentence — all
     /// <see cref="TransferOut(string,string)"/>. A GO TO whose target is the paragraph that physically follows the
@@ -295,7 +295,7 @@ internal sealed class DispatchState
     /// <summary>The RESUME landing of a dispatch result selected for a condition an OPERAND-EVALUATION step raised
     /// or propagated (<see cref="Binding.Bound.BoundStatement.OperandEvaluation"/> — a function reference, an inline
     /// method invocation, an object-property accessor, a §2023:15.4 subscript temporary store; kb/Work PB892, PB1432).
-    /// ISO §2023:14.9.33.4 GR2a 2.: "for an inline invocation or a function invocation, it [the applicable statement]
+    /// ISO §2023:14.9.33.4 GR2 a) 2.: "for an inline invocation or a function invocation, it [the applicable statement]
     /// is the statement in which the inline invocation or function invocation was specified", and GR2 a) 1. makes
     /// the statement a store was evaluated for "the one in which the exception condition was raised" — so RESUME
     /// AT NEXT STATEMENT leaves THAT statement, and GR3's RESUME AT procedure-name leaves it too. Neither can be
@@ -305,11 +305,11 @@ internal sealed class DispatchState
     /// would re-enter the very statement GR2 says to abandon. Both actions therefore unwind as
     /// <c>RaiseResumeSignal</c> to the carrying statement's <c>BoundActivationSite</c>, which lands them with
     /// <see cref="ResumeTransfer"/>. A declarative that completed normally (Normal) or no qualifying declarative (NoHandler)
-    /// leaves the activation's result in place and the statement continues (§2023:14.9.18.4 GR1b "execution continues
+    /// leaves the activation's result in place and the statement continues (§2023:14.9.18.4 GR1 b) "execution continues
     /// … as specified in the rules for the activating statement after the result … is returned").</summary>
     private static string OperandEvaluationResume(string resultVar) =>
         $"if (DispatchResult.SuppressesFatal({resultVar})) throw new RaiseResumeSignal({resultVar});"
-        + "   // RESUME leaves the statement the activation was specified in (§2023:14.9.33.4 GR2a.2)";
+        + "   // RESUME leaves the statement the activation was specified in (§2023:14.9.33.4 GR2 a) 2.)";
 
     /// <summary>The program being emitted declares USE procedures (drives the <c>__IoCheck</c> hooks). Set per
     /// unit by the dispatcher emission; cleared by the OO class-unit emission (a class owns no USE
@@ -377,7 +377,7 @@ internal sealed class DispatchState
     }
 
     /// <summary>The pc a transfer's section-subject test reads (<c>__dbgFrom</c>): a section subject's debugging section runs "Immediately before each
-    /// execution of the named procedure" (§1985:XV.3.2.4 GR3a, which is control reaching the section from outside it, so a transfer is "from" the
+    /// execution of the named procedure" (§1985:XV.3.2.4 GR3 a), which is control reaching the section from outside it, so a transfer is "from" the
     /// paragraph that makes it, and START PROGRAM and a CALL's entry come from no paragraph (-1). A PERFORM or SORT/MERGE procedure that names
     /// only part of the section (<paramref name="performed"/> ends before the section's last pc) executes some of its paragraphs, not the section:
     /// it is "from" its own first pc, inside the section (kb/Work PB5414).</summary>
@@ -421,7 +421,7 @@ internal sealed class EcState
     /// <summary>The source element being emitted runs with AUTOMATIC PROPAGATION enabled (ISO §2023:7.3.21.4 GR1 — a
     /// <c>&gt;&gt;PROPAGATE ON</c> precedes it; kb/Work PB1119), or null when it does not (GR4's OFF default). Set per
     /// program unit and per METHOD, restored after each; read only by <c>EcEmitter</c>, where the fatal default is
-    /// decided (§2023:14.6.13.1.3 GR6) and where an activator disposes of an exception object (§2023:14.6.13.1.5).</summary>
+    /// decided (§2023:14.6.13.1.3 6)) and where an activator disposes of an exception object (§2023:14.6.13.1.5).</summary>
     public AutomaticPropagation? Propagation { get; set; }
 
     /// <summary>⛔ THE ONE CENSUS OF "AN APPLICABLE CLASS OR INTERFACE … SPECIFIED IN THE RAISING PHRASE OF THE
@@ -550,7 +550,7 @@ internal sealed class CallUnitState
     public string SelfPath { get; set; } = NoProgramPath;
 
     /// <summary>The calling path of a CALL or CANCEL written in a METHOD: a method is contained in no program, so
-    /// §2023:8.4.6.3 SR3's outermost programs are the only ones it can name. No unit's path is empty (an outermost path is
+    /// §2023:8.4.6.3 3)'s outermost programs are the only ones it can name. No unit's path is empty (an outermost path is
     /// rooted at a non-empty externalized name), so this path names no program. The class name used to stand here,
     /// and it named any program whose path is spelled like it, exposing that program's containees to the method
     /// (kb/Work PB2843). It is not null: a null calling path is an activator outside every program, the host
@@ -614,11 +614,11 @@ internal sealed class CallUnitState
 }
 
 /// <summary>How an element compiled under <c>&gt;&gt;PROPAGATE ON</c> performs the "as if a GOBACK statement with the
-/// RAISING LAST EXCEPTION phrase were executed" of ISO §2023:14.6.13.1.3 GR6 / §2023:14.6.13.1.5 (kb/Work PB1119).</summary>
+/// RAISING LAST EXCEPTION phrase were executed" of ISO §2023:14.6.13.1.3 6) / §2023:14.6.13.1.5 (kb/Work PB1119).</summary>
 /// <param name="InMethod">The element is a METHOD: GOBACK returns through <c>MethodReturn</c> and there is always an
 /// activator. Otherwise a program or function: <c>ProgramReturn</c>, and only while <c>__asCalled</c> — §2023:7.3.21.1
 /// propagates "to the activating runtime element", and a run unit's main program has none (§2023:14.9.18.4 GR3 makes
-/// its GOBACK a STOP that ignores RAISING), so there the §2023:14.6.13.1.3 GR7 termination stands.</param>
+/// its GOBACK a STOP that ignores RAISING), so there the §2023:14.6.13.1.3 7) termination stands.</param>
 internal sealed record AutomaticPropagation(bool InMethod)
 {
     /// <summary>The element's automatic propagation, or null when it is OFF. The exception-OBJECT half of the

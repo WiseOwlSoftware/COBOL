@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE SENDING OPERAND OF AN <c>INTO</c> PHRASE IS ONE RULE, AND IT HAS TO STAY IN ONE PLACE. ISO §2023:14.9.30.4
-/// GR4 b) and §2023:14.9.34.4 GR5b say the same sentence about READ and RETURN — the sender is THE CURRENT RECORD,
+/// GR4 b) and §2023:14.9.34.4 GR5 b) say the same sentence about READ and RETURN — the sender is THE CURRENT RECORD,
 /// sized by the RECORD clause (§2023:13.18.43.4 GR16), and designated an alphanumeric group move when the file
 /// description entry carries a RECORD IS VARYING clause — and the compiler builds that phrase from THREE arms:
 /// the sequential READ, the keyed READ, and the sort/merge RETURN.
@@ -68,7 +68,7 @@ public sealed class IntoSenderDriftTests
         }
 
         Assert.True(sites.Count == 1,
-            $"ISO §2023:14.9.30.4 GR4b / §2023:14.9.34.4 GR5b name ONE sending operand for every INTO phrase, so "
+            $"ISO §2023:14.9.30.4 GR4 b) / §2023:14.9.34.4 GR5 b) name ONE sending operand for every INTO phrase, so "
             + $"'new {Operand}' belongs at exactly one site — {Owner}#{Builder}. Found {sites.Count}: "
             + string.Join(", ", sites.Distinct().OrderBy(s => s, StringComparer.Ordinal)));
         Assert.Equal(Owner, sites[0]);
@@ -81,7 +81,7 @@ public sealed class IntoSenderDriftTests
         string src = StripComments(File.ReadAllText(
             TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", binderFile)));
         Assert.True(Regex.IsMatch(src, $@"\b{Builder}\s*\("),
-            $"{binderFile} binds an INTO phrase but never calls {Builder} — §2023:14.9.30.4 GR4b's current record "
+            $"{binderFile} binds an INTO phrase but never calls {Builder} — §2023:14.9.30.4 GR4 b)'s current record "
             + "would be re-derived here, which is exactly how the padded record area survived in three arms.");
     }
 

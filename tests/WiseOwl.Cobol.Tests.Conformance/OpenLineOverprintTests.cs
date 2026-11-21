@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <para>The tests assert the BYTES of the print file and the I-O status of every WRITE. The refused-WRITE tests
 /// (kb/Work PB3353, the owner's exception-path rule) pin that a statement which presents nothing - '44' outside the
 /// RECORD IS VARYING bounds (GR14, GR15), '71' for a character outside the line sequential character set (GR23),
-/// and a LINAGE violation at the page transition (§2023:13.18.34.4 GR6b.2 - neither writes the overprint return nor
+/// and a LINAGE violation at the page transition (§2023:13.18.34.4 GR6 b) 2) - neither writes the overprint return nor
 /// closes the open line, and that the BEFORE write that follows overprints exactly once.</para>
 /// </summary>
 public sealed class OpenLineOverprintTests
@@ -223,7 +223,7 @@ public sealed class OpenLineOverprintTests
             """), "\r\nAAAA\rBBBB\r\n", "FS=00\nFS=71\nFS=00\nCLOSE=00");
 
     [Fact]
-    // §2023:13.18.34.4 GR6b 2: the BEFORE write whose page transition re-reads a LINAGE operand that now violates the
+    // §2023:13.18.34.4 GR6 b) 2: the BEFORE write whose page transition re-reads a LINAGE operand that now violates the
     // rule has ALREADY presented its line (GR25 e) puts the presentation first): BBBB overprints AAAA, the status
     // is '90' and the rest of the statement is abandoned - there is no advance. The line is still open, so CLOSE
     // ends it. LINAGE-COUNTER is 0 and the latch makes the next WRITE unsuccessful too, presenting nothing.
@@ -336,7 +336,7 @@ public sealed class OpenLineOverprintTests
     /// <summary>A LINAGE IS 4 file with FOOTING AT 3 and four WRITEs: AFTER 1 (counter 1 -> 2, outside the footing
     /// area), BEFORE 1 over it (counter 2 -> 3: within the footing area, GR26 b)), AFTER 0 (no advance, counter 3,
     /// still printing within the footing area, GR26 b)) and BEFORE 3 over that (counter 3 + 3 is past the page size
-    /// 4: the page overflow, GR26 a), and the counter is 1 on the next page, §2023:13.18.34.4 GR7c.1. With
+    /// 4: the page overflow, GR26 a), and the counter is 1 on the next page, §2023:13.18.34.4 GR7 c) 1). With
     /// <paramref name="phrases"/> each WRITE carries both end-of-page phrases and the AT END-OF-PAGE one shows the
     /// counter; with <paramref name="fileStatus"/> each WRITE shows its status after it.</summary>
     private static string EopProc(bool phrases, bool fileStatus)

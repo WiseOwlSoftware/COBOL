@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// undone before END-PERFORM exactly as a <c>&gt;&gt;DEFINE</c> there is (<see cref="ExceptionPerformDefineScopeTests"/>).
 /// <para><b>The decision these tests pin</b> (a reference format is a PER-LINE property, §2023:6.5, so the op is a boundary
 /// between physical lines): the POP restores the format BEFORE the physical line that holds END-PERFORM, so that line is
-/// itself read in the restored format — the phrase is text FOLLOWING the POP, and §2023:7.3.24.3 GR1 makes a format govern "the
+/// itself read in the restored format — the phrase is text FOLLOWING the POP, and §2023:7.3.24.3 1) makes a format govern "the
 /// source text … following" the directive. The PUSH takes effect after the line that ends imperative-statement-1.</para>
 /// </summary>
 public sealed class ExceptionPerformSourceFormatScopeTests

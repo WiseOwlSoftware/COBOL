@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// description as that object reference" — and a universal INVOKE is invoked with a universal reference, so the sender is
 /// universal and §2023:14.9.39.3 SR10 / SR12 / SR14 (closed lists of senders) admit it only into a universal receiving item. Before
 /// PB2985 the run time admitted every ACTIVE-CLASS item and the delivery's class narrowing was the only check, so a typed
-/// receiving item took the object without the EC-OO-UNIVERSAL §2023:14.9.23.4 GR7c sets. The relation is one
+/// receiving item took the object without the EC-OO-UNIVERSAL §2023:14.9.23.4 GR7 c) sets. The relation is one
 /// (<see cref="ActivationRelations.ActiveClassReturningViolation"/>), asked by two kinds of activated method: every emitted
 /// <c>__CobolInvoke</c> case whose returning item is ACTIVE-CLASS, and the standard class BASE's New and FactoryObject.
 /// </summary>
@@ -84,7 +84,7 @@ public sealed class ActiveClassReturningUniversalSenderTests
         {
             ExceptionState.Clear();
             ExceptionState.OoUniversalChecking = true;
-            // The activated method's half is off: no exception condition exists (§2023:14.9.23.4 GR7c "both"), the
+            // The activated method's half is off: no exception condition exists (§2023:14.9.23.4 GR7 c) "both"), the
             // invocation proceeds, and the delivery's class narrowing is the floor.
             CobolObject.CheckActiveClassReturning(false, "INVOKE 'M'", typed, ActiveInP);
 

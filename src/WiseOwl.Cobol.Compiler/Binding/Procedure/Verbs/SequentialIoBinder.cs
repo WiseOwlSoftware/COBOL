@@ -262,7 +262,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             adv is not null && adv.BEFORE() is not null && adv.AFTER() is not null,
             AnyAdvancePage(adv));   // SR17 — pure check
 
-        // The FROM phrase is an implicit MOVE and is BOUND as one (§2023:14.9.51.4 GR5a; §2023:14.9.51.3 SR6 —
+        // The FROM phrase is an implicit MOVE and is BOUND as one (§2023:14.9.51.4 GR5 a); §2023:14.9.51.3 SR6 —
         // kb/Work PB348), so it carries the MOVE statement's syntax rules and the storage facts codegen needs.
         var advancing = BindAdvancing(adv);
         // kb/Work PB5201: the file's positioning is a property of the PROGRAM (any WRITE of it names ADVANCING), not of the history of the run.
@@ -278,16 +278,16 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
     {
         // The ONE file-name resolution step (kb/Work PB236 — §2023:8.4.2.1 through COBOL1639).
         if (!ctx.Validation.ResolveFile(r.fileName(), "READ", out var file)) return BoundRejected.Reported(ctx.Edition);
-        // §2023:13.4.5.3 SR3c is a rule of the FILE DESCRIPTION ENTRY, so it is asked BEFORE the organization reroute
+        // §2023:13.4.5.3 SR3 c) is a rule of the FILE DESCRIPTION ENTRY, so it is asked BEFORE the organization reroute
         // and the relative arm is under it too (kb/Work PB694, feedback_two_arm_dispatch).
         ctx.Validation.CheckReadIntoOnRecordLessFile(file, r.readInto() is not null);   // SR3 c) — pure check
         if (!file.IsSequential) return keyedIo.BindRead(r, file);   // relative/indexed READ F1/F2 (ISO 14.9.30; KeyedIo partial)
-        // READ … INTO is an IMPLICIT MOVE and is bound as one (ISO §2023:14.9.30.4 GR4b; kb/Work PB348): the
+        // READ … INTO is an IMPLICIT MOVE and is bound as one (ISO §2023:14.9.30.4 GR4 b); kb/Work PB348): the
         // sender is the record area sliced to its §2023:13.18.43.4 GR16 byte count, resolved through the LARGEST
         // record's view (PlaceTable.RecordArea, §2023:13.18.33.4 GR3) exactly as the emitter's splice is.
         // A file with no usable record area leaves the move null and the phrase inert — the same reach the emitter's own
         // `area is not null` guard had, now decided once, at bind time.
-        // identifier-1 is identified after the record has been read (§2023:14.9.30.4 GR4b; kb/Work PB5386): ResolveReceivingAtStore.
+        // identifier-1 is identified after the record has been read (§2023:14.9.30.4 GR4 b); kb/Work PB5386): ResolveReceivingAtStore.
         BoundMove? intoMove = r.readInto()?.receivingIdentifier() is { } d && host.Expr.ResolveReceivingAtStore(d) is { } recv
             && ctx.Refs.Places.RecordArea(file) is { } readArea
             ? host.Move.BindIntoPhrase(file, readArea, recv, IntoPhraseRules.Read)
@@ -457,7 +457,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
     /// <summary>Bind the ONE <c>[BEFORE] [AFTER] ADVANCING …</c> phrase of a WRITE (ISO §2023:14.9.51.2 Format 1), or
     /// null for a plain WRITE. An ADVANCING operand naming a SPECIAL-NAMES mnemonic (<c>XXXXX073 IS
     /// MNEMONIC-NAME</c>, SQ207M — the NIST preprocessor supplies the feature-name CSP) positions per the
-    /// IMPLEMENTOR's rules for the associated feature (§2023:14.9.51.4 GR25d), which are the feature-name's row in
+    /// IMPLEMENTOR's rules for the associated feature (§2023:14.9.51.4 GR25 d)), which are the feature-name's row in
     /// <see cref="ImplementorNames"/> — see <see cref="FeatureAdvancing"/>.
     /// <para>⛔ THE PHRASE IS ONE ADVANCE, NOT ONE PER WORD, AND THE TWO WORDS ONLY PLACE IT (kb/Work PB712).
     /// §2023:14.9.51.4 GR25 a)–d) fix the AMOUNT from the single printed operand — a) says the page "is advanced the

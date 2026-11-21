@@ -147,7 +147,7 @@ public sealed class WriteWithLockPermanentErrorTests
             }
             CobolFile.OpenOutput("RA", host, assignDynamic: false, page: null);
             CobolFile.SetRelativeKey("RA", 0);
-            Assert.Equal(Stuck, CobolFile.WriteShared("RA", "AAAAA", -1, FileRecordLock.WithLock, FileRetryKind.None, 0, page: null));   // §2023:14.9.51.4 GR29b
+            Assert.Equal(Stuck, CobolFile.WriteShared("RA", "AAAAA", -1, FileRecordLock.WithLock, FileRetryKind.None, 0, page: null));   // §2023:14.9.51.4 GR29 b)
             CobolFile.SetRelativeKey("RA", 2);
             Assert.Equal(Stuck, CobolFile.WriteShared("RA", "BBBBB", -1, FileRecordLock.WithLock, FileRetryKind.None, 0, page: null));   // would be '00' and lock record 2
             Assert.False(CobolFile.IsLockedByOther("RB", "2"));

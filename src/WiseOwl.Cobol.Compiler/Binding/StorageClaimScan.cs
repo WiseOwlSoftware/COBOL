@@ -46,7 +46,7 @@ internal sealed class StorageClaimScan
     }
 
     /// <summary>The operands under <paramref name="region"/> (as <see cref="AddressTargets"/>) an activation may pass BY REFERENCE, in
-    /// document order: each INVOKE argument passed BY REFERENCE (§2023:14.9.23.4 GR6a.1), each CALL USING operand in a BY REFERENCE
+    /// document order: each INVOKE argument passed BY REFERENCE (§2023:14.9.23.4 GR6 a) 1.), each CALL USING operand in a BY REFERENCE
     /// phrase or before any phrase (§2023:14.9.4.4 GR5 — "transitive across the parameters that follow them until another BY CONTENT or BY
     /// REFERENCE phrase is encountered"; GR9 a) 1. — "BY REFERENCE is assumed"), and each argument of a function
     /// <paramref name="isUserFunction"/> says is user-defined, whose identifier argument is passed by reference whenever its formal is
@@ -125,7 +125,7 @@ internal sealed class StorageClaimScan
                     if (WrittenQualifiedName.Of(target) is { } head) Addresses.Add(new AddressTarget(head));
                     break;
 
-                // An INVOKE argument (§2023:14.9.23.2): BY REFERENCE, or written with no BY phrase — which §2023:14.9.23.4 GR6a 1.
+                // An INVOKE argument (§2023:14.9.23.2): BY REFERENCE, or written with no BY phrase — which §2023:14.9.23.4 GR6 a) 1.
                 // passes BY REFERENCE whenever the formal is BY REFERENCE and the argument is an identifier.
                 case Core.InvokeUsingContext invokeUsing:
                     foreach (var ia in invokeUsing.invokeArgument())

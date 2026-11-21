@@ -336,7 +336,7 @@ public sealed class Ansi85AcceptanceTests
                 DISPLAY {word}.
                 STOP RUN.
             """;
-        // 0901 at 85 strict (the '85 reservation, §2023:8.3.2.1 SR1)…
+        // 0901 at 85 strict (the '85 reservation, §2023:8.3.2.1 rule 1)…
         var (ok85, errors85, _) = EditionHarness.CompileFull(src, 85);
         Assert.False(ok85);
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL0901");

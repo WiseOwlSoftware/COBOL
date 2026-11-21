@@ -17,25 +17,25 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public static partial class CobolIntrinsics
 {
-    // ── The argument-1 VALUE domains (ISO §2023:15.3 AR14; kb/Work PB952) ────────────────────────────────────────
+    // ── The argument-1 VALUE domains (ISO §2023:15.3 rule 14; kb/Work PB952) ────────────────────────────────────────
 
     /// <summary>The rational bounds a §15.x.3 "The value of argument-1 shall be …" rule states for the §2023:15.4.1
     /// binary64 family — the whole set, read off the standard (<c>IntrinsicArgumentDomainDriftTests</c> keeps the
     /// catalog's <c>Domain</c> column equal to it).</summary>
     public enum ArgumentDomain
     {
-        /// <summary>[−1, +1] — ACOS §2023:15.8.3 AR2, ASIN §2023:15.10.3 rule 2.</summary>
+        /// <summary>[−1, +1] — ACOS §2023:15.8.3 rule 2, ASIN §2023:15.10.3 rule 2.</summary>
         ClosedUnit,
-        /// <summary>[0, ∞) — SQRT §2023:15.84.3 AR2 ("zero or positive"), ANNUITY §2023:15.9.3 rule 2.</summary>
+        /// <summary>[0, ∞) — SQRT §2023:15.84.3 rule 2 ("zero or positive"), ANNUITY §2023:15.9.3 rule 2.</summary>
         NonNegative,
-        /// <summary>(0, ∞) — LOG §2023:15.55.3 AR2, LOG10 §2023:15.56.3 AR2 ("greater than zero").</summary>
+        /// <summary>(0, ∞) — LOG §2023:15.55.3 rule 2, LOG10 §2023:15.56.3 rule 2 ("greater than zero").</summary>
         Positive,
-        /// <summary>(−1, ∞) — PRESENT-VALUE §2023:15.74.3 AR2 ("greater than −1").</summary>
+        /// <summary>(−1, ∞) — PRESENT-VALUE §2023:15.74.3 rule 2 ("greater than −1").</summary>
         AboveMinusOne,
     }
 
     /// <summary>⛔ THE ONE argument-domain SCREEN of the binary64 family, and it runs on the EXACT operand, BEFORE the
-    /// binary64 conversion (kb/Work PB952). §2023:15.3 AR14: "If the evaluation of an argument results in an incorrect
+    /// binary64 conversion (kb/Work PB952). §2023:15.3 rule 14: "If the evaluation of an argument results in an incorrect
     /// value for that argument … the EC-ARGUMENT-FUNCTION exception condition is set to exist" — a rule about the
     /// ARGUMENT'S value, and the binary64 the body computes on is not that value. The bodies used to decide it
     /// after the conversion, two ways and both partial: ACOS/ASIN by the NaN <c>Math.Acos</c> returns past ±1,
@@ -550,8 +550,8 @@ public static partial class CobolIntrinsics
 
     // ── RANDOM (ISO §2023:15.75) ────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>RANDOM with no argument (§2023:15.75.3 AR5): the next number of the CURRENT sequence; 0 ≤ r &lt; 1
-    /// (§2023:15.75.4 RV1). The sequence is RUN-UNIT state (§2023:15.75.3 AR4 scopes the implementor seed to "the first
+    /// <summary>RANDOM with no argument (§2023:15.75.3 rule 5): the next number of the CURRENT sequence; 0 ≤ r &lt; 1
+    /// (§2023:15.75.4 rule 1). The sequence is RUN-UNIT state (§2023:15.75.3 rule 4 scopes the implementor seed to "the first
     /// reference to this function in the run unit") and lives on <see cref="RunUnit.Random"/> — a process-global
     /// static here let a second run unit in one process continue the first's seeded sequence (kb/Work PB307).
     /// The spec form (one current sequence that seeded calls restart and argument-less calls
@@ -559,7 +559,7 @@ public static partial class CobolIntrinsics
     public static double Random() => RunUnit.Current.Random.Next();
 
     /// <summary>RANDOM (seed) (§2023:15.75.3 rules 2/3): starts a NEW sequence from the seed and returns its first
-    /// value. Same seed ⇒ same sequence on a given implementation (§2023:15.75.4 RV2 — per-process determinism is
+    /// value. Same seed ⇒ same sequence on a given implementation (§2023:15.75.4 rule 2 — per-process determinism is
     /// what NIST IF131A exercises; hazard H7). Seeds 0..32767 must yield distinct sequences (rule 3) — the .NET
     /// generator satisfies this for the whole int range. ⛔ A NEGATIVE seed violates r2 ("zero or a positive
     /// integer") and raises EC-ARGUMENT-FUNCTION (fix-queue PB65 — the old mask folded it onto a positive seed

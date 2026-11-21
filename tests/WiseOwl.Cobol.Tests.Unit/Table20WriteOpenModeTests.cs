@@ -115,7 +115,7 @@ public sealed class Table20WriteOpenModeTests
     }
 
     // The complement, so the fix cannot be "always 48": Table 20's Sequential × WRITE × Extend IS an X, and
-    // §2023:14.9.51.4 GR29a gives the released record the highest existing RRN + 1.
+    // §2023:14.9.51.4 GR29 a) gives the released record the highest existing RRN + 1.
     [Fact]
     public void RelativeWrite_ExtendModeAtSequentialAccess_Succeeds_AndAppends()
     {

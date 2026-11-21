@@ -334,7 +334,7 @@ public static partial class CobolIntrinsics
     /// LOG10(1000) = 2.9999999999999996 into 2.999999999). THAT RATIONALE IS RETIRED (kb/Work PB647). It is a
     /// statement about the returned VALUE, which §2023:15.4.1's last paragraph does leave to the implementor; the
     /// rounding of the TRANSFER into a resultant identifier is not left to the implementor — §2023:14.7.4.1 puts it
-    /// "relative to the size provided for the resultant identifier" and §2023:14.7.4.3 GR2 makes a no-phrase store
+    /// "relative to the size provided for the resultant identifier" and §2023:14.7.4.3 rule 2 makes a no-phrase store
     /// TRUNCATION. Preferring the better approximation here meant `MOVE FUNCTION LOG10(1000) TO R` and
     /// `COMPUTE R = FUNCTION LOG10(1000)` disagreed about ONE returned value, which §2023:15.4.1's identity sentence
     /// forbids; when the two readings collide, the identity outranks the approximation, and a program that wants
@@ -436,7 +436,7 @@ public static partial class CobolIntrinsics
     /// the receiver's capacity check to notice, which a receiver as wide as the carrier cannot); <c>false</c> for the no-phrase store (§2023:14.6.13.1.3 item 8 — the receiver takes the
     /// LOW-ORDER digits of the result, the documented disposition), where the sentinel had no check to expose it and
     /// its low digits were stored as the answer (<c>COMPUTE X = FUNCTION EXP10(40)</c> stored 03715 in PIC 9(5)). An
-    /// unchecked ±∞ lands as zero (no digits), exactly as the MOVE landing does. The §2023:14.7.4.3 GR7 PROHIBITED
+    /// unchecked ±∞ lands as zero (no digits), exactly as the MOVE landing does. The §2023:14.7.4.3 rule 7 PROHIBITED
     /// raise does not depend on it (kb/Work PB3990).</param>
     /// <param name="mode">⛔ THE STATEMENT'S ROUNDING DECISION, AND IT HAS NO DEFAULT ON PURPOSE (kb/Work PB647).
     /// This quantizer is the ARITHMETIC channel's float→fixed landing; <c>CobolFloat.ToScaledUnchecked</c> is the
@@ -448,7 +448,7 @@ public static partial class CobolIntrinsics
     /// value and order of the arguments, the collating sequence, and the locale are unchanged", cite.py-verified),
     /// and the ROUNDED phrase was a no-op on the whole family. <c>ReceiverContext.FloatLanding</c> is the ONE
     /// emitter-side rule that chooses it: the resultant identifier's own mode for a final transfer
-    /// (§2023:14.7.4.3 GR2 — "If the ROUNDED phrase is not specified, execution is as if ROUNDED MODE IS TRUNCATION
+    /// (§2023:14.7.4.3 rule 2 — "If the ROUNDED phrase is not specified, execution is as if ROUNDED MODE IS TRUNCATION
     /// had been specified"), TRUNCATION for a nested intermediate. A new call site must decide, not inherit.</param>
     public static Int128 FromDouble(double d, int scale, CobolRounding mode, bool checkedLanding = false)
     {
@@ -470,7 +470,7 @@ public static partial class CobolIntrinsics
         // sentinel, kb/Work PB2967), unchecked keeps the low-order digits. An infinity has no decimal and keeps the binary64
         // disposition (unchecked zero, checked the EC-SIZE-TRUNCATION raise).
         //
-        // ⛔ ROUNDING MODE IS PROHIBITED is answered by the landing's own rounding decision (§2023:14.7.4.3 GR7: "If the
+        // ⛔ ROUNDING MODE IS PROHIBITED is answered by the landing's own rounding decision (§2023:14.7.4.3 rule 7: "If the
         // PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly in the resultant
         // identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition exists, and
         // the content of the resultant identifier is unchanged", cite.py-verified): a final transfer lands AT the

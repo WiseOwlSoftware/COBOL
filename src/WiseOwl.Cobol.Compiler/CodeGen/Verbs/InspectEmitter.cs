@@ -58,7 +58,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
             EmitBody(ins, id, img, readImage);
     }
 
-    /// <summary>§2023:14.9.22.4 GR6 / §2023:14.6.4 GR7: identify every identifier of the statement once, in SOURCE order —
+    /// <summary>§2023:14.9.22.4 GR6 / §2023:14.6.4 7): identify every identifier of the statement once, in SOURCE order —
     /// identifier-1, then each TALLYING counter with its pattern and delimiters, each REPLACING pattern / replacement /
     /// delimiters, then CONVERTING's operands — by freezing each <see cref="Place"/>'s run-time address into locals
     /// (<see cref="PlaceIdentification"/>). The returned statement addresses the locals; nothing after this reads a
@@ -307,7 +307,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
                 throw new InvalidOperationException(
                     $"INSPECT identifier-1 '{p.Item.ClrName}' is a numeric item stored natively; UsageCollectionPass must have promoted it to its character image (PB1128)");
             // ⛔ THE REPLACED IMAGE OF A NUMERIC ITEM IS NOT AN ALPHANUMERIC SENDING OPERAND. The signed arm takes
-            // CobolNum.DigitMagnitude, never the §2023:14.9.25.4 GR6d 3 capped FromAlphanumeric: this image is the ITEM'S
+            // CobolNum.DigitMagnitude, never the §2023:14.9.25.4 GR6 d) 3 capped FromAlphanumeric: this image is the ITEM'S
             // OWN and its PICTURE already fixes the size, so GR6 d) 3 asks nothing here (kb/Work PB426 split the two
             // decodes for that reason). A replacement that left a non-digit in a SIGNED item decodes by digit
             // positions only — deterministic where the spec leaves the result undefined (§2023:14.6.13.2 incompatible data);
@@ -318,7 +318,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
                 // convention (GR4 d). The sign is read off the image and handed to the formatter APART from the
                 // magnitude: a value cannot carry one over a zero, so formatting `parse(image) < 0 ? -mag : mag` turned
                 // a negative item whose digits became zeros into +0. The sign read is the STORE side re-deriving the
-                // ORIGINAL's sign, not INSPECT's sending read of the operand (§2023:14.6.13.2 GR2 attaches to the
+                // ORIGINAL's sign, not INSPECT's sending read of the operand (§2023:14.6.13.2 rule 2 attaches to the
                 // reference of the content, which is the image read above; a second check inside one statement
                 // would report one reference as two).
                 w.Line(PlaceRenderer.Write(p, RuntimeApi.NumRetainSign(img, PlaceRenderer.Read(p), p.Item.ProfileName)));

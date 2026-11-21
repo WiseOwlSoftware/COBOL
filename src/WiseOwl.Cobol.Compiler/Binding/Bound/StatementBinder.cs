@@ -526,7 +526,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         core = BoundImplicitSeries.Rewrap(core, n => WrapReceiverIdentifications(n, identificationMark));
         core = BoundImplicitSeries.Rewrap(core, n => Udf.UdfWrapCalls(n, marks.PreOps));
         core = BoundImplicitSeries.Rewrap(core, n => Oo.OoWrapPropertyOps(n, marks.PropertyOps));
-        // ISO §2023:14.9.33.4 GR2a 2./3. — the statement an operand activation was specified in is where a RESUME AT
+        // ISO §2023:14.9.33.4 GR2 a) 2./3. — the statement an operand activation was specified in is where a RESUME AT
         // NEXT STATEMENT for the condition it propagates lands. Through Rewrap like the hoist above, so a
         // multi-operand statement's landing is the implicit statement the activation belongs to.
         if (data.Procedure.OperandEvaluations.Current > 0) core = BoundImplicitSeries.Rewrap(core, n => new BoundActivationSite(n));

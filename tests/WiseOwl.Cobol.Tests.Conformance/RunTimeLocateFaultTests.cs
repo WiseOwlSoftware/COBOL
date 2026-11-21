@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// initializer throws, a module of an older schema), so they are C# fixtures, built with Roslyn like
 /// <c>NonCobolElement</c> builds every non-COBOL element, beside a COBOL main that CALLs them; the cases that ARE COBOL programs
 /// are the suite's multi-unit cases (conformance-suite/wiseowl/cases/8.13-...).
-/// <para>ISO/IEC 1989:2023 §2023:14.9.4.4 GR3b (cite.py OK, located under 3)): "If the program cannot be located or identifier-1
+/// <para>ISO/IEC 1989:2023 §2023:14.9.4.4 GR3 b) (cite.py OK, located under 3)): "If the program cannot be located or identifier-1
 /// references a zero-length item, the EC-PROGRAM-NOT-FOUND exception condition is set to exist"; GR3 c): "If the program is located
 /// but the resources necessary to execute the program are not available, the EC-PROGRAM-RESOURCES exception condition is set to
 /// exist" (OK, 3) c)), the resources the implementor's (Annex A.1 item 14: docs/CONFORMANCE.md DOC-A.1-14 takes GnuCOBOL's answer: a

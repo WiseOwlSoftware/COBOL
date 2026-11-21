@@ -66,7 +66,7 @@ internal sealed record FromPhraseRules(
     /// <summary>RELEASE (ISO §2023:14.9.32) — the only FROM phrase carrying the zero-length-literal rule.</summary>
     public static readonly FromPhraseRules Release = new(
         "RELEASE FROM",
-        new("ISO §2023:14.9.32.4 GR4a; §2023:14.9.32.3 SR3", "§1985:XI.4.2.4 GR3"),
+        new("ISO §2023:14.9.32.4 GR4 a); §2023:14.9.32.3 SR3", "§1985:XI.4.2.4 GR3"),
         [PicCategory.Alphanumeric, PicCategory.National],
         new("ISO §2023:14.9.32.3 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
             + "national function.\"",
@@ -79,7 +79,7 @@ internal sealed record FromPhraseRules(
     /// which is what is enforced. The FILE phrase has its own row, <see cref="WriteFile"/>.</summary>
     public static readonly FromPhraseRules Write = new(
         "WRITE FROM",
-        new("ISO §2023:14.9.51.4 GR5a; §2023:14.9.51.3 SR6", "§1985:VII.4.7.4 GR3", "§1985:VIII.4.9.4 GR3", "§1985:IX.4.9.4 GR3"),
+        new("ISO §2023:14.9.51.4 GR5 a); §2023:14.9.51.3 SR6", "§1985:VII.4.7.4 GR3", "§1985:VIII.4.9.4 GR3", "§1985:IX.4.9.4 GR3"),
         [PicCategory.Alphanumeric, PicCategory.National],
         new("ISO §2023:14.9.51.3 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
             + "national function.\"",
@@ -117,7 +117,7 @@ internal sealed record FromPhraseRules(
     /// <see cref="RewriteFile"/>.</summary>
     public static readonly FromPhraseRules Rewrite = new(
         "REWRITE FROM",
-        new("ISO §2023:14.9.35.4 GR7a; §2023:14.9.35.3 SR6", "§1985:VII.4.5.4 GR4", "§1985:VIII.4.6.4 GR5", "§1985:IX.4.6.4 GR5"),
+        new("ISO §2023:14.9.35.4 GR7 a); §2023:14.9.35.3 SR6", "§1985:VII.4.5.4 GR4", "§1985:VIII.4.6.4 GR5", "§1985:IX.4.6.4 GR5"),
         [PicCategory.Alphanumeric, PicCategory.Boolean, PicCategory.National],
         new("ISO §2023:14.9.35.3 SR9 (§2002:14.8.33.2 SR9) — \"If identifier-1 references a function and the FILE phrase is not specified, "
             + "identifier-1 shall reference an alphanumeric, boolean, or national function.\"",
@@ -525,7 +525,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         {
             ctx.Edition.Error(DiagnosticCatalog.FilePhraseOperand,
                 $"{rules.Statement} {WrittenSource.Of(send)}: literal-1 shall be an alphanumeric, boolean, or national literal and "
-                + "shall not be a figurative constant (§2023:14.9.51.3 SR7b, §2023:14.9.35.3 SR10b)");
+                + "shall not be a figurative constant (§2023:14.9.51.3 SR7 b), §2023:14.9.35.3 SR10 b))");
             return null;
         }
         // identifier-1 "shall not contain a data item described with a USAGE OBJECT REFERENCE clause" (SR8, SR12): asked before
@@ -570,7 +570,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
 
     /// <summary>
     /// Bind a <c>… INTO identifier-1</c> phrase into its implicit MOVE — the sequential READ, the keyed READ and
-    /// the sort RETURN (ISO §2023:14.9.30.4 GR4b and §2023:14.9.34.4 GR5b, which are the same sentence: "The current
+    /// the sort RETURN (ISO §2023:14.9.30.4 GR4 b) and §2023:14.9.34.4 GR5 b), which are the same sentence: "The current
     /// record is moved from the record area to the area specified by identifier-1 according to the rules for the
     /// MOVE statement without the CORRESPONDING phrase").
     ///
@@ -594,7 +594,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     public BoundMove BindIntoPhrase(FileModel file, Place area, Place receiver, IntoPhraseRules rules)
     {
         ctx.Validation.CheckIntoReceiver(file, receiver, rules);
-        // §2023:13.18.43.4 GR16a reads the DEPENDING item; GR16 b) applies when the phrase is absent. Resolved
+        // §2023:13.18.43.4 GR16 a) reads the DEPENDING item; GR16 b) applies when the phrase is absent. Resolved
         // HERE, once, for all three INTO arms — the sequential READ, the keyed READ and the sort RETURN.
         Place? depending = file is { Varying.DependingOperand: not null, VaryingDependingItem: { } d }
             ? ctx.Refs.Places.ResolveItem(d) : null;

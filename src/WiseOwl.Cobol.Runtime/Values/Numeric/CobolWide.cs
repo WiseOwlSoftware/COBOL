@@ -7,12 +7,12 @@ namespace WiseOwl.Cobol.Runtime;
 /// <see cref="UInt128"/> pair of magnitude — that carries an UNSCALED value whose decimal scale the compiler tracks
 /// (exactly as it tracks the scale of the <see cref="Int128"/> lane). It exists so that a native product past the
 /// <see cref="Int128"/> carrier, NESTED in a larger expression, keeps every digit until the one final transfer
-/// (§2023:14.7.7 GR3 NOTE 1: ROUNDED governs only that transfer): <c>COMPUTE R = A * B - C * D</c> over
+/// (§2023:14.7.7 rule 3 NOTE 1: ROUNDED governs only that transfer): <c>COMPUTE R = A * B - C * D</c> over
 /// <c>PIC 9(21)</c> operands forms two 41-digit products and subtracts them EXACTLY. The 34-digit SDIDI
 /// (a product reduced by <see cref="CobolDec.FromWideToOdd"/>) it replaces rounded each product first, and the cancellation of the two nearly
 /// equal products left only the rounding error.
 /// <para>The implementor's choice (§2023:8.8.1.3 — "Native arithmetic is an implementor-defined method of evaluating an
-/// arithmetic expression"; §2023:14.7.7 GR4a — "an implementor-defined intermediate data item is used"; CONFORMANCE.md
+/// arithmetic expression"; §2023:14.7.7 4) a) — "an implementor-defined intermediate data item is used"; CONFORMANCE.md
 /// DOC-A.1-123) follows GnuCOBOL (CLAUDE.md rule 1), whose <c>cob_decimal_mul</c>, <c>cob_decimal_add</c> and
 /// <c>cob_decimal_sub</c> are exact over an arbitrary-precision integer. This type is that integer, bounded: the
 /// compiler selects it only where its digit-bound analysis PROVES the exact value fits <see cref="MaxDigits"/>

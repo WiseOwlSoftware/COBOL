@@ -148,7 +148,7 @@ public readonly record struct NumProfile
     /// <summary>The OVER-PUNCH CONVENTION this item's compiled program uses (kb/Work PB803, owner decision
     /// 2026-09-09; Annex A.1 items 177 and 178, ISO §2023:13.18.52.4 GR4 / GR5 b). Consulted only for an
     /// over-punched sign — <see cref="NumericSign.TrailingOverpunch"/> / <see cref="NumericSign.LeadingOverpunch"/>
-    /// — since §2023:13.18.52.4 GR6b pins the SEPARATE signs to '+'/'-' with no latitude. Orthogonal to
+    /// — since §2023:13.18.52.4 GR6 b) pins the SEPARATE signs to '+'/'-' with no latitude. Orthogonal to
     /// <see cref="SignKind"/>, which is the sign's POSITION: the four combinations are all reachable.
     /// <para><see cref="Runtime.SignEncoding.Ibm"/> (value 0) is the default and the documented one, so a profile
     /// that does not state it — including the runtime's own hand-built decoders, which are all unsigned — is the

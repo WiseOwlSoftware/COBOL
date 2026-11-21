@@ -249,7 +249,7 @@ public static class ClosedFormats
     /// a system-name in the edition in force, and what the standard says a system-name is. The 1985 text prints the rule once
     /// per paragraph (§1985:VI.4.3.3 SR1, §1985:VI.4.4.3 SR1); the later texts define the system-name types in one subclause.</summary>
     /// <param name="reserved">The word is a reserved word, which no edition lets stand as a system-name (§1985:III.2 "Reserved
-    /// Word", §2023:8.3.2.1 SR1), so that rule is cited beside the computer-name's.</param>
+    /// Word", §2023:8.3.2.1 1)), so that rule is cited beside the computer-name's.</param>
     public static string ComputerNameRefusal(string word, string paragraph, EditionInfo edition, bool reserved = false)
     {
         string rule = edition.Cite(
@@ -263,7 +263,7 @@ public static class ClosedFormats
         const string Later = ": \"Reserved words shall not be used as user-defined words or system-names\"";
         string reservedRule = edition.Cite(
             "§1985:III.2: a reserved word \"must not appear in the program as user-defined words or system-names\"",
-            "§2023:8.3.2.1 SR1" + Later, y2002: "§2002:8.3.1.1 1)" + Later, y2014: "§2014:8.3.1.1 1)" + Later);
+            "§2023:8.3.2.1 1)" + Later, y2002: "§2002:8.3.1.1 1)" + Later, y2014: "§2014:8.3.1.1 1)" + Later);
         return head + $"a computer-name is a system-name, and a reserved word is never one ({EditionInfo.Designated(rule)}; {reservedRule})";
     }
 

@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// arbitrary-precision oracle independent of the wide form.
 /// <para>The bases 0, 1 and -1 return at once whatever the exponent (kb/Work PB2632): <c>B ** 999999999999999999</c> is a
 /// constant, and a regression is a test run that does not return, which the gate's test-host timeout reports (a wall-clock
-/// assertion in the test itself is forbidden). The §2023:8.8.1.2 GR6 screen is unchanged: <c>0 ** 0</c> and a zero base with a
+/// assertion in the test itself is forbidden). The §2023:8.8.1.2 rule 6 screen is unchanged: <c>0 ** 0</c> and a zero base with a
 /// negative exponent are EC-SIZE-EXPONENTIATION.</para>
 /// </summary>
 public sealed class NativeIntegerPowerExactTests

@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// sets the section-background fill (StorageFormPass / InitialStateBackground, §2023:11.9.10).
 /// <para>⛔ A clause that cannot change a program has NO field (kb/Work PB298): ENTRY-CONVENTION is screened by
 /// <c>OptionsBinder.ScreenEntryConvention</c> down to its one admissible value, COBOL, which is also the implied
-/// convention (§2023:11.9.7.4 GR4c, and FLOAT-DECIMAL is declined (COBOL2424). A producer-only field is a clause
+/// convention (§2023:11.9.7.4 GR4 c), and FLOAT-DECIMAL is declined (COBOL2424). A producer-only field is a clause
 /// the program wrote, accepted in silence, that changes nothing; <c>OptionsModelConsumerDriftTests</c> fails on
 /// one.</para>
 /// </summary>
@@ -180,7 +180,7 @@ public static class ArithmeticModes
 
     /// <summary>The mode's intermediate data item's own extreme MAGNITUDES, as exact decimal literal text — "the
     /// value farthest away from zero permitted by the specifications appropriate to the mode of arithmetic" and
-    /// its nearest-to-zero twin, which ISO §2023:14.9.39.4 GR32b and GR36 b) compare an item's extremes against for
+    /// its nearest-to-zero twin, which ISO §2023:14.9.39.4 GR32 b) and GR36 b) compare an item's extremes against for
     /// the SET Format 15 IN-ARITHMETIC-RANGE phrase.
     /// <para>⛔ DISTINCT FROM <see cref="IntermediateExponentRange"/>, and the pair must not be conflated: that
     /// one is a strict DECADE BOUND for a well-formedness SCREEN (its SDIDI row reads 6145 precisely because no
@@ -238,7 +238,7 @@ public enum FloatEncoding { Unspecified, BinaryEncoding, DecimalEncoding }
 /// <param name="Fill">The fill kind.</param>
 /// <param name="FillLiteral">The literal text when <paramref name="Fill"/> is <see cref="OptionsFill.Literal"/>.</param>
 /// <param name="LiteralFillChar">
-/// The BYTE of literal-1 (§2023:11.9.10.4 GR5c, decoded and validated ONCE at bind time; null for every other
+/// The BYTE of literal-1 (§2023:11.9.10.4 GR5 c), decoded and validated ONCE at bind time; null for every other
 /// fill kind. Bind time is where this belongs because §2023:11.9.10.3 SR1 — "Literal-1 shall specify a one-byte
 /// hexadecimal-alphanumeric literal" — is a SYNTAX rule, and this is its diagnostic site.
 /// <para>⛔ ONLY the literal arm is resolved here. GR5's four FIGURATIVE arms are NOT, because HIGH-VALUES and

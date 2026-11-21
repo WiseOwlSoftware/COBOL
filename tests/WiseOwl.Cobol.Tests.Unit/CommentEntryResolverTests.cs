@@ -129,7 +129,7 @@ public sealed class CommentEntryResolverTests
             + "       REMARKS. DISPLAY \"A\".\n           DISPLAY \"B\"\n      -    .\n       INSTALLATION. DISPLAY \"C\".\n");
         string[] trimmed = [.. lines.Select(l => l.Trim())];
         Assert.Contains("REMARKS. DISPLAY \"A\".", trimmed);
-        Assert.Contains("DISPLAY \"B\".", trimmed);   // the continuation line joined the line before it (§2023:6.5 GR6), its slot left empty
+        Assert.Contains("DISPLAY \"B\".", trimmed);   // the continuation line joined the line before it (§2023:6.5 6)), its slot left empty
         Assert.Contains("INSTALLATION. DISPLAY \"C\".", trimmed);
         Assert.DoesNotContain(lines, CommentEntryCarrier.Is);
     }
@@ -290,6 +290,6 @@ public sealed class CommentEntryResolverTests
         var bag = new DiagnosticBag();
         string[] lines = Finished("IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\n>>IF X IS DEFINED\nID DIVISION.\n>>ELSE\nPROCEDURE DIVISION.\n>>END-IF\n"
             + "REMARKS. DISPLAY \"A\" *> trailing comment\n", bag: bag);
-        Assert.Contains("REMARKS. DISPLAY \"A\"", lines.Select(l => l.TrimEnd()));   // the inline comment was removed, §2023:6.5 GR3
+        Assert.Contains("REMARKS. DISPLAY \"A\"", lines.Select(l => l.TrimEnd()));   // the inline comment was removed, §2023:6.5 3)
     }
 }

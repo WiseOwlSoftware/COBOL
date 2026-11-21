@@ -17,7 +17,7 @@ public enum IntrinsicType { Alphanumeric, Boolean, National, Numeric, Integer, I
 public enum IntrinsicArity { Fixed, OptionalTrailing, Variadic }
 
 /// <summary>The rational VALUE domain a §15.x.3 "The value of argument-1 shall be …" rule states for a §2023:15.4.1
-/// binary64-family row (kb/Work PB952). §2023:15.3 AR14
+/// binary64-family row (kb/Work PB952). §2023:15.3 rule 14
 /// makes a value outside it EC-ARGUMENT-FUNCTION, and the renderer screens it on the EXACT operand before the
 /// binary64 conversion (<c>CobolIntrinsics.DomainScaled</c> / <c>DomainDec</c> / <c>DomainReal</c>), because a
 /// correctly-rounded conversion moves a value across the bound. <c>IntrinsicArgumentDomainDriftTests</c> derives
@@ -36,7 +36,7 @@ public enum FunctionDeviceForm
     /// <summary>The temporary is described by the returned value alone (<c>cob_alloc_field</c>): ordinary integer and
     /// numeric functions, the default.</summary>
     Value,
-    /// <summary>The returned value IS the content of an argument (§2023:15.7.1 ABS, §2023:15.59.4 RV1 MAX, §2023:15.63.4 RV1 MIN,
+    /// <summary>The returned value IS the content of an argument (§2023:15.7.1 ABS, §2023:15.59.4 1) MAX, §2023:15.63.4 1) MIN,
     /// §2023:15.61 MEDIAN, §2023:15.60 MEAN of one argument), so the temporary is a copy of that argument's item
     /// (<c>FunctionValueField</c>); a MEAN of several arguments is a computed value (<see cref="Value"/>).</summary>
     Argument,
@@ -151,7 +151,7 @@ public readonly record struct IntrinsicSig(
     };
 
     /// <summary>⛔ THE USAGE ISO §2023:15.2 GIVES A FUNCTION'S RESULT, in ONE place (kb/Work PB3665), asked by the category
-    /// that <see cref="CategoryOf"/> folds the §2023:15.2 type to. §2023:15.2 GR1 "Alphanumeric functions have an implicit usage
+    /// that <see cref="CategoryOf"/> folds the §2023:15.2 type to. §2023:15.2 1) "Alphanumeric functions have an implicit usage
     /// display", 2) "Boolean functions have an implicit usage bit" and 3) "National functions have an implicit usage
     /// national"; 4) numeric, 5) integer and 6) index functions state NO usage (only an operational sign and the shape
     /// of the value), so they answer <see langword="null"/> — a rule worded "described implicitly or explicitly as
@@ -225,17 +225,17 @@ public static class IntrinsicCatalog
 
         // ── The 1989 Intrinsic Function Module (IntroducedIn 85 — the NIST IF101A..IF142A surface) ──────────
         // §2023:15.4.1 floating-math family (double + FromDouble quantization; Float: true).
-        Add(new("ACOS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Acos", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.ClosedUnit, DomainRule: "§2023:15.8.3 AR2", DomainRule1985: "§1989:A.2.5.3 AR2"));    // §2023:15.8
-        Add(new("ASIN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Asin", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.ClosedUnit, DomainRule: "§2023:15.10.3 AR2", DomainRule1985: "§1989:A.2.7.3 AR2"));  // §2023:15.10
+        Add(new("ACOS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Acos", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.ClosedUnit, DomainRule: "§2023:15.8.3 rule 2", DomainRule1985: "§1989:A.2.5.3 AR2"));    // §2023:15.8
+        Add(new("ASIN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Asin", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.ClosedUnit, DomainRule: "§2023:15.10.3 rule 2", DomainRule1985: "§1989:A.2.7.3 AR2"));  // §2023:15.10
         Add(new("ATAN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Atan", IntrinsicBind.Runtime, true, 85));           // §2023:15.11
         Add(new("COS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Cos", IntrinsicBind.Runtime, true, 85));             // §2023:15.20
         Add(new("SIN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Sin", IntrinsicBind.Runtime, true, 85));             // §2023:15.82
         Add(new("TAN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Tan", IntrinsicBind.Runtime, true, 85));             // §2023:15.89
-        Add(new("SQRT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Sqrt", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.NonNegative, DomainRule: "§2023:15.84.3 AR2", DomainRule1985: "§1989:A.2.40.3 AR2"));           // §2023:15.84
-        Add(new("LOG", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Log", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.Positive, DomainRule: "§2023:15.55.3 AR2", DomainRule1985: "§1989:A.2.20.3 AR2"));             // §2023:15.55
-        Add(new("LOG10", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Log10", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.Positive, DomainRule: "§2023:15.56.3 AR2", DomainRule1985: "§1989:A.2.21.3 AR2"));         // §2023:15.56
-        Add(new("ANNUITY", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "ni", "Annuity", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.NonNegative, DomainRule: "§2023:15.9.3 AR2", DomainRule1985: "§1989:A.2.6.3 AR2"));    // §2023:15.9
-        Add(new("PRESENT-VALUE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 2, inf, "n", "PresentValue", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.AboveMinusOne, DomainRule: "§2023:15.74.3 AR2", DomainRule1985: "§1989:A.2.34.3 AR2")); // §2023:15.74
+        Add(new("SQRT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Sqrt", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.NonNegative, DomainRule: "§2023:15.84.3 rule 2", DomainRule1985: "§1989:A.2.40.3 AR2"));           // §2023:15.84
+        Add(new("LOG", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Log", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.Positive, DomainRule: "§2023:15.55.3 rule 2", DomainRule1985: "§1989:A.2.20.3 AR2"));             // §2023:15.55
+        Add(new("LOG10", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Log10", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.Positive, DomainRule: "§2023:15.56.3 rule 2", DomainRule1985: "§1989:A.2.21.3 AR2"));         // §2023:15.56
+        Add(new("ANNUITY", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "ni", "Annuity", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.NonNegative, DomainRule: "§2023:15.9.3 rule 2", DomainRule1985: "§1989:A.2.6.3 AR2"));    // §2023:15.9
+        Add(new("PRESENT-VALUE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 2, inf, "n", "PresentValue", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.AboveMinusOne, DomainRule: "§2023:15.74.3 rule 2", DomainRule1985: "§1989:A.2.34.3 AR2")); // §2023:15.74
         Add(new("RANDOM", IntrinsicType.Numeric, IntrinsicArity.OptionalTrailing, 0, 1, "i", "Random", IntrinsicBind.Runtime, true, 85, ValueSource: IntrinsicValueSource.RunUnitState));      // §2023:15.75
         Add(new("STANDARD-DEVIATION", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "StandardDeviation", IntrinsicBind.Runtime, true, 85)); // §2023:15.86
         Add(new("VARIANCE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "Variance", IntrinsicBind.Runtime, true, 85));          // §2023:15.98

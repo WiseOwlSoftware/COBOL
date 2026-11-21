@@ -30,7 +30,7 @@ internal enum OoDataSection { File, WorkingStorage, LocalStorage, Linkage, Repor
 /// instance definition.</item>
 /// </list>
 /// A method PROTOTYPE of an interface is a method definition (§2023:10.6.1 NOTE), so it is asked as a METHOD; its own
-/// further restriction (the data division "may contain only a linkage section", §2023:10.6.2 SR4e) is
+/// further restriction (the data division "may contain only a linkage section", §2023:10.6.2 SR4 e)) is
 /// <see cref="PrototypeUnitRules"/>. The class definition and the interface definition have no data division of
 /// their own in the grammar, so they carry no row. Every (kind × section) cell has a verdict — admitted, or the
 /// clause that refuses it — and <c>OoDefinitionRulesDriftTests</c> holds the table total.

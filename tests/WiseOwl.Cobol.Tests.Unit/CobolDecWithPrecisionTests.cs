@@ -30,7 +30,7 @@ public sealed class CobolDecWithPrecisionTests
         Assert.Equal(expected, CobolDec.FractionDigits(new CobolDec(sig, exp)));
 
     /// <summary>The NUMVAL family lifts its argument EXACTLY at the written scale, which is what makes
-    /// <see cref="CobolDecWithPrecision.Own"/> of its value the argument's written places (§2023:15.67.4 RV1 and §2023:15.68.4 RV1:
+    /// <see cref="CobolDecWithPrecision.Own"/> of its value the argument's written places (§2023:15.67.4 1) and §2023:15.68.4 1):
     /// "The returned value is the numeric value represented by argument-1"; NUMVAL-F's SDIDI arm likewise). The value is the
     /// standard's; the precision a nested native quotient reads from it is this implementation's (DOC-A.1-123).</summary>
     [Theory]

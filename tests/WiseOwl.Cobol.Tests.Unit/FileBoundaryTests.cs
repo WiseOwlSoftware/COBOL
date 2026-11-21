@@ -195,7 +195,7 @@ public sealed class FileBoundaryTests : IDisposable
     }
 
     /// <summary>The host's two refusals at an INDEXED statement (2.2.1.9; the record's n + 1 entries are one statement): a
-    /// page write the host refuses because the file cannot GROW past its maximum size is '24' — §2023:14.9.51.4 GR42d,
+    /// page write the host refuses because the file cannot GROW past its maximum size is '24' — §2023:14.9.51.4 GR42 d),
     /// <i>"When the record that is to be released to the operating environment would reside outside the externally
     /// defined boundaries of the physical file"</i> — and a write refused because the medium is FULL is '30' (§2023:9.1.13.6
     /// item 1), in effect until the CLOSE (§2023:9.1.13.1). Neither releases the record under any key: the next OPEN reads the
@@ -243,14 +243,14 @@ public sealed class FileBoundaryTests : IDisposable
     }
 
     /// <summary>⛔ THE BOUNDARY OF A RELATIVE FILE IS THE HOST'S (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.9,
-    /// docs/CONFORMANCE.md DOC-A.1-107; kb/Work PB3333). The record number's own range is §2023:14.9.51.4 GR29b's: a key
+    /// docs/CONFORMANCE.md DOC-A.1-107; kb/Work PB3333). The record number's own range is §2023:14.9.51.4 GR29 b)'s: a key
     /// below 1 or above 2 147 483 647 is '34', and a key anywhere inside it is one leaf entry of the tree — the record at
     /// the highest permitted number and one in the billions answer '00' and cost a page each, where the whole store
     /// answered '24' for every key past 536 870 887 (its image's capacity). A WRITE whose pages the host refuses to GROW
     /// the file for (<c>ERROR_FILE_TOO_LARGE</c>, <c>EFBIG</c>) is outside the externally defined boundaries — GR33 b)'s
     /// '24', the invalid key condition — and a medium with no ROOM answers §2023:9.1.13.6 item 1's '30' at that statement;
     /// both leave the file as the previous statement left it, so the next OPEN reads exactly the records written
-    /// before. The key range's '34' holds from 2014, the first text with GR29 b)'s sentence (§2014:14.9.47.3 GR26b;
+    /// before. The key range's '34' holds from 2014, the first text with GR29 b)'s sentence (§2014:14.9.47.3 GR26 b);
     /// kb/Work PB5125).</summary>
     [Theory]
     [InlineData(2014)]
@@ -279,9 +279,9 @@ public sealed class FileBoundaryTests : IDisposable
         Assert.Equal(["5=K005", "536870888=K888", "2147483647=K647"], Records(host));
     }
 
-    /// <summary>⛔ THE KEY RANGE'S STATUS IS THE EDITION'S (kb/Work PB5125). §2023:14.9.51.4 GR29b answers '34' for a key
-    /// below 1 or above the highest permitted number, and so does the 2014 text (§2014:14.9.47.3 GR26b); the 2002 text
-    /// (§2002:14.8.47.3 GR29b) and §1985:VIII.1.3.4 item (3) c)
+    /// <summary>⛔ THE KEY RANGE'S STATUS IS THE EDITION'S (kb/Work PB5125). §2023:14.9.51.4 GR29 b) answers '34' for a key
+    /// below 1 or above the highest permitted number, and so does the 2014 text (§2014:14.9.47.3 GR26 b)); the 2002 text
+    /// (§2002:14.8.47.3 GR29 b)) and §1985:VIII.1.3.4 item (3) c)
     /// know only the write beyond the externally defined boundaries, '24', the invalid key condition. Below 2014 the attempt
     /// is therefore no permanent error: the next statement on the file runs, and nothing is released.</summary>
     [Theory]

@@ -298,7 +298,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>⛔ THE ONE PRODUCER OF A NUMERIC LITERAL OPERAND THE PROGRAM WROTE (a literal, or the constant-name that
     /// substitutes one): the value is <see cref="CheckLiteral"/>'s canonical dot-decimal text, and the literal keeps
     /// the program's decimal separator for its character image. ISO §2023:14.9.11.4 GR1 leaves the conversion of a literal
-    /// to the device to the implementor, and §2023:12.3.7.4 GR14a makes the comma the character "written in numeric
+    /// to the device to the implementor, and §2023:12.3.7.4 GR14 a) makes the comma the character "written in numeric
     /// literals to represent the decimal separator", so `DISPLAY 1,5` under DECIMAL-POINT IS COMMA shows `1,5`
     /// (DOC-A.1-56; kb/Work PB1643 — it showed `1.5`, because one text field was both the value and the image).</summary>
     public BoundNumericLiteral NumericLiteralOperand(string asWritten) =>
@@ -421,7 +421,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         return BoundOperandError.Refused(ctx.Edition, $"figurative constant '{ConcatFolder.Spelling(fig)}'");
     }
 
-    /// <summary>⛔ THE ONE §2023:8.3.3.6.3 SR1a test: "If the literal is restricted to a numeric literal, the only
+    /// <summary>⛔ THE ONE §2023:8.3.3.6.3 SR1 a) test: "If the literal is restricted to a numeric literal, the only
     /// figurative constant permitted is ZERO (ZEROS, ZEROES) without the ALL phrase." The grammar has a distinct
     /// <c>ALL zeroWord</c> alternative, so <c>zeroWord()</c> alone also answers true for <c>ALL ZERO</c>. The ALL
     /// test is part of the rule (kb/Work PB218), and the numeric-restricted literal positions of CALL §2023:14.9.4.3 SR23
@@ -509,20 +509,20 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>A word that stands for a LITERAL where the program wrote a data reference (kb/Work PB1544): a
     /// constant-name, whose effect "is as if literal-1 … were written where constant-name-1 is written" (ISO §2023:13.10.4
     /// GR1; §2023:13.10.3 SR2: it "may be used anywhere that a format specifies a literal"), or a symbolic-character, which
-    /// "defines a figurative constant" (§2023:12.3.7.4 GR11a; §2023:8.3.2.2.29), and a figurative constant "may be used
+    /// "defines a figurative constant" (§2023:12.3.7.4 GR11 a); §2023:8.3.2.2.29), and a figurative constant "may be used
     /// whenever 'literal' appears in a format" (§2023:8.3.3.6.3 SR1). Exactly one of <paramref name="Constant"/> and
     /// <paramref name="Symbolic"/> is set.</summary>
     /// <param name="Word">The word as written, for diagnostics.</param>
     internal sealed record LiteralAlias(string Word, ConstantDef? Constant, (string Value, bool National)? Symbolic)
     {
         /// <summary>A numeric constant-name: the one alias a numeric-literal position admits (a symbolic-character is
-        /// never numeric — §2023:8.3.3.6.3 SR1a admits only ZERO where a literal is restricted to numeric).</summary>
+        /// never numeric — §2023:8.3.3.6.3 SR1 a) admits only ZERO where a literal is restricted to numeric).</summary>
         public bool IsNumeric => Constant is { Category: PicCategory.Numeric };
 
         /// <summary>The alias named for a diagnostic, with the rule that makes it a literal.</summary>
         public string Described => Constant is not null
             ? $"constant-name '{Word}', which substitutes the literal {Constant.RawText} (ISO §2023:13.10.4 GR1)"
-            : $"symbolic-character '{Word}', a figurative constant (ISO §2023:12.3.7.4 GR11a)";
+            : $"symbolic-character '{Word}', a figurative constant (ISO §2023:12.3.7.4 GR11 a))";
     }
 
     /// <summary>⛔ THE ONE LITERAL-ALIAS RESOLUTION (kb/Work PB1544): the constant-name table, then the SPECIAL-NAMES
@@ -752,8 +752,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     private static string NonNumericOperandKind(Place p, EditionInfo edition) => p switch
     {
         // ⛔ NEITHER ARM SPELLS A CLASS OF ITS OWN (kb/Work PB1400). Both said "class alphanumeric" outright, which
-        // told the user a GROUP-USAGE BIT group (class boolean, §2023:8.5.2.5 GR3), a GROUP-USAGE NATIONAL group (class
-        // national, §2023:8.5.2.10 GR3) and a reference-modified national item (§2023:8.4.3.3.4 GR6) were alphanumeric: one
+        // told the user a GROUP-USAGE BIT group (class boolean, §2023:8.5.2.5 3)), a GROUP-USAGE NATIONAL group (class
+        // national, §2023:8.5.2.10 3)) and a reference-modified national item (§2023:8.4.3.3.4 GR6) were alphanumeric: one
         // rule written in two places. The class is ClassNameOf's, over the ONE §2023:8.5.2.1 classifier.
         RefModPlace =>
             $"a reference-modified operand of class {IntrinsicArgumentRules.ClassNameOf(p)} ("
@@ -792,7 +792,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Reject a non-numeric literal alias in a numeric-expression position (ISO §2023:8.8.1.1 — arithmetic
     /// operands shall be numeric): a constant-name stands for its literal (§2023:13.10.3 SR2), and a symbolic-character is a
-    /// figurative constant other than ZERO, the only one §2023:8.3.3.6.3 SR1a admits where a literal is restricted to
+    /// figurative constant other than ZERO, the only one §2023:8.3.3.6.3 SR1 a) admits where a literal is restricted to
     /// numeric (kb/Work PB1544: it used to fall to name resolution and be reported "not defined"). Mirrors the written
     /// national/boolean-literal rejection above (COBOL0844).</summary>
     private BoundExprError NonNumericAliasExpr(LiteralAlias alias)
@@ -803,7 +803,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             : $"symbolic-character '{alias.Word}' is a figurative constant other than ZERO and is not a numeric operand "
                 + ctx.Edition.Edition.Cite(
                     "(§1985:VI.6.2.1 — the only figurative constant an arithmetic expression admits is ZERO (ZEROS, ZEROES))",
-                    "(ISO §2023:8.8.1.1; §2023:12.3.7.4 GR11a; §2023:8.3.3.6.3 SR1a)"));
+                    "(ISO §2023:8.8.1.1; §2023:12.3.7.4 GR11 a); §2023:8.3.3.6.3 SR1 a))"));
         return BoundExprError.Refused(ctx.Edition, $"'{alias.Word}' in a numeric context");
     }
 
@@ -852,7 +852,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <para>⛔ A REPORT'S PAGE-COUNTER RESOLVES HERE AS IT DOES ON THE RECEIVING SIDE (kb/Work PB1137, the sending twin
     /// of PB429). §2023:8.4.3.15.3 SR1 admits it "in any context where an integer data item may appear", and the ordinary
     /// resolver builds no place for a special register, so a position that needs the SENDING operand's Place — an
-    /// INVOKE argument passed BY CONTENT, which §2023:14.9.23.4 GR6a.2 makes of a keyword-less PAGE-COUNTER — was
+    /// INVOKE argument passed BY CONTENT, which §2023:14.9.23.4 GR6 a) 2. makes of a keyword-less PAGE-COUNTER — was
     /// deferred as "a special register in a position that does not yet read it". The place is the one
     /// <see cref="ResolveReceiving"/> builds, through the ONE counter-to-report resolution (a null there has already
     /// reported the qualification rule, so it is a refusal, never a deferral).</para>
@@ -946,9 +946,9 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     ///   <item>MOVE: "Any length evaluation or subscripting associated with identifier-2 is evaluated immediately before the
     ///     data is moved to the respective data item" (§1985:VI.6.19.4 GR2; §2023:14.9.25.4 GR1);</item>
     ///   <item>the arithmetic statements: "Item identification for the receiving data items is done as each data item is
-    ///     accessed" (§2023:14.7.7 GR4b; §1985:VI.6.4.6, the left-to-right sequence of statements);</item>
+    ///     accessed" (§2023:14.7.7 4) b); §1985:VI.6.4.6, the left-to-right sequence of statements);</item>
     ///   <item>READ and RETURN … INTO: "Any subscripting associated with identifier-1 is evaluated after the record has been read
-    ///     and immediately before it is moved to the data item" (§1985:XI.4.3.4 GR6b; §2023:14.9.34.4 GR5b "Item
+    ///     and immediately before it is moved to the data item" (§1985:XI.4.3.4 GR6b; §2023:14.9.34.4 GR5 b) "Item
     ///     identification of the data item referenced by identifier-1 is done after the record has been read").</item>
     /// </list>
     /// A subscript the resolver reads in place (an integer data item of a typed record, a literal) registers nothing and is read
@@ -1059,14 +1059,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // a property and receivable (§2023:8.4.3.9.3 SR6), and a view of a plain name parses as a `nonReceivableIdentifier`.
         if (ctx.Refs.ObjectProperties.IsObjectViewOfQualifiedItem(dref)) return Bar(NonReceivableForm.ObjectView, dref);
         // A constant-name substitutes a LITERAL (ISO §2023:13.10.3 SR2 / §2023:13.10.4 GR1) and a symbolic-character IS one, a
-        // figurative constant (§2023:12.3.7.4 GR11a) — a literal can never be a receiving operand; without this the name
+        // figurative constant (§2023:12.3.7.4 GR11 a)) — a literal can never be a receiving operand; without this the name
         // would fall to Refs.Resolve and fail as merely "unresolved" (a symbolic-character did, kb/Work PB1544).
         if (LiteralAliasOf(dref) is { } alias)
             return new(DiagnosticCatalog.ConstantAsReceiver.Code, alias.Constant is not null
                 ? $"constant-name '{alias.Word}' shall not be specified as a receiving operand — it substitutes a literal "
                     + "(ISO §2023:13.10.4 GR1)"
                 : $"symbolic-character '{alias.Word}' shall not be specified as a receiving operand — it is a figurative "
-                    + $"constant ({ctx.Edition.Edition.CiteRule("§1985:IV.4.2.2.2.3", "§2023:12.3.7.4 GR11a")}), and a literal is never a receiving operand");
+                    + $"constant ({ctx.Edition.Edition.CiteRule("§1985:IV.4.2.2.2.3", "§2023:12.3.7.4 GR11 a)")}), and a literal is never a receiving operand");
         return null;
     }
 
@@ -1150,7 +1150,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>⛔ THE ONE CONSTRUCTION OF AN ARITHMETIC <see cref="Receiver"/> (kb/Work PB2078). Every arithmetic
     /// emitter stores its receivers one at a time through <c>ReceiverBracketEmitter.Receive</c>, so a receiver that is an
-    /// object property has its accessors placed around ITS store (ISO §2023:14.7.7 GR4b: "Item identification for the
+    /// object property has its accessors placed around ITS store (ISO §2023:14.7.7 4) b): "Item identification for the
     /// receiving data items is done as each data item is accessed") — the CLAIM that says so is made here, where the
     /// receiver list is built, and nowhere else.</summary>
     private Receiver ReceiverOf(Place resolved, Core.RoundedPhraseContext? rounded)
@@ -1281,7 +1281,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>A COMPUTE right side that parsed as a boolean-expression but is a sole figurative ZERO
     /// (<see cref="ComputeFormats.SoleFigurativeZero"/>), read as the Format 1 arithmetic expression §2023:8.8.1.1 makes it:
     /// through the ONE numeric-context reading every arithmetic operand takes, so <c>ALL ZERO</c> meets the same
-    /// §2023:8.3.3.6.3 SR1a edition gate as in <c>ADD ALL ZERO TO X</c> (kb/Work PB1415; PB3830 review R2-1).</summary>
+    /// §2023:8.3.3.6.3 SR1 a) edition gate as in <c>ADD ALL ZERO TO X</c> (kb/Work PB1415; PB3830 review R2-1).</summary>
     internal BoundExpr ComputeZeroOperand(Core.NonNumericLiteralContext zero) =>
         NonNumericInNumericContext(zero, zero.GetText(), positionRule: null)
         ?? throw new InvalidOperationException("a sole figurative ZERO right side has no nonnumeric-literal node");
@@ -1291,7 +1291,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// sole operand (<c>ADD ZERO TO X</c>, <c>COMPUTE X = ALL ZERO</c>, through <see cref="NonNumericInNumericContext"/>)
     /// and the <c>[ALL] ZERO_ARITH</c> primary that an operator or a parenthesis beside it makes (<c>1 + ALL ZERO</c>,
     /// through <see cref="BindPrimary"/>; kb/Work PB3846). The value is 0 either way (§2023:8.3.3.6.4 GR4). ALL is
-    /// §2023:8.3.3.6.2 Format 1's optional word, and §2023:8.3.3.6.3 SR1a ("If the literal is restricted to a numeric literal,
+    /// §2023:8.3.3.6.2 Format 1's optional word, and §2023:8.3.3.6.3 SR1 a) ("If the literal is restricted to a numeric literal,
     /// the only figurative constant permitted is ZERO (ZEROS, ZEROES) without the ALL phrase") gives it an EDITION
     /// edge (kb/Work PB1415, VCR Table 7 row 7.28: redundant at 85, COBOL0902 from 2002), asked here through the ONE
     /// gate the VALUE clause asks, so the two forms cannot disagree.</summary>
@@ -1398,7 +1398,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         return BoundExprError.Refused(ctx.Edition, $"literal '{text}' in a numeric context");
     }
 
-    /// <summary>Normalize the decimal separator (DECIMAL-POINT IS COMMA, ISO §2023:12.3.7.4 GR14a — the comma form
+    /// <summary>Normalize the decimal separator (DECIMAL-POINT IS COMMA, ISO §2023:12.3.7.4 GR14 a) — the comma form
     /// canonicalizes to dot-decimal so every emit-side decoder sees one shape) and bound a floating-point literal's
     /// exponent. The ONE literal chokepoint for the expression paths. The digit count (ISO §2023:8.3.3.3.2 — 1..18 at
     /// COBOL-85, 1..31 at 2002+) is not asked here: it is a property of the literal as written, asked once for every

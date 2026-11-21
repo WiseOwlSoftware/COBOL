@@ -89,7 +89,7 @@ public sealed class GobackStatusArmParityTests
     [InlineData("GOBACK WITH ERROR STATUS \"\".", 2023, "COBOL1704")]
     // §2023:14.9.18.3 SR7 — "If literal-1 is numeric, it shall be an integer."
     [InlineData("GOBACK WITH ERROR STATUS 1.5.", 2023, "COBOL1704")]
-    // §2023:14.9.18.3 SR6 — a BIT group is neither an integer item nor a display/national one (§2023:13.18.29.4 GR1b.
+    // §2023:14.9.18.3 SR6 — a BIT group is neither an integer item nor a display/national one (§2023:13.18.29.4 GR1 b).
     [InlineData("GOBACK WITH ERROR STATUS WS-BITG.", 2023, "COBOL1704")]
     // The COBOL-2023 introduction of the phrase itself (§2023:14.9.18.2; Annex E.3.3 item 32).
     [InlineData("GOBACK WITH ERROR STATUS 5.", 2014, "COBOL0900")]

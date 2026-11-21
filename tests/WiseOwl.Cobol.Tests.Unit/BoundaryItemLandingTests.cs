@@ -94,7 +94,7 @@ public sealed class BoundaryItemLandingTests
     [Fact]
     public void MoveSending_AlignsTheValue_ByTruncation()
     {
-        // §2023:14.6.8.2 GR4: aligned by decimal point, truncated — a MOVE has no ROUNDED phrase.
+        // §2023:14.6.8.2 4): aligned by decimal point, truncated — a MOVE has no ROUNDED phrase.
         Assert.Equal((Int128)1234, new MoveSending("12345", Numeric: true, Unscaled: 12345, Scale: 3).AtScale(2));
         Assert.Equal((Int128)123, new MoveSending("1.239", Numeric: true, Real: 1.239).AtScale(2));
         Assert.Equal(CobolDec.From(1250, 2), new MoveSending("1250", Numeric: true, Unscaled: 1250, Scale: 2).ExactValue);
@@ -120,7 +120,7 @@ public sealed class BoundaryItemLandingTests
         Assert.True(sent.Numeric);
         Assert.Equal((Int128)(-1250), sent.Unscaled);
         Assert.Equal(2, sent.Scale);
-        Assert.DoesNotContain("-", sent.Characters);   // §2023:14.9.25.4 GR6a: the operational sign is not moved
+        Assert.DoesNotContain("-", sent.Characters);   // §2023:14.9.25.4 GR6 a): the operational sign is not moved
 
         var text = new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell("ABC"), null);
         var chars = Assert.IsType<MoveSending>(CobolArgAdapt.WithValueSending(text).Sending);

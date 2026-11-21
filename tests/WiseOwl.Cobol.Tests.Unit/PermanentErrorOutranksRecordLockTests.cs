@@ -62,7 +62,7 @@ public sealed class PermanentErrorOutranksRecordLockTests
         return all;
     }
 
-    /// <summary>Connector A takes record 1's lock (§2023:14.9.30.4 GR11d: in manual lock mode the lock is set only because the
+    /// <summary>Connector A takes record 1's lock (§2023:14.9.30.4 GR11 d): in manual lock mode the lock is set only because the
     /// READ says WITH LOCK) and holds it.</summary>
     private static void HoldRecordOne(FileRegistry a, FileOrg org)
     {

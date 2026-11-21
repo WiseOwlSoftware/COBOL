@@ -44,7 +44,7 @@ internal readonly record struct InvocationArg(
 {
     /// <summary>The INVOKE statement's <c>invokeArgument</c> reading (§2023:14.9.23.2). A KEYWORD-LESS expression
     /// (kb/Work PB1135) has no BY phrase to say it is BY CONTENT, so — like the inline form's bare argument —
-    /// it is marked <c>Expression</c>: §2023:14.9.23.3 SR9 cannot make it BY REFERENCE and §2023:14.9.23.4 GR6a 2 implies
+    /// it is marked <c>Expression</c>: §2023:14.9.23.3 SR9 cannot make it BY REFERENCE and §2023:14.9.23.4 GR6 a) 2 implies
     /// BY CONTENT. Written with a phrase, the phrase says so and <c>Expression</c> stays false.
     /// <para>⛔ EACH ARGUMENT IS READ ALONE: AN INVOKE BY PHRASE IS NOT TRANSITIVE (kb/Work PB5465, re-verdicted not a defect).
     /// The printed §2023:14.9.23.2 figure puts the ellipsis outside the BY REFERENCE / BY CONTENT / BY VALUE brace with no
@@ -113,7 +113,7 @@ internal sealed class InvocationSite
 
     /// <summary>The inline form: "a returning item is implicitly specified in the activating element when a
     /// function or inline method invocation is referenced" (ISO §2023:14.8.3.1), so the activation delivers into
-    /// §2023:8.4.3.4.4 GR1c temporary rather than into a written identifier.</summary>
+    /// §2023:8.4.3.4.4 GR1 c) temporary rather than into a written identifier.</summary>
     public bool ReturningImplicit { get; init; }
 
     /// <summary>How the site names itself in a diagnostic — <c>INVOKE</c> or
@@ -201,7 +201,7 @@ internal sealed class InvocationSite
 internal sealed partial class OoBinder
 {
     /// <summary>Bind one inline method invocation and return the expression that READS its result — a
-    /// <see cref="BoundNumRef"/> over the §2023:8.4.3.4.4 GR1c temporary, the same carrier a user-defined
+    /// <see cref="BoundNumRef"/> over the §2023:8.4.3.4.4 GR1 c) temporary, the same carrier a user-defined
     /// function's result takes, so every general-operand chokepoint
     /// (<c>IntrinsicBinder.OperandOf</c> → <see cref="BoundFieldOperand"/>) already serves it.</summary>
     public BoundExpr OoBindInlineInvocation(Core.InlineMethodInvocationContext imi)
@@ -210,7 +210,7 @@ internal sealed partial class OoBinder
         // (VisitInlineMethodInvocation → Check(InlineMethodInvocation2002)), never here: a below-2002 inline
         // invocation is an edition violation independent of whether its method resolves.
         var target = imi.objectReferenceAtom();
-        // The plain term; null for an object-view receiver (§2023:8.4.3.1.4 GR1c applies the view first), which is bound
+        // The plain term; null for an object-view receiver (§2023:8.4.3.1.4 GR1 c) applies the view first), which is bound
         // below as a computed receiver — its SR2 screens are the view's own (§2023:8.4.3.5.3), asked of its description.
         var term = target.objectReferenceTerm();
 
@@ -281,7 +281,7 @@ internal sealed partial class OoBinder
         }
         if (chained is not { } place) return BoundExprError.Refused(ctx.Edition, "inline method invocation");
 
-        // §2023:8.4.3.1.4 GR1g: a reference modifier applies to the identifier on the left — and the identifier
+        // §2023:8.4.3.1.4 GR1 g): a reference modifier applies to the identifier on the left — and the identifier
         // on the left of the tail IS the invocation, whose value is the temporary. The ONE ref-mod reading
         // (ReferenceResolver) is asked for it, so §2023:8.4.3.3.3's rules screen the temp exactly as they screen
         // any other data item.
@@ -387,7 +387,7 @@ internal sealed partial class OoBinder
     }
 
     /// <summary>The roster an object-view selects: its LAST AS phrase's description, because each phrase views the identifier
-    /// on its left (§2023:8.4.3.1.4 GR1c) and the reference "is treated at compile-time as though it had the description
+    /// on its left (§2023:8.4.3.1.4 GR1 c)) and the reference "is treated at compile-time as though it had the description
     /// specified by the AS phrase" (§2023:8.4.3.5.4 GR1). Null for AS UNIVERSAL and for a name no roster answers. Diagnostic-free:
     /// the invocation probe and the property-object probe (<see cref="OoBindPropertyObject"/>) both read it.</summary>
     internal MethodRoster? ViewRoster(Core.ObjectViewContext view) =>

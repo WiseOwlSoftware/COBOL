@@ -199,7 +199,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         F3Region.Finally => Emit($"goto __f3end{_dispatchState.F3Cur.Id};", terminated: true),
         // Ordinary inline PERFORM: EXIT PERFORM → goto __pexit (past the loop, leaving EVERY nested VARYING level,
         // §2023:14.9.14.4 GR5a); EXIT PERFORM CYCLE → goto __pcont (the loop-control boundary, so the VARYING augment +
-        // re-test still run, §2023:14.9.14.4 GR5b / §2023:14.9.28.4 GR13). A bare break/continue exits/cycles only the innermost
+        // re-test still run, §2023:14.9.14.4 GR5 b) / §2023:14.9.28.4 GR13). A bare break/continue exits/cycles only the innermost
         // C# loop, wrong for a multi-level VARYING (CA31/CA32). The __pexit/__pcont labels are emitted by EmitPerform.
         F3Region.Inline => Emit(n.Cycle ? $"goto __pcont{_dispatchState.F3Cur.Id};" : $"goto __pexit{_dispatchState.F3Cur.Id};", terminated: true),
         // ⛔ THE INVARIANT IS NOW ESTABLISHED, SO THIS ARM THROWS (kb/Work PB403). F3Region.None means "not inside
@@ -438,7 +438,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     // ── Exception-condition model (ISO §2023:7.3.25 / §2023:14.9.29 / §2023:14.9.33 / §2023:14.9.39) ─────────────────────────────
     public bool Visit(BoundRaiseObject n) => _ecEmit.EmitRaiseObject(n);   // EC-OO (§2023:14.9.29; §2023:14.6.13.1.5)
     public bool Visit(BoundEcChecked n) => _ecEmit.EmitChecked(n);         // TURN scope (§2023:7.3.25)
-    public bool Visit(BoundActivationSite n) => _ecEmit.EmitActivationSite(n);   // §2023:14.9.33.4 GR2a.2 (PB892)
+    public bool Visit(BoundActivationSite n) => _ecEmit.EmitActivationSite(n);   // §2023:14.9.33.4 GR2 a) 2. (PB892)
     public bool Visit(BoundDebugTriggered n) => _debug.Emit(n, EmitStatement);   // X3.23-1985 USE FOR DEBUGGING general rules 5-8 (D20)
     public bool Visit(BoundRaise n) => _ecEmit.EmitRaise(n);               // RAISE (§2023:14.9.29)
     public bool Visit(BoundResume n) => _ecEmit.EmitResume(n);   // RESUME (§2023:14.9.33) — unwinds, unless GR1 makes it a CONTINUE

@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// (<see cref="DataItem.StrongType"/>, <see cref="DataItem.TypeName"/>) that <c>ExpandTypes</c> writes.
 /// <para>⛔ THERE IS ONE "same type" IN THE STANDARD AND ONE PREDICATE HERE. §2023:8.5.3.1 defines it, and eight
 /// separate rules spend it — §2023:14.9.25.3 SR2 (MOVE), §2023:8.8.4.2.3 SR1 + §2023:8.8.4.2.12 (comparison), §2023:14.8.2.2
-/// (arguments), §2023:14.8.3.2 (returning items), §2023:9.3.8.2.3 GR7 (interface conformance), §2023:8.5.1.12.1's
+/// (arguments), §2023:14.8.3.2 (returning items), §2023:9.3.8.2.3 rule 7 (interface conformance), §2023:8.5.1.12.1's
 /// fixed-length sentence, §2023:14.9.30.3 SR2 / §2023:14.9.34.3 SR3 (the record area). Every one of them asks
 /// <see cref="SameType"/>; none of them re-derives the test (kb/Work PB427 — the predicate used to compare a
 /// type-NAME string plus a member-NAME PATH, which is neither of §2023:8.5.3.1's two halves and was wrong in BOTH

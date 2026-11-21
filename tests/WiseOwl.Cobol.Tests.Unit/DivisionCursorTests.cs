@@ -103,7 +103,7 @@ public sealed class DivisionCursorTests
     }
 
     [Theory] // kb/Work PB4281: … but a reader of the text AS WRITTEN knows a replacing action can write or take away the very
-             // words it reads (§2023:7.2.4.4 GR2), so a statement that names one makes the division unknown
+             // words it reads (§2023:7.2.4.4 2)), so a statement that names one makes the division unknown
     [InlineData("COPY BOOK REPLACING ==A== BY ==PROCEDURE DIVISION==.\nREMARKS.")]
     [InlineData("COPY BOOK\n    REPLACING ==A== BY ==PROCEDURE DIVISION==.\nREMARKS.")]
     [InlineData("REPLACE ==PROCEDURE DIVISION== BY ==X==.\nREMARKS.")]
@@ -169,8 +169,8 @@ public sealed class DivisionCursorTests
         Assert.Contains(lines, l => l.Trim() == "DISPLAY \"X\".");
     }
 
-    [Theory] // R1-1: a blank line or a comment line is logically discarded (§2023:6.5 GR2) and the continuation line after it still
-             // joins the latest logical line (§2023:6.5 GR6b), so the cursor must not read that line before the join
+    [Theory] // R1-1: a blank line or a comment line is logically discarded (§2023:6.5 2)) and the continuation line after it still
+             // joins the latest logical line (§2023:6.5 6) b)), so the cursor must not read that line before the join
     [InlineData("")]
     [InlineData("      ")]
     [InlineData("      *> a floating comment line")]
@@ -242,14 +242,14 @@ public sealed class DivisionCursorTests
     [InlineData("RESERVE \"ZQX\"", false)]
     [InlineData("UNDEFINE \"STOP\"", false)]
     [InlineData("SUBSTITUTE \"COUNT\" BY \"TALLY-IT\"", false)]
-    [InlineData("EQUATE \"DISPLAY\", WITH \"SHOW\"", false)]               // a separator comma is a space (§2023:8.3.5 SR2
+    [InlineData("EQUATE \"DISPLAY\", WITH \"SHOW\"", false)]               // a separator comma is a space (§2023:8.3.5 2)
     [InlineData("EQUATE X\"41\" WITH \"SHOW\"", false)]                      // a literal's prefix is no name
     [InlineData("EQUATE \"DIVISION\" WITH \"DIV\"", true)]                   // the word to respell
     [InlineData("EQUATE \"DIV\" WITH \"division\"", true)]                   // the word written, in any letter case
     [InlineData("EQUATE \"IDENT\" WITH \"IDENTIFICATION\"", true)]
     [InlineData("EQUATE \"ID\" WITH \"IDENT\"", true)]
     [InlineData("UNDEFINE \"PROGRAM-ID\"", true)]                            // the paragraph that begins an identification division
-    [InlineData("EQUATE LITERAL-VAR WITH \"SHOW\"", true)]                   // a compilation-variable-name: its value is not known here (§2023:7.3.11.4 GR1)
+    [InlineData("EQUATE LITERAL-VAR WITH \"SHOW\"", true)]                   // a compilation-variable-name: its value is not known here (§2023:7.3.11.4 1))
     public void CobolWordsDirective_MakesTheDivisionUnknown_OnlyWhenItNamesAWordTheCursorReads(string operand, bool unknown)
     {
         var cursor = new DivisionCursor(startsInIdentificationDivision: false, directiveLines: true);

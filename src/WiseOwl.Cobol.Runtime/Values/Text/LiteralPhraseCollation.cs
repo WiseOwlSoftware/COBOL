@@ -90,7 +90,7 @@ public abstract class LiteralPhraseCollation : CobolCollation
         return 0;
     }
 
-    /// <summary>The standard comparison of §2023:8.8.4.2.7 GR1: <see cref="Compare"/> above, position by position.</summary>
+    /// <summary>The standard comparison of §2023:8.8.4.2.7 1): <see cref="Compare"/> above, position by position.</summary>
     internal override bool UsesStandardComparison => true;
 
     /// <summary>The total number of collating positions: the specified block plus one DISTINCT position per

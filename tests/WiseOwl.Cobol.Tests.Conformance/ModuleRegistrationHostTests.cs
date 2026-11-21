@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 ///   <item>A sibling module that defines an outermost program another module already registered is refused WHOLE by
 ///     <c>ProgramTable.RegisterModule</c>: §2023:8.3.2.2 2) (cite.py OK) "when two or more source elements identify something
 ///     with the same externalized name, they refer to the same instance", so the second definition is not registered and
-///     the CALL that needed the module is §2023:14.9.4.4 GR3b's EC-PROGRAM-NOT-FOUND ("If the program cannot be located",
+///     the CALL that needed the module is §2023:14.9.4.4 GR3 b)'s EC-PROGRAM-NOT-FOUND ("If the program cannot be located",
 ///     cite.py OK), whose message names both modules.</item>
 ///   <item>A sibling module compiled against another runtime major is refused by the probe with that reason.</item>
 /// </list>
@@ -178,7 +178,7 @@ public sealed class ModuleRegistrationHostTests
     /// <summary>kb/Work PB2843: two modules each DECLARE an outermost <c>P2843W</c>, the sibling's <c>AS "P2843X"</c>
     /// (legal: §2023:8.3.2.2 2) externalizes the AS literal, so the two externalized names differ). Each outermost program's
     /// run-unit path is rooted at its externalized name (<c>ProgramTable.OutermostPath</c>), so loading the sibling
-    /// leaves the main module's node, and its containee, in place: §2023:8.4.6.3 SR1 (cite.py OK) "that program-name may be
+    /// leaves the main module's node, and its containee, in place: §2023:8.4.6.3 1) (cite.py OK) "that program-name may be
     /// referenced only by statements included in that containing program", and P2843W contains P2843H. With a
     /// declared-name root the sibling's node replaced the main module's, and <c>CALL "P2843H"</c> was not found.</summary>
     [Fact]

@@ -220,7 +220,7 @@ public sealed class WrittenKindRefusalTests
         + "           STOP RUN.\n";
 
     /// <summary>⛔ THE WORDS NAMED ARE THE ONES THE TARGETED EDITION HAS (kb/Work PB4174). The parse is the superset of
-    /// the four editions, so its expected set holds words ISO §2023:8.9 has not reserved at the edition — and §2023:8.3.2.1 SR1
+    /// the four editions, so its expected set holds words ISO §2023:8.9 has not reserved at the edition — and §2023:8.3.2.1 1)
     /// ("Reserved words shall not be used as user-defined words or system-names") makes such a word a user-defined
     /// one there. The 2002 boolean operators B-AND, B-OR and B-XOR, the 2023 shift operators (Annex E.2 3), PROTOTYPE
     /// (2002) and EC and EO (2002) are named from the edition that reserves them and not before.</summary>

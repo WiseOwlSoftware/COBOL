@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB1549 — <b>"fatal, checking enabled, not resumed ⇒ abnormal run-unit termination" is decided in ONE
-/// place.</b> ISO §2023:14.6.13.1.3 GR5 (a declarative that completes normally) and 7) (no handler) both end the run unit;
+/// place.</b> ISO §2023:14.6.13.1.3 5) (a declarative that completes normally) and 7) (no handler) both end the run unit;
 /// only RESUME continues. Every emitted raise site used to render the selector (<c>EcDispatchExpr</c>) and the
 /// RESUME landing itself and was separately responsible for the fatal default after it; the SET … ADDRESS OF
 /// PROGRAM / FUNCTION sites forgot it, so a failed SET CONTINUED the run unit while the CALL arm of the same

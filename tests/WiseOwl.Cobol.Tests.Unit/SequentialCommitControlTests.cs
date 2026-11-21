@@ -633,7 +633,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     public void A_live_transaction_refuses_another_run_units_write_and_open_output_and_delete_file()
     {
         // 2.2.2.3 and 2.2.2.8: under SHARING WITH ALL OTHER another run unit's WRITE meets the END holding ('51'); an OPEN OUTPUT
-        // needs no other transaction on the file ('61'), and so does a DELETE FILE (its sharing conflict, §2023:9.1.13.9 GR2: '62').
+        // needs no other transaction on the file ('61'), and so does a DELETE FILE (its sharing conflict, §2023:9.1.13.9 2): '62').
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
@@ -664,7 +664,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     {
         // 2.2.2.3: a transaction holds every record it appended (those at or past its L) — beside the records its READs lock
         // under the implicit AUTOMATIC WITH LOCK ON MULTIPLE RECORDS posture (§2023:9.1.16), which are region locks; under SHARING
-        // WITH ALL OTHER another run unit's READ of a held record answers '51' (§2023:9.1.13.8 GR1), and of any other record '00'.
+        // WITH ALL OTHER another run unit's READ of a held record answers '51' (§2023:9.1.13.8 1)), and of any other record '00'.
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
@@ -683,10 +683,10 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
             Assert.Equal("51", b.Read(out _)); // record 4: a's own append, held by its live transaction
             Assert.Equal("51", b.Read(out _)); // still held: the refused READ moved nothing (§2023:14.9.30.4 GR10)
             OkRollback(a);
-            Assert.Equal("10", b.Read(out _)); // the ROLLBACK removed it: at end (§2023:14.9.30.4 GR21e)
+            Assert.Equal("10", b.Read(out _)); // the ROLLBACK removed it: at end (§2023:14.9.30.4 GR21 e))
             Ok(a.Write("X5"));
             OkCommit(a);
-            Ok(b.Close());                     // after the at end condition a READ is '46' (§2023:9.1.13.7 GR6): read it afresh
+            Ok(b.Close());                     // after the at end condition a READ is '46' (§2023:9.1.13.7 6)): read it afresh
             Ok(b.Open(FileOpenMode.Input));
             string committed = "";
             for (int n = 0; n < 4; n++) Ok(b.Read(out committed));
@@ -723,8 +723,8 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     [MemberData(nameof(JournalArms))]
     public void A_statement_meeting_another_run_units_journal_holding_retries_under_its_retry_phrase(string statement)
     {
-        // §2023:14.7.9.3 GR4b: a statement unsuccessful at its first attempt "because of ... a record operation conflict condition"
-        // ('51', §2023:9.1.13.8 GR1) attempts again as GR1 and GR3 specify, and "If the mass storage control system permits the
+        // §2023:14.7.9.3 GR4 b): a statement unsuccessful at its first attempt "because of ... a record operation conflict condition"
+        // ('51', §2023:9.1.13.8 1)) attempts again as GR1 and GR3 specify, and "If the mass storage control system permits the
         // requested access on one of these attempts, the statement is successful"; otherwise the conflict's own status (the
         // closing paragraph). The journal arm of the lock test is such a conflict (2.2.2.3: "held, '51' (RETRY applies)").
         string dir = ScratchDirectory.Create("scc-");
@@ -763,7 +763,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     {
         // §2023:14.7.9.3 GR1 to GR3 wait for a holder that can release: this run unit's own transaction, met through a connector no
         // APPLY COMMIT names (2.2.2.3: "this run unit's through an uncovered connector"), cannot release while the statement
-        // runs, so RETRY n TIMES ends at once with '51' and RETRY FOREVER with the deadlock '52' (§2023:9.1.13.8 GR2, A.1 item 109).
+        // runs, so RETRY n TIMES ends at once with '51' and RETRY FOREVER with the deadlock '52' (§2023:9.1.13.8 2), A.1 item 109).
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         int pauses = 0;
@@ -811,8 +811,8 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     {
         // §2023:14.7.9.3 GR3 waits for a holder that can release (kb/Work PB1163); what a CLOSE under commit control kept stands until
         // the COMMIT or ROLLBACK (§2023:14.9.7.4 GR4), and the run unit's own transaction until its end, so neither releases while
-        // another connector's statement of the same run unit waits: RETRY FOREVER on the OPEN lands '61' at once (§2023:9.1.13.9 GR1),
-        // on the DELETE FILE '62' (§2023:9.1.13.9 GR2) — DOC-A.1-109's file-conflict rule — and only the COMMIT lets them succeed.
+        // another connector's statement of the same run unit waits: RETRY FOREVER on the OPEN lands '61' at once (§2023:9.1.13.9 1)),
+        // on the DELETE FILE '62' (§2023:9.1.13.9 2)) — DOC-A.1-109's file-conflict rule — and only the COMMIT lets them succeed.
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         int pauses = 0;
@@ -860,7 +860,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     [InlineData(true)]
     public void A_lock_directory_this_process_may_not_list_is_the_authority_an_open_or_delete_file_lacks(bool covered)
     {
-        // §2023:9.1.13.6 GR6b: "insufficient authority exists to access the file" ('37'; §2023:14.9.10.4 GR16 for the DELETE FILE). The
+        // §2023:9.1.13.6 6) b): "insufficient authority exists to access the file" ('37'; §2023:14.9.10.4 GR16 for the DELETE FILE). The
         // entry step cannot tell whether a transaction lives on the file, and no holder is known to conflict, so the answer is
         // the missing authority, never a '61' or '62' sharing conflict; the file is unaffected (§2023:14.9.27.4 GR25). An OPEN INPUT
         // runs the entry step too (kb/Work PB4097): a dead run unit's rewrite is rolled back before any reader meets it
@@ -957,7 +957,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     [InlineData(true)]
     public void A_run_unit_killed_beside_an_open_reader_is_rolled_back_at_the_readers_next_read(bool ignoringLock)
     {
-        // The owner lives while the reader is open (SHARING WITH ALL OTHER on both): the READ is refused '51' (§2023:9.1.13.8 GR1).
+        // The owner lives while the reader is open (SHARING WITH ALL OTHER on both): the READ is refused '51' (§2023:9.1.13.8 1)).
         // Killed, its REWRITE is rolled back before the reader's next READ - the plain one and the IGNORING LOCK one alike
         // (§2023:14.9.30.4 GR12 ignores a live owner's lock, not a rollback §2023:9.1.18.5 owes; kb/Work PB4097).
         string dir = ScratchDirectory.Create("scc-");
@@ -992,7 +992,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     public void A_reader_that_cannot_write_the_file_is_refused_not_shown_the_dead_change()
     {
         // kb/Work PB4097 (review round 1, R1-3): the settle of a dead run unit's REWRITE is a write the reader's OPEN cannot make
-        // when the file is read-only to this process: the authority it lacks, '37' (§2023:14.9.27.4 GR3; §2023:9.1.13.6 GR6b), as a keyed
+        // when the file is read-only to this process: the authority it lacks, '37' (§2023:14.9.27.4 GR3; §2023:9.1.13.6 6) b)), as a keyed
         // reader is refused (DeadOwnerReaderTests), never the dead change and never a '30' the host's other refusals share.
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
@@ -1029,7 +1029,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     {
         // kb/Work PB4097 (review round 1, R1-1): the reader is open (SHARING WITH ALL OTHER) when the owner dies and the file
         // becomes read-only to this process, so its next READ cannot make the rollback §2023:9.1.18.5 owes. The entry step's host
-        // failure is a permanent error ('30', §2023:9.1.13.6 GR1, §2023:9.1.13.1: it stays in effect for the file's later statements), the
+        // failure is a permanent error ('30', §2023:9.1.13.6 1), §2023:9.1.13.1: it stays in effect for the file's later statements), the
         // statement of every organization (KeyedConnector.Enter), never an exception out of the run unit and never the dead
         // change - the IGNORING LOCK READ (§2023:14.9.30.4 GR12) included, since it ignores a live owner's lock, not a rollback.
         string dir = ScratchDirectory.Create("scc-");
@@ -1065,7 +1065,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     [Fact]
     public void Normal_termination_commits_and_abnormal_termination_rolls_back()
     {
-        // §2023:14.6.11 GR1: "An implicit COMMIT statement is executed for the files specified in all active APPLY COMMIT clauses";
+        // §2023:14.6.11 1): "An implicit COMMIT statement is executed for the files specified in all active APPLY COMMIT clauses";
         // §2023:9.1.18.5: an abnormal termination rolls them back.
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
@@ -1113,7 +1113,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     /// the keyed rule of 2.2.1.10 (5) in its one place, <c>FileRegistry.CommitHolder</c>): C1C2 replaced by an OPEN OUTPUT (the
     /// capture), X1 written, CLOSE, and a ROLLBACK whose restore the medium refuses at the copy of the before file into F, which
     /// its truncation has already emptied ('30'; the program does not test it). The run unit's normal termination (its implicit
-    /// COMMIT, §2023:14.6.11 GR1) or a program COMMIT is refused while the rollback is owed — the COMMIT '30', the file's name returned —
+    /// COMMIT, §2023:14.6.11 1)) or a program COMMIT is refused while the rollback is owed — the COMMIT '30', the file's name returned —
     /// and the ROLLBACK that follows restores C1C2; committed, F stayed empty and the before file was retired with it.</summary>
     [Theory]
     [InlineData("termination")]

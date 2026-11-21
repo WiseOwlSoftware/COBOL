@@ -19,7 +19,7 @@ public sealed class WordCharacterScreenTests
 
     /// <summary>The tail that makes a statement fail to parse with a syntax error: a MOVE with no sending operand, whose TO
     /// stands where the operand is due (<see cref="ParseError"/>, kb/Work PB4301). Not <c>MOVE MOVE</c>: a reserved verb
-    /// written as an operand is the named §2023:8.3.2.1 SR1 refusal (COBOL0901, kb/Work PB4208), after which the word is read as a
+    /// written as an operand is the named §2023:8.3.2.1 1) refusal (COBOL0901, kb/Work PB4208), after which the word is read as a
     /// user-defined word and the parse goes on (PB4218). Every fixture here spells its unparseable statement with this one
     /// constant, so the tail cannot drift between them.</summary>
     private const string NoSender = "MOVE TO";
@@ -519,7 +519,7 @@ public sealed class WordCharacterScreenTests
 
     /// <summary>A hyphen the TREE made an arithmetic operator is §2023:8.7.1's boundary ("shall be preceded by a space and followed by
     /// a space"), reported by the separator rule as COBOL2993 and never also as a word; a sign touching its digits is a
-    /// numeric literal's leftmost character (§2023:8.3.3.3.2 SR2), and a list region's <c>A -1</c> is two arguments: none of them
+    /// numeric literal's leftmost character (§2023:8.3.3.3.2 2)), and a list region's <c>A -1</c> is two arguments: none of them
     /// is a word's edge. COBOL2993 is a FRONTEND error, so the binder never runs and this is the LEXER-STREAM word source
     /// (<see cref="WordCharacterScreen.RunOnTokens"/>, its operators named by the partial tree's facts): the undefined
     /// <c>QQQ</c> draws no binder diagnostic, which proves it. A parse that also fails elsewhere reads the same stream.</summary>
@@ -613,7 +613,7 @@ public sealed class WordCharacterScreenTests
     }
 
     /// <summary>Only a run of WORD-CHARACTER tokens joins: a hyphen touching a literal's opening delimiter (<c>-X"41"</c>) is
-    /// §2023:8.3.5 SR5's business (COBOL2633), never a word <c>-X</c>; a comment-entry's hyphens are comment text; and a debugging
+    /// §2023:8.3.5 5)'s business (COBOL2633), never a word <c>-X</c>; a comment-entry's hyphens are comment text; and a debugging
     /// line that is a comment holds no words of the program.</summary>
     [Fact]
     public void ALiteralACommentEntryAndACommentDebuggingLine_HoldNoHyphenEdgeWord()

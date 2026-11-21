@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// internal format is one <c>CobolDynTable</c> object, and every one a program reads was CONSTRUCTED from that
 /// program's own OCCURS clause (its FROM minimum and TO expected capacity) or RECREATED into it by
 /// <c>FromCurrentImage</c>, which applies the receiving description's minimum (§2023:14.6.9.2). A file record cannot hold
-/// one (§2023:8.5.1.9.1 SR3), and a LINKAGE one sits in a variable-length group formal, which crosses through that same
+/// one (§2023:8.5.1.9.1 3)), and a LINKAGE one sits in a variable-length group formal, which crosses through that same
 /// recreation. ONE storage form does share a table across descriptions — a CELL-BACKED area (kb/Work PB1042: two
 /// programs describing one EXTERNAL record) — and there rule 6 is reachable and is asked on every reference:
 /// <c>StorageCell.DynTableAt</c> takes the REFERENCING description's minimum and element width, carried by the

@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Runtime.Exceptions;
 ///
 /// <para><b>Why a runtime object at all, when <see cref="ExceptionState"/>'s other gates are compile-time.</b>
 /// Every ordinary raise site knows its exception-name at COMPILE time, so the binder folds the TURN state there
-/// and the emitter simply does not write the guard when checking is off. §2023:14.9.18.4 GR1b asks the same question
+/// and the emitter simply does not write the guard when checking is off. §2023:14.9.18.4 GR1 b) asks the same question
 /// about a name that is NOT known at compile time: a callee's <c>GOBACK … RAISING LAST EXCEPTION</c> decides the
 /// name at run time, and the rule localises the raise in the ACTIVATING runtime element — "an exception condition
 /// is raised in the activating runtime element if checking for that exception condition is enabled in the

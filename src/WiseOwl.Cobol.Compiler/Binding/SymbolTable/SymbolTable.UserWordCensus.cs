@@ -13,7 +13,7 @@ public sealed partial class SymbolTable
         /// <summary>§2023:8.3.2.2: the word contains no basic letter or extended letter.</summary>
         Letterless,
 
-        /// <summary>§2023:8.3.2.1 SR5 with §2023:12.3.8.3 SR12 / SR13: an intrinsic-function-name a REPOSITORY function-specifier
+        /// <summary>§2023:8.3.2.1 rule 5 with §2023:12.3.8.3 SR12 / SR13: an intrinsic-function-name a REPOSITORY function-specifier
         /// identifies.</summary>
         RepositoryIntrinsic,
     }

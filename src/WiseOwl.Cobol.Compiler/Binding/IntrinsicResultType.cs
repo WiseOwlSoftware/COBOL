@@ -380,7 +380,7 @@ internal static class IntrinsicResultType
         };
 
     /// <summary>⛔ THE ARGUMENTS OF A CALL THAT RESOLVED TO THE INTEGER ROW, IN THE SCALE-0 FORM THAT ROW'S VALUE NEEDS (kb/Work PB4709,
-    /// review R1-1). An integer function "has an operational sign and no digits to the right of the decimal point" (§2023:15.2 GR5), and ABS,
+    /// review R1-1). An integer function "has an operational sign and no digits to the right of the decimal point" (§2023:15.2 5)), and ABS,
     /// MAX, MIN, RANGE and SUM return their argument's value at the argument's own scale; an argument integral by VALUE but written
     /// with fraction digits (<c>I2 + 1.0</c>) is Integer through <see cref="IsIntegerArgument"/> (§2023:15.3 item 6) and so must reach the
     /// function without the digits (<see cref="IntrinsicArgumentRules.IntegralForm"/>), or <c>MOVE FUNCTION ABS(I2 + 1.0) TO A10</c>
@@ -440,7 +440,7 @@ internal static class IntrinsicResultType
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
             ic.ResultType is IntrinsicType.Integer,
         // The run-time LENGTH / BYTE-LENGTH of a variable-length group (kb/Work PB4764) is the binder's BoundBinary sum marked
-        // FunctionValue: an INTEGER function's value (§2023:15.50.4 RV1 and §2023:15.14.4: the returned value is an integer).
+        // FunctionValue: an INTEGER function's value (§2023:15.50.4 1) and §2023:15.14.4: the returned value is an integer).
         BoundComputedOperand { FunctionValue: true, Expr: BoundBinary } => true,
         // A COUNTER REGISTER is "a temporary unsigned integer data item" (§2023:8.4.3.14.4 GR1 / §2023:8.4.3.15.4 GR1) that
         // the binder carries as a computed operand, and §2023:8.4.3.15.3 SR1 admits PAGE-COUNTER / LINE-COUNTER "in any
@@ -454,13 +454,13 @@ internal static class IntrinsicResultType
         _ => false,
     };
 
-    /// <summary>The EXPRESSION-side entry to the ONE integer classifier above (kb/Work PB432 — §2023:14.9.28.3 SR4a
+    /// <summary>The EXPRESSION-side entry to the ONE integer classifier above (kb/Work PB432 — §2023:14.9.28.3 SR4 a)
     /// "shall reference an integer data item", SR4 c) / SR5 c) "shall be a … integer"). The varying-phrase's
     /// FROM/BY operands are bound as <see cref="BoundExpr"/>, so this REDUCES the shapes that slot can hold to
     /// their <see cref="BoundOperand"/> twins and asks <see cref="IsIntegerOperand(BoundOperand)"/> — it does not
     /// restate the test. ⛔ A hand-written second copy is how one of two arms rots (feedback two_arm_dispatch):
     /// the §2023:5.5 2)b) primitive stays in exactly one place. A leading sign is part of the numeric literal for this
-    /// purpose (§2023:8.3.3.3.2 SR2), so <see cref="BoundNegate"/> asks its operand.</summary>
+    /// purpose (§2023:8.3.3.3.2 rule 2), so <see cref="BoundNegate"/> asks its operand.</summary>
     public static bool IsIntegerOperand(BoundExpr e) => e switch
     {
         BoundNumLiteral l => IsIntegerOperand(l.AsOperand()),

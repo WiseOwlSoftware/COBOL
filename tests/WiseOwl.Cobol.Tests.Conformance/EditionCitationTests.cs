@@ -306,13 +306,13 @@ public sealed class EditionCitationTests
     /// <summary>kb/Work PB5985, PB6011: a reserved word written where computer-name-1 stands is the name written as something that
     /// is none (COBOL7654), at every edition, citing the computer-name rule and the reserved-word rule of the edition in force:
     /// §1985:VI.4.4.3 SR1 / §1985:VI.4.3.3 SR1 "Computer-name is a system-name" and §1985:III.2 (a reserved word "must not appear
-    /// in the program as user-defined words or system-names"); §2023:8.3.2.1 SR1 "Reserved words shall not be used as
+    /// in the program as user-defined words or system-names"); §2023:8.3.2.1 1) "Reserved words shall not be used as
     /// user-defined words or system-names".</summary>
     [Theory]
     [InlineData("OBJECT-COMPUTER. GLOBAL.", 85, "§1985:VI.4.4.3 SR1", "§1985:III.2")]
     [InlineData("SOURCE-COMPUTER. MERGE.", 85, "§1985:VI.4.3.3 SR1", "§1985:III.2")]
-    [InlineData("OBJECT-COMPUTER. GLOBAL.", 2023, "§2023:8.3.2.3.1", "§2023:8.3.2.1 SR1")]
-    [InlineData("SOURCE-COMPUTER. MERGE.", 2023, "§2023:8.3.2.3.1", "§2023:8.3.2.1 SR1")]
+    [InlineData("OBJECT-COMPUTER. GLOBAL.", 2023, "§2023:8.3.2.3.1", "§2023:8.3.2.1 1)")]
+    [InlineData("SOURCE-COMPUTER. MERGE.", 2023, "§2023:8.3.2.3.1", "§2023:8.3.2.1 1)")]
     public void ReservedWordAsComputerName_IsNoSystemName(string paragraph, int edition, string computerNameRule, string reservedRule)
     {
         string source = Program($"""

@@ -15,7 +15,7 @@ using WiseOwl.Cobol.Runtime;
 
 /// <summary>What an OO source element's data binder is bound as (<c>Oo/OoDriver.ElementBinder</c>): a CLASS unit's half — the
 /// OBJECT paragraph, the FACTORY paragraph — or an INTERFACE definition. <see cref="OwnerClassName"/> is what
-/// <c>USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS</c> binds to — §2023:13.18.60.4 GR22e, the class of the object that
+/// <c>USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS</c> binds to — §2023:13.18.60.4 GR22 e), the class of the object that
 /// invoked the containing method (kb/Work PB389) — and is null for an interface, which has no containing class.</summary>
 internal sealed record OoUnitRole(string? OwnerClassName);
 
@@ -51,7 +51,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
 
     /// <summary>The COBOL name of the class this binder's entries are written in — set once by <c>Oo/OoDriver</c>
     /// for the instance and factory halves alike, null for a program/function unit and for an interface. It is what
-    /// <c>USAGE OBJECT REFERENCE ACTIVE-CLASS</c> resolves to: §2023:13.18.60.4 GR22e makes the referenced object
+    /// <c>USAGE OBJECT REFERENCE ACTIVE-CLASS</c> resolves to: §2023:13.18.60.4 GR22 e) makes the referenced object
     /// "of the same class as the object that was used to invoke the method in which this data description entry
     /// is specified", and §2023:13.18.60.3 SR16 guarantees such a containing class exists wherever the phrase is
     /// legal. kb/Work PB389.</summary>
@@ -142,7 +142,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// <summary>Whether the method a reference is made in (<see cref="CurrentMethodScope"/>) declares <paramref name="word"/>
     /// as a data-name, a condition-name, an index-name, a CAPACITY register, a type-name or a constant-name of its own
     /// (<see cref="SymbolTable.MethodDeclaresWord"/>) — the NEAREST tier a reference made in that method can reach, so such a declaration hides every constant-name and
-    /// symbolic-character of the spelling the class's binder holds (ISO §2023:8.4.6.2.1 GR3a "If the name is declared in
+    /// symbolic-character of the spelling the class's binder holds (ISO §2023:8.4.6.2.1 3) a) "If the name is declared in
     /// source element B, the item in source element B is the referenced item"; §2023:8.4.6.1 "even when it is a different
     /// type of user-defined word"; kb/Work PB3154 review R1-1). Asked by the two literal-alias lookups,
     /// <c>SymbolTable.Identify</c>'s constant arm and <c>SpecialNamesBinder.SymbolicOf</c>; always false outside a method.</summary>
@@ -188,7 +188,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     internal ObjectRefDescriptor BindObjectRefDescriptor(
         Core.ObjectReferenceUsageContext? oru, string entryWhere, EntrySection section)
     {
-        // No phrase at all — §2023:13.18.60.4 GR22b, the universal object reference. (Also the defensive answer for
+        // No phrase at all — §2023:13.18.60.4 GR22 b), the universal object reference. (Also the defensive answer for
         // an object-reference usage acquired without its own written clause: the description it inherits already
         // carries its own descriptor, so nothing reads this arm.)
         if (oru is null) return ObjectRefDescriptor.Universal;
@@ -231,7 +231,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         if (oru.className() is not { } written) return ObjectRefDescriptor.Universal;
         return DescribeNamedReference(oru, written, factory, only: oru.ONLY() is not null,
             $"{entryWhere}: USAGE OBJECT REFERENCE", "ISO §2023:13.18.60.2/.4",
-            DiagnosticCatalog.ObjectReferenceInterfacePhrase, "ISO §2023:13.18.60.2; §2023:13.18.60.4 GR22c");
+            DiagnosticCatalog.ObjectReferenceInterfacePhrase, "ISO §2023:13.18.60.2; §2023:13.18.60.4 GR22 c)");
     }
 
     /// <summary>⛔ THE ONE READING OF A WRITTEN <c>[FACTORY OF] class-or-interface-name [ONLY]</c> DESCRIPTION — the
@@ -483,7 +483,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
                     + "RETURNING item (ISO §2023:13.18.2.3 SR3)");
             else
                 continue;   // conformant — keep the flag. A RETURNING item (SR3 b)) receives the INVOKE receiver's length
-                            // through the method's trailing __retLen parameter (§2023:13.18.2.4 GR1b; OoEmitter.OoSignatureOf).
+                            // through the method's trailing __retLen parameter (§2023:13.18.2.4 GR1 b); OoEmitter.OoSignatureOf).
             root.IsAnyLength = false;
         }
     }
@@ -634,7 +634,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
                 if (kind == 'G') m.Binding.Returning = subject; else m.Binding.Formals.Add(new OoFormal(subject, 0, "__V"));
                 // The roster key cannot be taken: an explicit accessor of this name was refused above (SR5), a second
                 // subject of this name was refused as needing qualification (§2023:13.18.42.3 SR3), and no METHOD-ID name
-                // maps into the `__` accessor family (§2023:11.7.4 GR1a's pinned names).
+                // maps into the `__` accessor family (§2023:11.7.4 GR1 a)'s pinned names).
                 if (!(factory ? cls.TryAddFactoryMethod(m) : cls.TryAddMethod(m)))
                     throw new InvalidOperationException(
                         $"{where}: PROPERTY accessor '{csName}' is already on the roster — §2023:11.7.3 SR5 and §2023:13.18.42.3 SR3 "

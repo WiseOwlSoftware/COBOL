@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Binding;
 /// phrase is specified or implied, automatic propagation of exception conditions becomes enabled for functions,
 /// methods, and programs that follow in the compilation group"; GR3 disables it the same way for OFF; GR4: "The
 /// default for a compilation group is PROPAGATE OFF." What an enabled element DOES with it is the emitter's
-/// (<c>EcEmitter.EmitSelection</c> — §2023:14.6.13.1.3 GR6).
+/// (<c>EcEmitter.EmitSelection</c> — §2023:14.6.13.1.3 6)).
 /// </summary>
 public sealed class PropagateState
 {

@@ -212,7 +212,7 @@ public static class CobolInspect
         return counts;
     }
 
-    /// <summary>⛔ THE ONE PLACE A LEADING RUN'S ANCHOR OPENS (kb/Work PB1124). §2023:14.9.22.4 GR12b / GR17 c): the first
+    /// <summary>⛔ THE ONE PLACE A LEADING RUN'S ANCHOR OPENS (kb/Work PB1124). §2023:14.9.22.4 GR12 b) / GR17 c): the first
     /// LEADING occurrence must be "at the point where comparison began in the first comparison cycle in which
     /// literal-1 was eligible to participate" — so the anchor is the position of the first CYCLE that falls inside
     /// the operand's region, whichever operand that cycle then matches. Opened lazily inside the operand loop it

@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// the national space of this implementation's UTF-16 repertoire is the same U+0020 — never other white space,
 /// because a tab or a no-break space is a character of the name, not padding.</item>
 /// <item><b>Mapping</b> (<see cref="Same"/>, <see cref="Comparer"/>): two externalized names are the same name
-/// when they are the same COBOL word — equal under the ONE Annex C fold, <see cref="CobolNames"/> (§2023:8.1.3.2 GR3b
+/// when they are the same COBOL word — equal under the ONE Annex C fold, <see cref="CobolNames"/> (§2023:8.1.3.2 GR3 b)
 /// and GR4 b); DOC-A.1-219, kb/Work PB1402) — so <c>CALL "sub-p"</c> reaches <c>PROGRAM-ID. SUB-P</c> and
 /// <c>CALL "prüf"</c> reaches <c>PROGRAM-ID. PRÜF</c>, by the same equality the compiler's name tables use.
 /// §2023:8.3.2.2 2) then makes every source element that names the same externalized name refer to the same

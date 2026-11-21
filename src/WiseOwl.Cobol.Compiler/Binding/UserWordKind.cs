@@ -5,7 +5,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <summary>
 /// The types of user-defined words — ISO §2023:8.3.2.2, one member per entry of its list, in the list's order. A
 /// declaration of any of them is announced through <see cref="DataBinder.DeclareUserWord"/>, the one funnel the
-/// rules about a user-defined word AS DECLARED are asked from (today: §2023:8.3.2.1 SR5 and §2023:12.3.8.3 SR12/SR13 —
+/// rules about a user-defined word AS DECLARED are asked from (today: §2023:8.3.2.1 rule 5 and §2023:12.3.8.3 SR12/SR13 —
 /// an intrinsic-function-name the REPOSITORY paragraph identifies shall not be a user-defined word in its scope —
 /// and §2023:8.3.2.2's one-type-per-word rule, kb/Work PB990, whose exceptions are <see cref="UserWordKinds.MayBeOneWord"/>).
 /// <para>⛔ THE LIST IS THE SPEC'S, NOT OURS (kb/Work PB1083). The screen used to be called from six hand-picked

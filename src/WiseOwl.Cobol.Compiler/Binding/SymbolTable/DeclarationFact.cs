@@ -54,7 +54,7 @@ internal enum DeclarationKind
 /// declaration itself was REFUSED and reported at its entry (a constant entry that yielded no value), so a reference to
 /// it is that one fault's consequence and its reader reports nothing more, and the <paramref name="Depth"/> of the
 /// source element that declares it (0 = this one, n = its n-th container, <see cref="ForestSlice.DeclaringDepth"/>'s
-/// measure), the tier ISO §2023:8.4.6.2.1 GR3 ranks it in against the other declarations of the spelling (kb/Work PB4219).
+/// measure), the tier ISO §2023:8.4.6.2.1 3) ranks it in against the other declarations of the spelling (kb/Work PB4219).
 /// <paramref name="Spelling"/> is the declaration's own spelling where a message quotes it (an inherited GLOBAL file-name, a report
 /// entry's data-name), and <paramref name="Report"/> the report-name of the report description a report entry belongs to.
 /// <paramref name="Line"/> is the source line of the declaring entry where a message names it (0 when none is known): a

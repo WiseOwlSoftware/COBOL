@@ -63,7 +63,7 @@ internal static class RepositoryCheck
                     $"the {kind}{(unit.IsPrototype ? " prototype" : "")} {unit.Name} AS \"{unit.ExternalizedName}\" differs from "
                     + $"{(record.Kind is RepositoryUnitKind.ProgramPrototype or RepositoryUnitKind.FunctionPrototype ? "the prototype" : "the definition")} "
                     + $"{source} records, first in {difference}: callers compiled against that entry are checked at run time "
-                    + "by ISO §2023:14.9.4.4 GR3d when checking is enabled in both, and adopt the arguments positionally otherwise; "
+                    + "by ISO §2023:14.9.4.4 GR3 d) when checking is enabled in both, and adopt the arguments positionally otherwise; "
                     + "recompile them (ISO §2023:8.13; --repository-check off does not compare)");
             }
     }

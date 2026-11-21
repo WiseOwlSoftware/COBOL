@@ -211,7 +211,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // does not resolve to an element Place (it is guarded loud), so detect it by name and expand the element's
         // stores under a RUN-TIME loop 1‥Capacity (RefReceiving within bounds does not grow). The stores are the
         // INITIALIZE statement's own (category defaults / REPLACING / VALUE-phrase) — NOT the OCCURS grow-seed.
-        // The candidates are the nearest declaring source element's (§2023:8.4.6.2.1 GR3): a contained program's own
+        // The candidates are the nearest declaring source element's (§2023:8.4.6.2.1 3)): a contained program's own
         // item hides a container's GLOBAL dynamic table of the same name. The name is the one the reference writes, through
         // the symbol table's identification (SymbolTable.IdentifyDataName), never the reference's glued text (kb/Work PB2040):
         // a LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER register writes no data-name. Asked as a probe (report: false): an
@@ -478,7 +478,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         if (spec.WithFiller) ExpandImplicitFillers(cur, item, spec, actions);
     }
 
-    /// <summary>⛔ THE IMPLICIT FILLER BIT ITEMS OF A GROUP ARE RECEIVERS UNDER WITH FILLER (ISO §2023:14.9.20.4 GR5a 2.: "If the FILLER
+    /// <summary>⛔ THE IMPLICIT FILLER BIT ITEMS OF A GROUP ARE RECEIVERS UNDER WITH FILLER (ISO §2023:14.9.20.4 5) a) 2.: "If the FILLER
     /// phrase is not specified, elementary data items with an explicit or implicit FILLER clause" are not receiving
     /// operands; §2023:8.5.1.6.3 describes the bits the layout adds after a bit run and between the occurrences of an ALIGNED
     /// table as "implicitly described as a filler elementary bit data item"). Each stored filler (<see cref="BitLayout.FillersOf"/>) is the elementary boolean item

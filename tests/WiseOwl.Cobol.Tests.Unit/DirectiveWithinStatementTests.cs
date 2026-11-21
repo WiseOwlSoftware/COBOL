@@ -11,11 +11,11 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1384 — ISO §2023:7.3.3 SR8b: a compiler directive may be specified anywhere in a compilation group EXCEPT
+/// kb/Work PB1384 — ISO §2023:7.3.3 SR8 b): a compiler directive may be specified anywhere in a compilation group EXCEPT
 /// "within a source text manipulation statement". The merged driver ends its text block at every directive line, so the
 /// only place the violation is visible is there: the text since a COPY or REPLACE keyword has no separator period yet.
 /// <c>CopyProcessor.OpenStatementAt</c> is that question, asked once for both statements; every case here runs the real
-/// merged driver. kb/Work PB1353 adds the directive logical conversion consumes (<c>&gt;&gt;SOURCE FORMAT</c>, §2023:6.5 GR1):
+/// merged driver. kb/Work PB1353 adds the directive logical conversion consumes (<c>&gt;&gt;SOURCE FORMAT</c>, §2023:6.5 1)):
 /// it leaves a blank line, which the driver recognizes through the converted text's reference-format map, and inside a
 /// REPLACING operand's pseudo-text the diagnostic names §2023:7.2.3.3 SR10 / §2023:7.2.4.3 SR10 too.
 /// </summary>
@@ -66,7 +66,7 @@ public sealed class DirectiveWithinStatementTests : IDisposable
         Assert.Equal([3], bag.Diagnostics.Where(x => x.Code == "COBOL2697").Select(x => x.Location!.Value.Line).ToArray());   // 0-based
     }
 
-    [Theory] // §2023:7.3.3 SR8b: each is COBOL2697, at the directive's own line
+    [Theory] // §2023:7.3.3 SR8 b): each is COBOL2697, at the directive's own line
     [InlineData(" PROCEDURE DIVISION.\n COPY\n >>DEFINE VV AS 1\n cb1.\n", "COPY")]
     [InlineData(" PROCEDURE DIVISION.\n COPY cb1\n >>DEFINE VV AS 1\n .\n", "COPY")]
     [InlineData(" PROCEDURE DIVISION.\n REPLACE ==AA== BY\n >>DEFINE VV AS 1\n ==BB==.\n DISPLAY \"AA\".\n", "REPLACE")]
@@ -96,7 +96,7 @@ public sealed class DirectiveWithinStatementTests : IDisposable
         => Assert.DoesNotContain(Run(source).Diags.Diagnostics, x => x.Code == "COBOL2697");
 
     /// <summary>The compilation group as the front end reads it: raw fixed-form text through the §2023:6.5 logical conversion
-    /// (which DISCARDS a <c>&gt;&gt;SOURCE FORMAT</c> line, §2023:6.5 GR1), the conversion's reference-format map registered with
+    /// (which DISCARDS a <c>&gt;&gt;SOURCE FORMAT</c> line, §2023:6.5 1)), the conversion's reference-format map registered with
     /// the COPY processor, then the merged driver over the converted text.</summary>
     private (string Text, DiagnosticBag Diags) RunConverted(string fixedFormText, string? copybook = null)
     {
@@ -111,7 +111,7 @@ public sealed class DirectiveWithinStatementTests : IDisposable
         return (text, bag);
     }
 
-    [Theory] // §2023:7.3.3 SR8b for the directive logical conversion consumes: the line is blank by the time the driver walks it
+    [Theory] // §2023:7.3.3 SR8 b) for the directive logical conversion consumes: the line is blank by the time the driver walks it
     [InlineData("       COPY cb1 REPLACING ==A\n       >>SOURCE FORMAT FIXED\n       == BY ==B==.\n", "COPY", "§2023:7.2.3.3 SR10")]
     [InlineData("       REPLACE ==A== BY ==B\n       >>SOURCE FORMAT FIXED\n       C==.\n", "REPLACE", "§2023:7.2.4.3 SR10")]
     [InlineData("       REPLACE LEADING ==A\n       >>SOURCE FORMAT FIXED\n       == BY ==B==.\n", "REPLACE", "§2023:7.2.4.3 SR10")]

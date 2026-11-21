@@ -26,7 +26,7 @@ public sealed class ModelAccessStructureTests
 
     // PB4320A: a carrier-resident GLOBAL linkage formal (§2023:13.18.27.3 SR1 b admits GLOBAL in the linkage section) that
     // the contained PB4320B references (§2023:13.18.27.4 GR2), and a Format-2 table SORT whose key lies two members down
-    // the element (§2023:14.9.40.3 SR14a. PB4320C: a RECURSIVE program, whose working-storage is static data (§2023:13.5.4 GR1),
+    // the element (§2023:14.9.40.3 SR14 a). PB4320C: a RECURSIVE program, whose working-storage is static data (§2023:13.5.4 GR1),
     // with a GLOBAL item the contained PB4320D references — reached through the container's class, not an instance.
     private const string Source = """
                IDENTIFICATION DIVISION.

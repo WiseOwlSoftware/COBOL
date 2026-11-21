@@ -438,7 +438,7 @@ public static class ConditionalPhraseAssociation
     /// The COBOL2269 (statement-format-shape) message for a syntax error AT a conditional phrase that no statement
     /// open there may take, or null when <paramref name="offending"/> opens no such phrase. Read from the parser state:
     /// the candidates are the statements still open at <paramref name="context"/> and the ones that ended just before
-    /// the phrase (the rightmost descendants — the parse ended them BECAUSE the phrase did not fit, §2023:14.5.3.3 GR2c /
+    /// the phrase (the rightmost descendants — the parse ended them BECAUSE the phrase did not fit, §2023:14.5.3.3 2) c) /
     /// 4) b)). The message names the innermost candidate whose formats print the phrase's family and says why it may not
     /// take this one: already written ("If all permitted occurrences of a phrase have already been specified …"), or
     /// printed by no format beside the phrases already written, or printed by none of its formats at all.

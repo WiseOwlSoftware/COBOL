@@ -335,7 +335,7 @@ public static class CobolWordsDirectiveProcessor
 
     // ── operand tokenizer ────────────────────────────────────────────────────────────────────────────────────
     /// <param name="Defect">Null for a well-formed token; otherwise why a LITERAL is not an alphanumeric literal at all
-    /// (§2023:8.3.3.2.3, §2023:8.3.5 SR5 — SR2 requires each operand literal to be one.</param>
+    /// (§2023:8.3.3.2.3, §2023:8.3.5 5) — SR2 requires each operand literal to be one.</param>
     private readonly record struct Tok(string Text, bool IsLiteral, string Prefix, string? Defect = null)
     {
         public bool IsKeyword(string kw) => !IsLiteral && CobolKeywords.Same(Text, kw);
@@ -343,7 +343,7 @@ public static class CobolWordsDirectiveProcessor
 
     /// <summary>Split the operand into barewords and quoted literals. The separators are the operand's own: the
     /// separator space, which the directive-line parse has already made of every separator comma and semicolon
-    /// (<see cref="CompilerDirectiveLine.SeparatorsAsSpaces"/>, §2023:8.3.5 SR2). A letter run immediately followed by a quote
+    /// (<see cref="CompilerDirectiveLine.SeparatorsAsSpaces"/>, §2023:8.3.5 2)). A letter run immediately followed by a quote
     /// (no space) is captured as a PREFIXED literal (e.g. <c>X"AB"</c>) so SR2 can reject it precisely.</summary>
     private static List<Tok> Tokenize(string s)
     {
@@ -371,10 +371,10 @@ public static class CobolWordsDirectiveProcessor
 
     /// <summary>Read a quoted literal starting at <paramref name="q"/> (its opening quote); returns the index past
     /// the closing quote. Emits a Literal token carrying its content: two contiguous quotation symbols matching the
-    /// opening one are one occurrence of that character in the content (§2023:8.3.3.2.3 SR3), a literal with no closing
+    /// opening one are one occurrence of that character in the content (§2023:8.3.3.2.3 3)), a literal with no closing
     /// delimiter is DEFECTIVE (SR2: "Each literal shall be an alphanumeric literal"), and so is one whose closing
     /// delimiter is not "immediately followed by one of the separators space, comma, semicolon, period, right
-    /// parenthesis, or closing pseudo-text delimiter" (§2023:8.3.5 SR5) — the comma and semicolon are already spaces here,
+    /// parenthesis, or closing pseudo-text delimiter" (§2023:8.3.5 5)) — the comma and semicolon are already spaces here,
     /// and a period or right parenthesis can only end an operand this directive's format does not admit, which is
     /// the same refusal.</summary>
     private static int ReadQuoted(string s, int q, string prefix, List<Tok> toks)
@@ -391,7 +391,7 @@ public static class CobolWordsDirectiveProcessor
         if (j >= s.Length)
         {
             toks.Add(new Tok(content.ToString(), IsLiteral: true, Prefix: prefix,
-                Defect: "it has no closing quotation symbol (ISO §2023:8.3.5 SR5)"));
+                Defect: "it has no closing quotation symbol (ISO §2023:8.3.5 5))"));
             return j;
         }
         j++;   // step past the closing quote

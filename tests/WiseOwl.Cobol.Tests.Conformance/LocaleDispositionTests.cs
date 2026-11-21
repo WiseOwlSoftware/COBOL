@@ -214,7 +214,7 @@ public sealed class LocaleDispositionTests
     [Fact]
     public void SupportedFunctions_WithoutLocale_StillWork()
     {
-        // The non-LOCALE forms are NOT optional (§2023:15.57.4 RV4 gives an implementor correspondence when no
+        // The non-LOCALE forms are NOT optional (§2023:15.57.4 rule 4 gives an implementor correspondence when no
         // locale is in effect; NUMVAL-C without LOCALE uses the compilation-unit currency) — they must not
         // regress to a 1518.
         foreach (var (call, recv, tgt) in new[]

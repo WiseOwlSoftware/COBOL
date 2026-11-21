@@ -43,7 +43,7 @@ public enum MoveKind
 public readonly record struct MoveStore(BoundOperand Sender, MoveKind Kind, MoveSenderOrigin Origin)
 {
     /// <summary>What the store does when the sender and receiver STATICALLY overlap (<see cref="MoveOverlap"/>, ISO
-    /// §2023:14.6.10 GR1 / Annex A.2 item 36 — undefined, so documented; kb/Work PB1907, PB1910): either it prepares the
+    /// §2023:14.6.10 1) / Annex A.2 item 36 — undefined, so documented; kb/Work PB1907, PB1910): either it prepares the
     /// RECEIVER before the ordinary store reads the sender (<see cref="OverlapStoreKind.LeadingSpaces"/>) or it IS the
     /// whole store, the runtime's in-place conversion (<see cref="OverlapStore.IsInPlace"/>).
     /// <see cref="OverlapStore.None"/> for every MOVE whose operands cannot be proven to overlap. An init-only
@@ -185,7 +185,7 @@ public static class MoveClassifier
             BoundCurrentRecord { Area.DenotedItem: not null } cr
                 when SubstitutesForZeroLength(target)
                 && cr.File.VaryMin == 0
-                && !cr.AlphanumericGroupMove   // Format 2 (RECORD VARYING): §2023:14.9.30.4 GR4b designates the implied move an alphanumeric GROUP move — no substitution
+                && !cr.AlphanumericGroupMove   // Format 2 (RECORD VARYING): §2023:14.9.30.4 4) b) designates the implied move an alphanumeric GROUP move — no substitution
                 && !IsVariableLengthGroupMove(cr.Area, target)
                 => new ZeroLengthSender(cr.Area, cr),
             _ => null,
@@ -302,7 +302,7 @@ public static class MoveClassifier
     /// <para>⛔ <b>A REFERENCE-MODIFIED RECEIVER IS CLASSIFIED, NEVER SHORT-CIRCUITED</b> (kb/Work PB3512). ISO
     /// §2023:8.4.3.3.4 GR6: "The unique data item is considered to be an elementary data item without the JUSTIFIED
     /// clause", of the category <see cref="RefModPlace.Category"/> answers (alphanumeric, national or boolean —
-    /// never numeric, GR6 c)). So the slice takes EVERY elementary move's sender-category rules — §2023:14.9.25.4 GR6a
+    /// never numeric, GR6 c)). So the slice takes EVERY elementary move's sender-category rules — §2023:14.9.25.4 GR6 a)
     /// "If the sending operand is described as being signed numeric, the operational sign is not moved" among
     /// them — and a group sender into it is still GR4's group move: the slice is only the PLACE the emitter's
     /// receiving half writes. <c>RefModMoveClassificationDriftTests</c> pins that no arm here answers on the
@@ -352,14 +352,14 @@ public static class MoveClassifier
     /// reference-modified sender is excluded — its unique result is an elementary alphanumeric item whatever the
     /// underlying item (§2023:8.4.3.3.4 GR6) — while a level-66 RENAMES … THROUGH alias IS one: §2023:13.18.45.4 GR2,
     /// "data-name-1 defines an alphanumeric group item". A Tier-B REDEFINES group VIEW counts: GR4 classifies by the data item,
-    /// not its storage shape. ⛔ The test is NOT purely structural: §2023:14.9.30.4 GR4b / §2023:14.9.34.4 GR5b
+    /// not its storage shape. ⛔ The test is NOT purely structural: §2023:14.9.30.4 GR4 b) / §2023:14.9.34.4 GR5 b)
     /// DESIGNATE the READ/RETURN INTO implicit move an alphanumeric group move whenever the file description
     /// entry carries a RECORD IS VARYING clause, so <see cref="BoundCurrentRecord"/> can answer true over an
     /// ELEMENTARY record area (kb/Work PB339).</summary>
     public static bool IsGroupSender(BoundOperand source) => source switch
     {
         // THE CURRENT RECORD of a RECORD IS VARYING file is a group sender BY DESIGNATION, not by structure:
-        // §2023:14.9.30.4 GR4b / §2023:14.9.34.4 GR5b — "If the file description entry contains a RECORD IS VARYING
+        // §2023:14.9.30.4 GR4 b) / §2023:14.9.34.4 GR5 b) — "If the file description entry contains a RECORD IS VARYING
         // clause, the implied move is an alphanumeric group move" — so `READ F INTO an-edited-item` deposits
         // characters and does NOT edit, even when the FD's 01 is an elementary PIC X(n) (kb/Work PB339). Without
         // that designation (a FORMAT 3 `RECORD CONTAINS m TO n` file) the ordinary structural test decides, so

@@ -51,7 +51,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
         Assert.Equal("[HELLO] 5", stdout);
     }
 
-    /// <summary>§2023:13.16.3 SR9a again, on the HEXADECIMAL form of an alphanumeric literal (§2023:8.3.3.2) — SR9's length is
+    /// <summary>§2023:13.16.3 SR9 a) again, on the HEXADECIMAL form of an alphanumeric literal (§2023:8.3.3.2) — SR9's length is
     /// "the length of the literal as specified in 8.3.3, Literals", and §2023:8.3.3.2.3 r6 groups the digits TWO per
     /// alphanumeric character, so <c>X"414243"</c> is three characters and implies <c>X(3)</c>, not six.</summary>
     [Fact]
@@ -64,7 +64,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
         Assert.Equal("[ABC] 3", stdout);
     }
 
-    /// <summary>§2023:13.16.3 SR9b — "if the literal is boolean, 'PICTURE 1(length)'", the length being the count of
+    /// <summary>§2023:13.16.3 SR9 b) — "if the literal is boolean, 'PICTURE 1(length)'", the length being the count of
     /// boolean characters the literal has (§2023:8.3.3.4).</summary>
     [Fact]
     public void Sr9b_BooleanLiteral_ImpliesPicture1OfTheLiteralLength()
@@ -77,7 +77,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
     }
 
     /// <summary>SR9 c) — "if the literal is national, 'PICTURE N(length)'". The implied clause is a PICTURE
-    /// character-string like any other, so §2023:13.18.60.3 SR13a then applies to it in the standard's own words —
+    /// character-string like any other, so §2023:13.18.60.3 SR13 a) then applies to it in the standard's own words —
     /// "if the explicit or IMPLICIT picture character-string contains the symbol 'N', a USAGE NATIONAL clause is
     /// implied" — which is why writing USAGE NATIONAL on the entry is redundant rather than contradictory.</summary>
     [Fact]
@@ -94,7 +94,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
 
     // ── The figurative constant: inside SR9's grant, with §2023:8.3.3.6.4's lengths ────────────────────────────────
 
-    /// <summary>§2023:8.3.3.6.4 GR3b — "When a figurative constant is other than ALL literal-1, the length of the
+    /// <summary>§2023:8.3.3.6.4 GR3 b) — "When a figurative constant is other than ALL literal-1, the length of the
     /// string is one character" — for both the bare word and the Format-2 <c>ALL SPACES</c> spelling, in which
     /// ALL is the format's own OPTIONAL word rather than Format 6's required one.</summary>
     [Fact]
@@ -110,7 +110,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
         Assert.Equal("[ ]1\r\n[ ]1\r\n[0]1", stdout);
     }
 
-    /// <summary>⛔ kb/Work PB831, the SILENT WRONG ANSWER this rule's absence produced. §2023:8.3.3.6.4 GR3c — "The
+    /// <summary>⛔ kb/Work PB831, the SILENT WRONG ANSWER this rule's absence produced. §2023:8.3.3.6.4 GR3 c) — "The
     /// length of the string is the length of literal-1" — is the rule for a figurative constant whose CONTEXT
     /// does not specify a length, which is exactly a PICTURE-less item; GR2, which repeats the string to the
     /// receiver's size, governs a SIZED receiver and was applied here by mistake. <c>01 G VALUE ALL "AB".</c>

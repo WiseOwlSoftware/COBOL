@@ -53,7 +53,7 @@ public static class LineSequentialEncoding
 
     /// <summary>⛔ THE NUMBER OF MEDIUM BYTES a record image occupies — <see cref="ToChannel"/>'s length, but TOTAL:
     /// it answers for a record holding a lone surrogate, which has no UTF-8 form and so no byte image (the
-    /// character §2023:14.9.35.4 GR17d refuses). That is what lets REWRITE test GR17 b)'s size rule BEFORE d)'s character
+    /// character §2023:14.9.35.4 GR17 d) refuses). That is what lets REWRITE test GR17 b)'s size rule BEFORE d)'s character
     /// set, in the rules' own order (kb/Work PB2834): a character with no image is counted at the fewest bytes ANY
     /// image could give it, the one byte its escape stands for (<see cref="FromChannel"/>), so b) is judged only on
     /// what holds whatever image the character might be given, and a record that exceeds the replaced line even

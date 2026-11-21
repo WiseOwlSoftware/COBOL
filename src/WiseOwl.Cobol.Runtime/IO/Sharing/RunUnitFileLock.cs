@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// (<see cref="SidecarColumnLockHost"/>), an exclusive byte of a range per column through a read handle of the holder's own
 /// on Windows (<see cref="HandleColumnLockHost"/>, kb/Work PB3482); this class is the POLICY and is the same on all three.</para>
 /// <para><b>Why publish first.</b> Two run units opening at once cannot both pass: whichever publishes second
-/// finds the first already there, and a request against a column it refuses is answered '61' (§2023:9.1.13.9 GR1). It
+/// finds the first already there, and a request against a column it refuses is answered '61' (§2023:9.1.13.9 1)). It
 /// is the ordering that makes the test race-free without a mutex, and it needs a test that ignores the asker's
 /// OWN publication — which is what every host is chosen for, because a class that refuses its own kind (NO OTHER,
 /// an OUTPUT) would otherwise refuse itself.</para>
@@ -95,7 +95,7 @@ internal sealed class RunUnitFileLock : IDisposable
     {
         /// <summary>The lock is held; <c>held</c> carries it.</summary>
         Held,
-        /// <summary>Another run unit holds a column Table 19 refuses this request: §2023:9.1.13.9 GR1's '61'.</summary>
+        /// <summary>Another run unit holds a column Table 19 refuses this request: §2023:9.1.13.9 1)'s '61'.</summary>
         Refused,
         /// <summary>This host cannot hold the lock (<see cref="HostOfThisProcess"/>), or the file cannot be reached
         /// for it; the connector has the file lock its <see cref="FileShare"/> gives and nothing more.</summary>

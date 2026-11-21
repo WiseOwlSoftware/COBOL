@@ -32,7 +32,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// too, recognizes the section as the removed construct and says so, COBOL0902), and when every section of a DECLARATIVES portion is one the portion's own header and END DECLARATIVES leave
 /// with them, since the format admits no empty portion.</para>
 /// <para>A debugging line's tokens are those after its marker on the marker's own line; a fixed continuation line
-/// is joined to its line by the logical conversion (§2023:6.5 GR6), so it is part of the line.</para>
+/// is joined to its line by the logical conversion (§2023:6.5 6)), so it is part of the line.</para>
 /// <para><b>A line inside an open PICTURE or subscript region</b> (kb/Work PB1913) is the one shape this pass cannot
 /// settle by moving tokens. The lexer is in PICMODE or SUBSCRIPT there, and which of "source" and "comment" the line's
 /// text is decides whether the text moves the lexer's own mode (a <c>)</c> that closes the subscript, the PICTURE

@@ -16,17 +16,17 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// its HOLDER (an implicit CLOSE, an abnormal termination, a kill that runs nothing), a descendant process that
 /// inherits what its parent holds, and the path a compiled program really takes (the generated code's
 /// <c>FileConnector.Open</c>, not the registry's API).
-/// <para>ISO §2023:9.1.15 GR3: <i>"The successful opening of a file establishes a file lock for the applicable sharing rules,
+/// <para>ISO §2023:9.1.15 3): <i>"The successful opening of a file establishes a file lock for the applicable sharing rules,
 /// thereby preventing other run units from opening that file with incompatible sharing rules. The file lock is
 /// removed by an explicit or implicit CLOSE statement executed for that file connector"</i>. The refusal is §2023:9.1.13.9
 /// 1)'s '61' for an OPEN and 2)'s '62' for a DELETE FILE; an unsuccessful OPEN leaves the file as it was (§2023:14.9.27.4
-/// GR25); a run unit's end is an implicit CLOSE of every open file (§2023:14.6.11 GR2), also after an abnormal end
+/// GR25); a run unit's end is an implicit CLOSE of every open file (§2023:14.6.11 2)), also after an abnormal end
 /// (§2023:14.6.12), and what a killed process loses with its descriptors is the implementor's documented host fact
 /// (docs/CONFORMANCE.md DOC-A.1-75).</para>
 /// <para><b>The exception paths are the subject, not a corner of it</b> (MANDATORY-PRACTICES I11): every refused request
 /// is run with a FILE STATUS item alone, with a USE declarative alone, with both and with neither (§2023:9.1.12; §2023:9.1.13.1:
 /// a '6x' status is not a fatal class, so a request with no handler continues), and with a RETRY phrase that the
-/// holder outlasts (§2023:14.7.9.3 GR4).</para>
+/// holder outlasts (§2023:14.7.9.3 4)).</para>
 /// <para><b>Why <c>Host=ReFS</c> (tier 0h):</b> this class is the process-boundary member of the family whose other two,
 /// <see cref="RunUnitFileLockDriftTests"/> and <c>SidecarColumnLockHostDriftTests</c>, carry the same trait: the lock files a
 /// holder publishes beside the physical file are removed by a holder's CLOSE, end or kill, and removal differs between this
@@ -228,8 +228,8 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
 
     // ── 1. The lock is held across the boundary and is given back by the holder's CLOSE ───────────────────────────────
 
-    /// <summary>§2023:9.1.13.9 GR1a: another run unit holds the file in the sharing with no other mode, so EVERY open mode a
-    /// second run unit asks for is '61' — and the file lock is removed by the holder's explicit CLOSE (§2023:9.1.15 GR3), after
+    /// <summary>§2023:9.1.13.9 1) a): another run unit holds the file in the sharing with no other mode, so EVERY open mode a
+    /// second run unit asks for is '61' — and the file lock is removed by the holder's explicit CLOSE (§2023:9.1.15 3)), after
     /// which the same four OPENs succeed while the holder is still alive: it is the CLOSE that gave the lock back, not
     /// the holder's end.</summary>
     [Fact]
@@ -287,7 +287,7 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
 
     // ── 2. The lock dies with its holder, however the holder ends ────────────────────────────────────────────────────
 
-    /// <summary>§2023:14.6.11 GR2: the holder's run unit ends with the file still open, and the implicit CLOSE it runs gives the
+    /// <summary>§2023:14.6.11 2): the holder's run unit ends with the file still open, and the implicit CLOSE it runs gives the
     /// lock back — the very next OPEN of a second process is a success in every mode.</summary>
     [Fact]
     public void TheImplicitCloseAtTheEndOfTheHoldersRunUnitGivesTheLockBack()
@@ -347,7 +347,7 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
     /// <summary>⛔ A CHILD PROCESS DOES NOT INHERIT THE LOCK (the <c>O_CLOEXEC</c> guard of <c>OfdRegionLocks.Open</c>, and
     /// a handle that is not inheritable on Windows). A run unit that starts a program — <c>CALL "SYSTEM"</c> in
     /// COBOL — does it with the file open; were the descriptor inherited, the child would hold the lock through the
-    /// parent's CLOSE and §2023:9.1.15 GR3's <i>"removed by an explicit or implicit CLOSE"</i> would be false for as long as
+    /// parent's CLOSE and §2023:9.1.15 3)'s <i>"removed by an explicit or implicit CLOSE"</i> would be false for as long as
     /// the child lived. The holder here is this test process, a run unit in its own right through
     /// <see cref="FileRegistry"/>; the child is started FROM it while it holds, and outlives the CLOSE.</summary>
     [Fact]
@@ -410,9 +410,9 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
         Assert.Equal(new[] { fileStatus ? "OPEN 00" : "OPEN CONTINUES", "AFTER" }, Run(prober));
     }
 
-    // ── 5. DELETE FILE is refused the same way (§2023:9.1.13.9 GR2 ────────────────────────────────────────────────────────
+    // ── 5. DELETE FILE is refused the same way (§2023:9.1.13.9 2) ────────────────────────────────────────────────────────
 
-    /// <summary>§2023:9.1.13.9 GR2: a DELETE FILE of a physical file another run unit holds is '62', through the ON EXCEPTION
+    /// <summary>§2023:9.1.13.9 2): a DELETE FILE of a physical file another run unit holds is '62', through the ON EXCEPTION
     /// phrase, through the FILE STATUS item alone and through a USE declarative alone (the declarative runs only when
     /// the statement has no ON EXCEPTION phrase, §2023:9.1.13.1's EC-I-O paragraph); the file is still there; and once the
     /// holder is gone the same DELETE FILE is successful and the file is deleted.</summary>
@@ -443,7 +443,7 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
         Assert.Equal(["DELEXC 62"], Run(onException));
         Assert.Equal(["DEL 62"], Run(statusOnly));
         Assert.Equal(["DECL [EC-I-O-FILE-SHARING]", "FILE [62F]", "AFTER"], Run(declarative));
-        Assert.Equal(Seed.Length, SharedFileLength());          // §2023:9.1.13.9 GR2: refused, so the file is still there, untouched
+        Assert.Equal(Seed.Length, SharedFileLength());          // §2023:9.1.13.9 2): refused, so the file is still there, untouched
 
         holder.Kill();
         Assert.Equal(["DELOK 00"], Run(onException));
@@ -453,7 +453,7 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
         Assert.False(File.Exists(SharedFile));
     }
 
-    /// <summary>§2023:9.1.12 and §2023:9.1.13.1 for the '62' (§2023:9.1.13.9 GR2) as for the '61' above: a DELETE FILE with NO ON EXCEPTION
+    /// <summary>§2023:9.1.12 and §2023:9.1.13.1 for the '62' (§2023:9.1.13.9 2)) as for the '61' above: a DELETE FILE with NO ON EXCEPTION
     /// phrase reaches a FILE STATUS item alone, a USE declarative alone, both (the declarative runs and the item receives
     /// the status) and NEITHER — a '6x' status is not a fatal class, so with no handler at all the run unit continues
     /// with the file untouched; and once the holder is gone the same statement deletes the file.</summary>
@@ -480,7 +480,7 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
         expectedRefused.Add(fileStatus ? "DEL 62" : "DEL CONTINUES");
         expectedRefused.Add("AFTER");
         Assert.Equal(expectedRefused.ToArray(), Run(prober));
-        Assert.Equal(Seed.Length, SharedFileLength());          // §2023:9.1.13.9 GR2: the file is still there, untouched
+        Assert.Equal(Seed.Length, SharedFileLength());          // §2023:9.1.13.9 2): the file is still there, untouched
 
         holder.Kill();
         Assert.Equal(new[] { fileStatus ? "DEL 00" : "DEL CONTINUES", "AFTER" }, Run(prober));
@@ -489,7 +489,7 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
 
     // ── 6. RETRY (§2023:14.7.9.3) ─────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>§2023:14.7.9.3 GR4b: a RETRY phrase attempts the OPEN again, and when the holder outlasts every attempt
+    /// <summary>§2023:14.7.9.3 4) b): a RETRY phrase attempts the OPEN again, and when the holder outlasts every attempt
     /// <i>"the statement is unsuccessful, the appropriate value is placed in the I-O status"</i>: '61' for each mode, the
     /// file untouched — and after the holder's end the same RETRY OPENs succeed at once.</summary>
     [Fact]
@@ -507,8 +507,8 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
         Assert.Equal(Every("00"), Run(prober));
     }
 
-    /// <summary>§2023:14.7.9.3 GR4b for DELETE FILE: a RETRY phrase attempts the statement again, and a holder that outlasts
-    /// every attempt leaves it unsuccessful with '62' (§2023:9.1.13.9 GR2) and the file untouched; after the holder's end the
+    /// <summary>§2023:14.7.9.3 4) b) for DELETE FILE: a RETRY phrase attempts the statement again, and a holder that outlasts
+    /// every attempt leaves it unsuccessful with '62' (§2023:9.1.13.9 2)) and the file untouched; after the holder's end the
     /// same RETRY statement deletes the file at once.</summary>
     [Fact]
     public void ADeleteFileRetryThatTheHolderOutlasts_IsStatus62_AndSucceedsOnceTheHolderIsGone()
@@ -536,7 +536,7 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
     /// run unit asks while the holder holds and is released by the holder's CLOSE. ⚠ The prober prints <c>TRYING</c>
     /// before its OPEN and the holder is released only after that line, so the OPEN's first attempt is expected to
     /// meet the lock; a first attempt that came after the CLOSE would succeed at once, so this witness can pass for
-    /// the wrong reason but can never fail for one — and §2023:14.7.9.3 GR4 is what makes '61' the wrong answer here.</summary>
+    /// the wrong reason but can never fail for one — and §2023:14.7.9.3 4) is what makes '61' the wrong answer here.</summary>
     [Fact]
     public void ARetryForeverSucceedsOnceTheHolderClosesTheFile()
     {

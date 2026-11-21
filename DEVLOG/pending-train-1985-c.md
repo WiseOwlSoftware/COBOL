@@ -31,11 +31,15 @@ closes on the controller's derivation refuter.
 
 **Citation tooling (s, PB4976/PB5059/PB5446/PB5365).** The 1985 citation universe ends at the first amendment, and one
 designator grammar serves the parser, the checker and the suggester. The audit refuses an unreadable designator. On this
-train, `audit_code_citations.py --canonicalize src/ tests/ conformance-suite/` rewrote 3,768 C# and test lines to the
-canonical form. That made 14 citations readable that the audit then refused, and each was fixed at its text (for example,
-§2023:12.3.8.3 SR6 had been cited with a sub-item b it does not have). Thirty-eight §1985 amendment-page citations from branches cut before
-the rule moved to §1993:p.B-46 and §1989:p.A-28. Seven list-item designators, which have no canonical form (PB6015), were
-grown onto the shrink-only baseline. The baseline now holds 2,160 entries.
+train, the C# part (`--canonicalize src/ tests/`, 3,749 lines) was run and then reverted. Gate 000003 showed that the
+canonicalizer damages run-time message text in three ways: it glues `SR12 a)2.` as `SR12a2.`, it drops a closing
+parenthesis when a label's `)` also closed the message, and it rewrites a label that follows an interpolation hole.
+None of these was visible to the audit, and 57 goldens still quoted the old text (PB6035). The run did make 14 citations
+readable that named a wrong rule, and those are fixed at their text (for example, §2023:12.3.8.3 SR6 had been cited with
+a sub-item b it does not have). The construct rows' citations are canonical at their source. Thirty-eight §1985
+amendment-page citations from branches cut before the rule moved to §1993:p.B-46 and §1989:p.A-28. The shrink-only
+baseline holds 6,029 entries. That is the debt that stood before, plus seven list-item designators that have no canonical
+form (PB6015).
 
 **The 1985 catalog's amendment attribution (t, PB5063/PB5093/PB5036/PB5094/PB1553/PB3965).** Every change row now resolves
 after the mint, and a cross-check holds each Errata amendment correction to the row that holds its text: 27 rows lacked

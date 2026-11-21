@@ -141,7 +141,7 @@ public sealed class ContainedGlobalStorageClaimTests
     [Fact]
     public void AContainedProgramsOwnRecord_HidesTheGlobal_AndIsItsOwnToClaim()
     {
-        // §2023:8.4.6.2.1 GR3: CGSS-IN's own R3's X is the nearer declaration, so ADDRESS OF X is R3's, claimed by CGSS-IN;
+        // §2023:8.4.6.2.1 3): CGSS-IN's own R3's X is the nearer declaration, so ADDRESS OF X is R3's, claimed by CGSS-IN;
         // ADDRESS OF R2 still names the container's GLOBAL record, claimed by the container.
         var (ok, stdout, detail) = EditionHarness.CompileAndRun("""
                    IDENTIFICATION DIVISION.

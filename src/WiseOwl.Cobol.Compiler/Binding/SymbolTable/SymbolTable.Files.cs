@@ -42,7 +42,7 @@ public sealed partial class SymbolTable
     private readonly List<FileModel> _inheritedGlobalFiles = [];
 
     /// <summary>The inherited file-names a declaration of the spelling in a nearer source element hides, whatever its class
-    /// (§2023:8.4.6.2.1 GR3a; §1985:X.1.3.8.2 GR3a; kb/Work PB5786, PB5973).</summary>
+    /// (§2023:8.4.6.2.1 3) a); §1985:X.1.3.8.2 GR3a; kb/Work PB5786, PB5973).</summary>
     private readonly HashSet<CobolName> _hiddenFileNames = [];
 
     /// <summary>The files this element's OWN file control entries select, by file-name: the subjects of §2023:12.4.5.2 SR2 (one
@@ -62,7 +62,7 @@ public sealed partial class SymbolTable
     }
 
     /// <summary>The file a file-name denotes here: the element's own, which hides a container's of the same spelling
-    /// (§2023:8.4.6.2.1 GR3a), else the nearest container's GLOBAL file unless a nearer declaration hides it (a qualifier
+    /// (§2023:8.4.6.2.1 3) a)), else the nearest container's GLOBAL file unless a nearer declaration hides it (a qualifier
     /// position, <see cref="NameReach.Qualifier"/>, reaches it hidden or not).</summary>
     private FileModel? FileNamed(CobolName name, NameReach reach) =>
         _ownFiles.TryGetValue(name, out var own) ? own
@@ -191,7 +191,7 @@ public sealed partial class SymbolTable
         }
     }
 
-    /// <summary>Hides each inherited file-name that a nearer declaration of its spelling hides, whatever its class (§2023:8.4.6.2.1 GR3a;
+    /// <summary>Hides each inherited file-name that a nearer declaration of its spelling hides, whatever its class (§2023:8.4.6.2.1 3) a);
     /// §1985:X.1.3.8.2 GR3a). The file stays a qualifier of its records (<see cref="FileQualifies"/>).</summary>
     internal void HideShadowedFiles(Func<string, int, bool> declaredNearerThan)
     {

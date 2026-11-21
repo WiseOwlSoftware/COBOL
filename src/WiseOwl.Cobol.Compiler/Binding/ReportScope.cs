@@ -39,7 +39,7 @@ public sealed class ReportScope
     /// chain a reference renders through).</summary>
     public int Depth(ReportModel report) => _inherited.TryGetValue(report, out int depth) ? depth : 0;
 
-    /// <summary>ISO §2023:8.4.6.2.1 GR3 — when a name is declared both in this source element and as a global name
+    /// <summary>ISO §2023:8.4.6.2.1 rule 3 — when a name is declared both in this source element and as a global name
     /// of a container (or in two containers), "the item in source element B is the referenced item", else the one
     /// in the nearest containing element: of <paramref name="candidates"/> keep those whose report lives at the
     /// smallest <see cref="Depth"/>. The ONE application of the rule to a report-scoped name — a report

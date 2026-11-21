@@ -22,7 +22,7 @@ public sealed class ExceptionEngine
 
     /// <summary>The run unit's engine, linked to the run unit's ONE activation record (<see cref="ModuleStack"/>)
     /// so a staged <c>GOBACK / EXIT … RAISING</c> condition can name the activation it was staged FOR
-    /// (§2023:14.9.18.4 GR1b; kb/Work PB892 Arm B).</summary>
+    /// (§2023:14.9.18.4 GR1 b); kb/Work PB892 Arm B).</summary>
     public ExceptionEngine(ModuleStack activations) => _activations = activations;
 
     private readonly ModuleStack? _activations;
@@ -117,10 +117,10 @@ public sealed class ExceptionEngine
         LastLocation = location;
         ExceptionObject = null;
         _propagatedObject = default;   // a NAMED raise supersedes any staged object (the slots are exclusive)
-        if (fatal) MarkDeclarativesNotNormal(null);   // §2023:14.6.13.1.2 GR1 — "a fatal exception occurs within the scope of the declarative"
+        if (fatal) MarkDeclarativesNotNormal(null);   // §2023:14.6.13.1.2 1) — "a fatal exception occurs within the scope of the declarative"
     }
 
-    // ── The DECLARATIVE ACTIVATION RECORD (§2023:14.6.13.1.2 GR1; kb/Work PB1122 Task B, PB1761) ──────────────────────
+    // ── The DECLARATIVE ACTIVATION RECORD (§2023:14.6.13.1.2 1); kb/Work PB1122 Task B, PB1761) ──────────────────────
     // "Normal completion of a declarative procedure": a declarative does not complete normally when a RESUME, GOBACK,
     // EXIT PROGRAM or STOP it specifies is executed "or a fatal exception occurs within the scope of the declarative".
     // The statements leave through their own signals; the fatal exception, and a RESUME that §2023:14.9.33.4 GR1 made a
@@ -147,7 +147,7 @@ public sealed class ExceptionEngine
         if (token >= 0 && token < _declaratives.Count) _declaratives.RemoveRange(token, _declaratives.Count - token);
     }
 
-    /// <summary>Did the declarative <paramref name="token"/> names fail to complete normally (§2023:14.6.13.1.2 GR1?
+    /// <summary>Did the declarative <paramref name="token"/> names fail to complete normally (§2023:14.6.13.1.2 1)?
     /// False for the −1 token of a non-declarative.</summary>
     public bool DeclarativeNotNormal(int token) =>
         token >= 0 && token < _declaratives.Count && _declaratives[token].NotNormal;
@@ -193,7 +193,7 @@ public sealed class ExceptionEngine
     private (string Name, bool Fatal, string? Statement, string? Location, long For)? _propagated;
 
     // ── ⛔ A STAGED CONDITION NAMES THE ACTIVATION IT WAS STAGED FOR (kb/Work PB892 Arm B) ──────────────────────
-    // §2023:14.9.18.4 GR1b raises the condition "in the ACTIVATING runtime element if checking for that exception
+    // §2023:14.9.18.4 GR1 b) raises the condition "in the ACTIVATING runtime element if checking for that exception
     // condition is enabled in the activating runtime element" — ONE element, the one the returning element
     // returns to. Before this, the slot was run-unit-wide and anonymous, and "who takes it" was left to whichever
     // pickup ran next: an activator that emitted no pickup (an EC-free group — zero scaffolding) left it standing,
@@ -215,7 +215,7 @@ public sealed class ExceptionEngine
     private bool IsForThisActivation(long stagedFor) => stagedFor == (_activations?.CurrentActivation ?? 0);
 
     /// <summary>STAGE an exception condition for the ACTIVATOR (GOBACK / EXIT PROGRAM / method-return … RAISING,
-    /// §2023:14.9.18.4 GR1b / §2023:14.9.14.4 GR3). Staging is UNCONDITIONAL and raises nothing here: §2023:14.9.18.4 GR1b localises
+    /// §2023:14.9.18.4 GR1 b) / §2023:14.9.14.4 GR3). Staging is UNCONDITIONAL and raises nothing here: §2023:14.9.18.4 GR1 b) localises
     /// both the raise and its enablement test in the activating runtime element — "an exception condition is
     /// raised in the activating runtime element if checking for that exception condition is enabled in the
     /// activating runtime element" — and <see cref="TakeRaisedPropagation"/> is where both happen.
@@ -259,7 +259,7 @@ public sealed class ExceptionEngine
     }
 
     /// <summary>Stage the LAST EXCEPTION for the activator — <c>GOBACK / EXIT … RAISING LAST EXCEPTION</c>,
-    /// ISO §2023:14.9.18.4 GR1b 3.
+    /// ISO §2023:14.9.18.4 GR1 b) 3.
     ///
     /// <para><b>3 a)</b> "If an exception condition is currently raised, that exception condition is set to exist
     /// in the activating runtime element. If the exception condition is an exception object, additional rules are
@@ -323,7 +323,7 @@ public sealed class ExceptionEngine
 
     private const string RaisingNotSpecified = "EC-RAISING-NOT-SPECIFIED";
 
-    /// <summary>AUTOMATIC PROPAGATION of an unhandled FATAL exception condition — ISO §2023:14.6.13.1.3 GR6: "If checking
+    /// <summary>AUTOMATIC PROPAGATION of an unhandled FATAL exception condition — ISO §2023:14.6.13.1.3 6): "If checking
     /// for the exception condition is enabled, and the exception condition is neither EC-FLOW-GLOBAL-EXIT nor
     /// EC-FLOW-GLOBAL-GOBACK, and there is an applicable PROPAGATE ON directive, the exception condition is propagated
     /// as if a GOBACK statement with the RAISING LAST EXCEPTION phrase were executed" (the §2023:7.3.21.4 GR2 effect of
@@ -351,7 +351,7 @@ public sealed class ExceptionEngine
     /// EXIT/GOBACK item 4: "Otherwise, execution of the EXIT or GOBACK statement in the activated element is as if
     /// EXCEPTION EC-OO-EXCEPTION were specified in the RAISING phrase, instead of an exception object." The pickup
     /// has just taken the object; this re-stages the NAMED condition for THIS activation, so the pickup's one named
-    /// arm (<see cref="TakeRaisedPropagation"/>) takes it through §2023:14.9.18.4 GR1b — raised only "if checking for
+    /// arm (<see cref="TakeRaisedPropagation"/>) takes it through §2023:14.9.18.4 GR1 b) — raised only "if checking for
     /// that exception condition is enabled in the activating runtime element" — exactly as the named arm of every
     /// other GOBACK … RAISING does (kb/Work PB408, PB1121). The staging is for the CURRENT activation, unlike
     /// <see cref="SetPropagating"/>'s (which names the running element's activator): the activator is the element
@@ -483,7 +483,7 @@ public sealed class ExceptionEngine
     /// continuation outright — §2023:14.7.8 GR2 ("upon completion of any exception processing, execution proceeds
     /// as if the range of values were empty"), §2023:8.5.1.9.6 GR1 (the capacity change happens), §2023:14.9.39 Format 16
     /// GR37/GR38 (the length is 0 / clamped), §2023:15.19.4 r3 (the substitution character is used). So the raise site
-    /// returns and the statement finishes. ⚠ §2023:14.9.49.4 GR13a — "control is returned to an implicit CONTINUE
+    /// returns and the statement finishes. ⚠ §2023:14.9.49.4 GR13 a) — "control is returned to an implicit CONTINUE
     /// statement following the statement whose execution caused the exception" — reads as the alternative for a
     /// condition whose statement rules name NO continuation (a RAISE, a size error: there the raise is at the end
     /// of the statement's own execution and the two readings coincide). Where a specific rule DOES name one, #3's
@@ -497,11 +497,11 @@ public sealed class ExceptionEngine
     /// </list>
     /// <para>⛔ The dispatcher is the ACTIVATION's, never a captured one: <see cref="NonfatalDispatcher"/> is set
     /// by the activation boundary (<c>ProgramTable</c>) to the runtime element now executing, so a condition
-    /// raised inside a CALLed program selects THAT program's declaratives (§2023:14.9.49.4 GR4a and never the
+    /// raised inside a CALLed program selects THAT program's declaratives (§2023:14.9.49.4 GR4 a) and never the
     /// activator's.</para></summary>
     /// <param name="nextStatementContinues">True for a condition whose own rule names RESUME AT NEXT STATEMENT as
     /// a CONTINUATION of the interrupted operation rather than a transfer out of it — today only EC-BOUND-OVERFLOW,
-    /// whose §2023:8.5.1.9.6 GR1 says a declarative "that executes a RESUME statement with the NEXT STATEMENT phrase"
+    /// whose §2023:8.5.1.9.6 1) says a declarative "that executes a RESUME statement with the NEXT STATEMENT phrase"
     /// leaves "the operation … allowed to continue, thus exceeding the receiving table's specified expected
     /// capacity" (kb/Work PB1269). The raise site then returns as it does for a declarative that completed
     /// normally; the statement finishes and control reaches the next statement, which is where the resume was
@@ -512,7 +512,7 @@ public sealed class ExceptionEngine
         Set(ec, fatal: false);
         int r = NonfatalDispatcher?.NonfatalDispatch(ec) ?? DispatchResult.NoHandler;
         // Normal (#3, the declarative completed normally; NotNormal, it fell off its end after a fatal exception in its
-        // scope — §2023:14.6.13.1.2 GR1, which no rule of THIS statement keys on) and NoHandler (#4, none qualified) all
+        // scope — §2023:14.6.13.1.2 1), which no rule of THIS statement keys on) and NoHandler (#4, none qualified) all
         // leave the statement to finish under its own rules; only an explicit RESUME transfers control out of it.
         if (DispatchResult.FinishesStatement(r)) return;
         if (nextStatementContinues && r == DispatchResult.ResumeNext) return;
@@ -608,8 +608,8 @@ public sealed class ExceptionEngine
     /// <para>⚠ THIS METHOD DOES NOT DECIDE THAT THE ANSWER IS ZERO LENGTH — the CALL SITE's citation does, and
     /// the two provenances are different obligations that must each be cited on their own:</para>
     /// <list type="bullet">
-    /// <item>the STANDARD itself mandates it — §2023:15.87.4 RV1, "the returned value is of zero length"; or</item>
-    /// <item>the standard hands the result to the implementor (§2023:15.3 AR14, §2023:15.4) and docs/CONFORMANCE.md
+    /// <item>the STANDARD itself mandates it — §2023:15.87.4 rule 1, "the returned value is of zero length"; or</item>
+    /// <item>the standard hands the result to the implementor (§2023:15.3 rule 14, §2023:15.4) and docs/CONFORMANCE.md
     /// writes the determination down — row <c>DOC-A.1-90</c>, whose zero-length class is every function whose
     /// returned LENGTH is itself derived from the rejected argument, and row <c>DOC-A.1-93</c>, a returned
     /// value past the documented maximum (<c>CobolIntrinsics.ReturnedValueMaximum</c>).</item>
@@ -638,13 +638,13 @@ public sealed class ExceptionEngine
     /// <item>the FUNCTION fixes it — <c>CHAR</c> / <c>CHAR-NATIONAL</c> return exactly one character position
     /// (§2023:15.15.4 / §2023:15.16.4), so one space;</item>
     /// <item>something else that SURVIVES the rejection fixes it — the LOCALE, for <c>LOCALE-DATE</c>,
-    /// <c>LOCALE-TIME</c> and <c>LOCALE-TIME-FROM-SECONDS</c> (§2023:15.52.4 / §2023:15.53.4 / §2023:15.54.4 RV3, "the
+    /// <c>LOCALE-TIME</c> and <c>LOCALE-TIME-FROM-SECONDS</c> (§2023:15.52.4 / §2023:15.53.4 / §2023:15.54.4 rule 3, "the
     /// length of the returned value depends on the format indicated in the locale"). Rejecting argument-1 does
     /// not disturb the locale, so the zero-length class does not reach these and the general clause does. The
     /// locale's format is a culture pattern (DETERMINATION L10) whose rendered width varies with the VALUE as
     /// well as the format, so no single "the length the locale would have produced" exists once the value is
     /// rejected; the standard's own answer for an alphanumeric function whose length is content-derived and
-    /// whose content is absent is <b>one alphanumeric space character</b> (§2023:15.30.3 RV1), and row DOC-A.1-90
+    /// whose content is absent is <b>one alphanumeric space character</b> (§2023:15.30.3 rule 1), and row DOC-A.1-90
     /// adopts it here (kb/Work PB470).</item>
     /// </list></remarks>
     public string ArgumentErrorSpaces(string detail, int positions)
@@ -685,10 +685,10 @@ public sealed class ExceptionEngine
 
     /// <summary>Record EC-BOUND-OVERFLOW when an implicit capacity change of a dynamic-capacity table (a receiving
     /// subscript, §2023:8.5.1.9.3; a variable-length group transfer's recreation, §2023:14.6.9.2) first exceeds its expected
-    /// capacity (§2023:8.5.1.9.6 GR1 — an already-exceeded implicit change raises nothing; <c>CobolDynTable</c> asks
+    /// capacity (§2023:8.5.1.9.6 1) — an already-exceeded implicit change raises nothing; <c>CobolDynTable</c> asks
     /// that). Nonfatal (Table 13); it sets the last exception status only while checking is enabled
     /// (§2023:14.6.13.1.1). The change proceeds regardless — after a declarative that completes normally AND after one
-    /// that executes RESUME AT NEXT STATEMENT, which §2023:8.5.1.9.6 GR1 names as this condition's continuation
+    /// that executes RESUME AT NEXT STATEMENT, which §2023:8.5.1.9.6 1) names as this condition's continuation
     /// (kb/Work PB1269).</summary>
     public void BoundOverflowError(string detail) =>
         NonfatalIfEnabled(BoundOverflowChecking, "EC-BOUND-OVERFLOW", nextStatementContinues: true);
@@ -755,7 +755,7 @@ public sealed class ExceptionEngine
     /// item 5b/5c, spec :7085-7089; Table 13 Fatal). ⛔ THIS NEVER RETURNS. When checking is enabled the condition is
     /// raised first (<see cref="FatalIfEnabled"/>: set, then <see cref="CobolFatalException"/> for the statement
     /// guard's USE dispatch, else the run unit's termination per §2023:14.6.13.1.3 #5/#7). When checking is OFF it throws
-    /// the same exception with NO condition set: §2023:8.4.3.3.4 GR5c makes the range a `shall`, and the standard names
+    /// the same exception with NO condition set: §2023:8.4.3.3.4 5) c) makes the range a `shall`, and the standard names
     /// no outcome for the violated `shall` with checking not enabled, so the owner's rule of 2026-07-28 — lenient
     /// wherever the standard names the outcome, LOUD ABORT wherever it names none — decides, and kb/Work R60
     /// (PB1707 part 2) confirmed it: the unchecked run unit terminates with a runtime error and never clamps or
@@ -858,7 +858,7 @@ public sealed class ExceptionEngine
 
     /// <summary>True while the executing GENERATE or TERMINATE has EC-SIZE-TRUNCATION checking enabled, so the report
     /// compose it runs takes the RAISING final transfer for a printable item's implicit COMPUTE (§2023:14.7.5 no-phrase rule 4,
-    /// §2023:14.7.4.3 GR7; kb/Work PB4031). No raise helper reads it: the raise is the transfer kernel's own
+    /// §2023:14.7.4.3 rule 7; kb/Work PB4031). No raise helper reads it: the raise is the transfer kernel's own
     /// <see cref="WiseOwl.Cobol.Runtime.CobolSizeError"/>, which the presenting statement's guard dispatches.</summary>
     public bool SizeTruncationChecking
     {
@@ -930,7 +930,7 @@ public sealed class ExceptionEngine
     }
 
     /// <summary>Raise EC-RANGE-INDEX when a PERFORM VARYING, SEARCH or SET "creates a value for the index that is
-    /// outside the range of the values allowed by the implementor" (§2023:13.18.38.4 GR2 a; §2023:14.9.39.4 GR2a.1 b /
+    /// outside the range of the values allowed by the implementor" (§2023:13.18.38.4 GR2 a; §2023:14.9.39.4 GR2 a) 1. b /
     /// 2. a / 3. b and GR4 a) name the same limit; Table 13 Fatal) when checking is enabled; otherwise return, and
     /// the caller applies the SET rules' own named outcome — "the execution of the SET statement is unsuccessful,
     /// and the content of the receiving operand is unchanged" — which is also §2023:13.18.38.4 GR2 b's "the value of
@@ -1148,7 +1148,7 @@ public sealed class ExceptionEngine
     // ──── THE SORT-MERGE STATEMENT conditions (kb/Work PB1036) ──────────────────────────────────────────────
     //
     // All four are Table 13 FATAL and each is raised by CobolSort at the point its rule names. When the statement
-    // that raised one is the SORT or MERGE itself, §2023:14.6.13.1.3 GR2 hands the disposition to that verb's rules —
+    // that raised one is the SORT or MERGE itself, §2023:14.6.13.1.3 2) hands the disposition to that verb's rules —
     // the statement is terminated and execution continues after it (EcEmitter's statement guard). With checking
     // OFF nothing is raised (§2023:14.6.13.1.1) and the statement proceeds as CobolSort documents for each.
 
@@ -1183,7 +1183,7 @@ public sealed class ExceptionEngine
         set => _checking.SortMergeRelease = value;
     }
 
-    /// <summary>Raise EC-SORT-MERGE-RELEASE (§2023:13.18.43.4 GR14b / GR19 b), §2023:14.9.40.4 GR12b, §2023:14.9.24.4
+    /// <summary>Raise EC-SORT-MERGE-RELEASE (§2023:13.18.43.4 GR14 b) / GR19 b), §2023:14.9.40.4 GR12 b), §2023:14.9.24.4
     /// GR7 b); Table 13 Fatal) when checking is enabled; otherwise return.</summary>
     public void SortMergeReleaseError(string detail) =>
         FatalIfEnabled(SortMergeReleaseChecking, "EC-SORT-MERGE-RELEASE", detail);
@@ -1261,7 +1261,7 @@ public sealed class ExceptionEngine
     // the generated GOBACK asks the run-time question the emitted `__useActive` array already answers: is one of
     // THIS program's GLOBAL declaratives currently activated and not yet returned. "Same program" comes free:
     // `__useActive` is per program instance, and a container's global declarative selected on behalf of a
-    // CONTAINED program (§2023:14.9.49.4 GR4b) runs in the CONTAINER's instance, so a contained program's GOBACK
+    // CONTAINED program (§2023:14.9.49.4 GR4 b)) runs in the CONTAINER's instance, so a contained program's GOBACK
     // sees its own array and correctly raises nothing.
     //
     // ⚠ Table 13's neighbour EC-FLOW-GLOBAL-EXIT has NO helper here, and that is a DETERMINATION, not an
@@ -1575,7 +1575,7 @@ public sealed class ExceptionEngine
 
     /// <summary>True while the currently-executing statement has EC-DATA-OVERFLOW checking enabled (fatal). Only a
     /// MOVE into a single-precision standard-float receiver consults it — the <see cref="CobolFloat.StoreSingleChecked"/>
-    /// store site (§2023:14.9.25.4 GR6d4.a is MOVE-only).</summary>
+    /// store site (§2023:14.9.25.4 GR6 d)4.a is MOVE-only).</summary>
     public bool FloatOverflowChecking
     {
         get => _checking.FloatOverflow;
@@ -1583,9 +1583,9 @@ public sealed class ExceptionEngine
     }
 
     /// <summary>Raise EC-DATA-OVERFLOW when a MOVE's finite sending algebraic value is farther from zero than the
-    /// standard-float receiver's usage can represent — an exponent overflow to ±Infinity (ISO §2023:14.9.25.4 GR6d4.a,
+    /// standard-float receiver's usage can represent — an exponent overflow to ±Infinity (ISO §2023:14.9.25.4 GR6 d)4.a,
     /// spec :28634; Table 13 Fatal). GR6 d)4.a is MOVE-specific, so an arithmetic ±Inf result is never this EC (a
-    /// standard-float conversion follows ISO/IEC 60559 — §2023:14.6.8.3 GR2), and neither is a NaN/±Inf SOURCE (that
+    /// standard-float conversion follows ISO/IEC 60559 — §2023:14.6.8.3 rule 2), and neither is a NaN/±Inf SOURCE (that
     /// is EC-DATA-NOT-FINITE). Same fatal throw/dispatch contract as
     /// <see cref="FloatNotFiniteError"/>.</summary>
     public void FloatOverflowError(string detail) => FatalIfEnabled(FloatOverflowChecking, "EC-DATA-OVERFLOW", detail);
@@ -1594,7 +1594,7 @@ public sealed class ExceptionEngine
 
     /// <summary>True while the currently-executing statement has EC-DATA-INCOMPATIBLE checking enabled (fatal,
     /// Table 13). Three raise sites consult it: the FIXED-POINT numeric sending read
-    /// (<see cref="CobolNum.ParseImageSending"/> / <see cref="CobolNum.SendingImage"/>, §2023:14.6.13.2 GR2 —
+    /// (<see cref="CobolNum.ParseImageSending"/> / <see cref="CobolNum.SendingImage"/>, §2023:14.6.13.2 rule 2 —
     /// kb/Work PB230) and the numeric-edited de-edits (<see cref="CobolEdit.DeEdit"/> /
     /// <see cref="CobolEdit.DeEditFloat"/>, rule 4 — kb/Work PB66).</summary>
     public bool DataIncompatibleChecking
@@ -1608,7 +1608,7 @@ public sealed class ExceptionEngine
     // EC-DATA-INCOMPATIBLE exception condition to exist, the EC-DATA-INCOMPATIBLE exception condition is set to
     // exist AFTER ALL OF THE IMPLIED STATEMENTS ARE COMPLETED." A fatal raise inside pair 1 would abandon pairs
     // 2..n, which is precisely what that sentence forbids — so inside the region the raise is LATCHED instead,
-    // the implied statements all run (with the undefined results §2023:14.6.13.2 GR2 permits), and the emitter
+    // the implied statements all run (with the undefined results §2023:14.6.13.2 rule 2 permits), and the emitter
     // raises once on the way out. This is the same discipline §2023:14.7.6's SIZE ERROR paragraph already gets from
     // ArithmeticEmitter's latching __sizeErr flag; one shape for both of the clause's aggregation sentences.
     // A flat flag suffices because the implied statements of a CORRESPONDING are simple MOVE/ADD/SUBTRACT — the
@@ -1637,7 +1637,7 @@ public sealed class ExceptionEngine
     }
 
     /// <summary>Raise EC-DATA-INCOMPATIBLE for a sending operand whose content is not valid — a fixed-point
-    /// numeric item that "would evaluate to false in a numeric class condition" (ISO §2023:14.6.13.2 GR2), or a
+    /// numeric item that "would evaluate to false in a numeric class condition" (ISO §2023:14.6.13.2 rule 2), or a
     /// de-editing MOVE's numeric-edited sender holding content that is not a possible result of any editing
     /// operation in that item (rule 4). Table 13 Fatal, with the same throw/dispatch contract as
     /// <see cref="FloatOverflowError"/>; with checking off the caller's tolerant value stands. Inside a §2023:14.7.6
@@ -1704,11 +1704,11 @@ public sealed class ExceptionEngine
     // ── ⛔ A WHEN PHRASE SEES THE CONDITIONS OF ITS OWN ACTIVATION, AND ONLY THOSE (kb/Work PB442) ─────────────────
     // §2023:14.9.28.4 GR17's scope word is "during the execution of imperative-statement-1": DYNAMIC within the
     // activation, so a raise in a paragraph PERFORMed from imp-1 is selected exactly like one written in it (GR1's
-    // range; §2023:9.1.12 GR1 "an ACTIVE PERFORM statement"; §2023:14.6.13.1.4 GR2 "the EXECUTED statement"). It stops at the
+    // range; §2023:9.1.12 1) "an ACTIVE PERFORM statement"; §2023:14.6.13.1.4 2) "the EXECUTED statement"). It stops at the
     // activation boundary, because the condition does: an exception status indicator "exists for each function,
     // method, or program" (§2023:14.6.13.1.1), and a condition reaches the activator only by propagation (GOBACK / EXIT
-    // … RAISING, §2023:14.9.18.4 GR1b; PROPAGATE ON, §2023:14.6.13.1.3 GR6), raised again "in the activating runtime
-    // element" with the CALL or INVOKE as its statement (§2023:14.9.33.4 GR2a.2) — where this walk, now in the
+    // … RAISING, §2023:14.9.18.4 GR1 b); PROPAGATE ON, §2023:14.6.13.1.3 6)), raised again "in the activating runtime
+    // element" with the CALL or INVOKE as its statement (§2023:14.9.33.4 GR2 a) 2.) — where this walk, now in the
     // activator, finds the WHEN. The boundary is the run unit's ONE activation record (ModuleStack), which every
     // activation mechanism pushes (CALL, function activation, nested CALL, every method), so no mechanism can
     // forget it. It replaced a frame-depth floor raised only by a method that itself held an exception-checking
@@ -1766,7 +1766,7 @@ public sealed class ExceptionEngine
 
 /// <summary>
 /// ⛔ THE TWO SUBSTITUTED TEXT RESULTS OF A REJECTED FUNCTION REFERENCE, EACH WRITTEN DOWN EXACTLY ONCE
-/// (kb/Work PB383, PB470). §2023:15.3 AR14 hands the result of a function reference whose argument rules were
+/// (kb/Work PB383, PB470). §2023:15.3 rule 14 hands the result of a function reference whose argument rules were
 /// violated to the implementor when EC-ARGUMENT-FUNCTION checking is off, and docs/CONFORMANCE.md row
 /// <c>DOC-A.1-90</c> states the determination. Its NUMERIC half is
 /// <see cref="ExceptionEngine.ArgumentError(string)"/>'s own <c>return 0</c>; its TEXT half is these two class
@@ -1784,7 +1784,7 @@ public sealed class ExceptionEngine
 public static class ArgumentSubstitute
 {
     /// <summary>Row DOC-A.1-90's zero-length class: the returned LENGTH is itself derived from the rejected
-    /// argument, so nothing survives the rejection to size a result. Also the value §2023:15.87.4 RV1 states
+    /// argument, so nothing survives the rejection to size a result. Also the value §2023:15.87.4 rule 1 states
     /// outright for SUBSTITUTE — that site shares the mechanism, not the determination.</summary>
     public static string ZeroLength => string.Empty;
 
@@ -1801,7 +1801,7 @@ public static class ArgumentSubstitute
 /// </summary>
 public static class ExceptionState
 {
-    /// <summary>§2023:15.33.3 RV1's literal EXCEPTION-STATUS value when the last exception is an exception
+    /// <summary>§2023:15.33.3 rule 1's literal EXCEPTION-STATUS value when the last exception is an exception
     /// OBJECT — the LastName sentinel (NOT a catalog exception-name; ExceptionCatalog.TryGet fails on it
     /// by design, and the EXCEPTION-* functions degrade correctly: not an IO name → "00", no location →
     /// spaces).</summary>

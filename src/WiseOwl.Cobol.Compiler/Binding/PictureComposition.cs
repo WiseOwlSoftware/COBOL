@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Binding;
 /// </summary>
 internal enum PicRole
 {
-    /// <summary>B 0 / — simple insertion (§2023:13.18.40.5 GR3).</summary>
+    /// <summary>B 0 / — simple insertion (§2023:13.18.40.5 rule 3).</summary>
     SimpleInsertion = 0,
     /// <summary>The GROUPING separator: ',' — or, under DECIMAL-POINT IS COMMA, '.' (§2023:13.18.40.3 SR13).</summary>
     Grouping = 1,
@@ -68,7 +68,7 @@ internal enum PicRole
     Boolean = 21,
     /// <summary>N — national (§2023:8.5.2.10).</summary>
     National = 22,
-    /// <summary>E — the floating-point exponent separator (§2023:13.18.40.4 GR13b.</summary>
+    /// <summary>E — the floating-point exponent separator (§2023:13.18.40.4 GR13 b).</summary>
     Exponent = 23,
 }
 
@@ -299,7 +299,7 @@ internal static class PictureComposition
             return Fail(DiagnosticCatalog.PictureComposition,
                 "the symbol 'Z' and the symbol '*' are mutually exclusive in character-string-1 — one item has one "
                 + $"replacement character, space for 'Z' and asterisk for '*' ({EditionInfo.Designated(Rule("SR21", "§1985:VI.5.9.5 GR3"))}"
-                + edition.Edition.Cite("; §1985:VI.5.9.5 GR8", "; §2023:13.18.40.5 GR7") + ")");
+                + edition.Edition.Cite("; §1985:VI.5.9.5 GR8", "; §2023:13.18.40.5 rule 7") + ")");
 
         // SR23 "The editing sign control symbols '+', '-', 'CR', and 'DB' are mutually exclusive in
         // character-string-1 with the exception of a numeric-edited data item for a floating-point edited
@@ -393,7 +393,7 @@ internal static class PictureComposition
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"character-string-1 uses {fixedCurrency} currency symbols as FIXED insertion — only one currency "
                 + $"symbol may be used ({EditionInfo.Designated(Rule("SR24", "§1985:VI.5.9.5 GR6"))}). Two or more ADJACENT occurrences would be a floating "
-                + $"insertion string ({edition.Edition.Cite("§1985:VI.5.9.5 GR7", "§2023:13.18.40.5 GR6")}); "
+                + $"insertion string ({edition.Edition.Cite("§1985:VI.5.9.5 GR7", "§2023:13.18.40.5 rule 6")}); "
                 + "these are separated by other symbols");
         if (fixedSign > 1)
             return Fail(DiagnosticCatalog.PictureComposition,
@@ -476,7 +476,7 @@ internal static class PictureComposition
                 + $"decimal point position ({point}) — for floating insertion, at least one insertion symbol "
                 + $"shall be specified to the LEFT of the decimal point position ({EditionInfo.Designated(Rule("SR29", "§1985:VI.5.9.5 GR7"))}"
                 + (decimalPointIsComma ? $"; {Swap()} — the rules for the symbol period apply to the symbol comma" : "")
-                + $"). {edition.Edition.Cite("§1985:VI.5.9.5 GR7", "§2023:13.18.40.5 GR6")} "
+                + $"). {edition.Edition.Cite("§1985:VI.5.9.5 GR7", "§2023:13.18.40.5 rule 6")} "
                 + "defines the image only for a string that starts left of the point");
         }
 
@@ -521,7 +521,7 @@ internal static class PictureComposition
     }
 
     /// <summary>
-    /// ⛔ THE ONE DEFINITION OF A FLOATING INSERTION STRING (ISO §2023:13.18.40.5 GR6), read by the composition
+    /// ⛔ THE ONE DEFINITION OF A FLOATING INSERTION STRING (ISO §2023:13.18.40.5 rule 6), read by the composition
     /// rules here AND by <see cref="PictureAnalyzer"/>'s geometry derivation, so the two can never disagree.
     /// "Floating insertion editing is indicated by specifying a string of at least two IDENTICAL floating
     /// insertion editing symbols. Any of the simple insertion editing symbols embedded in this string or to the
@@ -596,7 +596,7 @@ internal static class PictureComposition
         int n = syms.Count;
         var floating = new bool[n];
         // "Any of the SIMPLE INSERTION editing symbols embedded in this string or to the immediate right of this
-        // string are part of the string" (ISO §2023:13.18.40.5 GR6), plus — by rule 6 b), which represents ALL the
+        // string are part of the string" (ISO §2023:13.18.40.5 rule 6), plus — by rule 6 b), which represents ALL the
         // numeric character positions — the decimal point. The simple-insertion SET is CobolEdit's, read and not
         // re-spelled (kb/Work PB490: it was written out at four sites and two of the copies drifted to {',', 'B'}).
         // A PICTURE EDITING character-1 stays transparent to this walk in EITHER form, for the reason the role map
@@ -604,7 +604,7 @@ internal static class PictureComposition
         // question the standard does not ask here (kb/Work PB528).
         bool Embedded(char c) => WiseOwl.Cobol.Runtime.CobolEdit.IsSimpleInsertionSymbol(c, grouping)
             || c == decimalSep || char1.Contains(c);
-        // ⛔ THE FLOATING INSERTION SYMBOLS are §2023:13.18.40.5 GR6's own list, all four kinds: "The currency
+        // ⛔ THE FLOATING INSERTION SYMBOLS are §2023:13.18.40.5 rule 6's own list, all four kinds: "The currency
         // symbol, the EXTENDED EDITING SIGN CONTROL SYMBOLS, if specified, and the fixed editing sign control
         // symbols '+' and '-' are used as the floating insertion symbols." The extended ones are exactly the
         // character-1 letters declared with a FOR phrase (SR12), which is why they arrive as their own set
@@ -675,7 +675,7 @@ internal static class PictureComposition
             // symbol, leading (first or second symbol) or trailing (last or penultimate), and is asked of every
             // OTHER symbol by the matrix (kb/Work PB855: `PIC 99L99` places it mid-string, where neither cs role
             // admits it). Three things stay outside the matrix, each for a stated reason:
-            //  - the IS form is SIMPLE insertion (§2023:13.18.40.5 GR3) and the standard assigns it no Table-10
+            //  - the IS form is SIMPLE insertion (§2023:13.18.40.5 rule 3) and the standard assigns it no Table-10
             //    precedence, so it constrains no neighbour (`PIC LL EDITING L IS ":"` is the shape SR12 a) names as
             //    sufficient; kb/Work PB528);
             //  - a FLOATING extended string is floating insertion (rule 6), and §2023:13.18.40.6 states the 'cs'

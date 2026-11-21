@@ -7,8 +7,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The one reading of a literal's delimiters and of the comment indicator (<see cref="CobolSourceText"/>, kb/Work
-/// PB2621), every expected value read from the rule: ISO §2023:8.3.5 SR5 (the opening delimiters — a quotation symbol, B", N",
-/// X", BX", NX" with either quotation symbol — and the closing one), §2023:8.3.3.2.3 SR3 (two contiguous quotation symbols
+/// PB2621), every expected value read from the rule: ISO §2023:8.3.5 5) (the opening delimiters — a quotation symbol, B", N",
+/// X", BX", NX" with either quotation symbol — and the closing one), §2023:8.3.3.2.3 3) (two contiguous quotation symbols
 /// matching the opening one are one character of the content) and §2023:6.2.3.1 (<c>*&gt;</c> is the comment indicator).
 /// </summary>
 public sealed class CobolSourceTextTests

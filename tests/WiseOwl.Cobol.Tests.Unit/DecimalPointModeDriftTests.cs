@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE DECIMAL-POINT MODE OF A PICTURE IS THE DESCRIBING UNIT'S, READ OFF THE ITEM (kb/Work PB2554).
-/// ISO §2023:12.3.7.4 GR14b makes the comma the decimal separator "in character-strings, and inserted in numeric-edited
+/// ISO §2023:12.3.7.4 GR14 b) makes the comma the decimal separator "in character-strings, and inserted in numeric-edited
 /// items" under DECIMAL-POINT IS COMMA — a property of the source element that DESCRIBES the item; §2023:12.3.4 GR1 hands
 /// it to a contained program only. A separately compiled class keeps it for its formals no matter which unit INVOKEs
 /// them, so every editing, de-editing, receiver-scale and edited-image consumer reads
@@ -64,7 +64,7 @@ public sealed class DecimalPointModeDriftTests
         Assert.True(unexpected.Count == 0,
             "A CodeGen / procedure-binder file reads the EMITTING unit's DECIMAL-POINT IS COMMA mode (" + string.Join("; ", unexpected)
             + "). An item's PICTURE is edited, de-edited and scaled under the mode of the unit that DESCRIBES it "
-            + "(§2023:12.3.7.4 GR14b: read PicInfo.DecimalPointIsComma. If the read is not about a picture, add it to the allowlist with its reason (kb/Work PB2554).");
+            + "(§2023:12.3.7.4 GR14 b): read PicInfo.DecimalPointIsComma. If the read is not about a picture, add it to the allowlist with its reason (kb/Work PB2554).");
     }
 
     [Fact]

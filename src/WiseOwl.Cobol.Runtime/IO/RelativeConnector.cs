@@ -86,7 +86,7 @@ public sealed class RelativeConnector : KeyedConnector
     /// connector already reports (§2023:9.1.13.4 item 2), not a file attribute conflict.</remarks>
     protected override string DeclaredOrganization => FixedFileAttributes.Relative;
 
-    /// <summary>§2023:14.9.6.4 GR2d — <i>"A file with organization other than sequential, that resides on a mass
+    /// <summary>§2023:14.9.6.4 GR2 d) — <i>"A file with organization other than sequential, that resides on a mass
     /// storage device."</i> The category is settled by the ORGANIZATION alone, so it needs no medium
     /// determination (kb/Work PB235).</summary>
     public override PhysicalFileCategory Category => PhysicalFileCategory.NonSequential;
@@ -144,7 +144,7 @@ public sealed class RelativeConnector : KeyedConnector
     /// <inheritdoc/>
     /// <remarks>§2023:14.9.27.4 GR14 — the file position indicator is 1 on INPUT/I-O, an INCLUSIVE indicator (§2023:14.9.30.4 GR21
     /// rule b). ⛔ NOTHING IS CAPTURED HERE FOR EXTEND (kb/Work PB739). The extend release number used to be measured
-    /// once, at the OPEN, into a private base — and §2023:14.9.51.4 GR29a says in the same breath that under sharing "the
+    /// once, at the OPEN, into a private base — and §2023:14.9.51.4 GR29 a) says in the same breath that under sharing "the
     /// record numbers are not necessarily consecutive", which can only be true of a number taken from the file AT THE
     /// RELEASE. Two connectors extending one shared file both captured 2 and the second overwrote the first record.
     /// <see cref="NextSequentialSlot"/> reads the live tree instead; §2023:14.9.27.4 GR15's positioning IS that reading, not a
@@ -280,13 +280,13 @@ public sealed class RelativeConnector : KeyedConnector
         return ReadSucceeded(RecordLengthConflicts(rec.Image.Length) ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success);
     }
 
-    /// <summary>The record a tree value holds, in the native character set (§2023:13.18.13.4 GR6a); null for a value this
+    /// <summary>The record a tree value holds, in the native character set (§2023:13.18.13.4 GR6 a)); null for a value this
     /// writer cannot have produced — the torn page it is ('30').</summary>
     private StoredFrame? Decoded(byte[]? value) => value is null ? null : RecordFraming.DecodeFrame(value, 0, CodeSet);
 
     // ── WRITE / REWRITE / DELETE (ISO §2023:14.9.51 / §2023:14.9.35 / §2023:14.9.10) ───────────────────────────────────────
 
-    /// <summary>⛔ THE HIGHEST RELATIVE RECORD NUMBER PERMITTED FOR A RELATIVE FILE — ISO §2023:14.9.51.4 GR29b's
+    /// <summary>⛔ THE HIGHEST RELATIVE RECORD NUMBER PERMITTED FOR A RELATIVE FILE — ISO §2023:14.9.51.4 GR29 b)'s
     /// <i>"If the relative key data item contains a value that is less than 1 or greater than the highest relative
     /// record number permitted for the file, the execution of the WRITE statement is unsuccessful, and the I O
     /// status for the write file connector is set to '34'"</i>. The implementor's number (Annex A.1 item 107,
@@ -313,7 +313,7 @@ public sealed class RelativeConnector : KeyedConnector
     /// (determination D-FRA (v); kb/Work PB1053), stored with it.</param>
     public string Write(string image, int length = -1, RecordExtents? extents = null)
     {
-        // §2023:14.9.51.4 GR29a "If the access mode of the write file connector is sequential…" vs. GR29 b)
+        // §2023:14.9.51.4 GR29 a) "If the access mode of the write file connector is sequential…" vs. GR29 b)
         // "If the access mode … is random or dynamic…": the ACCESS MODE alone selects the release rule
         // (the open mode only picks the STARTING RRN inside GR29 a) — 1 for output, highest+1 for extend).
         // ⛔ The open mode is NOT a disjunct here (kb/Work PB325): a random- or dynamic-access connector open
@@ -337,19 +337,19 @@ public sealed class RelativeConnector : KeyedConnector
         {
             if (NextSequentialSlot(out slot) is { } torn) return Status = torn;
             if (_keyDigits > 0 && slot.ToString(System.Globalization.CultureInfo.InvariantCulture).Length > _keyDigits)
-                return Status = FileStatusCode.BoundaryViolation;          // '24' §2023:14.9.51.4 GR29a / GR33 c)
+                return Status = FileStatusCode.BoundaryViolation;          // '24' §2023:14.9.51.4 GR29 a) / GR33 c)
         }
         else
         {
             slot = _pendingKey;
             if (slot is < 1 or > HighestRelativeRecordNumber)
-                // '34' §2023:14.9.51.4 GR29b (from 2014, §2014:14.9.47.3 GR26b; below 2014 the attempt is a write beyond
-                // the externally defined boundaries of the file, the invalid key condition '24' (§2002:14.8.47.3 GR29b,
+                // '34' §2023:14.9.51.4 GR29 b) (from 2014, §2014:14.9.47.3 GR26 b); below 2014 the attempt is a write beyond
+                // the externally defined boundaries of the file, the invalid key condition '24' (§2002:14.8.47.3 GR29 b),
                 // §1985:VIII.1.3.4 item (3) c) — kb/Work PB5125
                 return Status = DialectBehaviors.IsActive(DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError, Edition)
                     ? FileStatusCode.PermanentBoundary : FileStatusCode.BoundaryViolation;
             if (_st.Get(slot, out var present) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
-            if (present is not null) return Status = FileStatusCode.DuplicateKey;   // '22' §2023:14.9.51.4 GR33a
+            if (present is not null) return Status = FileStatusCode.DuplicateKey;   // '22' §2023:14.9.51.4 GR33 a)
         }
         var frame = RecordFraming.EncodeFrame(Framed(rec, image, extents), 0, CodeSet);
         // The transactions' HOLDINGS (2.2.1.10): after the invalid key conditions (GR33, which ignore locks), before the
@@ -360,7 +360,7 @@ public sealed class RelativeConnector : KeyedConnector
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         if (FileRemovedByRollback) return WriteCreatingTheFileAgain(() => Write(image, length, extents));   // 2.2.2.14 (R1-2)
         var written = _st.Insert(slot, frame, Entered, out bool inserted, TransactionFor(RelativeStore.Key(slot), beforeImage: null));
-        if (RecordWriteFailed(written) is { } refused) return Status = refused;   // '24' §2023:14.9.51.4 GR33b / '30' §2023:9.1.13.6 GR1
+        if (RecordWriteFailed(written) is { } refused) return Status = refused;   // '24' §2023:14.9.51.4 GR33 b) / '30' §2023:9.1.13.6 1)
         if (!inserted) return Status = FileStatusCode.DuplicateKey;        // '22' — the tree declined (GR33 a))
         if (sequentialRelease) _lastReleasedSlot = slot;
         _lastSlot = slot;                                                  // GR29 a) — MOVEd back into the key item
@@ -424,7 +424,7 @@ public sealed class RelativeConnector : KeyedConnector
         if (reevaluate) return Rewrite(image, length, extents);            // against the file a rollback restored
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         var replaced = _st.Replace(slot, frame, Entered, out bool done, TransactionFor(RelativeStore.Key(slot), present));
-        if (RecordWriteFailed(replaced) is { } refused) return Status = refused;   // '24' (§2023:9.1.13.5 GR4 / '30' (§2023:9.1.13.6 GR1
+        if (RecordWriteFailed(replaced) is { } refused) return Status = refused;   // '24' (§2023:9.1.13.5 4) / '30' (§2023:9.1.13.6 1)
         return RecordProcessed(Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound);
     }
 

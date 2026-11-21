@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// through (ISO §2023:8.4.6.1; §2023:8.4.6.2.1 3; kb/Work PB3347; docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b,
 /// slice 4"): a switch condition-name declared in the SAME element as a level-88 of the spelling competes with it under
 /// §2023:8.4.2.2.1, one declared in a nearer element hides it, one a tier farther out yields to it. The expected depths are
-/// the containment distances §2023:8.4.6.2.1 GR3 counts: 0 for the element's own declaration, n for the n-th container's.
+/// the containment distances §2023:8.4.6.2.1 3) counts: 0 for the element's own declaration, n for the n-th container's.
 /// </summary>
 public sealed class SymbolTableConfigurationNamesTests
 {
@@ -80,7 +80,7 @@ public sealed class SymbolTableConfigurationNamesTests
         var containee = NewTable();
         containee.InheritConfigurationNames(container);
 
-        // A name declared at depth 0 hides one inherited from depth 1 (§2023:8.4.6.2.1 GR3a); SC-B has no nearer declaration.
+        // A name declared at depth 0 hides one inherited from depth 1 (§2023:8.4.6.2.1 3) a)); SC-B has no nearer declaration.
         containee.HideShadowedSymbolics((name, depth) => name == "SC-A" && depth > 0);
 
         Assert.True(containee.HidesSymbolic("sc-a"));

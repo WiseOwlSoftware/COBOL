@@ -27,7 +27,7 @@ public sealed class UniversalCrossingShapeDriftTests
     [Theory]
     // Every row names its edition: OO, strongly-typed and GROUP-USAGE items are COBOL-2002 introductions, DYNAMIC LENGTH
     // is COBOL-2014; the crossing rules are edition-invariant.
-    // The note's own repro: an alphanumeric group of a character and a zoned numeric member (§2023:14.8.2.2 SR1 — same size).
+    // The note's own repro: an alphanumeric group of a character and a zoned numeric member (§2023:14.8.2.2 rule 1 — same size).
     [InlineData("UCS01", 2002, "01 G. 05 G1 PIC X(2) VALUE \"AB\". 05 G2 PIC 9(2) VALUE 12.", "", "USING G",
         "01 LG. 05 L1 PIC X(2). 05 L2 PIC 9(2).", "USING LG",
         "DISPLAY \"in=\" LG MOVE \"ZY\" TO L1 ADD 1 TO L2", "DISPLAY \"out=\" G", "in=AB12\nout=ZY13")]

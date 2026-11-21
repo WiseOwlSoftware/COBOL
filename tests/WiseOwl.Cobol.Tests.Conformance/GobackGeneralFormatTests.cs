@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 ///         wide.</item>
 ///   <item>In `LAST EXCEPTION` only `LAST` is underlined, so the trailing `EXCEPTION` is an optional word too —
 ///         on the GOBACK figure AND on EXIT Format 2, which shares the grammar's one <c>raisingPhrase</c> rule.
-///         §2023:7.3.21.4 GR2 writes the phrase back as "as though a GOBACK RAISING LAST statement were
+///         §2023:7.3.21.4 rule 2 writes the phrase back as "as though a GOBACK RAISING LAST statement were
 ///         executed", which is the standard citing itself.</item>
 /// </list></para>
 ///

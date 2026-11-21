@@ -115,7 +115,7 @@ public sealed class ReferenceIdentificationDriftTests
             ["OdoResolvePass.cs"] = "a data-division clause operand (OCCURS DEPENDING ON data-name-1), never a procedure-division operand",
             ["OccursKeyResolvePass.cs"] = "a data-division clause operand (OCCURS KEY data-name-2), never a procedure-division operand",
             ["ResolveRedefinesPass.cs"] = "data-division clause operands (RENAMES data-name-2 and data-name-3), never a procedure-division operand",
-            ["SortBinder.cs"] = "a SORT table key is identified within data-name-2 (§2023:14.9.40.3 SR14a), which ReferenceResolver.ResolveTableOperand identified and screened, so the key lies in a record already screened",
+            ["SortBinder.cs"] = "a SORT table key is identified within data-name-2 (§2023:14.9.40.3 SR14 a)), which ReferenceResolver.ResolveTableOperand identified and screened, so the key lies in a record already screened",
             ["SymbolTable.DataNames.cs"] = "the identification itself (IdentifyDataName); its callers are the files this test reads",
             ["SymbolTable.ConditionNames.cs"] = "the condition-name identification's existence question (DeclaresConditionName), no item used",
             ["SymbolTable.Declarations.cs"] = "the declaration questions of the data division, answered as facts, no item used",

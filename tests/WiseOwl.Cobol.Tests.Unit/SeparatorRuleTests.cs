@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// The §2023:8.3.5 separator-context rules (kb/Work PB1394) and the §2023:8.3.3 content-repertoire rule of the prefixed literal
 /// formats (kb/Work PB1441), asked of source text lexed exactly as the front end lexes it. Every expectation is read off
-/// the rule it cites, never off the compiler: §2023:8.3.5 SR2 a comma or semicolon is a separator only when "immediately
+/// the rule it cites, never off the compiler: §2023:8.3.5 2) a comma or semicolon is a separator only when "immediately
 /// followed by a space"; 3) a period only "when followed by a space"; 5) "The opening delimiter shall be immediately
 /// preceded by a space, left parenthesis, or opening pseudo-text delimiter. The closing delimiter shall be immediately
 /// followed by one of the separators space, comma, semicolon, period, right parenthesis, or closing pseudo-text
@@ -36,7 +36,7 @@ public sealed class SeparatorRuleTests
     // Rule 2 — the separator forms, and the numeric-literal comma the rule leaves to the numeric-literal rules.
     [InlineData("MOVE 1 TO N, M.\n")]
     [InlineData("MOVE 1 TO N; M.\n")]
-    [InlineData("MOVE 1,5 TO N.\n")]                  // DECIMAL-POINT IS COMMA's decimal point (§2023:12.3.7.4 GR14a)
+    [InlineData("MOVE 1,5 TO N.\n")]                  // DECIMAL-POINT IS COMMA's decimal point (§2023:12.3.7.4 GR14 a))
     [InlineData("MOVE ,5 TO N.\n")]
     [InlineData("MOVE A(1, 2) TO N.\n")]              // inside a subscript list (FNARG_SEPARATOR)
     [InlineData("MOVE 1 TO N,\n")]                    // an end of line is a space to the lexer
@@ -111,19 +111,19 @@ public sealed class SeparatorRuleTests
     [InlineData("A + B")]
     [InlineData("A - B * C / D ** E")]
     [InlineData("(A + B) * (C - D)")]
-    [InlineData("A +\nB")]                    // a line end is a separator space (§2023:8.3.5 SR1)
+    [InlineData("A +\nB")]                    // a line end is a separator space (§2023:8.3.5 1))
     [InlineData("A\n+ B")]
     [InlineData("- A")]                       // unary: a space after it
     [InlineData("-(A)")]                      // unary beside a left parenthesis: no space required
     [InlineData("- (A)")]
     [InlineData("(- A)")]                     // a left parenthesis beside a unary operator: no space required
     [InlineData("(-(A))")]
-    [InlineData("A * -2")]                    // a sign abutting its digits is part of the literal (§2023:8.3.3.3.2 SR2): no operator
+    [InlineData("A * -2")]                    // a sign abutting its digits is part of the literal (§2023:8.3.3.3.2 2)): no operator
     [InlineData("A - -2")]
     [InlineData("-2")]
     [InlineData("+2.5 * 3")]
     [InlineData("A * -(B)")]
-    [InlineData("A +, B")]                    // a comma followed by a space is a separator, usable wherever the space is (§2023:8.3.5 SR2)
+    [InlineData("A +, B")]                    // a comma followed by a space is a separator, usable wherever the space is (§2023:8.3.5 2))
     public void SpacedArithmeticOperators_AreNotReported(string expression) => Assert.Empty(Spacing(expression));
 
     [Theory]
@@ -186,7 +186,7 @@ public sealed class SeparatorRuleTests
         Assert.EndsWith(fix, v.Message);
     }
 
-    [Theory] // §2023:8.3.3.3.2 SR3: a comma that begins a literal after an operator character is the decimal point, never a missing
+    [Theory] // §2023:8.3.3.3.2 3): a comma that begins a literal after an operator character is the decimal point, never a missing
              // separator — the operator's own §2023:8.7.1 violation is the one reported (kb/Work PB2017)
     [InlineData("COMPUTE X = 1 *,1.\n")]
     [InlineData("COMPUTE X = 1 /,1.\n")]

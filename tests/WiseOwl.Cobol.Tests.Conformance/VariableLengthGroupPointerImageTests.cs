@@ -56,7 +56,7 @@ public sealed class VariableLengthGroupPointerImageTests
     }
 
     /// <summary>An OCCURS DEPENDING table of pointers, its count inside the group: DISPLAY sends the group, so the table
-    /// is used to the count's value (§2023:13.18.38.4 GR8b - two NULL images after "hello", "05" and the count "2".</summary>
+    /// is used to the count's value (§2023:13.18.38.4 GR8 b) - two NULL images after "hello", "05" and the count "2".</summary>
     [Fact]
     public void OccursDependingPointerTable_ShowsTheCountsNullImages()
     {

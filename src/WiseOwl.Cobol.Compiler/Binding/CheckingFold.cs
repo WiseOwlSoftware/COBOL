@@ -24,7 +24,7 @@ internal static class CheckingFold
             ?? int.MaxValue;
         return new UnitChecking(
             ExternalCheckMask: ExternalMaskAt(turn, divLine),
-            // §2023:14.9.4.4 GR3d — folded at the unit's PROCEDURE DIVISION HEADER, never at divLine: the
+            // §2023:14.9.4.4 GR3 d) — folded at the unit's PROCEDURE DIVISION HEADER, never at divLine: the
             // before-Environment-division point is §2023:14.8.4.1's rule for the EC-EXTERNAL conditions ALONE, and §2023:7.3.25.4
             // GR6 / GR8 scope a TURN to the "procedure division headers that follow" (kb/Work PB1381).
             ArgMismatchChecking: turn.EnabledAtHeader("EC-PROGRAM-ARG-MISMATCH", unit.procedureDivision(), int.MaxValue),

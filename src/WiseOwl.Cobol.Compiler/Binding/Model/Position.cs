@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <para>The node set is the set of shapes that render DIRECTLY as an ordinal. Every other arithmetic expression (a
 /// function-identifier, <c>/</c>, <c>**</c>, a decimal literal, a scaled operand inside a compound) is bound by the
 /// ONE expression binder into the §2023:15.4 position temporary and is then a
-/// <see cref="PositionItemRead"/> of that temporary, so §2023:8.4.2.3.4 GR1b's integrality rule is asked once, of the
+/// <see cref="PositionItemRead"/> of that temporary, so §2023:8.4.2.3.4 GR1 b)'s integrality rule is asked once, of the
 /// result.</para>
 /// </summary>
 public abstract record Position
@@ -40,7 +40,7 @@ public abstract record Position
     };
 
     /// <summary>True when this position evaluates to itself at any time — a non-negative integer constant, or an offset
-    /// with no subscript term over one. The structural test the §2023:14.6.4 GR7 evaluate-once identification asks before it
+    /// with no subscript term over one. The structural test the §2023:14.6.4 7) evaluate-once identification asks before it
     /// hoists a position into a statement local (<c>CodeGen.PlaceIdentification</c>); a term over a constant index
     /// is still a term, so the identification keeps the address it would have computed.</summary>
     public bool IsSelfEvaluating => this switch
@@ -120,7 +120,7 @@ public sealed record PositionConstant(long Value) : Position;
 
 /// <summary>⛔ A compile-time integer PAST THE HOST'S <c>long</c> (kb/Work PB2938): an integer literal or constant-name of
 /// 20 or more digits used as a subscript or a reference-modifier position. It is out of every table's and item's range
-/// whatever the table or item (ISO §2023:8.4.2.3.4 GR2, §2023:8.4.3.3.4 GR5), but the value the program wrote is what the
+/// whatever the table or item (ISO §2023:8.4.2.3.4 GR2, §2023:8.4.3.3.4 5)), but the value the program wrote is what the
 /// diagnostic must name, so the node keeps it exactly, signed, instead of the <c>long</c> clamp a
 /// <see cref="PositionConstant"/> would hold (saturated at ±<see cref="Int128.MaxValue"/> past 38 digits, the position
 /// temporary's own capacity). It renders as the runtime's saturating carrier of that value

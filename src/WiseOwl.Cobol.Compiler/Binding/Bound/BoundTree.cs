@@ -261,7 +261,7 @@ public sealed record BoundDeclarative(
 /// two cases); the pass structure and the per-pass census are the emitter's, in <c>EcEmitter</c>.</para></summary>
 public abstract record BoundEoOperand;
 
-/// <summary>The object-class-name-1 alternative — ISO §2023:14.9.49.3 SR16, selected by §2023:14.9.49.4 GR14a: the
+/// <summary>The object-class-name-1 alternative — ISO §2023:14.9.49.3 SR16, selected by §2023:14.9.49.4 GR14 a): the
 /// exception object "is a factory object or instance object of object-class-name-1 or of a subclass of
 /// object-class-name-1". ONE clause naming BOTH object kinds, and a COBOL class is emitted as TWO DISJOINT C#
 /// hierarchies (the instance class and its sibling <c>__FACTORY_…</c> singleton, each rooted at its base's
@@ -271,7 +271,7 @@ public abstract record BoundEoOperand;
 /// silently).</summary>
 public sealed record BoundEoClass(OoClassSymbol Symbol) : BoundEoOperand;
 
-/// <summary>The interface-name-1 alternative — ISO §2023:14.9.49.3 SR17, selected by §2023:14.9.49.4 GR14b: the
+/// <summary>The interface-name-1 alternative — ISO §2023:14.9.49.3 SR17, selected by §2023:14.9.49.4 GR14 b): the
 /// exception object "is described with an IMPLEMENTS clause that references interface-name-1". §2023:11.8.4 GR2
 /// (instance objects) and §2023:11.4.4 GR2 (factory objects) make that a CLOSURE — a) the object's own IMPLEMENTS,
 /// b) "the instance object implements an interface that inherits intf-1", c) "the class containing the instance
@@ -636,7 +636,7 @@ public sealed record BoundIntrinsicCall(
     public bool LengthInBytes { get; init; }
 
     /// <summary>FUNCTION LENGTH / BYTE-LENGTH of a VARIABLE-LENGTH GROUP, measured over its CURRENT-EXTENT IMAGE
-    /// (kb/Work PB244): §2023:15.50.4 RV7 / §2023:15.14.4 RV6 sum the group's fixed parts and every variable-length
+    /// (kb/Work PB244): §2023:15.50.4 rule 7 / §2023:15.14.4 rule 6 sum the group's fixed parts and every variable-length
     /// member's current length, which for a table of variable-length ELEMENTS under OCCURS DEPENDING or dynamic
     /// capacity is a per-occurrence loop over run-time storage that the binder's term-by-term sum
     /// (<c>IntrinsicBinder.VariableLengthGroupSum</c>) cannot write down. The group's own <c>CurrentImage</c> IS that
@@ -713,7 +713,7 @@ public sealed record BoundNumericLiteral(string Text) : BoundOperand
     public string? FoldedFunction { get; init; }
 
     /// <summary>The decimal separator the SOURCE wrote this literal with: the comma under DECIMAL-POINT IS COMMA
-    /// (ISO §2023:12.3.7.4 GR14a: "The character written in numeric literals to represent the decimal separator shall
+    /// (ISO §2023:12.3.7.4 GR14 a): "The character written in numeric literals to represent the decimal separator shall
     /// be the comma"; a contained program inherits it, §2023:12.3.4 GR1), else the period. <see cref="Text"/> is always
     /// the canonical dot-decimal value spelling the numeric decoders read; this is only the spelling of the
     /// literal's CHARACTER image (<see cref="Image"/>). Default '.', which is right for every literal the compiler
@@ -749,7 +749,7 @@ public sealed record BoundFieldOperand(Place Place) : BoundOperand;
 
 /// <summary>
 /// THE CURRENT RECORD — the sending operand of the implicit MOVE a <c>READ … INTO</c> / <c>RETURN … INTO</c>
-/// performs. ISO §2023:14.9.30.4 GR4b and §2023:14.9.34.4 GR5b say it in one sentence each: "The current record is
+/// performs. ISO §2023:14.9.30.4 GR4 b) and §2023:14.9.34.4 GR5 b) say it in one sentence each: "The current record is
 /// moved from the record area to the area specified by identifier-1 according to the rules for the MOVE
 /// statement without the CORRESPONDING phrase. The size of the current record is determined by rules specified
 /// in [for] the RECORD clause. If the file description entry contains a RECORD IS VARYING clause, the implied
@@ -769,12 +769,12 @@ public sealed record BoundFieldOperand(Place Place) : BoundOperand;
 /// <see cref="BoundFieldOperand"/>.</para>
 /// </summary>
 /// <param name="Area">The FD/SD record area the record was made available in (<c>FileModel.AreaRecord</c>'s
-/// resolved place — the LARGEST record's view, §2023:13.18.33.4 GR3 / §2023:13.18.43.4 GR5a).</param>
+/// resolved place — the LARGEST record's view, §2023:13.18.33.4 GR3 / §2023:13.18.43.4 GR5 a)).</param>
 /// <param name="File">The file/sort-file whose current-record length is read at execution: a connector's
 /// last-read length, or — when <c>FileModel.IsSortMerge</c> — the sort store's last-returned length.</param>
 /// <param name="Depending">The resolved <c>RECORD VARYING … DEPENDING ON</c> item, or <see langword="null"/>
-/// when the phrase is absent. Present ⇒ §2023:13.18.43.4 GR16a; absent ⇒ GR16 b).</param>
-/// <param name="AlphanumericGroupMove">§2023:14.9.30.4 GR4b / §2023:14.9.34.4 GR5b's explicit designation — true iff
+/// when the phrase is absent. Present ⇒ §2023:13.18.43.4 GR16 a); absent ⇒ GR16 b).</param>
+/// <param name="AlphanumericGroupMove">§2023:14.9.30.4 GR4 b) / §2023:14.9.34.4 GR5 b)'s explicit designation — true iff
 /// the file description entry contains a RECORD IS VARYING clause (FORMAT 2). It makes the implied move a
 /// §2023:14.9.25.4 GR4 group move WHATEVER the record area's own level structure: no conversion, no editing, the
 /// receiving area "filled without consideration for the individual elementary or group items".</param>
@@ -806,7 +806,7 @@ public sealed record BoundComputedOperand(BoundExpr Expr) : BoundOperand
     /// and INVOKE arms, the activation description).
     /// <para>⛔ THE ANSWER IS THE BINDER'S STATEMENT, NEVER THE TREE'S SHAPE (kb/Work PB3678). A parenthesized function,
     /// <c>(FUNCTION MIN(N 3))</c>, is an arithmetic expression: §2023:14.9.4.4 GR8 regards as an identifier only "an argument that
-    /// consists merely of a single identifier or literal", and an arithmetic expression is no MOVE sender (§2023:14.8.2.2 SR2). The
+    /// consists merely of a single identifier or literal", and an arithmetic expression is no MOVE sender (§2023:14.8.2.2 rule 2). The
     /// expression binder drops the parentheses, so its tree is the same <see cref="BoundIntrinsicCall"/> the sole function
     /// binds to, and an answer read from the tree made <c>(FUNCTION MIN(N 3))</c> a MOVE sender while <c>(FUNCTION
     /// LENGTH(VG))</c>, whose tree is a <see cref="BoundBinary"/>, was refused. Only the category is read from the call: a
@@ -980,14 +980,14 @@ public sealed record BoundBoolAll(string Bits, bool IsAllLiteral = false) : Boun
 /// <c>'^'</c> B-XOR), positionwise with rule-9 right-zero-extension and rule-10 result length (§2023:8.8.2).</summary>
 public sealed record BoundBoolBinary(BoundBoolExpr Left, char Op, BoundBoolExpr Right) : BoundBoolExpr;
 
-/// <summary>Boolean negation (B-NOT) — length preserved (ISO §2023:8.8.2 GR10).</summary>
+/// <summary>Boolean negation (B-NOT) — length preserved (ISO §2023:8.8.2 rule 10).</summary>
 public sealed record BoundBoolNot(BoundBoolExpr Operand) : BoundBoolExpr;
 
 /// <summary>The four boolean shift operators (ISO §2023:8.8.2, COBOL-2023): logical (fill boolean 0) or circular
 /// (rotate), left or right.</summary>
 public enum BoolShiftKind { Left, Right, LeftCircular, RightCircular }
 
-/// <summary>A boolean shift/rotate (ISO §2023:8.8.2 GR8, COBOL-2023): shift <paramref name="Operand"/> by the
+/// <summary>A boolean shift/rotate (ISO §2023:8.8.2 rule 8, COBOL-2023): shift <paramref name="Operand"/> by the
 /// integer <paramref name="Count"/>. The result length equals the operand's length (rule 9 — the count contributes
 /// no positions). NOTE the rule-7b context-sensitive precedence (a shift inheriting a preceding B-OR/B-XOR's
 /// precedence) is a documented refinement — the grammar binds the shift tighter than B-AND (the unmixed default
@@ -1027,7 +1027,7 @@ public sealed record BoundBoolError : BoundBoolExpr
 /// ride the SAME BoundRelational + renderer branch, never a parallel node; feedback_one_mechanism_per_job).
 /// <para><paramref name="AtItemWidth"/> is the SENDING form of a BY CONTENT boolean-expression-1 / boolean literal-2
 /// argument of a CALL or INVOKE (kb/Work PB1014): §2023:14.8.2.3.3 2) d) makes the crossing "the same as for a MOVE statement
-/// with the argument as the sending operand", and the value that MOVE sends is taken at §2023:8.8.2 GR10's width — the largest
+/// with the argument as the sending operand", and the value that MOVE sends is taken at §2023:8.8.2 rule 10's width — the largest
 /// boolean ITEM referenced (<see cref="WiseOwl.Cobol.CodeGen.Emit.BooleanRenderer.RenderAtItemWidth"/>), not the relation
 /// operand's unsized image. It lets the argument ride the one MOVE receiving store (<c>MoveEmitter.ConvertSource</c>)
 /// like every other sender, instead of a second store written beside it.</para></summary>
@@ -1147,7 +1147,7 @@ public abstract record BoundStatement
     /// invocation, a D18 function-bearing subscript's §2023:15.4 temporary store, a sending-value temp) and every
     /// object-property accessor lowered around a statement (kb/Work PB892, PB1432). Wherever the step runs —
     /// hoisted before the statement, or inside a per-evaluation window's lambda — a condition it raises or
-    /// propagates belongs to the statement it was written in: ISO §2023:14.9.33.4 GR2a.1 ("the one in which the
+    /// propagates belongs to the statement it was written in: ISO §2023:14.9.33.4 GR2 a) 1. ("the one in which the
     /// exception condition was raised") and 2. ("for an inline invocation or a function invocation, … the statement
     /// in which the inline invocation or function invocation was specified"), and NOTE 1 ("If an exception condition
     /// was raised during the evaluation of 'a', transfer would be after the END-IF"). So its RESUME landing never
@@ -1315,7 +1315,7 @@ public sealed record BoundDisplay(IReadOnlyList<BoundOperand> Operands, bool NoA
 /// MOVE binder's syntax screens, <c>VersionConformancePass.GateMove</c>, and any rule written tomorrow) reports
 /// the statement the programmer actually WROTE instead of a MOVE they never typed.
 /// <para><paramref name="Cite"/> is the clause that imports the MOVE statement's rules into the phrase — ISO
-/// §2023:14.9.32.4 GR4a for RELEASE, §2023:14.9.51.4 GR5a for WRITE, §2023:14.9.30.4 GR4b for READ INTO, and so on. It is
+/// §2023:14.9.32.4 GR4 a) for RELEASE, §2023:14.9.51.4 GR5 a) for WRITE, §2023:14.9.30.4 GR4 b) for READ INTO, and so on. It is
 /// carried, not re-derived, because the diagnostic has to name the rule that made the phrase a MOVE.</para></summary>
 public sealed record ImplicitMovePhrase(string Statement, string Cite)
 {
@@ -1330,7 +1330,7 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
     /// <summary>True when the owning statement identifies the RECEIVING operand before it evaluates the sending one,
     /// so the move's store keeps that order instead of the MOVE statement's sender-first order (§2023:14.9.25.4 GR1,
     /// <c>PlaceIdentification.SenderFirst</c>; kb/Work PB3261). INITIALIZE is the one such statement: its rules give
-    /// no timing of their own, so §2023:14.6.4 GR7 applies — "the identifiers within a statement are evaluated in left to
+    /// no timing of their own, so §2023:14.6.4 7) applies — "the identifiers within a statement are evaluated in left to
     /// right order as the first operation of the execution of that statement" — and identifier-1, the receiver, is
     /// written before the REPLACING phrase's sending identifier.</summary>
     public bool ReceiverIdentifiedFirst { get; init; }
@@ -1342,7 +1342,7 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
 
     /// <summary>MOVE CORRESPONDING's per-pair move — ISO §2023:14.9.25.4 GR11, "The results are the same as if the user
     /// had referred to each pair of corresponding identifiers in separate MOVE statements." The pair was selected
-    /// by §2023:14.7.6 GR2's own MOVE-validity filter, so the screens pass by construction and are asked anyway.</summary>
+    /// by §2023:14.7.6 rule 2's own MOVE-validity filter, so the screens pass by construction and are asked anyway.</summary>
     public static readonly ImplicitMovePhrase MoveCorresponding =
         new("MOVE CORRESPONDING", "ISO §2023:14.9.25.4 GR11");
 
@@ -1359,18 +1359,18 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
     /// because SR3 is ACCEPT's own rule over the same receiver classes Table 16 refuses (kb/Work PB887).</summary>
     public static readonly ImplicitMovePhrase AcceptTemporal =
         new("ACCEPT FROM DATE/DAY/DAY-OF-WEEK/TIME", "ISO §2023:14.9.1.4 GR6") { ValidityAskedByStatement = true };
-    /// <summary>UNSTRING's store of the examined characters into identifier-4 — ISO §2023:14.9.48.4 GR11c, "shall be
+    /// <summary>UNSTRING's store of the examined characters into identifier-4 — ISO §2023:14.9.48.4 GR11 c), "shall be
     /// moved into the current receiving area according to the rules for the MOVE statement" (kb/Work PB979). The
     /// validity question is the statement's own: §2023:14.9.48.3 SR4 names the admissible receivers (and SR10 the
     /// groups), and the sender is the conceptual elementary alphanumeric / national item GR11 c) defines, so the
     /// MOVE screens are not asked a second time.</summary>
     public static readonly ImplicitMovePhrase UnstringInto =
-        new("UNSTRING INTO", "ISO §2023:14.9.48.4 GR11c") { ValidityAskedByStatement = true };
+        new("UNSTRING INTO", "ISO §2023:14.9.48.4 GR11 c)") { ValidityAskedByStatement = true };
 
-    /// <summary>UNSTRING's store of the delimiting characters into identifier-5 — ISO §2023:14.9.48.4 GR11d, the same
+    /// <summary>UNSTRING's store of the delimiting characters into identifier-5 — ISO §2023:14.9.48.4 GR11 d), the same
     /// sentence for the DELIMITER IN phrase; §2023:14.9.48.3 SR2 is the statement's own validity screen for it.</summary>
     public static readonly ImplicitMovePhrase UnstringDelimiterIn =
-        new("UNSTRING DELIMITER IN", "ISO §2023:14.9.48.4 GR11d") { ValidityAskedByStatement = true };
+        new("UNSTRING DELIMITER IN", "ISO §2023:14.9.48.4 GR11 d)") { ValidityAskedByStatement = true };
 
     /// <summary>The element moves of a §2023:14.9.25.4 GR9 variable-length group MOVE — ISO §2023:14.6.9.2, "Correspondingly
     /// numbered elements are moved according to the rules of the MOVE statement specified in 14.9.25, MOVE
@@ -1428,7 +1428,7 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
 /// places (kb/Work PB337).</para>
 /// </summary>
 /// <param name="Statement">The phrase as the programmer wrote it, for every diagnostic.</param>
-/// <param name="MoveRule">The general rule that makes the phrase a MOVE — §2023:14.9.30.4 GR4b / §2023:14.9.34.4
+/// <param name="MoveRule">The general rule that makes the phrase a MOVE — §2023:14.9.30.4 GR4 b) / §2023:14.9.34.4
 /// GR5 b), which are the same sentence twice; at COBOL-85 READ's GR8 b of its I-O module and RETURN's §1985:XI.4.3.4 GR6 b
 /// (kb/Work PB5352).</param>
 /// <param name="AdmitsRecordLessEntry">True when the verb's description entry may legally have no record
@@ -1462,23 +1462,23 @@ public sealed record IntoPhraseRules(
     public ImplicitMovePhrase PhraseAt(int dialectLevel, FileOrganization organization) =>
         new(Statement, MoveRule.At(dialectLevel, organization));
 
-    /// <summary>Arm b) of the admissibility rule from COBOL-2002 (§2023:14.9.30.3 SR1 b, §2023:14.9.34.3 SR2b.</summary>
+    /// <summary>Arm b) of the admissibility rule from COBOL-2002 (§2023:14.9.30.3 SR1 b, §2023:14.9.34.3 SR2 b).</summary>
     private const string ArmB2023 =
         "\"describe an alphanumeric group item or an elementary item of category alphanumeric or category national\"";
 
-    /// <summary>Arm b) in COBOL-85 (§1985:VII.4.4.4 GR7 b and its twins, §1985:XI.4.3.4 GR5b.</summary>
+    /// <summary>Arm b) in COBOL-85 (§1985:VII.4.4.4 GR7 b and its twins, §1985:XI.4.3.4 GR5 b).</summary>
     private const string ArmB1985 = "\"describe a group item or an elementary alphanumeric item\"";
 
     /// <summary>The record-area COUNT this verb's admissibility arm a) and strong-receiver rule admit: 1, or
     /// 0 and 1 where the description entry may be record-less. Read by both rules, never re-derived.</summary>
     public bool AdmitsRecordCount(int count) => count == 1 || (count == 0 && AdmitsRecordLessEntry);
 
-    /// <summary><c>READ … INTO</c> — both organizations. ISO §2023:14.9.30.4 GR4b: "The current record is moved
+    /// <summary><c>READ … INTO</c> — both organizations. ISO §2023:14.9.30.4 GR4 b): "The current record is moved
     /// from the record area to the area specified by identifier-1 according to the rules for the MOVE statement
     /// without the CORRESPONDING phrase."</summary>
     public static readonly IntoPhraseRules Read = new(
         "READ INTO",
-        new("ISO §2023:14.9.30.4 GR4b", "§1985:VII.4.4.4 GR8b", "§1985:VIII.4.5.4 GR8b", "§1985:IX.4.5.4 GR8b"),
+        new("ISO §2023:14.9.30.4 GR4 b)", "§1985:VII.4.4.4 GR8b", "§1985:VIII.4.5.4 GR8b", "§1985:IX.4.5.4 GR8b"),
         AdmitsRecordLessEntry: true,
         new("ISO §2023:14.9.30.3 SR1", "§1985:VII.4.4.4 GR7", "§1985:VIII.4.5.4 GR7", "§1985:IX.4.5.4 GR7"),
         new("\"If no record description entry or only one record description is subordinate to the file description "
@@ -1488,11 +1488,11 @@ public sealed record IntoPhraseRules(
         "\"there shall be at most one record area subordinate to the FD for file-name-1\"",
         "FD", RecordAreaVerb.Read);
 
-    /// <summary><c>RETURN … INTO</c>. ISO §2023:14.9.34.4 GR5b — the identical sentence, which is why the two
+    /// <summary><c>RETURN … INTO</c>. ISO §2023:14.9.34.4 GR5 b) — the identical sentence, which is why the two
     /// phrases share one binder and one sender builder rather than one each.</summary>
     public static readonly IntoPhraseRules Return = new(
         "RETURN INTO",
-        new("ISO §2023:14.9.34.4 GR5b", "§1985:XI.4.3.4 GR6b"),
+        new("ISO §2023:14.9.34.4 GR5 b)", "§1985:XI.4.3.4 GR6b"),
         AdmitsRecordLessEntry: false,
         new("ISO §2023:14.9.34.3 SR2", "§1985:XI.4.3.4 GR5"),
         new("\"If only one record description is subordinate to the sort-merge file description entry\""),
@@ -1630,7 +1630,7 @@ public sealed record BoundCompute(BoundExpr Rhs, IReadOnlyList<Receiver> Targets
 /// <summary>The statement pre-operation that evaluates a subscript or reference-modifier bound written as an
 /// arithmetic EXPRESSION (or a floating-point item) and stores the ORDINAL POSITION it denotes in
 /// <paramref name="Temp"/>, an integer compiler temporary the reference reads back (kb/Work PB1890). The
-/// integrality rule — §2023:8.4.2.3.4 GR1b for a subscript (<paramref name="RefMod"/> false), §2023:8.4.3.3.4 GR5)c) for a
+/// integrality rule — §2023:8.4.2.3.4 GR1b for a subscript (<paramref name="RefMod"/> false), §2023:8.4.3.3.4 rule 5)c) for a
 /// leftmost-position or length — is asked of <paramref name="Value"/> on the carrier it evaluates on, BEFORE the
 /// store, so no fixed fraction width can turn a non-integer into an integer.</summary>
 public sealed record BoundPositionValue(BoundExpr Value, Place Temp, bool RefMod) : BoundStatement;
@@ -1674,7 +1674,7 @@ public sealed record PerformForever : BoundPerformControl;
 public enum VaryingOperandKind
 {
     /// <summary>literal-1 / literal-2 (§2023:14.9.28.3 SR3 — numeric; a leading sign is part of the literal,
-    /// §2023:8.3.3.3.2 SR2; the figurative ZERO is one, §2023:8.3.3.6.3 SR1).</summary>
+    /// §2023:8.3.3.3.2 rule 2; the figurative ZERO is one, §2023:8.3.3.6.3 SR1).</summary>
     Literal,
     /// <summary>index-name-2 / index-name-4 — legal in the FROM slot only; §2023:14.9.28.4 GR12 takes its OCCURRENCE
     /// NUMBER as the initialization value, and §2023:14.9.28.4 GR3 is expressly NOT about it.</summary>
@@ -1700,7 +1700,7 @@ public sealed record VaryingLevel(BoundSetTarget Var, BoundExpr From, BoundExpr 
 /// Formats 1 and 2 — §2023:14.9.28.4 GR13): nested
 /// induction loops, leftmost level outermost.
 /// <para><paramref name="AugmentOuterFirst"/> is the EDITION's order of the two operations of a TEST BEFORE AFTER step
-/// when the inner condition is true (kb/Work PB5101): <c>true</c> at 1985, whose §1985:VI.6.21.4 GR10d 1 augments the
+/// when the inner condition is true (kb/Work PB5101): <c>true</c> at 1985, whose §1985:VI.6.21.4 GR10 d) 1 augments the
 /// outer variable and THEN sets the inner one to its from-value; <c>false</c> from 2002, whose §2023:14.9.28.4 GR13
 /// e) 2 a–c resets the inner variable FIRST. Decided by the binder so the emitter asks the rule's question, not the edition.</para></summary>
 public sealed record PerformVarying(IReadOnlyList<VaryingLevel> Levels, bool TestAfter,
@@ -1721,7 +1721,7 @@ public sealed record BoundInlinePerform(BoundPerformControl Control, IReadOnlyLi
 // when the debug facility is inactive (never read then).
 /// <para><paramref name="EntersDeclarative"/> — this PERFORM is written in the NONDECLARATIVE portion and its
 /// range is a declarative procedure (§2023:14.9.49.3 SR4 admits exactly this reference). It is then the landing of
-/// §2023:14.9.33.4 GR2b: "If the declarative was not executed because of an exception condition but was executed
+/// §2023:14.9.33.4 GR2 b): "If the declarative was not executed because of an exception condition but was executed
 /// instead by a PERFORM statement in the nondeclarative portion of the source element that referenced the
 /// declarative procedure, the implicit CONTINUE statement immediately follows the last statement of the terminating
 /// procedure referenced in that PERFORM statement" — the other arm of the ONE resume signal, whose exception arm
@@ -1781,7 +1781,7 @@ public sealed record BoundSequence(IReadOnlyList<BoundStatement> Steps, bool Rep
 /// had been written for each … in the same order as specified", and each then adds the sentence THIS NODE EXISTS
 /// FOR: "If an implicit … statement results in the execution of a declarative procedure that executes a RESUME
 /// statement with the NEXT STATEMENT phrase, processing resumes at the next implicit … statement, if any."
-/// <para>That second sentence is what §2023:14.9.33.4 GR2a leaves room for — "the implicit CONTINUE statement
+/// <para>That second sentence is what §2023:14.9.33.4 GR2 a) leaves room for — "the implicit CONTINUE statement
 /// immediately follows the end of the statement that was executing when control was transferred to the exception
 /// processing procedure UNLESS GENERAL RULES ASSOCIATED WITH THE APPLICABLE STATEMENT SPECIFY OTHERWISE" — so a
 /// multi-operand verb's resumption point is a PER-OPERAND boundary, never the end of the written statement. The
@@ -2105,7 +2105,7 @@ public sealed record BoundSetContent(IReadOnlyList<SetContentStore> Stores) : Bo
 // ── SEARCH (ISO §2023:14.9.37 — Format 1 serial, Format 2 SEARCH ALL) ───────────────────────────────────────────────
 
 /// <summary>One WHEN arm of a SEARCH: its condition and imperative statements (evaluated in source order; the
-/// first true arm runs and ends the search — ISO §2023:14.9.37.4 GR1a, "the search operation is terminated
+/// first true arm runs and ends the search — ISO §2023:14.9.37.4 GR1 a), "the search operation is terminated
 /// immediately").</summary>
 public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<BoundStatement> Statements);
 
@@ -2268,7 +2268,7 @@ public sealed record BoundAdvancing(bool Before, bool Page, BoundOperand? Lines)
 
 /// <summary><c>WRITE record [FROM x] [ADVANCING …]</c> (ISO §2023:14.9.51): <paramref name="Record"/> is the record area
 /// place (its image is written); <paramref name="FromMove"/> is the BOUND implicit MOVE of the FROM phrase
-/// (§2023:14.9.51.4 GR5a — built by <c>MoveBinder.BindFromPhrase</c> under the MOVE statement's own syntax rules
+/// (§2023:14.9.51.4 GR5 a) — built by <c>MoveBinder.BindFromPhrase</c> under the MOVE statement's own syntax rules
 /// (§2023:14.9.51.3 SR6), null when no FROM phrase is written. <paramref name="Advancing"/> null = a
 /// plain (data) WRITE. <paramref name="Unsupported"/> set (loud) when the owning file's organization is unsupported.
 /// <paramref name="AtEop"/>/<paramref name="NotAtEop"/> are the END-OF-PAGE / NOT END-OF-PAGE imperatives (ISO
@@ -2304,7 +2304,7 @@ public sealed record BoundWrite(FileModel File, Place Record, BoundMove? FromMov
 /// <summary><c>READ file [NEXT|PREVIOUS] [INTO x] [AT END …][NOT AT END …]</c> on a SEQUENTIAL or LINE
 /// SEQUENTIAL file (ISO §2023:14.9.30 Format 1): a sequential read that distributes the record image into the FD
 /// record (and, with INTO, MOVEs it to the receiver through <paramref name="IntoMove"/> — the BOUND implicit
-/// MOVE of §2023:14.9.30.4 GR4b, whose sender is the §2023:13.18.43.4 GR16 slice of the record area). The AT END /
+/// MOVE of §2023:14.9.30.4 GR4 b), whose sender is the §2023:13.18.43.4 GR16 slice of the record area). The AT END /
 /// NOT AT END imperatives branch on the at-end condition.
 /// <para>⛔ EVERY PHRASE <c>readStatement</c> CAN PRODUCE HAS A MEMBER HERE. Three of them did not, and the
 /// binder therefore never called their accessors: the record carried no direction (so <c>READ … PREVIOUS</c>
@@ -2376,7 +2376,7 @@ public sealed record BoundInitiate(IReadOnlyList<ReportModel> Reports) : BoundSt
 /// <paramref name="Detail"/> after control-break/page-fit processing (GR1); a null detail is SUMMARY reporting
 /// (GR2 — the report-name form, same processing with no detail printed). <paramref name="SummaryDetail"/> is the detail
 /// group a SUMMARY statement still subtotals for and processes without printing (its USE BEFORE REPORTING procedure runs,
-/// §1985:XIII.3.20.4 GR11b, kb/Work PB5337): §1985:XIII.3.20.4 GR11 processes "a GENERATE report-name statement" of a
+/// §1985:XIII.3.20.4 GR11 b), kb/Work PB5337): §1985:XIII.3.20.4 GR11 processes "a GENERATE report-name statement" of a
 /// report with exactly one detail group "as though a GENERATE data-name statement were being executed", its step a) being
 /// "any subtotalling that has been designated for the detail report group" (a SUM ... UPON that group), and §2023:14.9.16.4
 /// GR2 gives the report-name form "the same processing as for a GENERATE data-name statement for the same report, except
@@ -2427,7 +2427,7 @@ public sealed record BoundEcChecked(BoundStatement Inner, EcStatementInfo Info) 
 
 /// <summary>A statement that carries its own §2023:7.3.25 checking state to run time because the exception-name it may raise is NOT known at compile time:
 /// the activating statements CALL, INVOKE (typed or universal) and the lowered user-defined-function reference, and the messaging statements SEND and RECEIVE.
-/// <para><b>Activation.</b> ISO §2023:14.9.18.4 GR1b: a condition a <c>GOBACK / EXIT … RAISING</c> stages in the activated element "is raised in the activating
+/// <para><b>Activation.</b> ISO §2023:14.9.18.4 GR1 b): a condition a <c>GOBACK / EXIT … RAISING</c> stages in the activated element "is raised in the activating
 /// runtime element if checking for that exception condition is enabled in the ACTIVATING runtime element". The activated element cannot answer that — under
 /// separate compilation it cannot even see this element — and the propagated name is not known until run time (<c>RAISING LAST EXCEPTION</c>), so the answer
 /// travels as the activating STATEMENT's own checking state and is consulted by the site's propagation pickup.</para>
@@ -2454,7 +2454,7 @@ public interface IProfiledStatement
 /// per-evaluation inside one of its conditions or operands (<see cref="BoundUdfEvaluated"/> /
 /// <see cref="BoundUdfEvaluatedExpr"/>).
 /// <para>It is the landing of the transfer ISO §2023:14.9.33.4 GR2 a) 2. and 3. prescribe for a condition that such an
-/// activation propagates (§2023:14.9.18.4 GR1b): "for an inline invocation or a function invocation, it is the
+/// activation propagates (§2023:14.9.18.4 GR1 b)): "for an inline invocation or a function invocation, it is the
 /// statement in which the inline invocation or function invocation was specified", and "the lowest level
 /// statement, not the containing statement". The activation's pickup cannot express that transfer itself — an
 /// expression-position activation runs inside a C# expression, where no <c>goto</c> can leave, and a hoisted one
@@ -2463,7 +2463,7 @@ public interface IProfiledStatement
 /// STATEMENT continues after <paramref name="Inner"/>.</para>
 /// <para>The same landing serves every OTHER operand-evaluation step (<see cref="BoundStatement.OperandEvaluation"/>
 /// — kb/Work PB1432): a D18 function-bearing subscript's §2023:15.4 temporary store raises EC-SIZE-ZERO-DIVIDE in the
-/// statement it was written in (§2023:14.9.33.4 GR2a.1), inside a short-circuited operand's lambda as readily as
+/// statement it was written in (§2023:14.9.33.4 GR2 a) 1.), inside a short-circuited operand's lambda as readily as
 /// hoisted before the statement, and NOTE 1 places the RESUME AT NEXT STATEMENT "after the END-IF".</para>
 /// <para>Created by <c>StatementBinder.BindStatement</c> exactly when the statement drained an operand-evaluation
 /// step, so a statement without one binds byte-identically.</para></summary>
@@ -2479,8 +2479,8 @@ public sealed record BoundActivationSite(BoundStatement Inner) : BoundStatement;
 ///   <item>a data item whose IDENTIFICATION evaluates something — a subscript or reference modifier lowered to a §2023:15.4
 ///     temporary, a function activation in one: Open is that evaluation, and there is no Close
 ///     (<c>ExpressionBinder.ResolveReceivingAtStore</c>). The statements that identify a receiver as it is stored —
-///     §2023:14.9.25.4 GR1 (MOVE), §2023:14.7.7 GR4b (the arithmetic statements), the INTO phrase of READ and RETURN
-///     (§2023:14.9.30.4 GR4b, §2023:14.9.34.4 GR5b, §1985:XI.4.3.4 GR6b) — would otherwise identify it before the statement
+///     §2023:14.9.25.4 GR1 (MOVE), §2023:14.7.7 4) b) (the arithmetic statements), the INTO phrase of READ and RETURN
+///     (§2023:14.9.30.4 GR4 b), §2023:14.9.34.4 GR5 b), §1985:XI.4.3.4 GR6b) — would otherwise identify it before the statement
 ///     ran, at the hoist every other operand's evaluation rides.</item>
 /// </list></summary>
 public sealed record ReceiverBracket(ReceiverBracketKey Receiver, IReadOnlyList<BoundStatement> Open, IReadOnlyList<BoundStatement> Close);
@@ -2520,7 +2520,7 @@ public sealed record WrittenReceiverKey(Place Reference) : ReceiverBracketKey
 }
 
 /// <summary>⛔ A STATEMENT WHOSE RECEIVING OBJECT PROPERTIES ARE ACCESSED ONE RECEIVER AT A TIME (kb/Work PB2078).
-/// ISO §2023:14.7.7 GR4b stores the intermediate result "in or combined with and then stored in each single resulting
+/// ISO §2023:14.7.7 4) b) stores the intermediate result "in or combined with and then stored in each single resulting
 /// data item in the left-to-right order" and says "Item identification for the receiving data items is done as each
 /// data item is accessed"; §2023:14.9.25.4 GR1 identifies each MOVE receiver "immediately before the data is moved to the
 /// respective data item". A property receiver is that data item's stand-in (§2023:8.4.3.9.4 GR1–GR3), so its GET belongs
@@ -2615,7 +2615,7 @@ public sealed record BoundRaising(string? EcName, bool IsLast, bool Fatal,
 // Fatal field is meaningless on this leg (the §2023:14.6.13.1.5 activator rules decide fatality).
 //
 // ⛔ THERE IS DELIBERATELY NO `Enabled` FIELD (kb/Work PB408, and ExceptionCheckingProfileDriftTests keeps it
-// that way). §2023:14.9.18.4 GR1b asks whether checking is enabled in the ACTIVATING runtime element, and the
+// that way). §2023:14.9.18.4 GR1 b) asks whether checking is enabled in the ACTIVATING runtime element, and the
 // activator is not known when this node is bound — it is not even in the compilation group under separate
 // compilation. The enablement test lives at the activating statement, which carries its own
 // <see cref="WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile"/>; staging here is unconditional.

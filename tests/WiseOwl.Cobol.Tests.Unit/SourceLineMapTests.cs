@@ -120,7 +120,7 @@ public sealed class SourceLineMapTests : IDisposable
         Assert.Equal("r.cob(1,18)", m.Slice(12, 2).LocateAt(0).ToString());   // a slice begun mid-line is rebased
     }
 
-    [Fact] // kb/Work PB3031: written text counts a CHARACTER POSITION per character (ISO §2023:6.1 GR1a), not a UTF-16 unit
+    [Fact] // kb/Work PB3031: written text counts a CHARACTER POSITION per character (ISO §2023:6.1 1) a)), not a UTF-16 unit
     public void OriginWriter_WrittenTextWithSupplementaryCharacters_CountsOnePositionPerCharacter()
     {
         string wide = "\U0001000D\U0001000E";

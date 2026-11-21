@@ -175,7 +175,7 @@ internal sealed class StrongGroupComparison(BinderContext ctx)
     /// REDEFINES clause (and its subordinates) is not a separate elementary item of the comparison — it describes
     /// the storage of the entry it redefines, which is already compared at that entry's position (the same
     /// exclusion §2023:8.5.1.12.1 makes for group compatibility, "any subordinate data items that specify the
-    /// REDEFINES clause … are ignored", and §2023:14.9.20.4 GR5a.3 for INITIALIZE).</summary>
+    /// REDEFINES clause … are ignored", and §2023:14.9.20.4 GR5 a) 3) for INITIALIZE).</summary>
     private static List<DataItem> StorageChildren(DataItem group) =>
         [.. group.Children.Where(c => (c.IsGroup || c.IsElementary) && c.Renames is null && c.RedefinesTargetName is null)];
 

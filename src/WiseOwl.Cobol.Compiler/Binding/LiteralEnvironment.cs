@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Binding;
 /// the program collating sequence of the operand's class (§2023:12.3.7.4 GR8/GR9; the native pins when none is declared —
 /// the <c>FigurativeConstants.FillChar</c> posture).</item>
 /// <item><b>The words that stand for a literal.</b> §2023:13.10.3 SR2 lets a constant-name stand wherever a format
-/// specifies a literal of its class and category, and §2023:12.3.7.4 GR11a makes a symbolic-character a figurative
+/// specifies a literal of its class and category, and §2023:12.3.7.4 GR11 a) makes a symbolic-character a figurative
 /// constant — the §2023:8.8.3.1 format writes literal-1 / literal-2, so both are operands. They resolve through the
 /// program's own tables: a symbolic-character as the table stands at the fold, a constant-name through
 /// <c>SymbolTable.Identify</c>'s constant arm, which binds a constant entry written LATER on demand (kb/Work PB1231 — no clause

@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// spelling of the subject worked too, which is what proved it a classifier hole rather than a Table-15 fact
 /// (kb/Work PB400).</para>
 ///
-/// <para>Each row below is ONE source shape that §2023:14.9.13.4 GR3e gives a truth value, written into BOTH
+/// <para>Each row below is ONE source shape that §2023:14.9.13.4 GR3 e) gives a truth value, written into BOTH
 /// positions of the same program. The assertion is not "it compiles": it is that the two positions AGREE, and
 /// that they agree on the value the standard assigns. A classifier arm added to one side and not the other
 /// fails here even though Table 15 itself is untouched.</para>
@@ -63,11 +63,11 @@ public sealed class EvaluateOperandClassifierDriftTests
         """;
 
     /// <summary>Every bare-operand shape the standard makes a condition, in both selection positions, in both
-    /// polarities. The expected text is derived, never observed: §2023:14.9.13.4 GR3e assigns the subject a truth
+    /// polarities. The expected text is derived, never observed: §2023:14.9.13.4 GR3 e) assigns the subject a truth
     /// value and GR4 a) 4. selects the WHEN whose TRUE/FALSE matches it, while GR4 a) 3. does the mirror for a
     /// condition OBJECT under a TRUE subject.</summary>
     [Theory]
-    // A level-88 condition-name — §2023:8.8.4.2.7 GR2 makes the bare name a complete condition. W-F holds 1, so
+    // A level-88 condition-name — §2023:8.8.4.2.7 rule 2 makes the bare name a complete condition. W-F holds 1, so
     // the membership test is true.
     [InlineData("EVC01", "", "01 W-F PIC 9 VALUE 1.\n           88 W-IS-ONE VALUE 1.", "", "W-IS-ONE", "SUBJ=T\nOBJ=T")]
     [InlineData("EVC02", "", "01 W-F PIC 9 VALUE 2.\n           88 W-IS-ONE VALUE 1.", "", "W-IS-ONE", "SUBJ=F\nOBJ=F")]
@@ -158,7 +158,7 @@ public sealed class EvaluateOperandClassifierDriftTests
     }
 
     /// <summary>§2023:14.9.13.4 GR1 — "If an operand of the EVALUATE statement consists of a single literal, that
-    /// operand is treated as a literal, not as an expression" — read together with §2023:8.3.3.3.2 SR2, which puts
+    /// operand is treated as a literal, not as an expression" — read together with §2023:8.3.3.3.2 rule 2, which puts
     /// an ADJACENT sign inside the literal. So a signed literal is a LITERAL on both sides of the pair (Table 15
     /// leaves literal × literal blank), while the SEPARATED spelling is a unary operator applied to one and is a
     /// perfectly legal arithmetic-expression operand. The sign is the only thing that differs between the two

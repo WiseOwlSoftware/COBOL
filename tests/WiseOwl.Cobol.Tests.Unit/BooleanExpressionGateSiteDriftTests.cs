@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ AN INTRODUCTION GATE IS ONLY AS COMPLETE AS ITS LIST OF GRAMMAR SITES, AND THAT LIST WAS HAND-MAINTAINED.
 /// The boolean operators are a COBOL-2002 introduction and the four boolean SHIFT operators a COBOL-2023 one
-/// (ISO §2023:8.7.2 / §2023:8.8.2 GR8), gated in <c>VersionConformancePass</c> at the ALTITUDE of each grammar rule
+/// (ISO §2023:8.7.2 / §2023:8.8.2 rule 8), gated in <c>VersionConformancePass</c> at the ALTITUDE of each grammar rule
 /// that hosts a top-level <c>booleanExpression</c> — per site, never per node, because the tiers nest through
 /// parentheses and a per-node gate would multiply the diagnostic.
 /// <para>For as long as there were two such sites the list was invisible. PB46 added a third

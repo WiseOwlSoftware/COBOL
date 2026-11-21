@@ -52,7 +52,7 @@ public sealed class ExitPlacementContextDriftTests
     [InlineData("PBEP01", "PERFORM 2 TIMES\n    EXIT PERFORM\nEND-PERFORM")]
     [InlineData("PBEP02", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n    EXIT PERFORM\nEND-PERFORM")]
     [InlineData("PBEP03", "PERFORM VARYING W-N FROM 1 BY 1 UNTIL W-N > 2\n    EXIT PERFORM\nEND-PERFORM")]
-    // A nested inline PERFORM: the EXIT PERFORM belongs to the INNER one (§2023:14.9.14.4 GR5a "the most closely
+    // A nested inline PERFORM: the EXIT PERFORM belongs to the INNER one (§2023:14.9.14.4 GR5 a) "the most closely
     // preceding, and as yet unterminated, inline PERFORM statement") — either way it is inside one.
     [InlineData("PBEP04", "PERFORM 2 TIMES\n    PERFORM 2 TIMES\n        EXIT PERFORM\n    END-PERFORM\nEND-PERFORM")]
     // ⛔ EVERY FORMAT-3 ROW BELOW WRITES A BARE `PERFORM` HEAD, AND HAS TO (kb/Work PB431). These rows used to
@@ -110,7 +110,7 @@ public sealed class ExitPlacementContextDriftTests
     // ── SR8 sentence 2: "The CYCLE phrase shall not be specified within an exception-checking PERFORM" ────
 
     /// <summary>CYCLE is measured against the NEAREST enclosing PERFORM, because that is the one it would cycle
-    /// (§2023:14.9.14.4 GR5b. So it is legal in an ordinary inline PERFORM even when that PERFORM is itself written
+    /// (§2023:14.9.14.4 GR5 b). So it is legal in an ordinary inline PERFORM even when that PERFORM is itself written
     /// inside an exception-checking one — the row that a "does any ancestor check exceptions?" reading would get
     /// wrong.</summary>
     [Theory]
@@ -160,7 +160,7 @@ public sealed class ExitPlacementContextDriftTests
     /// fifth source element is a program prototype definition and its procedure division is a PROGRAM's, so
     /// §2023:14.9.14.3 SR7 ("An EXIT PROGRAM statement may be specified only in a program procedure division") does NOT
     /// refuse EXIT PROGRAM there — <c>SourceElementKind.ProgramPrototype</c> is admitted beside
-    /// <c>Program</c>. What refuses it is §2023:10.6.2 SR4f, "The procedure division shall contain only a procedure
+    /// <c>Program</c>. What refuses it is §2023:10.6.2 SR4 f), "The procedure division shall contain only a procedure
     /// division header": the statement is not an SR7 placement error but a prototype-body error (COBOL2272).
     /// Both halves are asserted, so neither can hold for the wrong reason.</summary>
     [Fact]
@@ -364,7 +364,7 @@ public sealed class ExitPlacementContextDriftTests
     /// GOBACK statement, the EC-FLOW-GLOBAL-GOBACK exception condition is set to exist." The GOBACK here is
     /// written in an ORDINARY paragraph that the global declarative PERFORMs — SR1 does not reach it, so this is
     /// legal source and GR6 alone governs it. Table 13 makes the condition Fatal and there is no applicable USE,
-    /// so §2023:14.6.13.1.3 GR7 terminates the run unit abnormally; the declarative's statement AFTER the PERFORM
+    /// so §2023:14.6.13.1.3 rule 7 terminates the run unit abnormally; the declarative's statement AFTER the PERFORM
     /// must therefore not run. With checking OFF the condition is not raised at all (§2023:14.6.13.1.1) and the
     /// GOBACK proceeds — which in this main program is a STOP (§2023:14.9.18.4 GR3), so the output is the same
     /// prefix and the exit code is what distinguishes them.</summary>

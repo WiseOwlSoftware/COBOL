@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// (64 KiB — the records are about a hundred times that) with its own work directory, and again under the default
 /// limit, where everything fits in memory.
 /// <para>What the program reports is derived from the standard, not from a run: the SORT returns every record
-/// (30,000) with no key below its predecessor and, on equal keys, release order (§2023:14.9.40.4 GR3b — "The order in
+/// (30,000) with no key below its predecessor and, on equal keys, release order (§2023:14.9.40.4 GR3 b) — "The order in
 /// which these records are released by an input procedure"); each GIVING file receives the whole result (GR15); the
 /// MERGE returns both files (60,000) in key order and, on equal keys, all of OUTA's records before OUTB's (§2023:14.9.24.4
 /// GR4 a) "Follows the order of the associated input files as specified in the MERGE statement", b) "all records

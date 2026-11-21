@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// host would be. It sets its OWN exit code (5) first, then activates four programs through their generated host entries
 /// (<c>Cobol.&lt;assembly&gt;.&lt;NAME&gt;.Call</c>, DESIGN-external-repository §4.3, the one host surface of §2023:4.4): one
 /// ending in <c>STOP RUN WITH ERROR STATUS 24</c>, one ending abnormally on a fatal EC-DATA-PTR-NULL (a NULL BASED
-/// reference, §2023:14.6.12), one whose CALL of an absent program fails (§2023:14.9.4.4 GR3b, which the host receives as the
+/// reference, §2023:14.6.12), one whose CALL of an absent program fails (§2023:14.9.4.4 GR3 b), which the host receives as the
 /// condition itself and which ends no run unit, and a status-free one. After each it reports the process exit code.
 /// Expected, derived: the process exit code stays 5 throughout (the host's own); the host receives status 24 (normal),
 /// then status 1 (ERROR ⇒ 1, the item-192 mapping; abnormal), then EC-PROGRAM-NOT-FOUND; the run unit current after the

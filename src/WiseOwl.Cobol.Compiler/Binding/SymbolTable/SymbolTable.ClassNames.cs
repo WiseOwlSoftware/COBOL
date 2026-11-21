@@ -380,7 +380,7 @@ public sealed partial class SymbolTable
         }
 
         /// <summary>The interface's FULL method surface: own prototypes + the INHERITS closure (§2023:9.3.8.2.2), ONE prototype per
-        /// method-name. An inherited name cannot also be an own prototype (§2023:11.7.3 SR4b, refused at Build), and a name
+        /// method-name. An inherited name cannot also be an own prototype (§2023:11.7.3 SR4 b), refused at Build), and a name
         /// inherited from several interfaces presents the prototype every other one conforms to (<see cref="ChooseInheritedPrototype"/>;
         /// §2023:11.6.3 SR5) — before that pass, and for a name with one prototype, discovery order.</summary>
         internal IReadOnlyList<OoMethodSymbol> AllPrototypes(OoInterfaceSymbol iface)

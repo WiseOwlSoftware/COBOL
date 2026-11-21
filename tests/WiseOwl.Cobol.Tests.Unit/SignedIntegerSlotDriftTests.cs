@@ -11,13 +11,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// difference between them is a RULE, not an oversight:
 /// <list type="bullet">
 /// <item><c>integerLiteral : INTEGERLIT</c> is the metalanguage <c>integer-n</c> of a printed general format.
-/// ISO §2023:5.5 SR1 — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and associated rules, it
+/// ISO §2023:5.5 1) — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and associated rules, it
 /// refers to a fixed-point integer literal that shall be unsigned and nonzero unless otherwise specified in
 /// the associated rules." Its UNSIGNED shape IS that rule, so <c>01 T PIC X OCCURS +3.</c> is non-conforming
 /// and its parse error is a CORRECT rejection.</item>
 /// <item><c>signedIntegerLiteral : (PLUS | MINUS)? INTEGERLIT</c> is the other slot: one the standard prints
 /// as something other than <c>integer-n</c> and constrains as an INTEGER NUMERIC LITERAL, which routes through
-/// §2023:5.5 SR2a to §2023:8.3.3.3.2 SR2 and its signed leftmost character. §2023:13.18.63.2's <c>subscript-1</c> /
+/// §2023:5.5 2) a) to §2023:8.3.3.3.2 2) and its signed leftmost character. §2023:13.18.63.2's <c>subscript-1</c> /
 /// <c>subscript-2</c> under §2023:13.18.63.3 SR19 is the one such slot in the whole grammar.</item>
 /// </list>
 /// <para>PB553's own note proposed the opposite fix — sign <c>integerLiteral</c> once and let every
@@ -84,7 +84,7 @@ public sealed class SignedIntegerSlotDriftTests
     public void SignedIntegerLiteral_HasExactlyOneReader()
     {
         // ⛔ ANTLR's GetText() concatenates a node's tokens with the whitespace stripped, so `+ 1` and `+1`
-        // both read back as "+1" and §2023:8.3.3.3.2 SR2's adjacency violation is INVISIBLE to any caller that goes
+        // both read back as "+1" and §2023:8.3.3.3.2 2)'s adjacency violation is INVISIBLE to any caller that goes
         // straight to the text. SignedIntegerLiteral.Read measures it on the token stream's own indices
         // (LiteralScreen reports it, kb/Work PB1445); this assertion keeps it the only door (kb/Work PB553).
         string[] sources = System.IO.Directory.GetFiles(

@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ EVERY CLOSE THE PROGRAM EXECUTES, WRITTEN OR IMPLICIT, IS ONE EMITTED SEQUENCE (kb/Work PB5847, PB5261). The standard
 /// makes each implicit close a CLOSE statement: the CANCEL's "implicit CLOSE statement without any optional phrases"
 /// (§2023:14.9.5.4 GR9; §1985:X.5.3.4 GR10), which an INITIAL program's return also executes (§2023:14.9.18.4 GR2;
-/// §1985:X.5.4.4 GR3), and the SORT/MERGE USING and GIVING closes (§2023:14.9.40.4 GR12c, GR15 c)). A CLOSE "causes the
+/// §1985:X.5.4.4 GR3), and the SORT/MERGE USING and GIVING closes (§2023:14.9.40.4 GR12 c), GR15 c)). A CLOSE "causes the
 /// value of the I-O status associated with file-name-1 to be updated" (§2023:14.9.6.4 GR4; §1985:VII.4.2.4 GR4). Before
 /// PB5847 the CANCEL's close was a second, smaller close (one runtime call per file, no status store), and the FILE STATUS
 /// item kept the last statement's '10' where '00' is due. So:

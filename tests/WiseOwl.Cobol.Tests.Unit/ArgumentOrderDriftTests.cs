@@ -106,7 +106,7 @@ public sealed class ArgumentOrderDriftTests
             reads);
     }
 
-    /// <summary>⛔ A table(ALL) ARGUMENT IS AN ARGUMENT OF THE LIST LIKE ANY OTHER, AND HAS A HELD FORM (kb/Work PB4162). ISO §2023:15.3 AR14
+    /// <summary>⛔ A table(ALL) ARGUMENT IS AN ARGUMENT OF THE LIST LIKE ANY OTHER, AND HAS A HELD FORM (kb/Work PB4162). ISO §2023:15.3 14)
     /// makes <c>T (ALL)</c> "as if each table element associated with that subscript position were specified", each evaluated at its
     /// place in the list (§2023:8.4.3.2.4 GR2). The enumeration the backend renders where the call renders would read the table AFTER a later
     /// argument's activation, so the operand is recorded in the window where it is built (<c>IntrinsicBinder.TryBindAllArgument</c>) and

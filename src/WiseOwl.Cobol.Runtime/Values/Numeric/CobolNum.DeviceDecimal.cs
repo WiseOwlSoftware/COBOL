@@ -24,7 +24,7 @@ public static partial class CobolNum
     /// (<c>long</c>, <c>ulong</c> and <c>Int128</c> carriers all bind here). A BINARY-CAPACITY item
     /// (COMP-5, BINARY-CHAR … BINARY-DOUBLE) holds any value of its container, past its PICTURE's digit count, so it
     /// shows the container's digits (<see cref="DeviceDigits"/>) and a value is never cut to the picture.</summary>
-    /// <param name="commaMode">The unit's decimal separator: <c>,</c> under DECIMAL-POINT IS COMMA (§2023:12.3.7.4 GR14a,
+    /// <param name="commaMode">The unit's decimal separator: <c>,</c> under DECIMAL-POINT IS COMMA (§2023:12.3.7.4 GR14 a),
     /// else <c>.</c>.</param>
     public static string DisplayDecimal(Int128 unscaled, in NumProfile receiver, bool commaMode) =>
         Compose(unscaled < 0, CobolDec.UAbs(unscaled).ToString(CultureInfo.InvariantCulture), receiver, commaMode);
@@ -81,13 +81,13 @@ public static partial class CobolNum
     /// (measured 2026-10-23, the precedence tiebreaker of CLAUDE.md rule 1):
     /// <list type="bullet">
     ///   <item>leading spaces, then an optional sign (<c>+</c> or <c>-</c>; an unsigned item drops it), then the number:
-    ///         digits, ONE decimal separator (the program's, a comma under DECIMAL-POINT IS COMMA, §2023:12.3.7.4 GR14a,
+    ///         digits, ONE decimal separator (the program's, a comma under DECIMAL-POINT IS COMMA, §2023:12.3.7.4 GR14 a),
     ///         with spaces and the other separator character skipped wherever they stand;</item>
     ///   <item>a character that is none of those makes the WHOLE text invalid and the value zero: a trailing sign
     ///         (<c>12.5-</c>), a second separator, a letter. No exception is set (§2023:14.6.13.2: undefined content);</item>
     ///   <item>the fraction keeps its first <see cref="NumProfile.FractionDigits"/> digits (truncation, never rounding);
     ///         integer digits past the item's capacity lose their HIGH-ORDER end, so the item keeps the low-order digits
-    ///         (§2023:14.6.8.2 GR4, "zero fill or truncation on either end", the alignment a MOVE applies) — the unscaled value is
+    ///         (§2023:14.6.8.2 rule 4, "zero fill or truncation on either end", the alignment a MOVE applies) — the unscaled value is
     ///         reduced to the PICTURE's digit count here, a BINARY-CAPACITY item's container excepted: it keeps every digit its
     ///         container holds and the value wraps to the container (<see cref="WrapBinary"/>, DOC-A.1-208), as GnuCOBOL's does.
     ///         The characters ahead of the last integer digit dropped are skipped unexamined, a non-digit among them
@@ -203,7 +203,7 @@ public static partial class CobolNum
     ///         conversion's choice (the value as a reader writes it, DOC-A.1-56), and the transfer is the converted text's size (GR6);</item>
     ///   <item>a SIGNED item always shows <c>+</c> or <c>-</c>, so zero is <c>+</c>: LEADING, except that an item the
     ///         program wrote <c>SIGN TRAILING SEPARATE</c> shows it where the program put it, trailing
-    ///         (<c>001.50-</c>) — the character position §2023:13.18.52.4 GR6a gives it;</item>
+    ///         (<c>001.50-</c>) — the character position §2023:13.18.52.4 GR6 a) gives it;</item>
     /// </list></summary>
     private static string Compose(bool negative, string digits, in NumProfile item, bool commaMode, bool padTo = true)
     {

@@ -60,7 +60,7 @@ public sealed class BoundaryImageChannelTests
         // comparer must read both a key may have: AsImage() for an ordinary group (§2023:8.8.4.2.1 — "an alphanumeric group item shall be treated as an elementary alphanumeric data item"; NOT §2023:8.8.4.2.3 SR2, the identifier-CLASS syntax rule — kb/Work PB741)
         // and AsNat() for a GROUP-USAGE NATIONAL group (§2023:13.18.29.4 GR2b), each spelled twice (the two element
         // parameters). kb/Work PB678. (It was six while a GROUP-USAGE BIT group's AsBits() was a third face; a bit
-        // group is a boolean operand and §2023:14.9.40.3 SR14c refuses boolean keys, kb/Work PB1173.)
+        // group is a boolean operand and §2023:14.9.40.3 SR14 c) refuses boolean keys, kb/Work PB1173.)
         ["CodeGen/Verbs/SortEmitter.cs"] = (4, "TableCompare compares struct rvalues, not Places"),
         // ⛔ OperandText.FieldAsString's bit-group row IS GONE — routed, not re-justified. It read
         // `Read(p).AsBits()` for itself and was exempted on the promise "kb/Work PB173 gives the bit channel its

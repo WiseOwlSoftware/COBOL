@@ -176,7 +176,7 @@ internal sealed class OoDriver(BindSession session)
     public void BindClassBody(OoClassUnit cls)
     {
         var repository = session.Repository;
-        // §2023:12.3.8.4 GR10a / GR11 a): "specified PREVIOUSLY" is relative to the class definition whose REPOSITORY
+        // §2023:12.3.8.4 GR10 a) / GR11 a): "specified PREVIOUSLY" is relative to the class definition whose REPOSITORY
         // paragraph holds the specifier (kb/Work PB989) — an expansion's text starts where its skeleton does.
         int position = session.Sources.Of(cls.Symbol).Start.StartIndex;
         var (data, refs) = session.Binders.ObjectOf(cls);
@@ -227,7 +227,7 @@ internal sealed class OoDriver(BindSession session)
     /// class-name references record into too; a null node, an absent FACTORY or OBJECT paragraph, gets a census of
     /// its own), <paramref name="definition"/> the class or interface definition whose first line decides the
     /// >>LEAP-SECOND state, and <paramref name="ownerClassName"/> what USAGE OBJECT REFERENCE [FACTORY OF]
-    /// ACTIVE-CLASS binds to — §2023:13.18.60.4 GR22e, the class of the object that invoked the containing method
+    /// ACTIVE-CLASS binds to — §2023:13.18.60.4 GR22 e), the class of the object that invoked the containing method
     /// (kb/Work PB389); null for an interface.</summary>
     private DataBinder ElementBinder(Antlr4.Runtime.RuleContext? element, Antlr4.Runtime.ParserRuleContext definition,
         string? ownerClassName) => new(session.Edition)

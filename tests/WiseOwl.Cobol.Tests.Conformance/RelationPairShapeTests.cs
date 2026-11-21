@@ -49,7 +49,7 @@ public sealed class RelationPairShapeTests
         EditionHarness.AssertHasDiagnostic(diag, "COBOL2492");
     }
 
-    /// <summary>§2023:8.5.1.12.1 GR3 with §2023:8.5.1.12.2 — the two dynamic-length items must START at the same relative
+    /// <summary>§2023:8.5.1.12.1 rule 3 with §2023:8.5.1.12.2 — the two dynamic-length items must START at the same relative
     /// position; G3's starts at 3, G1's at 2, so the groups are not compatible and may not be compared.</summary>
     [Fact]
     public void VariableLengthGroups_WhoseDynamicItemsDoNotCorrespond_Rejected2492()
@@ -127,7 +127,7 @@ public sealed class RelationPairShapeTests
 
     /// <summary>The OTHER arm of the same dispatch: an EVALUATE THRU range under EC-RANGE-INVALID checking used to take
     /// the character-image range node for every pair, so a strongly-typed range over a float leaf compared images.
-    /// §2023:14.9.13.4 GR4a.5 makes the range "selection-subject &gt;= left-part AND selection-subject &lt;= right-part",
+    /// §2023:14.9.13.4 GR4 a) 5. makes the range "selection-subject &gt;= left-part AND selection-subject &lt;= right-part",
     /// and each half is a §2023:8.8.4.2.12 element comparison: -10 &lt;= -5 &lt;= 3 is IN, with checking on or off.</summary>
     [Theory]
     [InlineData("RPS09", ">>TURN EC-RANGE-INVALID CHECKING ON")]

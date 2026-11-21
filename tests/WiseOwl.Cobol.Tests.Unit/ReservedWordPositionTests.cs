@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// The P2.8/W2 position classifier behind the §2023:8.9 reserved-word funnel
 /// (<c>VersionConformancePass.IsProvableUserWordPosition</c>): an allowlist-band context-keyword token rejects as a
-/// reserved word (ISO §2023:8.3.2.1 SR1 / §2023:8.3.2.4.1) ONLY when its <c>cobolWord</c> occurrence sits in a
+/// reserved word (ISO §2023:8.3.2.1 rule 1 / §2023:8.3.2.4.1) ONLY when its <c>cobolWord</c> occurrence sits in a
 /// grammar position that is unambiguously a user-defined-word use (§2023:8.3.2.2) — the data/parameter entry-name
 /// slot (§2023:13.16), a paragraph/section definition (§2023:14.4.2/§2023:14.4.3), the SELECT file-name (§2023:12.4.5.1), and the
 /// program-name sites (§2023:11.10.2/§2023:11.5/§2023:10.6.1). Mis-parse-prone optional entry-name slots (the RW104A hazard:

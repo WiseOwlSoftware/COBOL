@@ -506,7 +506,7 @@ public sealed class ReportWriterConformanceTests
              // The ORDER is the standard's own: §2023:14.9.16.4 GR4 a)–d) (the chronologically first GENERATE prints
              // the report heading, then a page heading, then each control heading, then the detail) followed by
              // §2023:14.9.46.4 GR3 b)/c) (TERMINATE prints each control footing, then the report footing) with
-             // §2023:13.18.57.4 GR6f placing the page footing as "the last report group on each page" and adding
+             // §2023:13.18.57.4 GR6 f) placing the page footing as "the last report group on each page" and adding
              // that "If a report footing is defined and is not on a page by itself, the page footing on the last
              // page is immediately followed by the report footing".
     public void UseBeforeReporting_Gr8_EveryGroupTypeInvokesItsOwnDeclarative()
@@ -603,8 +603,8 @@ public sealed class ReportWriterConformanceTests
              // (WS-AMT 1 → 5), which is observable precisely because of the ordering GR9 b) asserts. The control
              // footing printed at the break still shows 01 — the increments belonging to that instance were all
              // applied before its declarative ran — and the breaking GENERATE's own increment, which
-             // §2023:14.9.16.4 GR5a places after the break processing, therefore picks up the 5 the declarative
-             // wrote, so the TERMINATE footing (§2023:14.9.46.4 GR3b shows 05. Had the declarative run before the
+             // §2023:14.9.16.4 GR5 a) places after the break processing, therefore picks up the 5 the declarative
+             // wrote, so the TERMINATE footing (§2023:14.9.46.4 GR3 b) shows 05. Had the declarative run before the
              // increments of its own instance, the break footing would read 05 as well.
              // ⚠ The DIRECT observable for GR9 b) — a declarative reading its group's own sum counter
              // (§2023:13.18.54.4 GR5 + GR12) — is not available: a named sum counter is rejected as undefined in the
@@ -669,18 +669,18 @@ public sealed class ReportWriterConformanceTests
 
     [Fact]   // THE DETERMINATION kb/Work PB367b records: a USE BEFORE REPORTING declarative runs BEFORE the
              // group's PRESENT WHEN conditions are evaluated, so it can decide its own group's presence.
-             // The standard fixes neither event relative to the other — §2023:14.9.49.4 GR9d performs the
+             // The standard fixes neither event relative to the other — §2023:14.9.49.4 GR9 d) performs the
              // declarative "Before the processing of any LINE clauses defined for the report group" and
              // §2023:13.18.41.4 GR2 evaluates condition-1 "before the processing of any LINE clauses for the report
-             // group", the SAME boundary — and both precede the page fit test (§2023:14.9.49.4 GR9c and
-             // §2023:13.18.41.4 GR3d, which disregards absent lines). The order is therefore the implementor's, and
+             // group", the SAME boundary — and both precede the page fit test (§2023:14.9.49.4 GR9 c) and
+             // §2023:13.18.41.4 GR3 d), which disregards absent lines). The order is therefore the implementor's, and
              // this one is chosen because the reverse makes a declarative's execution depend on data the
              // declarative is itself there to set: condition-1 is any condition (§2023:13.18.41.2), typically over
              // exactly the items GR8's "just before the named report group is produced" exists to let the
              // procedure prepare. Under the reverse order a level-01 PRESENT WHEN would silently suppress the
              // procedure that would have made the group present, and no rule would let the program say so.
              // WS-ON starts 0 — absent, "as though the entire report group description were omitted"
-             // (§2023:13.18.41.4 GR2b — and only BR-DE makes it 1, so the printed line IS the determination.
+             // (§2023:13.18.41.4 GR2 b) — and only BR-DE makes it 1, so the printed line IS the determination.
     public void UseBeforeReporting_PresentWhen_DeclarativeRunsBeforeTheConditionIsEvaluated()
         => AssertSpec("""
             IDENTIFICATION DIVISION.

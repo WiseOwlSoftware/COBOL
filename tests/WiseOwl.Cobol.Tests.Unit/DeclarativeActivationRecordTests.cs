@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1122 Task B — the DECLARATIVE ACTIVATION RECORD (ISO §2023:14.6.13.1.2 GR1: a declarative does not complete
+/// kb/Work PB1122 Task B — the DECLARATIVE ACTIVATION RECORD (ISO §2023:14.6.13.1.2 1): a declarative does not complete
 /// normally when "a RESUME … that is specified in this … program is executed, or a fatal exception occurs within the
 /// scope of the declarative". The emitted <c>__RunUse</c> opens a record with <c>EnterDeclarative</c>, asks
 /// <c>DeclarativeNotNormal</c> when the range falls off its end, and closes it in a <c>finally</c>; the fatal raise
@@ -63,7 +63,7 @@ public sealed class DeclarativeActivationRecordTests
         Assert.False(e.DeclarativeNotNormal(tok));
     }
 
-    /// <summary>§2023:14.6.13.1.2 GR1's RESUME is one "specified in this … program": a RESUME that GR1 made a CONTINUE marks
+    /// <summary>§2023:14.6.13.1.2 1)'s RESUME is one "specified in this … program": a RESUME that GR1 made a CONTINUE marks
     /// only the open declaratives of ITS program instance, never another program's in the call chain.</summary>
     [Fact]
     public void ResumeContinue_MarksOnlyItsOwnPrograms()

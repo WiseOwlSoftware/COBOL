@@ -145,8 +145,8 @@ public static class NonstandardExtensionRegister
     }
 
     /// <summary>Whether <paramref name="word"/> is a reserved word of this implementation on the account of ANY row: the
-    /// §2023:4.2.10 GR3 additions (<see cref="NonstandardExtension.ReservedWords"/>, JSON, XML, COMP-3, ENTRY and the rest),
-    /// which §2023:8.3.2.1 SR1 makes reserved words like the standard's own. It is compared as a keyword
+    /// §2023:4.2.10 3) additions (<see cref="NonstandardExtension.ReservedWords"/>, JSON, XML, COMP-3, ENTRY and the rest),
+    /// which §2023:8.3.2.1 1) makes reserved words like the standard's own. It is compared as a keyword
     /// (<see cref="CobolKeywords.Comparer"/>, the basic-letter fold: a word written with an extended letter is no keyword,
     /// kb/Work PB4240, PB4420). The one lookup the <c>&gt;&gt;COBOL-WORDS</c> category rules (§2023:7.3.10.3 SR3 and SR4) ask
     /// beside the three lists the standard prints, so a word added to a row reaches them with no edit (kb/Work PB4239).</summary>

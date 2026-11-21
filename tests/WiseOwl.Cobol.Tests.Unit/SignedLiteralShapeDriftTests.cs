@@ -77,8 +77,8 @@ public sealed class SignedLiteralShapeDriftTests
         }
     }
 
-    /// <summary>⛔ A FLOATING-POINT SIGNIFICAND IS A FIXED-POINT LITERAL, SPELLED ONCE (kb/Work PB2729). §2023:8.3.3.3.3 SR1 forms
-    /// the floating-point literal "from two fixed-point numeric literals separated by the letter 'E'", and §2023:8.3.3.3.2 SR3
+    /// <summary>⛔ A FLOATING-POINT SIGNIFICAND IS A FIXED-POINT LITERAL, SPELLED ONCE (kb/Work PB2729). §2023:8.3.3.3.3 1) forms
+    /// the floating-point literal "from two fixed-point numeric literals separated by the letter 'E'", and §2023:8.3.3.3.2 3)
     /// keeps a fixed-point literal's decimal point off its rightmost character. FLOAT_BODY used to spell its own wider
     /// significand (<c>[0-9]+ '.' [0-9]*</c>) beside DEC_BODY, so <c>VALUE 3.E2</c> reached the backend as C#
     /// <c>3.E2d</c> (CS1061). Every FLOAT*_BODY must therefore BEGIN with a DEC*_BODY reference and spell no digit or

@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// THE ISO §2023:6.5 logical conversion: reads fixed-form and free-form reference format and produces the logical
 /// free-form text every later stage reads. Fixed-form: columns 1-6 sequence, 7 indicator, 8-72 program text, 73+
 /// outside margin R. Free-form: no column restrictions. A compilation group starts in fixed form unless the
-/// <see cref="InitialReferenceFormat"/> selection says otherwise (§2023:7.3.24.3 GR2; kb/Work PB1362).
+/// <see cref="InitialReferenceFormat"/> selection says otherwise (§2023:7.3.24.3 2); kb/Work PB1362).
 /// </summary>
 public static partial class ReferenceFormatProcessor
 {
@@ -30,7 +30,7 @@ public static partial class ReferenceFormatProcessor
 
     /// <summary>Whether a logical line (as <see cref="DebugLineCarrier"/> and the §2023:6.5 conversion leave it) holds no
     /// program text: it is empty, spaces, or the BARE carrier of a blank debugging line (which keeps its slot so
-    /// <c>DebuggingLineRewriter</c> can decide it; kb/Work PB4412). §2023:6.5 GR2: a blank line is one with nothing but spaces
+    /// <c>DebuggingLineRewriter</c> can decide it; kb/Work PB4412). §2023:6.5 2): a blank line is one with nothing but spaces
     /// in its program-text area, whichever indicator it carries, so a stage that asks "is there text on this line" asks it
     /// here.</summary>
     public static bool HoldsNoProgramText(string line)
@@ -73,7 +73,7 @@ public static partial class ReferenceFormatProcessor
 
     /// <summary>
     /// Normalize a compilation group to logical free form, starting in <paramref name="initial"/> — fixed form, the
-    /// standard default (§2023:7.3.24.3 GR2), unless selected otherwise. Each
+    /// standard default (§2023:7.3.24.3 2)), unless selected otherwise. Each
     /// <c>&gt;&gt;SOURCE FORMAT [IS] {FIXED|FREE}</c> directive (ISO §2023:7.3.24) switches the reference format of the
     /// text that FOLLOWS it, up to the next directive — the source is partitioned into homogeneous-format segments
     /// (§2023:7.3.24.3 GR1) and each is converted in its own format. The directive line is discarded (§2023:6.5 logical
@@ -107,8 +107,8 @@ public static partial class ReferenceFormatProcessor
     /// <param name="gates">The compilation's reference-format diagnostics — the ONE instance the main source and every
     /// copybook share (kb/Work PB1640), or null for a conversion that reports nothing.</param>
     /// <param name="initialFixed">The format the text starts in: for a compilation group, its
-    /// <see cref="InitialReferenceFormat"/> selection (fixed form by default, §2023:7.3.24.3 GR2 — kb/Work PB1362); for
-    /// library text, the format in effect for its COPY statement (§2023:7.3.24.3 GR3 — kb/Work PB1067). Null DETECTS it
+    /// <see cref="InitialReferenceFormat"/> selection (fixed form by default, §2023:7.3.24.3 2) — kb/Work PB1362); for
+    /// library text, the format in effect for its COPY statement (§2023:7.3.24.3 3) — kb/Work PB1067). Null DETECTS it
     /// (<see cref="IsFixedForm"/>) — the documented <see cref="InitialReferenceFormat.Auto"/> extension, and the library
     /// text of a COPY statement read in a detected-free text (<see cref="ReferenceFormatMap.LibraryTextDefaultAt"/>).</param>
     /// <param name="ccvsIndicators">Honor the NIST CCVS column-7 conventions (S/Y debugging lines, P/J/H/E/U excluded
@@ -138,7 +138,7 @@ public static partial class ReferenceFormatProcessor
         // --nist) archive markers are settled, so no consumer splits, trims or expands anything itself.
         var lines = PhysicalLines.Read(sourceText, ccvsIndicators).Lines;
 
-        // The initial format: the one the caller selected (fixed form by default, §2023:7.3.24.3 GR2) or inherited from the
+        // The initial format: the one the caller selected (fixed form by default, §2023:7.3.24.3 2)) or inherited from the
         // COPY statement (3)), or — only under the documented Auto extension — the one IsFixedForm detects in the text
         // before the first line that could be a >>SOURCE directive in either reading (kb/Work PB1362).
         bool firstFixed = initialFixed ?? IsFixedForm(lines[..FirstSourceDirectiveCandidate(lines)]);
@@ -184,7 +184,7 @@ public static partial class ReferenceFormatProcessor
             {
                 if (!keepsLine)
                 {
-                    kinds.Kinds[segments[s].Index] = PhysicalLineKind.Directive;   // a >>SOURCE FORMAT line, discarded here (§2023:6.5 GR1)
+                    kinds.Kinds[segments[s].Index] = PhysicalLineKind.Directive;   // a >>SOURCE FORMAT line, discarded here (§2023:6.5 1))
                     outLines.Add("");                 // the discarded directive line → a blank line (slot preserved)
                     outOrigins.Add(new LineOrigin(new SourceOrigin(sourcePath, segments[s].Index + 1)));
                 }
@@ -200,7 +200,7 @@ public static partial class ReferenceFormatProcessor
     /// <summary>
     /// The reference-format segment boundaries of a text, found by reading it IN ORDER with the format in effect as
     /// state (§2023:6.5: "the reference format mode is determined" by each SOURCE FORMAT directive line as the lines are
-    /// obtained): a &gt;&gt;SOURCE line (discarded — §2023:6.5 GR1) resolved to the format it leaves in force (a malformed
+    /// obtained): a &gt;&gt;SOURCE line (discarded — §2023:6.5 1)) resolved to the format it leaves in force (a malformed
     /// operand selects none and carries the current one on — kb/Work PB794), and every &gt;&gt;POP that RESTORES a
     /// different format than the one in force (it keeps its line; §2023:7.3.20 / §2023:7.3.22, kb/Work PB941). The format is
     /// carried by the ONE <see cref="DirectiveStateStack"/> — this stage's share of the directive state, as the
@@ -251,7 +251,7 @@ public static partial class ReferenceFormatProcessor
             CompilerDirectiveLine d = default;
             bool readFixed = current;   // the form the directive line was read in: its column depends on it
             bool isDirective = DirectiveText(lines[i].Text, current) is { } text && CompilerDirectiveLine.TryParse(text, out d);
-            // §2023:7.3.24.3 GR4: "A SOURCE FORMAT directive that is the first line of a compilation group or library text
+            // §2023:7.3.24.3 4): "A SOURCE FORMAT directive that is the first line of a compilation group or library text
             // may be in either fixed form or free form" — so `>>SOURCE FORMAT FREE` in column 1 of line 1 is a
             // directive even though the text starts in fixed form, where column 1 is the sequence area.
             if (!isDirective && i == 0 && DirectiveText(lines[0].Text, !current) is { } other

@@ -50,7 +50,7 @@ public sealed class CobolLocaleTests
             Assert.Equal("08/19/2026", CobolLocale.Date("20260819", null));     // the root: invariant d_fmt
             Assert.Equal(new DateTime(2026, 8, 19).ToString(CultureInfo.GetCultureInfo("fr-FR").DateTimeFormat.ShortDatePattern, CultureInfo.GetCultureInfo("fr-FR")),
                 CobolLocale.Date("20260819", "fr-FR"));
-            // ⛔ EC-ARGUMENT-FUNCTION checking OFF: the §2023:15.3 AR14 substituted result is ONE
+            // ⛔ EC-ARGUMENT-FUNCTION checking OFF: the §2023:15.3 rule 14 substituted result is ONE
             // SPACE, not a zero-length value (kb/Work PB470). §2023:15.52.4 r3 makes the returned length
             // depend on the LOCALE, which rejecting argument-1 leaves intact, so docs/CONFORMANCE.md row
             // DOC-A.1-90's zero-length class (a length derived from the REJECTED argument) does not reach
@@ -80,7 +80,7 @@ public sealed class CobolLocaleTests
             Assert.Equal("13:05:09", CobolLocale.Time("130509", null));
             Assert.Equal("24:00:00", CobolLocale.Time("240000", null));          // §2023:15.53.3 r3a — hour 24 is legal
             Assert.Equal("23:59:99", CobolLocale.Time("235999", null));          // r3b — seconds to 99
-            // The §2023:15.3 AR14 substituted result — ONE SPACE, per row DOC-A.1-90 over
+            // The §2023:15.3 rule 14 substituted result — ONE SPACE, per row DOC-A.1-90 over
             // §2023:15.53.4 r3 (see the LOCALE-DATE test above; kb/Work PB470). Both guards are read:
             // the r3 RANGE screen and the r1/r2 FORM screen were separate arms, each with its own
             // substitute, before they were moved onto the one rule table.

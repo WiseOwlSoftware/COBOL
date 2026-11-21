@@ -149,7 +149,7 @@ public sealed class CobolWordsDirectiveTests
 
     // ── kb/Work PB1373: the operand is read as §2023:8.3.5 separators and SR2 literals, the boundary as the group's own words ─
 
-    [Theory] // §2023:8.3.5 SR2 — a comma or semicolon followed by a space is a separator, usable wherever a space is.
+    [Theory] // §2023:8.3.5 2) — a comma or semicolon followed by a space is a separator, usable wherever a space is.
     [InlineData(">>COBOL-WORDS EQUATE \"DISPLAY\", WITH \"SHOW\"\n")]
     [InlineData(">>COBOL-WORDS EQUATE \"DISPLAY\"; WITH \"SHOW\"\n")]
     [InlineData(">>COBOL-WORDS EQUATE, \"DISPLAY\" WITH, \"SHOW\"\n")]
@@ -161,7 +161,7 @@ public sealed class CobolWordsDirectiveTests
     }
 
     [Theory] // §2023:7.3.3 SR3/SR4 — a comma or semicolon that ENDS the directive is not a space; and one glued to the
-    // next word separates nothing (§2023:8.3.5 SR2 needs the space after it).
+    // next word separates nothing (§2023:8.3.5 2) needs the space after it).
     [InlineData(">>COBOL-WORDS RESERVE \"ZQX\";\n")]
     [InlineData(">>COBOL-WORDS RESERVE \"ZQX\",\n")]
     [InlineData(">>COBOL-WORDS EQUATE \"DISPLAY\",WITH \"SHOW\"\n")]
@@ -181,7 +181,7 @@ public sealed class CobolWordsDirectiveTests
     }
 
     [Theory] // SR2 — "Each literal shall be an alphanumeric literal": no closing delimiter, or one the next character
-    // does not separate from what follows (§2023:8.3.5 SR5), is no literal at all.
+    // does not separate from what follows (§2023:8.3.5 5)), is no literal at all.
     [InlineData(">>COBOL-WORDS RESERVE \"FOO\n", "no closing quotation symbol")]
     [InlineData(">>COBOL-WORDS RESERVE 'FOO\n", "no closing quotation symbol")]
     [InlineData(">>COBOL-WORDS RESERVE \"FOO\"BAR\n", "followed by 'B'")]
@@ -193,7 +193,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.True(map.IsEmpty);
     }
 
-    [Fact] // §2023:8.3.3.2.3 SR3 — two contiguous quotation symbols are ONE character of the content.
+    [Fact] // §2023:8.3.3.2.3 3) — two contiguous quotation symbols are ONE character of the content.
     public void DoubledQuotationSymbol_IsOneCharacterOfTheLiteral()
     {
         var (_, diags) = Run(">>COBOL-WORDS RESERVE \"A\"\"B\"\n");
@@ -429,7 +429,7 @@ public sealed class CobolWordsDirectiveTests
         + $"       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 {dataName} PIC X VALUE \"C\".\n"
         + $"       PROCEDURE DIVISION.\n       {paragraph}.\n           STOP RUN.\n";
 
-    /// <summary>kb/Work PB4488 (ISO §2023:7.3.10.4 GR2, GR4; §2023:8.3.2.1 SR1: a synonym of a RESERVED word is that reserved word and
+    /// <summary>kb/Work PB4488 (ISO §2023:7.3.10.4 GR2, GR4; §2023:8.3.2.1 1): a synonym of a RESERVED word is that reserved word and
     /// no user-defined word, whether or not the lexer has a token to retype it to. The ten §2023:8.9 words the lexer carries
     /// no token for (COPY, REPLACE, LOCALE, NESTED, ANYCASE, SYSTEM-DEFAULT, USER-DEFAULT, EXCEPTION-OBJECT, COMMA, MINUS)
     /// by EQUATE, and COPY and LOCALE by SUBSTITUTE.</summary>
@@ -469,7 +469,7 @@ public sealed class CobolWordsDirectiveTests
         + $"       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 {dataItem} PIC X.\n"
         + $"       PROCEDURE DIVISION.\n       MAIN.\n           {statement}.\n           STOP RUN.\n";
 
-    /// <summary>⛔ kb/Work PB4573 (ISO §2023:7.3.10.4 GR2, GR4; §2023:8.3.2.1 SR1: the COBOL0901 for a synonym of a reserved word is ONE
+    /// <summary>⛔ kb/Work PB4573 (ISO §2023:7.3.10.4 GR2, GR4; §2023:8.3.2.1 1): the COBOL0901 for a synonym of a reserved word is ONE
     /// sentence whichever stage reports it, naming the word the source WROTE and the reserved word it stands for
     /// (<see cref="ReservedWordSet.UserWordViolationMessage"/>). The funnel's report (a synonym the lexer has no token for:
     /// LOCALE, in a data-name slot) and the parser's two (a synonym the lexer retyped to its original's token, in an operand
@@ -795,7 +795,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain(errors, e => e.Contains("unexpected 'JSON'"));   // JSON is the data-name GR4 makes it
     }
 
-    /// <summary>⛔ kb/Work PB4589 (ISO §2023:7.3.10.4 GR4, §2023:8.3.2.1 SR1): a SUBSTITUTE synonym of a reservation-gated word §2023:8.9
+    /// <summary>⛔ kb/Work PB4589 (ISO §2023:7.3.10.4 GR4, §2023:8.3.2.1 rule 1): a SUBSTITUTE synonym of a reservation-gated word §2023:8.9
     /// reserves at the compile edition (RECEIVE, COBOL-2023) is that word, so it is no user-defined word; the original, which
     /// GR4 frees, is one. Only a DECLARATION is written, so the refusal is the funnel's (the parser draws none): it asked the
     /// group's overlay about the synonym's token text, the ORIGINAL's, which SUBSTITUTE had suppressed.</summary>
@@ -810,7 +810,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.Contains("cw.cob(6,", refusal);   // the declaration of RCV, not the original's (line 7)
     }
 
-    /// <summary>⛔ kb/Work PB4589 (ISO §2023:7.3.10.4 GR4, §2023:8.3.2.1 SR1): <c>--permissive</c> restores the pre-removal reading
+    /// <summary>⛔ kb/Work PB4589 (ISO §2023:7.3.10.4 GR4, §2023:8.3.2.1 rule 1): <c>--permissive</c> restores the pre-removal reading
     /// of a word §2023:8.9 took away, so the gate admits the synonym as a name, and the migration mode's shape is a WARNING for
     /// it as for the word itself (COBOL0901), not silence: the admitted token is an IDENTIFIER with the original's text, and
     /// the funnel must tell the synonym from the freed original (which stays a plain name, with no diagnostic at all).</summary>

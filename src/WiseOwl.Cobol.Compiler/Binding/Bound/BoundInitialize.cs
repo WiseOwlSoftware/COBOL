@@ -90,7 +90,7 @@ public sealed record InitializeStore(BoundMove Move) : InitializeAction
     public BoundOperand Source => Move.Source;
 }
 
-/// <summary>⛔ THE VALUE-PHRASE STORE OF A RECEIVER A MOVE WOULD TRANSFORM (kb/Work PB4512): ISO §2023:14.9.20.4 GR6a 3.
+/// <summary>⛔ THE VALUE-PHRASE STORE OF A RECEIVER A MOVE WOULD TRANSFORM (kb/Work PB4512): ISO §2023:14.9.20.4 GR6 a) 3.
 /// asks for a sending-operand that, "when moved to the receiving-operand with a MOVE statement, produces the same
 /// result as the initial value of the data item as produced by the application of the VALUE clause" — and for a
 /// receiver whose MOVE edits, justifies or blanks, the raw VALUE literal is not that operand, because the VALUE

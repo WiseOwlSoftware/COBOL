@@ -385,7 +385,7 @@ internal static class FileControlKeyRules
         // ⛔ THE MINIMUM-RECORD-SIZE RULE (kb/Work PB1025). Unenforced until 2026-09-22: a RECORD KEY that a
         // dynamic-length item preceded compiled clean, was sliced at its FIXED-run offset, and a READ … KEY
         // returned a different record. The reach is RecordLayout.KeyWindowOf's — the ONE answer SORT/MERGE's
-        // §2023:14.9.40.3 SR6g reads too — so a key after a variable-length member is measured at its furthest byte.
+        // §2023:14.9.40.3 SR6 g) reads too — so a key after a variable-length member is measured at its furthest byte.
         new("SR-12.4.5.12.3-4", "12.4.5.12.3", "ISO §2023:12.4.5.12.3 SR4",
             "data-name-1 and each data-name-2 shall be contained within the first n bytes of the record",
             FileKinds.Indexed, FileKeyRole.PrimeRecordKey,

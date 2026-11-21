@@ -90,7 +90,7 @@ public sealed partial class SymbolTable
     /// in <paramref name="scope"/> (the reference is then a data-name one). Visibility is the data-name's (§2023:8.4.6.2.3): a
     /// method-local DATA-name, condition-name, CAPACITY register or constant-name of the spelling shadows every index-name
     /// (§2023:11.7.4 GR5: the caller must not treat the reference as an index); else the method's own declarations (§2023:11.7.4 GR5
-    /// privacy); else the unit's, where a nearer source element's declaration wins (§2023:8.4.6.2.1 GR3). The qualifiers are matched
+    /// privacy); else the unit's, where a nearer source element's declaration wins (§2023:8.4.6.2.1 3)). The qualifiers are matched
     /// from the TABLE upward (§2023:8.4.2.2.3 SR6). The COUNT is the caller's verdict (<see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>),
     /// so two tables' <c>INDEXED BY IX</c> referenced as a bare <c>IX</c> is §2023:8.4.2.2.3 SR1's ambiguity, never a silently shared
     /// cell. A table's OWN declared index (SEARCH's first index-name, the SET/PERFORM of a known table) is read off
@@ -114,7 +114,7 @@ public sealed partial class SymbolTable
         }
         if (!_indexNames.Declares(key)) return null;
         var indexes = _indexNames.Candidates(key, d => IndexQualifierChainMatches(d, qualifiers), out int indexDepth);
-        // §2023:8.4.6.2.1 GR3 across the name classes (kb/Work PB1047, PB5975): a declaration of the spelling in ANY other class that the
+        // §2023:8.4.6.2.1 3) across the name classes (kb/Work PB1047, PB5975): a declaration of the spelling in ANY other class that the
         // written qualifiers reach, declared in a NEARER source element than every such index-name, is the referenced
         // item — a contained program's `01 IX` or its `88 IX` hides its container's GLOBAL table's `INDEXED BY IX`,
         // exactly as its `01 X` hides the container's global `X` (kb/Work PB4432). At EQUAL depth the index-name keeps

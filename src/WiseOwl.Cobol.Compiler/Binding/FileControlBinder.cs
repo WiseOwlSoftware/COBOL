@@ -204,7 +204,7 @@ public sealed partial class FileControlBinder
                 // (§2023:12.4.5.14.3 GR1, "If the RESERVE clause is specified, the number of input-output areas allocated
                 // is equal to the value of integer-1"; kb/Work PB643): the emitter tells the connector
                 // (SequentialIoEmitter.EmitReserveRegistration), whose reader, writer or store handle allocates them.
-                // It is also part of an external file connector's entry identity — §2023:12.4.5.3 GR1d, "The same value
+                // It is also part of an external file connector's entry identity — §2023:12.4.5.3 GR1 d), "The same value
                 // for integer-1 in the RESERVE clause" (kb/Work PB1079, the EC-EXTERNAL-FILE-MISMATCH fingerprint).
                 // The areas are one host buffer, so integer-1 above HostFile.MaxInputOutputAreas is refused
                 // (COBOL2897, §2023:4.2.15: "A conforming implementation may place such limits").

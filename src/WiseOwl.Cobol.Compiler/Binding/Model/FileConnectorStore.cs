@@ -13,7 +13,7 @@ public enum FileConnectorStore
     /// <summary>The FILE STATUS item (§2023:12.4.5.8.4 GR1), set by CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK and
     /// WRITE (§2023:9.1.13.1).</summary>
     Status,
-    /// <summary>The RELATIVE KEY item of a relative file (READ: §2023:14.9.30.4 GR25; sequential WRITE: §2023:14.9.51.4 GR29a).</summary>
+    /// <summary>The RELATIVE KEY item of a relative file (READ: §2023:14.9.30.4 GR25; sequential WRITE: §2023:14.9.51.4 GR29 a)).</summary>
     RelativeKey,
     /// <summary>The RECORD VARYING DEPENDING ON item (§2023:13.18.43.4 GR15: READ and RETURN).</summary>
     Depending,

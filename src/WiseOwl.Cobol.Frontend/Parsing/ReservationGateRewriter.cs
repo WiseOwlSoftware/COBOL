@@ -10,7 +10,7 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Frontend.Parsing;
 
 /// <summary>
-/// ⛔ THE TOKEN-LEVEL §2023:8.9 RESERVATION GATE (kb/Work PB655). ISO §2023:8.3.2.1 SR1: "Reserved words shall not be used as
+/// ⛔ THE TOKEN-LEVEL §2023:8.9 RESERVATION GATE (kb/Work PB655). ISO §2023:8.3.2.1 1): "Reserved words shall not be used as
 /// user-defined words or system-names" — and §2023:8.9 reserves a word per EDITION, so one lexer token (GOBACK, NULL,
 /// ALTER, CONSTANT, …) is a keyword at some editions and a legal user-defined word at the others.
 /// <para><b>Why it is not a predicate.</b> It was one: every such token was a <c>cobolWord</c> alternative behind

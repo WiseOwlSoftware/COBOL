@@ -167,7 +167,7 @@ public sealed class ThroughRangeExceptionTests
         Assert.Equal(expected.Replace("\r\n", "\n"), stdout.Replace("\r\n", "\n").TrimEnd('\n'));
     }
 
-    /// <summary>§2023:14.9.13.4 GR4a.5 inverts a <c>NOT</c> range to "&lt; left-part OR &gt; right-part", and the
+    /// <summary>§2023:14.9.13.4 GR4 a) 5. inverts a <c>NOT</c> range to "&lt; left-part OR &gt; right-part", and the
     /// exception is a property of the RANGE, not of the phrase's polarity — §2023:14.7.8 GR2 is reached through
     /// GR2's delegation before any negation is applied. So <c>WHEN NOT W-LO THRU W-HI</c> over an inverted range
     /// still sets EC-RANGE-INVALID, and the empty range makes the negated test TRUE.</summary>

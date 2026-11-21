@@ -355,7 +355,7 @@ public sealed class DeclarativesStructuralRulesTests
     // §2023:14.9.30.4 GR25 move the record number only on a format 1, sequential, READ; kb/Work PB5885 review R1-1).
     [InlineData("READ RELR INVALID KEY MOVE 1 TO WS-N")]
     [InlineData("READ RELD INVALID KEY MOVE 1 TO WS-N")]         // dynamic access without NEXT: a random read
-    // A random or dynamic WRITE reads the key (§2023:14.9.51.4 GR29b); START, DELETE and REWRITE store no key; RELR and
+    // A random or dynamic WRITE reads the key (§2023:14.9.51.4 GR29 b)); START, DELETE and REWRITE store no key; RELR and
     // RELD have no FILE STATUS item.
     [InlineData("WRITE RELR-REC INVALID KEY MOVE 1 TO WS-N")]
     [InlineData("START RELD KEY IS EQUAL TO WS-RK3 INVALID KEY MOVE 1 TO WS-N")]

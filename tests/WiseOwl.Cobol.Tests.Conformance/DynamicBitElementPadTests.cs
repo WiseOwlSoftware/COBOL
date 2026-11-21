@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// ⛔ THE PADDING OF AN ELEMENT OF A DYNAMIC-CAPACITY BIT TABLE IS NOT AN IMPLICIT FILLER ITEM, AND IT IS NOT STORED
 /// (kb/Work PB3598, the owner may overturn it; <c>docs/CONFORMANCE.md</c> USAGE BIT). An element of <c>05 T PIC 1(3) USAGE BIT
-/// OCCURS DYNAMIC</c> is out-of-line storage of its own — ISO §2023:8.5.1.9.1 SR3: "table data items are not required to be
+/// OCCURS DYNAMIC</c> is out-of-line storage of its own — ISO §2023:8.5.1.9.1 3): "table data items are not required to be
 /// contiguous in physical memory. The size, location, and time of physical allocation of a dynamic-capacity table are
 /// implementor-defined" — so §2023:8.5.1.6.3's filler, which advances alignment "to a required natural boundary for the next item within that
 /// group", has no next item to advance to: the five bits that round a 3-bit element up to its one character are the rounding of

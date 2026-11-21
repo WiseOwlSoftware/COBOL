@@ -29,7 +29,7 @@ public sealed class SortTransferRuleDriftTests
         { false, "GivingOpen", "TTCC" },
         { false, "GivingWrite", "TTCC" },
         { false, "GivingClose", "TTCC" },
-        // MERGE — §2023:14.9.24.4 GR7a: a nonfatal OPEN terminates unless a USE procedure completes normally.
+        // MERGE — §2023:14.9.24.4 GR7 a): a nonfatal OPEN terminates unless a USE procedure completes normally.
         { true, "UsingOpen", "TTCT" },
         { true, "UsingRead", "TTCC" },
         // GR7's closing paragraph: a nonfatal CLOSE continues with a normal USE and with none.

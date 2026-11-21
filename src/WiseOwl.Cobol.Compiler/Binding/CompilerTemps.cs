@@ -45,7 +45,7 @@ internal sealed class CompilerTemps(DataBinder data)
 
     /// <summary>Synthesize the temporary SELF references when it is written as an operand (kb/Work PB1425): §2023:8.4.3.8.3
     /// SR7 makes SELF class object and category object reference, not universal, and §2023:8.4.3.8.4 GR1 the object the
-    /// method was invoked on — the description ACTIVE-CLASS spells (§2023:13.18.60.4 GR22e), FACTORY OF in a factory
+    /// method was invoked on — the description ACTIVE-CLASS spells (§2023:13.18.60.4 GR22 e)), FACTORY OF in a factory
     /// method.</summary>
     internal DataItem ForSelf(string containingClass, bool factory) =>
         ForObjectReference(ObjectRefDescriptor.ActiveClass(containingClass, factory), "__SELF-TEMP-", "__self");

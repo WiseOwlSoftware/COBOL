@@ -144,7 +144,7 @@ internal static class AssignTargetRule
 
     /// <summary>⛔ ONE WORD, TWO ADMISSIBLE READINGS (kb/Work PB2500). A word at an ASSIGN operand is device-name-1 — a
     /// system-name — and is ALSO literal-1 when it names a constant entry (§2023:13.10.3 SR2: "constant-name-1 may be used
-    /// anywhere that a format specifies a literal of the class and category of constant-name-1"). §2023:8.3.2.1 SR4 lets one
+    /// anywhere that a format specifies a literal of the class and category of constant-name-1"). §2023:8.3.2.1 4) lets one
     /// word be a system-name and a user-defined word, and §2023:12.4.5.2 SR5 leaves "the meaning and rules for the allowable
     /// specification of device-name-1 and the value of literal-1" to the implementor; neither says which reading wins.
     /// <para>⚠ DETERMINATION (CLAUDE.md rule 1: ISO leaves it to the implementor → GnuCOBOL, which substitutes the

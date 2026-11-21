@@ -43,7 +43,7 @@ public sealed class UsageDeclarationPlacementDriftTests
             + "restructured without updating its drift test. Re-derive the rule before re-shaping the test.");
 
     // ⛔ THE TWO PHRASE READERS LIVE ON ItemCategory (kb/Work PB391), not on DataBinder: SR4's population is
-    // also §2023:14.7.6 GR4's CLASS exclusion and §2023:13.16.3 SR24e's, and CorrespondingBinder — the third asker —
+    // also §2023:14.7.6 rule 4's CLASS exclusion and §2023:13.16.3 SR24 e)'s, and CorrespondingBinder — the third asker —
     // is outside DataBinder. They are public there, so these are direct calls rather than reflection.
     private static string? Sr14PhraseOf(Usage? u) => ItemCategory.Sr14PhraseOf(u);
     private static string? Sr4PhraseOf(Usage? u) => ItemCategory.Sr4PhraseOf(u);

@@ -38,7 +38,7 @@ public static class CobolWordRule
     /// <summary>The COBOL1567 message when <paramref name="word"/> exceeds the ceiling; null when legal.
     /// One text for every reporting channel — the tree funnel and the directive stages. The length is counted in
     /// CHARACTERS, not UTF-16 units (<see cref="CobolCharacterRepertoire.LengthInCharacters"/>): a supplementary-plane
-    /// letter is one character, a combining character is one of its own (§2023:8.1.3.2 GR4c, kb/Work PB1402).</summary>
+    /// letter is one character, a combining character is one of its own (§2023:8.1.3.2 GR4 c), kb/Work PB1402).</summary>
     public static string? LengthViolation(string word, int dialectLevel)
     {
         int length = CobolCharacterRepertoire.LengthInCharacters(word);

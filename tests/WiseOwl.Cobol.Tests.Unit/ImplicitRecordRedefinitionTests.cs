@@ -90,7 +90,7 @@ public sealed class ImplicitRecordRedefinitionTests
     /// instead: <see cref="FileModel.OutOfLineRecords"/> is what a READ reaches, and the character-window record is
     /// the <see cref="FileModel.AreaRecord"/>. One row per out-of-line shape, so a new shape added to
     /// <see cref="FileModel.IsOutOfLineRecord"/> without its binder half fails here. (A dynamic-capacity table is
-    /// never one: it "may be defined in any place, other than the file section", §2023:8.5.1.9.1 SR3 — COBOL1526.)</summary>
+    /// never one: it "may be defined in any place, other than the file section", §2023:8.5.1.9.1 3) — COBOL1526.)</summary>
     [Theory]
     [InlineData("01 R3 USAGE POINTER.")]
     [InlineData("01 R3 USAGE PROGRAM-POINTER.")]

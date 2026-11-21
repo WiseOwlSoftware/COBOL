@@ -62,7 +62,7 @@ public sealed class BitString : IEquatable<BitString>
         return Of(new string(arr));
     }
 
-    /// <summary>A boolean shift/rotate (§2023:8.8.2 GR8): <paramref name="count"/> positions, logical (zero-fill) or
+    /// <summary>A boolean shift/rotate (§2023:8.8.2 rule 8): <paramref name="count"/> positions, logical (zero-fill) or
     /// <paramref name="circular"/> (rotate), <paramref name="left"/> or right. Result length = this value's length.
     /// A count == 0 is identity; a logical shift by ≥ the length yields all zeros; a circular shift is periodic in
     /// the length. Mirrors <c>CobolBool.Shift</c>.</summary>
@@ -96,7 +96,7 @@ public sealed class BitString : IEquatable<BitString>
     /// value is boolean 1). SR1 (length 1) is checked by the caller; this defensively tests position 1.</summary>
     public bool IsTrue => Bits.Length > 0 && Bits[0] == '1';
 
-    /// <summary>Boolean-RELATION equality (§2023:8.8.4.2.8 GR2): a positionwise value comparison, the shorter operand
+    /// <summary>Boolean-RELATION equality (§2023:8.8.4.2.8 rule 2): a positionwise value comparison, the shorter operand
     /// right-extended with boolean zeros; two zero-length values are equal. This is the equality a cce / EVALUATE
     /// boolean relation uses (§2023:7.3.8.3 GR2's unequal-length⇒unequal length-sensitivity is for operands that are
     /// "not numeric or boolean") — distinct from <see cref="Equals(BitString)"/>. Mirrors <c>CobolBool.Equal</c>.</summary>

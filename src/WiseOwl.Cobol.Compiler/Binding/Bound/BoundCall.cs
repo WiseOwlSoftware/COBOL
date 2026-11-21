@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// <see cref="Value"/> operand (a literal — inherently BY CONTENT — or a BY VALUE expression, §2023:14.9.4.3 SR4).
 /// <para>⛔ THE OPERAND'S KIND IS §2023:14.9.4.4 GR8's ANSWER, STATED ONCE BY THE BINDER (kb/Work PB3760): "An argument that
 /// consists merely of a single identifier or literal is regarded as an identifier or literal rather than an arithmetic or
-/// boolean expression". A written numeric literal — its sign included, §2023:8.3.3.3.2 SR2 — is a
+/// boolean expression". A written numeric literal — its sign included, §2023:8.3.3.3.2 rule 2 — is a
 /// <see cref="BoundNumericLiteral"/> in every mode and every lane (the parse-tree reduction
 /// <c>ConditionBinder.ReduceArgument</c> finds it), and a <see cref="BoundComputedOperand"/> is an arithmetic expression or
 /// a function value, never a literal: the expression binder drops grouping parentheses, so <c>(3)</c> binds to the
@@ -29,7 +29,7 @@ public sealed record BoundCallArg(CobolPassMode Mode, Place? Place, BoundOperand
     /// <summary>A <b>boolean-expression-1</b> argument (ISO §2023:14.9.4.2 Format 2; kb/Work PB238) — the third of
     /// the BY CONTENT brace's four operand shapes, and the one the BY VALUE brace deliberately does not print.
     /// <para>It is its OWN value channel, not a spelling of <see cref="Value"/>: a boolean expression evaluates
-    /// to a '0'/'1' bit-string value (§2023:8.8.2) whose length is fixed by §2023:8.8.2 GR10, never to an algebraic
+    /// to a '0'/'1' bit-string value (§2023:8.8.2) whose length is fixed by §2023:8.8.2 rule 10, never to an algebraic
     /// value, so it can neither be rendered by the numeric renderer nor stored by the numeric store. The exact
     /// counterpart of <c>BoundInvokeArg.ContentBool</c>, which PB46 landed on the INVOKE side of the same rule;
     /// this slot is what closes §2023:14.9.4.3 SR17's third channel on the CALL side.</para>
@@ -70,7 +70,7 @@ public sealed record BoundCallArg(CobolPassMode Mode, Place? Place, BoundOperand
 
     /// <summary>The argument's §2023:14.8.2 description (<c>ActivationDescriptions.OfCallArgument</c>) when the activated
     /// program is not a definition this compilation group compiles (<see cref="BoundCallProgram.CalleeCompiledHere"/>
-    /// false): what §2023:14.9.4.4 GR3d compares with the activated program's registered formal at call initiation (kb/Work
+    /// false): what §2023:14.9.4.4 GR3 d) compares with the activated program's registered formal at call initiation (kb/Work
     /// PB165, PB2103). Null otherwise, and for an omitted argument.</summary>
     public WiseOwl.Cobol.Runtime.ActivationDescription? Description { get; init; }
 }
@@ -134,18 +134,18 @@ public sealed record BoundCallProgram(
     public bool CalleeSignatureKnown { get; init; }
 
     /// <summary>⛔ True only when the element this site activates is a DEFINITION this compilation group compiles — an AS
-    /// NESTED call, a program-prototype CALL through §2023:12.3.8.4 GR10a's definition (or §2023:8.4.6.8's containing program)
+    /// NESTED call, a program-prototype CALL through §2023:12.3.8.4 GR10 a)'s definition (or §2023:8.4.6.8's containing program)
     /// that names no other program, a user-defined function GR11 a) or §2023:8.4.6.6 resolved to its definition — so the
     /// activated element cannot differ from the signature the bind checked. Everywhere else the activated element is
     /// compiled elsewhere and can be recompiled with another signature after this site (a GR10 b) / GR11 b) prototype
-    /// whose definition is in another group, GR10 c), a dynamic or pointer CALL), and §2023:14.9.4.4 GR3d — "the rules for
+    /// whose definition is in another group, GR10 c), a dynamic or pointer CALL), and §2023:14.9.4.4 GR3 d) — "the rules for
     /// conformance specified in 14.8.2, Parameters and 14.8.3, Returning items apply" to "the program being called" —
     /// is asked at run time against the activated element's registered formals: the site describes its operands
     /// (<c>CallEmitter.DescribesOperands</c>; DESIGN-external-repository §4.2, kb/Work PB2103).</summary>
     public bool CalleeCompiledHere { get; init; }
 
     /// <summary>The RETURNING item's §2023:14.8.3 description (<c>ActivationDescriptions.OfPlace</c>) when
-    /// <see cref="CalleeCompiledHere"/> is false, for §2023:14.9.4.4 GR3d's run-time comparison with the activated program's
+    /// <see cref="CalleeCompiledHere"/> is false, for §2023:14.9.4.4 GR3 d)'s run-time comparison with the activated program's
     /// registered returning item (kb/Work PB165, PB2103); null otherwise.</summary>
     public WiseOwl.Cobol.Runtime.ActivationDescription? ReturningDescription { get; init; }
 }

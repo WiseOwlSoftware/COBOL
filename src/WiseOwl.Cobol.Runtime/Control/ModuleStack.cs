@@ -72,7 +72,7 @@ public sealed class ModuleStack
     // This stack is the run unit's ONE record of which activation is running: every activation mechanism
     // §2023:15.65.4 r5 names pushes a frame here (ProgramTable.CallProgram / RunMain for a CALL, a function reference
     // and the main program; the method body itself for an INVOKE and an inline invocation). So it is also the
-    // one place that can answer §2023:14.9.18.4 GR1b's question "which activation is the ACTIVATING runtime element
+    // one place that can answer §2023:14.9.18.4 GR1 b)'s question "which activation is the ACTIVATING runtime element
     // of the element that is returning with RAISING" — a question with no other runtime chokepoint, because a
     // typed INVOKE is a direct .NET call. Each frame therefore carries a unique activation identity.
 

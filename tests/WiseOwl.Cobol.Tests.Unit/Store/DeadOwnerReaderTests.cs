@@ -126,7 +126,7 @@ public sealed class DeadOwnerReaderTests : CommitRollbackRuntimeHarness
         }
     }
 
-    /// <summary>The owner LIVES: the reader's OPEN is refused as before ('61', §2023:9.1.13.9 GR1a: the owner's SHARING WITH NO OTHER
+    /// <summary>The owner LIVES: the reader's OPEN is refused as before ('61', §2023:9.1.13.9 1) a): the owner's SHARING WITH NO OTHER
     /// holds the file), and nothing of the owner is rolled back — its transaction stands for its own COMMIT.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
@@ -184,7 +184,7 @@ public sealed class DeadOwnerReaderTests : CommitRollbackRuntimeHarness
 
     /// <summary>The same refusal at a STATEMENT's entry (review round 1, R1-4): the reader is open (SHARING WITH ALL OTHER) when the
     /// owner dies and the file becomes read-only to this process, so the reader's next READ finds the dead transaction and cannot
-    /// settle it. The entry's host failure is a permanent error ('30', §2023:9.1.13.6 GR1; <c>KeyedConnector.Enter</c>), in effect for the
+    /// settle it. The entry's host failure is a permanent error ('30', §2023:9.1.13.6 1); <c>KeyedConnector.Enter</c>), in effect for the
     /// file's later statements (§2023:9.1.13.1); the dead change is never returned, the IGNORING LOCK read (§2023:14.9.30.4 GR12) included.</summary>
     [Theory]
     [MemberData(nameof(OrgsByIgnoring))]

@@ -39,7 +39,7 @@ internal static class CobolWordsCategoryPass
     }
 
     /// <summary>SR4's sentence for <paramref name="word"/>, which names the cause: a word this implementation reserves for a
-    /// nonstandard extension (§2023:4.2.10 GR3, docs/CONFORMANCE.md D-RW1) is reserved though no list of the standard holds it, and
+    /// nonstandard extension (§2023:4.2.10 3), docs/CONFORMANCE.md D-RW1) is reserved though no list of the standard holds it, and
     /// the user who wrote it as a new word must be told which reservation refuses it (kb/Work PB4239).</summary>
     private static string NewWordRefusal(string word) =>
         !IsOnTheStandardsLists(word) && NonstandardExtensionRegister.ReservesWord(word)
@@ -51,9 +51,9 @@ internal static class CobolWordsCategoryPass
     /// <summary>⛔ THE POPULATION SR3 AND SR4 SPEAK OF, in one place (kb/Work PB1373, PB4239): "a reserved word, a
     /// context-sensitive word, or an intrinsic function name" — §2023:8.9, §2023:8.10 and §2023:8.11 as the COBOL-2023 text lists them,
     /// because the directive is a COBOL-2023 introduction (<see cref="CobolWordsMap.DirectiveEdition"/>) and no other
-    /// edition ever asks — AND the reserved words this implementation adds as nonstandard extensions (§2023:4.2.10 GR3, the
+    /// edition ever asks — AND the reserved words this implementation adds as nonstandard extensions (§2023:4.2.10 3), the
     /// register's <see cref="NonstandardExtension.ReservedWords"/>). A word the compiler reserves is a reserved word
-    /// (§2023:8.3.2.1 SR1), whoever's list holds it: §2023:7.3.10.1 and D.12.1 give the directive to a programmer so a program written
+    /// (§2023:8.3.2.1 1)), whoever's list holds it: §2023:7.3.10.1 and D.12.1 give the directive to a programmer so a program written
     /// to an implementor's extension, and D.12.3 so a change of compiler that adds reserved words conflicting with existing
     /// code, may free or respell them (owner decision of 2026-10-31, kb/Work PB4239).
     /// <para>It used to be two guesses that disagreed with the standard in opposite directions: the SR3 test accepted

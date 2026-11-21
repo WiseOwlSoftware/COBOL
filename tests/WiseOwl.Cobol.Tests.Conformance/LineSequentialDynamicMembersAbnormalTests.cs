@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// witness (kb/Work PB1563, docs/CONFORMANCE.md §3 D-FRA (x); campaign PB3353's requirement that file I-O is tested on
 /// its exception paths as fully as on its success paths). A golden must exit 0; the statements here are the ones that
 /// meet an I-O exception on a file with NEITHER a FILE STATUS clause NOR an applicable USE procedure, which ISO
-/// §2023:9.1.13.1 makes fatal for a status beginning 3, 4 or 7 and §2023:14.6.13.1.3 GR7 ends the run unit for. The arms that have a
+/// §2023:9.1.13.1 makes fatal for a status beginning 3, 4 or 7 and §2023:14.6.13.1.3 7) ends the run unit for. The arms that have a
 /// FILE STATUS or a USE procedure are the golden <c>pb1563_line_sequential_dynamic_members_exceptions</c>.
 /// <para>Each program stops at the failing statement: the stdout that stops, the exit code 1 and the stderr surface are
 /// what is asserted.</para>
@@ -103,7 +103,7 @@ public sealed class LineSequentialDynamicMembersAbnormalTests
         AssertAbnormal(source, "OPENED", "43", "(REWRITE)");
     }
 
-    /// <summary>§2023:14.9.35.4 GR17d + §2023:9.1.13.1: the REWRITE of a record whose dynamic member (past the fixed run) holds
+    /// <summary>§2023:14.9.35.4 GR17 d) + §2023:9.1.13.1: the REWRITE of a record whose dynamic member (past the fixed run) holds
     /// a character outside the line sequential character set is '71', fatal with no FILE STATUS and no USE procedure.</summary>
     [Fact]
     public void Rewrite_ControlCharacterPastTheFixedRun_NoFileStatusNoUse_TerminatesAbnormally()

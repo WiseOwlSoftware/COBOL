@@ -178,7 +178,7 @@ validateVaryingSpec
 // ⛔ FORMAT, CONTENT and RELATION ARE KEYWORDS HERE — all three are UNDERLINED in §2023:13.18.62.2's printed
 // diagram (KEYWORDS, §2023:5.2.2 — "shown in uppercase and underlined"), NOT user-defined words — so each
 // needs an arm that survives the §2023:8.9 RESERVATION GATE on cobolWord (kb/Work PB693). That gate enforces
-// §2023:8.3.2.1 SR1 ("Reserved words shall not be used as user-defined words or system-names") by removing a
+// §2023:8.3.2.1 rule 1 ("Reserved words shall not be used as user-defined words or system-names") by removing a
 // reserved word's cobolWord alternative at the editions that reserve it — so a KEYWORD slot that borrows
 // cobolWord is broken by construction there. FORMAT is §2023:8.9-reserved from 2002 and DOES have a lexer
 // token (CobolLexer.g4 FORMAT, serving the FD FORMAT clause §2023:13.18.24) — the comment that stood here

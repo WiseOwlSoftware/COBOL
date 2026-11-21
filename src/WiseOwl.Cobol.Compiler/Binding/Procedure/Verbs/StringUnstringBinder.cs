@@ -181,12 +181,12 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // both verbs' delimiter operands DO specify a literal, so StrUnstrSender, which serves all four positions,
         // substitutes the constant's literal there and is right to. This is the one position it must refuse: the
         // receiving side already does (COBOL1548), and without this the two arms disagree. A symbolic-character is a
-        // literal by the same ONE alias resolution (a figurative constant, §2023:12.3.7.4 GR11a; kb/Work PB1544).
+        // literal by the same ONE alias resolution (a figurative constant, §2023:12.3.7.4 GR11 a); kb/Work PB1544).
         if (un.strUnstrSender().dataReference() is { } aliasRef && host.Expr.LiteralAliasOf(aliasRef) is { } alias)
             return Reject(alias.Constant is not null
                 ? $"UNSTRING sender '{senderText}' is a constant-name, which stands only where a format specifies a "
                     + $"literal; identifier-1 is a data item ({EditionInfo.Designated(Sr(true, 8))}{ctx.Edition.Edition.Cite("", "; §2023:13.10.3 SR2")})"
-                : $"UNSTRING sender '{senderText}' is a symbolic-character, a figurative constant ({ctx.Edition.Edition.Cite("§1985:III.2", "ISO §2023:12.3.7.4 GR11a")}); "
+                : $"UNSTRING sender '{senderText}' is a symbolic-character, a figurative constant ({ctx.Edition.Edition.Cite("§1985:III.2", "ISO §2023:12.3.7.4 GR11 a)")}); "
                     + $"identifier-1 is a data item ({EditionInfo.Designated(Sr(true, 8))})");
         // SR2 — identifier-1 (the sender) shall be category alphanumeric or national (a fixed-length group and a
         // reference-modified slice are alphanumeric-image senders and remain permitted). A numeric item — INCLUDING
@@ -252,7 +252,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             // but returning only BoundUnsupported let the illegal program compile clean and throw when control
             // reached the UNSTRING. An alphanumeric or national group stays exempt — §2023:14.9.43.4 GR3a's
             // alphanumeric-MOVE semantics carry a group receiver, including one holding a BINARY/PACKED leaf
-            // (V59) — but a BIT group is class and category boolean (§2023:13.18.29.4 GR1a and a strongly-typed group's
+            // (V59) — but a BIT group is class and category boolean (§2023:13.18.29.4 GR1 a) and a strongly-typed group's
             // category is its type-name (§2023:8.5.2.1), neither of which SR4's list admits (kb/Work PB1182: the receiver
             // arm exempted every group, while Sr2OffendingCategory's sender arm already knew both).
             if (target.DenotedItem is not null
@@ -448,7 +448,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// <para>An ALPHANUMERIC or NATIONAL GROUP is EXEMPT: §2023:8.5.2.1 treats an alphanumeric group as usage display,
     /// and §2023:14.9.43.4 GR3a defines the transfer "in accordance with the MOVE statement rules for
     /// alphanumeric-to-alphanumeric moves", which admit a group — including one holding a BINARY/PACKED leaf (V59).
-    /// A BIT group is NOT: §2023:13.18.29.4 GR1b makes it an elementary item of usage bit (kb/Work PB3228).
+    /// A BIT group is NOT: §2023:13.18.29.4 GR1 b) makes it an elementary item of usage bit (kb/Work PB3228).
     /// A STRONGLY-TYPED group is NOT: its class is its type-name and nothing gives it a usage, so SR1 reads the
     /// usage off its elementary items and refuses one holding a leaf that is neither display nor national
     /// (kb/Work PB244).</para>
@@ -474,7 +474,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         BoundNumericLiteral => "is a numeric literal; " + edition.Cite("SR2 admits only nonnumeric literals",
             "SR1 admits only alphanumeric, boolean and national literals"),
         // ⛔ THE USAGE HALF IS THE ONE PREDICATE (kb/Work PB3228, with INSPECT SR1/SR2: ItemCategory.IsDisplayOrNationalUsage).
-        // This arm used to re-derive it from `Pic.Usage` guarded by !IsGroup, so a BIT GROUP — §2023:13.18.29.4 GR1b "treated
+        // This arm used to re-derive it from `Pic.Usage` guarded by !IsGroup, so a BIT GROUP — §2023:13.18.29.4 GR1 b) "treated
         // as though it were an elementary data item of usage bit" — fell to `_ => null` and compiled clean, where INSPECT
         // refused the same group under the word-identical sentence. Every shape is read by ItemCategory: an elementary
         // item, a bit or national group by its as-if usage, an alphanumeric group as display (§2023:8.5.2.1), and a
@@ -496,7 +496,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     };
 
     /// <summary>The phrase naming WHICH item keeps <paramref name="operand"/> from SR1's usage sentence: the operand
-    /// itself (an elementary item, or a bit group that is one by §2023:13.18.29.4 GR1b) or the leaf a strongly-typed group
+    /// itself (an elementary item, or a bit group that is one by §2023:13.18.29.4 GR1 b)) or the leaf a strongly-typed group
     /// holds. <paramref name="outside"/> comes from <see cref="ItemCategory.UsageOutsideDisplayOrNational"/>.</summary>
     private static string UsageOffence(DataItem operand, DataItem outside, EditionInfo edition)
     {
@@ -608,7 +608,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // pointer leaf, and quietly examined the image of one that did not).
         null when StrongTypeModel.IsStrongGroup(place.Item) =>
             $"'{StrongTypeModel.TypeAnchor(place.Item)?.TypeName ?? place.Item.CobolName}' — the type-name of a strongly-typed group item (§2023:8.5.2.1)",
-        null => place.Item.GroupUsage is GroupUsage.Bit ? "boolean (a bit group, §2023:13.18.29.4 GR1a" : null,
+        null => place.Item.GroupUsage is GroupUsage.Bit ? "boolean (a bit group, §2023:13.18.29.4 GR1 a)" : null,
         // Every other category offends, named in §2023:8.5.2.1 Table 2's words through the ONE spelling (kb/Work PB850).
         _ => ItemCategory.IsAlphanumericOrNational(place, ctx.Edition.Edition) ? null : ItemCategory.CategoryName(place),
     };

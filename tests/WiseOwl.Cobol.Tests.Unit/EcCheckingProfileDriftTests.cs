@@ -11,7 +11,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ §2023:14.9.18.4 GR1b's ENABLEMENT QUESTION IS ASKED IN THE ACTIVATING RUNTIME ELEMENT, AND ONLY THERE
+/// ⛔ §2023:14.9.18.4 GR1 b)'s ENABLEMENT QUESTION IS ASKED IN THE ACTIVATING RUNTIME ELEMENT, AND ONLY THERE
 /// (kb/Work PB408).
 ///
 /// <para><b>The rule.</b> "If the RAISING phrase is specified, an exception condition is raised in the activating
@@ -47,7 +47,7 @@ public sealed class EcCheckingProfileDriftTests
                      || n.Contains("Checking", StringComparison.OrdinalIgnoreCase))
             .ToList();
         Assert.True(offenders.Count == 0,
-            "BoundRaising must carry no bind-time enablement decision (ISO §2023:14.9.18.4 GR1b localises the test "
+            "BoundRaising must carry no bind-time enablement decision (ISO §2023:14.9.18.4 GR1 b) localises the test "
             + "in the ACTIVATING runtime element, which is unknown here). Found: " + string.Join(", ", offenders));
     }
 
@@ -125,7 +125,7 @@ public sealed class EcCheckingProfileDriftTests
             .Select(x => $"{Path.GetFileName(x.File)}:{x.Line}")
             .ToList();
         Assert.True(bare.Count == 0,
-            "a propagation pickup emitted with no activating statement cannot apply ISO §2023:14.9.18.4 GR1b's "
+            "a propagation pickup emitted with no activating statement cannot apply ISO §2023:14.9.18.4 GR1 b)'s "
             + "enablement test (kb/Work PB408). Found: " + string.Join(", ", bare));
     }
 }

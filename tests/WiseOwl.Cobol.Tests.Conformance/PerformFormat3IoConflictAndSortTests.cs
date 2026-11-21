@@ -112,7 +112,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             checking, use);
     }
 
-    [Fact]   // §2023:9.1.13.9 GR1e: OPEN OUTPUT of a physical file another connector has open is '61'; the WHEN is selected
+    [Fact]   // §2023:9.1.13.9 1) e): OPEN OUTPUT of a physical file another connector has open is '61'; the WHEN is selected
     public void OpenOutputConflict_Retry_WhenFileSharing_RunsHandler_WithStatus61() => AssertRuns(Share("F3SH61N", """
             PERFORM
                 OPEN OUTPUT RETRY 2 TIMES G
@@ -176,7 +176,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """, checking: "", use: ("G", "DISPLAY \"USE \" GS.")), "USE 61\nAFTER 61\nDONE");
 
-    [Fact]   // §2023:9.1.13.9 GR2: DELETE FILE of a physical file another connector has open is '62'
+    [Fact]   // §2023:9.1.13.9 2): DELETE FILE of a physical file another connector has open is '62'
     public void DeleteFileConflict_Retry_WhenFileSharing_RunsHandler_WithStatus62() => AssertRuns(Share("F3SH62N", """
             PERFORM
                 DELETE FILE G RETRY 2 TIMES
@@ -217,7 +217,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """, checking: ""), "AFTER 62\nDONE");
 
-    // ── record lock contention: '51', the record operation conflict (§2023:9.1.13.8 GR1) ────────────────────────────
+    // ── record lock contention: '51', the record operation conflict (§2023:9.1.13.8 1)) ────────────────────────────
 
     /// <summary>Two connectors on ONE relative file, both SHARING WITH ALL OTHER and LOCK MODE IS AUTOMATIC (the
     /// <c>l1_read_lock_mode_governs</c> shape): F's plain READ of record 1 locks it (§2023:12.4.5.9.4 GR4), so G's READ of
@@ -263,7 +263,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             checking, use);
     }
 
-    [Fact]   // §2023:9.1.13.8 GR1: the READ of a record another connector has locked is '51'; the WHEN is selected
+    [Fact]   // §2023:9.1.13.8 1): the READ of a record another connector has locked is '51'; the WHEN is selected
     public void ReadOfALockedRecord_Retry_WhenRecordOperation_RunsHandler_WithStatus51() => AssertRuns(Lock("F3LK51N", """
             PERFORM
                 READ G RETRY 2 TIMES
@@ -875,7 +875,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
         InWhen("SORT SF ASCENDING KEY SK USING H GIVING G" + Nl + "DISPLAY \"NOT REACHED\""), hStatus: false),
         "EC-I-O-PERMANENT-ERROR", "");
 
-    [Fact]   // §2023:14.9.40.4 GR9a: a USING file in an open mode at the SORT is EC-SORT-MERGE-FILE-OPEN; §2023:14.6.13.1.3 GR2
+    [Fact]   // §2023:14.9.40.4 GR9 a): a USING file in an open mode at the SORT is EC-SORT-MERGE-FILE-OPEN; §2023:14.6.13.1.3 2)
              // makes the SORT rules apply, so the declarative runs, the SORT is terminated and the run unit continues
     public void FileSortInWhen_UsingFileOpen_SortMergeFileOpen_TerminatesTheSort() => AssertRuns(Sort("F3ST06",
         "    OPEN INPUT F\n" + InWhen("PERFORM SORT-PARA" + Nl + "DISPLAY \"CONTINUED\"")

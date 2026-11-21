@@ -33,7 +33,7 @@ public sealed class LogicalLineBuilderTests
 
     private static string[] Codes(DiagnosticBag bag) => bag.Diagnostics.Select(d => d.Code).ToArray();
 
-    [Theory] // §2023:6.5 GR4 + 8): the floating indicator ends the line's program text before it; the continuation line's
+    [Theory] // §2023:6.5 4) + 8): the floating indicator ends the line's program text before it; the continuation line's
              // content after its initial quotation symbol is appended to the latest logical line.
     [InlineData(true)]
     [InlineData(false)]
@@ -45,7 +45,7 @@ public sealed class LogicalLineBuilderTests
         Assert.DoesNotContain(bag.Diagnostics, d => d.IsError);
     }
 
-    [Theory] // §2023:6.5 GR4: trailing spaces BEFORE the indicator are literal content; "The continuation indicator may
+    [Theory] // §2023:6.5 4): trailing spaces BEFORE the indicator are literal content; "The continuation indicator may
              // optionally be followed by one or more spaces" (§2023:6.4.2).
     [InlineData(true)]
     [InlineData(false)]
@@ -107,7 +107,7 @@ public sealed class LogicalLineBuilderTests
     /// indicator column cases are separate, below).</summary>
     public static TheoryData<string, string, string, string> BothFormatsNegatives => new()
     {
-        // §2023:6.2.3.2 SR6 / §2023:6.4.2 / §2023:6.5 GR8: the first nonblank character of the continuation line is not the opening quote.
+        // §2023:6.2.3.2 SR6 / §2023:6.4.2 / §2023:6.5 8): the first nonblank character of the continuation line is not the opening quote.
         { "DISPLAY \"AB\"-", "    CD\".", "COBOL2684", "no quotation symbol" },
         { "DISPLAY \"AB\"-", "    'CD'.", "COBOL2684", "the other quotation symbol" },
         // §2023:6.3.7.3 / §2023:6.4.4.3: an inline comment on a line that holds a floating literal continuation indicator.
@@ -159,7 +159,7 @@ public sealed class LogicalLineBuilderTests
         Assert.DoesNotContain("COBOL2687", Codes(Normalize(open + "\n000200-    \"CD\".\n", InitialReferenceFormat.Fixed, 2002).Bag));
     }
 
-    [Theory] // §2023:6.3.5 SR2: "National literals may be continued only with a floating literal continuation indicator."
+    [Theory] // §2023:6.3.5 2): "National literals may be continued only with a floating literal continuation indicator."
     [InlineData("N\"", true)]
     [InlineData("NX\"", true)]
     [InlineData("\"", false)]
@@ -173,7 +173,7 @@ public sealed class LogicalLineBuilderTests
         Assert.Equal(diagnosed, Codes(bag).Contains("COBOL2685"));
     }
 
-    [Theory] // §2023:6.3.5 SR2: the join must not SPELL a multiple-character separator, invocation operator or indicator.
+    [Theory] // §2023:6.3.5 2): the join must not SPELL a multiple-character separator, invocation operator or indicator.
     [InlineData("000100     REPLACE =\n000200-    =A== BY ==B==.\n", "COBOL2688")]
     [InlineData("000100     INVOKE X :\n000200-    :M.\n", "COBOL2688")]
     [InlineData("000100     MOVE A TO X *\n000200-    > c\n", "COBOL2496")]
@@ -390,7 +390,7 @@ public sealed class LogicalLineBuilderTests
     }
 
     [Theory] // kb/Work PB1494: library text is converted in the division its COPY statement stands in — in a PROCEDURE
-             // DIVISION a paragraph named REMARKS is program text (§2023:6.5 GR5), in an IDENTIFICATION DIVISION it is the
+             // DIVISION a paragraph named REMARKS is program text (§2023:6.5 5)), in an IDENTIFICATION DIVISION it is the
              // comment-entry paragraph.
     [InlineData(true, "REMARKS. .", "")]
     [InlineData(false, "REMARKS.", "DISPLAY \"X\".")]
@@ -403,7 +403,7 @@ public sealed class LogicalLineBuilderTests
         Assert.Equal(body, lines[1].Trim());
     }
 
-    [Theory] // §2023:7.3.3 SR1 (kb/Work PB1360): a compiler directive is specified on ONE line, so a continuation line after a
+    [Theory] // §2023:7.3.3 1) (kb/Work PB1360): a compiler directive is specified on ONE line, so a continuation line after a
              // directive line — fixed hyphen, or the line after a floating literal indicator — is diagnosed (COBOL2696),
              // NOT joined: the directive keeps what its own line says and the line takes a discarded slot.
     [InlineData(true, ">>DEFINE XX AS \"AB\"-", "    \"CD\"")]
@@ -415,7 +415,7 @@ public sealed class LogicalLineBuilderTests
     {
         var (m, bag) = Normalize(Lines(fixedForm, directive, next, "DISPLAY X."), Format(fixedForm), std: 2023);
         string[] lines = m.Text.Split('\n');
-        Assert.Equal(directive[..^2], lines[0].Trim());   // §2023:6.5 GR4: the program text ends before the indicator ("-)
+        Assert.Equal(directive[..^2], lines[0].Trim());   // §2023:6.5 4): the program text ends before the indicator ("-)
         Assert.Equal("", lines[1]);                       // the continuation line took a discarded slot
         Assert.Equal("DISPLAY X.", lines[2].Trim());
         Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2696" && d.Location!.Value.Line == 1);
@@ -435,7 +435,7 @@ public sealed class LogicalLineBuilderTests
         if (directive) Assert.Equal(head, lines[0].Trim());   // not extended
         else
         {
-            Assert.StartsWith("DISPLAY \"AB", lines[0].Trim());   // §2023:6.5 GR6a: joined, the continued line space-filled to margin R
+            Assert.StartsWith("DISPLAY \"AB", lines[0].Trim());   // §2023:6.5 6) a): joined, the continued line space-filled to margin R
             Assert.EndsWith("CD\".", lines[0].Trim());
         }
     }
@@ -479,7 +479,7 @@ public sealed class LogicalLineBuilderTests
     private static string ToMarginR(string sequence, string indicator, string prefix, char fill)
         => sequence + indicator + prefix + new string(fill, 65 - prefix.Length);
 
-    [Fact] // §2023:6.3.5 SR2 "Comment lines and blank lines may be interspersed among lines containing the parts of a literal": a
+    [Fact] // §2023:6.3.5 2) "Comment lines and blank lines may be interspersed among lines containing the parts of a literal": a
            // debugging line is a comment line unless the program says WITH DEBUGGING MODE, so the continuation line after it
            // continues the literal the line BEFORE it left open (GnuCOBOL: the same, without -fdebugging-line).
     public void DebuggingLine_BetweenTheParts_OfAContinuedLiteral_LeavesTheContinuationToTheLiteral()
@@ -495,7 +495,7 @@ public sealed class LogicalLineBuilderTests
         Assert.DoesNotContain(bag.Diagnostics, d => d.IsError);
     }
 
-    [Fact] // the same when the literal was continued by a FLOATING indicator (§2023:6.5 GR8: the next line that is not a comment
+    [Fact] // the same when the literal was continued by a FLOATING indicator (§2023:6.5 8): the next line that is not a comment
            // or blank line is its continuation, and a comment-like debugging line is not it
     public void DebuggingLine_AfterAFloatingContinuationIndicator_LeavesTheContinuationToTheLiteral()
     {
@@ -522,7 +522,7 @@ public sealed class LogicalLineBuilderTests
 
     [Theory] // kb/Work PB2490: the walk cannot know whether the debugging line is a comment (no WITH DEBUGGING MODE) or
              // source, so it NOTES the line it passed over, and the line is diagnosed (COBOL3473) only when the rewriter
-             // reports it as source - a source line is outside §2023:6.3.5 SR2: only comment lines and blank lines may be there.
+             // reports it as source - a source line is outside §2023:6.3.5 2): only comment lines and blank lines may be there.
     [InlineData(false, false)]
     [InlineData(true, true)]
     public void DebuggingLine_PassedOverInALiteral_IsDiagnosedOnlyWhenItIsSource(bool isSource, bool diagnosed)
@@ -561,7 +561,7 @@ public sealed class LogicalLineBuilderTests
         Assert.Equal(Carrier + "    BC.", lines[1]);
     }
 
-    [Fact] // a debugging line of spaces is a blank line (§2023:6.5 GR2): never the join target, its slot the BARE carrier (kb/Work PB4412)
+    [Fact] // a debugging line of spaces is a blank line (§2023:6.5 2)): never the join target, its slot the BARE carrier (kb/Work PB4412)
     public void DebuggingLine_OfSpaces_IsABlankLine()
     {
         string src = "000100     MOVE A TO X\n000200D\n000300-    Y.\n";

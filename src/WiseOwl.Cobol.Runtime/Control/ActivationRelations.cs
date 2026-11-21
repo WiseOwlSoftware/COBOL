@@ -11,13 +11,13 @@ namespace WiseOwl.Cobol.Runtime;
 /// universal argument is BY REFERENCE, §2023:14.9.23.3 SR6) and <see cref="ReturningMatches"/> (match rules 6 / 7). A method
 /// that does not match is not bound; the search continues up the INHERITS chain and ends in EC-OO-METHOD
 /// (§2023:9.3.6 resolution step 6).</item>
-/// <item><b>CONFORMANCE</b> (ISO §2023:14.8.2 / §2023:14.8.3, asked of the BOUND method by §2023:14.9.23.4 GR7c — "the rules for
+/// <item><b>CONFORMANCE</b> (ISO §2023:14.8.2 / §2023:14.8.3, asked of the BOUND method by §2023:14.9.23.4 GR7 c) — "the rules for
 /// conformance specified in 14.8.2, Parameters and 14.8.3, Returning items apply"): <see cref="ParameterViolation"/>
 /// and <see cref="ReturningViolation"/>. A violation is EC-OO-UNIVERSAL.</item>
 /// </list>
 /// The two are different questions and neither is the other's equality: match rule 3 e) is an identity of a CLAUSE
 /// LIST, so two alphanumeric groups MATCH whatever their sizes (neither carries any of the clauses) and a group never
-/// matches a <c>PIC X(n)</c>; conformance then admits a formal group no larger than the argument (§2023:14.8.2.2 SR1)
+/// matches a <c>PIC X(n)</c>; conformance then admits a formal group no larger than the argument (§2023:14.8.2.2 rule 1)
 /// and refuses a larger one. Every argument here comes from <see cref="ActivationDescription"/>s the compiler built
 /// in one place (<c>ActivationDescriptions</c>).
 /// <para>⛔ THE TYPED INVOKE LANE ASKS THE SAME TWO RELATIONS AT COMPILE TIME (kb/Work PB2077): a typed receiver's
@@ -46,7 +46,7 @@ public static class ActivationRelations
 
     /// <summary>⛔ THE DESCRIPTION HALF OF ISO §2023:9.3.6 MATCH RULE 3 — the ONE copy both INVOKE lanes ask (kb/Work PB2077,
     /// decision PB3098; OO_DESIGN D6 item 6): the universal switch at run time (<see cref="Matches"/>) and the
-    /// typed binder at compile time, where every description is static (§2023:14.9.23.4 GR7b locates the method by §2023:9.3.6
+    /// typed binder at compile time, where every description is static (§2023:14.9.23.4 GR7 b) locates the method by §2023:9.3.6
     /// for every INVOKE). Rules 3 a), 3 b), 3 c), 3 d) 1.–3. and 3 e); 3 d) 4./5. is the value half, which
     /// <see cref="Matches"/> asks of the run-time object and the typed lane answers by §2023:14.8.2.3.2 rule 4. Null when
     /// <paramref name="argument"/> matches <paramref name="formal"/>, else the reason.
@@ -170,7 +170,7 @@ public static class ActivationRelations
                   b.LocaleExternal, b.LocaleFromLiteral);
 
     /// <summary>ISO §2023:14.8.2 for a BY REFERENCE parameter of a method §2023:9.3.6 has BOUND: asked at run time of a method
-    /// bound through a universal receiver (§2023:14.9.23.4 GR7c) and at compile time of a typed one (§2023:14.9.23.3 SR5c,
+    /// bound through a universal receiver (§2023:14.9.23.4 GR7 c)) and at compile time of a typed one (§2023:14.9.23.3 SR5 c),
     /// §2023:14.8.1) — one relation read at two times (kb/Work PB2077). Null when the pair conforms, else the reason. The
     /// elementary and object-reference identities of §2023:14.8.2.3.2 rules 1-3 are what match rule 3 d)/e) already
     /// proved (rule 4, an ACTIVE-CLASS formal, depends on the invocation and is <see cref="ActiveClassFormalViolation"/>'s);
@@ -233,7 +233,7 @@ public static class ActivationRelations
     /// sides in its reason. Null when the two are the same description.
     /// <list type="bullet">
     /// <item>A bit / national group is "treated as though it were an elementary data item … described with PICTURE 1(m)"
-    /// / "N(m)" (§2023:13.18.29.4 GR1b / GR2 b)), so it is the same description as the elementary item of that picture and
+    /// / "N(m)" (§2023:13.18.29.4 GR1 b) / GR2 b)), so it is the same description as the elementary item of that picture and
     /// usage, and its <see cref="ActivationDescription.Clauses"/> carry that picture (<c>ActivationDescriptions.Of</c>).</item>
     /// <item>An alphanumeric group carries none of rule 3's clauses, and an elementary item carries its PICTURE clause, so
     /// a group is never the same description as an elementary item, whatever their lengths; two groups are the same
@@ -266,13 +266,13 @@ public static class ActivationRelations
             return first.ObjectNameIsParameter == second.ObjectNameIsParameter && SameObjectReferenceDescription(first, second)
                 ? null
                 : $"{Both()} are not described with the same object-reference phrases — the same kind, the same "
-                  + "class-name or interface-name, and the same FACTORY and ONLY phrases (ISO §2023:9.3.8.2.3 GR2)";
+                  + "class-name or interface-name, and the same FACTORY and ONLY phrases (ISO §2023:9.3.8.2.3 rule 2)";
         }
         if (first.Shape is ActivationShape.StrongGroup || second.Shape is ActivationShape.StrongGroup)
             return first.StrongType is not null && string.Equals(first.StrongType, second.StrongType, StringComparison.Ordinal)
                 ? null
                 : $"{Both()} are not of the same type — a strongly-typed group item is the same description only as a "
-                  + "strongly-typed group item of an equivalent type declaration (ISO §2023:9.3.8.2.3 GR7; §2023:8.5.3.1)";
+                  + "strongly-typed group item of an equivalent type declaration (ISO §2023:9.3.8.2.3 rule 7; §2023:8.5.3.1)";
         if (first.Shape is ActivationShape.VariableLengthGroup || second.Shape is ActivationShape.VariableLengthGroup)
         {
             if (first.Shape is not ActivationShape.VariableLengthGroup || second.Shape is not ActivationShape.VariableLengthGroup)
@@ -333,17 +333,17 @@ public static class ActivationRelations
             return (formal.Shape is ActivationShape.AlphanumericGroup || argument.Shape is ActivationShape.AlphanumericGroup)
                    && widths.Second > widths.First
                 ? $"the formal parameter ({widths.Second} character positions, as §2023:8.5.1.12.3 measures the pair) is "
-                  + $"larger than the argument ({widths.First}) (ISO §2023:14.8.2.2 SR1)"
+                  + $"larger than the argument ({widths.First}) (ISO §2023:14.8.2.2 rule 1)"
                 : null;
         }
         if (formal.Shape is not ActivationShape.AlphanumericGroup && argument.Shape is not ActivationShape.AlphanumericGroup)
             return null;
         if (!IsAlphanumericGroupPartner(formal) || !IsAlphanumericGroupPartner(argument))
             return $"the formal parameter ({formal}) and the argument ({argument}): opposite an alphanumeric group the other "
-                + "item shall be an alphanumeric group item or an elementary item of category alphanumeric (ISO §2023:14.8.2.2 SR1)";
+                + "item shall be an alphanumeric group item or an elementary item of category alphanumeric (ISO §2023:14.8.2.2 rule 1)";
         return formal.Positions <= argument.Positions ? null
             : $"the formal parameter ({formal.Positions} character positions) is larger than the argument "
-              + $"({argument.Positions}) (ISO §2023:14.8.2.2 SR1)";
+              + $"({argument.Positions}) (ISO §2023:14.8.2.2 rule 1)";
     }
 
     /// <summary>§2023:14.8.2.2's strongly-typed sentence, which carries no passing-mode qualification — it follows rules 1 (BY
@@ -361,8 +361,8 @@ public static class ActivationRelations
                   + "strongly-typed group item conforms only to a strongly-typed group item of its type (ISO §2023:14.8.2.2)";
 
     /// <summary>⛔ ISO §2023:14.8.2 FOR ONE ARGUMENT OF A CALL whose activated program is located by name at run time (kb/Work
-    /// PB165): a dynamic Format-1 CALL, or a program-prototype whose details §2023:12.3.8.4 GR10c takes from the external
-    /// repository, so no formal was known when the activating element was compiled. §2023:14.9.4.4 GR3d: "the rules for
+    /// PB165): a dynamic Format-1 CALL, or a program-prototype whose details §2023:12.3.8.4 GR10 c) takes from the external
+    /// repository, so no formal was known when the activating element was compiled. §2023:14.9.4.4 GR3 d): "the rules for
     /// conformance specified in 14.8.2, Parameters and 14.8.3, Returning items apply. If a violation of these rules is
     /// detected, the EC-PROGRAM-ARG-MISMATCH exception condition is set to exist". Null when the pair conforms, else the
     /// reason.
@@ -393,7 +393,7 @@ public static class ActivationRelations
     private static bool IsElementaryData(ActivationDescription d) =>
         d.Shape is ActivationShape.Elementary or ActivationShape.AsIfElementaryGroup && SetClass(d) is null;
 
-    /// <summary>§2023:14.8.2.3.2, Elementary items passed by reference — and §2023:14.8.2.2 SR1 through
+    /// <summary>§2023:14.8.2.3.2, Elementary items passed by reference — and §2023:14.8.2.2 rule 1 through
     /// <see cref="ReferenceGroupViolation"/>.</summary>
     private static string? ByReferenceViolation(ActivationDescription argument, ActivationDescription formal,
         bool specifiedProgram)
@@ -441,7 +441,7 @@ public static class ActivationRelations
               + (formal.AnyLength ? ", \"Additionally\" d))" : ")") + ClauseDifference(argument, formal);
     }
 
-    /// <summary>§2023:14.8.2.3.3, Elementary items passed by content or by value — and §2023:14.8.2.2 SR2 for a group.</summary>
+    /// <summary>§2023:14.8.2.3.3, Elementary items passed by content or by value — and §2023:14.8.2.2 rule 2 for a group.</summary>
     private static string? ByContentViolation(ActivationDescription argument, ActivationDescription formal,
         bool specifiedProgram)
     {
@@ -460,14 +460,14 @@ public static class ActivationRelations
         // reaches only a formal of its type, whatever a MOVE of the pair would allow (MOVE's SR2 keys only the RECEIVING
         // side, so a strongly-typed group argument into a PIC X formal used to conform here; kb/Work PB3101).
         if (StrongTypeViolation(argument, formal) is { } strongWhy) return strongWhy;
-        // §2023:14.8.2.2 SR2: "If the argument is passed by content, the conformance rules are the same as for a MOVE
+        // §2023:14.8.2.2 rule 2: "If the argument is passed by content, the conformance rules are the same as for a MOVE
         // statement with the argument as the sending operand and the corresponding formal parameter as the receiving
         // operand" — a variable-length group included (its sentence is MOVE's SR9 too), and an arithmetic expression has
         // no character image for a group move to copy (§2023:14.9.25.4 GR4).
         if (IsGroup(formal) || IsGroup(argument))
             return argument.Shape is ActivationShape.Expression
                 ? $"an arithmetic expression has no character image for the group move into the formal parameter ({formal}) "
-                  + "to copy (ISO §2023:14.8.2.2 SR2; §2023:14.9.25.4 GR4)"
+                  + "to copy (ISO §2023:14.8.2.2 rule 2; §2023:14.9.25.4 GR4)"
                 : ContentMoveViolation(argument, formal);
         if (!specifiedProgram) return null;   // rule 1 — the length sentence, BoundaryItem's
         // Rule 2 b): "If the formal parameter is an index data item, … the same as for a SET statement": identifier-2 "shall
@@ -487,7 +487,7 @@ public static class ActivationRelations
         return ContentMoveViolation(argument, formal);
     }
 
-    /// <summary>The MOVE question of §2023:14.8.2.2 SR2 / §2023:14.8.2.3.3 rule 2 d) with the argument as the sending operand:
+    /// <summary>The MOVE question of §2023:14.8.2.2 rule 2 / §2023:14.8.2.3.3 rule 2 d) with the argument as the sending operand:
     /// <see cref="MoveViolation"/> for an argument with storage or a value of a known category, and for a figurative
     /// constant or an ALL literal, whose category the receiving context chooses (§2023:8.3.3.6.4 GR1), a MOVE valid under ANY
     /// of the three categories it can take — every bind-time lane asks this too (<c>ParameterConformance</c>; kb/Work
@@ -500,7 +500,7 @@ public static class ActivationRelations
             : MoveViolation(argument, formal);
         return why is null ? null
             : $"the argument ({argument}) is not a valid sending operand of a MOVE to the formal parameter ({formal}): {why} "
-              + "(ISO §2023:14.8.2.3.3 rule 2 d) / §2023:14.8.2.2 SR2)";
+              + "(ISO §2023:14.8.2.3.3 rule 2 d) / §2023:14.8.2.2 rule 2)";
     }
 
     /// <summary>A figurative constant or an ALL literal written as an argument.</summary>
@@ -523,7 +523,7 @@ public static class ActivationRelations
     public static string? CallReturningViolation(ActivationDescription receiving, ActivationDescription sending)
     {
         // §2023:14.8.3.3's "Additionally" 4) / 5) are rules of an ELEMENTARY pair; opposite a group, §2023:14.8.3.2 governs, where
-        // an ANY LENGTH sending item is as long as its receiver by §2023:13.18.2.4 GR1b (ReturningConformance).
+        // an ANY LENGTH sending item is as long as its receiver by §2023:13.18.2.4 GR1 b) (ReturningConformance).
         bool elementary = IsElementaryData(receiving) && IsElementaryData(sending);
         // 4) "If the receiving operand is described with the ANY LENGTH clause, the sending operand shall also be
         // described with the ANY LENGTH clause."
@@ -623,7 +623,7 @@ public static class ActivationRelations
     /// type"), SR20 and SR22 ("the same signature"), over their <see cref="ActivationDescription.ContentRestriction"/>s, and
     /// so the rules that send to SET: §2023:14.8.2.3.3 ("the same as if a SET statement were performed") and §2023:9.3.6 match rules
     /// 4 c), 5 c) and 6: the restrictions are equal. Every prototype a restricted pointer names has a compile-time
-    /// signature — the group's, or the external repository entry's (ISO §2023:12.3.8.4 GR10c / GR11 c), read from the
+    /// signature — the group's, or the external repository entry's (ISO §2023:12.3.8.4 GR10 c) / GR11 c), read from the
     /// assembly that publishes it, DESIGN-external-repository §8.2) — so a program- or function-pointer's restriction is
     /// always its signature class and a pair is the same exactly when the classes are (kb/Work PB2103 deleted the
     /// "no compile-time signature" arm PB3162 added). The identity rules — §2023:14.8.2.3.2's "of the same type"
@@ -706,14 +706,14 @@ public static class ActivationRelations
         return MoveValidity.Table16Refusal(sending.Table16, receiving.Table16, MoveCitations.Iso2023);                               // SR10
     }
 
-    /// <summary>ISO §2023:14.8.3 for the returning item of a method §2023:9.3.6 has BOUND (§2023:14.9.23.4 GR7c):
+    /// <summary>ISO §2023:14.8.3 for the returning item of a method §2023:9.3.6 has BOUND (§2023:14.9.23.4 GR7 c)):
     /// <paramref name="sending"/> is the method's returning item, <paramref name="receiving"/> the invocation's. Null when
     /// the pair conforms, else the reason.</summary>
     public static string? ReturningViolation(ActivationDescription receiving, ActivationDescription sending)
     {
         if (sending.AnyLength)
             return "the returning item is described with the ANY LENGTH clause, which a method invoked through a "
-                + "universal object reference shall not have (ISO §2023:14.9.23.4 GR7c)";
+                + "universal object reference shall not have (ISO §2023:14.9.23.4 GR7 c))";
         return ReturningConformance(receiving, sending);
     }
 
@@ -729,7 +729,7 @@ public static class ActivationRelations
     /// object-class-name, ACTIVE-CLASS, SELF, NULL) without a universal reference, so a receiving item described with an
     /// interface-name, an object-class-name or ACTIVE-CLASS does not conform — through the ONE table both phases ask
     /// (<see cref="ObjectReferenceSet.Refusal"/>).
-    /// <para>This is the activator's check of §2023:14.9.23.4 GR7c ("the rules for conformance specified in … 14.8.3 …
+    /// <para>This is the activator's check of §2023:14.9.23.4 GR7 c) ("the rules for conformance specified in … 14.8.3 …
     /// apply"), asked ONLY when the returning item is ACTIVE-CLASS; every other returning item is
     /// <see cref="ReturningViolation"/>. It is a separate relation because its violation, unlike that one's, does not stop
     /// the invocation from proceeding into typed code when no checking is enabled: the delivered object is still narrowed
@@ -808,7 +808,7 @@ public static class ActivationRelations
             return VariableLengthViolation(receiving, sending, "receiving item", "returning item");
         // §2023:14.8.3.2: an alphanumeric group opposite "an alphanumeric group item or an elementary item of category
         // alphanumeric", and "the receiving operand shall be of the same length as the sending operand" — which an ANY
-        // LENGTH sending item is by construction: §2023:13.18.2.4 GR1b gives it "n repetitions of the picture symbol …,
+        // LENGTH sending item is by construction: §2023:13.18.2.4 GR1 b) gives it "n repetitions of the picture symbol …,
         // where n is the length of the corresponding argument or returning item of the activating runtime element".
         if (receiving.Shape is ActivationShape.AlphanumericGroup || sending.Shape is ActivationShape.AlphanumericGroup)
             return IsAlphanumericGroupPartner(receiving) && IsAlphanumericGroupPartner(sending)
@@ -825,7 +825,7 @@ public static class ActivationRelations
         // PICTURE, SIGN, and USAGE clauses". A class pointer's USAGE clause carries its TO phrase, compared by the
         // prototype or type it NAMES (ActivationDescription.Clauses): the standard lists the clause texts that match on
         // meaning (currency strings, DECIMAL-POINT IS COMMA, LOCALE) and the TO phrase is not among them, so two
-        // prototypes of one signature — or of a signature only the run unit knows (§2023:12.3.8.4 GR10c) — are two USAGE
+        // prototypes of one signature — or of a signature only the run unit knows (§2023:12.3.8.4 GR10 c)) — are two USAGE
         // clauses. The signature relation is SET's (MaySet), which §2023:14.8.3.3 does not send this pair to (kb/Work PB4107,
         // overturning PB3686's reading).
         return SameElementaryClauses(receiving, sending)
@@ -859,7 +859,7 @@ public static class ActivationRelations
     /// (§2023:8.5.1.12.1: "unless the other operand is a compatible group"). A fixed-length partner is converted over the two
     /// shapes by the same walk (<see cref="CobolVarGroup.Reshape"/>, kb/Work PB2690), so the walk is the whole
     /// compatibility question; <paramref name="widths"/>, when not null, receives the pair-relative character lengths
-    /// (<paramref name="a"/>'s first) that §2023:14.8.2.2 SR1 compares opposite a fixed group. Null when compatible.</summary>
+    /// (<paramref name="a"/>'s first) that §2023:14.8.2.2 rule 1 compares opposite a fixed group. Null when compatible.</summary>
     private static string? VariableLengthViolation(ActivationDescription a, ActivationDescription b, string aRole,
         string bRole, GroupCharTally? widths = null)
     {

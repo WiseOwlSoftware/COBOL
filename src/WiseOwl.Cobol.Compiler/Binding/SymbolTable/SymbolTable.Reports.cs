@@ -23,7 +23,7 @@ internal readonly record struct ReportSite(ReportModel? Report, IReadOnlyList<Re
 
 /// <summary>What a report-section name identified when the name, as written, may reach several entries (docs/rearchitecture/
 /// DESIGN-listing.md section 6.7.1, "Step 6b, slice 5"): every candidate the written qualifiers reach, in declaration order, narrowed
-/// to the nearest declaring source element where the class is ranked so (§2023:8.4.6.2.1 GR3). The class's own funnel decides what
+/// to the nearest declaring source element where the class is ranked so (§2023:8.4.6.2.1 3)). The class's own funnel decides what
 /// two or more candidates mean (§2023:8.4.2.2.3 SR1's ambiguity, worded at the reference), so it is no identification until the funnel
 /// has one, and listing step 7b records an occurrence only for a single candidate (as for <see cref="ProcedureCandidates"/>).</summary>
 internal sealed record ReportCandidates<T>(IReadOnlyList<T> Hits, IReadOnlyList<SymbolId> Ids) : ICandidateEntries;
@@ -56,7 +56,7 @@ public sealed partial class SymbolTable
 
     /// <summary>The inherited report-names a declaration of the spelling in a NEARER source element hides, whatever its class
     /// (§1985:X.1.3.8: a reference is "to the object which that program describes" "even when it is a different type of user-defined
-    /// word"; §1985:X.1.3.8.2 GR3a; §2023:8.4.6.2.1 GR3a; kb/Work PB5973): a reference to the report-name itself names the nearer
+    /// word"; §1985:X.1.3.8.2 GR3a; §2023:8.4.6.2.1 3) a); kb/Work PB5973): a reference to the report-name itself names the nearer
     /// declaration. The report stays in <see cref="_visibleReports"/>: its report-name still QUALIFIES (GR1 applies qualification
     /// over the whole set before GR3 ranks it), and its groups and sum counters are global names of their own.</summary>
     private readonly HashSet<CobolName> _hiddenReportNames = [];
@@ -109,7 +109,7 @@ public sealed partial class SymbolTable
     }
 
     /// <summary>Hides each inherited report-name that a declaration of its spelling in a NEARER source element hides, whatever that
-    /// declaration's class (§1985:X.1.3.8.2 GR3a; §2023:8.4.6.2.1 GR3a; kb/Work PB5973): a contained program's own `01 R1` is what
+    /// declaration's class (§1985:X.1.3.8.2 GR3a; §2023:8.4.6.2.1 3) a); kb/Work PB5973): a contained program's own `01 R1` is what
     /// `INITIATE R1` names there, never its container's GLOBAL report R1. Run once every tier is in place
     /// (<c>InheritStep.DropShadowed</c>), as the inherited file-names are (<see cref="HideShadowedFiles"/>).</summary>
     internal void HideShadowedReports(Func<string, int, bool> declaredNearerThan)
@@ -214,7 +214,7 @@ public sealed partial class SymbolTable
     /// <summary>⛔ THE ONE LOOKUP OF A WRITTEN REPORT-GROUP REFERENCE (kb/Work PB365): every report group the written head names
     /// (a qualified reference restricts the candidate reports to the one its report-name qualifier names, §2023:8.4.2.2.2 Format 1's
     /// file-report-qualifier). <see cref="NameReach.Visible"/> (a procedure division reference) reads every report this element can
-    /// name and keeps the nearest declaring source element's candidates (§2023:8.4.6.2.1 GR3, <see cref="ReportScope.NearestInScope{T}"/>);
+    /// name and keeps the nearest declaring source element's candidates (§2023:8.4.6.2.1 rule 3, <see cref="ReportScope.NearestInScope{T}"/>);
     /// <see cref="NameReach.Own"/> (the SUM clause's UPON operand, a data division site) reads this element's own reports. The
     /// head and the qualifier are read by the one decomposition of a written report-group reference,
     /// <see cref="ReportGroupResolution.Words"/>, which the funnel's diagnostic reads too: a <c>reportGroupReference</c> (GENERATE,
@@ -240,7 +240,7 @@ public sealed partial class SymbolTable
     /// name — only those of <paramref name="within"/> when a report's own clause writes the reference (§2023:13.18.53.3 SR4,
     /// "defined in the current report") — that the written qualifiers reach through the ONE §2023:8.4.2.2.3 SR4 walk
     /// (<see cref="QualifierWalk"/>, the report-name last), narrowed to the nearest declaring source element
-    /// (§2023:8.4.6.2.1 GR3; §1985:X.1.3.8.2 GR3a at COBOL-85), so a counter of this element's own report hides a same-named counter
+    /// (§2023:8.4.6.2.1 rule 3; §1985:X.1.3.8.2 GR3a at COBOL-85), so a counter of this element's own report hides a same-named counter
     /// of a container's GLOBAL report. Null when the name is no eligible counter's at all; empty when it is, but the qualifiers reach
     /// none (<c>CounterResolver.SumCounterFamilyFor</c> words each). The register alternatives (LINAGE-COUNTER, LINE-COUNTER,
     /// PAGE-COUNTER), whose <c>cobolWord</c> is a qualifier, name no counter.
@@ -345,7 +345,7 @@ public sealed partial class SymbolTable
     /// (kb/Work PB1046): every named entry of every report this source element can name — its own and the GLOBAL ones of its
     /// containers (<see cref="ReportScope.Visible"/>, ISO §2023:13.18.27.4 GR1/GR2) — that the written <paramref name="qualifiers"/>
     /// reach through the ONE §2023:8.4.2.2.3 SR4 qualifier walk (<see cref="QualifierWalk"/>, the report-name last,
-    /// §2023:8.4.2.2.2 Format 1's file-report-qualifier), narrowed to the nearest declaring source element (§2023:8.4.6.2.1 GR3).
+    /// §2023:8.4.2.2.2 Format 1's file-report-qualifier), narrowed to the nearest declaring source element (§2023:8.4.6.2.1 rule 3).
     /// The data division's lookups ask it with the written text they hold; its answers leave the table as facts
     /// (<see cref="Declarations.ReportEntriesNamed"/>, <see cref="NearestInNameSet"/>), never as entries.</summary>
     private List<(ReportModel Report, ReportNamedEntry Entry)> EntriesNamed(string name, IReadOnlyList<string> qualifiers)

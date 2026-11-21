@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>
 /// <c>SubscriptBinder.PositionRead</c> emits <c>CobolTable.Occ(&lt;field&gt;, _P_n)</c> for a NUMERIC subscript,
 /// <c>CobolString.RefModPosition(&lt;field&gt;, _P_n)</c> for a NUMERIC reference-modification bound (the item's own
-/// profile carries its scale, its sign and the byte form §2023:14.6.13.2 GR2's check reads — kb/Work PB1117), and
+/// profile carries its scale, its sign and the byte form §2023:14.6.13.2 rule 2's check reads — kb/Work PB1117), and
 /// the profile-less <c>CobolTable.Occ(&lt;field&gt;)</c> only for a NON-numeric <c>--permissive</c> operand. That is a
 /// deliberate design: the post-bind whole-group analysis has not yet chosen the field's storage form when the
 /// text is produced, so ONE text has to serve a <c>long</c> field and the <c>string</c> image it may become, and
@@ -96,7 +96,7 @@ public sealed class PositionCarrierOverloadDriftTests
     }
 
     /// <summary>⛔ THE PROFILE-LESS ARITY IS NOT A NUMERIC READ (kb/Work PB1117). A numeric item read without its
-    /// profile cannot apply §2023:14.6.13.2 GR2 to a character image and cannot see its sign or scale, which is
+    /// profile cannot apply §2023:14.6.13.2 rule 2 to a character image and cannot see its sign or scale, which is
     /// exactly how EC-DATA-INCOMPATIBLE became unreachable on the item-identification lane. So no one-argument
     /// overload may accept a carrier only a NUMERIC item has (the wide and unsigned-binary tiers), and no
     /// profile-less scale arity may come back.</summary>

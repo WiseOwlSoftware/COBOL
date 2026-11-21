@@ -632,7 +632,7 @@ retryLockPhrases
 
 // ⛔ THE `FROM { identifier-1 | literal-1 }` PHRASE OF WRITE, REWRITE AND RELEASE IS ONE RULE (kb/Work PB2650).
 // §2023:14.9.51.2, §2023:14.9.35.2 and §2023:14.9.32.2 print the same phrase, and each statement's general rules make it the same
-// implicit MOVE to record-name-1 (§2023:14.9.51.4 GR5a, §2023:14.9.35.4 GR7a, §2023:14.9.32.4 GR4a), so its operand is MOVE's
+// implicit MOVE to record-name-1 (§2023:14.9.51.4 GR5 a), §2023:14.9.35.4 GR7 a), §2023:14.9.32.4 GR4 a)), so its operand is MOVE's
 // sending operand, function-identifier included (fix-queue PB10; kb/Work PB2114). One rule is what lets the phrase's
 // edition edge (literal-1 is post-1985: VersionConformancePass.ParseArm.VisitRecordFromPhrase) be asked once: it was
 // three copies, and the gate sat on RELEASE's alone while WRITE and REWRITE took a literal at --std 85.

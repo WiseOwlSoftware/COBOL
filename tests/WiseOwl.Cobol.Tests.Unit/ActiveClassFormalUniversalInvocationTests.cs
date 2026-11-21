@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// rule 4 admits an ACTIVE-CLASS formal only when "the method to be activated shall be invoked with the predefined object
 /// references SELF or SUPER, or with an object reference described with the ACTIVE-CLASS phrase" (4 a)) or "with that
 /// object-class-name or with an object reference described with that object-class-name and the ONLY phrase" (4 b)); a
-/// universal invoking reference is none of them. §2023:14.9.23.4 GR7c makes the violation EC-OO-UNIVERSAL when checking is
+/// universal invoking reference is none of them. §2023:14.9.23.4 GR7 c) makes the violation EC-OO-UNIVERSAL when checking is
 /// enabled in both the activated method and the activating runtime element. Before PB2985 the run-time lane asked only
 /// §2023:9.3.6 3 d) 4./5. (the argument's VALUE, <see cref="ActivationRelations.Matches"/>) and never rule 4.
 /// </summary>
@@ -74,7 +74,7 @@ public sealed class ActiveClassFormalUniversalInvocationTests
         {
             ExceptionState.Clear();
             ExceptionState.OoUniversalChecking = true;
-            // The activated method's half is off: no exception condition exists (§2023:14.9.23.4 GR7c "both") and the
+            // The activated method's half is off: no exception condition exists (§2023:14.9.23.4 GR7 c) "both") and the
             // invocation proceeds.
             CobolObject.CheckActiveClassFormal(false, "INVOKE 'M'", argument, ActiveFormal);
 

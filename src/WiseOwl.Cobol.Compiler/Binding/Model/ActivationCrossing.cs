@@ -34,7 +34,7 @@ public static class ActivationCrossing
     /// composes crosses on its §2023:8.5.1.12 carrier (<see cref="DataItem.BoundaryImageCapable"/> excludes it here); one that
     /// holds a reference leaf has no such carrier — a pointer or object reference is no member of
     /// <c>DataItem.CurrentExtentComposes</c>'s law — and nothing in §2023:8.5.1.12.1 bars a strong group from being
-    /// variable-length, so §2023:14.8.2.2 SR2's "both shall be of the same type" makes this vector its crossing too: a
+    /// variable-length, so §2023:14.8.2.2 rule 2's "both shall be of the same type" makes this vector its crossing too: a
     /// dynamic-length member rides it as its current content and a dynamic-capacity table as its current occurrences, each
     /// in its element's form, recreated in the receiver's description (§2023:14.6.9.2). Excluding the shape refused legal
     /// source (COBOL1688 on the CALL, COBOL1513 on the prototype) and staged a group MOVE of it loud.</para>

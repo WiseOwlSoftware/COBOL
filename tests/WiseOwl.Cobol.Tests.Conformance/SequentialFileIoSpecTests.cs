@@ -115,7 +115,7 @@ public sealed class SequentialFileIoSpecTests
     /// line replaces it, '00'; (b) a record of MORE bytes than the line ⇒ '44', the line unchanged. The byte count
     /// compared is record-name-1's — five bytes for every REWRITE REC here, whatever its trailing spaces (kb/Work
     /// PB1168: GR17 has no trailing-space rule — the WRITE statement's is §2023:14.9.51.4 GR21). The space-fill of
-    /// §2023:14.9.35.4 GR17c, for a record of FEWER bytes, needs a variable-length record and is the golden
+    /// §2023:14.9.35.4 GR17 c), for a record of FEWER bytes, needs a variable-length record and is the golden
     /// 2023/pb1168_ls_rewrite_gr17.
     /// The buggy path returned '30' for every line-sequential REWRITE (the seekable in-place branch was guarded
     /// by !_lineSequential).</summary>

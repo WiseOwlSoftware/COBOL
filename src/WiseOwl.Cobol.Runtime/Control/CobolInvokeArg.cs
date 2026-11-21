@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// description of the operand (<see cref="ActivationDescription"/>, built by the compiler's ONE builder): the
 /// generated callee switch asks <see cref="ActivationRelations"/> whether it MATCHES the method's formal (ISO §2023:9.3.6 —
 /// resolution continues and ends in EC-OO-METHOD when it does not) and then whether the bound method CONFORMS
-/// (§2023:14.9.23.4 GR7c — EC-OO-UNIVERSAL when it does not; conformance through a universal receiver is checked AT
+/// (§2023:14.9.23.4 GR7 c) — EC-OO-UNIVERSAL when it does not; conformance through a universal receiver is checked AT
 /// RUNTIME, §2023:9.3.8.2.1 NOTE). <see cref="Value"/> is the argument in its canonical box form — everything crossing a
 /// universal dispatch is implicitly BY REFERENCE (§2023:14.9.23.3 SR6), and ISO §2023:14.2.3 GR8 makes the formal occupy "the same
 /// storage area as the argument", so an identifier argument's box is LIVE (kb/Work PB2087): its accessors read and write
@@ -43,7 +43,7 @@ public sealed class CobolInvokeArg(ActivationDescription description, object? va
     /// <summary>A REFERENCE-MODIFIED argument: the unique data item ISO §2023:8.4.3.3.4 GR5 creates, whose length is the
     /// EVALUATED length (GR5 c) "The evaluation of length specifies the number of bit positions or character positions
     /// of the data item"), so its description carries the evaluated slice's own positions — a non-literal reference
-    /// modifier's length is known only here, and §2023:14.8.2.2 SR1 compares it with the formal's.</summary>
+    /// modifier's length is known only here, and §2023:14.8.2.2 rule 1 compares it with the formal's.</summary>
     public static CobolInvokeArg ReferenceModified(ActivationDescription description, Func<object?> get, Action<object?> set,
         CellPointer? area) =>
         new(description with { Positions = ((string?)get())?.Length ?? 0 }, get, set, area);

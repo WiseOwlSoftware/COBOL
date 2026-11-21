@@ -108,13 +108,13 @@ public sealed class RaisingPhraseTupleTests
             END CLASS C{{pid}}.
             """;
 
-    /// <summary>§2023:14.9.14.3 SR5a, the EXIT PROGRAM arm of the shared check: the header's FACTORY phrase and
+    /// <summary>§2023:14.9.14.3 SR5 a), the EXIT PROGRAM arm of the shared check: the header's FACTORY phrase and
     /// identifier-1's agree (OF omitted on the header — it is an optional word).</summary>
     [Fact]
     public void ExitProgramRaising_FactoryOnBothEnds_Compiles()
         => Compiles(ExitProgramRaising("RPT4", "FACTORY CRPT4", "FACTORY OF CRPT4"));
 
-    /// <summary>§2023:14.9.14.3 SR5a: "the presence or absence of the FACTORY phrase shall be the same" — the header
+    /// <summary>§2023:14.9.14.3 SR5 a): "the presence or absence of the FACTORY phrase shall be the same" — the header
     /// lists the class WITH FACTORY, identifier-1 is an INSTANCE reference of it.</summary>
     [Fact]
     public void ExitProgramRaising_FactoryPresenceDiffers_4211()

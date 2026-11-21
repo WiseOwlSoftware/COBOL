@@ -81,9 +81,9 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
         return spec;
     }
 
-    /// <summary>Reference-modify an ALREADY-RESOLVED place — §2023:8.4.3.1.4 GR1g's tail ("a reference modifier
+    /// <summary>Reference-modify an ALREADY-RESOLVED place — §2023:8.4.3.1.4 GR1 g)'s tail ("a reference modifier
     /// applies to the identifier on the left") over an identifier that is not a data-NAME reference. Its one
-    /// caller today is the §2023:8.4.3.4 inline method invocation, whose §2023:8.4.3.4.4 GR1c temporary has no
+    /// caller today is the §2023:8.4.3.4 inline method invocation, whose §2023:8.4.3.4.4 GR1 c) temporary has no
     /// <c>dataReference</c> context of its own (kb/Work PB428). It is a thin ENTRY, not a second reading: the
     /// §2023:8.4.3.3.3 SR1 screen is <see cref="RefModExclusion"/> and the view is <see cref="RefModView"/> — the
     /// same two the syntactic path runs, in the same order, with the same COBOL1647.</summary>
@@ -238,7 +238,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     /// 5) b): leftmost-position is a position of the item, 1 through its size; 5) c): a specified length is a positive
     /// nonzero integer (zero only under REF-MOD-ZERO-LENGTH, §2023:7.3.23) and "The sum of leftmost-position and length
     /// minus the value one shall be less than or equal to the number of positions in the data item referenced by
-    /// identifier-1". A violation is the fatal EC-BOUND-REF-MOD; §2023:14.6.13.1.3 GR8's last paragraph licenses the
+    /// identifier-1". A violation is the fatal EC-BOUND-REF-MOD; §2023:14.6.13.1.3 8)'s last paragraph licenses the
     /// compiler to produce no code for one it detects while checking is not enabled, and GnuCOBOL (cobc/typeck.c,
     /// "offset of '%s' out of bounds" / "length of '%s' out of bounds") refuses it, so the caller reports
     /// <see cref="DiagnosticCatalog.RefModLiteralOutOfRange"/> there and the warning twin where checking is on.
@@ -256,18 +256,18 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
         int size = RefModPlace.PositionCount(item);
         if (start is { } s && (s < 1 || s > size))
             return $"leftmost-position {s} is not a position of the {size}-position item ("
-                + edition.CiteRule("§1985:IV.4.3.8.4.4 GR4a", "§2023:8.4.3.3.4 GR5b") + ")";
+                + edition.CiteRule("§1985:IV.4.3.8.4.4 GR4a", "§2023:8.4.3.3.4 5) b)") + ")";
         if (omittedLength || length is not { } len) return null;
         if (len == 0 && !allowZeroLength)
             return "a zero length is not a positive nonzero integer ("
-                + edition.CiteRule("§1985:IV.4.3.8.4.4 GR4b", "§2023:8.4.3.3.4 GR5c")
+                + edition.CiteRule("§1985:IV.4.3.8.4.4 GR4b", "§2023:8.4.3.3.4 5) c)")
                 + "; REF-MOD-ZERO-LENGTH is not on)";
         // (written `len > size - s2 + 1`, never `s2 + len - 1 > size`: a literal near Int128's top would wrap the sum;
         // s2 is within 1..size here, so the rewritten form cannot overflow)
         if (len > 0 && (start is { } s2 ? len > size - s2 + 1 : len > size))
             return $"the reference modification ({(start is { } s3 ? s3.ToString() : "…")}:{len}) extends past the "
                 + $"{size}-position item ("
-                + edition.CiteRule("§1985:IV.4.3.8.4.4 GR4b", "§2023:8.4.3.3.4 GR5c") + ")";
+                + edition.CiteRule("§1985:IV.4.3.8.4.4 GR4b", "§2023:8.4.3.3.4 5) c)") + ")";
         return null;
     }
 

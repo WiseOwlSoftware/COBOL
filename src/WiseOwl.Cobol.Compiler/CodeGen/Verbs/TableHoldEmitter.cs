@@ -46,7 +46,7 @@ internal sealed class TableHoldEmitter(EmitContext ctx, ArithmeticEmitter arith)
             });
             if (hold.Count is { } count)
                 arith.StoreArith(count, new NumX(stored, 0), CobolRounding.Truncation);   // the count is a numeric data item, stored through its PICTURE
-            // §2023:15.3 AR14: an ALL that yields no argument is EC-ARGUMENT-FUNCTION, raised where the argument is evaluated (GR2).
+            // §2023:15.3 14): an ALL that yields no argument is EC-ARGUMENT-FUNCTION, raised where the argument is evaluated (GR2).
             w.Line(RuntimeApi.TableRequireOccurrences(stored));
         }
     }

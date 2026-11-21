@@ -219,7 +219,7 @@ public sealed class AcceptDifferentialTests
 
     // The decimal form, receiver by receiver (DOC-A.1-1): every item reads its own size in leftmost characters whatever its usage
     // (GR4b, kb/Work PB5856); the sign is a leading + or -; the fraction keeps its scale's digits (truncated); a surplus of HIGH-order
-    // integer digits is lost (§2023:14.6.8.2 GR4, "zero fill or truncation on either end"): S9(5)V99 COMP-3 reads "1234567" and
+    // integer digits is lost (§2023:14.6.8.2 4), "zero fill or truncation on either end"): S9(5)V99 COMP-3 reads "1234567" and
     // keeps 34567, S9(4) COMP-5 reads "1234". SIGN LEADING SEPARATE has six positions, so "+12.567" reads "+12.56".
     [Fact]
     public void Device_NumericReceivers_ReadTheDecimalFormByUsage()
@@ -292,7 +292,7 @@ public sealed class AcceptDifferentialTests
             expected: "+02763.47232|\n+9999.00000|",
             stdin: "999999999\n999999999\n");
 
-    // kb/Work PB3573: a text wider than the item's integer positions loses its HIGH-order digits (§2023:14.6.8.2 GR4, and the
+    // kb/Work PB3573: a text wider than the item's integer positions loses its HIGH-order digits (§2023:14.6.8.2 4), and the
     // characters ahead of the last digit dropped are skipped unexamined, a non-digit among them included, as GnuCOBOL 3.2.0
     // does (the results below are its own, measured 2026-10-25): "Y123" into PIC 9(2)V99 holds 23.00 where "1Y23" is not a
     // number; a binary or packed item takes the same five-character window (GR4b), so a leading non-digit is invalid
@@ -529,7 +529,7 @@ public sealed class AcceptDifferentialTests
     // The ROUND TRIP the determination is chosen for: what DISPLAY writes for a float, ACCEPT reads back as the
     // same value (DOC-A.1-1 is defined as DOC-A.1-56's inverse). 1.0E-5 displays "1E-05"; fed back, it compares
     // equal to the original. The original is set by a MOVE — the ONE correctly rounded (nearest) conversion of
-    // §2023:14.6.8.3 (DOC-A.1-81) — because a COMPUTE without ROUNDED is §2023:14.7.4.3 GR2's TRUNCATION, which stores the
+    // §2023:14.6.8.3 (DOC-A.1-81) — because a COMPUTE without ROUNDED is §2023:14.7.4.3 rule 2's TRUNCATION, which stores the
     // binary64 just BELOW 1.0E-5 (kb/Work PB1196), a different value from the one ACCEPT's conversion reads.
     [Fact]
     public void Device_FloatReceiver_RoundTripsItsOwnDisplayImage()
@@ -546,7 +546,7 @@ public sealed class AcceptDifferentialTests
             stdin: "1E-05\n",
             dialect: 2023);
 
-    // A BINARY32 receiver takes the device record in ONE rounding (kb/Work PB1110; §2023:14.6.8.3 GR2: "in a manner
+    // A BINARY32 receiver takes the device record in ONE rounding (kb/Work PB1110; §2023:14.6.8.3 rule 2: "in a manner
     // consistent with the specifications of ISO/IEC 60559:2020" — cite.py-checked), never through binary64. The
     // binary32 neighbours of 1 are 1 and 1 + 2**-23 = 1.00000011920928955078125, midpoint 1 + 2**-24 =
     // 1.000000059604644775390625. "1.0000000596046448" lies ABOVE the midpoint by 2.5E-17 (under half a binary64
@@ -784,7 +784,7 @@ public sealed class AcceptDifferentialTests
     // kb/Work PB3128 — the omitted-length width over an identifier-1 whose length is a RUN-TIME value. A
     // reference-modified DYNAMIC LENGTH item "is treated as a fixed-length data item whose length is the
     // dynamic-length elementary item's current length" (§2023:8.5.1.10.4), and an ANY LENGTH formal is n repetitions of
-    // its symbol, "where n is the length of the corresponding argument" (§2023:13.18.2.4 GR1b). So D(3:) over the
+    // its symbol, "where n is the length of the corresponding argument" (§2023:13.18.2.4 GR1 b)). So D(3:) over the
     // ten-character D is eight positions (D keeps its length: the store is into a slice) and L(2:) over the
     // six-character argument X6 is five. The emitter read the PICTURE length (1) for both, so each slice took no
     // characters and was space-filled (measured: AB        ]10]A     ]).
@@ -881,7 +881,7 @@ public sealed class AcceptDifferentialTests
     }
 
     // kb/Work PB1013 — §2023:14.9.1.4 GR3/GR4 size the device transfer by "the size of the receiving data item", and an
-    // ANY LENGTH receiver's size is its ARGUMENT's: §2023:13.18.2.4 GR1b treats it "as though there were n repetitions
+    // ANY LENGTH receiver's size is its ARGUMENT's: §2023:13.18.2.4 GR1 b) treats it "as though there were n repetitions
     // of the picture symbol … where n is the length of the corresponding argument". So a PIC X ANY LENGTH bound to a
     // 6-character argument takes the record's leftmost SIX characters (GR4b ignores the rest), a PIC N one bound to
     // N(4) takes four, a PIC 1 one bound to 1(5) takes five (each '1' boolean one, every other character boolean
@@ -983,7 +983,7 @@ public sealed class AcceptDifferentialTests
             dialect: 2002);
 
     // ⛔ kb/Work PB1653 — a NATIONAL GROUP receiver is the ELEMENTARY national item of its as-if PICTURE N(m)
-    // (§2023:13.18.29.4 GR2b), so the device transfer of §2023:14.9.1.4 (GR3 and GR4) is m characters, one per national position. The
+    // (§2023:13.18.29.4 GR2 b)), so the device transfer of §2023:14.9.1.4 (GR3 and GR4) is m characters, one per national position. The
     // device window used to be poured through the group's 2m-byte STORAGE image (FromImage), so "HELLO" read back
     // as five unrelated CJK characters. The same statement runs over the plain group and over a REDEFINES view of
     // alphanumeric storage (a Tier-B window), because the transfer is the group's VALUE channel in both shapes.
@@ -1007,7 +1007,7 @@ public sealed class AcceptDifferentialTests
             stdin: "HELLO\nWORLD\n",
             dialect: 2002);
 
-    // §2023:14.9.1.4 GR1 + §2023:13.18.29.4 GR1b: a BIT GROUP receiver is the elementary boolean item of PICTURE 1(m);
+    // §2023:14.9.1.4 GR1 + §2023:13.18.29.4 GR1 b): a BIT GROUP receiver is the elementary boolean item of PICTURE 1(m);
     // each transferred '1' converts to boolean one and every other character to zero (the boolean receiver's own
     // implementor-defined conversion), m positions — never ceil(m/8) packed characters.
     [Fact]

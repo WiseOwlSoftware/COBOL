@@ -94,7 +94,7 @@ public sealed class CobolLexerModeDriftTests
     }
 
     /// <summary>ISO §2023:8.3.5 1)/2) INSIDE a reference paren (kb/Work PB2113): the space and the comma-plus-space separate
-    /// subscripts, so the lexer keeps the §2023:8.3.5 SR2 separator as FNARG_SEPARATOR and retypes a sign that follows a
+    /// subscripts, so the lexer keeps the §2023:8.3.5 2) separator as FNARG_SEPARATOR and retypes a sign that follows a
     /// separator and touches its digits as the literal's own sign (§2023:8.3.3.3.2) — `T (I -1)` is two subscripts — while
     /// a space-surrounded sign stays the operator (§2023:8.7.1) — `T (I - 1)` is one. Outside every list region nothing
     /// changes: the same `I -1` after COMPUTE is the subtraction it always was.</summary>
@@ -179,8 +179,8 @@ public sealed class CobolLexerModeDriftTests
         Assert.Equal("IDENTIFIER", names[at - 1]);
     }
 
-    /// <summary>The DECIMAL-POINT IS COMMA fixed-point literal in a list region (kb/Work PB2506): §2023:8.3.3.3.2 SR2 puts the
-    /// sign inside the literal and §2023:8.3.5 SR2 makes a comma a separator only when a space follows it, so `-1,5`, `+1,5`
+    /// <summary>The DECIMAL-POINT IS COMMA fixed-point literal in a list region (kb/Work PB2506): §2023:8.3.3.3.2 2) puts the
+    /// sign inside the literal and §2023:8.3.5 2) makes a comma a separator only when a space follows it, so `-1,5`, `+1,5`
     /// and `-,5` are each ONE SIGNED_DECIMALLIT token — never SIGNED_INTEGERLIT(-1) plus a contiguous `,5` that the
     /// parser assembles into a second argument. Outside every list region the sign is cut off as the operator and the
     /// unsigned literal assembles in numericLiteralCore as it always has (no SIGNED_* token).</summary>
@@ -347,7 +347,7 @@ public sealed class CobolLexerModeDriftTests
         Assert.DoesNotContain("ZERO_ARITH", RewrittenTokenNames(src));
 
     /// <summary>kb/Work PB3962 — a sign TOUCHING the digits of the next literal is that literal's sign (§2023:8.7.1: a binary
-    /// operator is "preceded by a space and followed by a space"; §2023:8.3.3.3.2 SR2: the sign is "the leftmost character of
+    /// operator is "preceded by a space and followed by a space"; §2023:8.3.3.3.2 2): the sign is "the leftmost character of
     /// the literal"), so the ZERO before it is a list operand and keeps its figurative token, whatever the list is.</summary>
     [Theory]
     [InlineData("DISPLAY ZERO -1")]

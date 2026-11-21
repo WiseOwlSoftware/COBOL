@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <para>The narrowing to <c>long</c> SATURATES (<see cref="CobolNum.Position(Int128)"/>): ISO §2023:8.4.2.3.4 GR2 — "If the
 /// value of the subscript is not a positive integer or is less than one or is greater than the highest permissible
 /// occurrence number, the EC-BOUND-SUBSCRIPT exception condition is set to exist" — needs an out-of-range subscript to
-/// stay out of range on the way in, and §2023:8.4.3.3.4 GR5 says the same of a reference modifier ("a value that
+/// stay out of range on the way in, and §2023:8.4.3.3.4 rule 5 says the same of a reference modifier ("a value that
 /// references a position outside the area of identifier-1"). The saturated <c>long</c> is therefore right for every
 /// decision and wrong for the one thing a message must name: the value the program holds. The detail text of
 /// <see cref="CobolTable.At{T}(T[], Occurrence)"/> printed <c>9223372036854775807</c> for a <c>PIC 9(21)</c> subscript

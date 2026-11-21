@@ -77,16 +77,16 @@ public enum DialectBehavior
     /// host refusal's status), both through <c>FileConnector.SharingFacilityInEffect</c>.</summary>
     FileSharingFacility = 2,
 
-    /// <summary>ISO/IEC 1989:2023 §2023:14.9.28.4 GR13e 2 a-c, TEST BEFORE: when an AFTER level's condition is
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.28.4 GR13 e) 2 a-c, TEST BEFORE: when an AFTER level's condition is
     /// satisfied the inner variable is set to its initialization value FIRST and the outer variable is augmented
-    /// SECOND. §1985:VI.6.21.4 GR10d 1 (Figure 2 draws the same) has the opposite order: it augments the outer
+    /// SECOND. §1985:VI.6.21.4 GR10 d) 1 (Figure 2 draws the same) has the opposite order: it augments the outer
     /// variable and THEN sets the inner one, so at <c>--std 85</c> an AFTER level whose FROM reads the level to its
     /// left starts from the augmented value (kb/Work PB5101, PB436). Both editions are QUOTED (VCR row 7.53), the
     /// 2002 text being worded as 2023 is. The consumer is <c>ControlFlowBinder.BindVarying</c>, which sets
     /// <c>PerformVarying.AugmentOuterFirst</c> for the emitter.</summary>
     PerformVaryingInitInnerBeforeAugmentOuter = 3,
 
-    /// <summary>ISO/IEC 1989:2023 §2023:13.18.16.4 GR4a — while a control break's footings print, the control data items
+    /// <summary>ISO/IEC 1989:2023 §2023:13.18.16.4 GR4 a) — while a control break's footings print, the control data items
     /// hold their PRIOR values, and "If the printing of the control footing causes a page advance and the page heading
     /// or page footing refers to a control data item, the value produced is similarly the prior value" (the 2002 text,
     /// 13.16.15.3 GR4 a, says the same, and 2023 keeps it). §1985:XIII.3.20.4 GR13 gives the prior values only to a
@@ -113,7 +113,7 @@ public enum DialectBehavior
     /// an index "not greater" starts the serial search by "evaluating the conditions in the order that they are written";
     /// §1985:VI.6.23.4 GR2 lets a PERFORM or SEARCH leave an index "outside the range of its associated table", which is how a
     /// program arrives at occurrence 0. So at <c>--std 85</c> an index below 1 starts the scan (kb/Work PB5121; VCR row 7.56), and
-    /// the incremented index is judged against both bounds (§1985:VI.6.22.4 GR2b, "outside the permissible range of occurrence
+    /// the incremented index is judged against both bounds (§1985:VI.6.22.4 GR2 b), "outside the permissible range of occurrence
     /// values"): an index of 0 advances to occurrence 1, one below 0 ends the search after its first pass (kb/Work PB5302). Both editions are QUOTED. The consumer is <c>SearchBinder.BindSearch</c>, which sets
     /// <c>BoundSearch.IndexBelowTableIsUnsuccessful</c> for <c>ControlFlowEmitter.EmitSerialScan</c>.</summary>
     SearchIndexBelowTableUnsuccessful = 6,
@@ -140,7 +140,7 @@ public enum DialectBehavior
     /// <c>CobolReport.SumPresentable</c>, over the edition the compilation baked into the report.</summary>
     SumSizeErrorBlanksPrintableItem = 8,
 
-    /// <summary>ISO/IEC 1989:2023 §2023:13.18.37.4 GR4a — the save location filled by an absolute NEXT GROUP "will have no
+    /// <summary>ISO/IEC 1989:2023 §2023:13.18.37.4 GR4 a) — the save location filled by an absolute NEXT GROUP "will have no
     /// effect at all if a TERMINATE is next executed for the report" (the 2002 text, 13.16.35.3 GR4 a), words it the same).
     /// §1985:XIII.3.10.8 GR3 gives every body group the saved-integer arm of the fit test, and §1985:XIII.4.7.4 GR1 has TERMINATE
     /// produce the control footings as body groups, so at <c>--std 85</c> the saved integer is still there for the first
@@ -159,7 +159,7 @@ public enum DialectBehavior
 
     /// <summary>ISO/IEC 1989:2023 §2023:15.5.2 — a value in integer date form "shall be less than or equal to the value of
     /// FUNCTION INTEGER-OF-DATE (99991231), which is 3,067,671", and the YYYY of INTEGER-OF-DATE and INTEGER-OF-DAY "shall be an
-    /// integer greater than 1600 and less than 10000" (§2023:15.46.3 AR1 a, §2023:15.47.3 AR1a; the 2002 text words all three
+    /// integer greater than 1600 and less than 10000" (§2023:15.46.3 AR1 a, §2023:15.47.3 AR1 a); the 2002 text words all three
     /// the same. The 1989 intrinsic function module bounds the year below only: §1989:A.2.16.3 AR1 a. "It must be an integer
     /// greater than 1600" (§1989:A.2.17.3 AR1 the same), and DATE-OF-INTEGER and DAY-OF-INTEGER take "a positive integer that
     /// represents a number of days succeeding December 31, 1600" (§1989:A.2.12.3 AR1, §1989:A.2.13.3 AR1). So at
@@ -188,11 +188,11 @@ public enum DialectBehavior
     /// sizes and no WRITE is refused for it (kb/Work PB5197). The consumer is <c>FileControlBinder.BindRecordClause</c>.</summary>
     RecordContainsRangeBindsRecordSize = 13,
 
-    /// <summary>ISO/IEC 1989:2023 §2023:14.9.51.4 GR29b — a random or dynamic WRITE of a relative file whose key item holds
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.51.4 GR29 b) — a random or dynamic WRITE of a relative file whose key item holds
     /// "a value that is less than 1 or greater than the highest relative record number permitted for the file" is
-    /// unsuccessful with I-O status '34'; the 2014 text carries the same sentence (§2014:14.9.47.3 GR26b. The 2002 text
-    /// (§2002:14.8.47.3 GR25b ends that rule after the '22' sentence and knows only the invalid key condition of a write
-    /// "beyond the externally defined boundaries of the file", status '24' (§2002:14.8.47.3 GR29b; the 1985 relative-file
+    /// unsuccessful with I-O status '34'; the 2014 text carries the same sentence (§2014:14.9.47.3 GR26 b). The 2002 text
+    /// (§2002:14.8.47.3 GR25 b) ends that rule after the '22' sentence and knows only the invalid key condition of a write
+    /// "beyond the externally defined boundaries of the file", status '24' (§2002:14.8.47.3 GR29 b); the 1985 relative-file
     /// status list has no '34' at all and gives '24' for the same attempt (§1985:VIII.1.3.4 item (3) c) with the invalid key
     /// condition of §1985:VIII.1.3.5 (kb/Work PB5125). So below 2014 the same test answers '24' and the INVALID KEY phrase
     /// (or the USE procedure) runs; from 2014 it answers '34', the permanent error, and the phrase is skipped. The consumer
@@ -231,7 +231,7 @@ public enum DialectBehavior
     /// <c>BoundPower.NegativeBaseRealRoots</c> for <c>NumericRenderer.Power</c> and so for
     /// <c>CobolIntrinsics.PowNativeReal(double, CobolExact)</c> and <c>CobolExact.PowReal</c>.</summary>
     NegativeBaseRequiresIntegerExponent = 17,
-    /// <summary>ISO/IEC 1989:2023 §2023:14.9.13.4 GR4c — "If the result of the analysis is false for any pair in a WHEN phrase,
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.13.4 GR4 c) — "If the result of the analysis is false for any pair in a WHEN phrase,
     /// no more pairs in that WHEN phrase are evaluated"; the 2002 text words it the same (§2002:14.8.12.3 GR4c), and the
     /// selection objects of a WHEN phrase are evaluated only when the phrase is analyzed. §1985:VI.6.13.4 GR1 says instead
     /// that the statement "operates as if each selection subject and selection object were evaluated" and assigned a value
@@ -300,7 +300,7 @@ public enum DialectBehavior
     /// <c>--std 2002</c> FUNCTION INTEGER (1 - 1 / 10 ** 32) is 0 and from 2014 it is 1 (kb/Work PB5575; VCR row 7.81). Both editions
     /// are QUOTED. The consumer is <c>IntrinsicRenderer</c>'s argument intake.</summary>
     IntegerArgumentRoundedUnderStandardArithmetic = 25,
-    /// <summary>§2023:13.18.37.4 GR4a — the integer placed in the save location by an absolute NEXT GROUP lets LINE-COUNTER
+    /// <summary>§2023:13.18.37.4 GR4 a) — the integer placed in the save location by an absolute NEXT GROUP lets LINE-COUNTER
     /// be set to FOOTING, "causing a page advance to take place just before any other non-dummy body group is printed for
     /// the report"; the 2002 text (13.16.35.3 GR4 a) words it the same. §1985:XIII.3.10.8 GR3 consults the saved integer
     /// only after a page advance the fit test took: rule 3b's first paragraph applies the trial sum while "a body group has
@@ -362,7 +362,7 @@ public enum DialectBehavior
     /// record is truncated on the right to the maximum size" with the I-O status '04' and no remainder (§2002:14.8.29.3 GR13
     /// and §2014:14.9.29.3 GR14 the same; kb/Work PB5903; VCR row 7.88). The same frame decides two more arms before 2023: a
     /// REWRITE is the sequential size rule, '44' unless the record has the character positions of the record being replaced
-    /// (§1985:VII.4.5.4 GR10, kb/Work PB5915; 2023's §2023:14.9.35.4 GR17c pads a shorter one), and the vertical positioning
+    /// (§1985:VII.4.5.4 GR10, kb/Work PB5915; 2023's §2023:14.9.35.4 GR17 c) pads a shorter one), and the vertical positioning
     /// of an ADVANCING phrase or a LINAGE page has no image on the medium, so each WRITE releases exactly one line in WRITE
     /// order (§1985:VII.4.7.4 GR12, kb/Work PB5984). Both editions are QUOTED. The consumers are
     /// <c>SequentialConnector.ReadRecord</c>, <c>SequentialConnector.WriteRecord</c>, <c>SequentialConnector.WriteAdvancingRecord</c>
@@ -434,7 +434,7 @@ public static class DialectBehaviors
             "a file connector's sharing mode restricts other connectors, and Table 19 arbitrates every OPEN with '61', "
             + "only from COBOL-2002; at COBOL-85 the facility is not in effect and no connector restricts another"),
         new(DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter, "perform-varying-after-init-inner-first", 2002,
-            "7.53", "14.9.28.4 GR13 e) 2", "§1985:VI.6.21.4 GR10d 1",
+            "7.53", "14.9.28.4 GR13 e) 2", "§1985:VI.6.21.4 GR10 d) 1",
             "a TEST BEFORE PERFORM VARYING ... AFTER step sets the inner variable to its initialization value before "
             + "augmenting the outer one only from COBOL-2002; COBOL-85 augments the outer variable first"),
         new(DialectBehavior.ControlFootingPageGroupsSeePriorControlValues, "control-footing-page-groups-see-prior-values", 2002,
@@ -479,7 +479,7 @@ public static class DialectBehaviors
             + "only from COBOL-2002; COBOL-85 bounds only the RECORD IS VARYING clause and the range only documents the "
             + "record sizes"),
         new(DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError, "relative-write-key-out-of-range-permanent-error", 2014,
-            "7.64", "14.9.51.4 GR29 b)", "§2002:14.8.47.3 GR25b",
+            "7.64", "14.9.51.4 GR29 b)", "§2002:14.8.47.3 GR25 b)",
             "a random or dynamic WRITE of a relative file whose key is less than 1 or above the highest permitted record number "
             + "is a permanent error, I-O status 34, only from COBOL-2014; before it the same attempt is the invalid key "
             + "condition of a write beyond the file's boundaries, status 24"),

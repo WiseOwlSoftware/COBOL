@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// Per-edition enforcement of the screen/report allowlist-band reserved words through the POSITION-AWARE §2023:8.9
 /// funnel (P2.8 W2 — the RW104A adversarial review): a band context-keyword token (COLUMN, COL, SCREEN, BIT,
-/// DEFAULT, LENGTH, NATIONAL are the table-backed ones) rejects with COBOL0901 (ISO §2023:8.3.2.1 SR1 /
+/// DEFAULT, LENGTH, NATIONAL are the table-backed ones) rejects with COBOL0901 (ISO §2023:8.3.2.1 rule 1 /
 /// §2023:8.3.2.1 r1: "Reserved words shall not be used as user-defined words or system-names") ONLY when it occupies a provable
 /// user-word position — the data entry-name slot (§2023:13.16), a paragraph/section definition (§2023:14.4.2/§2023:14.4.3),
 /// the SELECT file-name (§2023:12.4.5.1), a program-name site (§2023:11.10.2). KEYWORD occurrences that the permissive
@@ -116,7 +116,7 @@ public sealed class ReservedWordPositionConformanceTests
     }
 
     /// <summary>COLUMN has been reserved CONTINUOUSLY since 1985 (reserved-words.json row COLUMN) — naming a
-    /// data item COLUMN violates §2023:8.3.2.1 SR1 even at --std 85, though the same word as a report CLAUSE
+    /// data item COLUMN violates §2023:8.3.2.1 rule 1 even at --std 85, though the same word as a report CLAUSE
     /// keyword is fine (the position distinction in one word).</summary>
     [Fact]
     public void DataItemNamedColumn_Rejected0901_EvenAt85()
@@ -324,7 +324,7 @@ public sealed class ReservedWordPositionConformanceTests
     /// word cannot parse, so the §2023:8.9 answer comes from the syntax error's report (<c>CobolErrorStrategy</c>'s
     /// <c>ReservedWordUse</c>) rather than the bound-tree funnel — and ANTLR can raise TWO syntax errors on the one
     /// offending token (the prediction failure and the strategy's recovery message). Naming both printed the identical
-    /// sentence twice; §2023:8.3.2.1 SR1 is violated once by one occurrence, and it is reported once.</summary>
+    /// sentence twice; §2023:8.3.2.1 rule 1 is violated once by one occurrence, and it is reported once.</summary>
     [Theory]
     [InlineData(2002)]
     [InlineData(2014)]
@@ -350,7 +350,7 @@ public sealed class ReservedWordPositionConformanceTests
 
     // ── One reserved-word reference, one diagnostic (kb/Work PB3248) ───────────────────────────────────────────
 
-    /// <summary>⛔ A REFERENCE TO A RESERVED VERB IS ONE §2023:8.9 VIOLATION, REPORTED ONCE (kb/Work PB3248, PB4208, PB4218). ISO §2023:8.3.2.1 SR1:
+    /// <summary>⛔ A REFERENCE TO A RESERVED VERB IS ONE §2023:8.9 VIOLATION, REPORTED ONCE (kb/Work PB3248, PB4208, PB4218). ISO §2023:8.3.2.1 1):
     /// "Reserved words shall not be used as user-defined words or system-names" — one occurrence breaks it once. RECEIVE
     /// and SEND (reserved at 85 and 2023) and VALIDATE (reserved from 2002) also BEGIN a statement, so the parser's
     /// recovery from the COBOL0901 used to resume AT the word, parse it as that statement and refuse the token after it:
@@ -444,7 +444,7 @@ public sealed class ReservedWordPositionConformanceTests
     /// FROM W-Y RETURNING W-N END-SEND</c> "unexpected 'FROM'", and <c>RESUME AT NEXT STATEMENT</c> was told to write
     /// SENTENCE. The recovery resumes at the verb when the statement it begins parses, so the source's one error is reported
     /// once; and the REPORT is the ordinary one for the parse at that token ("unexpected 'RECEIVE'", exactly what ADD or
-    /// DISPLAY there draws), never COBOL0901, which says the verb was misused as a name (§2023:8.3.2.1 SR1), when the fault is the
+    /// DISPLAY there draws), never COBOL0901, which says the verb was misused as a name (§2023:8.3.2.1 1)), when the fault is the
     /// missing receiver (PB4207). The last row is the arm's control: a reserved verb whose statement does NOT parse
     /// (<c>ADD.</c>, the verb alone) or is cut short by the sentence's end where the word read as a name goes on (<c>MOVE W-Y.</c>,
     /// <c>DISPLAY RECEIVE W-X.</c>) stands for the operand, is refused as the name (COBOL0901) and consumed. Each
@@ -462,7 +462,7 @@ public sealed class ReservedWordPositionConformanceTests
     // The verb alone before the period shows nothing was written beyond the word (kb/Work PB4207 review R1-1): the operand.
     [InlineData("MOVE W-X TO", "ADD.", "DISPLAY \"A\".", "ADD", true)]
     // A statement cut short by the sentence's end that the word read as a name does not exclude: MOVE W-X TO MOVE W-Y is a
-    // MOVE with two receivers and DISPLAY RECEIVE W-X a DISPLAY of two operands, and §2023:8.3.2.1 SR1 names that reading.
+    // MOVE with two receivers and DISPLAY RECEIVE W-X a DISPLAY of two operands, and §2023:8.3.2.1 1) names that reading.
     [InlineData("MOVE W-X TO", "MOVE W-Y.", "DISPLAY \"A\".", "MOVE", true)]
     [InlineData("DISPLAY", "RECEIVE W-X.", "DISPLAY \"A\".", "RECEIVE", true)]
     public void AReservedVerbBeginningTheNextStatement_DrawsOneDiagnostic(
@@ -547,7 +547,7 @@ public sealed class ReservedWordPositionConformanceTests
 
     /// <summary>⛔ A BARE VERB SENTENCE IS A PARAGRAPH HEADER ONLY WHERE THE PROGRAM NAMES THE WORD AS A PROCEDURE (kb/Work PB4283),
     /// the same decision for a verb reserved at every edition (DISPLAY, READ, STOP) and one the edition gates (FREE, VALIDATE,
-    /// RAISE, INVOKE). ISO §2023:8.3.2.1 SR1 ("Reserved words shall not be used as user-defined words or system-names") is broken by a USE
+    /// RAISE, INVOKE). ISO §2023:8.3.2.1 1) ("Reserved words shall not be used as user-defined words or system-names") is broken by a USE
     /// of the word as a name, and <c>FREE.</c> alone shows none: it is the verb's statement lacking its operand, whose own report
     /// stands (a COBOL0001 that names the statement, never COBOL0901 "reserved word used as a user-defined word"). A procedure
     /// reference elsewhere (<c>PERFORM FREE.</c>) is the use: the sentence is that name's paragraph header, and the word is
@@ -589,7 +589,7 @@ public sealed class ReservedWordPositionConformanceTests
     }
 
     /// <summary>⛔ OF TWO READINGS OF THE WORD THE ONE THAT GOES FURTHER IS THE ONE THE REPORT NAMES (kb/Work PB4207, review
-    /// R3-1). A reserved verb written as the receiving operand of a MOVE (RECEIVE, SEND: ISO §2023:8.3.2.1 SR1, "Reserved words
+    /// R3-1). A reserved verb written as the receiving operand of a MOVE (RECEIVE, SEND: ISO §2023:8.3.2.1 1), "Reserved words
     /// shall not be used as user-defined words or system-names") also begins a statement, and that statement is refused
     /// at the next verb (<c>RECEIVE W-Y</c> lacks the rest of its format, §2023:14.9.31.2 prints <c>GIVING identifier-1 data-name-2</c>): it was cut short two tokens in, by a token a
     /// statement may be followed by. The word read as the name carries the source further, to a fault of the SENTENCE that
@@ -634,7 +634,7 @@ public sealed class ReservedWordPositionConformanceTests
 
     /// <summary>⛔ A RESERVED VERB WRITTEN AS A PROCEDURE-NAME IS NAMED BY COBOL0901, IN EVERY PROCEDURE-NAME SLOT (kb/Work
     /// PB4206). A procedure-name is a user-defined word (ISO §2023:8.3.2.2; §2023:14.4.1 "A procedure-name is a word used to refer to
-    /// a paragraph or section"), so §2023:8.3.2.1 SR1 "Reserved words shall not be used as user-defined words or system-names"
+    /// a paragraph or section"), so §2023:8.3.2.1 1) "Reserved words shall not be used as user-defined words or system-names"
     /// holds there. RECEIVE, SEND (reserved at 85, 2002 and 2023) and VALIDATE (from 2002) also begin a statement, and the
     /// slot had no arm for a reserved word: <c>PERFORM RECEIVE.</c> parsed as an inline PERFORM whose RECEIVE statement
     /// refused the period, <c>GO TO SEND.</c> as the 1985 target-less GO TO followed by a SEND statement, each a COBOL0001
@@ -696,7 +696,7 @@ public sealed class ReservedWordPositionConformanceTests
     }
 
     /// <summary>⛔ A WORD RESERVED AT EVERY EDITION, WRITTEN AS A PROCEDURE-NAME, IS NAMED BY COBOL0901 (kb/Work PB4229). The
-    /// PB4206 rule (§2023:8.3.2.1 SR1: "Reserved words shall not be used as user-defined words or system-names"; a procedure-name
+    /// PB4206 rule (§2023:8.3.2.1 1): "Reserved words shall not be used as user-defined words or system-names"; a procedure-name
     /// is a user-defined word, §2023:8.3.2.2) for the words that are no reservation-gated word: READ, DISPLAY, MOVE, STOP and the
     /// rest are keyword tokens no name slot can take, so the parse took the keyword reading and died after it —
     /// <c>PERFORM READ.</c> an inline PERFORM whose READ statement refused the period, <c>GO TO READ.</c> a target-less GO TO
@@ -812,7 +812,7 @@ public sealed class ReservedWordPositionConformanceTests
     /// <summary>⛔ A VERB AND ITS PERIOD ALONE ARE AN INCOMPLETE STATEMENT, NEVER A RESERVED PARAGRAPH-NAME (kb/Work PB4229,
     /// branch review R1-1). <c>STOP.</c> (RUN forgotten) is the STOP statement missing its operand, and it is also the
     /// text of a paragraph header (ISO §2023:14.4.3: "A paragraph consists of a paragraph-name followed by a separator
-    /// period"). No token says the source used STOP as a user-defined word, which is all ISO §2023:8.3.2.1 SR1 ("Reserved words
+    /// period"). No token says the source used STOP as a user-defined word, which is all ISO §2023:8.3.2.1 1) ("Reserved words
     /// shall not be used as user-defined words or system-names") refuses, so the fault the source certainly holds keeps
     /// its own COBOL0001 at the period, inside a paragraph and where a header could stand alike, at every edition, and
     /// nothing names the verb. Each row draws exactly one diagnostic.</summary>
@@ -929,8 +929,8 @@ public sealed class ReservedWordPositionConformanceTests
 
     // ── A reserved word where no user-defined word stands is its keyword, misplaced (kb/Work PB4132) ──────────────
 
-    /// <summary>⛔ §2023:8.3.2.1 SR1 IS BROKEN BY A USE AS A USER-DEFINED WORD, SO COBOL0901 NAMES ONLY SUCH A USE (kb/Work
-    /// PB4132). ISO §2023:8.3.2.1 SR1: "Reserved words shall not be used as user-defined words or system-names." Where §2023:8.9
+    /// <summary>⛔ §2023:8.3.2.1 1) IS BROKEN BY A USE AS A USER-DEFINED WORD, SO COBOL0901 NAMES ONLY SUCH A USE (kb/Work
+    /// PB4132). ISO §2023:8.3.2.1 1): "Reserved words shall not be used as user-defined words or system-names." Where §2023:8.9
     /// reserves a reservation-gated word the token IS its keyword, and a syntax error on it is that rule's violation only
     /// where a user-defined word could stand. RETRY after <c>ADVANCING ON LOCK</c> stands where the READ has ended and no
     /// statement begins with a user word: it begins the retry-phrase, the third alternative of the one bracket ISO

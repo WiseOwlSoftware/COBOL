@@ -54,7 +54,7 @@ public sealed class CorrespondingRule2DriftTests
         (bool)(typeof(CorrespondingBinder)
             .GetMethod("CorrRule2MoveValid", BindingFlags.NonPublic | BindingFlags.Static)
             ?? throw new InvalidOperationException(
-                "CorrespondingBinder.CorrRule2MoveValid is gone — ISO §2023:14.7.6 GR2 still has to be answered by "
+                "CorrespondingBinder.CorrRule2MoveValid is gone — ISO §2023:14.7.6 rule 2 still has to be answered by "
                 + "MoveTable16 and by nothing else. Re-point this test at whatever asks the table; do NOT delete "
                 + "the assertion (kb/Work PB391)."))
             .Invoke(null, [s, d])!;
@@ -138,7 +138,7 @@ public sealed class CorrespondingRule2DriftTests
             DataItem d = At(receiver);
             bool moveRules = MoveTable16.DataItemRefusal(s, d, MoveCitations.Iso2023) is null;
             Assert.True(moveRules == CorrRule2MoveValid(s, d),
-                $"ISO §2023:14.7.6 GR2 and the §2023:14.9.25.3 MOVE rules disagree for {sender} -> {receiver}: the MOVE "
+                $"ISO §2023:14.7.6 rule 2 and the §2023:14.9.25.3 MOVE rules disagree for {sender} -> {receiver}: the MOVE "
                 + $"rules say {(moveRules ? "Yes" : "No")} and the CORRESPONDING filter says "
                 + $"{(!moveRules ? "Yes" : "No")}. Rule 2 is a delegation to the MOVE rules; a second copy of one "
                 + "of them has been reintroduced.");
@@ -147,7 +147,7 @@ public sealed class CorrespondingRule2DriftTests
 
     /// <summary>⛔ THE TWO-ARM PIN on the two composite entries. The §2023:14.9.25.3 chain is asked from two entries —
     /// <c>MoveTable16.Validity</c>, over a BOUND operand, which the written MOVE, INITIALIZE and the INVOKE screen
-    /// reach, and <c>MoveTable16.DataItemRefusal</c>, over two data items, which §2023:14.7.6 GR2 reaches (a
+    /// reach, and <c>MoveTable16.DataItemRefusal</c>, over two data items, which §2023:14.7.6 rule 2 reaches (a
     /// CORRESPONDING pair has no bound operand until after the pairing decision). Fixing one and not the other is
     /// exactly the defect kb/Work PB391 landed against, so for every modeled sender x receiver the two entries
     /// must return the SAME reason. They can only do that by running one chain (kb/Work PB878 made the per-rule
@@ -203,7 +203,7 @@ public sealed class CorrespondingRule2DriftTests
     public void TheTwoRulesSr10DefersToCarryTheirOwnVerdict(string sender, string receiver, bool corresponds)
         => Assert.Equal(corresponds, CorrRule2MoveValid(At(sender), At(receiver)));
 
-    /// <summary>⛔ THE TRAP. §2023:14.7.6 GR4 — <i>"Neither data item ... is of class index, message-tag, object, or
+    /// <summary>⛔ THE TRAP. §2023:14.7.6 rule 4 — <i>"Neither data item ... is of class index, message-tag, object, or
     /// pointer"</i> — is the ONLY thing that keeps a pointer namesake pair out of the correspondence set: Table 16
     /// has no pointer row or column and <see cref="MoveValidity.Table16Refusal"/> therefore ADMITS the pair. Before
     /// kb/Work PB391 the exclusion was an ACCIDENT of the private copy's <c>_ =&gt; false</c> default, and
@@ -216,7 +216,7 @@ public sealed class CorrespondingRule2DriftTests
         Assert.True(CorrRule2MoveValid(ptr, ptr),
             "Table 16 has no pointer row — rule 2 cannot be what excludes a pointer pair.");
         Assert.True(ItemCategory.IsIndexMessageTagObjectOrPointer(ptr),
-            "ISO §2023:14.7.6 GR4's class exclusion is what excludes it, and CorrEligible asks exactly this.");
+            "ISO §2023:14.7.6 rule 4's class exclusion is what excludes it, and CorrEligible asks exactly this.");
 
         // The four classes rule 4 names, each reached the way the model actually carries it. INDEX is a
         // NUMERIC PicInfo distinguished only by its usage (§2023:8.5.2.1 Table 2), and MESSAGE-TAG / FUNCTION-POINTER

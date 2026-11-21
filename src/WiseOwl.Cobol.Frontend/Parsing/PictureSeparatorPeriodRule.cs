@@ -44,6 +44,6 @@ public static class PictureSeparatorPeriodRule
         => $"the PICTURE character-string {t.Text} ends in the symbol '{t.Text![^1]}', so the PICTURE clause shall "
            + "be the last clause of the entry and be followed immediately, with no intervening separator, by the "
            + $"separator period ({edition.CiteRule("§1985:VI.5.9.5 GR5", "§2023:13.18.40.3 SR7")}); a comma or semicolon followed by a space is a separator "
-           + $"({edition.CiteRule("§1985:IV.4.2.1 SR2", "§2023:8.3.5 SR2")}), not the end of the entry. Write the clause last and end it with '.', or drop "
+           + $"({edition.CiteRule("§1985:IV.4.2.1 SR2", "§2023:8.3.5 rule 2")}), not the end of the entry. Write the clause last and end it with '.', or drop "
            + "the trailing symbol.";
 }

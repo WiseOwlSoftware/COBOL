@@ -29,15 +29,15 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class PredefinedNullContextDriftTests
 {
-    /// <summary>Each file that calls <c>NullAdmittingOperand</c>, with the §2023:8.4.3.10.3 SR1a context it binds.</summary>
+    /// <summary>Each file that calls <c>NullAdmittingOperand</c>, with the §2023:8.4.3.10.3 SR1 a) context it binds.</summary>
     private static readonly Dictionary<string, string> Sr1Callers = new()
     {
         ["CallBinder.cs"] = "an argument in a program-prototype format CALL statement",
         ["OoBinder.cs"] = "an argument in a method invocation",
-        // EVALUATE's selection subject/object pair (§2023:14.9.13.3 SR7a) binds through ConditionBinder's one comparison
+        // EVALUATE's selection subject/object pair (§2023:14.9.13.3 SR7 a)) binds through ConditionBinder's one comparison
         // operand dispatch since kb/Work PB1935 deleted EvaluateBinder's copy of it.
         ["ConditionBinder.cs"] = "a pointer-or-object-reference relation condition, including an EVALUATE selection "
-            + "subject/object pair (§2023:14.9.13.3 SR7a)",
+            + "subject/object pair (§2023:14.9.13.3 SR7 a))",
         ["InitializeBinder.cs"] = "a sending operand in an INITIALIZE statement",
         ["IntrinsicBinder.cs"] = "an argument in a function-prototype format function activation (BindArgOperand's "
             + "activationArgument leg, which only UdfBinder sets)",

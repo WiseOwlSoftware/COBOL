@@ -64,7 +64,7 @@ public static class OoConformance
 
         void Check(OoClassSymbol cls, IReadOnlyList<OoMethodSymbol> declared, Func<ExternalizedMethodName, OoMethodSymbol?> find)
         {
-            // Each property's pair once, keyed by its get accessor's roster key (the pinned accessor name, §2023:11.7.4 GR1a).
+            // Each property's pair once, keyed by its get accessor's roster key (the pinned accessor name, §2023:11.7.4 GR1 a)).
             var seen = new HashSet<ExternalizedMethodName>();
             foreach (var accessor in declared)
             {
@@ -150,7 +150,7 @@ public static class OoConformance
         }
     }
 
-    /// <summary>§2023:9.3.8.2.3 GR8: "The presence or absence of the OPTIONAL phrase is the same for corresponding
+    /// <summary>§2023:9.3.8.2.3 rule 8: "The presence or absence of the OPTIONAL phrase is the same for corresponding
     /// parameters." (kb/Work PB757 — the phrase is carried on <see cref="OoFormal.Optional"/> since the method arm of
     /// the OPTIONAL formal landed.) Null when the pair agrees.</summary>
     internal static string? OptionalMismatch(OoFormal f1, OoFormal f2) =>
@@ -179,7 +179,7 @@ public static class OoConformance
     /// §2023:11.7.3 SR9 overrides (<see cref="ValidateOverrideSignatures"/> — the override is interface-1), and the
     /// interface-to-interface relation (<see cref="InterfaceConformsTo"/>).</para>
     /// <para>Extracted from <see cref="ValidateImplements"/> (kb/Work PB814) so that §2023:9.3.11 IMPLEMENTS
-    /// conformance and the interface-to-interface conformance GOBACK §2023:14.9.18.3 SR4b asks
+    /// conformance and the interface-to-interface conformance GOBACK §2023:14.9.18.3 SR4 b) asks
     /// (<see cref="InterfaceConformsTo"/>) run the SAME comparisons — two copies of one rule set is the shape
     /// under which one arm silently drifts.</para>
     /// </summary>
@@ -195,7 +195,7 @@ public static class OoConformance
         if (m1.Binding!.Formals.Count != m2.Binding!.Formals.Count)
         {
             yield return $"{m1.Binding!.Formals.Count} formal(s) vs {counterpart}'s "
-                + $"{m2.Binding!.Formals.Count} (ISO §2023:9.3.8.2.3 GR1)";
+                + $"{m2.Binding!.Formals.Count} (ISO §2023:9.3.8.2.3 rule 1)";
             yield break;
         }
         for (int i = 0; i < m1.Binding!.Formals.Count; i++)
@@ -203,16 +203,16 @@ public static class OoConformance
             if (m1.Binding!.Formals[i].ByValue != m2.Binding!.Formals[i].ByValue)
                 yield return $"formal #{i + 1}: {(m1.Binding!.Formals[i].ByValue ? "BY VALUE" : "BY REFERENCE")} here but "
                     + $"{(m2.Binding!.Formals[i].ByValue ? "BY VALUE" : "BY REFERENCE")} on the corresponding parameter of "
-                    + $"{counterpart} (ISO §2023:9.3.8.2.3 GR1 — consistent BY REFERENCE and BY VALUE specifications)";
+                    + $"{counterpart} (ISO §2023:9.3.8.2.3 rule 1 — consistent BY REFERENCE and BY VALUE specifications)";
             // Rules 2 / 3 / 7, which the C# projection cannot check: PIC 9(4) and PIC 9(8) both cross as a long.
             if (SignatureDifference(m1.Binding!.Formals[i].Item, m2.Binding!.Formals[i].Item, "formal parameter",
                     $"corresponding parameter of {counterpart}") is { } err)
                 yield return $"formal #{i + 1}: {err}";
             if (OptionalMismatch(m1.Binding!.Formals[i], m2.Binding!.Formals[i]) is { } oerr)
-                yield return $"formal #{i + 1}: {oerr} vs {counterpart} (ISO §2023:9.3.8.2.3 GR8)";
+                yield return $"formal #{i + 1}: {oerr} vs {counterpart} (ISO §2023:9.3.8.2.3 rule 8)";
         }
         if ((m1.Binding!.Returning is null) != (m2.Binding!.Returning is null))
-            yield return $"RETURNING presence differs from {counterpart} (ISO §2023:9.3.8.2.3 GR4)";
+            yield return $"RETURNING presence differs from {counterpart} (ISO §2023:9.3.8.2.3 rule 4)";
         else if (m1.Binding!.Returning is { } r && m2.Binding!.Returning is { } pr)
         {
             if (r.Pic is { Category: PicCategory.ObjectReference } rp
@@ -229,7 +229,7 @@ public static class OoConformance
     }
 
     /// <summary>
-    /// ISO §2023:9.3.8.2.3 GR9: "If the RAISING phrase is specified in the procedure division header of the method in
+    /// ISO §2023:9.3.8.2.3 rule 9: "If the RAISING phrase is specified in the procedure division header of the method in
     /// interface-1, the corresponding method in interface-2 specifies the RAISING phrase following these rules" —
     /// EVERY element of <paramref name="m1"/>'s phrase needs a covering element in <paramref name="m2"/>'s:
     /// <list type="bullet">
@@ -269,10 +269,10 @@ public static class OoConformance
             };
             yield return m2.Raising.Count == 0
                 ? $"RAISING {t.Spelled}: {counterpart} specifies no RAISING phrase, and it shall specify {need} "
-                    + $"(ISO §2023:9.3.8.2.3 GR9 {arm}))"
+                    + $"(ISO §2023:9.3.8.2.3 rule 9 {arm}))"
                 : $"RAISING {t.Spelled}: the RAISING phrase of {counterpart} "
                     + $"({string.Join(", ", m2.Raising.Select(u => u.Spelled))}) does not specify {need} "
-                    + $"(ISO §2023:9.3.8.2.3 GR9 {arm}))";
+                    + $"(ISO §2023:9.3.8.2.3 rule 9 {arm}))";
         }
     }
 
@@ -347,7 +347,7 @@ public static class OoConformance
     /// specifications defined for the inherited interface definition or definitions"), hence
     /// <see cref="SymbolTable.ClassNames.AllPrototypes"/> on both sides. One implementation, one entry convention
     /// (every method of the group is emitted to the same .NET calling convention), so that clause holds. Asked by
-    /// GOBACK §2023:14.9.18.3 SR4b / EXIT §2023:14.9.14.3 SR5b (kb/Work PB814); runs after every interface's prototype
+    /// GOBACK §2023:14.9.18.3 SR4 b) / EXIT §2023:14.9.14.3 SR5 b) (kb/Work PB814); runs after every interface's prototype
     /// formals have bound (<c>BinderDriver</c> binds interface data before any procedure body).
     /// </summary>
     public static bool InterfaceConformsTo(OoClassTable table, OoInterfaceSymbol interface1, OoInterfaceSymbol interface2)
@@ -367,7 +367,7 @@ public static class OoConformance
     /// THEM (kb/Work PB1502): "If a given method-name is inherited from more than one interface, the method prototype in
     /// each inherited interface shall be such that this interface conforms to all inherited interfaces", with §2023:9.3.10's
     /// "The inheriting interface shall always conform to each of the inherited interfaces". The inheriting interface
-    /// presents ONE method of that name (it may declare none of its own, §2023:11.7.3 SR4b), so the rule is satisfied exactly
+    /// presents ONE method of that name (it may declare none of its own, §2023:11.7.3 SR4 b)), so the rule is satisfied exactly
     /// when ONE inherited prototype conforms (<see cref="MethodConformanceMismatches"/>, the §2023:9.3.8.2.3 rule set every
     /// asker shares) to every other — identical prototypes inherited twice trivially, and a covariant RETURNING pair
     /// (rule 5) through the more specific one. That prototype is recorded as the interface's own presentation
@@ -544,12 +544,12 @@ public static class OoConformance
     /// <summary>
     /// ⛔ ISO §2023:14.9.39.3 SR8 / SR10 / SR12 / SR14 (SET Format 5) for a pair of object-reference descriptions this
     /// compilation can see — a SET, §2023:14.8.3.3 rule 1 (RETURNING delivery follows the SET rules), §2023:14.8.2.3.3 (BY CONTENT
-    /// object-reference arguments) and §2023:9.3.8.2.3 GR5 (covariant override / implements RETURNING). The table itself
+    /// object-reference arguments) and §2023:9.3.8.2.3 rule 5 (covariant override / implements RETURNING). The table itself
     /// is the runtime's <see cref="ObjectReferenceSet.Refusal"/>, the ONE copy the run time asks too for the pairs no
     /// single compilation sees (§2023:9.3.6 match rule 6 across a universal invocation, a CALL located at run time; kb/Work
     /// PB2463); this resolves each description's class facts through the group's class table
     /// (<see cref="OoClassTable.SetOperand"/>) and asks it.
-    /// <para><paramref name="activeClassSenderAdmitted"/> false is §2023:9.3.8.2.3 GR5's reading, which enumerates no
+    /// <para><paramref name="activeClassSenderAdmitted"/> false is §2023:9.3.8.2.3 rule 5's reading, which enumerates no
     /// ACTIVE-CLASS sender into an interface-typed or class-typed receiver (see <see cref="ObjectReferenceSet"/>).</para>
     /// <para>Null-tolerant on <paramref name="table"/> (no class table in the group ⇒ no OO checking — preserving the
     /// former <c>OoClasses?.</c> call shape). Returns null when the pair conforms, else the clause it violated.</para>

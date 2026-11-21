@@ -90,9 +90,9 @@ internal static class OperandPositions
         "a numeric elementary item described in the data division",
         OperandClasses.NumericElementaryItem, DiagnosticCatalog.PerformVaryingOperandRule, Rule1985: "§1985:VI.6.21.3 SR4");
 
-    /// <summary>ISO §2023:14.9.28.3 SR5a — the varied identifier when an index-name is in the FROM phrase.</summary>
+    /// <summary>ISO §2023:14.9.28.3 SR5 a) — the varied identifier when an index-name is in the FROM phrase.</summary>
     public static readonly OperandPosition PerformVaryingIdentifierFromIndex = new(
-        "PERFORM VARYING / AFTER with an index-name FROM", "the varied identifier", "§2023:14.9.28.3 SR5a",
+        "PERFORM VARYING / AFTER with an index-name FROM", "the varied identifier", "§2023:14.9.28.3 SR5 a)",
         "an integer data item",
         OperandClasses.IntegerItem, DiagnosticCatalog.PerformVaryingOperandRule, Rule1985: "§1985:VI.6.21.3 SR7a");
 
@@ -126,7 +126,7 @@ internal static class OperandClassScreen
     /// rather than re-diagnosing an item the compile has already reported.</summary>
     public static OperandClasses ClassesOf(Place p)
     {
-        // §2023:8.4.3.3.4 GR6c: reference modification makes a numeric item "class and category national if the usage
+        // §2023:8.4.3.3.4 GR6 c): reference modification makes a numeric item "class and category national if the usage
         // is national; otherwise … class and category alphanumeric" — never integer, numeric or index. A
         // reference-modified place is the one kind that denotes no declared item (Place.DenotedItem).
         if (p.DenotedItem is null) return OperandClasses.None;

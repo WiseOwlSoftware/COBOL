@@ -29,7 +29,7 @@ public sealed partial class SymbolTable
         public IReadOnlyList<T>? NamedAs(DataItem item) => _byName.GetValueOrDefault(Key(item.CobolName!));
     }
 
-    /// <summary>How many data items answer to each data-name at one qualification level of an operand (§2023:14.7.6 GR6's
+    /// <summary>How many data items answer to each data-name at one qualification level of an operand (§2023:14.7.6 rule 6's
     /// universe; <c>CorrespondingBinder.NamesakeCounts</c> says which items count).</summary>
     internal sealed class NamesakeCounts
     {

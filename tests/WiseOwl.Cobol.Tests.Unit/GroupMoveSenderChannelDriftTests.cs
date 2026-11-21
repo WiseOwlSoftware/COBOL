@@ -98,7 +98,7 @@ public sealed class GroupMoveSenderChannelDriftTests
 
     /// <summary>⛔ A FUNCTION-IDENTIFIER'S VALUE IS A MOVE SENDER, WHATEVER TREE THE BINDER LOWERED IT TO, AND THE ONE READER IS
     /// <c>BoundComputedOperand.IsNumericFunctionValue</c> (kb/Work PB3613). FUNCTION LENGTH of a variable-length group is lowered to
-    /// a <c>BoundBinary</c> sum, which an arithmetic expression (no MOVE sender, §2023:14.8.2.2 SR2) is too; the binder states the
+    /// a <c>BoundBinary</c> sum, which an arithmetic expression (no MOVE sender, §2023:14.8.2.2 rule 2) is too; the binder states the
     /// difference once, in <c>IntrinsicBinder.OperandOf(expr, functionValue)</c> - a required parameter, so a new position that makes
     /// an operand from a bound expression must say which it is - and the activation description, the CALL arm, the INVOKE binder
     /// guard and the sending codec all ask the one property, never a node shape.</summary>
@@ -263,7 +263,7 @@ public sealed class GroupMoveSenderChannelDriftTests
     }
 
     /// <summary>An INVOKE literal crosses as the BOUND literal, never its decoded string: a national literal is usage
-    /// NATIONAL (§2023:8.3.3.5.4 GR3a), which only the literal's category states (kb/Work PB3587).</summary>
+    /// NATIONAL (§2023:8.3.3.5.4 GR3 a)), which only the literal's category states (kb/Work PB3587).</summary>
     [Fact]
     public void InvokeLiteralArgument_KeepsItsCategory()
     {

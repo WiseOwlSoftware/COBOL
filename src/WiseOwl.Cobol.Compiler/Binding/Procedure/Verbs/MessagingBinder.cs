@@ -34,7 +34,7 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Bind <c>RECEIVE [FROM] data-name-1 GIVING identifier-1 data-name-2 [CONTINUE [AFTER] { arithmetic-expression-1 [SECONDS] | MESSAGE
     /// RECEIVED }] [ON EXCEPTION …] [NOT ON EXCEPTION …] [END-RECEIVE]</c> (ISO §2023:14.9.31.2). data-name-1 and data-name-2 are NAMES (asked their written shape
-    /// before they resolve, kb/Work PB4118); the three operands are RECEIVING places, since the statement stores into each (§2023:14.9.31.4 GR1a, GR2, GR3).</summary>
+    /// before they resolve, kb/Work PB4118); the three operands are RECEIVING places, since the statement stores into each (§2023:14.9.31.4 GR1 a), GR2, GR3).</summary>
     internal BoundStatement BindReceive(Core.MessagingReceiveStatementContext r)
     {
         // The grammar gives the rule its three references in the format's order — data-name-1, identifier-1, data-name-2 (the roster test pins the count).

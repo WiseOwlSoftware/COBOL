@@ -4,7 +4,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
 /// ⛔ THE HOST OF <see cref="RunUnitFileLock"/> WHERE THE KERNEL HAS NO OPEN-FILE-DESCRIPTION LOCKS — macOS above all
-/// (kb/Work PB2484). ISO §2023:9.1.15 GR2: <i>"The sharing with read only mode restricts concurrent access to a physical
+/// (kb/Work PB2484). ISO §2023:9.1.15 2): <i>"The sharing with read only mode restricts concurrent access to a physical
 /// file through file connectors other than this one, to input mode"</i> binds other RUN UNITS too, and on such a host
 /// the only thing a connector met was .NET's one advisory <c>flock</c> (<c>LOCK_EX</c> for
 /// <see cref="FileShare.None"/>, <c>LOCK_SH</c> for everything else), which says rule 1 and nothing of rules 2 and 3.
@@ -93,7 +93,7 @@ internal sealed class SidecarColumnLockHost : IColumnLockHost
 
     /// <summary>⛔ A REQUEST THAT CANNOT PUBLISH CAN STILL BE REFUSED (kb/Work PB2917, PB3632): a holder another run unit has
     /// published and Table 19 refuses this request is a conflict this host SEES, so the request is
-    /// <see cref="RunUnitFileLock.Outcome.Refused"/> (§2023:9.1.13.9 GR1 '61', §2023:14.9.27.4 Table 19 <i>Unsuccessful open</i>), and with none the
+    /// <see cref="RunUnitFileLock.Outcome.Refused"/> (§2023:9.1.13.9 1) '61', §2023:14.9.27.4 Table 19 <i>Unsuccessful open</i>), and with none the
     /// OPEN has the share mode alone, <see cref="RunUnitFileLock.Outcome.Unavailable"/>: no request is refused for failing
     /// to publish. The asker's own superseded file (<paramref name="previous"/>) is no other holder, and stands. The twin of
     /// <see cref="HandleColumnLockHost.Unpublishable"/>; reached for a lock directory this user may not write and for
@@ -109,7 +109,7 @@ internal sealed class SidecarColumnLockHost : IColumnLockHost
     /// <see cref="RunUnitFileLock.Outcome.Refused"/> when one lives or cannot be observed. ⛔ A LOCK DIRECTORY THIS USER
     /// MAY ENTER BUT NOT LIST hides every holder in it, so it is unobservable as a whole and refuses a request row that
     /// refuses any column (the train 1056b review: a <c>0711</c> parent, whose mode the lock directory copies, made the
-    /// listing throw, which read as a lock this host cannot hold and granted the OPEN §2023:9.1.15 GR2 refuses).</summary>
+    /// listing throw, which read as a lock this host cannot hold and granted the OPEN §2023:9.1.15 2) refuses).</summary>
     private static RunUnitFileLock.Outcome TestOthers(string directory, IReadOnlyList<string> ownNames,
         IReadOnlyList<ExistingSharingColumn> refused)
     {

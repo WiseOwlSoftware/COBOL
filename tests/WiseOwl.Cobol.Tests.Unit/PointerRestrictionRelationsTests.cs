@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <list type="bullet">
 /// <item>The SET relation — §2023:14.9.39.3 SR19 ("restricted to the same type"), SR20 / SR22 ("the same signature") — over
 /// what each pointer may CONTAIN (<see cref="ActivationDescription.ContentRestriction"/>: a prototype pointer's signature
-/// class; every prototype has one, the external repository entry's for §2023:12.3.8.4 GR10c, kb/Work PB2103): a SET of the
+/// class; every prototype has one, the external repository entry's for §2023:12.3.8.4 GR10 c), kb/Work PB2103): a SET of the
 /// pair (<see cref="ActivationRelations.ReturningMatches"/>, §2023:9.3.6 rule 6) and a BY CONTENT argument (§2023:14.8.2.3.3).</item>
 /// <item>The identity rules — "both shall be restricted and of the same type" (§2023:14.8.2.3.2, read through §2023:8.5.3.1: the
 /// TYPE clause's declaration, <see cref="ActivationDescription.PointerType"/>, and its USAGE clause) for a BY REFERENCE argument, and

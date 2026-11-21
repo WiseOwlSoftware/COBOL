@@ -28,7 +28,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>Two storage forms carry no VALUE-seeded initial state and are therefore not cases: a plain EXTERNAL record
 /// (§2023:13.18.63.4 GR4 a — its VALUE takes effect only during INITIALIZE) and a BASED record, whose ALLOCATE
 /// INITIALIZED content is that of INITIALIZE … ALL TO VALUE (§2023:14.9.3.4 GR7), which a group-level VALUE is not a
-/// sender of (§2023:14.9.20.4 GR5c.1.b.</para>
+/// sender of (§2023:14.9.20.4 GR5 c) 1. b).</para>
 /// </summary>
 public sealed class GroupValueAreaStorageFormDriftTests : WiseOwlCobolTestBase
 {

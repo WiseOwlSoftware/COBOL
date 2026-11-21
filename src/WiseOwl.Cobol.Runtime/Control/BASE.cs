@@ -135,7 +135,7 @@ public class __FACTORY_BASE : CobolObject
 /// "The number of invocation parameters shall be equal"), without a RETURNING item (rule 1: "if there is a returning item
 /// in the invoked method …"), or whose RETURNING item a SET cannot receive the method's returning item into (rule 6) does
 /// not match: the search goes on up the chain and ends in EC-OO-METHOD (§2023:9.3.6 resolution step 6), exactly as for a
-/// method written in COBOL — it used to raise EC-OO-UNIVERSAL, which §2023:14.9.23.4 GR7c reserves for a BOUND method.
+/// method written in COBOL — it used to raise EC-OO-UNIVERSAL, which §2023:14.9.23.4 GR7 c) reserves for a BOUND method.
 /// Rule 6 is the §2023:14.9.39.3 table over the two descriptions (kb/Work PB2463): an ACTIVE-CLASS sender's class is "the
 /// class containing the data item" (SR12 b) 2.), here the standard class BASE, so New and FactoryObject match a
 /// universal receiving item, one described with BASE (FACTORY OF BASE for FactoryObject) and an ACTIVE-CLASS one of the
