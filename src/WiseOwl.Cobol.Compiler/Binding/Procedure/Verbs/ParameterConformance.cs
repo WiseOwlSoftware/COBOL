@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -402,7 +403,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
         if (SectionDataItem.NonSectionKind(p) is not { } kind || ctx.Refs.ObjectProperties.IsObjectPropertyReference(written))
             return true;
         ctx.Edition.Error(code,
-            $"{subject} '{DataBinder.WrittenText(written)}' references {kind}; ISO {rule.Clause} requires "
+            $"{subject} '{WrittenSource.Of(written)}' references {kind}; ISO {rule.Clause} requires "
             + (addressAdmitted ? "an address-identifier or " : "")
             + rule.Sections);
         return false;

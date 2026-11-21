@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime.Exceptions;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -90,7 +91,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             {
                 using var atOperand = ctx.Edition.At(oref);   // SR2 is about identifier-1 (kb/Work PB4722, as EcBindRaising)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.RaiseOperandRule,
-                    $"RAISE '{oref.GetText()}': identifier-1 shall be a USAGE OBJECT REFERENCE data item "
+                    $"RAISE '{WrittenSource.Of(oref)}': identifier-1 shall be a USAGE OBJECT REFERENCE data item "
                     + "(ISO §2023:14.9.29.3 SR2)");
             }
             return new BoundRaiseObject(op);
@@ -254,7 +255,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                     ? $"{site.Context} NULL: the predefined NULL references no object, and the object referenced by "
                       + $"identifier-1 is what becomes the exception object in the activating runtime element "
                       + $"({site.Cite(site.ObjectRule)}; GR1 b) 2.)"
-                    : $"{site.Context} '{DataBinder.WrittenText(oref)}': identifier-1 shall be a USAGE OBJECT REFERENCE "
+                    : $"{site.Context} '{WrittenSource.Of(oref)}': identifier-1 shall be a USAGE OBJECT REFERENCE "
                       + $"data item ({site.Cite(site.ObjectRule)})");
                 return null;
             }

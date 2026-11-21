@@ -39,7 +39,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // Format 2 prints two addends at least: `ADD A GIVING D` is no ADD format, never D = A (kb/Work PB5203).
             if (addends.Count < 2)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
-                    $"ADD with GIVING writes one operand, '{DataBinder.WrittenText(operands[0])}', before GIVING: Format 2 "
+                    $"ADD with GIVING writes one operand, '{WrittenSource.Of(operands[0])}', before GIVING: Format 2 "
                     + "prints identifier-1 or literal-1 and then identifier-2 or literal-2, the second after the "
                     + ctx.Edition.Edition.Cite("word", "optional word") + " TO (ISO "
                     + ctx.Edition.Edition.Cite("§1985:VI.6.6.2 Format 2", "§2023:14.9.2.2 Format 2") + ")");
@@ -155,7 +155,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // is stored (§1985:VI.6.11.4 GR4; kb/Work PB5386), like every arithmetic receiver.
             if (host.Expr.ResolveReceivingAtStore(rem.receivingIdentifier()) is not { } r0
                 || host.Expr.ScreenResultant(r0, rem.receivingIdentifier(), editedOk: true, new("§1985:VI.6.11.3 SR1", "§2023:14.9.12.3 SR2")) is not { } r)
-                return new BoundUnsupported($"DIVIDE REMAINDER receiver '{rem.receivingIdentifier().GetText()}'");
+                return new BoundUnsupported($"DIVIDE REMAINDER receiver '{WrittenSource.Of(rem.receivingIdentifier())}'");
             ctx.Validation.CheckComposite("DIVIDE", [dividend, divisor], quotients, CompositeMembers.ReceivingItems85);
             ctx.Data.Procedure.ClaimInterleavedReceiver(r);   // the quotient was claimed with the other Receivers (ExpressionBinder.ReceiverOf)
             return new BoundDivideRemainder(dividend, divisor, quotients[0], r, sizeErr);
@@ -211,12 +211,12 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (operands.Length > 1)
             ctx.Edition.Error(DiagnosticCatalog.ArithmeticFormatOperand,
                 $"{verb} with GIVING writes {operands.Length} {phrase} operands "
-                + $"({string.Join(", ", operands.Select(o => $"'{DataBinder.WrittenText(Written(o))}'"))}): the GIVING form "
+                + $"({string.Join(", ", operands.Select(o => $"'{WrittenSource.Of(Written(o))}'"))}): the GIVING form "
                 + $"prints ONE sending operand, an identifier or a literal, after {phrase} (ISO {format})");
         foreach (var operand in operands)
             if (operand.roundedPhrase() is not null)
                 ctx.Edition.Error(DiagnosticCatalog.ArithmeticFormatOperand,
-                    $"{verb} with GIVING writes ROUNDED after the {phrase} operand '{DataBinder.WrittenText(Written(operand))}': "
+                    $"{verb} with GIVING writes ROUNDED after the {phrase} operand '{WrittenSource.Of(Written(operand))}': "
                     + $"that operand is sending, and only the GIVING receivers take a rounded-phrase (ISO {format})");
         // The WRAPPER is bound, so the operand walk's function-call arm fires: passing a raw FunctionCallContext
         // re-springs PB45's trap (the walk descends into the ARGUMENT and drops the function; `ADD 1 TO
@@ -243,7 +243,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             {
                 ctx.Edition.Error(DiagnosticCatalog.ArithmeticFormatOperand,
                     $"{verb} without GIVING: Format 1 prints receiving identifiers only (ISO {cite}), and "
-                    + $"'{DataBinder.WrittenText(bad)}' is {ArithmeticOperandRole.Describe(bad)} — a sending operand belongs to "
+                    + $"'{WrittenSource.Of(bad)}' is {ArithmeticOperandRole.Describe(bad)} — a sending operand belongs to "
                     + "the GIVING form");
                 ok = false;
             }
@@ -292,8 +292,8 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     private BoundBoolExpr RefuseNonBooleanComputeOperand(Core.ArithmeticExpressionContext expr)
     {
         ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"a boolean COMPUTE receiver takes a boolean expression, "
-            + $"not '{DataBinder.WrittenText(expr)}' (ISO §2023:14.9.8 Format 2 / §2023:8.8.2)");
-        return BoundBoolError.Refused(ctx.Edition, $"COMPUTE boolean receiver takes a boolean expression, not '{DataBinder.WrittenText(expr)}' "
+            + $"not '{WrittenSource.Of(expr)}' (ISO §2023:14.9.8 Format 2 / §2023:8.8.2)");
+        return BoundBoolError.Refused(ctx.Edition, $"COMPUTE boolean receiver takes a boolean expression, not '{WrittenSource.Of(expr)}' "
             + "(ISO §2023:14.9.8 Format 2)");
     }
 
@@ -385,7 +385,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // ordinary boolean one and needs no exclusion.)
             var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
             if (cat is not PicCategory.Boolean)
-                ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"the receiver '{store.receivingIdentifier().GetText()}' of a boolean "
+                ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"the receiver '{WrittenSource.Of(store.receivingIdentifier())}' of a boolean "
                     + "COMPUTE shall be an elementary boolean item (ISO §2023:14.9.8.3 Format 2 SR2)");
             targets.Add(p);
         }
