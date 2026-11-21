@@ -937,6 +937,9 @@ paragraphDefinition
 // IsAtLineStart() predicate once stood on both alternatives (DEVLOG 0063, the WRITE … LINES token the lexer now has).
 // COBOL-85's own placement of a header — area A, beginning its fixed-form line — is not a parse rule either: it is the
 // reference format's, asked of every token at --std 85 by AreaPlacementPass (kb/Work PB3147; ISO §2023:6.3.1 has no areas).
+// The converse IS a parse rule (kb/Work PB6018): a word that begins its line in area A and writes a header is no OPERAND of
+// the sentence before it (§1985:IV.7.3.3: "Successive sentences or entries either begin in area B"), so every operand word
+// (cobolWord, procedureName below) yields to it through nextEntryOpensHere, and a sentence whose period is missing ends there.
 paragraphName
     : {procedureHeaderHere(DOT)}? defProcedureName1=procedureName
     ;
@@ -959,8 +962,11 @@ paragraphName
 // shape): the only list of procedure-names, GO TO … DEPENDING's, ends at the required DEPENDING, and ALTER's next
 // entry needs `TO` after its word, so neither can absorb the next statement's leading verb. Consumers read the
 // context's children with GetText(), so the alternative costs no binder change.
+// ⛔ The left-edge {!nextEntryOpensHere()}? (kb/Work PB6018): in a sentence at --std 85, a procedure-name REFERENCE never
+// takes the word or integer that begins its line in area A and writes the next header (`GO TO P2` then `P1.`), whichever
+// of the three spellings it is; a DEFINITION stands outside every sentence, where the predicate is false.
 procedureName
-    : (refCobolWord1=cobolWord | refIntegerlit1=INTEGERLIT | refReservedGatedWord1=reservedGatedWord)
+    : {!nextEntryOpensHere()}? (refCobolWord1=cobolWord | refIntegerlit1=INTEGERLIT | refReservedGatedWord1=reservedGatedWord)
       ((OF | IN) (qualCobolWord1=cobolWord | qualIntegerlit1=INTEGERLIT | qualReservedGatedWord1=reservedGatedWord))?
     ;
 
@@ -1578,14 +1584,16 @@ enterStatement
     : ENTER enterOperand nnRoutineName1=routineName?
     ;
 
+// Both operand words yield to an area-A procedure header at --std 85 (kb/Work PB6018, nextEntryOpensHere): the cobolWord
+// arm through cobolWord's own guard, the other two here.
 enterOperand
-    : IDENTIFIER
+    : {!nextEntryOpensHere()}? IDENTIFIER
     | LINKAGE
     ;
 
 routineName
     : nameCobolWord1=cobolWord
-    | nameReservedGatedWord1=reservedGatedWord
+    | {!nextEntryOpensHere()}? nameReservedGatedWord1=reservedGatedWord
     ;
 
 // ==========================================

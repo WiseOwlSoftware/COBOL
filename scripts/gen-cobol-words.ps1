@@ -228,9 +228,14 @@ for ($i = 0; $i -lt $nameSlotTokens.Count; $i++) {
     # the word as its next KEYWORD (the follow set is computed from the ATN; CobolParserCoreBase). IDENTIFIER is
     # never a keyword, so it stays bare. One predicate for every word and every list: the hand-written per-word
     # guards (PROPERTY, DEFAULT, DELETE FILE's phrase words) it replaced were the per-site list rule 5 forbids.
+    # kb/Work PB6018: EVERY alternative, IDENTIFIER too, first asks {!nextEntryOpensHere()}? — a word that begins its
+    # fixed-form line in area A and writes a procedure header (the period or SECTION follows it) is the next paragraph's
+    # or section's name, never one more operand of the sentence before it (§1985:IV.7.3.3; CobolParserCoreBase). False
+    # at every edition without areas, and outside a sentence, so a header's own name and every other edition parse as
+    # before. AreaAOpeningDriftTests holds the guard on every alternative.
     if ($gated.Contains($tok)) { continue }
-    if ($tok -eq 'IDENTIFIER') { [void]$sb.AppendLine("    $sep $tok") }
-    else { [void]$sb.AppendLine("    $sep {!keywordContinuesHere()}? $tok") }
+    if ($tok -eq 'IDENTIFIER') { [void]$sb.AppendLine("    $sep {!nextEntryOpensHere()}? $tok") }
+    else { [void]$sb.AppendLine("    $sep {!nextEntryOpensHere() && !keywordContinuesHere()}? $tok") }
     $sep = '|'
 }
 [void]$sb.AppendLine('    ;')
