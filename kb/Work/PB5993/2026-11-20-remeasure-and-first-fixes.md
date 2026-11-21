@@ -19,10 +19,8 @@ some with a 1985 counterpart (COBOL0890 cites §2002 at 85; COBOL1547's 18-digit
 `No1985Rule`, and the net needs a theory over those programs at 85. Also open: the register rows' `Standard` text
 (`NonstandardExtension.cs`) cites §2023 for the standard form at every edition.
 
-**Sites:** `src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs` (`ClausePlacementRules.Rules`),
-`src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs`, `src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs`
-(`DataBinder.SignClauseElementaryDefect`), `src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs` (`ScreenReportUsage`),
-`src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs` (`FileModel.OrganizationFace`),
-`src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs` (`EditionContext.Extension`),
-`src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs`, `src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs`
-(`DirectiveAfterProgramText`).
+**Sites:** `src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules`,
+`src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#Run`, `src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#SignClauseElementaryDefect`,
+`src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportUsage`, `src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#OrganizationFace`,
+`src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Extension`, `src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements`,
+`src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#DirectiveAfterProgramText`
