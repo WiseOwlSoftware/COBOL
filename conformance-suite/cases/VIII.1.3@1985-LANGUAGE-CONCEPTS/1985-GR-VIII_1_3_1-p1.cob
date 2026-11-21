@@ -1,0 +1,112 @@
+      *>--- conformance-case
+      *> id: 1985-GR-VIII_1_3_1-p1
+      *> rules: [1985-GR-VIII.1.3.1-p1, 1985-GR-VIII.1.3.1-p2, 1985-GR-VIII.1.3.3-p1, 1985-GR-VIII.1.3.4-p1, 1985-GR-VIII.1.3.4-p2, 1985-GR-VIII.1.3.4-p5, 1985-GR-VIII.1.3.5-3, 1985-GR-VIII.1.3.5-p1, 1985-GR-VIII.1.3.5-p3, 1985-GR-VIII.1.3.6-p1, 1985-GR-VIII.2.4.1-p1, 1985-GR-VIII.1.2-p1, 1985-GR-VIII.1.2-p2]
+      *> accept: [85]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> §1985:VIII.1.3.1 p1; §1985:VIII.1.3.1 p2; §1985:VIII.1.3.3 p1;
+      *> §1985:VIII.1.3.4 p1; §1985:VIII.1.3.4 p2; §1985:VIII.1.3.4 p5;
+      *> §1985:VIII.1.3.5 GR3; §1985:VIII.1.3.5 p1; §1985:VIII.1.3.5 p3;
+      *> §1985:VIII.1.3.6 p1; §1985:VIII.2.4.1 p1; §1985:VIII.1.2 p1;
+      *> §1985:VIII.1.2 p2 (LANGUAGE CONCEPTS.). An output test: the
+      *> program must translate and run at 85 and DISPLAY exactly the
+      *> lines its .out holds, the outcome the rule requires. Placed
+      *> from written and run by the PB5453 reader of
+      *> lineage-reads-1985/s-13.json by scripts/spec/place_witnesses.py
+      *> (kb/Work PB4995).
+      * s-13 probe: 1985 Relative I-O language concepts (VIII.1.1,
+      * VIII.1.3.1, VIII.1.3.3-VIII.1.3.6) at --std 85.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. RELCON.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT RFILE ASSIGN TO "S13RELCON.DAT"
+               ORGANIZATION IS RELATIVE
+               ACCESS MODE IS DYNAMIC
+               RELATIVE KEY IS WS-KEY
+               FILE STATUS IS WS-STAT.
+           SELECT OPTIONAL OFILE ASSIGN TO "S13NOSUCHREL.DAT"
+               ORGANIZATION IS RELATIVE
+               ACCESS MODE IS SEQUENTIAL
+               FILE STATUS IS WS-OSTAT.
+       DATA DIVISION.
+       FILE SECTION.
+       FD  RFILE
+           LABEL RECORDS ARE STANDARD.
+       01  RREC PIC X(10).
+       FD  OFILE
+           LABEL RECORDS ARE STANDARD.
+       01  OREC PIC X(10).
+       WORKING-STORAGE SECTION.
+       01  WS-KEY   PIC 9(4).
+       01  WS-STAT  PIC XX.
+       01  WS-OSTAT PIC XX.
+       01  WS-USE   PIC 9 VALUE 0.
+       01  WS-OUSE  PIC 9 VALUE 0.
+       PROCEDURE DIVISION.
+       DECLARATIVES.
+       R-SEC SECTION.
+           USE AFTER STANDARD EXCEPTION PROCEDURE ON RFILE.
+       R-PARA.
+           ADD 1 TO WS-USE.
+           DISPLAY "USE RFILE STATUS " WS-STAT.
+       O-SEC SECTION.
+           USE AFTER STANDARD EXCEPTION PROCEDURE ON OFILE.
+       O-PARA.
+           ADD 1 TO WS-OUSE.
+           DISPLAY "USE OFILE STATUS " WS-OSTAT.
+       END DECLARATIVES.
+       MAIN SECTION.
+       MAIN-PARA.
+           OPEN OUTPUT RFILE.
+           MOVE 10 TO WS-KEY. MOVE "TEN" TO RREC.
+           WRITE RREC INVALID KEY DISPLAY "BAD W10".
+           MOVE 3 TO WS-KEY. MOVE "THREE" TO RREC.
+           WRITE RREC INVALID KEY DISPLAY "BAD W3".
+           CLOSE RFILE.
+           OPEN I-O RFILE.
+           MOVE 10 TO WS-KEY. MOVE SPACES TO RREC.
+           READ RFILE INVALID KEY DISPLAY "WRONG IK R10"
+               NOT INVALID KEY DISPLAY "R10 NOT-IK " RREC " " WS-STAT
+           END-READ.
+           MOVE 5 TO WS-KEY. MOVE "KEEP" TO RREC.
+           READ RFILE INVALID KEY DISPLAY "R5 IK " WS-STAT " " RREC
+               NOT INVALID KEY DISPLAY "WRONG NOT-IK R5"
+           END-READ.
+           MOVE 10 TO WS-KEY. MOVE "DUP" TO RREC.
+           WRITE RREC NOT INVALID KEY DISPLAY "WRONG NOT-IK W10"
+           END-WRITE.
+           DISPLAY "AFTER DUP WRITE " WS-STAT " USE=" WS-USE.
+           MOVE 5 TO WS-KEY. MOVE "FIVE" TO RREC.
+           REWRITE RREC INVALID KEY DISPLAY "RW5 IK " WS-STAT.
+           DELETE RFILE INVALID KEY DISPLAY "DEL5 IK " WS-STAT.
+           MOVE 99 TO WS-KEY.
+           START RFILE KEY IS GREATER THAN WS-KEY
+               INVALID KEY DISPLAY "START99 IK " WS-STAT.
+           MOVE 10 TO WS-KEY.
+           READ RFILE INVALID KEY DISPLAY "BAD".
+           DISPLAY "R10 UNAFFECTED " RREC.
+           MOVE 1 TO WS-KEY.
+           START RFILE KEY IS NOT LESS THAN WS-KEY
+               INVALID KEY DISPLAY "BAD START".
+           READ RFILE NEXT AT END DISPLAY "BAD END".
+           DISPLAY "NEXT1 " RREC " KEY " WS-KEY.
+           MOVE 7 TO WS-KEY. MOVE "SEVEN" TO RREC.
+           WRITE RREC INVALID KEY DISPLAY "BAD W7".
+           MOVE 10 TO WS-KEY. MOVE "TEN-B" TO RREC.
+           REWRITE RREC INVALID KEY DISPLAY "BAD RW10".
+           READ RFILE NEXT AT END DISPLAY "BAD END2".
+           DISPLAY "NEXT2 " RREC " KEY " WS-KEY.
+           READ RFILE NEXT AT END DISPLAY "NEXT3 AT END " WS-STAT.
+           READ RFILE NEXT AT END DISPLAY "NEXT3 AT END " WS-STAT.
+           READ RFILE NEXT AT END DISPLAY "NEXT4 AT END " WS-STAT.
+           CLOSE RFILE.
+           DISPLAY "USE COUNT AFTER SUCCESSES " WS-USE.
+           READ RFILE NEXT AT END DISPLAY "BAD END3".
+           DISPLAY "USE COUNT AFTER 47 " WS-USE.
+           OPEN INPUT OFILE.
+           DISPLAY "OPTIONAL OPEN " WS-OSTAT " OUSE=" WS-OUSE.
+           CLOSE OFILE.
+           STOP RUN.

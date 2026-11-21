@@ -1,0 +1,5 @@
+OK   CHAR(66) is A in the native sequence
+OK   CHAR is one character
+OK   CHAR is an alphanumeric sending item
+OK   ORD of CHAR
+PASS

@@ -1,0 +1,21 @@
+LC 08
+LC 12
+LC 08
+LC 15
+LC 10
+P1 L04 [RH  ]
+P1 L05 [PH  ]
+P1 L07 [D1A ]
+P1 L08 [D1B ]
+P1 L09 [D2  ]
+P1 L16 [PF  ]
+P2 L03 [PH  ]
+P2 L07 [D1A ]
+P2 L08 [D1B ]
+P2 L09 [D3  ]
+P2 L16 [PF  ]
+P3 L03 [PH  ]
+P3 L09 [D1A ]
+P3 L10 [D1B ]
+P3 L16 [PF  ]
+P3 L18 [RF  ]

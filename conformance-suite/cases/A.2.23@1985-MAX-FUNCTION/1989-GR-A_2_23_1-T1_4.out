@@ -1,0 +1,5 @@
+OK   MAX value 9.5
+OK   MAX in arithmetic expression
+OK   equal greatest values
+OK   INTEGER(MAX(...)) is an integer operand
+PASS

@@ -1,0 +1,4 @@
+OK   INTEGER-OF-DAY value 1
+OK   INTEGER-OF-DAY value 2
+OK   INTEGER-OF-DAY is an integer operand
+PASS

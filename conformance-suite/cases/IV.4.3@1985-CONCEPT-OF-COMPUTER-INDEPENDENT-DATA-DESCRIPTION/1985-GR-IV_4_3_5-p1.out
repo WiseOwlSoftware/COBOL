@@ -1,0 +1,4 @@
+MINUS=[- 17] PLUS=[- 17] CR=[ 17CR]
+UNSIGNED=017
+NEGATIVE OK
+PLUS=[+  7] CR=[  7  ]

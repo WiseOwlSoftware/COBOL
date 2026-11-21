@@ -1,0 +1,7 @@
+OK   positions 1-16 are digits
+OK   position 17 is - + or 0
+OK   positions 18-21 are digits
+OK   month 01-12
+OK   nothing past position 21
+OK   21 characters
+PASS

@@ -1,0 +1,4 @@
+OK   DATE-OF-INTEGER value 1
+OK   DATE-OF-INTEGER value 2
+OK   DATE-OF-INTEGER is an integer operand
+PASS
