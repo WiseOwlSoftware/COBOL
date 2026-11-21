@@ -1012,7 +1012,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <c>ReportSectionBinder.ControlOperandRef</c>, which keeps the whole written reference.</para></summary>
     internal static WrittenDataName KeyReference(Core.DataReferenceContext dref)
     {
-        string baseWord = dref.cobolWord()?.GetText() ?? WrittenSource.Of(dref);
+        string baseWord = dref.cobolWord()?.GetText() ?? dref.GetText();
         var quals = new List<string>();
         foreach (var s in dref.dataReferenceSuffix())
             if (s.qualification()?.cobolWord() is { } q)

@@ -402,10 +402,11 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
                 optional = rb.OPTIONAL() is not null;
             }
             else { dref = prm.dataReference(); optional = prm.OPTIONAL() is not null; }
-            string pname = WrittenSource.Of(dref);
+            string pname = dref.GetText();
+            string pnameWritten = WrittenSource.Of(dref);
             var item = data.Symbols.IdentifyHeaderOperand(m.Binding!.LinkageRoots, dref);
             if (item is null)
-                Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
+                Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION USING parameter '{pnameWritten}' is not "
                     + "a level-01/77 LINKAGE SECTION item of the method (ISO §2023:14.2.2 SR1)");
             else if (header.AdmitFormal(pname, item))
             {
@@ -434,7 +435,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
                 Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION RETURNING item '{WrittenSource.Of(rref)}' "
                     + "is not a level-01/77 LINKAGE SECTION item of the method (ISO §2023:14.2.2 SR1)");
             else
-                header.CheckReturning(WrittenSource.Of(rref), m.Binding!.Returning);   // SR5 / SR6 — SR6 was mis-cited "SR4" here
+                header.CheckReturning(rref.GetText(), m.Binding!.Returning);   // SR5 / SR6 — SR6 was mis-cited "SR4" here
         }
         ScreenPropertyMethodHeader(m, definition, pd?.usingClause()?.usingParameter().Length ?? 0,
             m.Owner is { } owner ? $"class '{owner.Name}'{(m.IsFactory ? " (FACTORY)" : "")}: " : "");

@@ -399,13 +399,14 @@ internal sealed class LinkageBinder(DataBinder data)
             // the SR24/count checks read it at the AS NESTED bind, and the §2023:8.8.4.8 omitted-argument
             // condition tests the carrier's presence — the staged OptionalFormal rejection is lifted.
 
-            string pname = WrittenSource.Of(dref);
+            string pname = dref.GetText();
+            string pnameWritten = WrittenSource.Of(dref);
             var item = data.Symbols.IdentifyHeaderOperand(_roots, dref);
             if (item is null)
             {
                 // §2023:14.2.2 SR1: each formal parameter shall be a level-01/77 entry in the LINKAGE SECTION.
                 data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
-                    $"PROCEDURE DIVISION USING parameter '{pname}' is not a level-01/77 LINKAGE SECTION item "
+                    $"PROCEDURE DIVISION USING parameter '{pnameWritten}' is not a level-01/77 LINKAGE SECTION item "
                     + $"(ISO {data.Edition.Edition.Cite("§1985:X.5.1", "§2023:14.2.2 SR1")})");
                 pos++;
                 continue;
@@ -475,7 +476,7 @@ internal sealed class LinkageBinder(DataBinder data)
                     $"PROCEDURE DIVISION RETURNING item '{WrittenSource.Of(rref)}' is not a level-01/77 LINKAGE SECTION "
                     + "item (ISO §2023:14.2.2 SR1)");
             else
-                header.CheckReturning(WrittenSource.Of(rref), Returning);
+                header.CheckReturning(rref.GetText(), Returning);
         }
 
         SealLinkageRules(_roots, _formals.ConvertAll(f => f.Item), Returning, data.UnitIsFunction);

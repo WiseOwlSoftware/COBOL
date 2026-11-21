@@ -233,7 +233,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         if (!ctx.Data.Symbols.HasScreenNames) return null;
         foreach (var dref in operands)
         {
-            string name = dref.cobolWord()?.GetText() ?? WrittenSource.Of(dref);
+            string name = dref.cobolWord()?.GetText() ?? dref.GetText();
             if (ctx.Data.Symbols.DeclaresScreenName(name))
                 return ConditionalPhrases.HasFamily(phrases, ConditionalPhraseFamily.Exception)
                     ? $"'{WrittenSource.Of(dref)}' is declared in the SCREEN SECTION, and the ON EXCEPTION / NOT "

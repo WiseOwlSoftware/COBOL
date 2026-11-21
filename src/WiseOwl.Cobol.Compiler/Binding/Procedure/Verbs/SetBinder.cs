@@ -362,7 +362,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             return new BoundSetLocale(categories, false, user ? LocaleSetSource.UserDefault : LocaleSetSource.SystemDefault, null, null);
         }
         var to = source.dataReference();
-        string toText = WrittenSource.Of(to);
+        string toText = to.GetText();
+        string toTextWritten = WrittenSource.Of(to);
         // A bare word that is a declared locale-name (SR26): §2023:8.3.2.2 keeps the two name types apart within one
         // source element. A locale-name a CONTAINING element declares yields to the referring element's own item of
         // the same spelling — "a source element's reference to such a name, even when it is a different type of
@@ -376,15 +377,15 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             if (probe.Item.Pic?.Category is not PicCategory.Pointer)
             {
-                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocalePointerCategory, $"{first} TO {toText}: identifier-10 shall reference an elementary data item of category "
-                    + $"data-pointer (ISO §2023:14.9.39.3 SR27) — '{toText}' is {probe.Item.Pic?.Category.ToString() ?? "a group"}");
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocalePointerCategory, $"{first} TO {toTextWritten}: identifier-10 shall reference an elementary data item of category "
+                    + $"data-pointer (ISO §2023:14.9.39.3 SR27) — '{toTextWritten}' is {probe.Item.Pic?.Category.ToString() ?? "a group"}");
             }
             if (host.Expr.ResolveSending(to) is var toAnswer && toAnswer.Place is not { } place)
                 return toAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
             return new BoundSetLocale(categories, setsUserDefault, LocaleSetSource.SavedPointer, null, place);
         }
         // Neither: the ONE undeclared-locale-name diagnostic, with this site named (SR26).
-        ctx.Data.SpecialNames.ResolveLocaleName(to, toText, $"{first} TO {toText}",
+        ctx.Data.SpecialNames.ResolveLocaleName(to, toText, $"{first} TO {toTextWritten}",
             "ISO §2023:14.9.39.3 SR26 — locale-name-1 shall be specified in the LOCALE clause of the SPECIAL-NAMES paragraph; "
             + "or SR27 — identifier-10 shall reference an elementary data item of category data-pointer, and no such item is declared");
         return BoundRejected.Reported(ctx.Edition);
@@ -870,7 +871,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             return new BoundSetFunctionAddress(targets, idName.Literal, idName.Place, expectedFormals);
         }
         var operand = fai.dataReference();
-        string word = WrittenSource.Of(operand);
+        string word = operand.GetText();
+        string wordWritten = WrittenSource.Of(operand);
         // The PROTOTYPE arm (§2023:8.4.3.12.3 SR2 + §2023:8.4.6.6): a REPOSITORY function-specifier, or the containing
         // function definition's own user-function-name. The SAME two legs the USAGE clause's TO phrase resolves, through the
         // symbol table's one lookup (a function-prototype-name is one word: a qualified or subscripted operand is no such name).
@@ -883,9 +885,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 string? receiverProto = t.Item.Pic?.RestrictedPrototypeName;
                 if (!StatementBinder.SignaturesDiffer(ctx.Symbols.FunctionSignatureOf(t.Item), prototype.CalleeSignature)) continue;
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
-                    $"SET '{t.Item.CobolName}' TO ADDRESS OF FUNCTION {word}: the receiving function-pointer "
+                    $"SET '{t.Item.CobolName}' TO ADDRESS OF FUNCTION {wordWritten}: the receiving function-pointer "
                     + $"is restricted to function-prototype '{receiverProto}' and the function-address-identifier has "
-                    + $"the characteristics of a function-pointer restricted to '{word}' (ISO §2023:8.4.3.12.4 GR3), and "
+                    + $"the characteristics of a function-pointer restricted to '{wordWritten}' (ISO §2023:8.4.3.12.4 GR3), and "
                     + "the two do not have the same signature (ISO §2023:14.9.39.3 SR20)");
             }
             // §2023:8.4.3.12.4 GR2 names the EXTERNALIZED function-name as the address's identity, and that is what
@@ -901,11 +903,11 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             if (nameAnswer.Outcome == RefOutcome.Deferred) return nameAnswer.Refusal(ctx.Edition);   // kb/Work PB1030
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.FunctionAddressOperand,
-                $"SET {written} TO ADDRESS OF FUNCTION {word}: '{word}' is neither a function-prototype-name declared in "
+                $"SET {written} TO ADDRESS OF FUNCTION {wordWritten}: '{wordWritten}' is neither a function-prototype-name declared in "
                 + "the REPOSITORY paragraph (ISO §2023:8.4.3.12.3 SR2 / §2023:8.4.6.6) nor a resolvable identifier "
                 + "(§2023:8.4.3.12.3 SR1)");
         }
-        if (!ScreenAddressName(namePlace, $"SET {written} TO ADDRESS OF FUNCTION {word}", word,
+        if (!ScreenAddressName(namePlace, $"SET {written} TO ADDRESS OF FUNCTION {wordWritten}", wordWritten,
                 DiagnosticCatalog.FunctionAddressOperand, "8.4.3.12.3 SR1"))
             return BoundRejected.Reported(ctx.Edition);
         return new BoundSetFunctionAddress(targets, null, namePlace, expectedFormals);
@@ -1176,7 +1178,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 : null;
 
         var operandRef = pai.dataReference();
-        string word = WrittenSource.Of(operandRef);
+        string word = operandRef.GetText();
+        string wordWritten = WrittenSource.Of(operandRef);
         // ── ARM 3: program-prototype-name-1 (§2023:8.4.3.13.3 SR3) — GR2's EXTERNALIZED program-name, never the
         //    source word (kb/Work PB303). ──
         if (ctx.Symbols.Identify(operandRef, NameClass.ProgramPrototype, report: true)?.Symbol is ProgramPrototype proto)
@@ -1189,7 +1192,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             if (ctx.Symbols.IsRefusedProgramReference(word, ctx.Edition)) return null;   // reported at the specifier (kb/Work PB4936)
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
-                $"{site} ADDRESS OF PROGRAM {word}: '{word}' is no program-prototype-name here — "
+                $"{site} ADDRESS OF PROGRAM {wordWritten}: '{wordWritten}' is no program-prototype-name here — "
                 + $"{ctx.Symbols.WhyNoPrototype(word)} (ISO §2023:8.4.3.13.3 SR3) — and no resolvable identifier (SR1)");
             return null;
         }
@@ -1199,11 +1202,11 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             if (nameAnswer.Outcome == RefOutcome.Deferred) { nameAnswer.PlaceOrReported(ctx.Edition); return null; }   // 0899, reported (kb/Work PB1030)
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
-                $"{site} ADDRESS OF PROGRAM {word}: '{word}' is neither a program-prototype-name declared in "
+                $"{site} ADDRESS OF PROGRAM {wordWritten}: '{wordWritten}' is neither a program-prototype-name declared in "
                 + "the REPOSITORY paragraph (ISO §2023:8.4.3.13.3 SR3) nor a resolvable identifier (SR1)");
             return null;
         }
-        if (!ScreenAddressName(namePlace, $"{site} ADDRESS OF PROGRAM {word}", word,
+        if (!ScreenAddressName(namePlace, $"{site} ADDRESS OF PROGRAM {wordWritten}", wordWritten,
                 DiagnosticCatalog.ProgramAddressOperand, "8.4.3.13.3 SR1"))
             return null;
         return new BoundProgramAddress(null, namePlace, null);

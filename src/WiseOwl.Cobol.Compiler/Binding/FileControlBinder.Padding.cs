@@ -40,22 +40,22 @@ public sealed partial class FileControlBinder
             // the word is literal-1 when the program declares it a constant, data-name-1 otherwise.
             var reading = _host.LiteralEnv.ReadConstant(dref);
             if (reading.Kind is ConstantReadingKind.Refused)
-                return new PaddingCharacterSpec { Literal = WrittenSource.Of(dref), At = Edition.Cursor };
+                return new PaddingCharacterSpec { Literal = dref.GetText(), At = Edition.Cursor };
             if (reading.Kind is not ConstantReadingKind.NotAConstant)
             {
                 string? one = reading.Value.Category is PicCategory.Alphanumeric && reading.Value.Value.Length == 1
                     ? reading.Value.Value : null;
-                if (one is null) ReportPaddingLiteral(WrittenSource.Of(dref), $"the constant-name '{WrittenSource.Of(dref)}' stands for literal-1, ");
-                return new PaddingCharacterSpec { Literal = one ?? WrittenSource.Of(dref), At = Edition.Cursor };
+                if (one is null) ReportPaddingLiteral(dref.GetText(), $"the constant-name '{WrittenSource.Of(dref)}' stands for literal-1, ");
+                return new PaddingCharacterSpec { Literal = one ?? dref.GetText(), At = Edition.Cursor };
             }
             // A symbolic-character is a figurative constant (§1985:IV.4.2.2.2.3 GR7; §2023:8.3.3.6.3 SR4), so it stands where the
             // format specifies literal-1 and is read before the word is tried as data-name-1 (kb/Work PB5420).
             if (SymbolicCharacter(dref, _host.LiteralEnv) is { } symbolic)
                 return new PaddingCharacterSpec { Literal = symbolic, At = Edition.Cursor };
-            if (_host.LiteralEnv.IsSymbolicCharacter(WrittenSource.Of(dref)))   // a national symbolic-character: literal-1, but not alphanumeric
+            if (_host.LiteralEnv.IsSymbolicCharacter(dref.GetText()))   // a national symbolic-character: literal-1, but not alphanumeric
             {
-                ReportPaddingLiteral(WrittenSource.Of(dref), "");
-                return new PaddingCharacterSpec { Literal = WrittenSource.Of(dref), At = Edition.Cursor };
+                ReportPaddingLiteral(dref.GetText(), "");
+                return new PaddingCharacterSpec { Literal = dref.GetText(), At = Edition.Cursor };
             }
             return new PaddingCharacterSpec { DataName = _host.ClauseDataName(dref, "PADDING CHARACTER"), At = Edition.Cursor };
         }

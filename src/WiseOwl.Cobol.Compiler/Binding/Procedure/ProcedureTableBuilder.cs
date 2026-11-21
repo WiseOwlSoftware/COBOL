@@ -666,7 +666,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         // X3.23-1985 USE FOR DEBUGGING GR13 (§1985:XV.3.2.4) names the word and all its qualifiers separated by IN or OF.
         if (operand.GetChild(0) is Antlr4.Runtime.Tree.ITerminalNode keyword)
             return operand.cobolWord() is { } file ? $"{keyword.GetText()} {operand.GetChild(1).GetText()} {file.GetText()}" : keyword.GetText();
-        string written = operand.cobolWord()?.GetText() ?? WrittenSource.Of(operand);
+        string written = operand.cobolWord()?.GetText() ?? operand.GetText();
         foreach (var suffix in operand.dataReferenceSuffix())
             if (suffix.qualification() is { } q)
                 written += " " + q.GetChild(0).GetText() + " " + q.cobolWord().GetText();

@@ -1320,7 +1320,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 return null;
             }
             literal2 = host.Expr.AliasOperand(alias);
-            constantName = WrittenSource.Of(dref);
+            constantName = dref.GetText();
             dref = null;
             arithCtx = null;
         }
@@ -2102,7 +2102,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             }
             for (int i = 0; i < cur.ChildCount; i++) stack.Push(cur.GetChild(i));
         }
-        return only is not null && WrittenSource.Of(only) == e.GetText() ? only : null;
+        return only is not null && only.GetText() == e.GetText() ? only : null;
     }
 
     /// <summary>The VALUE of literal-1, the method name — for the INVOKE statement (§2023:14.9.23.3 SR2: "Literal-1 shall

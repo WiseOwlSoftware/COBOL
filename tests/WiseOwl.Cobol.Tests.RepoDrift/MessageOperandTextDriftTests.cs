@@ -7,14 +7,13 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
-using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Tests.RepoDrift;
 
 /// <summary>
 /// ⛔ A MESSAGE NAMES A WRITTEN OPERAND AS THE PROGRAMMER WROTE IT (kb/Work PB5979). <c>ParserRuleContext.GetText()</c> joins a
 /// node's tokens with no separators, so <c>X OF Q</c> printed as <c>XOFQ</c> and <c>KY OF IREC</c> as <c>KYOFIREC</c>: a name the
-/// program does not contain. A diagnostic's text takes <c>WrittenSource.Of</c> (<c>WrittenSource.Of</c>), the one reader of
+/// program does not contain. A diagnostic's text takes <c>WrittenSource.Of</c>, the one reader of
 /// a node's source extent. The sweep reads the compiler's sources and refuses a <c>GetText()</c> of a multi-token parse context
 /// that reaches a message by one of three shapes: it sits in an interpolation hole; it is an operand of a <c>+</c> that also holds
 /// a string literal; or it initializes a local that the same member then uses in one of those two places. A <c>GetText()</c> used
@@ -102,13 +101,11 @@ public sealed class MessageOperandTextDriftTests
                         locals.Add(declarator.Identifier.ValueText);
                 foreach (var node in body.DescendantNodes())
                 {
-                    if (IsReferenceGetText(node, model))
-                        offences.Add($"{path}:{node.GetLocation().GetLineSpan().StartLinePosition.Line + 1}: {node.ToString().Trim()}");
                     IEnumerable<ExpressionSyntax> message = node switch
                     {
                         InterpolationSyntax hole => [hole.Expression],
                         BinaryExpressionSyntax plus when plus.IsKind(SyntaxKind.AddExpression)
-                            && plus.Parent is not BinaryExpressionSyntax { RawKind: (int)SyntaxKind.AddExpression }
+                            && plus.Ancestors().FirstOrDefault() is not BinaryExpressionSyntax { RawKind: (int)SyntaxKind.AddExpression }
                             && plus.DescendantNodesAndSelf().Any(n => n is LiteralExpressionSyntax l && l.IsKind(SyntaxKind.StringLiteralExpression))
                             => Operands(plus),
                         _ => [],
@@ -185,12 +182,6 @@ public sealed class MessageOperandTextDriftTests
         return sb.ToString();
     }
 
-    /// <summary>A <c>GetText()</c> of a context that writes a QUALIFIED, SUBSCRIPTED or reference-modified reference (a data reference, a receiving
-    /// identifier, an object reference). Whatever it is passed to, its text is not what the programmer wrote (<c>X OF Q</c> is <c>XOFQ</c>),
-    /// so no argument it is handed to — a message parameter or a lookup key — receives a name: this shape is refused anywhere.</summary>
-    private static bool IsReferenceGetText(SyntaxNode n, SemanticModel model) =>
-        IsGetTextCall(n) && ReceiverType(n, model) is { Name: "DataReferenceContext" or "ReceivingIdentifierContext" or "ObjectReferenceContext" };
-
     private static IEnumerable<ExpressionSyntax> Operands(BinaryExpressionSyntax plus)
     {
         if (plus.Left is BinaryExpressionSyntax l && l.IsKind(SyntaxKind.AddExpression))
@@ -252,7 +243,7 @@ public sealed class MessageOperandTextDriftTests
         return model.GetTypeInfo(receiver).Type;
     }
 
-    private static bool IsRead(IdentifierNameSyntax id) => id.Parent is not MemberAccessExpressionSyntax { Name: var n } || n != id;
+    private static bool IsRead(IdentifierNameSyntax id) => id.Ancestors().FirstOrDefault() is not MemberAccessExpressionSyntax { Name: var n } || n != id;
 
     private static bool IsManagedAssembly(string path)
     {

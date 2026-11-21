@@ -860,7 +860,7 @@ public sealed record ReportDetailRef
     {
         (var head, null) => head,
         (var head, var qualifier) => $"{head} OF {qualifier}",
-        null => WrittenSource.Of(Ctx),
+        null => Ctx.GetText(),
     };
 }
 

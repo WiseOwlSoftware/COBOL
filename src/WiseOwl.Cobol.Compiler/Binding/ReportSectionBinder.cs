@@ -4650,14 +4650,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // report-name associated with the different report"), so that spelling is legal. A qualifier that
                 // names no report is the qualification rule's own error, reported where the counter is bound
                 // (kb/Work PB1456); it is not a report section NAME and is not flagged here.
-                if (countersOf is null) return WrittenSource.Of(dref);
+                if (countersOf is null) return dref.GetText();
                 return null;
             }
             if (dref.cobolWord()?.GetText() is { } w && IsReportSectionOnlyName(w))
             {
                 // A sum counter of the CURRENT report is SR4's other admitted report-section item.
                 bool ownCounter = countersOf is not null && _d.Symbols.Declared.IsSumCounterOf(countersOf, w);
-                return ownCounter ? null : WrittenSource.Of(dref);
+                return ownCounter ? null : dref.GetText();
             }
             // identifier-1 is a qualified-data-name-with-subscripts (§2023:8.4.3.1.2): a name inside a SUBSCRIPT or a
             // reference-modification is an identifier of the clause too (SR4's "any identifier appearing in…"). A

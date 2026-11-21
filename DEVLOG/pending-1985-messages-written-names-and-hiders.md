@@ -5,10 +5,10 @@ Three notes of one cluster (kb/Work PB5979, PB5980, PB5978), all diagnostics tha
 **PB5979, qualified references printed run together.** `MOVE X OF T TO Y` over an index-name printed COBOL1637 "references the index-name
 'XOFT'"; `KY OF IREC` printed `KYOFIREC`. `ParserRuleContext.GetText()` joins tokens with no separator, and a renderer of the source as
 written already existed (`WrittenSource.Of`, which `DataBinder.WrittenText` forwarded to); the defect was every message that did not call it. 129 messages
-(an interpolation hole, a `+` with a string literal, or a local feeding either) and 47 `GetText()` calls of a data reference, receiving
-identifier or object reference now call it; a name that is also a lookup key keeps its key and gains a `<name>Written` twin. The
+(an interpolation hole, a `+` with a string literal, or a local feeding either) and the data-reference texts handed to message parameters now
+call it; a name that is also a lookup key keeps its key and gains a `<name>Written` twin. The
 structure: `MessageOperandTextDriftTests` (RepoDrift) compiles the compiler's sources against the built product and refuses a `GetText()` of a
-multi-token context in a message, and of a data reference anywhere; the one-token contexts it exempts are READ FROM THE GRAMMAR, so no list
+multi-token context in a message; the one-token contexts it exempts are READ FROM THE GRAMMAR, so no list
 is hand-kept. Its first design (syntactic only) saw 394 sites, almost all words; the semantic receiver type and the grammar's one-token
 rules cut it to the 129. `DataBinder.WrittenText`, a one-line forwarder of `WrittenSource.Of`, is deleted and its 466 references call the frontend reader
 directly (rule 4; the new callers would otherwise have widened DataBinder's reader list). Witnesses: three refusal goldens at 85 (index-name MOVE, indexed START SR4, READ KEY of another file's key).
