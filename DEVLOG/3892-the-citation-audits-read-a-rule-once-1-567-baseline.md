@@ -1,4 +1,4 @@
-## The citation audits read a rule once: 1,567 baseline citations repaired, a rule chain and a table row are read, the analyzer sees an inline int choice
+## Entry 3892 — 2026-11-21 01:58 PST — The citation audits read a rule once: 1,567 baseline citations repaired, a rule chain and a table row are read, the analyzer sees an inline int choice
 
 Wave 20262121 group A took four notes that share one root, the citation tooling: PB5318 (two readers of one question),
 PB5333 (the citations RESOLVE refuses that no rewrite owns), PB5935 (the edition-cite analyzer's hole) and PB5938 (the
@@ -59,3 +59,4 @@ that pairs is silent). The postfix form also accepts a sub-item letter after the
 quotation with the citation before it.
 
 Gate: see the report. LINUX GATE: not part of the per-change gate (PB4327).
+
