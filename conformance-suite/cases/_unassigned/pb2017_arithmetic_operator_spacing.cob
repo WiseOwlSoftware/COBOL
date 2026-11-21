@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb2017_arithmetic_operator_spacing
       *> rules: []
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

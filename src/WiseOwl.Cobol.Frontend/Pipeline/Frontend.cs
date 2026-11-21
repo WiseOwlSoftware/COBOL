@@ -664,6 +664,11 @@ public sealed class Frontend
         foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, tree, edition))
             sr7.SyntaxError(TextWriter.Null, null!, v.Token, v.Token.Line, v.Token.Column,
                 $"[{v.Descriptor.Code}] {v.Message}", null!);
+        // §1985:VI.6.3.1.1 / §1985:VI.6.3.2 — the relational operators' and the logical connectives' separator context, the same way,
+        // at the editions that state it (kb/Work PB5989).
+        foreach (var v in SeparatorRule.ConditionOperatorViolations(text, tree, edition))
+            sr7.SyntaxError(TextWriter.Null, null!, v.Token, v.Token.Line, v.Token.Column,
+                $"[{v.Descriptor.Code}] {v.Message}", null!);
 
         // ISO §2023:8.3.2.1 / §2023:8.1.3.2 GR4 / Annex B.3 — the characters of every COBOL word the lexer produced. The binder driver
         // screens the words of a tree it binds, but it does not run on a compilation whose frontend reported ANY error
