@@ -564,7 +564,7 @@ still holds (`ExceptionPhraseRequirement`). The RECORD rules are the edition's o
 from 2023 a WRITE drops the trailing spaces (§2023:14.9.51.4 GR21) and a READ pads a short line and gives a long one '06'
 with its remainder left to the next READ (§2023:14.9.30.4 GR15); before 2023 no line sequential file exists and the
 delimiter only frames a variable-length record, a method that is "not ... reflected in the record area or the record
-size used within the program" (§1985:VII.2.8.4 GR1), so the record is written at its size and a line outside the
+size used within the program" (§1985:VII.2.8.4 GR1), so the record is written at its size (by the print-control WRITE arm too, `WriteAdvancingRecord`, kb/Work PB5914) and a line outside the
 minimum and maximum record size is §1985:VII.4.4.4 GR13's record length conflict, '04', a long one truncated with no
 remainder. The syntax rules whose subject is the
 WRITTEN phrase — §2023:12.4.5.2 SR12 (RESERVE), §2023:13.4.5.3 SR4 (BLOCK CONTAINS, RECORD CONTAINS) and the format
