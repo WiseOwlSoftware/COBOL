@@ -1686,7 +1686,7 @@ internal static partial class IntrinsicArgumentRules
         // operands at which it is not an integer; a proven one is accepted, and an undecided one is accepted and checked at run time
         // (NeedsRunTimeIntegerCheck). Its doc states what each outcome covers.
         BoundComputedOperand { Expr: { } expr } when ClassifyTypeSix(expr, arithmetic) is { Outcome: TypeSixOutcome.Refuted, Refutation: { } why } =>
-            $"{why} — ISO {IntrinsicCitations.IntegerType(edition)} admits an arithmetic expression only when it always results in an "
+            $"{why} — {EditionInfo.Designated(IntrinsicCitations.IntegerType(edition))} admits an arithmetic expression only when it always results in an "
             + "integer value",
         _ => null,
     };
