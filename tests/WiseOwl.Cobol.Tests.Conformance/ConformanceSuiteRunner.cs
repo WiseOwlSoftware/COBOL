@@ -149,6 +149,7 @@ internal static class ConformanceSuiteRunner
             var (result, crash) = Compile(step.File is null ? options : UnitOptions(test, step.File, step.Output!, step.Options, edition, work));
             if (result is null) return new(NoVerdict, $"the compiler crashed on {what}: {crash}");
             if (!result.Success) return new(Fail, $"{what} did not translate ({result.Status}): {FirstLines(result.Errors)}");
+            if (step.File is null && WarnsVerdict(result, test.Warns, null, Path.GetFileName(options.SourcePath)) is { } unwarned) return unwarned;
         }
         foreach (SuiteServer server in test.Servers ?? [])
         {
@@ -207,9 +208,26 @@ internal static class ConformanceSuiteRunner
         var (flagged, flagCrash) = Compile(flagOptions);
         if (flagged is null) return new(NoVerdict, $"the compiler crashed: {flagCrash}");
         int[] lines = DiagnosticLines(flagged, Path.GetFileName(flagOptions.SourcePath));
-        if (lines.Contains(test.Line)) return new(Pass, "");
+        if (lines.Contains(test.Line))
+            return WarnsVerdict(flagged, test.Warns, test.Line, Path.GetFileName(flagOptions.SourcePath)) ?? new(Pass, "");
         string where = lines.Length > 0 ? $"diagnostics at line(s) {string.Join(", ", lines)}" : "no diagnostic reported";
         return new(Fail, $"no diagnostic at the marked line {test.Line} ({where})");
+    }
+
+    /// <summary>The verdict on a test's WiseOwl warning pin (<c>wiseowl/diagnostics/</c>'s <c>warn-at</c>, kb/Work PB5461): null when the
+    /// test pins none or the compile of the program REPORTED <paramref name="warns"/> as a warning (at <paramref name="line"/> of the
+    /// source when a flagged test's marked line is given), otherwise the failure. The program must have compiled: a warning pins what
+    /// WiseOwl accepts and reports, never a refusal (that is <c>refuse-at</c>).</summary>
+    private static SuiteResult? WarnsVerdict(CompilerDriver.Result result, string? warns, int? line, string sourceName)
+    {
+        if (warns is null) return null;
+        if (!result.Success)
+            return new(Fail, $"WiseOwl must compile it with the warning {warns}; it ended {result.Status}: {FirstLines(result.Errors)}");
+        string[] warnings = [.. result.Warnings.SelectMany(w => w.ReplaceLineEndings("\n").Split('\n'))];
+        bool reported = warnings.Any(w => w.Contains(warns, StringComparison.OrdinalIgnoreCase)
+            && (line is null || DiagnosticLine(w, sourceName) == line));
+        return reported ? null
+            : new(Fail, $"WiseOwl reports no warning {warns}{(line is null ? "" : $" at line {line}")}: {FirstLines(result.Warnings)}");
     }
 
     /// <summary>Put a test's declared files in <paramref name="work"/> (byte copies, for its run) and its source with
@@ -297,19 +315,21 @@ internal static class ConformanceSuiteRunner
     /// errors) with the adapter's pattern; a diagnostic of another file (a copybook's) is not the test's.</summary>
     private static int[] DiagnosticLines(CompilerDriver.Result result, string sourceName)
     {
-        var lines = new SortedSet<int>();
         IEnumerable<string> printed = result.CompileOutput.Select(c => c.Text).Concat(result.Warnings).Concat(result.Errors)
             .SelectMany(text => text.ReplaceLineEndings("\n").Split('\n'));
-        foreach (string line in printed)
-        {
-            var m = ConformanceSuite.Diagnostic.Match(line);
-            if (!m.Success) continue;
-            var file = m.Groups["file"];
-            if (file.Success && !string.Equals(Path.GetFileName(file.Value.Trim()), sourceName, StringComparison.OrdinalIgnoreCase))
-                continue;
-            lines.Add(int.Parse(m.Groups["line"].Value, CultureInfo.InvariantCulture));
-        }
-        return [.. lines];
+        return [.. printed.Select(l => DiagnosticLine(l, sourceName)).OfType<int>().Distinct().Order()];
+    }
+
+    /// <summary>The line of <paramref name="sourceName"/> that one printed diagnostic line reports at, read with the adapter's pattern;
+    /// null for a line that is no diagnostic or one of another file (a copybook's).</summary>
+    private static int? DiagnosticLine(string printed, string sourceName)
+    {
+        var m = ConformanceSuite.Diagnostic.Match(printed);
+        if (!m.Success) return null;
+        var file = m.Groups["file"];
+        if (file.Success && !string.Equals(Path.GetFileName(file.Value.Trim()), sourceName, StringComparison.OrdinalIgnoreCase))
+            return null;
+        return int.Parse(m.Groups["line"].Value, CultureInfo.InvariantCulture);
     }
 
     private static string FirstLines(IReadOnlyList<string> text)
