@@ -1,4 +1,4 @@
-## The last 1985 misleading messages: written names, the file verbs' hider, COBOL2326's rule
+## Entry 3884 — 2026-11-20 22:28 PST — The last 1985 misleading messages: written names, the file verbs' hider, COBOL2326's rule
 
 Three notes of one cluster (kb/Work PB5979, PB5980, PB5978), all diagnostics that told a 1985 programmer something false or unreadable.
 
@@ -24,3 +24,4 @@ of a hidden record-name say "not a logical record of any file description entry"
 `EditionInfo.Cite`, so a 2002 or 2014 text is an argument later. Witnesses: GR3c and GR3b refusals. The 2002/2014 halves of the note stay open.
 
 **Gate:** see the landing record; `python scripts/spec/cite.py --check` OK for GR3b, GR3c, GR5, IX.4.5.3 SR2, IX.4.7.3 SR4, VI.5.8.3 SR13.
+
