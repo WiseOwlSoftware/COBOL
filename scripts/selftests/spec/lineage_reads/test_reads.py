@@ -1024,6 +1024,13 @@ def case_16_a_second_read_supersedes_the_first_and_the_refuter_brief_shapes_are_
                                    "derivation": None}, 1985)
     expect("a DOUBTFUL definitional read with no derivation (no arm fits) is read: it proposes none",
            doubt.derivation is None and doubt.verdict == "DOUBTFUL")
+    keyed = R.normal_slice("s-05", F.record("s-05", [{**proposal, "reason": "the reel swap is DOC-A.1-71's"}],
+                                            edition=1985, derivation_refutes=[brief]))
+    _rec, cells, _p = R.derivation_record(R.edition(1985), keyed.reads["1985-SR-IV.2.1.1-p1"],
+                                          keyed.derivation_refutes["1985-SR-IV.2.1.1-p1"], {}, "claude: 2026-11-21", SCHEMA)
+    expect("a register row's argument cites an A.1 determination as `A.1 item N`, never its row key (the register "
+           "anchors a row on the key by a word search over the whole file)",
+           "A.1 item 71's" in cells[3] and "DOC-A.1-71" not in cells[3])
 
 
 if __name__ == "__main__":

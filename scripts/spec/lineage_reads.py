@@ -1214,8 +1214,18 @@ def derivation_record(ed: Edition, read: Read, refute: Refute | None, row: dict[
                 + (f"its refuter, trying to write the witness the derivation says cannot exist"
                    f"{f' ({refute.attempt.strip()})' if refute.attempt else ''}, UPHELD it: "
                    f"{refute.reason.strip()}" if refute is not None else "a mechanical arm, whose checker is its reader."))
-    cells = [key, d.arm, d.names, argument, signature, refuted]
+    cells = [key, d.arm, d.names, register_prose(argument), signature, refuted]
     return record, cells, problems
+
+
+#: An Annex A.1 determination's register key (`DOC-A.1-<n>`): in the register's prose it is cited `A.1 item <n>`, since
+#: the register anchors an inventory row on the key by a word search over the whole file (the ANNEX A.1 REGISTER audit).
+A1_KEY = re.compile(r"\bDOC-A\.1-(\d+)\b")
+
+
+def register_prose(text: str) -> str:
+    """A reader's or refuter's text as register prose: each A.1 row key it names written `A.1 item <n>`."""
+    return A1_KEY.sub(r"A.1 item \1", text)
 
 
 def own_reads(ed: Edition, slices: Iterable[Slice], lin: Lineage) -> dict[str, Read]:
