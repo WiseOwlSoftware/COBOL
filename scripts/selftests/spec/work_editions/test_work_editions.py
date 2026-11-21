@@ -49,7 +49,7 @@ def case_01_a_value_outside_the_editions_is_refused(expect):
 
 def case_02_the_drift_rule_and_its_recorded_judgment(expect):
     d = scratch_dir("work-editions-drift-")
-    _write(d, "PB1", _note("PB1", body="The rule §1985:VI.5.3.2 GR3 is broken.", editions="[2002]"))
+    _write(d, "PB1", _note("PB1", body="The rule §1985:VI.5.3.4 GR3 is broken.", editions="[2002]"))
     _write(d, "PB2", _note("PB2", body="Amendment 1's §1989:A.2.2 is cited.", editions="[1985]"))
     _write(d, "PB3", _note("PB3", "landed", body="§2014:8.3.1 cited", editions="[]"))
     bad = C.problems(_items(d))
@@ -60,7 +60,7 @@ def case_02_the_drift_rule_and_its_recorded_judgment(expect):
         "## 2026-11-21 - editions set to [2002]\n\n**editions:** [2002] (was [1985, 2002])\n\nOnly 2002 is wrong.\n",
         encoding="utf-8", newline="\n")
     expect.equal("a recorded judgment of exactly that value excuses it", C.problems(_items(d)), [])
-    _write(d, "PB1", _note("PB1", body="The rule §1985:VI.5.3.2 GR3 is broken.", editions="[2002, 2014]"))
+    _write(d, "PB1", _note("PB1", body="The rule §1985:VI.5.3.4 GR3 is broken.", editions="[2002, 2014]"))
     expect.equal("a hand edit past the judgment is refused again", len(C.problems(_items(d))), 1)
 
 
@@ -114,13 +114,13 @@ def case_06_set_editions_records_the_judgment(expect):
     _write(d, "PB2", _note("PB2", editions="[2014]"))
     batch = d.parent / f"{d.name}-batch.json"
     batch.write_text(json.dumps([{"id": "PB1", "editions": [2002], "reason": "Only --std 2002 is wrong."},
-                                 {"id": "PB2", "editions": [1977], "reason": "x"}]), encoding="utf-8")
+                                 {"id": "PB2", "editions": [1977], "reason": "x"}]), encoding="utf-8", newline="\n")
     before = {p.name: p.read_bytes() for p in d.glob("*.md")}
     expect.equal("one bad record refuses the batch", C.set_editions(d, batch, write=True, day="2026-11-21"), 1)
     expect.equal("and nothing is written", ({p.name: p.read_bytes() for p in d.glob("*.md")}, (d / "PB1").exists()),
                  (before, False))
     batch.write_text(json.dumps([{"id": "PB1", "editions": [2002], "reason": "Only --std 2002 is wrong."}]),
-                     encoding="utf-8")
+                     encoding="utf-8", newline="\n")
     expect.equal("a good batch is written", C.set_editions(d, batch, write=True, day="2026-11-21"), 0)
     items = {it["id"]: it for it in _items(d)}
     expect.equal("the value", C.work.declared_editions(items["PB1"]), frozenset({2002}))

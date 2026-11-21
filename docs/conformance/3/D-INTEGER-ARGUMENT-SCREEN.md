@@ -17,7 +17,7 @@
   (`FUNCTION FACTORIAL (N + 2) / 2` is never odd), so `S2 - FUNCTION MAX (S2)`, `FUNCTION MEAN (N, N) + 1`, `FUNCTION ORD (A) / 2`
   and a quotient by a function are undecided. **The run-time check:** from COBOL-2002 a value that is not an integer is an incorrect
   argument, EC-ARGUMENT-FUNCTION (`§2023:15.3 AR14`, "the EC-ARGUMENT-FUNCTION exception condition is set to exist"), under the
-  edition's checking rules; with checking off the truncated integer is the result (DOC-A.1-124). COBOL-85 has no exception
+  edition's checking rules; with checking off the truncated integer is the result (A.1 item 124). COBOL-85 has no exception
   conditions; the Correction Amendment's clarification of the intrinsic function module "allows an implementation of amended third
   Standard COBOL to terminate processing" when an argument's value does not comply (`§1985:p.B-46`), so at `--std 85` the run unit
   is terminated with a message naming the function, the argument and the value. GnuCOBOL 3.2 accepts all four probe forms and

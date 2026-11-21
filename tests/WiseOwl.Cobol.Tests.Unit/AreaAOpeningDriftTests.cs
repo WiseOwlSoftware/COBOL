@@ -17,7 +17,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// again (<c>VALUE "A" 01 B</c>), so this scrape holds the inventory: every such alternative carries the predicate, and the
 /// rules holding one are exactly the reviewed set, so a new one fails until it is decided here.
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class AreaAOpeningDriftTests
 {
     /// <summary>The rules whose INTEGERLIT-led alternatives are operands, each guarded.</summary>
