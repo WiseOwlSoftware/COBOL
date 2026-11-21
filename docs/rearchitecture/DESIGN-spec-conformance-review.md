@@ -1919,6 +1919,13 @@ slices, whether imported now or already recorded) refuses the whole import, by s
 written (review R1-5). `load` recomputes each part's digest from the record's own content and refuses a record edited
 since its import (review R1-6). A judgment of the compiler that names
 none of correct, wrong or not probed is kept as written and its row listed `uninterpretable`, never defaulted.
+**Every case speaks of its record's own edition** (kb/Work PB5453): the record's `edition` keys the fields read from it,
+`compiler-at-<year>` (the judgment) and `licence-<year>` (a declined facility's licence), so a 2002 read gives
+`compiler-at-2002` and a 1985 read `compiler-at-1985`. A key of the edition-keyed families (`compiler-at`, `licence`,
+`scope`, `evidence`; `lineage_reads.EDITION_KEY`) that names another edition, a two-digit year or no year at all is
+refused by slice and rule; a suffix after the own year (`compiler-at-2002-probe`, `answer-evidence-2002`) is the same
+edition's, and a key of no such family (`pointer-1985`, `clause-2023`) is context. Until 2026-11-21 only
+`compiler-at-2002` was read, at every edition, so the 1985 pilot's 13 rows proven correct at 85 imported `undecided`.
 
 **What may become a KEPT record** (`lineage_reads.decide`, which the writer and the audit share):
 1. the reader's verdict is SAME and the refuter's is UPHELD; a SAME with no refuter record is refused (`no refuter record`);
@@ -1941,11 +1948,11 @@ none of correct, wrong or not probed is kept as written and its row listed `unin
    `wiseowl/diagnostics/` `refuse-at`) shows only that a program is refused: it witnesses a rule only when the catalog's
    `kind` of the older rule is one the evidence table (`scripts/spec/data/lineage-evidence-kinds.json`, data: SR and FMT,
    checked against the catalog's kinds) names as diagnosed, or when the target's verdict is DOCUMENTED-NON-SUPPORT (the
-   facility is declined) and the read states its `licence-2002`, the older text's citation that permits declining it:
+   facility is declined) and the read states its `licence-<year>` (`licence-2002` at 2002), the older text's citation that permits declining it:
    the value must OPEN with a citation of the row's own edition, and every citation in it must parse (`citation.py`,
    the one parser), be of that edition and name a unit of its text (`cite.resolve`, the one checker; review R2-2,
    `lineage_reads.licence_problem`); `none`, `not needed: ...`, a sentence or another edition's citation is no licence,
-   and the row is refused `no 2002 licence stated` with the offending text. A diagnosed kind's rule whose text GRANTS a
+   and the row is refused `no own-edition licence stated` with the offending text. A diagnosed kind's rule whose text GRANTS a
    form ("may be specified", "is optional", "in any order", "is permitted", "can be": the table's
    `needs-accepting-case`, review R2-3) needs an ACCEPTED case too: no refusal of a forbidden form shows a permitted one
    accepted. This is a TEXT HEURISTIC THAT FAILS CLOSED: a match sends the rule to an accepted case, so a prohibition
@@ -2130,6 +2137,56 @@ at 85); 232 have a witness for some targets and 571 for none, so they are GAP (m
 835, the count becoming true). The 570 rest on the old comparison audit plus a witness at 85; their read in 1985's own
 terms is still owed, so 835 is a lower bound. The widening of the stored rows (kb/Work PB5730, 2026-11-15) proved 74
 suite cases at 85 and `witness-batch` then closed 64 rows (835 to 771 GAP; 634 KEPT records with their own witness).
+
+**The 1985 rows a read decides close on their OWN verdicts, and every outcome has a route (kb/Work PB5453; decision
+PB6003, 2026-11-21).** 1985's next held edition is 2023 (2002 is bridged), and the candidate pairing pairs 0 of the 2,911
+1985 rules, so no 1985 read is ever a KEPT record: a fleet reads each row on its own text at `--std 85` (the reader's and
+refuter's briefs, this section's path, `import-reads --edition 1985`), never the Message Batches arm of section 10.3.
+Each outcome of `decide` has ONE writer:
+- `own-verdict-from-pointer` (a SAME its refuter UPHELD): `own-verdict-batch`, above;
+- `needs-own-witness` (a DIFFERENT, or an overturned SAME, whose reader or refuter showed the compiler correct at 85: the
+  `compiler-at-1985` judgment, read at the record's own edition): its probe becomes the row's own test through
+  `place_witnesses.py`, and the record that places it CARRIES THE ROW'S ADJUDICATION (`verdict`, and `code-location` and
+  `notes` as the schema's `requires` of the verdict asks). For a rule the store holds no adjudication of (no verdict, no
+  change record: the minted rows), `batch_of` writes the FULL record with the placed test in its one batch; a row with
+  a verdict or a change record of its own takes the witness-only record, and a record adjudicating such a row is refused
+  (its verdict would be dropped unseen). So no verdict, code location or test-ref is hand-batched;
+- `defect`: the records worker's note, as above;
+- `derivation` (below), new with this decision.
+
+**A derivation from a read (kb/Work PB5453).** A rule no program can show (a `definitional` row, or any DIFFERENT read
+the reader closes on section 1.1) is read `DIFFERENT`, class `definitional`, with `derivation: {arm, names[,
+code-location]}`: the arm one of the schema's, `names` its `Names` cell. The design was silent on how such a read
+becomes a register row; DECIDED here (kb/Work PB6003):
+1. The read's ARGUED arm is attacked by a derivation refuter, a `cobol-refuter` that tries to write the witness the
+   derivation says cannot exist (section 1.1's `claude:` signer obligation), in `<slice>-derivation-refute.json` (the
+   refute shape, UPHELD, OVERTURNED or DOUBTFUL). `import-reads` takes it as a fourth part of the slice's read record,
+   verbatim with its digest (`lineage_reads.PARTS`); a derivation refute of a read that proposes none, a definitional
+   class with no derivation, a derivation on a SAME or DOUBTFUL read and an arm the schema lacks are refused loudly.
+2. `decide` reads the derivation refuter FIRST, as a SAME's: DOUBTFUL leaves the row `undecided`; OVERTURNED (a program
+   can show the rule) is the refuter's work item (`needs-own-witness` with its probe); UPHELD, or a MECHANICAL arm
+   (`undefined-A.2`, `undefined-in-rule`, whose checker is its reader) with none, is the work item `derivation`, blocked
+   by `no refuter record` for an argued arm not yet attacked, by its Names cell out of the arm's `names-pattern`, or by
+   no citation of the row's own edition (`derivation_problems`).
+3. `python scripts/spec/audit_batch.py derivation-batch --edition YEAR --state RUN --out BATCH --signature "claude:
+   <date>" [--dry-run]` writes, in ONE operation, each unblocked derivation's section 8 register row
+   (`docs/conformance/8/DRV-<rule-id>.md`, cells Rule, Arm, Names, the argument (the read's reason and own-edition
+   citations, naming the read record and the refutation), Signed, Refuted), the slice's refuter record file
+   (`tests/version-matrix/derivation-refutations/lineage-reads-<year>-<slice>.jsonl`, `lineage_reads.refutation_lines`:
+   one line per derivation refute, in the form `Schema.refuter_outcome` reads, generated from the tracked read record),
+   the register's extract (`docchecks.register.write_extract`), and the store records as a record_verdicts batch
+   (`lineage_reads.derivation_record`): a row the store already adjudicates (a resolving verdict, or a chained KEPT
+   record) gains the COMPUTED anchor alone; an unrecorded row takes CONFORMS with the read's `code-location` (section
+   1.1: the derivation stands in for the covering test and for nothing else, so (a) is the located code and (b) the one
+   resolving verdict of a rule that obliges the implementation to nothing observable) and notes opening `Derivation from
+   the read lineage-reads-<year>/<slice>.json`. Refused alone, with reasons in `<out>.refused.json`: a row with a
+   spec-derived test (refusal 1), a verdict that does not resolve (refusal 2), an unrecorded row whose read names no code
+   location, a register file already holding another determination. A row whose store carries a derivation is
+   `recorded-already`. The signature must be a key of the schema's `signatures`: the decision that signs the rows adds it
+   in the change that writes them, never the tool. `record_verdicts.py --edition YEAR` then applies the batch and its
+   `validate` judges every refusal of section 1.1 against the register the batch wrote.
+4. `lineage_reads.py --check` holds each generated refuter record file to its slice's tracked read record
+   (`refutation_errors`): a hand edit, or a file of a slice with no derivation refute, is red.
 
 **Measured on 2026-11-15** at the head of review round 2 (all 69 slices then written, the `t-*` slices included; 1,720
 rules): kept before the evidence check 300; refused 632, every one for a flag the screen raises and the slice never asked
