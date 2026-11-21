@@ -27,7 +27,8 @@ REGULAR = (
     "## 5. Annex A.4\n\n| A.4 # | Module |\n|---|---|\n| A.4.2 | m |\n| A.4.10 | n |\n\n"
     "## 7. Annex A.1\n\n| A.1 item | E |\n|---|---|\n| DOC-A.1-9 | e |\n| DOC-A.1-56 | e |\n\n#### DOC-A.1-56\n\nthe survey\n\n"
     "```text\n#### not a heading inside a fence\n```\n\n"
-    "## 8. Derivations\n\n| Rule | Arm |\n|---|---|\n| DRV-1985-GR-1-1 | a |\n| DRV-GR-1-1 | a |\n")
+    "## 8. Derivations\n\n| Rule | Arm |\n|---|---|\n| DRV-1985-GR-1-1 | a |\n| DRV-GR-1-1 | a |\n\n"
+    "## 9. A claim\n\nprose\n\n### 9.1 Its exceptions\n\n| Rule | Ground |\n|---|---|\n| `x-1` | g |\n")
 
 
 def _findings(text):

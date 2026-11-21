@@ -69,18 +69,32 @@ _FACILITY = re.compile(r"^[0-9]+\.\s+\*\*(.+?)\*\*", re.MULTILINE)
 # EPILOGUE after the marker line. A prose section has no entries: its whole text is its preamble. A key is unique in the
 # whole document (every key is an anchor), and the entries of every kind but BLOCKS stand in natural key order.
 
-#: A section of prose alone (sections 1, 3.3 to 3.13 and 6): its text is its preamble.
+#: A section of prose alone (sections 1, 3.3 to 3.13, 6 and 9): its text is its preamble (section 9's with its computed
+#: text, `GENERATORS`).
 PROSE = "prose"
 #: A section of determinations: top-level bullets, each opening `- **<D-KEY>` (sections 3 and 3.1).
 BULLETS = "bullets"
-#: A section whose entries are the rows of one table, keyed by the first cell (sections 2, 3.2, 5, 7 and 8).
+#: A section whose entries are the rows of one table, keyed by the first cell (sections 2, 3.2, 5, 7, 8 and 9.1).
 TABLE = "table"
 #: A section whose entries are `#### <key>` blocks in the order written (§4, the facilities and their determinations).
 BLOCKS = "blocks"
 
 #: The kind of every section that has entries; every other numbered section is PROSE. A new section with entries is a row
 #: here, read by the shape check and the cut alike.
-KINDS = {"2": TABLE, "3": BULLETS, "3.1": BULLETS, "3.2": TABLE, "4": BLOCKS, "5": TABLE, "7": TABLE, "8": TABLE}
+KINDS = {"2": TABLE, "3": BULLETS, "3.1": BULLETS, "3.2": TABLE, "4": BLOCKS, "5": TABLE, "7": TABLE, "8": TABLE,
+         "9.1": TABLE}
+
+
+def _conformance_1985(root: pathlib.Path) -> tuple[str, tuple[str, ...]]:
+    import conformance_1985  # noqa: PLC0415  (it reads the inventory view; only a section that names it pays for it)
+    return conformance_1985.render(root)
+
+
+#: THE COMPUTED PARTS OF THE DOCUMENT (kb/Work PB4997): a section whose index names one of these in its frontmatter
+#: (`generated: "<name>"`) has the text its generator computes appended to its preamble, and the generator's findings are
+#: the sources' findings, so `--check` fails when what the section claims and the rows it is computed from disagree. A
+#: generator takes the repository root and returns `(text, findings)`.
+GENERATORS = {"conformance_1985": _conformance_1985}
 
 #: The line that opens a section's epilogue: the text after it speaks for the whole section, not for one entry.
 EPILOGUE_MARKER = "<!-- conformance: epilogue -->"
@@ -615,6 +629,13 @@ def _section_from(directory: pathlib.Path, rel: str, findings: list[str]) -> str
     columns = fields.get("columns", [])
     if (kind == TABLE) != bool(columns):
         findings.append(f"{rel}/{INDEX_FILE}: `columns:` belongs to a table section's index, and §{number} is a {kind} section")
+    if (generator := fields.get("generated")) is not None:
+        if generator not in GENERATORS:
+            findings.append(f"{rel}/{INDEX_FILE}: `generated: {generator!r}` names no generator (`GENERATORS`: {sorted(GENERATORS)})")
+        else:
+            computed, computed_findings = GENERATORS[generator](directory.parents[2])   # <root>/docs/conformance/<n>
+            preamble = f"{preamble}\n\n{computed}" if preamble else computed
+            findings += computed_findings
     epilogue_path = directory / EPILOGUE_FILE
     epilogue = _read(epilogue_path).strip("\n") if epilogue_path.is_file() else None
     entries: list[tuple[tuple, Entry]] = []

@@ -1356,3 +1356,4 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+const WiseOwl.Cobol.Runtime.RunUnit.DebugSwitchVariable = "WISEOWL_COBOL_DEBUG" -> string!
