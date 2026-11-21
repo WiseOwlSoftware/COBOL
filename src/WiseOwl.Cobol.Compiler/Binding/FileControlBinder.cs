@@ -264,7 +264,8 @@ public sealed partial class FileControlBinder
             // The general format says the same thing structurally — Format 3 (sequential) admits only
             // `[ ACCESS MODE IS SEQUENTIAL ]` — but a format is not a check, and nothing screened this.
             // ⛔ THE ORGANIZATION MAY BE UNWRITTEN. §2023:12.4.5.10.3 GR6: "When the ORGANIZATION clause is not
-            // specified, sequential organization with the RECORD SEQUENTIAL phrase is implied", so the bare
+            // specified, sequential organization with the RECORD SEQUENTIAL phrase is implied" (§1985:VII.2.6.3 GR3: "When the
+            // ORGANIZATION clause is not specified, sequential organization is implied"), so the bare
             // `SELECT F ASSIGN … ACCESS MODE IS RANDOM.` is under this rule too and is the shape a screen keyed
             // on a written clause would miss; `FileModel.Organization` already defaults to Sequential, so
             // `IsSequential` covers the omitted clause, RECORD SEQUENTIAL and LINE SEQUENTIAL in one predicate.
@@ -288,7 +289,7 @@ public sealed partial class FileControlBinder
                 Edition.Error(DiagnosticCatalog.AccessModeNotSequentialOnSequentialFile,
                     $"file '{name}': ACCESS MODE IS {file.AccessMode.ToString().ToUpperInvariant()} may not be "
                     + $"specified for a sequential file — this entry's organization is "
-                    + file.OrganizationFace
+                    + file.OrganizationFace(Edition.Edition)
                     + " (ISO " + Edition.Edition.Cite(
                         "§1985:VII.2.4.2, whose ACCESS MODE clause for a sequential file prints SEQUENTIAL alone",
                         "§2023:12.4.5.5.2 SR2") + ")");
@@ -480,7 +481,7 @@ public sealed partial class FileControlBinder
         {
             Edition.Error(DiagnosticCatalog.FileCollatingKey, $"file '{file.CobolName}': a file-control COLLATING "
                 + "SEQUENCE clause is a Format-1 clause and shall be specified only for an indexed file — this "
-                + $"file is {file.OrganizationFace} (ISO §2023:12.4.5.2 SR8)");
+                + $"file is {file.OrganizationFace(Edition.Edition)} (ISO §2023:12.4.5.2 SR8)");
             return;
         }
 

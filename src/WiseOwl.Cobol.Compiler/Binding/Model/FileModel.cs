@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
+
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>The file organization (ISO/IEC 1989:2023 §2023:12.4.5.10). This slice implements the two sequential shapes;
@@ -320,11 +322,15 @@ public sealed class FileModel
     /// SR2's ACCESS screen, §2023:12.4.5.2 SR8 over the COLLATING SEQUENCE clause, and SR8/SR9 over the key clauses in
     /// <see cref="FileControlKeyRules"/>); one phrasing keeps them from drifting into three different names for
     /// the same file. A SORT-MERGE file has no organization to name — §2023:12.4.5.1 Format 4 admits only the
-    /// SEQUENTIAL phrase and the entry is described by an SD — so it says what it is instead.</summary>
-    public string OrganizationFace =>
+    /// SEQUENTIAL phrase and the entry is described by an SD — so it says what it is instead. The omitted clause's default
+    /// is said in the edition in force (kb/Work PB5993): COBOL-85 implies "sequential organization" (§1985:VII.2.6.3 GR3), which
+    /// has no RECORD SEQUENTIAL phrase to name.</summary>
+    public string OrganizationFace(EditionInfo edition) =>
         IsSortMerge ? "a sort-merge file (described by a sort-merge file description entry)"
         : LineSequentialByDelimiter ? "LINE SEQUENTIAL, by its RECORD DELIMITER IS LINE-SEQUENTIAL clause"
-        : !OrganizationWritten ? "record sequential by default, the ORGANIZATION clause being omitted (ISO §2023:12.4.5.10.3 GR6)"
+        : !OrganizationWritten ? edition.Cite(
+            "sequential by default, the ORGANIZATION clause being omitted (ISO §1985:VII.2.6.3 GR3)",
+            "record sequential by default, the ORGANIZATION clause being omitted (ISO §2023:12.4.5.10.3 GR6)")
         : Organization switch
         {
             FileOrganization.LineSequential => "LINE SEQUENTIAL",

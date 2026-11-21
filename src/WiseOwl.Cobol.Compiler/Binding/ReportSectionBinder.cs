@@ -110,8 +110,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         if (usage is Usage.Display or Usage.National) return;
         Edition.Error(DiagnosticCatalog.ReportUsageNotDisplayOrNational, $"RD '{reportName}' entry "
-            + $"'{entryName ?? "FILLER"}'{(written is null ? "" : $" ({written})")}: usage {usage} is not "
-            + "admitted here — only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause "
+            + $"'{entryName ?? "FILLER"}'{(written is null ? "" : $" ({written})")}: usage {UsageFamilies.UsageWord(usage)} is not "
+            + "admitted here — only the " + Edition.Edition.Cite("DISPLAY", "DISPLAY or NATIONAL") + " phrase may be specified in any USAGE clause "
             + $"associated with a report group item (ISO {Edition.Edition.Cite("§1985:XIII.3.21.3 SR3", "§2023:13.18.60.3 SR7")})");
     }
 
@@ -2570,7 +2570,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     + $"'{entryName ?? "FILLER"}': USAGE {usageText} contradicts the USAGE {inheritedUsage} "
                     + "written on the group entry above it — when a USAGE clause is written on a group item and "
                     + "on an entry subordinate to it, the same usage shall be specified in both (ISO "
-                    + "§2023:13.18.60.3 SR2, imported into the report group description entry by §2023:13.15.4 GR2)");
+                    + Edition.Edition.Cite("§1985:XIII.3.21.3 SR3",
+                        "§2023:13.18.60.3 SR2, imported into the report group description entry by §2023:13.15.4 GR2") + ")");
 
             if (lineOperand is { } lop)
                 opened = RepeatedLine(lop, lineOperandIndex, group.Lines.Count == 0, anchorKey, st);
@@ -2694,7 +2695,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // character-string contains the symbol 'S'" — and SR2, through the ONE elementary-subject test the
                 // data description entry reads (kb/Work PB537: this arm had no screen at all).
                 if (ownSign is not null
-                    && DataBinder.SignClauseElementaryDefect(pic, picText, "report group description entry", Edition.Edition) is { } signDefect)
+                    && DataBinder.SignClauseElementaryDefect(pic, picText, "report group description entry", Edition.Edition,
+                        reportGroup: true) is { } signDefect)
                 {
                     Edition.Error(DiagnosticCatalog.SignClauseSubject,
                         $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': {signDefect}");

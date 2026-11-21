@@ -90,4 +90,19 @@ public sealed class NonstandardExtensionWarningTests
         string standard = Prog("       01 PP USAGE PROGRAM-POINTER.\n", "           SET PP TO NULL.\n           GOBACK.\n");
         Assert.DoesNotContain(Warnings(standard, edition, flag: true), w => w.Contains(Code));
     }
+
+    /// <summary>⛔ THE WARNING CITES THE STANDARD OF THE EDITION IN FORCE (kb/Work PB5993): the warning mechanism of COBOL-85 is
+    /// §1985:I.1.5.2.5.2's, and the standard that does not define the extension is ANSI X3.23-1985; from COBOL-2002 on it is
+    /// ISO/IEC 1989 and §2023:4.2.10. Asked of the one seam every extension passes (<c>EditionContext.Extension</c>).</summary>
+    [Theory]
+    [InlineData(85, "ANSI X3.23-1985 does not define it (§1985:I.1.5.2.5.2)", "§2023:4.2.10")]
+    [InlineData(2002, "ISO/IEC 1989 does not define it (§2023:4.2.10)", "§1985:")]
+    [InlineData(2023, "ISO/IEC 1989 does not define it (§2023:4.2.10)", "§1985:")]
+    public void TheWarning_CitesTheEditionInForce(int edition, string cites, string other)
+    {
+        string source = Prog("       01 X PIC S9(4) COMP-3.\n", "           CONTINUE.\n");
+        string warning = Assert.Single(Warnings(source, edition, flag: true), w => w.Contains(Code));
+        Assert.Contains(cites, warning, StringComparison.Ordinal);
+        Assert.DoesNotContain(other, warning, StringComparison.Ordinal);
+    }
 }

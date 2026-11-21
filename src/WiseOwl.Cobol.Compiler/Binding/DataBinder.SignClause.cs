@@ -79,14 +79,18 @@ public sealed partial class DataBinder
     /// <param name="pic">The entry's analyzed PICTURE / usage profile, its usage already inherited.</param>
     /// <param name="pictureText">The picture character-string the entry WROTE (null when none).</param>
     /// <param name="entryKind">"data description entry" / "report group description entry", for the message.</param>
-    internal static string? SignClauseElementaryDefect(PicInfo? pic, string? pictureText, string entryKind, EditionInfo edition)
+    /// <param name="reportGroup">Whether the entry is a report group description entry: COBOL-85 states the two rules once for the
+    /// Nucleus's data description entry (§1985:VI.5.12.3) and once for the Report Writer's (§1985:XIII.3.17.3), and the message
+    /// cites the one of the entry's own module (kb/Work PB5993).</param>
+    internal static string? SignClauseElementaryDefect(PicInfo? pic, string? pictureText, string entryKind, EditionInfo edition,
+        bool reportGroup)
     {
         if (pic is null || pic.IsRecovery) return null;
         // SR1 — category numeric, with an S in a WRITTEN picture character-string (PicInfo.Signed is the S; a
         // PICTURE-less signed usage such as BINARY-LONG SIGNED or FLOAT-LONG has no character-string to hold one).
         if (pic.Category is not PicCategory.Numeric || !pic.Signed || pictureText is null)
             return $"the SIGN clause may be specified for an elementary {entryKind} only when it is numeric and its "
-                + $"picture character-string contains the symbol 'S' (ISO {edition.Cite("§1985:VI.5.12.3 SR1", "§2023:13.18.52.3 SR1")}) — this entry "
+                + $"picture character-string contains the symbol 'S' (ISO {edition.Cite(reportGroup ? "§1985:XIII.3.17.3 SR1" : "§1985:VI.5.12.3 SR1", "§2023:13.18.52.3 SR1")}) — this entry "
                 + (pictureText is null
                     ? $"has no PICTURE clause (USAGE {UsageFamilies.UsageWord(pic.Usage)})"
                     : pic.Category is PicCategory.Numeric
@@ -94,8 +98,10 @@ public sealed partial class DataBinder
                         : $"is of category {pic.Category.ToString().ToLowerInvariant()} (PICTURE {pictureText})");
         // SR2 — the usage of the elementary subject, written or inherited (§2023:13.18.60.4 GR1).
         if (pic.Usage is not (Usage.Display or Usage.National))
-            return "the usage of an elementary item for which the SIGN clause is specified shall be display or "
-                + $"national (ISO {edition.Cite("§1985:VI.5.12.3 SR2", "§2023:13.18.52.3 SR2")}) — this entry's usage is {UsageFamilies.UsageWord(pic.Usage)}";
+            return "the usage of an elementary item for which the SIGN clause is specified shall be "
+                + edition.Cite("display", "display or national") + " (ISO "
+                + edition.Cite(reportGroup ? "§1985:XIII.3.17.3 SR2" : "§1985:VI.5.12.3 SR2", "§2023:13.18.52.3 SR2")
+                + $") — this entry's usage is {UsageFamilies.UsageWord(pic.Usage)}";
         return null;
     }
 }
