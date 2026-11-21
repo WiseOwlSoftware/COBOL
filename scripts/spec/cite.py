@@ -1178,7 +1178,8 @@ def self_test() -> int:
         ("a pending unit and a pending table row are cited by their designators",
          PENDING_MARK in v("§2023:8.4.2.1 p3", "The same name shall not be used both as the name").message
          and PENDING_MARK in v("§2023:14.5.1 Table 12 row 2", "ADD [NOT] ON SIZE ERROR END-ADD").message),
-        ("fires on a unit the clause lacks", fails("§2023:8.4.2.1 p9", "The same name shall not be used both", "no-unit")),
+        ("fires on a unit the clause lacks",  # citation-audit: example
+         fails("§2023:8.4.2.1 p9", "The same name shall not be used both", "no-unit")),  # citation-audit: example
         ("a quotation inside a row's text answers as before",
          v("§2023:8.8.4.2.1 GR13", "For comparison, an alphanumeric group item shall be treated as an elementary "
                                    "alphanumeric data item").ok),
