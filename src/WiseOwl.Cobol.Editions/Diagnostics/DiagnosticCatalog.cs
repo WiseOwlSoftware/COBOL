@@ -356,14 +356,14 @@ public static class DiagnosticCatalog
         + "required SR2; non-literal / exponentiation / division-by-zero in the compile-time expression SR7, "
         + "per §2023:7.3.6.2).",
         "ISO §2023:13.10.3 / §2023:7.3.6.2",
-        No1985Rule: No1985Constant);
+        Rule1985: "§1985:III.2");
     public static readonly DiagnosticDescriptor ConstantAsReceiver = new(
         "COBOL1548", "constant-as-receiver", EditionSeverity.Error,
         "A constant-name, a symbolic-character or a data item of a CONSTANT RECORD shall not be specified as a "
         + "receiving operand — a constant-name substitutes a literal, a symbolic-character is a figurative constant "
         + "(§2023:12.3.7.4 GR11 a)), and a structured constant's content cannot be modified.",
         "ISO §2023:13.10.3 SR2 / §2023:13.18.15.3 SR2",
-        No1985Rule: No1985Constant);
+        Rule1985: "§1985:IV.4.2.2.2.3");
     public static readonly DiagnosticDescriptor ConstantRecordRule = new(
         "COBOL1549", "constant-record-rule", EditionSeverity.Error,
         "A CONSTANT RECORD clause violates a structural rule: WS/LS sections only (SR1); level-01 only, no "
@@ -6440,7 +6440,7 @@ public static class DiagnosticCatalog
         "COBOL2159", "externalized-name-not-unique", EditionSeverity.Error,
         "Two entries in one source element externalize the same name.",
         "ISO §2023:13.18.22.3 SR2",
-        No1985Rule: No1985Externalized);
+        Rule1985: "§1985:X.4.5.3 SR2");
 
     // ── COBOL2112 / COBOL2113 — THE SET STATEMENT'S FORMAT SELECTION (kb/Work PB449 + PB456 + PB458) ──
 
