@@ -1394,7 +1394,25 @@ way, once where Amendment 2 prints them, a flag at the place they take in the bo
 Section XVII (pages B-30 to B-46, the Errata's C332) and the replacement index (pages B-49 to B-64, C337, whose row also
 deletes the base index's entries). `rule_catalog_1985.resolve_change`'s ADD path finds the body's row (of Section A for
 an Amendment 1 page) at the number the amended text gives it and records `amended_by` on it; it adds no row, so the
-catalog carries no `§1993` row and no page citation. The store records the renumberings and deletions moved through
+catalog carries no `§1993` row and no page citation.
+
+*How a change row names its rows (kb/Work PB5063, PB5093).* `rule_catalog_1985.attribute` resolves every change row
+once EVERY row exists, the mint's units of unnumbered text among them (a change may name "Paragraph 6.4.7" or "the
+second paragraph"), in this order: (1) a change that adds a WHOLE PARAGRAPH ("Add the following as new paragraph
+4.3.8.3:") is every row of that paragraph and its subparagraphs; (2) a change whose NEW TEXT (its directive's quotes, never
+the old text of a "change X to Y" or a deletion's, and the text it prints below, a table row with no page cell continuing
+it on the next page) lies in one row of the paragraph it names is that row: the amended text is the row's own, so it
+locates the row whatever number a rule had when the change was written (Amendment 1's INSPECT "general rule 4" is GR5
+once Amendment 2 inserts a new GR1), and a printed place ("second paragraph") settles a text two of the paragraph's
+paragraphs hold; (3) else its DESIGNATOR: a rule it adds or names, an ITEM of a numbered list ("item 2", "item 3b", "the
+second occurrence of a paragraph numbered (3)": the rule, its sub-list, the list holding the lettered item), or a general
+format. A renumbering changes no rule's text and is recorded on none. THE ATTRIBUTION CROSS-CHECK holds the result to the
+transcription's own record of what it applied: every Errata correction of kind `amendment-1` or `amendment-2` whose text
+as applied lies in exactly one row of the paragraph its `where` names must find that row carrying the amendment, else
+`extract_rule_catalog.py --edition 1985 --check` fails (`attribution_drift`); the corrections it cannot locate (no
+paragraph, a described rather than quoted text, a text in no row or in several) are counted in its summary.
+
+The store records the renumberings and deletions moved through
 `record_verdicts.py --edition 1985`, whose WITHDRAWAL record (`{"rule-id", "withdraw"}`) takes a record whose rule is gone
 or whose id now names another rule out of the store. A record moves to its rule's new id only when the rule's text there
 is the text the record was decided against (the same `rule-digest`); a record whose rule an amendment or a misprint
