@@ -563,9 +563,9 @@ public sealed class ExceptionEngine
     /// integer argument that is not an integer, a text the function cannot read ...) calls this, or one of its two text twins,
     /// and nothing else decides what the breach does.
     /// <list type="bullet">
-    /// <item>A COBOL-85 activation (<see cref="ArgumentBreachTerminates"/>): the returned value is undefined — "If, at the time a
-    /// function is referenced, the arguments specified for that reference do not have values that comply with the specified
-    /// constraints, the returned value for that function is undefined" (§1989:A.2.2 p3) — and the Correction Amendment's
+    /// <item>A COBOL-85 activation (<see cref="ArgumentBreachTerminates"/>): the result is undefined — if the arguments "do not have
+    /// values within the permissible range, then the result of such a reference is undefined" (§1989:A.2.2 p3; §1989:A.1.2.2 says
+    /// the same of values that do not "comply with the specified constraints") — and the Correction Amendment's
     /// clarification "allows an implementation of amended third Standard COBOL to terminate processing" (§1985:p.B-46). The
     /// run unit is terminated with the message (<see cref="CobolImplementorFatalException"/>: it raises no exception condition,
     /// for COBOL-85 has none), so a 1985 program never runs on with a value the implementation made up.</item>
@@ -577,8 +577,8 @@ public sealed class ExceptionEngine
     public long ArgumentError(string detail)
     {
         if (ArgumentBreachTerminates)
-            throw new CobolImplementorFatalException(detail + "; at COBOL-85 the returned value is undefined (§1989:A.2.2 p3) and the "
-                + "run unit is terminated, as §1985:p.B-46 allows");
+            throw new CobolImplementorFatalException(detail + "; at COBOL-85 the result of such a reference is undefined (§1989:A.2.2 p3) "
+                + "and the run unit is terminated, as §1985:p.B-46 allows");
         FatalIfEnabled(ArgumentFunctionChecking, "EC-ARGUMENT-FUNCTION", detail);
         return 0;
     }

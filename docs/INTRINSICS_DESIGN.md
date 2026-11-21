@@ -983,18 +983,35 @@ and raises EC-ARGUMENT-FUNCTION (§2023:15.3's closing paragraph) before the tru
 **The run-time check of an UNDECIDED argument (kb/Work PB5889).** An argument the compile-time screen neither proves nor refutes
 (below) is accepted, and `IntrinsicRenderer.RawWideArg` (with `IntArgWideSaturating` and `IntegerIntake`, the intakes of every integer
 position) wraps its value in `CobolIntrinsics.CheckedIntegerArgument{Scaled,Dec,Real,Wide,Exact}` before the landing, ONE check per
-carrier, rendered through `RuntimeApi.CheckedIntegerArgument*` with the site `RuntimeApi.IntegerArgumentSite` (the function, the
-argument's position, and the edition's failure). The check returns the value unchanged when it is an integer; otherwise its one raise
-site `NotAnIntegerArgument` names the function, the argument and the value. From COBOL-2002 that is EC-ARGUMENT-FUNCTION through
-`ExceptionState.ArgumentError` (§2023:15.3 AR14; fatal when checking is enabled, otherwise the landing's truncated integer is the
-implementor's result, DOC-A.1-124); at COBOL-85, which has no exception conditions and leaves the result undefined (§1985:I.1.6), the run
-unit is terminated through `CobolImplementorFatalException`, as the Correction Amendment's clarification allows ("allows an
-implementation of amended third Standard COBOL to terminate processing", §1985:p.B-46; docs/conformance D-INTEGER-ARGUMENT-SCREEN). A
+carrier, rendered through `RuntimeApi.CheckedIntegerArgument*` with the site `RuntimeApi.IntegerArgumentSite` (the function and the
+argument's position). The check returns the value unchanged when it is an integer; otherwise its one raise site `NotAnIntegerArgument`
+names the function, the argument and the value and takes the one path of every broken argument rule (next paragraph): from COBOL-2002
+EC-ARGUMENT-FUNCTION (§2023:15.3 AR14; fatal when checking is enabled, otherwise the landing's truncated integer is the implementor's
+result, DOC-A.1-124); at COBOL-85 the run unit is terminated (docs/conformance D-INTEGER-ARGUMENT-SCREEN). A
 proven argument, a literal and a scale-0 integer carrier take no check. Goldens `pb5889_run_time_check_85`, `pb5889_run_time_check`,
 `pb5889_run_time_check_unchecked`, and the 23 converted refusals below. The landing's own test stays the run-time net under
 `--permissive`, which admits a refused operand at an integer position as a coercion extension.
 `IntrinsicCarrierAgreementDriftTests.EveryIntegerIntake_IsTotalOverTheNumXCarriers` walks `NumXCarrier`.
 Golden `pb638_unsigned_wide_item_as_integer_argument`.
+
+**ONE ANSWER TO EVERY BROKEN ARGUMENT RULE, KEYED BY THE ACTIVATION'S EDITION (kb/Work PB6019).** Every run-time value check of every
+intrinsic (a negative FACTORIAL argument, a zero MOD or REM divisor, a date or day out of range, an ACOS argument past 1, a CHAR
+ordinal outside the collating sequence, a NUMVAL text that is not a number, an integer argument that is not an integer, an ALL subscript
+over no occurrences) calls `ExceptionEngine.ArgumentError` or one of its two text twins, and that one place decides what the breach does.
+It reads `ExceptionEngine.ArgumentBreachTerminates`, which the activation boundary (`ProgramTable.ActivateMain` / `CallProgram`)
+installs from `ICobolProgram.ArgumentBreachTerminates` and restores on return, exactly as it installs the nonfatal selector. A program
+class compiled for COBOL-85 overrides it to `true` (`ProgramEmitter`): there the result "of such a reference is undefined" (§1989:A.2.2
+p3) and the Correction Amendment's clarification "allows an implementation of amended third Standard COBOL to terminate processing"
+(§1985:p.B-46), so the run unit is terminated with the message (`CobolImplementorFatalException`, no exception condition, COBOL-85 having
+none). A later edition takes the interface default and the breach is EC-ARGUMENT-FUNCTION (§2002:15.2 AR13, §2014:15.3 AR13, §2023:15.3
+AR14): fatal under checking, DOC-A.1-90's substituted result without it. The edition is the ELEMENT's, not the compilation's or the run
+unit's, so a COBOL-85 program CALLed from a 2023 one terminates and a 2023 program CALLed from a COBOL-85 one raises the condition. Before
+PB6019 the integer check carried a compile-time `terminates` flag of its own while every other check returned 0 at 85 and the run went on;
+`ArgumentBreachEditionTests.EveryBreach_TakesTheOnePath` now refuses a runtime site that reads the checking flag, raises
+EC-ARGUMENT-FUNCTION by name other than straight after `ArgumentError`, or terminates from an intrinsic body itself. The DETECTION of each
+constraint stays in the function's body, on the carrier the value is computed in; making the constraints data on the function's
+descriptor checked by one emitter is the open redesign of kb/Work PB6023. Determination D-85-ARGUMENT-BREACH; goldens
+`pb6019_argument_breach_85` (FACTORIAL), `pb6019_argument_breach_text_85` (CHAR, the text twin).
 
 **The compile-time screen has THREE outcomes, and refuses only on a counterexample (kb/Work PB5889, the ruling of 2026-11-21).**
 `IntrinsicArgumentRules.ClassifyTypeSix` answers PROVEN (the polynomial proof below: accepted), REFUTED (COBOL1627, naming a value of the

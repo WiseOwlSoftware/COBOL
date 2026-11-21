@@ -374,7 +374,7 @@ public interface ICobolProgram : INonfatalSelector
     void CloseFiles();
 
     /// <summary>True for an element compiled for COBOL-85, whose intrinsic argument that breaks its function's argument rules
-    /// terminates the run unit (§1989:A.2.2 p3: the returned value is undefined; §1985:p.B-46 allows termination; kb/Work
+    /// terminates the run unit (§1989:A.2.2 p3: the result is undefined; §1985:p.B-46 allows termination; kb/Work
     /// PB6019). The activation boundary installs it in <see cref="Exceptions.ExceptionEngine.ArgumentBreachTerminates"/> for
     /// the activation and restores the activator's on return. An element of a later edition emits no override and takes this
     /// default: there the breach is EC-ARGUMENT-FUNCTION (§2023:15.3 AR14).</summary>
