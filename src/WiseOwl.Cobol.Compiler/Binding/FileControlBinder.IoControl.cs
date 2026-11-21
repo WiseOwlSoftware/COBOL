@@ -203,7 +203,7 @@ public sealed partial class FileControlBinder
                 if (!IsSequentiallyOrganized(named))
                     using (Edition.At(on))
                         Edition.Error(DiagnosticCatalog.RerunFileNotSequential,
-                            $"the RERUN clause's ON phrase names '{named.CobolName}', whose organization is {named.OrganizationFace} "
+                            $"the RERUN clause's ON phrase names '{named.CobolName}', whose organization is {named.OrganizationFace(Edition.Edition)} "
                             + "(§1985:VII.2.12.3 SR1: \"File-name-1 must be a sequentially organized file.\")");
             }
             if (rerun.rerunEvery() is not { } every) continue;
@@ -215,7 +215,7 @@ public sealed partial class FileControlBinder
                 if (!IsSequentiallyOrganized(reel))
                     Edition.Error(DiagnosticCatalog.RerunFileNotSequential,
                         $"the RERUN clause's END OF {(every.REEL() is not null ? "REEL" : "UNIT")} phrase names '{reel.CobolName}', "
-                        + $"whose organization is {reel.OrganizationFace} (§1985:VII.2.12.3 SR2: \"The END OF REEL/UNIT phrase "
+                        + $"whose organization is {reel.OrganizationFace(Edition.Edition)} (§1985:VII.2.12.3 SR2: \"The END OF REEL/UNIT phrase "
                         + "may only be used if file-name-2 is a sequentially organized file.\")");
                 if (!reelFiles.Add(reel))
                     Edition.Error(DiagnosticCatalog.RerunPhraseRepeated,
