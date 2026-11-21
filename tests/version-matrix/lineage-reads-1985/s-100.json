@@ -371,6 +371,67 @@
      "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionBinder"
     },
     "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "every Nucleus statement (and every module's statements, by its rules) whose sending and receiving items share storage while defined by different data description entries",
+     "a pointer to statements whose general rules make same-entry overlap undefined"
+    ],
+    "evidence-1985": {
+     "overlap by different entries: result undefined": "not shown (no program can show an undefined result)",
+     "pointer to per-statement rules": "not shown (it imposes nothing of its own; each statement's rule is its own row)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4.5 p1",
+      "quote": "the result of the execution of such a statement is undefined",
+      "check": "OK  §1985:VI.6.4.5 p1  (6.4.5 Overlapping Operands)  the text is in p1"
+     }
+    ],
+    "reason": "Definitional flag: can a program show it? No. The paragraph's only requirement is 'the result of the execution of such a statement is undefined'; its second and third sentences point to the general rules of other statements. The earlier prose85 read classed both sentences NOT-NORMATIVE (refutation UPHELD). 2023 GR-14.6.10-1 repeats sentence 1, but an undefined result has no observable outcome to witness at 85, so the undefined-in-rule arm closes it. Read again by the PB5453 rows pass (w20262131i) only to give the Names cell its shape (the quoted words of the row's own text that say \"undefined\") and the code location where the compiler meets the rule's subject; the import refused the first read for want of both.",
+    "probe": null,
+    "compiler-at-1985": "not probed: an undefined result has no outcome a program can check",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "undefined-in-rule",
+     "names": "\"the result of the execution of such a statement is undefined\"",
+     "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveOverlap.cs#Classify; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#EmitOverlapStore"
+    },
+    "supersedes": "s-12"
+   },
+   {
+    "rule-id": "1985-GR-X.4.1-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "effect of accessing Linkage data in a program that is not a called program"
+    ],
+    "evidence-1985": {
+     "undefined effect": "not shown (undefined by the rule)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.1 p6",
+      "quote": "is accessed in a program which is not a called program, the effect is undefined",
+      "check": "OK  §1985:X.4.1 p6  (4.1 LINKAGE SECTION)  the text is in p6"
+     }
+    ],
+    "reason": "The rule's only consequence is \"the effect is undefined\"; no program can show a required behaviour. Read again by the PB5453 rows pass (w20262131i) only to give the Names cell its shape (the quoted words of the row's own text that say \"undefined\") and the code location where the compiler meets the rule's subject; the import refused the first read for want of both.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the rule defines no behaviour to observe (\"the effect is undefined\")",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "undefined-in-rule",
+     "names": "\"is accessed in a program which is not a called program, the effect is undefined\"",
+     "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#FormalCrossing"
+    },
+    "licence-1985": null,
+    "supersedes": "s-16"
    }
   ],
   "leads": []
@@ -471,6 +532,6 @@
  },
  "imported": {
   "derivation-refute": "fdb2c3c7cf1f085a87f4921ad1b0e8a0fb9574fc88d7e9767b5f37f506f7f98f",
-  "read": "a1dd4adcaba7020644aec86bfeed8aa2220fc791d7a99c99ca8ce3ab1ee7f4ca"
+  "read": "ff0fee76132160727e80fcfc850cd9ff7f68ac41d1f3a287a294856e803ff8b7"
  }
 }

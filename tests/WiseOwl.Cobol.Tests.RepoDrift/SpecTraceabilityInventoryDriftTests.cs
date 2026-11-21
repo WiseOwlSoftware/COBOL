@@ -1645,6 +1645,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
             "1985-GR-IV.1-p1", "1985-SR-IV.2.1.1-p1", "1985-GR-IV.2.1.5-p1", "1985-GR-IV.3.1-p1", "1985-GR-IV.3.2-p1",
             "1985-GR-IV.4.3.7-p2", "1985-GR-VI.6.3.4-p2", "1985-GR-VI.6.4-p1", "1985-GR-XIII.3.10.2-p1",
             "1985-GR-XIII.3.10.2-p3", "1985-GR-XIII.3.10.3-p1",
+            // ⚙ Two more, added deliberately (kb/Work PB5453, the rows pass w20262131i; decision PB6003, signature
+            // `claude: 2026-11-21`): undefined-in-rule derivations the import refused for an unquoted Names cell and no code
+            // location, read again in s-100 (superseding s-12 and s-16) with both; a mechanical arm, its checker the reader.
+            "1985-GR-VI.6.4.5-p1", "1985-GR-X.4.1-p6",
         ];
 
         var s = LoadSchema();

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.4.5-p1",
+ "rule-digest": "c125f86e6564",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveOverlap.cs#Classify; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#EmitOverlapStore",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.6.4.5-p1",
+ "notes": "Derivation from the read lineage-reads-1985/s-100.json: CONFORMS on a undefined-in-rule derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-VI.6.4.5-p1); the code location is where the compiler meets the rule's subject. The read: Definitional flag: can a program show it? No. The paragraph's only requirement is 'the result of the execution of such a statement is undefined'; its second and third sentences point to the general rules of other statements. The earlier prose85 read classed both sentences NOT-NORMATIVE (refutation UPHELD). 2023 GR-14.6.10-1 repeats sentence 1, but an undefined result has no observable outcome to witness at 85, so the undefined-in-rule arm closes it. Read again by the PB5453 rows pass (w20262131i) only to give the Names cell its shape (the quoted words of the row's own text that say \"undefined\") and the code location where the compiler meets the rule's subject; the import refused the first read for want of both."
+}

@@ -8,10 +8,12 @@
       *> §1989:A.2.9.1 p1 (CODASYL COBOL JOURNAL OF DEVELOPMENT 1976).
       *> An output test: the program must translate and run at 85 and
       *> DISPLAY exactly the lines its .out holds, the outcome the rule
-      *> requires. Placed from written and run by the PB5453 reader of
-      *> lineage-reads-1985/s-20.json by scripts/spec/place_witnesses.py
-      *> (kb/Work PB4995).
-      *> s-20 probe char-85: CHAR: value and type (the control of char-type-refused-85)
+      *> requires. Its expected outcome rests on the implementor's
+      *> determination DOC-A.1-8 (the ordinal position of a native
+      *> character is its code unit plus one, so CHAR(66) is A), not on
+      *> the rule alone. Placed from written and run by the PB5453
+      *> reader of lineage-reads-1985/s-20.json by
+      *> scripts/spec/place_witnesses.py (kb/Work PB4995).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PCHAR.
        DATA DIVISION.

@@ -105,6 +105,9 @@ COMMENT, MARGIN = "      *> ", 72
 #: The two homes of a case under the suite (`<root>/<clause folder>/<id>.cob`): the portable cases and the WiseOwl tests
 #: (a test whose outcome rests on an implementor's choice, as where a library folder's text is found; design §3.1).
 CASE_ROOTS = ("cases", "wiseowl/cases")
+#: A draft's optional `determination`: the docs/conformance determination (`DOC-A.1-<n>`, with what it fixes) its expected
+#: outcome rests on, where the rule leaves that outcome to the implementor; the placed test's comment names it.
+DETERMINATION = "determination"
 
 
 @dataclass(frozen=True)
@@ -225,6 +228,10 @@ def render(w: Witness, row: dict[str, Any], spelling: str, code: str | None, als
     if any("/" in name for name in files):
         why += (" A WiseOwl test: its library texts lie in library folders, and where a library-name's text is found is "
                 "the implementor's (design section 3.1).")
+    if w.draft.get(DETERMINATION):
+        # An outcome the rule leaves to the implementor (a native ordinal, where margin R stands): the header names the
+        # determination it rests on, so it never reads as the outcome the rule alone requires (kb/Work PB5453).
+        why += f" Its expected outcome rests on the implementor's determination {w.draft[DETERMINATION]}, not on the rule alone."
     cited = "; ".join(dict.fromkeys([row["citation"], *(r["citation"] for r in also)]))
     comment = wrapped(f"{cited} ({row.get('subject') or row['section']}). {why} Placed from {w.source} by "
                       f"scripts/spec/place_witnesses.py (kb/Work PB4995).")
@@ -564,7 +571,8 @@ def self_test() -> int:
             {"rule-id": filed, "decision": "WEAK", "basis": "b", "redraft_run": "MISMATCH",
              "draft": {"program": "*> STUB run out Y", "expected": {"outcome": "output", "output": ["Z"]}}},
             {"rule-id": drafted, "decision": "DRAFTED", "pass": "the drafting pass", "redraft_run": "MATCH",
-             "draft": {"program": "*> STUB run out W", "expected": {"outcome": "output", "output": ["W"]}}},
+             "draft": {"program": "*> STUB run out W", "expected": {"outcome": "output", "output": ["W"]},
+                       "determination": "DOC-A.1-8 (a native ordinal is the code unit plus one)"}},
             # its record says MATCH, but on this build the program DISPLAYs another line: the re-judge skips it
             {"rule-id": stale, "decision": "WEAK", "basis": "b", "redraft_run": "MATCH",
              "draft": {"program": "*> STUB run out Y", "expected": {"outcome": "output", "output": ["Q"]}}},
@@ -621,8 +629,12 @@ def self_test() -> int:
            "its library folder beside it, its header declaring it, its comment naming the implementor's choice "
            "(kb/Work PB5453); never as a portable case")
         ok((folder / f"{test_id(drafted)}.out").read_text(encoding="utf-8") == "W\n"
-           and "written and run by the drafting pass" in (folder / f"{test_id(drafted)}.cob").read_text(encoding="utf-8"),
-           "a DRAFTED record's MATCH draft is placed and recorded, its test naming the pass that wrote it")
+           and "written and run by the drafting pass" in (drafted_text := (folder / f"{test_id(drafted)}.cob").read_text(
+               encoding="utf-8").replace("\n" + COMMENT, " "))
+           and "rests on the implementor's determination DOC-A.1-8 (a native ordinal is the code unit plus one), not on "
+               "the rule alone" in drafted_text,
+           "a DRAFTED record's MATCH draft is placed and recorded, its test naming the pass that wrote it and the "
+           "implementor's determination its outcome rests on (kb/Work PB5453)")
         ok(summary["undecided"] == {undecided: "Is it testable?"} and filed in summary["unplaced"],
            "an UNDECIDED record is listed with its question; a MISMATCH redraft is a filed defect, never placed")
         ok("no error" in summary["skipped"].get(warned, "") and summary["placed"] == 5,

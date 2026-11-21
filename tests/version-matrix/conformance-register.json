@@ -1156,6 +1156,13 @@
    "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl"
   },
   {
+   "key": "DRV-1985-GR-VI.6.4.5-p1",
+   "arm": "undefined-in-rule",
+   "names": "\"the result of the execution of such a statement is undefined\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "—"
+  },
+  {
    "key": "DRV-1985-GR-VI.6.10.4-10",
    "arm": "unpopulatable-antecedent",
    "names": "the DISPLAY device set at --std 85 is closed at two streams: CONSOLE and SYSOUT name standard output and SYSERR names standard error (the only output-capable device rows of ImplementorNames, a table no edition varies), and both are line streams on which vertical positioning applies",
@@ -1203,6 +1210,13 @@
    "names": "the set of 1985 language elements by which a program can address, replace or separate object code is empty: a program reaches another program only through its program-name in CALL and CANCEL, under scope and CANCEL rules of their own; the one element that observes loading, the ON OVERFLOW or ON EXCEPTION phrase of CALL, reports an availability decided by object time resources the implementor defines, so it fixes no output either way",
    "signature": "claude: 2026-11-16",
    "refuter": "tests/version-matrix/derivation-refutations/pb5791-pb5792-1985.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-X.4.1-p6",
+   "arm": "undefined-in-rule",
+   "names": "\"is accessed in a program which is not a called program, the effect is undefined\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "—"
   },
   {
    "key": "DRV-1985-GR-XI.4.1.4-10",
