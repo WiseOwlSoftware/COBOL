@@ -388,9 +388,13 @@ public sealed record PicInfo(
     /// <see cref="Category"/> is numeric edited and <see cref="Signed"/> false, yet the PICTURE character-string still
     /// describes a SIGNED NUMERIC item, and that is what the SIGN clause's subject rule asks ("may be specified only for a
     /// numeric data description entry whose PICTURE contains the character 'S'", §1985:VI.5.12.3 SR1, and its Report
-    /// Writer twin §1985:XIII.3.17.3 SR1, whose Table 1 of §1985:XIII.3.9.3 SR11 permits SIGN beside BLANK WHEN ZERO). True
-    /// only on such a promotion; the 2002 and later texts refuse 'S' beside the clause, so no profile there sets it.</summary>
-    public bool BlankWhenZeroSigned { get; init; }
+    /// Writer twin §1985:XIII.3.17.3 SR1, whose Table 1 of §1985:XIII.3.9.3 SR11 permits SIGN beside BLANK WHEN ZERO). Read
+    /// from the recorded PICTURE (<see cref="Clause"/>), never stored beside it: a numeric edited profile whose written
+    /// character-string holds an 'S' is exactly such a promotion, because the composition rules refuse 'S' beside every
+    /// editing symbol and the 2002 and later texts refuse it beside the clause (§2023:13.18.40.3 SR22).</summary>
+    public bool BlankWhenZeroSigned =>
+        !IsRecovery && Category is PicCategory.NumericEdited && Clause is { } clause
+        && clause.CharacterString.AsSpan().IndexOfAny('S', 's') >= 0;
 
     /// <summary>Whether the PICTURE character-string describes a signed numeric item — category numeric with an 'S', or a
     /// COBOL-85 BLANK WHEN ZERO promotion of one (<see cref="BlankWhenZeroSigned"/>). The ONE question every SIGN clause
