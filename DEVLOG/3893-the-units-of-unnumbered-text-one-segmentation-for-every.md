@@ -1,4 +1,4 @@
-## The units of unnumbered text: one segmentation for every edition, every unit pending, and the audit of their dispositions (kb/Work PB5449, first landing)
+## Entry 3893 — 2026-11-21 02:06 PST — The units of unnumbered text: one segmentation for every edition, every unit pending, and the audit of their dispositions (kb/Work PB5449, first landing)
 
 The rule catalogs held a row for every numbered rule and for the 18 PB284 paragraphs of record locking, and nothing for
 the rest of the standard's unnumbered prose, its rule blocks' lead-ins and its tables. Decision PB5448 makes the margin
@@ -61,3 +61,4 @@ defect of method on the way: the commonest left edge of a page was its margin in
 **Not built yet** (PB5449 stays open): 2023's reader of the paragraphs after a rule and its data, the mint of decided
 1985 units with a decided paragraph leaving its rule's text (PB5452), the `item <n>` designator, a 1985 unit's `box` and
 a 2002 unit's `candidate`. No rows re-verdicted; `closes_rows: []`.
+
