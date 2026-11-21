@@ -203,6 +203,10 @@ class Catalog:
     #: The dispositions audit of the units of unnumbered text (text_units.audit, kb/Work PB5449), and the units' count.
     dispositions: list[str] = dataclasses.field(default_factory=list)
     pending_units: int = 0
+    #: The paragraphs after a rule held to the margin-level data (measure_margin_levels.refusals, kb/Work PB5449 item 3),
+    #: and the recorded paragraphs by what their level makes them (measure_margin_levels.tally).
+    margin_levels: list[str] = dataclasses.field(default_factory=list)
+    margin_tally: dict[str, int] = dataclasses.field(default_factory=dict)
 
     def drift(self) -> tuple[list[str], int]:
         """The content-keyed check's report and its number of drifts: THE 2023 arm's, on this edition's manifest."""
@@ -224,7 +228,7 @@ class Catalog:
                 + len(self.unresolved) + len(self.unread) + len(self.stale) + len(self.duplicates())
                 + len(self.shared_citations())
                 + self.drift()[1] + len(self.untyped) + len(self.uncitable) + len(self.standing)
-                + len(self.dispositions))
+                + len(self.dispositions) + len(self.margin_levels))
 
 
 def box_of(text: str, kind: str) -> str:
@@ -619,7 +623,9 @@ def summary(cat: Catalog) -> list[str]:
                          ("disagreement(s) of the standing lists' data with the text (element_standing.findings)",
                           cat.standing),
                          ("refusal(s) of the dispositions of the units of unnumbered text (text_units.audit)",
-                          cat.dispositions)):
+                          cat.dispositions),
+                         ("paragraph(s) after a rule the margin-level data does not hold (measure_margin_levels)",
+                          cat.margin_levels)):
         if items:
             out.append(f"⛔ {len(items)} {label}:")
             out.extend(f"      {i}" for i in items[:12])
@@ -638,6 +644,8 @@ def summary(cat: Catalog) -> list[str]:
                f"{dispositions['not-rules']} recorded as not rules")
     out.extend(cat.drift()[0])
     out.append(f"   units of unnumbered text awaiting a disposition (kb/Work PB5449): {cat.pending_units}")
+    out.append("   paragraphs after a rule, by printed level (scripts/spec/data/margin-levels-1985.json): "
+               + ", ".join(f"{k} {v}" for k, v in cat.margin_tally.items()))
     out.append("✓ no findings" if not cat.findings() else f"FINDINGS: {cat.findings()}")
     return out
 
@@ -662,37 +670,56 @@ def unit_rule_id(kind: str, clause: str, label: str) -> str:
     return f"{year}-{kind}-{loc}-{label}"
 
 
-def units(lines: list[str], rows: list[dict], declared: dict[str, dict]) -> dict[str, list]:
-    """THE UNITS OF 1985'S UNNUMBERED TEXT (kb/Work PB5449, decision PB5448 point 6), by paragraph citation
-    (`§1985:VI.5.13.1`, `§1989:A.2.1`: the key the content-keyed manifest's `blocks` already use), in the order of the
-    text: the ISO arm's segmentation (text_units.segment) over every paragraph region of the normative region
-    (citation.regions_1985, the reader cite.py searches), with the 1985 page furniture removed: a page heading, the
-    running header that opens a printed page, a folio, an editorial note and a heading.
+#: The sides of a level-2 box at either end of a line (`unboxed`).
+BOX_EDGE = re.compile(rf"^\s*{BOX_SIDE}\s*|\s*{BOX_SIDE}\s*$")
+#: A table a rule's text holds in HTML markup (1985 prints sixteen so), and a label inside a rule's text: a band naming
+#: formats ("<u>FORMATS 1 AND 3</u>:") or a figure's or table's caption ("Figure 4: ...", "Table 1. ..."). Neither is a
+#: paragraph of the clause: both are the rule's (`_rules_of`).
+HTML_TABLE_OPEN, HTML_TABLE_CLOSE = re.compile(r"^\s*<table\b"), re.compile(r"</table>\s*$")
+RULE_LABEL = re.compile(r"^\s*(?:<u>)?(?:FORMATS?\s+\d+(?:\s*(?:,|AND)\s*\d+)*(?:</u>)?:?(?:</u>)?\s*$"
+                        r"|(?:Figure|Table)\s+\d+[.:])", re.I)
 
-    ⛔ WHAT LIES IN A ROW'S TEXT IS NO UNIT, as in the ISO arm: a general format's paragraph is its FMT row; a rule
-    block contributes only its LEAD-IN, the text before its first `(n)` (a paragraph after a rule stays in that rule's
-    text until the 1985 PDF's margin levels separate it, kb/Work PB5452); a paragraph whose numbered list the manifest
-    records `not-rules` contributes its text but not the list's items; a table a row of the paragraph names is that row's."""
+
+@dataclasses.dataclass(frozen=True)
+class BlockParagraph:
+    """A paragraph of a 1985 rule block that is no numbered rule (kb/Work PB5449 item 3): a LEAD-IN, before the block's
+    first `(n)` (`follows` empty), or a paragraph after a rule, inside the text the catalog gives that rule (`follows`
+    names it: `(9)`, or `L2.(3)` in a restarted list). `order` keys it among the clause's paragraphs after a rule whose
+    digest is equal, as a unit is keyed (text_units.keyed); `page` is the PDF page its first line is on."""
+    clause: str
+    follows: str
+    unit: text_units.Unit
+    order: int
+    page: int
+
+    @property
+    def key(self) -> tuple[str, str, int]:
+        """The key the margin-level data records it under: its clause, its text's digest and its order."""
+        return self.clause, self.unit.digest, self.order
+
+
+def _bodies(lines: list[str], rows: list[dict]) -> dict[str, list[tuple[int, str]]]:
+    """The body of every paragraph region of the normative region but a general format's, by citation, in the order of
+    the text, with the 1985 page furniture removed: a page heading, the running header that opens a printed page, a
+    folio, a page the scan prints twice (SCAN_REPEAT_85: none of it is read, as `parse` reads none), an editorial note
+    and a heading. A blank line stays, as the segmentation's separator."""
     formats = {r["citation"].split(" ")[0] for r in rows if r["kind"] == "FMT"}
-    numbered = {r["citation"].split(" ")[0] for r in rows if r["kind"] != "FMT"}
-    named: dict[str, set[int]] = collections.defaultdict(set)
-    for r in rows:
-        named[r["citation"].split(" ")[0]].update(text_units.tables_named(r["text"]))
     regions = [(f"§1985:{loc}", s, e) for loc, _t, s, e in citation.regions_1985(lines)
                if loc.split(".", 1)[0] in NORMATIVE_SECTIONS and "." in loc]
     regions += [(f"§1989:{loc}", s, e) for loc, _t, s, e in citation.amendment_regions(lines, 1989)
                 if loc.startswith("A.")]
     bodies: dict[str, list[tuple[int, str]]] = {}
-    cut: set[str] = set()
     for clause, start, end in regions:
-        if clause in formats or clause in cut:
+        if clause in formats:
             continue
         body = bodies.setdefault(clause, [])
-        page_top, note = False, False
+        page_top, note, repeat = False, False, False
         for at in range(start + 1, end):
             line = lines[at]
             if PAGE_HEADING.match(line):
-                page_top = True
+                page_top, repeat = True, False
+                continue
+            if repeat:
                 continue
             if EDITORIAL_NOTE.match(line) or (note and line.startswith(">")):
                 note = True
@@ -701,20 +728,107 @@ def units(lines: list[str], rows: list[dict], declared: dict[str, dict]) -> dict
             if not line.strip():
                 body.append((at + 1, line))
                 continue
+            if SCAN_REPEAT_85.match(line):
+                repeat = True
+                continue
             if page_top:
                 page_top = False
                 if running_header(line):
                     continue
-            if FOLIO_85.match(line) or SCAN_REPEAT_85.match(line) or ANY_HEADING.match(line):
+            if FOLIO_85.match(line) or ANY_HEADING.match(line):
                 continue
-            if clause in numbered and ORDINAL.match(line):
-                cut.add(clause)
-                break
-            body.append((at + 1, line))
+            body.append((at + 1, unboxed(line)))
+    return bodies
+
+
+def unboxed(line: str) -> str:
+    """`line` without the sides of a level-2 box (BOX_SIDE): a boxed line is segmented as the line it boxes, so a boxed
+    lettered item is a lettered item. A unit's box is read from the transcription's lines, never from its text."""
+    return BOX_EDGE.sub("", line).replace(BOX_SIDE, " ")
+
+
+def _rules_of(body: list[tuple[int, str]]) -> tuple[list[tuple[int, str]], list[tuple[str, list[tuple[int, str]]]]]:
+    """A rule block's body cut at its `(n)` lines: the lead-in's lines, and each rule's (`follows`, its lines, the
+    first with its ordinal removed). A printed band (GROUP_LABEL, "FORMAT 2") between rules is no text, as `parse`
+    reads it."""
+    lead: list[tuple[int, str]] = []
+    rules: list[tuple[str, list[tuple[int, str]]]] = []
+    sublist, last = 1, 0
+    in_table = False
+    for no, line in body:
+        if (m := ORDINAL.match(line)) is not None:
+            n = int(m.group("n"))
+            if n == 1 and last:
+                sublist += 1
+            last = n
+            rules.append((f"({n})" if sublist == 1 else f"L{sublist}.({n})", [(no, m.group("box") + m.group("text"))]))
+            in_table = False
+        elif not rules:
+            lead.append((no, line))
+        elif HTML_TABLE_OPEN.match(line) or in_table:
+            # A table a rule's text holds is the rule's (text_units.after_rule), whatever its markup: no candidate.
+            in_table = not HTML_TABLE_CLOSE.search(line)
+        elif GROUP_LABEL.match(line) is None and RULE_LABEL.match(line) is None:
+            rules[-1][1].append((no, line))
+    return lead, rules
+
+
+def block_paragraphs(lines: list[str], rows: list[dict]) -> tuple[list[BlockParagraph], list[BlockParagraph]]:
+    """THE PARAGRAPHS OF THE 1985 RULE BLOCKS THAT ARE NO NUMBERED RULE (kb/Work PB5449 item 3, decision PB5448 point 4):
+    every lead-in paragraph of a block (the margin-level measurement's calibration: a lead-in prints at the block's
+    margin by definition) and every paragraph the text of a numbered rule holds after the rule's own
+    (text_units.after_rule), each with its key and page. The second are the candidates whose printed level the 1985
+    margin-level data records (`measure_margin_levels.py`): level 0 is a margin paragraph of the clause, deeper a
+    continuation of the rule."""
+    numbered = {r["citation"].split(" ")[0] for r in rows if r["kind"] != "FMT"}
+    page_of, page = [0] * (len(lines) + 1), 0
+    for at, line in enumerate(lines, start=1):
+        if PAGE_HEADING.match(line):
+            page = int(line.split()[-1])
+        page_of[at] = page
+    leads: list[BlockParagraph] = []
+    after: list[BlockParagraph] = []
+    for clause, body in _bodies(lines, rows).items():
+        if clause not in numbered:
+            continue
+        lead, rules = _rules_of(body)
+        leads += [BlockParagraph(clause, "", u, order, page_of[u.line])
+                  for u, order in text_units.keyed([u for u in text_units.segment(lead, items=False)
+                                                    if u.shape == "paragraph"])]
+        found = [(follows, u) for follows, rule in rules for u in text_units.after_rule(rule)]
+        after += [BlockParagraph(clause, follows, u, order, page_of[u.line])
+                  for (follows, _), (u, order) in zip(found, text_units.keyed([u for _, u in found]))]
+    return leads, after
+
+
+def units(lines: list[str], rows: list[dict], declared: dict[str, dict], margin: list[BlockParagraph]) -> dict[str, list]:
+    """THE UNITS OF 1985'S UNNUMBERED TEXT (kb/Work PB5449, decision PB5448 point 6), by paragraph citation
+    (`§1985:VI.5.13.1`, `§1989:A.2.1`: the key the content-keyed manifest's `blocks` already use), in the order of the
+    text: the ISO arm's segmentation (text_units.segment) over every paragraph region of the normative region
+    (citation.regions_1985, the reader cite.py searches), its furniture removed (`_bodies`).
+
+    ⛔ WHAT LIES IN A ROW'S TEXT IS NO UNIT, as in the ISO arm, with ONE exception: a general format's paragraph is its FMT
+    row; a paragraph whose numbered list the manifest records `not-rules` contributes its text but not the list's items;
+    a table a row of the paragraph names is that row's. A rule block contributes its LEAD-IN, the text before its first
+    `(n)`, and every paragraph after a rule that the 1985 PDF prints at the block's margin: `margin` holds those (the
+    paragraphs of `block_paragraphs` the margin-level data measures at level 0, `measure_margin_levels.at_margin`), each
+    a unit numbered on after the lead-in's paragraphs (decision PB5448 point 2: `n` counts every margin paragraph of the clause). While its
+    disposition is pending it ALSO stays in the rule's text, so the rule's words never leave the denominator undecided
+    (design point 4); a decided one leaves the rule when the 1985 rows are minted (kb/Work PB5452)."""
+    numbered = {r["citation"].split(" ")[0] for r in rows if r["kind"] != "FMT"}
+    named: dict[str, set[int]] = collections.defaultdict(set)
+    for r in rows:
+        named[r["citation"].split(" ")[0]].update(text_units.tables_named(r["text"]))
+    glued: dict[str, list[text_units.Unit]] = collections.defaultdict(list)
+    for p in margin:
+        glued[p.clause].append(p.unit)
     out: dict[str, list] = {}
-    for clause, body in bodies.items():
-        found = [u for u in text_units.segment(body, items=clause not in numbered and clause not in declared)
+    for clause, body in _bodies(lines, rows).items():
+        lead = _rules_of(body)[0] if clause in numbered else body
+        found = [u for u in text_units.segment(lead, items=clause not in numbered and clause not in declared)
                  if not (u.table and u.table in named[clause])]
+        p = sum(u.shape == "paragraph" for u in found)
+        found += [dataclasses.replace(u, label=f"p{p + i}") for i, u in enumerate(glued[clause], start=1)]
         if found:
             out[clause] = found
     return out

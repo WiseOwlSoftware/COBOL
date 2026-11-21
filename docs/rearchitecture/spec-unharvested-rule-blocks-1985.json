@@ -1059,6 +1059,18 @@
      "digest": "3127885ce5a9",
      "order": 0,
      "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "4bec7b693d6d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "ee66a1de7234",
+     "order": 0,
+     "disposition": "pending"
     }
    ]
   },
@@ -1393,6 +1405,30 @@
      "digest": "6d69e2c6fb25",
      "order": 0,
      "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "636ad4c7cf61",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "a81be3bb4fe6",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "baaa856c3a26",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "9804b0ec01e1",
+     "order": 0,
+     "disposition": "pending"
     }
    ]
   },
@@ -1552,6 +1588,18 @@
      "digest": "e43a8e5a4e8f",
      "order": 0,
      "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "7d7bab98a42e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "944b66cfdfe9",
+     "order": 0,
+     "disposition": "pending"
     }
    ]
   },
@@ -1644,6 +1692,12 @@
      "digest": "d258720188c5",
      "order": 0,
      "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "2d7423cc2a0c",
+     "order": 0,
+     "disposition": "pending"
     }
    ]
   },
@@ -1671,6 +1725,12 @@
     {
      "unit": "p4",
      "digest": "7440ca290d48",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "b9bf9081c800",
      "order": 0,
      "disposition": "pending"
     }
@@ -1711,6 +1771,24 @@
     {
      "unit": "p1",
      "digest": "093d0e1f22d3",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "fa575ca83ea8",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "6185d212383a",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "234200a3c8a6",
      "order": 0,
      "disposition": "pending"
     }
@@ -1841,6 +1919,30 @@
     {
      "unit": "p3",
      "digest": "bfb01902d2ef",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "b7ac289950a9",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "1a1713a74d2d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "7089771df93c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p7",
+     "digest": "a1e41db364aa",
      "order": 0,
      "disposition": "pending"
     }
@@ -3577,6 +3679,12 @@
      "digest": "35ea40a8a3c4",
      "order": 0,
      "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "b8c088447fd5",
+     "order": 0,
+     "disposition": "pending"
     }
    ]
   },
@@ -3597,6 +3705,48 @@
     {
      "unit": "p1",
      "digest": "2668ff4ae018",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "998339f6fc98",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "9b579b0a4543",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "08364ce9f852",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "f182418287fb",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "a6ea0fc7050d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p7",
+     "digest": "b306efae2f13",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p8",
+     "digest": "bf717190c743",
      "order": 0,
      "disposition": "pending"
     }
@@ -3787,12 +3937,6 @@
     },
     {
      "unit": "p4",
-     "digest": "890d27d080fa",
-     "order": 0,
-     "disposition": "pending"
-    },
-    {
-     "unit": "p5",
      "digest": "8d23f41c50cc",
      "order": 0,
      "disposition": "pending"
@@ -3807,6 +3951,30 @@
      "digest": "37a7e28fba1e",
      "order": 0,
      "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "d31d2c485c16",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "3bd2c04f573e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "128057d001ea",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "9639fb614334",
+     "order": 0,
+     "disposition": "pending"
     }
    ]
   },
@@ -3815,13 +3983,13 @@
    "units": [
     {
      "unit": "p1",
-     "digest": "9ad482e795b2",
+     "digest": "7cd45926968b",
      "order": 0,
      "disposition": "pending"
     },
     {
      "unit": "p2",
-     "digest": "98dc6e774d84",
+     "digest": "959ff453cc73",
      "order": 0,
      "disposition": "pending"
     }
@@ -3861,6 +4029,30 @@
     {
      "unit": "p1",
      "digest": "3e1da0df0bb0",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "ba8bf70efe1c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "a3b334d3dbfc",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "26e5096d0f25",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "40047e795b9f",
      "order": 0,
      "disposition": "pending"
     }
@@ -3905,6 +4097,12 @@
     {
      "unit": "p1",
      "digest": "6c1527bde5c8",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "6137382ce820",
      "order": 0,
      "disposition": "pending"
     }
@@ -4271,17 +4469,6 @@
     }
    ]
   },
-  "§1985:VI.6.23.1": {
-   "title": "6.23.1 Function",
-   "units": [
-    {
-     "unit": "p1",
-     "digest": "fabe25de8a57",
-     "order": 0,
-     "disposition": "pending"
-    }
-   ]
-  },
   "§1985:VI.6.23.4": {
    "title": "6.23.4 General Rules",
    "units": [
@@ -4508,6 +4695,12 @@
     {
      "unit": "p4",
      "digest": "705d69587b01",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "1775b4a5aa81",
      "order": 0,
      "disposition": "pending"
     }
@@ -5043,6 +5236,12 @@
      "digest": "705d69587b01",
      "order": 0,
      "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "f91a17d412ba",
+     "order": 0,
+     "disposition": "pending"
     }
    ]
   },
@@ -5058,6 +5257,12 @@
     {
      "unit": "p2",
      "digest": "372ba6270955",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "29104c671876",
      "order": 0,
      "disposition": "pending"
     }
@@ -5387,6 +5592,12 @@
     {
      "unit": "p2",
      "digest": "372ba6270955",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "29104c671876",
      "order": 0,
      "disposition": "pending"
     }
@@ -5968,13 +6179,13 @@
      "disposition": "pending"
     },
     {
-     "unit": "p2",
+     "unit": "1",
      "digest": "a5475847c90d",
      "order": 0,
      "disposition": "pending"
     },
     {
-     "unit": "p3",
+     "unit": "p2",
      "digest": "c22d2e5e682a",
      "order": 0,
      "disposition": "pending"
@@ -6219,6 +6430,12 @@
     {
      "unit": "p5",
      "digest": "69bd4951c0ff",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "4a2c71c60113",
      "order": 0,
      "disposition": "pending"
     }
@@ -7772,6 +7989,18 @@
      "digest": "a79fe8c76a47",
      "order": 0,
      "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "81e6160a9a68",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "72ca6e156e3a",
+     "order": 0,
+     "disposition": "pending"
     }
    ]
   },
@@ -7888,6 +8117,12 @@
      "digest": "b4a28608cf59",
      "order": 0,
      "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "7a51961b8977",
+     "order": 0,
+     "disposition": "pending"
     }
    ]
   },
@@ -7899,6 +8134,12 @@
      "digest": "e90f41ee9fb2",
      "order": 0,
      "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "938d9473e1fc",
+     "order": 0,
+     "disposition": "pending"
     }
    ]
   },
@@ -7908,6 +8149,12 @@
     {
      "unit": "p1",
      "digest": "34342d2a0488",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "60a6fbc5e2ef",
      "order": 0,
      "disposition": "pending"
     }
@@ -7991,6 +8238,24 @@
     {
      "unit": "p2",
      "digest": "2c932d11b377",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "88026183eb25",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "a4fb40657d8e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "858c1f313680",
      "order": 0,
      "disposition": "pending"
     }

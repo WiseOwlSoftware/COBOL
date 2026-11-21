@@ -249,6 +249,17 @@ def segment(lines: list[tuple[int, str]], items: bool = True) -> list[Unit]:
     return units
 
 
+def after_rule(lines: list[tuple[int, str]]) -> list[Unit]:
+    """THE CANDIDATE MARGIN PARAGRAPHS a numbered rule's text holds (design point 4; kb/Work PB5449 item 3). `lines` is the
+    rule's text as `segment` takes it, its first line the rule's opening with its ordinal removed. The rule's own
+    paragraph is the first that `segment` returns, its lettered and dash items, indented lines, NOTEs and continuations
+    included by the segmentation's own rules; every LATER paragraph is a candidate (its label is provisional), whose
+    printed level, measured on the PDF (`measure_margin_levels.py`), says whether it continues the rule (a level below
+    the margin) or is a margin paragraph of the clause (level 0, a unit). A table or a numbered item in a rule's text
+    stays the rule's."""
+    return [u for u in segment(lines, items=False) if u.shape == "paragraph"][1:]
+
+
 def _text(body: list[str]) -> str:
     return re.sub(r"\s+", " ", " ".join(body)).strip()
 

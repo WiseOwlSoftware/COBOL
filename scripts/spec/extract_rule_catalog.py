@@ -1648,7 +1648,14 @@ def main_1985(args: argparse.Namespace) -> int:
     cat.standing = element_standing.apply(cat.rules, "locator", lines, citation.regions_1985(lines), STANDING_OF[1985])
     # THE UNITS OF UNNUMBERED TEXT (kb/Work PB5449): segmented by the ISO arm's one segmentation, disposed in the
     # manifest's `paragraph-blocks` (a regeneration enters a new unit pending), audited, and counted outside.
-    units = rule_catalog_1985.units(lines, cat.rules, cat.declared)
+    # A paragraph after a rule is a unit when the margin-level data measures it at the block's margin (kb/Work PB5449
+    # item 3, measure_margin_levels.py), and every such paragraph is held to the data.
+    import measure_margin_levels  # noqa: PLC0415
+    levels = measure_margin_levels.load(1985)
+    after = rule_catalog_1985.block_paragraphs(lines, cat.rules)[1]
+    cat.margin_levels = measure_margin_levels.refusals(after, levels)
+    cat.margin_tally = measure_margin_levels.tally(list(levels.values()))
+    units = rule_catalog_1985.units(lines, cat.rules, cat.declared, measure_margin_levels.at_margin(after, levels))
     titles = {f"§{1989 if r[0].startswith('A.') else 1985}:{r[0]}": r[1]
               for r in (*citation.regions_1985(lines), *citation.amendment_regions(lines, 1989))}
     if not args.check and regenerate_dispositions(UNHARVESTED_OF[1985], units, lines, 1985,
