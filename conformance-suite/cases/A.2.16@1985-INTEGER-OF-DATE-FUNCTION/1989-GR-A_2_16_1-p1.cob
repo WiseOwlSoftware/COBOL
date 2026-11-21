@@ -1,10 +1,13 @@
       *>--- conformance-case
       *> id: 1989-GR-A_2_16_1-p1
-      *> rules: [1989-GR-A.2.16.1-p1]
+      *> rules: [1989-GR-A.2.16.1-p1, 1989-FMT-A.2.16.2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> Also the accepted witness of §1989:A.2.16.2, the general format
+      *> FUNCTION INTEGER-OF-DATE ( argument-1 ): each reference below writes that
+      *> form (kb/Work PB5740).
       *> §1989:A.2.16.1 p1 (THE INTEGER-OF-DATE FUNCTION). An output
       *> test: the program must translate and run at 85 and DISPLAY
       *> exactly the lines its .out holds, the outcome the rule
