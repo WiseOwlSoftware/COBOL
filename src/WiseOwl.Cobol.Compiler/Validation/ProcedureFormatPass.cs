@@ -31,13 +31,14 @@ using Core = CobolParserCore;
 /// screened unless its parent is the IF statement — a NEW phrase rule is screened automatically, which a list of
 /// phrase rules could never be. The classification is <see cref="ConditionalStatements.IsConditional"/>.</item>
 /// <item><b>Format 1 (with sections) and Format 2 (without sections) are distinct</b> (kb/Work PB1146; §2023:14.2.1, §2023:14.4.1).
-/// The grammar parses <c>declarativePart* sentence* paragraphDefinition* sectionDefinition*</c>, the union of the two
+/// The grammar parses <c>declarativePart* sentence* paragraphDefinition* (sectionDefinition | declarativePart)*</c>, the union of the two
 /// formats (every paragraph after a section header is that section's, §2023:14.4.2, so a paragraph outside every section is
 /// one written before the first section header; kb/Work PB4230). Format 1 prints
 /// nothing between the procedure division header (or END DECLARATIVES) and the first section header, prints ONE
 /// bracketed DECLARATIVES portion, and §2023:14.4.1 adds "If one paragraph is in a section, all paragraphs shall be in
 /// sections" — so once a division has a section (a DECLARATIVES portion is made of sections), a sentence or a paragraph
-/// outside every section is refused.</item>
+/// outside every section is refused. §2023:14.3 groups the declarative sections "at the beginning of the procedure
+/// division", so a DECLARATIVES portion after a sentence, a paragraph or a section is refused by that rule (kb/Work PB5987).</item>
 /// </list>
 /// </summary>
 internal sealed class ProcedureFormatPass(IDiagnosticSink sink, EditionInfo edition) : CursorFollowingVisitor(sink)
@@ -183,8 +184,21 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink, EditionInfo edit
     public override object? VisitProcedureDivision(Core.ProcedureDivisionContext ctx)
     {
         var declaratives = ctx.declarativePart();
-        if (declaratives.Length > 1)
-            ReportFormat(declaratives[1],
+        // §2023:14.3: "Declarative sections shall be grouped at the beginning of the procedure division". A portion written
+        // after a sentence, a paragraph or a section is out of place (the ordering rule, kb/Work PB5987); one among the
+        // leading portions is a second one.
+        var leading = new List<Core.DeclarativePartContext>();
+        foreach (var portion in declaratives)
+        {
+            if (!FollowsANondeclarativeUnit(ctx, portion)) { leading.Add(portion); continue; }
+            ReportFormat(portion,
+                "a DECLARATIVES portion that follows a nondeclarative section, paragraph or sentence — "
+                + edition.Cite("§1985:IV.6.4.1.1: \"Declarative sections must be grouped at the beginning of the Procedure Division\"",
+                    "§2023:14.3: \"Declarative sections shall be grouped at the beginning of the procedure division\"")
+                + $", so {Formats} Format 1 prints the DECLARATIVES … END DECLARATIVES portion immediately after the procedure division header");
+        }
+        if (leading.Count > 1)
+            ReportFormat(leading[1],
                 $"a second DECLARATIVES portion — {Formats} Format 1 prints ONE bracketed DECLARATIVES … END DECLARATIVES "
                 + "portion, immediately after the procedure division header");
 
@@ -209,6 +223,17 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink, EditionInfo edit
                         "§2023:14.4.1: \"If one paragraph is in a section, all paragraphs shall be in sections\""));
         }
         return base.VisitChildren(ctx);
+    }
+
+    /// <summary>Does <paramref name="portion"/> stand after a sentence, a paragraph or a section of <paramref name="ctx"/>
+    /// (a nondeclarative unit)? The declarative parts the grammar reads first are the division's leading portions.</summary>
+    private static bool FollowsANondeclarativeUnit(Core.ProcedureDivisionContext ctx, Core.DeclarativePartContext portion)
+    {
+        int at = ctx.children.IndexOf(portion);
+        for (int i = 0; i < at; i++)
+            if (ctx.GetChild(i) is Core.SentenceContext or Core.ParagraphDefinitionContext or Core.SectionDefinitionContext)
+                return true;
+        return false;
     }
 
     private void ReportFormat(ParserRuleContext at, string detail)

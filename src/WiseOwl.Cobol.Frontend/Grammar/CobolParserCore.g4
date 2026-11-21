@@ -708,7 +708,7 @@ procedureDivision
                          // paragraph at all; NIST/CCVS never exercises it (it always writes paragraph names),
                          // which is why the GnuCOBOL external corpus was what surfaced it (DEVLOG 931).
       paragraphDefinition*   // §2023:14.2.1 Format 2's paragraphs (without sections)
-      sectionDefinition*     // §2023:14.2.1 Format 1's sections, each holding the paragraphs that follow its header
+      (sectionDefinition | declarativePart)*   // §2023:14.2.1 Format 1's sections, each holding the paragraphs that follow its header; a DECLARATIVES portion among them (or after Format 2's paragraphs) parses so ProcedureFormatPass refuses it by name (§2023:14.3 "grouped at the beginning", kb/Work PB5987)
     ;
 // ⛔ THE SECTION OWNS ITS PARAGRAPHS IN THE SHAPE, NOT BY A PREDICTION CHOICE (kb/Work PB4230). §2023:14.4.2: "A section
 // consists of a section header followed by zero, one, or more successive paragraphs. A section ends immediately before
@@ -722,6 +722,7 @@ procedureDivision
 // input, which differ from `paragraphName DOT` within the header's own tokens.
 // The union of the two formats is kept: sentences or paragraphs ahead of the first section, beside a section or a
 // DECLARATIVES portion, still parse here so ProcedureFormatPass can refuse them by name (COBOL2797, kb/Work PB1146).
+// DECLARATIVES portion after a nondeclarative unit (kb/Work PB5987) parses too, by its first word (reserved at every edition).
 // ProcedureDivisionShapeDriftTests holds the bound: no procedure-division decision looks further than one header.
 
 usingClause
