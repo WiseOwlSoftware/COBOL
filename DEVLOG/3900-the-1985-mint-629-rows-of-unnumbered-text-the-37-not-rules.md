@@ -1,4 +1,4 @@
-## The 1985 mint: 629 rows of unnumbered text, the 37 not-rules blocks refuted, 21 carved parents reopened
+## Entry 3900 — 2026-11-21 06:50 PST — The 1985 mint: 629 rows of unnumbered text, the 37 not-rules blocks refuted, 21 carved parents reopened
 
 kb/Work PB5452's disposition campaign decided and refuted every pending 1985 unit of unnumbered text; this landing turns
 those records into catalog rows in one change (decision PB5448 point 5: each edition's denominator corrected once,
@@ -38,3 +38,4 @@ carved words, 5 whose recheck failed). The 2023 and 2002 `rules` arrays are byte
 
 **Not done.** PB5452 stays open: three units are held by segmentation defects (kb/Work PB6001: a second numbered list in
 a clause whose block is disposed, and HTML tables), and two clauses await a way to mint their rows.
+
