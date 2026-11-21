@@ -1,4 +1,4 @@
-## The 1985 reads reach the store: each read at its own edition, a derivation's route, a placed test's own verdict
+## Entry 3901 — 2026-11-21 07:36 PST — The 1985 reads reach the store: each read at its own edition, a derivation's route, a placed test's own verdict
 
 kb/Work PB5453 was filed for the Message Batches arm's passes over the 657 1985 rows PB5452's mint opened, closing them
 "through KEPT chains into 2023 rows". The planner's pilot showed neither could happen: 1985's next held edition is 2023
@@ -34,3 +34,4 @@ it, refused before any write when another batch's file has the name, and the wri
 refused {'no refuter record': 7}, work {'undecided': 23}`; after, `kept 0, refused {'no refuter record': 7}, work
 {'derivation': 4, 'needs-own-witness': 13, 'undecided': 6}` (the 7 SAMEs await their refuter; the 4 derivations theirs).
 Each fix's self-test fails on the base and passes here.
+
