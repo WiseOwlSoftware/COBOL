@@ -110,8 +110,8 @@ residueItem
 // The literal shapes that begin with an unsigned integer: the integer itself and the integer-led comma decimal
 // (numericLiteralCore's two INTEGERLIT-led alternatives). Only `unrecognizedClause` holds them.
 residueInteger
-    : {tokensAreContiguous(3)}? INTEGERLIT COMMA INTEGERLIT
-    | INTEGERLIT
+    : {tokensAreContiguous(3) && !nextEntryOpensHere()}? INTEGERLIT COMMA INTEGERLIT
+    | {!nextEntryOpensHere()}? INTEGERLIT
     ;
 
 // Every literal that is ONE token by itself except the unsigned integer: the single-token alternatives of
@@ -972,9 +972,9 @@ numericLiteralCore
     | DECIMALLIT                           // 123.45 or .45 (dot decimal from lexer)
     | SIGNED_DECIMALLIT                    // -15.6, -1,5 (sign-adjacent literal — list regions only, P7 Step 12)
     | SIGNED_INTEGERLIT                    // -4 (sign-adjacent literal — FUNCTION-argument regions only)
-    | {tokensAreContiguous(3)}? INTEGERLIT COMMA INTEGERLIT  // 123,45 (comma decimal — DECIMAL-POINT IS COMMA)
+    | {tokensAreContiguous(3) && !nextEntryOpensHere()}? INTEGERLIT COMMA INTEGERLIT  // 123,45 (comma decimal — DECIMAL-POINT IS COMMA)
     | {tokensAreContiguous(2)}? COMMA INTEGERLIT             // ,45 (leading comma decimal)
-    | INTEGERLIT                           // 123 (integer)
+    | {!nextEntryOpensHere()}? INTEGERLIT  // 123 (integer)
     ;
 
 // ⛔ TWO SLOTS, AND THE DIFFERENCE IS THE SIGN — NOT ONE RULE WITH A HOLE IN IT (kb/Work PB553).
@@ -995,7 +995,7 @@ numericLiteralCore
 // its digits, which §2023:8.3.3.3.2 forbids because a literal is one character-string — also parses, and
 // DataBinder reports it BY NAME (COBOL2155) instead of leaving it to the ANTLR error reporter.
 integerLiteral
-    : INTEGERLIT
+    : {!nextEntryOpensHere()}? INTEGERLIT
     ;
 
 // ⛔ THE ONE SPELLING OF AN `integer-n` POSITION THAT MAY BE WRITTEN AS AN INTEGER CONSTANT-NAME (kb/Work PB1947).
@@ -1015,7 +1015,7 @@ integerOperand
     ;
 
 signedIntegerLiteral
-    : (PLUS | MINUS)? INTEGERLIT
+    : {!nextEntryOpensHere()}? (PLUS | MINUS)? INTEGERLIT
     ;
 
 // The literal-1 of the ALL figurative (§2023:8.3.3.6.3 SR2): "an alphanumeric, boolean, or national literal, any of which

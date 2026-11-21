@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Frozen;
+using Antlr4.Runtime;
 using WiseOwl.Cobol.Frontend.Common;
 
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
@@ -77,6 +79,36 @@ public sealed class FixedFormAreas(SourceLineMap lineMap, IReadOnlyDictionary<st
             FixedFormArea.A => beginsLine ? AreaPlacement.BeginsLineInAreaA : AreaPlacement.WithinLineInAreaA,
             _ => beginsLine ? AreaPlacement.BeginsLineInAreaB : AreaPlacement.WithinLineInAreaB,
         };
+    }
+
+    /// <summary>The last resultant line <paramref name="token"/> occupies (a token may span lines): the line a token after it
+    /// must stand below to begin its own line. The ONE reading of "begins its line" over tokens in text order, shared by the
+    /// parse (<see cref="LineOpeningsInAreaA"/>) and the COBOL-85 area screen (<c>AreaPlacementPass</c>).</summary>
+    public static int LastLineOf(IToken token)
+        => token.Line + (token.Text is { } text ? text.AsSpan().Count('\n') : 0);
+
+    /// <summary>⛔ THE TOKENS THAT BEGIN THEIR FIXED-FORM LINE IN AREA A (kb/Work PB6011): the indexes of the default-channel
+    /// tokens of <paramref name="tokens"/> (a filled stream, in text order) that no earlier program text precedes on their
+    /// RESULTANT line (§1985:XII.2.4 GR8, as <see cref="PlacementAt"/> reads it) and that begin in area A. The PARSE asks it:
+    /// in the COBOL-85 reference format a text that begins its line in area A begins an area-A item or an entry, never the
+    /// continuation of the entry before it, which goes on "in area B of the next nonblank line" (§1985:IV.7.3.3), so the
+    /// parser's operand positions do not take such a token and a separator period forgotten before it is reported where it
+    /// is missing. Empty when <paramref name="hasAreas"/> is false: from COBOL-2002 on the program-text area has no areas
+    /// (§2023:6.3.1), and free form never had them (§2023:6.4.1).</summary>
+    public IReadOnlySet<int> LineOpeningsInAreaA(IList<IToken> tokens, bool hasAreas)
+    {
+        if (!hasAreas || formats.Count == 0) return FrozenSet<int>.Empty;
+        var openings = new HashSet<int>();
+        int previousLine = 0;
+        foreach (var token in tokens)
+        {
+            if (token.Channel != TokenConstants.DefaultChannel || token.Type == TokenConstants.EOF) continue;
+            bool beginsLine = token.Line != previousLine;
+            previousLine = LastLineOf(token);
+            if (beginsLine && PlacementAt(token.Line, token.Column, beginsLine: true, out _) == AreaPlacement.BeginsLineInAreaA)
+                openings.Add(token.TokenIndex);
+        }
+        return openings;
     }
 
     /// <inheritdoc cref="IMarginRCutLocator.MarginRCutAt"/>

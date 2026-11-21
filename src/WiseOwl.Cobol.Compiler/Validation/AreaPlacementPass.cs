@@ -74,7 +74,7 @@ internal static class AreaPlacementPass
                 // PB5313): the program is judged after COPY and REPLACE (§1985:XII.2.4 GR8), so a line a replacement
                 // introduces is a line, and text a stage dropped (a REPLACE statement's own) is no text before it.
                 bool beginsLine = token.Line != previousLine;
-                previousLine = token.Line + (token.Text is { } text ? text.AsSpan().Count('\n') : 0);   // a token may span lines
+                previousLine = FixedFormAreas.LastLineOf(token);   // a token may span lines
                 if (terminal is not IErrorNode)
                     Screen(token, areas.PlacementAt(token.Line, token.Column, beginsLine, out var written), written, items,
                         edition);
