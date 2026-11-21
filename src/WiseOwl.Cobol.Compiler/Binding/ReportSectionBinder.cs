@@ -2254,7 +2254,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             {
                 Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: the STEP phrase shall be specified when a "
                     + "repeating entry contains an absolute COLUMN clause, or is subordinate to an entry with a "
-                    + "LINE clause and has one subordinate to it (ISO §2023:13.18.38.3 SR25c/SR25d) — without it "
+                    + "LINE clause and has one subordinate to it (ISO §2023:13.18.38.3 SR25c / SR25 d)) — without it "
                     + "every repetition would print in the same column");
                 return null;
             }
@@ -2952,7 +2952,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>True when any entry in <c>[start, end)</c> carries a COLUMN clause with an ABSOLUTE operand
-    /// (ISO §2023:13.18.38.3 SR25c/SR25d).</summary>
+    /// (ISO §2023:13.18.38.3 SR25c / SR25 d)).</summary>
     private static bool AbsoluteColumnClauseIn(Core.ReportGroupEntryContext[] entries, int start, int end)
     {
         for (int k = start; k < end; k++)

@@ -1693,7 +1693,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundComputedOperand { Expr: BoundIntrinsicCall call } => ResultWidth(call),
         BoundFieldOperand { Place.Item: { IsAnyLength: true } or { IsDynamicLength: true } } => null,
         // A group's width is static exactly when nothing beneath it varies at run time — the §2023:15.50.4 r7
-        // dynamic guards plus an ODO subordinate's varying current length (§2023:8.5.1.8 GR7/GR8).
+        // dynamic guards plus an ODO subordinate's varying current length (§2023:13.18.38.4 GR7/GR8).
         BoundFieldOperand { Place.Item: { IsGroup: true } g } => HasRuntimeLength(g) ? null : g.ImageWidth,
         BoundFieldOperand { Place.Item: { } item } => item.ImageWidth,
         BoundAllLiteral a => a.Literal.Length,   // §2023:8.3.3.6.4 GR3c — a length-unspecified context takes the literal once
