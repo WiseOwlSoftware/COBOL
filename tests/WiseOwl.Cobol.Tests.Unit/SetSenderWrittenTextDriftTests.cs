@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -18,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (<c>SetSender.Text</c>, which the pointer, program-pointer, function-pointer and object-reference arms print) has
 /// ONE producer, <c>SetSenders.Classify</c> / <c>SetSender.OfReference</c>, and the two amounts SetBinder names itself
 /// (<c>BindSetTo</c>'s <c>senderText</c>, <c>BindSetUpDown</c>'s <c>ReportNoFormat</c>) read the source extent through
-/// <c>DataBinder.WrittenText</c>. This file asserts that no SET sender or amount goes back to <c>GetText()</c>.</para>
+/// <c>WrittenSource.Of</c>. This file asserts that no SET sender or amount goes back to <c>GetText()</c>.</para>
 /// <para>Proven to FAIL before it was trusted: <see cref="ThePatternThisTestKeysOn_FiresOnTheDefect"/> feeds the
 /// matcher the exact lines the tree carried and asserts it catches them and passes their repaired forms.</para>
 /// </summary>
@@ -54,7 +55,7 @@ public sealed class SetSenderWrittenTextDriftTests
         }
         Assert.True(offenders.Count == 0,
             "A SET sender or amount is named by GetText(), which prints a rewritten ZERO as '0' and glues the tokens "
-            + "of an expression (kb/Work PB4209). Use DataBinder.WrittenText. Sites: " + string.Join(", ", offenders));
+            + "of an expression (kb/Work PB4209). Use WrittenSource.Of. Sites: " + string.Join(", ", offenders));
     }
 
     /// <summary>⛔ THE GATE FIRES. The defect half is the text the tree carried; the repaired half is its replacement.</summary>
@@ -65,8 +66,8 @@ public sealed class SetSenderWrittenTextDriftTests
         Assert.Matches(TokenTextOfSender, "_fmt.ReportNoFormat(recvs, kinds, SetDirections.UpDown, amount.GetText());");
         Assert.Matches(TokenTextOfSender, "SetSender(dref.GetText(), dref, null, null)");
         Assert.Matches(TokenTextOfSender, "new(dref.GetText(), dref, null, null)");
-        Assert.DoesNotMatch(TokenTextOfSender, "        string senderText = DataBinder.WrittenText(amount);");
-        Assert.DoesNotMatch(TokenTextOfSender, "new(DataBinder.WrittenText(dref), dref, null, null)");
-        Assert.DoesNotMatch(TokenTextOfSender, "string text = DataBinder.WrittenText(amount);");
+        Assert.DoesNotMatch(TokenTextOfSender, "        string senderText = WrittenSource.Of(amount);");
+        Assert.DoesNotMatch(TokenTextOfSender, "new(WrittenSource.Of(dref), dref, null, null)");
+        Assert.DoesNotMatch(TokenTextOfSender, "string text = WrittenSource.Of(amount);");
     }
 }

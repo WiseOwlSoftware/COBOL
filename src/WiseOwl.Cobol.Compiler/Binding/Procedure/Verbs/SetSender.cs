@@ -4,6 +4,7 @@ using Antlr4.Runtime;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -60,7 +61,7 @@ internal sealed record SetSender(string Text, Core.DataReferenceContext? Ref, Bo
     public static SetSender OfExpression(string text) => new(text, null, null, null);
 
     /// <summary>A bare data reference sender, still to be resolved by the format that takes it.</summary>
-    public static SetSender OfReference(Core.DataReferenceContext dref) => new(DataBinder.WrittenText(dref), dref, null, null);
+    public static SetSender OfReference(Core.DataReferenceContext dref) => new(WrittenSource.Of(dref), dref, null, null);
 }
 
 /// <summary>⛔ THE ONE CLASSIFIER OF A SET SENDER (kb/Work PB1399 + PB1929 — "fix both through one sender
@@ -80,7 +81,7 @@ internal sealed class SetSenders(StatementBinder host)
     public SetSender Classify(Core.ArithmeticExpressionContext amount)
     {
         // As written: GetText() prints a bare ZERO as its rewritten ZERO_ARITH token "0" (kb/Work PB4209, PB3961).
-        string text = DataBinder.WrittenText(amount);
+        string text = WrittenSource.Of(amount);
         if (ConditionBinder.SoleFunctionCall(amount) is { } fc)
             return Identified(fc, host.Intrinsic.BindIntrinsic(fc));
         // SELF / SUPER (Format 6) are carried by NAME: the SET rules speak of them as such (kb/Work PB1425). They parse
@@ -91,7 +92,7 @@ internal sealed class SetSenders(StatementBinder host)
             // PB4153): reported once here, so no SET format meets a sender of a facility the edition does not have.
             if (host.Oo.UnreservedPredefinedObjectRefusal(predefined) is { } refused)
                 return Identified(predefined, refused);
-            return new SetSender(DataBinder.WrittenText(amount), null, null, predefined, predefined);
+            return new SetSender(WrittenSource.Of(amount), null, null, predefined, predefined);
         }
         // An inline invocation or an object-view (Formats 4 and 5) references a temporary item, bound once here.
         if (ConditionBinder.SoleOoIdentifier(amount) is { } ooId)
@@ -105,7 +106,7 @@ internal sealed class SetSenders(StatementBinder host)
 
         // The identifier's own text is spelled as written ("FUNCTION MAX (IA IB)"), never run together.
         SetSender Identified(ParserRuleContext syntax, BoundExpr bound) =>
-            new(DataBinder.WrittenText(amount), null, bound, syntax);
+            new(WrittenSource.Of(amount), null, bound, syntax);
     }
 
     /// <summary>True when the identifier's own binder already reported — the statement stops there, with no second

@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -44,7 +45,7 @@ public sealed partial class FileControlBinder
             {
                 string? one = reading.Value.Category is PicCategory.Alphanumeric && reading.Value.Value.Length == 1
                     ? reading.Value.Value : null;
-                if (one is null) ReportPaddingLiteral(dref.GetText(), $"the constant-name '{dref.GetText()}' stands for literal-1, ");
+                if (one is null) ReportPaddingLiteral(dref.GetText(), $"the constant-name '{WrittenSource.Of(dref)}' stands for literal-1, ");
                 return new PaddingCharacterSpec { Literal = one ?? dref.GetText(), At = Edition.Cursor };
             }
             // A symbolic-character is a figurative constant (§1985:IV.4.2.2.2.3 GR7; §2023:8.3.3.6.3 SR4), so it stands where the

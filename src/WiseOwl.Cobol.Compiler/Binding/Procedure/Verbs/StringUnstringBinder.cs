@@ -44,7 +44,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             values[i] = StrUnstrOperand(phrases[i].strUnstrOperand(), "STRING sending operand");
             if (BeginsWithAllWord(phrases[i].strUnstrOperand(), values[i]))   // SR2 — literal-1 shall not be a figurative beginning with the word ALL (a bare symbolic character is not — PB110)
                 values[i] = BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
-                    $"STRING sending operand '{DataBinder.WrittenText(phrases[i].strUnstrOperand())}' is a figurative constant that "
+                    $"STRING sending operand '{WrittenSource.Of(phrases[i].strUnstrOperand())}' is a figurative constant that "
                     + $"begins with the word ALL, which literal-1 {ctx.Edition.Edition.Cite("must not be", "shall not be")} (ISO {Sr(false, 2)})",
                     $"STRING sending ALL literal (ISO {Sr(false, 2)})");
             // ⛔ SR1 IS ONE SENTENCE ABOUT EVERY OPERAND OF THE STATEMENT, and it was enforced at ONE of its
@@ -54,9 +54,9 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             // nothing upstream refused the operand — and `STRING <COMP> …` / `STRING <INDEX> …` / a NUMERIC
             // literal-1 were accepted the same way. The receiver arm had the screen; the sending arm did not.
             if (Sr1Offence(values[i], ctx.Edition.Edition) is { } sendOffence)
-                return Sr1Reject($"STRING sending operand '{DataBinder.WrittenText(phrases[i].strUnstrOperand())}'", sendOffence);
+                return Sr1Reject($"STRING sending operand '{WrittenSource.Of(phrases[i].strUnstrOperand())}'", sendOffence);
             if (Sr8Offence(values[i]) is { } sendSr8)
-                return Reject($"STRING sending operand '{DataBinder.WrittenText(phrases[i].strUnstrOperand())}' {sendSr8} (ISO {Sr(false, 8)})");
+                return Reject($"STRING sending operand '{WrittenSource.Of(phrases[i].strUnstrOperand())}' {sendSr8} (ISO {Sr(false, 8)})");
             if (phrases[i].delimitedByPhrase() is not { } dp) continue;
             hasPhrase[i] = true;
             if (dp.SIZE() is not null) { bySize[i] = true; continue; }
@@ -64,19 +64,19 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             // SR2 — literal-2 shall not be an ALL figurative; the grammar's (ALL)? token is not in the ISO format.
             if (dp.ALL() is not null || BeginsWithAllWord(dp.strUnstrOperand(), d))
                 d = BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
-                    $"STRING DELIMITED BY '{(dp.ALL() is not null ? "ALL " : "")}{DataBinder.WrittenText(dp.strUnstrOperand())}': the delimiter is a figurative constant that begins with "
+                    $"STRING DELIMITED BY '{(dp.ALL() is not null ? "ALL " : "")}{WrittenSource.Of(dp.strUnstrOperand())}': the delimiter is a figurative constant that begins with "
                     + $"the word ALL, which literal-2 {ctx.Edition.Edition.Cite("must not be", "shall not be")} (ISO {Sr(false, 2)})",
                     $"STRING DELIMITED BY ALL literal (ISO {Sr(false, 2)})");
             if (Sr1Offence(d, ctx.Edition.Edition) is { } delimOffence)     // identifier-2 / literal-2 — SR1's second named position
-                return Sr1Reject($"STRING DELIMITED BY '{DataBinder.WrittenText(dp.strUnstrOperand())}'", delimOffence);
+                return Sr1Reject($"STRING DELIMITED BY '{WrittenSource.Of(dp.strUnstrOperand())}'", delimOffence);
             // SR3 — literal-2 shall not be a zero-length literal (§2023:8.3.3.1: contiguous delimiters). The run-time kernel
             // reads a zero-length delimiter as DELIMITED BY SIZE, which is GR3 b)'s rule for a zero-length IDENTIFIER-2
             // and is no licence for a zero-length literal-2 (kb/Work PB1181).
             if (IsZeroLengthLiteral(d))
-                return Reject($"STRING DELIMITED BY {DataBinder.WrittenText(dp.strUnstrOperand())}: literal-2 is a zero-length literal "
+                return Reject($"STRING DELIMITED BY {WrittenSource.Of(dp.strUnstrOperand())}: literal-2 is a zero-length literal "
                     + $"(ISO {Sr(false, 3)}{ctx.Edition.Edition.Cite("", "; §2023:8.3.3.1")})");
             if (Sr8Offence(d) is { } delimSr8)
-                return Reject($"STRING DELIMITED BY '{DataBinder.WrittenText(dp.strUnstrOperand())}' {delimSr8} (ISO {Sr(false, 8)})");
+                return Reject($"STRING DELIMITED BY '{WrittenSource.Of(dp.strUnstrOperand())}' {delimSr8} (ISO {Sr(false, 8)})");
             delims[i] = d;
         }
         // Back-propagate each DELIMITED phrase over its preceding phraseless run (the general format attaches the
@@ -98,7 +98,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // sending resolver these sites used knew none of them.
         if (host.Expr.ResolveReceiving(st.stringIntoPhrase().receivingIdentifier()) is not { } into)
             return new BoundUnsupported("STRING INTO operand");   // the chokepoint reported it — not a deferral (kb/Work PB236)
-        string intoText = DataBinder.WrittenText(st.stringIntoPhrase().receivingIdentifier());
+        string intoText = WrittenSource.Of(st.stringIntoPhrase().receivingIdentifier());
         // §2023:14.9.43.3 SR4–SR6, SR11 — bind-time rejections (kb/Work PB88: each was a run-time loud stage on ILLEGAL
         // source, the wrong-stage family; the statement compiled clean and died when control reached it).
         if (into is RefModPlace)
@@ -143,10 +143,10 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             if (host.Expr.ResolveReceiving(pd) is not { } pp)
                 return new BoundUnsupported("STRING POINTER operand");   // identifier-4 is a receiver — the chokepoint reported it (kb/Work PB429)
             if (!StrUnstrIsInteger(pp))
-                return Reject($"STRING WITH POINTER '{DataBinder.WrittenText(pd)}': identifier-4 shall be an elementary numeric integer "
+                return Reject($"STRING WITH POINTER '{WrittenSource.Of(pd)}': identifier-4 shall be an elementary numeric integer "
                     + $"data item without the symbol P (ISO {Sr(false, 7)})");
             if (PointerTooSmall(pp, into))
-                return Reject($"STRING WITH POINTER '{DataBinder.WrittenText(pd)}': identifier-4 is too small to contain 1 plus the size of "
+                return Reject($"STRING WITH POINTER '{WrittenSource.Of(pd)}': identifier-4 is too small to contain 1 plus the size of "
                     + $"identifier-3 '{intoText}' (ISO {Sr(false, 7)})");
             pointer = pp;
         }
@@ -172,7 +172,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     public BoundStatement BindUnstring(Core.UnstringStatementContext un)
     {
         // DA4: the sender is an identifier, so it may be a function-identifier (§2023:14.9.48.2 + §2023:8.4.3.1.2 Format 1).
-        string senderText = DataBinder.WrittenText(un.strUnstrSender());
+        string senderText = WrittenSource.Of(un.strUnstrSender());
         var source = StrUnstrSender(un.strUnstrSender(), $"UNSTRING source '{senderText}'");
         if (source is BoundOperandError) return new BoundUnsupported($"UNSTRING source '{senderText}'");
         // ⛔ identifier-1 IS AN IDENTIFIER, NOT A LITERAL SLOT (kb/Work PB1182). §2023:13.10.3 SR2 lets a constant-name stand
@@ -208,7 +208,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 // SR1 — literal-1 and literal-2 shall be neither a figurative constant that begins with the word ALL
                 // nor a zero-length literal (kb/Work PB1181). `ALL ALL ","` and `ALL ALL SPACES` are the ALL phrase
                 // followed by exactly such a figurative; the fold below would otherwise read both ALLs as one.
-                string delimText = DataBinder.WrittenText(item.strUnstrOperand());
+                string delimText = WrittenSource.Of(item.strUnstrOperand());
                 if (all && BeginsWithAllWord(item.strUnstrOperand(), v))
                     return Reject($"UNSTRING DELIMITED BY ALL: the delimiter '{delimText}' is a figurative constant that "
                         + $"begins with the word ALL, which literal-1 and literal-2 shall not be (ISO {Sr(true, 1)})");
@@ -261,7 +261,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                     : !UnstringReceiverAllowed(target.Item.Pic)))
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CharacterOperandUsage,
-                    $"UNSTRING INTO '{DataBinder.WrittenText(drefs[0])}' requires "
+                    $"UNSTRING INTO '{WrittenSource.Of(drefs[0])}' requires "
                     + ctx.Edition.Edition.Cite(
                         "a usage-display alphabetic, alphanumeric or numeric receiver, a numeric one without the symbol P; "
                         + "edited, COMP, packed, index and float receivers have no character image (ISO §1985:VI.6.27.3 SR3)",
@@ -272,7 +272,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 return Reject("UNSTRING DELIMITER IN / COUNT IN: the DELIMITED BY phrase shall be specified when either "
                     + $"is written (ISO {Sr(true, 7)})");
             if (target.Item.IsGroup && DataItem.HasVariableLengthSubordinate(target.Item))
-                return Reject($"UNSTRING INTO '{DataBinder.WrittenText(drefs[0])}' shall not reference a variable-length group (ISO {Sr(true, 10)}; §2023:8.5.1.12)");
+                return Reject($"UNSTRING INTO '{WrittenSource.Of(drefs[0])}' shall not reference a variable-length group (ISO {Sr(true, 10)}; §2023:8.5.1.12)");
             int next = 1;
             Place? delimIn = null, countIn = null;
             if (hasDelim)
@@ -282,7 +282,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 // identifier-5 is SR2's fourth name (kb/Work PB155) — the delimiter RECEIVER shares the
                 // category rule, not SR4's receiver list.
                 if (Sr2OffendingCategory(d5) is { } badD5)
-                    return Reject($"UNSTRING DELIMITER IN '{DataBinder.WrittenText(drefs[next])}' is category {badD5} "
+                    return Reject($"UNSTRING DELIMITER IN '{WrittenSource.Of(drefs[next])}' is category {badD5} "
                         + "(identifier-5 shall reference a data item of category alphanumeric or national, "
                         + $"ISO {Sr(true, 2)})");
                 delimIn = d5;
@@ -293,7 +293,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 if (host.Expr.ResolveReceiving(drefs[next]) is not { } c6)
                     return new BoundUnsupported("UNSTRING COUNT IN operand");   // identifier-6 is a receiver — the chokepoint reported it (kb/Work PB429)
                 if (!StrUnstrIsInteger(c6))
-                    return Reject($"UNSTRING COUNT IN '{DataBinder.WrittenText(drefs[next])}': identifier-6 shall reference an integer "
+                    return Reject($"UNSTRING COUNT IN '{WrittenSource.Of(drefs[next])}': identifier-6 shall reference an integer "
                         + $"data item without the symbol P (ISO {Sr(true, 5)})");
                 countIn = c6;
             }
@@ -331,10 +331,10 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             if (host.Expr.ResolveReceiving(pd) is not { } pp)
                 return new BoundUnsupported("UNSTRING POINTER operand");   // identifier-7 is a receiver — the chokepoint reported it (kb/Work PB429)
             if (!StrUnstrIsInteger(pp))
-                return Reject($"UNSTRING WITH POINTER '{DataBinder.WrittenText(pd)}': identifier-7 shall be an elementary numeric integer "
+                return Reject($"UNSTRING WITH POINTER '{WrittenSource.Of(pd)}': identifier-7 shall be an elementary numeric integer "
                     + $"data item without the symbol P (ISO {Sr(true, 6)})");
             if (source is BoundFieldOperand { Place: var sizedSender } && PointerTooSmall(pp, sizedSender))
-                return Reject($"UNSTRING WITH POINTER '{DataBinder.WrittenText(pd)}': identifier-7 is too small to contain 1 plus the size of "
+                return Reject($"UNSTRING WITH POINTER '{WrittenSource.Of(pd)}': identifier-7 is too small to contain 1 plus the size of "
                     + $"identifier-1 '{senderText}' (ISO {Sr(true, 6)})");
             pointer = pp;
         }
@@ -344,7 +344,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             if (host.Expr.ResolveReceiving(td) is not { } tp)
                 return new BoundUnsupported("UNSTRING TALLYING operand");   // identifier-8 is a receiver — the chokepoint reported it (kb/Work PB429)
             if (!StrUnstrIsInteger(tp))
-                return Reject($"UNSTRING TALLYING IN '{DataBinder.WrittenText(td)}': identifier-8 shall reference an integer data item "
+                return Reject($"UNSTRING TALLYING IN '{WrittenSource.Of(td)}': identifier-8 shall reference an integer data item "
                     + $"without the symbol P (ISO {Sr(true, 5)})");
             tallying = tp;
         }
@@ -429,8 +429,8 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     {
         using var operandAt = ctx.Edition.At(dref);   // the operand's own position, not the statement's (kb/Work PB4383)
         var op = host.Expr.FieldOperand(dref);
-        return host.Expr.ScreenIndexNameOperand(op, DataBinder.WrittenText(dref), role)
-            ? BoundOperandError.Refused(ctx.Edition, $"{role}: the index-name '{DataBinder.WrittenText(dref)}' (ISO §2023:13.18.38.3 r7)")
+        return host.Expr.ScreenIndexNameOperand(op, WrittenSource.Of(dref), role)
+            ? BoundOperandError.Refused(ctx.Edition, $"{role}: the index-name '{WrittenSource.Of(dref)}' (ISO §2023:13.18.38.3 r7)")
             : op;
     }
 

@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime.Exceptions;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -225,7 +226,7 @@ internal sealed partial class EcBinder
     private FileModel? ResolveWhenFile(Antlr4.Runtime.ParserRuleContext written)
     {
         if (ctx.Symbols.Identify(written, NameClass.File, report: true) is { Symbol: FileModel file }) return file;
-        string name = written.GetText();
+        string name = WrittenSource.Of(written);
         ctx.Edition.Error(DiagnosticCatalog.PerformWhenFileUnknown, $"WHEN names unknown file '{name}' (ISO §2023:14.9.28.2 Format 3)");
         return null;
     }
@@ -390,7 +391,7 @@ internal sealed partial class EcBinder
         {
             using var at = ctx.Edition.At(transfer);   // the statement, not the PERFORM
             ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformFinallyTransferOut,
-                $"'{DataBinder.WrittenText(transfer)}' transfers control out of the PERFORM statement, and it is written "
+                $"'{WrittenSource.Of(transfer)}' transfers control out of the PERFORM statement, and it is written "
                 + "in the FINALLY phrase (imperative-statement-5) of an exception-checking PERFORM (ISO §2023:14.9.28.4 GR16)");
         }
 

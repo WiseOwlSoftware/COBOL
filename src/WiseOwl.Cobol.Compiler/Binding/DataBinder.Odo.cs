@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -207,7 +208,7 @@ public sealed partial class DataBinder
         if (quals.Count == 0) return name;
         using var _ = Edition.At(capRef);
         Edition.Error(DiagnosticCatalog.ClauseOperandNotADataName, $"{where}: OCCURS DYNAMIC CAPACITY IN "
-            + $"'{WrittenText(capRef)}' is qualified; data-name-3 is DEFINED by the phrase (ISO §2023:13.18.38.3 SR30), "
+            + $"'{WrittenSource.Of(capRef)}' is qualified; data-name-3 is DEFINED by the phrase (ISO §2023:13.18.38.3 SR30), "
             + "and a defining occurrence is a bare data-name whose qualification SR30 itself supplies");
         return null;
     }

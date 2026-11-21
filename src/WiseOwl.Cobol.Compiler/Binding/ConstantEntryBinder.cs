@@ -9,6 +9,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -410,7 +411,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         if (nn.figurativeConstant() is not null)
         {
             owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: literal-1 shall not be a figurative "
-                + $"constant (ISO §2023:13.10.3 SR6; '{DataBinder.WrittenText(nn)}')");
+                + $"constant (ISO §2023:13.10.3 SR6; '{WrittenSource.Of(nn)}')");
             return null;
         }
         // The predefined NULL is an identifier, not literal-1, and §2023:13.10.3 SR7 makes every operand of
@@ -438,7 +439,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         : nn.HEXLIT() is { } x ? new(PicCategory.Alphanumeric, CobolLiteral.DecodeHex(x.GetText()))
         : nn.NATLIT() is { } nat ? new(PicCategory.National, CobolLiteral.Decode(nat.GetText()))
         : nn.BOOLLIT() is { } b ? new ConcatFolder.Folded(PicCategory.Boolean, CobolLiteral.Decode(b.GetText()))
-        : throw new InvalidOperationException($"{where}: nonNumericLiteral alternative '{nn.GetText()}' has no "
+        : throw new InvalidOperationException($"{where}: nonNumericLiteral alternative '{WrittenSource.Of(nn)}' has no "
             + "decoding — the grammar rule grew an arm this decoder does not read");
 
     /// <summary>The arithmetic-expression AS form. §2023:13.10.3 SR1 first: an operand that is a SINGLE numeric
@@ -534,7 +535,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         // The phrase and operand as §2023:13.10.2 names them, for every diagnostic below.
         string phrase = bytes ? "BYTE-LENGTH OF" : "LENGTH OF";
         string operand = bytes ? "data-name-1" : "data-name-2";
-        string written = DataBinder.WrittenText(dref);
+        string written = WrittenSource.Of(dref);
         // ⛔ THE ONE DECOMPOSITION (ReferenceResolver.ReadWritten, kb/Work PB443/PB1016). This walked the suffix
         // list itself and looked only at a suffix's OWN subscript part, so a subscript hung off a qualification
         // (`CELL OF ROWX (3 2)`) was neither SR3-checked nor counted, and a separately parsed refModPart was

@@ -129,7 +129,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
         foreach (var entry in al.alterEntry())
         {
             if (entry.procedureName() is not { Length: >= 2 } names)
-                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"ALTER '{entry.GetText()}': each ALTER entry is procedure-name-1 TO "
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"ALTER '{WrittenSource.Of(entry)}': each ALTER entry is procedure-name-1 TO "
                     + "[PROCEED TO] procedure-name-2 (X3.23-1985 ALTER statement)");
             // ⛔ BOTH ALTER OPERANDS ARE procedure-names AND GO THROUGH THE ONE RESOLUTION (kb/Work PB390):
             // an unresolvable name is reported at COMPILE time, not staged to a run-time abort blaming a gap in
