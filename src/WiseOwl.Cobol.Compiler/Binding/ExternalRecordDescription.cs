@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
@@ -24,14 +25,21 @@ namespace WiseOwl.Cobol.Binding;
 /// (<see cref="ValueSpecificationKey"/>), null when the record name writes none.</param>
 /// <param name="StrongTypeKey">The external strong TYPE name, upper-folded, null when the record is not strongly typed.</param>
 /// <param name="ConstantRecord">Whether the record writes the CONSTANT RECORD clause.</param>
-internal readonly record struct ExternalRecordDescription(int ByteCount, string? ValueSpecification, string? StrongTypeKey, bool ConstantRecord)
+/// <param name="VariableLength">Whether the record is a variable-length record, one holding a dynamic-length item or a
+/// dynamic-capacity table (<see cref="FileModel.IsVariableLengthRecord"/>, §2014:8.5.1.9): its number of bytes is set at run
+/// time, not by its description, so <paramref name="ByteCount"/> is not a size the description defines, and a description of
+/// its table that does not agree with the table's internal format is the run time's EC-DATA-INCOMPATIBLE
+/// (§2014:14.6.12.2, its rule 6).</param>
+internal readonly record struct ExternalRecordDescription(int ByteCount, string? ValueSpecification, string? StrongTypeKey, bool ConstantRecord,
+    bool VariableLength)
 {
     /// <summary>The description <paramref name="backing"/>'s source element gives of its external record.</summary>
     public static ExternalRecordDescription Of(CallExternalBacking backing) => new(
         backing.Width,
         backing.Record.RawValue is { } rv ? ValueSpecificationKey(rv) : null,
         backing.Record.StrongType && backing.Record.TypeName is { } tn ? CobolNames.UpperFold(tn) : null,
-        backing.Record.IsConstantRecord);
+        backing.Record.IsConstantRecord,
+        FileModel.IsVariableLengthRecord(backing.Record));
 
     /// <summary>⛔ THE VALUE-IDENTITY KEY OF A RECORD NAME'S VALUE CLAUSE (kb/Work PB1236). §2023:13.18.22.4 GR6 compares the
     /// specification, and a literal's CHARACTERS are its content: "ABCD" and "abcd" are two different VALUE clauses. Only the

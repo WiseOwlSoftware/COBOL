@@ -73,10 +73,13 @@ internal static class ExternalRecordDescriptionRules
     }
 
     /// <summary>What the edition's rule compares and <paramref name="b"/> does not share with <paramref name="a"/>, or null when
-    /// they agree. COBOL-85 compares the size alone: its EXTERNAL record writes no VALUE clause (§1985:X.4.5.3 SR3).</summary>
+    /// they agree. COBOL-85 compares the size alone: its EXTERNAL record writes no VALUE clause (§1985:X.4.5.3 SR3). The size of a
+    /// variable-length record is not its description's (<see cref="ExternalRecordDescription.VariableLength"/>), so it is not
+    /// compared: a description of its dynamic-capacity table that disagrees is EC-DATA-INCOMPATIBLE at run time (§2014:14.6.12.2
+    /// rule 6, the suite's pb1042_dyn_table_agreement).</summary>
     private static string? Difference(ExternalRecordDescription a, ExternalRecordDescription b, EditionContext edition)
     {
-        if (a.ByteCount != b.ByteCount)
+        if (!a.VariableLength && !b.VariableLength && a.ByteCount != b.ByteCount)   // a variable-length record's size is the run time's
             return $"their size ({b.ByteCount} {edition.Edition.Cite("character positions", "bytes")} against {a.ByteCount})";   // each text's own unit
         if (edition.DialectLevel >= 2002 && !string.Equals(a.ValueSpecification, b.ValueSpecification, StringComparison.Ordinal))
             return $"the VALUE clause of the record name ({Shown(b.ValueSpecification)} against {Shown(a.ValueSpecification)})";

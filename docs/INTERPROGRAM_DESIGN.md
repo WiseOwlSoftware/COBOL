@@ -128,6 +128,23 @@ record"* (§1985:IV.4.3.8.1 SR4), so only a program and its containers and conta
 which a compilation group stands for, so every program, and a class's object and factory halves, are compared. Separately compiled
 programs are the run time's (`ExternalTable`).
 
+**The agreement of one external record's descriptions** (COBOL7735, kb/Work PB5996) is the same kind of rule, asked of the same
+population right after it: `ExternalRecordDescriptionRules.Check`. Every edition requires the source elements of a run unit that
+describe one external data record to describe it alike: §1985:X.4.5.4 GR2 *"the records must define the same number of standard data
+format characters"*; §2002:13.16.20.3 GR4 and §2014:13.18.22.3 GR4 add *"the VALUE clause specification, if any, for each record name
+of the associated record description entries shall be identical"*; §2023:13.18.22.4 GR6 is the same rule. What is compared is
+`ExternalRecordDescription` (size, the record name's VALUE key, the external strong type, CONSTANT RECORD), the ONE description the
+run time's registration emits too (`OoEmitter.EmitExternalDescribes` → `ExternalTable.Describe`), so compile time and run time read
+one definition of "the same description"; a complete REDEFINES contributes nothing, as each text exempts it. **Where it is asked is
+the edition's**: below 2023 no text states a consequence (§1985:I.1.6: undefined), so the compiler refuses a disagreement wherever it
+sees both descriptions, in one compilation group, at 85, 2002 and 2014, as it refuses an external file connector's disagreeing
+entries (COBOL6847); at 2023 the text specifies the outcome, EC-EXTERNAL-FORMAT-CONFLICT at the describing element's activation when
+it is enabled (§2023:14.8.4.3), so the rule stays the run time's there and a program of one compilation group reaches it
+(`conformance:ec_external_format_conflict`). From 2002 the records of an EXTERNAL file description are one external record whose
+externalized name is the file's (§2002:13.16.20.3 GR2b, GR3; the `FD::` area) and are compared like any other; at 85 their size is the
+file description entry's own rule (§1985:VII.3.8.4 GR2, COBOL6847), so they are not compared twice. Separately compiled programs at 85
+are compared by nothing (docs/conformance/3/D-85-EXTERNAL-FD-AGREEMENT.md).
+
 **FORMATION is the mapping's other half, and it lives in the same place** (`WiseOwl.Cobol.Runtime.ExternalizedNames`,
 DOC-A.1-68; kb/Work PB1539): `Form` removes a name's leading and trailing SPACES, `Same` / `Comparer` ignore case.
 Both sides of every lookup ask it — the bind-time AS screen (`ExternalizedName.Screen`, which warns COBOL2642

@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalRecordDescription.cs#ValueSpecificationKey",
  "test-ref": "conformance:cases/13.16.20@2002-EXTERNAL-CLAUSE/g2-external-complete-redefines",
- "notes": "§2002:13.16.20.3 GR4 (with GR1): one source element redefines the complete external record and the other does not; both share its 8 bytes. --std 2002 output 'P1 ALT WXYZ1234 / P2 SEES WXYZ1234 / P1 AFTER ABCD 5678 ABCD5678' equals the derivation."
+ "notes": "§2002:13.16.20.3 GR4 (with GR1): one source element redefines the complete external record and the other does not; both share its 8 bytes. --std 2002 output 'P1 ALT WXYZ1234 / P2 SEES WXYZ1234 / P1 AFTER ABCD 5678 ABCD5678' equals the derivation. retired-witness: src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#ValueSpecificationKey (the member moved to src/WiseOwl.Cobol.Compiler/Binding/ExternalRecordDescription.cs#ValueSpecificationKey, the one description the run-time registration and the compile-time agreement read, kb/Work PB5996)"
 }
