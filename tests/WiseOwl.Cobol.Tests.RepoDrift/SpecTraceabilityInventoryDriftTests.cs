@@ -1614,9 +1614,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // ⚙ Twelve more, added deliberately (kb/Work PB5822, signature `claude: 2026-11-16`): the first derivations on
             // chained rows, each argued one standing on the UPHELD record of an independent cobol-refuter pass,
             // tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl (§8 DRV-1985-… and DRV-1989-RV-…).
+            // Eleven remain: 1989-RV-A.2.46.3-3 left the list when the listing populated its antecedent and the
+            // row took its own witness (kb/Work PB5926, ruling D-B).
             "1985-GR-VI.6.17.4-7", "1985-GR-XI.4.4.4-4", "1985-GR-VI.6.25.4-12", "1985-GR-VI.6.27.4-21",
             "1985-GR-VI.6.10.4-10", "1989-RV-A.2.11.3-2", "1989-RV-A.2.11.3-3", "1989-RV-A.2.22.4-3",
-            "1989-RV-A.2.46.3-3", "1985-GR-XI.4.1.4-10", "1985-GR-XIII.3.21.4-1", "1989-RV-A.2.19.4-3",
+            "1985-GR-XI.4.1.4-10", "1985-GR-XIII.3.21.4-1", "1989-RV-A.2.19.4-3",
             // ⚙ Five more, added deliberately (kb/Work PB5822 and PB5831, signature `claude: 2026-11-16`): two on
             // `unpopulatable-antecedent` over one physical extent, one on D-MEDIUM-85, and two on the sixth arm
             // `unfalsifiable-under-determination` (DOC-A.1-197), each on the UPHELD record of the second and third refuter passes,
