@@ -1,4 +1,4 @@
-## The 1985 name table: one resolver over GR1's set, a report verb that names the hider, and 1985 clauses in its messages
+## Entry 3881 — 2026-11-20 18:27 PST — The 1985 name table: one resolver over GR1's set, a report verb that names the hider, and 1985 clauses in its messages
 
 Wave 20262112 group A, kb/Work PB5975, PB5976 and PB5978 (the 1985 half), one root: the symbol table's cross-program name
 resolution (`src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/`).
@@ -53,3 +53,4 @@ pb5976-own-data-name-hides-global-report-generate-85. Three misleading messages 
 PB5979 (a qualified operand printed run together, `XOFQ`), PB5980 (the file verbs do not name the declaration that hides a
 GLOBAL file, PB5976's sibling) and an addendum to PB5978 (COBOL2326 cites §1985:VI.6.23.3 SR2, which the program satisfies,
 where §1985:VI.6.23.4 GR3c is the rule it breaks).
+
