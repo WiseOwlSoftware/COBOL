@@ -313,6 +313,11 @@ they close nothing.
      next, since the 1985 PDF prints a list one item per line (§1985:IV.4.2.2.1.1, page 152) and its transcription keeps
      no blank line between them. A clause may print more than one list (§1985:IV.4.2.2.1.1 two, §1985:X.1.3.8 five):
      a list starts where an item's number is not the last item's next, and point 2 numbers each (kb/Work PB5998).
+     A list is HELD (no unit) PER LIST, by its marker, never per clause (kb/Work PB6001): a content-keyed block
+     disposition holds the list its scan measured, which is the edition's rule ordinal (1985's `(n)`, ISO's `n)`/`n.`),
+     and a later list of the same clause printed in another marker is units (§1985:IV.4.2.2.1.3, page 154: its `(n)`
+     list is disposed `not-rules`, its "1. required words" list is `L2.1` to `L2.3`); a rule's own text holds every list
+     (`text_units.segment`'s `held`). Each unit records the lines its text holds (`Unit.lines`), a held list's never.
    - **Not units at all**: a NOTE or EXAMPLE (it stays inside the unit it follows), a general format, and code. Text of
      these kinds that the transcription failed to mark (an unmarked NOTE, a format line outside its fence) is a
      transcription defect: it is repaired as the page prints it (`scripts/render-spec-page.py <page>`) in the landing of
@@ -334,7 +339,11 @@ they close nothing.
      both cells empty (ALLOCATE, CANCEL, CLOSE, ...) are expected to be `restates` of their statement's general-format
      row, checked mechanically (that row holds no conditional phrase and no `END-` terminator) and refuted. The
      fourteen held 1985 records (step PB5454) name the Table 12 rows of their statements and §2023:14.5.1's paragraph
-     rows as their 2023 targets.
+     rows as their 2023 targets. A table the transcription holds in HTML markup (the 1985 text holds sixteen) is read
+     as a `|` table is, each `<tr>` a row and its first the header (`text_units.html_rows`: one table reading for both
+     markups; kb/Work PB6001, §1985:XIII.3.10.7 and 3.10.9). A caption printed right BELOW a table that had none above
+     numbers it, as the 1985 text captions its tables ("Table 2: Page Heading Group Presentation Rules Table"), unless
+     another table of the clause has that number; a table under another header after it is not its continuation.
 2. **The ids.** A margin paragraph's row is `<kind>-<clause>-p<n>` (2023, PB284's form, unchanged) and
    `<year>-<kind>-<locator>-p<n>` (1985, 2002), where `n` is the paragraph's position among ALL the clause's margin
    paragraphs, counted from its heading, whether or not each has a row: the number is the text's, so deciding one
@@ -403,7 +412,9 @@ they close nothing.
      the refuter record of an argued derivation (one form for every refuter record a checker reads; whichever of
      PB5374 and PB5449 lands first builds it). The RULE CATALOGS audit refuses a disposition without its record, a
      record that is not UPHELD, and a record whose digest is not the unit's; and it holds, per class, that the number
-     of `not-a-rule` dispositions equals the number of UPHELD records keyed to them. The same question one level up,
+     of `not-a-rule` dispositions equals the number of UPHELD records keyed to them. A record is keyed to its unit by
+     the unit's KEY (its clause, its digest, its order; `text_units.keyed_to`), never by the unit's label, which a
+     repair before it in the clause moves while its words and its record stand (kb/Work PB6001). The same question one level up,
      the manifests' existing block disposition `not-rules` (a whole numbered list kept out of the denominator with a
      free-text reason: 4 in 2023, 37 in 1985), takes the same record: its entries are refuted in steps PB5450 (2023)
      and PB5452 (1985), and the audit refuses one without it.
@@ -1334,11 +1345,33 @@ kb/Work PB5256), its change records do not yet.
   (`admitted_kinds`: one kind, a per-item map, a per-sub-list map whose entry may itself be a per-item map, as
   VI.6.3.1.1.2 needs), and `not-rules` records why its list states no requirement (a worked example, an index, a
   technique the text calls one, a glossary entry, the history and the element lists of the appendices, a verbatim
-  restatement of a module paragraph that is admitted). The blocks whose heading names rules that KINDS does not type
+  restatement of a module paragraph that is admitted), and `units` decides the paragraph UNIT BY UNIT
+  (`text_units.UNITS`, kb/Work PB6001): its whole text, its lists included, is segmented into units wherever it lies
+  (outside the normative region too), each disposed like any other. It is the disposition of a block whose refuter
+  overturned `not-rules` where neither admitting the list nor keeping it out is right: §1985:III.2, the glossary, whose
+  rule sentences ("integer must be a numeric literal ...") are no item of its lists, and §1985:B.2.1, whose 107 items
+  summarise changes and mostly restate module rules but item (9) states one no row holds ("50 levels of
+  qualification"). The blocks whose heading names rules that KINDS does not type
   ("Standard Alignment Rules", "Formation and Evaluation Rules", the Report Writer's counter and presentation rules,
   IV.4.2.1 Separators and VI.5.15.6) are entries of the same manifest: there is no second adjudication table in the code.
   `EXCLUDED_BLOCKS` (IV.3, VI.6.4, XIII.3.10) and `KNOWN_EMPTY_BLOCKS` (VI.5.9.6) stay, as in the 2023 arm. The Index and
   the appendices open no rule block: a rule-block heading there is reported.
+- **The catalog's prose holes** (`scripts/spec/catalog_prose_holes.py`, kb/Work PB5924's measure, PB6001's wiring;
+  the fourth term of `edition_status.py`). The unit is a PRINTED paragraph of the normative region (Sections IV, VI to
+  XVI and Section A) as `rule_catalog_1985.parse` walks it, its line recorded; tables in either markup, captions and
+  labels (`RULE_LABEL`), a page's repeated section title, headings, `<pre>` blocks and fragments are no prose, as the
+  segmentation reads them. A printed paragraph is COVERED when a row at or under its locator holds every sentence;
+  or when the unit whose text holds its line (`Unit.lines`) is disposed `restates` or `not-a-rule` on an UPHELD refuter
+  record of the unit's key (`text_units.record_refusal`); or when no unit holds it and its clause's `not-rules` block
+  stands on its record at the digest the text has now (`text_units.block_refusal`: the block's held list). It reads the
+  one store, the content-keyed manifest, through the one segmentation (`extract_rule_catalog.units_1985`): no second
+  reader and no list of paragraphs. A paragraph in a pending unit, in a unit whose record does not stand, or in no
+  unit and no recorded block is counted; the deontic floor and the elsewhere lead are measured over what is counted,
+  and `Holes.discounted` reports each cover by its cause. On 2026-11-21 (branch train85b-cat): 357 before the wiring,
+  17 after (3,862 printed paragraphs covered by a row, 235 by a `restates`, 52 by a `not-a-rule`, 22 by a `not-rules`
+  block; 31 are no prose: 21 lines of the two HTML tables, 5 captions, 5 section titles); the 17 are the pending
+  §1985:IV.4.2.2.1.3 p3 and the 16 printed paragraphs of §1985:VI.6.18.5, a paragraph headed "Examples" that the
+  segmentation keeps out of the units (`EXAMPLES_TITLE`) with no refuter record, so nothing establishes its cover.
 - **The scan's own defects.** The scan prints folios X-11 and X-12 twice (PDF pages 527-528); the transcription keeps
   both copies under `citation.SCAN_REPEAT_85`'s comment, and the catalog reads no rule from the repeat.
 - **The scan's missing pages come from another scan** (kb/Work PB4952, PB5789). Our scan lacks printed pages XIII-30,

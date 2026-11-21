@@ -173,14 +173,16 @@ def holes_part(year: int) -> Part:
     h = catalog_prose_holes.holes(year)
     d = h.as_doc()
     return Part("catalog prose holes", h.count,
-                lines=(f"{h.count} printed paragraphs of the normative region are in no catalog row at or under their "
-                       f"locator ({h.printed_paragraphs} measured, in {d['paragraphs-with-holes']} numbered paragraphs; "
-                       f"{len(h.rowless)} numbered paragraphs have no row at all); no disposition recorded (kb/Work "
-                       "PB5452), none discounted",
+                lines=(f"{h.count} printed paragraphs of the normative region are covered by nothing: in no catalog row "
+                       f"at or under their locator, and in no unit or block disposed on its UPHELD record "
+                       f"({h.printed_paragraphs} measured, in {d['paragraphs-with-holes']} numbered paragraphs; "
+                       f"{len(h.rowless)} numbered paragraphs have no row at all)",
+                       "covered: " + " · ".join(f"{n} by {c}" for c, n in h.discounted.items()) + " (kb/Work PB6001)",
                        f"floor inside it: {h.deontic} deontic sentences in no row; lead: {h.elsewhere} of the paragraphs are "
                        "in a row of another clause"),
                 data={k: d[k] for k in ("printed-paragraphs", "uncovered-paragraphs", "deontic-floor",
-                                        "rowless-paragraphs", "elsewhere-lead", "paragraphs-with-holes", "by-section")})
+                                        "rowless-paragraphs", "elsewhere-lead", "paragraphs-with-holes", "by-section",
+                                        "discounted")})
 
 
 #: The four sources of `status`, as callables of the year: a self-test plants others.
