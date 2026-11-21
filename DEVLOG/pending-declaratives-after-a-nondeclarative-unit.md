@@ -13,3 +13,5 @@ portion". Output at 85 and 2023: `error COBOL2797: ... a DECLARATIVES portion th
 or sentence`. Goldens: pb5987-declaratives-first-legal (accept 85), pb5987-declaratives-after-section and
 -after-paragraph (refused at every edition, COBOL2797). No inventory row closed (the note claimed none). No new code used
 (COBOL7681-COBOL7683 returned). Design doc DESIGN-frontend-grammar.md updated for the grammar shape.
+
+Review round 1 (R1-1): a late portion followed by a paragraph or sentence still failed to parse (COBOL5506). The trailing loops now read `declarativePart sentence* paragraphDefinition*` as one item, so COBOL2797 names the ordering rule wherever the portion stands; goldens pb5987-declaratives-then-paragraph and pb5987-declaratives-section-then-paragraph refuse at all four editions.

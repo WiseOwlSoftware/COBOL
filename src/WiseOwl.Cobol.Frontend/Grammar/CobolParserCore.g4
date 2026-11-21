@@ -708,11 +708,12 @@ procedureDivision
                          // following the procedure division header or a section header". Legal COBOL with no
                          // paragraph at all; NIST/CCVS never exercises it (it always writes paragraph names),
                          // which is why the GnuCOBOL external corpus was what surfaced it (DEVLOG 931).
-      ( paragraphDefinition+ (sectionDefinition | declarativePart)*   // §2023:14.2.1 Format 2's paragraphs (without sections)
-      | sectionDefinition (sectionDefinition | declarativePart)*      // §2023:14.2.1 Format 1's sections, each holding the paragraphs that follow its header
+      ( paragraphDefinition+ (sectionDefinition | declarativePart sentence* paragraphDefinition*)*   // §2023:14.2.1 Format 2's paragraphs (without sections)
+      | sectionDefinition (sectionDefinition | declarativePart sentence* paragraphDefinition*)*      // §2023:14.2.1 Format 1's sections, each holding the paragraphs that follow its header
       )?
       // ⛔ A DECLARATIVES portion is a member of the leading loop OR of a trailing one, never of both for the same source
-      // position: the trailing loops are reached only after a paragraph or a section, so a decision at DECLARATIVES is
+      // position (what follows a late portion, its sentences and paragraphs, is read here so the portion's ordering error
+      // is the one named, never a parser message): the trailing loops are reached only after a paragraph or a section, so a decision at DECLARATIVES is
       // never ambiguous and looks one token (ProcedureDivisionShapeDriftTests, kb/Work PB5987).
     ;
 // ⛔ THE SECTION OWNS ITS PARAGRAPHS IN THE SHAPE, NOT BY A PREDICTION CHOICE (kb/Work PB4230). §2023:14.4.2: "A section
