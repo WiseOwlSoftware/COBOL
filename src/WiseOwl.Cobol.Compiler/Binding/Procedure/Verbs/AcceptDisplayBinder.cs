@@ -53,7 +53,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         // diagnostic (COBOL1637), not the §2023:8.4.2.1 UNDEFINED report the demanding resolve would produce.
         if (ac.receivingIdentifier().dataReference() is { } dref && host.Expr.IndexFieldOf(dref) is not null)
         {
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IndexNameContext, $"ACCEPT receiver '{DataBinder.WrittenText(dref)}' is an index-name — an "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IndexNameContext, $"ACCEPT receiver '{WrittenSource.Of(dref)}' is an index-name — an "
                 + $"index-name is not an identifier (ISO {ctx.Edition.Edition.NotAnIdentifier()}) and ACCEPT is not among the contexts that "
                 + $"may reference one ({ctx.Edition.Edition.Contexts()}); SET a data item to it first ({ctx.Edition.Edition.Cite("§1985:VI.6.23.1", "§2023:14.9.39")})");
         }
@@ -236,9 +236,9 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             string name = dref.cobolWord()?.GetText() ?? dref.GetText();
             if (ctx.Data.Symbols.DeclaresScreenName(name))
                 return ConditionalPhrases.HasFamily(phrases, ConditionalPhraseFamily.Exception)
-                    ? $"'{DataBinder.WrittenText(dref)}' is declared in the SCREEN SECTION, and the ON EXCEPTION / NOT "
+                    ? $"'{WrittenSource.Of(dref)}' is declared in the SCREEN SECTION, and the ON EXCEPTION / NOT "
                       + "ON EXCEPTION phrase appears only in the screen format"
-                    : $"'{DataBinder.WrittenText(dref)}' is declared in the SCREEN SECTION, so this is the screen format "
+                    : $"'{WrittenSource.Of(dref)}' is declared in the SCREEN SECTION, so this is the screen format "
                       + "even though it is spelled exactly like the device format";
         }
         return null;
@@ -255,7 +255,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         Antlr4.Runtime.ParserRuleContext? operand, string format1, string screenFormat) =>
         phrases.ChildCount > 0 && ConditionalPhrases.FirstOf(phrases, ConditionalPhraseFamily.Exception) is { } phrase
             ? $"{verb} {ConditionalPhrases.KindOf(phrase).Words}: "
-              + (operand is null ? "the operand" : $"'{DataBinder.WrittenText(operand)}'")
+              + (operand is null ? "the operand" : $"'{WrittenSource.Of(operand)}'")
               + " is not declared in the SCREEN SECTION, "
               + $"so this is ISO {format1}, which prints no exception phrase — only {screenFormat}, "
               + "prints [NOT] ON EXCEPTION — and the phrase may be syntactically associated with no statement open here "

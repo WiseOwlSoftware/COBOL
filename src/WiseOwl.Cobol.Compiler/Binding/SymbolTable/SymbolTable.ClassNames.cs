@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -193,6 +194,7 @@ public sealed partial class SymbolTable
             var found = Lookup(site, written, want);
             if (found.Ok || found.IsFormal) return found;
             string name = written.GetText();
+            string nameWritten = WrittenSource.Of(written);
 
             // A PARAMETERIZED definition is a skeleton, not a class or interface, so it is never in the table and a reference to
             // it can never resolve (kb/Work PB759). Say which rule, rather than "not defined": the definition IS in the source.
@@ -200,7 +202,7 @@ public sealed partial class SymbolTable
             // as an EXPANDS operand.
             if (_table.IsParameterized(name))
             {
-                edition.Error(code, $"{where} '{name}': '{name}' is a parameterized class or interface (its "
+                edition.Error(code, $"{where} '{nameWritten}': '{nameWritten}' is a parameterized class or interface (its "
                     + "CLASS-ID / INTERFACE-ID paragraph has a USING clause), which may be specified only in the "
                     + "REPOSITORY paragraph — reference an expansion of it, declared with the EXPANDS phrase "
                     + $"({ruleCitation}; ISO §2023:12.3.8.4 GR1/GR7)");
@@ -223,11 +225,11 @@ public sealed partial class SymbolTable
                 cls is { Origin: OoSymbolOrigin.Standard }
                     // The standard class is reached exactly like a written one — through a REPOSITORY class-specifier
                     // (§2023:12.3.8.3 SR6 b): name the missing entry, which is the whole fix.
-                    ? $"{where} '{name}': '{name}' is the standard class BASE (ISO §2023:16.1), but {notDeclared} — "
-                      + $"add `CLASS {name}` to the REPOSITORY paragraph"
+                    ? $"{where} '{nameWritten}': '{nameWritten}' is the standard class BASE (ISO §2023:16.1), but {notDeclared} — "
+                      + $"add `CLASS {nameWritten}` to the REPOSITORY paragraph"
                 : definedInGroup
-                    ? $"{where} '{name}': {kind} of that name is defined in this compilation group, but {notDeclared}"
-                : $"{where} '{name}': no {kind[(kind.IndexOf(' ') + 1)..]} of that name is defined in this compilation "
+                    ? $"{where} '{nameWritten}': {kind} of that name is defined in this compilation group, but {notDeclared}"
+                : $"{where} '{nameWritten}': no {kind[(kind.IndexOf(' ') + 1)..]} of that name is defined in this compilation "
                   + $"group ({ruleCitation})");
             return default;
         }

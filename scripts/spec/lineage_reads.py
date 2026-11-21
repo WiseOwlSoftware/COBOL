@@ -641,7 +641,7 @@ class Suite:
             key = pathlib.PurePath(c.path).with_suffix("").as_posix()
             at = tuple(c.flag.at) if c.flag is not None else ()
             refusal = inputs.diagnostics.get(c.test_id)
-            refuse_at = tuple(str(e) for e in refusal["refuse-at"]) if refusal else ()
+            refuse_at = tuple(str(e) for e in refusal.get("refuse-at", ())) if refusal else ()   # a warn-at entry has none (PB5461)
             sidecar = g.SUITE / g.sidecar_path(g.DIAGNOSTICS_DIR, c.test_id) if refusal else None
             files = [g.SUITE / c.path] + ([sidecar] if sidecar else [])
             cases[key] = CaseInfo(key, g.SUITE / c.path, tuple(dict.fromkeys((*c.accept, *at, *refuse_at))),

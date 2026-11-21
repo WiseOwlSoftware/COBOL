@@ -10,6 +10,7 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Validation;
 
@@ -228,7 +229,7 @@ internal sealed class StatementValidation(DataBinder data)
             return word;
         using var _ = data.Edition.At(operand);
         data.Edition.Error(DiagnosticCatalog.FileNameOperandShape,
-            $"{verb} '{DataBinder.WrittenText(operand)}' — a file-name is a user-defined word naming a file "
+            $"{verb} '{WrittenSource.Of(operand)}' — a file-name is a user-defined word naming a file "
             + "connector, and is written alone: "
             + data.Edition.Edition.Cite(
                 "ISO §1985:IV.4.3.8.1 gives a file-name no qualified format (it appears there only as the qualifier of a "
@@ -245,13 +246,21 @@ internal sealed class StatementValidation(DataBinder data)
                                  bool admitsReportFile, string? statementRule)
     {
         string name = written.GetText();
+        string nameWritten = WrittenSource.Of(written);
         file = data.Symbols.Identify(written, NameClass.File, report: true)?.Symbol as FileModel;
         if (file is not null)
             return admitsReportFile || ScreenReportFileReference(file, verb, statementRule);
+        // §1985:X.1.3.8.2 GR3a: a nearer declaration of the spelling (this program's own data item) hides a container's GLOBAL file, and
+        // then a SELECT of a containing program DOES give the name — the refusal says what the word names here instead (kb/Work PB5980).
+        var hider = data.Symbols.Declared.FileNameHiddenBy(name);
         data.Edition.Error(DiagnosticCatalog.UndefinedReference,
-            $"'{name}' is not defined as a file — {verb} names file-name-1 in its general format, and no SELECT "
-            + "or file description entry in this source element gives that name, so the statement's reference "
-            + $"identifies no resource ({data.Edition.Edition.Quoted()}). Check the spelling, or add the file to the FILE-CONTROL paragraph.");
+            $"'{nameWritten}' is not defined as a file — {verb} names file-name-1 in its general format, and "
+            + (hider is null
+                ? "no SELECT or file description entry in this source element gives that name"
+                : NameResolution.HidingClause(hider.Value, nameWritten, "file-name", data.Edition.Edition))
+            + ", so the statement's reference "
+            + $"identifies no resource ({data.Edition.Edition.Quoted()}). "
+            + (hider is null ? "Check the spelling, or add the file to the FILE-CONTROL paragraph." : "Rename one of the two declarations."));
         return false;
     }
 
@@ -810,6 +819,16 @@ internal sealed class StatementValidation(DataBinder data)
                 + $"description entry of '{hiddenFile.CobolName}', or write the {verb} in the program that describes it.");
             return false;
         }
+        // §1985:X.1.3.8.2 GR3a: this program's own data item of the spelling hides a container's GLOBAL record-name, so the operand
+        // names the data item and the refusal says so, never that no file description entry has such a record (kb/Work PB5980).
+        if (record.Item.CobolName is { } recordName && data.Symbols.Declared.RecordNameHiddenBy(recordName) is { } hider)
+        {
+            data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
+                $"{verb} '{refText}' — {rule}; "
+                + NameResolution.HidingClause(hider, refText, "record-name", data.Edition.Edition)
+                + $", so '{refText}' is not a logical record of a file description entry visible here. Rename one of the two declarations.");
+            return false;
+        }
         DataItem root = record.Item;
         while (root.Parent is { } up) root = up;
         data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
@@ -904,7 +923,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <returns>The table identifier-1 names with the subscripts it wrote, or null after reporting when the statement cannot bind.</returns>
     public ReferenceResolver.TableOperand? ResolveSearchTable(Core.DataReferenceContext dref, string verb, ReferenceResolver refs)
     {
-        string written = dref.GetText();
+        string written = WrittenSource.Of(dref);
         if (refs.ResolveTableOperand(dref) is not { } operand)
         {
             // A name identifying no item is already reported (COBOL1639 — §2023:8.4.2.1 "In order to use a
@@ -1607,7 +1626,7 @@ internal sealed class StatementValidation(DataBinder data)
             if (data.Symbols.FileWhoseRecordIs(root) is not { IsSortMerge: true } sd) return;
             using var _ = data.Edition.At(dref);
             data.Edition.Error(DiagnosticCatalog.SortMergeRecordInIoStatement,
-                $"{verb} '{DataBinder.WrittenText(dref)}' — "
+                $"{verb} '{WrittenSource.Of(dref)}' — "
                 + (ReferenceEquals(root, probe.Item) ? "" : $"'{probe.Item.CobolName}' belongs to ")
                 + $"'{root.CobolName}', a record description entry of the sort-merge file '{sd.CobolName}', and {SortMergeRecordRuleCite}: \"A record description entry associated "
                 + "with file-name-1 shall not be specified in an input-output statement other than following the word "

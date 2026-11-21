@@ -301,6 +301,11 @@ generator refuses a run-time expectation at 85; exit status and abnormal termina
 with no mark (a refusal not yet made a flagged test) or one pinning each use of an obsolete element; otherwise the
 site's first line is the line. The in-process runner requires the code, with that severity, at each line and edition,
 and where the test is also accepted, compares output. Message text lives once, in `DiagnosticCatalog`.
+*As built (kb/Work PB5461):* the layer is one file per test, `wiseowl/diagnostics/<id>.json`, `{"refuse-at": [...], "warn-at": [...],
+"expect": "..."}`: `refuse-at` is the refusal of a test WiseOwl does not accept, and `warn-at` the editions at which WiseOwl compiles
+the test (accepted or flagged there) and reports `expect` as a warning, which `warns` on the test's own manifest entry carries to the
+in-process runner. A flagged test needs the file for one of the two lists. The `lines` and `severity` fields above are not built: a
+flagged test's site is its marked line, and the severity is the key.
 
 ### 3.3 Expected output that is portable
 

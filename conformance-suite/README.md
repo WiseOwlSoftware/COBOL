@@ -86,6 +86,12 @@ the tests pin.
   `ConformanceSuiteTestsBase.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic` compiles it at each and requires the
   front end or the binder to refuse it with that text. A clause pass (design §6 step 2) turns such a test into a
   flagged test with a control.
+- **A program WiseOwl compiles and warns of** has the same file with `warn-at` in place of `refuse-at`, or beside it:
+  `{"warn-at": [<editions>], "expect": "<code or message substring>"}`. Each edition is one the test is accepted or flagged at, and
+  none is also in `refuse-at`. The generator carries it as `warns` on the test's own entry of the wiseowl manifest, and
+  `SuiteTest_IsNoWorseThanItsVerdictAllows` requires the compile to succeed and to report that text as a warning, beside the
+  test's own verdict (an accepted test's output, a flagged test's diagnostic at its marked line). A flagged test whose only
+  WiseOwl behaviour is a warning needs this file and no refusal (kb/Work PB5461).
 - **A WiseOwl compile option** a WiseOwl test needs is its file `wiseowl/options/<id>.json`, `{"<option>": "<value>"}` (`sign-encoding`:
   `ibm` · `ascii`; `numeric-display`: `decimal` · `digits`; `flag-extensions`: `on` · `off`; `repository-update`: `on` · `off`); the generator refuses one for a test of `cases/`. A build step (`wiseowl/options/<id>.<step file>.json`) may also name `std`, an edition (`85` · `2002` · `2014` · `2023`): the edition that unit compiles at, where the test's source and every other unit compile at the edition the test runs at (a program of an older edition called through a newer one's prototype); a whole test never names it.
 - **Migrated tests.** The programs of the former `tests/conformance/` corpus (design §6 step 1, kb/Work PB3177)

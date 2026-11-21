@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -161,7 +162,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // CORRESPONDING test above, so what remains here is a defensive arm over the one printed receiving
         // shape, and it must not claim an unimplemented feature that this binder in fact implements.
         if (move.sendingOperand() is not { } send || move.moveReceivingPhrase() is not { } targets)
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"MOVE '{DataBinder.WrittenText(move)}': Format 1 prints one sending operand and "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"MOVE '{WrittenSource.Of(move)}': Format 1 prints one sending operand and "
                 + "TO identifier-2 … (ISO §2023:14.9.25.2)");
         BoundOperand source = SendingOperand(send, "MOVE source");
         // An INDEX-NAME sending operand (kb/Work R16): MOVE is not among §2023:13.18.38.3 r7's five index-name
@@ -170,8 +171,8 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         if (send.dataReference() is { } sdref)
         {
             using var sendingAt = ctx.Edition.At(sdref);   // the operand's own position, not the statement's (kb/Work PB4383)
-            if (host.Expr.ScreenIndexNameOperand(source, sdref.GetText(), "a MOVE sending operand"))
-                source = BoundOperandError.Refused(ctx.Edition, $"MOVE of the index-name '{DataBinder.WrittenText(sdref)}' (ISO §2023:13.18.38.3 r7)");
+            if (host.Expr.ScreenIndexNameOperand(source, WrittenSource.Of(sdref), "a MOVE sending operand"))
+                source = BoundOperandError.Refused(ctx.Edition, $"MOVE of the index-name '{WrittenSource.Of(sdref)}' (ISO §2023:13.18.38.3 r7)");
         }
         // Identifier-1 is bound; what the receivers register from here on (a function-bearing subscript's temporary,
         // a user-defined function's activation) is THEIR evaluation, which §2023:14.6.4 puts after the sender's. Each receiver
@@ -444,7 +445,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         if (rules.IntrinsicOnlyBefore2014 && ctx.Edition.DialectLevel < 2014 && host.Intrinsic.SignatureOf(fc) is not null)
             return true;
         ctx.Edition.Error(DiagnosticCatalog.FromPhraseFunctionClass,
-            $"{rules.Statement} {DataBinder.WrittenText(fc)}: {functionRule.At(ctx.Edition.DialectLevel, file.Organization)} — this function's result is of "
+            $"{rules.Statement} {WrittenSource.Of(fc)}: {functionRule.At(ctx.Edition.DialectLevel, file.Organization)} — this function's result is of "
             + $"category {cat.ToString().ToLowerInvariant()}");
         return false;
     }
@@ -523,7 +524,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         if (source is BoundNumericLiteral { FunctionValue: false } or BoundFigurative or BoundAllLiteral or BoundPredefinedNull)
         {
             ctx.Edition.Error(DiagnosticCatalog.FilePhraseOperand,
-                $"{rules.Statement} {DataBinder.WrittenText(send)}: literal-1 shall be an alphanumeric, boolean, or national literal and "
+                $"{rules.Statement} {WrittenSource.Of(send)}: literal-1 shall be an alphanumeric, boolean, or national literal and "
                 + "shall not be a figurative constant (§2023:14.9.51.3 SR7 b), §2023:14.9.35.3 SR10 b))");
             return null;
         }
@@ -532,7 +533,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         if (source is BoundFieldOperand { Place: var described } && HoldsObjectReference(described.Item))
         {
             ctx.Edition.Error(DiagnosticCatalog.FilePhraseOperand,
-                $"{rules.Statement} {DataBinder.WrittenText(send)}: the description of identifier-1, including its subordinate data "
+                $"{rules.Statement} {WrittenSource.Of(send)}: the description of identifier-1, including its subordinate data "
                 + "items, shall not contain a data item described with a USAGE OBJECT REFERENCE clause (§2023:14.9.51.3 SR8, "
                 + "§2023:14.9.35.3 SR12)");
             return null;
@@ -558,7 +559,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         };
         if (held is null)
             ctx.Edition.Error(DiagnosticCatalog.FilePhraseOperand,
-                $"{rules.Statement} {DataBinder.WrittenText(send)}: this operand has no description the implicit record can take "
+                $"{rules.Statement} {WrittenSource.Of(send)}: this operand has no description the implicit record can take "
                 + "(§2023:14.9.51.4 GR8, §2023:14.9.35.4 GR9)");
         return held;
     }
