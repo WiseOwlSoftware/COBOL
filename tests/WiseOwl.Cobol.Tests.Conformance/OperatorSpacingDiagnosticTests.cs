@@ -107,4 +107,28 @@ public sealed class OperatorSpacingDiagnosticTests
         var (okGood, errorsGood, _) = EditionHarness.CompileFull("       >>DEFINE X AS 2 * 3\n" + unit, 2023);
         Assert.True(okGood, string.Join("; ", errorsGood));
     }
+
+    /// <summary>A token error recovery consumed is not a condition operator (kb/Work PB5453 lead). In <c>A = 1 AND NOT NOT 2</c>
+    /// the abbreviated relation has no relational operator, refused COBOL5506 at the 2, and the recovery took the END-IF of a
+    /// later line into the comparison-operator rule; COBOL7672 (§1985:VI.6.3.1.1) then judged END-IF as a relational operator
+    /// with no space after it. The refusal is the parse's diagnostic alone.</summary>
+    [Fact]
+    public void ErrorRecoveredToken_IsNotJudgedAsAConditionOperator_At85()
+    {
+        const string src = "       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. PB5453N.\n"
+            + "       DATA DIVISION.\n"
+            + "       WORKING-STORAGE SECTION.\n"
+            + "       01 A PIC 9 VALUE 1.\n"
+            + "       PROCEDURE DIVISION.\n"
+            + "       P0.\n"
+            + "           IF A = 1 AND NOT NOT 2\n"
+            + "               DISPLAY \"T\"\n"
+            + "           END-IF.\n"
+            + "           STOP RUN.\n";
+        var (ok, errors, _) = EditionHarness.CompileFull(src, 85);
+        Assert.False(ok);
+        Assert.Contains(errors, e => e.Contains("COBOL5506"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL7672"));
+    }
 }
