@@ -29,7 +29,7 @@ the 1985 label reader for that rule). The fifth, `docs/conformance/5/A.4.4.md`, 
 (C#, the train's groups h/q own those files): `EcEmitter.cs`, `NumericRenderer.cs`, `CobolDec.cs` (`r3d`), and
 `RecordLayout.cs` (`§2023:8.5.1.9.1 2`, a bare digit with no paren, which the audit does not read: a lead).
 
-**Left, by family (the baseline, 6,041 entries):** spaced sub-item 2,033 (C# 1,930, grammar 22, other 81: lists),
+**Left, by family (the baseline, 6,041 entries at the first pass; 6,056 after 15 list-spanning rewrites were undone, a list such as `rules 2, 3 and 7` having no one canonical form):** spaced sub-item 2,033 (C# 1,930, grammar 22, other 81: lists),
 `rule N` 1,016 (C# 902), bare label `N)` 1,751 (C# 1,558), `item N` 1,241 (C# 668; its designator waits on kb/Work
 PB5449 item 4). The C# burn-down is one command once the C# groups have merged: `python scripts/spec/audit_code_citations.py
 --canonicalize src/ tests/` then `--write-baseline`, then derive the rest from the standard.
