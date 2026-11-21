@@ -13,6 +13,11 @@ rule's text and wrote one record per rule (`{"records": [...]}` files under a di
     DRAFTED              a later pass wrote the witness itself (the triage of the drafts that did not match corrected a
                          suspect draft; the drafting pass wrote one for a rule the audit never drafted): the record names
                          its `pass` and carries the `draft` and its `redraft_run`, placed when that is MATCH
+    HELD                 the witness is a case the suite already holds (`case`, `conformance:cases/<folder>/<id>`): nothing
+                         is written, the record joins it to the rule (kb/Work PB5453)
+
+Records whose drafts are EQUAL witness their rules with one program: they are judged once and placed as ONE case, led
+by the first record's rule (its id and clause folder), its header naming every rule (kb/Work PB5453).
 
 This script does the placement from the records, never by hand:
 
@@ -88,6 +93,9 @@ TOOL = "place_witnesses"
 CONFIRMED, UNDECIDED, REDRAFTED, PLACEABLE_REDRAFT = "CONFIRMED", "UNDECIDED", ("WEAK", "WRONG"), run_drafts.MATCH
 #: A witness a later pass wrote and ran itself; its record names that pass.
 DRAFTED = "DRAFTED"
+#: A witness the suite already holds (kb/Work PB5453): the record names the case (`case`, `conformance:cases/<folder>/<id>`)
+#: instead of carrying a draft; nothing is written, the gate runs it, and the record joins it to the rule.
+HELD = "HELD"
 #: The fields of a confirmation record that adjudicate a rule the store holds no adjudication of (`batch_of`).
 ADJUDICATION = ("verdict", "code-location", "notes")
 #: A fixed-form comment line of a placed test: the indicator `*>` in columns 7-8, the text inside margin R (column 72).
@@ -143,6 +151,8 @@ def sort_records(records: list[tuple[pathlib.Path, dict[str, Any]]], drafts: dic
                                          origin, own))
         elif decision == DRAFTED and r.get("redraft_run") == PLACEABLE_REDRAFT:
             out.witnesses.append(Witness(rid, r["draft"], f"written and run by {r['pass']}", origin, own))
+        elif decision == HELD:
+            out.witnesses.append(Witness(rid, {HELD: r["case"]}, f"the suite's case {r['case']}", origin, own))
         elif decision == UNDECIDED:
             out.undecided[rid] = r.get("question") or ""
         else:
@@ -283,8 +293,9 @@ def judge_all(witnesses: list[Witness], adapter: pathlib.Path, variables: dict[s
     lead: dict[str, str] = {}
     for w in witnesses:
         lead.setdefault(draft_key(w.draft), w.rule_id)
-    unique = [w for w in witnesses if lead[draft_key(w.draft)] == w.rule_id]
+    unique = [w for w in witnesses if lead[draft_key(w.draft)] == w.rule_id and HELD not in w.draft]
     got = _judge_unique(unique, adapter, variables, edition, jobs)
+    got.update({w.rule_id: (run_drafts.MATCH, None) for w in witnesses if HELD in w.draft})   # the gate runs a held case
     return {w.rule_id: got[lead[draft_key(w.draft)]] for w in witnesses}
 
 
@@ -327,6 +338,14 @@ def place(witnesses: list[Witness], rows: dict[str, dict[str, Any]], names: dict
     for w, *also in groups.values():
         members = [w.rule_id, *(x.rule_id for x in also)]
         row = rows[w.rule_id]
+        if HELD in w.draft:
+            ref = w.draft[HELD]
+            folder, _, tid = ref.removeprefix("conformance:cases/").rpartition("/")
+            if not ref.startswith("conformance:cases/") or not (suite / "cases" / folder / f"{tid}.cob").is_file():
+                out.skipped.update(dict.fromkeys(members, f"the held case {ref} is no case of the suite"))
+            else:
+                out.placed.update(dict.fromkeys(members, (folder, tid, None)))
+            continue
         verdict, code = judged.get(w.rule_id, ("not judged", None))
         refused = w.draft["expected"]["outcome"] != "output"
         why = None
@@ -709,6 +728,20 @@ def self_test() -> int:
         ok({"rule-id": own_rid, "test-ref": shared} in rerun["records"],
            "review lead R1-1: a re-run after the batch was applied finds the store holding the record's own adjudication "
            "and joins the witness alone, never refusing the run")
+        held_confirm = root / "confirm-held"
+        held_confirm.mkdir()
+        (held_confirm / "held.json").write_text(json.dumps({"records": [
+            {"rule-id": bare, "decision": "HELD", "case": shared, "verdict": "CONFORMS", "code-location": site},
+            {"rule-id": owned, "decision": "HELD", "case": f"conformance:cases/{own_folder}/no-such-case"}]}),
+            encoding="utf-8", newline="\n")
+        before_held = sorted(own_suite.rglob("*"))
+        held_batch, held_summary = run_placement(held_confirm, state, 1985, root / "adapters" / "stub.json", {}, 2,
+                                                 own_suite, own_rows, schema)
+        ok(held_batch["records"] == [{"rule-id": bare, "verdict": "CONFORMS", "code-location": site, "test-ref": shared}]
+           and "no case of the suite" in held_summary["skipped"].get(owned, "")
+           and sorted(own_suite.rglob("*")) == before_held,
+           "kb/Work PB5453: a HELD record joins a case the suite already holds to its rule with its adjudication and "
+           "writes nothing; a held case the suite lacks is skipped")
         (own_confirm / "own.json").write_text(json.dumps({"records": [
             {"rule-id": bare, "decision": "DRAFTED", "pass": "p", "redraft_run": "MATCH", "draft": out_w,
              "verdict": "CONFORMS"},
