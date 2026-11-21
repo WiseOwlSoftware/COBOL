@@ -1386,8 +1386,8 @@ kb/Work PB5256), its change records do not yet.
 - **The catalog's prose holes** (`scripts/spec/catalog_prose_holes.py`, kb/Work PB5924's measure, PB6001's wiring;
   the fourth term of `edition_status.py`). The unit is a PRINTED paragraph of the normative region (Sections IV, VI to
   XVI and Section A) as `rule_catalog_1985.parse` walks it, its line recorded; tables in either markup, captions and
-  labels (`RULE_LABEL`), a page's repeated section title, headings, `<pre>` blocks and fragments are no prose, as the
-  segmentation reads them. A printed paragraph is COVERED when a row at or under its locator holds every sentence;
+  labels (`RULE_LABEL`), a page's repeated section title, headings, displays (`<pre>` blocks and ``` fences, read by the
+  one `text_units.display_mask` the 1985 unit spans read too) and fragments are no prose, as the segmentation reads them. A printed paragraph is COVERED when a row at or under its locator holds every sentence;
   or when the unit whose text holds its line (`Unit.lines`) is disposed `restates` or `not-a-rule` on an UPHELD refuter
   record of the unit's key (`text_units.record_refusal`); or when no unit holds it and its clause's `not-rules` block
   stands on its record at the digest the text has now (`text_units.block_refusal`: the block's held list). It reads the
@@ -1398,7 +1398,11 @@ kb/Work PB5256), its change records do not yet.
   17 after (3,862 printed paragraphs covered by a row, 235 by a `restates`, 52 by a `not-a-rule`, 22 by a `not-rules`
   block; 31 are no prose: 21 lines of the two HTML tables, 5 captions, 5 section titles); the 17 are the pending
   §1985:IV.4.2.2.1.3 p3 and the 16 printed paragraphs of §1985:VI.6.18.5, a paragraph headed "Examples" that the
-  segmentation keeps out of the units (`EXAMPLES_TITLE`) with no refuter record, so nothing establishes its cover.
+  segmentation then kept out of the units with no refuter record. Wave 20262132 group a removed that exclusion: an
+  Examples paragraph is text like any other (its preamble, its five labels, its prose and its result-table rows are 19
+  units, disposed on their own records); and 14 of the 16 were lines of fenced code the measure read as prose although
+  the segmentation makes no unit of code (the measure had read `<pre>` but not a fence as a display: 38 fenced lines of
+  the region, 24 of them counted covered by a row). 16 became 2, both pending units of VI.6.18.5 (p1, p7).
 - **The scan's own defects.** The scan prints folios X-11 and X-12 twice (PDF pages 527-528); the transcription keeps
   both copies under `citation.SCAN_REPEAT_85`'s comment, and the catalog reads no rule from the repeat.
 - **The scan's missing pages come from another scan** (kb/Work PB4952, PB5789). Our scan lacks printed pages XIII-30,

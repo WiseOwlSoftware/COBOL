@@ -760,9 +760,6 @@ RULE_LABEL = re.compile(rf"{FORMAT_BAND}|^\s*(?:<u>)?(?:Figure|Table)\s+\d+[.:]"
 #: A band naming a format on a line of its own ("<u>Format 1</u>:", page 182) is part of the general-format display it
 #: labels, in prose as in a rule's text: no unit (kb/Work PB5452, reader 85u-05's repair records).
 FORMAT_LABEL = re.compile(FORMAT_BAND, re.I)
-#: A paragraph headed "Examples" (§1985:VI.6.18.5, pages 332-334: a preamble, labelled INSPECT examples and their result
-#: tables) is example text, which is never a unit (decision PB5448 point 1; kb/Work PB5452, reader 85u-12's records).
-EXAMPLES_TITLE = re.compile(r"^(?:[\d.]+\s+)?(?:<u>)?Examples?(?:</u>)?$", re.I)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -789,14 +786,14 @@ def _bodies(lines: list[str], rows: list[dict], whole: frozenset[str] = frozense
     wherever it lies (a clause its content-keyed block decides unit by unit, `text_units.UNITS`; kb/Work PB5452), by
     citation, in the order of the text, with the 1985 page furniture removed (`furniture`, the reading `parse` makes: a page heading, a page the scan prints
     twice, an editorial note, a folio and the running header that opens a printed page), every heading and every format
-    band (`FORMAT_LABEL`). A paragraph headed "Examples" has no body (`EXAMPLES_TITLE`). A blank line stays, as the
-    segmentation's separator."""
+    band (`FORMAT_LABEL`). A paragraph headed "Examples" is text like any other (§1985:VI.6.18.5: its prose and its
+    result tables are units, its code is a display; kb/Work PB6001): an example is disposed on its own words, never
+    kept out of the units unrecorded. A blank line stays, as the segmentation's separator."""
     formats = {r["citation"].split(" ")[0] for r in rows if r["kind"] == "FMT"}
-    regions = [(f"§1985:{loc}", s, e) for loc, t, s, e in citation.regions_1985(lines)
-               if (loc.split(".", 1)[0] in NORMATIVE_SECTIONS and "." in loc and not EXAMPLES_TITLE.match(t.strip()))
-               or f"§1985:{loc}" in whole]
-    regions += [(f"§1989:{loc}", s, e) for loc, t, s, e in citation.amendment_regions(lines, 1989)
-                if loc.startswith("A.") and not EXAMPLES_TITLE.match(t.strip())]
+    regions = [(f"§1985:{loc}", s, e) for loc, _t, s, e in citation.regions_1985(lines)
+               if (loc.split(".", 1)[0] in NORMATIVE_SECTIONS and "." in loc) or f"§1985:{loc}" in whole]
+    regions += [(f"§1989:{loc}", s, e) for loc, _t, s, e in citation.amendment_regions(lines, 1989)
+                if loc.startswith("A.")]
     bodies: dict[str, list[tuple[int, str]]] = {}
     furn = furniture(lines)
     for clause, start, end in regions:
@@ -940,21 +937,11 @@ def _spans(lines: list[str], cat: Catalog, units: dict[str, list], after: list[B
             # A display among a paragraph's lines (a <pre> figure or code, a fence, a table) is no unit text
             # (text_units.segment): it stays where it was, so §1985:VI.6.3.4's figures stay in rule (2)'s text when
             # the paragraph naming them leaves it, and §1985:VI.6.4.6's code in rule (2)'s.
-            own, display = [], None
-            for i in range(u.line, end):
+            own = []
+            shown = text_units.display_mask(lines[u.line - 1:end - 1])
+            for i, display in zip(range(u.line, end), shown):
                 line = lines[i - 1]
-                if display is not None:
-                    if display.search(line):
-                        display = None
-                    continue
-                if text_units.PRE_OPEN.match(line) or text_units.HTML_TABLE_OPEN.match(line):
-                    closes = text_units.PRE_CLOSE if text_units.PRE_OPEN.match(line) else text_units.HTML_TABLE_CLOSE
-                    display = None if closes.search(line) else closes
-                    continue
-                if text_units.FENCE.match(line):
-                    display = text_units.FENCE
-                    continue
-                if not text_units.TABLE_LINE.match(line) and not FORMAT_LABEL.match(line):
+                if not display and not text_units.TABLE_LINE.match(line) and not FORMAT_LABEL.match(line):
                     own.append(i)   # (a format band labels the display after it, and stays with it)
             out[clause, u.line] = tuple(own)
     return out

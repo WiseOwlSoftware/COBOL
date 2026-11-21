@@ -80,6 +80,38 @@ MARKUP = re.compile(r"^\s*(?:<a\s+id=\"[^\"]*\"></a>|<!--.*-->|!\[)\s*$")
 PRE_OPEN, PRE_CLOSE = re.compile(r"^\s*>?\s*<pre\b"), re.compile(r"</pre>\s*$")
 FENCE = re.compile(r"^\s*>?\s*```")
 
+
+def display_mask(lines: list[str]) -> list[bool]:
+    """THE DISPLAYS OF A TEXT, ONE READING (kb/Work PB6001): for each line, whether it lies in a display that holds no
+    unit text, its opening and closing lines included: a general format or code (`<pre …>` … `</pre>`, or a ``` fence,
+    either closed by `</pre>` or a bare fence, as `segment` reads them) or an HTML table (`<table>` … `</table>`). The
+    readers that must agree with `segment` on what is no unit text read it here: the 1985 unit spans
+    (rule_catalog_1985._spans) and the prose-holes measure (catalog_prose_holes.prose), so a printed code line is never
+    a hole the segmentation cannot make a unit of."""
+    out: list[bool] = []
+    close: re.Pattern[str] | None = None
+    for line in lines:
+        if close is HTML_TABLE_CLOSE:
+            out.append(True)
+            close = None if HTML_TABLE_CLOSE.search(line) else close
+            continue
+        if close is not None:
+            out.append(True)
+            if PRE_CLOSE.search(line) or (FENCE.match(line) and not PRE_OPEN.match(line)):
+                close = None
+            continue
+        if HTML_TABLE_OPEN.match(line):
+            close = None if HTML_TABLE_CLOSE.search(line) else HTML_TABLE_CLOSE
+        elif PRE_OPEN.match(line):
+            close = None if PRE_CLOSE.search(line) else PRE_CLOSE
+        elif FENCE.match(line):
+            close = FENCE
+        else:
+            out.append(False)
+            continue
+        out.append(True)
+    return out
+
 #: The three kinds of table (design point 1): `entries` (each body row states a determination about the subject its
 #: first cell names), `matrix` (both axes are categories, the cells take a few values), `data` (values a rule consumes).
 TABLE_KINDS = ("entries", "matrix", "data")

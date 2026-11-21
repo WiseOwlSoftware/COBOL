@@ -16055,6 +16055,125 @@
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     }
    ]
+  },
+  "§1985:VI.6.18.5": {
+   "title": "6.18.5 Examples",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4d44c0216cb7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "f1f0188d7e74",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "9dfeac51e226",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "1a1c07091d53",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.3",
+     "digest": "75c98d5383e5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "d92d43a269b8",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T2.1",
+     "digest": "2c263d0234f8",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T2.2",
+     "digest": "ecd08e6f8841",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "347483f6dc78",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T3.1",
+     "digest": "12488ff7a909",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T3.2",
+     "digest": "6d240ad51d75",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T3.3",
+     "digest": "61523f570951",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T3.4",
+     "digest": "fcbfb2141392",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T3.5",
+     "digest": "0e718ae9d810",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "a6c03da7b4c5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T4.1",
+     "digest": "7db405a91ef1",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "5bc59b254020",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p7",
+     "digest": "37937863df93",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T5.1",
+     "digest": "da03ba644c75",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
   }
  },
  "not-rules-refuted": true
