@@ -32,7 +32,7 @@ public sealed class PlaceStorageCellDriftTests
     {
         ["ReportSumCounterPlace"] = "The report engine's sum counter (ISO §2023:13.18.54.4 GR1), read and written as its character image by SumImage / SetSumImage.",
         ["ReportPageCounterPlace"] = "The report engine's PAGE-COUNTER (ISO §2023:8.4.3.15.4 GR1).",
-        ["CapacityRegisterPlace"] = "The OCCURS DYNAMIC table's current capacity (ISO §2023:13.18.38 GR15).",
+        ["CapacityRegisterPlace"] = "The OCCURS DYNAMIC table's current capacity (ISO §2023:13.18.38.4 GR15).",
         ["DebugRegisterPlace"] = "The X3.23-1985 DEBUG-ITEM register family, populated by the debug trigger.",
         ["ExceptionObjectPlace"] = "The run unit's one EXCEPTION-OBJECT (ISO §2023:8.4.3.6.4 GR2).",
     };

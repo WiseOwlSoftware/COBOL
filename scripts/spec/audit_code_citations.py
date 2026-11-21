@@ -45,8 +45,11 @@ THE CHECKS, each narrow on purpose:
               quotation inside the cited rule. Until it, a 1985 rule number was checked by nothing (`§1985:XI.4.4.4
               GR99` passed this audit and `cite.py --check`). It reads PHANTOM's population and the inventory's store
               records; the citations it refused when it landed are its BASELINE (`RESOLVE_BASELINE`), debt that may
-              only shrink. The ordinal family below predates it and reads the 2023 standard alone: its RULE, SUBITEM
-              and QUOTE-RULE arms are a second reading of what RESOLVE decides, retired by kb/Work PB5318.
+              only shrink. It reads every designator of a rule chain (`GR6/GR8`, `citation.chain`), each against the
+              clause the chain names. The ordinal family below used to carry a second reading of the same questions in
+              its FORMAT, RULE, SUBITEM and QUOTE-RULE arms, over the 2023 standard alone; kb/Work PB5318 retired them
+              (their rewrites made RESOLVE's baseline 1,468 citations shorter), and RESOLVE's quotation floor is
+              `cite.MIN_WORDS` (four real words), not the three QUOTE-RULE read.
 
   SUBJECT   — the cited clause's catalog subject is a NAMED construct (`MERGE statement`, `HIGHLIGHT clause`,
               `ROUNDED phrase`) whose name appears NOWHERE in the citation's context, while the context DOES name
@@ -58,29 +61,14 @@ THE CHECKS, each narrow on purpose:
               a wrong clause whose own subject is not a named construct (§2023:13.16 is "Data description entry", so
               `LINAGE clause (ISO §2023:13.16)` has no wrong CONSTRUCT to notice — only a wrong ANSWER).
 
-  THE ORDINAL FAMILY (kb/Work PB388) — the clause is RIGHT and the number INSIDE it is wrong, which is the one
-  half of rule 1's failure mode neither `cite.py` nor the checks above can see: a format ORDINAL and a rule
-  NUMBER are not quotations, so there is nothing for a quote-based check to resolve. Four sub-checks, each
-  EXACT — they resolve the ordinal against the standard's own lists and never score or guess:
+  THE ORDINAL FAMILY (kb/Work PB388) — the clause is RIGHT and the number INSIDE it is wrong. A format number
+  that does not exist, a rule number the clause lacks, a sub-item it lacks and a quotation that sits under another
+  rule are `cite.resolve`'s (RESOLVE above, kb/Work PB5318). Two sub-checks stay, because they ask what RESOLVE
+  does not, each EXACT, resolved against the standard's own lists and never scored or guessed:
 
-  FORMAT    — `§2023:14.9.28 Format 4`, a format that does not exist: §2023:14.9.28.2 prints THREE. (Cited four
-              times, including in a differential test's summary; PERFORM VARYING is a PHRASE of formats 1 and 2.)
   FORMAT-RULE — `§2023:14.9.39 Format 4 … GR12`, where the standard's own `FORMAT n` banners partition the rule
               block and rule 12 sits under FORMAT 7. The banners (`ALL FORMATS`, `FORMATS 1 AND 2`, `FORMAT 10`)
               are printed in the rule block itself, so this pairing is decidable with no heuristic at all.
-  RULE      — `§2023:14.9.12.3 SR6` and `§2023:14.9.47.4 GR6`, numbers each clause does not have (4 and 3 rules).
-  SUBITEM   — `§2023:14.9.37.4 GR8b`, which does not exist: rule 8 has no sub-items (the serial-SEARCH VARYING
-              rules are GR3 a)–c)).
-  QUOTE-RULE — (kb/Work PB597) the clause is right, the quotation is really in it, and the rule NUMBER beside it
-              belongs to a DIFFERENT rule: `§2023:14.9.25.4 GR8 — "the absolute value"`, where the words are printed
-              in GR6 d) 2. b.) and GR8 is the dynamic-length rule. `cite.py --check` answers "is this sentence
-              inside that clause" and `audit_doc_citations.py` "is it filed under the right clause"; the checks
-              above compare a number to the clause's COUNT of rules. Nothing compared the number to the rule the
-              quoted words are IN, and `kb/Work/R10`'s sweep of one wrong GR covered 5 of 14 sites while all
-              three audits read zero. The fragment is resolved to its TOP-LEVEL rule with `cite.py`'s own
-              `rule_path` — the very path `cite.py --check` prints — and only the top-level number is compared,
-              because the nested-list numbering is imprecise one level down (`6) 1.` and `6) d) 2. b.` are the
-              SAME rule 6); a different TOP-LEVEL rule is the finding.
   FORMAT-NAME — the context NAMES a format of the cited clause verbatim ("data-pointer assignment") and cites a
               different ordinal. §2023:14.9.39 was the measured case: eleven sites called the data-pointer slice
               "Format 4", which is condition-setting, and two of them were the text of COBOL0869.
@@ -94,9 +82,8 @@ THE CHECKS, each narrow on purpose:
               message text. The scope is what makes it gateable: the same shape is 2683 sites tree-wide in
               PROSE (`§2023:13.5.3 SR 1`, the row id `SR-14.9.28.3-2`, "the 1561-1563 SR band").
   DIAG-UNQUALIFIED — the clause carries no rule block of that kind of its own while a CHILD does: `§14.9.39 SR17`,
-              where the syntax rules are §2023:14.9.39.3. The ordinal checks resolve that through `_alias` — right
-              for prose, where this repository deliberately writes a block's clause both ways, and wrong for a
-              message the user is sent to look up. It arrived with 160 sites and joined the measured backlog;
+              where the syntax rules are §2023:14.9.39.3. RESOLVE refuses that everywhere (kb/Work PB5318);
+              this arm says why in a message, which the user is sent to look up. It arrived with 160 sites and joined the measured backlog;
               kb/Work PB388's sweep qualified every one of them (wave 47), so it GATES under `--check` now.
 
   CONSTRUCT-CODE — (kb/Work PB4467) a `citation` of a row of `tests/version-matrix/constructs/` NAMES CODE OR PROJECT
@@ -122,11 +109,9 @@ same question as which rules the standard prints (it carries a `parse_gaps` coun
 standard's own text is what every ordinal is resolved against and what vetoes a finding. Without it `--check`
 REFUSES (exit 2), exactly as PHANTOM does — see the last note.
 
-⚠ RULE AND SUBITEM GATE EVERYWHERE since kb/Work PB388's wave-48 prose sweep. Both are sound — each was
-confirmed against the standard's own rule markers — and on the day they were written they found 195 sites in 124
-files, every one needing its own derivation; they reported without gating (`MEASURED_BACKLOG`) while waves 47–48
-derived those sites, and left that set when the last one was repaired. `--check-all` remains the gate for any
-future check that lands with a backlog of its own.
+⚠ EVERY CHECK GATES EVERYWHERE. A check that lands with a backlog reports without gating (`MEASURED_BACKLOG`, empty
+now) while its sites are derived, and leaves that set when the last one is repaired; `--check-all` remains the gate for
+any future check that lands with a backlog of its own.
 
 ⚠ THE CONTEXT IS THE COMMENT BLOCK PLUS THE DECLARATION IT INTRODUCES, not the single line, and that is what
 makes SUBJECT quiet enough to gate on. A first draft matched line-by-line and reported 92 candidates of which 64
@@ -589,6 +574,10 @@ def resolve_line(line: str, prev: str = "") -> list[tuple[citation.Citation, "ci
             v = _resolved(c.edition, c.locator, c.rule, None)
         if not v.ok and v.kind != "no-clause":
             out.append((c, v))
+        for member in citation.chain(line, c):       # `GR6/GR99`: every designator of the chain, structure only
+            m = _resolved(member.edition, member.locator, member.rule, None)
+            if not m.ok and m.kind != "no-clause":
+                out.append((member, m))
     return out
 
 
@@ -720,6 +709,31 @@ def resolve_self_test() -> bool:
         (None, 'it reads "input procedure may consist of any procedure needed to select, modify, or copy" '
                '(§1985:XI.4.4.4 GR7)'),
         ("no-sub-item", "the three phases (§1985:XI.4.4.4 GR6d)"),  # citation-audit: example
+        # the legs of the retired ordinal arms (kb/Work PB5318): RULE, FORMAT, SUBITEM and QUOTE-RULE, each with its twin
+        ("no-ordinal", '    + "(ISO §2023:14.9.12.2 / §2023:14.9.12.3 SR6)");'),  # citation-audit: example
+        (None, '    + "(§2023:14.9.12.2 / §2002:14.8.12.2 SR6)");'),
+        ("no-format", "/// PERFORM VARYING (ISO §2023:14.9.28 Format 4): nested induction loops"),  # citation-audit: example
+        (None, "/// PERFORM VARYING (ISO §2023:14.9.28 Format 2): nested induction loops"),
+        ("no-sub-item", "/// serial SEARCH with VARYING (ISO §2023:14.9.37.4 GR8b) falls through"),  # citation-audit: example
+        (None, "/// serial SEARCH with VARYING (ISO §2023:14.9.37.4 GR3 c) 2) falls through"),
+        # the English ARTICLE after a rule number is no sub-item (kb/Work PB388, wave 47)
+        (None, "/// ISO basis — §2023:14.9.37.4 GR8 (a serial SEARCH with VARYING falls through)"),
+        ("text-not-in-rule", '/// An UNSIGNED receiver stores "the absolute value of the sending value" (ISO §2023:14.9.25.4 GR8) '  # citation-audit: example
+                             'mod 2^bits.'),
+        (None, '/// An UNSIGNED receiver stores "the absolute value of the sending value" (ISO §2023:14.9.25.4 GR6) '
+               'mod 2^bits.'),
+        # the DEPTH tolerance: `GR6 d) 2. b.)` is the same top-level rule as `GR6`
+        (None, '// An UNSIGNED item holds the magnitude (§2023:14.9.25.4 GR6 d) 2. b.) — "the absolute value").'),
+        # a rule chain (`GR6/GR99`) is every designator of it, not only the first (`citation.chain`)
+        ("no-ordinal", "// the receiver rules (§2023:14.9.25.4 GR6/GR99) apply"),  # citation-audit: example
+        ("no-ordinal", "// the receiver rules (§2023:14.9.25.4 GR6, GR8 and GR99) apply"),  # citation-audit: example
+        (None, "// the receiver rules (§2023:14.9.25.4 GR6/GR7, GR8 and GR9) apply"),
+        (None, "// the SET receiver (§2023:14.9.39.3 SR17 / GR3) is stored"),
+        # a banner, two chains in reach of one quotation, a chain that opens the next sentence, a quotation filed under
+        # another clause cited just before it and a draft's rule numbers say nothing of the standard (QUOTE-RULE's calibrations)
+        (None, '/// the group: §2023:14.9.49.4 GR4 ("FORMATS 1 AND 2") selects it from the source element that contains the'),
+        (None, '// §2023:14.9.39.4 GR29 — "does not evaluate to a NONNEGATIVE integer". GR30\'s minimum-capacity clamp'),
+        (None, '// INTEGER 0 (§2023:8.8.1.1 "the figurative constant ZERO"; §2023:8.3.3.6.4 GR4 — the zero format is the value 0'),
         ("no-rule-list", "the SORT statement (§1985:XI.4.4.3 GR1)"),  # citation-audit: example
         ("no-ordinal", "COMPUTE (§2023:14.9.8.4 GR99)"),  # citation-audit: example
         ("no-rule-list", "COMPUTE (§2023:14.9.8 GR1)"),  # citation-audit: example
@@ -776,21 +790,10 @@ def resolve_self_test() -> bool:
 #: A clause number of ANOTHER edition's citation (`§2002:14.9.39 Format 4`) is not read (`NOT_ANOTHER_EDITION`).
 FORMAT_CITE = re.compile(r"(?<![\d.])" + citation.NOT_ANOTHER_EDITION + r"(\d+(?:\.\d+){1,4})\s+Formats?\s+(\d+)", re.I)
 
-#: A rule designator and, optionally, the sub-item letter written against it: `GR4`, `SR16g`, `GR3 c) 2`,
-#: `GR7 k)6`, `GR6c's`, `SR1(b)`, `GR7 a/b`. The `(?![a-z])` keeps a word (`GRs`, `SRc`… ) out of the sub-item
-#: slot. ⛔ A LETTER AFTER A SPACE IS A SUB-ITEM ONLY WHEN THE SUB-ITEM PUNCTUATION SAYS SO — a closing `)`, or
-#: the `a/b` list. The first shape accepted any `\s?\(?[a-z]\)?`, so the English ARTICLE was read as sub-item
-#: (a): `§2023:13.5.4 GR1 (a non-initial program's WS is STATIC data)`, `§2023:8.8.3.3 GR3 a concatenation expression`,
-#: `§2023:13.18.1.3 SR1 (a bit group item …)` were six of the first twenty SUBITEM findings PB388's sweep derived,
-#: every one a CORRECT citation (kb/Work PB388, wave 47). Read the sub-item with `_sub(m)`, never a group number.
-#: ⛔ AN ORDINAL HAS AT MOST THREE DIGITS — no clause prints a thousand rules, and `(.3 SR 18556, .4 GR 18567)`
-#: in a scout table is a pair of LINE NUMBERS that the unbounded `\d+` accused as rules 18556 and 18567.
-RULE_CITE = re.compile(r"\b(GR|SR)\s?(\d{1,3})(?!\d)(?:([a-z])(?![a-z])|\s?\(([a-z])\)|\s?([a-z])\)|\s([a-z])(?=/[a-z]\b))?")
-
-
-def _sub(m: re.Match) -> str | None:
-    """The sub-item letter of a `RULE_CITE` match, whichever of its four spellings carried it."""
-    return m.group(3) or m.group(4) or m.group(5) or m.group(6)
+#: A rule designator: `GR4`, `SR16`. ⛔ AN ORDINAL HAS AT MOST THREE DIGITS — no clause prints a thousand rules, and
+#: `(.3 SR 18556, .4 GR 18567)` in a scout table is a pair of LINE NUMBERS that an unbounded `\d+` read as rules 18556 and
+#: 18567. (The sub-item the old ordinal arms read after the number is `cite.resolve`'s now: kb/Work PB5318.)
+RULE_CITE = re.compile(r"\b(GR|SR)\s?(\d{1,3})(?!\d)")
 
 #: An ISO-shaped clause number, with or without the `§` — `(ISO 14.9.39 Format 10 GR18)` is how half the
 #: goldens write it. Three segments minimum, so a doc's own bare `§4.2` is not read as a citation; the clause number of
@@ -870,61 +873,36 @@ _BANNER = re.compile(r"^\s*(ALL FORMATS|FORMATS?(?:\s+\d+)(?:\s*(?:,|AND)\s*\d+)
 _RULE_HOME = {"SR": ".3", "GR": ".4"}
 
 
-def _alias(d: dict):
-    """A rule block is cited BOTH ways — `§2023:14.9.39.4 GR29` and `§2023:14.9.39 GR29` — so key it both ways.
-
-    ⛔ WHEN TWO CHILDREN CARRY THE SAME KIND, THE ALIAS GOES TO THE KIND'S OWN SUBCLAUSE, never to whichever
-    the catalog listed first. The catalog files the numbered paragraphs of a construct's `.1 General` subclause
-    as kind GR, and it lists `.1` before `.4` — so under first-wins `§2023:13.18.41 GR2` resolved to PRESENT WHEN's
-    two-paragraph GENERAL text, and SUBITEM reported `GR2 has no sub-items — GR2b names nothing` about a rule
-    whose b) is printed (`cite.py --check 13.18.41.4 "If condition-1 is false"` → `OK §2023:13.18.41.4 2) b)`), while
-    RULE reported `§2023:13.18.41 has 2 GRs` of a clause with six (kb/Work PB388, wave 47). The `.3`/`.4` child
-    wins; a `.1` block is the alias only when nothing else carries the kind."""
-    def rank(item) -> int:
-        (cl, k), _v = item
-        return 0 if cl.endswith(_RULE_HOME.get(k, "\0")) else 2 if cl.endswith(".1") else 1
-    for (cl, k), v in sorted(d.items(), key=rank):
-        d.setdefault((cl.rsplit(".", 1)[0], k), v)
-    return d
-
-
-def catalog_rule_tops(alias: bool = True) -> dict[tuple[str, str], int]:
-    """`(clause, kind) -> the highest rule ordinal that block has`, from the COMMITTED rule catalog — so the
-    RULE check runs with no submodule, like SUBJECT and HEADER.
+def catalog_rule_tops() -> dict[tuple[str, str], int]:
+    """`(clause, kind) -> the highest rule ordinal that block has`, from the COMMITTED rule catalog — so DIAG-UNQUALIFIED
+    runs with no submodule, like SUBJECT and HEADER. Each block is keyed under the clause the catalog files it under
+    (`§2023:14.9.39.4`), never under its statement's clause as well: a citation that omits the subclause is
+    DIAG-UNQUALIFIED's finding, and `cite.resolve` refuses it (kb/Work PB5318).
 
     ⛔ THE CATALOG IS THE AUTHORITY ON WHAT A RULE IS, and this audit does not get a second opinion. The
     standard's transcription numbers rules `1\\)` in some blocks and `1.` in others, and the SUB-items of a
     rule are numbered `1.` `2.` in exactly the same shape at exactly the same indent — a second parser written
-    here read a sub-item as a rule and reported `§2023:14.9.10.4 has 21 GRs — there is no GR1` about a block whose
-    rule 1 it had simply mis-parsed. `extract_rule_catalog.py` settled that ambiguity once (`place()`, the
-    sublist machinery); one mechanism, one place (feedback_one_rule_one_place)."""
-    rules = CATALOG_2023.rules()
+    here read a sub-item as a rule. `extract_rule_catalog.py` settled that ambiguity once (`place()`, the
+    sublist machinery); one mechanism, one place."""
     tops: dict[tuple[str, str], int] = {}
-    for r in rules:
+    for r in CATALOG_2023.rules():
         if r["sublist"] != 1:
             continue
         k = (r["section"], r["kind"])
         tops[k] = max(tops.get(k, 0), r["ordinal"])
-    # ⛔ `alias=False` IS THE UNALIASED TRUTH, and DIAG-UNQUALIFIED is the only caller that wants it.
-    # `_alias` keys a rule block under BOTH `§2023:14.9.39.4` and `§2023:14.9.39` because this repository's PROSE cites
-    # it both ways — so with the alias in hand there is no way to ask "did this citation carry the subclause",
-    # which is exactly the question a message string has to answer. `_alias` MUTATES, so the caller that wants
-    # the direct map must build its own rather than share this one.
-    return _alias(tops) if alias else tops
+    return tops
 
 
 def spec_ordinals():
     """What only the STANDARD ITSELF carries; None when the private submodule is absent.
 
-    Returns `(formats, spans, owner)`:
+    Returns `(formats, owner)`:
       · `formats[clause] = {n: name}`   — the general formats a construct prints, read from the `Format n
-                                          (name):` lines of its `.2` subclause and keyed under both spellings.
-      · `spans[(clause, kind)] = {n: text}` — each rule's text FROM the standard, delimited by locating the
-                                          catalog's rules inside the clause's own segment. Sub-items (`a)`,
-                                          `k)`) survive, which the catalog's own `text` field does not always
-                                          keep, and SUBITEM needs them.
+                                          (name):` lines of its `.2` subclause and keyed under both spellings
+                                          (`cite.resolve` reads a `Format n` under either, too).
       · `owner[(clause, kind)] = {n: {formats} | None}` — the FORMAT partition each rule sits under, from the
-                                          standard's own banners (`ALL FORMATS`, `FORMAT 1`, `FORMATS 1 AND 2`).
+                                          standard's own banners (`ALL FORMATS`, `FORMAT 1`, `FORMATS 1 AND 2`),
+                                          keyed under the clause the catalog files the block under.
                                           None where the block carries no banner before that rule.
     """
     if not SPEC.exists():
@@ -955,7 +933,6 @@ def spec_ordinals():
         if r["sublist"] == 1 and r["section"] in segment:
             by_block.setdefault((r["section"], r["kind"]), []).append((r["ordinal"], r["text"]))
 
-    spans: dict[tuple[str, str], dict[int, str]] = {}
     owner: dict[tuple[str, str], dict[int, set[int] | None]] = {}
     for (cl, kind), items in by_block.items():
         lo, hi = segment[cl]
@@ -975,15 +952,17 @@ def spec_ordinals():
             if (m := probe.search(seg, cursor)) is not None:
                 located.append((m.start(), ordinal))
                 cursor = m.end()
-        # Ordinal 0 is THE WHOLE BLOCK, and it is what vetoes a RULE finding: the catalog's top ordinal is
-        # evidence about what the catalog HARVESTED, never about what the standard prints.
-        spans.setdefault((cl, kind), {})[0] = seg
-        for idx, (start, ordinal) in enumerate(located):
-            end = located[idx + 1][0] if idx + 1 < len(located) else len(seg)
-            spans.setdefault((cl, kind), {})[ordinal] = seg[start:end]
+        for start, ordinal in located:
             part = [f for p, f in banners if lo <= p < lo + start]
             owner.setdefault((cl, kind), {})[ordinal] = part[-1] if part else None
-    return formats, _alias(spans), _alias(owner)
+    return formats, owner
+
+
+def _block_owner(owner: dict, clause: str, kind: str) -> dict[int, set[int] | None]:
+    """The FORMAT partition of the rule block `clause` names: the block filed under `clause` itself or, when `clause` is
+    the STATEMENT's (`§2023:14.9.39 Format 10 GR18`, the form a general-format citation takes), its own subclause for
+    the kind (`.3` syntax rules, `.4` general rules). A lookup, never an alias: the block stays filed under one clause."""
+    return owner.get((clause, kind)) or owner.get((clause + _RULE_HOME[kind], kind)) or {}
 
 
 def _name_hits(text: str, name: str) -> list[int]:
@@ -1028,194 +1007,12 @@ def _rule_citations(line: str):
             yield m, clause
 
 
-def _another_clause_admits(line: str, mine: str, kind: str, num: int, sub: str | None,
-                           tops, spans) -> bool:
-    """⛔ THE VETO THAT STOPS THIS ARM SAYING THE WRONG THING (kb/Work PB900). Does some OTHER clause named
-    on this line admit the ordinal — and the sub-item — that `mine` does not?
-
-    A rule designator binds to the nearest clause on its left, and that is a GUESS the moment a line names
-    two clauses: on
-    `§2023:14.9.18.4 GR1 b) asks the ACTIVATOR; the >>TURN directive (§2023:7.3.25.4) records it, and GR1 b) is …`
-    the BACK-REFERENCE at the end of the sentence — the same pairing already made at its head — was read
-    against the clause that happened to be printed between them, and the audit reported `§2023:7.3.25.4 GR1 has
-    no sub-items` about a sentence claiming nothing of the kind. It took the non-gating arm from 203 to 204
-    on landing train 37 and the comment was re-spelled to work around it; the defect was here. Measured
-    across the whole tree: the arm reported 209 findings without this veto and reports 170 with it, so 39 of
-    them were a sentence rescued by a clause it already named.
-
-    ⚠ A VETO, NOT A RE-ATTRIBUTION, and the difference is the signal. The format-name arm's `_owning_cite`
-    re-attributes by POSITION, which is right for a NAME: spelling a format's three-part name is a claim
-    about ONE citation. A rule designator is not like that — it is written once and referred back to in the
-    same sentence, and it is chained (`GR4/GR6/GR9`, `GR12–13`) — so re-attributing by position, or refusing
-    to cross prose at all, silences real findings wholesale. MEASURED on this tree, three readings of the same
-    corpus: nearest-left with no veto = 209 findings · nearest-left + this veto = 170 · JOIN-ONLY (a rule
-    designator attributed only when nothing but punctuation or a `Format n` separates it from its clause) = 54.
-    A narrowing of the attribution can only DROP a finding, never add one, so join-only's 54 are a subset of
-    the 170 and it buys its quiet by discarding 116 accusations no second clause on the line can rescue.
-    Asking instead "is there a reading of this line under which the citation is CORRECT" keeps every
-    unambiguous site accused and drops exactly the ambiguous ones — the module's own rule that over-accepting
-    is free and accusing wrongly is not."""
-    for c in CLAUSE_TOKEN.finditer(line):
-        other = c.group(1)
-        if other == mine:
-            continue
-        for key in ((other, kind), (other.rsplit(".", 1)[0], kind)):
-            top = tops.get(key)
-            if top is None or num > top:
-                continue
-            if sub is None:
-                return True
-            body = (spans.get(key) or {}).get(num)
-            if body is None or re.search(r"(?<![A-Za-z0-9])[a-z]\\?\)", body):
-                return True
-    return False
-
-
-#: A QUOTATION beside a rule designator (QUOTE-RULE): straight or curly double quotes around at least ten
-#: characters. The words floor is `QUOTE_FLOOR`, applied to the normalized text.
-QUOTE = re.compile(r'["“]([^"”\n]{10,240})["”]')
-
-#: A rule designator as QUOTE-RULE reads it: `GR8`, `SR 3`, `rule 6`, and the range `GR12–13`. Wider than
-#: `RULE_CITE` (which owns the sub-item letter and nothing else) because the claim here is only the TOP-LEVEL
-#: number, and the prose form `rule 6` is as common as `GR6` beside a quotation. A range yields every number in it.
-QUOTE_DESIGNATOR = re.compile(r"\b(GR|SR|[Rr]ules?)\s?(\d{1,3})(?!\d)(?:\s?[–-]\s?(\d{1,3})(?!\d))?")
-
-#: What may stand BETWEEN two designators for them to be ONE citation chain (`GR4/GR6/GR9`, `GR3 c) 2. and GR5`):
-#: separators, a sub-item label, `and`/`or`. A chain is one claim that the quotation is in SOME member.
-QUOTE_CHAIN_GAP = re.compile(r"^(?:\s|[/,&–—()\-.]|and|or|[a-z]\\?\)|\d+[.)])*$")
-
-#: How far (characters) a quotation may stand from the designator chain it is read as quoting, with no other
-#: quotation, designator or clause number between them.
-QUOTE_REACH = 45
-
-#: What may stand between a designator chain and the quotation it quotes, once the clause number is removed:
-#: whitespace, brackets, dashes, colons, commas, equals and the verbs that introduce a quotation.
-QUOTE_GAP = re.compile(r"^(?:\s|[()\[\]:,=—–\-]|reads|says|is|means|states|as|from|[a-z]\\?\)|\d+[.)]|[a-z]\.)*$")
-
-#: A fragment shorter than this many WORDS is a phrase, not a quotation: "the value" sits in half the clauses
-#: of the standard, so placing it proves nothing about which rule a comment means. MEASURED against the tree
-#: when the arm landed (kb/Work PB597).
-QUOTE_FLOOR = 3
-
-#: ⛔ A RULE NUMBER OF ANOTHER TEXT IS NOT A CITATION OF THIS ONE. A repository that reconciles editions writes
-#: "the post-ballot 2002 text's clause 8.7.5.2 ends its abbreviation rules at SR8 …" — a true statement about
-#: a DRAFT's numbering, which differs from the 2023 standard's by design (kb/Work PB3602). The same calibration
-#: as `citation.DOCUMENT_SECTION`, for the same reason: it is a short list of words, applied to the text before the
-#: designator, and over-accepting costs nothing while accusing a correct history sentence teaches its author to
-#: delete the history. `P1`/`P2`/`P3` are the reconciliation passes' own names for the three transcriptions.
-OTHER_TEXT = re.compile(r"(?i)post-ballot|\bdrafts?\b|\bJ4\b|\bP[123]\b|COBOL[- ]?(?:85|1985|2002|2014)\b")
-OTHER_TEXT_REACH = 160
-
-#: An ELLIPSIS inside a quotation — the quotation is then not a verbatim fragment and QUOTE-RULE leaves it alone.
-_ELLIPSIS = re.compile(r"…|\.\.\.|\[\.\.\.\]")
-_SPEC_LINES = None
-
-
-def _standard():
-    """`specs/ISO_COBOL_2023.md` as `cite.py` reads it (its lines and clause regions), loaded once and only when a
-    line carrying both a designator and a quotation asks for it."""
-    global _SPEC_LINES
-    if _SPEC_LINES is None:
-        _SPEC_LINES = cite_mod.load(2023)
-    return _SPEC_LINES
-
-
-def quote_rules(clause: str, designator: str, fragment: str) -> tuple[str, set[int]] | None:
-    """THE RULING QUOTE-RULE MAKES: which TOP-LEVEL rules of `clause` print `fragment`. Returns
-    `(the clause the words were found in, the set of top-level rule numbers)`, or None when the clause does not
-    carry the words (a paraphrase, an elision, a different clause: other audits' business).
-
-    A rule block lives one level down from the clause the repository cites (`§2023:14.9.25` is the statement,
-    `§2023:14.9.25.4` its general rules), so the cited clause is tried first and then its `.3`/`.4` child that the
-    designator's kind names (`_RULE_HOME`). The top-level number is the FIRST label of `cite.rule_path` —
-    the path `cite.py --check` prints — and a line whose path does not open with `N)` (a block numbered some
-    other way, a banner, a note) contributes nothing."""
-    lines, regions = _standard()
-    needle = cite_mod.norm(fragment)
-    home = _RULE_HOME.get(designator[:2].upper())
-    for cl in (clause, *((clause + home,) if home else ()), *((clause + ".3", clause + ".4") if not home else ())):
-        hit: set[int] = set()
-        for n, _t, start, end in regions:
-            if n != cl:
-                continue
-            for i in range(start, end):
-                if _BANNER.match(lines[i]):
-                    continue      # `FORMATS 1 AND 2` heads the NEXT rule; the path walk would file it under the last
-                if needle in cite_mod.norm(lines[i]) and (m := re.match(r"(\d+)\)", cite_mod.rule_path(lines, i, start))):
-                    hit.add(int(m.group(1)))
-        if hit:
-            return cl, hit
-    return None
-
-
-def _quote_findings(site: str, line: str):
-    """QUOTE-RULE over ONE line: the rule number beside a quotation names a rule the quotation is not in.
-
-    ⛔ THE PAIRING IS THE WHOLE DISCIPLINE, because a line often cites several rules and quotes several
-    sentences, and the first draft of this arm accused 63 sites of which 5 were wrong. A designator CHAIN
-    (`QUOTE_CHAIN_GAP`: `GR4/GR6/GR9`, `GR12-13`) is one claim, and a quotation is paired to a chain only when
-    it is the ONLY chain within `QUOTE_REACH` and nothing but punctuation stands between them (`QUOTE_GAP`) -
-    not a sentence end, not a semicolon, not another clause number; a chain AFTER the quotation must be its
-    parenthetical cite. The quotation is then resolved to its top-level rule (`quote_rules`) and the chain is
-    accused only when the clause carries the words and not under any rule the chain names. A quotation with an
-    elision, one under three words, one filed under another clause just before it, and a designator belonging
-    to a draft (`OTHER_TEXT`) all say nothing: over-accepting is free, accusing a correct citation is not."""
-    quotes = [(m.start(), m.end(), m.group(1)) for m in QUOTE.finditer(line)]
-    if not quotes:
-        return []
-    chains: list[list] = []                   # [start, end, designator, {numbers}]
-    for m in QUOTE_DESIGNATOR.finditer(line):
-        hi = int(m.group(3)) if m.group(3) else int(m.group(2))
-        nums = set(range(int(m.group(2)), max(hi, int(m.group(2))) + 1))
-        if chains and QUOTE_CHAIN_GAP.match(line[chains[-1][1]:m.start()]) and m.start() - chains[-1][1] <= 16:
-            chains[-1][1] = m.end()
-            chains[-1][3] |= nums
-        else:
-            chains.append([m.start(), m.end(), m.group(1), nums])
-    out = []
-    for qs, qe, text in quotes:
-        # ONE chain per quotation, and it must be UNAMBIGUOUS: exactly one chain within reach, with nothing but
-        # punctuation (and the clause number / `ISO` the chain is filed under) between it and the quotation.
-        # Two chains in reach is prose that names several rules around one phrase
-        # (`§2023:14.9.39.4 GR29 — "does not evaluate to a NONNEGATIVE integer". GR30's minimum-capacity clamp`,
-        # `(§2023:13.16.3 SR1 ("Level-number may be 77 …") … plus §2023:13.16.3 SR2's`), and which of them the phrase is
-        # about is a question only its writer can answer.
-        near = []
-        for cs, ce, kind, nums in chains:
-            if 0 <= qs - ce <= QUOTE_REACH:
-                near.append((line[ce:qs], cs, kind, nums))
-            elif 0 <= cs - qe <= QUOTE_REACH:
-                near.append((line[qe:cs], cs, kind, nums))
-        if len(near) != 1:
-            continue
-        between, cs, kind, nums = near[0]
-        if (clause := _clause_left_of(line, cs)) is None:
-            continue
-        bare = CLAUSE_TOKEN.sub("", re.sub(citation.MARK_2023, "", between)).replace("ISO", "")
-        if not QUOTE_GAP.match(bare):
-            continue
-        if cs > qs and not re.search(r"[(\[]", bare):
-            # The chain FOLLOWS the quotation, so it must be a parenthetical cite of it — `"…" (ISO §X GR8)` — and
-            # not the next sentence's subject (`"…" §X GR1: LEAP-SECOND defaults OFF`).
-            continue
-        if any(c.group(1) != clause for c in CLAUSE_TOKEN.finditer(line[max(0, qs - QUOTE_REACH):qs])):
-            continue          # the quotation is filed under another clause cited just before it (`§2023:8.8.1.1 "…"`)
-        if OTHER_TEXT.search(line[max(0, cs - OTHER_TEXT_REACH):cs]):
-            continue          # the rule number belongs to a draft or another edition, not to this standard
-        if _ELLIPSIS.search(text) or len(cite_mod.norm(text).split()) < QUOTE_FLOOR:
-            continue          # an elision is not a verbatim fragment; a phrase is not a quotation
-        if (found := quote_rules(clause, kind, text)) is None or nums & found[1]:
-            continue
-        where = found
-        out.append(("QUOTE-RULE", site, clause,
-                    f"§2023:{clause} {kind} {'/'.join(map(str, sorted(nums)))} is cited beside \"{text.strip()[:60]}\", "
-                    f"which the standard prints in §2023:{where[0]} rule {'/'.join(map(str, sorted(where[1])))}"))
-    return out
-
-
-def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, str], int] | None = None):
-    formats, spans, owner = data if data is not None else ({}, {}, {})
-    tops = tops if tops is not None else {}
+def _ordinal_findings(rel: str, lines: list[str], data):
+    """The two checks of the ordinal family that `cite.resolve` does not make: a general format NAMED in words beside a
+    different ordinal (FORMAT-NAME), and a rule printed under a format other than the one the line cites (FORMAT-RULE).
+    The rest of the family (a rule or format number the clause does not have, a sub-item it does not have, a quotation
+    under another rule) is `cite.resolve`'s, through RESOLVE (kb/Work PB5318)."""
+    formats, owner = data if data is not None else ({}, {})
     out: list[tuple[str, str, str, str]] = []
     for i, line in enumerate(lines, 1):
         site = f"{rel}:{i}"
@@ -1225,21 +1022,14 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
         # on its own fix and teach the next author to delete the forensics.
         if NAMED_AS_WRONG.search(line):
             continue
-        if data is not None and ('"' in line or "“" in line):
-            out += _quote_findings(site, line)
         cited_formats: list[tuple[int, str, int]] = []
         # Every format citation on the line, in order — the anchors `_owning_cite` measures a spelled format
         # NAME against. Collected BEFORE the loop so each name can be weighed against all of them.
         cite_spans = [(c.start(), c.end()) for c in FORMAT_CITE.finditer(line)]
         for j, m in enumerate(FORMAT_CITE.finditer(line)):
             clause, n = m.group(1), int(m.group(2))
-            if (d := formats.get(clause)) is None:
-                continue
-            if n not in d:
-                out.append(("FORMAT", site, clause,
-                            f"§2023:{clause} prints {len(d)} general formats ({', '.join(map(str, sorted(d)))}) — "
-                            f"there is no Format {n}"))
-                continue
+            if (d := formats.get(clause)) is None or n not in d:
+                continue                       # a format the clause does not print is RESOLVE's (`no-format`)
             cited_formats.append((m.end(), clause, n))
             named = {k for k, v in d.items()
                      if v and any(_owning_cite(cite_spans, q) == j for q in _name_hits(line, v))}
@@ -1248,36 +1038,8 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
                 out.append(("FORMAT-NAME", site, clause,
                             f"§2023:{clause} Format {n} is {d[n]}, but this line names Format {k} ({d[k]})"))
         for m, clause in _rule_citations(line):
-            kind, num, sub = m.group(1), int(m.group(2)), _sub(m)
-            if (top := tops.get((clause, kind))) is None:
-                continue                       # not a rule block this repository's catalog knows
-            block = spans.get((clause, kind)) or {}
-            if num > top:
-                # ⛔ THE CATALOG HAS PARSE GAPS AND THE GATE MUST NOT ACCUSE ON ONE. `spec-rule-catalog.json`
-                # carries a `parse_gaps` count for exactly this reason — a block whose tail did not harvest
-                # reports a low top, and READ's `§2023:14.9.30.4 GR9` was reported missing from a clause that has
-                # it. The standard's own text is the veto: if a line in that clause OPENS with the ordinal,
-                # the rule exists and nothing is said (over-accepting here is free; accusing wrongly is not).
-                if re.search(rf"^\s*{num}\\?[.)]\s", block.get(0, ""), re.M):
-                    continue
-                if _another_clause_admits(line, clause, kind, num, None, tops, spans):
-                    continue                   # the line names a clause this ordinal fits — see the veto
-                out.append(("RULE", site, clause,
-                            f"§2023:{clause} has {top} {kind}s — there is no {kind}{num}"))
-                continue
-            body = block.get(num)
-            # ⛔ ABSENCE OF THE LETTER IS ONLY EVIDENCE IN A RULE THAT HAS NO LETTERS AT ALL. A rule whose
-            # sub-items run past a page break can lose one in transcription, so "this rule has a) and b), and
-            # you cited c)" proves nothing about the STANDARD. A rule with no sub-item marker anywhere is a
-            # different statement — §2023:14.9.37.4 GR8 is one sentence, and `GR8b` was cited five times.
-            # ⚠ `\)` — the transcription ESCAPES the closing paren of a list marker in some blocks and not in
-            # others, and reading only the bare form made SUBITEM report thirteen correct citations of
-            # §2023:8.8.4.4.4 GR3's a)–n) table as naming nothing.
-            if (body and sub and not re.search(r"(?<![A-Za-z0-9])[a-z]\\?\)", body)
-                    and not _another_clause_admits(line, clause, kind, num, sub, tops, spans)):
-                out.append(("SUBITEM", site, clause,
-                            f"§2023:{clause} {kind}{num} has no sub-items — {kind}{num}{sub} names nothing"))
-            part = (owner.get((clause, kind)) or {}).get(num, "absent")
+            kind, num = m.group(1), int(m.group(2))
+            part = _block_owner(owner, clause, kind).get(num, "absent")
             if part in (None, "absent"):
                 continue                       # ALL FORMATS, or a block the standard does not partition
             # ⛔ ONE PAIRING PER CITATION, AND IT HAS TO BE ADJACENT. Pairing every format on the line with
@@ -1310,15 +1072,14 @@ def _diagnostic_findings(rel: str, lines: list[str], direct: dict[tuple[str, str
                            message strings, against 2683 tree-wide in prose (`§2023:13.5.3 SR 1`, `SR-14.9.28.3-2`,
                            "the 1561-1563 SR band"), which is why the scope IS the string literal.
       DIAG-UNQUALIFIED   — the clause carries no rule block of that kind DIRECTLY, while a child subclause does:
-                           `§2023:14.9.39 SR17`, where the syntax rules are §2023:14.9.39.3. The ordinal checks resolve
-                           it through `_alias` and say nothing, which is right for prose and wrong here. It
-                           arrived with 126 sites and sat in the MEASURED backlog until PB388's sweep qualified
-                           the last of them; it gates now.
+                           `§2023:14.9.39.3 SR17`, where the syntax rules are §2023:14.9.39.3. The ordinal checks resolve
+                           it for prose, where this repository once wrote a block's clause both ways, and a message
+                           the user is sent to look up must carry the subclause. It arrived with 126 sites and sat
+                           in the MEASURED backlog until PB388's sweep qualified the last of them; it gates now.
 
-    ⚠ THE RANGE CHECK IS DELIBERATELY NOT REPEATED HERE. `RULE`/`SUBITEM` already run over every line of every
-    file, message strings included (that is what made them line-based), and they report ZERO out-of-range
-    ordinals inside diagnostic strings — measured, not assumed. A second implementation of the same question
-    would be a second place for one rule to live (`feedback_one_rule_one_place`)."""
+    ⚠ THE RANGE CHECK IS DELIBERATELY NOT REPEATED HERE. RESOLVE (`cite.resolve`) runs over every line of every
+    file, message strings included, and refuses an ordinal or a sub-item the clause does not have. A second
+    implementation of the same question would be a second place for one rule to live (kb/Work PB5318)."""
     out: list[tuple[str, str, str, str]] = []
     for i, line in enumerate(lines, 1):
         if NAMED_AS_WRONG.search(line):
@@ -1395,11 +1156,11 @@ def diagnostic_scan(direct=None):
     return findings
 
 
-def ordinal_scan(data, tops=None):
+def ordinal_scan(data):
     """The ordinal family over EVERY line of every citation-bearing file — message strings included, which is
     the half the comment-block checks structurally cannot reach."""
     findings: list[tuple[str, str, str, str]] = []
-    if data is None and not tops:
+    if data is None:
         return findings
     for path in citation_corpus.all_files():
         try:
@@ -1408,7 +1169,7 @@ def ordinal_scan(data, tops=None):
             continue
         if _opted_out(lines):
             continue
-        findings += _ordinal_findings(path.relative_to(REPO).as_posix(), lines, data, tops)
+        findings += _ordinal_findings(path.relative_to(REPO).as_posix(), lines, data)
     return findings
 
 
@@ -1481,8 +1242,8 @@ def construct_citation_scan(root: pathlib.Path = REPO):
 
 
 def audit(subjects: dict[str, str], own: dict[str, str], universe: set[str] | None, ordinals=None,
-          tops=None, direct=None):
-    findings: list[tuple[str, str, str, str]] = (phantom_scan(universe) + ordinal_scan(ordinals, tops)
+          direct=None):
+    findings: list[tuple[str, str, str, str]] = (phantom_scan(universe) + ordinal_scan(ordinals)
                                                  + diagnostic_scan(direct) + construct_citation_scan()
                                                  + resolve_findings(resolve_scan(resolve_population())))
     for path in citation_corpus.declaration_files():
@@ -1545,28 +1306,9 @@ SELF_TEST_CLEAN = [
 
 #: ⛔ THE ORDINAL LEGS. Each pair is (kind that must fire, the DEFECT line, its REPAIRED twin) and both halves
 #: go through the real `_ordinal_findings`. Every defect here is one this audit was written against — measured
-#: in the tree on 2026-09-13, not invented (kb/Work PB388).
+#: in the tree on 2026-09-13, not invented (kb/Work PB388). The legs of the arms RESOLVE retired (a rule or format
+#: number, a sub-item, a quotation under another rule: kb/Work PB5318) are RESOLVE's, in `resolve_self_test`.
 ORDINAL_SELF_TEST = [
-    ("FORMAT",
-     "/// PERFORM VARYING (ISO §2023:14.9.28 Format 4, GR12–13): nested induction loops",  # citation-audit: example
-     "/// PERFORM VARYING (ISO §2023:14.9.28, the VARYING phrase of Formats 1 and 2 — §2023:14.9.28.4 GR12–13)"),
-    ("RULE",
-     '    + "(ISO §2023:14.9.12.2 / §2023:14.9.12.3 SR6)");',  # citation-audit: example
-     '    + "(ISO §2023:14.9.12.2)");'),
-    # ⛔ THE EDITION FORM IS MEASURED THE SAME WAY, AND ANOTHER EDITION'S RULE IS NOT MEASURED AGAINST 2023'S
-    # (kb/Work PB4887): the silent twin is the same designator filed under a 2002 clause that HAS it (2002 numbers its
-    # statements 14.8, and its EVALUATE statement carries a sixth syntax rule; 2023's DIVIDE at 14.9.12.3 has none).
-    ("RULE",
-     '    + "(§2023:14.9.12.2 / §2023:14.9.12.3 SR6)");',  # citation-audit: example
-     '    + "(§2023:14.9.12.2 / §2002:14.8.12.2 SR6)");'),
-    ("SUBITEM",
-     "/// serial SEARCH with VARYING index-of-ANOTHER-table (ISO §2023:14.9.37.4 GR8b) falls through",  # citation-audit: example
-     "/// serial SEARCH with VARYING index-of-ANOTHER-table (ISO §2023:14.9.37.4 GR3 c) 2) falls through"),
-    # ⛔ THE ARTICLE IS NOT A SUB-ITEM (kb/Work PB388, wave 47). The silent twin is the prose shape the first
-    # regex accused six times in twenty; the defect is the same rule with a sub-item it does not have.
-    ("SUBITEM",
-     "/// ISO basis — §2023:13.5.4 GR1a (a non-initial program's WS is STATIC data)",  # citation-audit: example
-     "/// ISO basis — §2023:13.5.4 GR1 (a non-initial program's WS is STATIC data)"),
     ("FORMAT-NAME",
      "/// <summary>SET data-pointer assignment (§2023:14.9.39 Format 4; Phase-4b increment 1)",
      "/// <summary>SET data-pointer assignment (§2023:14.9.39 Format 7; Phase-4b increment 1)"),
@@ -1579,56 +1321,11 @@ ORDINAL_SELF_TEST = [
      "/// The LINAGE clause operand (§2023:13.18.34) is §2023:8.4.2.2.2 Format 1, qualified-linage-counter.",
      "*> a qualified-data-name (§2023:8.4.2.2.2 Format 1), while LINAGE-COUNTER is an IDENTIFIER "
      "— §2023:8.4.3.1 Format 10, qualified-linage-counter."),
-    # The pairing check: rule 12 is printed under the standard's own `FORMAT 7` banner.
+    # The pairing check: rule 12 is printed under the standard's own `FORMAT 7` banner, and the statement's clause
+    # (`§2023:14.9.39`, not its `.4`) is the form a paired citation takes.
     ("FORMAT-RULE",
      "// SET pointer TO NULL (ISO §2023:14.9.39 Format 4, GR12 — the address is stored)",
      "// SET pointer TO NULL (ISO §2023:14.9.39 Format 7, GR12 — the address is stored)"),
-    # ⛔ THE ORDINAL ARM'S OWN TWO-CITATION LINE (kb/Work PB900), and the reason the veto exists. The SILENT
-    # half is the shape landing train 37 measured on PB408's comment: the BACK-REFERENCE `GR1 b)` at the end
-    # of the sentence is the pairing already made at its head, and the clause printed BETWEEN them is the one
-    # the nearest-to-the-left reading blamed — `§2023:7.3.25.4 GR1 has no sub-items`, about a sentence claiming
-    # nothing of the kind. §2023:14.9.18.4 GR1 b) exists, so there is a reading under which the line is right and
-    # the audit says nothing. The DEFECT half is the same sub-item with NO second clause to rescue it.
-    ("SUBITEM",
-     "// the >>TURN directive (§2023:7.3.25.4) records it, and GR1 b) is therefore the activator's",
-     "// §2023:14.9.18.4 GR1 b) asks the ACTIVATOR; the >>TURN directive (§2023:7.3.25.4) records it, and GR1 b) "
-     "is therefore about the activator's profile."),
-    # ⛔ QUOTE-RULE (kb/Work PB597): the clause is right, the words are really in it, and the NUMBER is another
-    # rule's. §2023:14.9.25.4 GR8 is the dynamic-length rule; the unsigned-magnitude sentence is GR6 d) 2. b.) —
-    # `kb/Work/R10`'s landed sweep left this verbatim shape in nine places while all three audits read zero.
-    ("QUOTE-RULE",
-     '// a data file interchanges. An UNSIGNED item holds the magnitude (§2023:14.9.25.4 GR8 — "the absolute value").',
-     '// a data file interchanges. An UNSIGNED item holds the magnitude (§2023:14.9.25.4 GR6 — "the absolute value").'),
-    # ... and the quotation BEFORE its parenthetical cite, the other order a comment writes it in.
-    ("QUOTE-RULE",
-     '/// An UNSIGNED receiver stores "the absolute value of the sending value" (ISO §2023:14.9.25.4 GR8) mod 2^bits.',  # citation-audit: example
-     '/// An UNSIGNED receiver stores "the absolute value of the sending value" (ISO §2023:14.9.25.4 GR6) mod 2^bits.'),
-    # ⛔ THE DEPTH TOLERANCE the note demands: `GR6 d) 2. b.)` and `6) 1.` are the SAME top-level rule 6, so the
-    # deeper spelling of the right rule must stay silent (and the wrong top-level number, above, must not).
-    (None,
-     '// An UNSIGNED item holds the magnitude (§2023:14.9.25.4 GR6 d) 2. b.) — "the absolute value").',
-     '// An UNSIGNED item holds the magnitude (§2023:14.9.25.4 GR6 d) 2. b.) — "the absolute value").'),
-    # ⛔ THE SILENT CALIBRATIONS, each a shape the first draft accused and the measurement rejected (63 findings,
-    # 5 real): a BANNER (`FORMATS 1 AND 2` heads rule 4 and the path walk files it under rule 3) ...
-    (None,
-     '/// the group: §2023:14.9.49.4 GR4 ("FORMATS 1 AND 2") selects it from the source element that contains the',
-     '/// the group: §2023:14.9.49.4 GR4 ("FORMATS 1 AND 2") selects it from the source element that contains the'),
-    # ... TWO chains in reach of one quotation (which of them it is about is the writer's secret) ...
-    (None,
-     '// §2023:14.9.39.4 GR29 — "does not evaluate to a NONNEGATIVE integer". GR30\'s minimum-capacity clamp',
-     '// §2023:14.9.39.4 GR29 — "does not evaluate to a NONNEGATIVE integer". GR30\'s minimum-capacity clamp'),
-    # ... a chain that opens the NEXT sentence, not a parenthetical cite of the quotation before it ...
-    (None,
-     '+ "\\"Level-number may be 77 or 1 through 49.\\" §2023:13.16.3 SR2 adds the one obligation that runs the other "',
-     '+ "\\"Level-number may be 77 or 1 through 49.\\" §2023:13.16.3 SR2 adds the one obligation that runs the other "'),
-    # ... a quotation filed under ANOTHER clause cited just before it ...
-    (None,
-     '// INTEGER 0 (§2023:8.8.1.1 "the figurative constant ZERO"; §2023:8.3.3.6.4 GR4 — the zero format is the value 0',
-     '// INTEGER 0 (§2023:8.8.1.1 "the figurative constant ZERO"; §2023:8.3.3.6.4 GR4 — the zero format is the value 0'),
-    # ... and the rule numbering of a DRAFT, which differs from the 2023 standard's by design.
-    (None,
-     '| the post-ballot 2002 text has no `<>`: its clause 8.7.5.2 ends at SR8 "`<=` is an abbreviation for LESS THAN OR EQUAL TO."',
-     '| the post-ballot 2002 text has no `<>`: its clause 8.7.5.2 ends at SR8 "`<=` is an abbreviation for LESS THAN OR EQUAL TO."'),
 ]
 
 
@@ -1778,14 +1475,14 @@ def construct_self_test() -> bool:
     return ok
 
 
-def ordinal_self_test(ordinals, tops) -> bool:
+def ordinal_self_test(ordinals) -> bool:
     if ordinals is None:
         print("  ⚠ THE ORDINAL CHECKS could not be self-tested — specs/ISO_COBOL_2023.md is absent")
         return True
     ok = True
     for want, defect, repaired in ORDINAL_SELF_TEST:
-        fires = {k for k, _s, _c, _m in _ordinal_findings("probe", [defect], ordinals, tops)}
-        quiet = {k for k, _s, _c, _m in _ordinal_findings("probe", [repaired], ordinals, tops)}
+        fires = {k for k, _s, _c, _m in _ordinal_findings("probe", [defect], ordinals)}
+        quiet = {k for k, _s, _c, _m in _ordinal_findings("probe", [repaired], ordinals)}
         good = (want in fires if want else not fires) and not quiet
         ok &= good
         label = f"fires {want}" if want else "silent calibration"
@@ -1847,7 +1544,7 @@ def edition_self_test(universe: set[str]) -> bool:
     return ok and good and heads and tooled
 
 
-def self_test(subjects, own, universe, ordinals=None, tops=None, direct=None) -> int:
+def self_test(subjects, own, universe, ordinals=None, direct=None) -> int:
     """⛔ A GATE THAT HAS NEVER BEEN SEEN TO FAIL IS NOT EVIDENCE. Each check is fired on the exact defect it
     was written for, and then on its repaired twin, which must be silent."""
     import tempfile
@@ -1874,7 +1571,7 @@ def self_test(subjects, own, universe, ordinals=None, tops=None, direct=None) ->
         print("  ⚠ PHANTOM could not be self-tested — specs/ISO_COBOL_2023.md is absent")
     else:
         ok &= edition_self_test(universe)
-    ok &= ordinal_self_test(ordinals, tops)
+    ok &= ordinal_self_test(ordinals)
     ok &= diagnostic_self_test(direct)
     ok &= construct_self_test()
     ok &= conformance_self_test()
@@ -1965,11 +1662,10 @@ def main() -> int:
     own = construct_clause(subjects)
     universe = spec_clauses()
     ordinals = spec_ordinals()
-    tops = catalog_rule_tops()
-    direct = catalog_rule_tops(alias=False)
+    direct = catalog_rule_tops()
 
     if args.self_test:
-        return self_test(subjects, own, universe, ordinals, tops, direct)
+        return self_test(subjects, own, universe, ordinals, direct)
 
     if universe is None:
         # ⛔ REFUSE, NEVER SKIP (kb/Work PB1574). `specs/ISO_COBOL_2023.md` is TRACKED in this repository (only the PDF
@@ -1979,7 +1675,7 @@ def main() -> int:
               "PHANTOM and the ordinal checks cannot run, and the audit refuses rather than report a partial green.")
         return 2
 
-    findings = audit(subjects, own, universe, ordinals, tops, direct)
+    findings = audit(subjects, own, universe, ordinals, direct)
     gating = [f for f in findings if _gates(f)]
     backlog = [f for f in findings if not _gates(f)]
     print(f"{len(citation_corpus.all_files())} files and {len(citation_corpus.tooling_files())} tooling files scanned for phantoms, {len(citation_corpus.declaration_files())} for construct agreement · {len(own)} constructs keyed to their own clause")

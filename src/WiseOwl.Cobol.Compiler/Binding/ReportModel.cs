@@ -328,7 +328,7 @@ public sealed record ReportControlRef(
 public enum ReportGroupKindModel { ReportHeading, PageHeading, ControlHeading, Detail, ControlFooting, PageFooting, ReportFooting }
 
 /// <summary>One report group description (ISO §2023:13.15): its 01-level name (a detail's GENERATE handle,
-/// §2023:14.9.16 SR1), TYPE, CH/CF control association, and the LINE-built report lines.</summary>
+/// §2023:14.9.16.3 SR1), TYPE, CH/CF control association, and the LINE-built report lines.</summary>
 public sealed class ReportGroupModel
 {
     public string? Name { get; set; }

@@ -271,7 +271,7 @@ public sealed class RedefinesClass
     /// <summary>THE one verdict-application site (P5.11d — single-source the tier verdict, DESIGN-data-model §2.3):
     /// exactly two callers exist. <c>ClassifyRedefinesClassesPass</c> applies the §2023:13.18.44 REDEFINES
     /// verdict once per class (its <c>ComputeTier</c> reason table carries the ISO citations — the 2-byte
-    /// national overlay per D-N1/D-N2 and the dynamic-table reject per §2023:13.18.44 SR5; the float/COMP-5/BINARY-*/
+    /// national overlay per D-N1/D-N2 and the dynamic-table reject per §2023:13.18.44.3 SR5; the float/COMP-5/BINARY-*/
     /// INDEX "Tier-C island" row is GONE, since every numeric usage now has a pinned §2023:13.18.60.4 byte form and a
     /// mixed-usage class is an ordinary Tier-B byte-window class — kb/Work PB164, the Step D arm-1 dissolution).
     /// <c>DataBinder.ForceStringCanonical</c> — the ONE cell-backing

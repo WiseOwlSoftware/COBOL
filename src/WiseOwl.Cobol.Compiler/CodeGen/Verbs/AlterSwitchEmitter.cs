@@ -133,7 +133,7 @@ internal sealed class AlterSwitchEmitter(EmitContext ctx, DispatchState dispatch
             }
     }
 
-    // ── SET Format 3 — external switches (ISO §2023:14.9.39 F3 GR5; §2023:12.3.7 GR3) ──────────────────────────────────
+    // ── SET Format 3 — external switches (ISO §2023:14.9.39 F3 GR5; §2023:12.3.7.4 GR3) ──────────────────────────────────
 
     /// <summary>Each (switch, position) pair assigns the run-unit switch store in source order — the switch is
     /// modified so its associated condition-names evaluate per the ON/OFF phrase (GR5).</summary>

@@ -108,7 +108,7 @@ internal sealed class DataEmitter
     /// agree: the backing property (<c>OoEmitter.EmitExternalBackings</c>) and the ADDRESS-OF cell reference
     /// (<c>PtrEmitter</c>). Whichever runs first CREATES the cell, so a divergence between them would make the
     /// record's initial content depend on statement order. A plain external item seeds with the category
-    /// DEFAULT image (§2023:13.18.63 GR4a — its VALUE takes effect only during INITIALIZE); a CONSTANT RECORD seeds
+    /// DEFAULT image (§2023:13.18.63.4 GR4a — its VALUE takes effect only during INITIALIZE); a CONSTANT RECORD seeds
     /// with its §2023:13.18.15.4 GR1 INITIALIZE-composed image (§2023:11.9.10.4 GR7, the one external item initialized at
     /// initial state; the recipe is chosen at the root by <see cref="ValueInitializer.RecipeFor"/>, kb/Work PB1233).</summary>
     public string ExternalCellSeed(CallExternalBacking ext) =>

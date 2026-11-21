@@ -247,7 +247,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         MoveClassifier.Kind(source, target) is MoveKind.FigurativeToNumericImage && AllLiteralNumber(source, target.Item) is null
             ? FigurativeToNumericImageStore(target, source, FillCite(origin))
             : target is RefModPlace slice ? SliceStore(slice, source, senderFirst)
-            // An ANY LENGTH receiver stores at the CARRIER's current length (ISO §2023:13.18.2 GR1 — the item is n
+            // An ANY LENGTH receiver stores at the CARRIER's current length (ISO §2023:13.18.2.4 GR1 — the item is n
             // repetitions of its picture symbol, n = the activating argument's length).
             : Ordered(senderFirst, source, target, ConvertSource(source, target.Item,
                 target.Item.IsAnyLength ? ReceivingStore.AnyLengthWidth(target) : null), v => PlaceRenderer.Write(target, v));
@@ -405,7 +405,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         // size, pinned at two bytes by D-N1 — and for a USAGE BIT receiver the area is its ceil(n/8) packed bytes:
         // both used to take the group's BYTES as their CHARACTERS, so `MOVE AG TO PIC N(4)` stored the sending
         // characters widened (a conversion GR4 forbids) and `MOVE AG TO PIC 1(3) USAGE BIT` left the letter "A"
-        // in a boolean carrier. An ANY LENGTH receiver's width exists only at runtime (§2023:13.18.2 GR1 — the
+        // in a boolean carrier. An ANY LENGTH receiver's width exists only at runtime (§2023:13.18.2.4 GR1 — the
         // carrier's current length, in its own positions).
         // ReceivingStore.AnyLengthWidth is the ONE spelling of an ANY LENGTH receiver's width (kb/Work PB979).
         string gw = !item.IsAnyLength ? $"{item.ByteWidth}"
@@ -497,7 +497,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
             : source is BoundAllLiteral all
             ? CsLiteral(EmitText.RepeatToWidth(all.Literal, width))
             : RuntimeApi.StrStore(OperandText.NonElementaryMoveSender(source, num, "MOVE to group"), $"{width}");
-        // The ONE group-image store (PlaceRenderer.WriteGroupImage — kb/Work PB70): the §2023:13.18.38 GR8a current-extent
+        // The ONE group-image store (PlaceRenderer.WriteGroupImage — kb/Work PB70): the §2023:13.18.38.4 GR8a current-extent
         // splice for an occurs-depending receiver with data-name-1 outside, the Tier-B view's window, the OCCURS
         // DYNAMIC receiving accessor, and the plain FromImage — written once for every verb that deposits an image.
         ctx.Writer.Line(Ordered(senderFirst, source, target, image, v => PlaceRenderer.WriteGroupImage(target, v, "MOVE to group")));
@@ -814,7 +814,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
     ///   <item>a BOOLEAN one CONVERTS each character ('1' to boolean one, every other character to zero — determination
     ///     D-B5, kb/Work PB3666: §2023:14.6.8.6 transfers "after any necessary conversion" and no rule names the conversion
     ///     of a character that is not a boolean one) and then pads and left-fills with boolean ZEROS (§2023:14.6.8.6;
-    ///     JUSTIFIED §2023:13.18.32 GR2), so DISPLAY of the item and the boolean operators over it agree.</item>
+    ///     JUSTIFIED §2023:13.18.32.4 GR2), so DISPLAY of the item and the boolean operators over it agree.</item>
     /// </list></summary>
     private string CharacterStore(DataItem target, string chars, string width)
     {
@@ -858,7 +858,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
 
     /// <summary>The C# expression a MOVE source converts to when stored into <paramref name="target"/>.
     /// <paramref name="runtimeWidth"/> — the receiver's RUNTIME character count expression for an ANY LENGTH
-    /// receiver (ISO §2023:13.18.2 GR1: the item behaves as n repetitions of its picture symbol where n is the
+    /// receiver (ISO §2023:13.18.2.4 GR1: the item behaves as n repetitions of its picture symbol where n is the
     /// activating argument's length, so a MOVE stores at the CARRIER's current length, never Pic.Length=1);
     /// null (every other receiver) keeps the compile-time width.</summary>
     /// <param name="rounding">The ROUNDING MODE of the transfer. A MOVE never passes it — §2023:14.6.8.2 r4's
@@ -899,7 +899,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         // fixed-width figurative/ALL and numeric-edited paths below.
         if (target.IsDynamicLength)   // the ONE elementary character receiving store owns §2023:8.5.1.10.4 (kb/Work PB871)
             return CharacterStore(target, SendingCharacters(source), "");
-        string wN = runtimeWidth ?? pic.Length.ToString();   // the string-category store width (§2023:13.18.2 GR1)
+        string wN = runtimeWidth ?? pic.Length.ToString();   // the string-category store width (§2023:13.18.2.4 GR1)
         // ⛔ A WHOLE-WIDTH FILL GOES THROUGH THE EDITOR, NEVER AROUND IT, when the receiver edits. §2023:8.3.3.6.4 GR2
         // and §2023:14.9.25.4 GR6 are two different steps and both apply: the figurative / ALL-literal source is first
         // repeated "until the size of the resultant string is greater than or equal to the number of character
@@ -917,10 +917,10 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
             && AllLiteralNumber(source, target) is null)   // a digit fill into a numeric-edited receiver is a value to edit (kb/Work PB5677)
             // Category-aware fill: a national/boolean receiver's HIGH/LOW-VALUE reads its OWN sequence — the
             // explicit national PCS extremes when declared, else the D-N3 pin — never the ALPHANUMERIC
-            // program collating sequence's extreme (§2023:8.3.3.6 GR6/GR7 over the national sequence).
+            // program collating sequence's extreme (§2023:8.3.3.6.4 GR6/GR7 over the national sequence).
             return $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Configuration.Collating, figContext, ctx.Data.Configuration.NationalCollating)}, {wN})";
         // ALL "literal" repeats the literal to the receiver width (ISO §2023:8.3.3.6.4 GR2). An ANY LENGTH
-        // receiver's width exists only at runtime — repeat at runtime, then width-fit (§2023:13.18.2 GR1).
+        // receiver's width exists only at runtime — repeat at runtime, then width-fit (§2023:13.18.2.4 GR1).
         // (A digit-only ALL into a numeric-EDITED receiver is a numeric value to edit, never the image: AllLiteralNumber, kb/Work PB5176.)
         if (source is BoundAllLiteral a && pic.Category is not PicCategory.Numeric && !pic.IsCharacterEdited
             && AllLiteralNumber(source, target) is null)
@@ -942,7 +942,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
             // receiver's size — as the EDIT's sending characters, which the data positions then consume in
             // order while each insertion position takes its own character. The figurative fill is the
             // CATEGORY-AWARE one, so a national-edited receiver's HIGH/LOW-VALUE reads the national sequence
-            // (§2023:8.3.3.6 GR6/GR7), exactly as the whole-width guard above does.
+            // (§2023:8.3.3.6.4 GR6/GR7), exactly as the whole-width guard above does.
             string aeSrc = source switch
             {
                 BoundFigurative ff =>

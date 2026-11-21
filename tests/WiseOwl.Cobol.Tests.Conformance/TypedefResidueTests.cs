@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// The TYPEDEF residue rules (Phase 6, data-model D17, increment 4; P10 Step 16 reworked the EXTERNAL leg):
-/// COBOL1558 — the EXTERNAL type-declaration conformance rules (§2023:13.18.22 GR2 level-1 reference; SR5
+/// COBOL1558 — the EXTERNAL type-declaration conformance rules (§2023:13.18.22.4 GR2 level-1 reference; SR5
 /// strong-external pairing — the former COBOL1534 stage is LIFTED, the accepted form is the
 /// <c>typedef_external</c> golden); COBOL1535 — a strong group with a boolean/object/pointer element compared
 /// with an ordering operator (a RENAMES inside a TYPEDEF is cloned into each reference, §2023:13.18.58.4 GR1, kb/Work PB1304 —
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// </summary>
 public sealed class TypedefResidueTests
 {
-    /// <summary>§2023:13.18.22 GR2 — a data description containing an EXTERNAL type declaration shall be at
+    /// <summary>§2023:13.18.22.4 GR2 — a data description containing an EXTERNAL type declaration shall be at
     /// level-number 1; a NESTED (level > 1) TYPE reference to an external type is COBOL1558. (The level-1
     /// form is ACCEPTED and run-verified by the <c>typedef_external</c> golden — the 1534 stage is lifted.)</summary>
     [Fact]
@@ -40,11 +40,11 @@ public sealed class TypedefResidueTests
                 DISPLAY "X".
                 STOP RUN.
             """, 2002);
-        Assert.False(ok, "a below-level-1 reference to an EXTERNAL type must be rejected (ISO §2023:13.18.22 GR2)");
+        Assert.False(ok, "a below-level-1 reference to an EXTERNAL type must be rejected (ISO §2023:13.18.22.4 GR2)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1558");
     }
 
-    /// <summary>§2023:13.18.22 SR5 — an EXTERNAL record described with a STRONG type requires that type declaration
+    /// <summary>§2023:13.18.22.3 SR5 — an EXTERNAL record described with a STRONG type requires that type declaration
     /// to be external too; a plain STRONG typedef on an EXTERNAL record is COBOL1558.</summary>
     [Fact]
     public void ExternalRecordWithNonExternalStrongType_Rejected1558()
@@ -62,7 +62,7 @@ public sealed class TypedefResidueTests
                 DISPLAY "X".
                 STOP RUN.
             """, 2002);
-        Assert.False(ok, "an EXTERNAL record of a non-external STRONG type must be rejected (ISO §2023:13.18.22 SR5)");
+        Assert.False(ok, "an EXTERNAL record of a non-external STRONG type must be rejected (ISO §2023:13.18.22.3 SR5)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1558");
     }
 

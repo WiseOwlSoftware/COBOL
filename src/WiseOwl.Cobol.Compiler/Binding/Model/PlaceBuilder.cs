@@ -219,7 +219,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
         return leaf.Pic is { Usage: Usage.National } ? new NationalBytesPlace(image) : image;
     }
 
-    /// <summary>A group whose subtree contains an occurs-depending table is an ODO operand (ISO §2023:13.18.38 GR8): wrap
+    /// <summary>A group whose subtree contains an occurs-depending table is an ODO operand (ISO §2023:13.18.38.4 GR8): wrap
     /// it so the sending slice / receiving direction-split applies — whatever the group's storage shape (a record
     /// struct member, or a Tier-B / BASED class-tier window; kb/Work PB80). data-name-1 is resolved post-build,
     /// declared anywhere outside the table (SR20), and read at the operation site via CobolTable.Occ

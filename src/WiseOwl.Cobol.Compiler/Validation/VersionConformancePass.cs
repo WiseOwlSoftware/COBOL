@@ -2280,7 +2280,7 @@ internal sealed class VersionConformancePass
         public override object? VisitSharingClause(CobolParserCore.SharingClauseContext ctx)
         { _p.Check(Constructs.FileSharingClause2002, "the SHARING clause"); return base.VisitChildren(ctx); }
 
-        /// <summary>The SELECT … LOCK MODE clause (ISO §2023:12.4.5.9) — a COBOL-2002 introduction. The §2023:12.4.5.9 SR2
+        /// <summary>The SELECT … LOCK MODE clause (ISO §2023:12.4.5.9) — a COBOL-2002 introduction. The §2023:12.4.5.9.3 SR2
         /// (WITH LOCK ON MULTIPLE RECORDS vs sequential) validation stays in the binder; this arm only names the edition.</summary>
         public override object? VisitLockModeClause(CobolParserCore.LockModeClauseContext ctx)
         { _p.Check(Constructs.LockModeClause2002, "the LOCK MODE clause"); return base.VisitChildren(ctx); }
@@ -3770,7 +3770,7 @@ internal sealed class VersionConformancePass
             string word = CobolNames.UpperFold(ctx.Start.Text);
             // A BARE word argument of a function reference may be a §15 PHRASE WORD (FIND-STRING ANYCASE,
             // CONVERT HEX/NAT/ANUM/BYTE, MODULE-NAME CURRENT/ACTIVATING/NESTED/STACK/TOP-LEVEL, …) — a use OF
-            // the reserved word, not a user-defined-word use (§2023:8.4.3.2 SR8 + the per-function §15 argument
+            // the reserved word, not a user-defined-word use (§2023:8.4.3.2.3 SR8 + the per-function §15 argument
             // rules; the EXCEPTION-OBJECT precedent below). The position is NOT provable: only the sole-word
             // shape skips — a subscripted/qualified/compound argument is provably an operand and stays
             // funneled, and a genuine data-item collision is still caught at its DECLARATION slot. (P7

@@ -374,7 +374,7 @@ public sealed class ReferenceResolver(DataBinder data)
         var named = WrittenQualifiedName.OfRead(dref, qualifiers);
         string name = named.Name;
 
-        // The OCCURS DYNAMIC CAPACITY register (ISO §2023:13.18.38 GR15 / §2023:8.5.1.9.1; data-model D9): an implicitly-
+        // The OCCURS DYNAMIC CAPACITY register (ISO §2023:13.18.38.4 GR15 / §2023:8.5.1.9.1; data-model D9): an implicitly-
         // defined VIEW over the owning dynamic table's current capacity — never a storage item, so it is not in
         // ByName and is resolved HERE (before ordinary name lookup) to a CapacityRegisterPlace whose Read() emits
         // {tablePath}.Capacity. The NAME identifies it outright (§2023:13.18.38.3 SR30 first sentence — "Data-name-3

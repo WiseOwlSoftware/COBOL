@@ -32,7 +32,7 @@
       *>   4  FUNCTION EXCEPTION-STATUS is spaces — the standing evidence that no condition was set to
       *>      exist by any leg above.  Without it a silent raise-and-ignore would read as a pass.
       *> The RAISING half of GR6 d) 1 is MoveAlphanumericSenderTests: EC-DATA-INCOMPATIBLE is fatal
-      *> (§2023:14.6.13.1.1 Table 13), so the run unit terminates abnormally and no .out can record it.
+      *> (§2023:14.6.13.1.6 Table 13), so the run unit terminates abnormally and no .out can record it.
        >>TURN EC-DATA-INCOMPATIBLE CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB426E2002.

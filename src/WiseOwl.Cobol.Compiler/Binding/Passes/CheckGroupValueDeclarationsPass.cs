@@ -42,7 +42,7 @@ internal sealed class CheckGroupValueDeclarationsPass : IBindPass
     /// the VALUE clause's own syntax rules for exactly this composition.</para>
     ///
     /// <para><b>Once per WRITTEN VALUE clause.</b> The subject test reads <see cref="DataItem.ValueCopiedFrom"/>:
-    /// a template's VALUE assumed by a reference site (§2023:13.18.57.4 GR1) or a SAME AS subject (§2023:13.18.49 GR1)
+    /// a template's VALUE assumed by a reference site (§2023:13.18.57.4 GR1) or a SAME AS subject (§2023:13.18.49.4 GR1)
     /// names the SAME source entry the template already answered for. Measured: `01 A VALUE "ABCD".
     /// 05 X PIC 9(4) COMP. 01 B SAME AS A.` reported COBOL1702 twice, both anchored at X's one declaration.
     /// (A SAME AS entry can never carry its OWN VALUE — §2023:13.16.3 SR12, enforced as COBOL1555 — so the SAME AS
@@ -67,7 +67,7 @@ internal sealed class CheckGroupValueDeclarationsPass : IBindPass
             if (!DataBinder.HasGroupValue(item)) continue;
             string subject = item.CobolName ?? item.ClrName;
 
-            // ⛔ A VALUE THE ENTRY ONLY ASSUMED (§2023:13.18.57.4 GR1 / §2023:13.18.49 GR1) is screened where it was
+            // ⛔ A VALUE THE ENTRY ONLY ASSUMED (§2023:13.18.57.4 GR1 / §2023:13.18.49.4 GR1) is screened where it was
             // WRITTEN for every predicate its source could already answer — but SR1 is not such a predicate when
             // the composition is what creates its shape (kb/Work PB2517). See ScreenAssumedGroupValueSubject.
             if (item.ValueCopiedFrom is { } assumedFrom)

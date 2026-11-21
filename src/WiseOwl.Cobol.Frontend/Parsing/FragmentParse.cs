@@ -29,7 +29,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// everything unrenderable here, so the arm was not the cause — this omission was.</item>
 /// <item><b>Keyword-omitted arguments</b> — <c>MIN(ZERO + 5, 2)</c> returned <b>0</b> while
 /// <c>FUNCTION MIN(ZERO + 5, 2)</c> returned 2, because the un-rewritten <c>ZERO</c> ended one argument and
-/// <c>+ 5</c> began another. A SILENT WRONG ANSWER, and §2023:8.4.3.2 SR2 makes the two spellings the same reference
+/// <c>+ 5</c> began another. A SILENT WRONG ANSWER, and §2023:8.4.3.2.3 SR2 makes the two spellings the same reference
 /// (PB54).</item>
 /// </list>
 /// <para>

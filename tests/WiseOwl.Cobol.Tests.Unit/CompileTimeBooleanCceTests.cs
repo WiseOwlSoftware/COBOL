@@ -262,7 +262,7 @@ public sealed class CompileTimeBooleanCceTests
         Assert.Contains(diag.Reports, x => x.Code == CtDiagCode.DirectiveRule && x.Message.Contains("SR10"));
     }
 
-    [Fact] // §2023:8.8.4.3 SR1 — a simple boolean condition shall be of length 1.
+    [Fact] // §2023:8.8.4.3.3 SR1 — a simple boolean condition shall be of length 1.
     public void Cce_BareBooleanLengthTwo_Rejected()
     {
         var (r, diag) = EvalCce("B\"11\"");

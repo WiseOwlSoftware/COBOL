@@ -31,7 +31,7 @@ public class __FACTORY_FOO : __FACTORY_ANIMAL /* or CobolObject when no INHERITS
 
 **Why statics are a silent miscompile (three independent spec facts):**
 1. **Per-class copies of INHERITED factory data** — §2023:8.6.4 (specs/ISO_COBOL_2023.md:8765-8769): "In the factory object of a given class, there is one copy of each static item that is *described in or inherited by* the factory definition of that class." DOG (INHERITS ANIMAL, no factory paragraph of its own) has its OWN factory object with its OWN copy of ANIMAL's factory data. C# statics on the class would share ONE copy between ANIMAL and DOG — the factory-level analog of adversarial trap #1 (two-object independence). Instance fields of two singleton instances give two copies for free.
-2. **SELF in a factory method is polymorphic** — §2023:14.9.23.3 SR4f (:28407-ish, "SELF … factory method → factory interface of the class containing the INVOKE") combined with §2023:8.4.3.8 GR2 (:7331+, SELF resolution is on the RUNTIME class). An ANIMAL factory method doing `INVOKE SELF "F"` must dispatch to DOG's factory override when reached via `INVOKE DOG "M"`. Statics cannot dispatch virtually; a real factory class hierarchy makes it C# `this.F()` — correct by construction.
+2. **SELF in a factory method is polymorphic** — §2023:14.9.23.3 SR4f (:28407-ish, "SELF … factory method → factory interface of the class containing the INVOKE") combined with §2023:8.4.3.8.4 GR2 (:7331+, SELF resolution is on the RUNTIME class). An ANIMAL factory method doing `INVOKE SELF "F"` must dispatch to DOG's factory override when reached via `INVOKE DOG "M"`. Statics cannot dispatch virtually; a real factory class hierarchy makes it C# `this.F()` — correct by construction.
 3. **Factory method resolution walks the inheritance chain** — §2023:9.3.6 (:12105+): "If an invocation specifies the object using a class name, the factory object of the specified class is used … resolve to a factory method", resolution rules 1-2 walk INHERITS upward. The factory C# hierarchy mirrors the class hierarchy, so lookup + override are Roslyn-checked renders of binder facts (D1 discipline).
 
 **Rejected alternatives.** (a) `static` members on FOO (the deep-dive's original sketch) — fails all three facts above. (b) Nested factory type inside FOO — legal C# (nested can inherit a nested), but breaks the per-unit emitter-state switch uniformity (OoEmitClassUnit emits one top-level type per pass); sibling type keeps the switch identical. (c) `Lazy<T>`/explicit lifecycle — unneeded: §2023:9.3.14.2 (:12499-12504) requires only "created before it is first referenced"; .NET static-readonly type initialization (beforefieldinit) satisfies it exactly. (d) Emitting the factory class only when a FACTORY paragraph exists — rejected: DOG-without-factory still needs its own factory object (fact 1) and a chain node for inherited factory methods (fact 3). **Every CLASS-ID emits a factory class, always** (a class with no factory anywhere in its chain gets an empty `__FACTORY_FOO : CobolObject` + `__Instance` + `__New` — uniform, cheap, and the future FactoryObject/§2023:16.2.2 hook).
@@ -42,7 +42,7 @@ public class __FACTORY_FOO : __FACTORY_ANIMAL /* or CobolObject when no INHERITS
 
 - `INVOKE FOO "NEW" RETURNING o` stays EXACTLY as landed: `o = new FOO()` (the generated ctor IS the predefined New; D4). No change to OoBindClassInvoke's NEW branch (StatementBinder.Oo.cs:241-281).
 - **`INVOKE SELF "NEW" RETURNING r` inside a FACTORY method** (the canonical factory-MAKE pattern): §2023:16.2.1.2 GR1 + the BaseFactoryInterface prototype (:39148-39158 — `returning outObject usage object reference active-class`) mean New creates an instance of the RUNTIME factory's class. Realization: the generated `__New()` virtual (covariantly overridden per class) → bind to a new `InvokeForm.NewSelf`; emit `r = this.__New()`. An inherited MAKE reached via `INVOKE DOG "MAKE"` thereby creates a DOG. RETURNING is required (reuse the 0826 wording); USING on it is 0826 (NEW takes no arguments). Receiver conformance = the existing NEW check with cls = the CONTAINING class (containing.ConformsTo(declared) — a runtime subclass instance still conforms downstream).
-- **`INVOKE SUPER "NEW"`** in a factory method binds to the SAME `this.__New()`: SUPER restricts the METHOD SEARCH (§2023:8.4.3.8 GR3) to the inherited factory interface, but the found method IS the predefined New, whose behavior is active-class creation on the object SUPER references (= the same runtime factory object, GR1 :7331). Document this equivalence in a code comment.
+- **`INVOKE SUPER "NEW"`** in a factory method binds to the SAME `this.__New()`: SUPER restricts the METHOD SEARCH (§2023:8.4.3.8.4 GR3) to the inherited factory interface, but the found method IS the predefined New, whose behavior is active-class creation on the object SUPER references (= the same runtime factory object, GR1 :7331). Document this equivalence in a code comment.
 - **A user factory METHOD-ID named NEW → COBOL0836** (new code; 0830-0835 are taken by INITIALIZE, 0836+ verified free). ISO permits overriding New, but v1 keeps NEW = the generated ctor (D4); reject loudly, cite §2023:16.2.1 + the v1 restriction. (`INVOKE obj "NEW"` through an instance receiver already 0825s naturally — NEW is not in the instance interface.) **Superseded (kb/Work PB1582): 0836 is retired — outside BASE's hierarchy NEW is an ordinary factory method, and in a BASE subclass `METHOD-ID. NEW OVERRIDE.` overrides BASE's New (§2023:11.7.3 SR3; OO_DESIGN D4).**
 - SELF "NEW" in an INSTANCE method: falls out — the instance roster has no NEW → existing 0825.
 
@@ -134,7 +134,7 @@ Process: grammar change → regen both OSes, guard-fast after the grammar commit
 | 4 | Factory METHOD-ID. NEW | unit | 0836 |
 | 5 | SUPER in a root-class factory method | unit | 0827 (trap #7) |
 | 6 | BY REFERENCE arg reading factory WS | unit | 0828 (SR 10); bare arg auto-CONTENT (GR6a2) |
-| 7 | SELF "F" in an inherited factory method, derived factory overrides F | conformance (oo_factory_self variant) | derived override wins (SR4f + §2023:8.4.3.8 GR2) |
+| 7 | SELF "F" in an inherited factory method, derived factory overrides F | conformance (oo_factory_self variant) | derived override wins (SR4f + §2023:8.4.3.8.4 GR2) |
 | 8 | SELF "NEW" in an inherited factory method via INVOKE DOG "MAKE" | conformance (oo_factory_self) | creates a DOG (covariant __New) |
 | 9 | GOBACK inside a factory method under nested PERFORM frames | unit | method-return only (D8/MethodReturn reuse) |
 | 10 | Method WS inside a FACTORY method at --std 2023 / 2002 | matrix | 0902 / OK (row 130e unchanged, covers factory methods) |
@@ -245,16 +245,16 @@ Process: grammar change → regen both OSes, guard-fast after the grammar commit
 15. DEVLOG entry (`DEVLOG/pending-<slug>.md`, stamped at the landing by `devlog.py stamp`) + the plan §0 update; commit per feedback_commit_messages; full guard before commit.
 
 ## Sequencing note
-Lands AFTER slice 3b (SELF/SUPER instance dispatch — the roster-switch code extends :184-217, and __New's covariance rides the 3a base-chain emission). The remaining banner order after this slice: PROPERTY → INTERFACE-ID (adds IMPLEMENTS to FACTORY + OBJECT) → universal reference (FACTORY OF refs + §2023:16.2.2 FactoryObject + __CobolInvoke) → EC-OO (EC-OO-RESOURCE on New per §2023:16.2.1 GR2 :39187 belongs there; today allocation failure is a .NET OOM — document, don't fake).
+Lands AFTER slice 3b (SELF/SUPER instance dispatch — the roster-switch code extends :184-217, and __New's covariance rides the 3a base-chain emission). The remaining banner order after this slice: PROPERTY → INTERFACE-ID (adds IMPLEMENTS to FACTORY + OBJECT) → universal reference (FACTORY OF refs + §2023:16.2.2 FactoryObject + __CobolInvoke) → EC-OO (EC-OO-RESOURCE on New per §2023:16.2.1.2 GR2 :39187 belongs there; today allocation failure is a .NET OOM — document, don't fake).
 
 ---
 
-# Brief: OVERRIDE / FINAL method attributes (§2023:11.7 SR2–SR8)
+# Brief: OVERRIDE / FINAL method attributes (§2023:11.7.3 SR2–SR8)
 
 # OVERRIDE / FINAL method-attribute wave — decision-complete implementation brief
 
 > Target: the OO deep-dive's "Spec correction #4 / D7" grammar gap — `METHOD-ID … [OVERRIDE] [IS FINAL]` and
-> `CLASS-ID … [IS FINAL]` — plus the strict §2023:11.7 SR4a enforcement it unlocks, FINAL→`sealed` emission, edition
+> `CLASS-ID … [IS FINAL]` — plus the strict §2023:11.7.3 SR4a enforcement it unlocks, FINAL→`sealed` emission, edition
 > posture, diagnostics, and tests. Style: `docs/OO_DESIGN.md` Decisions. Everything below is verified
 > against the live tree (OoClassTable already marks `OverrideOf` by
 > name; the emitter already renders `override` vs `virtual`).
@@ -432,9 +432,9 @@ These files are greenfield-only (2002 manifest); the legacy NIST guard never com
 
 | Code | Rule | Severity | Message anchor |
 |------|------|----------|----------------|
-| COBOL0836 | §2023:11.7 SR4a — redefinition without OVERRIDE | `EditionContext.Removed` (error strict / warning + inferred override under `--permissive`) | cites §2023:11.7.3 SR4a + "add OVERRIDE" fix-it hint |
-| COBOL0837 | §2023:11.7 SR3 — OVERRIDE with no matching superclass method (incl. no INHERITS at all) | error | cites §2023:11.7.3 SR3 |
-| COBOL0838 | §2023:11.7 SR3/GR3 — override of a FINAL method; §2023:11.3.3 SR5/GR3 — INHERITS FROM a FINAL class | error (both sites, one code — the FINAL-violation family) | cites the exact § per site |
+| COBOL0836 | §2023:11.7.3 SR4a — redefinition without OVERRIDE | `EditionContext.Removed` (error strict / warning + inferred override under `--permissive`) | cites §2023:11.7.3 SR4a + "add OVERRIDE" fix-it hint |
+| COBOL0837 | §2023:11.7.3 SR3 — OVERRIDE with no matching superclass method (incl. no INHERITS at all) | error | cites §2023:11.7.3 SR3 |
+| COBOL0838 | §2023:11.7.3 SR3/GR3 — override of a FINAL method; §2023:11.3.3 SR5/GR3 — INHERITS FROM a FINAL class | error (both sites, one code — the FINAL-violation family) | cites the exact § per site |
 | COBOL0829 | §2023:9.3.8.2 signature conformance (existing) | error (both axes — D9 makes it unemittable) | unchanged |
 | COBOL0901 | OVERRIDE as a user word at 2002+ (existing funnel + table row) | via `Removed` policy (existing) | activated by D-B item 4 |
 
@@ -917,7 +917,7 @@ methods; RAISING LAST inside a method (needs method declaratives); EXCEPTION-OBJ
 ## 4. Diagnostics (new band; all COBOL-worded, never a Roslyn CS on user source — the G4 rule)
 
 - **COBOL0830** — RAISE identifier-1 violations: not an object reference / NULL or SUPER specified
-  (§2023:14.9.29.3 SR2) / SELF outside a method; EXCEPTION-OBJECT as a receiving operand (§2023:8.4.3.6 SR1).
+  (§2023:14.9.29.3 SR2) / SELF outside a method; EXCEPTION-OBJECT as a receiving operand (§2023:8.4.3.6.3 SR1).
 - **COBOL0831** — GOBACK / EXIT … RAISING identifier-1: universal object reference (§2023:14.9.18.3 SR4d /
   §2023:14.9.14.3); declared class (and superclasses) not specified in the PD-header RAISING phrase (SR4a).
 - **COBOL0832** — PD-header RAISING operand invalid: a non-EC-USER exception-name (§2023:14.2.2 SR7) or an

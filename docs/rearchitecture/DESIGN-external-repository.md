@@ -550,7 +550,7 @@ public static class ACCT_UPDATE
   anywhere on the host surface exposes a fixed-point item's unscaled integer.
 - **CANCEL.** A program's class has `Cancel()`, which performs §2023:14.9.5's CANCEL of that program in the current run unit
   through `ProgramRegistry.Cancel(name, callerPath: null)` — the one boundary's CANCEL (EC-PROGRAM-CANCEL-ACTIVE for
-  an active program, §2023:14.9.5 GR5). A function has none: CANCEL names programs. With it the host has no reason to name
+  an active program, §2023:14.9.5.4 GR5). A function has none: CANCEL names programs. With it the host has no reason to name
   `ProgramRegistry` (r7-brk: `Cancel()` resets WORKING-STORAGE).
 - **The boundary is the registry's.** The entry passes `callerPath: null` — an activator outside every program, so
   only §2023:8.4.6.3's outermost-program rule applies — and `siteArgMismatchChecking: true`, so the ACTIVATING half of GR3

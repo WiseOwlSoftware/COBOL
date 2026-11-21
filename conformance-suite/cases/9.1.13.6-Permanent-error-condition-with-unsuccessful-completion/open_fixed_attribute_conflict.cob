@@ -321,7 +321,7 @@
       *> 15. The other direction, without which the check could pass by
       *>     refusing every varying file: a varying file WiseOwl COBOL
       *>     itself wrote parses, so the OPEN succeeds and the record
-      *>     comes back at the length it was written (§2023:13.18.43 GR13,
+      *>     comes back at the length it was written (§2023:13.18.43.4 GR13,
       *>     reported by GR15 in the DEPENDING ON item).
            OPEN OUTPUT H-VARY
            MOVE 5 TO HV-LEN

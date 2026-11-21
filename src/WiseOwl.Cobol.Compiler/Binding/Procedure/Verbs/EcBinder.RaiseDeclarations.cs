@@ -276,15 +276,15 @@ internal sealed partial class EcBinder
         new(s => s is BoundCallProgram { IsFunction: true }, FunctionActivationNames),
         // PRECISE: only an activation THROUGH a function-pointer can find the pointer NULL (§2023:8.4.3.2.4 GR6c; PB847).
         new(s => s is BoundCallProgram { IsFunction: true, IsPointerTarget: true }, ["EC-FUNCTION-PTR-NULL"]),
-        new(s => s is BoundCancel, ProgramNames),   // CANCEL raises no EC-EXTERNAL — external state persists (§2023:14.9.5 GR8)
+        new(s => s is BoundCancel, ProgramNames),   // CANCEL raises no EC-EXTERNAL — external state persists (§2023:14.9.5.4 GR8)
         // ⛔ THE DEAD RAISE THIS ENUMERATION WAS MISSING (kb/Work PB452): EC-PROGRAM-NOT-FOUND was named ONLY in
-        // ProgramNames, so PtrEmitter.EmitSetEntry's checking-gated §2023:8.4.3.13 GR4 block could never be emitted.
+        // ProgramNames, so PtrEmitter.EmitSetEntry's checking-gated §2023:8.4.3.13.4 GR4 block could never be emitted.
         new(s => s is BoundSetEntry, ["EC-PROGRAM-NOT-FOUND"]),
         // The Format-8 twin (§2023:8.4.3.12.4 GR4's locate miss and §2023:14.9.39.4 GR14's signature screen).
         new(s => s is BoundSetFunctionAddress, ["EC-FUNCTION-NOT-FOUND", "EC-FUNCTION-PTR-INVALID"]),
         // §2023:14.9.39.4 GR21 — SET LOCALE through a pointer holding no saved locale: only SET LOCALE can raise it.
         new(s => s is BoundSetLocale, ["EC-LOCALE-INVALID-PTR"]),
-        new(s => s is BoundFree, ["EC-STORAGE-NOT-ALLOC"]),   // §2023:14.9.15 GR1c (nonfatal; Phase-4b inc 2)
+        new(s => s is BoundFree, ["EC-STORAGE-NOT-ALLOC"]),   // §2023:14.9.15.4 GR1c (nonfatal; Phase-4b inc 2)
         // EC-RANGE-PERFORM-VARYING (fatal, §2023:14.9.28.4 GR3): a PERFORM VARYING that initializes an index-name from a
         // non-positive FROM item raises it. A PERFORM is ONE identifiable node, so a PRECISE row drives the
         // FatalAmbientGates wrapper — the emitted index-init check (ControlFlowEmitter) throws inside that try.

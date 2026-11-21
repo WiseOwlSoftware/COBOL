@@ -48,7 +48,7 @@ tags: [wiseowl-cobol, work, defect]
 > the clamp never bites. That is the second time this session the adversarial pass paid for itself on a defect
 > the first pass had looked straight at.
 >
-> **AND A CITATION DEFECT AT THE SAME SITE:** the `FromDouble` comment cited **§2023:14.6.13.1.1 Table 13** for
+> **AND A CITATION DEFECT AT THE SAME SITE:** the `FromDouble` comment cited **§2023:14.6.13.1.6 Table 13** for
 > EC-ARGUMENT-FUNCTION being fatal. `cite.py --check` FAILS on it (that clause is titled "General"); the real
 > one is **§2023:14.6.13.1.6**. It had propagated from the source comment into an agent's adjudication — the
 > inherited-citation shape again, and one the quoted-fragment audit could not see because it carries no quote.

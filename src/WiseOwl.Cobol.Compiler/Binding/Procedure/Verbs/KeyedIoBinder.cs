@@ -88,7 +88,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                        || ConditionalPhrases.HasFamily(r.conditionalPhrases(), ConditionalPhraseFamily.AtEnd)
                     ? ReadKind.Next
                     : ReadKind.Random,
-            // §2023:14.9.30 SR8 — sequential access: NEXT implied.
+            // §2023:14.9.30.3 SR8 — sequential access: NEXT implied.
             _ => previous ? ReadKind.Previous : ReadKind.Next,
         };
 
@@ -210,7 +210,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         { Lock = lock_, Retry = retry };
     }
 
-    /// <summary>Bind a REWRITE on a RELATIVE/INDEXED file. §2023:14.9.35 SR2: the INVALID KEY phrases shall not be
+    /// <summary>Bind a REWRITE on a RELATIVE/INDEXED file. §2023:14.9.35.3 SR2: the INVALID KEY phrases shall not be
     /// specified for a relative-organization file in SEQUENTIAL access mode (its rewrite has no key condition —
     /// only '43'/'49' logic errors, which route to exception processing).</summary>
     public BoundStatement BindRewrite(Core.RewriteStatementContext rw, FileModel file, Place record,
@@ -272,7 +272,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         }
         ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Delete, del.conditionalPhrases());   // COBOL-85's mandatory INVALID KEY (PB5076)
         return new BoundKeyedDelete(file, invalid)
-        { Retry = fileLock.BindVerbRetry(del.retryPhrase()) };   // §2023:14.7.9 / §2023:14.9.10 GR6
+        { Retry = fileLock.BindVerbRetry(del.retryPhrase()) };   // §2023:14.7.9 / §2023:14.9.10.4 GR6
     }
 
     /// <summary>Bind <c>DELETE FILE file</c> (ISO §2023:14.9.10 Format 2 — COBOL-2023). The construct parses at every
@@ -301,7 +301,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             var (on, notOn) = PhraseBlocks.Bind(df.conditionalPhrases(), ConditionalPhraseFamily.Exception, b => host.BindBlocks([b]));
             steps.Add(new BoundKeyedDeleteFile(file, on, notOn)
             {
-                Retry = fileLock.BindVerbRetry(df.retryPhrase()),   // §2023:14.7.9 / §2023:14.9.10 GR15 — the '62' re-attempt
+                Retry = fileLock.BindVerbRetry(df.retryPhrase()),   // §2023:14.7.9 / §2023:14.9.10.4 GR15 — the '62' re-attempt
                 Override = overridden,                              // §2023:14.9.10.4 GR18 — suppress the attribute match
             });
         }
@@ -366,7 +366,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 + "'IS NOT EQUAL TO' (ISO §2023:14.9.41.3 SR3)");
             op = "==";
         }
-        // WITH LENGTH (§2023:14.9.41 GR13–GR14 partial-key count) is a COBOL-2002 introduction; the edition gate fires
+        // WITH LENGTH (§2023:14.9.41.4 GR13–GR14 partial-key count) is a COBOL-2002 introduction; the edition gate fires
         // on RECOGNITION in the VersionConformancePass parse arm (VisitStartWithLength). SR8 tests
         // the PHRASE against the ORGANIZATION and needs no operand, so it is screened before the operand resolves.
         BoundExpr? length = kp?.startWithLength()?.arithmeticExpression() is { } le ? host.Expr.BindExpr(le) : null;

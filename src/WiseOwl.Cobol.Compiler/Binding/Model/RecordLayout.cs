@@ -249,7 +249,7 @@ internal static class RecordLayout
     /// <see cref="RedefinesTier.StringCanonical"/> class contributes its ONE backing (class-max
     /// <see cref="RedefinesClass.Width"/>) once at the canonical member. For the class-free common subtree this
     /// equals <see cref="ImageWidth"/>. Mirrors <c>OdoModel.PhysicalWidth</c> / <c>SortPhysicalWidth</c> (the ODO
-    /// §2023:13.18.38 GR8 extent) — the raw <see cref="ImageWidth"/> would over- or under-count a group containing a
+    /// §2023:13.18.38.4 GR8 extent) — the raw <see cref="ImageWidth"/> would over- or under-count a group containing a
     /// redefines class whose redefiner is wider than the redefined item.</summary>
     public static int PhysicalWidth(DataItem item) => ItemSize(ExactPhysicalWidth(item));
 
@@ -305,10 +305,10 @@ internal static class RecordLayout
 
     /// <summary>The item's character offset within its record AREA on the PHYSICAL (codec) basis: the offset inside
     /// its own 01 root, which IS the area offset because every secondary 01 under an FD is a synthesized REDEFINES
-    /// of the first, starting at position 0 (ISO §2023:13.18.44 GR1). A REDEFINING child takes its TARGET's offset and
+    /// of the first, starting at position 0 (ISO §2023:13.18.44.4 GR1). A REDEFINING child takes its TARGET's offset and
     /// contributes no width; the running position advances by each preceding sibling's PHYSICAL contribution — the
     /// class-max backing width at a Tier-B canonical (matching the emitted record layout), the plain image extent
-    /// elsewhere. Null when the item or any ancestor carries OCCURS (no single fixed position — §2023:12.4.5.12 SR1 /
+    /// elsewhere. Null when the item or any ancestor carries OCCURS (no single fixed position — §2023:12.4.5.12.3 SR1 /
     /// §2023:14.9.40.3 SR6b ban OCCURS subjects; mirrors the Sort walk's bail).</summary>
     public static int? OffsetOf(DataItem item) => item.Occurs is null ? FirstOccurrenceOffsetOf(item) : null;
 
@@ -385,7 +385,7 @@ internal static class RecordLayout
     /// record image — the compile-time key window (ISO §2023:14.9.40.3 SR6e: the same byte positions are the key in
     /// every record). An item inside a REDEFINES class sits at the class anchor's offset plus its
     /// <see cref="DataItem.ClassOffset"/> (a redefinition begins at the redefined item's first position,
-    /// §2023:13.18.44 GR1; covers keys under a redefining group and keys in a secondary 01 of a multi-01 SD/FD, whose
+    /// §2023:13.18.44.4 GR1; covers keys under a redefining group and keys in a secondary 01 of a multi-01 SD/FD, whose
     /// synthesized class anchors at the first record). Null when the target does not live in
     /// <paramref name="root"/>'s area, or sits under an OCCURS (not a legal key, §2023:14.9.40.3 SR6b/SR6f).
     /// (← <c>SortOffsetInRecord</c>/<c>SortPlainOffset</c>, on the ONE <see cref="OffsetOf"/> walk.)</summary>
@@ -689,7 +689,7 @@ internal static class RecordLayout
     /// GR3, "an alphanumeric group item"). A group key with an elementary operand at its leftmost position is
     /// exactly the generic-key shape SR6 b) is written for, so the group arm may not answer "no category".
     /// <para>⚠ NOT <see cref="Place.CategoryOf"/>, which looks similar and answers a DIFFERENT question: that is
-    /// §2023:8.4.3.3.3 GR6's rule for the category a REFERENCE-MODIFIED view takes (numeric becomes alphanumeric, and
+    /// §2023:8.4.3.3.4 GR6's rule for the category a REFERENCE-MODIFIED view takes (numeric becomes alphanumeric, and
     /// so on). SR6 b) 2. compares the items' OWN categories, so folding the two would import a rule about
     /// reference modification into a rule about record keys.</para></summary>
     private static string CategoryOfItem(DataItem item) =>

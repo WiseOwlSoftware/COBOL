@@ -39,7 +39,7 @@ internal static class ObjectComputerEmit
             // LOCALE phrase and by the ALPHABETIC class tests.
             w.Line("private CharacterClassification __CLASSIFY = CharacterClassification.None;   // CHARACTER CLASSIFICATION (ISO §2023:12.3.6) — resolved at activation");
         if (data.Configuration.NationalCollating is { } nat)
-            // The NON-native NATIONAL program collating sequence (ISO §2023:12.3.6 GR9/GR11): a SPARSE NationalCollation
+            // The NON-native NATIONAL program collating sequence (ISO §2023:12.3.6.4 GR9/GR11): a SPARSE NationalCollation
             // for an ALPHABET … FOR NATIONAL literal phrase (the runtime computes every unspecified character's
             // §2023:12.3.7.4 GR7 1.3 position arithmetically) or a LocaleCollation.
             w.Line($"private static readonly CobolCollation __COLLATE_NAT = {CollationEmit.New(nat)};");

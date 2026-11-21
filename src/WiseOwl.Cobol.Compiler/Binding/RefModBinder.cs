@@ -161,7 +161,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
             if ((!inner.OwnsStorageCell || !data.IsImageBackedEarly(item)) && inner is not RedefViewPlace)
                 inner = new NumericImagePlace(inner);
         }
-        // National/boolean items reference-modify in their OWN character positions (§2023:8.4.3.3 GR1/GR5a — a
+        // National/boolean items reference-modify in their OWN character positions (§2023:8.4.3.3.4 GR1/GR5a — a
         // national position is one UTF-16 char, a bit position one '0'/'1' char, under D-N1/D-B1); alphanumeric,
         // alphabetic, alphanumeric-edited and numeric-edited items are character strings already.
         return new RefModPlace(inner, spec.Start, spec.Length) { AllowZeroLength = spec.AllowZeroLength };

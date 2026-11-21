@@ -30,7 +30,7 @@ public static partial class CobolEdit
     /// SR12 bars the FOR form's extended editing sign control symbols from a floating-point edited item), and an
     /// IS-form character-1 is a SIMPLE INSERTION symbol (§2023:13.18.40.5 rule 3), which Table 7 admits in the
     /// significand. In comma mode the literals are held PRE-SWAPPED, so the whole-image separator swap on the way
-    /// out restores them (§2023:13.18.40.2 SR13 exchanges the SYMBOLS' roles, never a literal's characters; kb/Work
+    /// out restores them (§2023:13.18.40.3 SR13 exchanges the SYMBOLS' roles, never a literal's characters; kb/Work
     /// PB866). Null when the clause has no EDITING phrase.</param>
     public readonly record struct FloatMask(string SigPattern, int SigDigits, int SigScale, char SigSign, int ExpDigits,
         EditRule[]? Edits = null)

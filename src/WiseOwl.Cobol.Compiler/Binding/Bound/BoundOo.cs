@@ -22,11 +22,11 @@ public enum InvokeForm
     /// class (§2023:9.3.6) behind the §2023:14.9.23.4 GR5 null guard.</summary>
     Instance,
     /// <summary><c>INVOKE SELF "M" …</c> → <c>this.M(…)</c> — VIRTUAL dispatch on the RUNTIME class
-    /// (§2023:8.4.3.8 GR2: a subclass override wins even when the SELF call sits in an inherited base method —
+    /// (§2023:8.4.3.8.4 GR2: a subclass override wins even when the SELF call sits in an inherited base method —
     /// oo_self_polymorphic). Never null — no guard (slice 3b).</summary>
     Self,
     /// <summary><c>INVOKE SUPER "M" …</c> → <c>base.M(…)</c> — NON-virtual, resolution STARTS at the base
-    /// class (§2023:8.4.3.8 GR3 restricted search), so an override calling its base cannot recurse (slice 3b).</summary>
+    /// class (§2023:8.4.3.8.4 GR3 restricted search), so an override calling its base cannot recurse (slice 3b).</summary>
     Super,
     /// <summary><c>INVOKE class-name "M" …</c> (non-NEW) → <c>__FACTORY_CLS.__Instance.M(…)</c> — a FACTORY
     /// method through the class's factory singleton (§2023:11.4/§2023:9.3.6; brief D11 — never null, no guard;

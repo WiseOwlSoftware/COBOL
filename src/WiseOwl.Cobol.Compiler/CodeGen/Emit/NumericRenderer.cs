@@ -367,8 +367,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         : EmitText.UnscaledLit(text);
     public NumX Visit(BoundNumRef n) => FieldNum(n.Place);
     public NumX Visit(BoundIndexRef n) => new(n.IndexField, 0);   // an index IS its 1-based occurrence number (§2023:3.5)
-    // The LINAGE-COUNTER register (ISO §2023:8.4.3.14 GR1): an unsigned INTEGER read from the file connector —
-    // runtime-sourced (only the I-O control system modifies it, §2023:13.18.34 GR7b), scale 0.
+    // The LINAGE-COUNTER register (ISO §2023:8.4.3.14.4 GR1): an unsigned INTEGER read from the file connector —
+    // runtime-sourced (only the I-O control system modifies it, §2023:13.18.34.4 GR7b), scale 0.
     public NumX Visit(BoundLinageCounterRef n) => new($"CobolFile.LinageCounter({EmitText.FileKeyExpr(n.File)})", 0);
     // LINE-COUNTER / PAGE-COUNTER (ISO §2023:8.4.3.15.4 GR1): unsigned integers read from the report's engine instance,
     // scale 0. This ONE case serves both the relation-condition and MOVE-source paths (both route through the
@@ -387,7 +387,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // integer at the counter's PICTURE-derived scale (GR1), engine-sourced.
     // A report VARYING counter read (ISO §2023:13.18.64.4 GR3/GR4): the compose-local integer counter, scale 0.
     public NumX Visit(BoundReportVaryingRef n) => new(LocalNames.Of(n.Counter), 0);
-    // An OCCURS DEPENDING table's current extent (ISO §2023:13.18.38 GR8; the §2023:15.50.4 r4b / §2023:15.14.4 r2b channel,
+    // An OCCURS DEPENDING table's current extent (ISO §2023:13.18.38.4 GR8; the §2023:15.50.4 r4b / §2023:15.14.4 r2b channel,
     // kb/Work PB61): CobolTable.OdoExtent over data-name-1's current count — scale 0, EC-BOUND-ODO inside.
     public NumX Visit(BoundOdoExtent n)
     {
@@ -1575,7 +1575,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// a byte count). Both call here. Every other <c>Align(…, 0)</c> consumer was checked against its own clause
     /// and none of them says "rounded up" (EVALUATE / GO TO DEPENDING selectors, PERFORM VARYING and PERFORM n
     /// TIMES, relative RRN / START WITH LENGTH / key fields, SET amounts, boolean shift counts, report-writer
-    /// counts, WRITE ADVANCING lines, and STOP RUN's exit status, whose §2023:14.9.42 SR3 explicitly wants the integer
+    /// counts, WRITE ADVANCING lines, and STOP RUN's exit status, whose §2023:14.9.42.3 SR3 explicitly wants the integer
     /// truncation). A new site governed by a round-up clause belongs here, never in a second local ceiling —
     /// <c>NumericRoundUpSiteTests</c> is the drift test that keeps that true.</para>
     /// <para>The mode is <see cref="CobolRounding.TowardGreater"/>, which IS "rounded up to the next whole

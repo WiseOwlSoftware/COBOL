@@ -57,7 +57,7 @@ public sealed class RunUnit
     /// <summary>The FUNCTION MODULE-NAME call-name stack (§2023:15.65).</summary>
     public ModuleStack Modules { get; } = new();
 
-    /// <summary>The external-switch store (§2023:12.3.7 GR4 NOTE 1 — switch scope is the run unit).</summary>
+    /// <summary>The external-switch store (§2023:12.3.7.4 GR4 NOTE 1 — switch scope is the run unit).</summary>
     public SwitchStore Switches { get; } = new();
 
     /// <summary>What this run unit has rendered as slot-image tokens, so a file's pointer and message-tag leaves read back as the

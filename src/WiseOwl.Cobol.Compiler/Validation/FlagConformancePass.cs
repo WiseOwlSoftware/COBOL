@@ -429,7 +429,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
             // k VALUE-FIG-CON-LENGTH (§2023:7.3.15.4 GR4 k; E.2 item 11) — a figurative constant VALUE on a data item
             // with NO SPECIFIED LENGTH: no PICTURE, no length-implying USAGE (DISPLAY/absent gives none without a
             // PICTURE; COMP-*/INDEX/POINTER/… imply one), and NOT a group (a group's figurative VALUE is filled to
-            // the subordinates' length, §2023:13.18.63 SR13). Applies to any real data item (levels 1-49, 77); a
+            // the subordinates' length, §2023:13.18.63.3 SR13). Applies to any real data item (levels 1-49, 77); a
             // level-88 condition-name reaches here via valueClause and is excluded.
             if (fig is not null && picture is null && UsageGivesNoLength(usage)
                 && IsRealDataLevel(ctx) && !HasSubordinates(ctx))
@@ -452,7 +452,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
                 else if (LiteralHasNoEditingSymbols(value))
                 {
                     // j VALUE-EDITING — the VALUE is a LITERAL (numeric or nonnumeric, NOT a figurative constant)
-                    // carrying no editing symbols. §2023:13.18.63 SR6/SR11 + E.2 item 29: at 2023 editing is auto-supplied
+                    // carrying no editing symbols. §2023:13.18.63.3 SR6/SR11 + E.2 item 29: at 2023 editing is auto-supplied
                     // for a numeric literal and compulsory for an alphanumeric/national literal (both changed 2014→2023).
                     Flag(FlagOption.Flag14ValueEditing, line, "a numeric-edited VALUE literal that contains no editing symbols");
                 }

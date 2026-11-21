@@ -89,7 +89,7 @@ same value).
 **Finding.** Packed **is not** a distinct value representation. `long`/`Int128` is *the* fixed-point carrier for
 DISPLAY, COMP, COMP-3, COMP-5, and the BINARY-CHAR family alike (`PicInfo.ClrType` `:242–247`; `CobolNum` remark
 `:19–21`). The *only* place the packed nature ever materialises as bytes is the file/record codec (Tier-C /
-`AsImage` — a §2023:13.18.60 GR4 implementor-defined zoned image, `PicInfo.ImageSignKind` `:153`). So the task's candidate
+`AsImage` — a §2023:13.18.60.4 GR4 implementor-defined zoned image, `PicInfo.ImageSignKind` `:153`). So the task's candidate
 "packed/binary" collapses into candidates "native long/Int128" + "the AsImage/FromImage codec." **This is a point in
 the model's favour** and the design's `StorageForm.NativeInt` correctly keeps them one case.
 
@@ -213,7 +213,7 @@ with **no field**, its value IS `CobolDynTable.Capacity`; `OdoModel.cs:455–464
 
 - **`AsImage()` / `FromImage()` group codec** (`FieldEmitter.cs:207–261`): a group's value as one flat character
   string, with each native fixed-point leaf encoded on demand via `CobolNum.FormatDisplay` (trailing-overpunch image
-  per §2023:13.18.60 GR4) and decoded via `CobolNum.ParseDisplay`. Reached by whole-group MOVE/compare/DISPLAY/WRITE/
+  per §2023:13.18.60.4 GR4) and decoded via `CobolNum.ParseDisplay`. Reached by whole-group MOVE/compare/DISPLAY/WRITE/
   RELEASE and the FD/SD record codec. This is the `AsImage/FromImage codec` in the task's candidate list — a *sixth*
   face a numeric value wears, distinct from its at-rest form.
 

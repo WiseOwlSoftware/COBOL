@@ -287,9 +287,10 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a queued gate whose place does not move still writes a heartbeat line at every interval (kb/Work PB5097)',
     ),
     'scripts/spec/audit_code_citations.py': (
-        '("SUBJECT",', '("HEADER",', '("PHANTOM",', '("FORMAT",', '("RULE",', '("SUBITEM",', '("FORMAT-NAME",',
-        '("FORMAT-RULE",',
-        '("QUOTE-RULE",',  # a QUOTATION resolved to its own top-level rule (kb/Work PB597)
+        '("SUBJECT",', '("HEADER",', '("PHANTOM",', '("FORMAT-NAME",', '("FORMAT-RULE",',
+        # the ordinal arms RESOLVE retired (RULE, SUBITEM, FORMAT, QUOTE-RULE) keep their legs, now RESOLVE's (kb/Work PB5318)
+        '("no-format", "/// PERFORM VARYING', '("no-sub-item", "/// serial SEARCH',
+        '("no-ordinal", "// the receiver rules (§2023:14.9.25.4 GR6/GR99)',  # citation-audit: example
         # RESOLVE: every citation of every edition through cite.resolve, and its shrink-only baseline (kb/Work PB5317)
         '("no-ordinal", "the SORT statement (§1985:XI.4.4.4 GR99)")', '("no-rule-list", "COMPUTE (§2023:14.9.8 GR1)")',  # citation-audit: example
         'the baseline allows its entries wherever their line moves',

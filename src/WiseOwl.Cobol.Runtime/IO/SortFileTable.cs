@@ -64,7 +64,7 @@ internal sealed record Format1SortRegistration(object? UseScope, long Ordinal);
 
 /// <summary>⛔ THE RUN UNIT'S SORT-MERGE FILE STORES, keyed by COBOL file-name (kb/Work PB1570; the owner is
 /// <see cref="RunUnit.SortFiles"/>). A sort-merge file's store exists only while a SORT/MERGE statement of THIS run
-/// unit executes (ISO §2023:14.9.40 GR9 phases; §9 sort-merge file model), and the -ACTIVE rules (§2023:14.9.40.4 GR10 / GR13,
+/// unit executes (ISO §2023:14.9.40.4 GR9 phases; §9 sort-merge file model), and the -ACTIVE rules (§2023:14.9.40.4 GR10 / GR13,
 /// §2023:14.9.24.4 GR8) name the procedures of "an executing SORT/MERGE statement" — a statement of the same run unit:
 /// "A run unit is an independent entity that may be executed without communicating with, or being coordinated with,
 /// any other run unit except that it may communicate via messages with other run units, process files, and set and

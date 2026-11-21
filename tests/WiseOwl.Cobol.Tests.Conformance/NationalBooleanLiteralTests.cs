@@ -17,8 +17,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// </summary>
 public sealed class NationalBooleanLiteralTests
 {
-    /// <summary>DISPLAY of a national literal (ISO §2023:14.9.11 SR1 — a national literal is a legal DISPLAY
-    /// operand; §2023:8.3.3.5 GR1 — the value is the literal's characters, prefix and quotes stripped).</summary>
+    /// <summary>DISPLAY of a national literal (ISO §2023:14.9.11.3 SR1 — a national literal is a legal DISPLAY
+    /// operand; §2023:8.3.3.5.4 GR1 — the value is the literal's characters, prefix and quotes stripped).</summary>
     [Fact]
     public void Display_NationalLiteral_DecodesPrefixAndQuotes()
     {
@@ -35,7 +35,7 @@ public sealed class NationalBooleanLiteralTests
         Assert.Equal("N=AB", stdout);
     }
 
-    /// <summary>DISPLAY of a boolean literal (ISO §2023:14.9.11 SR1; §2023:8.3.3.4 GR1 — the value is the boolean
+    /// <summary>DISPLAY of a boolean literal (ISO §2023:14.9.11.3 SR1; §2023:8.3.3.4.4 GR1 — the value is the boolean
     /// characters themselves, prefix and quotes stripped).</summary>
     [Fact]
     public void Display_BooleanLiteral_DecodesPrefixAndQuotes()
