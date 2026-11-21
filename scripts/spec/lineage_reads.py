@@ -694,7 +694,8 @@ class CaseInfo:
 class EvidenceTable:
     """What a witness of each kind shows (`EVIDENCE_TABLE`, data): a DIAGNOSIS (a refusal test's `refuse-at`, a flagged
     case's `at`) witnesses a rule only when what the rule asks of a compiler IS a diagnosis (its catalog `kind` is one
-    of `diagnosed`: a syntax rule or a general format, which a program can violate) or the next-edition rule's facility
+    of `diagnosed`: a syntax rule, which a program can violate; never a general format, which GRANTS forms that only an
+    accepted case shows compile, kb/Work PB5740) or the next-edition rule's facility
     is DECLINED (its verdict is `declined`, and then the read must state the older text's licence to decline it), or the
     rule of any kind WITHHOLDS something (`withholds`: "does not imply", whose one observable consequence is the refusal
     of a program that relies on what is withheld, kb/Work PB5783). Every other rule needs a case that RUNS and passes at

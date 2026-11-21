@@ -323,6 +323,28 @@ def case_05d_a_rule_that_withholds_a_property_is_witnessed_by_a_refusal(expect):
            F.raises(lambda: R.EvidenceTable.load(bad), "withholding-rules"))
 
 
+def case_05e_a_general_format_is_witnessed_by_an_accepted_case(expect):
+    """kb/Work PB5740: a general format GRANTS forms, so the repository's evidence table names no FMT as a diagnosed
+    kind: a refusal of a malformed form witnesses no FMT row, and the audit holds an FMT KEPT row whose every witness is
+    a refusal to `only a diagnosis`, unless the row's own references hold a case accepted at the edition."""
+    t = R.EvidenceTable.load()
+    expect("FMT is no diagnosed kind of the repository's table", "FMT" not in t.diagnosed)
+    expect("a general format with no granting sentence is still not diagnosable",
+           not t.diagnosable("FMT", "<u>FUNCTION</u> <u>PI</u>"))
+    e85 = R.edition(1985)
+    w = R.Witnesses({"cases/X/fmt-refused": R.CaseInfo("cases/X/fmt-refused", pathlib.Path("r.cob"), ("85",), (), (),
+                                                       ("FMT-1",), None, ("85",)),
+                     "cases/X/fmt-accepted": R.CaseInfo("cases/X/fmt-accepted", pathlib.Path("a.cob"), ("85",),
+                                                        ("85",), (), ("FMT-1",), None)}, {}, {})
+    probs = w.own_problems(e85, ["conformance:cases/X/fmt-refused"], t.diagnosable("FMT", "<u>END</u> <u>PROGRAM</u>"),
+                           None)
+    expect("an FMT row witnessed by a refusal alone is refused: only a diagnosis",
+           len(probs) == 1 and "only a diagnosis at 85" in probs[0])
+    expect.equal("... and stands once its references hold a case accepted at 85 (the refusal is its restriction beside "
+                 "its grant)", w.own_problems(e85, ["conformance:cases/X/fmt-refused", "conformance:cases/X/fmt-accepted"],
+                                              False, None), [])
+
+
 def case_06_the_widening_plans_and_edits_only_what_can_witness_the_rule(expect):
     order = ["85", "2002", "2014", "2023"]
     cases = {"cases/X/a": R.CaseInfo("cases/X/a", R.REPO, ("2023",), ("2023",), (), ("GR-1",), None),
