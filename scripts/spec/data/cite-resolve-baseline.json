@@ -6,14 +6,8 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 98,
+ "count": 33,
  "entries": [
-  {
-   "file": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4",
-   "line": 308,
-   "citation": "§2023:14.9.13.4 Table 15",
-   "kind": "no-table"
-  },
   {
    "file": "conformance-suite/cases/14.9.2-ADD/pb228_add_standard_decimal.cob",
    "line": 33,
@@ -21,76 +15,10 @@
    "kind": "no-ordinal"
   },
   {
-   "file": "conformance-suite/cases/14.9.25-MOVE/pb426_alnum_sender_data_incompatible.cob",
-   "line": 35,
-   "citation": "§2023:14.6.13.1.1 Table 13",
-   "kind": "no-table"
-  },
-  {
-   "file": "conformance-suite/cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/l1_vldi_initial_program_reverts.cob",
-   "line": 42,
-   "citation": "§2023:15.50.4 GR6",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "docs/conformance/3/D-DL1.md",
-   "line": 10,
-   "citation": "§2023:14.6.2.3.2 GR7",
-   "kind": "no-ordinal"
-  },
-  {
-   "file": "docs/conformance/3/D-USAGE-BIT.md",
-   "line": 1,
-   "citation": "§2023:14.9.25.4 GR4",
-   "kind": "text-not-in-rule"
-  },
-  {
-   "file": "docs/conformance/7/DOC-A.1-129.md",
-   "line": 2,
-   "citation": "§2023:9.1.15 Table 19",
-   "kind": "no-table"
-  },
-  {
    "file": "docs/conformance/7/DOC-A.1-2.md",
    "line": 2,
    "citation": "§2023:12.3.7 Format 4",
    "kind": "no-format"
-  },
-  {
-   "file": "docs/conformance/7/DOC-A.1-52.md",
-   "line": 2,
-   "citation": "§2023:9.1.15 Table 19",
-   "kind": "no-table"
-  },
-  {
-   "file": "docs/conformance/7/DOC-A.1-75.md",
-   "line": 2,
-   "citation": "§2023:9.1.15 Table 19",
-   "kind": "no-table"
-  },
-  {
-   "file": "docs/conformance/7/DOC-A.1-75.md",
-   "line": 2,
-   "citation": "§2023:9.1.15 Table 19",
-   "kind": "no-table"
-  },
-  {
-   "file": "docs/conformance/7/DOC-A.1-76.md",
-   "line": 2,
-   "citation": "§2023:9.1.15 Table 19",
-   "kind": "no-table"
-  },
-  {
-   "file": "docs/conformance/7/DOC-A.1-78.md",
-   "line": 2,
-   "citation": "§2023:9.1.15 Table 19",
-   "kind": "no-table"
-  },
-  {
-   "file": "docs/DATA_MODEL_DESIGN.md",
-   "line": 988,
-   "citation": "§2023:14.9.24 Table 16",
-   "kind": "no-table"
   },
   {
    "file": "docs/DATA_MODEL_DESIGN.md",
@@ -105,45 +33,9 @@
    "kind": "no-rule-list"
   },
   {
-   "file": "docs/FILES_DESIGN.md",
-   "line": 590,
-   "citation": "§2023:9.1.15 Table 19",
-   "kind": "no-table"
-  },
-  {
    "file": "docs/ISO2023_CONFORMANCE_PLAN.md",
    "line": 499,
    "citation": "§2023:13.18.26 SR9",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "docs/OO_DESIGN.md",
-   "line": 766,
-   "citation": "§2023:14.9.39.3 Format 5",
-   "kind": "no-format"
-  },
-  {
-   "file": "docs/rearchitecture/DESIGN-conformance-suite.md",
-   "line": 152,
-   "citation": "§2023:15.65.4 GR5",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "docs/rearchitecture/DESIGN-conformance-suite.md",
-   "line": 172,
-   "citation": "§2023:15.75.3 GR5",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "docs/rearchitecture/pb59-mechanism-map-2026-08-09.md",
-   "line": 276,
-   "citation": "§2023:15.19.3 SR7",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "docs/rearchitecture/pb59-mechanism-map-2026-08-09.md",
-   "line": 340,
-   "citation": "§2023:15.19.3 SR7",
    "kind": "no-rule-list"
   },
   {
@@ -184,81 +76,9 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 856,
-   "citation": "§2023:8.3.3.6.4 Format 6",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 1082,
-   "citation": "§2023:8.8.4.7.3 Format 2",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
    "line": 1120,
    "citation": "§2023:8.4.3.2.4 GR1",
    "kind": "text-not-in-rule"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs",
-   "line": 54,
-   "citation": "§2023:8.3.3.6.3 Format 8",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
-   "line": 382,
-   "citation": "§2023:8.3.3.6.4 Format 6",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs",
-   "line": 349,
-   "citation": "§2023:14.9.8.3 Format 2",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs",
-   "line": 389,
-   "citation": "§2023:14.9.8.3 Format 2",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
-   "line": 596,
-   "citation": "§2023:8.8.4.7.3 Format 2",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs",
-   "line": 710,
-   "citation": "§2023:14.6.2.3.2 GR7",
-   "kind": "no-ordinal"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 1602,
-   "citation": "§2023:15.19.3 SR3",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 1606,
-   "citation": "§2023:15.19.3 SR8",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 1610,
-   "citation": "§2023:15.19.3 SR9",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 1616,
-   "citation": "§2023:15.19.3 SR1",
-   "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
@@ -267,58 +87,16 @@
    "kind": "no-rule-list"
   },
   {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs",
-   "line": 621,
-   "citation": "§2023:14.9.39.3 Format 9",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs",
-   "line": 649,
-   "citation": "§2023:14.9.39.3 Format 9",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs",
-   "line": 1682,
-   "citation": "§2023:14.9.39.3 Format 16",
-   "kind": "no-format"
-  },
-  {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
    "line": 2975,
    "citation": "§2023:13.18.38.3 SR25d",
    "kind": "no-sub-item"
   },
   {
-   "file": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs",
-   "line": 424,
-   "citation": "§2023:14.6.2.3.2 GR7",
-   "kind": "no-ordinal"
-  },
-  {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs",
    "line": 1606,
    "citation": "§2023:14.2.3 GR8",
    "kind": "text-not-in-rule"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs",
-   "line": 121,
-   "citation": "§2023:14.9.39.4 Format 7",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs",
-   "line": 853,
-   "citation": "§2023:14.9.40.4 Format 2",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs",
-   "line": 914,
-   "citation": "§2023:14.9.40.4 Format 2",
-   "kind": "no-format"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs",
@@ -345,30 +123,6 @@
    "kind": "no-rule-list"
   },
   {
-   "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9189,
-   "citation": "§2023:14.9.8.3 Format 2",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs",
-   "line": 671,
-   "citation": "§2023:14.9.39.3 Format 5",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs",
-   "line": 432,
-   "citation": "§2023:15.19.3 SR4",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs",
-   "line": 438,
-   "citation": "§2023:15.19.3 SR4",
-   "kind": "no-rule-list"
-  },
-  {
    "file": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs",
    "line": 1063,
    "citation": "§2023:13.18.57.4 GR6f",
@@ -381,70 +135,16 @@
    "kind": "text-not-in-rule"
   },
   {
-   "file": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs",
-   "line": 190,
-   "citation": "§2023:14.9.39.4 Format 16",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs",
-   "line": 194,
-   "citation": "§2023:14.9.39.4 Format 16",
-   "kind": "no-format"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs",
-   "line": 220,
-   "citation": "§2023:14.9.39.4 Format 16",
-   "kind": "no-format"
-  },
-  {
-   "file": "tests/WiseOwl.Cobol.Tests.Conformance/MoveAlphanumericSenderTests.cs",
-   "line": 21,
-   "citation": "§2023:14.6.13.1.1 Table 13",
-   "kind": "no-table"
-  },
-  {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/CobolLexerModeDriftTests.cs",
    "line": 401,
    "citation": "§2023:8.3.2.1 GR1",
    "kind": "no-rule-list"
   },
   {
-   "file": "kb/Compiler/Pipeline-to-ISO-Mapping.md",
-   "line": 140,
-   "citation": "§2023:14.6.12 Table 13",
-   "kind": "no-table"
-  },
-  {
-   "file": "kb/Diagrams/IR-to-Semantic-to-Runtime-Flow.md",
-   "line": 391,
-   "citation": "§2023:8.3.3.6.4 Format 6",
-   "kind": "no-format"
-  },
-  {
    "file": "kb/Spec/Lookup/IR Mapping.md",
    "line": 113,
    "citation": "§2023:14.9.20 Format 2",
    "kind": "no-format"
-  },
-  {
-   "file": "kb/Spec/Lookup/IR Mapping.md",
-   "line": 251,
-   "citation": "§2023:8.3.3.6.4 Format 6",
-   "kind": "no-format"
-  },
-  {
-   "file": "kb/Spec/Lookup/Semantic Rules.md",
-   "line": 54,
-   "citation": "§2023:14.6.12 Table 13",
-   "kind": "no-table"
-  },
-  {
-   "file": "kb/Work/PB1150.md",
-   "line": 57,
-   "citation": "§2023:14.6.13.1.6 Table 12",
-   "kind": "no-table"
   },
   {
    "file": "kb/Work/PB1224.md",
@@ -465,46 +165,10 @@
    "kind": "no-rule-list"
   },
   {
-   "file": "kb/Work/PB193.md",
-   "line": 111,
-   "citation": "§2023:9.1.15 Table 19",
-   "kind": "no-table"
-  },
-  {
    "file": "kb/Work/PB228.md",
    "line": 60,
    "citation": "§2023:14.7.7 GR2",
    "kind": "no-ordinal"
-  },
-  {
-   "file": "kb/Work/PB2463.md",
-   "line": 26,
-   "citation": "§2023:14.9.39.3 Format 5",
-   "kind": "no-format"
-  },
-  {
-   "file": "kb/Work/PB3.md",
-   "line": 658,
-   "citation": "§2023:14.9.25.4 Table 16",
-   "kind": "no-table"
-  },
-  {
-   "file": "kb/Work/PB3.md",
-   "line": 661,
-   "citation": "§2023:14.9.25.4 Table 16",
-   "kind": "no-table"
-  },
-  {
-   "file": "kb/Work/PB3.md",
-   "line": 858,
-   "citation": "§2023:14.9.25.4 Table 16",
-   "kind": "no-table"
-  },
-  {
-   "file": "kb/Work/PB3.md",
-   "line": 861,
-   "citation": "§2023:14.9.25.4 Table 16",
-   "kind": "no-table"
   },
   {
    "file": "kb/Work/PB392.md",
@@ -513,70 +177,16 @@
    "kind": "no-ordinal"
   },
   {
-   "file": "kb/Work/PB418.md",
-   "line": 37,
-   "citation": "§2023:14.6.2.3.2 GR7",
-   "kind": "no-ordinal"
-  },
-  {
-   "file": "kb/Work/PB425.md",
-   "line": 146,
-   "citation": "§2023:8.3.3.6.4 Format 2",
-   "kind": "no-format"
-  },
-  {
    "file": "kb/Work/PB4503.md",
    "line": 50,
    "citation": "§2023:14.8.4.1 Format 3",
    "kind": "no-format"
   },
   {
-   "file": "kb/Work/PB4618.md",
-   "line": 34,
-   "citation": "§2023:15.94.4 GR1b",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "kb/Work/PB4924.md",
-   "line": 18,
-   "citation": "§2023:15.61.4 GR2",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "kb/Work/PB4924.md",
-   "line": 33,
-   "citation": "§2023:15.61.4 GR2",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "kb/Work/PB4960.md",
-   "line": 34,
-   "citation": "§2023:15.61.4 GR2",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "kb/Work/PB5.md",
-   "line": 51,
-   "citation": "§2023:14.6.13.1.1 Table 13",
-   "kind": "no-table"
-  },
-  {
    "file": "kb/Work/PB718.md",
    "line": 181,
    "citation": "§2023:9.3.6 GR5",
    "kind": "no-ordinal"
-  },
-  {
-   "file": "kb/Work/PB833.md",
-   "line": 129,
-   "citation": "§2023:9.1.15 Table 19",
-   "kind": "no-table"
-  },
-  {
-   "file": "kb/Work/PB996.md",
-   "line": 142,
-   "citation": "§2023:8.8.4.2.1 Format 3",
-   "kind": "no-format"
   },
   {
    "file": "tests/version-matrix/inventory/GR-14.6.2.3.2-1.json",

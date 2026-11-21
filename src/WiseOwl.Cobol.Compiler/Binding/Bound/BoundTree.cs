@@ -853,7 +853,7 @@ public sealed record BoundPredefinedNull : BoundOperand
     private BoundPredefinedNull() { }
 }
 
-/// <summary>The figurative <c>ALL "literal"</c> (ISO §2023:8.3.3.6.4 Format 6): the multi-character <paramref name="Literal"/>
+/// <summary>The figurative <c>ALL "literal"</c> (ISO §2023:8.3.3.6 Format 6): the multi-character <paramref name="Literal"/>
 /// repeated to the associated width (the receiver in a MOVE, the other operand in a comparison — GR2) or used once in a
 /// length-unspecified context such as DISPLAY (GR3c).</summary>
 public sealed record BoundAllLiteral(string Literal) : BoundOperand
@@ -1079,7 +1079,7 @@ public sealed record BoundRangeMembership(BoundOperand Left, BoundOperand Lo, Bo
     RangeCollationId? Collation = null) : BoundCondition;
 
 /// <summary>A sign condition: <paramref name="Expr"/> IS [NOT] {POSITIVE | NEGATIVE | ZERO}. <paramref
-/// name="Format2Float"/> marks the ISO §2023:8.8.4.7.3 Format 2 form — a bare (unparenthesized) standard
+/// name="Format2Float"/> marks the ISO §2023:8.8.4.7 Format 2 form — a bare (unparenthesized) standard
 /// floating-point data-name — which tests the IEEE sign BIT (§2023:8.8.4.7.4 GR2: +0.0 IS POSITIVE, −0.0 IS
 /// NEGATIVE) rather than the Format-1 algebraic value.</summary>
 public sealed record BoundSignCondition(BoundExpr Expr, char Kind, bool Negated, bool Format2Float = false) : BoundCondition;   // Kind: P/N/Z

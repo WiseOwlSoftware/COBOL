@@ -668,7 +668,7 @@ public static class ActivationRelations
               + "§2023:14.8.2.3.2; §2023:8.5.3.1)";
     }
 
-    /// <summary>An object-reference description as the §2023:14.9.39.3 Format 5 table reads it. An ACTIVE-CLASS description
+    /// <summary>An object-reference description as the §2023:14.9.39 Format 5 table reads it. An ACTIVE-CLASS description
     /// names its containing class through its class facts (the first of <see cref="ActivationDescription.ObjectClasses"/>),
     /// since the class is not part of the description's §2023:9.3.6 3 d) identity (<see cref="ActivationDescription.ObjectName"/>
     /// is null for it).</summary>

@@ -763,7 +763,7 @@ the carrier and spelled by the renderer); the goldens `conformance:cases/9.3.6-M
 `conformance:cases/9.3.6-Method-invocation/pb2076_universal_returning_move_match` rules 6 and 7, `conformance:cases/_unassigned/pb2463_universal_returning_set_match`
 rule 6's object-reference arms and `conformance:cases/_unassigned/pb2463_call_object_reference_set_conformance` the CALL lane's; `Table16PrintedTableDriftTests` holds the one
 Table 16 to the printed table cell for cell.
-Rule 6 for an OBJECT REFERENCE returning item is the §2023:14.9.39.3 Format 5 table (`ObjectReferenceSet.Refusal`, the one
+Rule 6 for an OBJECT REFERENCE returning item is the §2023:14.9.39 Format 5 table (`ObjectReferenceSet.Refusal`, the one
 copy the compiler's SET screens ask too) over CLASS FACTS each description carries (`ActivationDescription.ObjectClasses`
 — the class, for ACTIVE-CLASS "the class containing the data item", and its ancestors; `ObjectInterfaces` — the
 interfaces its objects implement, or an interface and those it inherits), built by `OoClassTable.DescribedOperand` (kb/Work

@@ -850,7 +850,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         string elem = ts.Table.ElementType;
         // The WHOLE-TABLE path, an index for each ENCLOSING table (§2023:8.4.2.3.3 SR5 e); the sort writes the table, so an
         // enclosing dynamic-capacity level is reached through its receiving accessor.
-        w.Line($"var __ta{id} = {PlaceRenderer.RenderPath(typed.Array, AccessDir.Receiving)};   // SORT table (ISO §2023:14.9.40.4 Format 2 — in place, GR18/GR24)");
+        w.Line($"var __ta{id} = {PlaceRenderer.RenderPath(typed.Array, AccessDir.Receiving)};   // SORT table (ISO §2023:14.9.40.4 GR18/GR24, Format 2 — in place)");
         // Through CobolTable.SortInPlace, never a bare Enumerable.OrderBy: the framework's array sort re-throws a
         // comparer's exception as InvalidOperationException, which would hide a key comparison's fatal COBOL
         // exception condition from the statement guard (kb/Work PB230 — measured, not deduced).
@@ -911,7 +911,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
                 ?? throw new InvalidOperationException(
                     $"SORT table '{ts.Table.CobolName}': no window for '{item.CobolName}' — the binder checked it (kb/Work PB1175)");
         string n = $"__n{id}", ix = $"__ix{id}", im = $"__im{id}", at = $"__e{id}";
-        w.Line($"int {n} = (int)({PlaceRenderer.OccurrenceCount(ts.Count)});   // SORT table over a shared-storage area (ISO §2023:14.9.40.4 Format 2 — GR18/GR20/GR24; §2023:13.18.44.4 GR1)");
+        w.Line($"int {n} = (int)({PlaceRenderer.OccurrenceCount(ts.Count)});   // SORT table over a shared-storage area (ISO §2023:14.9.40.4 GR18/GR20/GR24, Format 2; §2023:13.18.44.4 GR1)");
         w.Line($"var {ix} = new int[{n}];");
         w.Line($"for (int {at} = 0; {at} < {n}; {at}++) {ix}[{at}] = {at};");
         w.Line($"global::System.Comparison<int> __tc{id} = (__a, __b) =>");

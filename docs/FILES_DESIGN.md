@@ -587,7 +587,7 @@ and at run time, where it travels beside the fingerprint as `ExternalDescriptor.
 **§2023:9.1.6's own last-sentence obligation** — "The implementor shall specify whether the ability to share a
 physical file is a fixed file attribute" — is answered **NO**: a sharing mode is established per FILE CONNECTOR
 by the SHARING clause or the OPEN's SHARING phrase (§2023:14.9.27.4 GR21–GR23) and arbitrated live against the
-connectors currently open (§2023:9.1.15 Table 19), so it is not a property the physical file carries between run
+connectors currently open (§2023:14.9.27.4 Table 19), so it is not a property the physical file carries between run
 units.
 
 **Where each half lives, each in ONE place.** `FileConnector.Open` performs GR10's comparison — before

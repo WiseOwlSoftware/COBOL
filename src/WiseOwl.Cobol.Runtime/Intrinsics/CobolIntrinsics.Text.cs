@@ -429,13 +429,13 @@ public static partial class CobolIntrinsics
             return [];
         }
         if ((t.Length & 1) != 0)                                     // SR4 — complete bytes ⇒ an even digit count
-        { Exceptions.ExceptionState.ArgumentError("CONVERT: HEX source is not a whole number of bytes (§2023:15.19.3 SR4)"); t += "0"; }
+        { Exceptions.ExceptionState.ArgumentError("CONVERT: HEX source is not a whole number of bytes (§2023:15.19.3 AR4)"); t += "0"; }
         var b = new byte[t.Length / 2];
         for (int i = 0; i < b.Length; i++)
         {
             int hi = HexVal(t[2 * i]), lo = HexVal(t[2 * i + 1]);
             if (hi < 0 || lo < 0)
-            { Exceptions.ExceptionState.ArgumentError("CONVERT: HEX source has a non-hex digit (§2023:15.19.3 SR4)"); hi = hi < 0 ? 0 : hi; lo = lo < 0 ? 0 : lo; }
+            { Exceptions.ExceptionState.ArgumentError("CONVERT: HEX source has a non-hex digit (§2023:15.19.3 AR4)"); hi = hi < 0 ? 0 : hi; lo = lo < 0 ? 0 : lo; }
             b[i] = (byte)((hi << 4) | lo);
         }
         return b;

@@ -707,7 +707,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // POST-PASS OVER ALL THREE. GR7 is printed unconditionally, and read that way it would erase the sender
         // GR6a and GR6b have just designated. It is read as the answer GR6c's fill table cannot give for a
         // dynamic-length receiver, for four reasons, each mechanically cited at docs/CONFORMANCE.md §3:
-        //   (i)   §2023:14.6.2.3.2 GR7 states THE SAME ACTION at the OTHER occasion with the carve-out spelled out —
+        //   (i)   §2023:14.6.2.3.2 GRL2.7 states THE SAME ACTION at the OTHER occasion with the carve-out spelled out —
         //         "The length of each dynamic-length elementary item that is specified WITHOUT a VALUE clause is
         //         set to zero" — so the standard's own parallel sentence excludes the VALUE case;
         //   (ii)  §2023:8.6.4 makes a dynamic-length item's initial-state LENGTH the VALUE clause's length, and

@@ -51,7 +51,7 @@ they attach to, and the runtime consequence. See [[kb/Semantics/Validation Rules
 | Level-88 value-set | VALUE/THRU defines the truth set | §2023:8.8.4.4 | binder | `BoundCondition88` | bool property |
 | Class condition | NUMERIC/ALPHABETIC/CLASS test | §2023:8.8.4.2.16 | binder | `BoundClassCondition` | class test |
 | EC checking scope | ECs off by default; `>>TURN` folds at compile | §2023:14.6.12 / §2023:7.3.13 | `EcFeatures` fold | `BoundEcChecked` | EC engine |
-| EC hierarchy & fatality | Table 13 exception hierarchy | §2023:14.6.12 Table 13 | binder | `BoundRaise` | fatal/nonfatal |
+| EC hierarchy & fatality | Table 13 exception hierarchy | §2023:14.6.13.1.6 Table 13 | binder | `BoundRaise` | fatal/nonfatal |
 
 ## File & I-O rules
 | Rule | Description | Spec Source | Validation Pass | IR Node | Runtime Impact |

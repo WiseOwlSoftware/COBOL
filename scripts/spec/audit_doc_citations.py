@@ -91,11 +91,13 @@ PAT = re.compile(citation.PATTERN + r'[^§"“\n]{0,80}' + QUOTED)
 #:  · `(?!\.\d)` — the clause number is taken WHOLE. Without it the greedy number backtracks against the
 #:    `.`-in-the-terminator alternative and `§2023:12.3.7.3 SR16g / SR17d` reads as a citation of §2023:12.3.7 — a
 #:    correct citation reported as one level short, which is the very defect shape this audit hunts.
-#:  · a rule designator may sit between the clause and the terminator (`§2023:14.9.7.3 SR2)`, `§2023:15.2 item 5)`).
+#:  · a rule designator may sit between the clause and the terminator (`§2023:14.9.7.3 SR2)`, `§2023:15.2 item 5)`), and a
+#:    sub-item letter after it (`§2023:14.9.25.4 GR9 a:`): without it the quote paired with the prefix citation before it.
 #:  · the citation must CLOSE — bracket, comma, stop, or the `/` and `·` of a citation list. A `§` followed by
 #:    more prose is an aside about a construct the quote names, not the quote's source (see the order rule).
 POST = re.compile(QUOTED + r'\s{0,2}[(\[]?(?:ISO\s+)?' + citation.PATTERN + r'(?!\.\d)'
-                  r'(?:\s+(?:' + '|'.join(citation.RULE_KINDS) + r'|item|rule)\s?\d+[a-z]?\)?)?\s*(?:[)\],.;:/·]|$)')
+                  r'(?:\s+(?:' + '|'.join(citation.RULE_KINDS) + r'|item|rule)\s?\d+[a-z]?\)?(?:\s[a-z](?=[:,.;]))?)?'
+                  r'\s*(?:[)\],.;:/·]|$)')
 
 #: Marks that a "quote" is elided, marked up, or otherwise not verbatim — never a checkable citation.
 #: ⚠ BOTH SPELLINGS OF THE ELLIPSIS, and the ASCII one was missing until the ELIDED arm measured its absence.

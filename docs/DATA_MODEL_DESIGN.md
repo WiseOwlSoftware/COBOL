@@ -985,7 +985,7 @@ with PICTURE 1(m), where m is the bit length of the group"; storage per §2023:8
 class/category national, "as though … PICTURE N(m), where m is the length of the group"), GR3 (no clause ⇒ an
 alphanumeric group item); §2023:8.5.2.10 item 3 (category national includes a national group); §2023:8.5.1.6.3 (the
 trailing-filler NOTE excludes "a record that is entirely a bit group"); §2023:15.50.4 r1/r2 (LENGTH of a bit / national
-group in boolean / national positions); §2023:14.9.24 Table 16 (a national group sends/receives as category
+group in boolean / national positions); §2023:14.9.25.3 Table 16 (a national group sends/receives as category
 national); §2023:8.4.3.3.3 SR1 last sentence (a bit/national group is treated as elementary for reference
 modification).*
 

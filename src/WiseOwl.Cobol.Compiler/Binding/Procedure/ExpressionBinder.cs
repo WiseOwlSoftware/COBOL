@@ -379,7 +379,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         new(CobolLiteral.Decode(raw)) { Category = PicCategory.Boolean };
 
     /// <summary>Bind a figurative constant to a bound operand. <c>ALL "literal"</c> / <c>ALL X"…"</c> (a
-    /// multi-character figurative, ISO §2023:8.3.3.6.4 Format 6) → <see cref="BoundAllLiteral"/>; <c>ALL ZEROS</c> etc.
+    /// multi-character figurative, ISO §2023:8.3.3.6 Format 6) → <see cref="BoundAllLiteral"/>; <c>ALL ZEROS</c> etc.
     /// are the single-character figurative repeated to width, identical to the bare word.</summary>
     /// <remarks>
     /// ⛔ The HEXLIT arm was the FIFTH site of the hexadecimal-literal defect (fix-queue PB4), and the one the

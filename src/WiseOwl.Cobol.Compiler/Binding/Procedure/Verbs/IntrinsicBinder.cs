@@ -1599,21 +1599,21 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // SR3 — source shall differ from destination (only ANUM→ANUM / NAT→NAT with no HEX collide, §2023:15.19.3).
         if ((src == 1 && dst == 1 && !hex) || (src == 3 && dst == 3 && !hex))
             ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: the source-format and destination-format are the "
-                + "same (ISO §2023:15.19.3 SR3)");
+                + "same (ISO §2023:15.19.3 AR3)");
         // SR8 — an ANY source requires an ANUM HEX or NAT HEX destination.
         if (src == 0 && !(hex && dst is 1 or 3))
             ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: a source-format of ANY requires a destination of "
-                + "ANUM HEX or NAT HEX (ISO §2023:15.19.3 SR8)");
+                + "ANUM HEX or NAT HEX (ISO §2023:15.19.3 AR8)");
         // SR9 — a BYTE destination requires a HEX source.
         if (dst == 4 && src != 2)
             ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: a destination-format of BYTE requires a "
-                + "source-format of HEX (ISO §2023:15.19.3 SR9)");
+                + "source-format of HEX (ISO §2023:15.19.3 AR9)");
         // SR1 — argument-1 shall not be zero length. This arm is the COMPILE-TIME catch for the one shape
         // knowable here (an empty literal — ISO 8.5.4's shape 8); the RUNTIME twin at the top of
         // CobolIntrinsics.Convert screens the other 8.5.4 zero-length shapes (a DYNAMIC LENGTH item at
         // length 0, a zero-occurrence ODO group, …) with EC-ARGUMENT-FUNCTION (fix-queue PB59 / AR-15.19.3-1).
         if (operands[0] is BoundStringLiteral { Value.Length: 0 })
-            ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: argument-1 is of zero length (ISO §2023:15.19.3 SR1)");
+            ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: argument-1 is of zero length (ISO §2023:15.19.3 AR1)");
 
         // §2023:15.19.3 r4/r5/r6/r7 — the source-format keys what argument-1's STORAGE must hold, and the static
         // half of each rule is its REPRESENTATION (IntrinsicArgumentRules.StaticUsageOf — the keyword-dependent

@@ -118,7 +118,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         foreach (var r in s.Receivers)
             if (r.Based is { } based) ptr.EmitSetAddressOfBased(based, src);       // GR13 — data-name-1
             else ctx.Writer.Line(StorePointer(sender, s.Receivers.Count, r.Pointer!, src)   // GR12 — identifier-5
-                                 + "   // SET pointer (ISO §2023:14.9.39.4 Format 7 GR12)");
+                                 + "   // SET pointer (ISO §2023:14.9.39.4 GR12, Format 7)");
     }
 
     /// <summary>The store of a pointer-family SET's sending address <paramref name="src"/> into <paramref name="receiver"/>

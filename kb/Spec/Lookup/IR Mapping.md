@@ -248,7 +248,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `BoundFieldOperand` | Data-item reference operand | §2023:8.4.1 | category decides string-vs-numeric render | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundComputedOperand` | Computed numeric expr as operand | §2023:8.8.1 | wraps BoundExpr for comparison/args | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundFigurative` | Figurative constant operand | §2023:8.3.3.6 | materialized to receiver/other-operand width | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
-| `BoundAllLiteral` | ALL 'literal' figurative operand | §2023:8.3.3.6.4 Format 6 | GR2 repeated to width; SR5 digit-only→numeric MOVE | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
+| `BoundAllLiteral` | ALL 'literal' figurative operand | §2023:8.3.3.6 Format 6 | GR2 repeated to width; SR5 digit-only→numeric MOVE | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundBoolOperand` | Boolean expr as relation operand | §2023:8.8.4.2.2 | rides shared BoundRelational renderer | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundNumLiteral` | Numeric literal (expr, raw text) | §2023:8.3.3.3.2 | backend scales | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundNumRef` | Numeric data-item reference | §2023:8.4.1 | resolved Place | Bind | [[kb/Diagrams/IR Node Hierarchy]] |

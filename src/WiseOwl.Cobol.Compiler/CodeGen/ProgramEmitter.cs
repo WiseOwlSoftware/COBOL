@@ -421,7 +421,7 @@ internal sealed class ProgramEmitter
                 // (DataEmitter.UnboundFormalCarrier — the carrier's shape of the one unbound value an AREA formal's
                 // record-shaped cell takes too, DataEmitter.UnboundFormalRecord; kb/Work PB2671): spaces for a character item, the zero ENCODING for an image-stored numeric of any usage — a
                 // space image read as binary or packed data is a nonzero, invalid value — and EMPTY for a
-                // dynamic-length item (§2023:14.6.2.3.2 GR7: "The length of each dynamic-length elementary item that is
+                // dynamic-length item (§2023:14.6.2.3.2 GRL2.7: "The length of each dynamic-length elementary item that is
                 // specified without a VALUE clause is set to zero"). A variable-length carrier seeds EMPTY — a
                 // space image of its collapsed width would be a wrong-shaped value, not a benign one (kb/Work PB204).
                 string init = crossing switch

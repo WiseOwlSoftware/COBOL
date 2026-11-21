@@ -593,7 +593,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// serves the CLASS shape, which tests CHARACTER CONTENT (§2023:8.8.4.4): a data item is read in place, because
     /// its numeric intermediate would normalize the very content <c>IS NUMERIC</c> exists to find invalid; a
     /// computed subject is read from its one materialization. <paramref name="Node"/> remains only for the
-    /// syntactic facts a bound operand no longer carries (§2023:8.8.4.7.3 Format 2's "bare standard floating-point
+    /// syntactic facts a bound operand no longer carries (§2023:8.8.4.7 Format 2's "bare standard floating-point
     /// data-name") and for the SR1 diagnostic path of a sign test on a non-numeric subject.</para></summary>
     public readonly record struct PartialSubjectOperand(Core.ValueOperandContext? Node, BoundOperand Value, BoundOperand Content);
 

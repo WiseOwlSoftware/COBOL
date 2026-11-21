@@ -9186,7 +9186,7 @@ public static class DiagnosticCatalog
     /// <summary>COBOL1511 — boolean expression rule (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor BooleanExpressionRule = new(
         "COBOL1511", "boolean-expression-rule", EditionSeverity.Error,
-        "A boolean expression, boolean COMPUTE or boolean relation breaks a rule of §2023:8.8.2, §2023:14.9.8.3 Format 2 or "
+        "A boolean expression, boolean COMPUTE or boolean relation breaks a rule of §2023:8.8.2, §2023:14.9.8 Format 2 or "
         + "§2023:8.8.4.3.3. §2023:8.8.2 rule 4: \"The two operands in a binary boolean operation shall not both be the figurative "
         + "constant ALL literal.\"; §2023:14.9.8.3 SR2: \"Identifier-2 shall reference an elementary boolean data item.\"; "
         + "§2023:8.8.4.3.3 SR1: \"Boolean-expression-1 shall reference only boolean items of length 1.\"",
