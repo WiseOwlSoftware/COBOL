@@ -846,5 +846,8258 @@
    "kind": "GR",
    "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'Types of data item functions are'. Each item defines a type's class, category and usage and where it may be used ('A numeric function may be used only in an arithmetic expression'), as the 2023 manifest admits 15.2 'Types of functions' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
   }
+ },
+ "paragraph-blocks": {
+  "§1985:IV.1": {
+   "title": "1. <u>INTRODUCTION</u>",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "6bf5a689ef89",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.2.1": {
+   "title": "2.1 DEFINITION OF A GENERAL FORMAT",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b3489db7e3b6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.2.1.1": {
+   "title": "2.1.1 Elements",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9c34266fb54f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.2.1.2": {
+   "title": "2.1.2 Words",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b5f2ac036a7f",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "aa4ea0c9b8b9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.2.1.3": {
+   "title": "2.1.3 Level-Numbers",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e280b39e8a7b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.2.1.4": {
+   "title": "2.1.4 Brackets, Braces, and Choice Indicators",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "7bc1fa49f924",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "55feca11e12c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "bf92d992f7d5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "1a90d9186a85",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.2.1.5": {
+   "title": "2.1.5 Ellipsis",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "19a36db64904",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "e55defe09fad",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "e3aecf400caa",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.2.1.6": {
+   "title": "2.1.6 Format Punctuation",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d6a34335a292",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "256d375558fb",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.2.1.7": {
+   "title": "2.1.7 Use of Special Character Words in Formats",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "313567eafe40",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.3.1": {
+   "title": "3.1 SYNTAX RULES",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "979f0b03551f",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "9390443acd25",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.3.2": {
+   "title": "3.2 GENERAL RULES",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "485b55338aa3",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.1": {
+   "title": "4.1 CHARACTER SET",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d393728528aa",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "2c143065611f",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "738d851d7ead",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2": {
+   "title": "4.2 LANGUAGE STRUCTURE",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "93ebe0691f43",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.1": {
+   "title": "4.2.1 Separators",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "3127885ce5a9",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "4bec7b693d6d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "ee66a1de7234",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2": {
+   "title": "4.2.2 Character-Strings",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "13fa8b177cbe",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1": {
+   "title": "4.2.2.1 COBOL Words",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "50f946b4bf33",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "cca656928d05",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1.1": {
+   "title": "4.2.2.1.1 User-Defined Words",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "7a71d32c8947",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "cdc96f084f52",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "531ead202be5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "9d3ad762ef19",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "909538452017",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "54f9575e52d2",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "4157e900d2b0",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1.1.1": {
+   "title": "4.2.2.1.1.1 Condition-Name",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c744a916786e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "eec2dca42640",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "6150a6935566",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1.1.2": {
+   "title": "4.2.2.1.1.2 Mnemonic-Name",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "8e7be948f25a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1.1.3": {
+   "title": "4.2.2.1.1.3 Paragraph-Name",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "96df4a0b919a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1.1.4": {
+   "title": "4.2.2.1.1.4 Section-Name",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "8d53bd4470e8",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1.1.5": {
+   "title": "4.2.2.1.1.5 Other User-Defined Names",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "80f371146298",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1.2": {
+   "title": "4.2.2.1.2 System-Names",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "6fec3cc4af58",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "a84cce60ddc2",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "56ef45eae096",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "443b4e1d1656",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1.3": {
+   "title": "4.2.2.1.3 Reserved Words",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "27e54c38df0f",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "4cb96f8fcafb",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "e22edb2930b0",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1.3.1": {
+   "title": "4.2.2.1.3.1 Required Words",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "32104c3c98fa",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "9b9766c13a8b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1.3.2": {
+   "title": "4.2.2.1.3.2 Optional Words",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "da26d5500cff",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1.3.3": {
+   "title": "4.2.2.1.3.3 Special Purpose Words",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4b3462c1e364",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "7b48801b3b4a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1.3.3.1": {
+   "title": "4.2.2.1.3.3.1 Special Registers",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0947bdcbcba7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "c3d1b26efb66",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "c67a8e9f2bb0",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1.3.3.2": {
+   "title": "4.2.2.1.3.3.2 Figurative Constants",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b86dd0dce779",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.1.4": {
+   "title": "4.2.2.1.4 Function-Names",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c57884870d05",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.2": {
+   "title": "4.2.2.2 Literals",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d2142debdb8b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.2.1": {
+   "title": "4.2.2.2.1 Nonnumeric Literals",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "96b205d2c22a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.2.2": {
+   "title": "4.2.2.2.2 Numeric Literals",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d5b969dd20e9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.2.3": {
+   "title": "4.2.2.2.3 Figurative Constant Values",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "13aa7613f4f3",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "6d69e2c6fb25",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "636ad4c7cf61",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "a81be3bb4fe6",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "baaa856c3a26",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "9804b0ec01e1",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.3": {
+   "title": "4.2.2.3 PICTURE Character-Strings",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "174383854ef6",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "d2444f9af41e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.2.2.4": {
+   "title": "4.2.2.4 Comment-Entries",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e072428784a9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3": {
+   "title": "4.3 CONCEPT OF COMPUTER INDEPENDENT DATA DESCRIPTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b0367a8ea65c",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.1": {
+   "title": "4.3.1 Logical Record Concept",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "494dcce2a304",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.1.1": {
+   "title": "4.3.1.1 Physical Aspects of a File",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "1c93a3237cba",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.1.2": {
+   "title": "4.3.1.2 Conceptual Characteristics of a File",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "48da0df456c5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "5fbdd9621ca6",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "98882bd09572",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "d88c744dba90",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "de37afc1659a",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "24357c3a9f56",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.1.3": {
+   "title": "4.3.1.3 Record Concepts",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "7417735006c3",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.2": {
+   "title": "4.3.2 Concept of Levels",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "feac7be62d16",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "dd53c8bdc962",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "146c8a7fd9eb",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.2.1": {
+   "title": "4.3.2.1 Level-Numbers",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "3694f7453361",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "b07866e92af5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "e43a8e5a4e8f",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "7d7bab98a42e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "944b66cfdfe9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.3": {
+   "title": "4.3.3 Concept of Classes of Data",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "1e7c296da6bc",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "94690b21b3d6",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "0fd7d220e9f2",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1",
+     "digest": "4fe1146324b0",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.4": {
+   "title": "4.3.4 Selection of Character Representation and Radix",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "3d502d059198",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "7e777b07b78a",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "9d91146544e6",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "b6cf77797288",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.5": {
+   "title": "4.3.5 Algebraic Signs",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "6ffdc7745365",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "b95f1c725e9e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "70b4bd40c388",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.6": {
+   "title": "4.3.6 Standard Alignment Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d258720188c5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "2d7423cc2a0c",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.7": {
+   "title": "4.3.7 Item Alignment for Increased Object-Code Efficiency",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "027001451aa2",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "30dc0dc08f62",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "1be26f790906",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "7440ca290d48",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "b9bf9081c800",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.8": {
+   "title": "4.3.8 Uniqueness of Reference",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "5714d346f0a0",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "13b90341666a",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "3e6fac5432a0",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "423938969b77",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.8.1": {
+   "title": "4.3.8.1 Qualification",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "093d0e1f22d3",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "fa575ca83ea8",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "6185d212383a",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "234200a3c8a6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.8.2.1": {
+   "title": "4.3.8.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "62e7bc457828",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.8.3.1": {
+   "title": "4.3.8.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "84712e9365bf",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.8.4.1": {
+   "title": "4.3.8.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a0a09377fba6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.8.5.1": {
+   "title": "4.3.8.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ccccd24a3bcd",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "7aa3e6ef0c48",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.3.8.6": {
+   "title": "4.3.8.6 Condition-Name",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ef6e77fb2388",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "c85ba89e6661",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "4b687926f87e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "7ef7ddeba8f5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "fd509acb90f7",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.4": {
+   "title": "4.4 EXPLICIT AND IMPLICIT SPECIFICATIONS",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "67f8e4fa81cb",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.4.1": {
+   "title": "4.4.1 Explicit and Implicit Procedure Division References",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f81c02e257ab",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.4.2": {
+   "title": "4.4.2 Explicit and Implicit Transfers of Control",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "87afb151a7a3",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "8328a6811750",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "bfb01902d2ef",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "b7ac289950a9",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "1a1713a74d2d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "7089771df93c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p7",
+     "digest": "a1e41db364aa",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.4.3": {
+   "title": "4.4.3 Explicit and Implicit Attributes",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a9fd595467f4",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "db9dd790c0b7",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.4.4": {
+   "title": "4.4.4 Explicit and Implicit Scope Terminators",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b4a5e1a5cb5b",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "5b3579aeac76",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "1d9397341434",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "af1a3a78a198",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.3",
+     "digest": "ba35ae644c74",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.4",
+     "digest": "c02c8ad15aaa",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.5",
+     "digest": "7961a37e3727",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.6",
+     "digest": "613c051cd5d7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.7",
+     "digest": "49b193aebe59",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "4787b65352ac",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.4.5": {
+   "title": "4.5 EXTERNAL SWITCH",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "5d9d8bd58038",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "8748c2dd1176",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "10db909debc3",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "831759d3958f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.5.1": {
+   "title": "5.1 INTRODUCTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c0c108f51e92",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.5.2": {
+   "title": "5.2 ORGANIZATION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c051c3b1934d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "a5475847c90d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "c22d2e5e682a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.5.3": {
+   "title": "5.3 STRUCTURE",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c202dc0371a7",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.1.1": {
+   "title": "6.1.1 General Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c9237a49fd9b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.1.2": {
+   "title": "6.1.2 Organization",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "37e367a89bd5",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.1.3": {
+   "title": "6.1.3 Structure",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c52c3a8691f5",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.2.1": {
+   "title": "6.2.1 General Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "28f05755c108",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.2.2": {
+   "title": "6.2.2 Organization",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "660bb9a34aba",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "0064d9f294eb",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "9cc0a94664c9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.2.3": {
+   "title": "6.2.3 Structure",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "882a07d59a04",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.3.1": {
+   "title": "6.3.1 Overall Approach",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "66ca1aea0dbc",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.3.2.1": {
+   "title": "6.3.2.1 Data Division Organization",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c7c287fd4aab",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "95fec4385645",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "257f0fe3fce2",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "6b95740d3cc9",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "16d5d2ecf89a",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "ea72727effd6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.3.2.2": {
+   "title": "6.3.2.2 Data Division Structure",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "32d2c0e900ca",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.1": {
+   "title": "6.4.1 General Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "3c0f6a43020b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.1.1": {
+   "title": "6.4.1.1 Declaratives",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "13cbeb880cd4",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.1.2": {
+   "title": "6.4.1.2 Procedures",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "28e6a22e35f7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "d0ecbda2784c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "ce1b81933a76",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "781421ff6ff3",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "e5c59428fb0e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.1.3": {
+   "title": "6.4.1.3 Execution",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "427b43a3780a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.1.4.1": {
+   "title": "6.4.1.4.1 Procedure Division Header",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4c3bc91f18bb",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.1.4.2": {
+   "title": "6.4.1.4.2 Procedure Division Body",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fa3f3e9e55c7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "852230199e35",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "e5eaa7190754",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.2": {
+   "title": "6.4.2 Statements and Sentences",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ba152eef75e5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "41d11c0c9681",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.2.1.1": {
+   "title": "6.4.2.1.1 Definition of Conditional Statement",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "051baab66421",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "747518f54095",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.2.1.1.1": {
+   "title": "6.4.2.1.1.1 Definition of Conditional Phrase",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0b716b8f11cf",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "f4c29ca03f04",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.2.1.2": {
+   "title": "6.4.2.1.2 Definition of Conditional Sentence",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "827bad6bfc86",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.2.2.1": {
+   "title": "6.4.2.2.1 Definition of Compiler Directing Statement",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9d93855e23e3",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.2.2.2": {
+   "title": "6.4.2.2.2 Definition of Compiler Directing Sentence",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "7962cbdd225c",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.2.3.1": {
+   "title": "6.4.2.3.1 Definition of Imperative Statement",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0e7372018644",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "dc49e14ee54e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "51397a5dc078",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.3",
+     "digest": "ace30de9b9ee",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.4",
+     "digest": "b7fd7e2b23f0",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.5",
+     "digest": "d67bec9eb86c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.6",
+     "digest": "ada8c894a826",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.7",
+     "digest": "36a2817af09c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.8",
+     "digest": "610fc3502963",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.9",
+     "digest": "ba5db4e86584",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.10",
+     "digest": "fe8d7d02737f",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.11",
+     "digest": "fa6c0b1cb0bd",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.12",
+     "digest": "be701c8fd193",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.13",
+     "digest": "30e4d44b3186",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.14",
+     "digest": "de3ac21778e5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "e895d42b4307",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "c4fac3f2b156",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.2.3.2": {
+   "title": "6.4.2.3.2 Definition of Imperative Sentence",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "10071b4c8c38",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.2.4": {
+   "title": "6.4.2.4 Delimited Scope Statements",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "52ea9e186577",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.6.4.3": {
+   "title": "6.4.3 Scope of Statements",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "990d84730bb8",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "3fee31489fc7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "7c95369ac46c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "b9da0f12787d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "d60845e42840",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.7.1": {
+   "title": "7.1 GENERAL DESCRIPTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "722363fb4eb4",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "a1ae2f07bef0",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "b640f41bbd27",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.7.2": {
+   "title": "7.2 REFERENCE FORMAT REPRESENTATION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d91c99b3b331",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "fcf3ad1d6f05",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "2bf19bc687c6",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "2ada08028fe4",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "62b9c728a56a",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "bdb34da9c5ca",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p7",
+     "digest": "01ae34c5aa81",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p8",
+     "digest": "40d55220c2c2",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p9",
+     "digest": "009f10cd268e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p10",
+     "digest": "1c61798e6a58",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.7.2.1": {
+   "title": "7.2.1 Sequence Numbers",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4f830aae74b0",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.7.2.2": {
+   "title": "7.2.2 Continuation of Lines",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "cf1b5944b5c0",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "a77d416e766e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "4450c9203e0a",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "5b63e4bb9bfb",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.7.2.3": {
+   "title": "7.2.3 Blank Lines",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "27914e062caa",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.7.2.4": {
+   "title": "7.2.4 Comment Lines",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "45a27ddd7ee9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.7.2.5": {
+   "title": "7.2.5 Pseudo-Text",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4dd1ea17cfcc",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.7.3.1": {
+   "title": "7.3.1 Division Header",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "5246b4047989",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.7.3.2": {
+   "title": "7.3.2 Section Header",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "1c7ee0b37f4d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "e94d2ed9f565",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.7.3.3": {
+   "title": "7.3.3 Paragraph Header, Paragraph-Name, and Paragraph",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "7b85d8ceaf89",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "6da0bed7b864",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "5659dd72c48b",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "76dba0b6490e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.7.4": {
+   "title": "7.4 DATA DIVISION ENTRIES",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "00547833249f",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "2f8f9e2f2fb9",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "4303387ced2c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "a7b00ae83c4d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "dbd5a18ec7ff",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "929bb14716cc",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p7",
+     "digest": "37e77e867704",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p8",
+     "digest": "beb240dd9699",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.7.5": {
+   "title": "7.5 DECLARATIVES",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "74e04535070c",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.7.6": {
+   "title": "7.6 END PROGRAM HEADER",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a1f86353732a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IV.8": {
+   "title": "8. <u>COBOL RESERVED WORDS</u>",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "dc5b96b330ff",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1",
+     "digest": "e9f35e7bfec5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T2",
+     "digest": "fd4093c661f7",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.1.1": {
+   "title": "1.1 FUNCTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "6b0900dc1ce6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.1.2": {
+   "title": "1.2 LEVEL CHARACTERISTICS",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "23dd6cce8eb9",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "49ea4ca70a7f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.1.3.1": {
+   "title": "1.3.1 Character Set",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "3a00a38c3b1b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.1.3.2": {
+   "title": "1.3.2 Name Characteristics",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9fe96c0fa08d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.1.3.3": {
+   "title": "1.3.3 Figurative Constants",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "1f252ea0773d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.1.3.4": {
+   "title": "1.3.4 Subscripts",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "8a8699ce2736",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.1.3.5": {
+   "title": "1.3.5 Function-Identifier",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d9a3123d4447",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.1.3.6": {
+   "title": "║1.3.6 Reference Modification║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "af775d5c4a96",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.1.3.7": {
+   "title": "1.3.7 Reference Format",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "5a27244bcda5",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.2.1": {
+   "title": "2.1 GENERAL DESCRIPTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c0c108f51e92",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.2.2": {
+   "title": "2.2 ORGANIZATION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c051c3b1934d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "a5475847c90d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "c22d2e5e682a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.2.3": {
+   "title": "2.3 STRUCTURE",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c202dc0371a7",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.2.4.1": {
+   "title": "║2.4.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fada51a0b3bf",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.3.1": {
+   "title": "3.1 GENERAL DESCRIPTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "2e230a3e9a1d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.3.2": {
+   "title": "3.2 ORGANIZATION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "27bf50b25e1f",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "7c5aa67ece8a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.3.2.1": {
+   "title": "3.2.1 Structure",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "84df0d82729c",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.3.3.1": {
+   "title": "3.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "72e377ca9e7d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.3.4.1": {
+   "title": "║3.4.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ad29778deb61",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.4.1": {
+   "title": "4.1 GENERAL DESCRIPTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c2d95e73abbc",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.4.2": {
+   "title": "4.2 CONFIGURATION SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "bd193dac80a3",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "f3514daa8566",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "2876d39ebaac",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "638f4de89823",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.4.3.1": {
+   "title": "4.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4d0d94637d5d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.4.4.1": {
+   "title": "4.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "6ebf0ef45b12",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.4.5.1": {
+   "title": "4.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "44c1bf281de1",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.1": {
+   "title": "5.1 GENERAL DESCRIPTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e80440fd76da",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.2": {
+   "title": "5.2 WORKING-STORAGE SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "2ec9d5370812",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "3dc16be70fd1",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "ceb272236dd3",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.2.1": {
+   "title": "5.2.1 Noncontiguous Working Storage",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "07774a06fdd8",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "be2e97795f43",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "3ba777079b69",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "9a49442b49c9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.2.2": {
+   "title": "5.2.2 Working Storage Records",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f893b70d911c",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.2.3": {
+   "title": "5.2.3 Record Description Structure",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "150be22e0ef6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.2.4": {
+   "title": "5.2.4 Initial Values",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "803fe25fd8c9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.3.1": {
+   "title": "5.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a1f97390df8e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.4.1": {
+   "title": "5.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "87f47a02d754",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.5.1": {
+   "title": "5.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c2678ca8bc1d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.6.1": {
+   "title": "5.6.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9cc689c38df9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.7.1": {
+   "title": "5.7.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "dfe7307bfed4",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.8.1": {
+   "title": "5.8.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "eecef7d2482a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.9.1": {
+   "title": "5.9.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "249fee4cd4dd",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.9.6": {
+   "title": "5.9.6 Precedence Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "31cdb63e0819",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "a004f148a32e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "db1868a12555",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1",
+     "digest": "61158451c7e8",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.10.1": {
+   "title": "5.10.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c5db1b871386",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.11.1": {
+   "title": "║5.11.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4c216de30979",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.12.1": {
+   "title": "5.12.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fd6f9dffa180",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.13.1": {
+   "title": "5.13.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "98a679a1a667",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.14.1": {
+   "title": "5.14.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "342ae7aea0a6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.5.15.1": {
+   "title": "5.15.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "44599ad296e7",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.1": {
+   "title": "6.1 GENERAL DESCRIPTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d9d363018432",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "c65f7d86f269",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "852230199e35",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "e5eaa7190754",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.2.1": {
+   "title": "║6.2.1 Definition of an Arithmetic Expression║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0fdcb57a7095",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "3dd8178948d1",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.2.2": {
+   "title": "║6.2.2 Arithmetic Operators║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "7b4e66bda25c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "c3805175370d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "148d46fb75d9",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.3",
+     "digest": "ae7f0c96c891",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.4",
+     "digest": "4fd95a301ae3",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.5",
+     "digest": "1d422390c5a3",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T2.1",
+     "digest": "8fb230fcb908",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T2.2",
+     "digest": "8fb230fcb908",
+     "order": 1,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3": {
+   "title": "6.3 CONDITIONAL EXPRESSIONS",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f75b606fe3ae",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.1": {
+   "title": "6.3.1 Simple Conditions",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "5f1b23aa16ae",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.1.1": {
+   "title": "6.3.1.1 Relation Condition",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f4eb4237c87f",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "f917e5e45467",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "a143b87190e6",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "cf5c39c2301d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "4b5d27b563ab",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "c48b3f8bbd50",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.3",
+     "digest": "6449ede30dba",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.4",
+     "digest": "5a6c0d5bb688",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.5",
+     "digest": "07f1ac8967df",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.1.1.1": {
+   "title": "6.3.1.1.1 Comparison of Numeric Operands",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f2ee1c170f76",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "1400f5729885",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.1.1.2": {
+   "title": "6.3.1.1.2 Comparison of Nonnumeric Operands",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "35ea40a8a3c4",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "b8c088447fd5",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.1.1.3": {
+   "title": "6.3.1.1.3 Comparisons Involving Index-Names and/or Index Data Items",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b12418a6223c",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.1.2": {
+   "title": "6.3.1.2 Class Condition",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "2668ff4ae018",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "998339f6fc98",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "9b579b0a4543",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "08364ce9f852",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "f182418287fb",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "a6ea0fc7050d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p7",
+     "digest": "b306efae2f13",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p8",
+     "digest": "bf717190c743",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.1.3": {
+   "title": "║6.3.1.3 Condition-Name Condition (Conditional Variable)║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e30854a6d1e6",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "be1f561375c1",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "54ff948122db",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "f8a6a5277c2a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.1.4": {
+   "title": "6.3.1.4 Switch-Status Condition",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "db35dbc5e953",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "c85e90e3a0f5",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.1.5": {
+   "title": "║6.3.1.5 Sign Condition║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "dcb4ab6b00b1",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "23e98ab73649",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.2": {
+   "title": "║6.3.2 Complex Conditions║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "dcf505421339",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "b2033285f514",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "a8b6c5ecaa7c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "c3bd550d69ba",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.3",
+     "digest": "ce0758830b0c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "289771e8af8f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.2.1": {
+   "title": "║6.3.2.1 Negated Conditions║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a9aea88ccb76",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "02b40f35d31e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.2.2": {
+   "title": "║6.3.2.2 Combined Conditions║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "73bd4d1a53f6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.2.3": {
+   "title": "║6.3.2.3 Precedence of Logical Operators and the Use of Parentheses║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ea5b32155cf4",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "8cb594bc7e4b",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "f5611e115255",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "141ea6f11f7e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "60f3d8fab4ce",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.3",
+     "digest": "825f02b74b04",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.4",
+     "digest": "c9714db90832",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.5",
+     "digest": "6668e925b64e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "8d23f41c50cc",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.3": {
+   "title": "║6.3.3 Abbreviated Combined Relation Conditions║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "37a7e28fba1e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "d31d2c485c16",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "3bd2c04f573e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "128057d001ea",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "9639fb614334",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.3.4": {
+   "title": "║6.3.4 Order of Evaluation of Conditions║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "7cd45926968b",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "959ff453cc73",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.4": {
+   "title": "6.4 COMMON OPTIONS AND RULES FOR STATEMENTS",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "3fc5c23b8555",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.4.1": {
+   "title": "6.4.1 The ROUNDED Phrase",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "dcceb55bb0c9",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "8c32972e5096",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.4.2": {
+   "title": "6.4.2 The ON SIZE ERROR Phrase",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "3e1da0df0bb0",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "ba8bf70efe1c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "a3b334d3dbfc",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "26e5096d0f25",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "40047e795b9f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.4.3": {
+   "title": "║6.4.3 The CORRESPONDING Phrase║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "18c56b684925",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.4.4": {
+   "title": "6.4.4 The Arithmetic Statements",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "44d1bc451292",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.4.5": {
+   "title": "6.4.5 Overlapping Operands",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "693f172abd5f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.4.6": {
+   "title": "6.4.6 Multiple Results in Arithmetic Statements",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "6c1527bde5c8",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "6137382ce820",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.4.7": {
+   "title": "6.4.7 Incompatible Data",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a35c070309f0",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.5.1": {
+   "title": "6.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "2e3703e1b21a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.5.4": {
+   "title": "6.5.4 General Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "852230199e35",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.6.1": {
+   "title": "6.6.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "7f907b226634",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.7.1": {
+   "title": "6.7.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d2ffb60f056f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.8.1": {
+   "title": "║6.8.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "eaed12caf876",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.9.1": {
+   "title": "6.9.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "50d05cd0d053",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.10.1": {
+   "title": "6.10.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "2d745b5c22f6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.11.1": {
+   "title": "6.11.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c551b8d4b0d2",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.12.1": {
+   "title": "6.12.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a4449c2a733b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.13.1": {
+   "title": "║6.13.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d95152b7e2ca",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.14.1": {
+   "title": "6.14.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "851627d8fd1e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.15.1": {
+   "title": "6.15.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a9693280c370",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.16.1": {
+   "title": "6.16.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b5b24ed98281",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.17.1": {
+   "title": "║6.17.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "25d3fba4eba5",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.18.1": {
+   "title": "6.18.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0d7812282c8c",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.18.3": {
+   "title": "6.18.3 Syntax Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "61f7ed6a5157",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.18.4": {
+   "title": "6.18.4 General Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "61f7ed6a5157",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.18.5": {
+   "title": "6.18.5 Examples",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4d44c0216cb7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "f1f0188d7e74",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "9dfeac51e226",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "1a1c07091d53",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.3",
+     "digest": "75c98d5383e5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "d92d43a269b8",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T2.1",
+     "digest": "2c263d0234f8",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T2.2",
+     "digest": "ecd08e6f8841",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "347483f6dc78",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T3.1",
+     "digest": "12488ff7a909",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T3.2",
+     "digest": "6d240ad51d75",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T3.3",
+     "digest": "61523f570951",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T3.4",
+     "digest": "fcbfb2141392",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T3.5",
+     "digest": "0e718ae9d810",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "a6c03da7b4c5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T4.1",
+     "digest": "7db405a91ef1",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "5bc59b254020",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p7",
+     "digest": "37937863df93",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T5.1",
+     "digest": "da03ba644c75",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.19.1": {
+   "title": "6.19.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "851eb17fe9f7",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.20.1": {
+   "title": "6.20.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "1061f12cdb31",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.21.1": {
+   "title": "6.21.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "87d232011e75",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.22.1": {
+   "title": "║6.22.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "dac067d9a018",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.23.4": {
+   "title": "6.23.4 General Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ae4b8e1ec7d3",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.24.1": {
+   "title": "6.24.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "314525d81014",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.25.1": {
+   "title": "║6.25.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fe67a57b0668",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.26.1": {
+   "title": "6.26.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "8d08c5021a0c",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.6.27.1": {
+   "title": "║6.27.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "2a5ad820c100",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.7.1": {
+   "title": "7.1 GENERAL DESCRIPTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d2b3b525a2ed",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.7.2": {
+   "title": "7.2 COMPILE TIME SWITCH",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "2931295201ec",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "e9862f4ab71e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "b520d7a9e546",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VI.7.3": {
+   "title": "7.3 DEBUGGING LINES",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c51324530510",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "3cc6c293719f",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "65f9d98fd241",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "a88fb1e6ed17",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "0ec40b53eaae",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.1.1": {
+   "title": "1.1 FUNCTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "92596774e1f3",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.1.2": {
+   "title": "1.2 LEVEL CHARACTERISTICS",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c1651d56dcba",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "d82f182246c5",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.1.3.1": {
+   "title": "1.3.1 Organization",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ad09cc54d6b4",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "c530a6ad0f55",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.1.3.2": {
+   "title": "1.3.2 Access Mode",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "978c7b22c90d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.1.3.3": {
+   "title": "1.3.3 Current Volume Pointer",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b0d69d504104",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.1.3.4": {
+   "title": "1.3.4 File Position Indicator",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "bc4195734717",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.1.3.5": {
+   "title": "1.3.5 I-O Status",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "26078af30742",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "2d25b34c24da",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "abbfbd352e14",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "705d69587b01",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "1775b4a5aa81",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.1.3.6": {
+   "title": "1.3.6 The At End Condition",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "5f4fe1ac03cb",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.1.3.7": {
+   "title": "║1.3.7 Special Register LINAGE-COUNTER║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "7a5721707ef2",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.2.1": {
+   "title": "2.1 INPUT-OUTPUT SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "8b8747960852",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "43cd25938425",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.2.2.1": {
+   "title": "2.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ed5c9611b131",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.2.3.1": {
+   "title": "2.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e80d7b1f2e13",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.2.4.1": {
+   "title": "2.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d6672488725b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.2.5.1": {
+   "title": "2.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "832729f08567",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.2.6.1": {
+   "title": "2.6.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "59cc3061066b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.2.7.1": {
+   "title": "║2.7.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b4e71add7c5d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.2.8.1": {
+   "title": "║2.8.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "1a59f6957644",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.2.9.1": {
+   "title": "║2.9.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "5b538f08984f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.2.10.1": {
+   "title": "2.10.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e7f19f982371",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.2.11.1": {
+   "title": "║2.11.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "bb6eae7ac3ee",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.2.12": {
+   "title": "2.12 THE RERUN CLAUSE",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "664d4f98081b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.2.13.1": {
+   "title": "2.13.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9fe462011338",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.3.1": {
+   "title": "3.1 FILE SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "528200cdd321",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "187c6f7599c3",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.3.1.1": {
+   "title": "3.1.1 File Description Entry",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a4b1e288bf5b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.3.1.2": {
+   "title": "3.1.2 Record Description Structure",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "261592aabf11",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.3.1.3": {
+   "title": "3.1.3 Initial Values",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "33fb7942b2c3",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.3.2.1": {
+   "title": "3.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fe283eadc18f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.3.3.1": {
+   "title": "3.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0389739ac672",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.3.4.1": {
+   "title": "3.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "134cbf8623b9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.3.5.1": {
+   "title": "3.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a5384c061efa",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.3.6.1": {
+   "title": "3.6.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "cf9a89fdd2e0",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.3.7.1": {
+   "title": "║3.7.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d5bd81407586",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.3.8.1": {
+   "title": "3.8.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "cb43ef97fd3a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.3.8.3": {
+   "title": "3.8.3 Syntax Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "852230199e35",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.3.8.4": {
+   "title": "3.8.4 General Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "61f7ed6a5157",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.3.9.1": {
+   "title": "3.9.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "64069ef44ed6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.4.1": {
+   "title": "4.1 GENERAL DESCRIPTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "7e8cc03d65ba",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.4.2.1": {
+   "title": "4.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9762da37c1f7",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.4.2.4": {
+   "title": "4.2.4 General Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9279a6a4722d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.4.3.1": {
+   "title": "4.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "21da80c0b400",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.4.4.1": {
+   "title": "4.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b3b427ab9b90",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.4.5.1": {
+   "title": "4.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "3496115fb577",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.4.6.1": {
+   "title": "4.6.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a4980bae82af",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VII.4.7.1": {
+   "title": "4.7.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "16d8291a4d34",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.1.1": {
+   "title": "1.1 FUNCTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9dc51c34817c",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.1.2": {
+   "title": "1.2 LEVEL CHARACTERISTICS",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "8f8c701f0fea",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "a9d03c0ab284",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.1.3.1": {
+   "title": "1.3.1 Organization",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9cd46e8707c2",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "daca51a65190",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "381f7611bb37",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.1.3.2": {
+   "title": "1.3.2 Access Modes",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b3c8b433bdb7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "64ea202b5f2e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "ee0cc74ae18d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.1.3.3": {
+   "title": "1.3.3 File Position Indicator",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "472c291a049f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.1.3.4": {
+   "title": "1.3.4 I-O Status",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0948f5b81883",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "9967eb47b879",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "abbfbd352e14",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "705d69587b01",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "f91a17d412ba",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.1.3.5": {
+   "title": "1.3.5 The Invalid Key Condition",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a4640b22d9be",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "372ba6270955",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "29104c671876",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.1.3.6": {
+   "title": "1.3.6 The At End Condition",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fe5f0f5ba174",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.2.1": {
+   "title": "2.1 INPUT-OUTPUT SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "6a15f01e0219",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.2.2": {
+   "title": "2.2 THE FILE-CONTROL PARAGRAPH",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fea1978e8ffc",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.2.3.1": {
+   "title": "2.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d584d25960fe",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.2.4.1": {
+   "title": "2.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d6672488725b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.2.5.1": {
+   "title": "2.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "cc3dad74cb5e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.2.6.1": {
+   "title": "2.6.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "07e00efcf6e9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.3.1": {
+   "title": "3.1 FILE SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b04f0c73b462",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.3.2.1": {
+   "title": "3.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "74a087e82473",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.4.1": {
+   "title": "4.1 GENERAL DESCRIPTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f8a85cf0f0f4",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.4.2.1": {
+   "title": "4.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ca20bca5b286",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.4.3.1": {
+   "title": "4.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d79fafd4da25",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.4.4.1": {
+   "title": "4.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "48e14442f64e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.4.5.1": {
+   "title": "4.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "93d277367c85",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.4.6.1": {
+   "title": "4.6.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "3496115fb577",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.4.7.1": {
+   "title": "║4.7.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "2d347ceedaae",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.4.8.1": {
+   "title": "4.8.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a4980bae82af",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:VIII.4.9.1": {
+   "title": "4.9.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4eae45e09554",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.1.1": {
+   "title": "1.1 FUNCTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "bb2e12f41f9a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.1.2": {
+   "title": "1.2 LEVEL CHARACTERISTICS",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "43182ea05890",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "aca6888b0079",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.1.3.1": {
+   "title": "1.3.1 Organization",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "62d9d4ba4e76",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "4e7b88ef2061",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "9871170d0099",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.1.3.2": {
+   "title": "1.3.2 Access Modes",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "45a7bc448f6c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "31eeaa503b0f",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "ee0cc74ae18d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.1.3.3": {
+   "title": "1.3.3 File Position Indicator",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "472c291a049f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.1.3.4": {
+   "title": "1.3.4 I-O Status",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0948f5b81883",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "067a986e18c4",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "abbfbd352e14",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "705d69587b01",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.1.3.5": {
+   "title": "1.3.5 The Invalid Key Condition",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "edb45bd4ee5a",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "372ba6270955",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "29104c671876",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.1.3.6": {
+   "title": "1.3.6 The At End Condition",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "23b1d95d2710",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.2.1": {
+   "title": "2.1 INPUT-OUTPUT SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "6a15f01e0219",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.2.2": {
+   "title": "2.2 THE FILE-CONTROL PARAGRAPH",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fea1978e8ffc",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.2.3.1": {
+   "title": "2.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "348ab1719b6f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.2.4.1": {
+   "title": "2.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d6672488725b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.2.5.1": {
+   "title": "║2.5.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e6b4eae801fd",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.2.6.1": {
+   "title": "2.6.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "77c1064434b7",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.2.7.1": {
+   "title": "2.7.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4633325d7d14",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.2.8.1": {
+   "title": "2.8.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "07e00efcf6e9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.3.1": {
+   "title": "3.1 FILE SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b04f0c73b462",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.3.2.1": {
+   "title": "3.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "1be89df3fb73",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.4.1": {
+   "title": "4.1 GENERAL DESCRIPTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "082a4cc4fa68",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.4.2.1": {
+   "title": "4.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ca20bca5b286",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.4.3.1": {
+   "title": "4.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d79fafd4da25",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.4.4.1": {
+   "title": "4.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "48e14442f64e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.4.5.1": {
+   "title": "4.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "93d277367c85",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.4.6.1": {
+   "title": "4.6.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "3496115fb577",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.4.7.1": {
+   "title": "║4.7.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "bab8bee30800",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.4.8.1": {
+   "title": "4.8.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a4980bae82af",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:IX.4.9.1": {
+   "title": "4.9.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4eae45e09554",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.1.1": {
+   "title": "1.1 FUNCTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "574509481773",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.1.2": {
+   "title": "1.2 LEVEL CHARACTERISTICS",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "6a9e9fe27d34",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "4a91a44ba612",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.1.3.1": {
+   "title": "1.3.1 Nested Source Programs",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "cf82680c8fb7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "f414564d8534",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.1.3.2": {
+   "title": "1.3.2 File Connector",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "03df14326465",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.1.3.3": {
+   "title": "1.3.3 Global Names and Local Names",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4d6b2c9a2e00",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "650e398489e1",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "c8606e8af260",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "a12b432bb9ca",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "d82aa777aa51",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "1ea8a09c51a9",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p7",
+     "digest": "9e5991bd0596",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.1.3.4": {
+   "title": "1.3.4 External Objects and Internal Objects",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e50fa4144d85",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "1d379db4b499",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "95048ddf95a0",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "a72eaf7c0cc3",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "9ce316021361",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "a02179c7bfe4",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p7",
+     "digest": "e0d36a052ed7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p8",
+     "digest": "4510f277502e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.1.3.5": {
+   "title": "║1.3.5 Common Programs and Initial Programs║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e09e71bdb202",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "a2796326003a",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "4f91f284eb44",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.1.3.6": {
+   "title": "1.3.6 Sharing Data",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0795f7e873d0",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.1.3.7": {
+   "title": "║1.3.7 Sharing Files║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "129a94ddf8c8",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.1.3.8": {
+   "title": "1.3.8 Scope of Names",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b98fb4b30e09",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "1094fd1e8df0",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "2c498e60fea0",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "94b085ca07ae",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "43fd68478bb7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "3263df141077",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "aba3debcea83",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "111d43193911",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "e3b871579e7e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "8f2ad9e763b2",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "63531d23cd98",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.1.3.8.1": {
+   "title": "1.3.8.1 Conventions for Program-Names",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "cd2f67cbd867",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "5fa4ddf235aa",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.1.3.8.2": {
+   "title": "1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f0f975502992",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "1410f112e892",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "88879af69eff",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "7ee0c75eb070",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "e6ab4569d8cf",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.1.3.8.3": {
+   "title": "║1.3.8.3 Conventions for Index-Names║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d836864850ca",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.2.1": {
+   "title": "║2.1 GENERAL DESCRIPTION║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a02ae4213b58",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.2.2": {
+   "title": "║2.2 ORGANIZATION║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c051c3b1934d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "a5475847c90d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "c22d2e5e682a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.2.3": {
+   "title": "║2.3 STRUCTURE║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0cae31675ac2",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.2.4": {
+   "title": "2.4 INITIAL STATE OF A PROGRAM",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e794e83f2367",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.2.4.2": {
+   "title": "2.4.2 Programs in the Initial State",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "6040ce2a290f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.2.5.1": {
+   "title": "2.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fada51a0b3bf",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.3.1.1": {
+   "title": "║3.1.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4b51973cdd6b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.4.1": {
+   "title": "4.1 LINKAGE SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "647fa786ca8b",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "0f9311683794",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "a6b510072544",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "7ef123181f7f",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "c4b980cd13cf",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "b2b04eacbe36",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.4.1.1": {
+   "title": "4.1.1 Noncontiguous Linkage Storage",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "8023481e1dc3",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "be2e97795f43",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "1",
+     "digest": "3ba777079b69",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "9a49442b49c9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.4.1.2": {
+   "title": "4.1.2 Linkage Records",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "3371cba96ec0",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.4.1.3": {
+   "title": "4.1.3 Initial Values",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4208e6d8fdee",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.4.2.1": {
+   "title": "4.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c640fb76be17",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.4.3.1": {
+   "title": "4.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "aed95c4f3dfc",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "f3ef279ba4de",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.4.4.1": {
+   "title": "4.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e8b801b642bb",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.4.5.1": {
+   "title": "║4.5.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c84b766baf2e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.4.6.1": {
+   "title": "║4.6.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "6b7fc2417a78",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.5.1": {
+   "title": "5.1 THE PROCEDURE DIVISION HEADER",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4c3bc91f18bb",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "14e2c957415c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "a35c9554c62d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "a97f29b5b968",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "69bd4951c0ff",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "4a2c71c60113",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.5.2.1": {
+   "title": "5.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "25773b6fdf32",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.5.3.1": {
+   "title": "║5.3.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "7395ddb01b1d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.5.4.1": {
+   "title": "5.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "cb3609e38e55",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.5.5.1": {
+   "title": "║5.5.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "dea202c40ea2",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:X.5.6.1": {
+   "title": "║5.6.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "2d045554a50f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.1.1": {
+   "title": "1.1 FUNCTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9dd6f00612e9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.1.2.1": {
+   "title": "1.2.1 Sort File",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "50be206a17b7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "bb3c44aa56f4",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.1.2.2": {
+   "title": "1.2.2 Merge File",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f87ea52ea941",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "874a004c4a97",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.2.1": {
+   "title": "2.1 INPUT-OUTPUT SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "6a15f01e0219",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.2.2": {
+   "title": "2.2 THE FILE-CONTROL PARAGRAPH",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fea1978e8ffc",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.2.3.1": {
+   "title": "2.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4492827f129e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.2.4.1": {
+   "title": "2.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b094db1a3839",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.2.5.1": {
+   "title": "2.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "21ebd2c7c508",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.3.1": {
+   "title": "3.1 FILE SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "7d8d869f7f56",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "de25ac6c5688",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.3.1.1": {
+   "title": "3.1.1 Sort-Merge File Description Entry",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f96a2f412abc",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.3.1.2": {
+   "title": "3.1.2 Record Description Structure",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "261592aabf11",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.3.1.3": {
+   "title": "3.1.3 Initial Values",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "5a1467d5af27",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.3.2.1": {
+   "title": "3.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e502322ba2ad",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.4.1.1": {
+   "title": "4.1.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "31ac6686c641",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.4.2.1": {
+   "title": "4.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d4aff31cd8c5",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.4.3.1": {
+   "title": "4.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "1e0fa727e05e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XI.4.4.1": {
+   "title": "4.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "2b40c4694069",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XII.1.1": {
+   "title": "1.1 FUNCTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4a0250595cae",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "58a7f336de89",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "5c751bc46f7e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XII.1.2": {
+   "title": "1.2 LEVEL CHARACTERISTICS",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0d56fdcc8f25",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "d74274b0a269",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XII.2.1": {
+   "title": "2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "2938e0f90ee7",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XII.3.1": {
+   "title": "║3.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a534fc2a65db",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.1.1": {
+   "title": "1.1 FUNCTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "38929a860274",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "062b62e27ee7",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.1.2.1": {
+   "title": "1.2.1 Report File",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "2c03dac26c3a",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "116c3d40dd0a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.1.2.2": {
+   "title": "1.2.2 Special Register PAGE-COUNTER",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "34c07c867335",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.1.2.3": {
+   "title": "1.2.3 Special Register LINE-COUNTER",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "609caf1c484d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.1.2.4": {
+   "title": "1.2.4 Subscripting",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b919c99f42d3",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.2.1": {
+   "title": "2.1 INPUT-OUTPUT SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "6a15f01e0219",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.2.2": {
+   "title": "2.2 THE FILE-CONTROL PARAGRAPH",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fea1978e8ffc",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.2.3.1": {
+   "title": "2.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d8806af0434e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.2.4.1": {
+   "title": "2.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0f4158dda9a3",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.1": {
+   "title": "3.1 FILE SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "8788e73037ad",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "78b72a372cdc",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "739603539ecb",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.2.1": {
+   "title": "3.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "20b633b97000",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.3.1": {
+   "title": "3.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "34cfeff80eaf",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.4": {
+   "title": "3.4 REPORT SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "041ffa05a4e8",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "c33d5b1211e2",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.4.1": {
+   "title": "3.4.1 Report Description Entry",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "8fa90870ca36",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "52b5ed605804",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.4.2": {
+   "title": "3.4.2 Report Group Description Entry",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "3933e2d6fbdc",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.5.1": {
+   "title": "3.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0a50c8f10a34",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.6.1": {
+   "title": "3.6.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f457af6d4ff7",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.7.1": {
+   "title": "3.7.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "8a48e9d87149",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.8.1": {
+   "title": "3.8.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9200a6198d16",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.8.5": {
+   "title": "3.8.5 Page Regions",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "75a0b17ba729",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "e441174b42e2",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "07507729bde9",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.3",
+     "digest": "bf23918231a5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.4",
+     "digest": "e17858d37dc5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.5",
+     "digest": "9efb019f6b36",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.9.1": {
+   "title": "3.9.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0333f80fd50a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.10.1": {
+   "title": "3.10.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f5c954879e1b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.10.2": {
+   "title": "3.10.2 Organization",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "143d54794c3c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "80d36500a86d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "20a027398422",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "3792e14be3c3",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "5f323c22332a",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "baa7517583c6",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p7",
+     "digest": "7270e50640a1",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p8",
+     "digest": "313bfef414d0",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p9",
+     "digest": "9716b7d11c47",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p10",
+     "digest": "d1e11b87c6b2",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p11",
+     "digest": "f91c039aedc4",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.10.3": {
+   "title": "3.10.3 LINE NUMBER Clause Notation",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "117d066c2311",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "c27a78282c25",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.10.4": {
+   "title": "3.10.4 LINE NUMBER Clause Sequence Substitutions",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "3df4df411fc5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "3ceecb0b8a21",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.10.5": {
+   "title": "3.10.5 Saved Next Group Integer Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "8fe8fef37143",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.10.6": {
+   "title": "3.10.6 Report Heading Group Presentation Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "2c04c6075994",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.10.7": {
+   "title": "3.10.7 Page Heading Group Presentation Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "cef4722e94ac",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "6dc4453e3099",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "2c30c2c676a5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "62719b67aa9b",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "d8c26f0f78fe",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "9da9d2350375",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p7",
+     "digest": "873902164d12",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.10.8": {
+   "title": "3.10.8 Body Group Presentation Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "1f2118dd2129",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.10.9": {
+   "title": "3.10.9 Page Footing Presentation Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "91da1a82e09f",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "db79a1cd08f6",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "2c30c2c676a5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "62719b67aa9b",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "d8c26f0f78fe",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "69cc2693eb24",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p7",
+     "digest": "ca7ac5fa62a2",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.10.10": {
+   "title": "3.10.10 Report Footing Presentation Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "28cf596e1363",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.11.1": {
+   "title": "3.11.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ab528a5ade84",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.12.1": {
+   "title": "3.12.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "172f9f45ad7b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.13.1": {
+   "title": "3.13.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "799f8f4be4a2",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.14.1": {
+   "title": "3.14.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e396c7eb6478",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.15.1": {
+   "title": "3.15.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e62f243d5bef",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.16.1": {
+   "title": "3.16.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a622a7c97d7e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.17.1": {
+   "title": "3.17.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fd6f9dffa180",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.18.1": {
+   "title": "3.18.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "540c2c836c20",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.19.1": {
+   "title": "3.19.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "669056f6aa78",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.20.1": {
+   "title": "3.20.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9be4659affa9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.21.1": {
+   "title": "3.21.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "342ae7aea0a6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.3.22.1": {
+   "title": "3.22.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "7d88156ab040",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.4.1": {
+   "title": "4.1 GENERAL DESCRIPTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "8d268a63d0ce",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.4.2.1": {
+   "title": "4.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "769d7ca605c2",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.4.2.4": {
+   "title": "4.2.4 General Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9279a6a4722d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.4.3.1": {
+   "title": "4.3.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "965a56b88a27",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.4.4.1": {
+   "title": "4.4.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "510e05520d27",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.4.5.1": {
+   "title": "4.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c0c7c22fbde1",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.4.6.1": {
+   "title": "4.6.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "912ff2c3fb8d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.4.7.1": {
+   "title": "4.7.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "1643a9a467a2",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.4.8.1": {
+   "title": "4.8.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0a6185f19998",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIII.4.9.1": {
+   "title": "4.9.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "6ba0d944a23f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.1.1": {
+   "title": "1.1 FUNCTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "234eb7c5a4cc",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.1.2": {
+   "title": "1.2 LEVEL CHARACTERISTICS",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ee775c1399d5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "04d0b0006398",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.2.1": {
+   "title": "2.1 COMMUNICATION SECTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "8e593295ffd0",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "64150e917210",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.2.1.1": {
+   "title": "2.1.1 Communication Description Entry",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "bf3536f7d7af",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "27b884bfcd3b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.2.1.2": {
+   "title": "2.1.2 Record Description Structure",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "33b558a7b163",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "261592aabf11",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.2.2.1": {
+   "title": "2.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "754f8745e518",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.2.2.3": {
+   "title": "2.2.3 Syntax Rules**",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "61f7ed6a5157",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.2.2.4": {
+   "title": "2.2.4 General Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "852230199e35",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.2.2.5": {
+   "title": "2.2.5 Communication Status Key Conditions",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "5a67cf3c5f4a",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1",
+     "digest": "d08bca8d7710",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.2.2.6": {
+   "title": "2.2.6 Error Key Values",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "1b78ec13cc4e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1",
+     "digest": "42e1fa562ed8",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.3.1.1": {
+   "title": "3.1.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f99fa27ca78f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.3.2.1": {
+   "title": "║3.2.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c13555222d15",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.3.3.1": {
+   "title": "║3.3.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "af8c55b09911",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.3.4.1": {
+   "title": "║**3.4.1 Function**║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "09fbf08cfed9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.3.5.1": {
+   "title": "3.5.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c56667986448",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.3.6.1": {
+   "title": "3.6.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "87c3b1ac38b9",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XIV.3.6.4": {
+   "title": "3.6.4 General Rules",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "61f7ed6a5157",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XV.1.1": {
+   "title": "1.1 FUNCTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4c44ae595894",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "4513e055f64e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "099a4805b430",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XV.1.2": {
+   "title": "1.2 LEVEL CHARACTERISTICS",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9a260b2a7c7a",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "44037c38d807",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XV.1.3.1": {
+   "title": "1.3.1 Debug Features",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "477b10f6b088",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XV.1.3.2": {
+   "title": "1.3.2 Special Register DEBUG-ITEM",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "87dedb6d1958",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XV.1.3.3": {
+   "title": "1.3.3 Compile Time Switch",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "1f176f73c134",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "3fccff782580",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XV.1.3.4": {
+   "title": "1.3.4 Object Time Switch",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "77bef885bdd3",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "49d96643e64b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XV.2.1.1": {
+   "title": "2.1.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4643f4b55380",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XV.3.1": {
+   "title": "3.1 GENERAL DESCRIPTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a1202f27c714",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XV.3.2.1": {
+   "title": "3.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b125b96649af",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.1.1": {
+   "title": "1.1 FUNCTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "5bb0034ffd94",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "6d41195ca9d0",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.1.2": {
+   "title": "1.2 LEVEL CHARACTERISTICS",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b77df7b3c5f0",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "a73a182e6877",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.1.3": {
+   "title": "1.3 SCOPE",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b246b1d4483d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.1.4.1": {
+   "title": "1.4.1 Program Segments",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "49f844577e0b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.1.4.2": {
+   "title": "1.4.2 Fixed Portion",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "389165dc505d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "9e9d59cf168b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.1.4.3": {
+   "title": "1.4.3 Independent Segments",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a79fe8c76a47",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "81e6160a9a68",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "72ca6e156e3a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.1.5": {
+   "title": "1.5 SEGMENTATION CLASSIFICATION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fcbe8ff88b13",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.1.6": {
+   "title": "1.6 SEGMENTATION CONTROL",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e38673f45a79",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.2.1": {
+   "title": "║2.1 CONFIGURATION SECTION║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "520e0678aefd",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.2.2.1": {
+   "title": "║2.2.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "bdbab4d219f4",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.2.3.1": {
+   "title": "║2.3.1 Function║",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "cf6c32fa3a2d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.3.1": {
+   "title": "3.1 GENERAL DESCRIPTION",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d92911ad455d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.3.2.1": {
+   "title": "3.2.1 Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "de605319c7f8",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.3.3": {
+   "title": "3.3 RESTRICTIONS ON PROGRAM FLOW",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "40e4bdd04f79",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.3.3.1": {
+   "title": "3.3.1 The ALTER Statement",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "899f62e6c635",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "51059a171c8c",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.3.3.2": {
+   "title": "3.3.2 The PERFORM Statement",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b4a28608cf59",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "7a51961b8977",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.3.3.3": {
+   "title": "3.3.3 The MERGE Statement",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e90f41ee9fb2",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "938d9473e1fc",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1985:XVI.3.3.4": {
+   "title": "3.3.4 The SORT Statement",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "34342d2a0488",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "60a6fbc5e2ef",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.1.1": {
+   "title": "1.1 PURPOSE OF INTRINSIC FUNCTION MODULE",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "851156f75ac3",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.1.2.1": {
+   "title": "1.2.1 Function-Name",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "39fc21f6aba8",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.1.2.2": {
+   "title": "1.2.2 Value Returned by a Function",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ea1b7965c85c",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.1.2.3": {
+   "title": "1.2.3 Function-Identifier",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "91c105394c56",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.1": {
+   "title": "2.1 FUNCTION DEFINITION AND RETURNED VALUE",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "83ea366032c5",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.1.1": {
+   "title": "2.1.1 Date Conversion Function**",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "23706e7c4f1f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.2": {
+   "title": "2.2 ARGUMENTS**",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "1c9b0b0b4ca5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "2c932d11b377",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "88026183eb25",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "a4fb40657d8e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "858c1f313680",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.3": {
+   "title": "2.3 TYPES OF FUNCTIONS",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ed933054f77a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.4": {
+   "title": "2.4 DEFINITIONS OF FUNCTIONS",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "054210d3fff4",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p2",
+     "digest": "0411d5c605da",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p3",
+     "digest": "1f50d9550fd7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p4",
+     "digest": "005c9cf141cd",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p5",
+     "digest": "cb3a65d41494",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "78d7e634f1c0",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "6fcffa4bba56",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.3",
+     "digest": "d1737f57cc23",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.4",
+     "digest": "dd68327246f9",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.5",
+     "digest": "2e37638cda55",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.6",
+     "digest": "8c9b359859ee",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.7",
+     "digest": "06b98dea63d1",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.8",
+     "digest": "3404e0e700c6",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.9",
+     "digest": "2760daecac06",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.10",
+     "digest": "a4b6863f3dc7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.11",
+     "digest": "afa36cd239d5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.12",
+     "digest": "bc0276991e81",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.13",
+     "digest": "d0f52221526e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.14",
+     "digest": "6ef32e9ac29c",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.15",
+     "digest": "a0b6ed406b16",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.16",
+     "digest": "aa672986cbd1",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.17",
+     "digest": "28ea633267f2",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.18",
+     "digest": "6003d97df645",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "7dc19238ea80",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "5e88e848e3d1",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.3",
+     "digest": "7276329da292",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.4",
+     "digest": "22b752e03c81",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.5",
+     "digest": "6e42cc7609c5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.6",
+     "digest": "b1b12e32fec2",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.7",
+     "digest": "9ad983378f9f",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.8",
+     "digest": "d3e3aafba477",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.9",
+     "digest": "df5730270c23",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.10",
+     "digest": "5cb133fd5ce4",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.11",
+     "digest": "c3bff5d8a306",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.12",
+     "digest": "0f9e718baaff",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.13",
+     "digest": "da9d6202ed25",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.14",
+     "digest": "d4d52045c2fa",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.15",
+     "digest": "b3551937d60d",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "p6",
+     "digest": "5f078d3f34b7",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "53cb413da514",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "3fa794958f08",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.3",
+     "digest": "519d1332d671",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.4",
+     "digest": "aba41f6232ae",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.5",
+     "digest": "f3acaf23e68e",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.6",
+     "digest": "9af8f8af7863",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.7",
+     "digest": "1973c8eb6173",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.8",
+     "digest": "1a9578e35a77",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.9",
+     "digest": "c86b6efe3fe6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.5.1": {
+   "title": "2.5.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f76f4739196f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.6.1": {
+   "title": "2.6.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "92d57b06d81f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.7.1": {
+   "title": "2.7.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c5934b7447d7",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.8.1": {
+   "title": "2.8.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "b1769333c8fd",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.9.1": {
+   "title": "2.9.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f562f79e2d7f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.10.1": {
+   "title": "2.10.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fa68989bed2a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.11.1": {
+   "title": "2.11.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0319ecc7810f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.12.1": {
+   "title": "2.12.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "db9cb2987483",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.13.1": {
+   "title": "2.13.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "20a26208f0cf",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.14.1": {
+   "title": "2.14.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "652c81fe42c6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.15.1": {
+   "title": "2.15.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "a096437a2f6f",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.16.1": {
+   "title": "2.16.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "abb6e967a9ca",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.17.1": {
+   "title": "2.17.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f167df605559",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.18.1": {
+   "title": "2.18.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "5c78852aba66",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.19.1": {
+   "title": "2.19.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "30e8a86edce3",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.20.1": {
+   "title": "2.20.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "2e4c4d6c1929",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.21.1": {
+   "title": "2.21.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "29f260aee3b7",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.22.1": {
+   "title": "2.22.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "5dd4b5de8f3a",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.23.1": {
+   "title": "2.23.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "33ba8030cc12",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "234372fadb93",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "fe7a287c5dd5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.3",
+     "digest": "d5611772d648",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.4",
+     "digest": "6223fc89433d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.24.1": {
+   "title": "2.24.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "85418dbc3dc6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.25.1": {
+   "title": "2.25.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4b4eec9d9751",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.26.1": {
+   "title": "2.26.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "0922c681efd2",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.27.1": {
+   "title": "2.27.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f248ca565a34",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "234372fadb93",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "fe7a287c5dd5",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.3",
+     "digest": "d5611772d648",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.4",
+     "digest": "6223fc89433d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.28.1": {
+   "title": "2.28.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "c82cfd147c05",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.29.1": {
+   "title": "2.29.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d66d1d8f2596",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.30.1": {
+   "title": "2.30.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "d8075fb14ada",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.31.1": {
+   "title": "2.31.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "1038e461fec6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.32.1": {
+   "title": "2.32.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "9ca2ccfa9217",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.33.1": {
+   "title": "2.33.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "8780801c34c3",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.34.1": {
+   "title": "2.34.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "e6ceb5dcd156",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.35.1": {
+   "title": "2.35.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "f4bff1d1be25",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.36.1": {
+   "title": "2.36.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "3b9df100f053",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "d5611772d648",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "6223fc89433d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.37.1": {
+   "title": "2.37.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fe7a54390dfc",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.38.1": {
+   "title": "2.38.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "fd823f657655",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.39.1": {
+   "title": "2.39.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "db6c12ce1f89",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.40.1": {
+   "title": "2.40.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "5e15899cb15b",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.41.1": {
+   "title": "2.41.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "647ec9881a3e",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.42.1": {
+   "title": "2.42.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "628f3d5e7153",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.1",
+     "digest": "d5611772d648",
+     "order": 0,
+     "disposition": "pending"
+    },
+    {
+     "unit": "T1.2",
+     "digest": "6223fc89433d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.43.1": {
+   "title": "2.43.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "7b9b6aaf6618",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.44.1": {
+   "title": "2.44.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "aeea76647696",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.45.1": {
+   "title": "2.45.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "ca45ba0083a6",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  },
+  "§1989:A.2.46.1": {
+   "title": "2.46.1 Description",
+   "units": [
+    {
+     "unit": "p1",
+     "digest": "4dc3c97e017d",
+     "order": 0,
+     "disposition": "pending"
+    }
+   ]
+  }
  }
 }

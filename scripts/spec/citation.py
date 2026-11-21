@@ -122,7 +122,13 @@ NUMBERED_RULE = re.compile(rf"({'|'.join(RULE_KINDS)}) ?(\d+)")
 #: (kb/Work PB4969), where `GR1` is rule 1 of the first. The catalog's ids write it `-L2.1` (DESIGN-spec-conformance-review.md
 #: §2); `rule_designator` is the one writer of the citation form.
 SUBLIST_RULE = re.compile(rf"({'|'.join(RULE_KINDS)}) ?L(\d+)\.(\d+)")
-RULE = rf"(?:(?:{'|'.join(RULE_KINDS)}) ?(?:\d+(?:[a-z0-9.]*[a-z0-9])?|L\d+\.\d+)|Format \d+|Table \d+)"
+#: A UNIT OF UNNUMBERED TEXT (kb/Work PB5449, decision PB5448 point 5) is cited by its own designator: a margin paragraph
+#: `p<n>` (`§2023:8.4.2.1 p3`), a body row of a table `Table <t> row <r>` (`§2023:14.5.1 Table 12 row 2`, written before
+#: `Table <t>`, the whole table, so a scan takes the longer form). A numbered item of a prose clause has no designator
+#: yet: the tree writes `item <n>` for it and for other lists alike (`§2023:5.4 item 2` names no printed item), so the
+#: form waits until those citations are re-pointed (kb/Work PB5449's report).
+UNIT_RULE = r"p\d+|Table \d+ row \d+"
+RULE = rf"(?:(?:{'|'.join(RULE_KINDS)}) ?(?:\d+(?:[a-z0-9.]*[a-z0-9])?|L\d+\.\d+)|Format \d+|{UNIT_RULE}|Table \d+)"
 _RULE = re.compile(RULE + r"\Z")
 
 #: THE ONE CITATION PATTERN. `edition`/`locator` are the edition form (the locator read loosely here, and per edition
@@ -170,7 +176,7 @@ def _rule(raw: str | None) -> str | None:
     raw = raw.strip()
     if not _RULE.match(raw):
         raise CitationError(f"{raw!r} is not a rule designator: write SR n, GR n, AR n or RV n (its sub-item path "
-                            "glued: GR6d.2), Format n or Table n")
+                            "glued: GR6d.2), Format n, Table n, or a unit of unnumbered text: p<n>, Table <t> row <r>")
     return (SUBLIST_RULE.sub(r"\1L\2.\3", raw, count=1) if SUBLIST_RULE.match(raw)
             else NUMBERED_RULE.sub(r"\1\2", raw, count=1))
 
