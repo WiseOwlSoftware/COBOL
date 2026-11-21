@@ -1,4 +1,4 @@
-## The COBOL-85 conformance statement: section 9 of CONFORMANCE.md, computed from the 1985 rows (PB4997, PB4885)
+## Entry 3891 — 2026-11-21 01:31 PST — The COBOL-85 conformance statement: section 9 of CONFORMANCE.md, computed from the 1985 rows (PB4997, PB4885)
 
 **What.** `--std 85` now has the conformance statement §1985:I.1.5 asks for: `docs/conformance/9/`. The claim is the owner's
 decision PB4885: the high subset of ANSI X3.23-1985 with the highest level of every optional module. On the amended text that
@@ -29,3 +29,4 @@ PB4997's addendum). §1985:I.1.5.2 s1 and s2, §1985:I.1.5.2.5.1 s1 and §1985:I
 §1985:I.1.5.2.2 s1 conform with the one stated D-UTC-OFFSET departure. §1985:XV.1.3.4 s2 conforms after the fix above.
 One requirement is still unmet: the obsolete-element warning (§1985:I.1.5.2.3) is not on main, and the statement says so.
 That sentence is computed from the construct catalogue, so it becomes the list of warned constructs when PB5986 lands.
+
