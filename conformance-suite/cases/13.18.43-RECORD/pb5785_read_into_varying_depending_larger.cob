@@ -11,7 +11,7 @@
       *>   record just read" (§2023:13.18.43.4 GR15).
       *> §1985:VII.3.8.4 GR12: "the number of character positions in the current record that participate as
       *>   the sending data items in the implicit MOVE statement is determined by the following conditions" -
-      *>   the DEPENDING ON item's content (§2023:13.18.43.4 GR16 a), so all 15 positions are sent.
+      *>   the DEPENDING ON item's content (§2023:13.18.43.4 GR16a, so all 15 positions are sent.
       *> A 15-position record lies inside the clause's 2 TO 20, so the status is 00.
       *> EXPECTED OUTPUT, derived: FS=00 DR=15 W=[ABCDEFGHIJKLMNO     ] (fifteen positions sent, the rest of W
       *>   space-filled, the implied move being an alphanumeric group move) R10=[ABCDEFGHIJ] (the record

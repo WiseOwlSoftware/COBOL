@@ -21,7 +21,7 @@ columns: ["Rule", "Arm", "Names", "The derivation", "Signed", "Refuted"]
 >
 > ⚙ **Five arms, and two of them are MECHANICAL.**
 > · **`undefined-A.2`** is MECHANICAL. Annex A.2 is *"a list of the COBOL language elements within this Working
-> Draft International Standard that are explicitly undefined"* (§2023:A.2), and §2023:4.4 2) makes the point that matters
+> Draft International Standard that are explicitly undefined"* (§2023:A.2), and §2023:4.4 GR2 makes the point that matters
 > here: *"A COBOL run unit that allows these situations to happen is a conforming run unit, although the
 > resultant execution is not defined by standard COBOL."* Each A.2 item ends in the standard's own citation of
 > the rule it is about, so `scripts/spec/extract_annex_a2.py` resolves item → `rule-id` and the checker requires
@@ -49,7 +49,7 @@ columns: ["Rule", "Arm", "Names", "The derivation", "Signed", "Refuted"]
 > failing it. The `Names` cell must open `defines` and state the property and whose it is; a rule that says what
 > an implementation or implementor SHALL do is never this arm. Its first population was §2023:4.4 GR1/GR2; the owner
 > extended it on 2026-10-08 (kb/Work PB1636, the five definitional rows of that batch) to a CONSTRAINT on the
-> user's run unit that no rule gives a consequence (§2023:4.4 2) then leaves a violation undefined) and to a TERM
+> user's run unit that no rule gives a consequence (§2023:4.4 GR2 then leaves a violation undefined) and to a TERM
 > DEFINITION that no other rule reads.
 >
 > ⚖ **This does not reverse `kb/Work/PB280` Q2.** An Annex A.1 row asks the implementor to STATE a choice, so

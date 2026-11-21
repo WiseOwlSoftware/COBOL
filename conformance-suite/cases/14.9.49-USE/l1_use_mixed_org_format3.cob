@@ -16,10 +16,10 @@
       *>   4. Format 3 IMPLICIT  (a bare exception-name-1)      — HERE, section F3-IMPL-SECT
       *> Arm 4 is a real arm, not a nicety. §2023:14.9.49.2 Format 3's second brace group offers
       *> "exception-name-1" ALONE as its first alternative — a USE with no FILE phrase, whose
-      *> files are therefore referenced implicitly — and §2023:14.9.49.4 GR3 f) gives that form its
+      *> files are therefore referenced implicitly — and §2023:14.9.49.4 GR3f gives that form its
       *> own selection tier ("All format 3 USE statements in which file-name-2 is not specified
       *> and exception-name-1 is a level-2 exception-name are examined"), distinct from the
-      *> GR3 d) tier arm 3 uses.  (cite.py --check on GR3 f)'s text reports "§2023:14.9.49.4 3) e)":
+      *> GR3 d) tier arm 3 uses.  (cite.py --check on GR3 f)'s text reports "§2023:14.9.49.4 GR3e":
       *> the transcription lost that paragraph's list nesting at a printed page break, so the
       *> tool attributes it to the preceding sibling. The matched paragraph is f).)
       *> DERIVATION — every expected line follows from the rule text, nothing from the compiler.
@@ -37,12 +37,12 @@
       *>    turned on explicitly; GR3 of the same clause spreads a level-2 name to "all
       *>    exception-names that are subordinate to that level-2 exception-name".
       *>  · EVERY leg: §2023:14.9.6.4 GR1 — a CLOSE of a connector that is not open is unsuccessful
-      *>    and sets I-O status '42' (§2023:9.1.13.7 rule 2 names the same value for "a CLOSE or
+      *>    and sets I-O status '42' (§2023:9.1.13.7 GR2 names the same value for "a CLOSE or
       *>    UNLOCK statement ... attempted for a file connector that is not in an open mode").
       *>    No file here is ever opened, so no leg depends on a physical file being present or
       *>    absent. §2023:14.6.13.1's table maps I-O status "4x" to EC-I-O-LOGIC-ERROR, which is
       *>    subordinate to the level-2 EC-I-O.
-      *>  · Arm 3 legs (F1, F2): §2023:14.9.49.4 GR3 d) selects "format 3 USE statements in which
+      *>  · Arm 3 legs (F1, F2): §2023:14.9.49.4 GR3d selects "format 3 USE statements in which
       *>    file-name-2 is specified and exception-name-2 is a level-2 exception-name" when the
       *>    raised condition matches and is associated with that file-name-2 — so the ONE
       *>    file-scoped declarative runs for the SEQUENTIAL F1 and for the INDEXED F2.
@@ -54,7 +54,7 @@
       *>    the "implicitly referenced" half of SR5's subject: F3 and F4 are named nowhere in
       *>    any USE statement, and SR5 still requires them to be served despite differing in
       *>    organization and access.
-      *>  · Control returns by §2023:14.9.33.4 GR2 a) (RESUME AT NEXT STATEMENT) in every leg, so the
+      *>  · Control returns by §2023:14.9.33.4 GR2a (RESUME AT NEXT STATEMENT) in every leg, so the
       *>    DISPLAY after each CLOSE reports the status that CLOSE left.
        >>TURN EC-I-O CHECKING ON
        IDENTIFICATION DIVISION.
@@ -102,14 +102,14 @@
        PROCEDURE DIVISION.
        DECLARATIVES.
       *> ARM 3 — Format 3 EXPLICIT: one exception-name file-scoped onto a SEQUENTIAL file and an
-      *> INDEXED / ACCESS DYNAMIC file at once (§2023:14.9.49.4 GR3 d)).
+      *> INDEXED / ACCESS DYNAMIC file at once (§2023:14.9.49.4 GR3d).
        F3-SECT SECTION.
            USE AFTER EXCEPTION CONDITION EC-I-O FILE F1 FILE F2.
        F3-PARA.
            DISPLAY "FORMAT3-USE-FIRED"
            RESUME AT NEXT STATEMENT.
       *> ARM 4 — Format 3 IMPLICIT: a bare exception-name-1, naming no file, serving a
-      *> SEQUENTIAL file and an INDEXED / ACCESS DYNAMIC file at once (§2023:14.9.49.4 GR3 f)).
+      *> SEQUENTIAL file and an INDEXED / ACCESS DYNAMIC file at once (§2023:14.9.49.4 GR3f).
        F3-IMPL-SECT SECTION.
            USE AFTER EXCEPTION CONDITION EC-I-O.
        F3-IMPL-PARA.

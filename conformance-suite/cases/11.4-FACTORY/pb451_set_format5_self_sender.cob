@@ -25,12 +25,12 @@
       *>    the SET statement is contained in a method within the factory definition of the
       *>    class, that factory definition shall be described with an IMPLEMENTS clause that
       *>    references int-1."  PB451P's FACTORY carries IMPLEMENTS PB451K, and PB451K
-      *>    INHERITS FROM PB451J, so §2023:11.4.4 GR2 b) ("the factory object implements an
+      *>    INHERITS FROM PB451J, so §2023:11.4.4 GR2b ("the factory object implements an
       *>    interface that inherits int-1") makes it implement PB451J — the relation §2023:11.4.4
       *>    GR1 says the clause names.  INVOKE JR "PING":                            FPING-P
       *>
       *> 3. INVOKE PB451Q "QFMK" runs a method of PB451Q's FACTORY definition, which carries
-      *>    NO IMPLEMENTS clause at all; only its base PB451P's does.  §2023:11.4.4 GR2 c) — "the
+      *>    NO IMPLEMENTS clause at all; only its base PB451P's does.  §2023:11.4.4 GR2c — "the
       *>    class containing the factory object inherits a class whose factory object
       *>    implements int-1" — is the leg that makes SR10 d)1. hold here.  PB451Q's FACTORY
       *>    overrides PING:                                                         FPING-Q
@@ -44,13 +44,13 @@
       *>    c)3. "if the data item referenced by identifier-3 is described without a FACTORY
       *>    phrase, the method containing the SET statement shall be defined in the instance
       *>    definition of its containing class" — it is.  INVOKE O2 "WHO":            WHO-P
-      *>    SET J2 TO SELF is SR10 d)2., the instance twin, over §2023:11.8.4 GR2 b):     IPING-P
+      *>    SET J2 TO SELF is SR10 d)2., the instance twin, over §2023:11.8.4 GR2b:     IPING-P
       *>
       *> 6-7. INVOKE OQ "QMK" runs an INSTANCE method of PB451Q on a PB451Q object.
       *>    SET PR TO SELF, PR described with the object-class-name PB451P, is SR12 c)2.'s
       *>    SUBCLASS leg: the class containing the SET (PB451Q) is a subclass of PB451P.
       *>    INVOKE PR "WHO" dispatches on the object actually held:                   WHO-Q
-      *>    SET J2 TO SELF is SR10 d)2. over §2023:11.8.4 GR2 c) — PB451Q's OBJECT carries no
+      *>    SET J2 TO SELF is SR10 d)2. over §2023:11.8.4 GR2c — PB451Q's OBJECT carries no
       *>    IMPLEMENTS clause; its base PB451P's does.  INVOKE J2 "PING":           IPING-Q
       *>
       *> 8. SET OQ TO NULL is SR12 d), the fourth member of the rule's closed list of

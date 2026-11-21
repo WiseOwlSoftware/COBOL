@@ -15,16 +15,16 @@
       *>   cite.py --check 9.1.15 "The sharing with all other mode
       *>   allows concurrent access to a physical file through other
       *>   file connectors specifying input, I-O, or extend mode"
-      *>   -> OK  §2023:9.1.15 3)  (Sharing mode)
+      *>   -> OK  §2023:9.1.15 GR3  (Sharing mode)
       *>   cite.py --check 9.1.15 "Associating this file connector with
       *>   the physical file will be unsuccessful if the physical file
       *>   is currently open through other file connectors"
-      *>   -> OK  §2023:9.1.15 1)  (Sharing mode)
+      *>   -> OK  §2023:9.1.15 GR1  (Sharing mode)
       *>   cite.py --check 9.1.13.9 "I-O status = 61"
-      *>   -> OK  §2023:9.1.13.9 1)
+      *>   -> OK  §2023:9.1.13.9 GR1
       *>   cite.py --check 14.9.27.3 "the LOCK MODE clause shall be
       *>   specified in the file control entry for file-name-1"
-      *>   -> OK  §2023:14.9.27.3 8)  (why the ALL OTHER entries carry one)
+      *>   -> OK  §2023:14.9.27.3 SR8  (why the ALL OTHER entries carry one)
       *> Documented choice (docs/CONFORMANCE.md DOC-A.1-78): NO. The
       *> sharing mode belongs to each file connector (its SHARING
       *> clause or the OPEN's SHARING phrase), is checked against the

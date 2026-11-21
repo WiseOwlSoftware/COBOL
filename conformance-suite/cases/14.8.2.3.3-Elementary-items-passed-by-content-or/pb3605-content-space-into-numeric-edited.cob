@@ -10,7 +10,7 @@
       *> naming SR5. (A numeric formal is rule 2 a)'s COMPUTE, which takes no SPACE either.)
       *>   cite.py --check 14.9.25.3 "In all other cases, the move of an alphanumeric figurative constant (SPACE,
       *>     QUOTE, HIGH-VALUE, LOW-VALUE, ALL "literal", or ALL symbolic-character) to either a numeric item or a
-      *>     numeric-edited item is prohibited" -> OK §2023:14.9.25.3 5)
+      *>     numeric-edited item is prohibited" -> OK §2023:14.9.25.3 SR5
       *>   cite.py --check 14.8.2.3.3 "the conformance rules are the same as for a MOVE statement" -> OK
       *>     §2023:14.8.2.3.3 2) d)
        IDENTIFICATION DIVISION.

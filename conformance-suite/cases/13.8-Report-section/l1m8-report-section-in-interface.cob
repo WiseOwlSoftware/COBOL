@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:13.8.3 1) — a REPORT SECTION within an INTERFACE definition
+      *> ISO §2023:13.8.3 SR1 — a REPORT SECTION within an INTERFACE definition
       *> Rule: "The report section shall not be specified within an
       *>   interface definition."
-      *>   cite.py: OK  §2023:13.8.3 1)  (Syntax rule)
+      *>   cite.py: OK  §2023:13.8.3 SR1  (Syntax rule)
       *> The interface-definition general format (§2023:10.6.1) has NO
       *> data-division slot - only the options paragraph, the
       *> environment division and the procedure division - so the one
@@ -18,8 +18,8 @@
       *> shape here: prototype SPEAK carries an (empty) REPORT SECTION
       *> and is otherwise a bare header.
       *> Expected: COBOL2272, the prototype-body screen, arm e):
-      *>   §2023:10.6.2 4) e) "The data division may contain only a linkage
-      *>   section." (cite.py: OK §2023:10.6.2 4) e)) - the rule through
+      *>   §2023:10.6.2 SR4e "The data division may contain only a linkage
+      *>   section." (cite.py: OK §2023:10.6.2 SR4e) - the rule through
       *>   which §2023:13.8.3's interface prohibition is enforced for the one
       *>   reachable shape. The .err pins that arm's message.
        IDENTIFICATION DIVISION.

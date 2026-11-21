@@ -11,7 +11,7 @@
       *> the mode rules of that statement apply to a file open in the mode or in the process of
       *> being opened in it (§2023:14.9.49.4 GR6b: "for any file open in the input mode or in the
       *> process of being opened in the input mode").
-      *> DERIVATION. F is open INPUT. OPEN OUTPUT F fails '41' (§2023:9.1.13.7 1)), an EC-I-O
+      *> DERIVATION. F is open INPUT. OPEN OUTPUT F fails '41' (§2023:9.1.13.7 GR1), an EC-I-O
       *>   condition raised for a file that IS open in the input mode and is being opened in the
       *>   output mode. So the WHEN EXCEPTION INPUT phrase matches by the opened mode, and the
       *>   WHEN EXCEPTION EXTEND phrase, written first, matches neither mode and does not run.

@@ -9,9 +9,9 @@
       *>
       *> THE RULES, --check validated:
       *>   cite.py --check 14.9.40.4 "The number of occurrences of table elements referenced by data-name-2 is
-      *>     determined by the rules in the OCCURS clause" -> OK §2023:14.9.40.4 20)
+      *>     determined by the rules in the OCCURS clause" -> OK §2023:14.9.40.4 GR20
       *>   cite.py --check 13.18.38.4 "The value of the data item referenced by data-name-1 represents the current
-      *>     number of occurrences of the subject of the entry" -> OK §2023:13.18.38.4 7)
+      *>     number of occurrences of the subject of the entry" -> OK §2023:13.18.38.4 GR7
       *> So with N = 3 the table ITM has three occurrences, and only {30, 10, 50} are sorted; occurrences 4..5 are
       *> not elements of the table at all, so they can never enter occurrences 1..3. (Their content after the
       *> statement is not an occurrence of the sorted table; this implementation leaves it untouched, which the

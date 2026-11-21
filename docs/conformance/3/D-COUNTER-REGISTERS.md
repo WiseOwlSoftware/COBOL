@@ -35,7 +35,7 @@
   `UNSIGNED-INT` LINAGE-COUNTER (a 10-digit image whatever the page size) contradicts that GR, so the standard decides.
   **PAGE-COUNTER / LINE-COUNTER** are the unsigned 32-bit binary integer above. Consequences: `DISPLAY LINAGE-COUNTER`
   after `LINAGE IS 20 LINES`, OPEN OUTPUT and one WRITE shows `02`; `DISPLAY PAGE-COUNTER` after INITIATE shows
-  `0000000001`; `MOVE LINE-COUNTER TO` a `PIC X(4)` item stores the leftmost four of the 10 digits (§2023:14.9.25.4 GR6 a));
+  `0000000001`; `MOVE LINE-COUNTER TO` a `PIC X(4)` item stores the leftmost four of the 10 digits (§2023:14.9.25.4 GR6a);
   every register is an integer for `PERFORM … TIMES`. **Usage screens follow the description:** STRING's identifiers
   "shall be described … as usage display or national" (§2023:14.9.43.3 SR1) and §2023:8.8.4.2.5's numeric integer operand "shall
   be … of usage display or national", so **LINAGE-COUNTER takes a STRING sender and an alphanumeric relation, and

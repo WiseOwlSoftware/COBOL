@@ -8,7 +8,7 @@
       *> ISO §2023:15.66.3 r1 — NATIONAL-OF's ARGUMENT-1 CLASS SCREEN, ON ITS ADMITTED SIDE.
       *> r1 word for word: "Argument-1 shall be of class alphabetic or class alphanumeric."
       *>   python scripts/spec/cite.py --check 15.66.3 "Argument-1 shall be of class alphabetic or class
-      *>   alphanumeric."  ->  OK  §2023:15.66.3 1)  (Argument rules)
+      *>   alphanumeric."  ->  OK  §2023:15.66.3 AR1  (Argument rules)
       *>
       *> ⛔ r1 NAMES TWO CLASSES AND THE CORPUS EXERCISED ONLY ONE. Every NATIONAL-OF call site in
       *> tests/conformance feeds an ALPHANUMERIC operand — a literal (2023/national_of_argument_forms), a PIC X

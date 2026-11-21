@@ -38,7 +38,7 @@
       *>   -> OK  §2023:9.1.14 2)  (second list)
       *>   cite.py --check 9.1.13.5 "to write a record that would create
       *>   a duplicate prime record key in a physical indexed file"
-      *>   -> OK  §2023:9.1.13.5 2) b)   (status 22)
+      *>   -> OK  §2023:9.1.13.5 GR2b   (status 22)
       *>   cite.py --check 9.1.13.5 "an attempt is made to randomly
       *>   access a record that does not exist in the physical file"
       *>   -> OK  §2023:9.1.13.5 3) a)   (status 23)
@@ -46,7 +46,7 @@
       *> PERFORM, so no applicable exception processing statement
       *> exists (§2023:9.1.12: cite.py --check 9.1.12 "Statements in a
       *> file-exception or exception-name format of a USE declarative"
-      *> -> OK §2023:9.1.12 2)). Each failing statement below has no phrase,
+      *> -> OK §2023:9.1.12 GR2). Each failing statement below has no phrase,
       *> so control reaches the DISPLAY that follows it.
       *> Derivation:
       *>   W1=00       first WRITE of key K1 succeeds.

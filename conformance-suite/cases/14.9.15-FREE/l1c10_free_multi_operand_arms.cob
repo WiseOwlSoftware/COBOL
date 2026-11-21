@@ -33,11 +33,11 @@
       *>  for normal execution" (here: GR2's resumption).
       *> cite.py --check:
       *>  OK  §2023:14.9.15.2   (General format)
-      *>  OK  §2023:14.9.15.4 1) a)  (General rules)
-      *>  OK  §2023:14.9.15.4 1) b)  (General rules)
-      *>  OK  §2023:14.9.15.4 1) c)  (General rules)
-      *>  OK  §2023:14.9.15.4 2)  (General rules)
-      *>  OK  §2023:14.6.13.1.4 3)  (Nonfatal exception conditions)
+      *>  OK  §2023:14.9.15.4 GR1a  (General rules)
+      *>  OK  §2023:14.9.15.4 GR1b  (General rules)
+      *>  OK  §2023:14.9.15.4 GR1c  (General rules)
+      *>  OK  §2023:14.9.15.4 GR2  (General rules)
+      *>  OK  §2023:14.6.13.1.4 GR3  (Nonfatal exception conditions)
       *>
       *> Derivation of each expected line (EC lines come from the
       *> declarative; K counts them):

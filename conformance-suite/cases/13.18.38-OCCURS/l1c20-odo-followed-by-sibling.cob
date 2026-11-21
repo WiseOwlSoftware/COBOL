@@ -9,7 +9,7 @@
       *> "22) The subject of the entry may be followed within that
       *>   record description only by data description entries that
       *>   are subordinate to it."
-      *>   OK  §2023:13.18.38.3 22)  (Syntax rules)
+      *>   OK  §2023:13.18.38.3 SR22  (Syntax rules)
       *> R-TAIL is a sibling of the ODO subject R-TAB, written after
       *> it in the same record: it is not subordinate to R-TAB, so the
       *> record description violates SR22. Every other rule is met:

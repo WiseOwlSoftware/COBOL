@@ -19,14 +19,14 @@
       *>     identification for identifier-2 is performed immediately
       *>     before the data is moved" - the sender first, whichever
       *>     side carries which failure (M1-M5).
-      *>   Arithmetic: §2023:14.7.7 rule 4, the initial evaluation first,
+      *>   Arithmetic: §2023:14.7.7 GR4, the initial evaluation first,
       *>     then "Item identification for the receiving data items is
       *>     done as each data item is accessed" (A1-A4).
-      *>   STRING: no timing of its own, so §2023:14.6.4 7): "the
+      *>   STRING: no timing of its own, so §2023:14.6.4 GR7: "the
       *>     identifiers within a statement are evaluated in left to
       *>     right order" - identifier-1 and the delimiter before
       *>     identifier-3 (S1-S2).
-      *>   INITIALIZE: the same §2023:14.6.4 7) order puts identifier-1, the
+      *>   INITIALIZE: the same §2023:14.6.4 GR7 order puts identifier-1, the
       *>     receiver, before the REPLACING sender (I1).
       *>   EVALUATE: the NONFATAL EC-RANGE-INVALID of the first WHEN's
       *>     reversed THRU range occurs before the second WHEN's

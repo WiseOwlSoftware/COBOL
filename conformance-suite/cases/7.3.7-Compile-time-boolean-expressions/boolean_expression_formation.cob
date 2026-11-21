@@ -20,7 +20,7 @@
       *>   CT6/RT3  the full rule-7b ladder B-NOT > B-AND > B-XOR > B-OR:
       *>        B-NOT 1100 B-OR 0101 B-XOR 0110 B-AND 0011 = 0011 B-OR (0101 B-XOR (0110 B-AND 0011))
       *>        = 0011 B-OR (0101 B-XOR 0010) = 0011 B-OR 0111 = 0111. Left-to-right would give 0001.
-      *>   CT7, RT6, RT7, CT8/RT8  rule 5 "The second operand shall be an integer operand" — §2023:5.5 2): an integer
+      *>   CT7, RT6, RT7, CT8/RT8  rule 5 "The second operand shall be an integer operand" — §2023:5.5 SR2: an integer
       *>        literal (a leading sign is part of it, §2023:8.3.3.3.2), an integer data item, an integer function, or
       *>        (compile time) a numeric compilation variable holding an integer literal (§2023:7.3.11.4 GR1).
       *>        1100 B-SHIFT-RC 2 = 0011; 1100 B-SHIFT-L 1 = 1000; INTEGER(2.5) = 2, 1100 B-SHIFT-RC 2 = 0011;

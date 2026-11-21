@@ -11,8 +11,8 @@
   whitespace, so the parse does not consult spacing; §2023:8.7.1's spacing is then asked of the parsed operator, COBOL2993,
   kb/Work PB2017 — `USING N -1` is the expression `N - 1` and is refused for its missing space):** an argument is the
   LONGEST arithmetic expression that starts at it — `USING N + 1`, `USING N - 1`, `USING 5 + 1`, `USING BY CONTENT N + 1` and
-  `O :: "M" (N + 1)` are each one argument, evaluated before the call and passed BY CONTENT (§2023:14.9.4.4 GR9 a) 2,
-  §2023:14.9.23.4 GR6 a) 2); an argument that is a SOLE identifier or literal stays an identifier or literal
+  `O :: "M" (N + 1)` are each one argument, evaluated before the call and passed BY CONTENT (§2023:14.9.4.4 GR9a 2,
+  §2023:14.9.23.4 GR6a.2; an argument that is a SOLE identifier or literal stays an identifier or literal
   (§2023:14.9.4.4 GR8). A second argument that is a signed literal is written first or after a BY phrase — `USING +1 N`,
   `USING N BY CONTENT +1` (`N (+ 1)` is N subscripted). This replaces PB130's earlier "the list reading wins".
   Implemented in the grammar (no bare `dataReference` arm in `callArgument` / `callByContent` / `invokeArgument`, and

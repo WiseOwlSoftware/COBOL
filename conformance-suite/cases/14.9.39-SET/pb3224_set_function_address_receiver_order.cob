@@ -8,11 +8,11 @@
 *> ISO §2023:14.9.39.3 SR20 over a receiving LIST - identifier-12 is written `{ identifier-12 } ...`, so the last
 *> sentence applies to each receiver and WHERE one stands decides nothing:
 *>   "The function-prototypes associated with identifier-12 and identifier-13 shall have the same signature."
-*>   cite.py: OK  §2023:14.9.39.3 20)  (Syntax rules)
+*>   cite.py: OK  §2023:14.9.39.3 SR20  (Syntax rules)
 *> GR3: "When function-prototype-name-1 is specified, the function-address-identifier has the characteristics
-*>   of a function-pointer restricted to function-prototype-name-1."   cite.py: OK  §2023:8.4.3.12.4 3)
+*>   of a function-pointer restricted to function-prototype-name-1."   cite.py: OK  §2023:8.4.3.12.4 GR3
 *> FPE is restricted to EXTF, a function prototype definition this compilation group carries but implements nowhere
-*> (§2023:12.3.8.4 GR11 b)), of the same signature as NSDBL, and FPD to NSDBL. The sender ADDRESS OF FUNCTION NSDBL is
+*> (§2023:12.3.8.4 GR11b), of the same signature as NSDBL, and FPD to NSDBL. The sender ADDRESS OF FUNCTION NSDBL is
 *> restricted to NSDBL, so it meets SR20 for FPD and for FPE. The statement is accepted with FPE written first and
 *> with FPD written first; the refusal twin is pb3224-set-function-address-external-first, which differs only in the
 *> sender (NSZERO). (kb/Work PB2103: EXTF used to be a specifier with no information anywhere, whose signature the

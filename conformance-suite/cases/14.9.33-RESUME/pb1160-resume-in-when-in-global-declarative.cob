@@ -6,7 +6,7 @@
 *>---
 *> kb/Work PB1160 - §2023:14.9.33.3 SR2 is a FLAT prohibition: "The RESUME statement shall not be specified in a
 *> declarative procedure for which the GLOBAL phrase is specified in the associated USE statement."
-*>   OK  §2023:14.9.33.3 2)  (Syntax rules)
+*>   OK  §2023:14.9.33.3 SR2  (Syntax rules)
 *> A RESUME written in a WHEN phrase of an exception-checking PERFORM (§2023:14.9.28.4) is still SPECIFIED in the
 *> declarative procedure G whose USE statement carries GLOBAL: SR2 has no exception for a statement nested in a
 *> WHEN phrase, and §2023:14.9.33.3 SR1's permission for a WHEN phrase answers a different question (where a RESUME

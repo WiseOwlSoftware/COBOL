@@ -12,26 +12,26 @@
       *>   contains other source units apply to each directly or
       *>   indirectly contained source unit."
       *>   cite.py --check 12.3.4 "apply to each directly or indirectly
-      *>   contained source unit" -> OK §2023:12.3.4 1)
+      *>   contained source unit" -> OK §2023:12.3.4 GR1
       *> RULE §2023:12.3.8.4 GR12: "Within the scope of the containing
       *>   environment division, a reference to function-prototype-
       *>   name-1 is a reference to a user-defined function".
       *>   cite.py --check 12.3.8.4 "a reference to function-prototype-
       *>   name-1 is a reference to a user-defined function" -> OK
-      *>   §2023:12.3.8.4 12)
+      *>   §2023:12.3.8.4 GR12
       *> RULE §2023:12.3.8.4 GR10: "Program-prototype-name-1 is the name of
       *>   a program prototype that may be used throughout the scope of
       *>   the containing environment division."
       *>   cite.py --check 12.3.8.4 "Program-prototype-name-1 is the name
       *>   of a program prototype that may be used throughout the scope
-      *>   of the containing environment division" -> OK §2023:12.3.8.4 10)
+      *>   of the containing environment division" -> OK §2023:12.3.8.4 GR10
       *> §2023:12.3.3 SR3 bars the REPOSITORY paragraph only in a FACTORY or
       *>   OBJECT paragraph, and SR2 bars a configuration section in a
       *>   method, so the CLASS-ID's own environment division is the
       *>   one that carries it (cite.py --check 12.3.3 "The SOURCE-
       *>   COMPUTER, OBJECT-COMPUTER, and REPOSITORY paragraphs shall not
       *>   be specified in a factory definition or an instance
-      *>   definition" -> OK §2023:12.3.3 3)).
+      *>   definition" -> OK §2023:12.3.3 SR3).
       *> SET-UP: PB1100D doubles its argument. Class PB1100C's
       *>   REPOSITORY names FUNCTION PB1100D and PROGRAM PB1100S (adds
       *>   100 to its argument). The FACTORY method FTWICE and the

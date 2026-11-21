@@ -97,7 +97,7 @@
            END-PERFORM.
            DISPLAY "SR7-SIGN-F=" C-SGN2.
       *> (g) §2023:8.8.4.4 class condition inside a §2023:8.8.4.10 complex
-      *> negated condition. §2023:8.8.4.4.4 GR3 n) 2.: for an item whose
+      *> negated condition. §2023:8.8.4.4.4 GR3n 2.: for an item whose
       *> category is NOT numeric the NUMERIC test "is true if the
       *> content … consists entirely of the characters 0, 1, 2, 3, …,
       *> 9". "123" does, "12A" does not, so exactly one pass.
@@ -122,7 +122,7 @@
       *> (j) CONDITION-2 — SR7 names it, so the AFTER slot is measured
       *> too, with an abbreviated combined relation in it. VJ = 2 OR 3
       *> is (VJ = 2) OR (VJ = 3), so the inner level admits VJ = 1
-      *> only; §2023:14.9.28.4 GR13 e) runs the body once per outer value
+      *> only; §2023:14.9.28.4 GR13e runs the body once per outer value
       *> and the outer level admits VI = 1 and 2. Two body executions.
            PERFORM VARYING VI FROM 1 BY 1 UNTIL VI > 2
                    AFTER VJ FROM 1 BY 1 UNTIL VJ = 2 OR 3

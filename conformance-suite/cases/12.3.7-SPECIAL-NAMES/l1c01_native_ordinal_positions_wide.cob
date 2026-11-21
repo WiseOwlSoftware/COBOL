@@ -14,13 +14,13 @@
       *>     order of characters within the native alphanumeric coded
       *>     character set and the native national coded character set,
       *>     associating each character with an ordinal position"
-      *>     -> OK §2023:12.3.7.4 6)
+      *>     -> OK §2023:12.3.7.4 GR6
       *>   cite.py --check 12.3.6.4 "When the PROGRAM COLLATING SEQUENCE
       *>     clause is not specified and the source unit is not
       *>     contained within a source unit for which a PROGRAM
       *>     COLLATING SEQUENCE clause is specified, the initial program
       *>     collating sequences are the native alphanumeric collating
-      *>     sequence" -> OK §2023:12.3.6.4 10)
+      *>     sequence" -> OK §2023:12.3.6.4 GR10
       *>   cite.py --check 15.70.1 "The ORD function returns an integer
       *>     value that is the ordinal position of argument-1 in the
       *>     program collating sequence. The lowest ordinal position is
@@ -28,10 +28,10 @@
       *>   cite.py --check 15.15.4 "The returned value shall be the
       *>     character in the alphanumeric program collating sequence
       *>     having the ordinal position specified by argument-1"
-      *>     -> OK §2023:15.15.4 1)
+      *>     -> OK §2023:15.15.4 RV1
       *>   cite.py --check 15.16.4 "The returned value is the character
       *>     in the national program collating sequence having the
-      *>     ordinal position specified by argument-1" -> OK §2023:15.16.4 1)
+      *>     ordinal position specified by argument-1" -> OK §2023:15.16.4 RV1
       *> 2002 dir: hex (X"") and national (N"") literals and
       *> CHAR-NATIONAL are 2002 constructs.
       *> DERIVATION of every .out line:

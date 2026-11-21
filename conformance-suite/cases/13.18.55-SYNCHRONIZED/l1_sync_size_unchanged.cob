@@ -25,7 +25,7 @@
       *> WHAT THIS MEASURES, AND WHY IT IS NOT THE EXISTING WITNESS. The
       *> shipped golden conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler
       *> measures the GROUP's byte length around a synchronized item (its
-      *> SYNC=3 leg, §2023:13.18.55.4 GR9 b). GR6 is about the synchronized ITEM's
+      *> SYNC=3 leg, §2023:13.18.55.4 GR9b. GR6 is about the synchronized ITEM's
       *> own length, so every leg below applies FUNCTION BYTE-LENGTH
       *> (§2023:15.14.1, "an integer equal to the length of the argument in bytes")
       *> to the ELEMENTARY item, never to its group.
@@ -40,7 +40,7 @@
       *> COMP  — docs/CONFORMANCE.md DOC-A.1-205 (the §2023:13.18.60.4 GR4
       *>         determination): a BINARY/COMP item of 3-4 digits occupies
       *>         2 bytes. So 2, with the clause and without it.
-      *> SEP   — §2023:13.18.52.4 GR6 a): with SEPARATE CHARACTER the operational
+      *> SEP   — §2023:13.18.52.4 GR6a: with SEPARATE CHARACTER the operational
       *>         sign "is presumed to be the leading ... character position of
       *>         the data item ...; this character position is not a digit
       *>         position", so PIC S9(4) SIGN IS LEADING SEPARATE is 4 digit

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5595 - the currency string X"3132" (the digits 12) in hexadecimal format. §2002:12.2.6.2 SR20 b) (cite.py
+      *> kb/Work PB5595 - the currency string X"3132" (the digits 12) in hexadecimal format. §2002:12.2.6.2 SR20b (cite.py
       *> --check "§2002:12.2.6.2 SR20" with the quotation "may consist of any characters from the computer's coded
       *> character set except for the digits 0 through 9": OK) refuses a digit in literal-7 whatever its form; the
       *> hexadecimal exemption is the NOTE of §2014:12.3.6.2 SR19, absent from the 2002 text.

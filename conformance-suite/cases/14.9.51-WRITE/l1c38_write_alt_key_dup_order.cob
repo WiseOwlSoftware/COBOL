@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:14.9.51.4 40) — alternate key duplicates: order, '22'
+      *> ISO §2023:14.9.51.4 GR40 — alternate key duplicates: order, '22'
       *> RULE 40): "When the ALTERNATE RECORD KEY clause is specified
       *>   ..., the value of the alternate record key may be non unique
       *>   only if the DUPLICATES phrase is specified for that data
@@ -21,22 +21,22 @@
       *>   cite.py --check 14.9.51.4 "the order of retrieval of those
       *>     records is the order in which the operating environment
       *>     actually writes the record into the physical file"
-      *>     -> OK §2023:14.9.51.4 40)
+      *>     -> OK §2023:14.9.51.4 GR40
       *>   cite.py --check 14.9.51.4 "If the DUPLICATES phrase is not
       *>     specified and the alternate key value is non unique, the
       *>     execution of the WRITE statement is unsuccessful, the
-      *>     invalid key condition exists" -> OK §2023:14.9.51.4 40)
+      *>     invalid key condition exists" -> OK §2023:14.9.51.4 GR40
       *> SUPPORTING STATUS RULES:
       *>   cite.py --check 9.1.13.2 "the record just written created a
       *>     duplicate key value for at least one alternate record key
-      *>     for which duplicates are allowed" -> OK §2023:9.1.13.2 2)
+      *>     for which duplicates are allowed" -> OK §2023:9.1.13.2 GR2
       *>     (cite.py labels the item "2)"; the text is item 2) c),
       *>     status '02' - a PB1554-class list-item mislabel)
       *>   cite.py --check 14.9.30.4 "the NEXT phrase is specified or
       *>     implied and the alternate record key in the record that
       *>     follows the record that was successfully read duplicates
       *>     the same key in the record that was successfully read"
-      *>     -> OK §2023:14.9.30.4 27)   (READ status '02', item a))
+      *>     -> OK §2023:14.9.30.4 GR27   (READ status '02', item a))
       *>   cite.py --check 9.1.13.5 "an attempt is made to randomly
       *>     access a record that does not exist in the physical file"
       *>     -> OK §2023:9.1.13.5 3) a)  (status '23')

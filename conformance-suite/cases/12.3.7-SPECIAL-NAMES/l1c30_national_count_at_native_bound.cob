@@ -5,14 +5,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:12.3.7.3 SR14 c)4 + SR17 c)5 — national count at bound
+      *> ISO §2023:12.3.7.3 SR14c4 + SR17 c)5 — national count at bound
       *> THE RULES:
       *>   SR14 c)4 (ALPHABET, NATIONAL phrase): "The number of
       *>   characters specified shall not exceed the number of
       *>   characters in the native national character set."
       *>   cite.py --check 12.3.7.3 "The number of characters
       *>     specified shall not exceed the number of characters in
-      *>     the native national character set." -> OK §2023:12.3.7.3 14)
+      *>     the native national character set." -> OK §2023:12.3.7.3 SR14
       *>   SR17 c)5 (CLASS, NATIONAL phrase): "The number of
       *>   characters specified shall not exceed the number of
       *>   characters in the native national character set or, when
@@ -20,14 +20,14 @@
       *>   character set referenced by alphabet-name-4."
       *>   cite.py --check 12.3.7.3 "the number of characters in the
       *>     character set referenced by alphabet-name-4."
-      *>     -> OK §2023:12.3.7.3 17)
+      *>     -> OK §2023:12.3.7.3 SR17
       *>   cite.py --check 12.3.7.4 "The characters specified by the
       *>     values of the literals in this clause define the
       *>     exclusive set of characters of which class-name-1
-      *>     consists." -> OK §2023:12.3.7.4 12)
+      *>     consists." -> OK §2023:12.3.7.4 GR12
       *>   cite.py --check 12.3.7.4 "may specify characters of the
       *>     native character set in either ascending or descending
-      *>     sequence" -> OK §2023:12.3.7.4 7) 2.  (cite.py mislabels list
+      *>     sequence" -> OK §2023:12.3.7.4 GR7 2.  (cite.py mislabels list
       *>     items, PB1554: the text is GR7 k) 5.)
       *> "Shall not EXCEED" makes EQUAL legal. The native national set
       *> is the 65,536 UTF-16 code units, ordinal n = code unit n-1

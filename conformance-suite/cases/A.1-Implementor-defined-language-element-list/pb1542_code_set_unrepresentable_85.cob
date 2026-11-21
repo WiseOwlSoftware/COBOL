@@ -7,7 +7,7 @@
       *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1542CS.
-      *> ISO/IEC 1989:2023 §2023:13.18.13.4 GR6 b) — "On output, each
+      *> ISO/IEC 1989:2023 §2023:13.18.13.4 GR6b — "On output, each
       *> native coded character in the record is replaced for the
       *> storage medium with its associated coded character as defined
       *> in the alphabet being used" — at the output STATEMENT

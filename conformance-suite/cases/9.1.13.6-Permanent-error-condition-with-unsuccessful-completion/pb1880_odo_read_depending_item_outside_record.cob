@@ -12,7 +12,7 @@
       *> value when the READ completes (docs/CONFORMANCE.md D-ODO2). The READ itself does not set
       *> the item, so the program does; the record on the medium is the same 12 bytes in every case.
       *> The record is 2 bytes of header plus a table of 1 TO 10 characters; the file description implies the largest
-      *> description, 12 bytes (§2023:13.18.43.4 GR5 a)), and the record's size at the count N is 2 + N (GR13 c)). So:
+      *> description, 12 bytes (§2023:13.18.43.4 GR5a), and the record's size at the count N is 2 + N (GR13 c)). So:
       *>   WS-N = 03  ->  5 bytes   '00'
       *>   WS-N = 10  -> 12 bytes   '00'
       *>   WS-N = 11  -> 13 bytes   '34'

@@ -41,7 +41,7 @@
       *>        §2023:14.7.4.3 GR2/GR10 truncate toward zero into PIC 9(3)
       *>        -> 009.  Subtracting the operands one at a time
       *>        through the receiver would give 008.
-      *> OVR  — §2023:14.7.7 rule 4 a) and NOTE 3: E is both the sending
+      *> OVR  — §2023:14.7.7 GR4a and NOTE 3: E is both the sending
       *>        operand and the first receiver, and the results are as
       *>        if no receiver shared storage with a sender, so
       *>        E = 5 - 5 = 0 and F = 10 - 5 = 5.

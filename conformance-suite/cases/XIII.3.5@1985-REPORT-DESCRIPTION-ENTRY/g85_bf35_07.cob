@@ -23,7 +23,7 @@
       *> FIRST DETAIL 3 LAST DETAIL 6 FOOTING 7): R1 advances once
       *> (fifth detail), R2 twice (the report heading alone on page 1,
       *> §1985:XIII.3.10.6 GR4 c; the report footing alone on page 3,
-      *> §1985:XIII.3.10.10 GR3 c).
+      *> §1985:XIII.3.10.10 GR3c.
       *>
       *> Fails if INITIATE leaves PAGE-COUNTER at 0 or at the moved 7,
       *> if the first page is counted as an advance (page 1 showing 2),

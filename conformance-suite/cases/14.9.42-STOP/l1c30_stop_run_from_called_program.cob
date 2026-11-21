@@ -10,7 +10,7 @@
       *>   transferred to the operating system."
       *>   cite.py --check 14.9.42.4 "Execution of the run unit
       *>     terminates and control is transferred to the operating
-      *>     system." -> OK §2023:14.9.42.4 6)
+      *>     system." -> OK §2023:14.9.42.4 GR6
       *> The STOP RUN executes in a CALLed program, two levels below
       *> the main program's out-of-line PERFORM. GR6 terminates the RUN
       *> UNIT, not merely the called program (that would be EXIT

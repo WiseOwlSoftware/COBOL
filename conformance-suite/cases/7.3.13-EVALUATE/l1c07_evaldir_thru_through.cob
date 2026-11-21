@@ -12,8 +12,8 @@
       *> RULE 7.3.13.4 GR4 b): "a TRUE result is returned if the
       *>   selection subject lies in the inclusive range ..."
       *> cite.py:
-      *>   OK  §2023:7.3.13.3 13)  (Syntax rules)
-      *>   OK  §2023:7.3.13.4 4) b)  (General rules)
+      *>   OK  §2023:7.3.13.3 SR13  (Syntax rules)
+      *>   OK  §2023:7.3.13.4 GR4b  (General rules)
       *> EXPECTED OUTPUT, DERIVED (each block has the same ranges; only
       *> the spelling differs, so SR13 requires the same branch):
       *>   A2-THRU             5 not in 1 THRU 4; 5 in 5 THRU 9.

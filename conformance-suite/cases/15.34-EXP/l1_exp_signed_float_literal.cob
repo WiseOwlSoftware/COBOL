@@ -13,7 +13,7 @@
       *>     -> OK §2023:15.34.2 (General format) - both words underlined (required), the parentheses
       *>        and argument-1 unbracketed, no optional or repeated element: exactly one argument.
       *>   cite.py --check 15.3 "An arithmetic expression or a numeric data item shall be
-      *>     specified" -> OK §2023:15.3 10) - argument-1 is a type-10 NUMERIC argument, so a numeric
+      *>     specified" -> OK §2023:15.3 AR10 - argument-1 is a type-10 NUMERIC argument, so a numeric
       *>     literal is one legal instance of the format's argument-1.
       *>   §2023:8.3.3.3.3 r2 "The literal to the left of the 'E' represents the significand. It may be
       *>     signed and shall include a decimal point."
@@ -24,9 +24,9 @@
       *>   §2023:8.3.3.3.3 r5 "The value of a floating-point numeric literal is the algebraic product
       *>     of the value of its significand and the quantity derived by raising ten to the power
       *>     of the exponent." (--check OK) - which is where each value below starts.
-      *>   cite.py --check 15.34.4 "The equivalent arithmetic expression is:" -> OK §2023:15.34.4 1),
+      *>   cite.py --check 15.34.4 "The equivalent arithmetic expression is:" -> OK §2023:15.34.4 RV1,
       *>     whose expression is (FUNCTION E ** (argument-1)) (--check OK on that text too).
-      *>   cite.py --check 15.35.4 "The equivalent arithmetic expression is:" -> OK §2023:15.35.4 1),
+      *>   cite.py --check 15.35.4 "The equivalent arithmetic expression is:" -> OK §2023:15.35.4 RV1,
       *>     EXP10's expression being (10 ** (argument-1)).
       *>   cite.py --check 15.4.1 "the value returned is an implementor-defined approximation of
       *>     the value of that expression" -> OK - hence WINDOWS below, not printed digits.

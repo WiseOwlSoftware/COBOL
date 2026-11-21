@@ -16,11 +16,11 @@
       *>     continuation line" -> OK §2023:6.3.5 2).
       *>   §2023:6.3.5 "any spaces at the end of the fixed-form continued
       *>     line are part of the literal" -> OK §2023:6.3.5 2).
-      *>   §2023:6.5 2) "If the line is a comment line or a blank line, that
+      *>   §2023:6.5 GR2 "If the line is a comment line or a blank line, that
       *>     line is logically discarded." -> OK §2023:6.5 2).
-      *>   §2023:6.5 6) a) "... is appended immediately to the right of the
+      *>   §2023:6.5 GR6a "... is appended immediately to the right of the
       *>     last character in the latest logical line of the resultant
-      *>     compilation group." -> OK §2023:6.5 6) a).
+      *>     compilation group." -> OK §2023:6.5 GR6a.
       *>   §2023:6.3.6 "A blank line is one that contains only space
       *>     characters between margin C and margin R." -> OK §2023:6.3.6.
       *> DOC-A.1-157: a line shorter than margin R (column 72) is read

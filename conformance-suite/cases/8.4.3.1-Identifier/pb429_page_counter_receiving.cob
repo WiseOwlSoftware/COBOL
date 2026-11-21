@@ -23,7 +23,7 @@
       *>
       *> SR1 NAMES NO STATEMENT, so this golden runs the COUNTER THROUGH THE CONTEXTS, not through MOVE:
       *> each line below is one context that admits an integer data item, and each expected value is the
-      *> arithmetic of the statement itself. INITIATE sets PAGE-COUNTER to 1 (§2023:14.9.21.4 GR1 c) and no page
+      *> arithmetic of the statement itself. INITIATE sets PAGE-COUNTER to 1 (§2023:14.9.21.4 GR1c and no page
       *> advance occurs here (one GENERATE on a 60-line page), so the counter's whole history is the program's.
       *>
       *>   MOVE 7 TO PAGE-COUNTER OF RPT1        -> 0007   (§2023:14.9.25 — the qualified spelling, §2023:8.4.3.15.3 SR2)

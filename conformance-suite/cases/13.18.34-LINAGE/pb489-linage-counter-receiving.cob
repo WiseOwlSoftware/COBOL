@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> ISO §2023:8.4.3.14.3 SR2 — "The LINAGE-COUNTER identifier shall not be referenced as a receiving operand."
-*> §2023:13.18.34.4 GR7 b) gives the reason: "only the input-output control system may change the value of
+*> §2023:13.18.34.4 GR7b gives the reason: "only the input-output control system may change the value of
 *> LINAGE-COUNTER". This is a permanent property of the language, so every edition rejects it.
 *> ⛔ THE OUTCOME WAS ALREADY RIGHT AND THE SENTENCE WAS WRONG (kb/Work PB489). The receiving chokepoint
 *> screened LINE-COUNTER with a rule-citing rejection and PAGE-COUNTER with a correctly-labelled

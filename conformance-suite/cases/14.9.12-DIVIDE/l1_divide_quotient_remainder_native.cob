@@ -17,7 +17,7 @@
       *>
       *> DERIVED BEFORE MEASURING. GR2 fixes dividend and divisor; GR6c defines the subsidiary quotient as
       *> "derived from THE QUOTIENT by truncation of digits at the least significant end", with the same
-      *> number of digits and the same decimal point location as identifier-3; §2023:14.7.7 rule 3 NOTE 1
+      *> number of digits and the same decimal point location as identifier-3; §2023:14.7.7 GR3 NOTE 1
       *> confines ROUNDED to the final TRANSFER. Each line is hand-derived from those rules alone.
       *>   A=3333  10 / 3 = 3.33333…, truncated at PIC 9V999's three fraction digits -> 3.333.
       *>   B=13    100 / 8 = 12.5 exactly; ROUNDED with no MODE is nearest-away-from-zero -> 13

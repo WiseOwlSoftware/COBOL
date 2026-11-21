@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
        >>TURN EC-I-O-EOP EC-I-O-EOP-OVERFLOW CHECKING ON
-      *> kb/Work PB854 -- §2023:14.9.51.4 GR27 c): the exception-checking
+      *> kb/Work PB854 -- §2023:14.9.51.4 GR27c: the exception-checking
       *> PERFORM's WHEN leg of the end-of-page routing. Its declarative
       *> and phrase legs are pinned at their introducing edition by
       *> conformance:cases/14.9.51-WRITE/pb854_write_eop_exception_conditions; the
@@ -14,10 +14,10 @@
       *>   python scripts/spec/cite.py --check 14.9.51.4 "and the WRITE
       *>   statement is specified in a statement that is in
       *>   imperative-statement-1 of an exception-checking PERFORM
-      *>   statement"                          -> OK  §2023:14.9.51.4 27) c)
+      *>   statement"                          -> OK  §2023:14.9.51.4 GR27c
       *>
       *> LINAGE IS 3 LINES WITH FOOTING AT 2, counter 1 at OPEN OUTPUT
-      *> (§2023:13.18.34.4 GR7 d)), one line per plain WRITE (GR7 c) 3):
+      *> (§2023:13.18.34.4 GR7d), one line per plain WRITE (GR7 c) 3):
       *>   L1 -> 2, GR26 b): EC-I-O-EOP; no END-OF-PAGE phrase, so the
       *>         matching WHEN takes it (c)) and the USE declarative for
       *>         the same name does NOT run (§2023:14.9.28.4 GR17: "Any USE

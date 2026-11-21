@@ -186,7 +186,7 @@ internal sealed class MessageStoreState
     internal void EndPartialReceive(ulong serial) => _tables!.DeletePartialReceive(_runUnit, serial);
 
     /// <summary>The messages partly received, by any live run unit, from the queue structure <paramref name="specified"/> designates (§1985:XIV.3.1.4 GR1). A run unit that is gone took
-    /// its remainders with it (§1985:VI.6.24.4 GR3: STOP RUN removes "any message partially received by that run unit" from the queue; ISO/IEC 1989:2002 14.5.10 rule 2 for the
+    /// its remainders with it (§1985:VI.6.24.4 GR3: STOP RUN removes "any message partially received by that run unit" from the queue; the second item of §2002:14.5.10, and §2002:14.5.11, which "attempts to perform the operations of normal termination", for the
     /// abnormal end alike), so its rows are dropped here, where they are found, and never counted.</summary>
     internal int PartlyReceivedFrom(string[] specified)
     {

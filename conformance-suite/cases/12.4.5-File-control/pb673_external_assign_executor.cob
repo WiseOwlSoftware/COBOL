@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §2023:12.4.5.3 GR3 b) - THE ASSIGN ... USING SOURCE IS THE EXECUTING RUNTIME ELEMENT'S.
+      *> ISO 1989:2023 §2023:12.4.5.3 GR3b - THE ASSIGN ... USING SOURCE IS THE EXECUTING RUNTIME ELEMENT'S.
       *> "When the USING phrase of the ASSIGN clause is specified, the file connector referenced by file-name-1
       *> is associated with a physical file identified by the content of the data item referenced by data-name-1
       *> in the runtime element that executes the OPEN, SORT, or MERGE statement."
       *>
-      *> The connector here is EXTERNAL, so §2023:13.18.22.4 GR4 a) makes it ONE file connector for the whole run
+      *> The connector here is EXTERNAL, so §2023:13.18.22.4 GR4a makes it ONE file connector for the whole run
       *> unit ("the file connector associated with this file description entry is an external file connector"),
-      *> shared by BOTH describing programs - and §2023:12.4.5.3 GR1 b) asks of their file control entries only "A
+      *> shared by BOTH describing programs - and §2023:12.4.5.3 GR1b asks of their file control entries only "A
       *> consistent specification for data-name-1, device-name-1, and literal-1 in the ASSIGN clause. The
       *> implementor shall specify the consistency rules"; it does NOT require the same data item the way GR1 i)
       *> does for FILE STATUS ("where data-name-4 shall reference the same corresponding external data item").
@@ -56,10 +56,10 @@
        01  CHKA-REC PIC X(5).
        WORKING-STORAGE SECTION.
       *> §2023:12.4.5.2 SR7 - data-name-1 is an alphanumeric item, not subordinate to F's FD. It is PB673A's OWN
-      *> storage: §2023:12.4.5.3 GR1 b) does not make it external, and GR3 b) is what decides whose is read.
+      *> storage: §2023:12.4.5.3 GR1b does not make it external, and GR3 b) is what decides whose is read.
        01  FNAME  PIC X(20) VALUE "pb673a.dat".
        01  WS-CK  PIC XX.
-      *> §2023:12.4.5.3 GR1 i) + §2023:14.8.4.2 - an external connector's FILE STATUS item shall be the SAME corresponding
+      *> §2023:12.4.5.3 GR1i + §2023:14.8.4.2 - an external connector's FILE STATUS item shall be the SAME corresponding
       *> external data item in every describing element, so this one is EXTERNAL and identically named in both.
        01  EXT-ST IS EXTERNAL PIC XX.
        PROCEDURE DIVISION.
@@ -93,7 +93,7 @@
                FILE STATUS IS EXT-ST.
        DATA DIVISION.
        FILE SECTION.
-      *> §2023:13.4.5.4 GR2 d) - the same smallest and largest record size in every describing entry.
+      *> §2023:13.4.5.4 GR2d - the same smallest and largest record size in every describing entry.
        FD  F IS EXTERNAL.
        01  F-REC PIC X(5).
        WORKING-STORAGE SECTION.

@@ -9,7 +9,7 @@
       *> Rule: "Each method prototype in each implemented interface
       *> shall be such that the factory interface of this class
       *> conforms to all implemented interfaces."
-      *> cite.py: OK  §2023:11.4.3 2)  (Syntax rules)
+      *> cite.py: OK  §2023:11.4.3 SR2  (Syntax rules)
       *> The prototype SPEAK of L1C09O takes a PIC 9(4) parameter; the
       *> factory's SPEAK takes PIC 9(8). Interface conformance
       *> (§2023:9.3.8.2.3) requires the formal parameters to match, so the

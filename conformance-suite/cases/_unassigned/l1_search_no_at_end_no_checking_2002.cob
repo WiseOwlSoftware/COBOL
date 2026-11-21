@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:14.9.37.4 GR1 b) 3 — "If the AT END phrase is not
+      *> ISO §2023:14.9.37.4 GR1b 3 — "If the AT END phrase is not
       *> specified and neither exception condition was raised because
       *> the checking for those exception conditions was not enabled,
       *> control is transferred to the end of the SEARCH statement."

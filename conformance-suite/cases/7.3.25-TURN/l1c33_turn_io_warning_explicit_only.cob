@@ -12,19 +12,19 @@
       *> statement. Similarly, it may be turned off only by an explicit
       *> TURN directive or the end of an exception-checking PERFORM
       *> statement."
-      *>   cite.py: OK  §2023:7.3.25.4 4)  (General rules)
+      *>   cite.py: OK  §2023:7.3.25.4 GR4  (General rules)
       *> Also pins the EC-I-O-WARNING exclusion of GR2 (EC-ALL) and GR3
       *> (level-2 EC-I-O):
-      *>   cite.py: OK  §2023:7.3.25.4 2)  (General rules)
-      *>   cite.py: OK  §2023:7.3.25.4 3)  (General rules)
-      *> Supporting: §2023:9.1.13.2 4) a) - OPEN of an OPTIONAL file that is
+      *>   cite.py: OK  §2023:7.3.25.4 GR2  (General rules)
+      *>   cite.py: OK  §2023:7.3.25.4 GR3  (General rules)
+      *> Supporting: §2023:9.1.13.2 GR4a - OPEN of an OPTIONAL file that is
       *> not present succeeds with I-O status 05 (INPUT mode creates
       *> nothing, so every OPEN INPUT here gives 05); §2023:9.1.13.1 "The
       *> exception-name for successful completion with an I-O status
       *> value that is not '00' is EC-I-O-WARNING" (cite.py: OK
-      *> §2023:9.1.13.1); §2023:15.33.3 1) EXCEPTION-STATUS is the 31-character
+      *> §2023:9.1.13.1); §2023:15.33.3 RV1 EXCEPTION-STATUS is the 31-character
       *> last exception status, spaces when none (cite.py: OK
-      *> §2023:15.33.3 1)). SET LAST EXCEPTION TO OFF clears it before each
+      *> §2023:15.33.3 RV1). SET LAST EXCEPTION TO OFF clears it before each
       *> observation so every line stands alone.
       *> DERIVATION (every OPEN INPUT F2 yields FS=05):
       *>   T1 after TURN EC-ALL ON: GR2 excludes the warning -> []

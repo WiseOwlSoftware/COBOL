@@ -36,14 +36,14 @@
       *>          FE really does see a lock X sets, so A2/B2 = '00' is
       *>          the absence of a lock and not a blind observer.
       *> The OBSERVER FE: SHARING WITH READ ONLY + LOCK MODE IS MANUAL.
-      *>   Record locking is enabled for it (§2023:9.1.15 2): of the read
+      *>   Record locking is enabled for it (§2023:9.1.15 GR2: of the read
       *>   only mode "Record locks are in effect"; it has a LOCK MODE),
       *>   so §2023:14.9.30.4 GR9 applies to its READ: a record "locked by
       *>   another file connector" is a record operation conflict, and
       *>   with no RETRY phrase the READ gets I-O status 51 (§2023:9.1.13.8
       *>   1): "an attempt to access a record that is currently locked
       *>   by another file connector"). A plain READ on FE sets no lock
-      *>   of its own (§2023:14.9.30.4 GR11 d): manual mode, no LOCK phrase).
+      *>   of its own (§2023:14.9.30.4 GR11d: manual mode, no LOCK phrase).
       *> WHY THE READ ONLY MODE EVERYWHERE: §2023:14.9.27.3 SR8 requires a
       *>   LOCK MODE clause whenever the ALL phrase is in effect, so a
       *>   LOCK-MODE-less entry cannot use ALL OTHER. Table 19: an INPUT
@@ -61,7 +61,7 @@
       *>   C1=00 R001  FC's READ WITH LOCK: manual mode, LOCK phrase
       *>               written, locks in effect (read only mode) — the
       *>               lock on record 1 IS set (§2023:12.4.5.9.4 GR5,
-      *>               §2023:14.9.30.4 GR11 d)).
+      *>               §2023:14.9.30.4 GR11d).
       *>   C2=51       FE's READ of record 1, locked by FC: GR9 conflict
       *>               no RETRY — '51'; the record area is not shown.
        IDENTIFICATION DIVISION.

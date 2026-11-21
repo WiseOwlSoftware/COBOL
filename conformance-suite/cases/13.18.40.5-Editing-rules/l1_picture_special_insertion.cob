@@ -15,7 +15,7 @@
       *>   insertion editing results in the period character occupying
       *>   the same character position in the edited item as the symbol
       *>   '.' occupies in character-string-1."
-      *>   -> OK  §2023:13.18.40.5 4)  (Editing rules)
+      *>   -> OK  §2023:13.18.40.5 GR4  (Editing rules)
       *>
       *> ⛔ THE RULE IS ABOUT A POSITION, so a fixture that only showed
       *> "a period appears somewhere" would not exercise it. Three
@@ -39,7 +39,7 @@
       *> says "Reserved words shall not be used as system-names or
       *> user-defined words.", so EC is not available here.
       *>
-      *> THE VALUES. §2023:14.6.8.2 rule 5 sends a fixed-point numeric
+      *> THE VALUES. §2023:14.6.8.2 GR5 sends a fixed-point numeric
       *> sending operand to §2023:13.18.40's editing rules for a
       *> numeric-edited receiving item, and the special insertion
       *> symbol is also the decimal point about which that alignment

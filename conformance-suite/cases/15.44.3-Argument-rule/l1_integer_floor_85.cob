@@ -46,7 +46,7 @@
       *> §2023:15.4.1 rule 1 makes equality mandatory; this file adds the 85 edition leg the row otherwise leaves
       *> unmeasured.
       *>
-      *> Rendering: the receiver's leftmost symbol is the FIXED INSERTION '+', which by §2023:13.18.40.5 rule 5,
+      *> Rendering: the receiver's leftmost symbol is the FIXED INSERTION '+', which by §2023:13.18.40.5 GR5,
       *> Table 8 prints '+' for a positive or zero value and '-' for a negative one, so the sign is asserted.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1INTFLR85.

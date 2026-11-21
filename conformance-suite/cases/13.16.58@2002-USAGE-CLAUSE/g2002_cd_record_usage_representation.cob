@@ -22,11 +22,11 @@
       *>   (65536-1234 = 64302 = X"FB2E") is 251 046.
       *> §2002:13.16.58.3 GR6 - C PIC S9(4) COMP: format specified by the
       *>   implementor, identical to BINARY (DOC-A.1-208): 251 046.
-      *> §2002:13.16.58.2 SR12 b) and GR7 - D PIC X(3), Z PIC 9(3): no
+      *> §2002:13.16.58.2 SR12b and GR7 - D PIC X(3), Z PIC 9(3): no
       *>   USAGE anywhere above them, so DISPLAY is implied; one byte
       *>   per character (DOC-A.1-209): lengths 3, and the area holds the
       *>   characters XYZ and 123 themselves.
-      *> §2002:13.16.58.2 SR12 a) and GR8 - N PIC N(2): no USAGE, the
+      *> §2002:13.16.58.2 SR12a and GR8 - N PIC N(2): no USAGE, the
       *>   picture has 'N', so NATIONAL is implied; a national character
       *>   is a multiple of the alphanumeric size, 2 bytes UTF-16BE in
       *>   this implementation (DOC-A.1-213): length 4, N"QR" is

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:14.9.30.4 GR10 a) — "If the record operation conflict
+      *> ISO §2023:14.9.30.4 GR10a — "If the record operation conflict
       *> condition exists as a result of the READ statement: a) The file
       *> position indicator is unchanged."  GR13 a) says it from the
       *> other side: "The I-O status associated with file-name-1 is

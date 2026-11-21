@@ -14,19 +14,19 @@
   REPLACING and REPLACE match over that text as if the `D` were absent; the lexer reads the carrier as the hidden
   `DEBUG_LINE` marker and the text as ordinary tokens; and `DebuggingLineRewriter` keeps the line's tokens or moves
   them to the `ABSENT_DEBUG_LINE` channel, per source unit, before any other token pass runs. A continuation line of a
-  debugging line is part of it (§2023:6.5 6) joins it to its latest logical line), and the literal state it ends in is
+  debugging line is part of it (§2023:6.5 GR6 joins it to its latest logical line), and the literal state it ends in is
   tracked like any source line's, so a debugging line that opens a continued literal gets that literal's continuation
   (kb/Work PB1914; before, the line's open literal was forgotten and its continuation line was appended as loose text).
   **A debugging line between the parts of a continued literal** (kb/Work PB1914; the 1985 text is not in the repository,
   so the choice follows rule 1's precedence: ISO 2023 has no `D` indicator, then GnuCOBOL): a debugging line is a comment
   line unless the clause says otherwise, and "Comment lines and blank lines may be interspersed among lines containing
-  the parts of a literal" (§2023:6.3.5 2), `cite.py --check 6.3.5 "Comment lines and blank lines may be interspersed"` → OK),
+  the parts of a literal" (§2023:6.3.5 SR2, `cite.py --check 6.3.5 "Comment lines and blank lines may be interspersed"` → OK),
   so when the line before it leaves a literal open — an open literal, or a floating literal continuation indicator —
   the debugging line does NOT become the latest logical line: the continuation line after it continues the literal, and
   the debugging line keeps a logical line of its own, after the joined one (GnuCOBOL reads the same program without
   `-fdebugging-line` as the joined literal, and rejects it with `-fdebugging-line`, "continuation character expected").
   Under WITH DEBUGGING MODE the line is source, and a source line between the parts of a literal is outside the
-  continuation rule (§2023:6.3.5 2) lets only comment and blank lines stand there); that program is non-conforming and is
+  continuation rule (§2023:6.3.5 SR2 lets only comment and blank lines stand there); that program is non-conforming and is
   REJECTED (COBOL3473, an error at every edition, kb/Work PB2490), at the debugging line's indicator: the walk
   cannot tell the two modes apart, so it passes the line over as it would a comment and NOTES it to the per-compilation
   reference-format diagnostics, `DebuggingLineRewriter` names the lines it keeps as source, and the front end reports
@@ -35,7 +35,7 @@
   `unit:LogicalLineBuilderTests.DebuggingLine_PassedOverInALiteral_IsDiagnosedOnlyWhenItIsSource`,
   `unit:DebuggingLineRewriterTests.Rewrite_NamesTheDebuggingLinesThatAreSource_PerUnit`). Any other debugging line is the
   latest logical line, so a continuation line after it continues it ("continuation of debugging lines is permitted"); a
-  debugging line of spaces is a blank line (§2023:6.5 2)), never a join target. Witnesses:
+  debugging line of spaces is a blank line (§2023:6.5 GR2), never a join target. Witnesses:
   `conformance:cases/_unassigned/pb1914_debugging_line_between_literal_parts`, `conformance:cases/_unassigned/pb1914_debugging_line_continued_under_clause`,
   `unit:LogicalLineBuilderTests.DebuggingLine_*`. The NIST `S` / `Y` letters are the
   `--nist` dialect, not the `D` indicator: they stay comment lines whatever the clause says. A debugging line that
@@ -91,7 +91,7 @@
   follows program text are no debugging line. (b) "Followed by at least one space" is read literally: in free form a line
   that ENDS in `>>D` is not a debugging line (its next character is the end of the line, not a space) and draws the
   parser's `>>` error as any unknown directive does, while a fixed-form program-text area is space-filled to margin R
-  (Annex A.1 item 157), so a bare `>>D` there is followed by spaces and is a debugging line of spaces, a blank line (§2023:6.5 2)).
+  (Annex A.1 item 157), so a bare `>>D` there is followed by spaces and is a debugging line of spaces, a blank line (§2023:6.5 GR2).
   (c) SR8: `>>D` as the first character-string of a line whose indicator area holds the fixed `D` or the continuation
   hyphen is refused, COBOL5770, at the indicator; the line is then read as its fixed indicator says. SR8 is a 2002 rule
   and binds from `--std 2002`: COBOL-85 has no floating debugging indicator, so a `D` line there holds no indicator of its own and SR8 is not asked

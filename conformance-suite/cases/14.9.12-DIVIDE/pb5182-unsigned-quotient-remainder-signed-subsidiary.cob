@@ -4,7 +4,7 @@
       *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *>---
-      *> §2023:14.9.12.4 GR6 c) (§2002:14.8.11.3 GR6c): "a subsidiary quotient is developed that is
+      *> §2023:14.9.12.4 GR6c (§2002:14.8.11.3 GR6c): "a subsidiary quotient is developed that is
       *> signed and derived from the quotient by truncation of digits at the
       *> least significant end and that has the same number of digits and the
       *> same decimal point location as the data item referenced by

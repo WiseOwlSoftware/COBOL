@@ -7,7 +7,7 @@
 *>---
 >>SOURCE FORMAT FREE
 *> kb/Work PB1493 - free form: a comment line between PIC and its
-*> character-string, *> directly followed by text (§2023:6.2.3.2 1) "a space
+*> character-string, *> directly followed by text (§2023:6.2.3.2 SR1 "a space
 *> is implied immediately following a floating comment indicator"), and
 *> quotation symbols in comment-text; §2023:6.5 2)/3) remove every comment
 *> before any later stage (the lexer picture mode included) sees it.

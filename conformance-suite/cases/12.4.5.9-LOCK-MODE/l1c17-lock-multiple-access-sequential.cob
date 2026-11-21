@@ -10,7 +10,7 @@
       *>  mode."
       *> cite.py --check 12.4.5.9.3 "The MULTIPLE phrase shall not be
       *>   specified for a file described with sequential organization
-      *>   or sequential access mode." -> OK §2023:12.4.5.9.3 2)
+      *>   or sequential access mode." -> OK §2023:12.4.5.9.3 SR2
       *> The file is INDEXED (not sequential organization), so the
       *> only reason for rejection is the explicit
       *> ACCESS MODE IS SEQUENTIAL.

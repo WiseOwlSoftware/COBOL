@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1216 - pointer lifetime for RECURSIVE (static WS, per-
-      *> activation LS) and INITIAL programs. Rules: §2023:13.18.5.4 4),
+      *> activation LS) and INITIAL programs. Rules: §2023:13.18.5.4 GR4,
       *> §2023:8.6.5, §2023:8.6.4 as in pb1216_ls_and_cancel_pointer_lifetime;
       *> §2023:8.6.4 also: "An initial item persists while the program is in
       *> active state".  OK  §2023:8.6.4

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §2023:5.5 1): "When the term 'integer-n' (n = 1, 2, ...) is used in a general format and
+      *> ISO/IEC 1989:2023 §2023:5.5 SR1: "When the term 'integer-n' (n = 1, 2, ...) is used in a general format and
       *> associated rules, it refers to a fixed-point integer literal that shall be unsigned and nonzero unless
       *> otherwise specified in the associated rules." OCCURS Format 1's lone integer-2 has no rule that
       *> otherwise-specifies (§2023:13.18.38.3 SR16 permits zero only for integer-1 of integer-1 TO integer-2), so a

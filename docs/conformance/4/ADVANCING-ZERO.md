@@ -2,7 +2,7 @@
 order: 17
 ---
 > ⚖ **DETERMINATION — ADVANCING 0 is an overprint, represented by a bare carriage return** (2026-09-30; owner
-> decision kb/Work R54; kb/Work PB1667). §2023:14.9.51.4 GR25 c): "If integer-1 or the value of the data item referenced
+> decision kb/Work R54; kb/Work PB1667). §2023:14.9.51.4 GR25c: "If integer-1 or the value of the data item referenced
 > by identifier-2 is zero, no repositioning of the representation of the printed page is performed." The NEXT line is
 > therefore presented at the SAME vertical position as the line the device stands on — an overprint, never a
 > continuation of that line's text. The standard leaves the device REPRESENTATION to the implementor, so CLAUDE.md
@@ -20,7 +20,7 @@ order: 17
 > overprints is A.1 item 146 (c′)'s three-way mapping (a record sequential print file without LINAGE: LF, so a
 > return followed by the next line's LF reads as a CR LF pair; a LINE SEQUENTIAL file, a LINAGE file and a
 > report file: the host newline). **The report writer's line state follows from the same representation.** A report file that stays open
-> after a TERMINATE (§2023:14.9.46.4 GR6) stands on that run's last line, and INITIATE (§2023:14.9.21.4 GR1 b) resets the
+> after a TERMINATE (§2023:14.9.46.4 GR6) stands on that run's last line, and INITIATE (§2023:14.9.21.4 GR1b resets the
 > report's page model, not the device: the first line of the next run belongs on the line BELOW that one, because
 > the only overlap a report may print is a relative line of integer-2 zero inside a report group (§2023:13.18.35.4 GR3),
 > and a zero advance is an overprint. `CobolReport.PresentLine` therefore treats its empty page as "the device is at
@@ -28,7 +28,7 @@ order: 17
 > and the first line travels to its own number. Pinned by `2023/pb1667_advancing_zero_overprint` and
 > `2002/pb1667_reinitiate_open_report_file`.
 >
-> **A line presented onto an open line is the same overprint (kb/Work PB1840).** §2023:14.9.51.4 GR25 e): a BEFORE
+> **A line presented onto an open line is the same overprint (kb/Work PB1840).** §2023:14.9.51.4 GR25e: a BEFORE
 > write's "line is presented before the representation of the printed page is advanced", and GR25 f): an AFTER write's
 > line is presented after its advance. So when an earlier write left its line open (an AFTER write's record, a plain
 > WRITE's - an AFTER ADVANCING 1 LINE - or a BEFORE ADVANCING 0's), no advance lies between the two lines and the new
@@ -49,7 +49,7 @@ order: 17
 > become data of the next record on a line sequential file, kb/Work PB1540). (3) A WRITE that is
 > refused - '44' outside the RECORD IS VARYING bounds, '71' for a character outside the line sequential character
 > set, '91', a lock refusal - presents nothing, so it neither writes the return nor closes the open line; a BEFORE
-> write whose page transition then fails (§2023:13.18.34.4 GR6 b) 2) HAS presented, so its overprint stands. Pinned by
+> write whose page transition then fails (§2023:13.18.34.4 GR6b.2 HAS presented, so its overprint stands. Pinned by
 > `14.9.51-WRITE/pb1840_before_after_open_line` (all four editions) and `OpenLineOverprintTests`, which covers the
 > refusals (with a declarative, with a FILE STATUS item, with both, with neither: the run ends at the refused
 > write), the blank lines and the end-of-page conditions of a write that overprints.

@@ -30,7 +30,7 @@
       *> runs for a Successful Completion condition: USE-COUNT stays 0
       *> through every 00, 04 and 05 above. A last READ NEXT on RL with
       *> no AT END phrase is the at end condition, which is not
-      *> successful (§1985:VIII.4.5.4 GR10 c): the procedure runs once,
+      *> successful (§1985:VIII.4.5.4 GR10c: the procedure runs once,
       *> so the 0 is not a procedure that never fires. Each leg fails on
       *> a wrong status value or a USE procedure run for a success.
        IDENTIFICATION DIVISION.

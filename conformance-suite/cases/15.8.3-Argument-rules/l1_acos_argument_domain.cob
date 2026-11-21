@@ -10,7 +10,7 @@
       *>
       *> THE RULE, --check validated:
       *>   cite.py --check 15.8.3 "The value of argument-1 shall be greater than or equal to"
-      *>     -> OK §2023:15.8.3 2)  "2) The value of argument-1 shall be greater than or equal to -1
+      *>     -> OK §2023:15.8.3 AR2  "2) The value of argument-1 shall be greater than or equal to -1
       *>        and less than or equal to +1."
       *>   (⚠ NOT r1. §2023:15.8.3 r1 is "Argument-1 shall be of class numeric" - a different rule,
       *>    already witnessed by negative/pb1-numeric-arg-trig-family. The r1/r2 confusion is live
@@ -20,19 +20,19 @@
       *>
       *> THE CONSEQUENCE, --check validated:
       *>   cite.py --check 15.3 "the EC-ARGUMENT-FUNCTION exception condition is set to exist"
-      *>     -> OK §2023:15.3 14) (Arguments): "The rules for a function may place constraints on the
+      *>     -> OK §2023:15.3 AR14 (Arguments): "The rules for a function may place constraints on the
       *>        permissible values for arguments ... If the evaluation of an argument results in
       *>        an incorrect value for that argument ... the EC-ARGUMENT-FUNCTION exception
       *>        condition is set to exist."
       *>   cite.py --check 15.3 "the implementor defines the result of the function reference"
-      *>     -> OK §2023:15.3 14), the same numbered paragraph, closing sentence.
+      *>     -> OK §2023:15.3 AR14, the same numbered paragraph, closing sentence.
       *>     (cite.py reports the ITEM number, 14) - recorded here rather than the bare clause,
       *>      because an inherited § that names no item is how a wrong number propagates.)
       *>
       *> THE RETURNED VALUES, --check validated:
       *>   cite.py --check 15.8.4 "The returned value is the approximation of the arccosine of
       *>     argument-1 and is greater than or equal to zero and less than or equal to"
-      *>     -> OK §2023:15.8.4 1) - the codomain is [0, pi].
+      *>     -> OK §2023:15.8.4 RV1 - the codomain is [0, pi].
       *>
       *> ⛔ WHY CHECKING IS TURNED ON, AND WHY NO EXISTING GOLDEN CLOSES THIS ROW. §2023:15.3's closing
       *> sentence makes the RESULT implementor-defined while checking for EC-ARGUMENT-FUNCTION is

@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5579 - §2002:14.8.47.2 SR7 b) "literal-1 shall be an alphanumeric, boolean, or national literal and shall
+      *> kb/Work PB5579 - §2002:14.8.47.2 SR7b "literal-1 shall be an alphanumeric, boolean, or national literal and shall
       *> not be a figurative constant": a numeric literal and the figurative constant SPACE are both refused. Expected: COBOL7352.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P5579N05.

@@ -145,7 +145,7 @@ overlay (`Canonical`, `ReservedWordSet.Compose`) answered "no keyword, no reserv
 place: `SUBSTITUTE "RECEIVE" BY "RCV"` then `01 RCV PIC X.` was accepted, the reservation gate retyped RCV a user word, and
 `CMT.` after `SUBSTITUTE "COMMIT" BY "CMT"` was no COMMIT statement (`DISPLAY "A" CMT.` named the item COMMIT as its
 operand). The parser asks a keyword token of the generated table (`ReservedWords.Find`, `ReservedWordSet.Default`), where
-its original is reserved exactly where §2023:8.9 reserves it (GR4, §2023:8.3.2.1 rule 1). The funnel asks it of
+its original is reserved exactly where §2023:8.9 reserves it (GR4, §2023:8.3.2.1 SR1). The funnel asks it of
 `ReservedWordSet.KeywordToken`, the overlay without its de-reservations: that keeps the RESERVE layer (GR5), which names
 words the lexer may have a token for (REMARKS, PACKED) and the generated table does not know. An `IDENTIFIER` is asked of
 the overlay itself, unless it is a synonym the gate admitted under `--permissive` (its text still the original's, the
@@ -222,7 +222,7 @@ is the user-word token type.
   `undefFn+=lit4`.
 - **RESERVE lit6.** lit6 added to the ReservedWordSet reserve overlay (high-confidence, reserved at the target
   edition) ⇒ `VisitCobolWord`→`RejectsAt`→COBOL0901 at every user-word occurrence.
-- **A synonym of a reserved word is reserved** (GR2, GR4 with §2023:8.3.2.1 rule 1; kb/Work PB4488). The retype above makes a
+- **A synonym of a reserved word is reserved** (GR2, GR4 with §2023:8.3.2.1 SR1; kb/Work PB4488). The retype above makes a
   synonym its original's keyword token only where the original HAS a token; the §2023:8.9 words with none (COPY, REPLACE,
   LOCALE, NESTED, ANYCASE, SYSTEM-DEFAULT, USER-DEFAULT, EXCEPTION-OBJECT, COMMA, MINUS) left their synonym a plain
   `IDENTIFIER`, which `01 CPY PIC X.` then declared. `CobolWordsMap.ReservedSynonyms` maps every EQUATE literal-2 and
@@ -261,7 +261,7 @@ is the user-word token type.
   stand for ONCE, by the directive-line parse (`CompilerDirectiveLine.SeparatorsAsSpaces`), for every directive operand, so
   `>>COBOL-WORDS EQUATE "DISPLAY", WITH "SHOW"` and `>>TURN EC-SIZE; CHECKING ON` are the space-only spellings (a comma or
   semicolon ending the operand stays: §2023:7.3.3 SR3/SR4 allow only spaces and an inline comment after a directive). The
-  literal reader then takes a doubled quotation symbol as one character (§2023:8.3.3.2.3 3)) and gives a literal with no closing
+  literal reader then takes a doubled quotation symbol as one character (§2023:8.3.3.2.3 SR3) and gives a literal with no closing
   delimiter, or one the next character does not separate, as DEFECTIVE ⇒ COBOL1623 (SR2: "Each literal shall be an
   alphanumeric literal").
 - **SR2 (alphanumeric literal, non-hex, space-free)** — Frontend, per literal at parse time. A WORD in a literal
@@ -276,10 +276,10 @@ is the user-word token type.
   (`CobolWordsMap.DirectiveEdition`, 2023): reserved via `ReservedWords.Find(w).R2023` (the generated §2023:8.9 table's 2023
   flag — a word §2023:8.9 dropped before 2023, AUTHOR or MEMORY, is not in it), **context via `ContextSensitiveWords.Contains`
   (the generated §2023:8.10 table)**, intrinsic via `IntrinsicCatalog.TryGet` inside its window (`IsDefinedAt`), **and the words
-  this implementation reserves for nonstandard extensions via `NonstandardExtensionRegister.ReservesWord` (§2023:4.2.10 3): JSON,
+  this implementation reserves for nonstandard extensions via `NonstandardExtensionRegister.ReservesWord` (§2023:4.2.10 GR3: JSON,
   XML, COMP-1 … COMP-5 and COMPUTATIONAL-1 … -5, END-JSON, END-XML and ENTRY, the register's rows, so the next
   `extensionReserved` word reaches SR3 and SR4 with no edit here)**. A word the compiler reserves is a reserved word
-  (§2023:8.3.2.1 1)); §2023:7.3.10.1 and D.12.1 give the directive so a program may change which words are reserved, and D.12.3 names
+  (§2023:8.3.2.1 SR1); §2023:7.3.10.1 and D.12.1 give the directive so a program may change which words are reserved, and D.12.3 names
   this very collision ("a change of compiler that includes new reserved words that conflict with existing code"), so
   `UNDEFINE`, `EQUATE` and `SUBSTITUTE` may name them and `RESERVE` and the new word of `EQUATE` / `SUBSTITUTE` may not (owner
   decision 2026-10-31, kb/Work PB4239; docs/CONFORMANCE.md D-RW1). None ⇒ COBOL1623 (SR3). A synonym of such a word used as a

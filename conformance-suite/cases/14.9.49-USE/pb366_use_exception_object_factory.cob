@@ -7,7 +7,7 @@
 *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB366A.
-      *> ISO/IEC 1989:2023 §2023:14.9.49.4 GR14 a): "If object-class-name-1 is
+      *> ISO/IEC 1989:2023 §2023:14.9.49.4 GR14a: "If object-class-name-1 is
       *> specified and the exception object that was raised is a factory
       *> object or instance object of object-class-name-1 or of a subclass
       *> of object-class-name-1, the associated declarative is executed and

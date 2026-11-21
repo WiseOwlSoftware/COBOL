@@ -7,8 +7,8 @@
 *>---
       *> ISO §2023:7.3.17.4 GR2 under >>LEAP-SECOND ON — live-clock LAYOUT witness for the four seconds positions
        >>LEAP-SECOND ON
-      *> ROLE: a LAYOUT witness only (§2023:14.9.1.4 11), §2023:15.21.3 1),
-      *>   §2023:15.3.3.7, §2023:15.99.3 1) position arithmetic under ON). On a
+      *> ROLE: a LAYOUT witness only (§2023:14.9.1.4 GR11, §2023:15.21.3 RV1,
+      *>   §2023:15.3.3.7, §2023:15.99.3 RV1 position arithmetic under ON). On a
       *>   live clock no line here can fail on a seconds value > 59, so
       *>   it is NOT the GR2 / A.1 item 111 evidence. The pins that can
       *>   fail are LeapSecondReportedSecondsPinTests (run time, clock
@@ -28,13 +28,13 @@
       *> The implementor's determination (docs/CONFORMANCE.md DOC-A.1-111):
       *>   NO - with ON in effect the seconds position never holds a value
       *>   greater than 59, so the maximum is 59. §2023:15.21.3 / §2023:15.99.3 /
-      *>   §2023:14.9.1.4 11) give the ON range as "00 through nn, where nn is
+      *>   §2023:14.9.1.4 GR11 give the ON range as "00 through nn, where nn is
       *>   defined by the implementor"; nn = 59 here.
       *> §2023:7.3.17.3 SR1: the directive precedes the compilation unit.
-      *> Seconds positions: ACCEPT TIME 5-6 (§2023:14.9.1.4 11)), CURRENT-DATE
-      *>   13-14 (§2023:15.21.3 1)), FORMATTED-CURRENT-DATE("YYYYMMDDThhmmss")
+      *> Seconds positions: ACCEPT TIME 5-6 (§2023:14.9.1.4 GR11), CURRENT-DATE
+      *>   13-14 (§2023:15.21.3 RV1), FORMATTED-CURRENT-DATE("YYYYMMDDThhmmss")
       *>   14-15 (§2023:15.3.3.7 basic combined format), WHEN-COMPILED 13-14
-      *>   (§2023:15.99.3 1)). The clock is live, so the golden pins SHAPE:
+      *>   (§2023:15.99.3 RV1). The clock is live, so the golden pins SHAPE:
       *>   each pair is two digits in 00..nn = 00..59 (=> Y) plus the
       *>   layout anchors (position 17 '+'/'-'/'0'; position 9 'T').
       *> The deterministic boundary pin (clock at 23:59:59.9999999 under

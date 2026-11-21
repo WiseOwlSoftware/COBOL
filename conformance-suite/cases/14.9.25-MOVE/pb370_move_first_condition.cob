@@ -44,7 +44,7 @@
       *>      for a range whose start is greater than its end, and
       *>      "upon completion of any exception processing, execution
       *>      proceeds as if the range of values were empty" - so its
-      *>      declarative runs first (§2023:14.6.13.1.4 3)), and the second
+      *>      declarative runs first (§2023:14.6.13.1.4 GR3), and the second
       *>      WHEN's EC-BOUND-SUBSCRIPT runs the other one after it.
       *> Each fatal declarative resumes at the next statement, so a
       *> leg's second fatal condition is never reached. The control leg moves the

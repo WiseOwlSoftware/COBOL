@@ -32,12 +32,12 @@
       *>   column 1, SOURCE WS-K at 4, SOURCE WS-A PIC 99 at 6).
       *>  GENERATE DE-G (WS-A 4, WS-K "B"): the GROUP INDICATE item is
       *>   absent, "as though the entry were omitted"
-      *>   (§2002:13.16.39.3 GR2 b) -> "DE   04".
+      *>   (§2002:13.16.39.3 GR2b -> "DE   04".
       *>  GENERATE D2-G -> "D2".
       *>  TERMINATE prints the report footing. T1 SUM X1: X1 is in a
       *>   different group, so "adding takes place when the report
       *>   group description containing data-name-1 is processed"
-      *>   (§2002:13.16.52.3 GR7 a): 3 + 4 = 07. T2 SUM WS-B UPON
+      *>   (§2002:13.16.52.3 GR7a: 3 + 4 = 07. T2 SUM WS-B UPON
       *>   DE-G: adding "whenever any GENERATE statement is executed
       *>   for a detail referenced by the UPON phrase"
       *>   (§2002:13.16.52.3 GR7 c 2.): two GENERATEs of DE-G, 10 + 10

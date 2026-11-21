@@ -82,7 +82,7 @@ carries a recommendation; §3 records each answer as a `docs/CONFORMANCE.md` det
    makes the phrase a second spelling of its own absence. Under (a) a waiting message is received; otherwise identifier-1
    is spaces and the statement is successful. `arithmetic-expression-1 SECONDS` waits at most that long, evaluated once
    by the CONTINUE statement's rule (`CobolTiming`: whole seconds, at most `CobolTiming.MaxSeconds`). A negative value is
-   zero, a poll, and EC-CONTINUE-LESS-THAN-ZERO is set to exist when its checking is enabled, as §2023:14.9.9.4 GR1 b) does for
+   zero, a poll, and EC-CONTINUE-LESS-THAN-ZERO is set to exist when its checking is enabled, as §2023:14.9.9.4 GR1b does for
    the CONTINUE statement ("If checking for FC-CONTINUE-LESS-THAN-ZERO is enabled, the EC-CONTINUE-LESS-THAN-ZERO
    exception condition is set to exist"); it is nonfatal and leaves the RECEIVE successful. The alternative sets no
    condition, since GR2 does not invoke the CONTINUE statement's rules.
@@ -179,7 +179,7 @@ of different machines do not (§5.1).
 | §2023:8.5.2.9 | "An elementary data item explicitly described as usage message-tag item" | `PicCategory.MessageTag` (§4.2) |
 | §2023:13.18.60.4 GR9 | "The class and category of a message-tag data item are message-tag"; the implementor specifies the alignment, representation and "the number of bytes contained in the data item" | the slot rule (§4.2); DOC-A.1-212 |
 | §2023:13.18.60.3 SR4, SR14, SR21 | not in a CONSTANT RECORD; "may be specified only for an elementary data item at level 1 or an elementary data item subordinate to a type declaration that includes the STRONG phrase"; "If MESSAGE-TAG is specified, no other usage clauses shall be specified in the data description entry" | SR4 and SR14 are screened today through `ItemCategory.Sr4PhraseOf` and `Sr14PhraseOf`, whose MESSAGE-TAG arms exist; SR21 is COBOL2158 (`MessageTagUsageExclusive`, `DataBinder`) and stays |
-| §2023:8.4.3.10.1; §2023:8.4.3.10.3 SR1 b); §2023:8.4.3.10.4 GR4 | "NULL is a predefined address of class pointer or a predefined content of class message-tag"; "it may be used only as a sending operand in an INITIALIZE or a SET statement or in a message-tag relation condition"; "The null content is an implementor-defined value that is guaranteed not to represent a message server or message requestor" | `MessageTag.Null` (§4.2) |
+| §2023:8.4.3.10.1; §2023:8.4.3.10.3 SR1b; §2023:8.4.3.10.4 GR4 | "NULL is a predefined address of class pointer or a predefined content of class message-tag"; "it may be used only as a sending operand in an INITIALIZE or a SET statement or in a message-tag relation condition"; "The null content is an implementor-defined value that is guaranteed not to represent a message server or message requestor" | `MessageTag.Null` (§4.2) |
 | §2023:8.8.4.2.1 item 9, §2023:8.8.4.2.3 SR5 | "Two operands of class message-tag"; "Identifier-3 and identifier-4 shall reference data items of class message-tag, object, or pointer, and shall be of the same category" | relation Format 3 gains the message-tag arm |
 | §2023:8.8.4.2.3 SR4; §2023:8.8.4.2.12 | "Strongly-typed group items that contain elementary items of class boolean, message-tag, object, or pointer, may be compared only for equality or inequality"; "each elementary item of the first operand is compared with the corresponding elementary item of the second operand" | `StatementValidation.ContainsNonOrderableLeaf` sees `CobolClass.MessageTag` (COBOL1535); `StrongGroupComparison` lowers a message-tag leaf pair to the Format 3 relation, so two groups whose tags name different parties compare unequal |
 | §2023:8.8.4.2.14 | "The operands are equal if they reference the same message requestor or message server of the same name or one is NULL and the other is NULL" | `MessageTag.SameParty`: two server tags of one server name, two requestor tags of one requestor run unit, two NULLs. A tag's message number does not take part. |
@@ -194,7 +194,7 @@ The other class restrictions that name message-tag form one family, which exclud
 object and pointer (a paraphrase; each rule words it its own way): §2023:8.8.4.4.3 SR1, §2023:13.16.3 SR8, SR10 and SR24 e), §2023:13.18.38.3 SR8, §2023:13.18.44.3 SR12 and SR14,
 §2023:13.18.45.3 SR8, §2023:13.18.60.3 SR11, §2023:13.18.63.3 SR9, §2023:14.7.6 GR4, §2023:14.9.1.3 SR1 and SR3 ("Identifier-2 shall not reference
 a data item of class alphabetic, boolean, index, message-tag, object, or pointer"), §2023:14.9.11.3 SR1, §2023:14.9.13.3 SR4 and SR7,
-§2023:14.9.24.3, §2023:14.9.25.3 SR1, §2023:14.9.40.3, §2023:15.19.3 rule 7, §2023:15.59.3, §2023:15.63.3, §2023:15.71.3 and §2023:15.72.3 rule 1, the alignment
+§2023:14.9.24.3, §2023:14.9.25.3 SR1, §2023:14.9.40.3, §2023:15.19.3 AR7, §2023:15.59.3, §2023:15.63.3, §2023:15.71.3 and §2023:15.72.3 AR1, the alignment
 rules §2023:8.5.1.6.1 and §2023:8.5.1.6.5, and §2023:13.18.42.4's implicit property methods. They are written today through
 `ItemCategory.IsIndexMessageTagObjectOrPointer`, `IsBooleanMessageTagObjectOrPointer` and `IsMessageTag`, or through the
 class lattice (`IntrinsicArgumentRules.ClassOfItem`), which answers for the new category (§4.2), so each fires as soon as
@@ -424,7 +424,7 @@ outcome back through the ordinary channels:
   `DataItem.CurrentExtentMessageImageCapable`), and the same `Resolved` follows over its `AsLeaves` vector, a dynamic table's occurrences included.
   An area that holds an OCCURS DYNAMIC table has no allocated maximum (§2023:8.5.1.9.1), so its RECEIVE capacity is `AsyncMessaging.UnboundedCapacity`, and after the store
   the program states the size the area took (`AsyncMessaging.Received`, the length of its current-extent image: the store recreated its tables to the message, each raised
-  to its FROM minimum, §2023:14.6.9.2), which the run unit's end answers an unanswered message with (§2023:14.6.11 7)). An identifier-1
+  to its FROM minimum, §2023:14.6.9.2), which the run unit's end answers an unanswered message with (§2023:14.6.11 GR7). An identifier-1
   that is a single elementary message tag is its 8 token positions (`RecordAreaImage`'s slot-carried arm), so GR1's "shall not be zero" holds; its content, the tag,
   travels as the message's one slot, and a RECEIVE into an elementary tag (capacity 8) is the first 8 positions of the message decoded and resolved as a group's tag is
   (`AsyncMessaging.TagOf(image, slots)`): the sender's tag when they hold its token, NULL when they are eight X"00".
@@ -456,7 +456,7 @@ A statement's raisable names are one structure, `EcBinder.DeclaredRaisableNames`
 **Correction (PB4744): one mechanism, the profile, for every EC-MCS name.** The fixed names were to follow `CheckingFlags`' five declarations (a field, the engine property, its forwarder, the
 `EcEmitter` gate row, a one-line raise helper). The message control system names the condition at run time for all of them, and a requestor's RECEIVE raises a name a server chose, so each statement carries its checking profile
 (`IProfiledStatement`, below) and `AsyncMessaging` asks `profile.Enabled(name)` for every name before `ExceptionState.Set(name, fatal)`; the site then runs the selection over the raised name (`EcEmitter.EmitSelection`, the shape of the GOBACK ... RAISING pickup), the
-ON EXCEPTION phrase taking the condition ahead of it (§2023:14.6.13.1.3 1)). Forty lines of flags, forwarders and gate rows that would each read the same profile are not written, and `EcRaiseSiteRegistryDriftTests` counts a reference to an `ExceptionCatalog` constant outside the catalog as the raise site.
+ON EXCEPTION phrase taking the condition ahead of it (§2023:14.6.13.1.3 GR1). Forty lines of flags, forwarders and gate rows that would each read the same profile are not written, and `EcRaiseSiteRegistryDriftTests` counts a reference to an `ExceptionCatalog` constant outside the catalog as the raise site.
 
 A forwarded name (Q6) is not fixed: the server chooses it, and the requestor learns it at run time, so no flag and no
 declaration can name it. All three nodes therefore carry the profile an activating statement carries

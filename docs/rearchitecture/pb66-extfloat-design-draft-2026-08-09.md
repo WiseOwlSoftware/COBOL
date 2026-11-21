@@ -32,7 +32,7 @@ Companion docs (this doc defers to them and must be merged into them on landing)
 `docs/rearchitecture/DESIGN-edition-framework.md` (`constructs/` rows).
 
 > **The standard has no term "external floating-point".** It calls this construct a **floating-point
-> numeric-edited item** (§2023:13.18.40.4 GR13 b) and never uses "external floating-point" anywhere in the 2023 text
+> numeric-edited item** (§2023:13.18.40.4 GR13b and never uses "external floating-point" anywhere in the 2023 text
 > (`grep` over `specs/ISO_COBOL_2023.md`: 0 occurrences). Every diagnostic, comment, doc line and `constructs/`
 > field this wave touches adopts the standard's term; "external floating-point" survives only as a
 > parenthetical in the `PB66` note and in the legacy diagnostic string that §12 replaces.
@@ -67,7 +67,7 @@ Companion docs (this doc defers to them and must be merged into them on landing)
 
 ### 1.1 The construct
 
-A **floating-point numeric-edited item** is defined by §2023:13.18.40.4 GR13 b):
+A **floating-point numeric-edited item** is defined by §2023:13.18.40.4 GR13b:
 
 > "To define a floating-point numeric-edited item, characters-string-1 shall consist of two parts, separated
 > without any spaces, by the symbol 'E'. The first part represents the significand; the second part represents
@@ -171,7 +171,7 @@ nonzero. For `PIC 9.9(5)E+99` (1 integer digit position) that means `[1.00000, 9
 (2 integer digit positions) it means `[10.0000, 99.9999]`. The design's normalizer targets **the mask's own
 integer-digit-position count**, which is the only reading that leaves the leading position nonzero.
 
-§2023:13.18.40.5 rule 8 pins zero: "If the value to be edited into a floating-point edited item is zero, then after
+§2023:13.18.40.5 GR8 pins zero: "If the value to be edited into a floating-point edited item is zero, then after
 editing all digit positions of the significand and all digit positions of the exponent shall be zero; the sign of
 the significand, if present, shall be positive; and the sign of the exponent shall be positive." ✔ OK.
 Combined with Table 8 (fixed insertion), `PIC -9.9(5)E+99` at zero renders `" 0.00000E+00"` (a `-` symbol renders
@@ -200,7 +200,7 @@ underflow as zero while `ADD … GIVING` raises SIZE ERROR on the same value. §
 receiving item is a numeric or a numeric-edited data item." ✔ OK. §2023:3.56 defines de-editing as the "logical removal
 of all editing characters from a numeric-edited data item in order to determine that item's numeric value".
 
-§2023:14.6.13.2 rule 4: "When a numeric-edited data item is the sending operand of a de-editing MOVE statement and the
+§2023:14.6.13.2 GR4: "When a numeric-edited data item is the sending operand of a de-editing MOVE statement and the
 content of that data item is not a possible result for any editing operation in that data item, the result of the
 MOVE operation is undefined and an EC-DATA-INCOMPATIBLE exception condition is set to exist." ✔ OK.
 
@@ -296,7 +296,7 @@ moment `PictureAnalyzer` returns `PicCategory.NumericEdited` with the right `Len
 *Rejected:* (a) a new `PicCategory.FloatEdited` — REJECTED: it would fork ~30 `is PicCategory.NumericEdited`
 tests (the grep in §14 lists them), every one of which is correct for both forms; the standard has one category
 and so must the model. (b) storing a decoded `(significand, exponent)` pair and re-rendering on read — REJECTED:
-it is a byte-substrate-shaped idea in disguise, it breaks `REDEFINES`/group-image identity, and §2023:14.6.13.2 rule 4
+it is a byte-substrate-shaped idea in disguise, it breaks `REDEFINES`/group-image identity, and §2023:14.6.13.2 GR4
 *requires* that an arbitrary character image be representable so its de-edit can be diagnosed.
 
 ### D-EF2. The FULL range is implemented: significand 1–36 digit positions, exponent 1–4 digits.
@@ -335,7 +335,7 @@ a different name, and the `NumX` lane would have to be doubled. (c) `decimal`/`B
 ### D-EF4. `PicInfo` gains ONE nullable projection, `FloatEdit`, and it is the sole discriminator.
 
 ```csharp
-/// <summary>The parsed two-part structure of a FLOATING-POINT numeric-edited PICTURE (ISO §2023:13.18.40.4 GR13 b) —
+/// <summary>The parsed two-part structure of a FLOATING-POINT numeric-edited PICTURE (ISO §2023:13.18.40.4 GR13b —
 /// non-null exactly for that form, null for every fixed-point numeric-edited item.</summary>
 public sealed record FloatEditSpec(
     string SigMask,      // the significand's expanded character-string, sign symbol included
@@ -420,7 +420,7 @@ and the `SkeletonGate` recovery at `:122-123`. The `E` case is lifted OUT of the
 1.  count 'E'. 0 → not this form (fall through unchanged).
                 >1 → COBOL1643 (§2023:13.18.40.3 SR12 b: 'E' may appear only once).
 2.  split at the single 'E' → sig, exp.
-3.  exp must match  '+' '9'{1,4}                       else COBOL1644 (§2023:13.18.40.4 GR13 b).
+3.  exp must match  '+' '9'{1,4}                       else COBOL1644 (§2023:13.18.40.4 GR13b.
         ExpDigits = |'9's|.
 4.  sig:
       a. optional leading '+' or '-'                    → SigSigned, SigSign
@@ -477,7 +477,7 @@ A `string` of exactly `Length` characters. Layout (a worked example, `PIC -9.9(5
  mask  : - 9 . 9 9 9 9 9 E  +  9  9
  value :   1 . 2 3 4 5 0 E  -  0  7      ← +1.23450 × 10^-7
  value : - 9 . 9 9 9 9 9 E  +  9  9      ← the LOWEST-ALGEBRAIC extreme
- value :   0 . 0 0 0 0 0 E  +  0  0      ← zero (§2023:13.18.40.5 rule 8)
+ value :   0 . 0 0 0 0 0 E  +  0  0      ← zero (§2023:13.18.40.5 GR8)
 ```
 
 `DefaultInitializer` is unchanged — `new string(' ', Length)` (the numeric-edited initial state).
@@ -613,7 +613,7 @@ exponent digits          → digits, else INCOMPATIBLE
 return new CobolDec(negative ? -sig : sig, expValue - SigScale)
 ```
 
-`INCOMPATIBLE` ⇒ **EC-DATA-INCOMPATIBLE** (§2023:14.6.13.2 rule 4) and a deterministic result (the value assembled
+`INCOMPATIBLE` ⇒ **EC-DATA-INCOMPATIBLE** (§2023:14.6.13.2 GR4) and a deterministic result (the value assembled
 from whatever digits were readable, non-digits contributing zero — the same tolerant direction
 `CobolNum.Image.cs`'s decoder already takes for incompatible zoned/packed content). The design DOES check —
 today's fixed-point `CobolEdit.DeEdit` silently contributes zero for any non-digit and never raises the EC, which
@@ -694,9 +694,9 @@ Legal: §2023:13.18.8.3 SR1 admits any "elementary item described by its picture
 numeric-edited" ✔ OK, and SR22's `S`/`*` ban is vacuous here. §2023:13.18.8.4 GR1: "the content of the data item is set
 to all spaces when the item is a receiving operand and the value being stored is zero" ✔ OK.
 
-**This collides with §2023:13.18.40.5 rule 8 (zero ⇒ all-zero digits).** The design resolves it as **BLANK WHEN ZERO
+**This collides with §2023:13.18.40.5 GR8 (zero ⇒ all-zero digits).** The design resolves it as **BLANK WHEN ZERO
 wins** — spaces — on three grounds: (a) GR1 is unconditional and specific to the clause's presence; (b) the
-standard states exactly this precedence for the sibling case, §2023:13.18.40.5 rule 10, "A BLANK WHEN ZERO clause takes
+standard states exactly this precedence for the sibling case, §2023:13.18.40.5 GR10, "A BLANK WHEN ZERO clause takes
 precedence over locale editing"; (c) it matches what `CobolEdit.Format` already does for every fixed-point edited
 mask (`cs:64`). **⚠ Interpretive — see §15 Q2.**
 
@@ -726,7 +726,7 @@ Probe `pb66d03` proves the floating-point literal channel already works end to e
 
 ### 9.6 The 2023 `PICTURE … EDITING` phrase
 
-Banned for this form (§1.2 / §2023:13.18.40.3 SR12 a). `PictureAnalyzer.ValidateEditing` runs BEFORE the `E` scan
+Banned for this form (§1.2 / §2023:13.18.40.3 SR12a. `PictureAnalyzer.ValidateEditing` runs BEFORE the `E` scan
 today; the float analyzer rejects an `EDITING` phrase on a float-edited picture with `COBOL1645`'s
 character-1 leg before `ValidateEditing`'s SR10 ("character-1 shall appear at least once") can produce a
 confusing secondary error.
@@ -748,7 +748,7 @@ would return a true value." ✔ OK.
 ✔ OK.
 §2023:15.43.4 r2 / §2023:15.58.4 r2 give the returned value: the greatest / lowest finite magnitude representable. ✔ OK.
 
-The test they name is defined by §2023:8.8.4.4.4 GR3 l): "If IN-ARITHMETIC-RANGE Is specified, the condition is true if
+The test they name is defined by §2023:8.8.4.4.4 GR3l: "If IN-ARITHMETIC-RANGE Is specified, the condition is true if
 the numeric content of the data item referenced by identifier-1 is neither farther from zero nor closer to zero
 than is permitted for the form of an intermediate data item appropriate to the mode of arithmetic in effect."
 ✔ OK (`cite.py` prints an approximate path `3) d) 2.` — the printed label is `l)`).
@@ -895,7 +895,7 @@ character-position count is asserted, not eyeballed.
 | `-123.45` | `-9.9(5)E+99` | `"-1.23450E+02"` | Table 8 |
 | `-123.45` | `+9.9(5)E+99` | `"-1.23450E+02"` | Table 8 |
 | `+123.45` | `+9.9(5)E+99` | `"+1.23450E+02"` | Table 8 |
-| `0` | `-9.9(5)E+99` | `" 0.00000E+00"` | §2023:13.18.40.5 rule 8 |
+| `0` | `-9.9(5)E+99` | `" 0.00000E+00"` | §2023:13.18.40.5 GR8 |
 | `0` | `+9.9(5)E+99` | `"+0.00000E+00"` | rule 8 ("the sign … shall be positive") |
 | `+0.000123` | `-9.9(5)E+99` | `" 1.23000E-04"` | GR1 + Table 8 on the exponent sign |
 | `+123.45` | `-99.9(4)E+99` | `" 12.3450E+01"` | GR1 normalizes to the MASK's integer digit count |
@@ -919,7 +919,7 @@ zeroed). Plus the `ON SIZE ERROR`-absent form asserting EC-SIZE-TRUNCATION under
 Round-trip: `MOVE x TO F-ED` then `MOVE F-ED TO PIC S9(18)V9(9)` for each §13.3 row, asserting the recovered
 value. Plus: a huge exponent de-edited into a small receiver (high-order truncation per §2023:14.6.8.2 r4);
 a hand-injected malformed image via `REDEFINES`/alphanumeric MOVE (`"1.2345XE+02"`, `"1.23450F+02"`) asserting
-EC-DATA-INCOMPATIBLE (§2023:14.6.13.2 rule 4) and the deterministic value.
+EC-DATA-INCOMPATIBLE (§2023:14.6.13.2 GR4) and the deterministic value.
 
 ### 13.6 The two owned inventory rows
 
@@ -1021,7 +1021,7 @@ literal rule is deliberate in the standard and this design follows it. Flagged b
 asymmetry a reader will assume is a mistake.
 
 **Q5 — SCOPE, needs a `kb/Work` note, not a decision here. The fixed-point `CobolEdit.DeEdit` never raises
-EC-DATA-INCOMPATIBLE.** §2023:14.6.13.2 rule 4 applies to every numeric-edited sender, and the current implementation
+EC-DATA-INCOMPATIBLE.** §2023:14.6.13.2 GR4 applies to every numeric-edited sender, and the current implementation
 silently contributes zero for any non-digit (`CobolEdit.cs:284`). §7 adds the check on the float path only.
 Fixing the fixed-point twin is a separate, larger change (it touches every existing edited golden) and belongs in
 its own note — recording it here so it is not lost, per CLAUDE.md rule 8's "a newly found defect becomes a note
@@ -1064,9 +1064,9 @@ produced this draft. `OK` = the quoted text was found inside that clause's own r
 | §2023:13.18.40.3 SR4 | "The maximum number of characters allowed in character-string-1 is 63" | OK |
 | §2023:13.18.40.3 SR2 | "The allowable combinations of symbols for a PICTURE clause are specified in 13.18.40.6, Precedence rules" | OK |
 | §2023:13.18.40.3 SR7 | "If the symbol ',' or the symbol '.' is the last symbol of character-string-1…" | OK |
-| §2023:13.18.40.5 rule 2 (Table 7) | "Simple insertion, special insertion, and fixed insertion for the significand part" | OK |
-| §2023:13.18.40.5 rule 5 | "Fixed insertion editing results in the insertion character(s) occupying the same character position(s)…" | OK |
-| §2023:13.18.40.5 rule 8 | "If the value to be edited into a floating-point edited item is zero, then after editing all digit positions…" | OK |
+| §2023:13.18.40.5 GR2 (Table 7) | "Simple insertion, special insertion, and fixed insertion for the significand part" | OK |
+| §2023:13.18.40.5 GR5 | "Fixed insertion editing results in the insertion character(s) occupying the same character position(s)…" | OK |
+| §2023:13.18.40.5 GR8 | "If the value to be edited into a floating-point edited item is zero, then after editing all digit positions…" | OK |
 | §2023:13.18.40.6 | "character-string-1 for a numeric-edited item for a floating-point edited result is considered as two separate strings" | OK |
 | §2023:13.18.40.6 | "The symbol '+' that appears in a column and in a row by itself, represents its use in the exponent part…" | OK |
 | §2023:14.6.8.2 r1 | "If the sending operand is an intermediate data item or a data item described with a standard floating-point usage…" | OK |

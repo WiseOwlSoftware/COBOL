@@ -10,7 +10,7 @@
       *> program. When an initial program is activated, the data items
       *> and file connectors contained in it and any program contained
       *> within it are set to their initial states."
-      *>   cite.py --check 11.10.4 -> OK  §2023:11.10.4 3)  (General rules)
+      *>   cite.py --check 11.10.4 -> OK  §2023:11.10.4 GR3  (General rules)
       *> What "initial state" means, §2023:14.6.2.3.2:
       *>   2) static data is placed in the initial state "The first time
       *>   the program in which it is described is activated after the
@@ -45,7 +45,7 @@
       *>              would give '41', §2023:14.9.27.4 GR2: "If it is open,
       *>              the execution of the OPEN statement is
       *>              unsuccessful and the I-O status ... '41'";
-      *>              cite.py --check 14.9.27.4 -> OK  §2023:14.9.27.4 2)).
+      *>              cite.py --check 14.9.27.4 -> OK  §2023:14.9.27.4 GR2).
       *>   "F 1"    — F is contained in the INITIAL program E, so
       *>              §2023:14.6.2.3.2 2) resets it too: 1, not 2.
       *>   "G 2"    — G is not initial and not contained in E: its

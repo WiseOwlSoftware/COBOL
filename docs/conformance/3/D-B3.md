@@ -2,8 +2,8 @@
   (kb/Work PB3562). A MOVE to an alphanumeric group is §2023:14.9.25.4 GR4's "alphanumeric to alphanumeric elementary
   move, except that there is no conversion of data from one form of internal representation to another", so the
   sender's representation, and therefore its usage, decides the bytes deposited. A boolean *function* has a stated
-  usage — §2023:15.2 2) "Boolean functions have an implicit usage bit", §2023:15.13.4 1) "a boolean item of usage bit" — and so
-  does a national literal (§2023:8.3.3.5.4 GR3 a), "usage NATIONAL"), so each deposits its own representation (packed bits,
+  usage — §2023:15.2 GR2 "Boolean functions have an implicit usage bit", §2023:15.13.4 RV1 "a boolean item of usage bit" — and so
+  does a national literal (§2023:8.3.3.5.4 GR3a, "usage NATIONAL"), so each deposits its own representation (packed bits,
   UTF-16BE pairs: `MOVE FUNCTION BOOLEAN-OF-INTEGER(102 8) TO G` deposits the one byte X"66"). A boolean *literal* has no
   stated usage: §2023:8.3.3.4.4 GR3 gives only its value, "the sequence of occurrences of boolean-character-1". WiseOwl
   COBOL reads it as what it is written with, the characters '0' and '1' "from the computer's coded character set"

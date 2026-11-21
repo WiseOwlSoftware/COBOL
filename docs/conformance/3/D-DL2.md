@@ -15,7 +15,7 @@
   examine zero characters. Written once for the emitters (`ReceivingStore.DynamicReceivingSize`, beside the one
   elementary character receiving store `ReceivingStore.Characters`) and read through the ONE receiver-size reader
   `ReceivingStore.CharacterPositions` — by ACCEPT format 1's device transfer (kb/Work PB1013, which also answers an
-  ANY LENGTH receiver's size with its argument's, §2023:13.18.2.4 GR1 b)) and by UNSTRING's examination size
+  ANY LENGTH receiver's size with its argument's, §2023:13.18.2.4 GR1b) and by UNSTRING's examination size
   (`ReceivingStore.ExaminationSize`, kb/Work PB979); witnessed by `conformance:cases/14.9.43-STRING/pb871_dynamic_length_receivers`
   (STRING into an empty item, into a longer one, through a grown gap and past the maximum; UNSTRING with and
   without DELIMITED BY).

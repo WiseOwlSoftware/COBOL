@@ -38,7 +38,7 @@
       *> condition: §2023:14.9.30.4 GR9 defines that condition as "the record
       *> identified for access is locked by ANOTHER file connector",
       *> where '53'/'54' are this connector's own lock COUNT.  So
-      *> §2023:14.9.30.4 GR10 a)'s "The file position indicator is unchanged"
+      *> §2023:14.9.30.4 GR10a's "The file position indicator is unchanged"
       *> does not reach it and GR18 applies in full: "Unless otherwise
       *> specified, at the completion of any unsuccessful execution of a
       *> READ statement, the content of the associated record area is

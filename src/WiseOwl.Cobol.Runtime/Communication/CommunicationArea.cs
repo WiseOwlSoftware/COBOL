@@ -5,7 +5,7 @@ using System.Globalization;
 namespace WiseOwl.Cobol.Runtime.Communication;
 
 /// <summary>
-/// The MCS's view of a CD's record area: the character positions of ISO/IEC 1989:2002 A.1.2.3 GR2 (input, 87 positions), GR16
+/// The MCS's view of a CD's record area: the character positions of §2002:A.1.2.3 GR2 (input, 87 positions), GR16
 /// (output, 10 + 13 × integer-1) and GR24 (input-output, 33). A mutable copy of the image the program handed over; each statement
 /// renders it back with <see cref="Image"/>. Positions below are 0-based, the rules' numbering minus one.
 /// </summary>
@@ -55,7 +55,7 @@ internal sealed class CommunicationArea(string image)
         SetEndKey(format, endKey);
     }
 
-    /// <summary>A RECEIVE that transfers no message: the end key is set to 0 when "less than a message is transferred" (§1985:XIV.2.2.4 GR12 a 3, and GR12 b 4 for a segment),
+    /// <summary>A RECEIVE that transfers no message: the end key is set to 0 when "less than a message is transferred" (§1985:XIV.2.2.4 GR12a.3, and GR12b.4 for a segment; for an input-output CD GR33a.3 and GR33b.4),
     /// and the CD's items "are appropriately updated by the message control system (MCS) at each execution of a RECEIVE statement" (§1985:XIV.3.5.4 GR6), so the end key does not keep
     /// the previous RECEIVE's value. The text length is 0 too: nothing was transferred.</summary>
     internal void SetNothingReceived(CommunicationFormat format)

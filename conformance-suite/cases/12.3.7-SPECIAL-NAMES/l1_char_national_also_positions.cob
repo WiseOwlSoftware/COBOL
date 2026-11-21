@@ -13,7 +13,7 @@
       *> invocation of the CHAR-NATIONAL function shall return the same character."
       *> ⛔ THE THIRD PART IS SEMICOLON-JOINED TO THE SECOND, i.e. it rides the UNDEFINED-ORDER branch (and that
       *> branch is Annex A.1 item 22, already determined at CONFORMANCE.md §7). An ALSO phrase does NOT enter
-      *> that branch: §2023:12.3.7.4 GR7 k)6 DEFINES the order ("Literal-1 is the first character in the sequence of
+      *> that branch: §2023:12.3.7.4 GR7k6 DEFINES the order ("Literal-1 is the first character in the sequence of
       *> multiple characters defined at that ordinal position"), so sentence ONE governs and its answer is
       *> forced, not chosen. This golden therefore closes r2 on sentence one, and carries the determinism
       *> property as a check rather than a claim (see SAME below).
@@ -28,10 +28,10 @@
       *> are DIFFERENT runtime bodies - AlphanumericCollation over there, NationalCollation.CharAt here - so
       *> neither is evidence about the other. That two-arm shape is exactly what this file exists to close.
       *>
-      *> THE SEQUENCE. §2023:12.3.7.4 GR7 k)2: "The order in which the literals appear in the ALPHABET clause
+      *> THE SEQUENCE. §2023:12.3.7.4 GR7k2: "The order in which the literals appear in the ALPHABET clause
       *> specifies, in ascending sequence, the ordinal number of the character within the collating sequence
       *> being specified" - so the ALSO group is ordinal position 1 and N"M" is ordinal position 2.
-      *> §2023:12.3.7.4 GR7 k)6, quoted whole so nothing is elided: "If the ALSO phrase is specified, the characters
+      *> §2023:12.3.7.4 GR7k6, quoted whole so nothing is elided: "If the ALSO phrase is specified, the characters
       *> of the native character set specified by the value of literal-1 and literal-3 are assigned to the same
       *> ordinal position in the collating sequence being specified or in the character code set that is used to
       *> represent the data. Literal-1 is the first character in the sequence of multiple characters defined at
@@ -39,7 +39,7 @@
       *> position 1 and C is the FIRST character defined there. LITERAL-1 IS THE HIGHEST-CODED MEMBER on
       *> purpose: an implementation returning the lowest code answers A, one returning the last-written member
       *> answers B, and both are ruled out by P1 below.
-      *> §2023:12.3.7.4 GR7 k)3: "Any characters of the native collating sequence that are not specified in the
+      *> §2023:12.3.7.4 GR7k3: "Any characters of the native collating sequence that are not specified in the
       *> literal phrase shall assume a position in the collating sequence that is greater than that of the
       *> highest character specified in this literal phrase. The relative order within the set of these
       *> unspecified characters is unchanged from the native collating sequence." The native national character

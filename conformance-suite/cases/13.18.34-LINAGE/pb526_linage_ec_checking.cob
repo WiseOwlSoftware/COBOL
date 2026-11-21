@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:13.18.34.4 GR6 b) 2 with CHECKING FOR EC-I-O-LINAGE ENABLED
+      *> ISO §2023:13.18.34.4 GR6b 2 with CHECKING FOR EC-I-O-LINAGE ENABLED
       *> — the half of kb/Work PB526 that the format-1 twin
       *> (2023/pb526_linage_ec_condition) cannot reach, and the ONE place
       *> the raised exception-NAME is observable.
@@ -18,11 +18,11 @@
       *>   character is not '0', the associated exception condition is set
       *>   to exist."   -> OK  §2023:9.1.13.1  (General)
       *> and that list maps a '9x' to EC-I-O-IMP. EC-I-O-LINAGE is not in
-      *> the list at all — §2023:13.18.34.4 GR6 b) 2 NAMES it:
+      *> the list at all — §2023:13.18.34.4 GR6b 2 NAMES it:
       *>   python scripts/spec/cite.py --check 13.18.34.4 "If the value
       *>   does not conform to these two rules, the EC-I-O-LINAGE
       *>   exception condition is set to exist."
-      *>   -> OK  §2023:13.18.34.4 6) b) 2.  (General rules)
+      *>   -> OK  §2023:13.18.34.4 GR6b.2  (General rules)
       *> so the status alone would raise the WRONG condition. The rule
       *> that lets the specific one win is §2023:14.6.13.1.1:
       *>   python scripts/spec/cite.py --check 14.6.13.1.1 "Unless
@@ -35,7 +35,7 @@
       *>   left-justified, alphanumeric character string that is the
       *>   exception-name or the value 'EXCEPTION-OBJECT', as applicable,
       *>   associated with the last exception status."
-      *>   -> OK  §2023:15.33.3 1)  (Returned value rule)
+      *>   -> OK  §2023:15.33.3 RV1  (Returned value rule)
       *> so ST=EC-I-O-LINAGE below is the assertion, and ST=EC-I-O-IMP
       *> would be the defect this fixture exists to catch.
       *>
@@ -46,17 +46,17 @@
       *>   the exception condition that was raised matches
       *>   exception-name-2 and the exception condition is associated with
       *>   file-name-2, that declarative is executed."
-      *>   -> OK  §2023:14.9.49.4 3) c)  (General rules)
+      *>   -> OK  §2023:14.9.49.4 GR3c  (General rules)
       *> and it is reached because EC-I-O-LINAGE is Fatal (Table 13) and
-      *> §2023:14.6.13.1.3 5) runs an applicable USE for a fatal condition. A
+      *> §2023:14.6.13.1.3 GR5 runs an applicable USE for a fatal condition. A
       *> fatal condition whose declarative completes NORMALLY terminates
       *> the run unit, so the declarative ends in RESUME AT NEXT
-      *> STATEMENT, which §2023:14.6.13.1.2 1) makes a non-normal completion:
+      *> STATEMENT, which §2023:14.6.13.1.2 GR1 makes a non-normal completion:
       *>   python scripts/spec/cite.py --check 14.9.33.4 "If the NEXT
       *>   STATEMENT phrase is specified, control is transferred to an
       *>   implicit CONTINUE statement that is determined as follows:"
-      *>   -> OK  §2023:14.9.33.4 2)  (General rules)
-      *> which is the same continuation §2023:13.18.34.4 GR6 b) 2 describes.
+      *>   -> OK  §2023:14.9.33.4 GR2  (General rules)
+      *> which is the same continuation §2023:13.18.34.4 GR6b 2 describes.
       *>
       *> EXPECTED VALUES. LPC is `LINAGE IS WS-SZ LINES` with WS-SZ = 0,
       *> so GR6 b) 1's value rule is violated at the completion of the

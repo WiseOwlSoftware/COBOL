@@ -10,11 +10,11 @@
       *>   python scripts/spec/cite.py --check 12.4.5.10.3 "Each record
       *>   in a line sequential file is terminated by an
       *>   implementor-defined line delimiter"
-      *>                                        -> OK  §2023:12.4.5.10.3 2)
+      *>                                        -> OK  §2023:12.4.5.10.3 GR2
       *>   python scripts/spec/cite.py --check 14.9.30.4 "contains one
       *>   or more characters not in the implementor-defined character
       *>   set for a line sequential file, the I-O status in the read
-      *>   file connector is set to '09'"      -> OK  §2023:14.9.30.4 16)
+      *>   file connector is set to '09'"      -> OK  §2023:14.9.30.4 GR16
       *> The determination: a READ ends a record at an LF, or at a CR LF
       *> pair, on every host; a lone CR is record DATA (GnuCOBOL's rule,
       *> CLAUDE.md rule 1). The file is written byte by byte through a

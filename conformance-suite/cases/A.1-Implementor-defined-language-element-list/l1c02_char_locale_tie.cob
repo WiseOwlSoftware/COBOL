@@ -20,12 +20,12 @@
       *> cite.py OK lines:
       *>  OK §2023:A.1 21) CHAR function (which one of the multiple
       *>     characters is returned). This item is required.
-      *>  OK §2023:15.15.4 2) If the order of multiple characters having the
+      *>  OK §2023:15.15.4 RV2 If the order of multiple characters having the
       *>     same position is undefined, the implementor shall define
       *>     which of those multiple characters is returned
-      *>  OK §2023:15.15.4 2) every invocation of the CHAR function shall
+      *>  OK §2023:15.15.4 RV2 every invocation of the CHAR function shall
       *>     return the same character.
-      *>  OK §2023:12.3.7.4 7) When the LOCALE phrase is specified, the
+      *>  OK §2023:12.3.7.4 GR7 When the LOCALE phrase is specified, the
       *>     collating sequence identified is defined by the locale
       *>     referenced by locale-name-2 when specified, otherwise by
       *>     the locale that is current

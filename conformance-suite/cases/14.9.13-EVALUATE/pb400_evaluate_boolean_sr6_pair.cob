@@ -15,7 +15,7 @@
       *>      subject is treated as a boolean condition and therefore condition-1."
       *>   c)/d) against a counterpart that is NOT TRUE or FALSE the boolean operand
       *>      stays boolean-expression-2 / boolean-expression-1, and Table 15 marks
-      *>      boolean-expression × boolean-expression permissible; §2023:14.9.13.4 GR4 a) 6.
+      *>      boolean-expression × boolean-expression permissible; §2023:14.9.13.4 GR4a 6.
       *>      then lowers the pair to `selection-subject = selection-object`.
       *> Arm b) did not exist: the subject stayed a value, the TRUE object bound as a
       *> standalone condition, and the emitted program died at run time on conforming
@@ -30,7 +30,7 @@
       *> a condition context had been staged grammar residue, so no witness reached the alternative the
       *> printed selection-object figure names boolean-expression-2.  They do reach it now, and these two
       *> legs are what says so.  §2023:8.7.2 lists B-AND ("AND operation (boolean conjunction)") and B-OR among
-      *> the boolean operators, §2023:8.8.2 rule 6 its formation table, and §2023:8.8.4.3.4 GR1 the truth value
+      *> the boolean operators, §2023:8.8.2 SR6 its formation table, and §2023:8.8.4.3.4 GR1 the truth value
       *> of the one-character result:
       *>   OPOR   W-B1 B-OR W-B0  = B"1" -> one boolean character -> SR6 a) condition-2 -> true  -> Y
       *>   OPAND  W-B1 B-AND W-B0 = B"0" -> one boolean character -> SR6 a) condition-2 -> false -> N

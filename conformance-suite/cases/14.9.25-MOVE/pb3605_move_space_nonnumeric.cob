@@ -13,14 +13,14 @@
       *>   alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE,
       *>   LOW-VALUE, ALL "literal", or ALL symbolic-character) to either
       *>   a numeric item or a numeric-edited item is prohibited"
-      *>   -> OK §2023:14.9.25.3 5)
+      *>   -> OK §2023:14.9.25.3 SR5
       *>   cite.py --check 8.4.3.3.4 "the categories numeric and
       *>   numeric-edited are considered class and category national if
       *>   the usage is national; otherwise they are considered class and
-      *>   category alphanumeric" -> OK §2023:8.4.3.3.4 6) c)
+      *>   category alphanumeric" -> OK §2023:8.4.3.3.4 GR6c
       *>   cite.py --check 14.9.25.4 "is treated exactly as if it were an
       *>   alphanumeric to alphanumeric elementary move"
-      *>   -> OK §2023:14.9.25.4 4)
+      *>   -> OK §2023:14.9.25.4 GR4
       *> EXPECTED OUTPUT, DERIVED FROM THE RULES:
       *>   X=[   ]  an alphanumeric receiver: SR5 does not reach it.
       *>   R=[  3]  a reference-modified view of the numeric item N (123)

@@ -24,32 +24,32 @@
       *>  connector associated with file-name-1, all locks held on the
       *>  deleted record are released at the completion of the
       *>  successful execution of the DELETE RECORD statement."
-      *> cite.py: OK  §2023:14.9.10.4 7)  (General rules) - lead-in, a) 1.,
+      *> cite.py: OK  §2023:14.9.10.4 GR7  (General rules) - lead-in, a) 1.,
       *>   a) 2. and b) each checked separately
-      *> cite.py: OK  §2023:14.9.10.4 4)  (General rules) - relative,
+      *> cite.py: OK  §2023:14.9.10.4 GR4  (General rules) - relative,
       *>   random: the record "identified by the content of the
       *>   relative key data item"; not present -> invalid key
-      *> cite.py: OK  §2023:14.9.10.4 5)  (General rules) - "the identified
+      *> cite.py: OK  §2023:14.9.10.4 GR5  (General rules) - "the identified
       *>   record has been logically removed from the physical file
       *>   and can no longer be accessed"
-      *> cite.py: OK  §2023:14.9.10.4 6) a)  (General rules) - conflict:
+      *> cite.py: OK  §2023:14.9.10.4 GR6a  (General rules) - conflict:
       *>   "The record is not logically removed, and may be accessed."
-      *> cite.py: OK  §2023:12.4.5.9.4 5)  (General rules) - MANUAL: "Records
+      *> cite.py: OK  §2023:12.4.5.9.4 GR5  (General rules) - MANUAL: "Records
       *>   locks are obtained only when the LOCK phrase is explicitly
       *>   specified on an I-O statement."
-      *> cite.py: OK  §2023:12.4.5.9.4 6)  (General rules) - single locking
+      *> cite.py: OK  §2023:12.4.5.9.4 GR6  (General rules) - single locking
       *>   is implied by LOCK MODE without LOCK ON; "Execution of any
       *>   I-O statement except START releases any previously locked
       *>   record in that file for that file connector."
-      *> cite.py: OK  §2023:12.4.5.9.4 7)  (General rules) - MULTIPLE: "a
+      *> cite.py: OK  §2023:12.4.5.9.4 GR7  (General rules) - MULTIPLE: "a
       *>   file connector is permitted to have more than one record of
       *>   a file locked"
-      *> cite.py: OK  §2023:14.9.30.4 9)  (General rules) - a READ of "the
+      *> cite.py: OK  §2023:14.9.30.4 GR9  (General rules) - a READ of "the
       *>   record identified for access is locked by another file
       *>   connector" -> record operation conflict condition
-      *> cite.py: OK  §2023:9.1.13.8 1)  (Record operation conflict condition
+      *> cite.py: OK  §2023:9.1.13.8 GR1  (Record operation conflict condition
       *>   with unsuccessful completion) - "I-O status = 51."
-      *> cite.py: OK  §2023:14.9.51.4 32)  (General rules) - a relative I-O
+      *> cite.py: OK  §2023:14.9.51.4 GR32  (General rules) - a relative I-O
       *>   random WRITE inserts the record at the relative key's number
       *> cite.py: OK  §2023:9.1.16   (Record locking) - "all record locks
       *>   established for a file are released by the execution of an

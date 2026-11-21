@@ -9,8 +9,8 @@
       *> GR1: "An end marker indicates the end of the specified source
       *>   unit."
       *> cite.py:
-      *>   OK  §2023:10.7.4 1)  (General rule)
-      *>   OK  §2023:8.4.6.3 1)  (Scope of program-names) "If the
+      *>   OK  §2023:10.7.4 GR1  (General rule)
+      *>   OK  §2023:8.4.6.3 SR1  (Scope of program-names) "If the
       *>       program-name is that of a program that does not possess
       *>       the common attribute and that is directly contained
       *>       within another program, that program-name may be

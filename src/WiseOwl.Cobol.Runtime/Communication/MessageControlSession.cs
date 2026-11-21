@@ -5,15 +5,15 @@ using System.Text;
 namespace WiseOwl.Cobol.Runtime.Communication;
 
 /// <summary>
-/// One run unit's dialogue with the message control system (ISO/IEC 1989:2002 Annex A.2). What the run unit holds, its <see cref="Dialogue"/>,
-/// lives here and none of it in <see cref="MessageStore"/>, and that is ISO/IEC 1989:2002 14.5.10 rule 2 by construction: "remaining portions of
+/// One run unit's dialogue with the message control system (§2002:A.2). What the run unit holds, its <see cref="Dialogue"/>,
+/// lives here and none of it in <see cref="MessageStore"/>, and that is the second item of §2002:14.5.10 by construction: "remaining portions of
 /// any partially-received messages are eliminated from the queue. Any portions of messages transferred from the run unit by a SEND statement, and
 /// not terminated by an EMI or EGI, are purged from the system."
 /// <para>⛔ EVERY STATEMENT GOES THROUGH <see cref="Statement"/>, and that is what makes a 9x status mean no action (Table A.1, docs/CONFORMANCE.md):
 /// the statement acts on a copy of the CD's area and a copy of the dialogue, and only a store that committed publishes them.</para>
 /// </summary>
 /// <param name="store">The store; null opens the one the run unit's environment names, at the first statement.</param>
-/// <param name="awaitData">What a RECEIVE that found no data does before it asks again (A.2.5.3 GR5 b); null is the polling interval.</param>
+/// <param name="awaitData">What a RECEIVE that found no data does before it asks again (§2002:A.2.5.3 GR5b); null is the polling interval.</param>
 internal sealed class MessageControlSession(MessageStore? store = null, Action? awaitData = null) : IDisposable
 {
     /// <summary>The status key values of Table A.1 this implementation reports.</summary>
@@ -23,7 +23,7 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
     /// <summary>The error key values of Table 2 (§1985:XIV.2.2.6) this implementation reports.</summary>
     private const char NoErrorKey = '0', UnknownKey = '1', DisabledKey = '2', NoPartialKey = '4', AlreadyKey = '5', FullKey = '6';
 
-    /// <summary>The polling interval of a RECEIVE that waits for data (A.2.5.3 GR5 b).</summary>
+    /// <summary>The polling interval of a RECEIVE that waits for data (§2002:A.2.5.3 GR5b).</summary>
     private static readonly TimeSpan WaitInterval = TimeSpan.FromMilliseconds(100);
 
     private Dialogue _dialogue = new();

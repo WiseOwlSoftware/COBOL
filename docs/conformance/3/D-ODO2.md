@@ -3,7 +3,7 @@
   statement is unsuccessfully executed because the records are variable in length because of an OCCURS DEPENDING ON
   clause in the record in the associated record description entry and the associated DEPENDING ON item contains a
   value that makes the number of bytes in the record exceed the value specified or implied by the file description
-  entry"* — '34'. **WiseOwl COBOL's determination:** (i) the record's size at a count n is §2023:13.18.43.4 GR13 c)'s —
+  entry"* — '34'. **WiseOwl COBOL's determination:** (i) the record's size at a count n is §2023:13.18.43.4 GR13c's —
   the fixed portion plus the table at n occurrences — and "the value specified or implied by the file description
   entry" is the file's maximum record size (the largest description, or integer-1 / integer-3 of an explicit RECORD
   clause), so the test is a compile-time LIMIT on the count, the largest n whose record still fits, compared with the

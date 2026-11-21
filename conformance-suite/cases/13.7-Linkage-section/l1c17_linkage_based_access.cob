@@ -9,11 +9,11 @@
       *> "The access to a based data item is described in 13.18.5,
       *>  BASED clause."
       *> cite.py --check 13.7.4 "The access to a based data item is
-      *>   described in 13.18.5, BASED clause." -> OK §2023:13.7.4 1)
+      *>   described in 13.18.5, BASED clause." -> OK §2023:13.7.4 GR1
       *> cite.py --check 13.7.3 "A based data item may be referenced as
-      *>   described in 13.18.5, BASED clause" -> OK §2023:13.7.3 4)
+      *>   described in 13.18.5, BASED clause" -> OK §2023:13.7.3 SR4
       *> cite.py --check 13.18.5.4 "The implicit data-address pointer
-      *>   has an initial value of NULL." -> OK §2023:13.18.5.4 2)
+      *>   has an initial value of NULL." -> OK §2023:13.18.5.4 GR2
       *> cite.py --check 8.6.5 "An association is established linking
       *>   the based entry to actual data when its implicit data-address
       *>   pointer is assigned the address of an existing data item or
@@ -21,7 +21,7 @@
       *>   statement." -> OK §2023:8.6.5
       *> cite.py --check 14.9.3.4 "if data-name-1 is specified, the
       *>   address of the based data item referenced by data-name-1 is
-      *>   set to the address of that storage." -> OK §2023:14.9.3.4 4)
+      *>   set to the address of that storage." -> OK §2023:14.9.3.4 GR4
       *> The rule delegates: a LINKAGE item with BASED is NOT reached
       *> through a formal-parameter correspondence (this main program
       *> has no USING at all - legal, §2023:13.7.3 SR4's based exemption)
@@ -34,7 +34,7 @@
       *>   W=XYZ        so a MOVE into L-Y changes W-ONE.
       *>   Y=DEF        SET to ADDRESS OF W-TWO re-associates L-Y.
       *>   Y-OFF=NULL   SET ADDRESS OF L-Y TO NULL ends the association.
-      *>   X=QR42       ALLOCATE L-X (§2023:14.9.3.4 GR4 b)) gives it fresh
+      *>   X=QR42       ALLOCATE L-X (§2023:14.9.3.4 GR4b) gives it fresh
       *>                storage; its subordinates are then usable.
       *>   X-ADDR=SET   and its address is no longer NULL.
        IDENTIFICATION DIVISION.

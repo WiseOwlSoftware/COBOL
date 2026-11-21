@@ -9,7 +9,7 @@
       *> context-sensitive word with a lexer token is the same word
       *> in its REFERENCE slot as in its DECLARING slot, and an
       *> index-name is a DEFINING word.
-      *>  §2023:8.3.2.1 3): "Context-sensitive words may be used as
+      *>  §2023:8.3.2.1 SR3: "Context-sensitive words may be used as
       *>    user-defined words and system-names in contexts other
       *>    than the language construct in which they are defined"
       *>    (§2023:8.10: CAPACITY OCCURS clause, CYCLE EXIT statement,
@@ -18,7 +18,7 @@
       *>  §2023:8.4.3.2.2: [ FUNCTION ] function-prototype-name-1 ...
       *>  §2023:13.18.38.2: [ INDEXED BY { index-name-1 } ... ]
       *> cite.py --check:
-      *>  OK  §2023:8.3.2.1 3)  (General)
+      *>  OK  §2023:8.3.2.1 SR3  (General)
       *>  OK  §2023:8.10   (Context-sensitive words) | CAPACITY | CYCLE |
       *>      | BYTES | FOREVER |
       *>  OK  §2023:13.18.57.2   (General formats)  TO type-name-1

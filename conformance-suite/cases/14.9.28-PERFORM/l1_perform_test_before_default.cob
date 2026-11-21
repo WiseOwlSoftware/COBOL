@@ -34,7 +34,7 @@
       *> WITH TEST bracket of its own.
       *>
       *> The VARYING legs also print the induction variable.
-      *> §2023:14.9.28.4 GR13 a) sets it to 9 first; GR13 d) then leaves it
+      *> §2023:14.9.28.4 GR13a sets it to 9 first; GR13 d) then leaves it
       *> with "the value it contained when condition-1 was evaluated"
       *> and GR13 b) with "the value it contained at the completion of
       *> the execution of the specified set of statements" — the body
@@ -78,7 +78,7 @@
                " AFT=" CA-AFT.
       *> Carrier B — the OUT-OF-LINE until-phrase (§2023:14.9.28.2
       *> Format 1). Each target is a paragraph of its own, so
-      *> §2023:14.9.28.4 GR5 a) returns after its single statement.
+      *> §2023:14.9.28.4 GR5a returns after its single statement.
            PERFORM BUMP-B-DEF UNTIL G = 1.
            PERFORM BUMP-B-BEF WITH TEST BEFORE UNTIL G = 1.
            PERFORM BUMP-B-AFT WITH TEST AFTER UNTIL G = 1.

@@ -8,14 +8,14 @@
       *> ISO §2023:14.9.11.4 GR2 DISPLAY statement — the implementor-defined SIZE OF A DATA TRANSFER (Annex A.1
       *> item 58, docs/CONFORMANCE.md#DOC-A.1-58).
       *>   python scripts/spec/cite.py --check 14.9.11.4 "The implementor shall define, for each device, the size
-      *>   of a data transfer."  ->  OK  §2023:14.9.11.4 2)
+      *>   of a data transfer."  ->  OK  §2023:14.9.11.4 GR2
       *>
       *> THE DETERMINATION UNDER TEST (row 58): **Unbounded.** The standard display device is a byte stream and
       *> imposes no transfer size, so GR4's arm is ALWAYS the one taken and GR5's splitting arm is unreachable:
       *>   python scripts/spec/cite.py --check 14.9.11.4 "If the device is capable of receiving data of the same
-      *>   size as the data item being transferred, then the data item is transferred."  ->  OK  §2023:14.9.11.4 4)
+      *>   size as the data item being transferred, then the data item is transferred."  ->  OK  §2023:14.9.11.4 GR4
       *>   python scripts/spec/cite.py --check 14.9.11.4 "the data beginning with the leftmost character is
-      *>   stored aligned to the left in the receiving device"  ->  OK  §2023:14.9.11.4 5) a)
+      *>   stored aligned to the left in the receiving device"  ->  OK  §2023:14.9.11.4 GR5a
       *> GR5 a) is what a BOUNDED transfer size would do: an operand larger than one transfer is stored in
       *> pieces, "and the remaining data is then transferred according to General rules 4 and 5" — a second
       *> transfer, and on a line device a second LINE, because GR10 only resets the positioning after the LAST
@@ -36,7 +36,7 @@
       *>           in which the operands are encountered WITHOUT MODIFYING THE POSITIONING OF THE DEVICE between
       *>           the successive operands".
       *>           python scripts/spec/cite.py --check 14.9.11.4 "the size of the sending item is the sum of the
-      *>           sizes associated with the operands"  ->  OK  §2023:14.9.11.4 6)
+      *>           sizes associated with the operands"  ->  OK  §2023:14.9.11.4 GR6
       *>           FIVE operands totalling 1 + 5 + 2 + 5 + 1 = 14 positions come out as fourteen contiguous
       *>           characters on one line, with no separator and no repositioning: [ABCDE][ABCDE].
       *>   line 3  the run continued; nothing about the long transfer was diagnosed or truncated.

@@ -9,7 +9,7 @@
       *> file: the relative sibling of pb1562_variable_group_under_fixed_record_clause (record sequential). The record holds
       *> two DYNAMIC LENGTH members around a fixed one, in a file described with the fixed-length clause RECORD CONTAINS 20
       *> CHARACTERS. It is LEGAL: §2023:13.18.43.3 SR3 - "No record description entry for the file may specify a number of bytes
-      *> greater than integer-1" - bounds the description by its MAXIMUM (§2023:13.18.43.4 GR8 b), by D-FRA (iv): a
+      *> greater than integer-1" - bounds the description by its MAXIMUM (§2023:13.18.43.4 GR8b, by D-FRA (iv): a
       *> dynamic-length item counts at its maximum size), and that maximum is its LIMIT (§2023:8.5.1.10.1): 9 + 3 + 8 = 20
       *> bytes, exactly integer-1. A variable-length group "behaves in all respects as though it were in fact contiguous
       *> with its neighbors" (§2023:8.5.1.11.2), so every record is the concatenation of its members as they stand at the WRITE,
@@ -24,7 +24,7 @@
       *>   RW1       REWRITE of slot 1 with other lengths in the same three members: '00', and R1B reads the new members.
       *>   R2        the empty-member record (both variable members empty, the minimum the description describes).
       *> and the exception paths of the same statements, because the fixed form must not hide them:
-      *>   W1D       a WRITE of slot 1 again: the invalid key condition (§2023:14.9.51.4 GR33 a): the record number names a record that already exists), '22', INVALID KEY runs.
+      *>   W1D       a WRITE of slot 1 again: the invalid key condition (§2023:14.9.51.4 GR33a: the record number names a record that already exists), '22', INVALID KEY runs.
       *>   R4        a READ of slot 4, never written: '23', INVALID KEY runs and NOT INVALID KEY does not.
       *>   D2 R2B    DELETE of slot 2, then READ of slot 2: '23' (the fixed form leaves nothing behind in the slot).
       *> WHY EACH LEG CAN FAIL: the members are overwritten with junk before every READ, so a value that is right can only

@@ -6,7 +6,7 @@
       *> portable: unverified
       *>---
       *> kb/Work PB4641 review R2-1: a floating-point edited receiver
-      *> whose significand holds 32 digits or fewer (13.18.40.3 SR15)
+      *> whose significand holds 32 digits or fewer (PICTURE, §2023:13.18.40.3 SR15)
       *> still takes the final-transfer quotient rounded ONCE. The
       *> exact quotient of 9.99...9E-1 (33 nines) by 2.0E0 is
       *> .49999999999999999999999999999999995 (35 digits, a tie at the

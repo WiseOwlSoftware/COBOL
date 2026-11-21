@@ -13,7 +13,7 @@
       *>   file. The contained program's failing OPEN INPUT FG therefore reaches no
       *>   qualifying declarative: the container's INPUT one is excepted, and the
       *>   one naming FG is not GLOBAL (§1985:X.5.5.4 GR1b).
-      *> DERIVATION. FG is absent, so every OPEN INPUT answers '35' (§2023:9.1.13.6 5)).
+      *> DERIVATION. FG is absent, so every OPEN INPUT answers '35' (§2023:9.1.13.6 GR5).
       *>   In the container the FG declarative runs (file-name scope), so its
       *>   line precedes "OUTER OPEN". The contained OPEN runs no declarative, so
       *>   "INNER OPEN 35" has no line before it. A compiler that runs the GLOBAL

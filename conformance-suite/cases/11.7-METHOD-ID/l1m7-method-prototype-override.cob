@@ -8,7 +8,7 @@
       *> INTERFACE-ID (a method prototype).
       *> Rule: "The OVERRIDE phrase shall not be specified in a method
       *> prototype."
-      *> cite.py: OK  §2023:11.7.3 2)  (Syntax rules)
+      *> cite.py: OK  §2023:11.7.3 SR2  (Syntax rules)
       *> "Method definitions within an interface definition define
       *> method prototypes."
       *> cite.py: OK  §2023:9.3.7   (Method prototypes)

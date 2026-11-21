@@ -10,10 +10,10 @@
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If the
       *>   ADVANCING phrase is not used, automatic advancing shall be
       *>   provided by the implementor to act as if the user has
-      *>   specified AFTER ADVANCING 1 LINE."    -> OK  §2023:14.9.51.4 25)
+      *>   specified AFTER ADVANCING 1 LINE."    -> OK  §2023:14.9.51.4 GR25
       *>   python scripts/spec/cite.py --check 14.9.51.4 "the line is
       *>   presented after the representation of the printed page is
-      *>   advanced"                             -> OK  §2023:14.9.51.4 25) f)
+      *>   advanced"                             -> OK  §2023:14.9.51.4 GR25f
       *> The AFTER write advances, then presents AAAAA on a line it
       *> leaves open; each plain WRITE advances one line FIRST, ending
       *> that line, and presents its record on the next one. So the

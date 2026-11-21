@@ -10,7 +10,7 @@
       *> docs/CONFORMANCE.md DOC-A.1-105). A WRITE ... WITH LOCK is one of those operations, and the lock it requests is
       *> set only "when the execution of the WRITE statement is successful" (§2023:14.9.51.4 GR11), so a WRITE WITH LOCK that
       *> the condition in effect refuses must (1) answer the status that began it, (2) store nothing, and (3) lock nothing.
-      *> The permanent error is made the portable way: a random WRITE with relative key 0 answers '34' (§2023:14.9.51.4 GR29 b).
+      *> The permanent error is made the portable way: a random WRITE with relative key 0 answers '34' (§2023:14.9.51.4 GR29b.
       *>   F   FILE STATUS FS, locks MANUAL WITH LOCK ON MULTIPLE RECORDS, SHARING WITH ALL OTHER; F2 is another file
       *>       connector on the same physical file (the observer) that holds record 1 ("AAAA").
       *>   W0  WRITE key 0 WITH LOCK                 -> '34' (the producer; INVALID KEY does not apply to a '34')

@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB5810 - the accepted sibling of pb5810-record-depending-table-element-relative: the same relative file with an
       *> ELEMENTARY unsigned integer DEPENDING item, the one §2023:13.18.43.3 SR6 admits. The length register is used:
-      *> §2023:13.18.43.4 GR14 makes a WRITE of a record outside FROM 2 TO 8 unsuccessful, I-O status 44 (§2023:9.1.13.7 4) a),
+      *> §2023:13.18.43.4 GR14 makes a WRITE of a record outside FROM 2 TO 8 unsuccessful, I-O status 44 (§2023:9.1.13.7 GR4a,
       *> and a length inside the range writes (status 00). Expected: "W9 44" for 9, "W5 00" for 5.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5810OK.

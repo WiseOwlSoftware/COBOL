@@ -15,11 +15,11 @@
       *> evaluation of an identifier requires evaluation of another
       *> identifier or an arithmetic expression, that evaluation is
       *> done in full before proceeding to the next step."
-      *> cite.py: OK  §2023:14.6.4 2)  (Item identification) function
+      *> cite.py: OK  §2023:14.6.4 GR2  (Item identification) function
       *>            evaluation
-      *> cite.py: OK  §2023:14.6.4 4)  (Item identification) subscript
+      *> cite.py: OK  §2023:14.6.4 GR4  (Item identification) subscript
       *>            evaluation
-      *> cite.py: OK  §2023:14.6.4 7)  (Item identification) reference
+      *> cite.py: OK  §2023:14.6.4 GR7  (Item identification) reference
       *>            modification
       *> cite.py: OK  §2023:14.6.4   (Item identification) "that evaluation
       *>            is

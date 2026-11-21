@@ -8,7 +8,7 @@
       *> alphabet-name-2 AB is an ALPHANUMERIC alphabet.
       *> Rule: "Alphabet-name-2 shall reference an alphabet that
       *> defines a national collating sequence."
-      *> cite.py: OK  §2023:14.9.24.3 6)  (Syntax rules)
+      *> cite.py: OK  §2023:14.9.24.3 SR6  (Syntax rules)
       *> AA (alphabet-name-1) is an alphanumeric alphabet, so SR5 holds;
       *> AB is declared but alphanumeric, the wrong class for the
       *> alphabet-name-2 position.  alphabet-name-2 exists only from

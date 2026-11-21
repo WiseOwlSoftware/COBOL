@@ -5,14 +5,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:8.3.2.1 4) — one word used both as a system-name and as a
+      *> ISO §2023:8.3.2.1 SR4 — one word used both as a system-name and as a
       *> user-defined word
       *>
       *> "4) A given word may be used as a system-name and as a
       *> user-defined word, subject to the rules
       *> specified in 8.3.2.2, User-defined words, and 8.3.2.3,
       *> System-names."
-      *>   cite.py: OK  §2023:8.3.2.1 4)  (General)
+      *>   cite.py: OK  §2023:8.3.2.1 SR4  (General)
       *> The 8.3.2.3 half: "Within an implementation, a given
       *> system-name shall not belong to more than one
       *> of the following types of system-names: device-name,
@@ -22,7 +22,7 @@
       *> SPECIAL-NAMES paragraph of the environment
       *> division and shall be associated with an implementor-defined
       *> device-name"
-      *>   cite.py: OK  §2023:14.9.11.3 2)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.11.3 SR2  (Syntax rules)
       *>
       *> Every system-name below is ALSO declared as a user-defined word
       *> of another type. Rule 4 makes

@@ -12,7 +12,7 @@
    "GR-12.4.5.10.3-3"
   ],
   "bridge": true,
-  "reason": "1985 WRITE GR11: successor relationship established by the order of WRITEs when the file is created; unchanged except when records are added to the end. §2023:14.9.51.4 GR17 restates both sentences ('physical file' is terminology); §2023:14.9.51.4 GR18 puts extend additions at the end; §2023:12.4.5.5.3 GR2 a) and §2023:12.4.5.10.3 GR3 restate that WRITE establishes the predecessor-successor relationship. Same.",
+  "reason": "1985 WRITE GR11: successor relationship established by the order of WRITEs when the file is created; unchanged except when records are added to the end. §2023:14.9.51.4 GR17 restates both sentences ('physical file' is terminology); §2023:14.9.51.4 GR18 puts extend additions at the end; §2023:12.4.5.5.3 GR2a and §2023:12.4.5.10.3 GR3 restate that WRITE establishes the predecessor-successor relationship. Same.",
   "source": "adjudicate-712-r2/slice-07",
   "digests": {
    "GR-14.9.51.4-17": "7c5c5986c02d",

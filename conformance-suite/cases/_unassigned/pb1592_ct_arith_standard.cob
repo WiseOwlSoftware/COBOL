@@ -22,7 +22,7 @@
       *>   2023 removed, so the mode 2002/2014 prescribed.
       *>   §2023:7.3.6.3 GR2 "The implementor shall define and document which
       *>   mode of arithmetic is to be used when evaluating compile-time
-      *>   arithmetic." -> OK §2023:7.3.6.3 2) (the 2023 latitude only).
+      *>   arithmetic." -> OK §2023:7.3.6.3 GR2 (the 2023 latitude only).
       *>   §2023:7.3.6.3 GR3 "The final result of the arithmetic expression
       *>   shall be truncated to the integer part of the value" -> OK
       *>   §2023:7.3.6.3 3).
@@ -46,7 +46,7 @@
       *>           fits 34 digits (2023 refuses it: beyond 7.9E28).
       *>   OV2=9999999999999999999999999999  K-OV / 10, the
       *>           constant-name operand substituting its 29-digit
-      *>           value (§2023:13.10.3 SR2 -> OK §2023:13.10.3 2)).
+      *>           value (§2023:13.10.3 SR2 -> OK §2023:13.10.3 SR2).
       *>   TIE=10010  1000000000000000000000000000001 * 10005 is exactly
       *>           10005000000000000000000000000010005 (35 digits): the
       *>           34-digit result drops a lone final 5 - a tie - and
@@ -57,7 +57,7 @@
       *>           constant conditional expression (§2023:7.3.8 via §2023:7.3.6);
       *>           V-H and V-BIG are single literals, so they keep their
       *>           values (§2023:7.3.11.4 GR5: "treated as a literal, not as
-      *>           an arithmetic-expression" -> OK §2023:7.3.11.4 5)), and
+      *>           an arithmetic-expression" -> OK §2023:7.3.11.4 GR5), and
       *>           V-H / 2 * V-BIG is T2's expression: 7.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1592S.

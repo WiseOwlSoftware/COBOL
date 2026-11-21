@@ -10,7 +10,7 @@
       *>   cite.py --check 12.3.7.4 "When the LOCALE phrase is
       *>     specified, the collating sequence identified is defined
       *>     by the locale referenced by locale-name-2 when specified"
-      *>     -> OK §2023:12.3.7.4 7)  (GR7 e))
+      *>     -> OK §2023:12.3.7.4 GR7  (GR7 e))
       *>   cite.py --check 8.8.4.2.11 "Comparison then proceeds by the
       *>     algorithm associated with the collating sequence defined
       *>     by category LC_COLLATE from the current locale"

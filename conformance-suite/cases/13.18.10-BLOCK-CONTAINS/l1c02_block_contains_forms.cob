@@ -14,13 +14,13 @@
       *>  OK §2023:13.18.10.2 (General format)
       *>  OK §2023:13.18.10.1 The BLOCK CONTAINS clause specifies the size
       *>     of a physical record.
-      *>  OK §2023:13.18.10.3 1) If integer-1 is specified, integer-2 shall
+      *>  OK §2023:13.18.10.3 SR1 If integer-1 is specified, integer-2 shall
       *>     be greater than integer-1.  (10<100, 10<20 below)
-      *>  OK §2023:13.18.10.4 1) This clause is required except when one or
+      *>  OK §2023:13.18.10.4 GR1 This clause is required except when one or
       *>     more of the following conditions exist
-      *>  OK §2023:13.18.10.4 1) a) A physical record contains one and only
+      *>  OK §2023:13.18.10.4 GR1a A physical record contains one and only
       *>     one complete logical record.
-      *>  OK §2023:13.18.10.4 2) The size of a physical record may be stated
+      *>  OK §2023:13.18.10.4 GR2 The size of a physical record may be stated
       *>     in terms of records unless one or more of the following
       *>     situations exists, in which case the RECORDS phrase shall
       *>     not be used

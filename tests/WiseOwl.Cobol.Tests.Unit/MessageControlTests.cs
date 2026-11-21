@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The message control system's failure paths and its lifetime rules, which a compiled program's one run unit cannot reach: an unreadable definition file and a store the host refuses
-/// (ISO/IEC 1989:2002 Table A.1's implementor-defined 9x, docs/CONFORMANCE.md), a message crossing run units (E.5.5.1), and ISO/IEC 1989:2002 14.5.10 rule 2's end of a partly sent or
+/// (Table A.1 of §2002:A.1.2.4, its implementor-defined 9x, docs/CONFORMANCE.md), a message crossing run units (E.5.5.1), and the second item of §2002:14.5.10, the end of a partly sent or
 /// partly received message. Each area below is the image a compiled program hands over, built by position from A.1.2.3 GR2 and GR16, so a wrong offset fails here too.
 /// </summary>
 public sealed class MessageControlTests : IDisposable
@@ -199,7 +199,7 @@ public sealed class MessageControlTests : IDisposable
         Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "D1"), "A", SendIndicator.EndOfMessage)));
     }
 
-    /// <summary>§1985:XIV.2.2.4 GR4, GR10 and GR20 with §1985:p.A-9 ("Each lowercase letter is considered to be equivalent to its corresponding uppercase letter"): the
+    /// <summary>§1985:XIV.2.2.4 GR4, GR10 and GR20 with §1989:p.A-9 ("Each lowercase letter is considered to be equivalent to its corresponding uppercase letter"): the
     /// symbolic names a CD holds designate the queue, sub-queue, source, terminal and destination whatever their letter case (kb/Work PB5284).</summary>
     [Fact]
     public void SymbolicNames_AreComparedWithoutLetterCase()
@@ -445,7 +445,7 @@ public sealed class MessageControlTests : IDisposable
         Assert.Equal("000000", InputCount(receiver.AcceptMessageCount(InputArea("Q1"))));
     }
 
-    /// <summary>A run unit that ends takes the remainder of a message it was receiving with it (§1985:VI.6.24.4 GR3; ISO/IEC 1989:2002 14.5.10 rule 2), so another run unit never
+    /// <summary>A run unit that ends takes the remainder of a message it was receiving with it (§1985:VI.6.24.4 GR3; the second item of §2002:14.5.10), so another run unit never
     /// counts it: the dead owner's row is dropped where it is found.</summary>
     [Fact]
     public void AMessagePartlyReceivedByARunUnitThatEnded_IsNotCounted()
@@ -813,7 +813,7 @@ public sealed class MessageControlTests : IDisposable
         Assert.False(Session().Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "....", noDataPhrase: true).DataAvailable);
     }
 
-    /// <summary>ISO/IEC 1989:2002 14.5.10 rule 2: "Any portions of messages transferred from the run unit by a SEND statement, and not terminated by an EMI or EGI, are purged from the system."</summary>
+    /// <summary>The second item of §2002:14.5.10: "Any portions of messages transferred from the run unit by a SEND statement, and not terminated by an EMI or EGI, are purged from the system."</summary>
     [Fact]
     public void PortionNotEnded_IsPurgedWithTheRunUnit()
     {
@@ -858,6 +858,27 @@ public sealed class MessageControlTests : IDisposable
         Assert.Equal("HI", receipt.Into);
         Assert.Equal('3', receipt.Area[30]);
         Assert.Equal("0002", receipt.Area.Substring(26, 4));
+    }
+
+    /// <summary>A RECEIVE ... NO DATA on an input-output CD that finds nothing sets the end key (data-name-5, position 31) to 0: "If less than a message is
+    /// transferred, the content of the data item referenced by data-name-5 is set to 0" (§1985:XIV.2.2.4 GR33a.3), and for a segment "If less than a message segment
+    /// is transferred" (GR33b.4), the CD being updated "at each execution of a RECEIVE statement" (§1985:XIV.3.5.4 GR6). So the end key does not keep the
+    /// previous RECEIVE's 3, and the text length is 0, nothing having been transferred (kb/Work PB5365).</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ReceiveNoData_OnAnInputOutputCd_SetsTheEndKeyToZero(bool segment)
+    {
+        var session = Session();
+        Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(2, "T9"), "HI", SendIndicator.EndOfGroup)));
+        var first = session.Receive(Cd("I"), CommunicationFormat.InputOutput, InOutArea("T1"), segment, "..", noDataPhrase: true);
+        Assert.Equal('3', first.Area[30]);
+        var none = session.Receive(Cd("I"), CommunicationFormat.InputOutput, first.Area, segment, "..", noDataPhrase: true);
+        Assert.False(none.DataAvailable);
+        Assert.Equal("..", none.Into);
+        Assert.Equal("00", InOutStatus(none.Area));
+        Assert.Equal('0', none.Area[30]);
+        Assert.Equal("0000", none.Area.Substring(26, 4));
     }
 
     /// <summary>A device of this MCS is its file; a terminal's and a destination's message arrives whole, and an empty segment adds nothing to it.</summary>

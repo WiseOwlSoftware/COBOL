@@ -26,7 +26,7 @@
       *> PREVIOUS), so this golden runs at 2002; the negative
       *> pb370-start-reverse-operator-85 pins the gate below it.
       *> FR holds records at relative record numbers 2, 4 and 6 only.
-      *> Each START is followed by READ NEXT, which (§2023:14.9.30.4 GR21 b)
+      *> Each START is followed by READ NEXT, which (§2023:14.9.30.4 GR21b
       *> and GR25) makes the selected record available and moves its
       *> number into RK, so the file position indicator prints outright.
       *>   LT5  KEY < 5: searching in REVERSE, the first record whose

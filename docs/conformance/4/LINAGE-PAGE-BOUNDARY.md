@@ -16,7 +16,7 @@ order: 15
 > FOOTING-only fixture cannot see. §2023:13.18.34.4 GR3 puts that same line INSIDE the footing area ("between the
 > footing start and the page size, **inclusive**"), which arm b)'s clamp then excludes. And GR26's own lead
 > sentence conditions the whole rule on lines that "do not fit within the current page body" — a line landing on
-> the last body line fits. §2023:13.18.34.4 GR7 c) 1 corroborates the strict boundary from the other side: the
+> the last body line fits. §2023:13.18.34.4 GR7c 1 corroborates the strict boundary from the other side: the
 > standard's way of making arm a) fire for ADVANCING PAGE is to say the counter "is implicitly incremented to
 > **exceed** the value specified by integer-1" — equality would have sufficed had equality been the trigger.
 > **The survey does not split** (the 2026-08-30 standing answer): IBM Enterprise COBOL for z/OS 6.3 states the

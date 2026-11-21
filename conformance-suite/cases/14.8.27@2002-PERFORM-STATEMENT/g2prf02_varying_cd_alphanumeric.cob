@@ -6,7 +6,7 @@
       *>---
       *> §2002:14.8.27.2 SR2 - "Each identifier shall reference a
       *>   numeric elementary item". SQ, the SYMBOLIC QUEUE of the
-      *>   input CD, is alphanumeric X(12) (§2002:A.1.2.3 GR2 a):
+      *>   input CD, is alphanumeric X(12) (§2002:A.1.2.3 GR2a:
       *>   VARYING SQ is refused at the PERFORM line.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. G2PRF02.

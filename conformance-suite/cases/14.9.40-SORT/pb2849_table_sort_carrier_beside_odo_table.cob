@@ -10,9 +10,9 @@
       *>
       *> THE RULES, --check validated:
       *>   cite.py --check 14.9.40.4 "The sorted table elements of the table referenced by data-name-2 are placed in
-      *>     the table referenced by data-name-2." -> OK §2023:14.9.40.4 24)
+      *>     the table referenced by data-name-2." -> OK §2023:14.9.40.4 GR24
       *>   cite.py --check 13.18.38.4 "The value of the data item referenced by data-name-1 represents the current
-      *>     number of occurrences of the subject of the entry" -> OK §2023:13.18.38.4 7)
+      *>     number of occurrences of the subject of the entry" -> OK §2023:13.18.38.4 GR7
       *>   cite.py --check 8.5.1.11.2 "behaves in all respects as though it were in fact contiguous with its
       *>     neighbors" -> OK §2023:8.5.1.11.2
       *> The record BR is EXTERNAL, so its variable-length components live apart from its fixed run and each element
@@ -30,7 +30,7 @@
       *>   EXCEPTION PATH. N = 7 is above integer-2 (4), so the subject T and the items subordinate or superordinate
       *>   to it (BR) would raise EC-BOUND-ODO when referenced (§2023:13.18.38.4 GR7, --check validated:
       *>   cite.py --check 13.18.38.4 "At the time the subject of entry is referenced or any data item subordinate
-      *>   or superordinate to the subject of entry is referenced" -> OK §2023:13.18.38.4 7)). E is a SIBLING of T, neither
+      *>   or superordinate to the subject of entry is referenced" -> OK §2023:13.18.38.4 GR7). E is a SIBLING of T, neither
       *>   subordinate nor superordinate to it, so under checking SORT E DESCENDING KEY EK with N = 7 raises nothing
       *>   and still sorts, carriers whole: the declarative stays silent (no RAISED line) and the elements read
       *>   3THREE3ZY (9), 2TWO2 (5), 1ONE1Q (6). A regression that applied the record's count bound to a reference

@@ -17,9 +17,9 @@
       *>   conjunction (B-AND) 3rd — exclusive disjunction (B-XOR)
       *>   4th — inclusive disjunction (B-OR)"
       *> cite.py:
-      *>   OK  §2023:7.3.13.4 3)  (General rules)
-      *>   OK  §2023:7.3.7.3 1)  (General rule)
-      *>   OK  §2023:8.8.2 7) b)  (Boolean expressions)
+      *>   OK  §2023:7.3.13.4 GR3  (General rules)
+      *>   OK  §2023:7.3.7.3 GR1  (General rule)
+      *>   OK  §2023:8.8.2 GR7b  (Boolean expressions)
       *> EXPECTED OUTPUT, DERIVED (bitwise, per 8.8.2):
       *>   A-AND-0010         1010 B-AND 0110 = 0010 (not 0001).
       *>   B-NOT-0010         B-NOT 1101 = 0010.

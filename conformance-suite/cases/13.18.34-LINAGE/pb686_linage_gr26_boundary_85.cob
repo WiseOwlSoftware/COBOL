@@ -32,7 +32,7 @@
       *> fixture is the evidence for the 85 end of that claim.
       *>
       *> The PLN file repeats the FTG boundary through the PLAIN-WRITE
-      *> entry point (§2023:13.18.34.4 GR7 c) 3 — an omitted ADVANCING
+      *> entry point (§2023:13.18.34.4 GR7c 3 — an omitted ADVANCING
       *> phrase increments the counter by one), because the boundary
       *> comparison is reachable from more than one WRITE entry point
       *> and a one-arm fix is this repo's most reproducible defect.

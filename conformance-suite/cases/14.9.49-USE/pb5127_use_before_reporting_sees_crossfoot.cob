@@ -14,7 +14,7 @@
       *> operands of SUM clauses in higher level control footing report groups are added to the higher level sum
       *> counters." c. "If there is a USE BEFORE REPORTING procedure that references the data-name of the report
       *> group the USE procedure is executed."  d./e. SUPPRESS skips the printing; f. the counters are reset.
-      *> §2023:14.9.49.4 GR9 b): the declarative is invoked "After incrementing sum counters defined in the report
+      *> §2023:14.9.49.4 GR9b: the declarative is invoked "After incrementing sum counters defined in the report
       *> group".
       *>
       *> Derivation. CF-K (control WS-KEY) sums WS-AMT1 into SUB-A and WS-AMT2 into SUB-B and crossfoots both into
@@ -29,8 +29,8 @@
       *> final resets, reads zero everywhere (LINE=05: the suppressed footing printed no line, the FINAL footing one).
       *> Each USE line can fail: a USE run before step a or b reads the previous totals.
       *> Accepted at COBOL-85 only: a SUM whose addend is an entry of its own report group (the crossfoot of
-      *> step a) is §2023:13.18.54.3 SR4 b) 's repeating-item case from 2002 (COBOL2730 otherwise); the order
-      *> itself is every edition's (§2023:14.9.49.4 GR9 b)).
+      *> step a) is §2023:13.18.54.3 SR4b 's repeating-item case from 2002 (COBOL2730 otherwise); the order
+      *> itself is every edition's (§2023:14.9.49.4 GR9b).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5127CFSEQ.
        ENVIRONMENT DIVISION.

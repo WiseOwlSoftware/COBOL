@@ -10,14 +10,14 @@
       *> "All references to identifier-2 and literal-1 apply equally to
       *> identifier-3 and literal-2, respectively, and all recursions
       *>   thereof."
-      *> OK  §2023:14.9.48.4 1)  (General rules)
+      *> OK  §2023:14.9.48.4 GR1  (General rules)
       *> Every delimiter below that matches is an OR operand
       *>   (identifier-3 or
       *> literal-2); the DELIMITED BY operand "#" never occurs in S.
       *>   Rules
       *> stated only for identifier-2/literal-1 must therefore apply to
       *>   them:
-      *> OK  §2023:14.9.48.4 7) (ALL) "one occurrence or two or more
+      *> OK  §2023:14.9.48.4 GR7 (ALL) "one occurrence or two or more
       *>   contiguous
       *>     occurrences of literal-1 (figurative constant or not) or
       *>       the
@@ -26,11 +26,11 @@
       *>     as if they were only one occurrence" + one occurrence is
       *>       moved
       *>     to identifier-5 (GR7 second paragraph, GR11d).
-      *> OK  §2023:14.9.48.4 9) "all of the characters shall be present in
+      *> OK  §2023:14.9.48.4 GR9 "all of the characters shall be present in
       *>     contiguous positions of the sending item, and in the order
       *>     given, to be recognized as a delimiter" (identifier-3
       *>       "-+").
-      *> OK  §2023:14.9.48.4 11) b) "the examination proceeds left to right
+      *> OK  §2023:14.9.48.4 GR11b "the examination proceeds left to right
       *>   until
       *>     a delimiter specified by either literal-1 or the value of
       *>       the

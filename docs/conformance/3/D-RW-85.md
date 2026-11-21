@@ -4,7 +4,7 @@
   printable item with spaces when the size error indicator is set; §1985:XIII.3.19.4 GR4 has no indicator and MOVEs the counter, so at
   `--std 85` the item holds the counter's content (the value after an overflow is undefined, its presentation is not) and nothing is
   raised (`CobolReport.SumPresentable`, `DialectBehavior.SumSizeErrorBlanksPrintableItem`). (b) *TERMINATE after a saved NEXT GROUP
-  (PB5245, row 7.59)*: §2023:13.18.37.4 GR4 a) discards the saved integer; at `--std 85` the first control footing TERMINATE produces meets
+  (PB5245, row 7.59)*: §2023:13.18.37.4 GR4a discards the saved integer; at `--std 85` the first control footing TERMINATE produces meets
   it in its fit test (§1985:XIII.3.10.8 GR3; `CobolReport.TerminateCore`). (c) *GROUP INDICATE and SUPPRESS (PB5246, row 7.60)*: from 2002
   every GENERATE of the detail uses the occasion up; at `--std 85` only a GENERATE that presented (§1985:XIII.3.13.4 GR1, XIII.4.6.4 GR3;
   `CobolReport.GenerateCore`). (d) *GENERATE report-name and SUM ... UPON (PB5249)*: §1985:XIII.3.20.4 GR11 processes the statement of
@@ -16,7 +16,7 @@
   (§1985:XIII.3.20.4 GR11 b) and d); at every edition, since §2023:14.9.49.4 GR9 performs the procedure "on each occasion that the named
   report group is processed" and GR2's summary reporting is the detail's processing without its printing; GnuCOBOL runs it too, though
   before the subtotal), and a report with several details runs none; the processed detail's entries are added into the SUM counters naming
-  them, §2023:13.18.54.4 GR7 a) (kb/Work PB5337; `CobolReport.BeginGroup`'s `print: false`). (e) *Table 1 (PB5243)*: at `--std 85` an elementary format 3 entry's clauses must be the cells of one row of §1985:XIII.3.9.3 SR11
+  them, §2023:13.18.54.4 GR7a (kb/Work PB5337; `CobolReport.BeginGroup`'s `print: false`). (e) *Table 1 (PB5243)*: at `--std 85` an elementary format 3 entry's clauses must be the cells of one row of §1985:XIII.3.9.3 SR11
   Table 1 (`ReportEntryClauseTable`): SOURCE with JUSTIFIED, BLANK WHEN ZERO or GROUP INDICATE and no COLUMN clause is legal there (the entry
   prints nothing), and VALUE with BLANK WHEN ZERO and SUM with JUSTIFIED are refused; at every edition SOURCE, SUM and VALUE are the
   alternatives of one brace (§1985:XIII.3.9.2, §2023:13.15.2) and an entry writing two is refused COBOL2247. Witnesses:

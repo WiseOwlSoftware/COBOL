@@ -55,7 +55,7 @@
       *> §2023:15.43.4 r1 constrains only a FLOATING-POINT numeric-edited argument-1; no argument here is one.
       *>
       *> Rendering: each folded value is MOVEd to PIC +99999.999, whose leftmost '+' is a FIXED INSERTION sign
-      *> that prints '+' for a positive or zero value (§2023:13.18.40.5 rule 5, Table 8) — every expected line
+      *> that prints '+' for a positive or zero value (§2023:13.18.40.5 GR5, Table 8) — every expected line
       *> therefore also asserts that the returned value is POSITIVE, which is half of what r2 says.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1HIALGNT.

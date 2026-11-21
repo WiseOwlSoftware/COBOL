@@ -6,7 +6,7 @@
 *>---
 *> kb/Work PB1160 - §2023:14.9.33.3 SR2 (§2002:14.8.31.2 SR2, the same words): "The RESUME statement shall not be
 *> specified in a declarative procedure for which the GLOBAL phrase is specified in the associated USE statement."
-*>   OK  §2023:14.9.33.3 2)  (Syntax rules)    OK  §2002:14.8.31.2 2)  (Syntax rules)
+*>   OK  §2023:14.9.33.3 SR2  (Syntax rules)    OK  §2002:14.8.31.2 SR2  (Syntax rules)
 *> The direct form: a RESUME written in the declarative procedure G whose USE statement carries GLOBAL is refused
 *> with COBOL0713. Every statement here exists in 2002, so the refusal witnesses the rule at 2002 as at 2023; the
 *> WHEN-phrase form (pb1160-resume-in-when-in-global-declarative) needs the 2023 exception-checking PERFORM.

@@ -10,7 +10,7 @@
       *> not specified, or argument-1 is of length zero, the returned value is of length zero."
       *>   python scripts/spec/cite.py --check 15.96.4 "If argument-1 contains only characters that are
       *>   argument-2, spaces if argument-2 is not specified, or argument-1 is of length zero, the returned value
-      *>   is of length zero."  ->  OK  §2023:15.96.4 4)  (Returned value rules)
+      *>   is of length zero."  ->  OK  §2023:15.96.4 RV4  (Returned value rules)
       *>
       *> ⛔ THE INSTRUMENT IS FUNCTION LENGTH OF THE RESULT, NOT A MOVE. r4 is a statement about the LENGTH of
       *> the returned value, and a MOVE into a fixed receiver renders an EMPTY result and a correct one

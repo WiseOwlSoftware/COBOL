@@ -12,7 +12,7 @@
       *>     -> OK §2023:12.4.5.14.2 (General format)
       *>   cite.py --check 5.5 "shall be unsigned and nonzero unless
       *>   otherwise specified in the associated rules"
-      *>     -> OK §2023:5.5 1) (Integer operands)
+      *>     -> OK §2023:5.5 SR1 (Integer operands)
       *> Each of the three spellings the format admits is written on
       *> its own file: RESERVE 5 AREAS (F1), RESERVE 1 AREA (F2),
       *> RESERVE 3 with the optional word omitted (F3). The number of

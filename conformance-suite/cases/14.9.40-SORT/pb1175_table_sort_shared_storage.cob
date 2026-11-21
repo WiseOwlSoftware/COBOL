@@ -10,11 +10,11 @@
       *>
       *> THE RULES, --check validated:
       *>   cite.py --check 14.9.40.4 "The SORT statement sorts the table referenced by data-name-2 and presents the
-      *>     sorted table in data-name-2" -> OK §2023:14.9.40.4 18)
+      *>     sorted table in data-name-2" -> OK §2023:14.9.40.4 GR18
       *>   cite.py --check 14.9.40.4 "The sorted table elements of the table referenced by data-name-2 are placed in
-      *>     the table referenced by data-name-2" -> OK §2023:14.9.40.4 24)
+      *>     the table referenced by data-name-2" -> OK §2023:14.9.40.4 GR24
       *>   cite.py --check 13.18.44.4 "Storage association for the subject of the entry starts at the first bit of the
-      *>     data item referenced by data-name-2" -> OK §2023:13.18.44.4 1)
+      *>     data item referenced by data-name-2" -> OK §2023:13.18.44.4 GR1
       *> §2023:14.9.40.3 SR13 asks only that data-name-2 "have an OCCURS clause"; no rule excepts a table whose storage is
       *> shared with another description, and GR18/GR24 sort the table and present it in data-name-2, so the sorted
       *> elements ARE the storage the other views read. A compiler that cannot sort such a table must refuse the

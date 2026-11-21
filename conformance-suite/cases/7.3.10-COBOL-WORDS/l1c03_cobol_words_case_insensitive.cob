@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:7.3.10.4 1) — COBOL-WORDS literals, and the equated and
+      *> ISO §2023:7.3.10.4 GR1 — COBOL-WORDS literals, and the equated and
       *> substituted words, are case-insensitive
       *>
       *> "1) The content of each literal shall be processed as
@@ -13,9 +13,9 @@
       *> within a compilation group. Any use of an equated or
       *> substituted literal shall be case-insensitive when used
       *> syntactically as a COBOL word."
-      *>   cite.py: OK  §2023:7.3.10.4 1)  (General rules)   (both sentences)
+      *>   cite.py: OK  §2023:7.3.10.4 GR1  (General rules)   (both sentences)
       *> "2) Each literal ... shall be evaluated as case-insensitive."
-      *>   cite.py: OK  §2023:7.3.10.3 2)  (Syntax rules)
+      *>   cite.py: OK  §2023:7.3.10.3 SR2  (Syntax rules)
       *> The directives must precede the first IDENTIFICATION DIVISION
       *> (§2023:7.3.10.3 SR1), hence their position below this comment.
       *>

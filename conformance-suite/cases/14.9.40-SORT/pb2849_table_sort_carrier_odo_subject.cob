@@ -10,18 +10,18 @@
       *>
       *> THE RULES, --check validated:
       *>   cite.py --check 14.9.40.4 "The sorted table elements of the table referenced by data-name-2 are placed in
-      *>     the table referenced by data-name-2." -> OK §2023:14.9.40.4 24)
+      *>     the table referenced by data-name-2." -> OK §2023:14.9.40.4 GR24
       *>   cite.py --check 14.9.40.4 "The number of occurrences of table elements referenced by data-name-2 is
-      *>     determined by the rules in the OCCURS clause" -> OK §2023:14.9.40.4 20)
+      *>     determined by the rules in the OCCURS clause" -> OK §2023:14.9.40.4 GR20
       *>   cite.py --check 13.18.38.4 "the value of the data item referenced by data-name-1 shall fall within the
       *>     bounds from integer-1 through integer-2. If the value of the data item does not fall within the
-      *>     specified bounds, the EC-BOUND-ODO exception condition is set to exist." -> OK §2023:13.18.38.4 7)
+      *>     specified bounds, the EC-BOUND-ODO exception condition is set to exist." -> OK §2023:13.18.38.4 GR7
       *>   cite.py --check 14.9.33.4 "If the NEXT STATEMENT phrase is specified, control is transferred to an
-      *>     implicit CONTINUE statement" -> OK §2023:14.9.33.4 2)
+      *>     implicit CONTINUE statement" -> OK §2023:14.9.33.4 GR2
       *>   cite.py --check 8.5.1.11.2 "behaves in all respects as though it were in fact contiguous with its
       *>     neighbors" -> OK §2023:8.5.1.11.2
       *>   cite.py --check 15.50.4 "the returned value is an integer equal to the length of argument-1 in
-      *>     alphanumeric character positions" -> OK §2023:15.50.4 3)
+      *>     alphanumeric character positions" -> OK §2023:15.50.4 RV3
       *> E is an OCCURS DEPENDING table (N, EXTERNAL) and each element holds two dynamic-length items and a
       *> dynamic-capacity table: a variable-length element (§2023:8.5.1.11.2), which the statement moves whole as its
       *> component carrier. An element cannot hold an OCCURS DEPENDING table of its own (§2023:13.18.38.3 SR1 b: the OCCURS
@@ -30,7 +30,7 @@
       *>
       *> THE OBSERVER. A dynamic-capacity table nested in E has its capacity register inside E (§2023:13.18.38.3 SR30),
       *> which SR31 forbids to subscript, so no reference names ECAP. The capacity shows in the element's own length:
-      *> LENGTH of a variable-length element is its contiguous current extent (§2023:8.5.1.11.2; §2023:15.50.4 rule 3 counts
+      *> LENGTH of a variable-length element is its contiguous current extent (§2023:8.5.1.11.2; §2023:15.50.4 RV3 counts
       *> alphanumeric positions) = 1 (EK) + the two dynamic-length items + the table's current capacity, and the
       *> element DISPLAYs as that same contiguous image.
       *>

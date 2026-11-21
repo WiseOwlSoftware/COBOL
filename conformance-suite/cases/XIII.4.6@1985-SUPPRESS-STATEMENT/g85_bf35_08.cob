@@ -13,7 +13,7 @@
       *> presentation (§1985:XIII.4.6.4 GR1) and the adjustment of
       *> LINE-COUNTER (GR3 a, d; §1985:XIII.3.5.6 GR5). An unpaged
       *> report (§1985:XIII.3.8.4 GR3), detail LINE PLUS 1
-      *> (§1985:XIII.3.10.8 GR4 d): detail 1 on line 1 (LINE-COUNTER
+      *> (§1985:XIII.3.10.8 GR4d: detail 1 on line 1 (LINE-COUNTER
       *> 1), detail 2 suppressed (LINE-COUNTER stays 1), detail 3 on
       *> line 2 (LINE-COUNTER 2). The file is read back as S P<page>
       *> L<line> <text>.

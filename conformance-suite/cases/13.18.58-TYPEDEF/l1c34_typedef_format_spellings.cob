@@ -14,11 +14,11 @@
       *>   IS <u>TYPEDEF</u> [ <u>STRONG</u> ]
       *> cite.py --check 13.18.58.3 "If the subject of the entry is an
       *>   elementary item, the STRONG phrase shall not be specified"
-      *>   -> OK §2023:13.18.58.3 1) (Syntax rules)
+      *>   -> OK §2023:13.18.58.3 SR1 (Syntax rules)
       *> cite.py --check 13.18.58.4 "If the TYPEDEF clause is
       *>   specified, the
       *>   data description entry is a type declaration" -> OK
-      *>     §2023:13.18.58.4 1)
+      *>     §2023:13.18.58.4 GR1
       *> The four spellings the format admits -- TYPEDEF, IS TYPEDEF,
       *> TYPEDEF STRONG, IS TYPEDEF STRONG -- each declare a type
       *>   (STRONG only

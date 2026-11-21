@@ -14,12 +14,12 @@
       *>   data description clauses associated with an item whose
       *>   description includes an OCCURS clause apply to each
       *>   occurrence of the item described."
-      *>   OK  §2023:13.18.38.4 1)  (General rules)
+      *>   OK  §2023:13.18.38.4 GR1  (General rules)
       *> §2023:13.18.38.4 GR7: "The value of the data item referenced by
       *>   data-name-1 represents the current number of occurrences of
       *>   the subject of the entry."
-      *>   OK  §2023:13.18.38.4 7)  (General rules)
-      *> §2023:13.18.38.4 GR8 a): when data-name-1 is outside the
+      *>   OK  §2023:13.18.38.4 GR7  (General rules)
+      *> §2023:13.18.38.4 GR8a: when data-name-1 is outside the
       *>   occurs-depending group, only that part of the table area
       *>   specified by its value at the start of the operation is
       *>   used (the printed text of GR8 a), read from the spec).
@@ -27,7 +27,7 @@
       *>   does not reference a variable-length group, is treated
       *>   exactly as if it were an alphanumeric to alphanumeric
       *>   elementary move"
-      *>   OK  §2023:14.9.25.4 4)  (General rules)
+      *>   OK  §2023:14.9.25.4 GR4  (General rules)
       *> §2023:14.6.8.5: alphanumeric receiving data is "aligned at the
       *>   leftmost character position in the data item with space fill
       *>   or truncation to the right".

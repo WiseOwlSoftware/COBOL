@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:14.9.13.3 SR7 a): the selection objects "shall be valid operands for comparison to the
+      *> ISO §2023:14.9.13.3 SR7a: the selection objects "shall be valid operands for comparison to the
       *> corresponding operand in the set of selection subjects in accordance with 8.8.4.2, Simple relation
       *> conditions."  §2023:8.8.4.2.1 makes a relation over a class-pointer operand a
       *> message-tag-object-or-pointer-reference relation condition, and §2023:8.8.4.2.3 SR5 requires BOTH its

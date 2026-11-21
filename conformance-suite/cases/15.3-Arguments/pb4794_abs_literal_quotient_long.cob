@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4794 - ISO §2023:15.7.4 1) a) (cite.py --check 15.7.4 OK): FUNCTION ABS of a zero or positive argument is "(argument-1)", the
+      *> PB4794 - ISO §2023:15.7.4 RV1a (cite.py --check 15.7.4 OK): FUNCTION ABS of a zero or positive argument is "(argument-1)", the
       *> equivalent arithmetic expression, so FUNCTION ABS (1 / 1048576 * 1048576) is the value the arithmetic expression has, into
       *> whichever receiver. The quotient 1 / 1048576 is a terminating decimal of 20 fraction digits, longer than the 14 a nested
       *> quotient is certain to keep (the receiver's scale decides the rest), so a receiver of one digit stores 0 for the expression

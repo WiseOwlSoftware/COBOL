@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.58.3 rule 1 — "Argument-1 shall be a data item of category numeric or numeric-edited and
+      *> ISO §2023:15.58.3 AR1 — "Argument-1 shall be a data item of category numeric or numeric-edited and
       *> shall not be an integer function or numeric function." FOUR violations, one for each clause of the
       *> rule; every one draws COBOL1516.
       *>   (a) AN PIC X(5) — category alphanumeric (§2023:8.5.2.1 Table 2), neither category the rule admits.

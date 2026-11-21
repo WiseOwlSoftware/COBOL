@@ -1,5 +1,5 @@
 - **D-RANGE-KNOWN — when "the runtime collating sequence is known" for a level-88 THROUGH range** (2026-10-07;
-  kb/Work PB552, rows `SR-13.18.63.3-26`, `SR-13.18.63.3-27`). §2023:13.18.63.3 SR26 b) and SR27 b) apply to an
+  kb/Work PB552, rows `SR-13.18.63.3-26`, `SR-13.18.63.3-27`). §2023:13.18.63.3 SR26b and SR27 b) apply to an
   alphanumeric or national range only "when … the runtime collating sequence is known", and SR26's NOTE 5 leaves
   knowing it to the implementor ("this is not a requirement of an implementor"); the one sentence the standard does
   fix is "The runtime collating sequence is unknown when the collating sequence is defined by a locale or the

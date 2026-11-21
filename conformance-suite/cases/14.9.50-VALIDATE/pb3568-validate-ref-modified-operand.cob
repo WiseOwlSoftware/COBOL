@@ -7,7 +7,7 @@
       *> A reference-modified identifier-1: VALIDATE WS-A (1:2). Expected: COBOL4777.
       *> ISO §2023:14.9.50.3 SR1 - "Identifier-1 shall reference a data item described in the file, linkage,
       *> local-storage, or working-storage section. Identifier-1 shall not be reference-modified."
-      *>   cite.py: OK  §2023:14.9.50.3 1)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.50.3 SR1  (Syntax rules)
       *> The VALIDATE statement is implemented (kb/Work PB5577) and its syntax rules are the statement's own: the operand of
       *> the statement is an identifier (kb/Work PB3568). The statement is the only violation; the program is
       *> otherwise legal. VALIDATE exists from COBOL-2002; at --std 85 it is a user word, so no 85 refusal is named.

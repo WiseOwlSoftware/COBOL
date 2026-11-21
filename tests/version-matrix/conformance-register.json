@@ -259,7 +259,7 @@
   },
   {
    "key": "DOC-A.1-72",
-   "lead": "§2023:12.4.5.3 GR1 b) requires the file control entries that ref"
+   "lead": "§2023:12.4.5.3 GR1b requires the file control entries that refer"
   },
   {
    "key": "DOC-A.1-73",
@@ -2049,7 +2049,7 @@
   {
    "key": "DRV-GR-12.4.6.4.4-3",
    "arm": "definitional",
-   "names": "defines a constraint on the USER's run unit (which files one SAME RECORD AREA clause may name while an APPLY COMMIT clause names them), with no consequence given for a violation, so §2023:4.4 2) leaves the result undefined and obliges the implementation to nothing",
+   "names": "defines a constraint on the USER's run unit (which files one SAME RECORD AREA clause may name while an APPLY COMMIT clause names them), with no consequence given for a violation, so §2023:4.4 GR2 leaves the result undefined and obliges the implementation to nothing",
    "signature": "owner: 2026-10-23",
    "refuter": "—"
   },
@@ -2070,7 +2070,7 @@
   {
    "key": "DRV-GR-13.18.16.4-6",
    "arm": "definitional",
-   "names": "defines a constraint on the USER's run unit (a CONTROL operand shall not reference a group whose length at run time is zero), and no rule gives its violation a consequence, so §2023:4.4 2) leaves the result undefined and obliges the implementation to nothing",
+   "names": "defines a constraint on the USER's run unit (a CONTROL operand shall not reference a group whose length at run time is zero), and no rule gives its violation a consequence, so §2023:4.4 GR2 leaves the result undefined and obliges the implementation to nothing",
    "signature": "owner: 2026-10-08",
    "refuter": "—"
   },
@@ -2112,14 +2112,14 @@
   {
    "key": "DRV-GR-14.9.24.4-10",
    "arm": "definitional",
-   "names": "defines a constraint on the USER's run unit (no statement executed in a MERGE output procedure may manipulate file-name-2 or file-name-3 or access their record areas), with no exception condition and no result, so §2023:4.4 2) leaves a violation undefined and obliges the implementation to nothing",
+   "names": "defines a constraint on the USER's run unit (no statement executed in a MERGE output procedure may manipulate file-name-2 or file-name-3 or access their record areas), with no exception condition and no result, so §2023:4.4 GR2 leaves a violation undefined and obliges the implementation to nothing",
    "signature": "owner: 2026-10-08",
    "refuter": "—"
   },
   {
    "key": "DRV-GR-14.9.24.4-11",
    "arm": "definitional",
-   "names": "defines a constraint on the USER's run unit (no statement executed in a USE procedure invoked during a MERGE may manipulate file-name-2, file-name-3 or file-name-4 or access their record areas), with no exception condition and no result, so §2023:4.4 2) leaves a violation undefined and obliges the implementation to nothing",
+   "names": "defines a constraint on the USER's run unit (no statement executed in a USE procedure invoked during a MERGE may manipulate file-name-2, file-name-3 or file-name-4 or access their record areas), with no exception condition and no result, so §2023:4.4 GR2 leaves a violation undefined and obliges the implementation to nothing",
    "signature": "owner: 2026-10-08",
    "refuter": "—"
   },

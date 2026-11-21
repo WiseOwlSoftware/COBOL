@@ -16,8 +16,8 @@
       *> b) NEGATIVE true "if the sign of the content ... is negative"; c) ZERO true "if the
       *> content ... is a valid representation of the numeric value zero".
       *>   cite.py: OK  §2023:8.8.4.7.2   (General format)  [data-name-1 IS [NOT ] ...]
-      *>   cite.py: OK  §2023:8.8.4.7.3 2)  (Syntax rules)
-      *>   cite.py: OK  §2023:8.8.4.7.4 2)  (General rules)  [a), b), c) of GR2]
+      *>   cite.py: OK  §2023:8.8.4.7.3 SR2  (Syntax rules)
+      *>   cite.py: OK  §2023:8.8.4.7.4 GR2  (General rules)  [a), b), c) of GR2]
       *> NOT: §2023:8.8.4.10.1 "A condition is negated by use of the logical operator 'NOT',
       *> which reverses the truth value of the condition to which it is applied."
       *>   cite.py: OK  §2023:8.8.4.10.1   (General)

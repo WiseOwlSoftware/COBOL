@@ -7,7 +7,7 @@
       *> ISO §2023:14.9.20.3 SR6 INITIALIZE statement — "The same category shall not be repeated in a
       *> REPLACING phrase."
       *>   python scripts/spec/cite.py --check 14.9.20.3 "The same category shall not be repeated
-      *>   in a REPLACING phrase."  ->  OK  §2023:14.9.20.3 6)  (Syntax rules)
+      *>   in a REPLACING phrase."  ->  OK  §2023:14.9.20.3 SR6  (Syntax rules)
       *>
       *> WHY IT REJECTS AT EVERY EDITION. SR6 is a SYNTAX rule, so source that violates it is not a
       *> conforming source program and the compiler owes a diagnostic rather than a behaviour. The

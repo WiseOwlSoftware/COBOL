@@ -15,7 +15,7 @@
       *> PAGE 6, HEADING 1, FIRST DETAIL 2, LAST DETAIL 4, FOOTING 5.
       *> Detail fit: trial sum LINE-COUNTER + 1 must not exceed LAST
       *> DETAIL 4; CF FINAL: LINE-COUNTER + 2 must not exceed FOOTING 5
-      *> (§1985:XIII.3.10.8 GR3 b). A USE BEFORE REPORTING procedure runs
+      *> (§1985:XIII.3.10.8 GR3b. A USE BEFORE REPORTING procedure runs
       *> before its group is produced (§1985:XIII.4.9.4 GR4); PAGE-COUNTER
       *> steps and LINE-COUNTER is reset to zero on each page advance.
       *> A compiler that skips PF/PH on either advance, or produces any R2

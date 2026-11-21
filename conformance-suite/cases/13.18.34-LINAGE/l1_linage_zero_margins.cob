@@ -9,7 +9,7 @@
       *> be zero."
       *>   python scripts/spec/cite.py --check 13.18.34.3 "Integer-3,
       *>   integer-4 may be zero."
-      *>   -> OK  §2023:13.18.34.3 4)  (Syntax rules)
+      *>   -> OK  §2023:13.18.34.3 SR4  (Syntax rules)
       *>
       *> WHAT THE RULE OBLIGES. SR4 is a PERMISSION over integer-3 (the
       *> LINES AT TOP operand) and integer-4 (LINES AT BOTTOM), so the
@@ -23,7 +23,7 @@
       *>   python scripts/spec/cite.py --check 13.18.34.4 "If the LINES
       *>   AT TOP or LINES AT BOTTOM phrases are not specified, the
       *>   values of these items are zero."
-      *>   -> OK  §2023:13.18.34.4 1)  (General rules)
+      *>   -> OK  §2023:13.18.34.4 GR1  (General rules)
       *> An omitted phrase HAS the value zero, so a written zero and an
       *> omitted phrase describe the same logical page: PRTZ (explicit
       *> zeros) and PRTN (phrases omitted) both have page size 5 and a
@@ -33,11 +33,11 @@
       *>   python scripts/spec/cite.py --check 13.18.34.4 "The value of
       *>   LINAGE-COUNTER is automatically set to one at the time an
       *>   OPEN statement with the OUTPUT phrase is executed for the
-      *>   associated file."   -> OK  §2023:13.18.34.4 7) a)
+      *>   associated file."   -> OK  §2023:13.18.34.4 GR7a
       *>   python scripts/spec/cite.py --check 13.18.34.4 "When the
       *>   ADVANCING phrase of the WRITE statement is not specified,
       *>   the LINAGE-COUNTER is incremented by the value one."
-      *>   -> OK  §2023:13.18.34.4 7) a)
+      *>   -> OK  §2023:13.18.34.4 GR7a
       *> GR7d gives 1 at OPEN OUTPUT; each WRITE without an ADVANCING
       *> phrase adds one (GR7c3). Hence 1, 2, 3, 4 on BOTH files. Three
       *> writes keep the counter at 4, inside the page body of 5, so no
@@ -55,7 +55,7 @@
       *>   statement is no longer available in the record area unless
       *>   the file-name associated with record-name-1 is specified in
       *>   a SAME RECORD AREA clause."
-      *>   -> OK  §2023:14.9.51.4 4)  (General rules)
+      *>   -> OK  §2023:14.9.51.4 GR4  (General rules)
       *> Neither file is named in a SAME RECORD AREA clause, so after
       *> each WRITE the contents of Z-REC and N-REC are no longer
       *> available and a second WRITE of the same record item would

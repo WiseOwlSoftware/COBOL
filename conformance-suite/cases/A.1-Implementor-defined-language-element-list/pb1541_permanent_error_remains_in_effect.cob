@@ -13,7 +13,7 @@
       *> optional item documented in docs/CONFORMANCE.md DOC-A.1-105) is CLOSE: a completed CLOSE ends the
       *> condition, so the next OPEN starts clean. Every other statement on the connector is unsuccessful, touches
       *> nothing, and sets the SAME I-O status again.
-      *> The error is produced by §2023:14.9.51.4 GR29 b): "If the relative key data item contains a value that is less
+      *> The error is produced by §2023:14.9.51.4 GR29b: "If the relative key data item contains a value that is less
       *> than 1 ..., the execution of the WRITE statement is unsuccessful, and the I-O status for the write file
       *> connector is set to '34'" - a '3x' value, i.e. a permanent error (§2023:9.1.13.6).
       *>

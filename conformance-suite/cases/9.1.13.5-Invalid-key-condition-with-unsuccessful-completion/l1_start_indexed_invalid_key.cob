@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:14.9.41.4 GR17 e) 2. (INDEXED FILES) — "If the comparison
+      *> ISO §2023:14.9.41.4 GR17e.2 (INDEXED FILES) — "If the comparison
       *> is not satisfied by any record in the file, the invalid key
       *> condition exists and the execution of the START statement is
       *> unsuccessful." (The identical sentence is GR9 c) for RELATIVE

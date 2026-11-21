@@ -18,13 +18,13 @@
       *>   cite.py --check 9.1.15 "The sharing with all other mode
       *>   allows concurrent access to a physical file through other
       *>   file connectors specifying input, I-O, or extend mode"
-      *>   -> OK  §2023:9.1.15 3)  (Sharing mode)
+      *>   -> OK  §2023:9.1.15 GR3  (Sharing mode)
       *>   cite.py --check 9.1.15 "Associating this file connector with
       *>   the physical file will be unsuccessful if the physical file
       *>   is currently open through other file connectors"
-      *>   -> OK  §2023:9.1.15 1)  (Sharing mode)
+      *>   -> OK  §2023:9.1.15 GR1  (Sharing mode)
       *>   cite.py --check 9.1.13.9 "I-O status = 61"
-      *>   -> OK  §2023:9.1.13.9 1)
+      *>   -> OK  §2023:9.1.13.9 GR1
       *> Documented choice (docs/CONFORMANCE.md DOC-A.1-76): every
       *> physical file allows concurrent access; ASSIGN TO PRINTER "f"
       *> and ASSIGN TO DISK "f" are the same shareable file (DOC-A.1-71
@@ -32,7 +32,7 @@
       *> (LOCK MODE accompanies SHARING WITH ALL OTHER, as §2023:14.9.27.3
       *> SR8 requires: cite.py --check 14.9.27.3 "the LOCK MODE clause
       *> shall be specified in the file control entry for file-name-1"
-      *> -> OK  §2023:14.9.27.3 8)  (Syntax rules))
+      *> -> OK  §2023:14.9.27.3 SR8  (Syntax rules))
       *> Derivation:
       *>   PR-OPEN=00   OPEN OUTPUT of the PRINTER-class connector.
       *>   DK-OPEN=00   OPEN EXTEND of the DISK-class connector while

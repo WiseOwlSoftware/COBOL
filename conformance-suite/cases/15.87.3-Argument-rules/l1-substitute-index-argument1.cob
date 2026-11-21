@@ -10,7 +10,7 @@
       *> carries "| Index | Index |" as its own row, so a USAGE INDEX item is class index and is refused.
       *>   python scripts/spec/cite.py --check 15.87.3 "Argument-1 shall be an identifier that references a data
       *>   item or identifier that is class alphabetic, alphanumeric, or national, or an alphanumeric or national
-      *>   literal."  ->  OK  §2023:15.87.3 1)  (Argument rules)
+      *>   literal."  ->  OK  §2023:15.87.3 AR1  (Argument rules)
       *>   python scripts/spec/cite.py --check 8.5.2.1 "Each data item and each literal has a class and a
       *>   category."  ->  OK  §2023:8.5.2.1  (General)
       *>
@@ -20,7 +20,7 @@
       *> screen is witnessed on each of the three modelled exclusions rather than on whichever one was cheapest.
       *>
       *> ⛔ IT MUST BE THE INDEX **DATA ITEM**, NOT THE INDEX-**NAME** — and the first two drafts of this
-      *> fixture got that wrong in two different ways. §2023:13.18.38.3 SR1 a) forbids OCCURS on a level-01 entry,
+      *> fixture got that wrong in two different ways. §2023:13.18.38.3 SR1a forbids OCCURS on a level-01 entry,
       *> which the first draft violated; the second draft fixed that by subordinating the table but still passed
       *> the INDEXED BY name L1S-IX to SUBSTITUTE, and §2023:13.18.38.3 SR7 (FORMATS 1, 2, AND 4) reads:
       *>       "7) Index-name-1 may be specified only in the following contexts:
@@ -33,7 +33,7 @@
       *> category relationships for elementary data items", so the rule under test cannot even reach an
       *> index-name. Passing a `USAGE INDEX` item instead is the shape r1 governs, and it draws COBOL1627.
       *>   python scripts/spec/cite.py --check 13.18.38.3 "Index-name-1 may be specified only in the following
-      *>   contexts"  ->  OK  §2023:13.18.38.3 7)  (Syntax rules)
+      *>   contexts"  ->  OK  §2023:13.18.38.3 SR7  (Syntax rules)
       *>
       *> ⛔ THE TABLE STAYS SUBORDINATE TO L1S-G. §2023:13.18.38.3 SR1 (ALL FORMATS): "The OCCURS clause shall not be
       *> specified in a data description entry that: a) Has a level-number of 01, 66, 77, or 88". WiseOwl COBOL does
@@ -41,7 +41,7 @@
       *> table would reach the class screen and "pass" — resting on a second, unrecorded conformance gap and
       *> changing meaning the day that gap is closed.
       *>   python scripts/spec/cite.py --check 13.18.38.3 "The OCCURS clause shall not be specified in a data
-      *>   description entry that"  ->  OK  §2023:13.18.38.3 1)  (Syntax rules)
+      *>   description entry that"  ->  OK  §2023:13.18.38.3 SR1  (Syntax rules)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1SUBNEGI.
        DATA DIVISION.

@@ -10,10 +10,10 @@
       *> nothing:
       *>   "If identifier-7 references a restricted program-pointer, identifier-8 shall be the predefined address
       *>   NULL or shall reference a program-pointer and the program-prototypes associated with identifier-7 and
-      *>   identifier-8 shall have the same signature."   cite.py: OK  §2023:14.9.39.3 22)  (Syntax rules)
+      *>   identifier-8 shall have the same signature."   cite.py: OK  §2023:14.9.39.3 SR22  (Syntax rules)
       *> GR3: "When program-prototype-name-1 is specified, the program-address-identifier has the
       *>   characteristics of a program-pointer restricted to program-prototype-name-1."
-      *>   cite.py: OK  §2023:8.4.3.13.4 3)  (General rules)
+      *>   cite.py: OK  §2023:8.4.3.13.4 GR3  (General rules)
       *> RP is restricted to PB3224A; UPP is an ordinary (unrestricted) program-pointer, which SR22 does not
       *> constrain. The sender ADDRESS OF PROGRAM PB3224A is restricted to the very prototype RP is restricted to,
       *> so SR22 is met for RP in either position, and GR3's address is stored in every receiver in the order

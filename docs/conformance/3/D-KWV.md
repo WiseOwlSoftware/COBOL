@@ -3,10 +3,10 @@
   (§2023:12.4.5.12 / §2023:12.4.5.6) are byte positions of the record, and a record with a dynamic-length member is sent and
   held as its contiguous image (§2023:8.5.1.11.2; D-FRA (iii)), so a key that such a member PRECEDES sits at a different
   position in each record. The standard bounds it — *"all the data items identified by key data-names shall be
-  contained within the first x bytes of the record, where x equals the minimum record size"* (§2023:14.9.40.3 SR6 g);
-  the same sentence is §2023:14.9.24.3 SR4 g), §2023:12.4.5.12.3 SR4 and §2023:12.4.5.6.3 SR5) — and says nothing more.
+  contained within the first x bytes of the record, where x equals the minimum record size"* (§2023:14.9.40.3 SR6g;
+  the same sentence is §2023:14.9.24.3 SR4g, §2023:12.4.5.12.3 SR4 and §2023:12.4.5.6.3 SR5) — and says nothing more.
   **WiseOwl COBOL's determination:** (i) the rule holds for ANY record, so a key is measured at its furthest reach —
-  its offset with every preceding variable-length member at its maximum size (§2023:13.18.43.4 GR8 b)) plus its length —
+  its offset with every preceding variable-length member at its maximum size (§2023:13.18.43.4 GR8b) plus its length —
   against the file's minimum record size (§2023:13.18.43.4 GR9 when no integer-2 is written, which D-FRA (iv) makes every
   dynamic item at zero length); a key that can reach past it is rejected (COBOL0874 for SORT/MERGE, COBOL0863
   for an indexed key — both rules enforced on every variable-length file, a fixed-position key included); (ii) a

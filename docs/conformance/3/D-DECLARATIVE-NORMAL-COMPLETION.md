@@ -1,4 +1,4 @@
-- **D-DECLARATIVE-NORMAL-COMPLETION — Normal completion of a declarative — "a fatal exception occurs within the scope of the declarative" (§2023:14.6.13.1.2 1),
+- **D-DECLARATIVE-NORMAL-COMPLETION — Normal completion of a declarative — "a fatal exception occurs within the scope of the declarative" (§2023:14.6.13.1.2 GR1,
   spec silent on three points)**: the rule makes a declarative that falls off its end "not complete normally" when a
   fatal exception occurs within its scope. **Pinned choices: (a) "occurs" is read as "is RAISED"** — checking for it is
   enabled (§2023:14.6.13.1.1: with checking off nothing is set to exist, so nothing occurs); **(b) the scope is DYNAMIC and

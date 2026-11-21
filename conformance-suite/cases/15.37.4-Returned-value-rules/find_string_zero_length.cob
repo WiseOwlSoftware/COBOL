@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.37.4 rule 5 — "If argument-1 or argument-2 is of zero length, the function shall
+      *> ISO §2023:15.37.4 RV5 — "If argument-1 or argument-2 is of zero length, the function shall
       *> return zero." — plus the degenerate reach of rule 3 ("If no match is found, the function
       *> shall return zero") where argument-2 is LONGER than argument-1 and the scan has no position
       *> to start from.
@@ -26,7 +26,7 @@
       *> occurs-depending table whose current number of occurrences is zero (item 1 — ZG1/ZG2, whose
       *> extent is set at run time by MOVE 0 TO ZN), and a reference-modified item that has resolved
       *> to a length of zero under >>REF-MOD-ZERO-LENGTH (item 9 — ZR1/ZR2).
-      *> ZN is declared OUTSIDE ZG on purpose: that is the arm of §2023:13.18.38.4 GR8 a) which states the
+      *> ZN is declared OUTSIDE ZG on purpose: that is the arm of §2023:13.18.38.4 GR8a which states the
       *> consequence outright — "If the data item referenced by data-name-1 is outside the group, only
       *> that part of the table area that is specified by the value of the data item referenced by
       *> data-name-1 at the start of the operation will be used. If there are no elementary data items

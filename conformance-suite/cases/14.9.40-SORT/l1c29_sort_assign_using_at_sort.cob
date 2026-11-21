@@ -5,24 +5,24 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:14.9.40.4 GR6 — SORT associates USING/GIVING files at the SORT (§2023:12.4.5.3 GR3 b)
+      *> ISO §2023:14.9.40.4 GR6 — SORT associates USING/GIVING files at the SORT (§2023:12.4.5.3 GR3b
       *> Rule (§2023:14.9.40.4 GR6): "Additional rules affecting the execution of
       *> the SORT statement are given in 12.4.5, File control entry, General
       *> rules 3 and 4."
       *> cite.py --check 14.9.40.4 "Additional rules affecting the execution
-      *>   of the SORT statement are given in 12.4.5" -> OK  §2023:14.9.40.4 6)
+      *>   of the SORT statement are given in 12.4.5" -> OK  §2023:14.9.40.4 GR6
       *> §2023:12.4.5.3 GR3: "The association occurs at the time of execution of
       *> an OPEN, SORT, or MERGE statement that referenced file-name-1"
       *> cite.py --check 12.4.5.3 "The association occurs at the time of
       *>   execution of an OPEN, SORT, or MERGE statement that referenced
-      *>   file-name-1" -> OK  §2023:12.4.5.3 3)
-      *> §2023:12.4.5.3 GR3 b): "... associated with a physical file identified
+      *>   file-name-1" -> OK  §2023:12.4.5.3 GR3
+      *> §2023:12.4.5.3 GR3b: "... associated with a physical file identified
       *> by the content of the data item referenced by data-name-1 in the
       *> runtime element that executes the OPEN, SORT, or MERGE statement"
       *> cite.py --check 12.4.5.3 "is associated with a physical file
       *>   identified by the content of the data item referenced by
       *>   data-name-1 in the runtime element that executes the OPEN, SORT,
-      *>   or MERGE statement" -> OK  §2023:12.4.5.3 3) b)
+      *>   or MERGE statement" -> OK  §2023:12.4.5.3 GR3b
       *> GR4 (content meaning) is the documented choice DOC-A.1-73 in
       *> docs/CONFORMANCE.md: the content with spaces removed is the target,
       *> and a target containing "." is used verbatim.

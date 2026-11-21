@@ -22,7 +22,7 @@ internal static class MessageJson
 /// <summary>
 /// ⛔ THE ONE COMPARISON OF AN MCS SYMBOLIC NAME (kb/Work PB5284). The queue, sub-queue, source, destination and terminal names of a CD "must follow the rules for the
 /// formation of system-names" (§1985:XIV.2.2.4 GR4), and in those rules "Each lowercase letter is considered to be equivalent to its corresponding uppercase letter"
-/// (§1985:p.A-9, the Amendment 1 text that replaces paragraph IV.4.2.2.1), so <c>q</c> designates the queue <c>Q</c> and a definition that holds both is a duplicate.
+/// (§1989:p.A-9, the Amendment 1 text that replaces paragraph IV.4.2.2.1), so <c>q</c> designates the queue <c>Q</c> and a definition that holds both is a duplicate.
 /// The fold is the one every COBOL word takes (<see cref="CobolNames"/>); every table of names, and every comparison of a name a CD holds with one the definitions
 /// or the store hold, goes through here, so no spelling of a name can reach a second row.
 /// </summary>

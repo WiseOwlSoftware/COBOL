@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB5176, WiseOwl COBOL's determination for a figurative constant of category alphanumeric moved to a
       *> numeric item that is not usage DISPLAY (docs/CONFORMANCE.md section 3.10). The move is legal at COBOL-85
-      *> (§1985:VI.6.19.4 GR3 e) and "data is moved as if the sending operand were described as an unsigned numeric
+      *> (§1985:VI.6.19.4 GR3e and "data is moved as if the sending operand were described as an unsigned numeric
       *> integer" (§1985:VI.6.19.4 GR4), but the characters of LOW-VALUES, HIGH-VALUES, QUOTE or a nonnumeric ALL
       *> literal are no digits, so the value left in the receiver is undefined (§1985:VI.6.4.7). WiseOwl COBOL's value
       *> is the one the receiver's storage bytes hold when the fill characters are laid over them, read in the item's

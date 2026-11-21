@@ -9,12 +9,12 @@
       *> (program-pointer-assignment format).
       *> Rule: "This identifier format shall not be specified as a
       *> receiving operand."
-      *> cite.py: OK  §2023:8.4.3.13.3 4)  (Syntax rules)
+      *> cite.py: OK  §2023:8.4.3.13.3 SR4  (Syntax rules)
       *> §2023:14.9.39.4 GR16: "The address identified by identifier-8 is
       *> stored in each data item referenced by identifier-7" — so in
       *> SET identifier-7 TO identifier-8 the operand after SET is the
       *> receiving operand.
-      *> cite.py: OK  §2023:14.9.39.4 16)  (General rules)
+      *> cite.py: OK  §2023:14.9.39.4 GR16  (General rules)
       *> The first SET is the legal direction (the program-address-
       *> identifier is the SENDER; literal-1 "L1M7PAS" is alphanumeric
       *> and non-empty, §2023:8.4.3.13.3 SR2).  The second SET writes the

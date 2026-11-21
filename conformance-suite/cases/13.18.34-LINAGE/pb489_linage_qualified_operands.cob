@@ -10,12 +10,12 @@
       *> is a QUALIFIED-DATA-NAME (§2023:8.4.2.2.2 Format 1):
       *>   python scripts/spec/cite.py --check 8.4.2.2.3 "A name may be
       *>   qualified even though it does not need qualification"
-      *>   -> OK  §2023:8.4.2.2.3 2)  (Syntax rules)
+      *>   -> OK  §2023:8.4.2.2.3 SR2  (Syntax rules)
       *>   python scripts/spec/cite.py --check 8.4.2.2.3 "For each non
       *>   unique user-defined name that is explicitly referenced,
       *>   uniqueness shall be established through a sequence of
       *>   qualifiers that precludes any ambiguity of reference."
-      *>   -> OK  §2023:8.4.2.2.3 1)  (Syntax rules)
+      *>   -> OK  §2023:8.4.2.2.3 SR1  (Syntax rules)
       *> so `LINAGE IS PG-SZ OF R-GRP LINES` is legal — and, in THIS
       *> program, where W-GRP and R-GRP each declare PG-SZ, FT-AT, TP-MG
       *> and BT-MG, the qualified form is the ONLY legal way to name any
@@ -24,11 +24,11 @@
       *> WHAT THE VALUE IS. §2023:13.18.34.4 GR6:
       *>   python scripts/spec/cite.py --check 13.18.34.4 "If a literal
       *>   is specified, the value is always that literal."
-      *>   -> OK  §2023:13.18.34.4 6) a)
+      *>   -> OK  §2023:13.18.34.4 GR6a
       *>   python scripts/spec/cite.py --check 13.18.34.4 "If a data-name
       *>   is specified, the value is the content of the data item
       *>   referenced by the associated data-name"
-      *>   -> OK  §2023:13.18.34.4 6) b)
+      *>   -> OK  §2023:13.18.34.4 GR6b
       *> GR6 a) and GR6 b) are two routes to ONE number, so a clause
       *> written with four literals and a clause written with four
       *> qualified data-names HOLDING THOSE LITERALS describe the SAME
@@ -56,11 +56,11 @@
       *> makes the FOOTING operand visible at all (§2023:13.18.34.4 GR1: the
       *> footing start is the one phrase that is NOT part of the logical
       *> page size, so it can only be seen through the end-of-page
-      *> condition). §2023:13.18.34.4 GR7 d) sets LINAGE-COUNTER to one at
+      *> condition). §2023:13.18.34.4 GR7d sets LINAGE-COUNTER to one at
       *> OPEN OUTPUT and GR7 c) 2 adds each advance, so on a 2-line body
       *> with the footing start at 2 every one of the three writes leaves
       *> the counter in the footing area or past the page size — the
-      *> §2023:14.9.51.4 GR26 b) and GR26 a) arms respectively, both of which
+      *> §2023:14.9.51.4 GR26b and GR26 a) arms respectively, both of which
       *> raise the end-of-page condition. All six branches are therefore
       *> EOP, on both files.
       *>
@@ -80,7 +80,7 @@
       *> the FOOTING phrase."
       *>   python scripts/spec/cite.py --check 13.18.34.4 "The logical
       *>   page size is the sum of the values referenced by each phrase
-      *>   except the FOOTING phrase."   -> OK  §2023:13.18.34.4 1)
+      *>   except the FOOTING phrase."   -> OK  §2023:13.18.34.4 GR1
       *>
       *> EDITION. The LINAGE clause, its four operands and §2023:8.4.2.2's
       *> qualification rules are present in all four supported editions,

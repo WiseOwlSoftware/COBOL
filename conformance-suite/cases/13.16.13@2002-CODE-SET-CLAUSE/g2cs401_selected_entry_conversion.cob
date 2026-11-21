@@ -17,7 +17,7 @@
       *> description entry." NOTE: "There is no conversion of data items
       *> described with other usages unless a FORMAT clause applies."
       *>   cite.py --check "§2002:13.16.13.3 GR4" -> OK
-      *> A-EBC is code-name-1 EBCDIC; §2002:12.2.6.3 GR7 i) leaves its
+      *> A-EBC is code-name-1 EBCDIC; §2002:12.2.6.3 GR7i leaves its
       *> set and correspondence to the implementor (cite.py OK), defined
       *> as IBM CCSID 37 (docs/conformance DOC-A.1-183/184): A=X'C1',
       *> B=X'C2', P=X'D7', X=X'E7', 1=X'F1'. ORD of a native character is

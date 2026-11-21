@@ -81,7 +81,7 @@
            DISPLAY "B-NAT=[" R-NAT "]".
       *> ── THE EQUIVALENCE GR2 STATES: MOVE "" and MOVE SPACE are ONE statement ──
       *> The written SPACE moves into R-NUM-ED's full-width reference-modified view (an alphanumeric item over
-      *> the same positions, §2023:8.4.3.3.4 GR6 c)): §2023:14.9.25.3 SR5 refuses a written SPACE into a numeric or
+      *> the same positions, §2023:8.4.3.3.4 GR6c): §2023:14.9.25.3 SR5 refuses a written SPACE into a numeric or
       *> numeric-edited item at every edition (kb/Work PB3605), which GR2's substituted value is not.
            MOVE 123 TO R-NUM.
            MOVE "" TO R-NUM.

@@ -18,14 +18,14 @@
       *>   statuses are fatal and the implementor may continue "to the
       *>   end of the statement" (§2002:9.1.12, OK). The 2023 rule
       *>   numbers below are 2023's own.
-      *> ISO §2023:14.9.35.4 14) — an unsuccessful REWRITE updates no record,
+      *> ISO §2023:14.9.35.4 GR14 — an unsuccessful REWRITE updates no record,
       *> leaves the record area as it was, and sets the I-O status
       *> GR14: "If the execution of the REWRITE statement is
       *>   unsuccessful, no logical record updating takes place, the
       *>   content of the record area is unaffected, and the I-O status
       *>   in the rewrite file connector is updated as indicated in
       *>   General rules 2, 5, 11, 16, 17, 20, 21, 22, 23, and 25."
-      *>   cite.py: OK  §2023:14.9.35.4 14)  (General rules)
+      *>   cite.py: OK  §2023:14.9.35.4 GR14  (General rules)
       *> Six unsuccessful paths, each with a distinct record-area value
       *> moved in just before the REWRITE and a read-back of the file:
       *>   L1 GR3 "If the open mode is some other value or the file is

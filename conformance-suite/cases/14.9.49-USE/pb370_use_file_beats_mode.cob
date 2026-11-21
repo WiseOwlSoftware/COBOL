@@ -23,7 +23,7 @@
       *>   F1  absent, opened INPUT, named by the file-scoped USE: ONLY
       *>       the file procedure runs, although the INPUT one, written
       *>       first, also matches the mode.
-      *> '35' is the §2023:9.1.13.6 5) value for OPEN INPUT of an absent
+      *> '35' is the §2023:9.1.13.6 GR5 value for OPEN INPUT of an absent
       *> non-optional file.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB370UF.

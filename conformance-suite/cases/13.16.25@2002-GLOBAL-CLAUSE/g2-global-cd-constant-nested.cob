@@ -9,7 +9,7 @@
       *> directly or indirectly within a program that describes a
       *> global name may reference that name without describing it
       *> again." KCONST and KNUM are constant entries (GLOBAL may be
-      *> specified in a constant entry, §2002:13.16.25.2 SR1 a) written
+      *> specified in a constant entry, §2002:13.16.25.2 SR1a written
       *> in the communication section after a CD (§2002:A.1.1 general
       *> format: constant-entry or record-description-entry after the
       *> communication-description-entry). G2GLI1 is contained directly

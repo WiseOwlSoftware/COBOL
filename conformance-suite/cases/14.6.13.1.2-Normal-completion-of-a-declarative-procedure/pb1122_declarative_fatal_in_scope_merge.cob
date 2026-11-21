@@ -5,27 +5,27 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1122 - §2023:14.6.13.1.2 1): a declarative does not complete
+      *> kb/Work PB1122 - §2023:14.6.13.1.2 GR1: a declarative does not complete
       *> normally when "a fatal exception occurs within the scope of the
       *> declarative", and the MERGE whose implicit OPEN selected it is
-      *> terminated (§2023:14.9.24.4 GR12 a)).
+      *> terminated (§2023:14.9.24.4 GR12a).
       *>
       *> THE RULES.
-      *> §2023:14.6.13.1.2 1): "An EXIT PROGRAM, GOBACK, RESUME, or STOP
+      *> §2023:14.6.13.1.2 GR1: "An EXIT PROGRAM, GOBACK, RESUME, or STOP
       *>   statement that is specified in this function, method, or
       *>   program is executed, or a fatal exception occurs within the
       *>   scope of the declarative."
-      *>   OK  §2023:14.6.13.1.2 1)  (Normal completion of a declarative procedure)
-      *> §2023:14.9.24.4 GR12 a): "If a fatal exception condition exists as a
+      *>   OK  §2023:14.6.13.1.2 GR1  (Normal completion of a declarative procedure)
+      *> §2023:14.9.24.4 GR12a: "If a fatal exception condition exists as a
       *>   result of this implicit OPEN statement and there is an
       *>   applicable USE procedure that completes normally, processing
       *>   for the file connector that caused the exception condition is
       *>   bypassed", and otherwise the MERGE statement is terminated.
-      *>   OK  §2023:14.9.24.4 12)  (General rules)
-      *> §2023:14.9.33.4 GR2 a) 2: RESUME AT NEXT STATEMENT in D-SUB returns
+      *>   OK  §2023:14.9.24.4 GR12  (General rules)
+      *> §2023:14.9.33.4 GR2a 2: RESUME AT NEXT STATEMENT in D-SUB returns
       *>   control to the implicit CONTINUE after the statement of
       *>   D-BADF that raised the condition.
-      *>   OK  §2023:14.9.33.4 2)  (General rules)
+      *>   OK  §2023:14.9.33.4 GR2  (General rules)
       *>
       *> DERIVATION. Every BAD-x file lives in a directory that does not
       *> exist, so the MERGE's implicit OPEN OUTPUT of it fails (status
@@ -52,10 +52,10 @@
       *>      is executed within D-BADG's scope of execution and so is
       *>      a CONTINUE (§2023:14.9.33.4 GR1: the statement after it, L4-USE-
       *>      RES-AFTER, runs). A RESUME was nevertheless EXECUTED, so
-      *>      D-BADG does not complete normally (§2023:14.6.13.1.2 1)) and the
+      *>      D-BADG does not complete normally (§2023:14.6.13.1.2 GR1) and the
       *>      MERGE is terminated: OUT-G still holds OLD.
-      *>   OK  §2023:14.9.33.4 1)  (General rules)
-      *>   OK  §2023:14.9.49.3 4)  (Syntax rules)
+      *>   OK  §2023:14.9.33.4 GR1  (General rules)
+      *>   OK  §2023:14.9.49.3 SR4  (Syntax rules)
        >>TURN EC-BOUND-SUBSCRIPT CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1122MRG.

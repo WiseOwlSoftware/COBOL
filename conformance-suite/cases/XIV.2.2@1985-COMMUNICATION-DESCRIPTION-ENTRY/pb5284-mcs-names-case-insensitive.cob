@@ -8,7 +8,7 @@
       *> kb/Work PB5284. §1985:XIV.2.2.4 GR4: the queue and sub-queue
       *> names "must follow the rules for the formation of system-names",
       *> and in those rules "Each lowercase letter is considered to be
-      *> equivalent to its corresponding uppercase letter" (§1985:p.A-9,
+      *> equivalent to its corresponding uppercase letter" (§1989:p.A-9,
       *> Amendment 1), so a lowercase name designates the uppercase
       *> queue the MCS holds. The MCS defines Q with sub-queues A and B
       *> and one message in each: Q alone counts both (00, 2), the

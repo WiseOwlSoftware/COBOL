@@ -11,7 +11,7 @@
       *> data item in the file section is undefined." The initial value
       *> is never asserted: each record is given a known content (MOVE
       *> ALL ".") before it is shown.
-      *> The INITIALIZE readings are §2002:14.8.19.3 GR5 c) 1. b. (a
+      *> The INITIALIZE readings are §2002:14.8.19.3 GR5c.1.b (a
       *> data-item or table format VALUE makes an item a receiver of
       *> the VALUE phrase), GR6 a) 3. (the sender is the VALUE literal,
       *> per occurrence for a table element) and GR6 c) (no phrase:

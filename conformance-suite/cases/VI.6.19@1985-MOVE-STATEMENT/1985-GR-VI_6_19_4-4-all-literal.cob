@@ -22,7 +22,7 @@
       *>   ALL "12" to S9(3) SIGN LEADING SEPARATE (4 positions, the
       *>            sign is one): 1212 -> the three low-order digits,
       *>            +212, which moved to PIC X(3) is 212 (the sign is
-      *>            not moved, §1985:VI.6.19.4 GR4 a)
+      *>            not moved, §1985:VI.6.19.4 GR4a
       *> A compiler that fills the digit positions of the noninteger
       *> receiver by position gives 555.55 and 121.21, one that stores
       *> the repeated characters as the edited item's image gives

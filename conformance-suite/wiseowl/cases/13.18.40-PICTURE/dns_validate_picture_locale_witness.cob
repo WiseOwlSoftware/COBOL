@@ -10,7 +10,7 @@
       *> indirectly to the subject of the entry. The validation is
       *> carried out in accordance with the character classification and
       *> monetary specification in the locale."
-      *> CITE GR19 BY BOTH SENTENCES: §2023:13.18.40.4 rule 15 (FORMAT 1)
+      *> CITE GR19 BY BOTH SENTENCES: §2023:13.18.40.4 GR15 (FORMAT 1)
       *> opens with the same first sentence, so a shortened quote
       *> resolves to the Format-1 twin. The locale sentence is unique
       *> to rule 19, which sits under the printed FORMAT 2 heading.
@@ -18,7 +18,7 @@
       *> docs/rearchitecture/DESIGN-validate-facility.md), but the format check of an EDITED picture (a currency symbol and the
       *> locale's monetary specification, which is what GR19 adds) is a later stage of that design, so VALIDATE of an operand
       *> holding an edited item is refused (COBOL7363): a validation that passed it as valid would report a record the
-      *> standard calls invalid (§2023:14.9.50.4 GR6 a). The program is otherwise legal; this pins the refusal, not GR19.
+      *> standard calls invalid (§2023:14.9.50.4 GR6a. The program is otherwise legal; this pins the refusal, not GR19.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1VALW01.
        ENVIRONMENT DIVISION.

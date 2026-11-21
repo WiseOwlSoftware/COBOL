@@ -27,22 +27,22 @@
       *>  c) If the WITH LOCK phrase is specified, the record lock
       *>  associated with the record to be replaced is set at
       *>  completion."
-      *> cite.py: OK  §2023:14.9.35.4 12)  (General rules) - lead-in, a) 1.,
+      *> cite.py: OK  §2023:14.9.35.4 GR12  (General rules) - lead-in, a) 1.,
       *>   a) 2., b) and c) each checked separately
-      *> cite.py: OK  §2023:12.4.5.9.4 5)  (General rules) - MANUAL: "Records
+      *> cite.py: OK  §2023:12.4.5.9.4 GR5  (General rules) - MANUAL: "Records
       *>   locks are obtained only when the LOCK phrase is explicitly
       *>   specified on an I-O statement."
-      *> cite.py: OK  §2023:12.4.5.9.4 6)  (General rules) - single locking
+      *> cite.py: OK  §2023:12.4.5.9.4 GR6  (General rules) - single locking
       *>   is implied by LOCK MODE without LOCK ON; "Execution of any
       *>   I-O statement except START releases any previously locked
       *>   record in that file for that file connector."
-      *> cite.py: OK  §2023:12.4.5.9.4 7)  (General rules) - MULTIPLE: "a
+      *> cite.py: OK  §2023:12.4.5.9.4 GR7  (General rules) - MULTIPLE: "a
       *>   file connector is permitted to have more than one record of
       *>   a file locked"
-      *> cite.py: OK  §2023:14.9.30.4 9)  (General rules) - a READ of "the
+      *> cite.py: OK  §2023:14.9.30.4 GR9  (General rules) - a READ of "the
       *>   record identified for access is locked by another file
       *>   connector" -> record operation conflict condition
-      *> cite.py: OK  §2023:9.1.13.8 1)  (Record operation conflict condition
+      *> cite.py: OK  §2023:9.1.13.8 GR1  (Record operation conflict condition
       *>   with unsuccessful completion) - "I-O status = 51."
       *> cite.py: OK  §2023:9.1.16   (Record locking) - "all record locks
       *>   established for a file are released by the execution of an

@@ -7,9 +7,9 @@
       *>---
       *> ISO §2023:8.4.2.3.3 SR1 — the subscripted name is an ordinary qualified name (§2023:8.4.2.2)
       *>
-      *> THE RULE. §2023:8.4.2.3.3 1): "Qualified-data-name-1 and qualified-condition-name-1 are
+      *> THE RULE. §2023:8.4.2.3.3 SR1: "Qualified-data-name-1 and qualified-condition-name-1 are
       *> defined in 8.4.2.2, Qualification."
-      *>   cite.py: OK  §2023:8.4.2.3.3 1)  (Syntax rules)
+      *>   cite.py: OK  §2023:8.4.2.3.3 SR1  (Syntax rules)
       *> §2023:8.4.2.3.2 prints the formats as "qualified-data-name-1 [ ( subscript ... ) ]" and
       *> "qualified-condition-name-1 [ ( subscript ... ) ]": the qualifiers (OF/IN) are
       *> written BEFORE the subscripts, and a subscript is an arithmetic expression, whose

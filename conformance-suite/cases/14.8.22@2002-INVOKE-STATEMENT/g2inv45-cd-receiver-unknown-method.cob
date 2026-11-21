@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> §2002:14.8.22.2 SR4 b) - "If identifier-1 references an object
+      *> §2002:14.8.22.2 SR4b - "If identifier-1 references an object
       *> reference described with a class-name without the FACTORY
       *> phrase, literal-1 shall be the name of a method contained in
       *> the instance interface of that class-name." CO is a level-1

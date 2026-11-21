@@ -53,7 +53,7 @@
            DISPLAY "P3-AFTER".
       *> control: a LITERAL FROM is out of GR3 scope (GR3's premise is "an identifier is specified in the
       *> associated FROM phrase"), so no raise. ⛔ THE LITERAL IS 1, NOT 0, AND IT HAS TO BE (kb/Work PB432):
-      *> §2023:14.9.28.3 SR4 b) says "The literal in the associated FROM phrase shall be a positive integer" whenever an
+      *> §2023:14.9.28.3 SR4b says "The literal in the associated FROM phrase shall be a positive integer" whenever an
       *> index-name is varied, so `FROM 0` here is not conforming source at all — this leg used to write it and
       *> assert it compiled clean, which is the SR4 b) hole itself. GR3's exclusion of literals is therefore
       *> unobservable in conforming source when the target is an index-name; what P4 pins is that the literal arm

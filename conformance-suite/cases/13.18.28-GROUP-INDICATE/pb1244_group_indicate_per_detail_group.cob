@@ -11,12 +11,12 @@
       *> issued for the current detail group after any of the following events." a) an INITIATE, b) a
       *> page advance, c) a control break.
       *>   cite.py --check 13.18.28.4 "true only on the first occasion that a GENERATE is issued for the
-      *>     current detail group"  -> OK  §2023:13.18.28.4 1)  (General rule)
+      *>     current detail group"  -> OK  §2023:13.18.28.4 GR1  (General rule)
       *> §2023:13.18.41.4 GR2b: a false condition declares the item absent, "and the effect on processing is as
       *> though the entry were omitted" -- so an indicated item that is not presented is NOT a span of
       *> spaces: it occupies no column and does not move the horizontal counter.
       *>   cite.py --check 13.18.41.4 "the corresponding data item is declared to be absent and the effect
-      *>     on processing is as though the entry were omitted"  -> OK  §2023:13.18.41.4 2) b)
+      *>     on processing is as though the entry were omitted"  -> OK  §2023:13.18.41.4 GR2b
       *> §2023:13.18.14.4 GR7-GR9: the horizontal counter starts each line at zero; a relative item's leftmost
       *> column is "obtained by adding integer-2 to the current line's horizontal counter", except that
       *> "If integer-2 is specified for an item that is the first printable item in the current line, it

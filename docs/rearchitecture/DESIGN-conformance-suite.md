@@ -320,7 +320,7 @@ conforming compilers print one signed numeric item as `01E` and `+01.5`.
   alphanumeric representation of that figurative constant" (GR 3), but only SPACE, ZERO, QUOTE and ALL literals of
   allowed characters are portable, since "The character that has the highest ordinal position in the program collating
   sequence is associated with the figurative constant HIGH-VALUE" (§2023:12.3.7.4 GR 8; GR 9 likewise for LOW-VALUE). A
-  reference-modified display numeric item is alphanumeric (§2023:8.4.3.3.4 GR 6 c) and allowed unless signed without SIGN
+  reference-modified display numeric item is alphanumeric (§2023:8.4.3.3.4 GR6c and allowed unless signed without SIGN
   SEPARATE: "Neither the representation nor the position of that operational sign is specified" (§2023:13.18.52.4 GR 4).
 - **The lint judges the storage an operand shows.** A group is allowed only when every item it holds is alphanumeric,
   numeric-edited, or unsigned or separately signed display numeric, and none is SYNCHRONIZED ("The effect of this clause
@@ -827,7 +827,7 @@ unheld 1985 text.
   `construct:<id>` and derives its output from the unit's own expectation. Reported as unit-level coverage.
 - `excluded`, with a reason: `fips-pub-21-1` (decision 11) or `ccvs-scaffolding` (CCVS's own machinery, such as the
   X-card parameters). A CCVS check a later edition's text contradicts is not excluded: RL118A's REL-TEST-2 holds at
-  85 (a key of 0 is the invalid key condition '24', §1985:VIII.1.3.4) and fails from 2014 (§2014:14.9.47.3 GR26 b)
+  85 (a key of 0 is the invalid key condition '24', §1985:VIII.1.3.4) and fails from 2014 (§2014:14.9.47.3 GR26b
   answers '34', a permanent error; kb/Work PB5125), so it maps as `rows`, its 2014 report a per-edition golden.
 - `open`: not yet mapped.
 

@@ -30,7 +30,7 @@
       *>                             RETURN is abandoned, so neither AT END nor
       *>                             NOT AT END runs (no "MAIN-AT-END" line).
       *>   R=AAA / R=BBB             OUT-P returns the two records IN-P released,
-      *>                             ascending on SR-KEY (§2023:14.9.40.4 GR8 a);
+      *>                             ascending on SR-KEY (§2023:14.9.40.4 GR8a;
       *>                             the stranded ZZZ is not among them.
       *>   AT-END                    the third RETURN finds no next record (GR3).
       *>   HANDLED=EC-SORT-MERGE-RETURN   the fourth RETURN, after AT END ran.

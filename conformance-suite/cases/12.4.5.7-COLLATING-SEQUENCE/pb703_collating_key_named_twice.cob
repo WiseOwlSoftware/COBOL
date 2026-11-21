@@ -16,7 +16,7 @@
       *>
       *> Expected values, derived: §2023:12.4.5.7.4 GR6 — "Alphabet-name-3 applies to record
       *> keys identified by data-name-1 or record-key-name-1" — gives IX-KEY the REV
-      *> sequence and IX-ALT the DREV sequence, and §2023:12.4.5.5.3 GR2 c) makes sequential
+      *> sequence and IX-ALT the DREV sequence, and §2023:12.4.5.5.3 GR2c makes sequential
       *> retrieval "ascending within a given key of reference according to the collating
       *> sequence for that key".
       *>   REV  = "ZYXWVUTSRQPONMLKJIHGFEDCBA": weights Z=0 < M=13 < A=25, so the prime

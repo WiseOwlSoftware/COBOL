@@ -12,7 +12,7 @@
       *>   cite.py --check 13.18.15.3 "The CONSTANT RECORD clause may be
       *>     specified only in
       *>     the local-storage or working-storage sections" -> OK
-      *>       §2023:13.18.15.3 1) (Syntax rules)
+      *>       §2023:13.18.15.3 SR1 (Syntax rules)
       *> The linkage section is neither of the two sections SR1 admits,
       *>   so the entry below
       *> violates SR1 and nothing else (level 01, no REDEFINES/BASED/ANY

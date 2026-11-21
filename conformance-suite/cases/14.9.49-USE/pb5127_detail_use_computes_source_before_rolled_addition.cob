@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB5127 review R1-1 - a detail's USE BEFORE REPORTING procedure that COMPUTES the detail's SOURCE
       *> operand runs BEFORE the detail's contribution is added into the control footing's SUM counter.
-      *> §2023:14.9.49.4 GR9 b) (cite.py --check): the declarative is invoked "After incrementing sum counters defined
+      *> §2023:14.9.49.4 GR9b (cite.py --check): the declarative is invoked "After incrementing sum counters defined
       *> in the report group"; the detail group defines no sum counter, so nothing it owes precedes the declarative.
       *> §2023:13.18.54.4 GR6: for a data-name-1 whose entry has a SOURCE clause "the value added is that of the
       *> operand of the SOURCE clause", read when the detail is processed, i.e. after its declarative computed it.

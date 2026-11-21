@@ -4,7 +4,7 @@
       *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *>---
-      * §2023:9.1.13.6 4) b) is a 2023 condition: I-O status 34 for a READ
+      * §2023:9.1.13.6 GR4b is a 2023 condition: I-O status 34 for a READ
       * of a record whose OCCURS DEPENDING ON item makes it longer than
       * the file description's maximum. The 1985, 2002 and 2014 status
       * lists have no such condition, so a READ there is successful: 00

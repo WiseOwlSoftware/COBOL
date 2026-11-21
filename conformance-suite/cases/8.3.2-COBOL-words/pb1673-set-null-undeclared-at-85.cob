@@ -11,7 +11,7 @@
       *> names nothing declared - the §2023:8.4.2.1 undefined reference
       *> ("a statement shall contain a reference that uniquely
       *> identifies that resource"), COBOL1639. It is never the 2002
-      *> object-reference SET's §2023:14.9.39.3 8) receiving-item rule
+      *> object-reference SET's §2023:14.9.39.3 SR8 receiving-item rule
       *> (COBOL0867) of a facility the edition does not have. The
       *> sibling positions (VALUE, DISPLAY, a relation) are
       *> pb1673-null-undeclared-at-85.

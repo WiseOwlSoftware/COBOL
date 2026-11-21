@@ -27,11 +27,11 @@
       *>    if the checking for it is enabled).
       *>  * OPEN OUTPUT of an absent, non-optional file is a normal open (§2023:14.9.27.4 GR4's table,
       *>    OUTPUT row) and the WRITE and CLOSE that follow complete successfully.
-      *>  * The second READ reaches end of file: §2023:14.9.30.4 GR24 a) - "The I-O status of the file
+      *>  * The second READ reaches end of file: §2023:14.9.30.4 GR24a - "The I-O status of the file
       *>    connector associated with file-name-1 is set to '10' to indicate the at end condition,
       *>    and, if enabled, the EC-I-O-AT-END exception condition is set to exist" (§2023:9.1.13.4
       *>    rule 1 a) gives the same 10).
-      *>  * The declarative is selected by §2023:14.9.49.4 GR3 c) - "All format 3 USE statements in
+      *>  * The declarative is selected by §2023:14.9.49.4 GR3c - "All format 3 USE statements in
       *>    which file-name-2 is specified and exception-name-2 is a level-3 exception-name are
       *>    examined ... If the exception condition that was raised matches exception-name-2 and
       *>    the exception condition is associated with file-name-2, that declarative is executed."
@@ -41,7 +41,7 @@
       *>    WHICH condition selected the declarative rather than merely that some handler ran.
       *>  * RESUME AT NEXT STATEMENT transfers control to an implicit CONTINUE that "immediately
       *>    follows the end of the statement that was executing when control was transferred to
-      *>    the exception processing procedure" (§2023:14.9.33.4 GR2 a)), so "AFTER" is reached.
+      *>    the exception processing procedure" (§2023:14.9.33.4 GR2a), so "AFTER" is reached.
       *>  * HITS=1 is the falsifiable part: the pair is written twice and the handler shall run
       *>    ONCE - the two spellings are one selection entry, not two declaratives.
 >>TURN EC-I-O CHECKING ON

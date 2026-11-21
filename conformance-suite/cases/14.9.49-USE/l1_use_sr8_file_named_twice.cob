@@ -12,7 +12,7 @@
       *> half is conformance-suite/cases/14.9.49-USE/l1-use-sr8-file-in-two-statements).
       *> The Format-1 figure (§2023:14.9.49.2, rendered from the printed page) writes the operand list
       *> as `{ file-name-1 } ...`: an ellipsis over a single brace group, with nothing restricting
-      *> the repetition. §2023:14.9.49.4 GR6 a) then associates the one procedure with the file - "If
+      *> the repetition. §2023:14.9.49.4 GR6a then associates the one procedure with the file - "If
       *> file-name-1 is specified, the associated procedure is executed when the condition
       *> described in the USE statement occurs" - however many times the name is written, so the
       *> repetition changes no general rule either.
@@ -25,25 +25,25 @@
       *> DERIVATION - every expected line follows from the rule text, nothing from the compiler.
       *>  * OPEN OUTPUT of an absent, non-optional file: §2023:14.9.27.4 GR4's table gives "Normal
       *>    open" for the OUTPUT row when the file is unavailable (it is created), and
-      *>    §2023:9.1.13.2 rule 1 gives the successful value - I-O status "00". WRITE and CLOSE of
+      *>    §2023:9.1.13.2 GR1 gives the successful value - I-O status "00". WRITE and CLOSE of
       *>    that file likewise complete successfully, so both status items read 00 before the
       *>    reading pass begins.
       *>  * The first READ returns the one record just written: successful completion, I-O
-      *>    status "00" (§2023:9.1.13.2 rule 1), and the record area holds it.
-      *>  * The second READ finds no next logical record: §2023:9.1.13.4 rule 1 a) - "I-O status = 10.
+      *>    status "00" (§2023:9.1.13.2 GR1), and the record area holds it.
+      *>  * The second READ finds no next logical record: §2023:9.1.13.4 GR1a - "I-O status = 10.
       *>    A sequential READ statement is attempted and no next or prior logical record exists
       *>    in the physical file because ... the end of the physical file has been reached" -
-      *>    which is also what §2023:14.9.30.4 GR24 a) sets: "The I-O status of the file connector
+      *>    which is also what §2023:14.9.30.4 GR24a sets: "The I-O status of the file connector
       *>    associated with file-name-1 is set to '10' to indicate the at end condition". No AT
       *>    END phrase is written, so §2023:14.9.49.4 GR6 selects the declarative, and GR6 a) is the
       *>    applicable arm for BOTH files: F1 because the statement names it (twice), F2 because
       *>    the same statement names it once.
       *>  * Control comes back after each handler: EC-I-O-AT-END is NON-fatal (§2023:14.6.13.1.6's
-      *>    exception-name table marks it NF), so §2023:14.9.49.4 GR7 b) applies - "control is
+      *>    exception-name table marks it NF), so §2023:14.9.49.4 GR7b applies - "control is
       *>    returned to an implicit CONTINUE statement following the input-output statement whose
       *>    execution caused the exception". Hence the AFTER- lines are reached and HITS reaches 2.
       *>  * The status values the SECOND handler displays are ST1=00 ST2=10, not ST1=10: CLOSE F1
-      *>    runs between the two readings and completes successfully, so §2023:9.1.13.2 rule 1 has
+      *>    runs between the two readings and completes successfully, so §2023:9.1.13.2 GR1 has
       *>    already reset F1's status to 00 by then. Both items are displayed precisely because
       *>    that pair is what distinguishes the F2 invocation from a re-entry for F1.
       *>  * HITS=2 is the falsifiable part: were the repeated F1 to bind a second declarative

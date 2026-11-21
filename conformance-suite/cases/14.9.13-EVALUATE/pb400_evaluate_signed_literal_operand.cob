@@ -7,7 +7,7 @@
       *>---
       *> ISO §2023:14.9.13.4 GR1 — "If an operand of the EVALUATE statement consists of a
       *> single literal, that operand is treated as a literal, not as an expression" —
-      *> read with §2023:8.3.3.3.2 rule 2 — "A literal shall not contain more than one sign
+      *> read with §2023:8.3.3.3.2 SR2 — "A literal shall not contain more than one sign
       *> character.  If a sign is used, it shall appear as the leftmost character of the
       *> literal."  A literal is one contiguous character-string, so `-5` CONSISTS OF a
       *> single literal while the SEPARATED `- 5` is a unary operator applied to one and
@@ -69,7 +69,7 @@
                WHEN OTHER
                    DISPLAY "N-EXPR-NE"
            END-EVALUATE.
-      *> A range's bounds are literals under the same rule (§2023:14.9.13.4 GR4 a) 5. gives
+      *> A range's bounds are literals under the same rule (§2023:14.9.13.4 GR4a.5 gives
       *> subject >= left-part AND subject <= right-part).  Both bounds de-sign to "5"
       *> and "1"; "-3" is below "5 ", so the range does not contain it.
            EVALUATE W-R
