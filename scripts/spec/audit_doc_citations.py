@@ -21,6 +21,10 @@ read `§2023:15.39.1 "depends on the type of argument-1"` and nothing else. This
     blind spot behind them — a quote cited in the postfix form was never checked against its clause AT ALL, so a
     misfiling written that way was invisible. Reading both orders removed the false positives and put ~15 more
     citations under the check.
+  · the TABLE form (kb/Work PB5938), `| 85-1 | "each compiler accepts …" | §1985:IV.7.1 |` — the quotation in one cell and its
+    citation in the next. Paired only when the quote cell holds ONE quotation and the citation cell ONE citation, and the
+    cell before the quote cites nothing (that is the prefix form's). A doc whose quoted table rows pair with nothing is
+    reported UNREAD, so a shape the audit cannot read is a red and not a silence.
   · the BACK-REFERENCE form, `§2023:15.2 … "no digits to the right of the decimal point" (item 5)` — the clause is
     named earlier in the sentence and the quote points back at it by rule number. That one is NOT made
     mechanical here and is not meant to be: a citation no tool can resolve is a citation nothing checks, which
@@ -216,7 +220,11 @@ def verdict_of(cited: citation.Citation, quote: str) -> tuple[str, str | int | N
 def _cited(m: re.Match) -> citation.Citation | None:
     """The checkable citation a PAT/POST match carries: a well-formed one, of an edition whose transcription exists,
     at the three-segment floor. A malformed citation is `audit_code_citations.py`'s finding (CITATION), not this one."""
-    cited = citation.from_match(m)
+    return _checkable(citation.from_match(m))
+
+
+def _checkable(cited: citation.Citation | None) -> citation.Citation | None:
+    """`cited` when it is well-formed, of an edition whose transcription exists and at the three-segment floor."""
     if cited is None or cited.error or citation.transcription(cited.edition) is None:
         return None
     return cited if len(cited.locator.split(".")) >= FLOOR_SEGMENTS else None
@@ -253,12 +261,66 @@ _ANOTHER_RULE = re.compile(r"\b(?:GR|SR|AR|RV)\s?L?\d")
 _OWN_LABELS = re.compile(r"^(?:\s*(?:(?:GR|SR|AR|RV)\s?L?\d+(?:\.\d+)?[a-z0-9.]*|\(?[a-z0-9]{1,2}[.)]))*")
 
 
+#: Any double-quoted fragment, whatever it says: a table cell is read as quoting the standard only when it holds ONE.
+_ANY_QUOTE = re.compile(r'["“][^"”\n]+["”]')
+
+
+def _cells(line: str) -> list[tuple[int, int]]:
+    """The (start, end) of each cell of a markdown table row, the bars of a code span (`a | b`) kept inside their cell;
+    empty when `line` is no row."""
+    if not line.lstrip().startswith("|"):
+        return []
+    bars, in_code = [], False
+    for k, ch in enumerate(line):
+        if ch == "`":
+            in_code = not in_code
+        elif ch == "|" and not in_code and (k == 0 or line[k - 1] != "\\"):
+            bars.append(k)
+    return list(zip(bars, bars[1:]))
+
+
+def _table_pairs(line: str) -> dict[tuple[int, int], tuple[citation.Citation | None, str, str]]:
+    """THE TABLE FORM (kb/Work PB5938): a row writes a quotation in one cell and its citation in the NEXT, `| 85-1 | "each
+    compiler accepts …" | §1985:IV.7.1 | … |`. A cell separator is neither a space nor a closing bracket, so neither order
+    above read it, and a design doc whose tables carry the quotations it rests on (DESIGN-listing.md: 16 rows) had not one
+    of them checked. The reading is the unambiguous one only: the quote cell holds ONE quotation and the citation cell
+    ONE citation (a cell that quotes twice, or cites twice, says which quotation belongs to which citation only to its
+    writer), and the quote is no one else's (a citation in the cell before it, the order rule's prefix form, wins)."""
+    cells = _cells(line)
+    if len(cells) < 2:
+        return {}
+    cites = list(citation.scan(line))
+    out = {}
+    for (lo, hi), (nlo, nhi) in zip(cells, cells[1:]):
+        quotes = list(_ANY_QUOTE.finditer(line, lo, hi))
+        here = [c for c in cites if nlo <= c.start and c.end <= nhi]
+        before = [c for c in cites if lo <= c.start and c.end <= hi]
+        if len(quotes) != 1 or before or len(here) != 1:
+            continue
+        text = quotes[0].group(0)[1:-1]
+        # A cell that IS its quotation quotes the standard verbatim, capital opening and all (the lower-case floor of `QUOTED`
+        # keeps a mid-sentence quotation a doc had to re-case out; a whole cell was not re-cased): its length floor alone applies.
+        if QUOTED_ONLY.fullmatch(quotes[0].group(0)) is None and not (
+                line[lo + 1:hi].strip() == quotes[0].group(0) and len(text) >= QUOTE_CELL_FLOOR):
+            continue
+        out[(quotes[0].start() + 1, quotes[0].end() - 1)] = (_checkable(here[0]), text, "table")
+    return out
+
+
+#: A whole quoted fragment `QUOTED` accepts (the lower-case opening and the length floor of a spec-prose quotation).
+QUOTED_ONLY = re.compile(QUOTED)
+#: The length floor (characters) of a quotation that fills its table cell: the 30 of `QUOTED`, for the same reason (below it
+#: a quoted fragment is usually a defined TERM, and a term legitimately appears in many clauses).
+QUOTE_CELL_FLOOR = 30
+
+
 def citations(line: str):
     """Every checkable citation on ONE line, as (column, citation, quote, form), left to right.
 
     The POSTFIX form is resolved FIRST and its quote is then off limits to the prefix form: when both readings
     are available for one quoted fragment the citation written next to it wins, which is what makes
-    `"a" §1.2.3, "b" §4.5.6` read as two citations rather than as one misfiling (citation-audit: example)."""
+    `"a" §1.2.3, "b" §4.5.6` read as two citations rather than as one misfiling (citation-audit: example). A quote neither
+    reads, in a table row, is paired with the citation in the cell after it (`_table_pairs`)."""
     claimed: dict[tuple[int, int], tuple[citation.Citation | None, str, str]] = {}
     for m in POST.finditer(line):
         claimed[m.span("q")] = (_cited(m), m.group("q"), "postfix")
@@ -266,6 +328,8 @@ def citations(line: str):
     for m in PAT.finditer(line):
         if m.span("q") not in claimed and not _leaves_parenthesis(line[m.end("cite"):m.start("q")]):
             found[m.span("q")] = (_cited(m), m.group("q"), "prefix")
+    for span, pair in _table_pairs(line).items():
+        found.setdefault(span, pair)
     for span in sorted(found):
         cited, quote, form = found[span]
         # A quotation of fewer than `cite.MIN_WORDS` real words proves nothing about where it was taken from (kb/Work
@@ -313,6 +377,40 @@ def scan(paths, elided_out: list | None = None):
                     if elided_out is not None and kind == "elided":
                         elided_out.append((rel, n, shown, quote, int(evidence), form))
     return misfiled, absent, ok
+
+
+def readable_rows(line: str) -> bool:
+    """Whether a table row carries a quotation this audit reads (`QUOTED`) and a citation it can check, in one row."""
+    return bool(_cells(line)) and QUOTED_ROW.search(line) is not None and any(
+        _checkable(c) is not None for c in citation.scan(line))
+
+
+#: A quotation of the shape `QUOTED` accepts, anywhere in a row.
+QUOTED_ROW = re.compile(QUOTED)
+
+
+#: How many such rows make a SECTION of quoted table rows, the shape a doc builds its argument on (DESIGN-listing.md: 16,
+#: DESIGN-external-repository.md: 25). Below it a row is a coincidence of a quotation and a citation in one table (a cell
+#: that quotes a diagnostic message, a work note's evidence column), which no pairing rule is owed.
+UNREAD_FLOOR_ROWS = 4
+
+
+def unread_docs(paths) -> list[tuple[str, int]]:
+    """(file, rows) for every doc that has table rows quoting the standard beside a checkable citation (`readable_rows`),
+    at least `UNREAD_FLOOR_ROWS` of them, and yet pairs NOT ONE citation: a shape the audit cannot read is a red, never a silence (kb/Work PB5938: DESIGN-listing.md
+    read 0 of its 16 quoted rows while the audit counted the doc as scanned)."""
+    out = []
+    for doc in paths:
+        try:
+            lines = doc.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            continue
+        if MARKER in "\n".join(lines[:40]):
+            continue
+        rows = sum(readable_rows(line) for line in lines)
+        if rows >= UNREAD_FLOOR_ROWS and not any(True for line in lines for _ in citations(line)):
+            out.append((str(doc.relative_to(REPO) if doc.is_relative_to(REPO) else doc).replace("\\", "/"), rows))
+    return out
 
 
 #: ⛔ A GATE THAT HAS NEVER BEEN SEEN TO FAIL IS NOT EVIDENCE (the sibling audit's `--self-test` doctrine, and
@@ -371,6 +469,18 @@ SELF_TEST = [
     ("a citation closing its sentence, not the next quote's", None,
      'It "shall not be specified in the input or output procedure of a MERGE" (§2023:14.9.7.3 SR2), and EXIT PERFORM '
      '"the most closely preceding, and as yet unterminated, inline PERFORM" (GR5a)'),
+    # ⛔ THE TABLE FORM (kb/Work PB5938): the quotation in one cell, its citation in the next. A row whose citation is
+    # the wrong clause is a misfiling like any other; the repaired twin is silent; a cell that quotes twice is
+    # ambiguous and read as neither, and a citation in the cell BEFORE the quote keeps the order rule's prefix reading.
+    ("table form, misfiled", "misfiled",
+     '| 85-9 | "shall not be specified in the input or output procedure of a MERGE" | §2023:8.6.6 | x |'),
+    ("table form, correct", None,
+     '| 85-9 | "shall not be specified in the input or output procedure of a MERGE" | §2023:14.9.7.3 | x |'),
+    ("table form, a cell that quotes twice", None,
+     '| 85-9 | "the paragraph name identifies the source program, the object program" and "specifies the '
+     'characteristics of a particular item of data" | §1985:VI.5.4.1 | x |'),
+    ("table form, the quote follows its citation", None,
+     '| §1985:VI.5.3.1 | "specifies the characteristics of a particular item of data" | §1985:VI.5.4.1 | x |'),
     ("1985, correct", None, 'Its entry (§1985:VI.5.3.1) "specifies the characteristics of a particular item of data"'),
     ("1985, misfiled", "misfiled",
      'Its entry (§1985:VI.5.4.1) "specifies the characteristics of a particular item of data"'),
@@ -421,10 +531,25 @@ def self_test() -> int:
     finally:
         subprocess.Popen = real_popen
     loaded_once = _spec(2023) is _spec(2023)
-    inproc = not spawned and len(rulings) >= len(SELF_TEST) and loaded_once
+    inproc = not spawned and bool(rulings) and loaded_once
     print(f"  {'ok  ' if inproc else 'FAIL'} in-process: every ruling made with no process spawned, the standard "
           f"loaded once" + ("" if inproc else f"  (spawned {spawned[:1]}, {len(rulings)} rulings)"))
     ok &= inproc
+    # ⛔ AND A DOC THE AUDIT CANNOT READ IS A FINDING (`unread_docs`): a table of quoted rows whose cells pair with
+    # nothing is reported, the same table once a pairing exists is not.
+    with tempfile.TemporaryDirectory() as d:
+        unread = pathlib.Path(d) / "design.md"
+        unread.write_text('| a | "specifies the characteristics of a particular item of data" and "the paragraph name '
+                          'identifies the source program" | §1985:VI.5.3.1 |\n' * UNREAD_FLOOR_ROWS,
+                          encoding="utf-8", newline="\n")
+        read = pathlib.Path(d) / "read.md"
+        read.write_text('| a | "specifies the characteristics of a particular item of data" | §1985:VI.5.3.1 |\n'
+                        * UNREAD_FLOOR_ROWS, encoding="utf-8", newline="\n")
+        found = unread_docs([unread, read])
+    seen = len(found) == 1 and found[0][0].endswith("design.md")
+    print(f"  {'ok  ' if seen else 'FAIL'} UNREAD fires on a doc whose quoted table rows pair with nothing, "
+          f"silent on one that pairs" + ("" if seen else f"  (got {found})"))
+    ok &= seen
     print("SELF-TEST:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 
@@ -465,13 +590,19 @@ def main() -> int:
               f"     §{clause} carries those {len(cite_mod.norm(quote).split())} words in order "
               f"across {window} — run `cite.py --find` on a fragment and quote what it prints\n")
 
+    unread = unread_docs(citation_corpus.all_files())
+    print(f"⛔ {len(unread)} UNREAD (a doc whose table rows quote the standard beside a citation, and not one of them is "
+          f"paired) — a shape this audit cannot read is a defect of the audit\n")
+    for rel, rows in unread:
+        print(f"  {rel}: {rows} quoted row(s), 0 citations paired\n")
+
     if args.all:
         print(f"\n— {len(absent)} quote(s) not found anywhere in the spec. MOSTLY NOT DEFECTS: a doc quotes labels")
         print("  and paraphrases as well as spec text, and nothing distinguishes them mechanically. Eyeball only.\n")
         for rel, n, clause, quote, _form in absent:
             print(f"  {rel}:{n}: §{clause} \"{quote[:70]}\"")
 
-    return 1 if ((misfiled or elided) and args.check) else 0
+    return 1 if ((misfiled or elided or unread) and args.check) else 0
 
 
 if __name__ == "__main__":
