@@ -7,7 +7,7 @@
       *> §1985:VI.7.3: the D line below is valid source. The plain line
       *> after it has literals with no separator (COBOL2633, §1985:IV.4.2.1
       *> SR5); that error is the plain line's own, so only COBOL2633 is
-      *> reported and the valid debugging line is not blamed with COBOL7675
+      *> reported and the valid debugging line is not blamed with COBOL7061
       *> (kb/Work PB5990).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5990G.

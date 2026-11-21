@@ -43,7 +43,8 @@ internal sealed class CheckSignClausesPass : IBindPass
             if (item.OwnSign is null || !binder.State.Clauses.SignClauseWritten.Contains(item)) continue;
             string? defect = item.IsGroup
                 ? SignClauseGroupDefect(ItemCategory.GroupKindsOf(item), binder.Edition.Edition)
-                : DataBinder.SignClauseElementaryDefect(item.Pic, item.PictureText, "data description entry", binder.Edition.Edition);
+                : DataBinder.SignClauseElementaryDefect(item.Pic, item.PictureText, "data description entry", binder.Edition.Edition,
+                    reportGroup: false);
             if (defect is not null)
             {
                 using var _ = binder.Edition.At(item);

@@ -7,9 +7,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// ⭐ THE EXACT ERROR SET of the two COBOL-85 debugging-line shapes whose goldens can only assert that a diagnostic APPEARS
 /// (<c>EditionHarness.AssertHasDiagnostic</c>; the wiseowl/diagnostics schema has no absent or exact form). §1985:VI.7.3 reads the
-/// debugging lines of a unit without WITH DEBUGGING MODE as source too (COBOL7675, kb/Work PB5990); that reading must blame a
+/// debugging lines of a unit without WITH DEBUGGING MODE as source too (COBOL7061, kb/Work PB5990); that reading must blame a
 /// hidden line only for an error ON a hidden line, and must not ask again of a line COBOL7060 already refused. A revert of either
-/// filter in <c>Frontend.ReportDebuggingLinesBreakingTheProgramAsSource</c> adds a COBOL7675 these tests count.
+/// filter in <c>Frontend.ReportDebuggingLinesBreakingTheProgramAsSource</c> adds a COBOL7061 these tests count.
 /// </summary>
 public sealed class DebuggingLineSourceReadingTests
 {
@@ -31,12 +31,12 @@ public sealed class DebuggingLineSourceReadingTests
             "001000D    DISPLAY \"OK\".", "001100     DISPLAY \"A\"\"B\"'C'.", "001200     STOP RUN.");
         Assert.Single(errors);
         Assert.Contains("COBOL2633", errors[0]);
-        Assert.DoesNotContain(errors, e => e.Contains("COBOL7675"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL7061"));
     }
 
     /// <summary>A D line before the end of OBJECT-COMPUTER in a unit without the mode is COBOL7060 once: it stays a comment in the
     /// as-source reading, so one cause draws one code (review R1-1). The line is no valid source where it stands, so a reading
-    /// that took it as source would add COBOL7675.</summary>
+    /// that took it as source would add COBOL7061.</summary>
     [Fact]
     public void AMisplacedDebuggingLine_IsReportedOnce_AsCobol7060()
     {
@@ -47,6 +47,6 @@ public sealed class DebuggingLineSourceReadingTests
             "001000     DISPLAY \"END\".", "001100     STOP RUN.");
         Assert.Single(errors);
         Assert.Contains("COBOL7060", errors[0]);
-        Assert.DoesNotContain(errors, e => e.Contains("COBOL7675"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL7061"));
     }
 }

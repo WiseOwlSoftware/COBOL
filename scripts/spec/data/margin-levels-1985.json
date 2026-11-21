@@ -1,19 +1,18 @@
 {
  "$comment": [
   "Written by scripts/spec/measure_margin_levels.py --edition 1985 --write; never edit by hand (kb/Work PB5449 item 3, decision PB5448 point 4).",
-  "Every paragraph a numbered rule's text holds after the rule's own, measured on the printed PDF: level 0 prints at the block's margin (a margin paragraph of the clause, a unit), deeper at the rule's hanging indent (its continuation). 'ambiguous' and 'not found' are read on the rendered page. Keyed as a unit's disposition is: clause, digest, order."
+  "Every paragraph a numbered rule's text holds after the rule's own, measured on the printed PDF: level 0 prints at the block's margin (a margin paragraph of the clause, a unit), deeper at the rule's hanging indent (its continuation). A paragraph the measurement cannot place is read on the rendered page (margin-readings-1985.json): its level is the reading's, with 'read_on_page'. Keyed as a unit's disposition is: clause, digest, order."
  ],
  "calibration": {
   "lead-ins": 102,
-  "measured": 82,
+  "measured": 83,
   "base_offset_pt": 17.8,
   "level_step_pt": 17.5,
   "lead-in levels": {
-   "0": 75,
+   "0": 78,
    "1": 3,
    "2": 4,
-   "ambiguous": 2,
-   "not found": 18
+   "not found": 17
   }
  },
  "paragraphs": [
@@ -64,7 +63,7 @@
    "order": 0,
    "page": 157,
    "level": 0,
-   "x_offset_pt": 17.4,
+   "x_offset_pt": 17.5,
    "text": "When a figurative constant represents a string of one or more characters, the le"
   },
   {
@@ -103,8 +102,8 @@
    "digest": "1ba387ec334d",
    "order": 0,
    "page": 161,
-   "level": "not found",
-   "x_offset_pt": null,
+   "level": 0,
+   "x_offset_pt": 17.3,
    "text": "Entries describing items by means of RENAMES clauses for the purpose of re-group"
   },
   {
@@ -239,22 +238,12 @@
   },
   {
    "clause": "§1985:VI.4.5.4",
-   "follows": "(3)",
-   "digest": "404686b9fcdf",
-   "order": 0,
-   "page": 247,
-   "level": "not found",
-   "x_offset_pt": null,
-   "text": "The SET Statement). The implementor defines which external switches can be refer"
-  },
-  {
-   "clause": "§1985:VI.4.5.4",
    "follows": "(10)",
    "digest": "84664fef254f",
    "order": 0,
    "page": 249,
-   "level": "not found",
-   "x_offset_pt": null,
+   "level": 2,
+   "x_offset_pt": 47.2,
    "text": "The value of each literal specifies: a. The ordinal number of a character within"
   },
   {
@@ -323,9 +312,10 @@
    "digest": "5bf5c5707a3f",
    "order": 0,
    "page": 263,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "P Each 'P' in the character-string indicates an assumed decimal scaling position"
+   "text": "P Each 'P' in the character-string indicates an assumed decimal scaling position",
+   "read_on_page": 263
   },
   {
    "clause": "§1985:VI.5.9.4",
@@ -433,9 +423,10 @@
    "digest": "fc053f14f9b2",
    "order": 0,
    "page": 264,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": ". When the symbol '.' (period) appears in the character-string it is an editing "
+   "text": ". When the symbol '.' (period) appears in the character-string it is an editing ",
+   "read_on_page": 264
   },
   {
    "clause": "§1985:VI.5.9.4",
@@ -503,8 +494,8 @@
    "digest": "792c8d1f1916",
    "order": 0,
    "page": 267,
-   "level": "not found",
-   "x_offset_pt": null,
+   "level": 2,
+   "x_offset_pt": 47.5,
    "text": "The second floating character from the left represents the leftmost limit of the"
   },
   {
@@ -623,9 +614,10 @@
    "digest": "b9fb618062e5",
    "order": 0,
    "page": 284,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "1st - Unary plus and minus 2nd - Exponentiation 3rd - Multiplication and divisio"
+   "text": "1st - Unary plus and minus 2nd - Exponentiation 3rd - Multiplication and divisio",
+   "read_on_page": 284
   },
   {
    "clause": "§1985:VI.6.3.1.1.2",
@@ -643,9 +635,10 @@
    "digest": "503e687ab417",
    "order": 0,
    "page": 288,
-   "level": "not found",
+   "level": 0,
    "x_offset_pt": null,
-   "text": "There are two cases to consider: operands of equal size and operands of unequal "
+   "text": "There are two cases to consider: operands of equal size and operands of unequal ",
+   "read_on_page": 288
   },
   {
    "clause": "§1985:VI.6.3.1.1.2",
@@ -673,9 +666,10 @@
    "digest": "8e0d7031687e",
    "order": 0,
    "page": 289,
-   "level": "not found",
+   "level": 0,
    "x_offset_pt": null,
-   "text": "Identifier-1 must reference a data item whose usage is explicitly or implicitly "
+   "text": "Identifier-1 must reference a data item whose usage is explicitly or implicitly ",
+   "read_on_page": 289
   },
   {
    "clause": "§1985:VI.6.3.1.2",
@@ -714,7 +708,7 @@
    "order": 0,
    "page": 289,
    "level": 0,
-   "x_offset_pt": 17.9,
+   "x_offset_pt": 18.1,
    "text": "The ALPHABETIC-LOWER test cannot be used with an item whose data description des"
   },
   {
@@ -724,7 +718,7 @@
    "order": 0,
    "page": 289,
    "level": 0,
-   "x_offset_pt": 17.9,
+   "x_offset_pt": 18.4,
    "text": "The ALPHABETIC-UPPER test cannot be used with an item whose data description des"
   },
   {
@@ -796,16 +790,6 @@
    "level": -1,
    "x_offset_pt": 0.2,
    "text": "condition-1 AND condition-2 AND ... condition-n condition-1 OR condition-2 OR .."
-  },
-  {
-   "clause": "§1985:VI.6.3.4",
-   "follows": "(2)",
-   "digest": "56e920b14625",
-   "order": 0,
-   "page": 298,
-   "level": "not found",
-   "x_offset_pt": null,
-   "text": "(condition-1 OR NOT condition-2) AND condition-3 AND condition-4"
   },
   {
    "clause": "§1985:VI.6.4.2",
@@ -893,9 +877,10 @@
    "digest": "2a16576a3da0",
    "order": 0,
    "page": 323,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "IF statements within IF statements are considered matched IF, ELSE, and END-IF o"
+   "text": "IF statements within IF statements are considered matched IF, ELSE, and END-IF o",
+   "read_on_page": 323
   },
   {
    "clause": "§1985:VI.6.17.4",
@@ -903,8 +888,8 @@
    "digest": "66cb3517a41f",
    "order": 0,
    "page": 325,
-   "level": "not found",
-   "x_offset_pt": null,
+   "level": 2,
+   "x_offset_pt": 47.9,
    "text": "If the REPLACING phrase is specified: a. If identifier-1 references a group item"
   },
   {
@@ -933,9 +918,10 @@
    "digest": "97f87f0427b7",
    "order": 0,
    "page": 335,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "If identifier-1 is reference modified, subscripted, or is a function-identifier,"
+   "text": "If identifier-1 is reference modified, subscripted, or is a function-identifier,",
+   "read_on_page": 335
   },
   {
    "clause": "§1985:VI.6.19.4",
@@ -963,9 +949,10 @@
    "digest": "49248ced6f9c",
    "order": 0,
    "page": 336,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "where 'temp' is an intermediate result item provided by the implementor."
+   "text": "where 'temp' is an intermediate result item provided by the implementor.",
+   "read_on_page": 336
   },
   {
    "clause": "§1985:VI.6.19.4",
@@ -1013,8 +1000,8 @@
    "digest": "bc100df24d12",
    "order": 0,
    "page": 347,
-   "level": "not found",
-   "x_offset_pt": null,
+   "level": 4,
+   "x_offset_pt": 92.4,
    "text": "When the data items referenced by two identifiers are varied, the content of the"
   },
   {
@@ -1093,9 +1080,10 @@
    "digest": "9dea68b23835",
    "order": 0,
    "page": 355,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "(See page IV-40, Scope of Statements.)"
+   "text": "(See page IV-40, Scope of Statements.)",
+   "read_on_page": 355
   },
   {
    "clause": "§1985:VI.6.22.4",
@@ -1123,8 +1111,8 @@
    "digest": "6dcd4aec6e59",
    "order": 0,
    "page": 360,
-   "level": "ambiguous",
-   "x_offset_pt": 18.8,
+   "level": 2,
+   "x_offset_pt": 48.1,
    "text": "If index-name-2 is specified, the value of the index before the execution of the"
   },
   {
@@ -1134,7 +1122,7 @@
    "order": 0,
    "page": 360,
    "level": 2,
-   "x_offset_pt": 48.1,
+   "x_offset_pt": 48.5,
    "text": "If index-name-3 is specified, the value of the index both before and after the e"
   },
   {
@@ -1214,7 +1202,7 @@
    "order": 0,
    "page": 377,
    "level": 0,
-   "x_offset_pt": 17.3,
+   "x_offset_pt": 17.4,
    "text": "The following is a list of the values placed in the I-O status for the previousl"
   },
   {
@@ -1243,9 +1231,10 @@
    "digest": "d7cf2805dc23",
    "order": 0,
    "page": 406,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "If the number of character positions in the logical record to be written is less"
+   "text": "If the number of character positions in the logical record to be written is less",
+   "read_on_page": 406
   },
   {
    "clause": "§1985:VII.3.9.4",
@@ -1284,7 +1273,7 @@
    "order": 0,
    "page": 410,
    "level": 3,
-   "x_offset_pt": 72.5,
+   "x_offset_pt": 72.3,
    "text": "<u>Input Files and Input-Output Files</u>:"
   },
   {
@@ -1343,9 +1332,10 @@
    "digest": "56c3ef5fd62c",
    "order": 0,
    "page": 410,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "C. Close File"
+   "text": "C. Close File",
+   "read_on_page": 410
   },
   {
    "clause": "§1985:VII.4.2.4",
@@ -1354,7 +1344,7 @@
    "order": 1,
    "page": 410,
    "level": 3,
-   "x_offset_pt": 72.5,
+   "x_offset_pt": 72.3,
    "text": "<u>Input Files and Input-Output Files</u>:"
   },
   {
@@ -1393,9 +1383,10 @@
    "digest": "2a92b3c0924e",
    "order": 0,
    "page": 411,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "D. Reel/Unit Removal"
+   "text": "D. Reel/Unit Removal",
+   "read_on_page": 411
   },
   {
    "clause": "§1985:VII.4.2.4",
@@ -1413,9 +1404,10 @@
    "digest": "db63de1fb19e",
    "order": 0,
    "page": 411,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "E. File Lock"
+   "text": "E. File Lock",
+   "read_on_page": 411
   },
   {
    "clause": "§1985:VII.4.2.4",
@@ -1433,9 +1425,10 @@
    "digest": "567f12ac054d",
    "order": 0,
    "page": 411,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "F. Close Reel/Unit"
+   "text": "F. Close Reel/Unit",
+   "read_on_page": 411
   },
   {
    "clause": "§1985:VII.4.2.4",
@@ -1473,9 +1466,10 @@
    "digest": "7f87a7c3be70",
    "order": 0,
    "page": 412,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "<u>Input Files, Input-Output Files, and Output Files (Non-Reel/Unit Media)</u>:"
+   "text": "<u>Input Files, Input-Output Files, and Output Files (Non-Reel/Unit Media)</u>:",
+   "read_on_page": 412
   },
   {
    "clause": "§1985:VII.4.2.4",
@@ -1493,9 +1487,10 @@
    "digest": "8a6f1df681b3",
    "order": 0,
    "page": 412,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "G. Rewind"
+   "text": "G. Rewind",
+   "read_on_page": 412
   },
   {
    "clause": "§1985:VII.4.2.4",
@@ -1573,8 +1568,8 @@
    "digest": "45c6d29abc72",
    "order": 0,
    "page": 419,
-   "level": "not found",
-   "x_offset_pt": null,
+   "level": 2,
+   "x_offset_pt": 48.6,
    "text": "If a record is found which satisfies the above rules, it is made available in th"
   },
   {
@@ -1643,9 +1638,10 @@
    "digest": "bd0c5e6e2c8f",
    "order": 0,
    "page": 429,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "This occurs when a WRITE statement, if executed, would cause the LINAGE-COUNTER "
+   "text": "This occurs when a WRITE statement, if executed, would cause the LINAGE-COUNTER ",
+   "read_on_page": 429
   },
   {
    "clause": "§1985:VII.4.7.4",
@@ -1684,7 +1680,7 @@
    "order": 0,
    "page": 447,
    "level": 2,
-   "x_offset_pt": 48.5,
+   "x_offset_pt": 48.4,
    "text": "The definitions of the symbols in the table are given below. Where the definitio"
   },
   {
@@ -1693,9 +1689,10 @@
    "digest": "80c1460dce21",
    "order": 0,
    "page": 447,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "A. Close File"
+   "text": "A. Close File",
+   "read_on_page": 447
   },
   {
    "clause": "§1985:VIII.4.2.4",
@@ -1704,7 +1701,7 @@
    "order": 0,
    "page": 447,
    "level": 3,
-   "x_offset_pt": 72.7,
+   "x_offset_pt": 72.6,
    "text": "<u>Input Files and Input-Output Files (Sequential Access Mode)</u>:"
   },
   {
@@ -1714,7 +1711,7 @@
    "order": 0,
    "page": 447,
    "level": 3,
-   "x_offset_pt": 72.7,
+   "x_offset_pt": 72.6,
    "text": "If the file is positioned at its end and label records are specified for the fil"
   },
   {
@@ -1743,9 +1740,10 @@
    "digest": "6a0906732f44",
    "order": 0,
    "page": 448,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "B. File Lock"
+   "text": "B. File Lock",
+   "read_on_page": 448
   },
   {
    "clause": "§1985:VIII.4.2.4",
@@ -1814,7 +1812,7 @@
    "order": 0,
    "page": 457,
    "level": 2,
-   "x_offset_pt": 48.8,
+   "x_offset_pt": 49.1,
    "text": "If no record is found which satisfies the above rules, the file position indicat"
   },
   {
@@ -1844,7 +1842,7 @@
    "order": 0,
    "page": 461,
    "level": 4,
-   "x_offset_pt": 96.1,
+   "x_offset_pt": 96.0,
    "text": "MOVE identifier-1 TO record-name-1 according to the rules specified for the MOVE"
   },
   {
@@ -1853,9 +1851,10 @@
    "digest": "7e10c5494e18",
    "order": 0,
    "page": 473,
-   "level": "not found",
+   "level": 0,
    "x_offset_pt": null,
-   "text": "The following is a list of the values placed in the I-O status for the previousl"
+   "text": "The following is a list of the values placed in the I-O status for the previousl",
+   "read_on_page": 473
   },
   {
    "clause": "§1985:IX.1.3.5",
@@ -1874,7 +1873,7 @@
    "order": 0,
    "page": 489,
    "level": 2,
-   "x_offset_pt": 48.4,
+   "x_offset_pt": 48.6,
    "text": "The definitions of the symbols in the table are given below. Where the definitio"
   },
   {
@@ -1883,9 +1882,10 @@
    "digest": "80c1460dce21",
    "order": 0,
    "page": 489,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "A. Close File"
+   "text": "A. Close File",
+   "read_on_page": 489
   },
   {
    "clause": "§1985:IX.4.2.4",
@@ -1894,7 +1894,7 @@
    "order": 0,
    "page": 489,
    "level": 3,
-   "x_offset_pt": 73.1,
+   "x_offset_pt": 73.3,
    "text": "<u>Input Files and Input-Output Files (Sequential Access Mode)</u>:"
   },
   {
@@ -1904,7 +1904,7 @@
    "order": 0,
    "page": 489,
    "level": 3,
-   "x_offset_pt": 73.1,
+   "x_offset_pt": 73.3,
    "text": "If the file is positioned at its end and label records are specified for the fil"
   },
   {
@@ -1933,9 +1933,10 @@
    "digest": "6a0906732f44",
    "order": 0,
    "page": 490,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "B. File Lock"
+   "text": "B. File Lock",
+   "read_on_page": 490
   },
   {
    "clause": "§1985:IX.4.2.4",
@@ -2023,8 +2024,8 @@
    "digest": "2f61e8ef6d3a",
    "order": 0,
    "page": 501,
-   "level": "not found",
-   "x_offset_pt": null,
+   "level": 2,
+   "x_offset_pt": 47.3,
    "text": "When the at end condition occurs, execution of the READ statement is unsuccessfu"
   },
   {
@@ -2056,16 +2057,6 @@
    "level": 4,
    "x_offset_pt": 95.6,
    "text": "MOVE identifier-1 TO record-name-1 according to the rules specified for the MOVE"
-  },
-  {
-   "clause": "§1985:X.3.1.4",
-   "follows": "(3)",
-   "digest": "8065ed138611",
-   "order": 0,
-   "page": 529,
-   "level": "not found",
-   "x_offset_pt": null,
-   "text": "Inter-Program Communication - Linkage Section"
   },
   {
    "clause": "§1985:X.5.1",
@@ -2104,7 +2095,7 @@
    "order": 0,
    "page": 545,
    "level": 2,
-   "x_offset_pt": 48.5,
+   "x_offset_pt": 48.3,
    "text": "On all other entries into the called program, the state of the program and each "
   },
   {
@@ -2114,7 +2105,7 @@
    "order": 0,
    "page": 545,
    "level": 2,
-   "x_offset_pt": 48.5,
+   "x_offset_pt": 48.3,
    "text": "On all other entries into the called program, the states and positioning of all "
   },
   {
@@ -2133,9 +2124,10 @@
    "digest": "86ba11d12a8d",
    "order": 0,
    "page": 563,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS "
+   "text": "The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS ",
+   "read_on_page": 563
   },
   {
    "clause": "§1985:XI.4.1.4",
@@ -2143,9 +2135,10 @@
    "digest": "78fc7a885506",
    "order": 0,
    "page": 563,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "For a relative file, the relative key data item for the first record returned co"
+   "text": "For a relative file, the relative key data item for the first record returned co",
+   "read_on_page": 563
   },
   {
    "clause": "§1985:XI.4.1.4",
@@ -2163,9 +2156,10 @@
    "digest": "aa48bd272c4f",
    "order": 0,
    "page": 564,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS "
+   "text": "The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS ",
+   "read_on_page": 564
   },
   {
    "clause": "§1985:XI.4.2.4",
@@ -2174,7 +2168,7 @@
    "order": 0,
    "page": 565,
    "level": 4,
-   "x_offset_pt": 95.3,
+   "x_offset_pt": 95.4,
    "text": "MOVE identifier-1 TO record-name-1 according to the rules specified for the MOVE"
   },
   {
@@ -2193,9 +2187,10 @@
    "digest": "b37b133cb5d5",
    "order": 0,
    "page": 571,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS "
+   "text": "The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS ",
+   "read_on_page": 571
   },
   {
    "clause": "§1985:XI.4.4.4",
@@ -2233,9 +2228,10 @@
    "digest": "523eb6bbae36",
    "order": 0,
    "page": 572,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS "
+   "text": "The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS ",
+   "read_on_page": 572
   },
   {
    "clause": "§1985:XII.2.3",
@@ -2318,23 +2314,13 @@
    "text": "The inequality relation test is further explained in the appropriate paragraph. "
   },
   {
-   "clause": "§1985:XIII.3.7.4",
-   "follows": "(4)",
-   "digest": "e9ec63c9226c",
-   "order": 0,
-   "page": 599,
-   "level": "not found",
-   "x_offset_pt": null,
-   "text": "<p>Report Writer - PAGE</p>"
-  },
-  {
    "clause": "§1985:XIII.3.8.3",
    "follows": "(8)",
    "digest": "36296f7a9e04",
    "order": 0,
    "page": 599,
-   "level": "ambiguous",
-   "x_offset_pt": 49.1,
+   "level": 3,
+   "x_offset_pt": 72.8,
    "text": "A report heading report group that is not to be presented on a page by itself, i"
   },
   {
@@ -2343,8 +2329,8 @@
    "digest": "8446b9b87d32",
    "order": 0,
    "page": 600,
-   "level": "ambiguous",
-   "x_offset_pt": 48.6,
+   "level": 3,
+   "x_offset_pt": 71.6,
    "text": "A report footing report group that is not to be presented on a page by itself, i"
   },
   {
@@ -2403,9 +2389,10 @@
    "digest": "2c30c2c676a5",
    "order": 0,
    "page": 610,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "\\* See page XIII-25, LINE NUMBER Clause Notation, for a description of the abbre"
+   "text": "\\* See page XIII-25, LINE NUMBER Clause Notation, for a description of the abbre",
+   "read_on_page": 610
   },
   {
    "clause": "§1985:XIII.3.10.6",
@@ -2443,9 +2430,10 @@
    "digest": "cd54ef1e9864",
    "order": 0,
    "page": 610,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "\\+\\+ See page XIII-48, The NEXT GROUP Clause."
+   "text": "\\+\\+ See page XIII-48, The NEXT GROUP Clause.",
+   "read_on_page": 610
   },
   {
    "clause": "§1985:XIII.3.10.7",
@@ -2453,9 +2441,10 @@
    "digest": "e2b9511131a8",
    "order": 0,
    "page": 612,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "If a report heading report group has been presented on the page on which the pag"
+   "text": "If a report heading report group has been presented on the page on which the pag",
+   "read_on_page": 612
   },
   {
    "clause": "§1985:XIII.3.10.7",
@@ -2463,19 +2452,10 @@
    "digest": "bcd8261d9858",
    "order": 0,
    "page": 612,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "Otherwise the first line number on which the page heading report group can be pr"
-  },
-  {
-   "clause": "§1985:XIII.3.10.7",
-   "follows": "(1)",
-   "digest": "bdf5a9d3df10",
-   "order": 0,
-   "page": 612,
-   "level": "not found",
-   "x_offset_pt": null,
-   "text": "Report Writer - Page Heading Group Presentation Rules"
+   "text": "Otherwise the first line number on which the page heading report group can be pr",
+   "read_on_page": 612
   },
   {
    "clause": "§1985:XIII.3.10.7",
@@ -2483,9 +2463,10 @@
    "digest": "65331753d134",
    "order": 0,
    "page": 612,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "The last line number on which the page heading report group can be presented is "
+   "text": "The last line number on which the page heading report group can be presented is ",
+   "read_on_page": 612
   },
   {
    "clause": "§1985:XIII.3.10.7",
@@ -2493,19 +2474,10 @@
    "digest": "3ca2fac69891",
    "order": 0,
    "page": 612,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "Otherwise the sum of the integer of the first LINE NUMBER clause of the page hea"
-  },
-  {
-   "clause": "§1985:XIII.3.10.7",
-   "follows": "(4)",
-   "digest": "3dc0391fd543",
-   "order": 0,
-   "page": 612,
-   "level": "not found",
-   "x_offset_pt": null,
-   "text": "Report Writer - Body Group Presentation Rules"
+   "text": "Otherwise the sum of the integer of the first LINE NUMBER clause of the page hea",
+   "read_on_page": 612
   },
   {
    "clause": "§1985:XIII.3.10.8",
@@ -2534,7 +2506,7 @@
    "order": 0,
    "page": 612,
    "level": 2,
-   "x_offset_pt": 47.1,
+   "x_offset_pt": 47.9,
    "text": "The last line number on which a control footing report group can be presented is"
   },
   {
@@ -2553,8 +2525,8 @@
    "digest": "3672f8451310",
    "order": 0,
    "page": 612,
-   "level": "ambiguous",
-   "x_offset_pt": 47.9,
+   "level": 3,
+   "x_offset_pt": 72.8,
    "text": "If no body group has yet been presented on the page to which the report is curre"
   },
   {
@@ -2623,9 +2595,10 @@
    "digest": "fd24230791aa",
    "order": 0,
    "page": 614,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "If saved next group integer was so set, the report writer control system (RWCS) "
+   "text": "If saved next group integer was so set, the report writer control system (RWCS) ",
+   "read_on_page": 614
   },
   {
    "clause": "§1985:XIII.3.10.8",
@@ -2644,7 +2617,7 @@
    "order": 0,
    "page": 614,
    "level": 3,
-   "x_offset_pt": 71.8,
+   "x_offset_pt": 72.0,
    "text": "If no body group has yet been presented on the page to which the report is curre"
   },
   {
@@ -2653,8 +2626,8 @@
    "digest": "b29c673d694d",
    "order": 0,
    "page": 614,
-   "level": "ambiguous",
-   "x_offset_pt": 47.8,
+   "level": 3,
+   "x_offset_pt": 72.5,
    "text": "If the value in LINE-COUNTER is equal to or greater than the line number specifi"
   },
   {
@@ -2724,7 +2697,7 @@
    "order": 0,
    "page": 617,
    "level": 2,
-   "x_offset_pt": 47.7,
+   "x_offset_pt": 49.1,
    "text": "The first line number on which the page footing report group can be presented is"
   },
   {
@@ -2734,7 +2707,7 @@
    "order": 0,
    "page": 617,
    "level": 2,
-   "x_offset_pt": 47.7,
+   "x_offset_pt": 49.1,
    "text": "The last line number on which the page footing report group can be presented is "
   },
   {
@@ -2844,7 +2817,7 @@
    "order": 0,
    "page": 632,
    "level": 2,
-   "x_offset_pt": 47.9,
+   "x_offset_pt": 48.4,
    "text": "If the UPON phrase is specified, any identifiers in the associated SUM clause mu"
   },
   {
@@ -2873,9 +2846,10 @@
    "digest": "dd517e6cc8ab",
    "order": 0,
    "page": 634,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "Crossfooting is performed according to the sequence in which sum counters are de"
+   "text": "Crossfooting is performed according to the sequence in which sum counters are de",
+   "read_on_page": 634
   },
   {
    "clause": "§1985:XIII.3.19.4",
@@ -2883,9 +2857,10 @@
    "digest": "a56ce7875da1",
    "order": 0,
    "page": 634,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "When one of the addends is the sum counter defined by the data description entry"
+   "text": "When one of the addends is the sum counter defined by the data description entry",
+   "read_on_page": 634
   },
   {
    "clause": "§1985:XIII.3.19.4",
@@ -2893,19 +2868,10 @@
    "digest": "b25bc40c73ff",
    "order": 0,
    "page": 634,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "Sum counters are initially set to zero by the report writer control system durin"
-  },
-  {
-   "clause": "§1985:XIII.3.19.4",
-   "follows": "(12)",
-   "digest": "7fca74d59a5e",
-   "order": 0,
-   "page": 634,
-   "level": "not found",
-   "x_offset_pt": null,
-   "text": "Report Writer - TYPE"
+   "text": "Sum counters are initially set to zero by the report writer control system durin",
+   "read_on_page": 634
   },
   {
    "clause": "§1985:XIII.3.20.3",
@@ -2913,9 +2879,10 @@
    "digest": "290a1939a13c",
    "order": 0,
    "page": 634,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "PH is an abbreviation for PAGE HEADING."
+   "text": "PH is an abbreviation for PAGE HEADING.",
+   "read_on_page": 634
   },
   {
    "clause": "§1985:XIII.3.20.3",
@@ -2923,9 +2890,10 @@
    "digest": "89997fdff406",
    "order": 0,
    "page": 634,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "CH is an abbreviation for CONTROL HEADING."
+   "text": "CH is an abbreviation for CONTROL HEADING.",
+   "read_on_page": 634
   },
   {
    "clause": "§1985:XIII.3.20.3",
@@ -2933,9 +2901,10 @@
    "digest": "4e1e7487b113",
    "order": 0,
    "page": 634,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "DE is an abbreviation for DETAIL."
+   "text": "DE is an abbreviation for DETAIL.",
+   "read_on_page": 634
   },
   {
    "clause": "§1985:XIII.3.20.3",
@@ -2943,9 +2912,10 @@
    "digest": "5790dd127ff8",
    "order": 0,
    "page": 634,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "CF is an abbreviation for CONTROL FOOTING."
+   "text": "CF is an abbreviation for CONTROL FOOTING.",
+   "read_on_page": 634
   },
   {
    "clause": "§1985:XIII.3.20.3",
@@ -2953,9 +2923,10 @@
    "digest": "76e97155c41f",
    "order": 0,
    "page": 634,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "PF is an abbreviation for PAGE FOOTING."
+   "text": "PF is an abbreviation for PAGE FOOTING.",
+   "read_on_page": 634
   },
   {
    "clause": "§1985:XIII.3.20.3",
@@ -2963,19 +2934,10 @@
    "digest": "93fa96dc5a7b",
    "order": 0,
    "page": 634,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "RF is an abbreviation for REPORT FOOTING."
-  },
-  {
-   "clause": "§1985:XIII.3.20.3",
-   "follows": "(4)",
-   "digest": "7fca74d59a5e",
-   "order": 0,
-   "page": 634,
-   "level": "not found",
-   "x_offset_pt": null,
-   "text": "Report Writer - TYPE"
+   "text": "RF is an abbreviation for REPORT FOOTING.",
+   "read_on_page": 634
   },
   {
    "clause": "§1985:XIII.3.20.3",
@@ -3013,9 +2975,10 @@
    "digest": "cee128754c4d",
    "order": 1,
    "page": 635,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "(See page XIII-24, Presentation Rules Tables.)"
+   "text": "(See page XIII-24, Presentation Rules Tables.)",
+   "read_on_page": 635
   },
   {
    "clause": "§1985:XIII.3.20.4",
@@ -3123,9 +3086,10 @@
    "digest": "2a92b3c0924e",
    "order": 0,
    "page": 642,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "D. Reel/Unit Removal"
+   "text": "D. Reel/Unit Removal",
+   "read_on_page": 642
   },
   {
    "clause": "§1985:XIII.4.2.4",
@@ -3143,9 +3107,10 @@
    "digest": "db63de1fb19e",
    "order": 0,
    "page": 643,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "E. File Lock"
+   "text": "E. File Lock",
+   "read_on_page": 643
   },
   {
    "clause": "§1985:XIII.4.2.4",
@@ -3163,9 +3128,10 @@
    "digest": "567f12ac054d",
    "order": 0,
    "page": 643,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "F. Close Reel/Unit"
+   "text": "F. Close Reel/Unit",
+   "read_on_page": 643
   },
   {
    "clause": "§1985:XIII.4.2.4",
@@ -3213,9 +3179,10 @@
    "digest": "8a6f1df681b3",
    "order": 0,
    "page": 643,
-   "level": "not found",
+   "level": "continues the rule (read on the page)",
    "x_offset_pt": null,
-   "text": "G. Rewind"
+   "text": "G. Rewind",
+   "read_on_page": 643
   },
   {
    "clause": "§1985:XIII.4.2.4",
@@ -3233,7 +3200,7 @@
    "digest": "7a04bd6b90ac",
    "order": 0,
    "page": 643,
-   "level": "ambiguous",
+   "level": 2,
    "x_offset_pt": 48.2,
    "text": "H. Optional Phrases Ignored"
   },
@@ -3264,7 +3231,7 @@
    "order": 0,
    "page": 649,
    "level": 2,
-   "x_offset_pt": 48.7,
+   "x_offset_pt": 48.6,
    "text": "The behavior of the OPEN statement when label records are specified but not pres"
   },
   {
@@ -3383,8 +3350,8 @@
    "digest": "c64333063f8d",
    "order": 0,
    "page": 668,
-   "level": "ambiguous",
-   "x_offset_pt": 16.2,
+   "level": 2,
+   "x_offset_pt": 51.8,
    "text": "If during the execution of a SEND, PURGE, ENABLE OUTPUT, or DISABLE OUTPUT state"
   },
   {
@@ -3444,7 +3411,7 @@
    "order": 0,
    "page": 670,
    "level": 2,
-   "x_offset_pt": 47.8,
+   "x_offset_pt": 48.0,
    "text": "The content of the data item referenced by data-name-2 is updated only by the MC"
   },
   {
@@ -3543,8 +3510,8 @@
    "digest": "30e265b44b14",
    "order": 0,
    "page": 685,
-   "level": "ambiguous",
-   "x_offset_pt": 19.0,
+   "level": 2,
+   "x_offset_pt": 47.8,
    "text": "A single execution of a SEND statement represented by format 2 never releases to"
   },
   {
@@ -3573,8 +3540,8 @@
    "digest": "db0162f45823",
    "order": 0,
    "page": 686,
-   "level": "ambiguous",
-   "x_offset_pt": 19.5,
+   "level": 2,
+   "x_offset_pt": 48.0,
    "text": "If the content of the data item referenced by identifier-2 is other than 1, 2, o"
   },
   {
@@ -3764,7 +3731,7 @@
    "order": 0,
    "page": 859,
    "level": 1,
-   "x_offset_pt": 43.3,
+   "x_offset_pt": 42.3,
    "text": "An integer function may be used only in an arithmetic expression."
   },
   {

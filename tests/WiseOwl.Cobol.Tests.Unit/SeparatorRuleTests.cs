@@ -144,6 +144,30 @@ public sealed class SeparatorRuleTests
     public void UnspacedArithmeticOperator_IsReportedOnce(string expression, string op) =>
         Assert.Equal([op], Spacing(expression));
 
+    [Theory] // kb/Work PB5989: §1985:VI.6.2.2 has no parenthesis exception — every operator, a unary one included, needs a space on each
+             // side at COBOL-85; the exception is a 2002 addition (§2002:8.7.1), so 2002 and later accept the same text
+    [InlineData("-(A)", 1, "-")]
+    [InlineData("- (A)", 0, "")]
+    [InlineData("(- A)", 0, "")]                // D-85-OPERATOR-SPACING (docs/conformance/3/): the 1985 text writes (- argument-2)
+    [InlineData("( - A )", 0, "")]
+    [InlineData("A * -(B)", 1, "-")]
+    [InlineData("(-(A))", 1, "-")]
+    public void UnaryOperatorTouchingAParenthesis_IsRefusedAt85Only(string expression, int reportedAt85, string op)
+    {
+        var tree = DirectiveExpressionFragment.ParseOperand(expression);
+        Assert.NotNull(tree);
+        var at85 = SeparatorRule.ArithmeticOperatorViolations(expression, tree, EditionInfo.Of(85, false));
+        Assert.Equal(reportedAt85, at85.Count);
+        if (reportedAt85 == 1)
+        {
+            Assert.Equal(op, at85[0].Token.Text);
+            Assert.Contains("§1985:VI.6.2.2", at85[0].Message);
+            Assert.DoesNotContain("left parenthesis", at85[0].Message);
+        }
+        foreach (int year in new[] { 2002, 2014, 2023 })
+            Assert.Empty(SeparatorRule.ArithmeticOperatorViolations(expression, tree, EditionInfo.Of(year, false)));
+    }
+
     [Fact] // every offending operator is reported, in source order
     public void EveryUnspacedOperator_IsReported_InSourceOrder() => Assert.Equal(["*", "+", "-"], Spacing("A*B + C +D - E -F"));
 

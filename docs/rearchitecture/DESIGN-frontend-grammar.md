@@ -1326,7 +1326,7 @@ reference formats, and the only place source comments are recognized. Its model:
   §1985:VI.7.3 asks the program to be syntactically correct "with or without" its debugging lines as comments, at `--std 85`
   only (kb/Work PB5212, PB5990): `Frontend.ReportDebuggingLinesBreakingTheProgram` (the lines that are source, parsed again
   hidden: COBOL7061) and `ReportDebuggingLinesBreakingTheProgramAsSource` (the lines that are comment, `Rewrite`'s
-  `hiddenLines`, parsed again with their carriers blanked: COBOL7675) are the two directions; each runs after a clean parse. The as-source reading runs the same token screens source text gets (`Frontend.ReportTokenScreens`: lexer errors, the unterminated-literal screen, the PICTURE separator period and the separator rules) beside the parse, and a hidden line COBOL7060 already refused is left a comment there, so one cause draws one code.
+  `hiddenLines`, parsed again with their carriers blanked: also COBOL7061) are the two directions; each runs after a clean parse. The as-source reading runs the same token screens source text gets (`Frontend.ReportTokenScreens`: lexer errors, the unterminated-literal screen, the PICTURE separator period and the separator rules) beside the parse, and a hidden line COBOL7060 already refused is left a comment there, so one cause draws one code.
 - **The program-text area is always positions 8–72**, a shorter record read as space-filled to margin R
   (DOC-A.1-157), so a continued literal carries every position to margin R (§2023:6.3.5).
 - **A syntax error beside text the margin cut NAMES the cut** (kb/Work PB2555; COBOL5788). Text past margin R is not program
@@ -2583,6 +2583,17 @@ every arithmetic expression — a statement's, a subscript's, a reference modifi
 guessed at rule 5 on a parse error (COBOL0301/0302) are gone: the rule has one home. It applies to the main
 compilation-group lex; the D2 keyword-omitted re-parse needs no second screen because every one of its tokens was
 already a SUBSCRIPT-mode token of the main lex.
+
+**COBOL-85's own operator spacing (kb/Work PB5989).** The §2023:8.7.1 exception for a unary operator beside a left parenthesis
+is a 2002 addition: §1985:VI.6.2.2 says its operators "must be preceded by a space and followed by a space", so at COBOL-85
+`ArithmeticOperatorViolations` admits a parenthesis AFTER a unary operator only from 2002 (`EditionInfo.UnaryOperatorMayTouchParenthesis`). A left parenthesis BEFORE a unary operator or a logical NOT stays accepted at 85, by the determination `docs/conformance/3/D-85-OPERATOR-SPACING.md`: the 1985 text itself writes `(NOT (a = b))` (§1985:VI.6.3.3) and `(- argument-2)` (§1985:p.A-34), so that one position admits two readings and GnuCOBOL decides it; every other position keeps the plain reading, and the glossary's Unary Operator (§1985:III.2) names the next symbol, not adjacency, so `-(M)` is refused. The same
+edition states two more spacing sentences no later one carries: §1985:VI.6.3.1.1 "A space must precede and follow each reserved word
+comprising the relational operator" and §1985:VI.6.3.2 "The logical operators must be preceded by a space and followed by a space".
+`SeparatorRule.ConditionOperatorViolations` asks them over the same parse tree (`EditionInfo.ConditionOperatorsNeedSeparatorSpaces`,
+COBOL-85 only; COBOL7672): every token of a `comparisonOperator` (a relation character is a special character word, a reserved word,
+§1985:IV.4.2.2.1.3.1) and every AND, OR and NOT that is a direct child of a condition tier, through the one `OperatorSpacingMessage`
+verdict with no parenthesis standing in for the space after, and one only before a NOT. The tree is what separates the OR of `GREATER THAN OR EQUAL TO` (a word of the
+operator) from the OR connective.
 
 **A prefixed literal is delimited whatever its content (kb/Work PB1441).** `X"`, `N"`, `B"`, `NX"` and `BX"` are
 opening delimiters (§2023:8.3.5 5)), so every prefixed body fragment is `<prefix> STR_BODY`; the §2023:8.3.3 content

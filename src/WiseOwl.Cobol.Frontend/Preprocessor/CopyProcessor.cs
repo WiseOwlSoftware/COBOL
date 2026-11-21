@@ -224,10 +224,12 @@ public sealed class CopyProcessor(
                     statement.MarkError();
                     diagnostics.ReportError(
                         Editions.Diagnostics.DiagnosticCatalog.ReplaceOperandNotPseudoText.Code,
-                        "a REPLACE statement operand is not pseudo-text — REPLACE admits ==pseudo-text== "
-                        + "(and ==partial-word== under LEADING/TRAILING) operands only, in every ISO edition "
-                        + "(§2023:7.2.4.2; §2023:7.2.4.3 SR7 bars literals as partial-words). Write ==operand== "
-                        + "(empty ==== deletes)",
+                        "a REPLACE statement operand is not pseudo-text — REPLACE admits "
+                        + edition.Cite("==pseudo-text== operands only, in every ISO edition (§1985:XII.3.2: "
+                                + "{ ==pseudo-text-1== BY ==pseudo-text-2== }). Write ==operand== (empty ==== deletes)",
+                            "==pseudo-text== (and ==partial-word== under LEADING/TRAILING) operands only, in every ISO edition "
+                                + "(§2023:7.2.4.2; §2023:7.2.4.3 SR7 bars literals as partial-words). Write ==operand== "
+                                + "(empty ==== deletes)"),
                         mapped.LocateAt(p), default);
                 });
                 states.Replacing(operands, also);

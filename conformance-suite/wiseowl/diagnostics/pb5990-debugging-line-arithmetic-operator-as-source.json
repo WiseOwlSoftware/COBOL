@@ -1,1 +1,1 @@
-{"refuse-at": ["85"], "expect": "(26,8): error COBOL7675"}
+{"refuse-at": ["85"], "expect": "(26,8): error COBOL7061"}

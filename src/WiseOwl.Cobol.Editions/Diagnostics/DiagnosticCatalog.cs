@@ -3365,24 +3365,15 @@ public static class DiagnosticCatalog
 
     /// <summary>COBOL7061 - a debugging line whose being a comment line leaves a program that is not syntactically correct
     /// (kb/Work PB5212). §1985:VI.7.3: "The content of a debugging line must be such that a syntactically correct program
-    /// is formed with or without the debugging lines being considered as comment lines." The program parses with the line
-    /// as source (WITH DEBUGGING MODE) and fails with it hidden. A COBOL-85 rule.</summary>
+    /// is formed with or without the debugging lines being considered as comment lines." The program parses one way (the line
+    /// is source under WITH DEBUGGING MODE, or a comment without it) and fails the other (kb/Work PB5466). A COBOL-85 rule.</summary>
     public static readonly DiagnosticDescriptor DebuggingLineSyntaxBothWays = new(
         "COBOL7061", "debugging-line-syntax-both-ways", EditionSeverity.Error,
-        "The program is not syntactically correct with its debugging lines taken as comment lines. §1985:VI.7.3: "
+        "The program is syntactically correct with its debugging lines taken one way but not the other, as source lines or as "
+        + "comment lines. §1985:VI.7.3: "
         + "\"The content of a debugging line must be such that a syntactically correct program is formed with or without the "
         + "debugging lines being considered as comment lines.\" Write the debugging line so that the statement or entry it "
-        + "belongs to is complete without it.", "§1985:VI.7.3");
-
-    /// <summary>COBOL7675 - a debugging line of a unit WITHOUT WITH DEBUGGING MODE (a comment line there) whose being source leaves a
-    /// program that is not syntactically correct (§1985:VI.7.3, "with or without"; kb/Work PB5990). COBOL7061 is the other direction.</summary>
-    public static readonly DiagnosticDescriptor DebuggingLineSyntaxAsSource = new(
-        "COBOL7675", "debugging-line-syntax-as-source", EditionSeverity.Error,
-        "The program is not syntactically correct with its debugging lines taken as source lines. §1985:VI.7.3: "
-        + "\"The content of a debugging line must be such that a syntactically correct program is formed with or without the "
-        + "debugging lines being considered as comment lines.\" The unit has no WITH DEBUGGING MODE, so the line is a comment here, "
-        + "but it must still be valid source: write it so that the statement or entry it belongs to is correct with the line present.",
-        "§1985:VI.7.3");
+        + "belongs to is complete both with it and without it.", "§1985:VI.7.3");
 
     /// <summary>COBOL7081 - a RELEASE or RETURN statement outside the range of a SORT or MERGE procedure that names its sort-merge file
     /// (kb/Work PB5104). §1985:XI.4.2.3 SR2: "A RELEASE statement may be used only within the range of an input procedure associated with a
@@ -3459,7 +3450,10 @@ public static class DiagnosticCatalog
         "COBOL2691", "directive-after-program-text", EditionSeverity.Error,
         "A compiler directive is written after program text on its line. ISO §2023:7.3.3 SR2: \"A compiler directive "
         + "shall be preceded only by zero, one, or more space characters.\" Write the directive on a line of its own.",
-        "ISO §2023:7.3.3 SR2");
+        "ISO §2023:7.3.3 SR2",
+        No1985Rule: "ANSI X3.23-1985 has no compiler directive written with the >> indicator: its compiler directing verbs are "
+            + "COPY, ENTER, REPLACE and USE (§1985:IV.6.4.2.2.1), and it states no rule about where a >> line may stand, so there "
+            + "is no 1985 rule to cite; the directive facility begins in COBOL-2002 (kb/Work PB5993).");
 
     /// <summary>COBOL2692 — one user-defined word used as two TYPES of user-defined word within a source element
     /// (kb/Work PB990). §2023:8.3.2.2: "Within a source element, a given user-defined word may be used as only one type
@@ -7486,6 +7480,19 @@ public static class DiagnosticCatalog
         + "immediately preceded and followed by a separator space (a unary arithmetic operator may instead touch a "
         + "left parenthesis).",
         "ISO §2023:8.7.1 · §2023:8.7.3 · §2023:8.7.4");
+
+    /// <summary>COBOL7672 — a relational operator or a logical connective of a condition not immediately preceded and followed by a
+    /// separator space, at COBOL-85 (kb/Work PB5989). §1985:VI.6.3.1.1: "A space must precede and follow each reserved word
+    /// comprising the relational operator" (a relation character is a special character word, so a reserved word,
+    /// §1985:IV.4.2.2.1.3.1); §1985:VI.6.3.2: "The logical operators must be preceded by a space and followed by a space". No later
+    /// edition states either rule. The lexer skips the separator space, so <c>IF (A = 1)AND(B = 2)</c> and <c>IF N=M</c> are one
+    /// token run with their spaced spellings; decided by <c>SeparatorRule</c> over the parse tree, which alone says which AND, OR or
+    /// NOT is a logical operator and which words make up a relational operator.</summary>
+    public static readonly DiagnosticDescriptor SeparatorConditionOperatorSpacing = new(
+        "COBOL7672", "separator-condition-operator-spacing", EditionSeverity.Error,
+        "A relational operator (each of its words and relation characters) or a logical operator (AND, OR, NOT) of a "
+        + "condition is not immediately preceded and followed by a separator space (COBOL-85).",
+        "ISO §1985:VI.6.3.1.1 · §1985:VI.6.3.2");
 
     /// <summary>COBOL2994 — an inline method invocation written with an empty parenthesis pair, <c>O :: "M" ( )</c>
     /// (kb/Work PB1430). §2023:8.4.3.4.2 brackets the whole parenthesised group (so it may be omitted) but encloses the five

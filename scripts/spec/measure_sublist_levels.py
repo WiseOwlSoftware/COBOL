@@ -71,11 +71,12 @@ def openings(rules: list[dict]) -> list[dict]:
     return out
 
 
-def _visual_lines(page) -> list[tuple[float, str]]:
-    """(x0, text) of every printed line in the body band, top to bottom."""
+def _visual_lines(page, head_y: float = HEAD_Y) -> list[tuple[float, str]]:
+    """(x0, text) of every printed line in the body band, top to bottom: below `head_y` (the edition's running head;
+    this PDF's by default) and above the licence footer."""
     rows: dict[int, list] = collections.defaultdict(list)
     for w in page.get_text("words"):
-        if HEAD_Y < w[1] < FOOT_Y:
+        if head_y < w[1] < FOOT_Y:
             rows[round(w[3])].append(w)
     return [(min(w[0] for w in ws), " ".join(w[4] for w in sorted(ws, key=lambda w: w[0])))
             for _, ws in sorted(rows.items())]
