@@ -69,6 +69,7 @@ from extract_rule_catalog import (RULE_SHAPED, UNHARVESTED_OF, admitted_kinds, k
                                   unharvested_report)
 import citation  # noqa: E402  (THE validator of a citation against the transcription: every row's must name a region)
 import element_standing  # noqa: E402  (THE standing of a rule, from the edition's lists; kb/Work PB4993)
+import text_units  # noqa: E402  (THE units of unnumbered text and their dispositions, every edition; kb/Work PB5449)
 sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -199,6 +200,9 @@ class Catalog:
     untyped: list[tuple[str, int, int]] = dataclasses.field(default_factory=list)  # (citation, sublist, ordinal)
     uncitable: list[str] = dataclasses.field(default_factory=list)  # a row whose citation names no region (cite_check)
     standing: list[str] = dataclasses.field(default_factory=list)   # the standing lists' data against the text
+    #: The dispositions audit of the units of unnumbered text (text_units.audit, kb/Work PB5449), and the units' count.
+    dispositions: list[str] = dataclasses.field(default_factory=list)
+    pending_units: int = 0
 
     def drift(self) -> tuple[list[str], int]:
         """The content-keyed check's report and its number of drifts: THE 2023 arm's, on this edition's manifest."""
@@ -219,7 +223,8 @@ class Catalog:
         return (len(self.empty) + len(self.unrecognised) + len(self.unexplained) + len(self.one_level_boxes)
                 + len(self.unresolved) + len(self.unread) + len(self.stale) + len(self.duplicates())
                 + len(self.shared_citations())
-                + self.drift()[1] + len(self.untyped) + len(self.uncitable) + len(self.standing))
+                + self.drift()[1] + len(self.untyped) + len(self.uncitable) + len(self.standing)
+                + len(self.dispositions))
 
 
 def box_of(text: str, kind: str) -> str:
@@ -612,7 +617,9 @@ def summary(cat: Catalog) -> list[str]:
                           "ordinal)", cat.untyped),
                          ("row(s) whose citation names no region of the transcription", cat.uncitable),
                          ("disagreement(s) of the standing lists' data with the text (element_standing.findings)",
-                          cat.standing)):
+                          cat.standing),
+                         ("refusal(s) of the dispositions of the units of unnumbered text (text_units.audit)",
+                          cat.dispositions)):
         if items:
             out.append(f"⛔ {len(items)} {label}:")
             out.extend(f"      {i}" for i in items[:12])
@@ -630,7 +637,79 @@ def summary(cat: Catalog) -> list[str]:
                f"({sum(1 for r in cat.rules if r['citation'].split(' ')[0] in admitted)} rows), "
                f"{dispositions['not-rules']} recorded as not rules")
     out.extend(cat.drift()[0])
+    out.append(f"   units of unnumbered text awaiting a disposition (kb/Work PB5449): {cat.pending_units}")
     out.append("✓ no findings" if not cat.findings() else f"FINDINGS: {cat.findings()}")
+    return out
+
+
+#: The 1985 normative region whose unnumbered text holds units (decision PB5448): Sections IV and VI to XVI, and
+#: Amendment 1's Section A. Section II is explanatory, the counterpart of 2023's informative Annex D ("In this section
+#: each of these features is discussed", §1985:II.1); I, III and V are the introduction, the glossary and the
+#: composite language skeleton, and XVII the appendices.
+NORMATIVE_SECTIONS = ("IV", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI")
+
+
+def unit_kinds(clause: str) -> set[str]:
+    """The row kinds a unit of the 1985 paragraph `clause` (its citation) may take: SR and GR (§1985:IV.3.1, IV.3.2), and
+    AR and RV in Amendment 1's Intrinsic Function module, whose rule blocks are "Arguments" and "Returned Values"."""
+    return {"SR", "GR"} | ({"AR", "RV"} if clause.startswith("§1989:A.") else set())
+
+
+def units(lines: list[str], rows: list[dict], declared: dict[str, dict]) -> dict[str, list]:
+    """THE UNITS OF 1985'S UNNUMBERED TEXT (kb/Work PB5449, decision PB5448 point 6), by paragraph citation
+    (`§1985:VI.5.13.1`, `§1989:A.2.1`: the key the content-keyed manifest's `blocks` already use), in the order of the
+    text: the ISO arm's segmentation (text_units.segment) over every paragraph region of the normative region
+    (citation.regions_1985, the reader cite.py searches), with the 1985 page furniture removed: a page heading, the
+    running header that opens a printed page, a folio, an editorial note and a heading.
+
+    ⛔ WHAT LIES IN A ROW'S TEXT IS NO UNIT, as in the ISO arm: a general format's paragraph is its FMT row; a rule
+    block contributes only its LEAD-IN, the text before its first `(n)` (a paragraph after a rule stays in that rule's
+    text until the 1985 PDF's margin levels separate it, kb/Work PB5452); a paragraph whose numbered list the manifest
+    records `not-rules` contributes its text but not the list's items; a table a row of the paragraph names is that row's."""
+    formats = {r["citation"].split(" ")[0] for r in rows if r["kind"] == "FMT"}
+    numbered = {r["citation"].split(" ")[0] for r in rows if r["kind"] != "FMT"}
+    named: dict[str, set[int]] = collections.defaultdict(set)
+    for r in rows:
+        named[r["citation"].split(" ")[0]].update(text_units.tables_named(r["text"]))
+    regions = [(f"§1985:{loc}", s, e) for loc, _t, s, e in citation.regions_1985(lines)
+               if loc.split(".", 1)[0] in NORMATIVE_SECTIONS and "." in loc]
+    regions += [(f"§1989:{loc}", s, e) for loc, _t, s, e in citation.amendment_regions(lines, 1989)
+                if loc.startswith("A.")]
+    bodies: dict[str, list[tuple[int, str]]] = {}
+    cut: set[str] = set()
+    for clause, start, end in regions:
+        if clause in formats or clause in cut:
+            continue
+        body = bodies.setdefault(clause, [])
+        page_top, note = False, False
+        for at in range(start + 1, end):
+            line = lines[at]
+            if PAGE_HEADING.match(line):
+                page_top = True
+                continue
+            if EDITORIAL_NOTE.match(line) or (note and line.startswith(">")):
+                note = True
+                continue
+            note = False
+            if not line.strip():
+                body.append((at + 1, line))
+                continue
+            if page_top:
+                page_top = False
+                if running_header(line):
+                    continue
+            if FOLIO_85.match(line) or SCAN_REPEAT_85.match(line) or ANY_HEADING.match(line):
+                continue
+            if clause in numbered and ORDINAL.match(line):
+                cut.add(clause)
+                break
+            body.append((at + 1, line))
+    out: dict[str, list] = {}
+    for clause, body in bodies.items():
+        found = [u for u in text_units.segment(body, items=clause not in numbered and clause not in declared)
+                 if not (u.table and u.table in named[clause])]
+        if found:
+            out[clause] = found
     return out
 
 

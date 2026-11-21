@@ -2,6 +2,9 @@
  "generated_from": "specs/ANSI_COBOL_1985.md",
  "rule_count": 2275,
  "blocks": 669,
+ "outside-denominator": {
+  "pending-units": 911
+ },
  "rules": [
   {
    "id": "1985-GR-II.3.2.4.2-1",
