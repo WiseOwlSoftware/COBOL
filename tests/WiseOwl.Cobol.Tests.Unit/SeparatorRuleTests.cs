@@ -148,7 +148,7 @@ public sealed class SeparatorRuleTests
              // side at COBOL-85; the exception is a 2002 addition (§2002:8.7.1), so 2002 and later accept the same text
     [InlineData("-(A)", 1, "-")]
     [InlineData("- (A)", 0, "")]
-    [InlineData("(- A)", 0, "")]                // the NIST-validated 1985 corpus writes a unary operator directly after a left parenthesis
+    [InlineData("(- A)", 0, "")]                // D-85-OPERATOR-SPACING (docs/conformance/3/): the 1985 text writes (- argument-2)
     [InlineData("( - A )", 0, "")]
     [InlineData("A * -(B)", 1, "-")]
     [InlineData("(-(A))", 1, "-")]

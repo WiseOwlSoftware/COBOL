@@ -8,7 +8,8 @@
       *> kb/Work PB5989. §1985:VI.6.2.2 (cite.py: OK): "must be preceded by a space and followed by a space".
       *> Each unary operator set off by spaces, next to parentheses, compiles.
       *> N = - ( 2 ) + 9 = 7; K = ( - 2 ) * 3 = -6.
-      *> A unary operator written directly after '(' draws no refusal: the NIST-validated 1985 programs write it.
+      *> A unary operator written directly after '(' draws no refusal: the determination
+      *> D-85-OPERATOR-SPACING (docs/conformance/3/) admits it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB89UNS.
        DATA DIVISION.

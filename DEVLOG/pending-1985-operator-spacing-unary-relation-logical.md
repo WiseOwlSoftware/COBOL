@@ -16,8 +16,10 @@ verdict, with no parenthesis standing in for the space. The tree is needed becau
 the operator while the OR of `A = 1 OR B = 2` is a connective. The new code is COBOL7672 (`separator-condition-operator-spacing`).
 The first gate ran the whole population and showed the strict reading refuses the NIST-validated 1985 programs `IF123A`
 (`(- B)`) and `NC211A` (`(NOT (...)`) and some 380 generated sweep programs, all with a left parenthesis directly BEFORE a unary operator or
-NOT. A parenthesis is itself a separator (§1985:IV.4.2.1 SR4) and the corpus is the evidence of the validated reading, so that
-placement stays accepted at 85 (a determination, noted here and in the design doc); the left-parenthesis-AFTER case, AND, OR, NOT followed by a parenthesis and the
+NOT. The review asked for that exception to be ruled from the text, not the corpus: the determination D-85-OPERATOR-SPACING
+(`docs/conformance/3/`) finds the 1985 text itself writes `(NOT (a = b))` (§1985:VI.6.3.3) and `(- argument-2)` (§1985:p.A-34), so that
+one placement admits two readings and GnuCOBOL 3.2.0 (`-std=cobol85`, which accepts it) decides it: accepted at 85. The glossary's
+"precedes a variable or a left parenthesis" (§1985:III.2) names the next symbol, not adjacency, so `-(M)` stays refused; the left-parenthesis-AFTER case, AND, OR, NOT followed by a parenthesis and the
 relational operators are refused. One suite program (`pb2017_arithmetic_operator_spacing`, `-(A + B)`) was accepted at 85 only; it is now accepted from 2002.
 No later edition states the relational or logical sentence (grepped §2002, §2014, §2023), so they accept the same text; a golden
 pins that.

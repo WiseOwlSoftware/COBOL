@@ -149,7 +149,7 @@ public static class SeparatorRule
     /// touch. <paramref name="parenthesisBefore"/> and <paramref name="parenthesisAfter"/> name the sides on which a left
     /// parenthesis stands in for the space: §2023:8.7.1's one exception — a UNARY arithmetic operator needs no space against a
     /// left parenthesis, on either side — and, at COBOL-85, the left parenthesis before a unary operator or a logical NOT that the
-    /// NIST-validated corpus writes (kb/Work PB5989). A comma or semicolon
+    /// determination D-85-OPERATOR-SPACING (<c>docs/conformance/3/</c>, kb/Work PB5989) admits. A comma or semicolon
     /// immediately followed by a space is "a separator that may be used anywhere the separator space is used"
     /// (§2023:8.3.5 2)), so <c>1 *, 1</c> follows its operator with one — while <c>1 *,1</c> does not: that comma is the
     /// literal's decimal point (<see cref="IsDecimalComma"/>), no separator.</summary>
@@ -248,7 +248,8 @@ public static class SeparatorRule
     /// runs of their spaced spellings, and only the tree says which AND, OR or NOT is a logical connective and which tokens make
     /// up a relational operator (<c>GREATER THAN OR EQUAL TO</c> holds an OR that is no connective). A relation character is a
     /// special character word, so a reserved word (§1985:IV.4.2.2.1.3.1), and each of its tokens is judged like a word's. A left
-    /// parenthesis does not stand in for the space here: §1985 has no such exception for these operators.</para></summary>
+    /// parenthesis stands in for the space only directly before a NOT (the determination D-85-OPERATOR-SPACING,
+    /// <c>docs/conformance/3/</c>); on every other side of these operators it does not.</para></summary>
     public static IReadOnlyList<Violation> ConditionOperatorViolations(string text, IParseTree tree, EditionInfo edition)
     {
         if (!edition.ConditionOperatorsNeedSeparatorSpaces) return [];
