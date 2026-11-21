@@ -296,7 +296,7 @@ public sealed class WordCharacterScreenTests
     {
         string word = "CAFÉ" + Euro;
         string source = Program(word, word, parses);
-        var (ok, errors, warns) = EditionHarness.CompileFull(source, 85);
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
         Assert.False(ok);
         var codes = errors
             .Select(e => e.Contains("COBOL0900") ? "COBOL0900" : e.Contains("COBOL2773") ? "COBOL2773" : e.Contains(ParseError) ? ParseError : "other")
@@ -376,7 +376,7 @@ public sealed class WordCharacterScreenTests
                 MOVE "A" TO MY_NAME;DISPLAY MY_NAME.
                 STOP RUN.
             """;
-        var (ok, errors, warns) = EditionHarness.CompileFull(source, 85);
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
         Assert.False(ok);
         Assert.Contains(errors, e => e.Contains("COBOL2631"));
         Assert.Contains(errors, e => e.Contains("COBOL0900") && e.Contains("MY_NAME"));
@@ -460,7 +460,7 @@ public sealed class WordCharacterScreenTests
                 MOVE 1 TO _CNT.
                 STOP RUN.
             """;
-        var (ok, errors, warns) = EditionHarness.CompileFull(source, 85);
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
         Assert.False(ok);
         Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains("'_PARA'"));
         Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains("'_CNT'"));
