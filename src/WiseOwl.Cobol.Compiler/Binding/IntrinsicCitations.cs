@@ -32,9 +32,9 @@ internal static class IntrinsicCitations
     /// 1989 module at COBOL-85.</summary>
     public static string ArgumentTypes(EditionInfo edition) => edition.Cite("§1989:A.2.2", "§2023:15.3");
 
-    /// <summary>The rule that states argument type 6, INTEGER — §2023:15.3 type 6; at COBOL-85 the fourth type of paragraph A.2.2
+    /// <summary>The rule that states argument type 6, INTEGER — §2023:15.3 AR6; at COBOL-85 the fourth type of paragraph A.2.2
     /// ("An arithmetic expression which will always result in an integer value must be specified").</summary>
-    public static string IntegerType(EditionInfo edition) => edition.Cite("§1989:A.2.2 AR4", "§2023:15.3 type 6");
+    public static string IntegerType(EditionInfo edition) => edition.Cite("§1989:A.2.2 AR4", "§2023:15.3 AR6");
 
     /// <summary>The rule that bars a numeric function from a position that needs an integer — §2023:8.4.3.2.3 SR11; at COBOL-85
     /// paragraph A.2.3 of the 1989 module ("A numeric function may not be referenced where an integer operand is required").</summary>
