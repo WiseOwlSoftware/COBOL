@@ -49,4 +49,12 @@ question now asks every class, and `GlobalNameClassDriftTests` holds the lists.
 
 1985-SR-IV.4.3.8.1-L2.1 and 1985-GR-X.1.3.8.2-1, -2, -3 carry the new tests (record_verdicts --edition 1985); their code reads
 are owed a re-read now that the fixes have landed. Two 2023 rows that cited `NearerFileNameHides` (GR-8.4.6.2.1-1, -3) were
-re-sited by a retirement batch. The gate verdict is in the wave report (w20262110a).
+re-sited by a retirement batch.
+
+### Gate
+
+`=== BUILD-LOCAL GATE: GREEN — Conformance 28,230/28,230 ran · Unit 42,513/42,513 ran · RepoDrift 190/190 ran ·
+Characterization up to date ...` (run 000003-20261121T001908Z, at d83dd1bd18). Two reds on the way, each fixed at its root:
+DOC CITATIONS (run 000001) found a quotation of §1985:X.1.3.8 written after a §1985:X.1.3.8.2 citation; Conformance (run 000002)
+found pb990-data-name-and-condition-name still expecting COBOL2692 at 85, the refusal PB5972 removed there, so its `refuse-at`
+lost 85 and keeps 2002, 2014 and 2023.
