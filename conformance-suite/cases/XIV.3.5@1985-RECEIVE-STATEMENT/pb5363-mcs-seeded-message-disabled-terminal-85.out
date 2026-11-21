@@ -1,0 +1,4 @@
+R1 SK=00 BUF=[HELLO     ]
+EN SK=00
+NODATA-2
+R2 SK=00 BUF=[          ]
