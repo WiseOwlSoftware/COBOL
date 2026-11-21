@@ -329,7 +329,16 @@ the edition in force has no such rule, the message cites the edition where the r
   `Title1985`, the message at 85 citing the 1985 ground; `Declined` renders it through `Cite`.
 - **No 1985 rule.** `DiagnosticDescriptor.No1985Rule` records, in the catalog, why a rule has no 1985 counterpart. An edition gate
   (a refusal whose message names the edition it targets, "requires COBOL-2002 (targeting COBOL-85)") needs no such record: the
-  construct is not in 1985, so the message cites the edition where it begins.
+  construct is not in 1985, so the message cites the edition where it begins. A RELAXATION is the exception (kb/Work PB6010):
+  a construct row whose edge frees a form the 1985 text has and forbids (the areas of the reference format, the GLOBAL clause in
+  the linkage section, the Annex F.2 relaxations, the word, literal and PICTURE length bounds) carries `rule1985`, the 1985 rule the
+  85 program breaks, and `ConstructRegistry.Check` cites it at 85 in place of the row's `citation` (unchanged from 2002 on).
+  `ConstructRegistryDriftTests.EveryRelaxationRow_CitesIts1985RuleAt85` refuses a row whose `vcr` or `description` names a
+  relaxation or a restriction and whose 85 message cites no §1985 rule, the case the net's edition-gate arm lets through.
+- **The designation.** A citation chosen by edition is written whole in each arm of `Cite` (`"§1985:…"`, `"ISO §2023:…"`): the
+  1985 text is ANSI X3.23-1985 and no ISO standard has a §1985 clause, so a message never types `ISO` in front of a citation that
+  can be 1985's (kb/Work PB6013). `StandardDesignationDriftTests` (RepoDrift) is the ratchet that lists the lines still doing so
+  (439 on 2026-11-21) and fails when the count moves either way.
 - **The net.** `EditionCitationNet` (Conformance) asks every diagnostic of every refusal the wiseowl manifest compiles at 85:
   one that cites a rule of 2002, 2014 or 2023 (in the edition form, or the prose "ISO/IEC 1989:2002") and no rule of the 1985
   standard or its 1989 amendment fails, unless it is
