@@ -309,6 +309,10 @@ they close nothing.
    - **Numbered items of a prose clause** (226 in 2023, mostly Annex A.2, A.3 and A.4) are units keyed by their
      PRINTED number, id `<kind>-<clause>-<n>` (the form `DOC-A.1-<n>` already has): the standard and Annex A.2's own
      resolver (`extract_annex_a2.py`) cite them by that number, and an item owns its lettered sub-items as a rule does.
+     An item starts at its own marker: after a blank line, or on the very next line when its number is the open list's
+     next, since the 1985 PDF prints a list one item per line (§1985:IV.4.2.2.1.1, page 152) and its transcription keeps
+     no blank line between them. A clause may print more than one list (§1985:IV.4.2.2.1.1 two, §1985:X.1.3.8 five):
+     a list starts where an item's number is not the last item's next, and point 2 numbers each (kb/Work PB5998).
    - **Not units at all**: a NOTE or EXAMPLE (it stays inside the unit it follows), a general format, and code. Text of
      these kinds that the transcription failed to mark (an unmarked NOTE, a format line outside its fence) is a
      transcription defect: it is repaired as the page prints it (`scripts/render-spec-page.py <page>`) in the landing of
@@ -337,9 +341,16 @@ they close nothing.
    paragraph never moves another's id. Numbered rules are not counted, so a rule inserted or removed moves no `p`. A
    table unit is `<kind>-<clause>-T<t>.<r>` (the printed table number, the body row's position, header rows not
    counted), a table that is one unit is `<kind>-<clause>-T<t>`, and a clause of pure data that is one unit is
-   `<kind>-<clause>-C`; a 1985 table, unnumbered, takes its position in its paragraph for `t`. A numbered item of a
-   prose clause is `<kind>-<clause>-<n>` (point 1). None of `-p`, `-T`, `-C` can collide with `-<n>` or `-L<m>.<n>`,
-   and a prose clause has no numbered rule for an item's `-<n>` to collide with. The kind is SR or GR by §2023:5.3.2 and
+   `<kind>-<clause>-C`; a 1985 table, unnumbered, takes its position in its paragraph for `t`. A table printed across
+   pages is one table: each page's part repeats the header (and 2002's and 1985's the caption, "(continued)"), and a
+   part whose number and header are a table's already read continues it, so `r` counts the body rows of the WHOLE
+   table and never restarts on a page (§1989:A.2.4's Table 1 runs to `T1.42` over three pages; kb/Work PB5998). A
+   numbered item of a prose clause is `<kind>-<clause>-<n>` (point 1) when it is in the clause's first numbered list,
+   and `<kind>-<clause>-L<m>.<n>` in its m-th list (m > 1), the form a rule block's later list already takes
+   (`1985-SR-X.1.3.8-L3.2` is the second item of that clause's third list; kb/Work PB5998, an addendum to decision
+   PB5448), so a second list never re-mints the first's ids. None of `-p`, `-T`, `-C` can collide with `-<n>` or
+   `-L<m>.<n>`, and a prose clause has no numbered rule for an item's `-<n>` or `-L<m>.<n>` to collide with. Two units
+   of one clause never share a label: the segmentation refuses such a clause rather than mint one id twice. The kind is SR or GR by §2023:5.3.2 and
    §2023:5.3.3, AR or RV inside an intrinsic function's clause, since "Except for intrinsic functions, rules are
    categorized as syntax rules and general rules" (§2023:5.3.1), and DOC for an Annex A item whose obligation is a
    statement in the implementor's documentation, as A.1's are: the extractor's paragraph-admission check, which refuses
@@ -377,7 +388,11 @@ they close nothing.
        with a tail is a unit like any other, point 1);
      - `cross-reference`: every sentence matches the closed pointer grammar ("See <locator>[, <title>].",
        "<subject> is/are specified/described/defined in <locator>[, <title>].") and every locator resolves
-       (`cite.py`) to a clause, rule or table whose units have dispositions;
+       (`cite.py`) to a clause, rule or table whose units have dispositions. The 1985 text points by printed page,
+       not by clause ("(See page VI-13, The SPECIAL-NAMES Paragraph.)", one or more pages joined by "and" or ";",
+       "is specified on page ..."); such a target is the page's own locator (`§1985:p.VI-13`) and resolves only when
+       that page's text prints the title the pointer gives, so a pointer with no title or one that names what its
+       page does not print fails (kb/Work PB5998, `text_units.pointer_targets`);
      - `data`: the unit holds no sentence (list or table lines of literal values: characters, code points, names)
        and a row's text names its locator, so the row whose obligation consumes it carries it; data no row names is a
        row itself (`-T<t>` or `-C`).
@@ -536,6 +551,15 @@ NOT YET BUILT, each a later landing of PB5449: 2023's reader of the paragraphs a
 takes it as a reader, not a parameter: `READERS`), a decided level-0 paragraph leaving its rule's text and the 1985
 rows minted from decided units (PB5452's mint), a prose clause's `item <n>` designator (point 5), a 1985 unit's `box`,
 and a 2002 unit's `candidate` (point 6).
+
+**Step 1, corrected (kb/Work PB5998, found by PB5452's pilot).** Three defects of the first two landings, fixed in the
+one segmentation and the one class test: a numbered item started only after a blank line, so the 1985 lists printed
+one item per line were each ONE unit (all 15 item units of 1985) and two lists of a clause took the same labels; a
+table printed across pages restarted its row numbers on each page (§1989:A.2.4's Table 1; §2002:14.4 Table 13,
+§2002:14.5.12.1.5 Table 14, §2002:15.5 Table 22); and the cross-reference test could not read a 1985 folio pointer. Points
+1, 2 and 3 above state the corrected rules. Every `rules` array regenerated byte-identical; pending units: 2023 2,298
+before and after, 2002 1,766 before and after (three tables relabelled), 1985 956 to 1,022 (the 15 list units
+re-segmented into 81 items, and §1989:A.2.4's 42 table rows relabelled `T1.1` to `T1.42`).
 
 **Attacked.** Run on the current `prose_paragraphs` (the code PB284 landed), on the clauses the dispositions will
 admit, and once more by an adversarial review of the design (2026-11-12, kb/Work PB479's dated file of that day):

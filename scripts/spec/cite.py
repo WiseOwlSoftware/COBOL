@@ -382,12 +382,13 @@ class Rule:
 
 def unit_designator(label: str) -> str:
     """The citation designator of a unit of unnumbered text from its label (decision PB5448 point 5): `p3` is `p3`, a
-    table row `T12.2` is `Table 12 row 2`, a whole table `T1` is `Table 1`, a numbered prose item `25` is `item 25`."""
+    table row `T12.2` is `Table 12 row 2`, a whole table `T1` is `Table 1`, a numbered prose item `25` is `item 25` and
+    an item of a clause's second list `L2.3` is `item L2.3` (kb/Work PB5998)."""
     if m := re.fullmatch(r"T(\d+)\.(\d+)", label):
         return f"Table {m[1]} row {m[2]}"
     if m := re.fullmatch(r"T(\d+)", label):
         return f"Table {m[1]}"
-    return f"item {label}" if label.isdigit() else label
+    return f"item {label}" if re.fullmatch(r"\d+|L\d+\.\d+", label) else label
 
 
 def unit_label(designator: str) -> str:
