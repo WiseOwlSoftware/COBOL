@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IoStatus1985.cs#Report; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#IndexedConnector",
  "test-ref": "conformance:cases/IX.1@1985-INTRODUCTION-TO-THE-INDEXED-I-O/1985-GR-IX_1_1-p1",
- "notes": "Own verdict from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p02_indexed.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: A lead-in to the value list, plus an implementor-choice sentence. The values are shown at 85, and the choice is a documented determination (DOC-A.1-104, which has no 85 case). No pointer states the indexed list. Code location located after the read: indexed status values"
+ "notes": "Own witness from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p02_indexed.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: A lead-in to the value list, plus an implementor-choice sentence. The values are shown at 85, and the choice is a documented determination (DOC-A.1-104, which has no 85 case). No pointer states the indexed list. Code location located after the read: indexed status values"
 }

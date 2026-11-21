@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#occursClause; src/WiseOwl.Cobol.Compiler/Binding/Passes/PlaceTablePass.cs#PlaceTablePass",
  "test-ref": "conformance:cases/VI.5@1985-DATA-DIVISION-IN-THE-NUCLEUS-MODULE/1985-GR-VI_5_2-p1",
- "notes": "Own verdict from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-data.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: GR-13.18.38.4-1 (at 85) says clauses apply per occurrence, not this function; the probe shows one entry giving three subscripted elements. Code location located after the read: occursClause rule; PlaceTablePass lays out tables"
+ "notes": "Own witness from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-data.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: GR-13.18.38.4-1 (at 85) says clauses apply per occurrence, not this function; the probe shows one entry giving three subscripted elements. Code location located after the read: occursClause rule; PlaceTablePass lays out tables"
 }

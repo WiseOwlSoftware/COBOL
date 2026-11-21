@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#environmentDivision",
  "test-ref": "conformance:cases/IV.6.2@1985-ENVIRONMENT-DIVISION/1985-GR-IV_6_2_1-p1",
- "notes": "Own verdict from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with its probe (p07_environment_division.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but it grants specification (\"This division allows specification of ...\"), which an accepted program shows. FMT-12.2.1 is only the 2023 division format and does not state the 1985 description. Code location located after the read: environmentDivision grammar rule"
+ "notes": "Own witness from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with its probe (p07_environment_division.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but it grants specification (\"This division allows specification of ...\"), which an accepted program shows. FMT-12.2.1 is only the 2023 division format and does not state the 1985 description. Code location located after the read: environmentDivision grammar rule"
 }

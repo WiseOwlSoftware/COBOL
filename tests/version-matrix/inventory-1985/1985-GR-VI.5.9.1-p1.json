@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#pictureClause; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer",
  "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/1985-GR-VI_5_9_1-p1",
- "notes": "Own verdict from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-pic-precedence.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: SR-13.18.40.3-1 (at 85) says PICTURE only at the elementary level, which is part; the function sentence is witnessed by edited items producing the edited result. Code location located after the read: pictureClause rule; PictureAnalyzer interprets the character-string"
+ "notes": "Own witness from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-pic-precedence.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: SR-13.18.40.3-1 (at 85) says PICTURE only at the elementary level, which is part; the function sentence is witnessed by edited items producing the edited result. Code location located after the read: pictureClause rule; PictureAnalyzer interprets the character-string"
 }

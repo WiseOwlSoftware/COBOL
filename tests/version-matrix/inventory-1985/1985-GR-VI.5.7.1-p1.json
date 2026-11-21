@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#levelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#LevelNumberPass",
  "test-ref": "conformance:cases/VI.5.7@1985-LEVEL-NUMBER/1985-GR-VI_5_7_1-p1",
- "notes": "Own verdict from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-linkage-77.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Every level-number role named in the function paragraph is exercised at 85. FMT-13.18.33.2 (accepted at 85) is only the format; GR-13.18.33.4-2 has no 85 case. Code location located after the read: levelNumber rule and LevelNumberPass check level roles (01-49, 66, 77, 88)"
+ "notes": "Own witness from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-linkage-77.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Every level-number role named in the function paragraph is exercised at 85. FMT-13.18.33.2 (accepted at 85) is only the format; GR-13.18.33.4-2 has no 85 case. Code location located after the read: levelNumber rule and LevelNumberPass check level roles (01-49, 66, 77, 88)"
 }

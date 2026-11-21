@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#IndexedConnector; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#KeyedConnector",
  "test-ref": "conformance:cases/IX.1@1985-INTRODUCTION-TO-THE-INDEXED-I-O/1985-GR-IX_1_1-p1",
- "notes": "Own verdict from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p02_indexed.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: No candidate has a case at 85 for the arrival-order rule: GR-14.9.41.4-16 (pb358) covers only START's key of reference. The probe writes 0003/BB before 0002/BB, and after a START on AK the reads return 0003 and then 0002. Code location located after the read: sequential order by key of reference"
+ "notes": "Own witness from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p02_indexed.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: No candidate has a case at 85 for the arrival-order rule: GR-14.9.41.4-16 (pb358) covers only START's key of reference. The probe writes 0003/BB before 0002/BB, and after a START on AK the reads return 0003 and then 0002. Code location located after the read: sequential order by key of reference"
 }

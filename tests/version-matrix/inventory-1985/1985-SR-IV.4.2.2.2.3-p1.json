@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#FigurativeAssociation",
  "test-ref": "conformance:cases/IV.4.2.2.2@1985-Literals/1985-SR-IV_4_2_2_2_3-p1",
- "notes": "Own verdict from the read lineage-reads-1985/s-03.json: the reader showed the compiler correct at 85 with its probe (p16_figcon.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: No candidate with an 85 witness states the quotation and singular/plural rules (SR-8.3.3.6.3-1 is the 'wherever literal appears' grant). The probe witnesses both. Code location located after the read: figurative constants referenced by reserved words: grammar rule"
+ "notes": "Own witness from the read lineage-reads-1985/s-03.json: the reader showed the compiler correct at 85 with its probe (p16_figcon.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: No candidate with an 85 witness states the quotation and singular/plural rules (SR-8.3.3.6.3-1 is the 'wherever literal appears' grant). The probe witnesses both. Code location located after the read: figurative constants referenced by reserved words: grammar rule"
 }

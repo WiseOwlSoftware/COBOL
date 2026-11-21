@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#KeyedConnector",
  "test-ref": "conformance:cases/IX.1@1985-INTRODUCTION-TO-THE-INDEXED-I-O/1985-GR-IX_1_1-p1",
- "notes": "Own verdict from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p02_indexed.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The 85 case of GR-14.9.30.4-24 (pb810_read_46_takes_no_at_end) shows a READ that does NOT take at end. The probe shows the 1985 condition on an indexed file. Code location located after the read: at end on indexed READ NEXT"
+ "notes": "Own witness from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p02_indexed.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The 85 case of GR-14.9.30.4-24 (pb810_read_46_takes_no_at_end) shows a READ that does NOT take at end. The probe shows the 1985 condition on an indexed file. Code location located after the read: at end on indexed READ NEXT"
 }

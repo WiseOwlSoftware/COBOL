@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#LinkageBinder",
  "test-ref": "conformance:cases/X.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-X_1_3_4-p8",
- "notes": "Own verdict from the read lineage-reads-1985/s-15.json: the reader showed the compiler correct at 85 with its probe (p03_common_initial.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Each section the paragraph names refuses the external attribute at 85, and the Linkage association is shown. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it. Code location located after the read: Linkage records bound by caller, internal"
+ "notes": "Own witness from the read lineage-reads-1985/s-15.json: the reader showed the compiler correct at 85 with its probe (p03_common_initial.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Each section the paragraph names refuses the external attribute at 85, and the Linkage association is shown. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it. Code location located after the read: Linkage records bound by caller, internal"
 }
