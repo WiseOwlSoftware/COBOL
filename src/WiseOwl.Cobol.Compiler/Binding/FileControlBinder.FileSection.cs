@@ -253,7 +253,7 @@ public sealed partial class FileControlBinder
                 + $"'{fdName}'. It is not bound here, so it has no effect on the file.");
             return false;
         }
-        if ((row.Formats & format) == 0)
+        if ((row.FormatsIn(Edition.Edition) & format) == 0)
         {
             Edition.Error(DiagnosticCatalog.FileDescriptionClauseFormat, $"the {row.Name} ({WrittenSource.Of(clause)}) is not "
                 + $"a clause of {FileDescriptionFormats.Caption(Edition.Edition, format, file.Organization)} of the file description entry: file "

@@ -73,13 +73,19 @@ public sealed class ReportModel
     /// columns that may be accommodated in any line of the report"), or 999 when it is omitted (GR5, "a value of
     /// 999 is assumed for the page width"). It is the bound of the COLUMN clause's own operands (§2023:13.18.14.3 SR6,
     /// COBOL2710) and of the line the engine places printable items in (§2023:13.18.14.4 GR5, EC-REPORT-PAGE-WIDTH).
-    /// Independent of <see cref="Paged"/>: a PAGE clause may give the width alone.</summary>
-    public int PageWidth { get; set; } = DefaultPageWidth;
+    /// Independent of <see cref="Paged"/>: a PAGE clause may give the width alone. Null when the edition gives a report no page
+    /// width (<see cref="WiseOwl.Cobol.Runtime.DialectBehavior.ReportPageWidth"/>: ANSI X3.23-1985, whose line is bounded only by the
+    /// report file's record, §1985:XIII.3.2.4 GR2; kb/Work PB6024): no column rule measures against it then.</summary>
+    public int? PageWidth { get; set; }
+
+    /// <summary>The page width the run-time engine is constructed with: <see cref="PageWidth"/>, or
+    /// <see cref="WiseOwl.Cobol.Runtime.IO.CobolReport.NoPageWidth"/> for a report that has none (kb/Work PB6024).</summary>
+    public int EnginePageWidth => PageWidth ?? WiseOwl.Cobol.Runtime.IO.CobolReport.NoPageWidth;
 
     /// <summary>The PAGE clause wrote integer-2 (so <see cref="PageWidth"/> is the program's, not GR5's default).</summary>
     public bool PageWidthWritten { get; set; }
 
-    /// <summary>§2023:13.18.39.4 GR5's assumed page width.</summary>
+    /// <summary>§2023:13.18.39.4 GR5's assumed page width (§2002:13.16.37.3 GR5 the same).</summary>
     public const int DefaultPageWidth = 999;
 
     /// <summary>The report line width: the record size the FD's RECORD clause establishes in any of its three formats
@@ -189,8 +195,9 @@ public sealed class ReportModel
 /// <paramref name="Name"/>, the names of the levels it is subordinate to INNERMOST FIRST ending at its 01 report group
 /// (a null for an unnamed level — FILLER — as <see cref="ReportEntryFamily.Qualification"/> keeps them), and whether the
 /// entry contains a SUM clause and so names a sum counter (§2023:13.18.54.4 GR5). Group entries, intermediate groups and
-/// the 01 itself are here as well as the printable items: all of them are "report items" in §2023:13.8.6.2.3's sense.</summary>
-public sealed record ReportNamedEntry(string Name, IReadOnlyList<string?> Qualification, bool IsSumCounter)
+/// the 01 itself are here as well as the printable items: all of them are "report items" in §2023:13.8.6.2.3's sense.
+/// <paramref name="Format"/> is the entry's report group description format, which decides the rule its data-name is held to.</summary>
+public sealed record ReportNamedEntry(string Name, IReadOnlyList<string?> Qualification, bool IsSumCounter, ReportEntryFormat Format)
 {
     /// <summary>The named entries of <paramref name="written"/> (a report's entries in source order), each with the
     /// level stack above it — the same level-number walk <c>BindReportEntry</c> keeps for its chain.</summary>
@@ -198,18 +205,43 @@ public sealed record ReportNamedEntry(string Name, IReadOnlyList<string?> Qualif
     {
         var entries = new List<ReportNamedEntry>();
         var above = new List<(int Level, string? Name)>();
-        foreach (var ge in written)
+        for (int i = 0; i < written.Count; i++)
         {
-            int.TryParse(ge.levelNumber().GetText(), out int level);
+            var ge = written[i];
+            int level = LevelOf(ge);
             while (above.Count > 0 && above[^1].Level >= level) above.RemoveAt(above.Count - 1);
             string? name = ge.dataName().NameOrNull();
             if (name is not null)
                 entries.Add(new ReportNamedEntry(name, [.. Enumerable.Reverse(above).Select(a => a.Name)],
-                    ge.reportGroupBody().reportGroupClause().Any(c => c.reportSumClause() is not null)));
+                    ge.reportGroupBody().reportGroupClause().Any(c => c.reportSumClause() is not null),
+                    level == 1 ? ReportEntryFormat.ReportGroup
+                        : i + 1 < written.Count && LevelOf(written[i + 1]) > level ? ReportEntryFormat.Group
+                        : ReportEntryFormat.Elementary));
             above.Add((level, name));
         }
         return entries;
     }
+
+    private static int LevelOf(Core.ReportGroupEntryContext ge) =>
+        int.TryParse(ge.levelNumber().GetText(), out int level) ? level : 0;
+}
+
+/// <summary>The three formats of the report group description entry, numbered as ANSI X3.23-1985 numbers them (§1985:XIII.3.9.2),
+/// each with its own rule for the entry's data-name (§1985:XIII.3.9.3): format 1, the level 1 entry of a report group, whose
+/// data-name serves the uses SR5 lists; format 2, a group entry subordinate to it, whose data-name "may be used only to qualify a
+/// sum counter reference" (SR7); format 3, an elementary entry, whose data-name "may be referenced only if the entry defines a sum
+/// counter" (SR10d). The 2023 text states one rule for all three (§2023:13.15.3 SR7), so only a COBOL-85 message asks it
+/// (kb/Work PB6026).</summary>
+public enum ReportEntryFormat
+{
+    /// <summary>Format 1: the level 1 entry that begins a report group.</summary>
+    ReportGroup = 1,
+
+    /// <summary>Format 2: a group entry below level 1.</summary>
+    Group = 2,
+
+    /// <summary>Format 3: an elementary entry.</summary>
+    Elementary = 3,
 }
 
 /// <summary>The RD CODE clause (ISO §2023:13.18.12.2 — <c>CODE IS {literal-1 | identifier-1}</c>): the characters "automatically

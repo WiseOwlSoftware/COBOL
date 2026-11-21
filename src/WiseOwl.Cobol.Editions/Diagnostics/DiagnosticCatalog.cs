@@ -6437,7 +6437,7 @@ public static class DiagnosticCatalog
         + "counter, in the UPON phrase of the SUM clause, or as an operand in a SUM clause. The data-name shall not be "
         + "referenced in any other way.\"",
         "ISO §2023:13.8.6.2.3 / §2023:13.15.3 SR7",
-        Rule1985: "§1985:XIII.3.9.3 SR10d");
+        Rule1985: "§1985:XIII.3.9.3 SR5 / §1985:XIII.3.9.3 SR7 / §1985:XIII.3.9.3 SR10d");
     /// <summary>An inline method invocation's receiver (ISO §2023:8.4.3.4.2's <c>{object-class-name-1 |
     /// identifier-1}</c>) or its method-name literal-1 is one the construct's own syntax rules exclude.
     /// §2023:8.4.3.4.3 SR2: "Identifier-1 shall be of class object; neither the predefined object reference NULL

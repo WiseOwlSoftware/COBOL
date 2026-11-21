@@ -202,6 +202,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.NumvalCCurrencyContentRules = 12 -> WiseOw
 WiseOwl.Cobol.Runtime.DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter = 3 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.RecordContainsRangeBindsRecordSize = 13 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError = 14 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.ReportPageWidth = 34 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SavedNextGroupForcesPageAdvance = 26 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SearchIndexBelowTableUnsuccessful = 6 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SelectWhenOnlyForFilePhraseStatements = 23 -> WiseOwl.Cobol.Runtime.DialectBehavior
@@ -472,6 +473,10 @@ WiseOwl.Cobol.Runtime.OdoTail.RecordUnit.get -> int
 WiseOwl.Cobol.Runtime.OdoTail.Trailing.get -> int
 WiseOwl.Cobol.Runtime.OdoTail.Trailing.init -> void
 WiseOwl.Cobol.Runtime.OverlappingMove
+WiseOwl.Cobol.Runtime.ProgramNameArm
+WiseOwl.Cobol.Runtime.ProgramNameArm.Common = 2 -> WiseOwl.Cobol.Runtime.ProgramNameArm
+WiseOwl.Cobol.Runtime.ProgramNameArm.Contained = 0 -> WiseOwl.Cobol.Runtime.ProgramNameArm
+WiseOwl.Cobol.Runtime.ProgramNameArm.RecursiveSelf = 1 -> WiseOwl.Cobol.Runtime.ProgramNameArm
 WiseOwl.Cobol.Runtime.ProgramTable.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
 WiseOwl.Cobol.Runtime.ProgramTable.RunModule(System.Action! ensureRegistered, string! mainPath) -> void
 WiseOwl.Cobol.Runtime.ReceivingReferences
@@ -946,6 +951,7 @@ const WiseOwl.Cobol.Runtime.CobolDec.SidiRoundedDigits = 31 -> int
 const WiseOwl.Cobol.Runtime.CobolNum.NestedQuotientGuardDigits = 14 -> int
 const WiseOwl.Cobol.Runtime.DebugItem.MaxSubscriptLevels = 3 -> int
 const WiseOwl.Cobol.Runtime.DebugItem.MinContentsWidth = 30 -> int
+const WiseOwl.Cobol.Runtime.IO.CobolReport.NoPageWidth = 2147483647 -> int
 const WiseOwl.Cobol.Runtime.IO.FileStatusCode.RecordIdentificationFailure = "45" -> string!
 const WiseOwl.Cobol.Runtime.IO.RecordFormat.BySelectWhen = -1 -> int
 const WiseOwl.Cobol.Runtime.IO.RecordFormat.NoSelection = -1 -> int
@@ -1315,6 +1321,7 @@ static WiseOwl.Cobol.Runtime.OverlappingMove.PackedToDisplay(string! sender, str
 static WiseOwl.Cobol.Runtime.PointerImage.DataPointerOf(string! image) -> WiseOwl.Cobol.Runtime.ManagedPointer!
 static WiseOwl.Cobol.Runtime.PointerImage.FunctionPointerOf(string! image) -> WiseOwl.Cobol.Runtime.FunctionPointer
 static WiseOwl.Cobol.Runtime.PointerImage.ProgramPointerOf(string! image) -> WiseOwl.Cobol.Runtime.ProgramPointer
+static WiseOwl.Cobol.Runtime.ProgramNameScope.FirstVisible<T>(T! caller, System.Func<T!, WiseOwl.Cobol.Runtime.ProgramNameArm, bool>! accept, System.Func<T!, System.Collections.Generic.IEnumerable<T!>!>! childrenOf, System.Func<T!, T?>! containerOf, System.Func<T!, bool>! isRecursive, System.Func<T!, bool>! isCommon) -> T?
 static WiseOwl.Cobol.Runtime.ProgramRegistry.AddressNotLocated(string! name, bool function) -> string!
 static WiseOwl.Cobol.Runtime.ProgramRegistry.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
 static WiseOwl.Cobol.Runtime.ProgramRegistry.RunModule(System.Action! ensureRegistered, string! mainPath) -> void
@@ -1367,8 +1374,3 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
-WiseOwl.Cobol.Runtime.ProgramNameArm
-WiseOwl.Cobol.Runtime.ProgramNameArm.Common = 2 -> WiseOwl.Cobol.Runtime.ProgramNameArm
-WiseOwl.Cobol.Runtime.ProgramNameArm.Contained = 0 -> WiseOwl.Cobol.Runtime.ProgramNameArm
-WiseOwl.Cobol.Runtime.ProgramNameArm.RecursiveSelf = 1 -> WiseOwl.Cobol.Runtime.ProgramNameArm
-static WiseOwl.Cobol.Runtime.ProgramNameScope.FirstVisible<T>(T! caller, System.Func<T!, WiseOwl.Cobol.Runtime.ProgramNameArm, bool>! accept, System.Func<T!, System.Collections.Generic.IEnumerable<T!>!>! childrenOf, System.Func<T!, T?>! containerOf, System.Func<T!, bool>! isRecursive, System.Func<T!, bool>! isCommon) -> T?

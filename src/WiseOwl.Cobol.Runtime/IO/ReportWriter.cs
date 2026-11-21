@@ -247,8 +247,14 @@ public sealed class CobolReport(
     private readonly int _lineWidth = lineWidth;
 
     /// <summary>The page width (ISO §2023:13.18.39.4 GR2b/GR5 — the PAGE clause's integer-2, else 999), supplied by the
-    /// binder: THE width §2023:13.18.14.4 GR5 measures a printable item against, in one place.</summary>
+    /// binder: THE width §2023:13.18.14.4 GR5 measures a printable item against, in one place. <see cref="NoPageWidth"/> for a
+    /// report that has none (COBOL-85).</summary>
     private readonly int _pageWidth = pageWidth;
+
+    /// <summary>The page width of a report that has none: ANSI X3.23-1985 gives a report no page width (§1985:XIII.3.8.2 prints no
+    /// width phrase; §1985:XIII.3.2.4 GR2 leaves the line's record to the implementor; DialectBehavior.ReportPageWidth, kb/Work
+    /// PB6024), so no item ends past it and only the report file's record cuts the line.</summary>
+    public const int NoPageWidth = int.MaxValue;
     private readonly bool _paged = paged;           // PAGE clause present (§2023:13.18.39.4 GR2a — absent ⇒ one page of indefinite length)
 
     // Page regions (§2023:13.18.39.4 GR2, binder-supplied GR3 defaults).

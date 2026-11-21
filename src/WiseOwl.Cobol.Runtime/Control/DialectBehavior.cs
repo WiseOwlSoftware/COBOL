@@ -382,6 +382,17 @@ public enum DialectBehavior
     /// (COBOL2730) (kb/Work PB5022, PB5253, PB5048; VCR row 7.89). Both editions are QUOTED. The consumer is
     /// <c>ReportSectionBinder.ResolveRolledAddend</c> and its <c>RolledRepetitionFault</c>.</summary>
     SumDataNameRules = 33,
+    /// <summary>§2002:13.16.37.3 GR5 and §2023:13.18.39.4 GR5 — "If integer-2 is omitted, a value of 999 is assumed for the page
+    /// width": from 2002 every report has a page width, the PAGE clause's integer-2 or 999, which bounds the COLUMN clause's operands
+    /// (§2023:13.18.14.3 SR6), the rightmost column of an absolute item and a line's relative tail (SR8 b, c), and the line the engine
+    /// places items in (§2023:13.18.14.4 GR5, EC-REPORT-PAGE-WIDTH, the line truncated). ANSI X3.23-1985 gives a report no page width:
+    /// its PAGE clause prints no width phrase (§1985:XIII.3.8.2), its COLUMN NUMBER clause no right-hand bound (§1985:XIII.3.11.3,
+    /// §1985:XIII.3.11.4 GR2), and "The report writer logical record structure of the file associated with file-name-1 is defined by
+    /// the implementor" (§1985:XIII.3.2.4 GR2). So at <c>--std 85</c> a printable item may stand at any column, and the line is
+    /// bounded only by the report file's record (the Annex A.1 item 159 latitude; kb/Work PB6024; VCR row 7.90). Both editions are
+    /// QUOTED. The consumers are <c>ReportSectionBinder</c>'s RD binding (<c>ReportModel.PageWidth</c>, null at 85) and through it
+    /// the column screens and <c>ReportWriterEmitter</c>'s report construction.</summary>
+    ReportPageWidth = 34,
 }
 
 /// <summary>
@@ -567,6 +578,11 @@ public static class DialectBehaviors
             + "entry and another report's sum counter are legal, and a sum counter of the SUM entry's own group must be a repeating "
             + "item; COBOL-85 asks a sum counter of the same group or of a lower control level of the same report, and adds a "
             + "non-repeating counter of the same group as a crossfoot"),
+        new(DialectBehavior.ReportPageWidth, "report-page-width", 2002,
+            "7.90", "§2002:13.16.37.3 GR5", "§1985:XIII.3.2.4 GR2",
+            "every report has a page width, the PAGE clause's integer-2 or 999, that bounds its COLUMN operands and the line its items "
+            + "are placed in, only from COBOL-2002; COBOL-85 gives a report no page width, so an item may stand at any column and "
+            + "the line is bounded only by the report file's record"),
     ];
 
     static DialectBehaviors()

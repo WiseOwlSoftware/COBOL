@@ -214,7 +214,8 @@ public sealed partial class SymbolTable
         public List<DeclarationFact> ReportEntriesNamed(string name, IReadOnlyList<string> qualifiers) =>
             [.. _table.EntriesNamed(name, qualifiers).Select(h => new DeclarationFact(
                 h.Entry.IsSumCounter ? DeclarationKind.ReportSumCounter : DeclarationKind.ReportEntry,
-                Depth: _data.State.Reports.Depth(h.Report), Spelling: h.Entry.Name, Report: h.Report.Name))];
+                Depth: _data.State.Reports.Depth(h.Report), Spelling: h.Entry.Name, Report: h.Report.Name,
+                ReportFormat: h.Entry.Format))];
 
         /// <summary>True when <paramref name="name"/> is defined in the report section AND NOWHERE ELSE (<see cref="SymbolTable.ReportSectionOnlyNames(ReportModel)"/>):
         /// the test §2023:13.18.16.3 SR2 needs of a CONTROL operand and §2023:13.15.3 SR16 of a PRESENT WHEN condition.</summary>
