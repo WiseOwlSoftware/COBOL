@@ -8,4 +8,4 @@ GR3 through `FileModel.OrganizationFace(EditionInfo)`, 1641 cites §1985:XII.3.2
 and 2691 records `No1985Rule` (1985 has no `>>` directive). COBOL1927 was not an edition defect: BINARY is a 1985 word.
 
 Compiling every suite case and refusal not refused at 85 at `--std 85` shows the class is wider: 336 codes. That work, and the
-register's `Standard` column citing §2023 at every edition, stay open in PB5993. Six goldens `pb5993-*-85` pin the citations.
+register's `Standard` column citing §2023 at every edition, stay open in PB5993. Six goldens `pb5993-*-85` pin the citations. Before and after: of the note's 27 named codes 9 were real offenders and 8 are fixed; the wider class stands at 336 codes, listed with their sites in `kb/Work/PB5993/2026-11-21-split-codes-left.md`.
