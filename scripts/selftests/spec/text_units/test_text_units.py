@@ -16,8 +16,8 @@ U = selftest_cases.subject(__file__)   # scripts/spec/text_units.py
 JOINS = U.REPO / "scripts" / "spec" / "data" / "paragraph-joins-2023.json"
 
 
-def _seg(text: str, items: bool = True) -> list:
-    return U.segment(list(enumerate(text.split("\n"), start=1)), items)
+def _seg(text: str, held=None) -> list:
+    return U.segment(list(enumerate(text.split("\n"), start=1)), held)
 
 
 def _shown(units: list) -> list:
@@ -56,8 +56,8 @@ def _decided(units: dict, disposition: str, **fields) -> dict:
 
 def _upheld(units: dict, outcome: str = "UPHELD") -> list:
     """A refuter record of each unit of `units` at its digest."""
-    return [{"unit": u.label, "digest": u.digest, "outcome": outcome, "attempt": "planted", "refuter": "planted"}
-            for us in units.values() for u in us]
+    return [{"unit": u.label, "clause": clause, "digest": u.digest, "outcome": outcome, "attempt": "planted",
+             "refuter": "planted"} for clause, us in units.items() for u in us]
 
 
 def case_00_a_sentence_ends_in_closing_brackets(expect):
@@ -83,7 +83,7 @@ def case_02_a_numbered_prose_item_is_a_unit(expect):
            [x.label for x in u] == ["p1", "1", "2", "p2"] and "every element" in u[0].text and "sub-item" in u[1].text,
            _shown(u))
     u = _seg("The following are implementor-defined:\n\n1) the first item\n\n2) the second item\n\nA new paragraph.",
-             items=False)
+             held=U.NUMBERED_ITEM)
     expect("a list a block disposition holds is no unit", [x.label for x in u] == ["p1", "p2"]
            and "first" not in u[0].text, _shown(u))
 
@@ -277,7 +277,7 @@ def case_10_a_numbered_list_printed_one_item_per_line(expect):
     u = _seg("The following apply:\n\n1. first\n2. second\n\nA paragraph between items.\n\n3. third")
     expect.equal("a list resumed after a paragraph at its next number is the same list", [x.label for x in u],
                  ["p1", "1", "2", "p2", "3"])
-    u = _seg("Held:\n\n1. first\n2. second\n\nAfter.", items=False)
+    u = _seg("Held:\n\n1. first\n2. second\n\nAfter.", held=U.NUMBERED_ITEM)
     expect.equal("a held list's items one per line are still no unit", _shown(u), [("p1", "Held:"), ("p2", "After.")])
 
 
