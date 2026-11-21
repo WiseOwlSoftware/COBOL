@@ -1,4 +1,4 @@
-## The unit mechanism reads a list printed one item per line, a table printed across pages and a 1985 folio pointer, and places the 72 unread 1985 margin paragraphs (kb/Work PB5998)
+## Entry 3897 — 2026-11-21 04:38 PST — The unit mechanism reads a list printed one item per line, a table printed across pages and a 1985 folio pointer, and places the 72 unread 1985 margin paragraphs (kb/Work PB5998)
 
 kb/Work PB5452's pilot, deciding the first forty 1985 units by hand, found three defects in the mechanism PB5449 landed
 (PR #1922). This change fixes them in the one segmentation and the one class test, and changes no catalog row.
@@ -55,3 +55,4 @@ data left 72 unread); and the old `_bodies` kept `Report Writer - TYPE` after a 
 
 **Next.** PB5452's held units re-enter its campaign on their new digests (the 15 list units become 81, and the pilot's
 four held decisions are made again), and its `cross-reference` dispositions of 1985 pointers can now pass their test.
+
