@@ -819,6 +819,16 @@ internal sealed class StatementValidation(DataBinder data)
                 + $"description entry of '{hiddenFile.CobolName}', or write the {verb} in the program that describes it.");
             return false;
         }
+        // §1985:X.1.3.8.2 GR3a: this program's own data item of the spelling hides a container's GLOBAL record-name, so the operand
+        // names the data item and the refusal says so, never that no file description entry has such a record (kb/Work PB5980).
+        if (record.Item.CobolName is { } recordName && data.Symbols.Declared.RecordNameHiddenBy(recordName) is { } hider)
+        {
+            data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
+                $"{verb} '{refText}' — {rule}; "
+                + NameResolution.HidingClause(hider, refText, "record-name", data.Edition.Edition)
+                + $", so '{refText}' is not a logical record of a file description entry visible here. Rename one of the two declarations.");
+            return false;
+        }
         DataItem root = record.Item;
         while (root.Parent is { } up) root = up;
         data.Edition.Error(DiagnosticCatalog.StatementOperandRule,

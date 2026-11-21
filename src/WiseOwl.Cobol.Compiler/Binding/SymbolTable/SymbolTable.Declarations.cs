@@ -174,6 +174,21 @@ public sealed partial class SymbolTable
                 ? hider
                 : null;
 
+        /// <summary>⛔ §1985:X.1.3.8.2 GR3a FOR A RECORD-NAME (kb/Work PB5980), the record twin of <see cref="FileNameHiddenBy"/>: the declaration
+        /// that hides the GLOBAL record-name <paramref name="name"/> of a containing program's file (<see cref="InheritedGlobals.RecordAreas"/>)
+        /// here, or null when the spelling is no inherited record area or nothing nearer declares it. The WRITE and REWRITE of a name this
+        /// way hidden name the nearer data item, and their refusal says so.</summary>
+        public DeclarationFact? RecordNameHiddenBy(string name)
+        {
+            foreach (var (record, file) in _data.State.Inherited.RecordAreas)
+            {
+                if (record.CobolName is not { } recordName || Key(recordName) != Key(name)) continue;
+                int depth = _data.State.Inherited.FileDepth(file);
+                return _table.NearestInNameSet(name, [], NameSetClass.All) is { } hider && hider.Depth < depth ? hider : null;
+            }
+            return null;
+        }
+
         /// <summary>⛔ §1985:X.1.3.8.2 GR3a / ISO §2023:8.4.6.2.1 3) FOR AN INHERITED NAME A NEARER DECLARATION HIDES, of any class:
         /// whether this unit's set of names (its own and every container's global ones, <see cref="SymbolTable.NearestInNameSet"/>)
         /// declares <paramref name="name"/>, as anything, in a source element NEARER than <paramref name="depth"/> (the containment
