@@ -161,12 +161,15 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // never did, so `EVALUATE S9-ITEM WHEN "A" THRU "Z"` compared an OVERPUNCHED image here and a plain one
         // one lowering over — the two-arm shape, and reachable the moment the EC gate stopped demanding a
         // literal pair. A no-op for every non-signed-numeric operand, which is why it is unconditional there too.
-        // At --std 85 a group end keeps the numeric operand's image (DropsOperationalSign, kb/Work PB5106).
-        string read = ComparisonText(n.Left, DropsOperationalSign(n.Left, n.Lo) && DropsOperationalSign(n.Left, n.Hi));
-        var lo = new MembershipOperand(loFig ? FigSeed(n.Lo, subjectCat)
-            : ComparisonText(n.Lo, DropsOperationalSign(n.Left, n.Lo)), loFig);
-        var hi = new MembershipOperand(hiFig ? FigSeed(n.Hi, subjectCat)
-            : ComparisonText(n.Hi, DropsOperationalSign(n.Left, n.Hi)), hiFig);
+        // ⛔ NO --std 85 ARM HERE, ON PURPOSE (kb/Work PB5133). A range membership is built only for an IN alphabet-name phrase
+        // or EC-RANGE-INVALID checking (EvaluateBinder), and both are COBOL-2002 constructs that --std 85 refuses with COBOL0900
+        // (pb1015-range-in-alphabet-85; the >>TURN directive), so this node never reaches DropsOperationalSign's 1985 case: the
+        // 85 EVALUATE range lowers to the relation pair, which RenderRelationalCore renders. The subject is read ONCE for both
+        // ends, so a per-end 1985 group exemption would be wrong for a mixed pair; if an 85 route ever appears, the range must
+        // read the subject per end first.
+        string read = ComparisonText(n.Left, deSign: true);
+        var lo = new MembershipOperand(loFig ? FigSeed(n.Lo, subjectCat) : ComparisonText(n.Lo, deSign: true), loFig);
+        var hi = new MembershipOperand(hiFig ? FigSeed(n.Hi, subjectCat) : ComparisonText(n.Hi, deSign: true), hiFig);
         return RenderStringRange(read, lo, hi, n.CheckInvalid, collate);
     }
 
@@ -470,8 +473,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     }
 
     /// <summary>⛔ WHETHER A CHARACTER COMPARISON OF THE PAIR (<paramref name="a"/>, <paramref name="b"/>) READS A SIGNED
-    /// NUMERIC OPERAND WITHOUT ITS OPERATIONAL SIGN — the ONE answer for every string-relation surface (the direct
-    /// relation and the EVALUATE range). True, §2023:8.8.4.2.5 → §2023:14.9.25.4 GR6a, except at --std 85 opposite a GROUP:
+    /// NUMERIC OPERAND WITHOUT ITS OPERATIONAL SIGN — the ONE answer for the direct string relation (the EVALUATE range
+    /// lowers to that relation at --std 85, and its own membership node has no 85 route, kb/Work PB5133). True, §2023:8.8.4.2.5 → §2023:14.9.25.4 GR6a, except at --std 85 opposite a GROUP:
     /// §1985:VI.6.3.1.1.2 GR2 moves the numeric operand "to a group item of the same size", and a move to a group is
     /// "exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion of
     /// data" (§1985:VI.6.19.4 GR3 item 5), so the operand's own character image, a SEPARATE sign character

@@ -28,7 +28,10 @@
       *> are true only when the sign character is compared at 85, false
       *> elsewhere; U4 is the reverse.  U7 is the EVALUATE range, which
       *> lowers to the same relation pair (§2023:14.7.8): the group ends
-      *> LO and HI hold "-05", so SN is within them only at 85.
+      *> LO and HI hold "-05", so SN is within them only at 85. U7
+      *> witnesses the relation pair only: the range-membership node
+      *> (IN alphabet-name, EC-RANGE-INVALID checking) is a 2002 route
+      *> that --std 85 refuses (kb/Work PB5133).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5106-NUM-GROUP.
        ENVIRONMENT DIVISION.
