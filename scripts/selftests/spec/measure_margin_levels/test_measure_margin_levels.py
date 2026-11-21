@@ -4,7 +4,8 @@ the 1985 reader's candidates (a lead-in, a paragraph after a rule, a boxed one, 
 stay the rule's), the level of a printed line against a page's margin (the margin is the leftmost shared edge, never
 the commonest; a first line left of the indent continues the text), the data held to the text without the PDF (a
 paragraph the data does not record and a record no paragraph has, each refused), and a level-0 paragraph becoming a
-unit numbered after the clause's lead-ins."""
+unit numbered after the clause's lead-ins; and (kb/Work PB5998) the best match deciding a level when a sibling's line
+matches too, and the page readings of the paragraphs the measurement cannot place, held to the text and the data."""
 import sys
 
 import selftest_cases
@@ -74,8 +75,9 @@ def case_01_a_level_is_read_against_the_page_margin(expect):
            M._margin_of(vis))
     base = 17.7
     expect.equal("level 0 at the first-line indent, deeper at the hanging indents",
-                 [M.level_of([(1, off)], base) for off in (17.3, 52.6, 0.1)], [0, 2, -1])
-    expect.equal("found at two levels, or not found", [M.level_of([(1, 17.0), (2, 52.0)], base), M.level_of([], base)],
+                 [M.level_of([(1, off, 1.0, 60)], base) for off in (17.3, 52.6, 0.1)], [0, 2, -1])
+    expect.equal("found equally well at two levels, or not found",
+                 [M.level_of([(1, 17.0, 1.0, 60), (2, 52.0, 1.0, 60)], base), M.level_of([], base)],
                  [M.AMBIGUOUS, M.NOT_FOUND])
 
 
@@ -107,8 +109,41 @@ def case_02_the_data_holds_the_text_and_a_level_0_paragraph_is_a_unit(expect):
 def case_03_the_committed_1985_data_holds_the_transcription(expect):
     after = M.READERS[1985]()[1]
     recorded = M.load(1985)
-    expect.equal("no refusal of the committed data", M.refusals(after, recorded), [])
+    expect.equal("no refusal of the committed data and readings", M.refusals(after, recorded, M.readings(1985)), [])
     expect("it records level-0 paragraphs", len(M.at_margin(after, recorded)) > 0)
+    expect.equal("no paragraph is left to read on the page (kb/Work PB5998)",
+                 [(e["clause"], e["follows"], e["level"]) for e in M.unread(recorded)], [])
+
+
+def case_04_the_best_match_decides_the_level(expect):
+    # kb/Work PB5998: page 360's "If index-name-2 is specified" also matches rule (2)'s own opening "If index-name-1 is
+    # specified" (at the margin) and its sibling's (at the indent), each less well than its own line.
+    base = 17.8
+    sibling = [(360, 18.8, 0.90, 60), (360, 48.1, 1.0, 60), (360, 48.5, 0.90, 60)]
+    expect.equal("the line that matches best is the paragraph's", M.level_of(sibling, base), 2)
+    # page 455: a 29-character line ("the successful execution of an") matches a long opening fully on its few characters.
+    short = [(455, 300.2, 1.0, 29), (455, 48.2, 1.0, 60)]
+    expect.equal("of equal ratio, the match over more characters", M.level_of(short, base), 2)
+    expect.equal("the data's offset is the best match's", M.best(short)[0][1], 48.2)
+
+
+def case_05_a_page_reading_places_what_the_measurement_cannot(expect):
+    _, after = _paragraphs()
+    key = after[2].key
+    read = {key: {"clause": key[0], "follows": "(2)", "digest": key[1], "order": key[2], "page": 257,
+                  "read": "continues the rule", "evidence": "planted"}}
+    recorded = {p.key: {"clause": p.clause, "follows": p.follows, "level": lv} for p, lv in zip(after, (0, 0, 2))}
+    carried = {**recorded, key: {**recorded[key], "level": M.READ_CONTINUES, "read_on_page": 257}}
+    expect.equal("a reading the data carries: no refusal", M.refusals(after, carried, read), [])
+    expect("a reading the data does not carry is refused",
+           any("does not carry" in r for r in M.refusals(after, recorded, read)), M.refusals(after, recorded, read))
+    gone = {("§1985:VI.5.7.3", "000000000000", 0): dict(read[key], digest="000000000000")}
+    expect("a reading no paragraph has is refused", any("no paragraph has" in r for r in M.refusals(after, carried, gone)))
+    expect.equal("a read level 0 is a unit, a read continuation is none",
+                 [p.unit.text for p in M.at_margin(after, {**carried, key: {**carried[key], "level": 0}})],
+                 [p.unit.text for p in after])
+    expect.equal("the tally names a read continuation", M.tally([{"level": M.READ_CONTINUES}]),
+                 {"read on the page: continues the rule": 1})
 
 
 if __name__ == "__main__":

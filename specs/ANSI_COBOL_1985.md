@@ -12480,8 +12480,7 @@ Nucleus - Complex Conditions
         is <u>false</u>                               is <u>true</u>
 </pre>
 
-Figure 4: Evaluation of
-(condition-1 OR NOT condition-2) AND condition-3 AND condition-4
+Figure 4: Evaluation of (condition-1 OR NOT condition-2) AND condition-3 AND condition-4
 
 VI-66
 
@@ -22574,7 +22573,7 @@ XIII-16
 
 ## Page 599
 
-<p>Report Writer - PAGE</p>
+Report Writer - PAGE
 
 ### 3.8 THE PAGE CLAUSE
 
