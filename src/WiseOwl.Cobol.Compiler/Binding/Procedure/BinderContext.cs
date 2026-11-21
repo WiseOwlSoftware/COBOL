@@ -181,4 +181,25 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
             ctx.BindCursor = pc;
         }
     }
+
+    /// <summary>The placement rule a misplaced USE statement breaks, as the edition in force numbers it (kb/Work PB6010), for the
+    /// COBOL2377 message: asked here because naming the module needs the symbol table, which the statement binder's layer does
+    /// not reach. From 2002 it is one rule, §2023:14.9.49.3 SR1. ANSI X3.23-1985 states it once per module that has a USE format:
+    /// "A USE statement, when present, must immediately follow a section header in the declaratives portion of the Procedure
+    /// Division" in the sequential, relative and indexed I-O modules (§1985:VII.4.6.3 SR1, §1985:VIII.4.8.3 SR1,
+    /// §1985:IX.4.8.3 SR1), so a USE naming a file cites the module of that file's organization (<see cref="EditionCite"/>) and
+    /// one naming an open mode cites each module; USE BEFORE REPORTING is the report writer's §1985:XIII.4.9.3 SR1, and USE FOR
+    /// DEBUGGING the debug module's §1985:XV.3.2.3 SR1 ("Debugging section(s), if specified, must appear together immediately
+    /// after the DECLARATIVES header").</summary>
+    public string UsePlacementRule(Frontend.Generated.CobolParserCore.UseStatementContext use)
+    {
+        var edition = Edition.Edition;
+        if (use.BEFORE() is not null) return edition.Cite("§1985:XIII.4.9.3 SR1", "ISO §2023:14.9.49.3 SR1");
+        if (use.DEBUGGING() is not null) return edition.Cite("§1985:XV.3.2.3 SR1", "ISO §2023:14.9.49.3 SR1");
+        var rule = new EditionCite("ISO §2023:14.9.49.3 SR1", "§1985:VII.4.6.3 SR1", "§1985:VIII.4.8.3 SR1", "§1985:IX.4.8.3 SR1");
+        return use.useOnTarget()?.fileName() is [var first, ..]
+            && Symbols.Identify(first, WiseOwl.Cobol.Symbols.NameClass.File, report: false) is { Symbol: FileModel file }
+            ? rule.At(edition.Year, file.Organization)
+            : rule.AtEveryOrganization(edition.Year);
+    }
 }

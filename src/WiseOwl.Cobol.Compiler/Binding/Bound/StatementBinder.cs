@@ -678,26 +678,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>Whether the signature of the method an invocation activates has a gated message-tag item: its RETURNING item or a formal.</summary>
     private static bool NamesGatedMessageTag(OoMethodSymbol method) => method.Binding?.SignatureItems.Any(IsGatedMessageTag) == true;
 
-    /// <summary>The placement rule a misplaced USE statement breaks, as the edition in force numbers it (kb/Work PB6010). From
-    /// 2002 it is one rule, §2023:14.9.49.3 SR1. ANSI X3.23-1985 states it once per module that has a USE format: "A USE
-    /// statement, when present, must immediately follow a section header in the declaratives portion of the Procedure
-    /// Division" in the sequential, relative and indexed I-O modules (§1985:VII.4.6.3 SR1, §1985:VIII.4.8.3 SR1,
-    /// §1985:IX.4.8.3 SR1), so a USE naming a file cites the module of that file's organization (<see cref="EditionCite"/>)
-    /// and one naming an open mode cites each module; USE BEFORE REPORTING is the report writer's §1985:XIII.4.9.3 SR1, and
-    /// USE FOR DEBUGGING the debug module's §1985:XV.3.2.3 SR1 ("Debugging section(s), if specified, must appear together
-    /// immediately after the DECLARATIVES header").</summary>
-    private string UsePlacementRule(Core.UseStatementContext use)
-    {
-        var edition = data.Edition.Edition;
-        if (use.BEFORE() is not null) return edition.Cite("§1985:XIII.4.9.3 SR1", "ISO §2023:14.9.49.3 SR1");
-        if (use.DEBUGGING() is not null) return edition.Cite("§1985:XV.3.2.3 SR1", "ISO §2023:14.9.49.3 SR1");
-        var rule = new EditionCite("ISO §2023:14.9.49.3 SR1", "§1985:VII.4.6.3 SR1", "§1985:VIII.4.8.3 SR1", "§1985:IX.4.8.3 SR1");
-        return use.useOnTarget()?.fileName() is [var first, ..]
-            && Ctx.Symbols.Identify(first, Symbols.NameClass.File, report: false) is { Symbol: FileModel file }
-            ? rule.At(edition.Year, file.Organization)
-            : rule.AtEveryOrganization(edition.Year);
-    }
-
     /// <summary>ENTER language-name-1 [routine-name-1] (§1985:VI.6.12.2): not provided (kb/Work PB5308). §1985:I.1.5.2.5.5 lets
     /// an implementation "include the ENTER statement or not", ISO 2023 has no ENTER and GnuCOBOL refuses it (CLAUDE.md
     /// rule 1), and no language-name is "specified by the implementor" (§1985:VI.6.12.3 SR1), so every ENTER is refused by
@@ -807,7 +787,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // a feature WiseOwl COBOL had not implemented.
         _ when s.useStatement() is not null => BoundRejected.Report(data.Edition, DiagnosticCatalog.UseStatementPlacement,
             "USE: a USE statement shall immediately follow a section header in the declaratives portion of the "
-            + $"procedure division and shall appear in a sentence by itself ({UsePlacementRule(s.useStatement())}); this one is "
+            + $"procedure division and shall appear in a sentence by itself ({Ctx.UsePlacementRule(s.useStatement())}); this one is "
             + (Ctx.Enclosing.InDeclarative
                 ? "inside a declarative section, after its first sentence"
                 : "in the nondeclarative portion of the procedure division")),
