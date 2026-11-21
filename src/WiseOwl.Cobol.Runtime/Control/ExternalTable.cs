@@ -29,7 +29,7 @@ public enum ExternalChecks
 /// RECORD kind (§2023:14.8.4.3 / §2023:13.18.22.4 GR6): <see cref="ByteCount"/> = the record's byte count;
 /// <see cref="ValueImage"/> = the record name's OWN VALUE clause specification as a canonical KEY, else null (the
 /// GR6 "identical VALUE clause specification" identity: the clause's words are case-folded, a literal's characters
-/// are kept exactly — <c>OoEmitter.ValueSpecificationKey</c>; it is NOT a composed image); a complete-record
+/// are kept exactly — <c>ExternalRecordDescription.ValueSpecificationKey</c>, the one description the compile-time agreement compares too; it is NOT a composed image); a complete-record
 /// REDEFINES contributes nothing (GR6 explicitly exempts it for non-strong records — the descriptor is built
 /// from the base record only); <see cref="StrongTypeKey"/> = the external strong TYPE name (null when not
 /// strongly typed) and <see cref="ConstantRecord"/> = the CONSTANT RECORD presence (§2023:14.8.4.3 ¶3).

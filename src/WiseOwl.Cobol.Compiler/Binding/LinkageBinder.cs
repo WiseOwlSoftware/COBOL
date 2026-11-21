@@ -71,7 +71,13 @@ public sealed record LinkageFormal(DataItem Item, int Position, string CarrierFi
 /// and its MANAGED SLOTS, so a pointer-class member of an external record addresses the same storage every other
 /// describer does (kb/Work PB231).</param>
 public sealed record CallExternalBacking(string BackingClrName, string CellClrName, string ExternalName, int Width,
-                                         DataItem Record);
+                                         DataItem Record)
+{
+    /// <summary>What this source element says of the external record, the run time's own descriptor of it
+    /// (<see cref="ExternalRecordDescription.Of"/>, kb/Work PB5996): the registration renders it and the group's agreement rule
+    /// compares it.</summary>
+    public ExternalDescriptor Descriptor => ExternalRecordDescription.Of(this);
+}
 
 /// <summary>The kind of thing an EXTERNAL entry externalizes (ISO §2023:8.3.2.2 list item 2: "data-names, file-names, and
 /// record-names of items described with the EXTERNAL attribute"). A record is a data item, so a data-name and a
