@@ -358,4 +358,14 @@ def self_test() -> list[str]:
              "## 3. Determinations\n\n- **D-B10 — b**: text\n\n- **D-B2 — a**: text\n\n## 3.1 More\n\n- **D-A — c**: text\n\n"
              "## 7. Annex A.1\n| A.1 item | E | D | P |\n|---|---|---|---|\n"), "## 8. Rules")["determinations"],
          ["D-A", "D-B2", "D-B10"]),
+        ("the extract keeps an informative §8 row's Names cell verbatim: its apostrophe, colon and quotation "
+         "(kb/Work PB6012)",
+         build_extract(conformance_source.parse(
+             "## 3. Determinations\n\n## 3.1 More\n\n## 7. Annex A.1\n| A.1 item | E | D | P |\n|---|---|---|---|\n\n"
+             "## 8. Rules\n| Rule | Arm | Names | The derivation | Signed | Refuted |\n|---|---|---|---|---|---|\n"
+             "| DRV-1985-GR-IV.3.1-p1 | informative | describes the standard's kinds of rule: \"a syntax rule is one\" "
+             "| it informs | claude: 2026-11-12 | r.jsonl |\n"), "## 8. Rules")["derivations"],
+         [{"key": "DRV-1985-GR-IV.3.1-p1", "arm": "informative",
+           "names": "describes the standard's kinds of rule: \"a syntax rule is one\"", "signature": "claude: 2026-11-12",
+           "refuter": "r.jsonl"}]),
     ])
