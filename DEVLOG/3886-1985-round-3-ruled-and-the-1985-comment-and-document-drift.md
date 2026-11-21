@@ -1,4 +1,4 @@
-## 1985 round 3 ruled, and the 1985 comment and document drift group lands: eight notes, NOT AT END refusal goldens, every quotation checked
+## Entry 3886 — 2026-11-20 23:41 PST — 1985 round 3 ruled, and the 1985 comment and document drift group lands: eight notes, NOT AT END refusal goldens, every quotation checked
 
 Round 3 of the open 1985 questions (one adjudicator, main at 8244f1aa4b) found two wrong answers on a RECORD DELIMITER IS
 LINE-SEQUENTIAL file at `--std 85`. PB5984, reproduced: three WRITE ... AFTER ADVANCING records read back as five, the two extras
@@ -37,3 +37,4 @@ build and every citation written run through `cite.py --check`:
 
 Rows: the new goldens join `1985-SR-VIII.4.5.3-3`, `1985-SR-IX.4.5.3-5`, `SR-14.9.30.3-9`, `GR-14.9.39.4-3` and `-4` (all
 CONFORMS); GAP unchanged. No compiled program changes behavior except the COBOL7144 message's quotation for a relative file.
+
