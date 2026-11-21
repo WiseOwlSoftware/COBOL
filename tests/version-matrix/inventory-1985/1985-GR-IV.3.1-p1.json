@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.3.1-p1",
+ "rule-digest": "4a619e0dde41",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ClosedFormatPass",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.3.1-p1",
+ "notes": "Derivation from the read lineage-reads-1985/s-100.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-IV.3.1-p1); the code location is where the compiler meets the rule's subject. The read: S1 defines what the document means by a 'syntax rule'. S2 says what syntax rules may do (impose or relax restrictions). Both classify the standard's own rules; each actual restriction is its own SR row. No program and no compiler behaviour can make a statement about the document's rule kinds false."
+}

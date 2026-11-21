@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.2.1.5-p1",
+ "rule-digest": "27a1a1ca9bd4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/UnrepeatedElements.cs#UnrepeatedElements",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.2.1.5-p1",
+ "notes": "Derivation from the read lineage-reads-1985/s-100.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-IV.2.1.5-p1); the code location is where the compiler meets the rule's subject. The read: S1 limits itself to 'text, other than general formats': the ellipsis in the standard's prose marks omitted words. S2 says this is the conventional meaning and becomes apparent in context. Both are about how to read the document's prose; the ellipsis in general formats, which does govern source text, is 1985-SR-IV.2.1.5-p2/-p3. No program and no compiler behaviour bears on the meaning of an ellipsis in the standard's prose."
+}

@@ -1016,6 +1016,34 @@
  ],
  "derivations": [
   {
+   "key": "DRV-1985-GR-IV.1-p1",
+   "arm": "informative",
+   "names": "describes the standard's scope of Section IV, its boxes and its flowcharts: \"specifications unique to the high level are enclosed in boxes\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-IV.2.1.5-p1",
+   "arm": "informative",
+   "names": "describes the standard's use of the ellipsis in its running prose: \"the ellipsis (...) shows omission of a word or words\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-IV.3.1-p1",
+   "arm": "informative",
+   "names": "describes the standard's kind of rule called a syntax rule: \"Syntax rules are those rules that define or clarify the order\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-IV.3.2-p1",
+   "arm": "informative",
+   "names": "describes the standard's kind of rule called a general rule: \"A general rule is a rule that defines or clarifies\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-IV.4.2.2.1.1-15",
    "arm": "unpopulatable-antecedent",
    "names": "the ENTER statement, the one place a routine-name occurs, which this implementation does not include (§1985:I.1.5.2.5.5; docs/conformance/9.1/1985-SR-VI.6.12.3-1.md)",
@@ -1042,6 +1070,13 @@
    "names": "1985-SR-IV.4.2.2.2.3-p1",
    "signature": "claude: 2026-11-21",
    "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-03.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-IV.4.3.7-p2",
+   "arm": "informative",
+   "names": "explains 1985-GR-IV.4.3.7-p3: \"additional machine operations in the object program may be required\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl"
   },
   {
    "key": "DRV-1985-GR-IV.4.3.7-p3",
@@ -1107,6 +1142,20 @@
    "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept-3.jsonl"
   },
   {
+   "key": "DRV-1985-GR-VI.6.3.4-p2",
+   "arm": "informative",
+   "names": "describes the standard's figures 1 through 4 on condition evaluation: \"These figures are not intended to dictate implementation\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-VI.6.4-p1",
+   "arm": "informative",
+   "names": "describes the standard's organization of paragraph 6.4: \"provide a description of the common options and conditions\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-VI.6.10.4-10",
    "arm": "unpopulatable-antecedent",
    "names": "the DISPLAY device set at --std 85 is closed at two streams: CONSOLE and SYSOUT name standard output and SYSERR names standard error (the only output-capable device rows of ImplementorNames, a table no edition varies), and both are line streams on which vertical positioning applies",
@@ -1168,6 +1217,27 @@
    "names": "\"then the order of return of these records is undefined\"",
    "signature": "claude: 2026-11-16",
    "refuter": "—"
+  },
+  {
+   "key": "DRV-1985-GR-XIII.3.10.2-p1",
+   "arm": "informative",
+   "names": "describes the standard's arrangement of its presentation rules tables: \"There is an individual presentation rules table\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-XIII.3.10.2-p3",
+   "arm": "informative",
+   "names": "describes the standard's layout of the applicable rules columns: \"The applicable rules columns of a presentation rules table are partitioned into two parts\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-XIII.3.10.3-p1",
+   "arm": "informative",
+   "names": "describes the standard's shorthand notation in column 1 of its tables: \"Column 1 of the presentation rules table uses a shorthand notation\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl"
   },
   {
    "key": "DRV-1985-GR-XIII.3.14.4-2",
@@ -1238,6 +1308,13 @@
    "names": "the set of communication devices that are character-imaging, line-oriented devices onto whose used line a SEND can be positioned (GR16's class, of which the device of GR17 that does not support replacement and the device of GR18 that does not support superimposition are the two cases) is empty: every device (a terminal, or a destination with no deliverTo) takes variable-length messages (GR2; section 3.3, \"Communication devices\"), McsStore.Transmit is its only writer and writes each complete message at the device's committed end, and ADVANCING and REPLACING LINE are ignored (GR12)",
    "signature": "claude: 2026-11-14",
    "refuter": "tests/version-matrix/derivation-refutations/records-85-held-send-gr17-gr18.jsonl"
+  },
+  {
+   "key": "DRV-1985-SR-IV.2.1.1-p1",
+   "arm": "informative",
+   "names": "describes the standard's general-format notation: \"Elements which make up a clause or a statement consist of\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl"
   },
   {
    "key": "DRV-1985-SR-IV.4.2.2.1.1-L2.12",

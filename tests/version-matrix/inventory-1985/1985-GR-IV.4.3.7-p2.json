@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.7-p2",
+ "rule-digest": "3c0d06365f78",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/SynchronizedPhrase.cs#SynchronizedPhrase",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.4.3.7-p2",
+ "notes": "Derivation from the read lineage-reads-1985/s-100.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-IV.4.3.7-p2); the code location is where the compiler meets the rule's subject. The read: S1 says some uses of data 'may be facilitated' by alignment on natural boundaries: a statement of possible efficiency, obliging nothing (p1 already says storage 'need not respect these natural boundaries'). S2 says additional machine operations 'may be required' when items straddle boundaries: it gives the reason for, and the referent of 'such additional machine operations' in, 1985-GR-IV.4.3.7-p3, which defines 'synchronized' (cite.py OK §1985:IV.4.3.7 p3 'are defined to be synchronized'). Neither sentence requires any layout or result; an object program that uses extra operations, or none, is consistent with both 'may' statements, and no program's output can show the count of machine operations. The SYNCHRONIZED requirements are their own rows (p3, -1, -2, p5 and the SYNCHRONIZED clause rows)."
+}
