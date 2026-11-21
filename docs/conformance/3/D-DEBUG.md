@@ -92,8 +92,11 @@
   (Annex A.1 item 157), so a bare `>>D` there is followed by spaces and is a debugging line of spaces, a blank line (§2023:6.5 2)).
   (c) SR8: `>>D` as the first character-string of a line whose indicator area holds the fixed `D` or the continuation
   hyphen is refused, COBOL5770, at the indicator; the line is then read as its fixed indicator says. SR8 is a 2002 rule
-  and binds from `--std 2002`: COBOL-85 has no floating debugging indicator, so a `D` line there is a comment line whose
-  text `>>D` is commentary (witness `conformance:cases/_unassigned/pb4298_floating_debugging_text_on_d_line_85`). **Edition window
+  and binds from `--std 2002`: COBOL-85 has no floating debugging indicator, so a `D` line there holds no indicator of its own and SR8 is not asked
+  (no COBOL5770). Its text `>>D` is not source either, and §1985:VI.7.3 requires a debugging line whose program parses with it
+  as source as well as without it, so a `D` line holding `>>D` is COBOL7061 at 85, with or without the mode (kb/Work PB5466;
+  witness `conformance:cases/_unassigned/pb4298_floating_debugging_text_on_d_line_85`, which until PB5466 was an accepted
+  commentary line). **Edition window
   (registry row `floating-debugging-indicator-2002`):** introduced WITH the floating indicators at 2002 (COBOL0900 below,
   an error under `--permissive` too), obsolete from 2002 (COBOL0903), removed from 2014 (COBOL0902, an error under strict,
   a warning under `--permissive`, where the facility keeps working); GnuCOBOL 3.2 agrees at both edges (`-std=cobol2002`
