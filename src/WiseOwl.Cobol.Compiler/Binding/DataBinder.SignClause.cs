@@ -86,9 +86,12 @@ public sealed partial class DataBinder
         bool reportGroup)
     {
         if (pic is null || pic.IsRecovery) return null;
-        // SR1 — category numeric, with an S in a WRITTEN picture character-string (PicInfo.Signed is the S; a
-        // PICTURE-less signed usage such as BINARY-LONG SIGNED or FLOAT-LONG has no character-string to hold one).
-        if (pic.Category is not PicCategory.Numeric || !pic.Signed || pictureText is null)
+        // SR1 — the PICTURE character-string describes a signed numeric item, and it was WRITTEN (a PICTURE-less signed
+        // usage such as BINARY-LONG SIGNED or FLOAT-LONG has no character-string to hold an S). The rule asks the PICTURE,
+        // not the item's category: at --std 85 BLANK WHEN ZERO makes PIC S9(5) numeric edited (§1985:VI.5.4.4 GR2) and the
+        // PICTURE still contains the 'S', and Table 1 of §1985:XIII.3.9.3 SR11 marks SIGN and BLANK WHEN ZERO permitted
+        // together (kb/Work PB5790). The 2002 and later texts refuse that PICTURE under the BLANK WHEN ZERO rule first.
+        if (!pic.PictureIsSignedNumeric || pictureText is null)
             return $"the SIGN clause may be specified for an elementary {entryKind} only when it is numeric and its "
                 + $"picture character-string contains the symbol 'S' (ISO {edition.Cite(reportGroup ? "§1985:XIII.3.17.3 SR1" : "§1985:VI.5.12.3 SR1", "§2023:13.18.52.3 SR1")}) — this entry "
                 + (pictureText is null

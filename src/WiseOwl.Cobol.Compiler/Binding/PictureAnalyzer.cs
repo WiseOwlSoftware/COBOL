@@ -483,10 +483,13 @@ public static class PictureAnalyzer
             // Numeric-edited: the .NET storage is the formatted display image (string); width = edited symbol
             // count. NOTE no digits>0 requirement — an all-symbol mask (PIC ****, $$$$) is numeric-edited too,
             // its digit positions being the Z/*/floating symbols themselves (§2023:13.18.40).
+            // The S leaves the profile but not the PICTURE: the SIGN clause's subject rule still reads it
+            // (PicInfo.BlankWhenZeroSigned, kb/Work PB5790), and a SEPARATE sign keeps its own character position.
             return new PicInfo(PicCategory.NumericEdited, usage,
                 Length: CharacterPositions(mask, currencyExtra, editingExtra), Digits: digits, Scale: scale, Signed: false)
             { SignKind = PicInfo.SignKindFor(usage, false, sign), EditMask = CanonicalCurrencyMask(mask, cs), EditingRules = editRules, DigitPositions = digitPos,
-              CurrencyString = currencyString == "$" ? null : currencyString, CurrencyClass = currencyClass };
+              CurrencyString = currencyString == "$" ? null : currencyString, CurrencyClass = currencyClass,
+              BlankWhenZeroSigned = signed }.WithBlankWhenZeroSeparateSign(sign);
         }
 
         // ⛔ GR11's ANTECEDENT, at the arm that answers it (kb/Work PB535). This arm is the FALL-THROUGH — it is
