@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-X.1.3.8-2",
+ "rule-digest": "8a1a2007d38d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Procedures.cs#DeclareParagraph",
+ "test-ref": "conformance:cases/X.1.3@1985-LANGUAGE-CONCEPTS/1985-SR-X_1_3_8-2",
+ "notes": "Own witness from the read lineage-reads-1985/s-15.json: the reader showed the compiler refuse at 85 with its probe (r02_para.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 44 made conforming (the contained program performs a paragraph declared in itself) and compiles and runs at 85. The read: Item '2. paragraph-name' of the list whose lead reads 'may be referenced only by statements and entries in that program in which the user-defined word is declared'. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it. Code location located after the read: paragraph-name declaration"
+}

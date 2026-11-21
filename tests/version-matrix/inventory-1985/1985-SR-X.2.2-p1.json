@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-X.2.2-p1",
+ "rule-digest": "d46785bc9b50",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#Run; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader",
+ "test-ref": "conformance:cases/X.2@1985-NESTED-SOURCE-PROGRAMS/1985-SR-X_2_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-16.json: the reader showed the compiler refuse at 85 with its probe (x22-order-data-before-env.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 6 made conforming (the Environment Division is written before the Data Division, the order of the four divisions) and compiles and runs at 85. The read: No candidate (GR-14.9.4.4-3, RV-15.65.4-6, GR-8.4.3.13.4-2) states the division order; the probes witness it at 85. Code location located after the read: end program header and program end ordering; EndMarkerPass cites 1985:X.2.5.3 and X.2.5.4"
+}

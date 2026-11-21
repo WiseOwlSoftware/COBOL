@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-X.1.3.8-L5.1",
+ "rule-digest": "bad6e3deae52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ConditionNames.cs#IdentifyConditionName",
+ "test-ref": "conformance:cases/X.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-X_1_3_3-p6",
+ "notes": "Own witness from the read lineage-reads-1985/s-15.json: the reader showed the compiler refuse at 85 with its probe (q03_local_cond.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 32 made conforming (the conditional variable LC is declared GLOBAL, so its condition-name is global and the contained program may reference it) and compiles and runs at 85. The read: Item '1. condition-name' of the list whose lead reads 'Specific conventions, for declarations and references, apply to the following types of user-defined words'. Flagged definitional, but the conventions it names (X.1.3.8.2) are observable and are shown at 85. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it. Code location located after the read: condition-name resolution"
+}
