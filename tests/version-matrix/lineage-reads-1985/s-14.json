@@ -1,0 +1,1200 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-14 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-14",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-14",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-VIII.2.6.1-p1",
+   "1985-GR-VIII.3.2.1-p1",
+   "1985-GR-VIII.4.2.1-p1",
+   "1985-GR-VIII.4.3.1-p1",
+   "1985-GR-VIII.4.4.1-p1",
+   "1985-GR-IX.1.1-p1",
+   "1985-GR-IX.1.2-p1",
+   "1985-GR-IX.1.2-p2",
+   "1985-GR-IX.1.3.1-p1",
+   "1985-GR-IX.1.3.1-p2",
+   "1985-GR-IX.1.3.2-p1",
+   "1985-GR-IX.1.3.3-p1",
+   "1985-GR-IX.1.3.4-p1",
+   "1985-GR-IX.1.3.4-p2",
+   "1985-GR-IX.1.3.4-p3",
+   "1985-GR-IX.1.3.4-6",
+   "1985-GR-IX.1.3.4-p5",
+   "1985-GR-IX.1.3.5-p1",
+   "1985-GR-IX.1.3.5-p2",
+   "1985-GR-IX.1.3.5-p3",
+   "1985-GR-IX.1.3.6-p1",
+   "1985-GR-IX.2.3.1-p1",
+   "1985-GR-IX.2.8.1-p1",
+   "1985-GR-IX.3.2.1-p1",
+   "1985-SR-IX.4.1-p1",
+   "1985-GR-X.1.1-p1",
+   "1985-GR-X.1.2-p1",
+   "1985-GR-X.1.2-p2",
+   "1985-GR-X.1.3.1-p1",
+   "1985-GR-X.1.3.1-p2"
+  ],
+  "pointers": {
+   "1985-GR-VIII.2.6.1-p1": {
+    "candidates-2023": [
+     "FMT-12.4.6.2",
+     "GR-9.1.18.2-p1",
+     "GR-12.4.6.4.4-2"
+    ],
+    "nearest-2023": "FMT-12.4.6.2",
+    "similarity": 0.309
+   },
+   "1985-GR-VIII.3.2.1-p1": {
+    "candidates-2023": [
+     "SR-13.4.5.3-5",
+     "SR-12.4.5.2-9",
+     "SR-13.4.5.3-7"
+    ],
+    "nearest-2023": "SR-13.4.5.3-5",
+    "similarity": 0.468
+   },
+   "1985-GR-VIII.4.2.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.6.4-10",
+     "GR-14.9.6.4-9",
+     "GR-14.9.6.4-4"
+    ],
+    "nearest-2023": "GR-14.9.6.4-10",
+    "similarity": 0.637
+   },
+   "1985-GR-VIII.4.3.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.10.4-2",
+     "DOC-A.1-51",
+     "SR-14.9.10.3-1"
+    ],
+    "nearest-2023": "GR-14.9.10.4-2",
+    "similarity": 0.634
+   },
+   "1985-GR-VIII.4.4.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.27.4-20",
+     "GR-14.9.27.4-2",
+     "SR-14.9.27.3-4"
+    ],
+    "nearest-2023": "GR-14.9.27.4-20",
+    "similarity": 0.566
+   },
+   "1985-GR-IX.1.1-p1": {
+    "candidates-2023": [
+     "GR-12.4.5.10.3-5",
+     "GR-12.4.5.3-5",
+     "SR-13.4.5.3-7"
+    ],
+    "nearest-2023": "GR-12.4.5.10.3-5",
+    "similarity": 0.472
+   },
+   "1985-GR-IX.1.2-p1": {
+    "candidates-2023": [
+     "GR-12.4.5.3-5",
+     "SR-13.4.5.3-7",
+     "GR-14.9.27.4-16"
+    ],
+    "nearest-2023": "GR-12.4.5.3-5",
+    "similarity": 0.348
+   },
+   "1985-GR-IX.1.2-p2": {
+    "candidates-2023": [
+     "GR-12.4.5.3-5",
+     "SR-13.4.5.3-7",
+     "GR-14.9.27.4-16"
+    ],
+    "nearest-2023": "GR-12.4.5.3-5",
+    "similarity": 0.385
+   },
+   "1985-GR-IX.1.3.1-p1": {
+    "candidates-2023": [
+     "GR-12.4.5.5.3-3",
+     "GR-12.4.5.12.4-1",
+     "GR-14.9.51.4-42"
+    ],
+    "nearest-2023": "GR-12.4.5.5.3-3",
+    "similarity": 0.461
+   },
+   "1985-GR-IX.1.3.1-p2": {
+    "candidates-2023": [
+     "GR-14.9.51.4-36",
+     "GR-12.4.5.12.4-1",
+     "GR-14.9.35.4-25"
+    ],
+    "nearest-2023": "GR-14.9.51.4-36",
+    "similarity": 0.684
+   },
+   "1985-GR-IX.1.3.2-p1": {
+    "candidates-2023": [
+     "GR-14.9.30.4-31",
+     "GR-14.9.30.4-30",
+     "GR-14.9.41.4-16"
+    ],
+    "nearest-2023": "GR-14.9.30.4-31",
+    "similarity": 0.504
+   },
+   "1985-GR-IX.1.3.3-p1": {
+    "candidates-2023": [
+     "GR-14.9.6.4-6",
+     "GR-14.9.27.4-14",
+     "GR-14.9.30.4-21"
+    ],
+    "nearest-2023": "GR-14.9.6.4-6",
+    "similarity": 0.458
+   },
+   "1985-GR-IX.1.3.4-p1": {
+    "candidates-2023": [
+     "GR-9.1.13.7-3",
+     "GR-9.1.13.7-9",
+     "GR-9.1.13.7-7",
+     "GR-9.1.13.7-1",
+     "GR-14.9.51.4-15",
+     "GR-14.9.49.4-7",
+     "GR-14.9.51.4-1",
+     "GR-14.9.27.4-1",
+     "GR-14.9.27.4-25",
+     "GR-12.4.5.8.4-1"
+    ],
+    "nearest-2023": "GR-9.1.13.7-3",
+    "similarity": 0.515
+   },
+   "1985-GR-IX.1.3.4-p2": {
+    "candidates-2023": [
+     "GR-14.9.49.4-6",
+     "DOC-A.1-110",
+     "GR-9.1.13.6-4",
+     "GR-14.9.30.4-24",
+     "GR-14.9.49.4-7",
+     "DOC-A.1-218",
+     "GR-14.9.51.4-25",
+     "GR-13.18.39.4-4",
+     "GR-13.18.39.4-2",
+     "SR-13.18.57.3-12"
+    ],
+    "nearest-2023": "GR-14.9.49.4-6",
+    "similarity": 0.264
+   },
+   "1985-GR-IX.1.3.4-p3": {
+    "candidates-2023": [
+     "GR-9.1.13.6-1",
+     "DOC-A.1-110",
+     "GR-9.1.13.2-1",
+     "GR-9.1.13.11-1",
+     "GR-14.9.49.4-7",
+     "GR-14.9.49.4-12",
+     "GR-9.1.14-4",
+     "DOC-A.1-218",
+     "GR-9.1.14-L2.1",
+     "DOC-A.1-105"
+    ],
+    "nearest-2023": "GR-9.1.13.6-1",
+    "similarity": 0.296
+   },
+   "1985-GR-IX.1.3.4-6": {
+    "candidates-2023": [
+     "GR-14.9.49.4-6",
+     "GR-9.1.13.6-4",
+     "GR-9.1.13.2-1",
+     "GR-9.1.13.7-3",
+     "GR-9.1.14-4",
+     "GR-14.9.10.4-2",
+     "GR-14.9.33.4-2",
+     "GR-12.4.5.3-4",
+     "GR-8.4.3.12.4-2"
+    ],
+    "nearest-2023": "GR-14.9.49.4-6",
+    "similarity": 0.262
+   },
+   "1985-GR-IX.1.3.4-p5": {
+    "candidates-2023": [
+     "GR-9.1.13.2-1",
+     "GR-9.1.13.11-1",
+     "GR-9.1.13.7-9",
+     "GR-9.1.13.7-7",
+     "DOC-A.1-104",
+     "GR-14.9.51.4-15",
+     "GR-14.9.30.4-1",
+     "GR-14.9.27.4-1",
+     "GR-14.7.9.3-4",
+     "GR-12.4.5.8.4-1"
+    ],
+    "nearest-2023": "GR-9.1.13.2-1",
+    "similarity": 0.345
+   },
+   "1985-GR-IX.1.3.5-p1": {
+    "candidates-2023": [
+     "GR-9.1.14-4",
+     "GR-14.9.30.4-13",
+     "GR-9.1.14-1",
+     "GR-9.1.14-2",
+     "GR-14.9.30.4-28",
+     "GR-14.9.30.4-29",
+     "GR-14.9.30.4-32",
+     "GR-13.18.34.4-6",
+     "GR-14.9.35.4-21",
+     "GR-14.9.41.4-5"
+    ],
+    "nearest-2023": "GR-9.1.14-4",
+    "similarity": 0.38
+   },
+   "1985-GR-IX.1.3.5-p2": {
+    "candidates-2023": [
+     "GR-9.1.14-4",
+     "GR-9.1.14-2",
+     "GR-14.9.30.4-13",
+     "GR-9.1.14-L2.2",
+     "GR-14.9.30.4-28",
+     "GR-14.9.49.4-6",
+     "GR-14.9.41.4-6",
+     "GR-14.9.35.4-21",
+     "GR-14.9.35.4-19"
+    ],
+    "nearest-2023": "GR-9.1.14-4",
+    "similarity": 0.642
+   },
+   "1985-GR-IX.1.3.5-p3": {
+    "candidates-2023": [
+     "GR-9.1.14-4",
+     "GR-9.1.14-2",
+     "GR-9.1.14-L2.2",
+     "GR-14.9.30.4-13",
+     "GR-9.1.14-1",
+     "GR-14.9.30.4-28",
+     "GR-14.9.35.4-21",
+     "GR-14.9.51.4-15",
+     "GR-14.9.41.4-18"
+    ],
+    "nearest-2023": "GR-9.1.14-4",
+    "similarity": 0.854
+   },
+   "1985-GR-IX.1.3.6-p1": {
+    "candidates-2023": [
+     "GR-14.9.30.4-28",
+     "GR-14.9.30.4-24",
+     "GR-14.9.30.4-13"
+    ],
+    "nearest-2023": "GR-14.9.30.4-28",
+    "similarity": 0.411
+   },
+   "1985-GR-IX.2.3.1-p1": {
+    "candidates-2023": [
+     "GR-12.4.5.3-5",
+     "SR-12.4.5.2-8",
+     "SR-13.4.5.3-1"
+    ],
+    "nearest-2023": "GR-12.4.5.3-5",
+    "similarity": 0.553
+   },
+   "1985-GR-IX.2.8.1-p1": {
+    "candidates-2023": [
+     "FMT-12.4.6.2",
+     "GR-9.1.18.2-p1",
+     "GR-12.4.6.4.4-2"
+    ],
+    "nearest-2023": "FMT-12.4.6.2",
+    "similarity": 0.309
+   },
+   "1985-GR-IX.3.2.1-p1": {
+    "candidates-2023": [
+     "SR-13.4.5.3-7",
+     "SR-12.4.5.2-8",
+     "SR-13.4.5.3-5"
+    ],
+    "nearest-2023": "SR-13.4.5.3-7",
+    "similarity": 0.518
+   },
+   "1985-SR-IX.4.1-p1": {
+    "candidates-2023": [
+     "SR-14.2.2-11",
+     "SR-14.9.49.3-8",
+     "SR-14.9.49.3-14"
+    ],
+    "nearest-2023": "SR-14.2.2-11",
+    "similarity": 0.429
+   },
+   "1985-GR-X.1.1-p1": {
+    "candidates-2023": [
+     "GR-9.1.5-2",
+     "GR-8.6.7-2",
+     "GR-14.9.4.4-3"
+    ],
+    "nearest-2023": "GR-9.1.5-2",
+    "similarity": 0.218
+   },
+   "1985-GR-X.1.2-p1": {
+    "candidates-2023": [
+     "GR-13.18.63.4-18",
+     "GR-14.9.27.4-23",
+     "DOC-A.1-131"
+    ],
+    "nearest-2023": "GR-13.18.63.4-18",
+    "similarity": 0.187
+   },
+   "1985-GR-X.1.2-p2": {
+    "candidates-2023": [
+     "GR-8.4.6.2.1-1",
+     "GR-14.9.4.4-3",
+     "GR-13.18.63.4-18"
+    ],
+    "nearest-2023": "GR-8.4.6.2.1-1",
+    "similarity": 0.196
+   },
+   "1985-GR-X.1.3.1-p1": {
+    "candidates-2023": [
+     "GR-8.4.3.13.4-2",
+     "SR-11.10.3-3",
+     "SR-8.4.6.3-2"
+    ],
+    "nearest-2023": "GR-8.4.3.13.4-2",
+    "similarity": 0.371
+   },
+   "1985-GR-X.1.3.1-p2": {
+    "candidates-2023": [
+     "SR-11.10.3-3",
+     "GR-9.1.5-2",
+     "GR-8.6.7-2"
+    ],
+    "nearest-2023": "SR-11.10.3-3",
+    "similarity": 0.75
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-14",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-VIII.2.6.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Relative I-O I-O-CONTROL paragraph: RERUN clause (rerun points) accepted",
+     "SAME [RECORD] AREA: memory area shared by relative files",
+     "RERUN obsolete element: no obligation beyond acceptance"
+    ],
+    "evidence-1985": {
+     "RERUN accepted on a relative file": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob (run E:/COBOL-coord/scratch/pb5453/runs/p01_relative-001) and conformance-suite/cases/VIII.2.6@1985-I-O-CONTROL-PARAGRAPH/1985-GR-VIII_2_6_3-1",
+     "SAME RECORD AREA shares the record area": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob (SAME RA SHARED-B) and conformance-suite/cases/VIII.2.6@1985-I-O-CONTROL-PARAGRAPH/1985-FMT-VIII_2_6_2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.2.6.1 p1",
+      "quote": "the points at which rerun is to be established",
+      "check": "OK  §1985:VIII.2.6.1 p1  (2.6.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "1985: 'specifies the points at which rerun is to be established and the memory area which is to be shared by different files'. 2023 dropped RERUN (FMT-12.4.6.2 keeps only APPLY COMMIT and SAME), so no 2023 rule states the rerun half. The probe declares RERUN and SAME RECORD AREA on two relative files, and a MOVE into one file's record shows in the other's.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob (run E:/COBOL-coord/scratch/pb5453/runs/p01_relative-001)",
+    "class": "removed-form",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.3.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Relative I-O FD: BLOCK CONTAINS, RECORD CONTAINS, LABEL RECORDS, DATA RECORDS (physical structure, identification, record-names)"
+    ],
+    "evidence-1985": {
+     "an FD with those clauses for a relative file is accepted and the file works": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob (run E:/COBOL-coord/scratch/pb5453/runs/p01_relative-001) and conformance-suite/cases/VIII.3.2@1985-FILE-DESCRIPTION-ENTRY/1985-FMT-VIII_3_2_2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.3.2.1 p1",
+      "quote": "pertaining to a relative file",
+      "check": "OK  §1985:VIII.3.2.1 p1  (3.2.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "1985: 'furnishes information concerning the physical structure, identification, and record-names pertaining to a relative file'. SR-13.4.5.3-7 says only that format 2 is the FD of a relative or indexed file, so it does not state the whole 1985 scope. The other pointers were proposed on wording only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob (run E:/COBOL-coord/scratch/pb5453/runs/p01_relative-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.4.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Relative I-O CLOSE terminates processing",
+     "WITH LOCK (level 2, boxed): the file cannot be reopened"
+    ],
+    "evidence-1985": {
+     "CLOSE terminates processing": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob (run E:/COBOL-coord/scratch/pb5453/runs/p01_relative-001)",
+     "CLOSE WITH LOCK, then OPEN gives 38": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob (CLOSE-LOCK 00, REOPEN 38) and conformance-suite/cases/IX.1.3@1985-LANGUAGE-CONCEPTS/pb5210_close_lock_locks_physical_file_85"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.4.2.1 p1",
+      "quote": "terminates the processing of files",
+      "check": "OK  §1985:VIII.4.2.1 p1  (4.2.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "1985: 'terminates the processing of files with optional lock'. The candidates (GR-14.9.6.4-10/-9/-4) cover multi-file CLOSE, lock release and status, and none covers the 1985 WITH LOCK. The probe closes a relative file WITH LOCK, and a reopen gives 38.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob (run E:/COBOL-coord/scratch/pb5453/runs/p01_relative-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.4.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Relative I-O DELETE removes the record identified by the relative key"
+    ],
+    "evidence-1985": {
+     "the deleted record is gone and the other remains": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob (DELETE 00, GONE 23, KEPT REC-0002) (run E:/COBOL-coord/scratch/pb5453/runs/p01_relative-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.4.3.1 p1",
+      "quote": "logically removes a record from a mass storage file",
+      "check": "OK  §1985:VIII.4.3.1 p1  (4.3.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "1985: 'logically removes a record from a mass storage file'. GR-14.9.10.4-2 says this, but it has no case that runs at 85 and it is written for sequential access. The probe deletes RRN 1 in dynamic mode: a READ of 1 gives 23, and RRN 2 is still there.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob (run E:/COBOL-coord/scratch/pb5453/runs/p01_relative-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.4.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Relative I-O OPEN (OUTPUT, I-O, INPUT) initiates processing"
+    ],
+    "evidence-1985": {
+     "OPEN OUTPUT and OPEN I-O succeed and processing follows": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob (OPEN-OUT 00, OPEN-IO 00) (run E:/COBOL-coord/scratch/pb5453/runs/p01_relative-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.4.4.1 p1",
+      "quote": "initiates the processing of files",
+      "check": "OK  §1985:VIII.4.4.1 p1  (4.4.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "1985: 'The OPEN statement initiates the processing of files.' None of the candidate OPEN rules (GR-14.9.27.4-20/-2, SR-14.9.27.3-4) has a case that runs at 85. The probe opens a relative file in output mode and then in I-O mode, and writes, deletes and reads after each OPEN.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob (run E:/COBOL-coord/scratch/pb5453/runs/p01_relative-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Indexed I-O: random access",
+     "sequential access",
+     "each record identified by one or more keys"
+    ],
+    "evidence-1985": {
+     "random and sequential access; record found by prime or alternate key": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (SEQ lines, BY-AK, GOT) (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.1 p1",
+      "quote": "access records of a mass storage file in either a random or sequential manner",
+      "check": "OK  §1985:IX.1.1 p1  (1.1 FUNCTION)  the text is in p1"
+     }
+    ],
+    "reason": "1985 grants random OR sequential access and identifies records by one or more keys. GR-12.4.5.10.3-5 (pb1098_organization_permanence_85) states only the key identification, not the two access manners. The probe reads one file sequentially (SEQ), randomly by prime key (GOT) and by alternate key (BY-AK).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Indexed I-O level 1: file control entry, FD, I-O-CONTROL, CLOSE, OPEN, READ, REWRITE, USE, WRITE (limited)",
+     "DELETE (full)"
+    ],
+    "evidence-1985": {
+     "the named entries and statements, and DELETE in random and dynamic mode": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001) and conformance-suite/cases/IX.4.3@1985-DELETE-STATEMENT/g85_f21_04",
+     "'limited' (the level-1 restrictions)": "not shown: --std 85 implements the high subset (kb/Work PB4885), so no program can see a level-1 restriction"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.2 p1",
+      "quote": "full capabilities for the DELETE statement",
+      "check": "OK  §1985:IX.1.2 p1  (1.2 LEVEL CHARACTERISTICS)  the text is in p1"
+     }
+    ],
+    "reason": "A level characteristic. The facilities it names exist and work at 85 (probe). Its 'limited' half describes the level-1 subset, which --std 85 does not offer separately. No 2023 rule speaks of levels, and the pointers were proposed on wording only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001) for the facilities named; the level-1 limitation is not a property --std 85 claims",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Indexed I-O level 2 (boxed): full file control entry (DYNAMIC, ALTERNATE RECORD KEY WITH DUPLICATES), FD, I-O-CONTROL (RERUN, SAME)",
+     "CLOSE, DELETE, OPEN, READ (NEXT, KEY IS), REWRITE, START, USE, WRITE"
+    ],
+    "evidence-1985": {
+     "each level-2 form accepted and run": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001) (dynamic access, alternate key with duplicates, START KEY = and >, READ NEXT, READ KEY IS, USE, RERUN, SAME AREA)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.2 p2",
+      "quote": "full capabilities for the CLOSE, DELETE, OPEN, READ, REWRITE, START, USE, and WRITE statements",
+      "check": "OK  §1985:IX.1.2 p2  (1.2 LEVEL CHARACTERISTICS)  the text is in p2"
+     }
+    ],
+    "reason": "Boxed text, which --std 85 implements as the high subset. Every statement and entry it names is used at level-2 strength in the probe. No 2023 rule speaks of levels.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "any record accessed by giving the value of a key",
+     "one index per key data item (prime and alternate)"
+    ],
+    "evidence-1985": {
+     "access by prime key and by alternate key": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (GOT by K, BY-AK by AK, ALT sequence by AK) (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.3.1 p1",
+      "quote": "For each key data item defined for the records of a file, an index is maintained",
+      "check": "OK  §1985:IX.1.3.1 p1  (1.3.1 Organization)  the text is in p1"
+     }
+    ],
+    "reason": "GR-12.4.5.5.3-3 (l1c12_access_mode_random_dynamic) states random access by the record key only. The 1985 paragraph keeps an index for EVERY key data item, so it needs alternate-key access too, which the probe shows.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.3.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "prime record key unique (WRITE of a duplicate refused)",
+     "prime key not changed when updating (REWRITE after a changed key refused)",
+     "declared in RECORD KEY"
+    ],
+    "evidence-1985": {
+     "unique and unchanged": "covered by prose85 golden E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-idx-prime-key-unique-unchanged-85.cob (PASS, work/goldens-s-14.json)",
+     "duplicate prime key on WRITE gives 22": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (IK-WRITE 22) (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.3.1 p2",
+      "quote": "it must not be changed when updating a record",
+      "check": "OK  §1985:IX.1.3.1 p2  (1.3.1 Organization)  the text is in p2"
+     }
+    ],
+    "reason": "GR-14.9.51.4-36 (l1c37_indexed_dup_prime_key) covers uniqueness on WRITE only. The 1985 text also forbids changing the key when updating. The prose85 golden that witnesses both PASSES on the mint build.",
+    "probe": null,
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-idx-prime-key-unique-unchanged-85.cob (PASS)",
+    "class": "own-text",
+    "needs": "its own verdict CONFORMS, witnessed by the prose85 golden once placed",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.3.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "sequential order ascending by the key of reference",
+     "any key may be the key of reference",
+     "duplicates retrieved in order of arrival",
+     "START sets a starting point"
+    ],
+    "evidence-1985": {
+     "ascending prime-key order": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (SEQ 0001..0004 after writes 3,1,2,4) (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+     "alternate key as key of reference; duplicates in arrival order; START": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (START KEY = AK; ALT 0003, then 0002, then 0004)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.3.2 p1",
+      "quote": "the original order of arrival of those records into that set",
+      "check": "OK  §1985:IX.1.3.2 p1  (1.3.2 Access Modes)  the text is in p1"
+     }
+    ],
+    "reason": "No candidate has a case at 85 for the arrival-order rule: GR-14.9.41.4-16 (pb358) covers only START's key of reference. The probe writes 0003/BB before 0002/BB, and after a START on AK the reads return 0003 and then 0002.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.3.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "file position indicator set by CLOSE, OPEN, READ, START",
+     "not moved by REWRITE or DELETE",
+     "no meaning in output or extend mode"
+    ],
+    "evidence-1985": {
+     "START and READ set it, REWRITE and DELETE leave it": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (FPI 0001, RW 00, FPI 0002, DEL 00, FPI 0003) (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+     "output/extend mode": "not shown: no READ or START is permitted in those modes, so no program observes the indicator there"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.3.3 p1",
+      "quote": "affected only by the CLOSE, OPEN, READ, and START statements",
+      "check": "OK  §1985:IX.1.3.3 p1  (1.3.3 File Position Indicator)  the text is in p1"
+     }
+    ],
+    "reason": "The 1985 rule's 'only' can be observed: a REWRITE and a DELETE between READ NEXTs leave the sequence where it was. No candidate rule (GR-14.9.6.4-6, GR-14.9.27.4-14, GR-14.9.30.4-21) states that restriction.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.3.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "I-O status set by CLOSE, DELETE, OPEN, READ, REWRITE, START, WRITE",
+     "set before the INVALID KEY / NOT INVALID KEY / AT END imperative",
+     "set before the USE procedure",
+     "made available through FILE STATUS"
+    ],
+    "evidence-1985": {
+     "status visible inside the imperative": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (IK-WRITE 22, NIK 00, AT-END 10, IK-START 23) (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+     "status visible inside USE": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (USE 23)",
+     "each statement sets it": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob and E:/COBOL-coord/scratch/pb5453/probes/s-14/p01_relative.cob (CLOSE-LOCK 00)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.3.4 p1",
+      "quote": "prior to the execution of any imperative statement associated with that input-output statement",
+      "check": "OK  §1985:IX.1.3.4 p1  (1.3.4 I-O Status)  the text is in p1"
+     }
+    ],
+    "reason": "The candidates (GR-9.1.13.7-x, GR-14.9.27.4-1, GR-12.4.5.8.4-1) each cover one statement's update. None states that the status is set before the imperative statement and before the USE procedure, which the probe shows by displaying FILE STATUS inside each.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.3.4-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a USE AFTER STANDARD EXCEPTION procedure may execute for any non-successful status",
+     "it never executes for a Successful Completion status (00, 02, 04, 05)"
+    ],
+    "evidence-1985": {
+     "USE runs on 23": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (USE 23) and E:/COBOL-coord/scratch/pb5453/probes/s-14/p03_decl_control.cob",
+     "USE does not run on 02 or 00": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (W2 02 and the other successful statements print no USE line) (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.3.4 p2",
+      "quote": "no such procedure will be executed",
+      "check": "OK  §1985:IX.1.3.4 p2  (1.3.4 I-O Status)  the text is in p2"
+     }
+    ],
+    "reason": "GR-14.9.49.4-6 (pb344_use_mode_read_exception_85) shows a USE procedure running. No candidate case shows that it is withheld on a successful 02, which the probe shows.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.3.4-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "3x and 4x (and 9x the implementor defines as critical) are critical",
+     "the implementor's action after the USE procedure or after normal error processing"
+    ],
+    "evidence-1985": {
+     "critical status after USE: execution continues (WiseOwl's determination)": "covered by prose85 golden E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-io-critical-use-continues-85.cob (PASS)",
+     "critical status with FILE STATUS and no USE": "covered by prose85 golden E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-io-critical-file-status-continues-85.cob (PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.3.4 p3",
+      "quote": "the implementor determines what action is taken",
+      "check": "OK  §1985:IX.1.3.4 p3  (1.3.4 I-O Status)  the text is in p3"
+     }
+    ],
+    "reason": "The action is the implementor's (DOC-A.1-218 records WiseOwl's). No single 2023 rule states the 1985 critical classes, including the '9x the implementor defines as critical' clause. Both prose85 goldens PASS on the mint build (work/goldens-s-14.json).",
+    "probe": null,
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-io-critical-use-continues-85.cob and E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-io-critical-file-status-continues-85.cob (both PASS)",
+    "class": "own-text",
+    "needs": "its own verdict CONFORMS, witnessed by the prose85 goldens once placed",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.3.4-6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the Implementor Defined condition (item 6 of the list of I-O status conditions) on an indexed file"
+    ],
+    "evidence-1985": {
+     "an indexed WRITE refused with the implementor's 91": "covered by conformance-suite/cases/A.1-Implementor-defined-language-element-list/pb690_file_character_set_85 (accept [85]; run E:/COBOL-coord/scratch/pb5453/runs/pb690_file_character_set_85-001, MATCH: IX-EURO=91, IX-READ-EURO=23)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.3.4 GR6",
+      "quote": "as the result of a condition that is specified by the implementor",
+      "check": "OK  §1985:IX.1.3.4 GR6  (1.3.4 I-O Status)  the text is in GR6"
+     }
+    ],
+    "reason": "Reopened parent. After the split, only item (6) is left: 'unsuccessfully executed as the result of a condition that is specified by the implementor'. The old target GR-9.1.13.11-1 has no case that runs at 85, and it adds 'shall not duplicate'. The record's old witness, pb690_file_character_set_85, still runs at 85 and MATCHES (indexed 91, record not stored), so it is this row's own witness.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/A.1-Implementor-defined-language-element-list/pb690_file_character_set_85 (run E:/COBOL-coord/scratch/pb5453/runs/pb690_file_character_set_85-001)",
+    "class": "own-text",
+    "needs": "its own verdict CONFORMS, witnessed by pb690_file_character_set_85 re-pointed to this row",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.3.4-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the values placed for each condition on an indexed file (the list's items)",
+     "the implementor's choice when several values apply"
+    ],
+    "evidence-1985": {
+     "values 00, 02, 10, 22, 23 on an indexed file": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+     "21, 3x, 4x, 9x": "covered by the clause siblings' 85 cases (conformance-suite/cases/IX.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-IX_1_3_4-L2_*)",
+     "choice among several": "not shown: an implementor determination (DOC-A.1-104), which no program fixes"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.3.4 p5",
+      "quote": "the implementor determines which of the applicable values to place in the I-O status",
+      "check": "OK  §1985:IX.1.3.4 p5  (1.3.4 I-O Status)  the text is in p5"
+     }
+    ],
+    "reason": "A lead-in to the value list, plus an implementor-choice sentence. The values are shown at 85, and the choice is a documented determination (DOC-A.1-104, which has no 85 case). No pointer states the indexed list.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001) for the values; the choice is the implementor's",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.3.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "invalid key from DELETE, READ, REWRITE, START, WRITE",
+     "the statement is unsuccessful and the file is not affected"
+    ],
+    "evidence-1985": {
+     "each of the five statements raises it": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (IK-DELETE, USE 23 on READ, IK-REWRITE, IK-START, IK-WRITE) (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+     "file not affected": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (STILL-ABSENT 23 after the failed REWRITE; SEQ 0001AAONE after the failed duplicate WRITE)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.3.5 p1",
+      "quote": "is unsuccessful and the file is not affected",
+      "check": "OK  §1985:IX.1.3.5 p1  (1.3.5 The Invalid Key Condition)  the text is in p1"
+     }
+    ],
+    "reason": "GR-9.1.14-x cover transfer of control and have no case at 85 for the list of statements or for 'the file is not affected'. The probe raises the condition from each statement and then checks the file.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.3.5-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "when the invalid key exists: the status is set first (item 1), then the INVALID KEY imperative (item 2) or USE (item 3)"
+    ],
+    "evidence-1985": {
+     "status already set inside the imperative": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (IK-WRITE 22) (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+     "status already set inside USE": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (USE 23)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.3.5 p2",
+      "quote": "the following actions occur in the order shown",
+      "check": "OK  §1985:IX.1.3.5 p2  (1.3.5 The Invalid Key Condition)  the text is in p2"
+     }
+    ],
+    "reason": "A lead-in whose own content is the ORDER of its items (the items are the decided siblings 1985-GR-IX.1.3.5-1..3). The order can be observed: the probe displays the status inside both the imperative and the USE procedure.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.3.5-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "no invalid key: the INVALID KEY phrase is ignored",
+     "the I-O status is updated",
+     "then the actions of its items"
+    ],
+    "evidence-1985": {
+     "INVALID KEY skipped and NOT INVALID KEY taken with 00": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (NIK 00, no 'NO' line) (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.3.5 p3",
+      "quote": "the INVALID KEY phrase is ignored, if specified",
+      "check": "OK  §1985:IX.1.3.5 p3  (1.3.5 The Invalid Key Condition)  the text is in p3"
+     }
+    ],
+    "reason": "GR-9.1.14-L2.2 (l1_delete_invalid_key_transfer) covers the NOT INVALID KEY transfer. The 1985 sentence (INVALID KEY ignored, status updated) is GR-9.1.14-4's, which has no 85 case. The probe shows both.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.1.3.6-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the at end condition from a sequential READ of an indexed file"
+    ],
+    "evidence-1985": {
+     "READ NEXT past the last record takes AT END with 10": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (AT-END 10) (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.1.3.6 p1",
+      "quote": "can occur as a result of the execution of a READ statement",
+      "check": "OK  §1985:IX.1.3.6 p1  (1.3.6 The At End Condition)  the text is in p1"
+     }
+    ],
+    "reason": "The 85 case of GR-14.9.30.4-24 (pb810_read_46_takes_no_at_end) shows a READ that does NOT take at end. The probe shows the 1985 condition on an indexed file.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.2.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "indexed file control entry: ASSIGN, ORGANIZATION INDEXED, ACCESS MODE, RECORD KEY, ALTERNATE RECORD KEY, FILE STATUS"
+    ],
+    "evidence-1985": {
+     "a full entry accepted and the file behaves as it declares": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001) and conformance-suite/cases/IX.2.3@1985-FILE-CONTROL-ENTRY/1985-GR-IX_2_3_4-1"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.2.3.1 p1",
+      "quote": "declares the relevant physical attributes of an indexed file",
+      "check": "OK  §1985:IX.2.3.1 p1  (2.3.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "GR-12.4.5.3-5 (pb742_legal_entry_formats_85) says that the indexed format 'defines a file connector'. That is close, but the 1985 rule declares the physical attributes, and the probe's entry (dynamic access, alternate key with duplicates, file status) governs its run.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.2.8.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Indexed I-O I-O-CONTROL: RERUN (obsolete) accepted",
+     "SAME AREA for indexed files"
+    ],
+    "evidence-1985": {
+     "RERUN and SAME AREA on indexed files accepted and run": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001) and conformance-suite/cases/IX.2.8@1985-I-O-CONTROL-PARAGRAPH/1985-GR-IX_2_8_3-1"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.2.8.1 p1",
+      "quote": "the memory area which is to be shared by different files",
+      "check": "OK  §1985:IX.2.8.1 p1  (2.8.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "As 1985-GR-VIII.2.6.1-p1, for the indexed module. 2023 has no RERUN, so no 2023 rule states it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+    "class": "removed-form",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IX.3.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "indexed FD: RECORD CONTAINS, LABEL RECORDS, DATA RECORD"
+    ],
+    "evidence-1985": {
+     "accepted and run": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001) and conformance-suite/cases/IX.3.2@1985-FILE-DESCRIPTION-ENTRY/1985-FMT-IX_3_2_2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.3.2.1 p1",
+      "quote": "pertaining to an indexed file",
+      "check": "OK  §1985:IX.3.2.1 p1  (3.2.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "As 1985-GR-VIII.3.2.1-p1, for indexed files. SR-13.4.5.3-7 only names the format.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p02_indexed.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_indexed-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IX.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the general format: DECLARATIVES. {section-name SECTION. USE statement. ...} END DECLARATIVES., then sections"
+    ],
+    "evidence-1985": {
+     "the format accepted and the USE procedure runs": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p03_decl_control.cob (run E:/COBOL-coord/scratch/pb5453/runs/p03_decl_control-001, MATCH: USE 23, DONE)",
+     "USE outside declaratives refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p03_use_outside_refused.cob (run E:/COBOL-coord/scratch/pb5453/runs/p03_use_outside_refused-001, exit 65, COBOL2377 at line 22); the control differs only by DECLARATIVES./END DECLARATIVES."
+    },
+    "citations": [
+     {
+      "cite": "§1985:IX.4.1 p1",
+      "quote": "contains declarative procedures when the USE statement",
+      "check": "OK  §1985:IX.4.1 p1  (4.1 GENERAL DESCRIPTION)  the text is in p1"
+     }
+    ],
+    "reason": "The candidates are unrelated (SR-14.2.2-11 is about method prototypes). The probe pair is accepted in the 1985 format and refused without the declaratives.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p03_decl_control.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p03_decl_control.cob with the refusal E:/COBOL-coord/scratch/pb5453/probes/s-14/p03_use_outside_refused.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe pair (accepted control and refusal), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "transfer of control between programs (CALL)",
+     "parameters passed (USING)",
+     "sharing of data (GLOBAL, EXTERNAL) and of files (GLOBAL file), boxed"
+    ],
+    "evidence-1985": {
+     "each": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob (run E:/COBOL-coord/scratch/pb5453/runs/p04_ipc-001) (MID HELLO / BACK WORLD; INNER EXT1; G-CNT; FILE INNER)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.1 p1",
+      "quote": "the ability to pass parameters between programs",
+      "check": "OK  §1985:X.1.1 p1  (1.1 FUNCTION)  the text is in p1"
+     }
+    ],
+    "reason": "The candidates (GR-9.1.5-2, GR-8.6.7-2) cover only GLOBAL sharing. The probe shows all four facilities.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob (run E:/COBOL-coord/scratch/pb5453/runs/p04_ipc-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "IPC level 1: CALL to a program named by a literal",
+     "sharing of data (USING)"
+    ],
+    "evidence-1985": {
+     "CALL literal USING": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob (MID HELLO, BACK WORLD 11) (run E:/COBOL-coord/scratch/pb5453/runs/p04_ipc-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.2 p1",
+      "quote": "whose names are known at compile time",
+      "check": "OK  §1985:X.1.2 p1  (1.2 LEVEL CHARACTERISTICS)  the text is in p1"
+     }
+    ],
+    "reason": "A level characteristic whose capabilities are shown at 85. --std 85 is the high subset (kb/Work PB4885), so it claims no level-1 restriction. The candidates are unrelated.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob (run E:/COBOL-coord/scratch/pb5453/runs/p04_ipc-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "CALL identifier",
+     "availability of object-time memory (ON OVERFLOW)",
+     "EXTERNAL",
+     "GLOBAL",
+     "nested source programs"
+    ],
+    "evidence-1985": {
+     "each": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob (run E:/COBOL-coord/scratch/pb5453/runs/p04_ipc-001) (DYN WORLD 22, OVERFLOW, INNER EXT1, G-CNT 11/22, nesting OUTERP > MIDPROG > INNERP)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.2 p2",
+      "quote": "whose names are not known at compile time",
+      "check": "OK  §1985:X.1.2 p2  (1.2 LEVEL CHARACTERISTICS)  the text is in p2"
+     }
+    ],
+    "reason": "Boxed level-2 text. The probe shows every facility it lists. GR-8.4.6.2.1-1 covers only global name resolution.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob (run E:/COBOL-coord/scratch/pb5453/runs/p04_ipc-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a source program may contain other source programs",
+     "contained programs reference resources of their container (GLOBAL data, GLOBAL file)"
+    ],
+    "evidence-1985": {
+     "nested programs compile, and the inner ones use the outer program's GLOBAL data and file": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob (run E:/COBOL-coord/scratch/pb5453/runs/p04_ipc-001) and conformance-suite/cases/X.1.3@1985-LANGUAGE-CONCEPTS/g85_bf24_04"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.1 p1",
+      "quote": "these contained programs may reference some of the resources",
+      "check": "OK  §1985:X.1.3.1 p1  (1.3.1 Nested Source Programs)  the text is in p1"
+     }
+    ],
+    "reason": "The candidates (GR-8.4.3.13.4-2, SR-11.10.3-3, SR-8.4.6.3-2) state neither containment nor resource reference as such. The probe shows both.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob (run E:/COBOL-coord/scratch/pb5453/runs/p04_ipc-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "direct containment (MIDPROG in OUTERP)",
+     "indirect containment (INNERP in OUTERP through MIDPROG): GLOBAL names reach it"
+    ],
+    "evidence-1985": {
+     "an indirectly contained program uses the outermost program's GLOBAL item": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob (INNER EXT1 11: INNERP adds to OUTERP's G-CNT) (run E:/COBOL-coord/scratch/pb5453/runs/p04_ipc-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.1 p2",
+      "quote": "Program B is indirectly contained in program A",
+      "check": "OK  §1985:X.1.3.1 p2  (1.3.1 Nested Source Programs)  the text is in p2"
+     }
+    ],
+    "reason": "The definition of direct and indirect containment can be observed through scope. GR-8.6.7-2 (l1c31_global_indirect_container) states global reach 'directly or indirectly', but it is a 2023 data-sharing rule, not this definition. The probe shows GLOBAL reaching the indirectly contained INNERP.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-14/p04_ipc.cob (run E:/COBOL-coord/scratch/pb5453/runs/p04_ipc-001)",
+    "class": "own-text",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "segmentation",
+    "row": "1985-GR-X.1.3.1-p1",
+    "what": "the catalog gives box 'whole', but only the second sentence is boxed; 'A COBOL source program is a syntactically correct set of COBOL statements.' lies outside the box (level 1)",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py 1985-GR-X.1.3.1-p1; specs/ANSI_COBOL_1985.md, 1.3.1 Nested Source Programs (page 515)",
+    "site": "scripts/spec/rule_catalog_1985.py (box assignment of paragraph rows)"
+   },
+   {
+    "kind": "defect",
+    "row": "1985-SR-IX.4.1-p1",
+    "what": "COBOL2377 on an INDEXED file's USE outside declaratives cites §1985:VII.4.6.3 SR1 (the Sequential I-O module's rule); the indexed module's own rule is §1985:IX.4.8.3 SR1 (identical text). Wording of the citation only, no behaviour change",
+    "repro": "python E:/COBOL/scripts/orchestrator/run_probe.py --root E:/COBOL-coord/scratch/pb5453/runs --std 85 --exe <mint cobol.exe> --compile-only E:/COBOL-coord/scratch/pb5453/probes/s-14/p03_use_outside_refused.cob",
+    "site": "the USE-placement check that emits COBOL2377"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-14",
+  "cases": [],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "c49af9b81c76c89123f7ac133173ba70936467948d7cd5d2ee8f7d0db5d55369",
+  "read": "eb7de9ba27c76488cf83fb6aa5aeb92cc753caa253da059708e0f0b3d1271a0f",
+  "refute": "f22cf11a649123e8d345c545df37164280fc2c0597f0ce58e4e77b7244e01859"
+ }
+}

@@ -1,0 +1,1315 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-06 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-06",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-06",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-IV.4.5-p1",
+   "1985-GR-IV.4.5-p3",
+   "1985-SR-IV.5.1-p1",
+   "1985-SR-IV.5.2-p1",
+   "1985-GR-IV.5.2-p2",
+   "1985-GR-IV.6.1.1-p1",
+   "1985-SR-IV.6.1.2-p1",
+   "1985-GR-IV.6.2.1-p1",
+   "1985-GR-IV.6.2.2-p2",
+   "1985-GR-IV.6.2.2-p3",
+   "1985-GR-IV.6.3.1-p1",
+   "1985-SR-IV.6.3.2.1-p2",
+   "1985-GR-IV.6.3.2.1-p3",
+   "1985-GR-IV.6.3.2.1-p4",
+   "1985-GR-IV.6.3.2.1-p5",
+   "1985-GR-IV.6.3.2.1-p6",
+   "1985-SR-IV.6.4.1-p1",
+   "1985-SR-IV.6.4.1.1-p1",
+   "1985-SR-IV.6.4.1.2-p1",
+   "1985-GR-IV.6.4.1.2-p2",
+   "1985-GR-IV.6.4.1.2-p3",
+   "1985-SR-IV.6.4.1.2-p4",
+   "1985-GR-IV.6.4.1.2-p5",
+   "1985-GR-IV.6.4.1.3-p1",
+   "1985-SR-IV.6.4.1.4.1-p1",
+   "1985-SR-IV.6.4.1.4.2-p1",
+   "1985-GR-IV.6.4.2-p1",
+   "1985-GR-IV.6.4.2-p2",
+   "1985-GR-IV.6.4.2.1.1-p1",
+   "1985-GR-IV.6.4.2.1.1.1-p1"
+  ],
+  "pointers": {
+   "1985-GR-IV.4.5-p1": {
+    "candidates-2023": [
+     "GR-12.3.7.4-2",
+     "GR-12.3.7.4-4",
+     "GR-14.9.39.4-5"
+    ],
+    "nearest-2023": "GR-12.3.7.4-2",
+    "similarity": 0.457
+   },
+   "1985-GR-IV.4.5-p3": {
+    "candidates-2023": [
+     "GR-12.3.7.4-4",
+     "GR-12.3.7.4-2",
+     "SR-14.9.39.3-5"
+    ],
+    "nearest-2023": "GR-12.3.7.4-4",
+    "similarity": 0.936
+   },
+   "1985-SR-IV.5.1-p1": {
+    "candidates-2023": [
+     "GR-8.4.3.13.4-2",
+     "GR-8.3.2.2-L4.1",
+     "GR-14.9.5.4-10"
+    ],
+    "nearest-2023": "GR-8.4.3.13.4-2",
+    "similarity": 0.364
+   },
+   "1985-SR-IV.5.2-p1": {
+    "candidates-2023": [
+     "GR-8.4.3.13.4-2",
+     "GR-14.9.4.4-3",
+     "GR-14.6.2.3.2-3"
+    ],
+    "nearest-2023": "GR-8.4.3.13.4-2",
+    "similarity": 0.346
+   },
+   "1985-GR-IV.5.2-p2": {
+    "candidates-2023": [
+     "GR-8.4.3.13.4-2",
+     "SR-11.10.3-3",
+     "GR-9.1.5-2"
+    ],
+    "nearest-2023": "GR-8.4.3.13.4-2",
+    "similarity": 0.453
+   },
+   "1985-GR-IV.6.1.1-p1": {
+    "candidates-2023": [
+     "GR-8.4.3.13.4-2",
+     "GR-14.9.4.4-3",
+     "GR-12.3.8.4-10"
+    ],
+    "nearest-2023": "GR-8.4.3.13.4-2",
+    "similarity": 0.33
+   },
+   "1985-SR-IV.6.1.2-p1": {
+    "candidates-2023": [
+     "SR-11.10.3-4",
+     "SR-11.8.3-1",
+     "SR-14.2.2-8"
+    ],
+    "nearest-2023": "SR-11.10.3-4",
+    "similarity": 0.336
+   },
+   "1985-GR-IV.6.2.1-p1": {
+    "candidates-2023": [
+     "FMT-12.2.1",
+     "GR-13.18.60.4-11",
+     "SR-14.9.11.3-2"
+    ],
+    "nearest-2023": "FMT-12.2.1",
+    "similarity": 0.278
+   },
+   "1985-GR-IV.6.2.2-p2": {
+    "candidates-2023": [
+     "GR-12.3.5.4-3",
+     "GR-12.3.5.4-2",
+     "SR-12.3.3-1"
+    ],
+    "nearest-2023": "GR-12.3.5.4-3",
+    "similarity": 0.381
+   },
+   "1985-GR-IV.6.2.2-p3": {
+    "candidates-2023": [
+     "GR-13.18.24.4-1",
+     "GR-13.18.22.4-3",
+     "GR-14.9.4.4-3"
+    ],
+    "nearest-2023": "GR-13.18.24.4-1",
+    "similarity": 0.297
+   },
+   "1985-GR-IV.6.3.1-p1": {
+    "candidates-2023": [
+     "SR-10.6.2-4",
+     "GR-13.18.60.4-22",
+     "GR-14.9.5.4-1"
+    ],
+    "nearest-2023": "SR-10.6.2-4",
+    "similarity": 0.243
+   },
+   "1985-SR-IV.6.3.2.1-p2": {
+    "candidates-2023": [
+     "SR-13.4.5.3-8",
+     "SR-13.18.43.3-1",
+     "SR-13.4.5.3-7"
+    ],
+    "nearest-2023": "SR-13.4.5.3-8",
+    "similarity": 0.815
+   },
+   "1985-GR-IV.6.3.2.1-p3": {
+    "candidates-2023": [
+     "GR-14.9.5.4-8",
+     "GR-13.5.4-1",
+     "GR-13.18.63.4-4"
+    ],
+    "nearest-2023": "GR-14.9.5.4-8",
+    "similarity": 0.339
+   },
+   "1985-GR-IV.6.3.2.1-p4": {
+    "candidates-2023": [
+     "DOC-A.1-116",
+     "GR-14.9.4.4-3",
+     "GR-8.5.1.11.3-4"
+    ],
+    "nearest-2023": "DOC-A.1-116",
+    "similarity": 0.473
+   },
+   "1985-GR-IV.6.3.2.1-p5": {
+    "candidates-2023": [
+     "GR-14.9.38.4-1",
+     "GR-14.9.4.4-3",
+     "GR-8.5.1.11.3-2"
+    ],
+    "nearest-2023": "GR-14.9.38.4-1",
+    "similarity": 0.295
+   },
+   "1985-GR-IV.6.3.2.1-p6": {
+    "candidates-2023": [
+     "FMT-13.18.46.2",
+     "SR-13.16.3-16",
+     "GR-13.18.55.4-8"
+    ],
+    "nearest-2023": "FMT-13.18.46.2",
+    "similarity": 0.394
+   },
+   "1985-SR-IV.6.4.1-p1": {
+    "candidates-2023": [
+     "SR-14.2.2-11",
+     "SR-14.9.49.3-3",
+     "SR-10.6.2-4"
+    ],
+    "nearest-2023": "SR-14.2.2-11",
+    "similarity": 0.629
+   },
+   "1985-SR-IV.6.4.1.1-p1": {
+    "candidates-2023": [
+     "SR-14.9.49.3-7",
+     "SR-14.9.28.3-11",
+     "SR-14.9.49.3-1"
+    ],
+    "nearest-2023": "SR-14.9.49.3-7",
+    "similarity": 0.263
+   },
+   "1985-SR-IV.6.4.1.2-p1": {
+    "candidates-2023": [
+     "SR-14.9.49.3-1",
+     "SR-13.7.3-4",
+     "SR-8.4.2.2.3-7"
+    ],
+    "nearest-2023": "SR-14.9.49.3-1",
+    "similarity": 0.297
+   },
+   "1985-GR-IV.6.4.1.2-p2": {
+    "candidates-2023": [
+     "SR-14.9.49.3-1",
+     "SR-14.9.28.3-11",
+     "SR-8.4.3.11.3-1"
+    ],
+    "nearest-2023": "SR-14.9.49.3-1",
+    "similarity": 0.529
+   },
+   "1985-GR-IV.6.4.1.2-p3": {
+    "candidates-2023": [
+     "SR-8.3.5-3",
+     "RV-15.30.3-2",
+     "RV-15.31.3-2"
+    ],
+    "nearest-2023": "SR-8.3.5-3",
+    "similarity": 0.348
+   },
+   "1985-SR-IV.6.4.1.2-p4": {
+    "candidates-2023": [
+     "SR-7.3.19.3-2",
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.3"
+    ],
+    "nearest-2023": "SR-7.3.19.3-2",
+    "similarity": 0.213
+   },
+   "1985-GR-IV.6.4.1.2-p5": {
+    "candidates-2023": [
+     "SR-8.4.3.1.3-1",
+     "SR-13.18.63.3-39",
+     "SR-8.3.2.1-4"
+    ],
+    "nearest-2023": "SR-8.4.3.1.3-1",
+    "similarity": 0.28
+   },
+   "1985-GR-IV.6.4.1.3-p1": {
+    "candidates-2023": [
+     "GR-14.2.3-1",
+     "GR-14.9.49.4-14",
+     "GR-14.9.40.4-2"
+    ],
+    "nearest-2023": "GR-14.2.3-1",
+    "similarity": 0.941
+   },
+   "1985-SR-IV.6.4.1.4.1-p1": {
+    "candidates-2023": [
+     "SR-14.2.2-11",
+     "SR-14.2.2-6",
+     "GR-14.2.3-7"
+    ],
+    "nearest-2023": "SR-14.2.2-11",
+    "similarity": 0.674
+   },
+   "1985-SR-IV.6.4.1.4.2-p1": {
+    "candidates-2023": [
+     "SR-14.2.2-11",
+     "SR-14.2.2-6",
+     "GR-14.2.3-7"
+    ],
+    "nearest-2023": "SR-14.2.2-11",
+    "similarity": 0.565
+   },
+   "1985-GR-IV.6.4.2-p1": {
+    "candidates-2023": [
+     "SR-14.9.19.3-1",
+     "GR-14.5.3.2-2",
+     "GR-9.1.14-3"
+    ],
+    "nearest-2023": "SR-14.9.19.3-1",
+    "similarity": 0.406
+   },
+   "1985-GR-IV.6.4.2-p2": {
+    "candidates-2023": [
+     "SR-14.2.2-11",
+     "GR-7.3.10.4-6",
+     "FMT-14.2.1"
+    ],
+    "nearest-2023": "SR-14.2.2-11",
+    "similarity": 0.132
+   },
+   "1985-GR-IV.6.4.2.1.1-p1": {
+    "candidates-2023": [
+     "FMT-14.9.4.2",
+     "GR-8.8.4.4.4-2",
+     "GR-14.9.39.4-6",
+     "GR-8.8.4.4.4-1"
+    ],
+    "nearest-2023": "FMT-14.9.4.2",
+    "similarity": 0.083
+   },
+   "1985-GR-IV.6.4.2.1.1.1-p1": {
+    "candidates-2023": [
+     "FMT-14.9.4.2",
+     "SR-14.9.37.3-6",
+     "SR-14.9.28.3-7",
+     "GR-14.6.13.1.4-1"
+    ],
+    "nearest-2023": "FMT-14.9.4.2",
+    "similarity": 0.037
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-06",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.4.5-p1",
+    "to": [
+     "GR-12.3.7.4-2"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "Nucleus: an external switch is an implementor-defined and implementor-named device (named through an implementor-name in SPECIAL-NAMES, see VI-13)",
+     "it indicates one of two alternate states, the on status and the off status"
+    ],
+    "evidence-1985": {
+     "implementor-defined, implementor-named switch": "covered by conformance-suite/cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names (accept: [85, 2002]; SWITCH-3, UPSI-7 from the implementor's table)",
+     "two states, on status and off status": "covered by pb862_implementor_names (SW3-OFF true at entry, SW3-ON true after SET; output SW3=OFF / SW3=ON) and probes/s-06/p01_switch_scope_rununit.cob (A=OFF / B=ON / A=ON)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.5 p1",
+      "quote": "defined and named by the implementor",
+      "check": "OK  §1985:IV.4.5 p1  (4.5 EXTERNAL SWITCH)  the text is in p1"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR2",
+      "quote": "Switch-name-1 identifies an implementor-defined external switch",
+      "check": "OK  §2023:12.3.7.4 GR2  (General rules)  the text is in GR2"
+     }
+    ],
+    "reason": "1985: \"An external switch is a hardware or software device, defined and named by the implementor, which is used to indicate that one of two alternate states exists. These alternate states are referred to as the on status and the off status\". 2023 GR-12.3.7.4-2 states the same: an implementor-defined external switch with an on status and an off status. Flagged definitional but observable: pb862_implementor_names runs at 85, names SWITCH-3 from the implementor's table and shows both statuses (SW3=OFF, then SW3=ON).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p01_switch_scope_rununit.cob",
+    "compiler-at-1985": "correct: conformance-suite/cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.5-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: the implementor defines the scope (program, run unit, etc.) of each external switch",
+     "the implementor defines any facility external to COBOL that modifies a switch's status",
+     "example: at run-unit scope one implementor-name names one switch whose status every object program of the run unit sees"
+    ],
+    "evidence-1985": {
+     "scope defined (WiseOwl documents RUN UNIT, docs/conformance/7/DOC-A.1-191.md)": "covered by probes/s-06/p01_switch_scope_rununit.cob (run E:/COBOL-coord/scratch/pb5453/runs/p01_switch_scope_rununit-001: PROGA sets SWITCH-3 ON, separately compiled PROGB sees B=ON)",
+     "external facility (COBOL_<SWITCH-NAME> environment variable)": "not shown at 85 (2023 test AlterSwitchesDifferentialTests.Switch_EnvironmentVariableSuppliesInitialState is not a conformance case at 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.5 p3",
+      "quote": "The implementor defines the scope",
+      "check": "OK  §1985:IV.4.5 p3  (4.5 EXTERNAL SWITCH)  the text is in p3"
+     }
+    ],
+    "reason": "1985: \"The implementor defines the scope (program, run unit, etc.) of each external switch and any facility external to COBOL which may be used to modify the status\". GR-12.3.7.4-4 states the same requirement but has no case in at-85 (accepted and diagnosed-only empty), so it cannot carry a SAME. p01 shows the documented run-unit scope at 85; the external facility needs an environment-set run, which run_probe does not provide.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p01_switch_scope_rununit.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p01_switch_scope_rununit.cob (A=OFF / B=ON / A=ON)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p01 as the row's 85 case (scope); the external-facility half wants an environment-variable case at 85 or GR-12.3.7.4-4 given an at-85 case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.5.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the term 'COBOL source program': a syntactically correct set of COBOL statements"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition of a term, no program observes it"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.5.1 p1",
+      "quote": "A COBOL source program is a syntactically correct set of COBOL statements",
+      "check": "OK  §1985:IV.5.1 p1  (5.1 INTRODUCTION)  the text is in p1"
+     }
+    ],
+    "reason": "\"A COBOL source program is a syntactically correct set of COBOL statements.\" It names what the term means; every syntax rule of the standard carries the obligation, none is added here. No candidate states it (all 'wording only').",
+    "probe": null,
+    "compiler-at-1985": "not probed: the paragraph defines a term; any accepted or refused program witnesses some other syntax rule, not this sentence",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a COBOL source program as a syntactically correct set of COBOL statements, a property of the user's program"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.5.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: the program's statements, entries, paragraphs and sections are grouped into four divisions",
+     "sequenced Identification, Environment, Data, Procedure (the list items that follow)",
+     "exceptions: COPY and REPLACE statements (Library) and the end program header (Inter-Program Communication) stand outside the divisions"
+    ],
+    "evidence-1985": {
+     "four divisions in order (accepted)": "covered by probes/s-06/p02_division_order_ok.cob (ORDER OK)",
+     "out of order refused": "covered by probes/s-06/p03_division_order_bad.cob (COBOL0001 unexpected 'ENVIRONMENT'; control p02)",
+     "REPLACE outside the divisions": "covered by p02 (REPLACE before IDENTIFICATION DIVISION, applied: ORDER OK)",
+     "end program header outside the divisions": "covered by p02 and p01",
+     "COPY outside the divisions": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.5.2 p1",
+      "quote": "grouped into four divisions which are sequenced in the following order",
+      "check": "OK  §1985:IV.5.2 p1  (5.2 ORGANIZATION)  the text is in p1"
+     }
+    ],
+    "reason": "\"With the exception of COPY and REPLACE statements and the end program header, the statements, entries, paragraphs, and sections of a COBOL source program are grouped into four divisions which are sequenced in the following order\". No candidate states it (all 'wording only', none with an 85 case on this subject). p02 accepts the ordered divisions with a leading REPLACE and a trailing END PROGRAM; p03 refuses Data before Environment.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p02_division_order_ok.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p02_division_order_ok.cob + p03_division_order_bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p02 (accepted) and p03 (refusal, control p02); a COPY-before-the-divisions case would complete the exception",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.5.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the end of a source program is the end program header, if specified",
+     "otherwise the absence of further source lines"
+    ],
+    "evidence-1985": {
+     "ended by end program header": "covered by probes/s-06/p02_division_order_ok.cob and p01_switch_scope_rununit.cob (END PROGRAM PROGA ends the first program; PROGB follows)",
+     "ended by absence of lines": "covered by probes/s-06/p04_end_by_absence.cob (END BY ABSENCE)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.5.2 p2",
+      "quote": "or by the absence of additional source program lines",
+      "check": "OK  §1985:IV.5.2 p2  (5.2 ORGANIZATION)  the text is in p2"
+     }
+    ],
+    "reason": "\"The end of a COBOL source program is indicated by either the end program header, if specified, or by the absence of additional source program lines.\" No candidate states it. p01 shows END PROGRAM ending one program before the next; p04 ends with no header.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p04_end_by_absence.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p04_end_by_absence.cob + p01_switch_scope_rununit.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p04 and p01",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: the Identification Division identifies the program (PROGRAM-ID)",
+     "the user may include DATE-WRITTEN, DATE-COMPILED and other information (AUTHOR, INSTALLATION, SECURITY) under the format's paragraphs"
+    ],
+    "evidence-1985": {
+     "program identified": "covered by probes/s-06/p05_id_division_paras.cob",
+     "optional paragraphs accepted (a grant)": "covered by probes/s-06/p05_id_division_paras.cob (all five optional paragraphs; ID OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.1.1 p1",
+      "quote": "the user may include the date the program is written",
+      "check": "OK  §1985:IV.6.1.1 p1  (6.1.1 General Description)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional, but the second sentence grants a form: \"the user may include the date the program is written, the date the compilation of the source program is accomplished and such other information as desired\". An accepted program shows it: p05. No candidate states it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p05_id_division_paras.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p05_id_division_paras.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p05",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.6.1.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "PROGRAM-ID must be the first paragraph",
+     "the other paragraphs are optional (a grant)",
+     "they appear in the format's order of presentation"
+    ],
+    "evidence-1985": {
+     "PROGRAM-ID first": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-program-id-first-85.cob (PASS: refused)",
+     "optional paragraphs accepted": "covered by probes/s-06/p05_id_division_paras.cob",
+     "order of presentation": "covered by probes/s-06/p06_id_division_order_bad.cob (COBOL2987, DATE-WRITTEN before AUTHOR refused; control p05)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.1.2 p1",
+      "quote": "The name of the program must be given in the first paragraph",
+      "check": "OK  §1985:IV.6.1.2 p1  (6.1.2 Organization)  the text is in p1"
+     }
+    ],
+    "reason": "\"The name of the program must be given in the first paragraph, which is the PROGRAM-ID paragraph. The other paragraphs are optional and may be included ... in order of presentation shown by the format below.\" No candidate states it (SR-11.10.3-4 etc. are about COMMON and REPOSITORY).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p06_id_division_order_bad.cob",
+    "compiler-at-1985": "correct: golden pb5924-program-id-first-85 (PASS) + probes/s-06/p05_id_division_paras.cob + p06_id_division_order_bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the prose85 golden with p05 (accepted) and p06 (refusal)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: the Environment Division allows specifying the source (compiling) computer and the object computer",
+     "Sequential/Relative/Indexed I-O: input-output control information",
+     "special hardware characteristics and control techniques"
+    ],
+    "evidence-1985": {
+     "configuration of compiling and object computer": "covered by probes/s-06/p07_environment_division.cob (SOURCE-COMPUTER, OBJECT-COMPUTER with PROGRAM COLLATING SEQUENCE)",
+     "input-output control": "covered by p07 (FILE-CONTROL, I-O-CONTROL SAME RECORD AREA: FILE=REC1)",
+     "special hardware characteristics": "covered by p07 (SYSOUT IS OUT-DEV, DISPLAY UPON OUT-DEV)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.2.1 p1",
+      "quote": "This division allows specification of the configuration of the compiling computer and the object computer",
+      "check": "OK  §1985:IV.6.2.1 p1  (6.2.1 General Description)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional, but it grants specification (\"This division allows specification of ...\"), which an accepted program shows. FMT-12.2.1 is only the 2023 division format and does not state the 1985 description.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p07_environment_division.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p07_environment_division.cob (run p07_environment_division-002)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p07",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.2.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Configuration Section: SOURCE-COMPUTER, OBJECT-COMPUTER and SPECIAL-NAMES paragraphs",
+     "SPECIAL-NAMES: currency sign, decimal point, symbolic-characters, implementor-name to mnemonic-name, alphabet-names, class-names"
+    ],
+    "evidence-1985": {
+     "three paragraphs": "covered by probes/s-06/p07_environment_division.cob",
+     "currency sign": "covered by p07 (CUR=$)",
+     "decimal point": "covered by p07 (AMT=1.234,50)",
+     "symbolic-character": "covered by p07 (SYM=YES)",
+     "implementor-name/mnemonic-name": "covered by p07 (SYSOUT IS OUT-DEV) and pb862_implementor_names",
+     "alphabet-name": "covered by p07 (ALPHABET STD IS STANDARD-1 as program collating sequence; ALF=YES)",
+     "class-name": "covered by p07 (CLS=YES)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.2.2 p2",
+      "quote": "This section is divided into three paragraphs",
+      "check": "OK  §1985:IV.6.2.2 p2  (6.2.2 Organization)  the text is in p2"
+     }
+    ],
+    "reason": "\"This section is divided into three paragraphs: the SOURCE-COMPUTER paragraph ...; the OBJECT-COMPUTER paragraph ...; and the SPECIAL-NAMES paragraph, which provides a means for specifying the currency sign, choosing the decimal point, specifying symbolic-characters, relating implementor-names ..., relating alphabet-names ..., and relating class-names\". No candidate states the whole (GR-12.3.5.4-2/3 cover SOURCE-COMPUTER only, no 85 case). p07 exercises every listed means.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p07_environment_division.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p07_environment_division.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p07",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.2.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Input-Output Section: FILE-CONTROL names files and associates them with external media",
+     "I-O-CONTROL defines special control techniques"
+    ],
+    "evidence-1985": {
+     "FILE-CONTROL": "covered by probes/s-06/p07_environment_division.cob (SELECT F1 ASSIGN, written and read back)",
+     "I-O-CONTROL": "covered by p07 (SAME RECORD AREA FOR F1 F2: F2-REC shows the record read into F1, FILE=REC1)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.2.2 p3",
+      "quote": "the I-O-CONTROL paragraph which defines special control techniques",
+      "check": "OK  §1985:IV.6.2.2 p3  (6.2.2 Organization)  the text is in p3"
+     }
+    ],
+    "reason": "\"This section is divided into two paragraphs: the FILE-CONTROL paragraph which names and associates the files with external media; and the I-O-CONTROL paragraph which defines special control techniques\". No candidate states it (GR-13.18.24.4-1 is the FORMAT clause).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p07_environment_division.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p07_environment_division.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p07",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the Data Division's purpose: describing the data the object program accepts, manipulates, creates or produces"
+    ],
+    "evidence-1985": {
+     "purpose statement": "not shown: an overview sentence; the sections' own rows (IV.6.3.2.1 p2-p6) carry the observable content"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.3.1 p1",
+      "quote": "The Data Division describes the data that the object program is to accept as input",
+      "check": "OK  §1985:IV.6.3.1 p1  (6.3.1 Overall Approach)  the text is in p1"
+     }
+    ],
+    "reason": "\"The Data Division describes the data that the object program is to accept as input, to manipulate, to create, or to produce as output.\" It names what the division is; it imposes nothing a program can observe beyond the section rows.",
+    "probe": null,
+    "compiler-at-1985": "not probed: an overview of the division's purpose; no program distinguishes it from the section rules that follow",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines the Data Division as the part of the user's program that describes the data the object program accepts, manipulates, creates or produces"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.6.3.2.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "File Section: each file is an FD with one or more record descriptions, or an FD with one or more report descriptions",
+     "record descriptions immediately follow their FD",
+     "Report Writer: an FD for a report file takes no record descriptions",
+     "report descriptions are in the Report Section"
+    ],
+    "evidence-1985": {
+     "FD with records; FD of a report file with RD in Report Section (accepted)": "covered by probes/s-06/p08_file_section_ok.cob (R1=AB / R2=CDEF / RPT OK; run p08_file_section_ok-003)",
+     "no record description for a report file": "covered by probes/s-06/p09_file_section_report_record_bad.cob (COBOL2578, cites §1985:XIII.3.2.3 SR4; control p08); also pb1171_report_file_legal_references at 85 for SR-13.4.5.3-8",
+     "records immediately follow the FD": "covered by probes/s-06/p10_file_section_record_first_bad.cob (COBOL0001 unexpected '01'; control p08)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.3.2.1 p2",
+      "quote": "no record description entries are permitted for that file",
+      "check": "OK  §1985:IV.6.3.2.1 p2  (6.3.2.1 Data Division Organization)  the text is in p2"
+     },
+     {
+      "cite": "§1985:XIII.3.2.3 SR4",
+      "quote": "No record description entries may follow the file description entry for a report file",
+      "check": "OK  §1985:XIII.3.2.3 SR4  (3.2.3 Syntax Rules)  the text is in SR4"
+     }
+    ],
+    "reason": "\"Each file is defined by a file description entry and one or more record description entries, or by a file description entry and one or more report description entries. Record description entries are written immediately following the file description entry. When the file description entry specifies a file to be used as a report writer output file, no record description entries are permitted\". SR-13.4.5.3-8 (pb1171 at 85) states only the report-file clause, not the whole scope.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p08_file_section_ok.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p08_file_section_ok.cob + p09_file_section_report_record_bad.cob + p10_file_section_record_first_bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p08 (accepted) with p09 and p10 (refusals, control p08)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.3.2.1-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Working-Storage: records and subordinate items not part of files, developed and processed internally",
+     "items whose values are assigned in the source program (VALUE) and do not change"
+    ],
+    "evidence-1985": {
+     "internal records and subordinate items": "covered by probes/s-06/p11_working_storage.cob (REC=ABC12)",
+     "values assigned in the source program": "covered by p11 (77 K VALUE 42: K=42)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.3.2.1 p3",
+      "quote": "data items whose values are assigned in the source program",
+      "check": "OK  §1985:IV.6.3.2.1 p3  (6.3.2.1 Data Division Organization)  the text is in p3"
+     }
+    ],
+    "reason": "Flagged definitional, but observable: \"describes records and subordinate data items which are not part of external data files but are developed and processed internally. It also describes data items whose values are assigned in the source program\". No candidate states it (GR-13.5.4-1 is static data, no 85 case).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p11_working_storage.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p11_working_storage.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p11",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.3.2.1-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Inter-Program Communication: the Linkage Section appears in the called program",
+     "it describes items referred to by both calling and called program",
+     "its structure is that of Working-Storage (77-level entries and records)"
+    ],
+    "evidence-1985": {
+     "called program's Linkage Section shared with the caller": "covered by probes/s-06/p12_linkage.cob (IN B: 07 XY / IN A: 08 XZ: both see and change the same items)",
+     "structure as Working-Storage": "covered by p12 (a 77 entry and a group record) and golden pb5924-proc-div-using-ok-85 (01, REDEFINES, 77)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.3.2.1 p4",
+      "quote": "Its structure is the same as the Working-Storage Section",
+      "check": "OK  §1985:IV.6.3.2.1 p4  (6.3.2.1 Data Division Organization)  the text is in p4"
+     }
+    ],
+    "reason": "\"The Linkage Section appears in the called program and describes data items that are to be referred to by the calling program and the called program. Its structure is the same as the Working-Storage Section.\" No candidate states it (DOC-A.1-116 is the non-COBOL caller item).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p12_linkage.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p12_linkage.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p12",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.3.2.1-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication module: the Communication Section describes the CD item that is the interface between the MCS and the program"
+    ],
+    "evidence-1985": {
+     "Communication Section with a CD accepted": "covered by probes/s-06/p13_communication.cob (CD FOR INPUT with record; COMM OK)",
+     "the MCS interface at run time (RECEIVE/SEND through the CD)": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.3.2.1 p5",
+      "quote": "the interface between the message control system (MCS) and the program",
+      "check": "OK  §1985:IV.6.3.2.1 p5  (6.3.2.1 Data Division Organization)  the text is in p5"
+     }
+    ],
+    "reason": "\"The Communication Section describes the data item in the source program that will serve as the interface between the message control system (MCS) and the program.\" 2023 has no Communication Section (candidates are RECEIVE message-server rules, no 85 case). p13 shows the section and CD accepted at 85; the interface itself needs an MCS exchange.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p13_communication.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p13_communication.cob (section accepted; MCS interface not exercised)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place p13, ideally extended with a RECEIVE/ACCEPT MESSAGE COUNT through the CD to show the interface",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.3.2.1-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: the Report Section describes the content and format of reports to be generated"
+    ],
+    "evidence-1985": {
+     "content and format described and generated": "covered by probes/s-06/p14_report_section.cob (DETAIL line with SOURCE N in COLUMN 8, read back: LINE=DETAIL 042) and p08_file_section_ok.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.3.2.1 p6",
+      "quote": "The Report Section describes the content and format of reports",
+      "check": "OK  §1985:IV.6.3.2.1 p6  (6.3.2.1 Data Division Organization)  the text is in p6"
+     }
+    ],
+    "reason": "Flagged definitional, but a program shows it: the RD's line and columns fix the generated line's content and format. FMT-13.18.46.2 is the REPORT clause format, not this statement.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p14_report_section.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p14_report_section.cob (stderr carries a record-length notice because the probe reads the line-written report as 10-byte records; the probe should read it with a line-sized record before placement)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p14 after fixing the read-back record length",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.6.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the Procedure Division may contain declarative and nondeclarative procedures (a grant)"
+    ],
+    "evidence-1985": {
+     "declaratives with nondeclaratives accepted": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-declaratives-first-85.cob (PASS) and probes/s-06/p17_section_extent.cob",
+     "nondeclaratives only": "covered by probes/s-06/p04_end_by_absence.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.1 p1",
+      "quote": "may contain declarative and nondeclarative procedures",
+      "check": "OK  §1985:IV.6.4.1 p1  (6.4.1 General Description)  the text is in p1"
+     }
+    ],
+    "reason": "\"The Procedure Division may contain declarative and nondeclarative procedures.\" No candidate states it (SR-14.2.2-11 is a method prototype rule).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p17_section_extent.cob",
+    "compiler-at-1985": "correct: golden pb5924-declaratives-first-85 (PASS) + probes/s-06/p17_section_extent.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the golden pb5924-declaratives-first-85",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.6.4.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "declarative sections grouped at the beginning of the Procedure Division",
+     "preceded by DECLARATIVES",
+     "followed by END DECLARATIVES",
+     "USE statement (VII-50, VIII-35, IX-39, XIII-76, XIII-78, XV-5) heads each"
+    ],
+    "evidence-1985": {
+     "grouped first (accepted)": "covered by golden pb5924-declaratives-first-85 (PASS)",
+     "not first refused": "golden pb5924-declaratives-not-first-85 FAILS: the program is refused, but as COBOL0901 \"'DECLARATIVES' is a reserved word ... cannot be used as a user-defined word\" instead of the placement rule (run E:/COBOL-coord/scratch/pb5453/runs/pb5924-declaratives-not-first-85-001)",
+     "END DECLARATIVES required": "covered by probes/s-06/p15_end_declaratives_missing_bad.cob (refused: COBOL0001 unexpected '<EOF>'; control golden pb5924-declaratives-first-85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.1.1 p1",
+      "quote": "Declarative sections must be grouped at the beginning of the Procedure Division",
+      "check": "OK  §1985:IV.6.4.1.1 p1  (6.4.1.1 Declaratives)  the text is in p1"
+     }
+    ],
+    "reason": "\"Declarative sections must be grouped at the beginning of the Procedure Division preceded by the key word DECLARATIVES and followed by the key words END DECLARATIVES.\" No candidate states it. The prose85 read (85p-08) recorded DEFECT, refutation UPHELD, and its golden still fails on the mint build: the refusal names a reserved-word misuse, not the rule broken (misleads diagnosis).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p15_end_declaratives_missing_bad.cob",
+    "compiler-at-1985": "wrong: DECLARATIVES after a nondeclarative section (golden pb5924-declaratives-not-first-85, the program in run pb5924-declaratives-not-first-85-001) is refused as COBOL0901 \"'DECLARATIVES' is a reserved word in COBOL-85 and cannot be used as a user-defined word\"; expected a refusal naming the placement rule (§1985:IV.6.4.1.1 p1, checked OK). Known: kb/Work PB5924 (misleads_diagnosis)",
+    "class": "own-text",
+    "needs": "the PB5924 diagnostic fix, then the two goldens and p15 as the row's own cases",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.6.4.1.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a procedure is a paragraph, successive paragraphs, a section or successive sections",
+     "if one paragraph is in a section, all paragraphs must be",
+     "a procedure-name is a paragraph-name (which may be qualified, a grant) or a section-name"
+    ],
+    "evidence-1985": {
+     "procedures of each shape": "covered by probes/s-06/p16_procedure_names.cob (PERFORM paragraph, PERFORM ... THRU ..., PERFORM section)",
+     "all paragraphs in sections": "covered by golden pb5924-paragraph-outside-section-85 (PASS: refused)",
+     "qualified paragraph-name / section-name": "covered by p16 (P OF S1, P IN S2, PERFORM S2: S1-P / S2-P / S1-P / S1-Q / S2-P / S2-Q)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.1.2 p1",
+      "quote": "If one paragraph is in a section, all paragraphs must be in sections",
+      "check": "OK  §1985:IV.6.4.1.2 p1  (6.4.1.2 Procedures)  the text is in p1"
+     },
+     {
+      "cite": "§1985:IV.6.4.1.2 p1",
+      "quote": "It consists of a paragraph-name (which may be qualified) or a section-name",
+      "check": "OK  §1985:IV.6.4.1.2 p1  (6.4.1.2 Procedures)  the text is in p1"
+     }
+    ],
+    "reason": "The row both restricts (\"all paragraphs must be in sections\") and grants (\"a paragraph-name (which may be qualified)\"). The golden shows the refusal, p16 the accepted qualified names. SR-8.4.2.2.3-7 (pb466 at 85) states only paragraph-name uniqueness, not this scope.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p16_procedure_names.cob",
+    "compiler-at-1985": "correct: golden pb5924-paragraph-outside-section-85 (PASS) + probes/s-06/p16_procedure_names.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the golden and p16",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.1.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a section is its header and zero, one or more paragraphs",
+     "it ends before the next section",
+     "at the end of the Procedure Division",
+     "in declaratives, at END DECLARATIVES"
+    ],
+    "evidence-1985": {
+     "zero paragraphs": "covered by probes/s-06/p17_section_extent.cob (PERFORM EMPTY-S does nothing, E0) and conformance case 14.2-Procedure-division-structure/l1c22_pd_exec_order_sections (empty E-SEC, at 85)",
+     "ends before next section": "covered by p17 (PERFORM S prints S-A S-B, not L-A)",
+     "ends at end of Procedure Division": "covered by p17 (PERFORM LAST-S returns after L-A)",
+     "ends at END DECLARATIVES": "covered by p17 (PERFORM D returns after D-A D-B)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.1.2 p2",
+      "quote": "A section ends immediately before the next section",
+      "check": "OK  §1985:IV.6.4.1.2 p2  (6.4.1.2 Procedures)  the text is in p2"
+     }
+    ],
+    "reason": "\"A section consists of a section header followed by zero, one, or more successive paragraphs. A section ends immediately before the next section or at the end of the Procedure Division or, in the declaratives portion ..., at the key words END DECLARATIVES.\" No candidate states it (SR-14.9.49.3-1 is the USE placement). p17 performs each kind of section and shows where each ends.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p17_section_extent.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p17_section_extent.cob (D-A / D-B / E0 / S-A / S-B / L-A / SEC OK)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p17",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.1.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a paragraph is a paragraph-name, a period and a space, and zero, one or more sentences",
+     "it ends before the next paragraph-name or section-name, at the end of the Procedure Division, or at END DECLARATIVES",
+     "a sentence is one or more statements terminated by the separator period"
+    ],
+    "evidence-1985": {
+     "zero sentences": "covered by probes/s-06/p18_paragraph_extent.cob (PERFORM P-EMPTY does nothing)",
+     "ends before next paragraph-name": "covered by p18 (PERFORM D-B, PERFORM P-A)",
+     "ends before section-name": "covered by p18 (PERFORM P-A stops before S2 SECTION)",
+     "ends at end of Procedure Division": "covered by p18 (PERFORM L-A)",
+     "ends at END DECLARATIVES": "covered by p18 (PERFORM D-B returns: D-B only)",
+     "multi-statement sentence": "covered by p18 (P-A1 P-A2 in one sentence)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.1.2 p3",
+      "quote": "A paragraph ends immediately before the next paragraph-name or section-name",
+      "check": "OK  §1985:IV.6.4.1.2 p3  (6.4.1.2 Procedures)  the text is in p3"
+     }
+    ],
+    "reason": "\"A paragraph consists of a paragraph-name followed by a period and a space and by zero, one, or more successive sentences. A paragraph ends immediately before the next paragraph-name or section-name or at the end of the Procedure Division or ... at the key words END DECLARATIVES. A sentence consists of one or more statements and is terminated by the separator period.\" SR-8.3.5-3 (w73a at 85) states only the separator period.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p18_paragraph_extent.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p18_paragraph_extent.cob (D-B / P-A1 P-A2 / S2-A / L-A / PARA OK)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p18",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.6.4.1.2-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the term 'statement': a syntactically valid combination of words, literals and separators beginning with a COBOL verb"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: every statement format carries the obligation"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.1.2 p4",
+      "quote": "beginning with a COBOL verb",
+      "check": "OK  §1985:IV.6.4.1.2 p4  (6.4.1.2 Procedures)  the text is in p4"
+     }
+    ],
+    "reason": "\"A statement is a syntactically valid combination of words, literals, and separators beginning with a COBOL verb.\" It names a term the statement formats use; no candidate states it.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a definition of a term; any program observes a statement format rule, not this sentence",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a statement of the user's program as a syntactically valid combination of words, literals and separators beginning with a COBOL verb"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.1.2-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the term 'identifier': the word or words needed to make unique reference to a data item"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: qualification, subscripting and reference-modification rules carry the obligation"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.1.2 p5",
+      "quote": "the word or words necessary to make unique reference to a data item",
+      "check": "OK  §1985:IV.6.4.1.2 p5  (6.4.1.2 Procedures)  the text is in p5"
+     }
+    ],
+    "reason": "\"The term 'identifier' is defined as the word or words necessary to make unique reference to a data item.\" It defines a metalanguage term; SR-8.4.3.1.3-1 (recursive identifier, no 85 case) is a different statement.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a term definition; uniqueness of reference is witnessed by the qualification rows, not by this sentence",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines an identifier in the user's program as the word or words necessary to make unique reference to a data item"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.1.3-p1",
+    "to": [
+     "GR-14.2.3-1"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "execution begins with the first statement of the Procedure Division, excluding declaratives",
+     "statements then execute in presentation order unless rules say otherwise"
+    ],
+    "evidence-1985": {
+     "first statement, excluding declaratives": "covered by conformance-suite/cases/14.2-Procedure-division-structure/l1c22_pd_exec_order_sections (accept: [85, 2002]; DECL never prints, 1 Z-SEC first)",
+     "presentation order": "covered by l1c22_pd_exec_order_sections and l1c22_pd_exec_order_nosections (1..4 in presentation order, reverse-alphabetic names)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.1.3 p1",
+      "quote": "Execution begins with the first statement of the Procedure Division, excluding declaratives",
+      "check": "OK  §1985:IV.6.4.1.3 p1  (6.4.1.3 Execution)  the text is in p1"
+     },
+     {
+      "cite": "§2023:14.2.3 GR1",
+      "quote": "Execution begins with the first statement of the procedure division, excluding declaratives",
+      "check": "OK  §2023:14.2.3 GR1  (General rules)  the text is in GR1"
+     }
+    ],
+    "reason": "The 1985 paragraph and GR-14.2.3-1 are word-for-word the same (sim 0.941). Both at-85 accepted cases exercise the whole 1985 scope in 1985-legal shapes: l1c22_pd_exec_order_sections places a USE declarative textually first and shows it skipped, then presentation order across an empty section, paragraphs and sections; l1c22_pd_exec_order_nosections shows Format 2 presentation order.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/14.2-Procedure-division-structure/l1c22_pd_exec_order_sections + l1c22_pd_exec_order_nosections",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.6.4.1.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the Procedure Division must begin with the header PROCEDURE DIVISION [USING {data-name-1} ...] ."
+    ],
+    "evidence-1985": {
+     "header required": "covered by goldens pb5924-pd-header-missing-85 and pb5924-proc-div-no-header-85 (PASS: refused)",
+     "header with USING accepted": "covered by golden pb5924-proc-div-using-ok-85 (PASS) and probes/s-06/p12_linkage.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.1.4.1 p1",
+      "quote": "is identified by, and must begin with, the following header",
+      "check": "OK  §1985:IV.6.4.1.4.1 p1  (6.4.1.4.1 Procedure Division Header)  the text is in p1"
+     }
+    ],
+    "reason": "\"The Procedure Division is identified by, and must begin with, the following header\". No candidate states it (SR-14.2.2-11 is a method prototype rule). The three prose85 goldens pass on the mint build.",
+    "probe": null,
+    "compiler-at-1985": "correct: goldens E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-pd-header-missing-85.cob, 85p-12/goldens/pb5924-proc-div-no-header-85.cob, 85p-12/goldens/pb5924-proc-div-using-ok-85.cob (all PASS)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the three goldens",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.6.4.1.4.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the body conforms to Format 1 (optional DECLARATIVES ... END DECLARATIVES, then sections, each section-name SECTION [segment-number], paragraphs with sentences) or Format 2 (paragraphs only)",
+     "Segmentation: segment-number in the section header"
+    ],
+    "evidence-1985": {
+     "Format 1 with declaratives and segment-numbers": "covered by probes/s-06/p19_pd_body_format1_segments.cob (S10 / S60 / FMT1 OK)",
+     "Format 2": "covered by probes/s-06/p04_end_by_absence.cob and golden pb5924-proc-div-using-ok-85",
+     "neither format (sentence before first paragraph) refused": "covered by golden pb5924-pd-body-leading-sentence-85 (PASS: refused)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.1.4.2 p1",
+      "quote": "must conform to one of the following formats",
+      "check": "OK  §1985:IV.6.4.1.4.2 p1  (6.4.1.4.2 Procedure Division Body)  the text is in p1"
+     }
+    ],
+    "reason": "\"The body of the Procedure Division must conform to one of the following formats\". 2023's FMT-14.2.1 admits a leading sentence that 1985 does not, so it cannot stand for the 1985 scope; no candidate given here states it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p19_pd_body_format1_segments.cob",
+    "compiler-at-1985": "correct: golden pb5924-pd-body-leading-sentence-85 (PASS) + probes/s-06/p19_pd_body_format1_segments.cob + p04_end_by_absence.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the golden with p19 and p04",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "classification of statements: imperative, conditional, compiler directing, delimited scope"
+    ],
+    "evidence-1985": {
+     "the classification": "not shown: a taxonomy; each class's own definition row (IV.6.4.2.1.1 and its list items, IV.6.4.2.2.1, ...) carries the observable content"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.2 p1",
+      "quote": "There are four types of statements",
+      "check": "OK  §1985:IV.6.4.2 p1  (6.4.2 Statements and Sentences)  the text is in p1"
+     }
+    ],
+    "reason": "\"There are four types of statements: imperative statements, conditional statements, compiler directing statements, and delimited scope statements.\" It names the classes; no program can show the count of classes.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a classification of terms; programs witness each class's definition, not the enumeration",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines the four types every statement of the user's program belongs to: imperative, conditional, compiler directing and delimited scope statements"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "classification of sentences: imperative, conditional, compiler directing"
+    ],
+    "evidence-1985": {
+     "the classification": "not shown: a taxonomy; the definition rows (IV.6.4.2.1.2, IV.6.4.2.2.2, ...) carry the content"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.2 p2",
+      "quote": "There are three types of sentences",
+      "check": "OK  §1985:IV.6.4.2 p2  (6.4.2 Statements and Sentences)  the text is in p2"
+     }
+    ],
+    "reason": "\"There are three types of sentences: imperative sentences, conditional sentences, and compiler directing sentences.\" A naming of classes; no candidate states it (all sim below 0.14).",
+    "probe": null,
+    "compiler-at-1985": "not probed: a classification of terms; no program can observe the enumeration",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines the three types every sentence of the user's program belongs to: imperative, conditional and compiler directing sentences"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.2.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a conditional statement determines the truth value of a condition",
+     "the object program's subsequent action depends on that truth value (the statements listed in items 1-8, rows 1985-GR-IV.6.4.2.1.1-1..8)"
+    ],
+    "evidence-1985": {
+     "truth value determined, action depends on it": "covered by probes/s-06/p20_conditional_statement_phrase.cob (IF true/false: IF-T / IF-F; ADD ON SIZE ERROR / NOT ON SIZE ERROR: SZ-ERR 99 / SZ-OK 50; READ AT END: EOF) and the list-item siblings' 85 cases (cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x04 ...)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.2.1.1 p1",
+      "quote": "the subsequent action of the object program is dependent on this truth value",
+      "check": "OK  §1985:IV.6.4.2.1.1 p1  (6.4.2.1.1 Definition of Conditional Statement)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional, but the dependency is observable: \"A conditional statement specifies that the truth value of a condition is to be determined and that the subsequent action of the object program is dependent on this truth value.\" p20 shows the same statement taking different actions on each truth value. FMT-14.9.4.2 (CALL format) is a sibling's clause, not this statement.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p20_conditional_statement_phrase.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p20_conditional_statement_phrase.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p20",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.2.1.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a conditional phrase specifies the action taken on the truth value of a condition resulting from executing a conditional statement (phrases listed in items 1-7, rows 1985-GR-IV.6.4.2.1.1.1-1..7)"
+    ],
+    "evidence-1985": {
+     "phrase's action taken on the matching truth value": "covered by probes/s-06/p20_conditional_statement_phrase.cob (ON SIZE ERROR taken on overflow, NOT ON SIZE ERROR otherwise; AT END taken, NOT AT END not) and the list-item siblings' 85 cases"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.2.1.1.1 p1",
+      "quote": "specifies the action to be taken upon determination of the truth value",
+      "check": "OK  §1985:IV.6.4.2.1.1.1 p1  (6.4.2.1.1.1 Definition of Conditional Phrase)  the text is in p1"
+     }
+    ],
+    "reason": "\"A conditional phrase specifies the action to be taken upon determination of the truth value of a condition resulting from the execution of a conditional statement.\" Observable: p20 shows which phrase's statement runs for each outcome. GR-14.6.13.1.4-1 (no 85 case) states only the non-NOT half for an interrupted statement.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06/p20_conditional_statement_phrase.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06/p20_conditional_statement_phrase.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p20",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "defect",
+    "row": "1985-SR-IV.6.1.2-p1",
+    "what": "COBOL2987 quotes the out-of-order paragraph as 'AUTHOR. .' and 'DATE-WRITTEN. .': the comment-entry text is dropped and a stray period is shown, so the quoted text is not what was written (written: 'AUTHOR. A WRITER.', 'DATE-WRITTEN. 1985-01-01.'). Cosmetic, the refusal is right.",
+    "repro": "python E:\\COBOL\\scripts\\orchestrator\\run_probe.py --root E:\\COBOL-coord\\scratch\\pb5453\\runs --std 85 --exe <mint cobol.exe> E:/COBOL-coord/scratch/pb5453/probes/s-06/p06_id_division_order_bad.cob",
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#WrittenOpening (WrittenSource.Of on a comment-entry paragraph)"
+   },
+   {
+    "kind": "defect",
+    "row": "1985-SR-IV.6.4.1.1-p1",
+    "what": "Known (kb/Work PB5924): DECLARATIVES after a nondeclarative section is refused as a reserved-word misuse (COBOL0901), not as the placement rule; the prose85 golden pb5924-declaratives-not-first-85 still fails on mint head 9fdf39b9e8. A missing END DECLARATIVES is refused only as \"unexpected '<EOF>'\" (p15), the same family.",
+    "repro": "E:/COBOL-coord/scratch/pb5453/runs/pb5924-declaratives-not-first-85-001 ; E:/COBOL-coord/scratch/pb5453/probes/s-06/p15_end_declaratives_missing_bad.cob",
+    "site": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-06",
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.4.5-p1",
+    "verdict": "UPHELD",
+    "reason": "Strongest counter-reading tried: p1 reaches a 1985 form the pointer lacks (a level, module, or a SET/status form 2023 added). It does not: p1 only defines an implementor-defined, implementor-named switch with an on and an off status; switches and ON/OFF STATUS are Nucleus level 1 at 85 and SET mnemonic-name TO ON/OFF is a 1985 format (VI-127). Scope (implementor-name in SPECIAL-NAMES, two states), interrogation and SET belong to p2-p4, not p1. GR-12.3.7.4-2 states the same. Witness pb862_implementor_names (accept [85,2002], fixed form) names SWITCH-3/UPSI-7 from the implementor table and shows both statuses (SW3=OFF then SW3=ON, U7=OFF): it exercises p1, not merely runs at 85.",
+    "citations": [
+     {
+      "cite": "§1985:IV.4.5 p1",
+      "quote": "defined and named by the implementor",
+      "check": "OK  §1985:IV.4.5 p1  (4.5 EXTERNAL SWITCH)  the text is in p1"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR2",
+      "quote": "The on status and the off status of an external switch",
+      "check": "OK  §2023:12.3.7.4 GR2  (General rules)  the text is in GR2"
+     }
+    ],
+    "class": null,
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names"
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.1.3-p1",
+    "verdict": "UPHELD",
+    "reason": "Text is word-for-word GR-14.2.3-1. Strongest counter-reading: 1985 Segmentation (independent segments) or a 1985-illegal witness shape. Segmentation is covered by 'except where the rules indicate some other order' in both texts. The witness l1c22_pd_exec_order_sections is 1985-legal: an empty section is allowed ('A section consists of a section header followed by zero, one, or more successive paragraphs'), USE AFTER STANDARD ERROR PROCEDURE ON INPUT is a 1985 declarative, and it shows the declarative skipped and presentation order (1..4, reverse-alphabetic names); l1c22_pd_exec_order_nosections covers the no-section form. Both accept [85,2002].",
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.1.3 p1",
+      "quote": "Execution begins with the first statement of the Procedure Division, excluding declaratives",
+      "check": "OK  §1985:IV.6.4.1.3 p1  (6.4.1.3 Execution)  the text is in p1"
+     },
+     {
+      "cite": "§2023:14.2.3 GR1",
+      "quote": "Statements are then executed in the order in which they are presented for compilation",
+      "check": "OK  §2023:14.2.3 GR1  (General rules)  the text is in GR1"
+     },
+     {
+      "cite": "§1985:IV.6.4.1.2 p2",
+      "quote": "A section consists of a section header followed by zero, one, or more successive paragraphs",
+      "check": "OK  §1985:IV.6.4.1.2 p2  (6.4.1.2 Procedures)  the text is in p2"
+     }
+    ],
+    "class": null,
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/14.2-Procedure-division-structure/l1c22_pd_exec_order_sections + l1c22_pd_exec_order_nosections"
+   }
+  ],
+  "disputed-different": []
+ },
+ "derivation-refute": {
+  "slice": "s-06",
+  "cases": [
+   {
+    "rule-id": "1985-SR-IV.5.1-p1",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "a refusal of a syntactically incorrect program",
+    "reason": "Any refusal is explained by the specific syntax rule broken; the sentence defines the user's source program and adds no condition a program can isolate.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.3.1-p1",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "MOVE to an undeclared name refused, declared control accepted",
+    "reason": "The outcome is decided by the user-defined-word and data-description rules; the overview sentence states the division's purpose and no program isolates it.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-SR-IV.6.4.1.2-p4",
+    "arm": "definitional",
+    "verdict": "OVERTURNED",
+    "attempt": "a sentence beginning with a literal ('\"BAD\" DISPLAY.') with a control that begins with the verb",
+    "reason": "A witness exists: at --std 85 r01_stmt_noverb is refused with COBOL5506 'a statement begins with the first word of its statement name, which a literal is not (ISO §1985:IV.6.4.1.2)' (the compiler cites this very clause), exit 65; the control r01_stmt_noverb_ctl is accepted and prints OK/BAD. The row is an SR row and a refusal with a control witnesses a syntax rule; it needs an own witness, not a derivation.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06-refute/r01_stmt_noverb.cob ; E:/COBOL-coord/scratch/pb5453/probes/s-06-refute/r01_stmt_noverb_ctl.cob (runs/r01_stmt_noverb-001, runs/r01_stmt_noverb_ctl-001)"
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.1.2-p5",
+    "arm": "definitional",
+    "verdict": "OVERTURNED",
+    "attempt": "an ambiguous unqualified reference X (two 02 X under G1, G2) with a control 'X OF G2'",
+    "reason": "The arm does not fit: the reader's own reason says the sentence 'defines a metalanguage term' (the general-format word 'identifier'), so its subject is the standard's notation, not the user's program. And a program whose outcome follows the 'necessary to make unique reference' requirement exists: r02_ident_ambig refused at 85 with COBOL1639 (cites §1985:IV.4.3.8.1 SRL2.1), control prints 2. At best the arm is indistinguishable-consequent naming a 1985-SR-IV.4.3.8.1 row, or DOUBTFUL as a presentation rule; the definitional arm is not shown.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06-refute/r02_ident_ambig.cob ; E:/COBOL-coord/scratch/pb5453/probes/s-06-refute/r02_ident_ambig_ctl.cob (runs/r02_ident_ambig-001, runs/r02_ident_ambig_ctl-001)"
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.2-p1",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "a statement outside the four classes",
+    "reason": "Every 1985 statement format falls in one class; the enumeration restricts nothing a program can show beyond each class's own definition rows.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.2-p2",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "a sentence outside the three classes",
+    "reason": "Same as p1: a closed naming of sentence classes; the definition rows carry the observable content.",
+    "probe": null
+   }
+  ]
+ },
+ "imported": {
+  "asked": "22c4b9c52a7b073da2e743eae7e777a9171fc252c3180f61d2531dbf8fb80fb5",
+  "derivation-refute": "12b571db2872d010c81c7b6ae76309cd5328de87f28aa1cc4af2f8109407ab3a",
+  "read": "5e43ec7697abeded0c16169e08ff5ff911675a80606a6b94b6a03d4d420b9e3d",
+  "refute": "8bdf08f60cfa501bd664330a9b1130e23f614562fb91bc99de29913ca678c374"
+ }
+}

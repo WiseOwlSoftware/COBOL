@@ -1,0 +1,1353 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-11 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-11",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-11",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-VI.6.3.2-p1",
+   "1985-GR-VI.6.3.2-T1.1",
+   "1985-GR-VI.6.3.2-T1.2",
+   "1985-SR-VI.6.3.2-p3",
+   "1985-GR-VI.6.3.2.1-p1",
+   "1985-SR-VI.6.3.2.2-p1",
+   "1985-GR-VI.6.3.2.3-p1",
+   "1985-GR-VI.6.3.2.3-p2",
+   "1985-SR-VI.6.3.2.3-p3",
+   "1985-SR-VI.6.3.2.3-T1.1",
+   "1985-SR-VI.6.3.2.3-T1.2",
+   "1985-SR-VI.6.3.2.3-T1.3",
+   "1985-SR-VI.6.3.2.3-T1.4",
+   "1985-SR-VI.6.3.2.3-T1.5",
+   "1985-SR-VI.6.3.3-p1",
+   "1985-SR-VI.6.3.3-2",
+   "1985-GR-VI.6.3.3-p3",
+   "1985-GR-VI.6.3.3-p5",
+   "1985-GR-VI.6.3.4-p1",
+   "1985-GR-VI.6.3.4-2",
+   "1985-GR-VI.6.3.4-p2",
+   "1985-GR-VI.6.4-p1",
+   "1985-GR-VI.6.4.1-p1",
+   "1985-GR-VI.6.4.1-p2",
+   "1985-GR-VI.6.4.2-3",
+   "1985-GR-VI.6.4.2-p2",
+   "1985-GR-VI.6.4.2-p3",
+   "1985-GR-VI.6.4.2-p4",
+   "1985-GR-VI.6.4.2-p5",
+   "1985-GR-VI.6.4.4-p1"
+  ],
+  "pointers": {
+   "1985-GR-VI.6.3.2-p1": {
+    "candidates-2023": [
+     "GR-7.3.8.3-1",
+     "SR-7.3.8.2-1",
+     "FMT-8.8.4.10.2"
+    ],
+    "nearest-2023": "GR-7.3.8.3-1",
+    "similarity": 0.467
+   },
+   "1985-GR-VI.6.3.2-T1.1": {
+    "candidates-2023": [
+     "GR-13.18.63.4-20",
+     "SR-14.9.39.3-7",
+     "GR-8.8.4.7.4-1"
+    ],
+    "nearest-2023": "GR-13.18.63.4-20",
+    "similarity": 0.326
+   },
+   "1985-GR-VI.6.3.2-T1.2": {
+    "candidates-2023": [
+     "GR-13.18.63.4-20",
+     "SR-14.9.39.3-7",
+     "GR-8.8.4.7.4-1"
+    ],
+    "nearest-2023": "GR-13.18.63.4-20",
+    "similarity": 0.356
+   },
+   "1985-SR-VI.6.3.2-p3": {
+    "candidates-2023": [
+     "SR-7.3.3-5",
+     "SR-7.3.3-2",
+     "SR-7.2.3.3-2"
+    ],
+    "nearest-2023": "SR-7.3.3-5",
+    "similarity": 0.33
+   },
+   "1985-GR-VI.6.3.2.1-p1": {
+    "candidates-2023": [
+     "FMT-8.8.4.10.2",
+     "GR-8.8.4.4.4-1",
+     "GR-8.8.4.4.4-2"
+    ],
+    "nearest-2023": "FMT-8.8.4.10.2",
+    "similarity": 0.456
+   },
+   "1985-SR-VI.6.3.2.2-p1": {
+    "candidates-2023": [
+     "SR-8.8.4.12.3-2",
+     "SR-8.8.4.12.1-1",
+     "GR-7.3.8.3-1"
+    ],
+    "nearest-2023": "SR-8.8.4.12.3-2",
+    "similarity": 0.432
+   },
+   "1985-GR-VI.6.3.2.3-p1": {
+    "candidates-2023": [
+     "FMT-8.8.4.10.2",
+     "FMT-8.8.4.11.2",
+     "GR-7.3.8.3-1"
+    ],
+    "nearest-2023": "FMT-8.8.4.10.2",
+    "similarity": 0.332
+   },
+   "1985-GR-VI.6.3.2.3-p2": {
+    "candidates-2023": [
+     "GR-7.3.8.3-1",
+     "FMT-8.8.4.10.2",
+     "SR-7.3.8.2-1"
+    ],
+    "nearest-2023": "GR-7.3.8.3-1",
+    "similarity": 0.448
+   },
+   "1985-SR-VI.6.3.2.3-p3": {
+    "candidates-2023": [
+     "SR-8.8.2-3",
+     "GR-8.8.1.2-5",
+     "SR-8.3.5-4"
+    ],
+    "nearest-2023": "SR-8.8.2-3",
+    "similarity": 0.769
+   },
+   "1985-SR-VI.6.3.2.3-T1.1": {
+    "candidates-2023": [
+     "SR-14.9.25.3-10",
+     "GR-7.3.8.3-1",
+     "FMT-8.8.4.10.2"
+    ],
+    "nearest-2023": "SR-14.9.25.3-10",
+    "similarity": 0.712
+   },
+   "1985-SR-VI.6.3.2.3-T1.2": {
+    "candidates-2023": [
+     "GR-7.3.8.3-1",
+     "FMT-8.8.4.10.2",
+     "FMT-8.8.4.11.2"
+    ],
+    "nearest-2023": "GR-7.3.8.3-1",
+    "similarity": 0.319
+   },
+   "1985-SR-VI.6.3.2.3-T1.3": {
+    "candidates-2023": [
+     "SR-14.9.25.3-10",
+     "GR-7.3.8.3-1",
+     "FMT-8.8.4.10.2"
+    ],
+    "nearest-2023": "SR-14.9.25.3-10",
+    "similarity": 0.561
+   },
+   "1985-SR-VI.6.3.2.3-T1.4": {
+    "candidates-2023": [
+     "SR-14.9.25.3-10",
+     "GR-7.3.8.3-1",
+     "FMT-8.8.4.10.2"
+    ],
+    "nearest-2023": "SR-14.9.25.3-10",
+    "similarity": 0.548
+   },
+   "1985-SR-VI.6.3.2.3-T1.5": {
+    "candidates-2023": [
+     "SR-14.9.25.3-10",
+     "GR-7.3.8.3-1",
+     "FMT-8.8.4.10.2"
+    ],
+    "nearest-2023": "SR-14.9.25.3-10",
+    "similarity": 0.565
+   },
+   "1985-SR-VI.6.3.3-p1": {
+    "candidates-2023": [
+     "SR-8.8.4.12.1-1",
+     "GR-8.8.4.12.4-1",
+     "FMT-8.8.4.12.2",
+     "FMT-8.7.5.1",
+     "SR-8.8.4.12.1-2",
+     "SR-8.8.4.12.3-1",
+     "SR-7.3.8.2-1",
+     "GR-8.8.4.2.1-5"
+    ],
+    "nearest-2023": "SR-8.8.4.12.1-1",
+    "similarity": 0.53
+   },
+   "1985-SR-VI.6.3.3-2": {
+    "candidates-2023": [
+     "SR-8.8.4.12.1-2",
+     "SR-8.8.4.12.1-1",
+     "GR-8.8.4.12.4-1",
+     "FMT-8.8.4.12.2",
+     "SR-8.8.4.12.3-2",
+     "FMT-8.7.5.1",
+     "SR-14.9.41.3-3",
+     "SR-8.3.2.4.2-2",
+     "GR-14.9.37.4-2"
+    ],
+    "nearest-2023": "SR-8.8.4.12.1-2",
+    "similarity": 0.501
+   },
+   "1985-GR-VI.6.3.3-p3": {
+    "candidates-2023": [
+     "GR-8.8.4.12.4-1",
+     "SR-8.8.4.12.1-1",
+     "FMT-8.8.4.12.2",
+     "FMT-8.7.5.1",
+     "SR-8.8.4.12.1-2",
+     "SR-14.9.41.3-3",
+     "SR-8.3.2.4.2-2",
+     "SR-7.3.8.2-1"
+    ],
+    "nearest-2023": "GR-8.8.4.12.4-1",
+    "similarity": 0.574
+   },
+   "1985-GR-VI.6.3.3-p5": {
+    "candidates-2023": [
+     "SR-8.8.4.12.1-1",
+     "GR-8.8.4.12.4-1",
+     "FMT-8.8.4.12.2",
+     "FMT-8.7.5.1",
+     "SR-8.8.4.12.1-2",
+     "SR-8.8.4.12.3-1",
+     "SR-8.8.4.12.3-2",
+     "AR-15.48.3-5"
+    ],
+    "nearest-2023": "SR-8.8.4.12.1-1",
+    "similarity": 0.458
+   },
+   "1985-GR-VI.6.3.4-p1": {
+    "candidates-2023": [
+     "GR-8.8.4.13-1",
+     "GR-8.8.4.13-2",
+     "GR-7.3.8.3-1",
+     "SR-7.3.8.2-1",
+     "FMT-8.8.4.10.2"
+    ],
+    "nearest-2023": "GR-8.8.4.13-1",
+    "similarity": 0.368
+   },
+   "1985-GR-VI.6.3.4-2": {
+    "candidates-2023": [
+     "GR-8.8.4.13-2",
+     "GR-8.8.4.13-1",
+     "SR-14.9.25.3-10",
+     "GR-13.18.41.4-5",
+     "GR-13.18.31.4-3"
+    ],
+    "nearest-2023": "GR-8.8.4.13-2",
+    "similarity": 0.185
+   },
+   "1985-GR-VI.6.3.4-p2": {
+    "candidates-2023": [
+     "GR-8.8.4.13-1",
+     "GR-8.8.4.13-2",
+     "GR-14.9.37.4-2",
+     "GR-7.3.6.3-1",
+     "GR-7.3.7.3-1"
+    ],
+    "nearest-2023": "GR-8.8.4.13-1",
+    "similarity": 0.057
+   },
+   "1985-GR-VI.6.4-p1": {
+    "candidates-2023": [
+     "GR-11.9.4-1",
+     "SR-14.9.49.3-1",
+     "SR-14.2.2-11"
+    ],
+    "nearest-2023": "GR-11.9.4-1",
+    "similarity": 0.226
+   },
+   "1985-GR-VI.6.4.1-p1": {
+    "candidates-2023": [
+     "GR-14.7.5-L2.2",
+     "GR-14.7.4.3-7",
+     "GR-14.7.4.3-10"
+    ],
+    "nearest-2023": "GR-14.7.5-L2.2",
+    "similarity": 0.441
+   },
+   "1985-GR-VI.6.4.1-p2": {
+    "candidates-2023": [
+     "GR-14.7.4.3-10",
+     "GR-14.7.4.3-8",
+     "GR-14.7.4.3-9"
+    ],
+    "nearest-2023": "GR-14.7.4.3-10",
+    "similarity": 0.41
+   },
+   "1985-GR-VI.6.4.2-3": {
+    "candidates-2023": [
+     "GR-14.7.5-L2.2",
+     "GR-14.7.5-L3.5",
+     "GR-14.7.5-L2.3",
+     "GR-14.7.6-6",
+     "GR-14.7.5-3",
+     "GR-14.7.5-4",
+     "GR-14.7.4.3-7",
+     "GR-14.7.4.3-10",
+     "GR-14.7.4.3-8"
+    ],
+    "nearest-2023": "GR-14.7.5-L2.2",
+    "similarity": 0.514
+   },
+   "1985-GR-VI.6.4.2-p2": {
+    "candidates-2023": [
+     "GR-14.7.5-L2.1",
+     "GR-14.7.7-4",
+     "GR-8.8.1.2-6",
+     "GR-14.7.5-1",
+     "GR-14.7.5-L2.3",
+     "GR-14.7.5-L3.5",
+     "GR-14.7.5-L2.2",
+     "GR-14.7.6-6",
+     "GR-13.18.54.4-3",
+     "GR-14.7.5-8"
+    ],
+    "nearest-2023": "GR-14.7.5-L2.1",
+    "similarity": 0.585
+   },
+   "1985-GR-VI.6.4.2-p3": {
+    "candidates-2023": [
+     "GR-14.7.5-L2.1",
+     "GR-14.7.7-4",
+     "GR-8.8.1.2-6",
+     "GR-14.7.5-1",
+     "GR-14.7.5-L2.3",
+     "GR-14.7.5-L3.5",
+     "GR-14.7.5-L2.2",
+     "GR-14.7.5-8",
+     "GR-14.7.6-6",
+     "GR-13.18.54.4-3"
+    ],
+    "nearest-2023": "GR-14.7.5-L2.1",
+    "similarity": 0.563
+   },
+   "1985-GR-VI.6.4.2-p4": {
+    "candidates-2023": [
+     "GR-14.7.5-L2.1",
+     "GR-14.7.7-4",
+     "GR-8.8.1.2-6",
+     "GR-14.7.5-1",
+     "GR-14.7.5-L2.3",
+     "GR-14.7.5-L3.5",
+     "GR-14.7.5-8",
+     "GR-14.9.11.4-17",
+     "GR-14.9.11.4-18",
+     "GR-14.9.43.4-8"
+    ],
+    "nearest-2023": "GR-14.7.5-L2.1",
+    "similarity": 0.442
+   },
+   "1985-GR-VI.6.4.2-p5": {
+    "candidates-2023": [
+     "GR-14.7.7-4",
+     "GR-14.7.5-L2.1",
+     "GR-8.8.1.2-6",
+     "GR-14.7.5-1",
+     "GR-14.7.5-L2.3",
+     "GR-14.7.5-8",
+     "GR-14.7.5-L3.5",
+     "GR-14.7.6-6",
+     "GR-14.9.44.4-6",
+     "GR-14.9.2.4-6"
+    ],
+    "nearest-2023": "GR-14.7.7-4",
+    "similarity": 0.321
+   },
+   "1985-GR-VI.6.4.4-p1": {
+    "candidates-2023": [
+     "GR-14.7.7-1",
+     "SR-14.9.26.3-4",
+     "SR-14.7.7-2",
+     "SR-14.9.12.3-4",
+     "GR-14.7.7-4",
+     "GR-14.7.7-3",
+     "GR-14.7.6-3",
+     "GR-14.7.5-2",
+     "GR-14.7.5-1"
+    ],
+    "nearest-2023": "GR-14.7.7-1",
+    "similarity": 0.267
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-11",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-VI.6.3.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: complex condition formed by AND/OR over simple and complex conditions",
+     "negation by NOT",
+     "truth value of a complex condition, parenthesized or not, from its operators"
+    ],
+    "evidence-1985": {
+     "AND/OR combination": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T)",
+     "NOT negation": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T)",
+     "parenthesized vs unparenthesized truth value": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.2 p1",
+      "quote": "The truth value of a complex condition, whether parenthesized or not",
+      "check": "OK  §1985:VI.6.3.2 p1  (║6.3.2 Complex Conditions║)  the text is in p1"
+     },
+     {
+      "cite": "§2023:8.8.4.9",
+      "quote": "The truth value of a complex condition, whether parenthesized or not",
+      "check": "OK  §2023:8.8.4.9  (Complex conditions)  the text is in the clause (unnumbered prose, pending)"
+     }
+    ],
+    "reason": "'The truth value of a complex condition, whether parenthesized or not, is that truth value which results from the interaction of the stated logical operators'. The 2023 counterpart is unnumbered prose that the 2023 catalog does not carry as a rule (§2023:8.8.4.9 prose); candidate GR-7.3.8.3-1 governs only constant conditional expressions and has no 85 case, SR-7.3.8.2-1 and FMT-8.8.4.10.2 none either. c1-logic shows the truth values at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place c1-logic.cob as the row's own 85 case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.2-T1.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: AND is true iff both conjoined conditions are true"
+    ],
+    "evidence-1985": {
+     "AND truth table (4 combinations)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T) (AND FFFT)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.2 Table 1 row 1",
+      "quote": "the truth value is true if both of the conjoined conditions are true",
+      "check": "OK  §1985:VI.6.3.2 Table 1 row 1  (║6.3.2 Complex Conditions║)  the text is in Table 1 row 1"
+     }
+    ],
+    "reason": "'the truth value is true if both of the conjoined conditions are true; false if one or both of the conjoined conditions is false'. The 2023 meaning table is in uncataloged §2023:8.8.4.9 prose; the candidates (VALUE FALSE, MOVE, figurative rows) are unrelated. c1-logic prints AND FFFT over (X,Y) = 00,01,10,11.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T)",
+    "class": "own-text",
+    "needs": "needs-own-witness: c1-logic.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.2-T1.2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: OR (inclusive) is true iff one or both included conditions are true"
+    ],
+    "evidence-1985": {
+     "OR truth table (4 combinations)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T) (OR FTTT)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.2 Table 1 row 2",
+      "quote": "the truth value is true if one or both of the included conditions is true",
+      "check": "OK  §1985:VI.6.3.2 Table 1 row 2  (║6.3.2 Complex Conditions║)  the text is in Table 1 row 2"
+     }
+    ],
+    "reason": "'Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false'. No cataloged 2023 rule states it (the §2023:8.8.4.9 table is uncataloged); the candidates are unrelated. c1-logic prints OR FTTT.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T)",
+    "class": "own-text",
+    "needs": "needs-own-witness: c1-logic.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: AND, OR, NOT must be preceded and followed by a space, also beside a parenthesis"
+    ],
+    "evidence-1985": {
+     "refusal of an unspaced operator ((A = 1)AND(B = 2))": "covered by E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-logop-space-required-85.cob (run E:/COBOL-coord/scratch/pb5453/runs/pb5924-logop-space-required-85-001: error COBOL7672 'the logical operator 'AND' is not immediately preceded or followed by a separator space'; run_goldens marks it FAIL only because its expect string is capitalized, see leads)",
+     "spaced operators accepted": "covered by E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-logop-spaced-runs-85.cob (PASS, work/goldens-s-11.json)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.2 p3",
+      "quote": "The logical operators must be preceded by a space and followed by a space",
+      "check": "OK  §1985:VI.6.3.2 p3  (║6.3.2 Complex Conditions║)  the text is in p3"
+     },
+     {
+      "cite": "§2023:8.3.5 SR4",
+      "quote": "parentheses may appear only in balanced pairs",
+      "check": "OK  §2023:8.3.5 SR4  (Separators)  the text is in SR4"
+     }
+    ],
+    "reason": "'The logical operators must be preceded by a space and followed by a space.' 2023 has no such rule: a parenthesis is a separator (§2023:8.3.5), so (A = 1)AND(B = 2) is 2023-legal; the candidates SR-7.3.3-5/-2 and SR-7.2.3.3-2 are unrelated. At 85 the compiler refuses the unspaced form with COBOL7672 and accepts the spaced control.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-logop-space-required-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/runs/pb5924-logop-space-required-85-001 (refused COBOL7672) with control pb5924-logop-spaced-runs-85 PASS",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the two pb5924 goldens, with the refusal golden's expect corrected to the emitted wording (lowercase 'the logical operator' or the code COBOL7672)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: NOT reverses the truth value of the condition it applies to",
+     "a parenthesized negated condition keeps its truth value"
+    ],
+    "evidence-1985": {
+     "NOT reversal": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T) (NOT TF)",
+     "(NOT c) same as NOT c": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T) (PNOT TF)",
+     "NOT (c)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T) (NOTP TF)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.2.1 p1",
+      "quote": "Including a negated condition in parentheses does not change its truth value",
+      "check": "OK  §1985:VI.6.3.2.1 p1  (║6.3.2.1 Negated Conditions║)  the text is in p1"
+     }
+    ],
+    "reason": "'Including a negated condition in parentheses does not change its truth value.' The 2023 counterpart (§2023:8.8.4.10.1 prose) is uncataloged; FMT-8.8.4.10.2 is only the format and has no 85 case. c1-logic shows NOT X = 1, (NOT X = 1) and NOT (X = 1) all TF for X = 0,1.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T)",
+    "class": "own-text",
+    "needs": "needs-own-witness: c1-logic.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.2.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: combined condition = condition-1 {AND|OR} condition-2 ... (format, repeatable)",
+     "the catalog flags it definitional, but a program can show the format accepted and evaluated"
+    ],
+    "evidence-1985": {
+     "two-term and multi-term AND/OR combined conditions accepted and evaluated": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T) (COMB TFFT)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.2.2 p1",
+      "quote": "A combined condition results from connecting conditions with one of the logical operators",
+      "check": "OK  §1985:VI.6.3.2.2 p1  (║6.3.2.2 Combined Conditions║)  the text is in p1"
+     }
+    ],
+    "reason": "'A combined condition results from connecting conditions with one of the logical operators 'AND' or 'OR'.' The 2023 format FMT-8.8.4.11.2 (no 85 case) adds EXCLUSIVE-OR/XOR; the 2023 sentence is uncataloged §2023:8.8.4.11.1 prose; candidate SR-8.8.4.12.1-1 is the abbreviation rule, another subject. c1-logic runs 3- and 4-term combinations.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T)",
+    "class": "own-text",
+    "needs": "needs-own-witness: c1-logic.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.2.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: precedence NOT, AND, OR implies parentheses; c1 OR NOT c2 AND c3 = c1 OR ((NOT c2) AND c3)"
+    ],
+    "evidence-1985": {
+     "precedence over all 8 combinations": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T) (PREC FTFFTTTT, EQV 00 against the explicit parenthesization)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.2.3 p1",
+      "quote": "The order of precedence is 'NOT', 'AND', 'OR'",
+      "check": "OK  §1985:VI.6.3.2.3 p1  (║6.3.2.3 Precedence of Logical Operators and the Use of Parentheses║)  the text is in p1"
+     }
+    ],
+    "reason": "'The order of precedence is 'NOT', 'AND', 'OR'.' 2023 adds XOR between AND and OR in uncataloged §2023:8.8.4.11.3 prose; the candidates (format rows, the constant-conditional rule) have no 85 case. c1-logic evaluates the standard's own example over 8 tuples and counts 00 disagreements with its stated equivalent.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T)",
+    "class": "own-text",
+    "needs": "needs-own-witness: c1-logic.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.2.3-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: explicit parentheses determine binding and depart from precedence: (c1 OR (NOT c2)) AND c3"
+    ],
+    "evidence-1985": {
+     "parenthesized example over 8 combinations": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T) (PAREN FTFFFTFT, differs from PREC as the text says)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.2.3 p2",
+      "quote": "Parentheses can, therefore, be used to depart from the normal precedence of logical operators",
+      "check": "OK  §1985:VI.6.3.2.3 p2  (║6.3.2.3 Precedence of Logical Operators and the Use of Parentheses║)  the text is in p2"
+     }
+    ],
+    "reason": "'Parentheses can, therefore, be used to depart from the normal precedence of logical operators'. Uncataloged §2023:8.8.4.11.3 prose; no witnessed pointer. c1-logic prints PAREN FTFFFTFT (hand-derived) for the standard's example.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T)",
+    "class": "own-text",
+    "needs": "needs-own-witness: c1-logic.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.2.3-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: Table 1 governs how conditions, logical operators and parentheses combine",
+     "one-to-one correspondence of left and right parentheses, left before right"
+    ],
+    "evidence-1985": {
+     "balanced nested parentheses accepted": "covered by E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-paren-nested-conditions-85.cob (PASS) and E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T)",
+     "right before left refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-paren-right-before-left-85.cob (PASS, refused)",
+     "unbalanced left refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-paren-unbalanced-left-85.cob (PASS, refused)",
+     "Table 1 combinations": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r1..t1-r5 refusals with control E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.2.3 p3",
+      "quote": "There must be a one-to-one correspondence between left and right parentheses",
+      "check": "OK  §1985:VI.6.3.2.3 p3  (║6.3.2.3 Precedence of Logical Operators and the Use of Parentheses║)  the text is in p3"
+     },
+     {
+      "cite": "§2023:8.8.4.11.3",
+      "quote": "Table 5, Combinations of conditions, logical operators, and parentheses, indicates the ways",
+      "check": "OK  §2023:8.8.4.11.3  (Precedence of logical operators and the use of parentheses)  the text is in the clause (unnumbered prose, pending)"
+     }
+    ],
+    "reason": "'There must be a one-to-one correspondence between left and right parentheses such that each left parenthesis is to the left of its corresponding right parenthesis.' The identical 2023 sentence is uncataloged §2023:8.8.4.11.3 prose; the nearest candidate SR-8.8.2-3 states it for boolean expressions (no 85 case) and SR-8.3.5-4 (85 cases) states balance but not Table 1. The three prose85 goldens PASS on the mint build.",
+    "probe": null,
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-paren-*-85 (3 PASS, work/goldens-s-11.json)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the three pb5924-paren goldens",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.2.3-T1.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus, conditional expressions: simple-condition: may be first and last; preceded only by OR, NOT, AND, (; followed only by OR, AND, )"
+    ],
+    "evidence-1985": {
+     "permitted pairs accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T) and E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)",
+     "forbidden pair refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r1-simple-then-not.cob refused (IF X = 1 NOT Y = 2: simple-condition followed by NOT; run E:/COBOL-coord/scratch/pb5453/runs/t1-r1-simple-then-not-001: COBOL0001 unexpected 'NOT'), control E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.2.3 Table 1 row 1",
+      "quote": "",
+      "check": "OK  §1985:VI.6.3.2.3 Table 1 row 1 (structure only) ok"
+     },
+     {
+      "cite": "§1985:VI.6.3.2.3 p4",
+      "quote": "the pair 'NOT NOT' is not permissible",
+      "check": "OK  §1985:VI.6.3.2.3 p4  (║6.3.2.3 Precedence of Logical Operators and the Use of Parentheses║)  the text is in the clause"
+     }
+    ],
+    "reason": "Table 1 row 1 (simple-condition: may be first and last; preceded only by OR, NOT, AND, (; followed only by OR, AND, )). 2023's Table 5 (uncataloged, §2023:8.8.4.11.3) adds EXCLUSIVE-OR/XOR to every row; the candidates (SR-14.9.25.3-10 is the MOVE validity table, GR-7.3.8.3-1 constant conditions, format rows) state nothing of this table and have no 85 case for it. The permitted pairs run in c1-logic / t1-control; the forbidden pair is refused, and the control with only that line changed is accepted.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r1-simple-then-not.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r1-simple-then-not.cob refused (IF X = 1 NOT Y = 2: simple-condition followed by NOT; run E:/COBOL-coord/scratch/pb5453/runs/t1-r1-simple-then-not-001: COBOL0001 unexpected 'NOT'), control E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: t1-r1-simple-then-not.cob with control t1-control.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.2.3-T1.2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus, conditional expressions: OR or AND: never first or last; preceded only by simple-condition, ); followed only by simple-condition, NOT, ("
+    ],
+    "evidence-1985": {
+     "permitted pairs accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T) and E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)",
+     "forbidden pair refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r2-and-then-or.cob refused (IF X = 1 AND OR Y = 2: AND followed by OR; run E:/COBOL-coord/scratch/pb5453/runs/t1-r2-and-then-or-001: COBOL0001 unexpected 'OR'), control E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)",
+     "AND last refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r2b-and-last.cob refused (IF X = 1 AND: AND last; run E:/COBOL-coord/scratch/pb5453/runs/t1-r2b-and-last-001: COBOL0001 unexpected 'DISPLAY'), control E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.2.3 Table 1 row 2",
+      "quote": "",
+      "check": "OK  §1985:VI.6.3.2.3 Table 1 row 2 (structure only) ok"
+     },
+     {
+      "cite": "§1985:VI.6.3.2.3 p4",
+      "quote": "the pair 'NOT NOT' is not permissible",
+      "check": "OK  §1985:VI.6.3.2.3 p4  (║6.3.2.3 Precedence of Logical Operators and the Use of Parentheses║)  the text is in the clause"
+     }
+    ],
+    "reason": "Table 1 row 2 (OR or AND: never first or last; preceded only by simple-condition, ); followed only by simple-condition, NOT, (). 2023's Table 5 (uncataloged, §2023:8.8.4.11.3) adds EXCLUSIVE-OR/XOR to every row; the candidates (SR-14.9.25.3-10 is the MOVE validity table, GR-7.3.8.3-1 constant conditions, format rows) state nothing of this table and have no 85 case for it. The permitted pairs run in c1-logic / t1-control; the forbidden pair is refused, and the control with only that line changed is accepted.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r2-and-then-or.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r2-and-then-or.cob refused (IF X = 1 AND OR Y = 2: AND followed by OR; run E:/COBOL-coord/scratch/pb5453/runs/t1-r2-and-then-or-001: COBOL0001 unexpected 'OR'), control E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: t1-r2-and-then-or.cob with control t1-control.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.2.3-T1.3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus, conditional expressions: NOT: may be first, never last; preceded only by OR, AND, (; followed only by simple-condition, ("
+    ],
+    "evidence-1985": {
+     "permitted pairs accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T) and E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)",
+     "forbidden pair refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r3-not-not.cob refused (IF NOT NOT X = 1: NOT followed by NOT; run E:/COBOL-coord/scratch/pb5453/runs/t1-r3-not-not-001: COBOL0001 unexpected 'NOT'), control E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.2.3 Table 1 row 3",
+      "quote": "",
+      "check": "OK  §1985:VI.6.3.2.3 Table 1 row 3 (structure only) ok"
+     },
+     {
+      "cite": "§1985:VI.6.3.2.3 p4",
+      "quote": "the pair 'NOT NOT' is not permissible",
+      "check": "OK  §1985:VI.6.3.2.3 p4  (║6.3.2.3 Precedence of Logical Operators and the Use of Parentheses║)  the text is in the clause"
+     }
+    ],
+    "reason": "Table 1 row 3 (NOT: may be first, never last; preceded only by OR, AND, (; followed only by simple-condition, (). 2023's Table 5 (uncataloged, §2023:8.8.4.11.3) adds EXCLUSIVE-OR/XOR to every row; the candidates (SR-14.9.25.3-10 is the MOVE validity table, GR-7.3.8.3-1 constant conditions, format rows) state nothing of this table and have no 85 case for it. The permitted pairs run in c1-logic / t1-control; the forbidden pair is refused, and the control with only that line changed is accepted.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r3-not-not.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r3-not-not.cob refused (IF NOT NOT X = 1: NOT followed by NOT; run E:/COBOL-coord/scratch/pb5453/runs/t1-r3-not-not-001: COBOL0001 unexpected 'NOT'), control E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: t1-r3-not-not.cob with control t1-control.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.2.3-T1.4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus, conditional expressions: (: may be first, never last; preceded only by OR, NOT, AND, (; followed only by simple-condition, NOT, ("
+    ],
+    "evidence-1985": {
+     "permitted pairs accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T) and E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)",
+     "forbidden pair refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r4-paren-then-and.cob refused (IF ( AND X = 1 ): ( followed by AND; run E:/COBOL-coord/scratch/pb5453/runs/t1-r4-paren-then-and-001: COBOL0001 cannot parse construct near 'AND'), control E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.2.3 Table 1 row 4",
+      "quote": "",
+      "check": "OK  §1985:VI.6.3.2.3 Table 1 row 4 (structure only) ok"
+     },
+     {
+      "cite": "§1985:VI.6.3.2.3 p4",
+      "quote": "the pair 'NOT NOT' is not permissible",
+      "check": "OK  §1985:VI.6.3.2.3 p4  (║6.3.2.3 Precedence of Logical Operators and the Use of Parentheses║)  the text is in the clause"
+     }
+    ],
+    "reason": "Table 1 row 4 ((: may be first, never last; preceded only by OR, NOT, AND, (; followed only by simple-condition, NOT, (). 2023's Table 5 (uncataloged, §2023:8.8.4.11.3) adds EXCLUSIVE-OR/XOR to every row; the candidates (SR-14.9.25.3-10 is the MOVE validity table, GR-7.3.8.3-1 constant conditions, format rows) state nothing of this table and have no 85 case for it. The permitted pairs run in c1-logic / t1-control; the forbidden pair is refused, and the control with only that line changed is accepted.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r4-paren-then-and.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r4-paren-then-and.cob refused (IF ( AND X = 1 ): ( followed by AND; run E:/COBOL-coord/scratch/pb5453/runs/t1-r4-paren-then-and-001: COBOL0001 cannot parse construct near 'AND'), control E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: t1-r4-paren-then-and.cob with control t1-control.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.2.3-T1.5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus, conditional expressions: ): never first, may be last; preceded only by simple-condition, ); followed only by OR, AND, )"
+    ],
+    "evidence-1985": {
+     "permitted pairs accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T) and E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)",
+     "forbidden pair refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r5-paren-then-paren.cob refused (IF (X = 1) (Y = 1): ) followed by (; run E:/COBOL-coord/scratch/pb5453/runs/t1-r5-paren-then-paren-001: COBOL0001 unexpected '('), control E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.2.3 Table 1 row 5",
+      "quote": "",
+      "check": "OK  §1985:VI.6.3.2.3 Table 1 row 5 (structure only) ok"
+     },
+     {
+      "cite": "§1985:VI.6.3.2.3 p4",
+      "quote": "the pair 'NOT NOT' is not permissible",
+      "check": "OK  §1985:VI.6.3.2.3 p4  (║6.3.2.3 Precedence of Logical Operators and the Use of Parentheses║)  the text is in the clause"
+     }
+    ],
+    "reason": "Table 1 row 5 (): never first, may be last; preceded only by simple-condition, ); followed only by OR, AND, )). 2023's Table 5 (uncataloged, §2023:8.8.4.11.3) adds EXCLUSIVE-OR/XOR to every row; the candidates (SR-14.9.25.3-10 is the MOVE validity table, GR-7.3.8.3-1 constant conditions, format rows) state nothing of this table and have no 85 case for it. The permitted pairs run in c1-logic / t1-control; the forbidden pair is refused, and the control with only that line changed is accepted.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r5-paren-then-paren.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-r5-paren-then-paren.cob refused (IF (X = 1) (Y = 1): ) followed by (; run E:/COBOL-coord/scratch/pb5453/runs/t1-r5-paren-then-paren-001: COBOL0001 unexpected '('), control E:/COBOL-coord/scratch/pb5453/probes/s-11/t1-control.cob prints OK (run E:/COBOL-coord/scratch/pb5453/runs/t1-control-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: t1-r5-paren-then-paren.cob with control t1-control.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: abbreviation allowed in a consecutive sequence of simple or negated simple relation conditions sharing subject (and operator)",
+     "no parentheses within the sequence",
+     "any relation condition except the first may be abbreviated"
+    ],
+    "evidence-1985": {
+     "abbreviated sequences accepted and expanded": "covered by conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390_abbreviated_tail_and_or (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/pb1390_abbreviated_tail_and_or-001) and conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_f11_02 (accept 85) and E:/COBOL-coord/scratch/pb5453/probes/s-11/c2-abbrev-examples.cob (run E:/COBOL-coord/scratch/pb5453/runs/c2-abbrev-examples-002: X1 00  X2 00  X3 00  X4 00  X5 00)",
+     "negated simple relation in the sequence": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c2-abbrev-examples.cob (run E:/COBOL-coord/scratch/pb5453/runs/c2-abbrev-examples-002: X1 00  X2 00  X3 00  X4 00  X5 00) (X3: NOT a = b OR c)",
+     "parentheses around (not within) the sequence": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c2-abbrev-examples.cob (run E:/COBOL-coord/scratch/pb5453/runs/c2-abbrev-examples-002: X1 00  X2 00  X3 00  X4 00  X5 00) (X4, X5)",
+     "first relation never abbreviated": "not shown (a leading bare object is not a relation condition at all)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.3 p1",
+      "quote": "any relation condition except the first may be abbreviated by",
+      "check": "OK  §1985:VI.6.3.3 p1  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in p1"
+     },
+     {
+      "cite": "§2023:8.8.4.12.1 SR2",
+      "quote": "The omission of the subject and relational operator of the relation condition",
+      "check": "OK  §2023:8.8.4.12.1 SR2  (General)  the text is in SR2"
+     }
+    ],
+    "reason": "'any relation condition except the first may be abbreviated by:' (the lead of SR1/SR2). The 2023 text is word-identical but lives in uncataloged §2023:8.8.4.12.1 prose; the cataloged SR-8.8.4.12.1-1/-2 state only the items, so no cataloged rule states the lead's conditions. The compiler accepts and expands the forms at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/c2-abbrev-examples.cob",
+    "compiler-at-1985": "correct: conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390_abbreviated_tail_and_or (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/pb1390_abbreviated_tail_and_or-001); E:/COBOL-coord/scratch/pb5453/probes/s-11/c2-abbrev-examples.cob (run E:/COBOL-coord/scratch/pb5453/runs/c2-abbrev-examples-002: X1 00  X2 00  X3 00  X4 00  X5 00)",
+    "class": "other: the identical 2023 lead (§2023:8.8.4.12.1 prose) is uncataloged; SR-8.8.4.12.1-1/-2 carry only its two items",
+    "needs": "needs-own-witness: pb1390_abbreviated_tail_and_or / c2-abbrev-examples.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.3-2",
+    "to": [
+     "SR-8.8.4.12.1-2",
+     "FMT-8.8.4.12.2"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "Nucleus: omission of subject and relational operator of a relation condition (item 2 of the lead)",
+     "format: relation-condition {AND|OR} [NOT] [relational-operator] object ..."
+    ],
+    "evidence-1985": {
+     "subject and operator omitted (bare object)": "covered by conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390_abbreviated_tail_and_or (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/pb1390_abbreviated_tail_and_or-001) (E1 '... AND D'), conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_f11_02 (accept 85)",
+     "[NOT] object and [NOT] relational-operator object forms": "covered by conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390_abbreviated_tail_and_or (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/pb1390_abbreviated_tail_and_or-001) (E2 'AND NOT D', E4 'AND NOT < c OR d')"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.3 SR2",
+      "quote": "The omission of the subject and relational operator of the relation condition",
+      "check": "OK  §1985:VI.6.3.3 SR2  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in SR2"
+     },
+     {
+      "cite": "§2023:8.8.4.12.1 SR2",
+      "quote": "The omission of the subject and relational operator of the relation condition",
+      "check": "OK  §2023:8.8.4.12.1 SR2  (General)  the text is in SR2"
+     },
+     {
+      "cite": "§2023:8.8.4.12.2",
+      "quote": "",
+      "check": "OK  §2023:8.8.4.12.2 (structure only) ok"
+     }
+    ],
+    "reason": "What is left after the split is item (2) 'The omission of the subject and relational operator of the relation condition.' and the format box. SR-8.8.4.12.1-2 states item (2) word for word; FMT-8.8.4.12.2 is the same format (AND/OR, optional NOT, optional operator, object, repeated) plus 2023's XOR. Both pointers' at-85 case pb1390_abbreviated_tail_and_or (accept: [85]) runs bare objects after AND/OR, NOT before a bare object and NOT before an operator, matching the expansion on all 81 tuples (rerun on the mint build matches its .out).",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390_abbreviated_tail_and_or (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/pb1390_abbreviated_tail_and_or-001)",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.3-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: both abbreviation forms may be used in one sequence",
+     "effect: last stated subject and last stated relational operator are inserted",
+     "result of the insertion must comply with Table 1",
+     "insertion terminates at a complete simple condition"
+    ],
+    "evidence-1985": {
+     "both forms in one sequence": "covered by conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_f11_02 (accept 85) (T3) and conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390_abbreviated_tail_and_or (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/pb1390_abbreviated_tail_and_or-001)",
+     "insertion of last stated subject/operator": "covered by conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390_abbreviated_tail_and_or (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/pb1390_abbreviated_tail_and_or-001) and conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_f11_02 (accept 85) (T3, T5)",
+     "result must comply with Table 1": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c3-insert-not-not.cob refused (run E:/COBOL-coord/scratch/pb5453/runs/c3-insert-not-not-002: COBOL5506 near '2'), control E:/COBOL-coord/scratch/pb5453/probes/s-11/c3-insert-control.cob prints T (run E:/COBOL-coord/scratch/pb5453/runs/c3-insert-control-001)",
+     "termination at a complete simple condition": "covered by conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390_abbreviated_tail_and_or (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/pb1390_abbreviated_tail_and_or-001) (E3) and conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_f11_02 (accept 85) (T4)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.3 p3",
+      "quote": "This insertion of an omitted subject and/or relational operator terminates once a complete simple condition is encountered",
+      "check": "OK  §1985:VI.6.3.3 p3  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in p3"
+     },
+     {
+      "cite": "§1985:VI.6.3.3 GRL2.2",
+      "quote": "The NOT is interpreted as a logical operator",
+      "check": "OK  §1985:VI.6.3.3 GRL2.2  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in GRL2.2"
+     },
+     {
+      "cite": "§2023:8.8.4.12.4 GR1",
+      "quote": "The effect of using abbreviations is as if the last preceding stated subject were inserted",
+      "check": "OK  §2023:8.8.4.12.4 GR1  (General rule)  the text is in GR1"
+     }
+    ],
+    "reason": "The paragraph's four statements are split in 2023 across SR-8.8.4.12.1-2 ('both forms of omission may be used'), GR-8.8.4.12.4-1 (effect and termination) and SR-8.8.4.12.3-2 ('The result of implied insertion shall comply with the rules of Table 5'); SR-8.8.4.12.3-2 has no 85 case in its at-85 lists, so not every pointer is witnessed at 85. The compiler shows all four at 85: pb1390/g85_f11_02 for insertion and termination, c3 for Table 1 compliance (AND NOT NOT 2 refused, AND NOT 2 accepted and true).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/c3-insert-not-not.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/c3-insert-not-not.cob refused (run E:/COBOL-coord/scratch/pb5453/runs/c3-insert-not-not-002: COBOL5506 near '2'), control E:/COBOL-coord/scratch/pb5453/probes/s-11/c3-insert-control.cob prints T (run E:/COBOL-coord/scratch/pb5453/runs/c3-insert-control-001); conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390_abbreviated_tail_and_or (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/pb1390_abbreviated_tail_and_or-001)",
+    "class": "split-rule",
+    "needs": "needs-own-witness: c3-insert-not-not.cob + control, with pb1390 / g85_f11_02",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.3-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: the five printed abbreviated/negated combined relation conditions and their expanded equivalents"
+    ],
+    "evidence-1985": {
+     "a > b AND NOT < c OR d": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c2-abbrev-examples.cob (run E:/COBOL-coord/scratch/pb5453/runs/c2-abbrev-examples-002: X1 00  X2 00  X3 00  X4 00  X5 00) (X1)",
+     "a NOT EQUAL b OR c": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c2-abbrev-examples.cob (run E:/COBOL-coord/scratch/pb5453/runs/c2-abbrev-examples-002: X1 00  X2 00  X3 00  X4 00  X5 00) (X2)",
+     "NOT a = b OR c": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c2-abbrev-examples.cob (run E:/COBOL-coord/scratch/pb5453/runs/c2-abbrev-examples-002: X1 00  X2 00  X3 00  X4 00  X5 00) (X3)",
+     "NOT (a GREATER b OR < c)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c2-abbrev-examples.cob (run E:/COBOL-coord/scratch/pb5453/runs/c2-abbrev-examples-002: X1 00  X2 00  X3 00  X4 00  X5 00) (X4)",
+     "NOT (a NOT > b AND c AND NOT d)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c2-abbrev-examples.cob (run E:/COBOL-coord/scratch/pb5453/runs/c2-abbrev-examples-002: X1 00  X2 00  X3 00  X4 00  X5 00) (X5)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.3 p5",
+      "quote": "Some examples of abbreviated combined and negated combined relation conditions and expanded equivalents follow",
+      "check": "OK  §1985:VI.6.3.3 p5  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in p5"
+     },
+     {
+      "cite": "§2023:8.8.4.12.4 GR1",
+      "quote": "The effect of using abbreviations is as if the last preceding stated subject were inserted",
+      "check": "OK  §2023:8.8.4.12.4 GR1  (General rule)  the text is in GR1"
+     }
+    ],
+    "reason": "'Some examples of abbreviated combined and negated combined relation conditions and expanded equivalents follow.' The examples are testable equivalences; c2-abbrev-examples compares each abbreviated form with its printed expansion over 81 tuples and finds 00 disagreements on all five.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/c2-abbrev-examples.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/c2-abbrev-examples.cob (run E:/COBOL-coord/scratch/pb5453/runs/c2-abbrev-examples-002: X1 00  X2 00  X3 00  X4 00  X5 00)",
+    "class": "other: the five examples are shown by a program (the catalog flags the intro definitional); GR-8.8.4.12.4-1's NOTE prints the same examples but its 85 case pb1390 runs only two of them",
+    "needs": "needs-own-witness: c2-abbrev-examples.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: explicit and implicit parentheses denote levels of inclusiveness",
+     "AND-only or OR-only runs form a hierarchical level",
+     "evaluation begins at the left of the whole condition and applies rules (1)-(2) recursively"
+    ],
+    "evidence-1985": {
+     "left-to-right evaluation within a level": "covered by conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_bf15_02 (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/g85_bf15_02-001) (L4)",
+     "an inner parenthesized level ends early inside an outer level": "covered by conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_bf15_02 (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/g85_bf15_02-001) (L7)",
+     "implicit levels from precedence": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/c1-logic.cob (run E:/COBOL-coord/scratch/pb5453/runs/c1-logic-001: AND FFFT  OR FTTT  NOT TF  PNOT TF  NOTP TF / PREC FTFFTTTT  PAREN FTFFFTFT  EQV 00 / COMB TFFT  NEST T) (PREC)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.4 p1",
+      "quote": "the evaluation of the conditions within an entire complex condition begins at the left",
+      "check": "OK  §1985:VI.6.3.4 p1  (║6.3.4 Order of Evaluation of Conditions║)  the text is in p1"
+     },
+     {
+      "cite": "§1985:VI.6.3.4 GR1",
+      "quote": "evaluated in order from left to right",
+      "check": "OK  §1985:VI.6.3.4 GR1  (║6.3.4 Order of Evaluation of Conditions║)  the text is in GR1"
+     }
+    ],
+    "reason": "'the evaluation of the conditions within an entire complex condition begins at the left of the entire complex condition and proceeds according to the following rule recursively applied'. The 2023 lead is uncataloged prose; GR-8.8.4.13-1 is not witnessed at 85 per the view. g85_bf15_02 (accept 85) observes the evaluation order through FUNCTION RANDOM seeds.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_bf15_02 (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/g85_bf15_02-001)",
+    "class": "other: GR-8.8.4.13-1 states rule (1) but not this lead, and has no 85 case in its at-85 lists",
+    "needs": "needs-own-witness: cite g85_bf15_02 (and c1-logic) as the row's test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.4-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus + Intrinsic Functions (Amendment 1 'and functions'): arithmetic expressions and functions get values only if and when their condition is evaluated",
+     "negated conditions evaluated only when needed"
+    ],
+    "evidence-1985": {
+     "a skipped arithmetic expression/function is not evaluated": "covered by conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_bf15_02 (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/g85_bf15_02-001) (L1)",
+     "a needed one is evaluated": "covered by conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_bf15_02 (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/g85_bf15_02-001) (L3)",
+     "negated condition skipped / evaluated": "covered by conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_bf15_02 (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/g85_bf15_02-001) (L5, L6)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.4 GR2",
+      "quote": "Values are established for arithmetic expressions and functions if and when the conditions containing them are evaluated",
+      "check": "OK  §1985:VI.6.3.4 GR2  (║6.3.4 Order of Evaluation of Conditions║)  the text is in GR2"
+     }
+    ],
+    "reason": "Left after the split: 'Values are established for arithmetic expressions and functions if and when the conditions containing them are evaluated. Similarly, negated conditions are evaluated if and when it is necessary' (the figures folded into the row are not its words: see leads). GR-8.8.4.13-2 is identical but its at-85 lists are empty, so it cannot be the 85 pointer. g85_bf15_02 (accept 85) shows it; its rerun on the mint build matches its .out.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_bf15_02 (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/g85_bf15_02-001)",
+    "class": "other: the pointer GR-8.8.4.13-2 states the rule word for word but has no case in its at-85 lists",
+    "needs": "needs-own-witness: g85_bf15_02 as the row's own test (its record-before-mint test-ref)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.4-p2",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "the standard's own presentation: figures 1-4 illustrate VI.6.3.4 and do not dictate implementation"
+    ],
+    "evidence-1985": {
+     "presentation statement": "not shown (no program can show what a figure does or does not dictate)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.4 p2",
+      "quote": "These figures are not intended to dictate implementation",
+      "check": "OK  §1985:VI.6.3.4 p2  (║6.3.4 Order of Evaluation of Conditions║)  the text is in p2"
+     }
+    ],
+    "reason": "'Application of the above rules is shown in figures 1 through 4 located on the following pages. These figures are not intended to dictate implementation.' No derivation arm fits a rule about the standard's own presentation; what would settle it is a ruling on how presentation-only rows are closed.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the sentence is about the standard's figures, not about a program",
+    "class": null,
+    "needs": "a ruling for presentation-only rows; no derivation arm fits a rule about the standard's own presentation",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4-p1",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "the standard's own presentation: what paragraph 6.4 describes"
+    ],
+    "evidence-1985": {
+     "presentation statement": "not shown (no program can show it)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4 p1",
+      "quote": "provide a description of the common options and conditions",
+      "check": "OK  §1985:VI.6.4 p1  (6.4 COMMON OPTIONS AND RULES FOR STATEMENTS)  the text is in p1"
+     }
+    ],
+    "reason": "'Paragraph 6.4 and its subordinate paragraphs provide a description of the common options and conditions that pertain to or appear in several different statements.' It describes the document; no derivation arm fits a rule about the standard's own presentation. Candidates (OPTIONS paragraph, USE) are unrelated.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the sentence describes the standard's organization",
+    "class": null,
+    "needs": "a ruling for presentation-only rows; no derivation arm fits a rule about the standard's own presentation",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus arithmetic statements: excess fraction digits truncated relative to the resultant's size",
+     "ROUNDED: absolute value increased by one in the low-order position when the most significant excess digit >= 5 (positive and negative results)"
+    ],
+    "evidence-1985": {
+     "truncation positive/negative": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a1-round-trunc.cob (run E:/COBOL-coord/scratch/pb5453/runs/a1-round-trunc-001: T1  1.23 -1.23 / R1  1.24 -1.24 / R2  1.23 -1.23 / P1 12300  P2 12400  P3 12300  P4 00500) (T1)",
+     "rounding up on 5, absolute value": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a1-round-trunc.cob (run E:/COBOL-coord/scratch/pb5453/runs/a1-round-trunc-001: T1  1.23 -1.23 / R1  1.24 -1.24 / R2  1.23 -1.23 / P1 12300  P2 12400  P3 12300  P4 00500) (R1 1.24 -1.24)",
+     "no rounding on excess msd 4": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a1-round-trunc.cob (run E:/COBOL-coord/scratch/pb5453/runs/a1-round-trunc-001: T1  1.23 -1.23 / R1  1.24 -1.24 / R2  1.23 -1.23 / P1 12300  P2 12400  P3 12300  P4 00500) (R2)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4.1 p1",
+      "quote": "the absolute value of the resultant identifier is increased by one in the low-order position",
+      "check": "OK  §1985:VI.6.4.1 p1  (6.4.1 The ROUNDED Phrase)  the text is in p1"
+     }
+    ],
+    "reason": "'When rounding is requested, the absolute value of the resultant identifier is increased by one in the low-order position whenever the most significant digit of the excess is greater than or equal to five.' 2023 expresses this as the NEAREST-AWAY-FROM-ZERO and TRUNCATION modes (GR-14.7.4.3-4, -10) of a ROUNDED MODE facility, with no case in their at-85 lists. a1 shows 1.2389 -> 1.23, -1.2389 -> -1.23, 1.235 ROUNDED -> 1.24, -1.235 ROUNDED -> -1.24, 1.2349 ROUNDED -> 1.23.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/a1-round-trunc.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/a1-round-trunc.cob (run E:/COBOL-coord/scratch/pb5453/runs/a1-round-trunc-001: T1  1.23 -1.23 / R1  1.24 -1.24 / R2  1.23 -1.23 / P1 12300  P2 12400  P3 12300  P4 00500)",
+    "class": "own-text",
+    "needs": "needs-own-witness: a1-round-trunc.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: a resultant whose low-order integer positions are P: rounding or truncation at the rightmost allocated integer position"
+    ],
+    "evidence-1985": {
+     "truncation with PIC 999PP": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a1-round-trunc.cob (run E:/COBOL-coord/scratch/pb5453/runs/a1-round-trunc-001: T1  1.23 -1.23 / R1  1.24 -1.24 / R2  1.23 -1.23 / P1 12300  P2 12400  P3 12300  P4 00500) (P1 12399 -> 12300)",
+     "rounding with PIC 999PP": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a1-round-trunc.cob (run E:/COBOL-coord/scratch/pb5453/runs/a1-round-trunc-001: T1  1.23 -1.23 / R1  1.24 -1.24 / R2  1.23 -1.23 / P1 12300  P2 12400  P3 12300  P4 00500) (P2 12350 -> 12400, P3 12349 -> 12300, P4 450 -> 500)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4.1 p2",
+      "quote": "rounding or truncation occurs relative to the rightmost integer position for which storage is allocated",
+      "check": "OK  §1985:VI.6.4.1 p2  (6.4.1 The ROUNDED Phrase)  the text is in p2"
+     }
+    ],
+    "reason": "'rounding or truncation occurs relative to the rightmost integer position for which storage is allocated.' The candidates (GR-14.7.4.3-8/-9/-10, rounding modes) state no P-scaling rule and have no 85 case. a1 stores into PIC 999PP and shows truncation and rounding at the hundreds position.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/a1-round-trunc.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/a1-round-trunc.cob (run E:/COBOL-coord/scratch/pb5453/runs/a1-round-trunc-001: T1  1.23 -1.23 / R1  1.24 -1.24 / R2  1.23 -1.23 / P1 12300  P2 12400  P3 12300  P4 00500)",
+    "class": "own-text",
+    "needs": "needs-own-witness: a1-round-trunc.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4.2-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: size error when the absolute value of a result exceeds the resultant's largest value",
+     "USAGE BINARY: largest value is the one its decimal PICTURE implies",
+     "ROUNDED is applied before the size error check"
+    ],
+    "evidence-1985": {
+     "absolute value over the PICTURE": "covered by conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_2-3 (accept 85; rerun on the mint build matches .out: E:/COBOL-coord/scratch/pb5453/runs/1985-GR-VI_6_4_2-3-001) (leg 1) and E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP) (L1, L8)",
+     "BINARY limited by PICTURE (50 + 60 in PIC 99 BINARY)": "covered by conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_2-3 (accept 85; rerun on the mint build matches .out: E:/COBOL-coord/scratch/pb5453/runs/1985-GR-VI_6_4_2-3-001) (leg 2)",
+     "ROUNDED before check (99 + 0.6 ROUNDED)": "covered by conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_2-3 (accept 85; rerun on the mint build matches .out: E:/COBOL-coord/scratch/pb5453/runs/1985-GR-VI_6_4_2-3-001) (leg 3)",
+     "a negative result is judged by its absolute value": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP) (L6: 1 - 1 no error; L8 SUBTRACT 100 FROM 0 errs)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4.2 GR3",
+      "quote": "the largest value that can be contained in the resultant identifier is the maximum value implied by the associated decimal PICTURE character-string",
+      "check": "OK  §1985:VI.6.4.2 GR3  (6.4.2 The ON SIZE ERROR Phrase)  the text is in GR3"
+     }
+    ],
+    "reason": "Left after the split: 'If, after radix point alignment, the absolute value of a result exceeds the largest value ... In the case where the USAGE IS BINARY clause is specified ... the maximum value implied by the associated decimal PICTURE character-string. If the ROUNDED phrase is specified, rounding takes place before checking for size error.' 2023's GR-14.7.5-3 states the general case with no 85 case and nothing of BINARY-by-PICTURE. The 85 suite case 1985-GR-VI_6_4_2-3 covers all three statements and still matches its .out on the mint build.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_2-3 (accept 85; rerun on the mint build matches .out: E:/COBOL-coord/scratch/pb5453/runs/1985-GR-VI_6_4_2-3-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: 1985-GR-VI_6_4_2-3 (record-before-mint test) as the row's test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: with ON SIZE ERROR, affected resultants unchanged",
+     "unaffected resultants stored as if no size error",
+     "control to the ON SIZE ERROR imperative after the operations",
+     "explicit transfer inside it is obeyed",
+     "otherwise control to the end; NOT ON SIZE ERROR ignored"
+    ],
+    "evidence-1985": {
+     "affected unchanged, unaffected stored": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP) (L1 A=98 B=15) and conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_2-3 (accept 85; rerun on the mint build matches .out: E:/COBOL-coord/scratch/pb5453/runs/1985-GR-VI_6_4_2-3-001) (leg 1)",
+     "handler runs": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP) (L1, L7, L8)",
+     "GO TO in the handler obeyed": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP) (L2)",
+     "NOT ON SIZE ERROR ignored": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP) (L1, L7: no WRONG line)",
+     "zero divisor cases": "covered by conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/g85_bf14_02 (accept 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4.2 p2",
+      "quote": "the values of the affected resultant identifiers remain unchanged from the values they had before execution of the arithmetic statement",
+      "check": "OK  §1985:VI.6.4.2 p2  (6.4.2 The ON SIZE ERROR Phrase)  the text is in p2"
+     }
+    ],
+    "reason": "'the values of the affected resultant identifiers remain unchanged ... The values of resultant identifiers for which no size error condition exists are the same as they would have been ... If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement'. 2023 states it in GR-14.7.5-L2.2/L2.3 (no 85 case); GR-14.7.7-4, the one candidate with 85 cases, states the storing order, not the control transfer. a2 shows every clause at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP)",
+    "class": "own-text",
+    "needs": "needs-own-witness: a2-size-error-control.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: without ON SIZE ERROR, affected resultants undefined (never shown)",
+     "unaffected resultants stored",
+     "control to the end of the statement",
+     "NOT ON SIZE ERROR, if specified, ignored"
+    ],
+    "evidence-1985": {
+     "unaffected stored, control to the end": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP) (L3 END B=20) and conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/pb5484_no_phrase_size_error_continues (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/pb5484_no_phrase_size_error_continues-001)",
+     "NOT ON SIZE ERROR alone ignored on error": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP) (L3: no WRONG line)",
+     "run continues after the size error (not fatal)": "covered by conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/pb5484_no_phrase_size_error_continues (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/pb5484_no_phrase_size_error_continues-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4.2 p3",
+      "quote": "the values of the affected resultant identifiers are undefined",
+      "check": "OK  §1985:VI.6.4.2 p3  (6.4.2 The ON SIZE ERROR Phrase)  the text is in p3"
+     }
+    ],
+    "reason": "'If the ON SIZE ERROR phrase is not specified ... the values of the affected resultant identifiers are undefined ... control is transferred to the end of the arithmetic statement and the NOT ON SIZE ERROR phrase, if specified, is ignored.' 2023 sets an EC-SIZE exception instead (GR-14.7.5-L2.3/L3.x), with no 85 case among the candidates. a2 L3 and pb5484 show the 1985 continuation.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP); conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/pb5484_no_phrase_size_error_continues (accept 85; rerun matches .out: E:/COBOL-coord/scratch/pb5453/runs/pb5484_no_phrase_size_error_continues-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: a2-size-error-control.cob with pb5484",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4.2-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: no size error: ON SIZE ERROR ignored",
+     "control to NOT ON SIZE ERROR imperative if specified, else to the end",
+     "explicit transfer inside NOT ON SIZE ERROR obeyed",
+     "otherwise control to the end after it"
+    ],
+    "evidence-1985": {
+     "ON SIZE ERROR ignored, NOT ON SIZE ERROR runs": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP) (L4 NOSE A=99) and conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_2-3 (accept 85; rerun on the mint build matches .out: E:/COBOL-coord/scratch/pb5453/runs/1985-GR-VI_6_4_2-3-001) (leg 4)",
+     "GO TO in NOT ON SIZE ERROR obeyed": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP) (L5)",
+     "no NOT phrase: control to the end": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP) (L6)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4.2 p4",
+      "quote": "the ON SIZE ERROR phrase, if specified, is ignored",
+      "check": "OK  §1985:VI.6.4.2 p4  (6.4.2 The ON SIZE ERROR Phrase)  the text is in p4"
+     }
+    ],
+    "reason": "'the ON SIZE ERROR phrase, if specified, is ignored and control is transferred to the end of the arithmetic statement or to the imperative-statement specified in the NOT ON SIZE ERROR phrase if it is specified.' 2023 states it inside GR-14.7.5-L3.5 (no 85 case); GR-14.7.7-4 does not state it. a2 L4-L6 show it at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP)",
+    "class": "own-text",
+    "needs": "needs-own-witness: a2-size-error-control.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4.2-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: ADD CORRESPONDING and SUBTRACT CORRESPONDING: ON SIZE ERROR imperative runs only after all individual operations"
+    ],
+    "evidence-1985": {
+     "ADD CORRESPONDING": "covered by conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_2-3 (accept 85; rerun on the mint build matches .out: E:/COBOL-coord/scratch/pb5453/runs/1985-GR-VI_6_4_2-3-001) (leg 5: the handler sees Y OF G2 = 30, already added)",
+     "SUBTRACT CORRESPONDING": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP) (L7 SE X=10 Y=05: X kept, Y already subtracted when the handler runs)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4.2 p5",
+      "quote": "imperative-statement-1 in the ON SIZE ERROR phrase is not executed until all of the individual additions or subtractions are completed",
+      "check": "OK  §1985:VI.6.4.2 p5  (6.4.2 The ON SIZE ERROR Phrase)  the text is in p5"
+     }
+    ],
+    "reason": "'imperative-statement-1 in the ON SIZE ERROR phrase is not executed until all of the individual additions or subtractions are completed.' 2023 states it in GR-14.7.6-6 for every arithmetic CORRESPONDING, with no 85 case; GR-14.7.7-4 does not state it. The 85 suite case and a2 L7 show the handler running after the later pair was stored.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP); conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_2-3 (accept 85; rerun on the mint build matches .out: E:/COBOL-coord/scratch/pb5453/runs/1985-GR-VI_6_4_2-3-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: a2-size-error-control.cob with 1985-GR-VI_6_4_2-3",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: ADD, COMPUTE, DIVIDE, MULTIPLY, SUBTRACT are the arithmetic statements (so the 6.4 common rules, e.g. ON SIZE ERROR, apply to each)",
+     "the catalog flags it definitional, but a program can show each statement taking the common phrase"
+    ],
+    "evidence-1985": {
+     "each of the five takes ON SIZE ERROR and raises it": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP) (L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4.4 p1",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK  §1985:VI.6.4.4 p1  (6.4.4 The Arithmetic Statements)  the text is in p1"
+     },
+     {
+      "cite": "§2023:14.7.7",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK  §2023:14.7.7  (Arithmetic statements)  the text is in the clause (unnumbered prose, pending)"
+     }
+    ],
+    "reason": "'The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements. They have several common features.' The word-identical 2023 text is uncataloged prose, so no pointer states it; a2 L8 shows all five as arithmetic statements under the common SIZE ERROR rules at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11/a2-size-error-control.cob (run E:/COBOL-coord/scratch/pb5453/runs/a2-size-error-control-002: L1 SE A=98 B=15 / L2 GOTO-SE / L3 END B=20 / L4 NOSE A=99 / L5 GOTO-NOSE / L6 END A=00 / L7 SE X=10 Y=05 / L8 SE-ADD SE-SUB SE-MUL SE-DIV SE-CMP)",
+    "class": "other: the identical 2023 sentence (§2023:14.7.7 prose) is uncataloged; GR-14.7.7-1/-4 and GR-14.7.6-3 state other common features",
+    "needs": "needs-own-witness: a2-size-error-control.cob",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "tooling",
+    "row": "1985-SR-VI.6.3.2-p3",
+    "what": "golden pb5924-logop-space-required-85 expects 'The logical operator' but the compiler's COBOL7672 message reads 'the logical operator ...' (lowercase); run_goldens marks a correct refusal FAIL. Fix the expect (lowercase, or the code COBOL7672).",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/run_goldens.py s-11 (run E:/COBOL-coord/scratch/pb5453/runs/pb5924-logop-space-required-85-001/stdout.txt)",
+    "site": "E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-logop-space-required-85.expect"
+   },
+   {
+    "kind": "segmentation",
+    "row": "1985-GR-VI.6.3.4-2",
+    "what": "the row's text carries the VI.6.3.4 figures (the AND/OR hierarchical-level flowcharts, Figure 2-4 captions, a mermaid block) after GR2's two sentences; they are the figures p2 introduces, not GR2's words. The captions also sit out of order against their drawings, and no Figure 1 caption appears.",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py 1985-GR-VI.6.3.4-2",
+    "site": "docs/rearchitecture/spec-rule-catalog-1985.json#1985-GR-VI.6.3.4-2; specs/ANSI_COBOL_1985.md pages 294-297"
+   },
+   {
+    "kind": "defect",
+    "row": "1985-GR-VI.6.3.3-p3",
+    "what": "after the correct refusal COBOL5506 of 'IF A = 1 AND NOT NOT 2', a cascade COBOL7672 reports \"the relational operator 'END-IF' is not immediately followed by a separator space\" on 'END-IF.' (line 19): END-IF is not a relational operator and a period is a separator. A spurious second diagnostic.",
+    "repro": "python E:/COBOL/scripts/orchestrator/run_probe.py --root E:/COBOL-coord/scratch/pb5453/runs --std 85 --exe <mint cobol.exe> E:/COBOL-coord/scratch/pb5453/probes/s-11/c3-insert-not-not.cob (run E:/COBOL-coord/scratch/pb5453/runs/c3-insert-not-not-002)",
+    "site": "the COBOL7672 relational-operator spacing check (member not located)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-11",
+  "cases": [
+   {
+    "rule-id": "1985-SR-VI.6.3.3-2",
+    "verdict": "OVERTURNED",
+    "reason": "Item (2) itself is stated word for word by SR-8.8.4.12.1-2 and witnessed at 85 by pb1390_abbreviated_tail_and_or, but this row also carries the 1985 format box, whose connective is only AND or OR. The second pointer FMT-8.8.4.12.2 states a wider format: its connective list adds EXCLUSIVE-OR and XOR. That is a 1985 restriction 2023 lifted, so at 85 the compiler must REFUSE an abbreviated tail after XOR where the 2023 row's verdict ACCEPTS it. The pointer's only 85 case, pb1390_abbreviated_tail_and_or, is an accepted program and shows nothing of the refusal; the XOR case pb1390_abbreviated_tail_xor is accept [2023], free form, no 85 witness. Copying FMT-8.8.4.12.2's CONFORMS onto the 1985 row would assert a 2023 format at 85. The row needs its own witness: the accepted pb1390 case plus a refusal probe of XOR with a control (both written and run).",
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.3 SR2",
+      "quote": "The format for an abbreviated combined relation condition is",
+      "check": "OK  §1985:VI.6.3.3 SR2  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in SR2"
+     },
+     {
+      "cite": "§1985:VI.6.3.3 SR2",
+      "quote": "The omission of the subject and relational operator",
+      "check": "OK  §1985:VI.6.3.3 SR2  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in SR2"
+     },
+     {
+      "cite": "§2023:8.8.4.12.2",
+      "quote": "AND, OR, EXCLUSIVE-OR, XOR, and NOT are underlined in the printed standard",
+      "check": "OK  §2023:8.8.4.12.2  (General format)  the text is in the clause"
+     }
+    ],
+    "class": "other: the 2023 format pointer adds the EXCLUSIVE-OR/XOR connective the 1985 format excludes; 85 must refuse it and no 85 case of the pointer shows that",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11-refute/xor85.cob (control ctl85.cob)",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11-refute/xor85.cob refused at 85 (EXIT 65, COBOL0900 'the logical XOR/EXCLUSIVE-OR operator requires COBOL-2023'); control ctl85.cob (OR in place of XOR) accepted and ran (runs/ctl85-001); item (2) itself correct per pb1390_abbreviated_tail_and_or at 85"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "84883e1808779283f771832e5f4f8e2b74e9cb43e5d4e1ad2bb438f547c5354b",
+  "read": "8b2f29b801e13ad2c2582559c44d7e05d4ced72686456c3ec9ddcbf77efdba43",
+  "refute": "a43c78f0197f7b7ea8e7f16f77cde0f737abf7572ad6e6d768cfc766facdf09b"
+ }
+}

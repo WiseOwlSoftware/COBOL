@@ -187,12 +187,19 @@ def wrapped(text: str) -> list[str]:
     return lines + ([COMMENT + line] if line else [])
 
 
-def render(w: Witness, row: dict[str, Any], spelling: str, code: str | None) -> str:
-    """The test's text: its metadata block (README, "A test"), the comment naming the rule and why each leg can fail, then
-    the draft's program."""
+def draft_key(draft: dict[str, Any]) -> str:
+    """The identity of a draft: two records whose drafts are equal witness their rules with ONE program, so they are
+    placed as one case (`place`)."""
+    return json.dumps(draft, sort_keys=True, ensure_ascii=False)
+
+
+def render(w: Witness, row: dict[str, Any], spelling: str, code: str | None, also: list[dict[str, Any]] = ()) -> str:
+    """The test's text: its metadata block (README, "A test"), the comment naming the rule (and each further rule `also`
+    the same draft witnesses) and why each leg can fail, then the draft's program."""
     accepted = w.draft["expected"]["outcome"] == "output"
     files = sorted(w.draft.get("files", {}))
-    header = [f"id: {test_id(w.rule_id)}", f"rules: [{w.rule_id}]", *([f"accept: [{spelling}]"] if accepted else []),
+    rules = ", ".join([w.rule_id, *(r["rule-id"] for r in also)])
+    header = [f"id: {test_id(w.rule_id)}", f"rules: [{rules}]", *([f"accept: [{spelling}]"] if accepted else []),
               *([f"files: [{', '.join(files)}]"] if files else []), "source-format: fixed", "portable: unverified"]
     if accepted:
         why = (f"An output test: the program must translate and run at {spelling} and DISPLAY exactly the lines its .out "

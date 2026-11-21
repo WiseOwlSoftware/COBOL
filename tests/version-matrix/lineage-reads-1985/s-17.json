@@ -1,0 +1,1287 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-17 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-17",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-17",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-XI.3.2.1-p1",
+   "1985-GR-XII.1.1-p1",
+   "1985-GR-XII.1.2-p1",
+   "1985-GR-XII.1.2-p2",
+   "1985-GR-XIII.1.1-p1",
+   "1985-GR-XIII.1.1-p2",
+   "1985-GR-XIII.1.2.1-p2",
+   "1985-GR-XIII.1.2.2-p1",
+   "1985-GR-XIII.1.2.3-p1",
+   "1985-SR-XIII.1.2.4-p1",
+   "1985-GR-XIII.2.3.1-p1",
+   "1985-GR-XIII.2.4.1-p1",
+   "1985-GR-XIII.3.2.1-p1",
+   "1985-GR-XIII.3.3.1-p1",
+   "1985-GR-XIII.3.4.1-p1",
+   "1985-GR-XIII.3.10.2-p1",
+   "1985-GR-XIII.3.10.2-p2",
+   "1985-GR-XIII.3.10.2-p3",
+   "1985-GR-XIII.3.10.2-p4",
+   "1985-GR-XIII.3.10.2-p5",
+   "1985-GR-XIII.3.10.2-p6",
+   "1985-GR-XIII.3.10.2-p7",
+   "1985-GR-XIII.3.10.2-p8",
+   "1985-GR-XIII.3.10.2-p9",
+   "1985-GR-XIII.3.10.2-p10",
+   "1985-GR-XIII.3.10.2-p11",
+   "1985-GR-XIII.3.10.3-p1",
+   "1985-GR-XIII.3.10.3-1",
+   "1985-GR-XIII.3.10.3-2",
+   "1985-GR-XIII.3.10.3-3",
+   "1985-GR-XIII.3.10.3-p2"
+  ],
+  "pointers": {
+   "1985-GR-XI.3.2.1-p1": {
+    "candidates-2023": [
+     "SR-12.4.5.2-13",
+     "SR-13.4.6.3-2",
+     "SR-13.4.6.3-1"
+    ],
+    "nearest-2023": "SR-12.4.5.2-13",
+    "similarity": 0.57
+   },
+   "1985-GR-XII.1.1-p1": {
+    "candidates-2023": [
+     "GR-7.2.4.4-1",
+     "SR-7.2.4.3-1",
+     "GR-7.2.4.4-9"
+    ],
+    "nearest-2023": "GR-7.2.4.4-1",
+    "similarity": 0.41
+   },
+   "1985-GR-XII.1.2-p1": {
+    "candidates-2023": [
+     "GR-7.3.24.3-5",
+     "SR-7.3.3-8",
+     "GR-7.3.24.3-3"
+    ],
+    "nearest-2023": "GR-7.3.24.3-5",
+    "similarity": 0.481
+   },
+   "1985-GR-XII.1.2-p2": {
+    "candidates-2023": [
+     "SR-7.3.3-8",
+     "GR-7.2.3.4-7",
+     "GR-7.3.24.3-5"
+    ],
+    "nearest-2023": "SR-7.3.3-8",
+    "similarity": 0.469
+   },
+   "1985-GR-XIII.1.1-p1": {
+    "candidates-2023": [
+     "GR-13.4.5.4-4",
+     "FMT-13.18.46.2",
+     "SR-13.18.46.3-1"
+    ],
+    "nearest-2023": "GR-13.4.5.4-4",
+    "similarity": 0.325
+   },
+   "1985-GR-XIII.1.1-p2": {
+    "candidates-2023": [
+     "SR-13.18.54.3-4",
+     "SR-13.15.3-1",
+     "GR-14.9.49.4-9"
+    ],
+    "nearest-2023": "SR-13.18.54.3-4",
+    "similarity": 0.412
+   },
+   "1985-GR-XIII.1.2.1-p2": {
+    "candidates-2023": [
+     "GR-13.18.46.4-2",
+     "SR-14.9.49.3-10",
+     "SR-12.4.5.2-11"
+    ],
+    "nearest-2023": "GR-13.18.46.4-2",
+    "similarity": 0.509
+   },
+   "1985-GR-XIII.1.2.2-p1": {
+    "candidates-2023": [
+     "SR-8.4.2.2.3-10",
+     "SR-8.4.3.15.3-1",
+     "SR-13.15.3-16"
+    ],
+    "nearest-2023": "SR-8.4.2.2.3-10",
+    "similarity": 0.6
+   },
+   "1985-GR-XIII.1.2.3-p1": {
+    "candidates-2023": [
+     "SR-8.4.2.2.3-9",
+     "GR-8.4.3.15.4-4",
+     "SR-8.4.3.15.3-1"
+    ],
+    "nearest-2023": "SR-8.4.2.2.3-9",
+    "similarity": 0.564
+   },
+   "1985-SR-XIII.1.2.4-p1": {
+    "candidates-2023": [
+     "SR-8.4.2.3.3-8",
+     "SR-13.15.3-16",
+     "SR-8.4.3.15.3-1"
+    ],
+    "nearest-2023": "SR-8.4.2.3.3-8",
+    "similarity": 0.64
+   },
+   "1985-GR-XIII.2.3.1-p1": {
+    "candidates-2023": [
+     "SR-13.4.5.3-1",
+     "SR-12.4.5.2-11",
+     "SR-12.4.5.2-9"
+    ],
+    "nearest-2023": "SR-13.4.5.3-1",
+    "similarity": 0.518
+   },
+   "1985-GR-XIII.2.4.1-p1": {
+    "candidates-2023": [
+     "GR-12.4.6.4.4-1",
+     "FMT-12.4.6.2",
+     "GR-9.1.18.2-p1"
+    ],
+    "nearest-2023": "GR-12.4.6.4.4-1",
+    "similarity": 0.338
+   },
+   "1985-GR-XIII.3.2.1-p1": {
+    "candidates-2023": [
+     "SR-13.4.5.3-8",
+     "SR-13.4.5.3-5",
+     "SR-12.4.5.2-11"
+    ],
+    "nearest-2023": "SR-13.4.5.3-8",
+    "similarity": 0.469
+   },
+   "1985-GR-XIII.3.3.1-p1": {
+    "candidates-2023": [
+     "FMT-13.18.46.2",
+     "SR-13.18.12.3-3",
+     "SR-13.18.46.3-2"
+    ],
+    "nearest-2023": "FMT-13.18.46.2",
+    "similarity": 0.538
+   },
+   "1985-GR-XIII.3.4.1-p1": {
+    "candidates-2023": [
+     "SR-13.15.3-1",
+     "SR-13.18.54.3-4",
+     "GR-13.18.57.4-6"
+    ],
+    "nearest-2023": "SR-13.15.3-1",
+    "similarity": 0.564
+   },
+   "1985-GR-XIII.3.10.2-p1": {
+    "candidates-2023": [
+     "SR-13.18.57.3-13",
+     "SR-13.18.57.3-15",
+     "GR-13.18.57.4-6"
+    ],
+    "nearest-2023": "SR-13.18.57.3-13",
+    "similarity": 0.513
+   },
+   "1985-GR-XIII.3.10.2-p2": {
+    "candidates-2023": [
+     "GR-8.4.3.15.4-4",
+     "GR-13.18.35.4-8",
+     "GR-13.18.37.4-2"
+    ],
+    "nearest-2023": "GR-8.4.3.15.4-4",
+    "similarity": 0.297
+   },
+   "1985-GR-XIII.3.10.2-p3": {
+    "candidates-2023": [
+     "GR-13.18.41.4-1",
+     "GR-13.18.63.4-11",
+     "GR-13.18.63.4-21"
+    ],
+    "nearest-2023": "GR-13.18.41.4-1",
+    "similarity": 0.336
+   },
+   "1985-GR-XIII.3.10.2-p4": {
+    "candidates-2023": [
+     "GR-13.18.39.4-1",
+     "GR-8.5.1.12.1-2",
+     "GR-13.18.35.4-4"
+    ],
+    "nearest-2023": "GR-13.18.39.4-1",
+    "similarity": 0.315
+   },
+   "1985-GR-XIII.3.10.2-p5": {
+    "candidates-2023": [
+     "GR-13.18.57.4-8",
+     "GR-13.18.57.4-7",
+     "SR-13.18.57.3-12"
+    ],
+    "nearest-2023": "GR-13.18.57.4-8",
+    "similarity": 0.434
+   },
+   "1985-GR-XIII.3.10.2-p6": {
+    "candidates-2023": [
+     "GR-13.18.35.4-4",
+     "GR-13.18.37.4-4",
+     "SR-13.18.57.3-15"
+    ],
+    "nearest-2023": "GR-13.18.35.4-4",
+    "similarity": 0.435
+   },
+   "1985-GR-XIII.3.10.2-p7": {
+    "candidates-2023": [
+     "GR-13.18.35.4-4",
+     "GR-14.9.16.4-6",
+     "SR-13.18.57.3-15"
+    ],
+    "nearest-2023": "GR-13.18.35.4-4",
+    "similarity": 0.408
+   },
+   "1985-GR-XIII.3.10.2-p8": {
+    "candidates-2023": [
+     "GR-13.18.35.4-5",
+     "GR-13.18.35.4-1",
+     "SR-13.18.35.3-7"
+    ],
+    "nearest-2023": "GR-13.18.35.4-5",
+    "similarity": 0.465
+   },
+   "1985-GR-XIII.3.10.2-p9": {
+    "candidates-2023": [
+     "GR-13.18.35.4-5",
+     "GR-14.9.45.4-3",
+     "GR-13.18.35.4-1"
+    ],
+    "nearest-2023": "GR-13.18.35.4-5",
+    "similarity": 0.389
+   },
+   "1985-GR-XIII.3.10.2-p10": {
+    "candidates-2023": [
+     "SR-13.18.37.3-4",
+     "FMT-13.18.37.2",
+     "GR-13.18.37.4-2"
+    ],
+    "nearest-2023": "SR-13.18.37.3-4",
+    "similarity": 0.391
+   },
+   "1985-GR-XIII.3.10.2-p11": {
+    "candidates-2023": [
+     "SR-8.4.2.2.3-9",
+     "GR-8.4.3.15.4-4",
+     "GR-13.18.35.4-8"
+    ],
+    "nearest-2023": "SR-8.4.2.2.3-9",
+    "similarity": 0.355
+   },
+   "1985-GR-XIII.3.10.3-p1": {
+    "candidates-2023": [
+     "GR-13.18.14.4-14",
+     "GR-13.18.14.4-18",
+     "GR-14.9.1.4-15"
+    ],
+    "nearest-2023": "GR-13.18.14.4-14",
+    "similarity": 0.323
+   },
+   "1985-GR-XIII.3.10.3-1": {
+    "candidates-2023": [
+     "GR-13.18.35.4-7",
+     "SR-13.18.35.3-9",
+     "GR-13.18.35.4-5"
+    ],
+    "nearest-2023": "GR-13.18.35.4-7",
+    "similarity": 0.469
+   },
+   "1985-GR-XIII.3.10.3-2": {
+    "candidates-2023": [
+     "GR-13.18.35.4-7",
+     "SR-13.18.35.3-9",
+     "GR-13.18.35.4-11"
+    ],
+    "nearest-2023": "GR-13.18.35.4-7",
+    "similarity": 0.463
+   },
+   "1985-GR-XIII.3.10.3-3": {
+    "candidates-2023": [
+     "GR-13.18.35.4-7",
+     "SR-13.18.35.3-7",
+     "GR-13.18.35.4-5"
+    ],
+    "nearest-2023": "GR-13.18.35.4-7",
+    "similarity": 0.516
+   },
+   "1985-GR-XIII.3.10.3-p2": {
+    "candidates-2023": [
+     "SR-14.9.17.3-2",
+     "GR-13.18.63.4-17",
+     "GR-12.3.6.4-10"
+    ],
+    "nearest-2023": "SR-14.9.17.3-2",
+    "similarity": 0.275
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-17",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-XI.3.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Sort-Merge: the SD entry for a sort or merge file",
+     "its physical structure (RECORD clause)",
+     "its record-names (record description entries, DATA RECORDS)"
+    ],
+    "evidence-1985": {
+     "SD with RECORD CONTAINS, DATA RECORDS and two record-names drives a SORT; RELEASE through either record, RETURN delivers ordered records": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/sd_sort_85.cob (run E:/COBOL-coord/scratch/pb5453/runs/sd_sort_85-001: COUNT 3 / CAB / KEYS 1 2 3, as sd_sort_85.out)",
+     "SD records with FROM/INTO at 85": "covered by cases/13.4.6-Sort-merge-file-description/pb1291_sd_record_from_into_85 (accept 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XI.3.2.1 p1",
+      "quote": "furnishes information concerning the physical structure and record-names",
+      "check": "OK  §1985:XI.3.2.1 p1  (3.2.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "The row states the function of the SD entry: 'furnishes information concerning the physical structure and record-names pertaining to a sort or merge file'. It is flagged definitional but a program shows it: an SD whose record-names and RECORD clause describe the sort record. No candidate states it (SR-12.4.5.2-13 is the SELECT format 4 rule; SR-13.4.6.3-1/2 have no accepted 85 case and state other requirements).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/sd_sort_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/sd_sort_85.cob",
+    "needs": "needs-own-witness: place sd_sort_85.cob (+ .out) as the row's own test"
+   },
+   {
+    "rule-id": "1985-GR-XII.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Source Text Manipulation: COPY statement",
+     "REPLACE statement (boxed, high level)",
+     "each independent of the other",
+     "COPY and REPLACE in conjunction (REPLACE acting on copied text)"
+    ],
+    "evidence-1985": {
+     "COPY alone": "covered by cases/7.2.3-COPY/copy-library-text (accept 85) and E:/COBOL-coord/scratch/pb5453/probes/s-17/copy_replace_85.cob",
+     "REPLACE alone": "covered by cases/7.2.4-REPLACE/l1c24_replace_free_form_result (accept 85) and E:/COBOL-coord/scratch/pb5453/probes/s-17/copy_replace_85.cob ('ALONE DONE')",
+     "in conjunction": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/copy_replace_85.cob: REPLACE ==FOO-TXT== BY ==BAR-TXT== changes the text COPY S17PAR brought in ('COPIED XYZ'); run E:/COBOL-coord/scratch/pb5453/runs/copy_replace_85-001"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XII.1.1 p1",
+      "quote": "can function either independent of the other or in conjunction with the other",
+      "check": "OK  §1985:XII.1.1 p1  (1.1 FUNCTION)  the text is in p1"
+     }
+    ],
+    "reason": "'Each of these statements can function either independent of the other or in conjunction with the other'. No 2023 candidate states the module's composition (GR-7.2.4.4-1, SR-7.2.4.3-1, GR-7.2.4.4-9 have no 85 case and state other rules). The probe shows both statements alone and REPLACE applied to copied text at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/copy_replace_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/copy_replace_85.cob (run with --copy E:/COBOL-coord/scratch/pb5453/probes/s-17/lib85)",
+    "needs": "needs-own-witness: place copy_replace_85.cob, its .out and lib85/S17TXT.cpy, lib85/S17PAR.cpy"
+   },
+   {
+    "rule-id": "1985-GR-XII.1.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "level 1: COPY text from a single library into the source program",
+     "text copied without change (no REPLACING)"
+    ],
+    "evidence-1985": {
+     "copied without change": "covered by cases/7.2.3-COPY/copy-library-text (accept 85) and E:/COBOL-coord/scratch/pb5453/probes/s-17/copy_replace_85.cob line 1 'UNCHANGED LIT-01 PLAIN 07'"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XII.1.2 p1",
+      "quote": "Text is copied from the library without change",
+      "check": "OK  §1985:XII.1.2 p1  (1.2 LEVEL CHARACTERISTICS)  the text is in p1"
+     }
+    ],
+    "reason": "'Text is copied from the library without change.' A level statement, testable: COPY without REPLACING yields the library text as written. The candidates are SOURCE FORMAT directive rules (2002+), none stating this; copy-library-text is an 85 case of GR-7.2.3.4-1, which is not a candidate here.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/copy_replace_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/copy_replace_85.cob",
+    "needs": "needs-own-witness: copy_replace_85.cob (or cases/7.2.3-COPY/copy-library-text mapped to this row)"
+   },
+   {
+    "rule-id": "1985-GR-XII.1.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "level 2 (boxed, high): COPY REPLACING of a literal, an identifier, a word and a group of words (pseudo-text)",
+     "more than one COBOL library at compile time (OF/IN library-name)",
+     "REPLACE: new text substituted for source program text"
+    ],
+    "evidence-1985": {
+     "REPLACING literal / identifier / word / pseudo-text": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/copy_replace_85.cob line 2 'REPL NEW-01 NEWNM 09' (and cases/7.2.3-COPY/gl2m2_copy_resultant_spacing_85, accept 85)",
+     "more than one library": "covered by wiseowl/cases/XII.2@1985-COPY-STATEMENT/pb5473-copy-every-text-qualified (accept 85)",
+     "REPLACE substitution": "covered by cases/7.2.4-REPLACE/l1c24_replace_free_form_result, cases/7.2.3-COPY/pb1353_replacing_operands_legal (accept 85) and the probe"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XII.1.2 p2",
+      "quote": "availability of more than one COBOL library at compile time",
+      "check": "OK  §1985:XII.1.2 p2  (1.2 LEVEL CHARACTERISTICS)  the text is in p2"
+     }
+    ],
+    "reason": "'replacing all occurrences of a given literal, identifier, word, or group of words in the library text ... more than one COBOL library at compile time and the substitution of new text for text appearing in the source program'. No candidate states the level-2 capabilities (SR-7.3.3-8, GR-7.3.24.3-5 are directive rules; GR-7.2.3.4-7 is the no-REPLACING case), so DIFFERENT; every part is shown at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/copy_replace_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/copy_replace_85.cob",
+    "needs": "needs-own-witness: copy_replace_85.cob with pb5473-copy-every-text-qualified mapped to this row"
+   },
+   {
+    "rule-id": "1985-GR-XIII.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Report Writer: reports produced from a description of their physical appearance (RD and report groups), not procedure"
+    ],
+    "evidence-1985": {
+     "a report produced from its description by INITIATE/GENERATE/TERMINATE": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob (run E:/COBOL-coord/scratch/pb5453/runs/rw_access_85-003 (EXPECT: MATCH rw_access_85.out)) and cases/A.1-Implementor-defined-language-element-list/pb690_report_line_byte_image_85 (accept 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.1.1 p1",
+      "quote": "producing reports by specifying the physical appearance of a report",
+      "check": "OK  §1985:XIII.1.1 p1  (1.1 FUNCTION)  the text is in p1"
+     }
+    ],
+    "reason": "The module's function sentence. A program shows it: page heading, control headings, two-line detail and control footings placed from the RD and group description alone. GR-13.4.5.4-4 (record structure implementor-defined) and the REPORT clause rows do not state it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob",
+    "needs": "needs-own-witness: place rw_access_85.cob (+ .out)"
+   },
+   {
+    "rule-id": "1985-GR-XIII.1.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "report divided into report groups, groups into items",
+     "explicit reference to a report group (GENERATE, USE BEFORE REPORTING, SUPPRESS)",
+     "a report group presented on one or more lines",
+     "a report group presented on zero lines (a dummy group)"
+    ],
+    "evidence-1985": {
+     "groups of items, one and two lines": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob (DE-1 two lines, CH-1/CF-1 one line)",
+     "explicit reference to a group": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob (GENERATE DE-1, USE BEFORE REPORTING DX)",
+     "zero lines": "covered by cases/8.4.3.15-Report-counters/l1m8_counters_dummy_suppressed (accept 85: a dummy report group)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.1.1 p2",
+      "quote": "contains one or more items to be presented on zero, one, or more lines",
+      "check": "OK  §1985:XIII.1.1 p2  (1.1 FUNCTION)  the text is in p2"
+     }
+    ],
+    "reason": "'Each report is divided into report groups, which in turn are divided into sequences of items ... A report group contains one or more items to be presented on zero, one, or more lines.' None of the candidates (SR-13.18.54.3-4, SR-13.15.3-1, GR-14.9.49.4-9) states the hierarchy; the probe and the dummy-group 85 case show each part.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob",
+    "needs": "needs-own-witness: rw_access_85.cob with l1m8_counters_dummy_suppressed mapped to this row"
+   },
+   {
+    "rule-id": "1985-GR-XIII.1.2.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "report file named by a file control entry",
+     "described by an FD with a REPORT clause",
+     "accessed by OPEN, GENERATE, INITIATE, SUPPRESS, TERMINATE, USE AFTER STANDARD EXCEPTION PROCEDURE, USE BEFORE REPORTING, CLOSE"
+    ],
+    "evidence-1985": {
+     "all eight statements on one report file": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob (run E:/COBOL-coord/scratch/pb5453/runs/rw_access_85-003 (EXPECT: MATCH rw_access_85.out); DX suppressed, absent from the output)",
+     "SELECT and FD REPORT": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob and cases/13.4.5-File-description/pb1171_report_file_legal_references (accept 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.1.2.1 p2",
+      "quote": "accessed by the OPEN, GENERATE, INITIATE, SUPPRESS, TERMINATE",
+      "check": "OK  §1985:XIII.1.2.1 p2  (1.2.1 Report File)  the text is in p2"
+     }
+    ],
+    "reason": "The candidates are restrictions (GR-13.18.46.4-2 no OPEN/CLOSE between INITIATE and TERMINATE, SR-14.9.49.3-10) or the SELECT format rule; none lists the statements that access a report file. The probe compiles and runs each of them on one report file at 85. The USE AFTER EXCEPTION procedure is accepted but not triggered (no exception arises).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob",
+    "needs": "needs-own-witness: place rw_access_85.cob"
+   },
+   {
+    "rule-id": "1985-GR-XIII.1.2.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "PAGE-COUNTER generated for each RD",
+     "unsigned integer with range 1 through 999999",
+     "usage implementor-defined",
+     "maintained by the RWCS, numbers the pages",
+     "referenced only in a SOURCE clause of the Report Section and in Procedure Division statements"
+    ],
+    "evidence-1985": {
+     "range 1..999999": "covered by E:/COBOL-coord/scratch/prose85/work/85p-13/goldens/pb5924-page-counter-range-85 (PASS on the mint build: work/goldens-s-17.json)",
+     "one per RD, qualified": "covered by cases/8.4.2.2-Qualification/pb1456_other_report_counters_85 (accept 85)",
+     "procedure division use": "covered by cases/8.4.3.1-Identifier/pb429_page_counter_receiving (accept 85) and E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_ok_85.cob ('PC 0007')",
+     "SOURCE use, page numbering": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob ('PG 1')",
+     "only in SOURCE in the Report Section": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_pc_in_sum_85.cob (SUM PAGE-COUNTER refused COBOL0899; control rw_ctr_ok_85.cob accepted)",
+     "usage implementor-defined": "not shown (a documentation entry, not a program property)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.1.2.2 p1",
+      "quote": "may be referenced only in the SOURCE clause of the Report Section and in Procedure Division statements",
+      "check": "OK  §1985:XIII.1.2.2 p1  (1.2.2 Special Register PAGE-COUNTER)  the text is in p1"
+     }
+    ],
+    "reason": "No single candidate states the register's whole description (SR-8.4.2.2.3-10 qualification, SR-8.4.3.15.3-1 the reference contexts, SR-13.15.3-16 a PRESENT WHEN rule). Every testable part is shown at 85. The implementor-defined usage needs a docs/conformance entry.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_pc_in_sum_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-13/goldens/pb5924-page-counter-range-85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_ok_85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_pc_in_sum_85.cob",
+    "needs": "needs-own-witness (the golden, rw_ctr_ok_85 and rw_ctr_pc_in_sum_85) plus a documented usage for PAGE-COUNTER (implementor-defined)"
+   },
+   {
+    "rule-id": "1985-GR-XIII.1.2.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "LINE-COUNTER generated for each RD",
+     "unsigned integer with range 0 through 999999",
+     "usage implementor-defined",
+     "maintained by the RWCS, vertical positioning",
+     "referenced only in a SOURCE clause of the Report Section and in Procedure Division statements",
+     "only the RWCS may change it"
+    ],
+    "evidence-1985": {
+     "range 0..999999": "covered by E:/COBOL-coord/scratch/prose85/work/85p-13/goldens/pb5924-line-counter-range-85 (PASS on the mint build)",
+     "one per RD": "covered by cases/8.4.2.2-Qualification/pb1456_other_report_counters_85 (accept 85)",
+     "read in procedure division, positioning": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_ok_85.cob ('LC 03') and cases/8.4.3.15-Report-counters/pb1247_line_placement_unpaged_85",
+     "only the RWCS changes it": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_lc_receive_85.cob (MOVE 7 TO LINE-COUNTER refused COBOL2197 citing §1985:XIII.1.2.3; control rw_ctr_ok_85.cob)",
+     "only in SOURCE in the Report Section": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_lc_in_sum_85.cob (SUM LINE-COUNTER refused)",
+     "usage implementor-defined": "not shown (documentation)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.1.2.3 p1",
+      "quote": "only the report writer control system (RWCS) may change the value of LINE-COUNTER",
+      "check": "OK  §1985:XIII.1.2.3 p1  (1.2.3 Special Register LINE-COUNTER)  the text is in p1"
+     }
+    ],
+    "reason": "No single candidate states the whole description (SR-8.4.2.2.3-9 qualification, GR-8.4.3.15.4-4 value at print time, SR-8.4.3.15.3-1 reference contexts). Each testable part is shown at 85; the receiving-operand refusal is the 'only the RWCS may change' clause.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_lc_receive_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-13/goldens/pb5924-line-counter-range-85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_lc_receive_85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_lc_in_sum_85.cob",
+    "needs": "needs-own-witness (golden + the two refusals with their control) plus a documented usage for LINE-COUNTER"
+   },
+   {
+    "rule-id": "1985-SR-XIII.1.2.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Report Section: a sum counter as a subscript",
+     "LINE-COUNTER as a subscript",
+     "PAGE-COUNTER as a subscript"
+    ],
+    "evidence-1985": {
+     "LINE-COUNTER": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_sub_lc_85.cob (refused COBOL2751 citing §1985:XIII.1.2.4)",
+     "PAGE-COUNTER": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_sub_pc_85.cob (refused COBOL2751)",
+     "sum counter": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_sub_sc_85.cob (refused COBOL2751)",
+     "control (working-storage subscript accepted)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_ok_85.cob (run E:/COBOL-coord/scratch/pb5453/runs/rw_ctr_ok_85-003: T=B / LC 03 / PC 0007 / SC 05)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.1.2.4 p1",
+      "quote": "neither a sum counter nor the special registers LINE-COUNTER and PAGE-COUNTER can be used as a subscript",
+      "check": "OK  §1985:XIII.1.2.4 p1  (1.2.4 Subscripting)  the text is in p1"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR8",
+      "quote": "neither a sum counter nor the LINE-COUNTER and PAGE-COUNTER identifiers may be used as a subscript",
+      "check": "OK  §2023:8.4.2.3.3 SR8  (Syntax rules)  the text is in SR8"
+     }
+    ],
+    "reason": "SR-8.4.2.3.3-8 states the same requirement word for word, but it has no case that runs at 85 (its at-85 lists are empty), so it cannot be a SAME pointer. The three refusals and their one-line-changed control show the rule at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_sub_lc_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_sub_lc_85.cob, rw_ctr_sub_pc_85.cob, rw_ctr_sub_sc_85.cob (control rw_ctr_ok_85.cob)",
+    "needs": "needs-own-witness: place the three refusals with rw_ctr_ok_85 (or give SR-8.4.2.3.3-8 an 85 case, then SAME)"
+   },
+   {
+    "rule-id": "1985-GR-XIII.2.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "the file control entry (SELECT/ASSIGN, sequential organization) of a report file"
+    ],
+    "evidence-1985": {
+     "report file SELECT accepted and used": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob and cases/12.4.5-File-control/pb773_legal_file_control_entries_85 (accept 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.2.3.1 p1",
+      "quote": "declares the relevant physical attributes of a report file",
+      "check": "OK  §1985:XIII.2.3.1 p1  (2.3.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "A function sentence: 'The file control entry declares the relevant physical attributes of a report file.' SR-12.4.5.2-11 (format 3 for a sequential or report file) restricts the format, which is not this statement. Shown by every report program at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob",
+    "needs": "needs-own-witness"
+   },
+   {
+    "rule-id": "1985-GR-XIII.2.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "scope-1985": [
+     "I-O-CONTROL in the Report Writer module: SAME AREA naming a report file",
+     "MULTIPLE FILE TAPE naming a report file (obsolete element; absent from 2023)"
+    ],
+    "evidence-1985": {
+     "SAME AREA FOR PRT SEQ and MULTIPLE FILE TAPE CONTAINS PRT POSITION 1 SEQ POSITION 2": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_iocontrol_85.cob (run E:/COBOL-coord/scratch/pb5453/runs/rw_iocontrol_85-001: REC=HELLO / RPT OK, no diagnostic)",
+     "SAME AREA with mixed files": "covered by cases/12.4.6.4-SAME/l1c28_same_area_mixed_org (accept 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.2.4.1 p1",
+      "quote": "the location of files on a multiple file reel",
+      "check": "OK  §1985:XIII.2.4.1 p1  (2.4.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "'specifies the memory area which is to be shared by different files and the location of files on a multiple file reel'. GR-12.4.6.4.4-1 states the SAME half only; the MULTIPLE FILE TAPE clause is not in 2023, so no pointer covers the whole scope.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_iocontrol_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_iocontrol_85.cob",
+    "needs": "needs-own-witness: place rw_iocontrol_85.cob (+ .out)"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "FD of a report file: physical structure, identification and report-names"
+    ],
+    "evidence-1985": {
+     "FD with REPORT clause (one and two reports)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob (REPORTS ARE R-1 R-2) and cases/13.4.5-File-description/pb1171_report_file_legal_references (accept 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.2.1 p1",
+      "quote": "identification, and report-names pertaining to a report file",
+      "check": "OK  §1985:XIII.3.2.1 p1  (3.2.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "Function of the report-file FD. SR-13.4.5.3-8 ('Format 3 is the file description entry for a report file. No record description entries ...') has an 85 case but its requirement is the no-record-entries rule, not the information the FD furnishes; no candidate states this sentence.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob",
+    "needs": "needs-own-witness"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.3.1-p1",
+    "to": [
+     "FMT-13.18.46.2",
+     "GR-13.18.46.4-1"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "REPORT IS / REPORTS ARE report-name ... in the FD of a report file",
+     "one or more reports comprise the file"
+    ],
+    "evidence-1985": {
+     "two reports named by one REPORT clause, both written": "covered by cases/13.18.12-CODE/pb1050_reports_share_file (accept [85, 2002], rules FMT-13.18.46.2 and GR-13.18.46.4-1) and E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.3.1 p1",
+      "quote": "specifies the names of reports that comprise a report file",
+      "check": "OK  §1985:XIII.3.3.1 p1  (3.3.1 Function)  the text is in p1"
+     },
+     {
+      "cite": "§2023:13.18.46.4 GR1",
+      "quote": "more than one report may be written to the file",
+      "check": "OK  §2023:13.18.46.4 GR1  (General rules)  the text is in GR1"
+     }
+    ],
+    "reason": "'The REPORT clause specifies the names of reports that comprise a report file.' The 2023 format (REPORT IS / REPORTS ARE report-name-1 ...) and GR1 ('more than one report may be written to the file') state it; pb1050_reports_share_file names both rules and runs at 85 with one FD naming two reports, each written. GR-13.18.46.4-1 is not among the view's candidates; its 85 case is the same pb1050 (FMT-13.18.46.2's at-85.accepted).",
+    "compiler-at-1985": "not probed: the pointers' case runs at 85 (pb1050_reports_share_file accept [85, 2002])",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "RD names the report",
+     "PAGE clause: vertical boundaries of the regions per report group type",
+     "CONTROL clause: control data items",
+     "a change of control value processes detail information in control groups (CF then CH)"
+    ],
+    "evidence-1985": {
+     "regions": "covered by cases/13.18.35-LINE/pb1270_report_page_region_boundaries (accept 85) and E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob",
+     "controls and control groups": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob (CK A to B: CF 03, CH B; final CF 04) and cases/14.9.16-GENERATE/pb1131_control_break_collating_85 (accept 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.4.1 p1",
+      "quote": "detail information of the report to be processed in groups called control groups",
+      "check": "OK  §1985:XIII.3.4.1 p1  (3.4.1 Report Description Entry)  the text is in p1"
+     }
+    ],
+    "reason": "A description of the RD's role. The candidates (SR-13.15.3-1, SR-13.18.54.3-4, GR-13.18.57.4-6) carry no 85 case or state other rules. The probe shows the page regions and the control-group processing at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_access_85.cob",
+    "needs": "needs-own-witness"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p1",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "the standard's layout of its presentation rules tables: one per RH, PH, PF, RF; one joint body-group table for DE, CH, CF"
+    ],
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p1",
+      "quote": "treated jointly in the body group presentation rules table",
+      "check": "OK  §1985:XIII.3.10.2 p1  (3.10.2 Organization)  the text is in p1"
+     }
+    ],
+    "reason": "A statement about how the standard arranges its tables. It is flagged definitional; no derivation arm fits a rule about the standard's own presentation. The program-visible part (DE, CH, CF are body groups) is SR-13.18.57.3-15's subject, and the body-group rules (XIII.3.10.8) are their own rows. What would settle it: a ruling on which arm closes a rule about the standard's own presentation.",
+    "compiler-at-1985": "not probed: no program can show how the standard arranges its tables",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "the combinations of LINE NUMBER and NEXT GROUP clauses listed in columns 1-2 are ALL the permissible ones",
+     "an unlisted or 'Illegal Combination' entry is refused (LINE NUMBER SR3, SR5, SR6; NEXT GROUP SR3)"
+    ],
+    "evidence-1985": {
+     "listed sequences accepted and placed (A R, R, NP R)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob (run E:/COBOL-coord/scratch/pb5453/runs/rw_seq_legal_85-002: EXPECT MATCH)",
+     "R then A (unlisted)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_r_then_a_85.cob (refused COBOL2199, §1985:XIII.3.15.3 SR3)",
+     "NEXT PAGE not first (unlisted)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_np_second_85.cob (refused COBOL2199, SR6)",
+     "absolute LINE without PAGE (Illegal Combination)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_abs_no_page_85.cob (refused COBOL2199, SR5)",
+     "absolute NEXT GROUP without PAGE (Illegal Combination)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ng_abs_no_page_85.cob (refused COBOL2284, §1985:XIII.3.16.3 SR3; control rw_iocontrol_85.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p2",
+      "quote": "list all of the permissible combinations of LINE NUMBER and NEXT GROUP clauses",
+      "check": "OK  §1985:XIII.3.10.2 p2  (3.10.2 Organization)  the text is in p2"
+     },
+     {
+      "cite": "§1985:XIII.3.15.3 SR3",
+      "quote": "all absolute LINE NUMBER clauses must precede all relative LINE NUMBER clauses",
+      "check": "OK  §1985:XIII.3.15.3 SR3  (3.15.3 Syntax Rules)  the text is in SR3"
+     },
+     {
+      "cite": "§1985:XIII.3.16.3 SR3",
+      "quote": "only a relative NEXT GROUP clause may be specified",
+      "check": "OK  §1985:XIII.3.16.3 SR3  (3.16.3 Syntax Rules)  the text is in SR3"
+     }
+    ],
+    "reason": "The paragraph makes columns 1-2 the closed list of permissible combinations, and the 'Illegal Combination' entries point to the LINE NUMBER and NEXT GROUP syntax rules. The candidates (GR-8.4.3.15.4-4, GR-13.18.35.4-8, GR-13.18.37.4-2) are run-time rules. The legal sequences run and each excluded one is refused at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob and its refusal twins rw_seq_r_then_a_85, rw_seq_np_second_85, rw_seq_abs_no_page_85, rw_ng_abs_no_page_85",
+    "needs": "needs-own-witness: place rw_seq_legal_85 (+ .out) and the refusals"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p3",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "the standard's layout: applicable rules columns split into PAGE specified / PAGE omitted"
+    ],
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p3",
+      "quote": "The applicable rules columns of a presentation rules table are partitioned into two parts",
+      "check": "OK  §1985:XIII.3.10.2 p3  (3.10.2 Organization)  the text is in p3"
+     }
+    ],
+    "reason": "Describes the columns of the standard's tables; no derivation arm fits a rule about the standard's own presentation. The behaviour that differs with and without PAGE is p5/p7 and the tables' rows. What would settle it: a ruling on an arm for presentation rules.",
+    "compiler-at-1985": "not probed: no program can show the standard's column layout",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p4",
+    "to": [
+     "GR-13.18.39.4-1"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "upper and lower limit rules: each report group type is confined to its vertical subdivision of the page"
+    ],
+    "evidence-1985": {
+     "each group type on the boundary of its region": "covered by cases/13.18.35-LINE/pb1270_report_page_region_boundaries (accept 85, in GR-13.18.39.4-1's at-85.accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p4",
+      "quote": "specify the vertical subdivisions of the page",
+      "check": "OK  §1985:XIII.3.10.2 p4  (3.10.2 Organization)  the text is in p4"
+     },
+     {
+      "cite": "§2023:13.18.39.4 GR1",
+      "quote": "The PAGE clause and its phrases subdivide the printed page into vertical regions",
+      "check": "OK  §2023:13.18.39.4 GR1  (General rules)  the text is in GR1"
+     }
+    ],
+    "reason": "'These rules specify the vertical subdivisions of the page within which the specified report group may be represented.' GR-13.18.39.4-1: 'The PAGE clause and its phrases subdivide the printed page into vertical regions. Depending on its type, each report group shall be confined within one or more of these regions.' pb1270 places RH, PH, DE, PF and RF on the edges of their regions at 85.",
+    "compiler-at-1985": "not probed: the pointer's case runs at 85",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "no PAGE clause: the report is not partitioned into subdivisions; no upper or lower limit applies"
+    ],
+    "evidence-1985": {
+     "no limit without PAGE": "covered by E:/COBOL-coord/scratch/prose85/work/85p-13/goldens/pb5924-line-counter-range-85 (PASS: 1001 groups of LINE PLUS 999 carry LINE-COUNTER to 999999 on one page) and cases/8.4.3.15-Report-counters/pb1247_line_placement_unpaged_85 (accept 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p5",
+      "quote": "the printed report is not considered to be partitioned into vertical subdivisions",
+      "check": "OK  §1985:XIII.3.10.2 p5  (3.10.2 Organization)  the text is in p5"
+     }
+    ],
+    "reason": "The candidates GR-13.18.57.4-7/8 define the limits for a paged report and SR-13.18.57.3-12 (PH/PF need PAGE) has no 85 case; none states that an unpaged report has no limits. The golden shows a report with no PAGE clause growing without any boundary or page advance.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-13/goldens/pb5924-line-counter-range-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-13/goldens/pb5924-line-counter-range-85.cob",
+    "needs": "needs-own-witness: map the golden to this row as well"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "fit test rules apply only to body groups",
+     "at object time the RWCS decides whether a body group fits on the current page, else advances"
+    ],
+    "evidence-1985": {
+     "trial sum and page advance for a body group": "covered by cases/13.18.37-NEXT-GROUP/pb5823_saved_next_group_fit_test (accept 85: the trial-sum fit test of §1985:XIII.3.10.8 GR3b advances the page)",
+     "no fit test for non-body groups": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p6",
+      "quote": "applies the fit test rules to determine whether the designated body group can be presented",
+      "check": "OK  §1985:XIII.3.10.2 p6  (3.10.2 Organization)  the text is in p6"
+     },
+     {
+      "cite": "§1985:XIII.3.10.8 GR3",
+      "quote": "computes a trial sum in a work location",
+      "check": "OK  §1985:XIII.3.10.8 GR3  (3.10.8 Body Group Presentation Rules)  the text is in GR3"
+     }
+    ],
+    "reason": "GR-13.18.35.4-4 states the page fit test for body groups but has no case in its at-85 lists, so it cannot be a SAME pointer. pb5823 runs at 85 and its derivation follows §1985:XIII.3.10.8 GR3b's trial sum.",
+    "probe": "conformance-suite/cases/13.18.37-NEXT-GROUP/pb5823_saved_next_group_fit_test.cob",
+    "compiler-at-1985": "correct: conformance-suite/cases/13.18.37-NEXT-GROUP/pb5823_saved_next_group_fit_test.cob",
+    "needs": "an own witness: map pb5823 to this row and add a page-heading/footing leg showing no fit test for a non-body group (or give GR-13.18.35.4-4 an 85 case, then SAME)"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p7",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "no PAGE clause: no fit test even for body groups (no page advance)"
+    ],
+    "evidence-1985": {
+     "no fit test unpaged": "covered by E:/COBOL-coord/scratch/prose85/work/85p-13/goldens/pb5924-line-counter-range-85 (PASS: 1001 detail groups, no page advance, LINE-COUNTER 999999)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p7",
+      "quote": "there are no fit test rules when the PAGE clause is omitted",
+      "check": "OK  §1985:XIII.3.10.2 p7  (3.10.2 Organization)  the text is in p7"
+     }
+    ],
+    "reason": "GR-13.18.35.4-4 ('If the report is divided into pages ... a page fit test is performed') implies the converse but has no 85 case; GR-14.9.16.4-6 likewise. The golden shows an unpaged report never advancing.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-13/goldens/pb5924-line-counter-range-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-13/goldens/pb5924-line-counter-range-85.cob",
+    "needs": "needs-own-witness: map the golden to this row"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p8",
+    "to": [
+     "GR-13.18.35.4-5"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "the first print line of a report group is presented where the first print line position rules say"
+    ],
+    "evidence-1985": {
+     "first line placement, paged and unpaged": "covered by cases/13.18.35-LINE/pb484_report_line_placement and cases/8.4.3.15-Report-counters/pb1247_line_placement_unpaged_85 (both in GR-13.18.35.4-5's at-85.accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p8",
+      "quote": "shall present the first print line of the given report group",
+      "check": "OK  §1985:XIII.3.10.2 p8  (3.10.2 Organization)  the text is in p8"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR5",
+      "quote": "The line number on which the report group's first line is printed depends on the first LINE clause",
+      "check": "OK  §2023:13.18.35.4 GR5  (General rules)  the text is in GR5"
+     }
+    ],
+    "reason": "'The first print line position rules specify where on the report medium the RWCS shall present the first print line of the given report group.' GR-13.18.35.4-5 states where the first line goes for every group type, paged or not; its 85 cases place RH, DE and RF first lines. The per-table rules (XIII.3.10.6-10 rule 3) are their own rows.",
+    "compiler-at-1985": "not probed: the pointer's cases run at 85",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p9",
+    "to": [
+     "GR-13.18.35.4-7"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "second and subsequent print lines of a group are placed by the LINE NUMBER clause general rules, not the tables"
+    ],
+    "evidence-1985": {
+     "subsequent lines (absolute, relative, PLUS 0)": "covered by cases/13.18.35-LINE/pb484_report_line_placement and cases/8.4.3.15-Report-counters/pb1247_line_placement_unpaged_85 (in GR-13.18.35.4-7's at-85.accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p9",
+      "quote": "Certain general rules determine where the second and subsequent print lines",
+      "check": "OK  §1985:XIII.3.10.2 p9  (3.10.2 Organization)  the text is in p9"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR7",
+      "quote": "Any subsequent LINE clauses within the same report group cause the line number to be updated",
+      "check": "OK  §2023:13.18.35.4 GR7  (General rules)  the text is in GR7"
+     }
+    ],
+    "reason": "The paragraph defers the second and later lines to the LINE NUMBER general rules (§1985:XIII.3.15.4 GR3/GR4); 2023 GR7 is that rule, and pb1247 shows a second line placed by LINE PLUS 0 at 85.",
+    "compiler-at-1985": "not probed: the pointer's cases run at 85",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p10",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "the next group rules of each table govern the NEXT GROUP clause's use and effect"
+    ],
+    "evidence-1985": {
+     "NEXT GROUP at a control break, on RH alone on its page, before TERMINATE": "covered by cases/13.18.37-NEXT-GROUP/pb957_next_group_control_85 (accept 85)",
+     "improper use refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ng_abs_no_page_85.cob (COBOL2284)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p10",
+      "quote": "relate to the proper use of the NEXT GROUP clause",
+      "check": "OK  §1985:XIII.3.10.2 p10  (3.10.2 Organization)  the text is in p10"
+     }
+    ],
+    "reason": "An introduction to the tables' next group rules. Its candidates have no 85 case (GR-13.18.37.4-2's at-85 lists are empty although pb957_next_group_control_85 names it in its rules), so no SAME; the 85 twin and the refusal show the rules applied.",
+    "probe": "conformance-suite/cases/13.18.37-NEXT-GROUP/pb957_next_group_control_85.cob",
+    "compiler-at-1985": "correct: conformance-suite/cases/13.18.37-NEXT-GROUP/pb957_next_group_control_85.cob",
+    "needs": "needs-own-witness: map pb957_next_group_control_85 to this row (or count it in GR-13.18.37.4-2's at-85, then SAME)"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p11",
+    "to": [
+     "GR-13.18.35.4-8"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "the value the RWCS leaves in LINE-COUNTER after presenting a group (final LINE-COUNTER setting)"
+    ],
+    "evidence-1985": {
+     "LINE-COUNTER after a group": "covered by cases/13.18.35-LINE/pb484_report_line_placement (in GR-13.18.35.4-8's at-85.accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p11",
+      "quote": "specified by the final LINE-COUNTER setting rules",
+      "check": "OK  §1985:XIII.3.10.2 p11  (3.10.2 Organization)  the text is in p11"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR8",
+      "quote": "The final line number for the report group is given by the value contained in the report's LINE-COUNTER",
+      "check": "OK  §2023:13.18.35.4 GR8  (General rules)  the text is in GR8"
+     }
+    ],
+    "reason": "'The terminal values that the RWCS places in LINE-COUNTER after presenting report groups are specified by the final LINE-COUNTER setting rules.' 2023 GR8 states the final value (the last line, then the NEXT GROUP adjustment); pb484 shows LINE-COUNTER after groups at 85. The per-table rule 5 rows are their own rows.",
+    "compiler-at-1985": "not probed: the pointer's case runs at 85",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.3-p1",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "the standard's shorthand notation in column 1 of its tables"
+    ],
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.3 p1",
+      "quote": "uses a shorthand notation to describe the sequence of LINE NUMBER clauses",
+      "check": "OK  §1985:XIII.3.10.3 p1  (3.10.3 LINE NUMBER Clause Notation)  the text is in p1"
+     }
+    ],
+    "reason": "A lead-in to the notation the standard's tables use; no derivation arm fits a rule about the standard's own presentation. The program-visible consequence (which sequences are legal) is decided on items 1-3 and on 3.10.2 p2. The 2023 candidates are screen-section rules (DOCUMENTED-NON-SUPPORT) matched on wording only; none is a pointer, so no licence is owed.",
+    "compiler-at-1985": "not probed: no program can show the standard's notation",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.3-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "'A': one or more consecutive absolute LINE NUMBER clauses without NEXT PAGE, as a permissible leading sequence (A R, A)"
+    ],
+    "evidence-1985": {
+     "A R accepted and placed": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob (RH LINE 2 / LINE PLUS 1 -> P1 L02, L03)",
+     "absolute after relative refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_r_then_a_85.cob (COBOL2199)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.3 GR1",
+      "quote": "one or more absolute LINE NUMBER clauses, none of which has the NEXT PAGE phrase",
+      "check": "OK  §1985:XIII.3.10.3 GR1  (3.10.3 LINE NUMBER Clause Notation)  the text is in GR1"
+     }
+    ],
+    "reason": "Notation item, testable through the sequences the tables admit: an 'A' run leads and holds no NEXT PAGE. GR-13.18.35.4-7 places subsequent lines but does not define the permissible sequence; SR-13.18.35.3-9 is an OR PAGE rule with no 85 case.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob (refusal twin rw_seq_r_then_a_85.cob)",
+    "needs": "needs-own-witness"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.3-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "'R': one or more consecutive relative LINE NUMBER clauses, alone (R) or after A / NP"
+    ],
+    "evidence-1985": {
+     "R alone and after A, after NP": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob (DE-1 R; RH A R; RF NP R)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.3 GR2",
+      "quote": "one or more relative LINE NUMBER clauses",
+      "check": "OK  §1985:XIII.3.10.3 GR2  (3.10.3 LINE NUMBER Clause Notation)  the text is in GR2"
+     }
+    ],
+    "reason": "Notation item; the probe uses 'R' in all three positions the tables admit and each is placed as the tables say (DE1 at FIRST DETAIL 6, RH2 and RF2 one line below their first lines).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob",
+    "needs": "needs-own-witness"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.3-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "'NP': absolute LINE NUMBER clauses with NEXT PAGE in the first and only the first"
+    ],
+    "evidence-1985": {
+     "NP R accepted, a new page": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob (RF LINE 4 ON NEXT PAGE / LINE PLUS 1 -> P2 L04, L05)",
+     "NEXT PAGE in a later clause refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_np_second_85.cob (COBOL2199 citing §1985:XIII.3.15.3 SR6)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.3 GR3",
+      "quote": "with the phrase NEXT PAGE appearing in the first and only in the first LINE NUMBER clause",
+      "check": "OK  §1985:XIII.3.10.3 GR3  (3.10.3 LINE NUMBER Clause Notation)  the text is in GR3"
+     },
+     {
+      "cite": "§1985:XIII.3.15.3 SR6",
+      "quote": "must be in the first LINE NUMBER clause in that report group description entry",
+      "check": "OK  §1985:XIII.3.15.3 SR6  (3.15.3 Syntax Rules)  the text is in SR6"
+     }
+    ],
+    "reason": "SR-13.18.35.3-7 (NEXT PAGE only in the first LINE clause) states part of it but has no 85 case; the probe and its refusal twin show both halves at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob (refusal twin rw_seq_np_second_85.cob)",
+    "needs": "needs-own-witness (or give SR-13.18.35.3-7 an 85 case)"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.3-p2",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "how to read two abbreviations together in the standard's tables ('A R' = A immediately followed by R)"
+    ],
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.3 p2",
+      "quote": "refer to a sequence of LINE NUMBER clauses that consists of the two specified consecutive sequences",
+      "check": "OK  §1985:XIII.3.10.3 p2  (3.10.3 LINE NUMBER Clause Notation)  the text is in p2"
+     }
+    ],
+    "reason": "A reading convention for the standard's notation; no derivation arm fits a rule about the standard's own presentation. Its consequence (A before R) is §1985:XIII.3.15.3 SR3, shown by rw_seq_r_then_a_85.cob. The candidates (a GO TO rule, a VALUE rule, PROGRAM COLLATING SEQUENCE) are unrelated wording matches.",
+    "compiler-at-1985": "not probed: no program can show the standard's notation convention",
+    "probe": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "defect",
+    "row": "1985-GR-XIII.1.2.2-p1",
+    "what": "at --std 85 the refusal of SUM PAGE-COUNTER / SUM LINE-COUNTER cites a 2023 rule (COBOL0899 'SUM addend ... does not resolve to a data item outside the report section (ISO §2023:13.18.54.3 SR5)'), where the sibling report-writer diagnostics at 85 cite their 1985 rule; the 1985 ground is §1985:XIII.1.2.2 / XIII.1.2.3 (counters only in a SOURCE clause) with the SUM clause's syntax rules. Outcome is right, the citation is the wrong edition",
+    "repro": "python E:/COBOL/scripts/orchestrator/run_probe.py --root E:/COBOL-coord/scratch/pb5453/runs --std 85 --exe E:/COBOL-coord/scratch/pb5453/tree-9fdf39b9e8/src/WiseOwl.Cobol.Cli/bin/Debug/net11.0/cobol.exe --compile-only E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_pc_in_sum_85.cob",
+    "site": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportSumAddendUnresolved; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs (about line 4218)"
+   },
+   {
+    "kind": "tooling",
+    "row": "1985-GR-XIII.3.10.2-p10",
+    "what": "85 twins that name a 2023 rule in their own 'rules:' header (pb957_next_group_control_85 names GR-13.18.37.4-2; pb5823_saved_next_group_fit_test names GR-13.18.37.4-4) are not counted in those rules' at-85 lists in the view (both show accepted []), so rows that could close SAME read DIFFERENT; the at-85 search should read each case's own rules/accept header, not only the inventory test-ref",
+    "repro": "grep -nE 'rules|accept' E:/COBOL/.claude/worktrees/pb5452-mint/conformance-suite/cases/13.18.37-NEXT-GROUP/pb957_next_group_control_85.cob; compare the candidates of 1985-GR-XIII.3.10.2-p2 and -p6 in E:/COBOL-coord/scratch/pb5453/in/s-17.view.json",
+    "site": "the PB5453 view writer (at-85 search)"
+   },
+   {
+    "kind": "tooling",
+    "row": "1985-SR-XIII.1.2.4-p1",
+    "what": "SR-8.4.2.3.3-8 states this row word for word but has no 85 case; one fixed-form 85 case (the rw_ctr_sub_* refusals with control rw_ctr_ok_85) mapped to it would let the row close SAME",
+    "repro": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_ctr_sub_lc_85.cob",
+    "site": "conformance-suite/cases/8.4.2.3-Subscripts"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-17",
+  "cases": [
+   {
+    "rule-id": "1985-GR-XIII.3.3.1-p1",
+    "verdict": "UPHELD",
+    "reason": "1985 scope is the REPORT clause's function (REPORT IS / REPORTS ARE in a report file's FD, one or more reports per file); no Communication/Segmentation/level reach. 2023 FMT-13.18.46.2 and GR1 state it; pb1050_reports_share_file (accept [85, 2002]) runs REPORTS ARE R-A R-B at 85 and writes both reports interleaved; REPORT IS (singular) is run at 85 by pb484 and pb1247 as well.",
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.3.1 p1",
+      "quote": "specifies the names of reports that comprise a report file",
+      "check": "OK  §1985:XIII.3.3.1 p1  (3.3.1 Function)  the text is in p1"
+     },
+     {
+      "cite": "§2023:13.18.46.4 GR1",
+      "quote": "more than one report may be written to the file",
+      "check": "OK  §2023:13.18.46.4 GR1  (General rules)  the text is in GR1"
+     }
+    ],
+    "class": null,
+    "probe": null,
+    "compiler-at-1985": "correct: pb1050_reports_share_file at 85"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p4",
+    "verdict": "UPHELD",
+    "reason": "The paragraph only states the purpose of the upper/lower limit rules (vertical subdivisions per group type, paged only per p5); the per-table limit rules are their own rows. GR-13.18.39.4-1 states the same purpose; it names no LAST CONTROL HEADING (that is GR2), so the 2023-only region does not enter this pointer. pb1270_report_page_region_boundaries (accept [85]) puts RH, PH, DE, PF, RF on their region boundaries at 85 with the 1985 PAGE phrases only.",
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p4",
+      "quote": "specify the vertical subdivisions of the page",
+      "check": "OK  §1985:XIII.3.10.2 p4  (3.10.2 Organization)  the text is in p4"
+     },
+     {
+      "cite": "§2023:13.18.39.4 GR1",
+      "quote": "subdivide the printed page into vertical regions",
+      "check": "OK  §2023:13.18.39.4 GR1  (General rules)  the text is in GR1"
+     }
+    ],
+    "class": null,
+    "probe": null,
+    "compiler-at-1985": "correct: pb1270_report_page_region_boundaries at 85"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p8",
+    "verdict": "OVERTURNED",
+    "reason": "Scope: the first print line position rules of all five tables, paged and unpaged. (a) The pointer does not state the whole 1985 scope: 1985 body rule 4b places the first body group on a page at LINE-COUNTER+1 when LINE-COUNTER >= FIRST DETAIL (the saved-next-group-integer path), while the pointer GR5 b3 sends the first body group on a page to the FIRST DETAIL integer; that arm is stated in 2023 only by GR-13.18.37.4-4 a3, which is not in `to`. (b) The witness: GR5's at-85 cases (pb484, pb1247) are both UNPAGED, so they exercise only the unpaged arms (RH 3d, body 4d, RF 3d); no paged arm (HEADING+n-1, PH after RH at LC+n, FIRST DETAIL, PF absolute, RF after PF) is exercised by the pointer at 85. The read's evidence 'paged and unpaged' is not what those cases show. The compiler is correct on all of it: probe s-17-refute/paged_first_line_lc_85.cob at --std 85 prints P1 L04 RH, L05 PH, L07 D1A, P2 L03 PH, P3 L09 D1A (saved integer 8, then 8+1), P3 L18 RF (PF at 16, +2), exactly the 1985 table rules.",
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.8 GR4b",
+      "quote": "presented on the line immediately following the line indicated by the value contained in LINE-COUNTER",
+      "check": "OK  §1985:XIII.3.10.8 GR4b  (3.10.8 Body Group Presentation Rules)  the text is in GR4b"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR5b",
+      "quote": "if that report group is the first body group to be printed on the current page, the line number is given by the FIRST DETAIL integer",
+      "check": "OK  §2023:13.18.35.4 GR5b  (General rules)  the text is in GR5b"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR4",
+      "quote": "its first line will be printed on the next line following the line number in the save location",
+      "check": "OK  §2023:13.18.37.4 GR4  (General rules)  the text is in GR4"
+     }
+    ],
+    "class": "other: the pointer states part of the 1985 scope (the saved-integer arm is GR-13.18.37.4-4) and its 85 cases are unpaged only",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17-refute/paged_first_line_lc_85.cob (run E:/COBOL-coord/scratch/pb5453/runs/paged_first_line_lc_85-001)",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17-refute/paged_first_line_lc_85.cob (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p9",
+    "verdict": "UPHELD",
+    "reason": "The paragraph defers second and later lines to the LINE NUMBER general rules: absolute goes to its integer (§1985:XIII.3.15.4 GR3), relative to previous line + integer-2 (GR4). 2023 GR7 a/b states both. GR7's at-85 cases show the relative arm (pb484 PLUS 1, pb1247 PLUS 0); the absolute arm runs correctly at 85 in pb1270_report_page_region_boundaries (D1 LINE 4 then LINE 9, D9 printed on line 9). 1985 has no PRESENT WHEN, so 'previous print line' and 2023's LINE-COUNTER coincide.",
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.15.4 GR4",
+      "quote": "the sum of the line number on which the previous print line of the report group was presented and integer-2",
+      "check": "OK  §1985:XIII.3.15.4 GR4  (3.15.4 General Rules)  the text is in GR4"
+     },
+     {
+      "cite": "§1985:XIII.3.15.4 GR3",
+      "quote": "An absolute line number specifies the line number on which the print line is presented",
+      "check": "OK  §1985:XIII.3.15.4 GR3  (3.15.4 General Rules)  the text is in GR3"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR7",
+      "quote": "If the LINE clause is absolute, the new line number is given by integer-1",
+      "check": "OK  §2023:13.18.35.4 GR7  (General rules)  the text is in GR7"
+     }
+    ],
+    "class": null,
+    "probe": null,
+    "compiler-at-1985": "correct: pb484, pb1247 (relative), pb1270_report_page_region_boundaries (absolute) at 85"
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p11",
+    "verdict": "OVERTURNED",
+    "reason": "Scope: the final LINE-COUNTER setting rules of all five tables, which are mostly NEXT GROUP arithmetic (RH 5a-5c, body 6a-6c/6f, PF 5a-5b) plus the FOOTING substitution and the saved next group integer (body 6a). The pointer GR8 states only the last-printed-line value and refers the NEXT GROUP effects to 13.18.37 (GR-13.18.37.4-3/4/5), none of which is in `to`. Its only 85 case, pb484, is an unpaged report with no NEXT GROUP: it exercises body rule 6d alone. The compiler is correct where probed: paged_first_line_lc_85.cob at --std 85 gives LC 12 after NEXT GROUP 12 from line 9 (6a, first branch) and LC 15 = FOOTING after NEXT GROUP 8 from line 9 (6a, second branch, the saved integer then used on the next page), LC 08/10 otherwise (6d).",
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p11",
+      "quote": "specified by the final LINE-COUNTER setting rules",
+      "check": "OK  §1985:XIII.3.10.2 p11  (3.10.2 Organization)  the text is in p11"
+     },
+     {
+      "cite": "§1985:XIII.3.10.8 GR6",
+      "quote": "places the line number specified by the FOOTING phrase of the PAGE clause into LINE-COUNTER as the final LINE-COUNTER setting; in addition the RWCS places the NEXT GROUP integer into the saved next group integer location",
+      "check": "OK  §1985:XIII.3.10.8 GR6  (3.10.8 Body Group Presentation Rules)  the text is in GR6"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR8",
+      "quote": "may be further altered as a result of the action of an optional NEXT GROUP clause",
+      "check": "OK  §2023:13.18.35.4 GR8  (General rules)  the text is in GR8"
+     }
+    ],
+    "class": "other: the pointer states only the no-NEXT-GROUP value; the NEXT GROUP settings are GR-13.18.37.4-3/4/5, and its 85 case has no NEXT GROUP",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17-refute/paged_first_line_lc_85.cob (run E:/COBOL-coord/scratch/pb5453/runs/paged_first_line_lc_85-001)",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17-refute/paged_first_line_lc_85.cob for body 6a/6d; RH 5a-5c and PF 5a-5b not probed (needs-own-witness)"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "3aabff4e80277ba6d4fcafc97d0effa76485b914ad66ba99492e6e21d7b998d8",
+  "read": "09f656abfabbe799c8e42b3d37a4cc7bcd53b8933c8aac7fc46dbbf08bd424b0",
+  "refute": "6e321494992f2d594f3e08e4769b61248869ede6e84d82c7684869a3688c131b"
+ }
+}

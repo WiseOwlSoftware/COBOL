@@ -1,0 +1,1261 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-08 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-08",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-08",
+  "edition": 1985,
+  "ids": [
+   "1985-SR-IV.7.3.1-p1",
+   "1985-SR-IV.7.3.2-p1",
+   "1985-SR-IV.7.3.2-p2",
+   "1985-SR-IV.7.3.3-p1",
+   "1985-SR-IV.7.3.3-p2",
+   "1985-SR-IV.7.3.3-p3",
+   "1985-SR-IV.7.4-p1",
+   "1985-GR-IV.7.4-p3",
+   "1985-SR-IV.7.4-p4",
+   "1985-GR-IV.7.4-p5",
+   "1985-SR-IV.7.4-p6",
+   "1985-SR-IV.7.4-p7",
+   "1985-SR-IV.7.4-p8",
+   "1985-SR-IV.7.5-p1",
+   "1985-SR-IV.7.6-p1",
+   "1985-GR-IV.8-p1",
+   "1985-SR-IV.8-T1",
+   "1985-SR-IV.8-T2",
+   "1985-GR-VI.1.1-p1",
+   "1985-GR-VI.1.2-p1",
+   "1985-GR-VI.1.2-p2",
+   "1985-SR-VI.1.3.1-p1",
+   "1985-SR-VI.1.3.2-p1",
+   "1985-SR-VI.1.3.3-p1",
+   "1985-SR-VI.1.3.4-p1",
+   "1985-SR-VI.1.3.5-p1",
+   "1985-SR-VI.1.3.6-p1",
+   "1985-SR-VI.1.3.7-p1",
+   "1985-GR-VI.2.1-p1",
+   "1985-SR-VI.2.2-p1",
+   "1985-GR-VI.2.2-p2"
+  ],
+  "pointers": {
+   "1985-SR-IV.7.3.1-p1": {
+    "candidates-2023": [
+     "SR-14.2.2-11",
+     "SR-10.6.2-4",
+     "SR-14.9.4.3-24"
+    ],
+    "nearest-2023": "SR-14.2.2-11",
+    "similarity": 0.407
+   },
+   "1985-SR-IV.7.3.2-p1": {
+    "candidates-2023": [
+     "SR-8.4.3.11.3-1",
+     "SR-13.18.33.3-5",
+     "SR-13.18.63.3-30"
+    ],
+    "nearest-2023": "SR-8.4.3.11.3-1",
+    "similarity": 0.37
+   },
+   "1985-SR-IV.7.3.2-p2": {
+    "candidates-2023": [
+     "SR-14.2.2-11",
+     "SR-10.6.2-4",
+     "SR-14.9.49.3-1"
+    ],
+    "nearest-2023": "SR-14.2.2-11",
+    "similarity": 0.462
+   },
+   "1985-SR-IV.7.3.3-p1": {
+    "candidates-2023": [
+     "SR-8.3.5-3",
+     "SR-8.4.2.2.1-6",
+     "SR-12.3.7.3-31"
+    ],
+    "nearest-2023": "SR-8.3.5-3",
+    "similarity": 0.347
+   },
+   "1985-SR-IV.7.3.3-p2": {
+    "candidates-2023": [
+     "GR-14.9.11.4-15",
+     "GR-14.9.1.4-16",
+     "SR-8.4.2.2.1-6"
+    ],
+    "nearest-2023": "GR-14.9.11.4-15",
+    "similarity": 0.362
+   },
+   "1985-SR-IV.7.3.3-p3": {
+    "candidates-2023": [
+     "GR-6.5-2",
+     "GR-6.5-5",
+     "GR-13.18.35.4-11"
+    ],
+    "nearest-2023": "GR-6.5-2",
+    "similarity": 0.494
+   },
+   "1985-SR-IV.7.4-p1": {
+    "candidates-2023": [
+     "SR-13.18.40.3-7",
+     "SR-13.18.49.3-2",
+     "SR-13.18.57.3-2"
+    ],
+    "nearest-2023": "SR-13.18.40.3-7",
+    "similarity": 0.391
+   },
+   "1985-GR-IV.7.4-p3": {
+    "candidates-2023": [
+     "SR-13.18.33.3-2",
+     "SR-13.18.45.3-3",
+     "SR-6.3.4-2"
+    ],
+    "nearest-2023": "SR-13.18.33.3-2",
+    "similarity": 0.321
+   },
+   "1985-SR-IV.7.4-p4": {
+    "candidates-2023": [
+     "SR-7.3.3-5",
+     "SR-13.18.38.3-22",
+     "SR-6.3.4-2"
+    ],
+    "nearest-2023": "SR-7.3.3-5",
+    "similarity": 0.31
+   },
+   "1985-GR-IV.7.4-p5": {
+    "candidates-2023": [
+     "SR-13.18.33.3-6",
+     "SR-13.18.33.3-4",
+     "SR-13.18.33.3-2"
+    ],
+    "nearest-2023": "SR-13.18.33.3-6",
+    "similarity": 0.465
+   },
+   "1985-SR-IV.7.4-p6": {
+    "candidates-2023": [
+     "FMT-13.18.33.2",
+     "SR-13.18.33.3-3",
+     "SR-13.18.33.3-1"
+    ],
+    "nearest-2023": "FMT-13.18.33.2",
+    "similarity": 0.503
+   },
+   "1985-SR-IV.7.4-p7": {
+    "candidates-2023": [
+     "FMT-13.18.33.2",
+     "SR-13.18.33.3-1",
+     "SR-13.16.3-1"
+    ],
+    "nearest-2023": "FMT-13.18.33.2",
+    "similarity": 0.352
+   },
+   "1985-SR-IV.7.4-p8": {
+    "candidates-2023": [
+     "SR-13.16.3-6",
+     "GR-13.18.33.4-2",
+     "SR-13.16.3-16"
+    ],
+    "nearest-2023": "SR-13.16.3-6",
+    "similarity": 0.306
+   },
+   "1985-SR-IV.7.5-p1": {
+    "candidates-2023": [
+     "SR-14.9.49.3-7",
+     "SR-14.9.49.3-1",
+     "SR-14.9.28.3-11"
+    ],
+    "nearest-2023": "SR-14.9.49.3-7",
+    "similarity": 0.382
+   },
+   "1985-SR-IV.7.6-p1": {
+    "candidates-2023": [
+     "DOC-A.1-158",
+     "GR-14.9.41.4-2",
+     "GR-10.7.4-1"
+    ],
+    "nearest-2023": "DOC-A.1-158",
+    "similarity": 0.255
+   },
+   "1985-GR-IV.8-p1": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.1-2",
+     "GR-4.4-1"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.245
+   },
+   "1985-SR-IV.8-T1": {
+    "candidates-2023": [
+     "FMT-13.18.39.2",
+     "FMT-14.9.51.2",
+     "FMT-12.4.5.1"
+    ],
+    "nearest-2023": "FMT-13.18.39.2",
+    "similarity": 0.173
+   },
+   "1985-SR-IV.8-T2": {
+    "candidates-2023": [
+     "FMT-12.4.5.1",
+     "GR-9.1.13.2-6",
+     "FMT-14.9.6.2"
+    ],
+    "nearest-2023": "FMT-12.4.5.1",
+    "similarity": 0.155
+   },
+   "1985-GR-VI.1.1-p1": {
+    "candidates-2023": [
+     "GR-8.5.1.6.4-2",
+     "DOC-A.1-46",
+     "GR-14.9.18.4-7"
+    ],
+    "nearest-2023": "GR-8.5.1.6.4-2",
+    "similarity": 0.175
+   },
+   "1985-GR-VI.1.2-p1": {
+    "candidates-2023": [
+     "SR-13.15.3-5",
+     "GR-13.18.26.3-1",
+     "FMT-13.18.26.2"
+    ],
+    "nearest-2023": "SR-13.15.3-5",
+    "similarity": 0.177
+   },
+   "1985-GR-VI.1.2-p2": {
+    "candidates-2023": [
+     "FMT-13.18.26.2",
+     "GR-13.18.26.3-1",
+     "GR-13.18.26.3-5"
+    ],
+    "nearest-2023": "FMT-13.18.26.2",
+    "similarity": 0.258
+   },
+   "1985-SR-VI.1.3.1-p1": {
+    "candidates-2023": [
+     "SR-8.3.5-7",
+     "SR-12.3.7.3-20",
+     "DOC-A.1-25"
+    ],
+    "nearest-2023": "SR-8.3.5-7",
+    "similarity": 0.368
+   },
+   "1985-SR-VI.1.3.2-p1": {
+    "candidates-2023": [
+     "SR-13.15.3-5",
+     "DOC-A.1-219",
+     "SR-8.3.2.2-3"
+    ],
+    "nearest-2023": "SR-13.15.3-5",
+    "similarity": 0.317
+   },
+   "1985-SR-VI.1.3.3-p1": {
+    "candidates-2023": [
+     "FMT-8.3.3.6.2",
+     "GR-8.3.3.6.4-1",
+     "SR-14.9.25.3-5"
+    ],
+    "nearest-2023": "FMT-8.3.3.6.2",
+    "similarity": 0.447
+   },
+   "1985-SR-VI.1.3.4-p1": {
+    "candidates-2023": [
+     "SR-8.4.2.3.3-3",
+     "DOC-A.1-194",
+     "SR-8.4.2.3.3-7"
+    ],
+    "nearest-2023": "SR-8.4.2.3.3-3",
+    "similarity": 0.34
+   },
+   "1985-SR-VI.1.3.5-p1": {
+    "candidates-2023": [
+     "GR-7.3.17.4-2",
+     "GR-14.2.3-13",
+     "GR-7.3.17.4-3"
+    ],
+    "nearest-2023": "GR-7.3.17.4-2",
+    "similarity": 0.245
+   },
+   "1985-SR-VI.1.3.6-p1": {
+    "candidates-2023": [
+     "SR-8.4.3.3.3-5",
+     "SR-14.9.50.3-4",
+     "SR-12.3.7.3-6"
+    ],
+    "nearest-2023": "SR-8.4.3.3.3-5",
+    "similarity": 0.218
+   },
+   "1985-SR-VI.1.3.7-p1": {
+    "candidates-2023": [
+     "SR-6.3.5-2",
+     "SR-6.2.3.2-5",
+     "SR-6.3.5-1"
+    ],
+    "nearest-2023": "SR-6.3.5-2",
+    "similarity": 0.338
+   },
+   "1985-GR-VI.2.1-p1": {
+    "candidates-2023": [
+     "GR-8.4.3.13.4-2",
+     "GR-8.3.2.2-L4.1",
+     "GR-14.9.5.4-10"
+    ],
+    "nearest-2023": "GR-8.4.3.13.4-2",
+    "similarity": 0.364
+   },
+   "1985-SR-VI.2.2-p1": {
+    "candidates-2023": [
+     "GR-8.4.3.13.4-2",
+     "GR-14.9.4.4-3",
+     "GR-14.6.2.3.2-3"
+    ],
+    "nearest-2023": "GR-8.4.3.13.4-2",
+    "similarity": 0.346
+   },
+   "1985-GR-VI.2.2-p2": {
+    "candidates-2023": [
+     "GR-8.4.3.13.4-2",
+     "SR-11.10.3-3",
+     "GR-9.1.5-2"
+    ],
+    "nearest-2023": "GR-8.4.3.13.4-2",
+    "similarity": 0.453
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-08",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-SR-IV.7.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Reference format: every division header (IDENTIFICATION, ENVIRONMENT, DATA, PROCEDURE) begins in area A"
+    ],
+    "evidence-1985": {
+     "division header in area B refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-division-header-area-b-85 and pb5924-identification-header-area-b-85 (golden PASS: refused COBOL3734)",
+     "division header within area A (column 11) accepted": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-division-header-column-11-85 (golden PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.3.1 p1",
+      "check": "OK  §1985:IV.7.3.1 p1  (7.3.1 Division Header)  the text is in p1",
+      "quote": "The division header must start in area A"
+     }
+    ],
+    "reason": "\"The division header must start in area A.\" No 2023 counterpart: 2023 fixed form has no areas A and B (the compiler gates the area rules to 85, citing §2023:6.3.1), and every candidate is a wording-only match with no 85 witness for this scope. The prose85 goldens (PASS on the mint build) refuse a header in area B and accept one at column 11.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-division-header-area-b-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-division-header-area-b-85.cob (+ pb5924-division-header-column-11-85 control)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.7.3.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Reference format: every section header (Environment, Data, Procedure, declarative sections) begins in area A"
+    ],
+    "evidence-1985": {
+     "Data Division section header in area B refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-data-section-header-area-b-85 (golden PASS)",
+     "Procedure section header in area B refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-procedure-section-header-area-b-85 (golden PASS)",
+     "section header within area A (column 10) accepted": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-section-header-column-10-85 (golden PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.3.2 p1",
+      "check": "OK  §1985:IV.7.3.2 p1  (7.3.2 Section Header)  the text is in p1",
+      "quote": "The section header must start in area A"
+     }
+    ],
+    "reason": "\"The section header must start in area A.\" No 2023 counterpart: 2023 fixed form has no areas A and B (the compiler gates the area rules to 85, citing §2023:6.3.1), and every candidate is a wording-only match with no 85 witness for this scope.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-procedure-section-header-area-b-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-data-section-header-area-b-85.cob, pb5924-procedure-section-header-area-b-85.cob, pb5924-section-header-column-10-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.7.3.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Environment Division section with zero paragraphs (empty CONFIGURATION SECTION) and with several (INPUT-OUTPUT SECTION: FILE-CONTROL, I-O-CONTROL)",
+     "Procedure Division section with zero paragraphs and with one or more",
+     "Data Division section with zero entries (empty LINKAGE SECTION) and with entries (FILE, WORKING-STORAGE)"
+    ],
+    "evidence-1985": {
+     "Environment sections, zero and several paragraphs": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-section-contents-85.cob (accepted, prints S1-P1 S1-P2 X; run E:/COBOL-coord/scratch/pb5453/runs/t-section-contents-85-001)",
+     "Procedure sections, zero and several paragraphs": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-section-contents-85.cob (S0 SECTION empty, S1 two paragraphs)",
+     "Data sections, zero and several entries": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-section-contents-85.cob (empty LINKAGE SECTION)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.3.2 p2",
+      "check": "OK  §1985:IV.7.3.2 p2  (7.3.2 Section Header)  the text is in p2",
+      "quote": "zero, one, or more paragraphs in the Environment Division or Procedure Division"
+     }
+    ],
+    "reason": "\"A section consists of zero, one, or more paragraphs in the Environment Division or Procedure Division or zero, one, or more entries in the Data Division.\" The candidates (prototype and USE rules) are wording-only; the rule grants empty sections, so it needs an accepted program, which the probe supplies.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-section-contents-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-section-contents-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.7.3.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Procedure paragraph: paragraph-name, separator period, zero or more sentences",
+     "Environment paragraph: paragraph header (SOURCE-COMPUTER., OBJECT-COMPUTER.) followed by one or more entries",
+     "a paragraph-name not followed by the separator period is not a paragraph"
+    ],
+    "evidence-1985": {
+     "paragraph with zero sentences and with several": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-forms-85.cob (P0 empty; accepted, prints AB C D)",
+     "paragraph header with entries": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-forms-85.cob (SOURCE-COMPUTER, OBJECT-COMPUTER)",
+     "paragraph-name without period refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-name-no-period-85.cob (COBOL0307 \"A period may be missing\")"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.3.3 p1",
+      "check": "OK  §1985:IV.7.3.3 p1  (7.3.3 Paragraph Header, Paragraph-Name, and Paragraph)  the text is in p1",
+      "quote": "a paragraph-name followed by the separator period and by zero, one, or more sentences"
+     }
+    ],
+    "reason": "\"A paragraph consists of a paragraph-name followed by the separator period and by zero, one, or more sentences, or a paragraph header followed by one or more entries.\" No candidate states paragraph composition. Accepted probe plus a refusal with its control.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-forms-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-forms-85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-name-no-period-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.7.3.3-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "paragraph-name (Procedure) and paragraph header (Identification, Environment) begin in area A",
+     "only on a line after the first line of its division or section"
+    ],
+    "evidence-1985": {
+     "paragraph-name in area B refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-name-area-b-85.cob (COBOL3734 \"the paragraph header P2 begins in area B\")",
+     "paragraph-name on the section header's line refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-on-section-line-85.cob (COBOL3734 \"follows other text of its line\")",
+     "paragraph-name and header in area A on a following line accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-forms-85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-08/t-section-contents-85.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.3.3 p2",
+      "check": "OK  §1985:IV.7.3.3 p2  (7.3.3 Paragraph Header, Paragraph-Name, and Paragraph)  the text is in p2",
+      "quote": "starts in area A of any line following the first line of a division or a section"
+     }
+    ],
+    "reason": "\"The paragraph header or paragraph-name starts in area A of any line following the first line of a division or a section.\" No 2023 counterpart: 2023 fixed form has no areas A and B (the compiler gates the area rules to 85, citing §2023:6.3.1), and every candidate is a wording-only match with no 85 witness for this scope.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-name-area-b-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-name-area-b-85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-on-section-line-85.cob (controls t-paragraph-forms-85.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.7.3.3-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "first sentence (Procedure) or entry (Environment) on the paragraph-name/header line, or in area B of the next line that is neither blank nor a comment line",
+     "successive sentences or entries in area B of the same line or of the next nonblank non-comment line",
+     "a sentence or entry beginning in area A is not permitted"
+    ],
+    "evidence-1985": {
+     "first sentence on the paragraph-name line; first entry on the header line": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-forms-85.cob (P1. DISPLAY ...; SOURCE-COMPUTER. WISEOWL.)",
+     "first sentence/entry after a blank and a comment line, in area B": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-forms-85.cob (P2, OBJECT-COMPUTER)",
+     "successive sentences on the same line and on the next line deep in area B": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-forms-85.cob (prints AB C D)",
+     "sentence in area A refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-sentence-area-a-85.cob (COBOL3735)",
+     "entry in area A refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-entry-area-a-85.cob (COBOL3735)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.3.3 p3",
+      "check": "OK  §1985:IV.7.3.3 p3  (7.3.3 Paragraph Header, Paragraph-Name, and Paragraph)  the text is in p3",
+      "quote": "in area B of the next nonblank line that is not a comment line"
+     }
+    ],
+    "reason": "\"The first sentence or entry in a paragraph begins either on the same line as the paragraph header or paragraph-name or in area B of the next nonblank line that is not a comment line.\" The 2023 candidates (logical conversion of comment/blank lines) cover only the skipped lines, not area B placement. No 2023 counterpart: 2023 fixed form has no areas A and B (the compiler gates the area rules to 85, citing §2023:6.3.1), and every candidate is a wording-only match with no 85 witness for this scope.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-forms-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-paragraph-forms-85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-08/t-sentence-area-a-85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-08/t-entry-area-a-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.7.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Data Division entries (FD/SD/CD/RD and data description entries): level indicator or level-number, a space, the subject name if specified, independent clauses in sequence",
+     "the last clause terminated by a separator period"
+    ],
+    "evidence-1985": {
+     "level-number, space, name (or none), clauses in either order, period": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-data-entry-forms-85.cob (accepted, prints AB12)",
+     "level indicator entries": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-level-indicators-85.cob",
+     "no space after the level-number refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-level-number-no-space-85 (golden PASS)",
+     "missing separator period refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-data-entry-no-period-85.cob (refused; see the lead on its diagnostics)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.4 p1",
+      "check": "OK  §1985:IV.7.4 p1  (7.4 DATA DIVISION ENTRIES)  the text is in p1",
+      "quote": "The last clause is always terminated by a separator period"
+     }
+    ],
+    "reason": "\"Each Data Division entry begins with a level indicator or a level-number, followed by a space, followed by the name of the subject of entry, if specified, followed by a sequence of independent clauses ... The last clause is always terminated by a separator period.\" Candidates are PICTURE/SAME AS/TYPE placement rules, none of the entry shape.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-data-entry-forms-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-data-entry-forms-85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-08/t-data-entry-no-period-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.7.4-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the level indicators FD (file I-O), SD (Sort-Merge), CD (Communication), RD (Report Writer) begin Data Division entries"
+    ],
+    "evidence-1985": {
+     "FD, SD, CD, RD entries accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-level-indicators-85.cob (accepted, prints FD SD CD RD; run E:/COBOL-coord/scratch/pb5453/runs/t-level-indicators-85-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.4 p3",
+      "check": "OK  §1985:IV.7.4 p3  (7.4 DATA DIVISION ENTRIES)  the text is in p3",
+      "quote": "a level indicator is any of the following: FD, SD, CD, RD"
+     }
+    ],
+    "reason": "Flagged definitional, but a program can show it: an entry beginning with each of \"FD, SD, CD, RD\" compiles and runs at 85. No 2023 candidate states the set (2023 has no CD).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-level-indicators-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-level-indicators-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.7.4-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FD, SD, CD and RD each begin in area A, followed by at least one space and the subject name"
+    ],
+    "evidence-1985": {
+     "FD in area B refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-fd-area-b-85.cob (COBOL3734)",
+     "SD in area B refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-sd-area-b-85.cob (COBOL3734)",
+     "CD in area B refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-cd-area-b-85.cob (COBOL3734)",
+     "RD in area B refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-rd-area-b-85.cob (COBOL3734)",
+     "all four in area A accepted (control)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-level-indicators-85.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.4 p4",
+      "check": "OK  §1985:IV.7.4 p4  (7.4 DATA DIVISION ENTRIES)  the text is in p4",
+      "quote": "the level indicator begins in area A, followed by at least one space"
+     }
+    ],
+    "reason": "\"the level indicator begins in area A, followed by at least one space\". No 2023 counterpart: 2023 fixed form has no areas A and B (the compiler gates the area rules to 85, citing §2023:6.3.1), and every candidate is a wording-only match with no 85 witness for this scope. Each refusal differs from the control by one line.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-fd-area-b-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-fd-area-b-85.cob, t-sd-area-b-85.cob, t-cd-area-b-85.cob, t-rd-area-b-85.cob (control t-level-indicators-85.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.7.4-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "names the entries that begin with a level-number \"data description entries\""
+    ],
+    "evidence-1985": {
+     "naming": "not shown: the name given to a class of entries is not observable"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.4 p5",
+      "check": "OK  §1985:IV.7.4 p5  (7.4 DATA DIVISION ENTRIES)  the text is in p5",
+      "quote": "Those entries that begin with level-numbers are called data description entries"
+     }
+    ],
+    "reason": "\"Those entries that begin with level-numbers are called data description entries.\" It coins a term; no program can show what an entry is called, and each rule that uses the term is its own row.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row only names a class of entries; no program behaviour depends on the name",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a data description entry as any Data Division entry of the user's program that begins with a level-number"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.7.4-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "level-number values 01-49, 66, 77, 88",
+     "one-digit forms 1-9 equal 01-09",
+     "a value outside the set (e.g. 50) is not a level-number",
+     "at least one space between the level-number and the next word"
+    ],
+    "evidence-1985": {
+     "01-49, 66, 77, 88 and one-digit forms accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-level-values-85.cob (accepted, prints ABCDEFGHIJ YES; run E:/COBOL-coord/scratch/pb5453/runs/t-level-values-85-002)",
+     "50 refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-level-50-85.cob (COBOL1746)",
+     "no space refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-level-number-no-space-85 (golden PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.4 p6",
+      "check": "OK  §1985:IV.7.4 p6  (7.4 DATA DIVISION ENTRIES)  the text is in p6",
+      "quote": "may be written either as a single digit or as a zero followed by a significant digit"
+     }
+    ],
+    "reason": "\"A level-number has a value taken from the set of values 01, 02, ... , 49, 66, 77, 88 ... may be written either as a single digit ... At least one space must separate a level-number from the word following\". SR-13.18.33.3-3 states only the 01-09 form and its 85 case covers neither the set nor the space; the other candidates have no 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-level-values-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-level-values-85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-08/t-level-50-85.cob, E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-level-number-no-space-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.7.4-p7",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "level-numbers 01 and 77 begin in area A, then at least one space, then the record-name or item-name if specified"
+    ],
+    "evidence-1985": {
+     "01 in area B refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-level-01-area-b-85 (golden PASS)",
+     "77 in area B refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-level-77-area-b-85 (golden PASS)",
+     "01/77 in area A accepted; unnamed entry accepted": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-level-number-indentation-85 (golden PASS), E:/COBOL-coord/scratch/pb5453/probes/s-08/t-data-entry-forms-85.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.4 p7",
+      "check": "OK  §1985:IV.7.4 p7  (7.4 DATA DIVISION ENTRIES)  the text is in p7",
+      "quote": "the level-number begins in area A, followed by at least one space"
+     }
+    ],
+    "reason": "\"In those data description entries that begin with a level-number 01 or 77, the level-number begins in area A\". No 2023 counterpart: 2023 fixed form has no areas A and B (the compiler gates the area rules to 85, citing §2023:6.3.1), and every candidate is a wording-only match with no 85 witness for this scope.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-level-01-area-b-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-level-01-area-b-85.cob, pb5924-level-77-area-b-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.7.4-p8",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "other data description entries may begin anywhere right of margin A (area A or B)",
+     "01 and 77 must begin in area A",
+     "the listing need be indented only if the input is",
+     "indentation does not change a level-number's magnitude"
+    ],
+    "evidence-1985": {
+     "indented 02 entries in area A and B accepted as siblings": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-level-number-indentation-85 (golden PASS, prints ABCDE)",
+     "01/77 in area B refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-level-01-area-b-85, pb5924-level-77-area-b-85 (golden PASS)",
+     "listing keeps the input's indentation": "covered by E:/COBOL-coord/scratch/pb5453/runs/pb5924-level-number-indentation-85-001/pb5924-level-number-indentation-85.lst (listing on by default at 85; source lines 15-20 keep their columns)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.4 p8",
+      "check": "OK  §1985:IV.7.4 p8  (7.4 DATA DIVISION ENTRIES)  the text is in p8",
+      "quote": "The entries on the output listing need be indented only if the input is indented"
+     }
+    ],
+    "reason": "\"Each new data description entry may begin any number of positions to the right of margin A, except ... 01 or 77 must begin in area A ... Indentation does not affect the magnitude of a level-number.\" No 2023 counterpart: 2023 fixed form has no areas A and B (the compiler gates the area rules to 85, citing §2023:6.3.1), and every candidate is a wording-only match with no 85 witness for this scope.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-level-number-indentation-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-level-number-indentation-85.cob (and its .lst), pb5924-level-01-area-b-85.cob, pb5924-level-77-area-b-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.7.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "DECLARATIVES and END DECLARATIVES each on a line by itself",
+     "each begins in area A",
+     "each followed by the separator period"
+    ],
+    "evidence-1985": {
+     "own lines accepted": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-declaratives-own-lines-85 (golden PASS)",
+     "not on a line by itself refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-declaratives-after-header-85, pb5924-end-declaratives-after-sentence-85, pb5924-end-declaratives-section-follows-85 (golden PASS)",
+     "area B refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-declaratives-area-b-85, pb5924-end-declaratives-area-b-85 (golden PASS)",
+     "no period refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-declaratives-no-period-85, pb5924-end-declaratives-no-period-85 (golden PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.5 p1",
+      "check": "OK  §1985:IV.7.5 p1  (7.5 DECLARATIVES)  the text is in p1",
+      "quote": "must each appear on a line by itself"
+     }
+    ],
+    "reason": "\"The key word DECLARATIVES and the pair of key words END DECLARATIVES ... must each appear on a line by itself. Each must begin in area A and be followed by the separator period.\" The candidates are USE/PERFORM rules; line and area placement has no 2023 counterpart.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-declaratives-own-lines-85.cob",
+    "compiler-at-1985": "correct: the nine pb5924-declaratives-*/end-declaratives-* goldens in E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.7.6-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the end program header (Inter-Program Communication) begins in area A"
+    ],
+    "evidence-1985": {
+     "area B refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-end-program-area-b-85 (golden PASS)",
+     "column 9 accepted": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-end-program-column-9-85 (golden PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.6 p1",
+      "check": "OK  §1985:IV.7.6 p1  (7.6 END PROGRAM HEADER)  the text is in p1",
+      "quote": "The end program header must start in area A"
+     }
+    ],
+    "reason": "\"The end program header must start in area A.\" No 2023 counterpart: 2023 fixed form has no areas A and B (the compiler gates the area rules to 85, citing §2023:6.3.1), and every candidate is a wording-only match with no 85 witness for this scope.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-end-program-area-b-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-end-program-area-b-85.cob, pb5924-end-program-column-9-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.8-p1",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "introduces the reserved-word list (Tables 1 and 2) for the seven required and five optional modules"
+    ],
+    "evidence-1985": {
+     "the list itself": "read under 1985-SR-IV.8-T1 and -T2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.8 p1",
+      "check": "OK  §1985:IV.8 p1  (8. <u>COBOL RESERVED WORDS</u>)  the text is in p1",
+      "quote": "a list of COBOL reserved words for the seven required modules"
+     }
+    ],
+    "reason": "\"The following is a list of COBOL reserved words for the seven required modules and the five optional modules.\" A lead-in to the tables whose only requirement is the tables' (rows T1, T2). No derivation arm fits a rule about the standard's own presentation; settled by folding it into T1/T2 (segmentation lead).",
+    "probe": null,
+    "compiler-at-1985": "not probed: its requirement is the tables, read under 1985-SR-IV.8-T1/T2",
+    "class": null,
+    "needs": "a segmentation decision: fold the lead-in into the T1/T2 rows or retire it",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.8-T1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "every word of Table 1 (Nucleus, I-O, Sort-Merge, Report Writer, Communication, Debug, Segmentation, Library, IPC, and FUNCTION from Amendment 2) is reserved: refused as a user-defined word at 85"
+    ],
+    "evidence-1985": {
+     "each listed word refused as a level-01 data-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/rw/ (200 probes; results E:/COBOL-coord/scratch/pb5453/probes/s-08/rw-sweep-result.json; all exit 65, most COBOL0901 \"is a reserved word in COBOL-85\")",
+     "words the data-name position reads as clause keywords (JUST, JUSTIFIED, DISPLAY, SYNC, SYNCHRONIZED: legal implicit-FILLER entries) or refuses for another reason": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/rw2/ (the word as the program-name: all refused; E:/COBOL-coord/scratch/pb5453/probes/s-08/rw2-sweep-result.json)",
+     "control (non-reserved word) accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/rw/rw-wiseowlw-85.cob and rw2/rw2-wiseowlp-85.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.8 Table 1",
+      "check": "OK  §1985:IV.8 Table 1 (structure only) ok"
+     }
+    ],
+    "reason": "The 1985 reserved-word list (Table 1); 2023's list differs (words added and removed), and the candidates are wording-only formats. The sweep refuses every listed word in a user-defined-word position at 85 and accepts the controls; the operator symbols in Table 2 (+ - * / ** > < = >= <=) are not words and were not probed. Runners: E:/COBOL-coord/scratch/pb5453/probes/s-08/rw_sweep.py, rw_sweep2.py.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/rw_sweep.py",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/rw-sweep-result.json and rw2-sweep-result.json (every listed word refused; controls accepted)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.8-T2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "every word of Table 2 (Nucleus, I-O, Sort-Merge, Report Writer, Communication, Debug, Segmentation, Library, IPC, and FUNCTION from Amendment 2) is reserved: refused as a user-defined word at 85"
+    ],
+    "evidence-1985": {
+     "each listed word refused as a level-01 data-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/rw/ (150 probes; results E:/COBOL-coord/scratch/pb5453/probes/s-08/rw-sweep-result.json; all exit 65, most COBOL0901 \"is a reserved word in COBOL-85\")",
+     "words the data-name position reads as clause keywords (JUST, JUSTIFIED, DISPLAY, SYNC, SYNCHRONIZED: legal implicit-FILLER entries) or refuses for another reason": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/rw2/ (the word as the program-name: all refused; E:/COBOL-coord/scratch/pb5453/probes/s-08/rw2-sweep-result.json)",
+     "control (non-reserved word) accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/rw/rw-wiseowlw-85.cob and rw2/rw2-wiseowlp-85.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.8 Table 2",
+      "check": "OK  §1985:IV.8 Table 2 (structure only) ok"
+     }
+    ],
+    "reason": "The 1985 reserved-word list (Table 2); 2023's list differs (words added and removed), and the candidates are wording-only formats. The sweep refuses every listed word in a user-defined-word position at 85 and accepts the controls; the operator symbols in Table 2 (+ - * / ** > < = >= <=) are not words and were not probed. Runners: E:/COBOL-coord/scratch/pb5453/probes/s-08/rw_sweep.py, rw_sweep2.py.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/rw_sweep.py",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/rw-sweep-result.json and rw2-sweep-result.json (every listed word refused; controls accepted)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "internal processing within the four divisions",
+     "tables of contiguous items accessed by position (subscripts)",
+     "debugging: compile-time switch (WITH DEBUGGING MODE) and debugging lines"
+    ],
+    "evidence-1985": {
+     "four divisions, processing": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level1-85.cob (accepted, prints 06 D 3 8 2 4 X Z)",
+     "table accessed by subscripts": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level1-85.cob (three-dimensional T3)",
+     "debugging switch and D line": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level1-85.cob (WITH DEBUGGING MODE; the D line prints \" D\")"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.1.1 p1",
+      "check": "OK  §1985:VI.1.1 p1  (1.1 FUNCTION)  the text is in p1",
+      "quote": "a debugging capability consisting of a compile time switch and debugging lines"
+     }
+    ],
+    "reason": "Flagged definitional, but the capabilities it names can be shown: \"a capability for defining tables of contiguous data items and accessing an item relative to its position in a table ... a debugging capability consisting of a compile time switch and debugging lines.\" No candidate states any of it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level1-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level1-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.1.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "level 1 statements ACCEPT, ADD, ALTER, DISPLAY, DIVIDE, IF, MOVE, MULTIPLY, PERFORM, SUBTRACT, CONTINUE, EXIT, GO TO, STOP",
+     "ENTER (full capability in level 1)",
+     "up to three-dimensional fixed-length tables",
+     "debugging switch and lines",
+     "limited SPECIAL-NAMES/data description, qualification, figurative constants (a level 1 limitation; --std 85 implements level 2, kb/Work PB4885)"
+    ],
+    "evidence-1985": {
+     "level 1 statements": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level1-85.cob (accepted, prints 06 D 3 8 2 4 X Z)",
+     "ENTER": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-enter-85.cob: refused COBOL7240 naming the implementor option of §1985:I.1.5.2.5.5",
+     "three-dimensional table": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level1-85.cob",
+     "debugging": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level1-85.cob",
+     "level 1 limitations": "not shown: they restrict only a level 1 implementation"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.1.2 p1",
+      "check": "OK  §1985:VI.1.2 p1  (1.2 LEVEL CHARACTERISTICS)  the text is in p1",
+      "quote": "full capabilities for the CONTINUE, ENTER, EXIT, GO TO, and STOP statements"
+     },
+     {
+      "cite": "§1985:I.1.5.2.5.5",
+      "check": "OK  §1985:I.1.5.2.5.5  (1.5.2.5.5 The ENTER Statement)  the text is in the clause",
+      "quote": "may include the ENTER statement or not, at the option of the implementor"
+     }
+    ],
+    "reason": "Flagged definitional but testable. \"full capabilities for the CONTINUE, ENTER, EXIT, GO TO, and STOP statements\": all but ENTER run in the probe; ENTER is declined under \"An implementation of Standard COBOL may include the ENTER statement or not, at the option of the implementor\", with a diagnostic naming that licence. No candidate states the level content.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level1-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level1-85.cob; ENTER declined under §1985:I.1.5.2.5.5 (E:/COBOL-coord/scratch/pb5453/probes/s-08/t-enter-85.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.1.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "level 2 statements COMPUTE, EVALUATE, INITIALIZE, INSPECT, SEARCH, SET, STRING, UNSTRING (plus the level 1 ones)",
+     "full qualification, data-name formation, figurative constants",
+     "up to seven-dimensional tables",
+     "full SPECIAL-NAMES and data description entry"
+    ],
+    "evidence-1985": {
+     "level 2 statements": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level2-85.cob (accepted, prints 007 B 3 AXC 3 AB-CD 7 OK)",
+     "qualification": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level2-85.cob (K OF G1, K IN G2) and E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-fifty-qualifiers-85 (golden PASS)",
+     "figurative constants": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-figcon-level2-85.cob",
+     "seven-dimensional table": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level2-85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-08/t-seven-subscripts-85.cob",
+     "full SPECIAL-NAMES and data description entry": "not shown here: a summary of VI.4/VI.5, each clause read in its own rows"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.1.2 p2",
+      "check": "OK  §1985:VI.1.2 p2  (1.2 LEVEL CHARACTERISTICS)  the text is in p2",
+      "quote": "a capability for accessing items in up to seven-dimensional tables"
+     }
+    ],
+    "reason": "Boxed level 2 summary: \"full capabilities for the ACCEPT, ADD, ALTER, COMPUTE, ... EVALUATE, IF, INITIALIZE, INSPECT, ... SEARCH, SET, STRING, SUBTRACT, and UNSTRING statements ... up to seven-dimensional tables.\" Candidates are the screen FULL clause (wording-only, documented non-support).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level2-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level2-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.1.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the colon is permitted (level 2; its 1985 Nucleus use is reference modification)",
+     "level 1 exclusion binds a level 1 implementation only"
+    ],
+    "evidence-1985": {
+     "colon accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-refmod-colon-85.cob (accepted, prints BCD|E|XY); also cases/8.3.5-Separators/l1c17_colon_separator (accepted at 85)",
+     "level 1 exclusion": "not shown: --std 85 implements level 2 (kb/Work PB4885)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.1.3.1 p1",
+      "check": "OK  §1985:VI.1.3.1 p1  (1.3.1 Character Set)  the text is in p1",
+      "quote": "The COBOL character colon (:) is permitted in level 2"
+     }
+    ],
+    "reason": "\"The COBOL character colon (:) is permitted in level 2.\" SR-8.3.5-7 says the colon is a separator, not the level permission; own text with its own probe.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-refmod-colon-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-refmod-colon-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.1.3.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "50 qualifiers permitted (level 2)",
+     "user-defined words need not be unique (level 2)",
+     "the level 1 uniqueness rule binds a level 1 implementation only"
+    ],
+    "evidence-1985": {
+     "50 qualifiers, non-unique names": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-fifty-qualifiers-85 (golden PASS; two files with identically named hierarchies)",
+     "non-unique names qualified": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-nucleus-level2-85.cob (K OF G1, K IN G2)",
+     "level 1 rule": "not shown: --std 85 implements level 2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.1.3.2 p1",
+      "check": "OK  §1985:VI.1.3.2 p1  (1.3.2 Name Characteristics)  the text is in p1",
+      "quote": "50 qualifiers are permitted in level 2"
+     }
+    ],
+    "reason": "\"50 qualifiers are permitted in level 2. In level 2, user-defined words need not be unique.\" The candidates are unrelated (TYPE clause, word documentation, name sharing) with no 85 case for this scope.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-fifty-qualifiers-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-fifty-qualifiers-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.1.3.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "ZERO, ZEROS, ZEROES, SPACE, SPACES, HIGH-VALUE(S), LOW-VALUE(S), QUOTE(S)",
+     "symbolic-character",
+     "ALL literal, ALL figurative constant, ALL symbolic-character"
+    ],
+    "evidence-1985": {
+     "all listed forms accepted with their values": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-figcon-level2-85.cob (accepted, prints [0 ] [\"] [ABAB] [00] [!] [!!])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.1.3.3 p1",
+      "check": "OK  §1985:VI.1.3.3 p1  (1.3.3 Figurative Constants)  the text is in p1",
+      "quote": "ALL literal, ALL figurative constant, and ALL symbolic-character"
+     }
+    ],
+    "reason": "\"The figurative constants that may be used in level 2 are: ZERO, ... QUOTES, symbolic-character, ALL literal, ALL figurative constant, and ALL symbolic-character.\" FMT-8.3.3.6.2 has no 85 case; the other candidates witness single forms only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-figcon-level2-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-figcon-level2-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.1.3.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "one through seven subscripts permitted (level 2)"
+    ],
+    "evidence-1985": {
+     "1 to 7 subscripts, literal and data-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-seven-subscripts-85.cob (accepted, prints 1 2 3 4 5 6 7)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.1.3.4 p1",
+      "check": "OK  §1985:VI.1.3.4 p1  (1.3.4 Subscripts)  the text is in p1",
+      "quote": "One through seven subscripts are permitted in level 2"
+     }
+    ],
+    "reason": "\"One through seven subscripts are permitted in level 2.\" SR-8.4.2.3.3-3 has only a refusal case at 85; a permission needs an accepted program, which the probe supplies.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-seven-subscripts-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-seven-subscripts-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.1.3.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "function-identifiers are available exactly when the Intrinsic Function module (Amendment 1) is supported; --std 85 supports it"
+    ],
+    "evidence-1985": {
+     "function-identifiers accepted at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-function-85.cob (FUNCTION UPPER-CASE, FUNCTION MAX; prints ABC 3)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.1.3.5 p1",
+      "check": "OK  §1985:VI.1.3.5 p1  (1.3.5 Function-Identifier)  the text is in p1",
+      "quote": "dependent on whether the Intrinsic Function module is supported"
+     }
+    ],
+    "reason": "\"The availability of function-identifiers is dependent on whether the Intrinsic Function module is supported by the implementation.\" The candidates are leap-second and foreign-runtime rules (wording-only).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-function-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-function-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.1.3.6-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "reference modification permitted (level 2)"
+    ],
+    "evidence-1985": {
+     "reference modification as sender and receiver, with and without length": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-refmod-colon-85.cob (prints BCD|E|XY)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.1.3.6 p1",
+      "check": "OK  §1985:VI.1.3.6 p1  (║1.3.6 Reference Modification║)  the text is in p1",
+      "quote": "Reference modification is permitted in level 2 only"
+     }
+    ],
+    "reason": "\"Reference modification is permitted in level 2 only.\" The level permission is 1985's own; SR-8.4.3.3.3-5 states where reference modification may appear, not its availability.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-refmod-colon-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-refmod-colon-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.1.3.7-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a word, numeric literal or PICTURE character-string may be broken across a continuation line (level 2)",
+     "the level 1 prohibition binds a level 1 implementation only"
+    ],
+    "evidence-1985": {
+     "broken word, numeric literal and PICTURE string accepted": "covered by E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-broken-word-literal-picture-85 (golden PASS)",
+     "level 1": "not shown: --std 85 implements level 2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.1.3.7 p1",
+      "check": "OK  §1985:VI.1.3.7 p1  (1.3.7 Reference Format)  the text is in p1",
+      "quote": "can be broken in such a way that part of it appears on a continuation line"
+     }
+    ],
+    "reason": "\"In level 2 a word, numeric literal, or PICTURE character-string can be broken in such a way that part of it appears on a continuation line.\" The 2023 candidates cover literal continuation only.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-broken-word-literal-picture-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-broken-word-literal-picture-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "defines a COBOL source program"
+    ],
+    "evidence-1985": {
+     "definition": "not shown: every accepted program and every syntax refusal relies on it without isolating it"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.2.1 p1",
+      "check": "OK  §1985:VI.2.1 p1  (2.1 GENERAL DESCRIPTION)  the text is in p1",
+      "quote": "A COBOL source program is a syntactically correct set of COBOL statements"
+     }
+    ],
+    "reason": "\"A COBOL source program is a syntactically correct set of COBOL statements.\" A definition of the term; no program isolates it.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a definition of the term source program; no observable behaviour isolates it",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a COBOL source program as a syntactically correct set of COBOL statements written by the user"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.2.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "statements, entries, paragraphs and sections grouped into four divisions in the order Identification, Environment, Data, Procedure (the list after the row's colon, page 235)",
+     "COPY and REPLACE statements and the end program header stand outside that grouping"
+    ],
+    "evidence-1985": {
+     "divisions in order, REPLACE before the Identification Division, COPY inside Working-Storage, an end program header": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-division-order-85.cob (with --with ORDCPY; accepted, prints ONE TWO)",
+     "Data before Environment refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-division-order-swapped-85.cob (COBOL0001)",
+     "Procedure before Data refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-procedure-before-data-85.cob (COBOL0001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.2.2 p1",
+      "check": "OK  §1985:VI.2.2 p1  (2.2 ORGANIZATION)  the text is in p1",
+      "quote": "are grouped into four divisions which are sequenced in the following order"
+     }
+    ],
+    "reason": "\"With the exception of COPY and REPLACE statements and the end program header, the statements, entries, paragraphs, and sections of a COBOL source program are grouped into four divisions which are sequenced in the following order:\" (Identification, Environment, Data, Procedure). No candidate states division order.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-division-order-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-division-order-85.cob (run with --with ORDCPY), E:/COBOL-coord/scratch/pb5453/probes/s-08/t-division-order-swapped-85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-08/t-procedure-before-data-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.2.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a program ends at its end program header if specified",
+     "otherwise at the absence of further source lines"
+    ],
+    "evidence-1985": {
+     "END PROGRAM ends ORD1; ORD2 ends with the file and is called": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/t-division-order-85.cob (prints ONE TWO; run E:/COBOL-coord/scratch/pb5453/runs/t-division-order-85-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.2.2 p2",
+      "check": "OK  §1985:VI.2.2 p2  (2.2 ORGANIZATION)  the text is in p2",
+      "quote": "either the end program header, if specified, or by the absence of additional source program lines"
+     }
+    ],
+    "reason": "\"The end of a COBOL source program is indicated by either the end program header, if specified, or by the absence of additional source program lines.\" Candidates are CALL and nested-name rules (wording-only).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/t-division-order-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/t-division-order-85.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe/golden as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "segmentation",
+    "row": "1985-SR-VI.2.2-p1",
+    "what": "the row ends at \"in the following order:\"; the ordered list it governs (1 Identification, 2 Environment, 3 Data, 4 Procedure Division, page 235) is minted in no row",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py \"1985-*-VI.2.2*\"",
+    "site": "docs/rearchitecture/spec-rule-catalog-1985.json (PB5452 mint of VI.2.2)"
+   },
+   {
+    "kind": "segmentation",
+    "row": "1985-GR-IV.8-p1",
+    "what": "a lead-in (\"The following is a list of COBOL reserved words ...\") minted as its own GR row; its requirement is 1985-SR-IV.8-T1/T2",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py 1985-GR-IV.8-p1",
+    "site": "docs/rearchitecture/spec-rule-catalog-1985.json"
+   },
+   {
+    "kind": "segmentation",
+    "row": "1985-SR-VI.1.3.1-p1",
+    "what": "box \"whole\" on 1985-SR-VI.1.3.1-p1, VI.1.3.2-p1, VI.1.3.3-p1, VI.1.3.4-p1 and VI.1.3.7-p1, but only their level 2 sentence is boxed; the level 1 sentence before the box mark is not",
+    "repro": "grep -n \"is not included in level 1\" E:/COBOL/.claude/worktrees/pb5452-mint/specs/ANSI_COBOL_1985.md",
+    "site": "docs/rearchitecture/spec-rule-catalog-1985.json (box field)"
+   },
+   {
+    "kind": "defect",
+    "row": "1985-SR-IV.7.4-p1",
+    "what": "diagnostic quality, not a wrong verdict: a data description entry missing its separator period (01 A PIC X VALUE \"A\" then 01 B ...) is refused, but the first diagnostic is COBOL3735 \"'01' begins in area A\" (whose own text exempts level-numbers), then five cascades; none says the period is missing",
+    "repro": "python E:/COBOL/scripts/orchestrator/run_probe.py --root E:/COBOL-coord/scratch/pb5453/runs --std 85 --exe E:/COBOL-coord/scratch/pb5453/tree-9fdf39b9e8/src/WiseOwl.Cobol.Cli/bin/Debug/net11.0/cobol.exe --compile-only E:/COBOL-coord/scratch/pb5453/probes/s-08/t-data-entry-no-period-85.cob",
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-08",
+  "cases": [],
+  "disputed-different": []
+ },
+ "derivation-refute": {
+  "slice": "s-08",
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.7.4-p5",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "Looked for a program whose outcome turns on an entry being CALLED a data description entry, apart from the rules that use the term: the area-A placement of 01/77 (§1985:IV.7.4 p7, checked OK) and indentation (§1985:IV.7.4 p8, checked OK) are their own rows (1985-SR-IV.7.4-p7, -p8) with their own goldens; the level-number value set is 1985-SR-IV.7.4-p6. Removing p5 changes no accepted or refused program: every observable consequence goes through p6-p8.",
+    "reason": "'Those entries that begin with level-numbers are called data description entries' (§1985:IV.7.4 p5, checked OK) names a class of the user's program's entries (subject is the user's program, so the arm fits); no witness can be written that isolates the naming from p6-p8. Consistent with the s-06 refuter's UPHELD on the parallel definition 1985-SR-IV.5.1-p1.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-VI.2.1-p1",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "Tried a witness: any syntactically incorrect program is refused, but the refusal is explained by the specific syntax rule broken, and any accepted program witnesses the rules it exercises; the organisation requirement that follows is its own row 1985-SR-VI.2.2-p1 (§1985:VI.2.2 p1, checked OK). No program's outcome depends on this sentence alone.",
+    "reason": "'A COBOL source program is a syntactically correct set of COBOL statements' (§1985:VI.2.1 p1, checked OK) defines the user's source program; it is the same sentence the s-06 refuter UPHELD as definitional under 1985-SR-IV.5.1-p1. No witness can be written.",
+    "probe": null
+   }
+  ]
+ },
+ "imported": {
+  "asked": "1da076684e11ddb3998bb2330922aaf4d8533e131e8b1b06a9ecd862cb4a6ca5",
+  "derivation-refute": "8bb985a99769ec0420fa175f3699a90f9c1a1d9e8965e7f4606cb4664233cc99",
+  "read": "4bf4d72e4843af03262fe63d7ab41ed075a7adeb1abad057dc4435ea620efe0a",
+  "refute": "60d6d1164d987b0712c805707634e0c874f4ad6fbba9003d5a8481af4de5d9a3"
+ }
+}

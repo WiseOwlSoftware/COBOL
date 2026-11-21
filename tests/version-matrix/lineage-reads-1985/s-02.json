@@ -1,0 +1,1594 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-02 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-02",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-02",
+  "edition": 1985,
+  "ids": [
+   "1985-SR-IV.4.2.2-p1",
+   "1985-SR-IV.4.2.2.1-p1",
+   "1985-SR-IV.4.2.2.1-p2",
+   "1985-SR-IV.4.2.2.1.1-p1",
+   "1985-GR-IV.4.2.2.1.1-1",
+   "1985-GR-IV.4.2.2.1.1-2",
+   "1985-GR-IV.4.2.2.1.1-3",
+   "1985-GR-IV.4.2.2.1.1-4",
+   "1985-GR-IV.4.2.2.1.1-5",
+   "1985-GR-IV.4.2.2.1.1-6",
+   "1985-GR-IV.4.2.2.1.1-7",
+   "1985-GR-IV.4.2.2.1.1-8",
+   "1985-GR-IV.4.2.2.1.1-9",
+   "1985-GR-IV.4.2.2.1.1-10",
+   "1985-GR-IV.4.2.2.1.1-11",
+   "1985-GR-IV.4.2.2.1.1-12",
+   "1985-GR-IV.4.2.2.1.1-13",
+   "1985-GR-IV.4.2.2.1.1-14",
+   "1985-GR-IV.4.2.2.1.1-15",
+   "1985-GR-IV.4.2.2.1.1-16",
+   "1985-GR-IV.4.2.2.1.1-17",
+   "1985-GR-IV.4.2.2.1.1-18",
+   "1985-GR-IV.4.2.2.1.1-19",
+   "1985-SR-IV.4.2.2.1.1-p3",
+   "1985-SR-IV.4.2.2.1.1-L2.1",
+   "1985-SR-IV.4.2.2.1.1-L2.2",
+   "1985-SR-IV.4.2.2.1.1-L2.3",
+   "1985-SR-IV.4.2.2.1.1-L2.4",
+   "1985-SR-IV.4.2.2.1.1-L2.5",
+   "1985-SR-IV.4.2.2.1.1-L2.6",
+   "1985-SR-IV.4.2.2.1.1-L2.7",
+   "1985-SR-IV.4.2.2.1.1-L2.8",
+   "1985-SR-IV.4.2.2.1.1-L2.9",
+   "1985-SR-IV.4.2.2.1.1-L2.10",
+   "1985-SR-IV.4.2.2.1.1-L2.11",
+   "1985-SR-IV.4.2.2.1.1-L2.12",
+   "1985-SR-IV.4.2.2.1.1-L2.13",
+   "1985-SR-IV.4.2.2.1.1-L2.14",
+   "1985-SR-IV.4.2.2.1.1-L2.15",
+   "1985-SR-IV.4.2.2.1.1-p4",
+   "1985-SR-IV.4.2.2.1.1-p5"
+  ],
+  "pointers": {
+   "1985-SR-IV.4.2.2-p1": {
+    "candidates-2023": [
+     "GR-8.5.2.13-1",
+     "GR-8.5.2.10-1",
+     "GR-8.5.2.3-1"
+    ],
+    "nearest-2023": "GR-8.5.2.13-1",
+    "similarity": 0.278
+   },
+   "1985-SR-IV.4.2.2.1-p1": {
+    "candidates-2023": [
+     "SR-8.3.2.1-4",
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.1-5",
+     "SR-8.3.2.1-3",
+     "SR-8.3.2.1-2",
+     "SR-13.18.63.3-39",
+     "SR-7.3.10.3-4",
+     "GR-7.3.10.4-4"
+    ],
+    "nearest-2023": "SR-8.3.2.1-4",
+    "similarity": 0.432
+   },
+   "1985-SR-IV.4.2.2.1-p2": {
+    "candidates-2023": [
+     "SR-8.3.2.1-4",
+     "SR-8.3.2.1-5",
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.1-3",
+     "SR-8.3.2.1-2",
+     "SR-11.10.3-3",
+     "SR-7.2.4.3-8",
+     "SR-6.3.4-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-4",
+    "similarity": 0.005
+   },
+   "1985-SR-IV.4.2.2.1.1-p1": {
+    "candidates-2023": [
+     "SR-8.3.2.1-4",
+     "SR-8.3.2.2-1",
+     "GR-7.3.10.4-4"
+    ],
+    "nearest-2023": "SR-8.3.2.1-4",
+    "similarity": 0.52
+   },
+   "1985-GR-IV.4.2.2.1.1-1": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.415
+   },
+   "1985-GR-IV.4.2.2.1.1-2": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.347
+   },
+   "1985-GR-IV.4.2.2.1.1-3": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.347
+   },
+   "1985-GR-IV.4.2.2.1.1-4": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.453
+   },
+   "1985-GR-IV.4.2.2.1.1-5": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.471
+   },
+   "1985-GR-IV.4.2.2.1.1-6": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.474
+   },
+   "1985-GR-IV.4.2.2.1.1-7": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.434
+   },
+   "1985-GR-IV.4.2.2.1.1-8": {
+    "candidates-2023": [
+     "FMT-13.18.33.2",
+     "SR-8.3.2.2-2",
+     "SR-8.3.2.1-1"
+    ],
+    "nearest-2023": "FMT-13.18.33.2",
+    "similarity": 0.665
+   },
+   "1985-GR-IV.4.2.2.1.1-9": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.347
+   },
+   "1985-GR-IV.4.2.2.1.1-10": {
+    "candidates-2023": [
+     "GR-12.3.7.4-3",
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2"
+    ],
+    "nearest-2023": "GR-12.3.7.4-3",
+    "similarity": 0.43
+   },
+   "1985-GR-IV.4.2.2.1.1-11": {
+    "candidates-2023": [
+     "SR-8.3.2.2-2",
+     "SR-8.4.2.2.3-7",
+     "SR-8.3.2.1-1"
+    ],
+    "nearest-2023": "SR-8.3.2.2-2",
+    "similarity": 0.653
+   },
+   "1985-GR-IV.4.2.2.1.1-12": {
+    "candidates-2023": [
+     "SR-8.3.2.2-L3.3",
+     "SR-8.3.2.2-L3.4",
+     "SR-8.3.2.2-L3.5"
+    ],
+    "nearest-2023": "SR-8.3.2.2-L3.3",
+    "similarity": 0.818
+   },
+   "1985-GR-IV.4.2.2.1.1-13": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.366
+   },
+   "1985-GR-IV.4.2.2.1.1-14": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.408
+   },
+   "1985-GR-IV.4.2.2.1.1-15": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.347
+   },
+   "1985-GR-IV.4.2.2.1.1-16": {
+    "candidates-2023": [
+     "SR-8.3.2.2-2",
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2"
+    ],
+    "nearest-2023": "SR-8.3.2.2-2",
+    "similarity": 0.674
+   },
+   "1985-GR-IV.4.2.2.1.1-17": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.347
+   },
+   "1985-GR-IV.4.2.2.1.1-18": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.393
+   },
+   "1985-GR-IV.4.2.2.1.1-19": {
+    "candidates-2023": [
+     "SR-7.2.3.3-3",
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2"
+    ],
+    "nearest-2023": "SR-7.2.3.3-3",
+    "similarity": 0.572
+   },
+   "1985-SR-IV.4.2.2.1.1-p3": {
+    "candidates-2023": [
+     "SR-11.10.3-3",
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-11.10.3-3",
+    "similarity": 0.365
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.1": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.366
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.2": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.347
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.3": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.366
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.4": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.271
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.5": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.427
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.6": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.399
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.7": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.347
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.8": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.393
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.9": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.366
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.10": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.404
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.11": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.366
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.12": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.347
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.13": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.366
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.14": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.366
+   },
+   "1985-SR-IV.4.2.2.1.1-L2.15": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.347
+   },
+   "1985-SR-IV.4.2.2.1.1-p4": {
+    "candidates-2023": [
+     "SR-8.3.2.2-3",
+     "SR-8.3.2.1-2",
+     "SR-8.3.2.1-4"
+    ],
+    "nearest-2023": "SR-8.3.2.2-3",
+    "similarity": 0.425
+   },
+   "1985-SR-IV.4.2.2.1.1-p5": {
+    "candidates-2023": [
+     "SR-8.3.2.2-3",
+     "SR-13.18.33.3-6",
+     "SR-13.18.44.3-2"
+    ],
+    "nearest-2023": "SR-8.3.2.2-3",
+    "similarity": 0.507
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-02",
+  "edition": 1985,
+  "cases": [
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/charstr.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2-p1",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: the four kinds of character-string (COBOL word, literal, PICTURE character-string, comment-entry)",
+     "a character-string is delimited by separators"
+    ],
+    "evidence-1985": {
+     "COBOL words, literals, PICTURE strings and a comment-entry (AUTHOR) accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/charstr.cob (run E:/COBOL-coord/scratch/pb5453/runs/charstr-002: ' 12.50- AB,CD')",
+     "delimited by separators (comma/semicolon then space before VALUE)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/charstr.cob; the unspaced ',VALUE' / ';VALUE' first draft was refused (run E:/COBOL-coord/scratch/pb5453/runs/charstr-001), as §1985:IV.4.1 rule (2) requires"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2 p1",
+      "check": "OK  §1985:IV.4.2.2 p1  (4.2.2 Character-Strings)  the text is in p1",
+      "quote": "which forms a COBOL word, a literal, a PICTURE character-string, or a comment-entry"
+     },
+     {
+      "cite": "§1985:IV.4.2.2 p1",
+      "check": "OK  §1985:IV.4.2.2 p1  (4.2.2 Character-Strings)  the text is in p1",
+      "quote": "A character-string is delimited by separators"
+     }
+    ],
+    "reason": "The 1985 text defines a character-string as one 'which forms a COBOL word, a literal, a PICTURE character-string, or a comment-entry' and says it 'is delimited by separators'. The three candidates (GR-8.5.2.x) are PICTURE category rules matched on wording only, and none has an 85 case. The probe shows every kind accepted and delimited at 85.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/charstr.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/w31_refused.cob",
+    "class": "own-text",
+    "needs": "its own verdict CONFORMS, witnessed by the prose85 goldens once placed plus the 30/31-character and leading-hyphen probes",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1-p1",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: a COBOL word is at most 30 characters",
+     "it forms a user-defined word, system-name, reserved word or function-name (Amendment 1)",
+     "its characters are letters, digits and the hyphen; no hyphen first or last",
+     "lowercase equivalent to uppercase"
+    ],
+    "evidence-1985": {
+     "30 characters accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/w30_legal.cob (run E:/COBOL-coord/scratch/pb5453/runs/w30_legal-001)",
+     "31 characters refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/w31_refused.cob (run E:/COBOL-coord/scratch/pb5453/runs/w31_refused-001: COBOL1567)",
+     "letters/digits/hyphen; underscore refused": "covered by prose85 goldens E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-word-hyphen-legal-85.cob, E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-word-underscore-refused-85.cob (work/goldens-s-02.json (PASS))",
+     "hyphen not last": "covered by E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-word-trailing-hyphen-refused-85.cob (work/goldens-s-02.json (PASS))",
+     "hyphen not first": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/lead_hyphen.cob (run E:/COBOL-coord/scratch/pb5453/runs/lead_hyphen-001: COBOL2773)",
+     "lowercase equivalence": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/w30_legal.cob (lower-item, Lower-Item and LOWER-ITEM name one item; a lowercase PERFORM target)",
+     "the four kinds of COBOL word": "covered by the decided siblings 1985-SR-IV.4.2.2.1-1/-2 (conformance:cases/IV.4.2.2@1985-Character-Strings/1985-SR-IV_4_2_2_1-1)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1 p1",
+      "check": "OK  §1985:IV.4.2.2.1 p1  (4.2.2.1 COBOL Words)  the text is in p1",
+      "quote": "a character-string of not more than 30 characters"
+     },
+     {
+      "cite": "§1985:IV.4.2.2.1 p1",
+      "check": "OK  §1985:IV.4.2.2.1 p1  (4.2.2.1 COBOL Words)  the text is in p1",
+      "quote": "the hyphen may not appear as the first or last character"
+     },
+     {
+      "cite": "§1985:IV.4.2.2.1 p1",
+      "check": "OK  §1985:IV.4.2.2.1 p1  (4.2.2.1 COBOL Words)  the text is in p1",
+      "quote": "Each lowercase letter is considered to be equivalent to its corresponding uppercase letter"
+     }
+    ],
+    "reason": "'not more than 30 characters' is 1985's own limit (2023 allows longer words), so no 2023 candidate states the whole scope; SR-8.3.2.1-x govern the reserved/system-name/function-name sets, not formation or length. The goldens and probes show the 30/31 boundary, the character set, both hyphen positions and case equivalence at 85.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/w30_legal.cob + E:/COBOL-coord/scratch/pb5453/probes/s-02/w31_refused.cob + E:/COBOL-coord/scratch/pb5453/probes/s-02/lead_hyphen.cob, with the passing prose85 goldens"
+   },
+   {
+    "to": [],
+    "probe": null,
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1-p2",
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "a lead-in: 'Within a source program' scopes the items (1)/(2), which are the rows 1985-SR-IV.4.2.2.1-1 and -2"
+    ],
+    "evidence-1985": {
+     "the items' requirement": "carried by 1985-SR-IV.4.2.2.1-1 and -2 (decided siblings)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1 p2",
+      "check": "OK  §1985:IV.4.2.2.1 p2  (4.2.2.1 COBOL Words)  the text is in p2",
+      "quote": "Within a source program the following apply"
+     }
+    ],
+    "reason": "'Within a source program the following apply:' states no requirement of its own; its content is the two items, which are already rows. What would settle it: a disposition that a lead-in closes with its items (or folds into them), not a 2023 pointer.",
+    "compiler-at-1985": "not probed: no requirement of its own; its items are separate rows"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/lead_hyphen.cob",
+    "class": "own-text",
+    "needs": "its own verdict CONFORMS, witnessed by the prose85 goldens once placed (plus the leading-hyphen probe)",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-p1",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: a user-defined word is supplied by the user to satisfy a format",
+     "its characters: A-Z, 0-9, hyphen; hyphen not first or last"
+    ],
+    "evidence-1985": {
+     "A-Z, digits, hyphen accepted": "covered by E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-udw-chars-legal-85.cob (work/goldens-s-02.json (PASS)) and E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+     "underscore refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-udw-underscore-85.cob (work/goldens-s-02.json (PASS))",
+     "hyphen last refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-udw-trailing-hyphen-85.cob (work/goldens-s-02.json (PASS))",
+     "hyphen first refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/lead_hyphen.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 p1",
+      "check": "OK  §1985:IV.4.2.2.1.1 p1  (4.2.2.1.1 User-Defined Words)  the text is in p1",
+      "quote": "Each character of a user-defined word is selected from the set of characters"
+     }
+    ],
+    "reason": "'Each character of a user-defined word is selected from the set of characters 'A', ... 'Z', '0', ... '9', and '-', except that the '-' may not appear as the first or last character.' The candidates (SR-8.3.2.1-4, SR-8.3.2.2-1, GR-7.3.10.4-4) speak of system-names, compilation variables and other words, not this character set, and 2023 widens it (extended letters, underscore). The goldens and the probe show it at 85.",
+    "compiler-at-1985": "correct: prose85 goldens pb5924-udw-chars-legal-85 / -underscore-85 / -trailing-hyphen-85 (PASS) + E:/COBOL-coord/scratch/pb5453/probes/s-02/lead_hyphen.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-1",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "alphabet-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "alphabet-name accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob: ALPHA-2 (ALPHABET clause) (run E:/COBOL-coord/scratch/pb5453/runs/udw_types-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR1",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR1 (structure only) ok"
+     }
+    ],
+    "reason": "Item 1 'alphabet-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_cd.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-2",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "cd-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "cd-name accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_cd.cob: CD-21 (CD entry) (run E:/COBOL-coord/scratch/pb5453/runs/udw_cd-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR2",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR2 (structure only) ok"
+     }
+    ],
+    "reason": "Item 2 'cd-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_cd.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-3",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "class-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "class-name accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob: CLS-4 (CLASS clause, class condition) (run E:/COBOL-coord/scratch/pb5453/runs/udw_types-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR3",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR3 (structure only) ok"
+     }
+    ],
+    "reason": "Item 3 'class-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-4",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "condition-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "condition-name accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob: COND-8 (level 88) and SW-1-ON (switch status) (run E:/COBOL-coord/scratch/pb5453/runs/udw_types-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR4",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR4 (structure only) ok"
+     }
+    ],
+    "reason": "Item 4 'condition-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-5",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "data-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "data-name accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob: DATA-7, ELEM-10 (run E:/COBOL-coord/scratch/pb5453/runs/udw_types-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR5",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR5 (structure only) ok"
+     }
+    ],
+    "reason": "Item 5 'data-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-6",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "file-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "file-name accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob: FILE-5 (SELECT/FD) (run E:/COBOL-coord/scratch/pb5453/runs/udw_types-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR6",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR6 (structure only) ok"
+     }
+    ],
+    "reason": "Item 6 'file-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-7",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "index-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "index-name accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob: IDX-11 (INDEXED BY, SET) (run E:/COBOL-coord/scratch/pb5453/runs/udw_types-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR7",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR7 (structure only) ok"
+     }
+    ],
+    "reason": "Item 7 'index-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-8",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "level-number is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "level-number accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob: 01, 05, 88 used repeatedly (run E:/COBOL-coord/scratch/pb5453/runs/udw_types-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR8",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR8 (structure only) ok"
+     }
+    ],
+    "reason": "Item 8 'level-number' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob"
+   },
+   {
+    "to": [],
+    "probe": null,
+    "class": "own-text",
+    "needs": "this row added to the rules: of the existing 85 case (or an own golden), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-9",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "library-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "library-name accepted in a conforming program at 85": "covered by E:/COBOL/.claude/worktrees/pb5452-mint/conformance-suite/wiseowl/cases/XII.2@1985-COPY-STATEMENT/pb5473-copy-every-text-qualified.cob (accept: [85]): PB5473LA / PB5473LB (COPY ... OF/IN)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR9",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR9 (structure only) ok"
+     }
+    ],
+    "reason": "Item 9 'library-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL/.claude/worktrees/pb5452-mint/conformance-suite/wiseowl/cases/XII.2@1985-COPY-STATEMENT/pb5473-copy-every-text-qualified.cob (accept: [85])"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-10",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "mnemonic-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "mnemonic-name accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob: SW-1 (SWITCH-1 IS) (run E:/COBOL-coord/scratch/pb5453/runs/udw_types-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR10",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR10 (structure only) ok"
+     }
+    ],
+    "reason": "Item 10 'mnemonic-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-11",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "paragraph-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "paragraph-name accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob: PARA-13, 0014 (letterless) (run E:/COBOL-coord/scratch/pb5453/runs/udw_types-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR11",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR11 (structure only) ok"
+     }
+    ],
+    "reason": "Item 11 'paragraph-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-12",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "program-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "program-name accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob: UDW-TYPES-1 (PROGRAM-ID) (run E:/COBOL-coord/scratch/pb5453/runs/udw_types-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR12",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR12 (structure only) ok"
+     }
+    ],
+    "reason": "Item 12 'program-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-13",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "record-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "record-name accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob: REC-6 (FD record) (run E:/COBOL-coord/scratch/pb5453/runs/udw_types-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR13",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR13 (structure only) ok"
+     }
+    ],
+    "reason": "Item 13 'record-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types2.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-14",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "report-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "report-name accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types2.cob: RPT-18 (RD, INITIATE/TERMINATE) (run E:/COBOL-coord/scratch/pb5453/runs/udw_types2-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR14",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR14 (structure only) ok"
+     }
+    ],
+    "reason": "Item 14 'report-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types2.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_routine.cob",
+    "class": "removed-form",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "unpopulatable-antecedent",
+     "names": "the ENTER statement, the one place a routine-name occurs, which this implementation does not include (§1985:I.1.5.2.5.5; docs/conformance/9.1/1985-SR-VI.6.12.3-1.md)"
+    },
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-15",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "routine-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4",
+     "routine-name occurs only in the ENTER statement (Nucleus, §1985:VI.6.12)"
+    ],
+    "evidence-1985": {
+     "routine-name in ENTER": "not shown: ENTER is declined; E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_routine.cob is refused COBOL7240 (run E:/COBOL-coord/scratch/pb5453/runs/udw_routine-001), citing §1985:I.1.5.2.5.5"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR15",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR15 (structure only) ok"
+     },
+     {
+      "cite": "§1985:I.1.5.2.5.5",
+      "check": "OK  §1985:I.1.5.2.5.5  (1.5.2.5.5 The ENTER Statement)  the text is in the clause",
+      "quote": "may include the ENTER statement or not"
+     },
+     {
+      "cite": "§1985:VI.6.12.3 SR1",
+      "check": "OK  §1985:VI.6.12.3 SR1 (structure only) ok"
+     }
+    ],
+    "reason": "Item 15 'routine-name'. Its only use is the ENTER statement, which 'An implementation of Standard COBOL may include ... or not, at the option of the implementor'; this implementation does not (docs/conformance/9.1/1985-SR-VI.6.12.3-1.md), and 2023 has no ENTER. No program can carry a routine-name, so the row has no witness to give.",
+    "compiler-at-1985": "not probed: no accepted program can contain a routine-name; ENTER is declined under §1985:I.1.5.2.5.5 (the probe is refused COBOL7240, as documented)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-16",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "section-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "section-name accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob: SEC-12, 0015 (letterless) (run E:/COBOL-coord/scratch/pb5453/runs/udw_types-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR16",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR16 (structure only) ok"
+     }
+    ],
+    "reason": "Item 16 'section-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-17",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "segment-number is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "segment-number accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob: SECTION 60 (run E:/COBOL-coord/scratch/pb5453/runs/udw_types-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR17",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR17 (structure only) ok"
+     }
+    ],
+    "reason": "Item 17 'segment-number' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-18",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "symbolic-character is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "symbolic-character accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob: SYM-3 (SYMBOLIC CHARACTERS, DISPLAY shows 'A') (run E:/COBOL-coord/scratch/pb5453/runs/udw_types-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR18",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR18 (structure only) ok"
+     }
+    ],
+    "reason": "Item 18 'symbolic-character' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types2.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-GR-IV.4.2.2.1.1-19",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "text-name is one of the types of user-defined word, so its formation follows §1985:IV.4.2.2.1.1 p1 and its set follows p3/p4"
+    ],
+    "evidence-1985": {
+     "text-name accepted in a conforming program at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types2.cob: TXT-16 (COPY) (run E:/COBOL-coord/scratch/pb5453/runs/udw_types2-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 GR19",
+      "check": "OK  §1985:IV.4.2.2.1.1 GR19 (structure only) ok"
+     }
+    ],
+    "reason": "Item 19 'text-name' of 'The types of user-defined words are:'. Flagged definitional, but a program shows it: the word is supplied by the user in its format and formed per p1 (the probe's names carry digits and hyphens). The candidates (SR-8.3.2.1-1 on reserved words; SR-8.3.2.2-L3.x on externalized names; rules of other clauses) are wording-only matches: no 2023 rule lists this type with an 85 case for it.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types2.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/contained.cob",
+    "class": "own-text",
+    "needs": "an own golden from the probe (placed as this row's test), then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-p3",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus and Inter-Program Communication: the disjoint sets apply within one source program",
+     "excluding any contained program (a contained program has its own sets)"
+    ],
+    "evidence-1985": {
+     "a contained program may reuse its container's word as another type": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/contained.cob (run E:/COBOL-coord/scratch/pb5453/runs/contained-001: O, I)",
+     "within one program the sets are disjoint": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds04_data_para.cob and the other ds*.cob probes (refused COBOL2692)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 p3",
+      "check": "OK  §1985:IV.4.2.2.1.1 p3  (4.2.2.1.1 User-Defined Words)  the text is in p3",
+      "quote": "but excluding any contained program"
+     },
+     {
+      "cite": "§1985:IV.4.2.2.1.1 p3",
+      "check": "OK  §1985:IV.4.2.2.1.1 p3  (4.2.2.1.1 User-Defined Words)  the text is in p3",
+      "quote": "the user-defined words are grouped into the following disjoint sets"
+     }
+    ],
+    "reason": "'Within a given source program, but excluding any contained program, the user-defined words are grouped into the following disjoint sets'. SR-11.10.3-3 (contained program-names) and SR-8.3.2.1-x do not state the per-program scope of the sets. The probe shows a contained program using ZQ as a paragraph-name while its container uses ZQ as a data-name, accepted; the same pair in one program is refused (ds04).",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/contained.cob (accepted) with control E:/COBOL-coord/scratch/pb5453/probes/s-02/ds04_data_para.cob (refused)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/ds01_alphabet_data.cob",
+    "class": "own-text",
+    "needs": "an own refusal golden from the probe with its control, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.1",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the alphabet-names form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "reuse as another type refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds01_alphabet_data.cob (run E:/COBOL-coord/scratch/pb5453/runs/ds01_alphabet_data-001: COBOL2692)",
+     "a duplicate within the set refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/du01_alphabet_twice.cob (run E:/COBOL-coord/scratch/pb5453/runs/du01_alphabet_twice-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.1",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.1 (structure only) ok"
+     }
+    ],
+    "reason": "Set 1 'alphabet-names' of the disjoint sets. 2023 (SR-8.3.2.2-3) groups words differently (constant-name, data-name, property-name, record-key-name, record-name; no condition-name) and the candidates are wording-only; no 2023 rule states this 1985 set with an 85 case. The probes show the word refused as another type (COBOL2692) and a duplicate within the set refused.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/ds01_alphabet_data.cob + E:/COBOL-coord/scratch/pb5453/probes/s-02/du01_alphabet_twice.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob, udw_types2.cob, udw_cd.cob accepted)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/ds02_cd_data.cob",
+    "class": "own-text",
+    "needs": "an own refusal golden from the probe with its control, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.2",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the cd-names form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "reuse as another type refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds02_cd_data.cob (run E:/COBOL-coord/scratch/pb5453/runs/ds02_cd_data-001: COBOL2692)",
+     "a duplicate within the set refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/du02_cd_twice.cob (run E:/COBOL-coord/scratch/pb5453/runs/du02_cd_twice-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.2",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.2 (structure only) ok"
+     }
+    ],
+    "reason": "Set 2 'cd-names' of the disjoint sets. 2023 (SR-8.3.2.2-3) groups words differently (constant-name, data-name, property-name, record-key-name, record-name; no condition-name) and the candidates are wording-only; no 2023 rule states this 1985 set with an 85 case. The probes show the word refused as another type (COBOL2692) and a duplicate within the set refused.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/ds02_cd_data.cob + E:/COBOL-coord/scratch/pb5453/probes/s-02/du02_cd_twice.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob, udw_types2.cob, udw_cd.cob accepted)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/ds03_class_data.cob",
+    "class": "own-text",
+    "needs": "an own refusal golden from the probe with its control, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.3",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the class-names form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "reuse as another type refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds03_class_data.cob (run E:/COBOL-coord/scratch/pb5453/runs/ds03_class_data-001: COBOL2692)",
+     "a duplicate within the set refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/du03_class_twice.cob (run E:/COBOL-coord/scratch/pb5453/runs/du03_class_twice-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.3",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.3 (structure only) ok"
+     }
+    ],
+    "reason": "Set 3 'class-names' of the disjoint sets. 2023 (SR-8.3.2.2-3) groups words differently (constant-name, data-name, property-name, record-key-name, record-name; no condition-name) and the candidates are wording-only; no 2023 rule states this 1985 set with an 85 case. The probes show the word refused as another type (COBOL2692) and a duplicate within the set refused.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/ds03_class_data.cob + E:/COBOL-coord/scratch/pb5453/probes/s-02/du03_class_twice.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob, udw_types2.cob, udw_cd.cob accepted)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/ds04_data_para.cob",
+    "class": "own-text",
+    "needs": "an own refusal golden from the probe with its control, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.4",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the condition-names, data-names, and record-names form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "reuse as another type refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds04_data_para.cob (run E:/COBOL-coord/scratch/pb5453/runs/ds04_data_para-001: COBOL2692)",
+     "a duplicate within the set refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/du04_data_twice.cob (run E:/COBOL-coord/scratch/pb5453/runs/du04_data_twice-001)",
+     "the three kinds share ONE set (a data-name may also be a condition-name or record-name under qualification)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/set4_shared.cob (run E:/COBOL-coord/scratch/pb5453/runs/set4_shared-001: D, COND-TRUE, COND-TRUE-2, R)",
+     "a condition-name duplicated within its set refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/du04_cond_twice.cob (run E:/COBOL-coord/scratch/pb5453/runs/du04_cond_twice-001: COBOL1639)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.4",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.4  (4.2.2.1.1 User-Defined Words)  the text is in item L2.4",
+      "quote": "condition-names, data-names, and record-names"
+     }
+    ],
+    "reason": "Set 4 'condition-names, data-names, and record-names' of the disjoint sets. 2023 (SR-8.3.2.2-3) groups words differently (constant-name, data-name, property-name, record-key-name, record-name; no condition-name) and the candidates are wording-only; no 2023 rule states this 1985 set with an 85 case. The probes show the word refused as another type (COBOL2692) and a duplicate within the set refused. For this set the 1985 text puts condition-names in the same set as data-names, which 2023 does not: set4_shared.cob shows ZQ as a data-name and as a condition-name, and ZR as a record-name and as a data-name, accepted at 85 when qualified.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/ds04_data_para.cob + E:/COBOL-coord/scratch/pb5453/probes/s-02/du04_data_twice.cob + E:/COBOL-coord/scratch/pb5453/probes/s-02/set4_shared.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob, udw_types2.cob, udw_cd.cob accepted)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/ds05_file_data.cob",
+    "class": "own-text",
+    "needs": "an own refusal golden from the probe with its control, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.5",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the file-names form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "reuse as another type refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds05_file_data.cob (run E:/COBOL-coord/scratch/pb5453/runs/ds05_file_data-001: COBOL2692)",
+     "a duplicate within the set refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-udw-duplicate-file-name-85.cob (work/goldens-s-02.json (PASS))"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.5",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.5 (structure only) ok"
+     }
+    ],
+    "reason": "Set 5 'file-names' of the disjoint sets. 2023 (SR-8.3.2.2-3) groups words differently (constant-name, data-name, property-name, record-key-name, record-name; no condition-name) and the candidates are wording-only; no 2023 rule states this 1985 set with an 85 case. The probes show the word refused as another type (COBOL2692) and a duplicate within the set refused.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/ds05_file_data.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob, udw_types2.cob, udw_cd.cob accepted)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/ds06_index_data.cob",
+    "class": "own-text",
+    "needs": "an own refusal golden from the probe with its control, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.6",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the index-names form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "reuse as another type refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds06_index_data.cob (run E:/COBOL-coord/scratch/pb5453/runs/ds06_index_data-001: COBOL2692)",
+     "a duplicate within the set refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/du06_index_twice.cob (run E:/COBOL-coord/scratch/pb5453/runs/du06_index_twice-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.6",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.6 (structure only) ok"
+     }
+    ],
+    "reason": "Set 6 'index-names' of the disjoint sets. 2023 (SR-8.3.2.2-3) groups words differently (constant-name, data-name, property-name, record-key-name, record-name; no condition-name) and the candidates are wording-only; no 2023 rule states this 1985 set with an 85 case. The probes show the word refused as another type (COBOL2692) and a duplicate within the set refused.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/ds06_index_data.cob + E:/COBOL-coord/scratch/pb5453/probes/s-02/du06_index_twice.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob, udw_types2.cob, udw_cd.cob accepted)"
+   },
+   {
+    "to": [],
+    "probe": null,
+    "class": "own-text",
+    "needs": "an own refusal golden whose files: entry places a library directory (as pb5473-copy-every-text-qualified does), with the library-name also used as a data-name, beside the accepted pb5473 case",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.7",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the library-names form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "library-names accepted as a set of their own": "covered by E:/COBOL/.claude/worktrees/pb5452-mint/conformance-suite/wiseowl/cases/XII.2@1985-COPY-STATEMENT/pb5473-copy-every-text-qualified.cob (accept: [85])",
+     "a library-name reused as another type refused": "not shown: run_probe.py --with places files flat, so no probe could supply a library directory (see leads)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.7",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.7 (structure only) ok"
+     },
+     {
+      "cite": "§1985:XII.2.3 SR1",
+      "check": "OK  §1985:XII.2.3 SR1  (2.3 Syntax Rules)  the text is in SR1",
+      "quote": "text-name-1 must be qualified by library-name-1"
+     }
+    ],
+    "reason": "Set 7 'library-names'. The compiler's COBOL2692 text for a text-name says 'below COBOL-2002 a COPY statement's text-name and library-name are user-defined words of disjoint sets of their own' (run E:/COBOL-coord/scratch/pb5453/runs/ds15_text_data-001), which points at a library-name check, but no probe could exercise it through the runner.",
+    "compiler-at-1985": "not probed: run_probe.py places --with files flat (run E:/COBOL-coord/scratch/pb5453/runs/udw_types3-001: 'TXT-20 OF LIB-19' not found), so a library directory cannot be supplied"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/ds08_mnemonic_data.cob",
+    "class": "own-text",
+    "needs": "an own refusal golden from the probe with its control, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.8",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the mnemonic-names form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "reuse as another type refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds08_mnemonic_data.cob (run E:/COBOL-coord/scratch/pb5453/runs/ds08_mnemonic_data-001: COBOL2692)",
+     "a duplicate within the set refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/du08_mnemonic_twice.cob (run E:/COBOL-coord/scratch/pb5453/runs/du08_mnemonic_twice-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.8",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.8 (structure only) ok"
+     }
+    ],
+    "reason": "Set 8 'mnemonic-names' of the disjoint sets. 2023 (SR-8.3.2.2-3) groups words differently (constant-name, data-name, property-name, record-key-name, record-name; no condition-name) and the candidates are wording-only; no 2023 rule states this 1985 set with an 85 case. The probes show the word refused as another type (COBOL2692) and a duplicate within the set refused.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/ds08_mnemonic_data.cob + E:/COBOL-coord/scratch/pb5453/probes/s-02/du08_mnemonic_twice.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob, udw_types2.cob, udw_cd.cob accepted)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/ds09_para_section.cob",
+    "class": "own-text",
+    "needs": "an own refusal golden from the probe with its control, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.9",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the paragraph-names form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "reuse as another type refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds09_para_section.cob (run E:/COBOL-coord/scratch/pb5453/runs/ds09_para_section-001: COBOL2692)",
+     "a duplicate within the set refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/du09_para_twice.cob (run E:/COBOL-coord/scratch/pb5453/runs/du09_para_twice-001)",
+     "letterless names accepted": "covered by E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-udw-digit-procedure-names-85.cob (work/goldens-s-02.json (PASS))"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.9",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.9 (structure only) ok"
+     }
+    ],
+    "reason": "Set 9 'paragraph-names' of the disjoint sets. 2023 (SR-8.3.2.2-3) groups words differently (constant-name, data-name, property-name, record-key-name, record-name; no condition-name) and the candidates are wording-only; no 2023 rule states this 1985 set with an 85 case. The probes show the word refused as another type (COBOL2692) and a duplicate within the set refused.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/ds09_para_section.cob + E:/COBOL-coord/scratch/pb5453/probes/s-02/du09_para_twice.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob, udw_types2.cob, udw_cd.cob accepted)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/ds10_program_data.cob",
+    "class": "own-text",
+    "needs": "an own refusal golden from the probe with its control, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.10",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the program-names form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "reuse as another type refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds10_program_data.cob (run E:/COBOL-coord/scratch/pb5453/runs/ds10_program_data-001: COBOL2692)",
+     "a duplicate within the set refused": "covered by conformance:cases/11.10-PROGRAM-ID/pb660-duplicate-contained-program-name (diagnosed at 85, per the view's at-85 of SR-11.10.3-3)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.10",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.10 (structure only) ok"
+     }
+    ],
+    "reason": "Set 10 'program-names' of the disjoint sets. 2023 (SR-8.3.2.2-3) groups words differently (constant-name, data-name, property-name, record-key-name, record-name; no condition-name) and the candidates are wording-only; no 2023 rule states this 1985 set with an 85 case. The probes show the word refused as another type (COBOL2692) and a duplicate within the set refused.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/ds10_program_data.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob, udw_types2.cob, udw_cd.cob accepted)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/ds11_report_data.cob",
+    "class": "own-text",
+    "needs": "an own refusal golden from the probe with its control, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.11",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the report-names form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "reuse as another type refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds11_report_data.cob (run E:/COBOL-coord/scratch/pb5453/runs/ds11_report_data-001: COBOL2692)",
+     "a duplicate within the set refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/du11_report_twice.cob (run E:/COBOL-coord/scratch/pb5453/runs/du11_report_twice-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.11",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.11 (structure only) ok"
+     }
+    ],
+    "reason": "Set 11 'report-names' of the disjoint sets. 2023 (SR-8.3.2.2-3) groups words differently (constant-name, data-name, property-name, record-key-name, record-name; no condition-name) and the candidates are wording-only; no 2023 rule states this 1985 set with an 85 case. The probes show the word refused as another type (COBOL2692) and a duplicate within the set refused.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/ds11_report_data.cob + E:/COBOL-coord/scratch/pb5453/probes/s-02/du11_report_twice.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob, udw_types2.cob, udw_cd.cob accepted)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_routine.cob",
+    "class": "removed-form",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "unpopulatable-antecedent",
+     "names": "the ENTER statement, the one place a routine-name occurs, which this implementation does not include (§1985:I.1.5.2.5.5; docs/conformance/9.1/1985-SR-VI.6.12.3-1.md)"
+    },
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.12",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the routine-names form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "routine-names disjoint/unique": "not shown: routine-name occurs only in ENTER, which is declined (E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_routine.cob, COBOL7240)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.12",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.12 (structure only) ok"
+     },
+     {
+      "cite": "§1985:I.1.5.2.5.5",
+      "check": "OK  §1985:I.1.5.2.5.5  (1.5.2.5.5 The ENTER Statement)  the text is in the clause",
+      "quote": "may include the ENTER statement or not"
+     }
+    ],
+    "reason": "Set 12 'routine-names'. No accepted program can hold a routine-name because ENTER, its only context, is not included (§1985:I.1.5.2.5.5); 2023 has no ENTER.",
+    "compiler-at-1985": "not probed: no program can contain a routine-name (ENTER declined, §1985:I.1.5.2.5.5)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/ds13_section_data.cob",
+    "class": "own-text",
+    "needs": "an own refusal golden from the probe with its control, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.13",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the section-names form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "reuse as another type refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds13_section_data.cob (run E:/COBOL-coord/scratch/pb5453/runs/ds13_section_data-001: COBOL2692)",
+     "a duplicate within the set refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-udw-duplicate-section-name-85.cob (work/goldens-s-02.json (PASS))",
+     "letterless names accepted": "covered by E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-udw-digit-procedure-names-85.cob (work/goldens-s-02.json (PASS))"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.13",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.13 (structure only) ok"
+     }
+    ],
+    "reason": "Set 13 'section-names' of the disjoint sets. 2023 (SR-8.3.2.2-3) groups words differently (constant-name, data-name, property-name, record-key-name, record-name; no condition-name) and the candidates are wording-only; no 2023 rule states this 1985 set with an 85 case. The probes show the word refused as another type (COBOL2692) and a duplicate within the set refused.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/ds13_section_data.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob, udw_types2.cob, udw_cd.cob accepted)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/ds14_symbolic_data.cob",
+    "class": "own-text",
+    "needs": "an own refusal golden from the probe with its control, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.14",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the symbolic-characters form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "reuse as another type refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds14_symbolic_data.cob (run E:/COBOL-coord/scratch/pb5453/runs/ds14_symbolic_data-001: COBOL2692)",
+     "a duplicate within the set refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/du14_symbolic_twice.cob (run E:/COBOL-coord/scratch/pb5453/runs/du14_symbolic_twice-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.14",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.14 (structure only) ok"
+     }
+    ],
+    "reason": "Set 14 'symbolic-characters' of the disjoint sets. 2023 (SR-8.3.2.2-3) groups words differently (constant-name, data-name, property-name, record-key-name, record-name; no condition-name) and the candidates are wording-only; no 2023 rule states this 1985 set with an 85 case. The probes show the word refused as another type (COBOL2692) and a duplicate within the set refused.",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/ds14_symbolic_data.cob + E:/COBOL-coord/scratch/pb5453/probes/s-02/du14_symbolic_twice.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob, udw_types2.cob, udw_cd.cob accepted)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/ds15_text_data.cob",
+    "class": "own-text",
+    "needs": "an own refusal golden from the probe with its control, then its own verdict CONFORMS",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.15",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the text-names form one disjoint set: a word in it is no other type, and the set's words are unique save by qualification (p4)"
+    ],
+    "evidence-1985": {
+     "reuse as another type refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds15_text_data.cob (run E:/COBOL-coord/scratch/pb5453/runs/ds15_text_data-001: COBOL2692)",
+     "a duplicate within the set": "not shown: a text-name's uniqueness is within one library (§1985:XII.2), and one library place cannot hold two texts of one name"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 SRL2.15",
+      "check": "OK  §1985:IV.4.2.2.1.1 SRL2.15 (structure only) ok"
+     }
+    ],
+    "reason": "Set 15 'text-names' of the disjoint sets. 2023 (SR-8.3.2.2-3) groups words differently (constant-name, data-name, property-name, record-key-name, record-name; no condition-name) and the candidates are wording-only; no 2023 rule states this 1985 set with an 85 case. The probes show the word refused as another type (COBOL2692) and a duplicate within the set refused. The ds15 probe shows COPY ZQ with a data-name ZQ refused (text-names form a set of their own below 2002).",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-02/ds15_text_data.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types.cob, udw_types2.cob, udw_cd.cob accepted)"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/segnum_shared.cob",
+    "class": "own-text",
+    "needs": "its own verdict CONFORMS, witnessed by the prose85 goldens once placed (plus set4_shared and segnum_shared)",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-p4",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "every user-defined word except segment-numbers and level-numbers belongs to one set only",
+     "words within a set are unique, save as uniqueness of reference allows (page IV-17)"
+    ],
+    "evidence-1985": {
+     "one set only": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/ds*.cob (13 pairs refused COBOL2692) with accepted controls",
+     "unique within a set": "covered by E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-udw-duplicate-file-name-85.cob, E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-udw-duplicate-section-name-85.cob (work/goldens-s-02.json (PASS)) and E:/COBOL-coord/scratch/pb5453/probes/s-02/du*.cob",
+     "except as uniqueness of reference allows": "covered by E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-udw-unique-qualified-85.cob (work/goldens-s-02.json (PASS)) and E:/COBOL-coord/scratch/pb5453/probes/s-02/set4_shared.cob",
+     "segment-numbers and level-numbers excepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/segnum_shared.cob (a section named 60 beside two SECTION 60 segments; a paragraph 05 beside level 05)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 p4",
+      "check": "OK  §1985:IV.4.2.2.1.1 p4  (4.2.2.1.1 User-Defined Words)  the text is in p4",
+      "quote": "can belong to one and only one of these disjoint sets"
+     },
+     {
+      "cite": "§1985:IV.4.2.2.1.1 p4",
+      "check": "OK  §1985:IV.4.2.2.1.1 p4  (4.2.2.1.1 User-Defined Words)  the text is in p4",
+      "quote": "all user-defined words within a given disjoint set must be unique"
+     }
+    ],
+    "reason": "'All user-defined words, except segment-numbers and level-numbers, can belong to one and only one of these disjoint sets. Further, all user-defined words within a given disjoint set must be unique, except as specified in the rules for uniqueness of reference'. SR-8.3.2.2-3 states 2023's different grouping (no condition-names in the shared group, no segment-numbers), so it is not the whole scope. The goldens and probes show it at 85.",
+    "compiler-at-1985": "correct: prose85 goldens pb5924-udw-unique-qualified / -duplicate-file-name / -duplicate-section-name (PASS) + E:/COBOL-coord/scratch/pb5453/probes/s-02/set4_shared.cob + E:/COBOL-coord/scratch/pb5453/probes/s-02/segnum_shared.cob"
+   },
+   {
+    "to": [],
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02/segnum_shared.cob",
+    "class": "own-text",
+    "needs": "its own verdict CONFORMS, witnessed by the prose85 goldens once placed (plus segnum_shared for segment-numbers)",
+    "derivation": null,
+    "licence-1985": null,
+    "rule-id": "1985-SR-IV.4.2.2.1.1-p5",
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "every user-defined word except section-names, paragraph-names, segment-numbers and level-numbers has a letter",
+     "segment-numbers and level-numbers need not be unique"
+    ],
+    "evidence-1985": {
+     "a letterless data-name refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-udw-no-letter-85.cob (work/goldens-s-02.json (PASS))",
+     "letterless section/paragraph names accepted": "covered by E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-udw-digit-procedure-names-85.cob (work/goldens-s-02.json (PASS))",
+     "segment-numbers repeat (two SECTION 60), level-numbers repeat": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-02/segnum_shared.cob (run E:/COBOL-coord/scratch/pb5453/runs/segnum_shared-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1 p5",
+      "check": "OK  §1985:IV.4.2.2.1.1 p5  (4.2.2.1.1 User-Defined Words)  the text is in p5",
+      "quote": "must contain at least one alphabetic character"
+     },
+     {
+      "cite": "§1985:IV.4.2.2.1.1 p5",
+      "check": "OK  §1985:IV.4.2.2.1.1 p5  (4.2.2.1.1 User-Defined Words)  the text is in p5",
+      "quote": "Segment-numbers and level-numbers need not be unique"
+     }
+    ],
+    "reason": "'With the exception of section-names, paragraph-names, segment-numbers, and level-numbers, all user-defined words must contain at least one alphabetic character. Segment-numbers and level-numbers need not be unique'. SR-8.3.2.2-3 has the letter rule without segment-numbers (2023 has no Segmentation module), so it is not the whole scope.",
+    "compiler-at-1985": "correct: prose85 goldens pb5924-udw-no-letter-85 / -digit-procedure-names-85 (PASS) + E:/COBOL-coord/scratch/pb5453/probes/s-02/segnum_shared.cob"
+   }
+  ],
+  "leads": [
+   {
+    "kind": "segmentation",
+    "row": "1985-SR-IV.4.2.2.1-p2",
+    "what": "a lead-in ('Within a source program the following apply:') minted as an SR row; its requirement is its items' (1985-SR-IV.4.2.2.1-1, -2)",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py 1985-SR-IV.4.2.2.1-p2",
+    "site": "docs/rearchitecture/spec-dispositions-1985 (PB5452 disposition)"
+   },
+   {
+    "kind": "segmentation",
+    "row": "1985-SR-IV.4.2.2.1.1-p1",
+    "what": "the list lead 'The types of user-defined words are:' is in no row's text (p1's row text stops before it; GR1..GR19 carry it only as 'lead'), yet cite.py places it under p1: '§1985:IV.4.2.2.1.1 GR1' with that quotation answers 'under p1, not GR1'",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/cite_check.py \"§1985:IV.4.2.2.1.1 GR1\" \"The types of user-defined words are\"",
+    "site": "scripts/spec/rule_catalog_1985.py (list lead attribution)"
+   },
+   {
+    "kind": "tooling",
+    "row": "1985-SR-IV.4.2.2.1.1-L2.4",
+    "what": "cite.py --check answers OK (structure only) for the kindless '§1985:IV.4.2.2.1.1 L2.4', but refuses the same designator once a quotation is given (''L2.4' is not a rule designator'); the right form is SRL2.4, so the structure-only path should refuse the kindless form too",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/cite_check.py \"§1985:IV.4.2.2.1.1 L2.4\"",
+    "site": "scripts/spec/citation.py (structure-only check)"
+   },
+   {
+    "kind": "tooling",
+    "row": "1985-SR-IV.4.2.2.1.1-L2.7",
+    "what": "run_probe.py --with copies a file flat into the run directory (LIB-19/TXT-20.cpy is not found as 'TXT-20 OF LIB-19'), so no probe can supply a COBOL library directory and library-name rows cannot be probed through the one probe path",
+    "repro": "python E:/COBOL/scripts/orchestrator/run_probe.py --root E:/COBOL-coord/scratch/pb5453/runs --std 85 --exe <cobol.exe> --with LIB-19/TXT-20.cpy E:/COBOL-coord/scratch/pb5453/probes/s-02/udw_types3.cob (run udw_types3-001)",
+    "site": "scripts/orchestrator/run_probe.py (--with)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-02",
+  "cases": [],
+  "disputed-different": []
+ },
+ "derivation-refute": {
+  "slice": "s-02",
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.1-15",
+    "arm": "unpopulatable-antecedent",
+    "verdict": "UPHELD",
+    "attempt": "a program whose routine-name is reached outside a refused ENTER: ENTER FORTRAN RTN-24 on a D line with SOURCE-COMPUTER WITH DEBUGGING MODE (E:/COBOL-coord/scratch/pb5453/probes/s-02-refute/enter_dbg.cob)",
+    "reason": "ENTER is the only context: §1985:VI.6.12.3 SR2 'Routine-name-1 is a COBOL word and it may be referred to only in an ENTER sentence.' (cite_check: OK §1985:VI.6.12.3 SR2 the text is in SR2). This implementation declines ENTER under §1985:I.1.5.2.5.5 (checked by the reader, OK) and refuses every ENTER by name, COBOL7240, so no accepted program holds a routine-name. Every witness tried was refused COBOL7240 at --std 85: an ENTER on an active debugging line (WITH DEBUGGING MODE, runs/enter_dbg-001), an ENTER with a non-COBOL language-name whose routine-name is also a data-name (runs/enter_dup-001), and the reader's ENTER COBOL (runs/udw_routine-001). The antecedent is unpopulatable.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02-refute/enter_dbg.cob"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.1.1-L2.12",
+    "arm": "unpopulatable-antecedent",
+    "verdict": "UPHELD",
+    "attempt": "a program where the routine-name set's disjointness decides an outcome: RTN-24 declared as a data-name and named as routine-name in ENTER FORTRAN RTN-24 (E:/COBOL-coord/scratch/pb5453/probes/s-02-refute/enter_dup.cob)",
+    "reason": "ENTER is the only context: §1985:VI.6.12.3 SR2 'Routine-name-1 is a COBOL word and it may be referred to only in an ENTER sentence.' (cite_check: OK §1985:VI.6.12.3 SR2 the text is in SR2). This implementation declines ENTER under §1985:I.1.5.2.5.5 (checked by the reader, OK) and refuses every ENTER by name, COBOL7240, so no accepted program holds a routine-name. Every witness tried was refused COBOL7240 at --std 85: an ENTER on an active debugging line (WITH DEBUGGING MODE, runs/enter_dbg-001), an ENTER with a non-COBOL language-name whose routine-name is also a data-name (runs/enter_dup-001), and the reader's ENTER COBOL (runs/udw_routine-001). The antecedent is unpopulatable. The disjoint-set clash cannot be reached because the ENTER is refused before any set membership matters.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-02-refute/enter_dup.cob"
+   }
+  ]
+ },
+ "imported": {
+  "asked": "0f613acac983f051d910454adeba8e089ea1a4003cf763af62058e1097ed9157",
+  "derivation-refute": "00a774380b9f5bf395959f0498c64f48754c9f3f80fa20d361b9367f15f8521e",
+  "read": "1c782a5484e6cf04a7b6457487bdbc18dcadcb4d126a85f6bffda78c9d6d4f9c",
+  "refute": "8658ab4a587efb961be9d33b963c275d367da636eeac877b4591001853255f85"
+ }
+}

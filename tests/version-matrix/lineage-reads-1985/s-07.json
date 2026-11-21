@@ -1,0 +1,1216 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-07 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-07",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-07",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-IV.6.4.2.1.2-p1",
+   "1985-GR-IV.6.4.2.2.1-p1",
+   "1985-SR-IV.6.4.2.2.2-p1",
+   "1985-SR-IV.6.4.2.3.1-p1",
+   "1985-SR-IV.6.4.2.3.1-p2",
+   "1985-SR-IV.6.4.2.3.1-p3",
+   "1985-SR-IV.6.4.2.3.2-p1",
+   "1985-SR-IV.6.4.2.4-p1",
+   "1985-GR-IV.6.4.3-p4",
+   "1985-GR-IV.6.4.3-p5",
+   "1985-GR-IV.7.1-p1",
+   "1985-SR-IV.7.1-p2",
+   "1985-SR-IV.7.1-p3",
+   "1985-SR-IV.7.2-p2",
+   "1985-SR-IV.7.2-p3",
+   "1985-SR-IV.7.2-p4",
+   "1985-SR-IV.7.2-p5",
+   "1985-SR-IV.7.2-p6",
+   "1985-SR-IV.7.2-p7",
+   "1985-SR-IV.7.2-p8",
+   "1985-SR-IV.7.2-p9",
+   "1985-SR-IV.7.2-p10",
+   "1985-SR-IV.7.2.1-p1",
+   "1985-SR-IV.7.2.2-p1",
+   "1985-SR-IV.7.2.2-p2",
+   "1985-GR-IV.7.2.2-p3",
+   "1985-SR-IV.7.2.2-p4",
+   "1985-SR-IV.7.2.3-p1",
+   "1985-GR-IV.7.2.4-p1",
+   "1985-SR-IV.7.2.5-p1"
+  ],
+  "pointers": {
+   "1985-GR-IV.6.4.2.1.2-p1": {
+    "candidates-2023": [
+     "GR-14.5.3.3-3",
+     "GR-14.6.13.1.4-1",
+     "SR-14.9.37.3-6"
+    ],
+    "nearest-2023": "GR-14.5.3.3-3",
+    "similarity": 0.48
+   },
+   "1985-GR-IV.6.4.2.2.1-p1": {
+    "candidates-2023": [
+     "GR-7.3.10.4-6",
+     "GR-7.3.4-1",
+     "DOC-A.1-117"
+    ],
+    "nearest-2023": "GR-7.3.10.4-6",
+    "similarity": 0.428
+   },
+   "1985-SR-IV.6.4.2.2.2-p1": {
+    "candidates-2023": [
+     "GR-7.3.10.4-6",
+     "DOC-A.1-117",
+     "SR-7.3.3-2"
+    ],
+    "nearest-2023": "GR-7.3.10.4-6",
+    "similarity": 0.506
+   },
+   "1985-SR-IV.6.4.2.3.1-p1": {
+    "candidates-2023": [
+     "GR-14.5.3.3-2",
+     "SR-14.9.19.3-1",
+     "GR-14.5.3.3-1"
+    ],
+    "nearest-2023": "GR-14.5.3.3-2",
+    "similarity": 0.497
+   },
+   "1985-SR-IV.6.4.2.3.1-p2": {
+    "candidates-2023": [
+     "GR-14.9.41.4-6",
+     "GR-14.9.35.4-19",
+     "GR-14.9.10.4-11"
+    ],
+    "nearest-2023": "GR-14.9.41.4-6",
+    "similarity": 0.464
+   },
+   "1985-SR-IV.6.4.2.3.1-p3": {
+    "candidates-2023": [
+     "SR-14.9.17.3-2",
+     "GR-14.5.3.3-2",
+     "SR-14.9.19.3-1"
+    ],
+    "nearest-2023": "SR-14.9.17.3-2",
+    "similarity": 0.372
+   },
+   "1985-SR-IV.6.4.2.3.2-p1": {
+    "candidates-2023": [
+     "GR-14.5.3.3-2",
+     "SR-14.9.19.3-1",
+     "GR-14.5.3.3-1"
+    ],
+    "nearest-2023": "GR-14.5.3.3-2",
+    "similarity": 0.418
+   },
+   "1985-SR-IV.6.4.2.4-p1": {
+    "candidates-2023": [
+     "GR-14.5.3.2-2",
+     "GR-14.5.3.2-1",
+     "GR-14.9.5.4-2"
+    ],
+    "nearest-2023": "GR-14.5.3.2-2",
+    "similarity": 0.528
+   },
+   "1985-GR-IV.6.4.3-p4": {
+    "candidates-2023": [
+     "GR-14.5.3.2-1",
+     "GR-14.5.3.2-2",
+     "GR-14.5.3.3-4"
+    ],
+    "nearest-2023": "GR-14.5.3.2-1",
+    "similarity": 0.422
+   },
+   "1985-GR-IV.6.4.3-p5": {
+    "candidates-2023": [
+     "GR-14.5.3.3-4",
+     "SR-14.9.19.3-2",
+     "GR-14.5.3.2-1"
+    ],
+    "nearest-2023": "GR-14.5.3.3-4",
+    "similarity": 0.572
+   },
+   "1985-GR-IV.7.1-p1": {
+    "candidates-2023": [
+     "GR-6.1-1",
+     "DOC-A.1-157",
+     "GR-6.5-1"
+    ],
+    "nearest-2023": "GR-6.1-1",
+    "similarity": 0.496
+   },
+   "1985-SR-IV.7.1-p2": {
+    "candidates-2023": [
+     "GR-13.18.34.4-8",
+     "GR-13.18.40.5-10",
+     "GR-14.9.22.4-19"
+    ],
+    "nearest-2023": "GR-13.18.34.4-8",
+    "similarity": 0.302
+   },
+   "1985-SR-IV.7.1-p3": {
+    "candidates-2023": [
+     "SR-14.2.2-11",
+     "SR-10.6.2-4",
+     "FMT-12.2.1"
+    ],
+    "nearest-2023": "SR-14.2.2-11",
+    "similarity": 0.421
+   },
+   "1985-SR-IV.7.2-p2": {
+    "candidates-2023": [
+     "DOC-A.1-158",
+     "GR-14.9.22.4-8",
+     "GR-13.18.34.4-4"
+    ],
+    "nearest-2023": "DOC-A.1-158",
+    "similarity": 0.419
+   },
+   "1985-SR-IV.7.2-p3": {
+    "candidates-2023": [
+     "GR-14.9.11.4-12",
+     "DOC-A.1-158",
+     "DOC-A.1-157"
+    ],
+    "nearest-2023": "GR-14.9.11.4-12",
+    "similarity": 0.257
+   },
+   "1985-SR-IV.7.2-p4": {
+    "candidates-2023": [
+     "GR-14.9.11.4-12",
+     "DOC-A.1-158",
+     "DOC-A.1-157"
+    ],
+    "nearest-2023": "GR-14.9.11.4-12",
+    "similarity": 0.257
+   },
+   "1985-SR-IV.7.2-p5": {
+    "candidates-2023": [
+     "GR-14.9.11.4-12",
+     "DOC-A.1-158",
+     "DOC-A.1-157"
+    ],
+    "nearest-2023": "GR-14.9.11.4-12",
+    "similarity": 0.257
+   },
+   "1985-SR-IV.7.2-p6": {
+    "candidates-2023": [
+     "DOC-A.1-158",
+     "GR-6.5-6",
+     "GR-6.5-8"
+    ],
+    "nearest-2023": "DOC-A.1-158",
+    "similarity": 0.55
+   },
+   "1985-SR-IV.7.2-p7": {
+    "candidates-2023": [
+     "GR-13.18.34.4-4",
+     "GR-13.18.34.4-5",
+     "DOC-A.1-158"
+    ],
+    "nearest-2023": "GR-13.18.34.4-4",
+    "similarity": 0.429
+   },
+   "1985-SR-IV.7.2-p8": {
+    "candidates-2023": [
+     "GR-6.5-5",
+     "DOC-A.1-158",
+     "GR-6.5-4"
+    ],
+    "nearest-2023": "GR-6.5-5",
+    "similarity": 0.441
+   },
+   "1985-SR-IV.7.2-p9": {
+    "candidates-2023": [
+     "DOC-A.1-158",
+     "GR-13.18.34.4-4",
+     "GR-13.18.34.4-5"
+    ],
+    "nearest-2023": "DOC-A.1-158",
+    "similarity": 0.397
+   },
+   "1985-SR-IV.7.2-p10": {
+    "candidates-2023": [
+     "GR-13.18.34.4-4",
+     "GR-13.18.34.4-5",
+     "DOC-A.1-158"
+    ],
+    "nearest-2023": "GR-13.18.34.4-4",
+    "similarity": 0.383
+   },
+   "1985-SR-IV.7.2.1-p1": {
+    "candidates-2023": [
+     "GR-12.3.7.4-7",
+     "GR-12.4.5.7.4-1",
+     "GR-12.3.6.4-9"
+    ],
+    "nearest-2023": "GR-12.3.7.4-7",
+    "similarity": 0.388
+   },
+   "1985-SR-IV.7.2.2-p1": {
+    "candidates-2023": [
+     "SR-6.3.5-2",
+     "GR-6.5-8",
+     "GR-6.5-7"
+    ],
+    "nearest-2023": "SR-6.3.5-2",
+    "similarity": 0.522
+   },
+   "1985-SR-IV.7.2.2-p2": {
+    "candidates-2023": [
+     "SR-6.3.5-2",
+     "GR-6.5-8",
+     "SR-6.2.3.2-6"
+    ],
+    "nearest-2023": "SR-6.3.5-2",
+    "similarity": 0.616
+   },
+   "1985-GR-IV.7.2.2-p3": {
+    "candidates-2023": [
+     "GR-6.5-5",
+     "GR-6.5-7",
+     "GR-6.5-8"
+    ],
+    "nearest-2023": "GR-6.5-5",
+    "similarity": 0.42
+   },
+   "1985-SR-IV.7.2.2-p4": {
+    "candidates-2023": [
+     "DOC-A.1-156",
+     "GR-6.5-1",
+     "GR-6.5-2"
+    ],
+    "nearest-2023": "DOC-A.1-156",
+    "similarity": 0.299
+   },
+   "1985-SR-IV.7.2.3-p1": {
+    "candidates-2023": [
+     "FMT-13.18.7.2",
+     "FMT-13.18.8.2",
+     "GR-6.5-2"
+    ],
+    "nearest-2023": "FMT-13.18.7.2",
+    "similarity": 0.476
+   },
+   "1985-GR-IV.7.2.4-p1": {
+    "candidates-2023": [
+     "GR-6.5-5",
+     "GR-6.5-2",
+     "GR-13.18.35.4-7"
+    ],
+    "nearest-2023": "GR-6.5-5",
+    "similarity": 0.512
+   },
+   "1985-SR-IV.7.2.5-p1": {
+    "candidates-2023": [
+     "SR-6.3.5-2",
+     "GR-6.5-4",
+     "GR-6.5-5"
+    ],
+    "nearest-2023": "SR-6.3.5-2",
+    "similarity": 0.449
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-07",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.6.4.2.1.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus Procedure Division: the conditional sentence = a conditional statement (IV.6.4.2.1.1 list: IF, EVALUATE, SEARCH, RETURN, and the I-O/arithmetic/STRING/CALL/RECEIVE statements with their conditional phrases)",
+     "optionally preceded by an imperative statement",
+     "terminated by the separator period"
+    ],
+    "evidence-1985": {
+     "conditional statement ended by the period": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p01_sentences.cob (C1; run E:/COBOL-coord/scratch/pb5453/runs/p01_sentences-001) and conformance-suite cases/14.5.3.2-Explicit-scope-termination/l1c31_scope_termination S3 (accept: [85])",
+     "preceded by an imperative statement": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p01_sentences.cob line 'MOVE 1 TO A IF A = 1 ... .' prints C1 THEN",
+     "terminated by the separator period": "covered by l1c31_scope_termination S3 ('IF F = 1 DISPLAY ... DISPLAY ... .' both suppressed up to the period)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.2.1.2 p1",
+      "check": "OK  §1985:IV.6.4.2.1.2 p1  (6.4.2.1.2 Definition of Conditional Sentence)  the text is in p1",
+      "quote": "optionally preceded by an imperative statement"
+     },
+     {
+      "cite": "§2023:14.5.3.3 GR3",
+      "check": "OK  §2023:14.5.3.3 GR3  (Implicit scope termination)  the text is in GR3",
+      "quote": "for a conditional statement not contained within another statement, by a separator period"
+     },
+     {
+      "cite": "§2023:14.5.1",
+      "check": "OK  §2023:14.5.1  (General)  the text is in the clause (unnumbered prose, pending)",
+      "quote": "Wherever 'imperative-statement' appears in the general format of a statement"
+     }
+    ],
+    "reason": "Definitional but showable: 'A conditional sentence is a conditional statement, optionally preceded by an imperative statement, terminated by the separator period.' The nearest 2023 rule (GR-14.5.3.3-3) states only where a top-level conditional statement ends, not the sentence shape with its optional preceding imperative statement; the 2023 sentence definition (§2023:14.5.1) has no catalog row. p01 runs MOVE ... IF ... ELSE ... . as one sentence and prints C1 THEN.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p01_sentences.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p01_sentences.cob (run E:/COBOL-coord/scratch/pb5453/runs/p01_sentences-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.2.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "compiler directing verbs COPY (Library, XII-2), ENTER (Nucleus, VI-83, obsolete), REPLACE (Library, XII-6) and USE (Sequential/Relative/Indexed I-O, Communication, Debug declaratives)",
+     "a compiler directing statement = verb + operands, acting during compilation"
+    ],
+    "evidence-1985": {
+     "COPY": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p05_directing.cob (with P05CPY; run E:/COBOL-coord/scratch/pb5453/runs/p05_directing-002: COPIED TEXT)",
+     "REPLACE": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p05_directing.cob (R1 ORIGINAL: W-B replaced by W-A at compile time)",
+     "USE": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p03_footnote_verbs.cob (USE AFTER STANDARD EXCEPTION PROCEDURE ON SF RLF; it satisfies the INVALID KEY/AT END requirement at compile time, run E:/COBOL-coord/scratch/pb5453/runs/p03_footnote_verbs-004)",
+     "ENTER": "not shown as accepted: the compiler declines ENTER (COBOL7240, run E:/COBOL-coord/scratch/pb5453/runs/p05_directing-001), which §1985:I.1.5.2.5.5 permits"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.2.2.1 p1",
+      "check": "OK  §1985:IV.6.4.2.2.1 p1  (6.4.2.2.1 Definition of Compiler Directing Statement)  the text is in p1",
+      "quote": "The compiler directing verbs are COPY, ENTER, REPLACE, and USE"
+     },
+     {
+      "cite": "§1985:I.1.5.2.5.5",
+      "check": "OK  §1985:I.1.5.2.5.5  (1.5.2.5.5 The ENTER Statement)  the text is in the clause",
+      "quote": "may include the ENTER statement or not"
+     }
+    ],
+    "reason": "'The compiler directing verbs are COPY, ENTER, REPLACE, and USE ... A compiler directing statement causes the compiler to take a specific action during compilation.' (Amendment 2 text). No 2023 pointer states this list (the candidates are COBOL-WORDS/directive rules, wording only). COPY, REPLACE and USE are accepted and act at compile time; ENTER is refused under the implementor option of §1985:I.1.5.2.5.5 ('may include the ENTER statement or not, at the option of the implementor'), so the row's ENTER part is closed by that option, not by an accepted program.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p05_directing.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p05_directing.cob and E:/COBOL-coord/scratch/pb5453/probes/s-07/p03_footnote_verbs.cob (ENTER declined under §1985:I.1.5.2.5.5)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85; record the ENTER option (§1985:I.1.5.2.5.5) as the documented choice"
+   },
+   {
+    "rule-id": "1985-SR-IV.6.4.2.2.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "compiler directing sentence: a single COPY, ENTER, REPLACE or USE statement",
+     "terminated by the separator period"
+    ],
+    "evidence-1985": {
+     "sentence with its period accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p05_directing.cob (REPLACE ... . / REPLACE OFF. / COPY P05CPY.)",
+     "statement without its period refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p06_directing_no_period_copy.cob (COBOL2449, run E:/COBOL-coord/scratch/pb5453/runs/p06_directing_no_period_copy-001) and E:/COBOL-coord/scratch/pb5453/probes/s-07/p06_directing_no_period_replace.cob (COBOL1641, run E:/COBOL-coord/scratch/pb5453/runs/p06_directing_no_period_replace-001); control p05_directing.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.2.2.2 p1",
+      "check": "OK  §1985:IV.6.4.2.2.2 p1  (6.4.2.2.2 Definition of Compiler Directing Sentence)  the text is in p1",
+      "quote": "a single compiler directing statement terminated by the separator period"
+     }
+    ],
+    "reason": "'A compiler directing sentence is a single compiler directing statement terminated by the separator period.' No 2023 rule states it (candidates are wording only). The compiler accepts each directing statement with its period and refuses COPY and REPLACE written without it, the one line changed from the control.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p06_directing_no_period_copy.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p06_directing_no_period_copy.cob, p06_directing_no_period_replace.cob (control p05_directing.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.6.4.2.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "imperative statement: begins with an imperative verb (the table of 40 verbs) and specifies an unconditional action",
+     "or a conditional statement delimited by its explicit scope terminator (delimited scope statement)",
+     "a sequence of imperative statements, each possibly separated by a separator",
+     "converse: a conditional statement without its terminator is not imperative"
+    ],
+    "evidence-1985": {
+     "imperative verbs in an imperative-statement position": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p03_footnote_verbs.cob (ADD SUBTRACT MULTIPLY DIVIDE COMPUTE STRING UNSTRING WRITE READ REWRITE DELETE START CALL MOVE in ON SIZE ERROR; run E:/COBOL-coord/scratch/pb5453/runs/p03_footnote_verbs-004)",
+     "delimited scope statement is imperative": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p07_delimited_scope.cob (all 19 END- terminators inside ON SIZE ERROR; run E:/COBOL-coord/scratch/pb5453/runs/p07_delimited_scope-001)",
+     "sequence with separators": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p01_sentences.cob (I1: MOVE ..., MOVE ...; MOVE ...)",
+     "unterminated conditional refused where imperative-statement is written": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p02_cond_in_imperative_if.cob, _add.cob, _string.cob (COBOL2796) with control E:/COBOL-coord/scratch/pb5453/probes/s-07/p02_control.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.2.3.1 p1",
+      "check": "OK  §1985:IV.6.4.2.3.1 p1  (6.4.2.3.1 Definition of Imperative Statement)  the text is in p1",
+      "quote": "is a conditional statement that is delimited by its explicit scope terminator"
+     },
+     {
+      "cite": "§2023:14.5.3.3 GR2",
+      "check": "OK  §2023:14.5.3.3 GR2  (Implicit scope termination)  the text is in GR2",
+      "quote": "for a single imperative statement contained within another statement"
+     },
+     {
+      "cite": "§2023:14.5.1",
+      "check": "OK  §2023:14.5.1  (General)  the text is in the clause (unnumbered prose, pending)",
+      "quote": "Wherever 'imperative-statement' appears in the general format of a statement"
+     }
+    ],
+    "reason": "'An imperative statement begins with an imperative verb ... or is a conditional statement that is delimited by its explicit scope terminator ... may consist of a sequence of imperative statements, each possibly separated from the next by a separator.' The 2023 definition (§2023:14.5.1) has no catalog row; the candidates (14.5.3.3) state scope termination, not what is imperative. The probes show every form accepted and the conditional forms refused (COBOL2796 cites this paragraph).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p02_cond_in_imperative_if.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p01_sentences.cob, p03_footnote_verbs.cob, p07_delimited_scope.cob; refusals p02_cond_in_imperative_{if,add,string}.cob (control p02_control.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.6.4.2.3.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "footnote 1: ADD COMPUTE DIVIDE MULTIPLY SUBTRACT without [NOT] ON SIZE ERROR",
+     "footnote 2: DELETE REWRITE START without [NOT] INVALID KEY (Relative/Indexed I-O)",
+     "footnote 3: STRING UNSTRING without [NOT] ON OVERFLOW",
+     "footnote 4: RECEIVE without NO DATA / WITH DATA (Communication)",
+     "footnote 5: READ without [NOT] AT END / [NOT] INVALID KEY",
+     "footnote 6: WRITE without [NOT] INVALID KEY / [NOT] END-OF-PAGE",
+     "footnote 7: CALL without ON OVERFLOW / [NOT] ON EXCEPTION (Inter-Program Communication)"
+    ],
+    "evidence-1985": {
+     "footnotes 1,2,3,5,6,7 (verb without phrases is imperative)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p03_footnote_verbs.cob (each verb, phrases omitted, inside ON SIZE ERROR; USE supplies the exception procedure; run E:/COBOL-coord/scratch/pb5453/runs/p03_footnote_verbs-004)",
+     "footnote 4": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p04_receive.cob (RECEIVE CDIN MESSAGE INTO MSG inside ON SIZE ERROR, accepted; run E:/COBOL-coord/scratch/pb5453/runs/p04_receive-001)",
+     "with the phrase the verb is not imperative": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p02_cond_in_imperative_add.cob and _string.cob (COBOL2796) for footnotes 1 and 3; not shown for 2 and 4-7"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.2.3.1 p2",
+      "check": "OK  §1985:IV.6.4.2.3.1 p2  (6.4.2.3.1 Definition of Imperative Statement)  the text is in p2",
+      "quote": "Without the optional ON SIZE ERROR and NOT ON SIZE ERROR phrases"
+     }
+    ],
+    "reason": "The seven footnotes to the imperative-verb table ('Without the optional ... phrases'). No 2023 row states them (the 2023 Table 12 lists conditional phrases, not as a catalog row); the candidates are START/REWRITE/DELETE transfer-of-control rules, wording only. Every footnoted verb, written without its phrases, is accepted where imperative-statement is required.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p03_footnote_verbs.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p03_footnote_verbs.cob, p04_receive.cob; refusals p02_cond_in_imperative_add.cob, _string.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.6.4.2.3.1-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "'imperative-statement' in a general format = the sequence of consecutive imperative statements",
+     "ended by a period",
+     "or by any phrase associated with a statement containing it"
+    ],
+    "evidence-1985": {
+     "ended by a period / by a phrase": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-imperative-seq-scope-85 (PASS, run E:/COBOL-coord/scratch/pb5453/runs/pb5924-imperative-seq-scope-85-001) and E:/COBOL-coord/scratch/pb5453/probes/s-07/p01_sentences.cob (E1: two statements in ON SIZE ERROR ended by NOT ON SIZE ERROR, two in NOT ON SIZE ERROR ended by the period)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.2.3.1 p3",
+      "check": "OK  §1985:IV.6.4.2.3.1 p3  (6.4.2.3.1 Definition of Imperative Statement)  the text is in p3",
+      "quote": "must be ended by a period or by any phrase associated with a statement"
+     },
+     {
+      "cite": "§2023:14.5.1",
+      "check": "OK  §2023:14.5.1  (General)  the text is in the clause (unnumbered prose, pending)",
+      "quote": "Wherever 'imperative-statement' appears in the general format of a statement"
+     }
+    ],
+    "reason": "'imperative-statement refers to that sequence of consecutive imperative statements that must be ended by a period or by any phrase associated with a statement containing that imperative-statement.' 2023 states the same in §2023:14.5.1 ('Wherever imperative-statement appears ...'), but that paragraph has no 2023 catalog row, so there is no pointer; the candidate SR-14.9.17.3-2 (GO TO last in a sequence) is a different rule. The prose85 golden passes on the mint build.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-imperative-seq-scope-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-imperative-seq-scope-85.cob (PASS) and E:/COBOL-coord/scratch/pb5453/probes/s-07/p01_sentences.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place golden pb5924-imperative-seq-scope-85 as the row's own case"
+   },
+   {
+    "rule-id": "1985-SR-IV.6.4.2.3.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "imperative sentence: an imperative statement (one or a sequence) terminated by the separator period"
+    ],
+    "evidence-1985": {
+     "imperative sentence": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p01_sentences.cob (I1: 'MOVE 2 TO A, MOVE 3 TO B; MOVE 4 TO C DISPLAY ... .' one sentence; run E:/COBOL-coord/scratch/pb5453/runs/p01_sentences-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.2.3.2 p1",
+      "check": "OK  §1985:IV.6.4.2.3.2 p1  (6.4.2.3.2 Definition of Imperative Sentence)  the text is in p1",
+      "quote": "An imperative sentence is an imperative statement terminated by the separator period"
+     },
+     {
+      "cite": "§2023:14.5.1",
+      "check": "OK  §2023:14.5.1  (General)  the text is in the clause (unnumbered prose, pending)",
+      "quote": "Wherever 'imperative-statement' appears in the general format of a statement"
+     }
+    ],
+    "reason": "Definitional but showable: 'An imperative sentence is an imperative statement terminated by the separator period.' 2023 defines only 'sentence' (§2023:14.5.1, no catalog row); GR-14.5.3.3-1/-2 are scope-termination rules. p01 accepts a sequence of imperative statements ended by one period.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p01_sentences.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p01_sentences.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.6.4.2.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "delimited scope statement: any statement written with its explicit scope terminator (the 19 of IV.4.4.4: END-ADD ... END-WRITE, END-IF)"
+    ],
+    "evidence-1985": {
+     "each of the 19 terminators makes a delimited scope statement usable as an imperative statement": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p07_delimited_scope.cob (END-ADD END-SUBTRACT END-MULTIPLY END-DIVIDE END-COMPUTE END-IF END-EVALUATE END-PERFORM END-SEARCH END-STRING END-UNSTRING END-WRITE END-CALL END-READ END-REWRITE END-START END-DELETE END-RETURN END-RECEIVE; prints R=12345; run E:/COBOL-coord/scratch/pb5453/runs/p07_delimited_scope-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.2.4 p1",
+      "check": "OK  §1985:IV.6.4.2.4 p1  (6.4.2.4 Delimited Scope Statements)  the text is in p1",
+      "quote": "any statement which includes its explicit scope terminator"
+     }
+    ],
+    "reason": "Definitional but showable: 'A delimited scope statement is any statement which includes its explicit scope terminator.' The 2023 candidates (GR-14.5.3.2-1/-2) say what a terminator terminates, not what a delimited scope statement is. p07 writes every 1985 terminator inside an imperative-statement position and the program runs.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p07_delimited_scope.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p07_delimited_scope.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.3-p4",
+    "to": [
+     "GR-14.5.3.2-1"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "nested delimited scope statements with the same verb: each explicit scope terminator ends the most recent unterminated occurrence of that verb"
+    ],
+    "evidence-1985": {
+     "same-verb nesting (IF/END-IF)": "covered by conformance-suite cases/14.5.3.2-Explicit-scope-termination/l1_if_nested_else_endif_match (accept: [85]; S2-S4 nest IF in IF with END-IF at each level)",
+     "same-verb nesting (ADD/END-ADD)": "covered by cases/14.5.3.3-Implicit-scope-termination/pb3830_phrase_association legs 7-8 and E:/COBOL-coord/scratch/pb5453/probes/s-07/p01_sentences.cob N1"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.3 p4",
+      "check": "OK  §1985:IV.6.4.3 p4  (6.4.3 Scope of Statements)  the text is in p4",
+      "quote": "each explicit scope terminator terminates the statement begun by the most recently preceding"
+     },
+     {
+      "cite": "§2023:14.5.3.2 GR1",
+      "check": "OK  §2023:14.5.3.2 GR1  (Explicit scope termination)  the text is in GR1",
+      "quote": "the most-recently preceding unterminated statement having the statement-name for which that scope terminator is defined"
+     }
+    ],
+    "reason": "1985: 'each explicit scope terminator terminates the statement begun by the most recently preceding, and as yet unterminated, occurrence of that verb.' §2023:14.5.3.2 GR1 states the same binding (the most-recently preceding unterminated statement having the statement-name). Its at-85 case l1_if_nested_else_endif_match nests IF within IF and binds each END-IF to its own level with distinguishable output, which is the 1985 same-verb case.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85 (also seen in E:/COBOL-coord/scratch/pb5453/probes/s-07/p01_sentences.cob N1)"
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.3-p5",
+    "to": [
+     "GR-14.5.3.3-4"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "an optional conditional phrase in nested statements binds to the nearest preceding unterminated statement that permits it and has not already got such a phrase",
+     "definition of an unterminated statement"
+    ],
+    "evidence-1985": {
+     "phrase association": "covered by conformance-suite cases/14.5.3.3-Implicit-scope-termination/pb3830_phrase_association (accept: [85, 2002, 2014, 2023]; legs 1-8) and cases/14.5.3.2-Explicit-scope-termination/l1c31_scope_termination S4 (accept: [85])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.3 p5",
+      "check": "OK  §1985:IV.6.4.3 p5  (6.4.3 Scope of Statements)  the text is in p5",
+      "quote": "considered to be the next phrase of the nearest preceding unterminated statement"
+     },
+     {
+      "cite": "§2023:14.5.3.3 GR4",
+      "check": "OK  §2023:14.5.3.3 GR4  (Implicit scope termination)  the text is in GR4",
+      "quote": "If all permitted occurrences of a phrase have already been specified for a given statement"
+     }
+    ],
+    "reason": "1985: 'any optional conditional phrase encountered is considered to be the next phrase of the nearest preceding unterminated statement with which that phrase is permitted to be associated ... but with which no such phrase has already been associated. An unterminated statement is one which has not been previously terminated either explicitly or implicitly.' §2023:14.5.3.3 GR4 says the same in each part (most-recently preceding unterminated statement; a phrase already specified is not associated again; definition of unterminated). pb3830_phrase_association runs at 85 and decides both the outward and inward bindings.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's cases run at 85"
+   },
+   {
+    "rule-id": "1985-GR-IV.7.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "reference format: a standard method of describing source programs and library text in character positions of a line",
+     "meaning of lines and character positions defined by the implementor",
+     "the compiler accepts source programs written in reference format",
+     "the compiler produces an output listing of the source program in reference format"
+    ],
+    "evidence-1985": {
+     "accepts reference-format source and library text": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) and E:/COBOL-coord/scratch/pb5453/probes/s-07/p12_blank_comment.cob with library text P12CPY (run E:/COBOL-coord/scratch/pb5453/runs/p12_blank_comment-001)",
+     "listing in reference format": "covered by E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001/p08_refformat.lst (the SOURCE section prints every line in columns 1-80 under a column ruler, sequence area, indicator and areas as written; the listing is on by default at --std 85)",
+     "meaning of lines/positions implementor-defined": "not shown by a program: the documentation item is DOC-A.1-157 (docs/CONFORMANCE.md#DOC-A.1-157), context only"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.1 p1",
+      "check": "OK  §1985:IV.7.1 p1  (7.1 GENERAL DESCRIPTION)  the text is in p1",
+      "quote": "produces an output listing of the source program in reference format"
+     }
+    ],
+    "reason": "'each compiler accepts source programs written in reference format and produces an output listing of the source program in reference format.' The 2023 GR-6.1-1 states acceptance and the implementor's meaning of lines but no listing (2023 has no listing requirement) and has no at-85 case; so the listing half is 1985's own. The mint build accepts the probes and writes BASE.lst at --std 85 with each source line reproduced in reference format.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob with listing E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001/p08_refformat.lst",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85 (the case must check the .lst, not only stdout)"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the spacing rules of reference format (continuation joins without a space, IV.7.2.2 p2; an implied space before the first nonblank character of a non-continuation line, IV.7.2.2 p3; area rules) take precedence over all other rules for spacing (IV.4.2 separators)"
+    ],
+    "evidence-1985": {
+     "continuation joins a word with no space": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001): 'DIS' / '-    PLAY' and 'LONG-DATA-NAME-' / '-    ONE' form one word (prints '1 WORD1')",
+     "implied space between lines": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001): W-PIC ending at column 72 and W-PIC beginning the next line in area B are two words (prints '5 WORD1123123')"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.1 p2",
+      "check": "OK  §1985:IV.7.1 p2  (7.1 GENERAL DESCRIPTION)  the text is in p2",
+      "quote": "take precedence over all other rules for spacing"
+     }
+    ],
+    "reason": "'The rules for spacing given in the discussion of the reference format take precedence over all other rules for spacing.' No 2023 rule states it (candidates are LINAGE/PICTURE/INSPECT rules, wording only). p08 shows the reference-format spacing winning both ways: a word split across a continuation line has no separator, and adjoining words on separate lines with no blank written between them are separated.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.1-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "divisions ordered Identification, Environment, Data, Procedure",
+     "each division written according to the rules for the reference format"
+    ],
+    "evidence-1985": {
+     "division order": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-division-order-85 (PASS: Environment after Data refused, \"unexpected 'ENVIRONMENT'\", run E:/COBOL-coord/scratch/pb5453/runs/pb5924-division-order-85-001)",
+     "each division in reference format (accepted)": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-reference-format-85 (PASS: all four divisions with sequence numbers, columns 73-80, comment, page-eject and continuation lines; run E:/COBOL-coord/scratch/pb5453/runs/pb5924-reference-format-85-001)",
+     "a division not in reference format refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_sentence_in_area_a.cob (COBOL3735) and E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_paragraph_in_area_b.cob (COBOL3734), control E:/COBOL-coord/scratch/pb5453/probes/s-07/p09_areas_ok.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.1 p3",
+      "check": "OK  §1985:IV.7.1 p3  (7.1 GENERAL DESCRIPTION)  the text is in p3",
+      "quote": "The divisions of a COBOL source program must be ordered as follows"
+     }
+    ],
+    "reason": "'The divisions of a COBOL source program must be ordered as follows: the Identification Division, then the Environment Division, then the Data Division, then the Procedure Division. Each division must be written according to the rules for the reference format.' The candidates (prototype rules, FMT-12.2.1) are wording only. Both prose85 goldens pass on the mint build; the earlier refuter overturned the second sentence's accepted-only witness, so the p10 refusals (area violations in the Procedure Division, one line changed from p09) are added for the 'must'.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-division-order-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-division-order-85.cob, E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-reference-format-85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_sentence_in_area_a.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "margin L: immediately left of the leftmost character position (column 1 is the first position of the sequence number area)"
+    ],
+    "evidence-1985": {
+     "column 1 starts the sequence number area": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001): lines carrying '000100', 'ZZ0001', 'ab*/$%', '<>{}[]' in columns 1-6 are read with those columns ignored"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2 p2",
+      "check": "OK  §1985:IV.7.2 p2  (7.2 REFERENCE FORMAT REPRESENTATION)  the text is in p2",
+      "quote": "immediately to the left of the leftmost character position"
+     },
+     {
+      "cite": "§2023:6.3.1",
+      "check": "OK  §2023:6.3.1 (structure only) ok"
+     }
+    ],
+    "reason": "Definitional (catalog flag) but showable through what it bounds: 'Margin L is immediately to the left of the leftmost character position of a line.' No 2023 catalog row defines the margins (§2023:6.3.1 has none; DOC-A.1-158 is margin R documentation with no at-85 case). the 1985 reference format line diagram (IV.7.2): margins L, C, A, B, R bound the sequence number area (1-6), indicator area (7), area A (8-11) and area B (12 to margin R).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "margin C: between positions 6 and 7 (the end of the sequence number area, the start of the indicator area)"
+    ],
+    "evidence-1985": {
+     "position 6 is sequence area, 7 indicator": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001): the line 'ab*/$%*...' has '*' and '/' in columns 3-4 (ignored) and '*' in column 7 (a comment line); '000050*' likewise; the listing marks only column-7 indicators"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2 p3",
+      "check": "OK  §1985:IV.7.2 p3  (7.2 REFERENCE FORMAT REPRESENTATION)  the text is in p3",
+      "quote": "Margin C is between the 6th and 7th character positions"
+     }
+    ],
+    "reason": "Definitional (catalog flag) but showable: 'Margin C is between the 6th and 7th character positions of a line.' No 2023 catalog row. the 1985 reference format line diagram (IV.7.2): margins L, C, A, B, R bound the sequence number area (1-6), indicator area (7), area A (8-11) and area B (12 to margin R).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "margin A: between positions 7 and 8 (the start of area A)"
+    ],
+    "evidence-1985": {
+     "position 8 is area A, not the indicator": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_asterisk_col8.cob ('*' in column 8 is program text: COBOL0001, run E:/COBOL-coord/scratch/pb5453/runs/p10_asterisk_col8-002) and E:/COBOL-coord/scratch/pb5453/probes/s-07/p09_areas_ok.cob (paragraph-name MAIN-P at column 8 accepted, run E:/COBOL-coord/scratch/pb5453/runs/p09_areas_ok-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2 p4",
+      "check": "OK  §1985:IV.7.2 p4  (7.2 REFERENCE FORMAT REPRESENTATION)  the text is in p4",
+      "quote": "Margin A is between the 7th and 8th character positions"
+     }
+    ],
+    "reason": "Definitional (catalog flag) but showable: 'Margin A is between the 7th and 8th character positions of a line.' No 2023 catalog row. the 1985 reference format line diagram (IV.7.2): margins L, C, A, B, R bound the sequence number area (1-6), indicator area (7), area A (8-11) and area B (12 to margin R).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_asterisk_col8.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_asterisk_col8.cob (refused) with control E:/COBOL-coord/scratch/pb5453/probes/s-07/p09_areas_ok.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "margin B: between positions 11 and 12 (the end of area A, the start of area B)"
+    ],
+    "evidence-1985": {
+     "position 11 is area A": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p09_areas_ok.cob (paragraph-name P2 at column 11 accepted) and E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_sentence_in_area_a.cob (DISPLAY at column 11 refused, COBOL3735, run E:/COBOL-coord/scratch/pb5453/runs/p10_sentence_in_area_a-002)",
+     "position 12 is area B": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p09_areas_ok.cob (sentences at column 12) and E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_paragraph_in_area_b.cob (paragraph-name at column 12 refused, COBOL3734, run E:/COBOL-coord/scratch/pb5453/runs/p10_paragraph_in_area_b-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2 p5",
+      "check": "OK  §1985:IV.7.2 p5  (7.2 REFERENCE FORMAT REPRESENTATION)  the text is in p5",
+      "quote": "Margin B is between the 11th and 12th character positions"
+     }
+    ],
+    "reason": "Definitional (catalog flag) but showable: 'Margin B is between the 11th and 12th character positions of a line.' No 2023 catalog row. The compiler places the area-A/area-B boundary exactly there in both directions.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_sentence_in_area_a.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_sentence_in_area_a.cob, p10_paragraph_in_area_b.cob (control p09_areas_ok.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "margin R: immediately right of the rightmost character position (the implementor's end of area B; this compiler: column 72)"
+    ],
+    "evidence-1985": {
+     "text past margin R is not program text": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p09_areas_ok.cob ('IGNORED!' in columns 73-80, prints '2 OK') and E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_text_past_margin_r.cob ('\"Z\".' in columns 73-76 ignored, prints '1 AAAA', run E:/COBOL-coord/scratch/pb5453/runs/p10_text_past_margin_r-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2 p6",
+      "check": "OK  §1985:IV.7.2 p6  (7.2 REFERENCE FORMAT REPRESENTATION)  the text is in p6",
+      "quote": "immediately to the right of the rightmost character position"
+     }
+    ],
+    "reason": "Definitional (catalog flag) but showable: 'Margin R is immediately to the right of the rightmost character position of a line.' The 2023 DOC-A.1-158 (the documented rightmost position) has no at-85 case and is a documentation item, so it is not a pointer. The compiler ends program text at column 72 (warning COBOL5788 names §1985:IV.7.2).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_text_past_margin_r.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_text_past_margin_r.cob, p09_areas_ok.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2-p7",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "sequence number: six character positions (1-6), between margin L and margin C"
+    ],
+    "evidence-1985": {
+     "positions 1-6 are the sequence number": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) (six-character sequence fields of any content ignored; position 7 is read as the indicator)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2 p7",
+      "check": "OK  §1985:IV.7.2 p7  (7.2 REFERENCE FORMAT REPRESENTATION)  the text is in p7",
+      "quote": "The sequence number occupies six character positions"
+     },
+     {
+      "cite": "§2023:6.3.2",
+      "check": "OK  §2023:6.3.2 (structure only) ok"
+     }
+    ],
+    "reason": "'The sequence number occupies six character positions (1-6), and is between margin L and margin C.' No 2023 catalog row states the fixed-form sequence number area (§2023:6.3.2 has none; the candidates are LINAGE margins, wording only).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2-p8",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "indicator area: the 7th character position (holds '-' continuation, '*' and '/' comment, blank; 'D' debugging line in the Debug module)"
+    ],
+    "evidence-1985": {
+     "position 7 is the indicator": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) ('-', '*', '/' in column 7 act as indicators) and E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_asterisk_col8.cob ('*' in column 8 is not one)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2 p8",
+      "check": "OK  §1985:IV.7.2 p8  (7.2 REFERENCE FORMAT REPRESENTATION)  the text is in p8",
+      "quote": "The indicator area is the 7th character position of a line"
+     }
+    ],
+    "reason": "'The indicator area is the 7th character position of a line.' The 2023 candidates (GR-6.5-5, GR-6.5-4) are logical-conversion rules for source and floating indicators, not this definition. The probes show column 7, and only column 7, read as the indicator.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob, p10_asterisk_col8.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2-p9",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "area A: positions 8-11, between margin A and margin B (division/section/paragraph headers, level indicators, 01/77, DECLARATIVES, END PROGRAM begin there: IV.7.3-7.6)"
+    ],
+    "evidence-1985": {
+     "area A is 8-11": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p09_areas_ok.cob (headers at column 8, paragraph-name P2 at column 11) and refusals E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_sentence_in_area_a.cob (column 11 is area A) / E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_paragraph_in_area_b.cob (column 12 is not)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2 p9",
+      "check": "OK  §1985:IV.7.2 p9  (7.2 REFERENCE FORMAT REPRESENTATION)  the text is in p9",
+      "quote": "Area A occupies character positions 8, 9, 10, and 11"
+     }
+    ],
+    "reason": "'Area A occupies character positions 8, 9, 10, and 11, and is between margin A and margin B.' No 2023 row (2023 fixed form has no areas). Accepted and refused placements fix area A at 8-11.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p09_areas_ok.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p09_areas_ok.cob with refusals p10_sentence_in_area_a.cob, p10_paragraph_in_area_b.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2-p10",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "area B: a finite number of positions specified by the implementor, from margin B (position 12) to margin R (this compiler: position 72)"
+    ],
+    "evidence-1985": {
+     "area B starts at 12": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p09_areas_ok.cob (sentences at column 12)",
+     "area B ends at margin R (72)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_text_past_margin_r.cob and the p08 W-SPLIT/W-TRAIL literals that fill to column 72 (E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001))",
+     "implementor specifies the extent": "not shown by a program: DOC-A.1-158 (docs/CONFORMANCE.md#DOC-A.1-158) documents it, context only"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2 p10",
+      "check": "OK  §1985:IV.7.2 p10  (7.2 REFERENCE FORMAT REPRESENTATION)  the text is in p10",
+      "quote": "Area B occupies a finite number of character positions specified by the implementor"
+     }
+    ],
+    "reason": "'Area B occupies a finite number of character positions specified by the implementor; it begins immediately to the right of margin B and terminates immediately to the left of margin R.' The text spans a page break (IV-41/IV-42) and the row holds both halves. No 2023 row states area B.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_text_past_margin_r.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p09_areas_ok.cob, p10_text_past_margin_r.cob, p08_refformat.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the sequence number area may label a line",
+     "content user-defined, any character of the computer's character set",
+     "no sequence or uniqueness requirement"
+    ],
+    "evidence-1985": {
+     "any characters": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) ('ab*/$%', '<>{}[]', 'ZZ0001')",
+     "no order / not unique": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) ('000100' then 'ZZ0001', '000050' three times, blank fields)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2.1 p1",
+      "check": "OK  §1985:IV.7.2.1 p1  (7.2.1 Sequence Numbers)  the text is in p1",
+      "quote": "There is no requirement that the content of the sequence number area appears in any particular sequence"
+     }
+    ],
+    "reason": "'The content of the sequence number area is defined by the user and may consist of any character in the computer's character set. There is no requirement that the content of the sequence number area appears in any particular sequence or be unique.' A grant ('may'), witnessed by an accepted program; the 2023 candidates (ALPHABET, collating rules) are wording only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "any sentence, entry, phrase or clause may be continued on subsequent line(s) starting in area B (continuation lines / continued line)",
+     "any word, literal or PICTURE character-string may be broken across a continuation line"
+    ],
+    "evidence-1985": {
+     "sentence/entry continued in area B": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) (W-PIC entry over three lines; DISPLAY sentences over several lines)",
+     "word broken": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) (DIS/PLAY, LONG-DATA-NAME-/ONE)",
+     "nonnumeric literal broken": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) (W-SPLIT, W-TRAIL) and golden E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-continuation-quote-85 (PASS)",
+     "numeric literal and PICTURE string broken": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) (PIC 9( / 3) and VALUE 12 / 3 give '4 123')"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2.2 p1",
+      "check": "OK  §1985:IV.7.2.2 p1  (7.2.2 Continuation of Lines)  the text is in p1",
+      "quote": "Any word, literal, or PICTURE character-string may be broken"
+     }
+    ],
+    "reason": "'Any sentence, entry, phrase, or clause may be continued by starting subsequent line(s) in area B ... Any word, literal, or PICTURE character-string may be broken in such a way that part of it appears on a continuation line.' SR-6.3.5-2 (nearest) covers only literal continuation; 2023 has no row for continuing words and PICTURE strings in fixed form. p08 breaks each kind and runs.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "hyphen in the indicator: first nonblank character in area B continues the last nonblank character of the preceding line, comment and blank lines excluded, without intervening space",
+     "a continued nonnumeric literal: the continuation line's first nonblank character in area B must be a quotation mark; the literal resumes after it",
+     "all spaces at the end of the continued line are part of the literal",
+     "area A of a continuation line must be blank"
+    ],
+    "evidence-1985": {
+     "hyphen join, comment/blank lines skipped": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) (a blank line and a comment line between W-SPLIT's continued and continuation lines; prints '2 ...EFGYZ')",
+     "quotation mark required": "covered by goldens E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-continuation-quote-85 (PASS) and pb5924-continuation-no-quote-85 (PASS, refused)",
+     "trailing spaces part of the literal": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) (W-TRAIL: 'AB' + 35 spaces to column 72 + 'CD', prints the 35 spaces)",
+     "area A blank": "covered by goldens E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-continuation-literal-area-a-85 and pb5924-continuation-word-area-a-85 (PASS, refused)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2.2 p2",
+      "check": "OK  §1985:IV.7.2.2 p2  (7.2.2 Continuation of Lines)  the text is in p2",
+      "quote": "All spaces at the end of the continued line are considered part of the literal"
+     }
+    ],
+    "reason": "The four prose85 goldens pass on the mint build and p08 adds the comment/blank-line exclusion and the trailing-space sentence. Pointers: SR-6.3.5-2 states the trailing-space and quotation parts and SR-6.2.3.2-6 the quotation symbol, but neither states the hyphen word join or 'Area A of a continuation line must be blank' (2023 has no areas), so no pointer set states the whole 1985 scope.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-continuation-quote-85.cob",
+    "compiler-at-1985": "correct: goldens pb5924-continuation-{quote,no-quote,literal-area-a,word-area-a}-85 and E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-GR-IV.7.2.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "no hyphen in the indicator area: the first nonblank character of the line is preceded by an assumed space"
+    ],
+    "evidence-1985": {
+     "assumed space": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) (W-PIC ends at column 72, the next line begins 'W-PIC.' in area B with no hyphen: two operands, prints '5 WORD1123123')"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2.2 p3",
+      "check": "OK  §1985:IV.7.2.2 p3  (7.2.2 Continuation of Lines)  the text is in p3",
+      "quote": "it is assumed that the first nonblank character in the line is preceded by a space"
+     }
+    ],
+    "reason": "'If there is no hyphen in the indicator area of a line, it is assumed that the first nonblank character in the line is preceded by a space.' The candidates (GR-6.5-5/-7/-8) are logical-conversion rules that do not state the assumed space. p08 places a word flush against margin R and another at the start of the next line; they are read as two words.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2.2-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "both characters of the separator '==' on the same line (Library: COPY REPLACING and REPLACE pseudo-text)"
+    ],
+    "evidence-1985": {
+     "split '==' refused": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-pseudo-delimiter-split-85 (PASS: '== is split across a continued line')",
+     "'==' on one line accepted": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-pseudo-delimiter-one-line-85 (PASS, control)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2.2 p4",
+      "check": "OK  §1985:IV.7.2.2 p4  (7.2.2 Continuation of Lines)  the text is in p4",
+      "quote": "Both characters composing the separator"
+     }
+    ],
+    "reason": "'Both characters composing the separator == must be on the same line.' The 2023 SR-6.2.3.2-3 governs floating indicators, and the candidates offered are documentation items; the at-85 diagnosed case pb1492-pseudo-text-delimiter-split belongs to SR-6.3.5-2, which does not state this rule. The prose85 goldens (refusal and control) pass.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-pseudo-delimiter-split-85.cob",
+    "compiler-at-1985": "correct: goldens pb5924-pseudo-delimiter-split-85 (refused) and pb5924-pseudo-delimiter-one-line-85 (control)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "blank line: blank from margin C to margin R inclusive (the sequence area may hold characters)",
+     "a blank line can appear anywhere in the source program (and between continued and continuation lines, IV.7.2.2)"
+    ],
+    "evidence-1985": {
+     "blank from margin C with a sequence number": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) (line 5: '000050' then blank to column 72)",
+     "anywhere": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p12_blank_comment.cob (first line of the program, inside a DISPLAY statement, in library text P12CPY inside a continued statement; run E:/COBOL-coord/scratch/pb5453/runs/p12_blank_comment-001) and E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) (between a continued and a continuation line)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2.3 p1",
+      "check": "OK  §1985:IV.7.2.3 p1  (7.2.3 Blank Lines)  the text is in p1",
+      "quote": "A blank line can appear anywhere in the source program"
+     }
+    ],
+    "reason": "'A blank line is one that is blank from margin C to margin R, inclusive. A blank line can appear anywhere in the source program.' GR-6.5-2 (2023) says a blank line is discarded, but 2023 has no margin C and its at-85 case (pb1491) does not place blank lines anywhere; so the 1985 definition and grant are own text, shown by accepted programs.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p12_blank_comment.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p12_blank_comment.cob, p08_refformat.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   },
+   {
+    "rule-id": "1985-GR-IV.7.2.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "comment line: '*' or '/' in the indicator area",
+     "may appear as any line after the Identification Division header, and in library text",
+     "any characters in areas A and B; documentation only, not checked syntactically",
+     "listing: '/' ejects a page before the line; '*' prints at the next line position"
+    ],
+    "evidence-1985": {
+     "'*' and '/' comment lines with arbitrary text": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) (lines 3, 4, 11, 19 including '~`^' and 'IF ((')",
+     "between continued and continuation lines, inside a statement, in library text": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob (generated by gen08.py; run E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001) (line 11) and E:/COBOL-coord/scratch/pb5453/probes/s-07/p12_blank_comment.cob (comment inside DISPLAY; '*' and '/' lines in P12CPY)",
+     "listing behaviour": "covered by E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001/p08_refformat.lst (a form feed and new page heading precede listing line 19, the '/' line; '*' lines 3, 4, 11 print in sequence)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2.4 p1",
+      "check": "OK  §1985:IV.7.2.4 p1  (7.2.4 Comment Lines)  the text is in p1",
+      "quote": "The slant in the indicator area causes page ejection prior to printing the comment line"
+     }
+    ],
+    "reason": "'A comment line is any line with an asterisk or slant in the indicator area ... will not be checked syntactically. The slant in the indicator area causes page ejection prior to printing the comment line in the listing of the source program; an asterisk ... causes printing of the line at the next available line position in the listing.' GR-6.5-2 (2023) only discards comment lines and says nothing of the listing, so the pointer does not state the whole scope. The probes and the .lst show each part.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p08_refformat.cob with listing E:/COBOL-coord/scratch/pb5453/runs/p08_refformat-001/p08_refformat.lst, and E:/COBOL-coord/scratch/pb5453/probes/s-07/p12_blank_comment.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85 (the case must check the .lst page break)"
+   },
+   {
+    "rule-id": "1985-SR-IV.7.2.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "text words and separator space of pseudo-text (COPY REPLACING, REPLACE) may start in area A or area B",
+     "a hyphen line after the opening delimiter: area A blank, normal continuation rules form the text words"
+    ],
+    "evidence-1985": {
+     "pseudo-text words in area A": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07/p11_pseudo_text_area_a.cob (SHOW-IT of pseudo-text-1 and P2 of pseudo-text-2 begin in column 8; prints OK-1, OK-2; run E:/COBOL-coord/scratch/pb5453/runs/p11_pseudo_text_area_a-002)",
+     "continuation inside pseudo-text": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-pseudo-text-continuation-85 (PASS)",
+     "area A of that continuation line blank": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-09/goldens/pb5924-pseudo-text-continuation-area-a-85 (PASS, refused)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.7.2.5 p1",
+      "check": "OK  §1985:IV.7.2.5 p1  (7.2.5 Pseudo-Text)  the text is in p1",
+      "quote": "may start in either area A or area B"
+     },
+     {
+      "cite": "§1985:XII.2.4 GR9",
+      "check": "OK  §1985:XII.2.4 GR9  (2.4 General Rules)  the text is in GR9",
+      "quote": "begins in the same area of the resultant program as it appears in pseudo-text-2"
+     },
+     {
+      "cite": "§1985:XII.3.4 GR10",
+      "check": "OK  §1985:XII.3.4 GR10  (║3.4 General Rules║)  the text is in GR10",
+      "quote": "are placed in the source program according to the rules for reference format"
+     }
+    ],
+    "reason": "'The text words and the separator space comprising pseudo-text may start in either area A or area B. If, however, there is a hyphen in the indicator area of a line which follows the opening pseudo-text delimiter, area A of the line must be blank' (Amendment 2 wording). No 2023 row: 2023 has no areas. The grant needs an accepted program, which p11 supplies; the goldens cover the continuation half. (A first p11 draft placed DISPLAY in area A of pseudo-text-2; the compiler refused it because the word lands in area A of the result, which XII.2.4 GR9 / XII.3.4 GR10 require: that is not this row's permission.)",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07/p11_pseudo_text_area_a.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07/p11_pseudo_text_area_a.cob and goldens pb5924-pseudo-text-continuation-85, pb5924-pseudo-text-continuation-area-a-85",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own fixed-form conformance case at 85"
+   }
+  ],
+  "leads": [
+   {
+    "kind": "tooling",
+    "row": "1985-SR-IV.6.4.2.3.1-p3",
+    "what": "The 2023 rule catalog has no row for the unnumbered prose of §2023:14.5.1 (definitions of imperative and conditional statement, 'A sentence is ...', 'Wherever imperative-statement appears ...') nor for §2023:6.3.1/6.3.2 (fixed-form margins and the sequence number area). §2023:14.5.1 states 1985-SR-IV.6.4.2.3.1-p3 nearly word for word, and cite.py reports it as 'unnumbered prose, pending'. With no 2023 row, a 1985 row that says the same thing can only be DIFFERENT. Affected here: IV.6.4.2.1.2-p1, IV.6.4.2.3.1-p1, -p3, IV.6.4.2.3.2-p1, IV.7.2-p2..p10.",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/cite_check.py \"§2023:14.5.1\" \"Wherever 'imperative-statement' appears in the general format of a statement\"  (OK, 'unnumbered prose, pending'); no catalog id in docs/rearchitecture/spec-rule-catalog.json contains that text",
+    "site": "docs/rearchitecture/spec-rule-catalog.json (2023 paragraph minting, the 2023 counterpart of PB5452)"
+   },
+   {
+    "kind": "defect",
+    "row": "1985-SR-IV.7.2-p9",
+    "what": "COBOL3734 and COBOL3735 (the area A/B refusals at --std 85) cite no 1985 clause. They name 'ANSI X3.23-1985 reference format, area A/B' plus §2023:6.3.1, and 2023 is the edition that has no areas. The governing 1985 rules are §1985:IV.7.3.3 (paragraph-name in area A, sentences in area B) and §1985:IV.7.2 p9/p10. The refusal is correct; only its citation is missing. Diagnostic quality, low severity.",
+    "repro": "python E:/COBOL/scripts/orchestrator/run_probe.py --root E:/COBOL-coord/scratch/pb5453/runs --std 85 --exe E:/COBOL-coord/scratch/pb5453/tree-9fdf39b9e8/src/WiseOwl.Cobol.Cli/bin/Debug/net11.0/cobol.exe E:/COBOL-coord/scratch/pb5453/probes/s-07/p10_sentence_in_area_a.cob",
+    "site": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs (rows fixed-form-area-a-item-outside-area-a-2002, fixed-form-text-in-area-a-2002; generated, so fix at its construct source); src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-07",
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.6.4.3-p4",
+    "verdict": "UPHELD",
+    "reason": "Strongest attack: p4 reaches END-RECEIVE of the 1985 Communication-module RECEIVE (NO DATA/WITH DATA), a form 2023 replaced. But terminator binding depends only on the verb/statement-name, and 2023 GR1 binds every scope terminator by statement-name (2023 still defines END-RECEIVE), so the pointer states the whole 1985 requirement; 1985 restricts it to same-verb nesting, a subset. Witness l1_if_nested_else_endif_match S2-S4 decides the binding (an END-IF bound outward makes the following ELSE stray) and MATCHES at --std 85 on the mint build (run l1_if_nested_else_endif_match-*). The Communication form also binds correctly at 85: r02_nested_receive_mcs.cob L1/L2.",
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.3 p4",
+      "quote": "each explicit scope terminator terminates the statement begun by the most recently preceding",
+      "check": "OK  §1985:IV.6.4.3 p4  (6.4.3 Scope of Statements)  the text is in p4"
+     },
+     {
+      "cite": "§2023:14.5.3.2 GR1",
+      "quote": "the most-recently preceding unterminated statement having the statement-name",
+      "check": "OK  §2023:14.5.3.2 GR1  (Explicit scope termination)  the text is in GR1"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07-refute/r02_nested_receive_mcs.cob",
+    "compiler-at-1985": "correct: pointer case MATCH at 85; E:/COBOL-coord/scratch/pb5453/probes/s-07-refute/r02_nested_receive_mcs.cob L1-L2"
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.3-p5",
+    "verdict": "OVERTURNED",
+    "reason": "Phrase association is decided by each statement's general format ('permitted to be associated according to the general format and the syntax rules for that statement'). The 1985 scope includes the Communication-module RECEIVE optional conditional phrases NO DATA / WITH DATA (§1985:XIV.3.5.4 GR4), a removed form: the 2023 RECEIVE (§2023:14.9.31.2) has FROM/GIVING and ON EXCEPTION phrases, so §2023:14.5.3.3 GR4 never governed NO DATA/WITH DATA association and neither pointer case (pb3830_phrase_association: SIZE ERROR, OVERFLOW, EXCEPTION, AT END, WHEN; l1c31: ELSE) exercises it. The pointer is witnessed (pb3830_phrase_association MATCHES at 85) for its own phrases only. The compiler is correct on the missing part: r02_nested_receive_mcs.cob L3 binds WITH DATA to the inner RECEIVE (prints L3-O-ND, L3-I-ND, L3-O-TAIL), a candidate own witness.",
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.3 p5",
+      "quote": "any optional conditional phrase encountered is considered to be the next phrase of the nearest preceding unterminated statement",
+      "check": "OK  §1985:IV.6.4.3 p5  (6.4.3 Scope of Statements)  the text is in p5"
+     },
+     {
+      "cite": "§1985:XIV.3.5.4 GR4",
+      "quote": "the NO DATA phrase, if specified, is ignored",
+      "check": "OK  §1985:XIV.3.5.4 GR4  (3.5.4 General Rules)  the text is in GR4"
+     },
+     {
+      "cite": "§2023:14.9.31.2",
+      "quote": "RECEIVE FROM data-name-1 GIVING identifier-1",
+      "check": "OK  §2023:14.9.31.2  (General format)  the text is in the clause"
+     },
+     {
+      "cite": "§2023:14.5.3.3 GR4",
+      "quote": "Any phrase encountered is the next phrase of the most-recently preceding unterminated statement",
+      "check": "OK  §2023:14.5.3.3 GR4  (Implicit scope termination)  the text is in GR4"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07-refute/r02_nested_receive_mcs.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07-refute/r02_nested_receive_mcs.cob (run r02_nested_receive_mcs-001: L1-O-WD L1-I-ND L1-O-TAIL L2-O-ND L2-I-ND L2-O-TAIL L3-O-ND L3-I-ND L3-O-TAIL DONE)"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "b591e2370b0e51ff73a2925262649d4be6ef3a386c1a462ffb245e73284db823",
+  "read": "2709af37458c0118e9376bf33c267dd9acceee1918e8f9d1008160a11efe36c0",
+  "refute": "882d42aa2fd51720382f0909fe22d4294e011a0e4aee7f4ec5406e7e71e91161"
+ }
+}

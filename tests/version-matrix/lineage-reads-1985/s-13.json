@@ -1,0 +1,1277 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-13 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-13",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-13",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-VII.2.12-p1",
+   "1985-SR-VII.3.1.1-p1",
+   "1985-GR-VII.3.2.1-p1",
+   "1985-GR-VII.3.5.1-p1",
+   "1985-GR-VII.3.6.1-p1",
+   "1985-GR-VII.3.9.1-p1",
+   "1985-GR-VII.4.2.1-p1",
+   "1985-GR-VII.4.2.4-p1",
+   "1985-GR-VII.4.3.1-p1",
+   "1985-GR-VII.4.4.1-p1",
+   "1985-GR-VII.4.5.1-p1",
+   "1985-GR-VII.4.6.1-p1",
+   "1985-GR-VII.4.7.1-p1",
+   "1985-GR-VIII.1.1-p1",
+   "1985-GR-VIII.1.2-p1",
+   "1985-GR-VIII.1.2-p2",
+   "1985-GR-VIII.1.3.1-p1",
+   "1985-GR-VIII.1.3.1-p2",
+   "1985-GR-VIII.1.3.1-p3",
+   "1985-GR-VIII.1.3.3-p1",
+   "1985-GR-VIII.1.3.4-p1",
+   "1985-GR-VIII.1.3.4-p2",
+   "1985-GR-VIII.1.3.4-p3",
+   "1985-GR-VIII.1.3.4-p5",
+   "1985-GR-VIII.1.3.5-p1",
+   "1985-GR-VIII.1.3.5-3",
+   "1985-GR-VIII.1.3.5-p3",
+   "1985-GR-VIII.1.3.6-p1",
+   "1985-GR-VIII.2.3.1-p1",
+   "1985-GR-VIII.2.4.1-p1"
+  ],
+  "pointers": {
+   "1985-GR-VII.2.12-p1": {
+    "candidates-2023": [
+     "GR-11.9.5.2-2",
+     "GR-4.4-2",
+     "SR-8.3.2.2-L3.2"
+    ],
+    "nearest-2023": "GR-11.9.5.2-2",
+    "similarity": 0.232
+   },
+   "1985-SR-VII.3.1.1-p1": {
+    "candidates-2023": [
+     "SR-13.4.5.3-5",
+     "SR-12.4.5.2-3",
+     "SR-13.4.5.3-6"
+    ],
+    "nearest-2023": "SR-13.4.5.3-5",
+    "similarity": 0.437
+   },
+   "1985-GR-VII.3.2.1-p1": {
+    "candidates-2023": [
+     "SR-13.4.5.3-5",
+     "SR-12.4.5.2-11",
+     "SR-13.4.5.3-7"
+    ],
+    "nearest-2023": "SR-13.4.5.3-5",
+    "similarity": 0.536
+   },
+   "1985-GR-VII.3.5.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.24.4-4",
+     "GR-13.18.43.4-17",
+     "SR-13.4.5.3-6"
+    ],
+    "nearest-2023": "GR-14.9.24.4-4",
+    "similarity": 0.377
+   },
+   "1985-GR-VII.3.6.1-p1": {
+    "candidates-2023": [
+     "GR-13.18.43.4-17",
+     "GR-11.9.5.2-2",
+     "GR-13.18.43.4-2"
+    ],
+    "nearest-2023": "GR-13.18.43.4-17",
+    "similarity": 0.27
+   },
+   "1985-GR-VII.3.9.1-p1": {
+    "candidates-2023": [
+     "GR-13.18.57.4-3",
+     "GR-11.9.5.2-2",
+     "GR-13.18.63.4-15"
+    ],
+    "nearest-2023": "GR-13.18.57.4-3",
+    "similarity": 0.415
+   },
+   "1985-GR-VII.4.2.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.6.4-10",
+     "GR-9.1.13.2-6",
+     "FMT-14.9.6.2"
+    ],
+    "nearest-2023": "GR-14.9.6.4-10",
+    "similarity": 0.45
+   },
+   "1985-GR-VII.4.2.4-p1": {
+    "candidates-2023": [
+     "GR-14.9.6.4-2",
+     "GR-14.9.6.4-3",
+     "GR-14.9.6.4-6",
+     "GR-14.9.6.4-1",
+     "GR-14.9.6.4-9",
+     "GR-14.9.6.4-8",
+     "SR-14.9.6.3-2",
+     "SR-14.9.6.3-1",
+     "GR-14.9.30.4-20"
+    ],
+    "nearest-2023": "GR-14.9.6.4-2",
+    "similarity": 0.357
+   },
+   "1985-GR-VII.4.3.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.27.4-20",
+     "GR-14.9.27.4-2",
+     "SR-14.9.27.3-1"
+    ],
+    "nearest-2023": "GR-14.9.27.4-20",
+    "similarity": 0.385
+   },
+   "1985-GR-VII.4.4.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.30.4-19",
+     "GR-14.9.30.4-22",
+     "GR-14.9.30.4-16"
+    ],
+    "nearest-2023": "GR-14.9.30.4-19",
+    "similarity": 0.506
+   },
+   "1985-GR-VII.4.5.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.35.4-13",
+     "GR-14.9.35.4-5",
+     "GR-14.9.35.4-23"
+    ],
+    "nearest-2023": "GR-14.9.35.4-13",
+    "similarity": 0.518
+   },
+   "1985-GR-VII.4.6.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.49.4-1",
+     "GR-14.9.49.4-6",
+     "GR-9.1.14-4"
+    ],
+    "nearest-2023": "GR-14.9.49.4-1",
+    "similarity": 0.507
+   },
+   "1985-GR-VII.4.7.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.51.4-12",
+     "GR-14.9.51.4-3",
+     "GR-14.9.51.4-26"
+    ],
+    "nearest-2023": "GR-14.9.51.4-12",
+    "similarity": 0.483
+   },
+   "1985-GR-VIII.1.1-p1": {
+    "candidates-2023": [
+     "GR-12.4.5.10.3-4",
+     "GR-12.4.5.13.4-1",
+     "GR-9.1.13.5-4"
+    ],
+    "nearest-2023": "GR-12.4.5.10.3-4",
+    "similarity": 0.555
+   },
+   "1985-GR-VIII.1.2-p1": {
+    "candidates-2023": [
+     "GR-9.1.13.4-2",
+     "GR-14.9.27.4-16",
+     "GR-12.4.5.3-7"
+    ],
+    "nearest-2023": "GR-9.1.13.4-2",
+    "similarity": 0.369
+   },
+   "1985-GR-VIII.1.2-p2": {
+    "candidates-2023": [
+     "GR-9.1.13.4-2",
+     "SR-14.9.41.3-5",
+     "GR-12.4.5.3-7"
+    ],
+    "nearest-2023": "GR-9.1.13.4-2",
+    "similarity": 0.397
+   },
+   "1985-GR-VIII.1.3.1-p1": {
+    "candidates-2023": [
+     "GR-12.4.5.13.4-1",
+     "GR-12.4.5.10.3-4",
+     "GR-14.9.51.4-30"
+    ],
+    "nearest-2023": "GR-12.4.5.13.4-1",
+    "similarity": 0.441
+   },
+   "1985-GR-VIII.1.3.1-p2": {
+    "candidates-2023": [
+     "GR-12.4.5.13.4-1",
+     "GR-14.9.51.4-30",
+     "GR-12.4.5.10.3-4"
+    ],
+    "nearest-2023": "GR-12.4.5.13.4-1",
+    "similarity": 0.607
+   },
+   "1985-GR-VIII.1.3.1-p3": {
+    "candidates-2023": [
+     "GR-13.18.43.4-3",
+     "GR-13.18.40.4-17",
+     "GR-12.4.5.13.4-1"
+    ],
+    "nearest-2023": "GR-13.18.43.4-3",
+    "similarity": 0.378
+   },
+   "1985-GR-VIII.1.3.3-p1": {
+    "candidates-2023": [
+     "GR-14.9.6.4-6",
+     "GR-14.9.27.4-14",
+     "GR-14.9.30.4-21"
+    ],
+    "nearest-2023": "GR-14.9.6.4-6",
+    "similarity": 0.458
+   },
+   "1985-GR-VIII.1.3.4-p1": {
+    "candidates-2023": [
+     "GR-9.1.13.7-3",
+     "GR-14.9.30.4-2",
+     "GR-9.1.13.7-9",
+     "GR-9.1.13.7-7",
+     "GR-14.9.27.4-1",
+     "GR-14.9.27.4-25",
+     "GR-14.9.51.4-15",
+     "GR-12.4.5.8.4-1",
+     "GR-14.9.6.4-4",
+     "GR-14.9.49.4-7"
+    ],
+    "nearest-2023": "GR-9.1.13.7-3",
+    "similarity": 0.515
+   },
+   "1985-GR-VIII.1.3.4-p2": {
+    "candidates-2023": [
+     "GR-14.9.49.4-6",
+     "DOC-A.1-110",
+     "GR-14.9.30.4-24",
+     "GR-9.1.13.2-4",
+     "GR-14.9.27.4-25",
+     "GR-14.9.49.4-7",
+     "DOC-A.1-218",
+     "GR-13.18.39.4-4",
+     "GR-13.18.39.4-2",
+     "SR-13.18.57.3-12"
+    ],
+    "nearest-2023": "GR-14.9.49.4-6",
+    "similarity": 0.264
+   },
+   "1985-GR-VIII.1.3.4-p3": {
+    "candidates-2023": [
+     "GR-9.1.13.6-1",
+     "DOC-A.1-110",
+     "GR-9.1.13.2-1",
+     "GR-9.1.13.11-1",
+     "GR-14.9.49.4-7",
+     "GR-14.9.49.4-12",
+     "GR-9.1.14-4",
+     "DOC-A.1-218",
+     "GR-9.1.14-L2.1",
+     "DOC-A.1-105"
+    ],
+    "nearest-2023": "GR-9.1.13.6-1",
+    "similarity": 0.296
+   },
+   "1985-GR-VIII.1.3.4-p5": {
+    "candidates-2023": [
+     "GR-9.1.13.4-2",
+     "GR-9.1.13.2-1",
+     "GR-9.1.13.5-4",
+     "GR-14.9.51.4-33",
+     "DOC-A.1-104",
+     "GR-14.9.27.4-1",
+     "GR-14.9.51.4-15",
+     "GR-14.7.9.3-4",
+     "GR-12.4.5.8.4-1",
+     "GR-14.9.30.4-1"
+    ],
+    "nearest-2023": "GR-9.1.13.4-2",
+    "similarity": 0.372
+   },
+   "1985-GR-VIII.1.3.5-p1": {
+    "candidates-2023": [
+     "GR-14.9.35.4-21",
+     "GR-14.9.30.4-13",
+     "GR-14.9.51.4-15",
+     "GR-9.1.14-1",
+     "GR-14.9.30.4-28",
+     "GR-14.9.35.4-19",
+     "GR-14.9.51.4-26",
+     "GR-13.18.34.4-6",
+     "GR-14.9.41.4-5",
+     "SR-13.18.57.3-12"
+    ],
+    "nearest-2023": "GR-14.9.35.4-21",
+    "similarity": 0.425
+   },
+   "1985-GR-VIII.1.3.5-3": {
+    "candidates-2023": [
+     "GR-9.1.14-4",
+     "GR-9.1.14-2",
+     "GR-9.1.14-L2.2",
+     "GR-14.9.49.4-6",
+     "GR-14.9.30.4-13",
+     "GR-14.9.35.4-21",
+     "GR-14.9.27.4-25",
+     "GR-14.9.11.4-18",
+     "GR-14.9.24.4-12"
+    ],
+    "nearest-2023": "GR-9.1.14-4",
+    "similarity": 0.561
+   },
+   "1985-GR-VIII.1.3.5-p3": {
+    "candidates-2023": [
+     "GR-9.1.14-2",
+     "GR-14.9.35.4-21",
+     "GR-9.1.14-L2.2",
+     "GR-14.9.30.4-13",
+     "GR-9.1.14-4",
+     "GR-9.1.14-1",
+     "GR-14.9.51.4-15",
+     "GR-14.9.41.4-18",
+     "GR-14.9.41.4-19"
+    ],
+    "nearest-2023": "GR-9.1.14-2",
+    "similarity": 0.519
+   },
+   "1985-GR-VIII.1.3.6-p1": {
+    "candidates-2023": [
+     "GR-14.9.30.4-28",
+     "GR-14.9.30.4-24",
+     "GR-14.9.30.4-13"
+    ],
+    "nearest-2023": "GR-14.9.30.4-28",
+    "similarity": 0.411
+   },
+   "1985-GR-VIII.2.3.1-p1": {
+    "candidates-2023": [
+     "GR-12.4.5.3-7",
+     "SR-12.4.5.2-9",
+     "SR-13.4.5.3-1"
+    ],
+    "nearest-2023": "GR-12.4.5.3-7",
+    "similarity": 0.538
+   },
+   "1985-GR-VIII.2.4.1-p1": {
+    "candidates-2023": [
+     "GR-12.4.5.5.3-1",
+     "FMT-12.4.5.5.1",
+     "GR-12.4.5.5.3-4"
+    ],
+    "nearest-2023": "GR-12.4.5.5.3-1",
+    "similarity": 0.555
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-13",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-VII.2.12-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "scope-1985": [
+     "Sequential I-O (Relative and Indexed I-O import it as a subset: their I-O-CONTROL general rule points to page VII-17): the RERUN clause of the I-O-CONTROL paragraph, every form, as an obsolete element a conforming 1985 implementation must accept"
+    ],
+    "evidence-1985": {
+     "RERUN accepted and the program's I-O unaffected": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob (run runs/seqobs-002: RERUN ON SYSRR EVERY 100 RECORDS OF SFILE accepted, WRITE/READ/REWRITE results as without it)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.2.12 p1",
+      "quote": "The RERUN clause specifies the points at which rerun is to be established",
+      "check": "OK  §1985:VII.2.12 p1  (2.12 THE RERUN CLAUSE)  the text is in p1"
+     }
+    ],
+    "reason": "\"The RERUN clause specifies the points at which rerun is to be established. The RERUN clause is an obsolete element\". The catalog flags it definitional, but a program shows it: the clause must be accepted at 85. 2023 has no RERUN clause, so no 2023 rule states it (the candidates are wording-only matches). The seqobs probe accepts RERUN at --std 85 and runs.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob (runs/seqobs-002)",
+    "needs": "needs-own-witness: place seqobs.cob (or tests/WiseOwl.Cobol.Tests.Conformance/Ansi85AcceptanceTests.cs Rerun_RecordsForm_At85_IoUnaffected as a conformance case) as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VII.3.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Sequential I-O File Section: FD level indicator, file-name, then independent clauses (BLOCK CONTAINS, RECORD CONTAINS, LABEL RECORDS, VALUE OF, DATA RECORDS, LINAGE, CODE-SET)",
+     "the entry is terminated by a period"
+    ],
+    "evidence-1985": {
+     "FD with every clause accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-13/fdall.cob (runs/fdall-003: accepted, LINAGE-COUNTER 02, CLOSE 00)",
+     "terminating period required": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-13/fdnoper2.cob (runs/fdnoper2-001: COBOL0307 'A period may be missing'), control fdall.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.3.1.1 p1",
+      "quote": "The entry itself is terminated by a period",
+      "check": "OK  §1985:VII.3.1.1 p1  (3.1.1 File Description Entry)  the text is in p1"
+     }
+    ],
+    "reason": "The paragraph sets out the FD entry: \"a level indicator (FD), a file-name, and a series of independent clauses\" that cover label records, implementor label items, record names and the lines on a page, and \"The entry itself is terminated by a period.\" SR-13.4.5.3-5 says only that format 1 is the sequential FD. 2023 has no LABEL RECORDS, VALUE OF or DATA RECORDS, so no 2023 rule states this scope.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/fdall.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/fdall.cob with refusal twin E:/COBOL-coord/scratch/pb5453/probes/s-13/fdnoper2.cob",
+    "needs": "needs-own-witness: place fdall.cob and its refusal twin fdnoper2.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VII.3.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Sequential I-O FD entry: physical structure (BLOCK/RECORD CONTAINS), identification (LABEL RECORDS, VALUE OF), record-names (DATA RECORDS, 01 entries) of a sequential file"
+    ],
+    "evidence-1985": {
+     "FD carrying structure, identification and record-names": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-13/fdall.cob (runs/fdall-003)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.3.2.1 p1",
+      "quote": "furnishes information concerning the physical structure, identification, and record-names",
+      "check": "OK  §1985:VII.3.2.1 p1  (3.2.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "The FD \"furnishes information concerning the physical structure, identification, and record-names pertaining to a sequential file.\" The catalog flags it definitional, but an accepted FD shows it. The nearest 2023 candidate is SR-13.4.5.3-5 (format 1 is the sequential FD), which does not state what the entry furnishes. The 1985 identification half is clauses that 2023 removed, so no pointer states the whole scope.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/fdall.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/fdall.cob",
+    "needs": "needs-own-witness: place fdall.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VII.3.5.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "scope-1985": [
+     "Sequential I-O FD: DATA RECORD IS / DATA RECORDS ARE, documentation only, obsolete element"
+    ],
+    "evidence-1985": {
+     "accepted, documentation only (I-O unaffected)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob (DATA RECORD IS SREC, runs/seqobs-002) and fdall.cob (DATA RECORDS ARE SREC SREC2, runs/fdall-003)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.3.5.1 p1",
+      "quote": "serves only as documentation for the names of data records",
+      "check": "OK  §1985:VII.3.5.1 p1  (3.5.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "\"The DATA RECORDS clause serves only as documentation\" and \"is an obsolete element\". 2023 deleted DATA RECORDS, so no 2023 row states it. At 85 the probes accept both spellings and the I-O results do not change (FileControlBinder.ObsoleteFdClauses.cs: documentation, no I-O effect).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob",
+    "needs": "needs-own-witness: place seqobs.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VII.3.6.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "scope-1985": [
+     "Sequential I-O FD (imported by Relative and Indexed): LABEL RECORD(S) IS/ARE STANDARD | OMITTED, obsolete element"
+    ],
+    "evidence-1985": {
+     "STANDARD accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob (runs/seqobs-002)",
+     "OMITTED accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-13/seqoc.cob (LABEL RECORD IS OMITTED, runs/seqoc-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.3.6.1 p1",
+      "quote": "The LABEL RECORDS clause specifies whether labels are present",
+      "check": "OK  §1985:VII.3.6.1 p1  (3.6.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "\"The LABEL RECORDS clause specifies whether labels are present\" and it is obsolete. 2023 removed the clause. Both forms are accepted at 85. The implementation's label specification has no label records (CaptureLabelRecords: 'Labels are not processed'), so the clause changes no I-O. GR2 leaves the labels to \"the implementor's label specifications\".",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/seqoc.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob (STANDARD) and E:/COBOL-coord/scratch/pb5453/probes/s-13/seqoc.cob (OMITTED)",
+    "needs": "needs-own-witness: place seqobs.cob/seqoc.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VII.3.9.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "scope-1985": [
+     "Sequential I-O FD: VALUE OF implementor-name-1 IS literal-1 | data-name-1, obsolete element"
+    ],
+    "evidence-1985": {
+     "accepted with literal-1": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob (VALUE OF FILE-ID IS literal, runs/seqobs-002) and fdall.cob",
+     "data-name-1 form": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.3.9.1 p1",
+      "quote": "particularizes the description of an item in the label records",
+      "check": "OK  §1985:VII.3.9.1 p1  (3.9.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "\"The VALUE OF clause particularizes the description of an item in the label records\" and it is obsolete. 2023 has no VALUE OF clause (GR-13.18.57.4-3 and the other candidates are wording-only matches). The literal form is accepted at 85. Labels are not processed (the ObsoleteFdClauses.cs header), so the particularized label item is not observable. The data-name-1 form needs its own case.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob (literal form; data-name-1 form not probed)",
+    "needs": "needs-own-witness: place seqobs.cob plus a VALUE OF data-name-1 (Working-Storage) accepted case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VII.4.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Sequential I-O CLOSE: terminate processing of files",
+     "of reels/units (REEL/UNIT, FOR REMOVAL)",
+     "optional rewind (NO REWIND) and lock (WITH LOCK)"
+    ],
+    "evidence-1985": {
+     "CLOSE": "covered by probes/s-13/seqoc.cob (CLOSE 00)",
+     "REEL / UNIT FOR REMOVAL": "covered by probes/s-13/seqoc.cob (07 on the disk medium)",
+     "NO REWIND": "covered by probes/s-13/seqoc.cob (07)",
+     "WITH LOCK": "covered by probes/s-13/seqoc.cob (CLOSE LOCK 00, then OPEN 38)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.4.2.1 p1",
+      "quote": "terminates the processing of reels/units and files",
+      "check": "OK  §1985:VII.4.2.1 p1  (4.2.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "\"The CLOSE statement terminates the processing of reels/units and files with optional rewind and/or lock or removal where applicable.\" No 2023 row states the CLOSE function: FMT-14.9.6.2 is a format, and GR-14.9.6.4-3's table was judged CHANGED for sibling 1985-GR-VII.4.2.4-3. The seqoc probe runs every option at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/seqoc.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/seqoc.cob (runs/seqoc-002)",
+    "needs": "needs-own-witness: place seqoc.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VII.4.2.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "CLOSE: 'reel' and 'unit' synonymous and interchangeable",
+     "sequential mass storage files treated as tape-like sequential media",
+     "a file in a multiple file tape environment, wholly on one reel, treated as sequential single-reel/unit (MULTIPLE FILE TAPE, removed in 2023)"
+    ],
+    "evidence-1985": {
+     "reel/unit synonymy": "covered by probes/s-13/seqoc.cob (CLOSE REEL and CLOSE UNIT FOR REMOVAL both 07) and conformance case cases/9.1.13.2-Successful-completion/pb141_close_forms (SR-14.9.6.3-2, accepted at 85)",
+     "mass storage treatment": "covered by probes/s-13/seqoc.cob (disk file: CLOSE NO REWIND/REEL give 07, the non-reel/unit category)",
+     "multiple file tape": "covered by probes/s-13/mft.cob (runs/mft-002: MULTIPLE FILE TAPE accepted; CLOSE NO REWIND 07, READ 00)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.4.2.4 p1",
+      "quote": "the terms 'reel' and 'unit' are synonymous and completely interchangeable",
+      "check": "OK  §1985:VII.4.2.4 p1  (4.2.4 General Rules)  the text is in p1"
+     }
+    ],
+    "reason": "Three sentences. (1) SR-14.9.6.3-2 \"The words REEL and UNIT are equivalent\" states the first, witnessed at 85 by pb141_close_forms. (2) \"Treatment of sequential mass storage files is logically equivalent to the treatment of a file on tape\" has no 2023 counterpart. (3) The multiple-file-tape sentence describes a form 2023 removed. On this host's disk medium the compiler classes a sequential file as non-reel/unit (status 07 for NO REWIND/REEL/REMOVAL). That matches the 1985 Appendix rationale for status 07 (XVII, item 40, I-O status), which treats such CLOSEs on mass storage as 07 successes. Read against sentence 2 the text is arguable, so the refuter should weigh it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/seqoc.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/seqoc.cob and E:/COBOL-coord/scratch/pb5453/probes/s-13/mft.cob (mass-storage files placed in the non-reel/unit category: status 07)",
+    "needs": "needs-own-witness: place seqoc.cob and mft.cob; record the 07 categorisation of disk files as the 1985 implementor reading",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VII.4.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "scope-1985": [
+     "Sequential I-O OPEN: initiates processing (INPUT, OUTPUT, I-O, EXTEND; several files in one OPEN)",
+     "REVERSED phrase (level 2, obsolete; removed in 2023)",
+     "NO REWIND"
+    ],
+    "evidence-1985": {
+     "OPEN OUTPUT of two files": "covered by probes/s-13/seqoc.cob (OPEN TWO 00 00)",
+     "OPEN EXTEND / I-O / INPUT": "covered by probes/s-13/seqoc.cob and seqobs.cob",
+     "REVERSED": "covered by probes/s-13/seqoc.cob (OPEN REVERSED 00; READs give CCCC then BBBB, last record first)",
+     "NO REWIND": "covered by probes/s-13/seqoc.cob (07)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.4.3.1 p1",
+      "quote": "The OPEN statement initiates the processing of files",
+      "check": "OK  §1985:VII.4.3.1 p1  (4.3.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "\"The OPEN statement initiates the processing of files. The REVERSED phrase is an obsolete element\". 2023 removed REVERSED, and no 2023 row states the OPEN function. At 85, OPEN INPUT ... REVERSED is accepted and makes the records available in reverse order (§1985:VII.4.3.4 GR12).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/seqoc.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/seqoc.cob (runs/seqoc-002)",
+    "needs": "needs-own-witness: place seqoc.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VII.4.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Sequential I-O READ: makes the next logical record available"
+    ],
+    "evidence-1985": {
+     "successive READs give successive records, then at end": "covered by probes/s-13/seqobs.cob (READ1 CCCCCCCCCC, READ2 BBBBBBBBBB, AT END 10)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.4.4.1 p1",
+      "quote": "makes available the next logical record from a file",
+      "check": "OK  §1985:VII.4.4.1 p1  (4.4.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "\"The READ statement makes available the next logical record from a file.\" The catalog flags it definitional, but a program shows it. The candidates (GR-14.9.30.4-19, -22, -16) say nothing about the next record, and none has an 85 case. The seqobs probe shows the next record made available at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob",
+    "needs": "needs-own-witness: place seqobs.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VII.4.5.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Sequential I-O REWRITE: logically replaces an existing record of a mass storage file"
+    ],
+    "evidence-1985": {
+     "record replaced in place": "covered by probes/s-13/seqobs.cob (READ AAAAAAAAAA, REWRITE 00, re-read gives CCCCCCCCCC then BBBBBBBBBB)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.4.5.1 p1",
+      "quote": "logically replaces a record existing in a mass storage file",
+      "check": "OK  §1985:VII.4.5.1 p1  (4.5.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "\"The REWRITE statement logically replaces a record existing in a mass storage file.\" GR-14.9.35.4-13 (file position unaffected) and GR-14.9.35.4-23 (an indexed prime key) do not state replacement for a sequential file. The probe shows replacement in place at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob",
+    "needs": "needs-own-witness: place seqobs.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VII.4.6.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Sequential I-O USE (AFTER STANDARD ERROR/EXCEPTION): input-output error procedures in addition to the standard I-O control system"
+    ],
+    "evidence-1985": {
+     "USE procedure runs on an I-O error": "covered by probes/s-13/seqobs.cob (REWRITE on a closed file: 'USE RAN STATUS 49', USE COUNT 1)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.4.6.1 p1",
+      "quote": "specifies procedures for input-output error handling",
+      "check": "OK  §1985:VII.4.6.1 p1  (4.6.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "\"The USE statement specifies procedures for input-output error handling that are in addition to the standard procedures\". The pointer GR-14.9.49.4-1 is witnessed at 85 only by pb365_report_group_qualified_85, a Report Writer USE BEFORE REPORTING case, so it does not exercise I-O error handling. The probe shows an I-O error USE procedure at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/seqobs.cob",
+    "needs": "needs-own-witness: place seqobs.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VII.4.7.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Sequential I-O WRITE: releases a logical record to an output file",
+     "vertical positioning (ADVANCING lines / PAGE) within a logical page"
+    ],
+    "evidence-1985": {
+     "record released": "covered by probes/s-13/seqoc.cob and seqobs.cob (records read back)",
+     "vertical positioning": "covered by probes/s-13/seqoc.cob (runs/seqoc-002/S13PRINT.DAT bytes: '\\nL1', '\\n\\nL3', '\\fP2')"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.4.7.1 p1",
+      "quote": "vertical positioning of lines within a logical page",
+      "check": "OK  §1985:VII.4.7.1 p1  (4.7.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "\"The WRITE statement releases a logical record for an output file. It can also be used for vertical positioning of lines within a logical page.\" GR-14.9.51.4-12 (release) has no 85 case. GR-14.9.51.4-26 covers only LINAGE end-of-page. The probe shows both halves at 85. The positioning half is checked on the output file's bytes, not by DISPLAY.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/seqoc.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/seqoc.cob",
+    "needs": "needs-own-witness: a case comparing the print file (seqoc.cob's PFILE) with an expected file",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.1-p1",
+    "to": [
+     "GR-12.4.5.10.3-4",
+     "GR-12.4.5.5.3-4"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "Relative I-O module: random or sequential access to records of a mass storage file",
+     "each record identified by an integer > 0 giving its logical ordinal position"
+    ],
+    "evidence-1985": {
+     "random and sequential access on a relative file": "covered by cases/12.4.5-File-control/l1c12_access_mode_random_dynamic (GR-12.4.5.5.3-4 at-85 accepted: RLR random, RLD random then READ NEXT)",
+     "integer > 0 ordinal position": "covered by wiseowl/cases/12.4.5.10-ORGANIZATION/pb1098_organization_permanence_85 (GR-12.4.5.10.3-4 at-85 accepted: RL-READ7, RL-READ5=23, RL-KEY0=24)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.1 p1",
+      "quote": "access records of a mass storage file in either a random or sequential manner",
+      "check": "OK  §1985:VIII.1.1 p1  (1.1 FUNCTION)  the text is in p1"
+     },
+     {
+      "cite": "§2023:12.4.5.10.3 GR4",
+      "quote": "each record is uniquely identified by an integer value greater than zero",
+      "check": "OK  §2023:12.4.5.10.3 GR4  (General rules)  the text is in GR4"
+     },
+     {
+      "cite": "§2023:12.4.5.5.3 GR4",
+      "quote": "records in the file may be accessed sequentially, randomly, or both",
+      "check": "OK  §2023:12.4.5.5.3 GR4  (General rules)  the text is in GR4"
+     }
+    ],
+    "reason": "1985: \"a capability to access records of a mass storage file in either a random or sequential manner. Each record in a relative file is uniquely identified by an integer value greater than zero which specifies the record's logical ordinal position\". GR-12.4.5.10.3-4 restates the second sentence almost word for word. GR-12.4.5.5.3-4 states random and sequential access. Both 85 cases run relative files: pb1098 at relative numbers 7 and 5 and the refused key 0, and l1c12 with relative RANDOM and DYNAMIC access, random and then sequential.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointers' cases run at 85 (pb1098_organization_permanence_85, l1c12_access_mode_random_dynamic); E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob agrees",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.2-p1",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "the standard's module-level structure: Relative I-O level 1 provides limited capabilities for the FILE-CONTROL entry, FD, I-O-CONTROL and CLOSE/OPEN/READ/REWRITE/USE/WRITE, and full DELETE"
+    ],
+    "evidence-1985": {
+     "level 1 subset": "not shown: --std 85 implements the high subset (kb/Work PB4885); no level-1 mode exists to run"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.2 p1",
+      "quote": "Relative I-O level 1 provides limited capabilities",
+      "check": "OK  §1985:VIII.1.2 p1  (1.2 LEVEL CHARACTERISTICS)  the text is in p1"
+     }
+    ],
+    "reason": "\"Relative I-O level 1 provides limited capabilities for the file control entry ... and full capabilities for the DELETE statement.\" This describes the standard's own level structure. It requires nothing of a program or of a high-subset implementation. Brief step 4: no derivation arm fits a rule about the standard's own presentation. A ruling would settle it: either a level statement closes through the module's own VIII.2 to VIII.4 rows at 85, or it takes a presentation arm.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a statement about the standard's module levels; no program distinguishes it",
+    "class": null,
+    "needs": "a ruling or derivation arm for rules about the standard's own presentation (module levels)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.2-p2",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "the standard's module-level structure: Relative I-O level 2 (boxed) provides full capabilities for FILE-CONTROL, FD, I-O-CONTROL and CLOSE, DELETE, OPEN, READ, REWRITE, START, USE, WRITE"
+    ],
+    "evidence-1985": {
+     "level-2 statements usable at 85": "covered in part by probes/s-13/relcon.cob (DYNAMIC access, START, READ NEXT, REWRITE, DELETE, WRITE, USE on a relative file)",
+     "'full capabilities'": "not shown: that is the whole module, owned by the VIII.2 to VIII.4 rows"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.2 p2",
+      "quote": "Relative I-O level 2 provides full capabilities",
+      "check": "OK  §1985:VIII.1.2 p2  (1.2 LEVEL CHARACTERISTICS)  the text is in p2"
+     }
+    ],
+    "reason": "\"Relative I-O level 2 provides full capabilities for ... the CLOSE, DELETE, OPEN, READ, REWRITE, START, USE, and WRITE statements.\" This is level-structure presentation. --std 85 is the high subset, and relcon.cob runs every listed statement at 85. But 'full capabilities' is the module's own rows, not this paragraph's. Brief step 4: no derivation arm fits a rule about the standard's own presentation. A ruling would settle it: either the paragraph closes when the module's rows close, or it takes a presentation arm.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "compiler-at-1985": "not probed: a statement about the standard's module levels (relcon.cob shows each level-2 statement accepted at 85)",
+    "class": null,
+    "needs": "a ruling or derivation arm for rules about the standard's own presentation (module levels)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "relative organization: any record stored (WRITE) or retrieved (READ) by providing its relative record number (RELATIVE KEY)"
+    ],
+    "evidence-1985": {
+     "store by number": "covered by probes/s-13/relcon.cob (WRITE at keys 10 and 3, then 7)",
+     "retrieve by number": "covered by probes/s-13/relcon.cob (READ key 10 gives TEN 00; key 5 gives invalid key 23)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.3.1 p1",
+      "quote": "any record may be stored or retrieved by providing the value of its relative record number",
+      "check": "OK  §1985:VIII.1.3.1 p1  (1.3.1 Organization)  the text is in p1"
+     }
+    ],
+    "reason": "\"any record may be stored or retrieved by providing the value of its relative record number.\" GR-12.4.5.13.4-1 states that records are identified by number, not that they are stored or retrieved by supplying it. That half lives in the 2023 RELATIVE KEY and READ/WRITE rules, which are not candidates and have no 85 witness on record here. The probe shows both at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob (runs/relcon-002)",
+    "needs": "needs-own-witness: place relcon.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.3.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "relative file as a serial string of record areas; record n is in area n, whether or not areas 1..n-1 hold records"
+    ],
+    "evidence-1985": {
+     "record 10 addressable with areas 1-9 partly empty": "covered by probes/s-13/relcon.cob (only 3 and 10 written; READ 10 gives TEN; READ 5 gives 23; READ NEXT gives 3, then 7 after it was written)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.3.1 p2",
+      "quote": "whether or not records have been written in any of the first through the ninth record areas",
+      "check": "OK  §1985:VIII.1.3.1 p2  (1.3.1 Organization)  the text is in p2"
+     }
+    ],
+    "reason": "\"the tenth record is the one addressed by relative record number 10 and is in the tenth record area, whether or not records have been written in any of the first through the ninth record areas.\" No 2023 candidate states the empty-area clause: GR-12.4.5.13.4-1 numbers records from 1. The probe writes only 3 and 10 and reads 10 back at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "needs": "needs-own-witness: place relcon.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.3.1-p3",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "relative file physical storage: the character positions reserved on the medium per record may differ from the record description (implementor latitude)"
+    ],
+    "evidence-1985": {
+     "medium reservation": "not shown: any reservation conforms; only the logical record read back is observable (relcon.cob reads records intact)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.3.1 p3",
+      "quote": "may be different from the number of character positions in the description of that record",
+      "check": "OK  §1985:VIII.1.3.1 p3  (1.3.1 Organization)  the text is in p3"
+     }
+    ],
+    "reason": "\"the number of character positions reserved on the medium to store a particular logical record may be different from the number of character positions in the description\". This is a permission to the implementor: no output can violate it. It is not a definition of a property of the user's program, it has no unpopulatable antecedent, it names no other row, and it does not say 'undefined', so no derivation arm fits. GR-13.18.43.4-2 grants a similar latitude in 2023, but for a different reason (control information) and witnessed only on sequential files. What would settle it: a ruling that an implementor permission closes by derivation (or by a read-back witness such as relcon.cob).",
+    "probe": null,
+    "compiler-at-1985": "not probed: a permission to the implementor; every reservation conforms",
+    "class": null,
+    "needs": "a ruling: derivation arm for an implementor-latitude permission, or acceptance of a read-back witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.3.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "relative file position indicator: set only by CLOSE, OPEN, READ, START (not by WRITE, REWRITE, DELETE)",
+     "no meaning in output or extend mode"
+    ],
+    "evidence-1985": {
+     "WRITE and REWRITE leave the indicator": "covered by probes/s-13/relcon.cob (after READ NEXT gives 3, a random WRITE of 7 and a REWRITE of 10; the next READ NEXT gives 7, not END and not 10)",
+     "START sets it": "covered by probes/s-13/relcon.cob (START NOT LESS THAN 1 then NEXT gives 3)",
+     "output/extend mode": "not shown (no observable)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.3.3 p1",
+      "quote": "is affected only by the CLOSE, OPEN, READ, and START statements",
+      "check": "OK  §1985:VIII.1.3.3 p1  (1.3.3 File Position Indicator)  the text is in p1"
+     }
+    ],
+    "reason": "\"The setting of the file position indicator is affected only by the CLOSE, OPEN, READ, and START statements.\" No candidate states the 'only' (GR-14.9.6.4-6, GR-14.9.27.4-14, GR-14.9.30.4-21 are each one statement's effect). The probe discriminates: had the random WRITE of 7 or the REWRITE of 10 moved the indicator, the next READ NEXT would not give SEVEN.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "needs": "needs-own-witness: place relcon.cob (add a DELETE between the READ NEXTs to cover DELETE too)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.3.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "relative I-O status: two characters, set by CLOSE, DELETE, OPEN, READ, REWRITE, START, WRITE",
+     "set before any associated imperative statement (INVALID KEY / AT END) and before any USE procedure",
+     "made available through the FILE STATUS clause"
+    ],
+    "evidence-1985": {
+     "set before the INVALID KEY imperative": "covered by probes/s-13/relcon.cob (R5 IK 23; RW5 IK 23; DEL5 IK 23; START99 IK 23)",
+     "set before the AT END imperative": "covered by probes/s-13/relcon.cob (NEXT3 AT END 10)",
+     "set before USE": "covered by probes/s-13/relcon.cob (USE RFILE STATUS 22, 46, 47)",
+     "OPEN/CLOSE/WRITE values via FILE STATUS": "covered by probes/s-13/relcon.cob (OPTIONAL OPEN 05) and the prose85 golden pb5924-rel-critical-status-continues-85 (PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.3.4 p1",
+      "quote": "prior to the execution of any imperative statement associated with that input-output statement",
+      "check": "OK  §1985:VIII.1.3.4 p1  (1.3.4 I-O Status)  the text is in p1"
+     }
+    ],
+    "reason": "The I-O status \"is set ... during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, or WRITE statement and prior to the execution of any imperative statement ... or ... USE AFTER STANDARD EXCEPTION procedure\" and is reached through FILE STATUS. GR-12.4.5.8.4-1 (the FILE STATUS update) has no 85 case. The per-statement pointers each state the update, not the ordering. The probe shows the status already set inside each imperative and each USE at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "needs": "needs-own-witness: place relcon.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.3.4-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "the relative I-O status decides whether a USE AFTER STANDARD EXCEPTION procedure runs: never for Successful Completion (00, 04, 05); possibly for any other condition"
+    ],
+    "evidence-1985": {
+     "no USE on success (00)": "covered by probes/s-13/relcon.cob (USE count rises only on 22, 46, 47)",
+     "no USE on 05": "covered by probes/s-13/relcon.cob (OPTIONAL OPEN 05 OUSE=0)",
+     "USE on a non-success condition": "covered by probes/s-13/relcon.cob (22, 46, 47 run USE)",
+     "04": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.3.4 p2",
+      "quote": "no such procedure will be executed",
+      "check": "OK  §1985:VIII.1.3.4 p2  (1.3.4 I-O Status)  the text is in p2"
+     }
+    ],
+    "reason": "\"If one of the conditions listed under the heading 'Successful Completion' on page VIII-3 results, no such procedure will be executed.\" No candidate states this split by status class: GR-14.9.49.4-6 and -7 concern the PERFORM-checking and return paths. The probe shows the USE skipped on 00 and 05 and run on 22, 46 and 47 at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "needs": "needs-own-witness: place relcon.cob (a 04 record-length case would complete it)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.3.4-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "relative I-O: 3x and 4x statuses (and implementor-critical 9x) are critical",
+     "the implementor determines the action after any applicable USE procedure, or after normal I-O control error processing when none applies"
+    ],
+    "evidence-1985": {
+     "3x critical without USE: run continues with FILE STATUS": "covered by E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-rel-critical-status-continues-85 (PASS, runs/pb5924-rel-critical-status-continues-85-001)",
+     "critical after USE": "covered by E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-rel-critical-after-use-85 (PASS, runs/pb5924-rel-critical-after-use-85-001)",
+     "4x after USE": "covered by probes/s-13/relcon.cob (46 and 47 each return after USE and the run continues)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.3.4 p3",
+      "quote": "any that begin with the digit 3 or 4",
+      "check": "OK  §1985:VIII.1.3.4 p3  (1.3.4 I-O Status)  the text is in p3"
+     }
+    ],
+    "reason": "\"Certain classes of I-O status values indicate critical error conditions. These are: any that begin with the digit 3 or 4 ... the implementor determines what action is taken\". DOC-A.1-218 is the 2023 documentation item for the action after USE. It has an 85 case, but it does not state the 3/4 critical classes for relative files. Both prose85 goldens pass on the mint build (work/goldens-s-13.json). Prose85 sentence 2 was refuted DOUBTFUL, so the after-USE golden should be re-read when it is placed.",
+    "probe": null,
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-rel-critical-status-continues-85.cob and pb5924-rel-critical-after-use-85.cob (both PASS at 85)",
+    "needs": "needs-own-witness: place the two pb5924 goldens",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.3.4-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "relative I-O: the I-O status values of the VIII-3 to VIII-5 list are the values placed",
+     "when more than one applies, the implementor chooses"
+    ],
+    "evidence-1985": {
+     "values from the list are placed": "covered by probes/s-13/relcon.cob (00, 05, 10, 22, 23, 46, 47) and the pb5924 goldens (3x)",
+     "implementor choice among several": "not shown (implementor-defined; DOC-A.1-104 is the 2023 documentation item, with no 85 case)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.3.4 p5",
+      "quote": "the implementor determines which of the applicable values to place in the I-O status",
+      "check": "OK  §1985:VIII.1.3.4 p5  (1.3.4 I-O Status)  the text is in p5"
+     }
+    ],
+    "reason": "\"The following is a list of the values placed in the I-O status ... on a relative file. If more than one value applies, the implementor determines which\". The values themselves belong to the list items (siblings -1 to -6, decided). This paragraph adds the precedence latitude, which no witnessed 2023 row states (DOC-A.1-104 has no 85 case).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob (values placed from the list; the choice when several apply was not probed)",
+    "needs": "needs-own-witness plus the documented precedence (the implementor-defined item) when several values apply",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.3.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "relative I-O invalid key condition from DELETE, READ, REWRITE, START (boxed), WRITE",
+     "the statement is unsuccessful and the file is not affected"
+    ],
+    "evidence-1985": {
+     "READ": "covered by probes/s-13/relcon.cob (R5 IK 23, record area KEEP unchanged)",
+     "WRITE (duplicate)": "covered by probes/s-13/relcon.cob (22; R10 UNAFFECTED TEN)",
+     "REWRITE": "covered by probes/s-13/relcon.cob (RW5 IK 23; no record 5 appears in the later READ NEXT sequence 3, 7)",
+     "DELETE": "covered by probes/s-13/relcon.cob (DEL5 IK 23)",
+     "START": "covered by probes/s-13/relcon.cob (START99 IK 23)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.3.5 p1",
+      "quote": "execution of the input-output statement which recognized the condition is unsuccessful and the file is not affected",
+      "check": "OK  §1985:VIII.1.3.5 p1  (1.3.5 The Invalid Key Condition)  the text is in p1"
+     }
+    ],
+    "reason": "\"The invalid key condition can occur as a result of the execution of a DELETE, READ, REWRITE, START, or WRITE statement ... the file is not affected.\" The 2023 9.1.14 opening paragraph that matches this is not a catalog row. The candidates (GR-14.9.35.4-21, GR-14.9.51.4-15, GR-9.1.14-1) each cover one statement or the status. The probe raises the condition on all five statements at 85 and shows the file unchanged.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob (runs/relcon-002)",
+    "needs": "needs-own-witness: place relcon.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.3.5-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "relative I-O: invalid key with no INVALID KEY phrase, so a USE AFTER EXCEPTION procedure must be associated",
+     "that USE procedure is executed and control follows the USE rules",
+     "NOT INVALID KEY is ignored"
+    ],
+    "evidence-1985": {
+     "USE executed, NOT INVALID KEY ignored": "covered by probes/s-13/relcon.cob (WRITE dup with only NOT INVALID KEY: 'USE RFILE STATUS 22', no 'WRONG NOT-IK W10', 'AFTER DUP WRITE 22 USE=1')",
+     "USE must be associated": "covered by probes/s-13/relnouse.cob (runs/relnouse-001: COBOL6826 citing §1985:VIII.4.9.3 SR3), control relcon.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.3.5 GR3",
+      "quote": "a USE AFTER EXCEPTION procedure must be associated with the file connector",
+      "check": "OK  §1985:VIII.1.3.5 GR3  (1.3.5 The Invalid Key Condition)  the text is in GR3"
+     },
+     {
+      "cite": "§1985:VIII.4.9.3 SR3",
+      "quote": "The INVALID KEY phrase must be specified",
+      "check": "OK  §1985:VIII.4.9.3 SR3  (4.9.3 Syntax Rules)  the text is in SR3"
+     }
+    ],
+    "reason": "Reopened parent. The remaining text is the list item alone: \"If the INVALID KEY phrase is not specified ..., a USE AFTER EXCEPTION procedure must be associated with the file connector and that procedure is executed ... The NOT INVALID KEY phrase is ignored, if specified.\" The old targets were GR-9.1.14-4 and GR-14.9.49.4-6. GR-9.1.14-4 now also holds a folded paragraph (lead below) and has no 85 case. 2023 GR-9.1.14-3 differs: it lets control reach the end of the statement when no exception processing exists, where 1985 makes the USE mandatory. At 85 the compiler enforces the requirement at compile time (SR3 of each statement) and runs the USE with NOT INVALID KEY skipped.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob with refusal E:/COBOL-coord/scratch/pb5453/probes/s-13/relnouse.cob",
+    "needs": "needs-own-witness: place relcon.cob and relnouse.cob (the code site in record-before-mint, ExceptionPhraseRequirement.cs#Require/#HasApplicableUse, is the lead for code-location)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.3.5-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "relative I-O: when no invalid key condition exists, INVALID KEY is ignored and the I-O status is updated (the actions follow in list items L2.1/L2.2)"
+    ],
+    "evidence-1985": {
+     "INVALID KEY ignored on success, status updated": "covered by probes/s-13/relcon.cob (READ 10 with INVALID and NOT INVALID KEY: 'R10 NOT-IK TEN 00', no 'WRONG IK R10')"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.3.5 p3",
+      "quote": "the INVALID KEY phrase is ignored, if specified",
+      "check": "OK  §1985:VIII.1.3.5 p3  (1.3.5 The Invalid Key Condition)  the text is in p3"
+     }
+    ],
+    "reason": "\"If the invalid key condition does not exist ..., the INVALID KEY phrase is ignored, if specified. The I-O status ... is updated\". In the 2023 catalog these words sit inside GR-9.1.14-4 (folded paragraph, lead below), whose at-85 list is empty. GR-9.1.14-L2.2 states only the NOT INVALID KEY transfer. The probe shows the paragraph at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "needs": "needs-own-witness: place relcon.cob (or SAME to a 2023 row once the GR-9.1.14-4 folded paragraph is split and witnessed at 85)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.3.6-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "relative I-O: the at end condition arises from READ (sequential READ / READ NEXT)"
+    ],
+    "evidence-1985": {
+     "relative READ NEXT at end": "covered by probes/s-13/relcon.cob ('NEXT3 AT END 10')"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.3.6 p1",
+      "quote": "The at end condition can occur as a result of the execution of a READ statement",
+      "check": "OK  §1985:VIII.1.3.6 p1  (1.3.6 The At End Condition)  the text is in p1"
+     }
+    ],
+    "reason": "\"The at end condition can occur as a result of the execution of a READ statement.\" GR-14.9.30.4-24's 85 case pb810_read_46_takes_no_at_end reaches AT END only on its sequential and indexed files. Its relative file goes START invalid then 46, so it does not exercise this relative scope. The probe reaches at end on a relative file at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "needs": "needs-own-witness: place relcon.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.2.3.1-p1",
+    "to": [
+     "GR-12.4.5.3-7"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "Relative I-O FILE-CONTROL entry: declares a relative file's physical attributes (SELECT/ASSIGN, ORGANIZATION RELATIVE, ACCESS MODE, RELATIVE KEY, FILE STATUS)"
+    ],
+    "evidence-1985": {
+     "relative file control entry accepted and defining a usable relative file": "covered by wiseowl/cases/12.4.5-File-control/pb742_legal_entry_formats_85 (GR-12.4.5.3-7 at-85 accepted: ORGANIZATION IS RELATIVE, RELATIVE KEY IS WS-RK, random READ R=0002 gives TWO)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.2.3.1 p1",
+      "quote": "declares the relevant physical attributes of a relative file",
+      "check": "OK  §1985:VIII.2.3.1 p1  (2.3.1 Function)  the text is in p1"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR7",
+      "quote": "The relative format defines a file connector for a relative file",
+      "check": "OK  §2023:12.4.5.3 GR7  (General rules)  the text is in GR7"
+     }
+    ],
+    "reason": "1985: \"The file control entry declares the relevant physical attributes of a relative file.\" 2023: \"The relative format defines a file connector for a relative file.\" Each is the statement of what the relative file control entry is for. pb742_legal_entry_formats_85 runs a relative-format entry at 85 and uses the attributes it declares (organization, relative key), so it exercises this scope.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85 (pb742_legal_entry_formats_85)",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.2.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Relative I-O ACCESS MODE clause: SEQUENTIAL, RANDOM, DYNAMIC give the order of access to records"
+    ],
+    "evidence-1985": {
+     "RANDOM and DYNAMIC on a relative file": "covered by cases/12.4.5-File-control/l1c12_access_mode_random_dynamic (accepted at 85 for FMT-12.4.5.5.1 and GR-12.4.5.5.3-4)",
+     "DYNAMIC random then sequential": "covered by probes/s-13/relcon.cob",
+     "SEQUENTIAL on a relative file": "covered by cases/_unassigned/l1c24_relative_record_numbering (relative ACCESS MODE IS SEQUENTIAL; at-85 accepted for GR-12.4.5.13.4-1)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.2.4.1 p1",
+      "quote": "specifies the order in which records are to be accessed in the file",
+      "check": "OK  §1985:VIII.2.4.1 p1  (2.4.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "\"The ACCESS MODE clause specifies the order in which records are to be accessed in the file.\" FMT-12.4.5.5.1 is a format and states no function. GR-12.4.5.5.3-4 covers dynamic only. GR-12.4.5.5.3-1 (the default) has no 85 case. So no single witnessed pointer states the clause's function for all three modes. The modes are shown at 85 by l1c12, l1c24 and relcon.cob.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "compiler-at-1985": "correct: cases/12.4.5-File-control/l1c12_access_mode_random_dynamic (runs at 85) and E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "needs": "needs-own-witness: link l1c12_access_mode_random_dynamic and l1c24_relative_record_numbering as the row's 85 witnesses",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "segmentation",
+    "row": "GR-9.1.14-4",
+    "what": "The 2023 catalog row GR-9.1.14-4 (list item 4 of 'If the invalid key condition exists ...') carries the next paragraph of §2023:9.1.14 as well: 'If the invalid key condition does not exist after the execution of the input-output operation ... the INVALID KEY phrase is ignored, if specified. The I-O status ... is updated and the following actions occur:'. That paragraph is the lead-in of the second list (GR-9.1.14-L2.1/L2.2), not item 4's own text. 1985-GR-VIII.1.3.5-p3 has no 2023 row of its own to point to because of this fold.",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py GR-9.1.14-4 ; compare specs/ISO_COBOL_2023.md lines 10267-10269",
+    "site": "docs/rearchitecture/spec-rule-catalog.json#GR-9.1.14-4"
+   },
+   {
+    "kind": "defect",
+    "row": "1985-SR-VII.3.1.1-p1",
+    "what": "Unadjudicated suspicion, not a verdict. A sequential file whose FD has LINAGE (and CODE-SET STANDARD-1), written by the program and closed, then OPEN INPUT at --std 85 gives status 37 ('file will not support read operations'), and the READ after it gives 47. Someone should check whether 1985 lets a LINAGE file be read back (§1985:VII.3.7, VII.4.3.4 GR on 37) or whether 37 is the implementor's choice for a print file.",
+    "repro": "E:/COBOL-coord/scratch/pb5453/runs/fdall-002 (fdall.cob as first written: OPEN INPUT 37, READ 47)",
+    "site": ""
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-13",
+  "cases": [
+   {
+    "rule-id": "1985-GR-VIII.1.1-p1",
+    "verdict": "OVERTURNED",
+    "reason": "The 1985 sentence gives the Relative I-O module 'a capability to access records of a mass storage file in either a random or sequential manner'. At level 1 that capability is ACCESS MODE SEQUENTIAL and ACCESS MODE RANDOM; DYNAMIC is boxed level 2 in the §1985:VIII.2.3.2 format. The access-mode pointer GR-12.4.5.5.3-4 states only the dynamic mode ('If the access mode is dynamic, records ... may be accessed sequentially, randomly, or both'), so no pointer states sequential-mode or random-mode access to a relative file. Neither 85 witness exercises relative ACCESS MODE SEQUENTIAL: l1c12_access_mode_random_dynamic runs relative RANDOM and DYNAMIC only, and pb1098_organization_permanence_85 runs only DYNAMIC. The case that does (l1c12_access_mode_sequential_default, GR-12.4.5.5.3-2 b) is accept [2002] only. The ordinal-position half (GR-12.4.5.10.3-4, pb1098) is sound. The sequential-manner half needs its own 85 witness (or a repoint to GR-12.4.5.5.3-2/-3 with an 85 case of each).",
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.1 p1",
+      "quote": "access records of a mass storage file in either a random or sequential manner",
+      "check": "OK  §1985:VIII.1.1 p1  (1.1 FUNCTION)  the text is in p1"
+     },
+     {
+      "cite": "§2023:12.4.5.5.3 GR4",
+      "quote": "If the access mode is dynamic, records in the file may be accessed sequentially, randomly, or both",
+      "check": "OK  §2023:12.4.5.5.3 GR4  (General rules)  the text is in GR4"
+     },
+     {
+      "cite": "§2023:12.4.5.5.3 GR2",
+      "quote": "For relative files this sequence is the order of ascending relative record numbers",
+      "check": "OK  §2023:12.4.5.5.3 GR2  (General rules)  the text is in GR2"
+     },
+     {
+      "cite": "§1985:VIII.2.3.2",
+      "quote": null,
+      "check": "OK  §1985:VIII.2.3.2 (structure only) ok"
+     }
+    ],
+    "class": "other: the pointer states the dynamic access mode only. The 1985 scope includes level-1 sequential and random access modes on a relative file, and no pointer states them with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13-refute/relseq.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13-refute/relseq.cob (runs/relseq-004: ACCESS MODE SEQUENTIAL relative, WRITEs RK 0001..0003 status 00, READs AAAA/BBBB/CCCC in RRN order, END 10). Combined with pb1098 (key 0 refused 24) and l1c12 (random/dynamic) this is the own witness"
+   },
+   {
+    "rule-id": "1985-GR-VIII.2.3.1-p1",
+    "verdict": "UPHELD",
+    "reason": "Strongest attack: the 1985 relative file control entry has its own format (ASSIGN TO implementor-name/literal, RESERVE, boxed OPTIONAL and DYNAMIC, RELATIVE KEY inside the ACCESS clause), unlike the 2023 relative format. But p1 is only the function sentence ('declares the relevant physical attributes of a relative file'). The format and clause differences belong to the §1985:VIII.2.3.2 and VIII.2.3.3 rows, not to this one. 2023 GR7 ('The relative format defines a file connector for a relative file') states the same function. pb742_legal_entry_formats_85 (accept [85, 2002]) declares a relative entry (ORGANIZATION IS RELATIVE, ACCESS MODE IS RANDOM, RELATIVE KEY IS WS-RK) and uses those attributes: random READ at R=0002 gives TWO. I found no 1985 module or context the pointer misses.",
+    "citations": [
+     {
+      "cite": "§1985:VIII.2.3.1 p1",
+      "quote": "declares the relevant physical attributes of a relative file",
+      "check": "OK  §1985:VIII.2.3.1 p1  (2.3.1 Function)  the text is in p1"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR7",
+      "quote": "The relative format defines a file connector for a relative file",
+      "check": "OK  §2023:12.4.5.3 GR7  (General rules)  the text is in GR7"
+     }
+    ],
+    "class": null,
+    "probe": null,
+    "compiler-at-1985": "correct: pb742_legal_entry_formats_85 runs at 85 (accepted, R=0002 TWO)"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "591c9350d3a4ad18bcff8c516162a51a032ea11e062c8ea7f5ce2b5047173793",
+  "read": "cd5f61a3ef90d48bb10e6b7bfe1b5a0f56efda32a6bd4bfd16255658aa883727",
+  "refute": "a3828d7e7b5690cf2e0681692cbd9f4f999f2780ffcb2a044affcac4ce085b87"
+ }
+}

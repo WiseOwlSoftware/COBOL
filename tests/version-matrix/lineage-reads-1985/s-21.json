@@ -1,0 +1,1134 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-21 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-21",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-21",
+  "edition": 1985,
+  "ids": [
+   "1989-GR-A.2.26.1-p1",
+   "1989-GR-A.2.27.1-p1",
+   "1989-GR-A.2.27.1-T1.1",
+   "1989-GR-A.2.27.1-T1.2",
+   "1989-GR-A.2.27.1-T1.3",
+   "1989-GR-A.2.27.1-T1.4",
+   "1989-GR-A.2.28.1-p1",
+   "1989-GR-A.2.29.1-p1",
+   "1989-GR-A.2.30.1-p1",
+   "1989-GR-A.2.31.1-p1",
+   "1989-GR-A.2.32.1-p1",
+   "1989-GR-A.2.33.1-p1",
+   "1989-GR-A.2.34.1-p1",
+   "1989-GR-A.2.35.1-p1",
+   "1989-RV-A.2.36.1-T1.1",
+   "1989-RV-A.2.36.1-T1.2",
+   "1989-RV-A.2.37.1-p1",
+   "1989-RV-A.2.38.1-p1",
+   "1989-RV-A.2.39.1-p1",
+   "1989-RV-A.2.40.1-p1",
+   "1989-RV-A.2.41.1-p1",
+   "1989-RV-A.2.43.1-p1",
+   "1989-RV-A.2.44.1-p1",
+   "1989-RV-A.2.45.1-p1",
+   "1989-RV-A.2.46.1-p1"
+  ],
+  "pointers": {
+   "1989-GR-A.2.26.1-p1": {
+    "candidates-2023": [
+     "FMT-15.62.2",
+     "AR-15.62.3-1",
+     "RV-15.62.4-1"
+    ],
+    "nearest-2023": "FMT-15.62.2",
+    "similarity": 0.562
+   },
+   "1989-GR-A.2.27.1-p1": {
+    "candidates-2023": [
+     "FMT-15.63.2",
+     "RV-15.63.4-3",
+     "AR-15.63.3-3"
+    ],
+    "nearest-2023": "FMT-15.63.2",
+    "similarity": 0.641
+   },
+   "1989-GR-A.2.27.1-T1.1": {
+    "candidates-2023": [
+     "FMT-15.63.2",
+     "AR-15.63.3-3",
+     "AR-15.63.3-2"
+    ],
+    "nearest-2023": "FMT-15.63.2",
+    "similarity": 0.744
+   },
+   "1989-GR-A.2.27.1-T1.2": {
+    "candidates-2023": [
+     "FMT-15.63.2",
+     "AR-15.63.3-3",
+     "GR-8.3.3.2.4-2"
+    ],
+    "nearest-2023": "FMT-15.63.2",
+    "similarity": 0.704
+   },
+   "1989-GR-A.2.27.1-T1.3": {
+    "candidates-2023": [
+     "FMT-15.44.2",
+     "FMT-15.63.2",
+     "AR-15.63.3-2"
+    ],
+    "nearest-2023": "FMT-15.44.2",
+    "similarity": 0.613
+   },
+   "1989-GR-A.2.27.1-T1.4": {
+    "candidates-2023": [
+     "FMT-15.63.2",
+     "AR-15.44.3-1",
+     "AR-15.83.3-1"
+    ],
+    "nearest-2023": "FMT-15.63.2",
+    "similarity": 0.5
+   },
+   "1989-GR-A.2.28.1-p1": {
+    "candidates-2023": [
+     "FMT-15.64.2",
+     "AR-15.64.3-2",
+     "RV-15.64.4-1"
+    ],
+    "nearest-2023": "FMT-15.64.2",
+    "similarity": 0.711
+   },
+   "1989-GR-A.2.29.1-p1": {
+    "candidates-2023": [
+     "RV-15.67.4-1",
+     "FMT-15.67.2",
+     "AR-15.67.3-2"
+    ],
+    "nearest-2023": "RV-15.67.4-1",
+    "similarity": 0.677
+   },
+   "1989-GR-A.2.30.1-p1": {
+    "candidates-2023": [
+     "RV-15.68.4-1",
+     "RV-15.68.4-2",
+     "FMT-15.68.2"
+    ],
+    "nearest-2023": "RV-15.68.4-1",
+    "similarity": 0.575
+   },
+   "1989-GR-A.2.31.1-p1": {
+    "candidates-2023": [
+     "RV-15.70.4-2",
+     "RV-15.70.4-1",
+     "FMT-15.70.2"
+    ],
+    "nearest-2023": "RV-15.70.4-2",
+    "similarity": 0.687
+   },
+   "1989-GR-A.2.32.1-p1": {
+    "candidates-2023": [
+     "FMT-15.71.2",
+     "RV-15.71.4-1",
+     "AR-15.71.3-2"
+    ],
+    "nearest-2023": "FMT-15.71.2",
+    "similarity": 0.689
+   },
+   "1989-GR-A.2.33.1-p1": {
+    "candidates-2023": [
+     "FMT-15.72.2",
+     "RV-15.72.4-1",
+     "AR-15.72.3-2"
+    ],
+    "nearest-2023": "FMT-15.72.2",
+    "similarity": 0.652
+   },
+   "1989-GR-A.2.34.1-p1": {
+    "candidates-2023": [
+     "FMT-15.74.2",
+     "AR-15.74.3-1",
+     "AR-15.74.3-2"
+    ],
+    "nearest-2023": "FMT-15.74.2",
+    "similarity": 0.538
+   },
+   "1989-GR-A.2.35.1-p1": {
+    "candidates-2023": [
+     "FMT-15.75.2",
+     "AR-15.75.3-1",
+     "SR-8.4.3.2.3-6"
+    ],
+    "nearest-2023": "FMT-15.75.2",
+    "similarity": 0.549
+   },
+   "1989-RV-A.2.36.1-T1.1": {
+    "candidates-2023": [
+     "FMT-15.44.2",
+     "SR-8.4.3.2.3-12",
+     "AR-15.37.3-3"
+    ],
+    "nearest-2023": "FMT-15.44.2",
+    "similarity": 0.665
+   },
+   "1989-RV-A.2.36.1-T1.2": {
+    "candidates-2023": [
+     "AR-15.76.3-1",
+     "AR-15.44.3-1",
+     "AR-15.83.3-1"
+    ],
+    "nearest-2023": "AR-15.76.3-1",
+    "similarity": 0.515
+   },
+   "1989-RV-A.2.37.1-p1": {
+    "candidates-2023": [
+     "FMT-15.77.2",
+     "AR-15.77.3-1",
+     "AR-15.77.3-2"
+    ],
+    "nearest-2023": "FMT-15.77.2",
+    "similarity": 0.724
+   },
+   "1989-RV-A.2.38.1-p1": {
+    "candidates-2023": [
+     "FMT-15.78.2",
+     "AR-15.78.3-1",
+     "RV-15.78.4-1"
+    ],
+    "nearest-2023": "FMT-15.78.2",
+    "similarity": 0.725
+   },
+   "1989-RV-A.2.39.1-p1": {
+    "candidates-2023": [
+     "FMT-15.82.2",
+     "AR-15.82.3-1",
+     "RV-15.82.4-1"
+    ],
+    "nearest-2023": "FMT-15.82.2",
+    "similarity": 0.565
+   },
+   "1989-RV-A.2.40.1-p1": {
+    "candidates-2023": [
+     "FMT-15.84.2",
+     "AR-15.84.3-1",
+     "RV-15.84.4-4"
+    ],
+    "nearest-2023": "FMT-15.84.2",
+    "similarity": 0.638
+   },
+   "1989-RV-A.2.41.1-p1": {
+    "candidates-2023": [
+     "FMT-15.86.2",
+     "AR-15.86.3-1",
+     "RV-15.86.4-1"
+    ],
+    "nearest-2023": "FMT-15.86.2",
+    "similarity": 0.642
+   },
+   "1989-RV-A.2.43.1-p1": {
+    "candidates-2023": [
+     "FMT-15.89.2",
+     "AR-15.89.3-1",
+     "RV-15.89.4-1"
+    ],
+    "nearest-2023": "FMT-15.89.2",
+    "similarity": 0.565
+   },
+   "1989-RV-A.2.44.1-p1": {
+    "candidates-2023": [
+     "RV-15.97.4-6",
+     "RV-15.97.4-1",
+     "FMT-15.97.2"
+    ],
+    "nearest-2023": "RV-15.97.4-6",
+    "similarity": 0.548
+   },
+   "1989-RV-A.2.45.1-p1": {
+    "candidates-2023": [
+     "FMT-15.98.2",
+     "AR-15.98.3-1",
+     "RV-15.98.4-1"
+    ],
+    "nearest-2023": "FMT-15.98.2",
+    "similarity": 0.791
+   },
+   "1989-RV-A.2.46.1-p1": {
+    "candidates-2023": [
+     "FMT-15.99.2",
+     "RV-15.38.4-1",
+     "RV-15.99.3-3"
+    ],
+    "nearest-2023": "FMT-15.99.2",
+    "similarity": 0.52
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-21",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1989-GR-A.2.26.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION MIDRANGE (Intrinsic Function module, Amendment 1): mean of the least and greatest argument-1 values",
+     "type of the function: numeric (class and category numeric, not integer)"
+    ],
+    "evidence-1985": {
+     "mean of the least and greatest argument-1 values": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-midrange.cob (MIDRANGE(3 9 -1 5)=4, MIDRANGE(1 2)=1.5; prints S21MID OK)",
+     "type numeric (used in an arithmetic expression; not an integer operand)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-midrange.cob (accepted: COMPUTE with the function) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-midrange-bad.cob (refused COBOL1627: the function as FUNCTION MOD argument-1, the integer operand; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-midrange.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.26.1 p1",
+      "quote": "arithmetic mean (average) of the values of the minimum argument and the maximum argument",
+      "check": "OK  §1989:A.2.26.1 p1  (2.26.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR2",
+      "quote": "A numeric function may not be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"arithmetic mean (average) of the values of the minimum argument and the maximum argument\"; the probe shows the value and the numeric (non-integer) type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.62.1 description is not a catalog rule, and the candidates (FMT-15.62.2, AR-15.62.3-1, RV-15.62.4-1) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-midrange.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-midrange.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-midrange-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.27.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION MIN (Intrinsic Function module): the content of the argument-1 with the minimum value",
+     "the function type depends on the argument types (the table, rows T1.1-T1.4)"
+    ],
+    "evidence-1985": {
+     "content of the minimum argument-1": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alnum.cob (\"APE\" of \"ZEBRA\" \"APE\" \"MANGO\") and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-int.cob (MIN(7 3 5)=3) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-num.cob (MIN(7 3.5 5)=3.5)",
+     "type by argument type": "covered by the four table rows' probes: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alpha.cob, E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alnum.cob, E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-int.cob, E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-num.cob and their -bad refusals"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.27.1 p1",
+      "quote": "returns the content of the argument-1 that contains the minimum value",
+      "check": "OK  §1989:A.2.27.1 p1  (2.27.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR1",
+      "quote": "These are of the class and category alphanumeric",
+      "check": "OK  §1989:A.2.3 GR1  (2.3 TYPES OF FUNCTIONS)  the text is in GR1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR2",
+      "quote": "A numeric function may not be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+     },
+     {
+      "cite": "§1989:A.2.3 GR3",
+      "quote": "An integer function can be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR3  (2.3 TYPES OF FUNCTIONS)  the text is in GR3"
+     }
+    ],
+    "reason": "The 1985 description reads \"The MIN function returns the content of the argument-1 that contains the minimum value. The type of this function depends upon the argument types as follows:\" and its table is carried by T1.1-T1.4. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.63.1 description is not a catalog rule, and the candidates (FMT-15.63.2, RV-15.63.4-3, AR-15.63.3-3) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alnum.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alnum.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-int.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-num.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alpha.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.27.1-T1.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION MIN with alphabetic argument-1 (class alphabetic items)",
+     "function type alphanumeric"
+    ],
+    "evidence-1985": {
+     "alphabetic arguments -> alphanumeric type": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alpha.cob (MIN(A1 A2) of PIC A \"DOG\" \"CAT\" = \"CAT\", reference-modified (2:1)=\"A\"; prints S21MINA OK) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alpha-bad.cob (refused COBOL0844: COMPUTE W = FUNCTION MIN(A2 A1); control is the same line of the ok probe)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.27.1 Table 1 row 1",
+      "quote": "Alphabetic | Alphanumeric",
+      "check": "OK  §1989:A.2.27.1 Table 1 row 1 (structure only) ok"
+     },
+     {
+      "cite": "§1989:A.2.3 GR1",
+      "quote": "These are of the class and category alphanumeric",
+      "check": "OK  §1989:A.2.3 GR1  (2.3 TYPES OF FUNCTIONS)  the text is in GR1"
+     }
+    ],
+    "reason": "The table row reads \"Alphabetic | Alphanumeric\": a MIN of alphabetic arguments is an alphanumeric function. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.63.1 description is not a catalog rule, and the candidates (FMT-15.63.2, AR-15.63.3-3, AR-15.63.3-2) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alpha.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alpha.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alpha-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.27.1-T1.2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION MIN with alphanumeric argument-1 (items or nonnumeric literals)",
+     "function type alphanumeric"
+    ],
+    "evidence-1985": {
+     "alphanumeric arguments -> alphanumeric type": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alnum.cob (MIN(\"ZEBRA\" \"APE\" \"MANGO\")=\"APE\", MIN(\"PEAR\" \"APEX\")(2:3)=\"PEX\"; prints S21MINX OK) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alnum-bad.cob (refused COBOL0844 in COMPUTE; control is the same line of the ok probe)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.27.1 Table 1 row 2",
+      "quote": "Alphanumeric | Alphanumeric",
+      "check": "OK  §1989:A.2.27.1 Table 1 row 2 (structure only) ok"
+     },
+     {
+      "cite": "§1989:A.2.3 GR1",
+      "quote": "These are of the class and category alphanumeric",
+      "check": "OK  §1989:A.2.3 GR1  (2.3 TYPES OF FUNCTIONS)  the text is in GR1"
+     }
+    ],
+    "reason": "The table row reads \"Alphanumeric | Alphanumeric\". No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.63.1 description is not a catalog rule, and the candidates (FMT-15.63.2, AR-15.63.3-3, GR-8.3.3.2.4-2) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alnum.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alnum.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-alnum-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.27.1-T1.3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION MIN with all arguments integer",
+     "function type integer"
+    ],
+    "evidence-1985": {
+     "all-integer arguments -> integer type": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-int.cob (MIN(7 3 5)=3 and accepted as FUNCTION MOD argument-1, an integer operand: W=1; prints S21MINI OK) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-int-bad.cob (refused COBOL0900: MOVE outside an arithmetic expression)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.27.1 Table 1 row 3",
+      "quote": "All arguments integer | Integer",
+      "check": "OK  §1989:A.2.27.1 Table 1 row 3  (2.27.1 Description)  the text is in Table 1 row 3"
+     },
+     {
+      "cite": "§1989:A.2.3 GR3",
+      "quote": "An integer function can be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR3  (2.3 TYPES OF FUNCTIONS)  the text is in GR3"
+     },
+     {
+      "cite": "§1985:IV.4.3.8.3.3 SR4",
+      "quote": "may be used only in an arithmetic expression",
+      "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+     }
+    ],
+    "reason": "The table row reads \"All arguments integer | Integer\". No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.63.1 description is not a catalog rule, and the candidates (FMT-15.44.2, FMT-15.63.2, AR-15.63.3-2) state only the format, argument or returned-value rules (FMT-15.44.2 carry an 85 accepted case, but for the returned value only, not the type). So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-int.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-int.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-int-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.27.1-T1.4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION MIN with numeric arguments, some possibly integer",
+     "function type numeric (not integer)"
+    ],
+    "evidence-1985": {
+     "numeric arguments -> numeric type": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-num.cob (MIN(7 3.5 5)=3.5; prints S21MINN OK) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-num-bad.cob (refused COBOL1627: MIN(7 3.5 5) as MOD argument-1, an integer operand; control is the same line of the ok probe)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.27.1 Table 1 row 4",
+      "quote": "Numeric (some arguments may be integer) | Numeric",
+      "check": "OK  §1989:A.2.27.1 Table 1 row 4  (2.27.1 Description)  the text is in Table 1 row 4"
+     },
+     {
+      "cite": "§1989:A.2.3 GR2",
+      "quote": "A numeric function may not be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+     }
+    ],
+    "reason": "The table row reads \"Numeric (some arguments may be integer) | Numeric\". No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.63.1 description is not a catalog rule, and the candidates (FMT-15.63.2, AR-15.44.3-1, AR-15.83.3-1) state only the format, argument or returned-value rules (AR-15.44.3-1 carry an 85 accepted case, but for the returned value only, not the type). So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-num.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-num.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-min-num-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.28.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION MOD (Intrinsic Function module, Amendment 1): argument-1 modulo argument-2",
+     "type of the function: integer"
+    ],
+    "evidence-1985": {
+     "argument-1 modulo argument-2": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-mod.cob (MOD(11 5)=1, (-11 5)=4, (11 -5)=-4, (-11 -5)=-1; prints S21MOD OK)",
+     "type integer (accepted as an integer operand; used only in an arithmetic expression)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-mod.cob (accepted: the function as FUNCTION MOD argument-1, an integer operand) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-mod-bad.cob (refused COBOL0900: MOVE of the function, outside an arithmetic expression; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-mod.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.28.1 p1",
+      "quote": "returns an integer value that is argument-1 modulo argument-2",
+      "check": "OK  §1989:A.2.28.1 p1  (2.28.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR3",
+      "quote": "An integer function can be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR3  (2.3 TYPES OF FUNCTIONS)  the text is in GR3"
+     },
+     {
+      "cite": "§1985:IV.4.3.8.3.3 SR4",
+      "quote": "may be used only in an arithmetic expression",
+      "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"returns an integer value that is argument-1 modulo argument-2\"; the probe shows the value and the integer type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.64.1 description is not a catalog rule, and the candidates (FMT-15.64.2, AR-15.64.3-2, RV-15.64.4-1) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-mod.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-mod.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-mod-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.29.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION NUMVAL (Intrinsic Function module, Amendment 1): numeric value of the character string, leading and trailing spaces ignored",
+     "type of the function: numeric (class and category numeric, not integer)"
+    ],
+    "evidence-1985": {
+     "numeric value of the character string, leading and trailing spaces ignored": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-numval.cob (NUMVAL(\"  -12.5  \")=-12.5, NUMVAL(\" 42\")=42; prints S21NUMV OK)",
+     "type numeric (used in an arithmetic expression; not an integer operand)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-numval.cob (accepted: COMPUTE with the function) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-numval-bad.cob (refused COBOL1627: the function as FUNCTION MOD argument-1, the integer operand; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-numval.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.29.1 p1",
+      "quote": "Leading and trailing spaces are ignored",
+      "check": "OK  §1989:A.2.29.1 p1  (2.29.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR2",
+      "quote": "A numeric function may not be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"Leading and trailing spaces are ignored\"; the probe shows the value and the numeric (non-integer) type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.67.1 description is not a catalog rule, and the candidates (RV-15.67.4-1, FMT-15.67.2, AR-15.67.3-2) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-numval.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-numval.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-numval-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.30.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION NUMVAL-C (Intrinsic Function module, Amendment 1): numeric value of the string; optional currency sign (argument-2, or the program currency symbol) and commas before the decimal point ignored",
+     "type of the function: numeric (class and category numeric, not integer)"
+    ],
+    "evidence-1985": {
+     "numeric value of the string; optional currency sign (argument-2, or the program currency symbol) and commas before the decimal point ignored": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-numvalc.cob (NUMVAL-C(\" $1,234.56 \")=1234.56, NUMVAL-C(\"EU1,000.5\" \"EU\")=1000.5; prints S21NUMC OK)",
+     "type numeric (used in an arithmetic expression; not an integer operand)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-numvalc.cob (accepted: COMPUTE with the function) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-numvalc-bad.cob (refused COBOL1627: the function as FUNCTION MOD argument-1, the integer operand; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-numvalc.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.30.1 p1",
+      "quote": "any optional commas preceding the decimal point are ignored",
+      "check": "OK  §1989:A.2.30.1 p1  (2.30.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR2",
+      "quote": "A numeric function may not be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"any optional commas preceding the decimal point are ignored\"; the probe shows the value and the numeric (non-integer) type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.68.1 description is not a catalog rule, and the candidates (RV-15.68.4-1, RV-15.68.4-2, FMT-15.68.2) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-numvalc.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-numvalc.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-numvalc-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.31.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION ORD (Intrinsic Function module, Amendment 1): ordinal position of argument-1 in the program collating sequence, lowest position 1",
+     "type of the function: integer"
+    ],
+    "evidence-1985": {
+     "ordinal position of argument-1 in the program collating sequence, lowest position 1": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ord.cob (ORD(LOW-VALUE item)=1, CHAR(ORD(\"Q\"))=\"Q\", ORD(\"B\")-ORD(\"A\")=1; prints S21ORD OK)",
+     "type integer (accepted as an integer operand; used only in an arithmetic expression)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ord.cob (accepted: the function as FUNCTION MOD argument-1, an integer operand) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ord-bad.cob (refused COBOL0900: MOVE of the function, outside an arithmetic expression; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ord.cob)",
+     "collating sequence FOR THE PROGRAM (PROGRAM COLLATING SEQUENCE)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src3/s21-ord-pcs.cob (ALPHABET MYSEQ IS \"Z\" \"Y\": ORD(\"Z\")=1, ORD(\"Y\")=2; prints S21ORDP OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.31.1 p1",
+      "quote": "the ordinal position of argument-1 in the collating sequence for the program",
+      "check": "OK  §1989:A.2.31.1 p1  (2.31.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR3",
+      "quote": "An integer function can be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR3  (2.3 TYPES OF FUNCTIONS)  the text is in GR3"
+     },
+     {
+      "cite": "§1985:IV.4.3.8.3.3 SR4",
+      "quote": "may be used only in an arithmetic expression",
+      "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"the ordinal position of argument-1 in the collating sequence for the program\"; the probe shows the value and the integer type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.70.1 description is not a catalog rule, and the candidates (RV-15.70.4-2, RV-15.70.4-1, FMT-15.70.2) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ord.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ord.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ord-bad.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src3/s21-ord-pcs.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.32.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION ORD-MAX (Intrinsic Function module, Amendment 1): ordinal number of the argument-1 with the maximum value (numeric and alphanumeric arguments)",
+     "type of the function: integer"
+    ],
+    "evidence-1985": {
+     "ordinal number of the argument-1 with the maximum value (numeric and alphanumeric arguments)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ordmax.cob (ORD-MAX(3 9 1 9)=2 (leftmost), ORD-MAX(\"B\" \"C\" \"A\")=2; prints S21OMAX OK)",
+     "type integer (accepted as an integer operand; used only in an arithmetic expression)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ordmax.cob (accepted: the function as FUNCTION MOD argument-1, an integer operand) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ordmax-bad.cob (refused COBOL0900: MOVE of the function, outside an arithmetic expression; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ordmax.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.32.1 p1",
+      "quote": "the ordinal number of the argument-1 that contains the maximum value",
+      "check": "OK  §1989:A.2.32.1 p1  (2.32.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR3",
+      "quote": "An integer function can be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR3  (2.3 TYPES OF FUNCTIONS)  the text is in GR3"
+     },
+     {
+      "cite": "§1985:IV.4.3.8.3.3 SR4",
+      "quote": "may be used only in an arithmetic expression",
+      "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"the ordinal number of the argument-1 that contains the maximum value\"; the probe shows the value and the integer type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.71.1 description is not a catalog rule, and the candidates (FMT-15.71.2, RV-15.71.4-1, AR-15.71.3-2) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ordmax.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ordmax.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ordmax-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.33.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION ORD-MIN (Intrinsic Function module, Amendment 1): ordinal number of the argument with the minimum value (numeric and alphanumeric arguments)",
+     "type of the function: integer"
+    ],
+    "evidence-1985": {
+     "ordinal number of the argument with the minimum value (numeric and alphanumeric arguments)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ordmin.cob (ORD-MIN(3 1 9 1)=2 (leftmost), ORD-MIN(\"B\" \"C\" \"A\")=3; prints S21OMIN OK)",
+     "type integer (accepted as an integer operand; used only in an arithmetic expression)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ordmin.cob (accepted: the function as FUNCTION MOD argument-1, an integer operand) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ordmin-bad.cob (refused COBOL0900: MOVE of the function, outside an arithmetic expression; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ordmin.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.33.1 p1",
+      "quote": "the ordinal number of the argument that contains the minimum value",
+      "check": "OK  §1989:A.2.33.1 p1  (2.33.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR3",
+      "quote": "An integer function can be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR3  (2.3 TYPES OF FUNCTIONS)  the text is in GR3"
+     },
+     {
+      "cite": "§1985:IV.4.3.8.3.3 SR4",
+      "quote": "may be used only in an arithmetic expression",
+      "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"the ordinal number of the argument that contains the minimum value\"; the probe shows the value and the integer type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.72.1 description is not a catalog rule, and the candidates (FMT-15.72.2, RV-15.72.4-1, AR-15.72.3-2) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ordmin.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ordmin.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-ordmin-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.34.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION PRESENT-VALUE (Intrinsic Function module, Amendment 1): present value of the argument-2 period-end amounts at discount rate argument-1",
+     "type of the function: numeric (class and category numeric, not integer)"
+    ],
+    "evidence-1985": {
+     "present value of the argument-2 period-end amounts at discount rate argument-1": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-presval.cob (PRESENT-VALUE(0.1 110 121)=200, PRESENT-VALUE(0 5 6)=11; prints S21PV OK)",
+     "type numeric (used in an arithmetic expression; not an integer operand)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-presval.cob (accepted: COMPUTE with the function) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-presval-bad.cob (refused COBOL1627: the function as FUNCTION MOD argument-1, the integer operand; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-presval.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.34.1 p1",
+      "quote": "approximates the present value of a series of future period-end amounts",
+      "check": "OK  §1989:A.2.34.1 p1  (2.34.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR2",
+      "quote": "A numeric function may not be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"approximates the present value of a series of future period-end amounts\"; the probe shows the value and the numeric (non-integer) type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.74.1 description is not a catalog rule, and the candidates (FMT-15.74.2, AR-15.74.3-1, AR-15.74.3-2) state only the format, argument or returned-value rules (AR-15.74.3-2 carry an 85 accepted case, but for the returned value only, not the type). So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-presval.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-presval.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-presval-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.35.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION RANDOM (Intrinsic Function module, Amendment 1): pseudo-random number from a rectangular distribution (seeded or not)",
+     "type of the function: numeric (class and category numeric, not integer)"
+    ],
+    "evidence-1985": {
+     "pseudo-random number from a rectangular distribution (seeded or not)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-random.cob (RANDOM(5) and RANDOM in [0,1), RANDOM(5) repeats its value; prints S21RND OK)",
+     "type numeric (used in an arithmetic expression; not an integer operand)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-random.cob (accepted: COMPUTE with the function) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-random-bad.cob (refused COBOL1627: the function as FUNCTION MOD argument-1, the integer operand; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-random.cob)",
+     "rectangular (uniform) distribution": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src3/s21-random-dist.cob (10000 draws after RANDOM(7), every decile 850..1150; prints S21RNDD OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.35.1 p1",
+      "quote": "a pseudo-random number from a rectangular distribution",
+      "check": "OK  §1989:A.2.35.1 p1  (2.35.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR2",
+      "quote": "A numeric function may not be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"a pseudo-random number from a rectangular distribution\"; the probe shows the value and the numeric (non-integer) type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.75.1 description is not a catalog rule, and the candidates (FMT-15.75.2, AR-15.75.3-1, SR-8.4.3.2.3-6) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-random.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-random.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-random-bad.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src3/s21-random-dist.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-RV-A.2.36.1-T1.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION RANGE with all arguments integer",
+     "function type integer"
+    ],
+    "evidence-1985": {
+     "all-integer arguments -> integer type": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-range-int.cob (RANGE(3 9 1)=8 and accepted as MOD argument-1: W=3; prints S21RNGI OK) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-range-int-bad.cob (refused COBOL0900: MOVE outside an arithmetic expression)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.36.1 Table 1 row 1",
+      "quote": "All arguments integer | Integer",
+      "check": "OK  §1989:A.2.36.1 Table 1 row 1  (2.36.1 Description)  the text is in Table 1 row 1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR3",
+      "quote": "An integer function can be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR3  (2.3 TYPES OF FUNCTIONS)  the text is in GR3"
+     },
+     {
+      "cite": "§1985:IV.4.3.8.3.3 SR4",
+      "quote": "may be used only in an arithmetic expression",
+      "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+     }
+    ],
+    "reason": "The RANGE table row reads \"All arguments integer | Integer\" (catalog kind RV though it sits in 2.36.1 Description). No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.76.1 description is not a catalog rule, and the candidates (FMT-15.44.2, SR-8.4.3.2.3-12, AR-15.37.3-3) state only the format, argument or returned-value rules (FMT-15.44.2 carry an 85 accepted case, but for the returned value only, not the type). So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-range-int.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-range-int.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-range-int-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-RV-A.2.36.1-T1.2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION RANGE with numeric arguments, some possibly integer",
+     "function type numeric (not integer)"
+    ],
+    "evidence-1985": {
+     "numeric arguments -> numeric type": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-range-num.cob (RANGE(1.5 4 2)=2.5; prints S21RNGN OK) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-range-num-bad.cob (refused COBOL1627: RANGE(1.5 4) as MOD argument-1; control is the same line of the ok probe)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.36.1 Table 1 row 2",
+      "quote": "Numeric (some arguments may be integer) | Numeric",
+      "check": "OK  §1989:A.2.36.1 Table 1 row 2  (2.36.1 Description)  the text is in Table 1 row 2"
+     },
+     {
+      "cite": "§1989:A.2.3 GR2",
+      "quote": "A numeric function may not be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+     }
+    ],
+    "reason": "The RANGE table row reads \"Numeric (some arguments may be integer) | Numeric\". No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.76.1 description is not a catalog rule, and the candidates (AR-15.76.3-1, AR-15.44.3-1, AR-15.83.3-1) state only the format, argument or returned-value rules (AR-15.44.3-1 carry an 85 accepted case, but for the returned value only, not the type). So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-range-num.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-range-num.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-range-num-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-RV-A.2.37.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION REM (Intrinsic Function module, Amendment 1): remainder of argument-1 divided by argument-2",
+     "type of the function: numeric (class and category numeric, not integer)"
+    ],
+    "evidence-1985": {
+     "remainder of argument-1 divided by argument-2": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-rem.cob (REM(11 5)=1, REM(-11 5)=-1, REM(7.5 2)=1.5; prints S21REM OK)",
+     "type numeric (used in an arithmetic expression; not an integer operand)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-rem.cob (accepted: COMPUTE with the function) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-rem-bad.cob (refused COBOL1627: the function as FUNCTION MOD argument-1, the integer operand; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-rem.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.37.1 p1",
+      "quote": "the remainder of argument-1 divided by argument-2",
+      "check": "OK  §1989:A.2.37.1 p1  (2.37.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR2",
+      "quote": "A numeric function may not be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"the remainder of argument-1 divided by argument-2\"; the probe shows the value and the numeric (non-integer) type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.77.1 description is not a catalog rule, and the candidates (FMT-15.77.2, AR-15.77.3-1, AR-15.77.3-2) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-rem.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-rem.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-rem-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-RV-A.2.38.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION REVERSE (Intrinsic Function module, Amendment 1): argument-1 characters in reverse order, same length",
+     "type of the function: alphanumeric"
+    ],
+    "evidence-1985": {
+     "argument-1 characters in reverse order, same length": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-reverse.cob (REVERSE(\"ABC\")=\"CBA\", REVERSE(\"AB C \")(1:2)=\" C\", REVERSE(\"XY\") fills exactly 2 positions; prints S21REV OK)",
+     "type alphanumeric (an identifier operand, reference-modifiable; not in an arithmetic expression)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-reverse.cob (accepted: MOVE and reference modification of the function) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-reverse-bad.cob (refused COBOL0844: the function in COMPUTE; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-reverse.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.38.1 p1",
+      "quote": "a character string of exactly the same length as argument-1",
+      "check": "OK  §1989:A.2.38.1 p1  (2.38.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR1",
+      "quote": "These are of the class and category alphanumeric",
+      "check": "OK  §1989:A.2.3 GR1  (2.3 TYPES OF FUNCTIONS)  the text is in GR1"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"a character string of exactly the same length as argument-1\"; the probe shows the value, its length and the alphanumeric type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.78.1 description is not a catalog rule, and the candidates (FMT-15.78.2, AR-15.78.3-1, RV-15.78.4-1) state only the format, argument or returned-value rules (RV-15.78.4-1 carry an 85 accepted case, but for the returned value only, not the type). So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-reverse.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-reverse.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-reverse-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-RV-A.2.39.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION SIN (Intrinsic Function module, Amendment 1): approximate sine of argument-1 in radians",
+     "type of the function: numeric (class and category numeric, not integer)"
+    ],
+    "evidence-1985": {
+     "approximate sine of argument-1 in radians": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-sin.cob (SIN(0)=0, SIN(1.5707963268) rounds to 1, SIN(0.5) in [0.479425,0.479427); prints S21SIN OK)",
+     "type numeric (used in an arithmetic expression; not an integer operand)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-sin.cob (accepted: COMPUTE with the function) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-sin-bad.cob (refused COBOL1627: the function as FUNCTION MOD argument-1, the integer operand; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-sin.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.39.1 p1",
+      "quote": "approximates the sine of an angle or arc, expressed in radians",
+      "check": "OK  §1989:A.2.39.1 p1  (2.39.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR2",
+      "quote": "A numeric function may not be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"approximates the sine of an angle or arc, expressed in radians\"; the probe shows the value and the numeric (non-integer) type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.82.1 description is not a catalog rule, and the candidates (FMT-15.82.2, AR-15.82.3-1, RV-15.82.4-1) state only the format, argument or returned-value rules (FMT-15.82.2, AR-15.82.3-1, RV-15.82.4-1 carry an 85 accepted case, but for the returned value only, not the type). So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-sin.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-sin.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-sin-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-RV-A.2.40.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION SQRT (Intrinsic Function module, Amendment 1): approximate square root of argument-1",
+     "type of the function: numeric (class and category numeric, not integer)"
+    ],
+    "evidence-1985": {
+     "approximate square root of argument-1": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-sqrt.cob (SQRT(16)=4, SQRT(2) in [1.414213,1.414214); prints S21SQRT OK)",
+     "type numeric (used in an arithmetic expression; not an integer operand)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-sqrt.cob (accepted: COMPUTE with the function) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-sqrt-bad.cob (refused COBOL1627: the function as FUNCTION MOD argument-1, the integer operand; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-sqrt.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.40.1 p1",
+      "quote": "approximates the square root of argument-1",
+      "check": "OK  §1989:A.2.40.1 p1  (2.40.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR2",
+      "quote": "A numeric function may not be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"approximates the square root of argument-1\"; the probe shows the value and the numeric (non-integer) type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.84.1 description is not a catalog rule, and the candidates (FMT-15.84.2, AR-15.84.3-1, RV-15.84.4-4) state only the format, argument or returned-value rules (RV-15.84.4-4 carry an 85 accepted case, but for the returned value only, not the type). So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-sqrt.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-sqrt.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-sqrt-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-RV-A.2.41.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION STANDARD-DEVIATION (Intrinsic Function module, Amendment 1): approximate standard deviation of the argument-1 series",
+     "type of the function: numeric (class and category numeric, not integer)"
+    ],
+    "evidence-1985": {
+     "approximate standard deviation of the argument-1 series": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-stddev.cob (STANDARD-DEVIATION(2 4 4 4 5 5 7 9)=2, (1 2)=0.5; prints S21SDEV OK)",
+     "type numeric (used in an arithmetic expression; not an integer operand)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-stddev.cob (accepted: COMPUTE with the function) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-stddev-bad.cob (refused COBOL1627: the function as FUNCTION MOD argument-1, the integer operand; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-stddev.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.41.1 p1",
+      "quote": "approximates the standard deviation of its arguments",
+      "check": "OK  §1989:A.2.41.1 p1  (2.41.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR2",
+      "quote": "A numeric function may not be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"approximates the standard deviation of its arguments\"; the probe shows the value and the numeric (non-integer) type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.86.1 description is not a catalog rule, and the candidates (FMT-15.86.2, AR-15.86.3-1, RV-15.86.4-1) state only the format, argument or returned-value rules (RV-15.86.4-1 carry an 85 accepted case, but for the returned value only, not the type). So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-stddev.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-stddev.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-stddev-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-RV-A.2.43.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION TAN (Intrinsic Function module, Amendment 1): approximate tangent of argument-1 in radians",
+     "type of the function: numeric (class and category numeric, not integer)"
+    ],
+    "evidence-1985": {
+     "approximate tangent of argument-1 in radians": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-tan.cob (TAN(0)=0, TAN(0.7853981634) rounds to 1, TAN(0.5) in [0.546302,0.546303); prints S21TAN OK)",
+     "type numeric (used in an arithmetic expression; not an integer operand)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-tan.cob (accepted: COMPUTE with the function) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-tan-bad.cob (refused COBOL1627: the function as FUNCTION MOD argument-1, the integer operand; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-tan.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.43.1 p1",
+      "quote": "approximates the tangent of an angle or arc, expressed in radians",
+      "check": "OK  §1989:A.2.43.1 p1  (2.43.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR2",
+      "quote": "A numeric function may not be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"approximates the tangent of an angle or arc, expressed in radians\"; the probe shows the value and the numeric (non-integer) type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.89.1 description is not a catalog rule, and the candidates (FMT-15.89.2, AR-15.89.3-1, RV-15.89.4-1) state only the format, argument or returned-value rules (FMT-15.89.2, AR-15.89.3-1, RV-15.89.4-1 carry an 85 accepted case, but for the returned value only, not the type). So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-tan.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-tan.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-tan-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-RV-A.2.44.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION UPPER-CASE (Intrinsic Function module, Amendment 1): argument-1 with each lowercase letter replaced by its uppercase letter, same length",
+     "type of the function: alphanumeric"
+    ],
+    "evidence-1985": {
+     "argument-1 with each lowercase letter replaced by its uppercase letter, same length": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-upper.cob (UPPER-CASE(\"abC1z\")=\"ABC1Z\", UPPER-CASE(\"ab\") fills exactly 2 positions, UPPER-CASE(\"xyz\")(3:1)=\"Z\"; prints S21UPC OK)",
+     "type alphanumeric (an identifier operand, reference-modifiable; not in an arithmetic expression)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-upper.cob (accepted: MOVE and reference modification of the function) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-upper-bad.cob (refused COBOL0844: the function in COMPUTE; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-upper.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.44.1 p1",
+      "quote": "with each lowercase letter replaced by the corresponding uppercase letter",
+      "check": "OK  §1989:A.2.44.1 p1  (2.44.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR1",
+      "quote": "These are of the class and category alphanumeric",
+      "check": "OK  §1989:A.2.3 GR1  (2.3 TYPES OF FUNCTIONS)  the text is in GR1"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"with each lowercase letter replaced by the corresponding uppercase letter\"; the probe shows the value, its length and the alphanumeric type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.97.1 description is not a catalog rule, and the candidates (RV-15.97.4-6, RV-15.97.4-1, FMT-15.97.2) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-upper.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-upper.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-upper-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-RV-A.2.45.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION VARIANCE (Intrinsic Function module, Amendment 1): approximate variance of the argument-1 series",
+     "type of the function: numeric (class and category numeric, not integer)"
+    ],
+    "evidence-1985": {
+     "approximate variance of the argument-1 series": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-variance.cob (VARIANCE(2 4 4 4 5 5 7 9)=4, (1 2)=0.25; prints S21VAR OK)",
+     "type numeric (used in an arithmetic expression; not an integer operand)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-variance.cob (accepted: COMPUTE with the function) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-variance-bad.cob (refused COBOL1627: the function as FUNCTION MOD argument-1, the integer operand; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-variance.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.45.1 p1",
+      "quote": "approximates the variance of its arguments",
+      "check": "OK  §1989:A.2.45.1 p1  (2.45.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR2",
+      "quote": "A numeric function may not be referenced where an integer operand is required",
+      "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"approximates the variance of its arguments\"; the probe shows the value and the numeric (non-integer) type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.98.1 description is not a catalog rule, and the candidates (FMT-15.98.2, AR-15.98.3-1, RV-15.98.4-1) state only the format, argument or returned-value rules (RV-15.98.4-1 carry an 85 accepted case, but for the returned value only, not the type). So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-variance.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-variance.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-variance-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-RV-A.2.46.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FUNCTION WHEN-COMPILED (Intrinsic Function module, Amendment 1): date and time of compilation as provided by the compiling system (21 positions)",
+     "type of the function: alphanumeric"
+    ],
+    "evidence-1985": {
+     "date and time of compilation as provided by the compiling system (21 positions)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-whencomp.cob (positions 1-16 numeric, month 01-12, position 17 +/-/0, positions 22+ spaces (length 21), date = CURRENT-DATE(1:8) of the run; printed WC=2026112107182200-0800 and S21WC OK)",
+     "type alphanumeric (an identifier operand, reference-modifiable; not in an arithmetic expression)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-whencomp.cob (accepted: MOVE and reference modification of the function) and E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-whencomp-bad.cob (refused COBOL0844: the function in COMPUTE; the control is the same line of E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-whencomp.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.46.1 p1",
+      "quote": "returns the date and time the program was compiled",
+      "check": "OK  §1989:A.2.46.1 p1  (2.46.1 Description)  the text is in p1"
+     },
+     {
+      "cite": "§1989:A.2.3 GR1",
+      "quote": "These are of the class and category alphanumeric",
+      "check": "OK  §1989:A.2.3 GR1  (2.3 TYPES OF FUNCTIONS)  the text is in GR1"
+     }
+    ],
+    "reason": "The 1985 (Amendment 1) description reads \"returns the date and time the program was compiled\"; the probe shows the value, its length and the alphanumeric type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.99.1 description is not a catalog rule, and the candidates (FMT-15.99.2, RV-15.38.4-1, RV-15.99.3-3) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-whencomp.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-whencomp.cob; E:/COBOL-coord/scratch/pb5453/probes/s-21/src2/s21-whencomp-bad.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "segmentation",
+    "row": "1989-RV-A.2.36.1-T1.1",
+    "what": "the RANGE description table rows (2.36.1, Description) are cataloged with kind RV while the MIN description table rows (2.27.1) are GR; both sit in a Description subclause, so one of the two kinds is wrong (likewise 1989-RV-A.2.37.1-p1 .. 2.46.1-p1 are RV while 2.26.1-p1 .. 2.35.1-p1 are GR, all Description paragraphs)",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py \"1989-*-A.2.3*.1-*\"",
+    "site": "docs/rearchitecture/spec-rule-catalog-1985.json"
+   },
+   {
+    "kind": "segmentation",
+    "row": "1989-RV-A.2.36.1-T1.1",
+    "what": "rows never minted: the RANGE description paragraph (2.36.1, \"The RANGE function returns a value that is equal to the value of the maximum argument minus the value of the minimum argument. The type of this function depends upon the argument types as follows:\") has no p1 row though its table rows T1.1/T1.2 exist, and the SUM description (2.42.1: its paragraph and its two-row type table) has no row at all; neither appears in outside-denominator. MIN 2.27.1 has p1 + T1.1-T1.4, the shape these two should have",
+    "repro": "search the mint tree docs/rearchitecture/spec-rule-catalog-1985.json for \"RANGE function returns\" or \"SUM function returns\": 0 hits; the text is specs/ANSI_COBOL_1985.md sections 2.36.1 and 2.42.1 (page 895, page 901)",
+    "site": "the PB5452 mint (spec-rule-catalog-1985.json generator)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-21",
+  "cases": [],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "d531a3aad76a538122e17224e34a1e504add20c25608b2ff39786620fee2be6a",
+  "read": "35737ad79df00605ad284c86590361bbd5a9e41e662e64de681ceb6f12ede344",
+  "refute": "3f8f360edee61151ad3d0ac9052ab295812ddfbc539cc40f353ae94f8b93744d"
+ }
+}

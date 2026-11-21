@@ -1,0 +1,1378 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-09 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-09",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-09",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-VI.3.1-p1",
+   "1985-GR-VI.3.2-p1",
+   "1985-GR-VI.3.2-p2",
+   "1985-GR-VI.4.1-p1",
+   "1985-SR-VI.4.2-p3",
+   "1985-GR-VI.4.3.1-p1",
+   "1985-GR-VI.4.4.1-p1",
+   "1985-GR-VI.4.5.1-p1",
+   "1985-GR-VI.5.1-p1",
+   "1985-GR-VI.5.2-p1",
+   "1985-GR-VI.5.2.1-p1",
+   "1985-SR-VI.5.2.1-p2",
+   "1985-SR-VI.5.2.1-2",
+   "1985-SR-VI.5.2.2-p1",
+   "1985-SR-VI.5.2.3-p1",
+   "1985-GR-VI.5.3.1-p1",
+   "1985-GR-VI.5.5.1-p1",
+   "1985-GR-VI.5.7.1-p1",
+   "1985-GR-VI.5.8.1-p1",
+   "1985-GR-VI.5.9.1-p1",
+   "1985-SR-VI.5.9.6-p1",
+   "1985-SR-VI.5.9.6-p2",
+   "1985-SR-VI.5.9.6-p3",
+   "1985-SR-VI.5.11.1-p1",
+   "1985-SR-VI.6.1-p1",
+   "1985-SR-VI.6.1-p2",
+   "1985-SR-VI.6.2.1-p1",
+   "1985-SR-VI.6.2.1-p2",
+   "1985-SR-VI.6.2.2-p1",
+   "1985-GR-VI.6.2.2-T1.1",
+   "1985-GR-VI.6.2.2-T1.2",
+   "1985-GR-VI.6.2.2-T1.3",
+   "1985-GR-VI.6.2.2-T1.4",
+   "1985-GR-VI.6.2.2-T1.5",
+   "1985-GR-VI.6.2.2-T2.1",
+   "1985-GR-VI.6.2.2-T2.2"
+  ],
+  "pointers": {
+   "1985-GR-VI.3.1-p1": {
+    "candidates-2023": [
+     "GR-8.4.3.13.4-2",
+     "FMT-10.6.1",
+     "SR-10.6.2-4"
+    ],
+    "nearest-2023": "GR-8.4.3.13.4-2",
+    "similarity": 0.331
+   },
+   "1985-GR-VI.3.2-p1": {
+    "candidates-2023": [
+     "SR-11.10.3-4",
+     "SR-11.8.3-1",
+     "SR-14.2.2-8"
+    ],
+    "nearest-2023": "SR-11.10.3-4",
+    "similarity": 0.317
+   },
+   "1985-GR-VI.3.2-p2": {
+    "candidates-2023": [
+     "SR-8.3.2.2-L3.1",
+     "FMT-11.2.1",
+     "SR-12.3.8.3-3"
+    ],
+    "nearest-2023": "SR-8.3.2.2-L3.1",
+    "similarity": 0.306
+   },
+   "1985-GR-VI.4.1-p1": {
+    "candidates-2023": [
+     "FMT-12.2.1",
+     "SR-10.6.2-4",
+     "SR-14.9.11.3-2"
+    ],
+    "nearest-2023": "FMT-12.2.1",
+    "similarity": 0.426
+   },
+   "1985-SR-VI.4.2-p3": {
+    "candidates-2023": [
+     "SR-12.3.3-1",
+     "GR-9.1.5-2",
+     "GR-8.6.7-2"
+    ],
+    "nearest-2023": "SR-12.3.3-1",
+    "similarity": 0.556
+   },
+   "1985-GR-VI.4.3.1-p1": {
+    "candidates-2023": [
+     "GR-12.3.5.4-3",
+     "GR-12.3.5.4-2",
+     "FMT-12.3.5.2"
+    ],
+    "nearest-2023": "GR-12.3.5.4-3",
+    "similarity": 0.686
+   },
+   "1985-GR-VI.4.4.1-p1": {
+    "candidates-2023": [
+     "GR-12.3.6.4-3",
+     "GR-12.3.6.4-4",
+     "DOC-A.1-126"
+    ],
+    "nearest-2023": "GR-12.3.6.4-3",
+    "similarity": 0.416
+   },
+   "1985-GR-VI.4.5.1-p1": {
+    "candidates-2023": [
+     "GR-12.3.7.4-1",
+     "DOC-A.1-8",
+     "GR-13.18.61.4-1"
+    ],
+    "nearest-2023": "GR-12.3.7.4-1",
+    "similarity": 0.247
+   },
+   "1985-GR-VI.5.1-p1": {
+    "candidates-2023": [
+     "SR-10.6.2-4",
+     "GR-8.5.1.11.3-2",
+     "GR-8.4.3.13.4-2"
+    ],
+    "nearest-2023": "SR-10.6.2-4",
+    "similarity": 0.352
+   },
+   "1985-GR-VI.5.2-p1": {
+    "candidates-2023": [
+     "GR-13.5.4-2",
+     "GR-13.5.4-1",
+     "GR-13.5.4-3"
+    ],
+    "nearest-2023": "GR-13.5.4-2",
+    "similarity": 0.509
+   },
+   "1985-GR-VI.5.2.1-p1": {
+    "candidates-2023": [
+     "GR-13.18.33.4-2",
+     "GR-8.5.1.3.2-3",
+     "GR-8.5.1.3.2-2"
+    ],
+    "nearest-2023": "GR-13.18.33.4-2",
+    "similarity": 0.291
+   },
+   "1985-SR-VI.5.2.1-p2": {
+    "candidates-2023": [
+     "SR-13.16.3-16",
+     "GR-13.5.4-2",
+     "GR-13.5.4-3"
+    ],
+    "nearest-2023": "SR-13.16.3-16",
+    "similarity": 0.538
+   },
+   "1985-SR-VI.5.2.1-2": {
+    "candidates-2023": [
+     "SR-11.7.3-5",
+     "GR-13.5.4-3",
+     "SR-8.4.3.11.3-1"
+    ],
+    "nearest-2023": "SR-11.7.3-5",
+    "similarity": 0.571
+   },
+   "1985-SR-VI.5.2.2-p1": {
+    "candidates-2023": [
+     "GR-13.5.4-3",
+     "SR-8.4.3.11.3-1",
+     "GR-13.5.4-2"
+    ],
+    "nearest-2023": "GR-13.5.4-3",
+    "similarity": 0.376
+   },
+   "1985-SR-VI.5.2.3-p1": {
+    "candidates-2023": [
+     "SR-13.18.38.3-22",
+     "SR-13.16.3-6",
+     "GR-13.18.43.4-5"
+    ],
+    "nearest-2023": "SR-13.18.38.3-22",
+    "similarity": 0.545
+   },
+   "1985-GR-VI.5.3.1-p1": {
+    "candidates-2023": [
+     "SR-13.16.3-20",
+     "SR-13.18.49.3-2",
+     "SR-13.16.3-5"
+    ],
+    "nearest-2023": "SR-13.16.3-20",
+    "similarity": 0.511
+   },
+   "1985-GR-VI.5.5.1-p1": {
+    "candidates-2023": [
+     "GR-13.18.20.4-1",
+     "FMT-13.18.20.2",
+     "SR-14.9.40.3-14"
+    ],
+    "nearest-2023": "GR-13.18.20.4-1",
+    "similarity": 0.562
+   },
+   "1985-GR-VI.5.7.1-p1": {
+    "candidates-2023": [
+     "GR-13.18.33.4-2",
+     "FMT-13.18.33.2",
+     "GR-8.5.1.3.2-3"
+    ],
+    "nearest-2023": "GR-13.18.33.4-2",
+    "similarity": 0.49
+   },
+   "1985-GR-VI.5.8.1-p1": {
+    "candidates-2023": [
+     "SR-13.18.38.3-10",
+     "GR-13.18.38.4-1",
+     "SR-13.18.38.3-11"
+    ],
+    "nearest-2023": "SR-13.18.38.3-10",
+    "similarity": 0.313
+   },
+   "1985-GR-VI.5.9.1-p1": {
+    "candidates-2023": [
+     "SR-13.18.40.3-1",
+     "SR-13.18.2.3-1",
+     "SR-13.18.19.3-1"
+    ],
+    "nearest-2023": "SR-13.18.40.3-1",
+    "similarity": 0.492
+   },
+   "1985-SR-VI.5.9.6-p1": {
+    "candidates-2023": [
+     "SR-13.18.40.3-19",
+     "SR-13.18.40.3-17",
+     "SR-13.18.40.3-20"
+    ],
+    "nearest-2023": "SR-13.18.40.3-19",
+    "similarity": 0.485
+   },
+   "1985-SR-VI.5.9.6-p2": {
+    "candidates-2023": [
+     "SR-13.18.40.3-33",
+     "GR-13.18.40.4-6",
+     "GR-13.18.40.4-10"
+    ],
+    "nearest-2023": "SR-13.18.40.3-33",
+    "similarity": 0.663
+   },
+   "1985-SR-VI.5.9.6-p3": {
+    "candidates-2023": [
+     "SR-13.18.40.3-29",
+     "SR-13.18.40.3-36",
+     "GR-13.18.40.5-6"
+    ],
+    "nearest-2023": "SR-13.18.40.3-29",
+    "similarity": 0.521
+   },
+   "1985-SR-VI.5.11.1-p1": {
+    "candidates-2023": [
+     "SR-13.18.45.3-1",
+     "SR-13.18.45.3-2",
+     "SR-13.18.45.3-4"
+    ],
+    "nearest-2023": "SR-13.18.45.3-1",
+    "similarity": 0.459
+   },
+   "1985-SR-VI.6.1-p1": {
+    "candidates-2023": [
+     "SR-14.2.2-11",
+     "SR-14.2.2-13",
+     "SR-14.9.14.3-7"
+    ],
+    "nearest-2023": "SR-14.2.2-11",
+    "similarity": 0.527
+   },
+   "1985-SR-VI.6.1-p2": {
+    "candidates-2023": [
+     "SR-14.2.2-11",
+     "SR-14.2.2-13",
+     "GR-14.2.3-1"
+    ],
+    "nearest-2023": "SR-14.2.2-11",
+    "similarity": 0.39
+   },
+   "1985-SR-VI.6.2.1-p1": {
+    "candidates-2023": [
+     "GR-8.8.1.2-5",
+     "SR-7.3.6.2-1",
+     "RV-15.27.3-3"
+    ],
+    "nearest-2023": "GR-8.8.1.2-5",
+    "similarity": 0.551
+   },
+   "1985-SR-VI.6.2.1-p2": {
+    "candidates-2023": [
+     "SR-7.3.6.2-1",
+     "AR-15.3-10",
+     "GR-11.9.5.2-3"
+    ],
+    "nearest-2023": "SR-7.3.6.2-1",
+    "similarity": 0.447
+   },
+   "1985-SR-VI.6.2.2-p1": {
+    "candidates-2023": [
+     "GR-7.3.6.3-1",
+     "GR-11.9.5.2-3",
+     "SR-7.3.6.2-1"
+    ],
+    "nearest-2023": "GR-7.3.6.3-1",
+    "similarity": 0.416
+   },
+   "1985-GR-VI.6.2.2-T1.1": {
+    "candidates-2023": [
+     "GR-7.3.6.3-1",
+     "GR-8.8.1.2-7",
+     "SR-7.3.6.2-1"
+    ],
+    "nearest-2023": "GR-7.3.6.3-1",
+    "similarity": 0.525
+   },
+   "1985-GR-VI.6.2.2-T1.2": {
+    "candidates-2023": [
+     "GR-7.3.6.3-1",
+     "GR-8.8.1.2-7",
+     "SR-7.3.6.2-1"
+    ],
+    "nearest-2023": "GR-7.3.6.3-1",
+    "similarity": 0.487
+   },
+   "1985-GR-VI.6.2.2-T1.3": {
+    "candidates-2023": [
+     "GR-7.3.6.3-1",
+     "GR-8.8.1.2-7",
+     "SR-7.3.6.2-1"
+    ],
+    "nearest-2023": "GR-7.3.6.3-1",
+    "similarity": 0.462
+   },
+   "1985-GR-VI.6.2.2-T1.4": {
+    "candidates-2023": [
+     "GR-7.3.6.3-1",
+     "SR-7.3.6.2-1",
+     "GR-8.8.1.2-7"
+    ],
+    "nearest-2023": "GR-7.3.6.3-1",
+    "similarity": 0.613
+   },
+   "1985-GR-VI.6.2.2-T1.5": {
+    "candidates-2023": [
+     "SR-7.3.6.2-1",
+     "GR-7.3.6.3-1",
+     "GR-8.8.1.2-7"
+    ],
+    "nearest-2023": "SR-7.3.6.2-1",
+    "similarity": 0.538
+   },
+   "1985-GR-VI.6.2.2-T2.1": {
+    "candidates-2023": [
+     "GR-7.3.6.3-1",
+     "SR-7.3.6.2-1",
+     "GR-8.8.1.2-7"
+    ],
+    "nearest-2023": "GR-7.3.6.3-1",
+    "similarity": 0.403
+   },
+   "1985-GR-VI.6.2.2-T2.2": {
+    "candidates-2023": [
+     "GR-7.3.6.3-1",
+     "SR-7.3.6.2-1",
+     "GR-8.8.1.2-7"
+    ],
+    "nearest-2023": "GR-7.3.6.3-1",
+    "similarity": 0.403
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-09",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-VI.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Identification Division required in every source program (header IDENTIFICATION DIVISION.)",
+     "Identification Division identifies the program",
+     "the user may add DATE-WRITTEN and other informational paragraphs"
+    ],
+    "evidence-1985": {
+     "division required": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-no-id-header.cob (refused, COBOL0900; control E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-minimal.cob accepted)",
+     "informational paragraphs": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-id-paragraphs.cob (accepted, ID-OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.3.1 p1",
+      "check": "OK  §1985:VI.3.1 p1  (3.1 GENERAL DESCRIPTION)  the text is in p1",
+      "quote": "The Identification Division is required in a COBOL source program"
+     }
+    ],
+    "reason": "\"The Identification Division is required in a COBOL source program.\" 2023 makes the header optional (its 11.2.1 format brackets IDENTIFICATION DIVISION); no candidate states the 1985 requirement and none has an 85 case. The compiler refuses a header-less unit at 85 and accepts the informational paragraphs.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-no-id-header.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-no-id-header.cob (refused) with control E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-minimal.cob; E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-id-paragraphs.cob (accepted)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.3.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "PROGRAM-ID must be the first paragraph",
+     "other paragraphs (AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY) optional",
+     "optional paragraphs in the order of the general format"
+    ],
+    "evidence-1985": {
+     "PROGRAM-ID first": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-id-progid-not-first.cob (refused, COBOL5506 expected PROGRAM-ID)",
+     "others optional": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-minimal.cob (PROGRAM-ID only, accepted)",
+     "order of presentation": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-id-order-bad.cob (refused, COBOL2987) with control E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-id-paragraphs.cob (accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.3.2 p1",
+      "check": "OK  §1985:VI.3.2 p1  (3.2 ORGANIZATION)  the text is in p1",
+      "quote": "in order of presentation shown by the general format"
+     }
+    ],
+    "reason": "\"The name of the program must be given in the first paragraph, which is the PROGRAM-ID paragraph. The other paragraphs are optional ... in order of presentation shown by the general format below.\" The candidates (COMMON, REPOSITORY rules) state nothing of this; 2023 has no AUTHOR..SECURITY paragraphs.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-id-order-bad.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-id-order-bad.cob and E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-id-progid-not-first.cob refused; control E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-id-paragraphs.cob accepted",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.3.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY: obsolete elements, still part of Standard COBOL 1985 (Nucleus)"
+    ],
+    "evidence-1985": {
+     "the five paragraphs remain accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-id-paragraphs.cob (accepted, ID-OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.3.2 p2",
+      "check": "OK  §1985:VI.3.2 p2  (3.2 ORGANIZATION)  the text is in p2",
+      "quote": "are obsolete elements in Standard COBOL"
+     }
+    ],
+    "reason": "Flagged definitional, but a program shows it: an obsolete element is still present in its level (the module element tables mark it Z, \"present ... however this element is an obsolete element\"), so the five paragraphs must compile at 85. 2023 deleted them. The compiler accepts all five, comment-entries on one and two lines.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-id-paragraphs.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-id-paragraphs.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Environment Division optional in a source program",
+     "Environment Division expresses computer-dependent aspects (Configuration Section entries)"
+    ],
+    "evidence-1985": {
+     "optional": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-minimal.cob (no Environment Division, accepted)",
+     "computer-dependent entries": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob (accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.4.1 p1",
+      "check": "OK  §1985:VI.4.1 p1  (4.1 GENERAL DESCRIPTION)  the text is in p1",
+      "quote": "The Environment Division is optional in a COBOL source program"
+     }
+    ],
+    "reason": "\"The Environment Division is optional in a COBOL source program.\" FMT-12.2.1 (accepted at 85) gives the division's internal format, not its optionality in a program; the other candidates are prototype and DISPLAY rules.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-minimal.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-minimal.cob; E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.4.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Configuration Section prohibited in a program contained directly or indirectly in another (nested programs)"
+    ],
+    "evidence-1985": {
+     "contained program with Configuration Section refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-cfg-contained-85.cob (PASS, refused COBOL1643)",
+     "outermost program may state it": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-cfg-container-only-85.cob (PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.4.2 p3",
+      "check": "OK  §1985:VI.4.2 p3  (4.2 CONFIGURATION SECTION)  the text is in p3",
+      "quote": "must not be stated in a program which is contained"
+     },
+     {
+      "cite": "§2023:12.3.3 SR1",
+      "check": "OK  §2023:12.3.3 SR1  (Syntax rules)  the text is in SR1",
+      "quote": "shall not be specified in a program that is contained within another program"
+     }
+    ],
+    "reason": "\"The Configuration Section must not be stated in a program which is contained directly or indirectly within another program.\" SR-12.3.3-1 states the same rule but has no case running at 85, so it cannot carry the row; the prose85 goldens witness it at 85.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-cfg-contained-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-cfg-contained-85.cob (refused) with control E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-cfg-container-only-85.cob",
+    "class": "other: SR-12.3.3-1 states the rule but has no 85 case",
+    "needs": "needs-own-witness: place the prose85 goldens as the row's own 85 test (or give SR-12.3.3-1 an 85 case)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.4.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "SOURCE-COMPUTER paragraph describes the compiling computer (computer-name)"
+    ],
+    "evidence-1985": {
+     "paragraph with computer-name accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob (accepted) and cases/12.3.5-SOURCE-COMPUTER/pb830_computer_paragraph_clauses_85 (FMT-12.3.5.2 at-85 accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.4.3.1 p1",
+      "check": "OK  §1985:VI.4.3.1 p1  (4.3.1 Function)  the text is in p1",
+      "quote": "provides a means of describing the computer upon which the program is to be compiled"
+     }
+    ],
+    "reason": "Function paragraph, testable: a SOURCE-COMPUTER paragraph naming a computer is accepted. GR-12.3.5.4-2/3 state defaults when the name or paragraph is absent, which this sentence does not; FMT-12.3.5.2 is a format, not this statement.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.4.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "OBJECT-COMPUTER paragraph describes the executing computer",
+     "MEMORY SIZE clause: obsolete element, still part of 1985"
+    ],
+    "evidence-1985": {
+     "OBJECT-COMPUTER with MEMORY SIZE and PROGRAM COLLATING SEQUENCE accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob (accepted, ALPHA-OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.4.4.1 p1",
+      "check": "OK  §1985:VI.4.4.1 p1  (4.4.1 Function)  the text is in p1",
+      "quote": "The MEMORY SIZE clause is an obsolete element"
+     }
+    ],
+    "reason": "\"The OBJECT-COMPUTER paragraph provides a means of describing the computer on which the program is to be executed. The MEMORY SIZE clause is an obsolete element\". MEMORY SIZE is gone from 2023; the candidates are 2023 default rules.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.4.5.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "SPECIAL-NAMES: CURRENCY SIGN",
+     "DECIMAL-POINT IS COMMA",
+     "SYMBOLIC CHARACTERS",
+     "implementor-name IS mnemonic-name",
+     "ALPHABET",
+     "CLASS"
+    ],
+    "evidence-1985": {
+     "CURRENCY SIGN": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob (#12.50)",
+     "DECIMAL-POINT": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-decimal-comma.cob (012,50)",
+     "SYMBOLIC CHARACTERS": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob (SYM-OK)",
+     "mnemonic-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-mnemonic.cob (MNE-OK)",
+     "ALPHABET": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob (STANDARD-1 as PROGRAM COLLATING SEQUENCE, ALPHA-OK)",
+     "CLASS": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob (CLS-OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.4.5.1 p1",
+      "check": "OK  §1985:VI.4.5.1 p1  (4.5.1 Function)  the text is in p1",
+      "quote": "relating class-names to sets of characters"
+     }
+    ],
+    "reason": "Function paragraph listing the six facilities of SPECIAL-NAMES; each is exercised and accepted at 85. GR-12.3.7.4-1 is about containment, DOC-A.1-8 about ordinal documentation, GR-13.18.61.4-1 a screen rule: none states this list.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob; E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-decimal-comma.cob; E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-mnemonic.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.5.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Data Division optional in a source program"
+    ],
+    "evidence-1985": {
+     "optional": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-minimal.cob (no Data Division, accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.1 p1",
+      "check": "OK  §1985:VI.5.1 p1  (5.1 GENERAL DESCRIPTION)  the text is in p1",
+      "quote": "The Data Division is optional in a COBOL source program"
+     }
+    ],
+    "reason": "Flagged definitional but testable: \"The Data Division is optional in a COBOL source program.\" No candidate states it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-minimal.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-minimal.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.5.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Working-Storage Section in the Data Division",
+     "describes records and subordinate items not part of files"
+    ],
+    "evidence-1985": {
+     "WS records and items": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob (accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.2 p1",
+      "check": "OK  §1985:VI.5.2 p1  (5.2 WORKING-STORAGE SECTION)  the text is in p1",
+      "quote": "describes records and subordinate data items which are not part of data files"
+     }
+    ],
+    "reason": "Flagged definitional but testable. The candidates are 2023 static/initial-data rules, not this description; the WS records in the probe compile and hold their values.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.5.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "unrelated WS items may be 77 noncontiguous elementary items",
+     "only if not further subdivided",
+     "each in its own entry beginning with level 77"
+    ],
+    "evidence-1985": {
+     "77 items": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob (07ABC)",
+     "not subdivided": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-l77-subdivided-85.cob (PASS, refused)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.2.1 p1",
+      "check": "OK  §1985:VI.5.2.1 p1  (5.2.1 Noncontiguous Working Storage)  the text is in p1",
+      "quote": "begins with the special level-number, 77"
+     },
+     {
+      "cite": "§2023:13.18.33.4 GR2",
+      "check": "OK  §2023:13.18.33.4 GR2  (General rules)  the text is in GR2",
+      "quote": "Level-number 77 is assigned to identify noncontiguous working storage data items"
+     }
+    ],
+    "reason": "GR-13.18.33.4-2 a) states level 77 for noncontiguous items but has no case at 85 and not the \"provided they do not need to be further subdivided\" condition; the probe and the golden witness both at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob; E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-l77-subdivided-85.cob",
+    "class": "other: GR-13.18.33.4-2 states part with no 85 case",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.5.2.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "each level-77 entry requires: level-number 77, data-name, PICTURE or USAGE INDEX (list lead)"
+    ],
+    "evidence-1985": {
+     "data-name required": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-l77-no-dataname-85.cob and pb5924-l77-filler-85.cob (PASS, refused)",
+     "required clauses present": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-l77-required-clauses-85.cob (PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.2.1 p2",
+      "check": "OK  §1985:VI.5.2.1 p2  (5.2.1 Noncontiguous Working Storage)  the text is in p2",
+      "quote": "The following data clauses are required"
+     }
+    ],
+    "reason": "Lead of the three-item list \"The following data clauses are required in each data description entry\"; the prose85 goldens pass on the mint build. 2023 has no such list (the candidates are BASED and initialization rules).",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-l77-required-clauses-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-l77-no-dataname-85.cob, pb5924-l77-filler-85.cob (refused), pb5924-l77-required-clauses-85.cob (accepted)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.5.2.1-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a level-77 entry requires a data-name (FILLER or none is not allowed)"
+    ],
+    "evidence-1985": {
+     "missing data-name refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-l77-no-dataname-85.cob (PASS)",
+     "FILLER refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-l77-filler-85.cob (PASS)",
+     "with data-name accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.2.1 SR2",
+      "check": "OK  §1985:VI.5.2.1 SR2 (structure only) ok"
+     }
+    ],
+    "reason": "Item 2 \"data-name\" of the list \"The following data clauses are required in each data description entry\". Both refusals and the accepted control witness it at 85; no 2023 candidate states it.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-l77-filler-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-l77-no-dataname-85.cob and pb5924-l77-filler-85.cob refused; E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob accepted",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.5.2.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "hierarchically related WS elements must form records",
+     "unrelated elements may be single-elementary-item records",
+     "all File Section record-description clauses usable in WS"
+    ],
+    "evidence-1985": {
+     "hierarchy as record": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-ws-record-85.cob (PASS) and refusal E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-l77-subdivided-85.cob (PASS)",
+     "single elementary record": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob (01 SINGLE PIC 9(3) -> 042)",
+     "all FS clauses usable": "not shown (only OCCURS, RENAMES, 88 and VALUE, in s09-data)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.2.2 p1",
+      "check": "OK  §1985:VI.5.2.2 p1  (5.2.2 Working Storage Records)  the text is in p1",
+      "quote": "may be described as records which are single elementary items"
+     }
+    ],
+    "reason": "No candidate states it. The grouping rule and the single-item record are witnessed; \"All clauses which are used in record descriptions in the File Section can be used\" is shown only for the clauses in the probe.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-ws-record-85.cob, E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-l77-subdivided-85.cob, E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: the goldens and probe, plus a WS record using the remaining record clauses (JUSTIFIED, SYNCHRONIZED, SIGN, BLANK WHEN ZERO, REDEFINES)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.5.2.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "record description = data description entries",
+     "entry: level-number, data-name or FILLER, independent clauses",
+     "hierarchical structure (Concept of Levels IV-14; data description entry VI-20)"
+    ],
+    "evidence-1985": {
+     "record with levels, data-names, FILLER, clauses": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob ([PQ34123])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.2.3 p1",
+      "check": "OK  §1985:VI.5.2.3 p1  (5.2.3 Record Description Structure)  the text is in p1",
+      "quote": "Each data description entry consists of a level-number followed by the data-name or FILLER clause"
+     }
+    ],
+    "reason": "Flagged definitional but testable: a hierarchical record of level-numbers, data-names, FILLER and clauses compiles and its group reads its subordinates. SR-13.18.38.3-22 and the others are unrelated OCCURS/RECORD rules.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.5.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a data description entry specifies an item's characteristics"
+    ],
+    "evidence-1985": {
+     "entry characteristics take effect": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob and E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pic-precedence.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.3.1 p1",
+      "check": "OK  §1985:VI.5.3.1 p1  (5.3.1 Function)  the text is in p1",
+      "quote": "specifies the characteristics of a particular item of data"
+     }
+    ],
+    "reason": "Flagged definitional; a program shows it in that each entry's clauses govern the item (sizes, PICTURE editing, VALUE). The candidates are 2023 clause-placement rules.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.5.5.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "data-name names the described item",
+     "FILLER names an item not referenced explicitly"
+    ],
+    "evidence-1985": {
+     "data-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+     "FILLER declared": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+     "FILLER not referenceable": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-filler-ref.cob (refused COBOL5506)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.5.1 p1",
+      "check": "OK  §1985:VI.5.5.1 p1  (5.5.1 Function)  the text is in p1",
+      "quote": "The key word FILLER may be used to specify a data item which is not referenced explicitly"
+     },
+     {
+      "cite": "§2023:13.18.20.4 GR1",
+      "check": "OK  §2023:13.18.20.4 GR1  (General rule)  the text is in GR1",
+      "quote": "Under no circumstances shall a FILLER item be referred to explicitly"
+     }
+    ],
+    "reason": "GR-13.18.20.4-1 states the FILLER half but has no case at 85; the probes witness both halves at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-filler-ref.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-filler-ref.cob refused with control E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+    "class": "other: GR-13.18.20.4-1 states part with no 85 case",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.5.7.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "level-number gives position in a record hierarchy",
+     "77 for WS items",
+     "77 for linkage items",
+     "88 condition-names",
+     "66 RENAMES"
+    ],
+    "evidence-1985": {
+     "hierarchy": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+     "77 WS": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+     "77 linkage": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-linkage-77.cob (08)",
+     "88": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob (ON)",
+     "66": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob (PQ34, 34)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.7.1 p1",
+      "check": "OK  §1985:VI.5.7.1 p1  (5.7.1 Function)  the text is in p1",
+      "quote": "indicates the position of a data item within the hierarchical structure of a logical record"
+     }
+    ],
+    "reason": "Every level-number role named in the function paragraph is exercised at 85. FMT-13.18.33.2 (accepted at 85) is only the format; GR-13.18.33.4-2 has no 85 case.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-linkage-77.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob; E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-linkage-77.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.5.8.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "OCCURS replaces repeated entries and supplies subscript information"
+    ],
+    "evidence-1985": {
+     "OCCURS table referenced by subscripts": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob (TAB1 (1..3))"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.8.1 p1",
+      "check": "OK  §1985:VI.5.8.1 p1  (5.8.1 Function)  the text is in p1",
+      "quote": "eliminates the need for separate entries for repeated data items"
+     }
+    ],
+    "reason": "GR-13.18.38.4-1 (at 85) says clauses apply per occurrence, not this function; the probe shows one entry giving three subscripted elements.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.5.9.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "PICTURE describes characteristics and editing of an elementary item"
+    ],
+    "evidence-1985": {
+     "PICTURE characteristics and editing": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pic-precedence.cob and E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-env.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.9.1 p1",
+      "check": "OK  §1985:VI.5.9.1 p1  (5.9.1 Function)  the text is in p1",
+      "quote": "describes the general characteristics and editing requirements of an elementary item"
+     }
+    ],
+    "reason": "SR-13.18.40.3-1 (at 85) says PICTURE only at the elementary level, which is part; the function sentence is witnessed by edited items producing the edited result.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pic-precedence.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pic-precedence.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.5.9.6-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "reading of the PICTURE precedence chart (VI-37): an X means the column symbol may precede the row symbol",
+     "braces mark mutually exclusive symbols",
+     "cs = currency symbol"
+    ],
+    "evidence-1985": {
+     "legal orders accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pic-precedence.cob and cases/13.18.40-PICTURE/pb528_picture_composition_legal_85 (SR-13.18.40.3-19 at-85 accepted)",
+     "illegal orders refused": "covered by cases/13.18.40-PICTURE/pb528-picture-composition (diagnosed-only at 85)",
+     "every chart cell": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.9.6 p1",
+      "check": "OK  §1985:VI.5.9.6 p1  (5.9.6 Precedence Rules)  the text is in p1",
+      "quote": "may precede (but not necessarily immediately)"
+     }
+    ],
+    "reason": "The chart is the rule; 2023 13.18.40 states composition as separate rules (V/P, P/., V/.), each covering a few cells. No pointer covers the whole chart; the sampled cells are correct.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pic-precedence.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pic-precedence.cob (sampled cells)",
+    "class": "own-text",
+    "needs": "needs-own-witness: a chart-driven 85 test of every cell (X cells accepted, blank cells refused)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.5.9.6-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "PICTURE must contain one of A X Z 9 * or two of + - cs"
+    ],
+    "evidence-1985": {
+     "admitted shapes": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-pic-content-symbols-85.cob (PASS)",
+     "single + refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-pic-single-plus-85.cob (PASS)",
+     "single cs refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-pic-single-cs-85.cob (PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.9.6 p2",
+      "check": "OK  §1985:VI.5.9.6 p2  (5.9.6 Precedence Rules)  the text is in p2",
+      "quote": "must be present in a PICTURE character-string"
+     }
+    ],
+    "reason": "SR-13.18.40.3-33 (Z or 9, for one category) is not this rule. The prose85 read recorded a DEFECT; its goldens now PASS on the mint build, so the compiler is correct at 85.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-pic-content-symbols-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-pic-single-plus-85.cob, pb5924-pic-single-cs-85.cob (refused), pb5924-pic-content-symbols-85.cob (accepted)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.5.9.6-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the chart's second appearance of + - (nonfloating), Z * + - cs (floating), P: use to the right of the decimal point"
+    ],
+    "evidence-1985": {
+     "Z * cs - to the right of the point": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pic-precedence.cob ([  1.50][      ][**1.50][***.**][ $1.50][ -1.50])",
+     "P right of V": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pic-precedence.cob (VPP9 accepted)",
+     "nonfloating + right": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pic-precedence.cob ([1.50-] from 9.99+)",
+     "floating + right of point": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.9.6 p3",
+      "check": "OK  §1985:VI.5.9.6 p3  (5.9.6 Precedence Rules)  the text is in p3",
+      "quote": "represents its use to the right of the decimal point position"
+     }
+    ],
+    "reason": "Flagged definitional but testable through right-of-point PICTUREs. SR-13.18.40.3-29 (at 85) covers only the anchor-left rule of floating insertion.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pic-precedence.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pic-precedence.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.5.11.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "RENAMES (level 66) gives alternative, possibly overlapping groupings of elementary items (Nucleus level 2)"
+    ],
+    "evidence-1985": {
+     "two overlapping RENAMES groupings": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob (ALT1 = F1 THRU F2 -> PQ34; ALT2 = F2A THRU F2B -> 34)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.5.11.1 p1",
+      "check": "OK  §1985:VI.5.11.1 p1  (║5.11.1 Function║)  the text is in p1",
+      "quote": "permits alternative, possibly overlapping, groupings of elementary items"
+     }
+    ],
+    "reason": "Function paragraph; SR-13.18.45.3-1 (\"any number of RENAMES entries\") is not it. The two 66 entries overlap on F2A/F2B and each reads its span.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-data.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Procedure Division holds the procedures executed",
+     "Procedure Division optional in a source program"
+    ],
+    "evidence-1985": {
+     "optional": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-no-procedure.cob (accepted, runs, no output)",
+     "procedures executed": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-minimal.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.1 p1",
+      "check": "OK  §1985:VI.6.1 p1  (6.1 GENERAL DESCRIPTION)  the text is in p1",
+      "quote": "The Procedure Division is optional in a COBOL source program"
+     }
+    ],
+    "reason": "\"The Procedure Division is optional in a COBOL source program.\" No candidate states it (method-prototype and EXIT PROGRAM rules).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-no-procedure.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-no-procedure.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Procedure Division format 1 (sections holding paragraphs)",
+     "format 2 (paragraphs only)"
+    ],
+    "evidence-1985": {
+     "format 1": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pd-sections.cob (S1P1 S1P2 S2P1)",
+     "format 2": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-minimal.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.1 p2",
+      "check": "OK  §1985:VI.6.1 p2  (6.1 GENERAL DESCRIPTION)  the text is in p2",
+      "quote": "The general formats of the Procedure Division"
+     }
+    ],
+    "reason": "Flagged definitional but it introduces the two formats, which programs show. GR-14.2.3-1 (at 85) states execution order, not the formats.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pd-sections.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-pd-sections.cob; E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-minimal.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "arithmetic expression forms: numeric identifier, numeric literal, figurative ZERO, operator-separated, parenthesized, unary-prefixed",
+     "permissible symbol pairs of Table 1"
+    ],
+    "evidence-1985": {
+     "forms incl. ZERO and unary": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+     "invalid pair refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith-bad-pair.cob (refused COBOL0001)",
+     "begin/end symbols": "covered by cases/VI.6.2@1985-ARITHMETIC-EXPRESSIONS/g85_bf15_01 (GR-8.8.1.2-5 at-85 accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.2.1 p1",
+      "check": "OK  §1985:VI.6.2.1 p1  (║6.2.1 Definition of an Arithmetic Expression║)  the text is in p1",
+      "quote": "the figurative constant ZERO (ZEROS, ZEROES)"
+     },
+     {
+      "cite": "§1985:VI.6.2.3 SR3",
+      "check": "OK  §1985:VI.6.2.3 SR3  (║6.2.3 Formation and Evaluation Rules║)  the text is in SR3",
+      "quote": "The letter 'P' indicates a permissible pair of symbols"
+     }
+    ],
+    "reason": "GR-8.8.1.2-5 (at 85) states only the begin/end symbols; the 1985 definition (including ZERO as an operand) is witnessed by the probe and its refusal.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob; E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith-bad-pair.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.2.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "operands must be numeric elementary items or numeric literals"
+    ],
+    "evidence-1985": {
+     "nonnumeric operands refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-arith-alnum-operand-85, -edited-operand-85, -group-operand-85 (PASS)",
+     "numeric operands accepted": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-arith-numeric-operands-85 (PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.2.1 p2",
+      "check": "OK  §1985:VI.6.2.1 p2  (║6.2.1 Definition of an Arithmetic Expression║)  the text is in p2",
+      "quote": "must represent either numeric elementary items or numeric literals"
+     }
+    ],
+    "reason": "The candidates are compile-time-expression and argument rules; the prose85 goldens all PASS on the mint build.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-arith-group-operand-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-arith-*-operand-85 goldens",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.2.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "five binary and two unary operators",
+     "each operator preceded and followed by a space (no parenthesis exception)"
+    ],
+    "evidence-1985": {
+     "spaced accepted": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-arith-op-spaced-85 (PASS) and E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+     "unspaced binary refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-arith-op-unspaced-85 (PASS)",
+     "unary before ( unspaced refused": "covered by E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-arith-unary-paren-85 (PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.2.2 p1",
+      "check": "OK  §1985:VI.6.2.2 p1  (║6.2.2 Arithmetic Operators║)  the text is in p1",
+      "quote": "must be preceded by a space and followed by a space"
+     }
+    ],
+    "reason": "The 1985 text has no parenthesis exception, which 2023 adds; the prose85 read recorded a DEFECT whose goldens now PASS on the mint build.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-arith-unary-paren-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-arith-op-unspaced-85, pb5924-arith-unary-paren-85 (refused), pb5924-arith-op-spaced-85 (accepted)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.2.2-T1.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "+ binary: addition"
+    ],
+    "evidence-1985": {
+     "+ binary: addition": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob (A + B = +0009.00, A=7, B=2)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.2.2 Table 1 row 1",
+      "check": "OK  §1985:VI.6.2.2 Table 1 row 1 (structure only) ok"
+     }
+    ],
+    "reason": "Operator-table row \"+ binary: addition\". The candidates are compile-time-expression rules (7.3.6) and GR-8.8.1.2-7, none with an 85 case; the probe computes the operator's result at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.2.2-T1.2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "- binary: subtraction"
+    ],
+    "evidence-1985": {
+     "- binary: subtraction": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob (A - B = +0005.00, A=7, B=2)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.2.2 Table 1 row 2",
+      "check": "OK  §1985:VI.6.2.2 Table 1 row 2 (structure only) ok"
+     }
+    ],
+    "reason": "Operator-table row \"- binary: subtraction\". The candidates are compile-time-expression rules (7.3.6) and GR-8.8.1.2-7, none with an 85 case; the probe computes the operator's result at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.2.2-T1.3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "* binary: multiplication"
+    ],
+    "evidence-1985": {
+     "* binary: multiplication": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob (A * B = +0014.00, A=7, B=2)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.2.2 Table 1 row 3",
+      "check": "OK  §1985:VI.6.2.2 Table 1 row 3 (structure only) ok"
+     }
+    ],
+    "reason": "Operator-table row \"* binary: multiplication\". The candidates are compile-time-expression rules (7.3.6) and GR-8.8.1.2-7, none with an 85 case; the probe computes the operator's result at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.2.2-T1.4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "/ binary: division"
+    ],
+    "evidence-1985": {
+     "/ binary: division": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob (A / B = +0003.50, A=7, B=2)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.2.2 Table 1 row 4",
+      "check": "OK  §1985:VI.6.2.2 Table 1 row 4 (structure only) ok"
+     }
+    ],
+    "reason": "Operator-table row \"/ binary: division\". The candidates are compile-time-expression rules (7.3.6) and GR-8.8.1.2-7, none with an 85 case; the probe computes the operator's result at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.2.2-T1.5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "** binary: exponentiation"
+    ],
+    "evidence-1985": {
+     "** binary: exponentiation": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob (A ** B = +0049.00, A=7, B=2)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.2.2 Table 1 row 5",
+      "check": "OK  §1985:VI.6.2.2 Table 1 row 5 (structure only) ok"
+     }
+    ],
+    "reason": "Operator-table row \"** binary: exponentiation\". The candidates are compile-time-expression rules (7.3.6) and GR-8.8.1.2-7, none with an 85 case; the probe computes the operator's result at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.2.2-T2.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "+ unary: multiplication by +1"
+    ],
+    "evidence-1985": {
+     "+ unary: multiplication by +1": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob (+ A = +0007.00, A=7, B=2)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.2.2 Table 2 row 1",
+      "check": "OK  §1985:VI.6.2.2 Table 2 row 1 (structure only) ok"
+     }
+    ],
+    "reason": "Operator-table row \"+ unary: multiplication by +1\". The candidates are compile-time-expression rules (7.3.6) and GR-8.8.1.2-7, none with an 85 case; the probe computes the operator's result at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.2.2-T2.2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "- unary: multiplication by -1"
+    ],
+    "evidence-1985": {
+     "- unary: multiplication by -1": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob (- A = -0007.00; - B ** 2 = +0004.00 (unary first), A=7, B=2)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.2.2 Table 2 row 2",
+      "check": "OK  §1985:VI.6.2.2 Table 2 row 2 (structure only) ok"
+     }
+    ],
+    "reason": "Operator-table row \"- unary: multiplication by -1\". The candidates are compile-time-expression rules (7.3.6) and GR-8.8.1.2-7, none with an 85 case; the probe computes the operator's result at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-09/s09-arith.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "tooling",
+    "row": "1985-SR-VI.5.9.6-p2; 1985-SR-VI.6.2.2-p1",
+    "what": "prose85 (85p-10) records these as TESTED DEFECT and golden pb5924-arith-unary-paren-85 still says \"DEFECT today: it compiles\", but every mapped golden PASSES on the mint build (9fdf39b9e8): the prose85 verdicts and that golden comment are stale",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/run_goldens.py s-09 (work/goldens-s-09.json: 17/17 pass)",
+    "site": "E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-arith-unary-paren-85.cob"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-09",
+  "cases": [],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "e76c5dd8803bed060af049b1aa5c06b5090a3f20051f9ce5674bb3fedcaeca18",
+  "read": "03ab5f8eace125fe117a0b0efc0739276a09dcfb7fbd8b23f821261ea2aaf524",
+  "refute": "e1a277e90b9ada1728c64e8440907bcc4f82ffb49e840cb7c20c65b52ddf93d6"
+ }
+}

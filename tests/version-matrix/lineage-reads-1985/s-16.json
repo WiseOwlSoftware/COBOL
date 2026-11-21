@@ -1,0 +1,1281 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-16 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-16",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-16",
+  "edition": 1985,
+  "ids": [
+   "1985-SR-X.1.3.8.1-p1",
+   "1985-SR-X.1.3.8.2-p1",
+   "1985-SR-X.1.3.8.2-p3",
+   "1985-SR-X.1.3.8.2-p5",
+   "1985-GR-X.1.3.8.3-p1",
+   "1985-GR-X.2.1-p1",
+   "1985-SR-X.2.2-p1",
+   "1985-GR-X.2.2-p2",
+   "1985-SR-X.2.3-p1",
+   "1985-GR-X.4.1-p1",
+   "1985-GR-X.4.1-p2",
+   "1985-GR-X.4.1-p3",
+   "1985-GR-X.4.1-p6",
+   "1985-SR-X.4.1.1-p1",
+   "1985-SR-X.4.1.1-p2",
+   "1985-SR-X.4.1.1-2",
+   "1985-SR-X.4.1.1-p3",
+   "1985-SR-X.4.1.2-p1",
+   "1985-GR-X.4.2.1-p1",
+   "1985-GR-X.4.3.1-p1",
+   "1985-GR-X.4.3.1-p2",
+   "1985-GR-X.4.4.1-p1",
+   "1985-SR-X.5.1-p4",
+   "1985-GR-X.5.1-4",
+   "1985-SR-X.5.1-p6",
+   "1985-GR-XI.1.1-p1",
+   "1985-GR-XI.1.2.1-p1",
+   "1985-GR-XI.1.2.2-p1",
+   "1985-GR-XI.2.3.1-p1",
+   "1985-SR-XI.3.1.1-p1"
+  ],
+  "pointers": {
+   "1985-SR-X.1.3.8.1-p1": {
+    "candidates-2023": [
+     "SR-8.4.6.3-2",
+     "SR-8.4.6.3-1",
+     "GR-11.10.4-2",
+     "SR-8.4.6.3-3",
+     "GR-11.10.4-4",
+     "GR-11.10.4-1",
+     "GR-14.9.5.4-4",
+     "SR-14.9.4.3-15",
+     "GR-8.6.7-2"
+    ],
+    "nearest-2023": "SR-8.4.6.3-2",
+    "similarity": 0.484
+   },
+   "1985-SR-X.1.3.8.2-p1": {
+    "candidates-2023": [
+     "GR-8.4.6.2.1-1",
+     "GR-8.4.6.2.1-2",
+     "GR-8.4.6.2.1-3",
+     "GR-11.10.4-1",
+     "SR-8.4.6.3-1",
+     "GR-8.6.7-2"
+    ],
+    "nearest-2023": "GR-8.4.6.2.1-1",
+    "similarity": 0.449
+   },
+   "1985-SR-X.1.3.8.2-p3": {
+    "candidates-2023": [
+     "GR-8.4.6.2.1-1",
+     "GR-8.4.6.2.1-2",
+     "GR-8.4.6.2.1-3",
+     "GR-9.1.5-2",
+     "GR-8.6.7-2",
+     "GR-11.10.4-1"
+    ],
+    "nearest-2023": "GR-8.4.6.2.1-1",
+    "similarity": 0.195
+   },
+   "1985-SR-X.1.3.8.2-p5": {
+    "candidates-2023": [
+     "GR-8.4.6.2.1-1",
+     "GR-8.4.6.2.1-2",
+     "GR-8.4.6.2.1-3",
+     "GR-9.1.5-2",
+     "GR-8.6.7-2",
+     "SR-11.10.3-3"
+    ],
+    "nearest-2023": "GR-8.4.6.2.1-1",
+    "similarity": 0.18
+   },
+   "1985-GR-X.1.3.8.3-p1": {
+    "candidates-2023": [
+     "SR-8.4.2.2.3-6",
+     "GR-8.8.4.2.13-2",
+     "GR-13.18.27.4-3"
+    ],
+    "nearest-2023": "SR-8.4.2.2.3-6",
+    "similarity": 0.469
+   },
+   "1985-GR-X.2.1-p1": {
+    "candidates-2023": [
+     "SR-8.4.6.3-2",
+     "GR-14.9.5.4-4",
+     "GR-9.1.5-2"
+    ],
+    "nearest-2023": "SR-8.4.6.3-2",
+    "similarity": 0.334
+   },
+   "1985-SR-X.2.2-p1": {
+    "candidates-2023": [
+     "GR-14.9.4.4-3",
+     "RV-15.65.4-6",
+     "GR-8.4.3.13.4-2"
+    ],
+    "nearest-2023": "GR-14.9.4.4-3",
+    "similarity": 0.285
+   },
+   "1985-GR-X.2.2-p2": {
+    "candidates-2023": [
+     "GR-9.1.5-2",
+     "RV-15.65.4-6",
+     "GR-8.6.7-2"
+    ],
+    "nearest-2023": "GR-9.1.5-2",
+    "similarity": 0.395
+   },
+   "1985-SR-X.2.3-p1": {
+    "candidates-2023": [
+     "FMT-10.6.1",
+     "GR-8.3.2.2-L4.1",
+     "DOC-A.1-141"
+    ],
+    "nearest-2023": "FMT-10.6.1",
+    "similarity": 0.374
+   },
+   "1985-GR-X.4.1-p1": {
+    "candidates-2023": [
+     "DOC-A.1-116",
+     "GR-14.9.4.4-3",
+     "GR-8.5.1.11.3-4"
+    ],
+    "nearest-2023": "DOC-A.1-116",
+    "similarity": 0.505
+   },
+   "1985-GR-X.4.1-p2": {
+    "candidates-2023": [
+     "GR-13.7.4-3",
+     "GR-14.9.4.4-3",
+     "GR-14.9.18.4-2"
+    ],
+    "nearest-2023": "GR-13.7.4-3",
+    "similarity": 0.478
+   },
+   "1985-GR-X.4.1-p3": {
+    "candidates-2023": [
+     "GR-13.7.4-2",
+     "GR-14.9.18.4-2",
+     "GR-14.9.4.4-3"
+    ],
+    "nearest-2023": "GR-13.7.4-2",
+    "similarity": 0.591
+   },
+   "1985-GR-X.4.1-p6": {
+    "candidates-2023": [
+     "GR-13.7.4-3",
+     "GR-14.9.4.4-3",
+     "DOC-A.1-116"
+    ],
+    "nearest-2023": "GR-13.7.4-3",
+    "similarity": 0.39
+   },
+   "1985-SR-X.4.1.1-p1": {
+    "candidates-2023": [
+     "GR-13.18.63.4-3",
+     "SR-13.7.3-3",
+     "SR-13.18.33.3-5"
+    ],
+    "nearest-2023": "GR-13.18.63.4-3",
+    "similarity": 0.37
+   },
+   "1985-SR-X.4.1.1-p2": {
+    "candidates-2023": [
+     "SR-13.16.3-16",
+     "GR-13.18.63.4-3",
+     "GR-13.7.4-5"
+    ],
+    "nearest-2023": "SR-13.16.3-16",
+    "similarity": 0.535
+   },
+   "1985-SR-X.4.1.1-2": {
+    "candidates-2023": [
+     "GR-13.18.63.4-3",
+     "GR-13.7.4-5",
+     "DOC-A.1-116"
+    ],
+    "nearest-2023": "GR-13.18.63.4-3",
+    "similarity": 0.569
+   },
+   "1985-SR-X.4.1.1-p3": {
+    "candidates-2023": [
+     "SR-13.16.3-16",
+     "GR-13.18.63.4-3",
+     "GR-13.7.4-5"
+    ],
+    "nearest-2023": "SR-13.16.3-16",
+    "similarity": 0.422
+   },
+   "1985-SR-X.4.1.2-p1": {
+    "candidates-2023": [
+     "GR-13.18.63.4-3",
+     "GR-13.7.4-5",
+     "DOC-A.1-116"
+    ],
+    "nearest-2023": "GR-13.18.63.4-3",
+    "similarity": 0.377
+   },
+   "1985-GR-X.4.2.1-p1": {
+    "candidates-2023": [
+     "SR-13.4.5.3-5",
+     "SR-13.4.5.3-7",
+     "GR-13.18.22.4-4"
+    ],
+    "nearest-2023": "SR-13.4.5.3-5",
+    "similarity": 0.412
+   },
+   "1985-GR-X.4.3.1-p1": {
+    "candidates-2023": [
+     "SR-13.16.3-16",
+     "SR-13.16.3-20",
+     "GR-13.5.4-2"
+    ],
+    "nearest-2023": "SR-13.16.3-16",
+    "similarity": 0.347
+   },
+   "1985-GR-X.4.3.1-p2": {
+    "candidates-2023": [
+     "SR-13.16.3-16",
+     "SR-13.18.38.3-21",
+     "SR-13.16.3-5"
+    ],
+    "nearest-2023": "SR-13.16.3-16",
+    "similarity": 0.332
+   },
+   "1985-GR-X.4.4.1-p1": {
+    "candidates-2023": [
+     "SR-13.15.3-1",
+     "SR-13.15.3-4",
+     "SR-14.9.16.3-3"
+    ],
+    "nearest-2023": "SR-13.15.3-1",
+    "similarity": 0.342
+   },
+   "1985-SR-X.5.1-p4": {
+    "candidates-2023": [
+     "GR-14.2.3-11",
+     "SR-13.7.3-3",
+     "GR-14.2.3-9",
+     "GR-14.8.2.3.3-L2.2",
+     "SR-13.7.3-4",
+     "SR-13.7.3-5",
+     "SR-13.7.3-2",
+     "SR-14.2.2-1",
+     "SR-14.2.2-5",
+     "SR-13.18.16.3-2"
+    ],
+    "nearest-2023": "GR-14.2.3-11",
+    "similarity": 0.27
+   },
+   "1985-GR-X.5.1-4": {
+    "candidates-2023": [
+     "SR-13.7.3-4",
+     "GR-14.9.4.4-3",
+     "FMT-14.2.1",
+     "GR-14.8.2.3.2-L2.2",
+     "GR-14.2.3-1",
+     "GR-14.9.4.4-2",
+     "SR-14.9.4.3-24",
+     "SR-14.2.2-11",
+     "SR-14.9.14.3-5",
+     "SR-14.9.18.3-4"
+    ],
+    "nearest-2023": "SR-13.7.3-4",
+    "similarity": 0.602
+   },
+   "1985-SR-X.5.1-p6": {
+    "candidates-2023": [
+     "GR-14.2.3-11",
+     "GR-14.9.4.4-3",
+     "GR-14.2.3-8",
+     "GR-14.8.2.3.2-L2.2",
+     "SR-14.9.4.3-24",
+     "GR-14.9.4.4-2",
+     "SR-14.9.4.3-21",
+     "SR-14.2.2-11",
+     "SR-11.7.3-7",
+     "SR-13.18.60.3-10"
+    ],
+    "nearest-2023": "GR-14.2.3-11",
+    "similarity": 0.207
+   },
+   "1985-GR-XI.1.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.24.4-4",
+     "GR-14.9.40.4-3",
+     "GR-13.18.10.4-2"
+    ],
+    "nearest-2023": "GR-14.9.24.4-4",
+    "similarity": 0.401
+   },
+   "1985-GR-XI.1.2.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.40.4-6",
+     "GR-14.9.40.4-14",
+     "GR-14.9.40.4-11"
+    ],
+    "nearest-2023": "GR-14.9.40.4-6",
+    "similarity": 0.421
+   },
+   "1985-GR-XI.1.2.2-p1": {
+    "candidates-2023": [
+     "GR-14.9.24.4-6",
+     "GR-14.9.24.4-14",
+     "SR-14.9.24.3-7"
+    ],
+    "nearest-2023": "GR-14.9.24.4-6",
+    "similarity": 0.448
+   },
+   "1985-GR-XI.2.3.1-p1": {
+    "candidates-2023": [
+     "SR-13.4.5.3-1",
+     "SR-12.4.5.2-11",
+     "SR-12.4.5.2-9"
+    ],
+    "nearest-2023": "SR-13.4.5.3-1",
+    "similarity": 0.497
+   },
+   "1985-SR-XI.3.1.1-p1": {
+    "candidates-2023": [
+     "SR-12.4.5.2-13",
+     "SR-12.4.5.2-9",
+     "SR-12.4.5.2-11"
+    ],
+    "nearest-2023": "SR-12.4.5.2-13",
+    "similarity": 0.616
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-16",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-SR-X.1.3.8.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "program-name declared in PROGRAM-ID (Identification Division)",
+     "program-name referenced only by CALL, CANCEL and the end program header (IPC level 2 box for CANCEL/end program header)",
+     "identically named programs in a run unit: one must be contained in a separately compiled program not containing the other"
+    ],
+    "evidence-1985": {
+     "program-name declared in PROGRAM-ID": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13881-call-cancel-ok.cob",
+     "referenced only by CALL/CANCEL/end program header": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13881-call-cancel-ok.cob (accepted: N=1 N=1) and E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13881-progname-as-data.cob (refused COBOL1639: MOVE X1381N)",
+     "identically named programs rule": "covered by goldens E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-same-name-nested-programs-85 (PASS) and E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-same-name-separate-programs-85 (PASS, refused)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8.1 p1",
+      "quote": "A program-name may be referenced only by the CALL statement",
+      "check": "OK  §1985:X.1.3.8.1 p1  (1.3.8.1 Conventions for Program-Names)  the text is in p1"
+     }
+    ],
+    "reason": "The 1985 paragraph restricts program-name references to \"the CALL statement, the CANCEL statement, and the end program header\" and states the same-name rule; no 2023 candidate states the restriction to those three references with an 85 witness (SR-8.4.6.3-1/-2/-3 carry no at-85 case and state visibility, not the reference forms).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13881-progname-as-data.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13881-call-cancel-ok.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13881-progname-as-data.cob; goldens pb5924-same-name-*-85",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "condition-, data-, file-, record- and report-names declared in a program are referenced only by that program",
+     "exception: a global name is referenceable by the contained programs (IPC level 2)"
+    ],
+    "evidence-1985": {
+     "data-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-data-noglobal.cob (refused) / E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-data-global.cob (accepted W-A=A)",
+     "condition-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-cond-noglobal.cob (refused) / E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-cond-global.cob (ON)",
+     "file-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-file-noglobal.cob (refused) / E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-file-global.cob (OPENED)",
+     "record-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-record-noglobal.cob (refused) / E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-record-global.cob (R1=REC1)",
+     "report-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-report-noglobal.cob (refused COBOL1757) / E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-report-global.cob (INNER GENERATED)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8.2 p1",
+      "quote": "these names may be referenced only by that program",
+      "check": "OK  §1985:X.1.3.8.2 p1  (1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names)  the text is in p1"
+     }
+    ],
+    "reason": "\"these names may be referenced only by that program except when one or more of the names is global\": GR-8.4.6.2.1-1's 85 cases exercise resolution among visible names, not the refusal of a non-global container name; no candidate states the restriction with an 85 witness of it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-data-noglobal.cob",
+    "compiler-at-1985": "correct: the ten x13882-p1-* probes (five refusal/control pairs)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a program cannot reference a condition-name, data-name, file-name, record-name or report-name declared in a program it contains (even when GLOBAL there)"
+    ],
+    "evidence-1985": {
+     "data-name": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-outer-refs-contained-data-name-85 (PASS) and pb5924-outer-own-name-not-contained-85 (PASS)",
+     "condition-name": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-outer-refs-contained-condition-name-85 (PASS)",
+     "file-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p3-file.cob (refused COBOL1639) with control E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p3-control.cob",
+     "record-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p3-record.cob (refused) with control E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p3-control.cob",
+     "report-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p3-report.cob (refused COBOL1757 INITIATE R of a contained GLOBAL RD)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8.2 p3",
+      "quote": "A program cannot reference any condition-name, data-name, file-name, record-name, or report-name declared in any program it contains",
+      "check": "OK  §1985:X.1.3.8.2 p3  (1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names)  the text is in p3"
+     }
+    ],
+    "reason": "The 1985 prohibition is stated by no 2023 candidate (8.4.6.2.1 rules define the name set seen by a contained element, not the container's ban); the goldens and probes witness it at 85 for all five kinds.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p3-file.cob",
+    "compiler-at-1985": "correct: goldens pb5924-outer-*-85; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p3-file.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p3-record.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p3-report.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8.2-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "grant: directly contained program B and container A may both define the same word as condition-, data-, file-, record- or report-name",
+     "lead-in to the resolution rules (1)-(3) (separate rows GR-X.1.3.8.2-1..3)"
+    ],
+    "evidence-1985": {
+     "data-name, condition-name, file-name, record-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p5-same-word.cob (accepted: INNER X=I, INNER XC, INNER R1=INNER6, OUTER X=O, OUTER XC)",
+     "report-name": "covered by conformance case conformance-suite/cases/X.1.3.8@1985-Scope-of-Names/pb5973-own-report-name-hides-global-data-85 (85; inner RD XR beside container GLOBAL data XR, declarations coexist)",
+     "resolution rules": "separate rows; siblings 1985-GR-X.1.3.8.2-1..3 decided"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8.2 p5",
+      "quote": "both programs may define a condition-name, a data-name, a file-name, a record-name, or a report-name using the same user-defined word",
+      "check": "OK  §1985:X.1.3.8.2 p5  (1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names)  the text is in p5"
+     }
+    ],
+    "reason": "A grant (\"both programs may define ... using the same user-defined word\") needs an accepted program; the 2023 8.4.6.2.1 rows state the resolution, not this grant, so no pointer carries the whole scope.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p5-same-word.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p5-same-word.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.8.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "an index-name of a table in a GLOBAL data item is itself global",
+     "index-name scope follows its table's data-name scope",
+     "index-names cannot be qualified (1985; 2023 permits qualification, SR-8.4.2.2.3-6)"
+    ],
+    "evidence-1985": {
+     "global index-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13883-global-index.cob (accepted: inner SET IX TO 3, outer E(IX)=C)",
+     "scope follows table": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13883-global-index.cob and golden pb5924-index-name-unqualified-85 (PASS)",
+     "cannot be qualified": "covered by goldens E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-index-name-qualified-set-85 and pb5924-index-name-qualified-subscript-85 (PASS, refused)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8.3 p1",
+      "quote": "that index-name also possesses the global attribute",
+      "check": "OK  §1985:X.1.3.8.3 p1  (║1.3.8.3 Conventions for Index-Names║)  the text is in p1"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR6",
+      "quote": "The qualification of an index-name may include the name of the table",
+      "check": "OK  §2023:8.4.2.2.3 SR6  (Syntax rules)  the text is in SR6"
+     }
+    ],
+    "reason": "1985 says \"Index-names cannot be qualified\"; 2023 SR-8.4.2.2.3-6 allows qualification, so no 2023 pointer states the 1985 rule.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13883-global-index.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13883-global-index.cob; goldens pb5924-index-name-*-85",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a source program may contain other source programs (IPC level 2 nesting)",
+     "contained programs may reference some resources (global names, common programs) of their containers"
+    ],
+    "evidence-1985": {
+     "nesting": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-data-global.cob and E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13883-global-index.cob",
+     "contained references container resources": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-data-global.cob, E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-file-global.cob, E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-report-global.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.2.1 p1",
+      "quote": "these contained programs may reference some of the resources of the programs within which they are contained",
+      "check": "OK  §1985:X.2.1 p1  (║2.1 GENERAL DESCRIPTION║)  the text is in p1"
+     }
+    ],
+    "reason": "Catalog-definitional, but a program shows it: nesting and a contained program reaching container resources. Candidates (SR-8.4.6.3-2, GR-14.9.5.4-4, GR-9.1.5-2) state narrower rules; none states the general description.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-data-global.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-data-global.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-X.2.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the four divisions are sequenced Identification, Environment, Data, Procedure",
+     "COPY/REPLACE statements and the end program header are outside the division grouping"
+    ],
+    "evidence-1985": {
+     "division order": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x22-order-control.cob (accepted W=OK) and refusals E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x22-order-data-before-env.cob, E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x22-order-proc-before-data.cob",
+     "REPLACE outside divisions": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x22-order-control.cob (REPLACE before IDENTIFICATION DIVISION accepted, W=OK)",
+     "end program header outside divisions": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x22-end-by-end-header.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.2.2 p1",
+      "quote": "grouped into four divisions which are sequenced in the following order",
+      "check": "OK  §1985:X.2.2 p1  (║2.2 ORGANIZATION║)  the text is in p1"
+     }
+    ],
+    "reason": "No candidate (GR-14.9.4.4-3, RV-15.65.4-6, GR-8.4.3.13.4-2) states the division order; the probes witness it at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x22-order-data-before-env.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x22-order-control.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x22-order-data-before-env.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x22-order-proc-before-data.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.2.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "end of a source program indicated by the end program header",
+     "or by the absence of further source lines"
+    ],
+    "evidence-1985": {
+     "end program header": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x22-end-by-end-header.cob (X22A ends at END PROGRAM X22A; output A, B)",
+     "absence of lines": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x22-end-by-end-header.cob (X22B has no end program header and ends at end of file)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.2.2 p2",
+      "quote": "or by the absence of additional source program lines",
+      "check": "OK  §1985:X.2.2 p2  (║2.2 ORGANIZATION║)  the text is in p2"
+     }
+    ],
+    "reason": "Candidates do not state how a program ends; the probe shows both ends at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x22-end-by-end-header.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x22-end-by-end-header.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-X.2.3-p1",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "introduces the general format X.2.3.1 and defines the generic terms used in it (presentation)"
+    ],
+    "evidence-1985": {
+     "format itself": "separate row 1985-FMT-X.2.3.1 (case conformance-suite/cases/X.2.3@1985-STRUCTURE/1985-FMT-X_2_3_1)",
+     "generic-term definitions": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.2.3 p1",
+      "quote": "The following gives the general format and order of presentation",
+      "check": "OK  §1985:X.2.3 p1  (║2.3 STRUCTURE║)  the text is in p1"
+     }
+    ],
+    "reason": "The paragraph only says \"The following gives the general format\" and names what the generic terms \"represent\"; no derivation arm fits a rule about the standard's own presentation. The format it introduces is its own row with its own 85 case.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the paragraph states how the standard presents the format; the format is row 1985-FMT-X.2.3.1",
+    "class": "definitional",
+    "needs": "a ruling whether a format-introduction paragraph is closed by its FMT row or by a presentation derivation",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the Linkage Section is in the Data Division",
+     "it appears in the called program and describes data referred to by caller and callee"
+    ],
+    "evidence-1985": {
+     "placement and use": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x41-linkage-77-using.cob (CALLEE L-N=123 L-S=AB, CALLER W-N=124) and case conformance-suite/cases/13.7-Linkage-section/l1c17_linkage_index_separate (85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.1 p1",
+      "quote": "The Linkage Section appears in the called program",
+      "check": "OK  §1985:X.4.1 p1  (4.1 LINKAGE SECTION)  the text is in p1"
+     }
+    ],
+    "reason": "Catalog-definitional but showable by any called program with a Linkage Section; candidates (DOC-A.1-116 etc.) are about non-COBOL callers and do not state it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x41-linkage-77-using.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x41-linkage-77-using.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.4.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Linkage Section meaningful when the program runs under a CALL with USING",
+     "not meaningful otherwise (no observable consequence defined)"
+    ],
+    "evidence-1985": {
+     "CALL ... USING gives meaning": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x41-linkage-77-using.cob",
+     "otherwise not meaningful": "not shown (consequence undefined, see row 1985-GR-X.4.1-p6)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.1 p2",
+      "quote": "meaningful if and only if the object program is to function under the control of a CALL statement",
+      "check": "OK  §1985:X.4.1 p2  (4.1 LINKAGE SECTION)  the text is in p2"
+     }
+    ],
+    "reason": "GR-13.7.4-3 states the same \"if and only if\" but has no at-85 case, so it cannot be a SAME pointer; the positive half is witnessed by the probe.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x41-linkage-77-using.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x41-linkage-77-using.cob (positive half)",
+    "class": "other: GR-13.7.4-3 states it but is unwitnessed at 85",
+    "needs": "an 85 case for GR-13.7.4-3 (then SAME) or the probe placed as own witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.4.1-p3",
+    "to": [
+     "GR-13.7.4-2"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "Linkage Section data is available through the caller and referred to by both",
+     "correspondence mechanism given by the Procedure Division header and CALL",
+     "index-names never correspond: separate indices"
+    ],
+    "evidence-1985": {
+     "data correspondence": "covered by conformance-suite/cases/13.7-Linkage-section/l1c17_linkage_index_separate (85 accepted: CALLER-5=Z)",
+     "index-names separate": "covered by the same case (CALLER-IX=C, CALLER-IX2=D)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.1 p3",
+      "quote": "index-names in the called and calling programs always refer to separate indices",
+      "check": "OK  §1985:X.4.1 p3  (4.1 LINKAGE SECTION)  the text is in p3"
+     },
+     {
+      "cite": "§2023:13.7.4 GR2",
+      "quote": "index-names in the activated and activating source elements always refer to separate indices",
+      "check": "OK  §2023:13.7.4 GR2  (General rules)  the text is in GR2"
+     }
+    ],
+    "reason": "GR-13.7.4-2 restates the 1985 paragraph (mechanism pointer and \"index-names ... always refer to separate indices\"); its at-85 case l1c17_linkage_index_separate passes a table BY REFERENCE and shows both the data correspondence and the separate indices.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/13.7-Linkage-section/l1c17_linkage_index_separate",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.4.1-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "effect of accessing Linkage data in a program that is not a called program"
+    ],
+    "evidence-1985": {
+     "undefined effect": "not shown (undefined by the rule)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.1 p6",
+      "quote": "is accessed in a program which is not a called program, the effect is undefined",
+      "check": "OK  §1985:X.4.1 p6  (4.1 LINKAGE SECTION)  the text is in p6"
+     }
+    ],
+    "reason": "The rule's only consequence is \"the effect is undefined\"; no program can show a required behaviour.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the rule defines no behaviour to observe (\"the effect is undefined\")",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "undefined-in-rule",
+     "names": "If a data item in the Linkage Section is accessed in a program which is not a called program, the effect is undefined"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-X.4.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "noncontiguous Linkage items need not be grouped into records",
+     "each is a separate entry beginning with level-number 77"
+    ],
+    "evidence-1985": {
+     "77 items in Linkage, ungrouped": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x41-linkage-77-using.cob and golden E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-linkage-77-required-clauses-85 (PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.1.1 p1",
+      "quote": "begins with the special level-number 77",
+      "check": "OK  §1985:X.4.1.1 p1  (4.1.1 Noncontiguous Linkage Storage)  the text is in p1"
+     }
+    ],
+    "reason": "No candidate states the 77-level Linkage form; SR-13.18.33.3-5 lists permitted level-numbers only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x41-linkage-77-using.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x41-linkage-77-using.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-X.4.1.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "each noncontiguous Linkage entry requires: level-number 77, data-name, PICTURE or USAGE IS INDEX (items are rows -1..-3)"
+    ],
+    "evidence-1985": {
+     "required clauses present": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-linkage-77-required-clauses-85 (PASS)",
+     "missing PICTURE refused": "covered by golden pb5924-linkage-77-no-picture-85 (PASS)",
+     "missing data-name / FILLER refused": "covered by goldens pb5924-linkage-77-no-name-85, pb5924-linkage-77-filler-85 (PASS)",
+     "USAGE IS INDEX alternative": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x411-optional-clauses.cob (77 L-I USAGE IS INDEX; L-I=2)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.1.1 p2",
+      "quote": "The following data clauses are required in each data description entry",
+      "check": "OK  §1985:X.4.1.1 p2  (4.1.1 Noncontiguous Linkage Storage)  the text is in p2"
+     }
+    ],
+    "reason": "No 2023 rule requires these clauses for 77 Linkage items; the prose85 goldens pass on the mint build.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-linkage-77-no-picture-85.cob",
+    "compiler-at-1985": "correct: goldens pb5924-linkage-77-*-85; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x411-optional-clauses.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-X.4.1.1-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a data-name is required in each 77 Linkage entry (no FILLER, no omission)"
+    ],
+    "evidence-1985": {
+     "data-name required": "covered by goldens E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-linkage-77-no-name-85 and pb5924-linkage-77-filler-85 (PASS, refused) with control pb5924-linkage-77-required-clauses-85 (PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.1.1 SR2",
+      "quote": "",
+      "check": "OK  §1985:X.4.1.1 SR2 (structure only) ok"
+     }
+    ],
+    "reason": "List item \"2. data-name\" under \"The following data clauses are required\"; no 2023 candidate requires it; the goldens refuse FILLER and an omitted name at 85.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-linkage-77-no-name-85.cob",
+    "compiler-at-1985": "correct: goldens pb5924-linkage-77-no-name-85, pb5924-linkage-77-filler-85",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-X.4.1.1-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "grant: other data description clauses are optional on 77 Linkage entries"
+    ],
+    "evidence-1985": {
+     "USAGE COMP, SYNC, 88 condition": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x411-optional-clauses.cob (L-C NEG)",
+     "JUSTIFIED": "covered by same (L-J=[AB  ])",
+     "BLANK WHEN ZERO": "covered by same (L-Z=[   ])",
+     "SIGN LEADING SEPARATE": "covered by same (L-G=-007)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.1.1 p3",
+      "quote": "Other data description clauses are optional",
+      "check": "OK  §1985:X.4.1.1 p3  (4.1.1 Noncontiguous Linkage Storage)  the text is in p3"
+     }
+    ],
+    "reason": "A grant needs an accepted program: the probe declares 77 Linkage items with USAGE, SYNC, JUSTIFIED, BLANK WHEN ZERO, SIGN and an 88 and runs; no candidate states it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x411-optional-clauses.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x411-optional-clauses.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-X.4.1.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "hierarchically related Linkage items must form records",
+     "unrelated items may be single-elementary records"
+    ],
+    "evidence-1985": {
+     "grouped records": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-linkage-record-grouped-85 (PASS)",
+     "77 cannot be subdivided": "covered by golden pb5924-linkage-77-subdivided-85 (PASS, refused)",
+     "single elementary 01": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x51-six-using.cob (01 L1..L6 PIC X)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.1.2 p1",
+      "quote": "must be grouped into records according to the rules for formation of record descriptions",
+      "check": "OK  §1985:X.4.1.2 p1  (4.1.2 Linkage Records)  the text is in p1"
+     }
+    ],
+    "reason": "No candidate states the Linkage record rule; goldens and the probe witness it at 85.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-linkage-record-grouped-85.cob",
+    "compiler-at-1985": "correct: goldens pb5924-linkage-record-grouped-85, pb5924-linkage-77-subdivided-85",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.4.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "FD determines internal/external attribute of the file connector, its records and data items",
+     "FD determines local/global file-name"
+    ],
+    "evidence-1985": {
+     "external file connector and record": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x42-43-external-global.cob (B writes EREC on A's open EXTERNAL connector; A READ ER1=EREC)",
+     "global file-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x42-43-external-global.cob (nested X42N writes GF; A READ GR1=GREC) and E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-file-global.cob",
+     "local file-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-file-noglobal.cob (refused)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.2.1 p1",
+      "quote": "determines the internal or external attributes of a file connector",
+      "check": "OK  §1985:X.4.2.1 p1  (4.2.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "Candidates SR-13.4.5.3-5/-7 are FD format rows; GR-13.18.22.4-4 has no 85 case; none states the 1985 function paragraph with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x42-43-external-global.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x42-43-external-global.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.4.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a level 01 entry in Working-Storage or File Section determines local or global names of the record and its subordinates"
+    ],
+    "evidence-1985": {
+     "WS 01 global with subordinate": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x42-43-external-global.cob (N WG1=GLB1)",
+     "FS record global with subordinate": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x42-43-external-global.cob (GR1 written by nested program)",
+     "local subordinates not visible": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x43-local-sub-not-visible.cob (WS, refused) and E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x43-local-fs-sub-not-visible.cob (FS, refused)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.3.1 p1",
+      "quote": "determines whether the data record and its subordinate data items have local names",
+      "check": "OK  §1985:X.4.3.1 p1  (4.3.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "No candidate states that the 01 entry fixes local/global for the record and its subordinates; probes witness both sections at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x43-local-sub-not-visible.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x42-43-external-global.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x43-local-sub-not-visible.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x43-local-fs-sub-not-visible.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.4.3.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a level 01 Working-Storage entry determines the internal or external attribute of the record and its subordinates"
+    ],
+    "evidence-1985": {
+     "external WS record shared by separately compiled programs": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x42-43-external-global.cob (B WX1=EXT1; A ... WX1=EXT2)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.3.1 p2",
+      "quote": "determines the internal or external attribute of the data record and its subordinate data items",
+      "check": "OK  §1985:X.4.3.1 p2  (4.3.1 Function)  the text is in p2"
+     }
+    ],
+    "reason": "Candidates (SR-13.16.3-16, SR-13.18.38.3-21, SR-13.16.3-5) are other rules; the probe shows an EXTERNAL 01 subordinate shared at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x42-43-external-global.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x42-43-external-global.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.4.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the RD entry determines whether a report-name is local or global"
+    ],
+    "evidence-1985": {
+     "global": "covered by conformance-suite/cases/X.4.4@1985-REPORT-DESCRIPTION-ENTRY-IN-THE-INTER/1985-FMT-X_4_4_2 (85) and E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-report-global.cob",
+     "local": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-report-noglobal.cob (refused COBOL1757)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.4.1 p1",
+      "quote": "determines whether a report-name is a local name or a global name",
+      "check": "OK  §1985:X.4.4.1 p1  (4.4.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "Candidates SR-13.15.3-1/-4 and SR-14.9.16.3-3 are other rules; probes show both attributes at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-report-noglobal.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-report-global.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x13882-p1-report-noglobal.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-X.5.1-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "data-name-1 is a level 01/77 Linkage item",
+     "no duplicate data-name-1",
+     "data-name-1 entry has no REDEFINES",
+     "grant: data-name-1 may be the object of a REDEFINES elsewhere"
+    ],
+    "evidence-1985": {
+     "01/77 in Linkage": "covered by goldens pb5924-proc-div-using-working-storage-85, pb5924-proc-div-using-level-05-85 (refused) and pb5924-proc-div-using-ok-85 (PASS)",
+     "no duplicate": "covered by golden pb5924-proc-div-using-duplicate-85 (PASS)",
+     "no REDEFINES": "covered by golden pb5924-proc-div-using-redefines-85 (PASS)",
+     "object of REDEFINES": "covered by golden pb5924-proc-div-using-ok-85 (PASS) and case conformance-suite/cases/13.7-Linkage-section/pb1249_linkage_referenceable_legs (85, L-A2 REDEFINES L-A)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.5.1 p4",
+      "quote": "A particular user-defined word may not appear more than once as data-name-1",
+      "check": "OK  §1985:X.5.1 p4  (5.1 THE PROCEDURE DIVISION HEADER)  the text is in p4"
+     }
+    ],
+    "reason": "SR-14.2.2-1 states the same requirement (plus BASED) but has no at-85 case, so it cannot be a SAME pointer; the prose85 goldens all pass on the mint build.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-12/goldens/pb5924-proc-div-using-duplicate-85.cob",
+    "compiler-at-1985": "correct: goldens pb5924-proc-div-using-*-85",
+    "class": "other: SR-14.2.2-1 states it but is unwitnessed at 85",
+    "needs": "an 85 case for SR-14.2.2-1 (then SAME) or the goldens placed as own witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.5.1-4",
+    "to": [
+     "SR-13.7.3-4"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "Linkage items referenceable iff: (a) USING operands, (b) subordinate to them, (c) REDEFINES/RENAMES of them, (d) subordinate to (c), (e) their condition-names and index-names"
+    ],
+    "evidence-1985": {
+     "legs a-e accepted": "covered by conformance-suite/cases/13.7-Linkage-section/pb1249_linkage_referenceable_legs (85 accepted)",
+     "only-if (refusal)": "covered by conformance-suite/cases/X.5@1985-PROCEDURE-DIVISION-IN-THE-INTER-PROGRAM/pb5846-linkage-subscript-not-referenceable, pb5846-linkage-refmod-not-referenceable, pb5876-linkage-odo-object-not-referenceable (85) and probe run x411-optional-clauses-002 (COBOL2746 on L-T not in USING)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.5.1 GR4",
+      "quote": "may be referenced within the Procedure Division of that program if, and only if",
+      "check": "OK  §1985:X.5.1 GR4  (5.1 THE PROCEDURE DIVISION HEADER)  the text is in GR4"
+     },
+     {
+      "cite": "§2023:13.7.3 SR4",
+      "quote": "may be referenced within the procedure division of that source element if, and only if",
+      "check": "OK  §2023:13.7.3 SR4  (Syntax rules)  the text is in SR4"
+     }
+    ],
+    "reason": "Reopened parent: what is left is rule 4 with items a-e (the \"In level 1 at least five\" paragraph is now row p6). SR-13.7.3-4 states the same if-and-only-if list (2023 adds RETURNING and BASED, unreachable at 85); its 85 case pb1249_linkage_referenceable_legs references every leg a-e.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/13.7-Linkage-section/pb1249_linkage_referenceable_legs",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-X.5.1-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "level 1 minimum: at least five data-names in the Procedure Division USING and the CALL USING"
+    ],
+    "evidence-1985": {
+     "five or more accepted and passed": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x51-six-using.cob (six operands: ARGS=123456)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.5.1 p6",
+      "quote": "at least five data-names must be permitted in the USING phrase",
+      "check": "OK  §1985:X.5.1 p6  (5.1 THE PROCEDURE DIVISION HEADER)  the text is in p6"
+     }
+    ],
+    "reason": "A minimum limit; no 2023 candidate states it; the probe passes six.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x51-six-using.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/x51-six-using.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XI.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "SORT orders records by user keys",
+     "MERGE combines identically ordered files",
+     "optional input/output procedures for SORT, output procedure for MERGE"
+    ],
+    "evidence-1985": {
+     "SORT with input+output procedures": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sort-merge.cob (SORT=C2B1A3, descending)",
+     "MERGE with output procedure": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sort-merge.cob (MERGE=A1B2C1D2)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XI.1.1 p1",
+      "quote": "Optionally, a user may apply some special processing to each of the individual records by input or output procedures",
+      "check": "OK  §1985:XI.1.1 p1  (1.1 FUNCTION)  the text is in p1"
+     }
+    ],
+    "reason": "Catalog-definitional module description but showable; candidates GR-14.9.24.4-4 / GR-14.9.40.4-3 cover ties and duplicates only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sort-merge.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sort-merge.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XI.1.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a sort file is built by RELEASE, sorted by SORT, read by RETURN",
+     "no programmer-controlled label procedures",
+     "blocking/storage peculiar to SORT; RELEASE/RETURN imply nothing about buffers"
+    ],
+    "evidence-1985": {
+     "RELEASE/SORT/RETURN": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sort-merge.cob and E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-control.cob",
+     "no label procedures": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-label-records.cob (refused COBOL1970) and E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-use-on-sortfile.cob (refused COBOL0897), control E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-control.cob",
+     "buffers/blocking": "not shown (no program observes buffer areas)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XI.1.2.1 p1",
+      "quote": "The sort file has no label procedures which the programmer can control",
+      "check": "OK  §1985:XI.1.2.1 p1  (1.2.1 Sort File)  the text is in p1"
+     }
+    ],
+    "reason": "Candidates (GR-14.9.40.4-6/-11/-14) cover procedure control flow, not the sort-file description.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-label-records.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sort-merge.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-label-records.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-use-on-sortfile.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XI.1.2.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a merge file is created from input files by MERGE and made available by RETURN",
+     "no programmer-controlled label procedures",
+     "buffers/blocking peculiar to MERGE"
+    ],
+    "evidence-1985": {
+     "MERGE/RETURN": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sort-merge.cob (MERGE=A1B2C1D2)",
+     "no label procedures": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-label-records.cob (SD grammar has no LABEL clause; the same SD entry serves merge files)",
+     "buffers/blocking": "not shown (no program observes buffer areas)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XI.1.2.2 p1",
+      "quote": "The merge file has no label procedures which the programmer can control",
+      "check": "OK  §1985:XI.1.2.2 p1  (1.2.2 Merge File)  the text is in p1"
+     }
+    ],
+    "reason": "Candidates cover MERGE ordering and file repetition only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sort-merge.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sort-merge.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XI.2.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a file control entry (SELECT ... ASSIGN) declares the sort or merge file's physical attributes"
+    ],
+    "evidence-1985": {
+     "SELECT required for an SD": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-no-select.cob (refused COBOL2636) with control E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-control.cob (GOT Z, SORTED)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XI.2.3.1 p1",
+      "quote": "The file control entry declares the relevant physical attributes of a sort or merge file",
+      "check": "OK  §1985:XI.2.3.1 p1  (2.3.1 Function)  the text is in p1"
+     },
+     {
+      "cite": "§1985:XI.2.3.3 SR1",
+      "quote": "Each sort or merge file described in the Data Division must be specified only once in the FILE-CONTROL paragraph",
+      "check": "OK  §1985:XI.2.3.3 SR1  (2.3.3 Syntax Rules)  the text is in SR1"
+     }
+    ],
+    "reason": "Candidates SR-12.4.5.2-9/-11 concern other file control formats; SR-13.4.5.3-1 has only a diagnosed 85 case for FD/SD without SELECT and is not this function statement.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-no-select.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-control.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-no-select.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-XI.3.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "SD entry: level indicator SD, file-name, independent clauses (record size, data record names)",
+     "no user-controlled label procedures",
+     "SD entry terminated by a period"
+    ],
+    "evidence-1985": {
+     "SD with RECORD and DATA RECORD clauses": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sort-merge.cob",
+     "no label clause": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-label-records.cob (refused)",
+     "terminating period": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-no-period.cob (refused COBOL0307) with control E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-control.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XI.3.1.1 p1",
+      "quote": "The sort-merge file description entry is terminated by a period",
+      "check": "OK  §1985:XI.3.1.1 p1  (3.1.1 Sort-Merge File Description Entry)  the text is in p1"
+     }
+    ],
+    "reason": "Candidates SR-12.4.5.2-9/-11/-13 are file control format rules; none describes the SD entry.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-no-period.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sort-merge.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-label-records.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16/src/xi-sd-no-period.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the named probe(s) as the row's own 1985 conformance case(s)",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "segmentation",
+    "row": "1985-SR-X.1.3.8.1-p1",
+    "what": "catalog box \"whole\" but only the CANCEL/end-program-header phrases and the same-name sentence are boxed; the first two sentences are level 1. Same for 1985-SR-X.1.3.8.2-p1 (only the \"except when ... global\" clause is boxed) and 1985-SR-X.2.3-p1 (the \"represent a COBOL ...\" tail lies outside the box)",
+    "repro": "sed -n 20008,20030p specs/ANSI_COBOL_1985.md in the mint tree",
+    "site": "docs/rearchitecture/spec-rule-catalog-1985.json"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-16",
+  "cases": [
+   {
+    "rule-id": "1985-GR-X.4.1-p3",
+    "verdict": "UPHELD",
+    "reason": "Strongest counter-reading tried: p3 reaches BY CONTENT (boxed X.5.1 GR1) as well as BY REFERENCE, and the witness passes only BY REFERENCE. But p3 itself only says Linkage data is 'available through the calling program' and defers the correspondence mechanism to X-25/X-27 (separate rows); its own requirement is the descriptive role plus 'index-names in the called and calling programs always refer to separate indices', which GR-13.7.4-2 restates. The pointer's at-85 case l1c17_linkage_index_separate (fixed form, accept [85, 2002]) shows the data correspond (CALLER-5=Z) and the indices do not (CALLER-IX=C, CALLEE2=B, CALLER-IX2=D); shared indices would print E. No 1985 form or module beyond the pointer's scope found.",
+    "citations": [
+     {
+      "cite": "§1985:X.4.1 p3",
+      "quote": "index-names in the called and calling programs always refer to separate indices",
+      "check": "OK  §1985:X.4.1 p3  (4.1 LINKAGE SECTION)  the text is in p3"
+     },
+     {
+      "cite": "§2023:13.7.4 GR2",
+      "quote": "index-names in the activated and activating source elements always refer to separate indices",
+      "check": "OK  §2023:13.7.4 GR2  (General rules)  the text is in GR2"
+     }
+    ],
+    "class": null,
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/13.7-Linkage-section/l1c17_linkage_index_separate"
+   },
+   {
+    "rule-id": "1985-GR-X.5.1-4",
+    "verdict": "OVERTURNED",
+    "reason": "The 1985 rule is 'if, and only if': the restriction half (a Linkage item not satisfying a-e may NOT be referenced) is its main force. The pointer SR-13.7.3-4 states it, but its only at-85 case, pb1249_linkage_referenceable_legs, is an accepted program exercising legs a-e (the 'if' half); its at-85 diagnosed-only list is empty, and the negative twins that witness the 'only if' half (cases/13.7-Linkage-section/pb1249-linkage-item-not-referenceable, -redefines-of-non-formal, -condition-name-not-referenceable, -index-name-not-referenceable) are source-format: free and so run at no 85. The reader's extra evidence (X.5@1985 pb5846/pb5876 cases about subscripts/refmod/ODO objects, and a run probe) is not the pointer's witness, and a SAME makes the pointer's case the row's only 85 witness. So the pointer's 85 case does not exercise the whole 1985 scope. The compiler is correct at 85: fixed-form probes refuse with COBOL2746 citing §1985:X.5.1 GR4 a non-USING record (neg-item), its subordinate (neg-sub), a REDEFINES of it (neg-redef), its condition-name (neg-cond) and its index-name (neg-index), while the one-line-changed control (ctrl) runs (0007 / OK). Work item: needs-own-witness; place these five refusals with the control (or a fixed-form 85 twin of the pb1249 negatives) as the row's own tests, beside pb1249_linkage_referenceable_legs for the accepted half.",
+    "citations": [
+     {
+      "cite": "§1985:X.5.1 GR4",
+      "quote": "may be referenced within the Procedure Division of that program if, and only if",
+      "check": "OK  §1985:X.5.1 GR4  (5.1 THE PROCEDURE DIVISION HEADER)  the text is in GR4"
+     },
+     {
+      "cite": "§2023:13.7.3 SR4",
+      "quote": "may be referenced within the procedure division of that source element if, and only if",
+      "check": "OK  §2023:13.7.3 SR4  (Syntax rules)  the text is in SR4"
+     }
+    ],
+    "class": "other: the pointer states the rule but its 85 witness covers only the 'if' half; the 'only if' refusals have no 85 pointer case",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/neg-item.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/neg-sub.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/neg-redef.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/neg-cond.cob; E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/neg-index.cob; control E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/ctrl.cob (runs E:/COBOL-coord/scratch/pb5453/runs/*-002)",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/neg-item.cob, neg-sub.cob, neg-redef.cob, neg-cond.cob, neg-index.cob refused COBOL2746 (§1985:X.5.1 GR4); control ctrl.cob EXIT 0 printing 0007 / OK"
+   }
+  ],
+  "disputed-different": []
+ },
+ "derivation-refute": {
+  "slice": "s-16",
+  "cases": [
+   {
+    "rule-id": "1985-GR-X.4.1-p6",
+    "arm": "undefined-in-rule",
+    "verdict": "UPHELD",
+    "attempt": "E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/p6-main-using.cob: a main (not called) program with PROCEDURE DIVISION USING L-A that DISPLAYs L-A; at --std 85 it compiles and runs (BEFORE / 0000 / AFTER, run p6-main-using-001). Also considered a main program with no USING: X.5.1 GR4 already refuses that reference (another row), so the antecedent is reached only through a USING header run as main.",
+    "reason": "The rule's only consequent is 'the effect is undefined' (quotation checked: OK §1985:X.4.1 p6). Any outcome of the attempted program, including the observed 0000, conforms, so no program can witness a required behaviour; the quotation of the row's own text contains 'undefined' and is 4+ words. No other 1985 requirement hangs on this antecedent.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/p6-main-using.cob"
+   }
+  ]
+ },
+ "imported": {
+  "asked": "9f4c6d6dfa2585cd1d732481a880ab0c675ab24e9799bab85f8dff12bc1f440c",
+  "derivation-refute": "4a6a818b5f2425bf9f42872d2fde57be328714324988362144ee65f412e02014",
+  "read": "f03600516cb60e73dc3b4b56efceaf59e09cd4c8fd661ba73f68c731717177ed",
+  "refute": "789f714acb04d7685baa6489b33a614fe4741065390aebedffeb74ff5d4cff85"
+ }
+}

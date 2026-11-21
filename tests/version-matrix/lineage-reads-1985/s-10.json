@@ -1,0 +1,1452 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-10 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-10",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-10",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-VI.6.3-p1",
+   "1985-GR-VI.6.3.1-p1",
+   "1985-SR-VI.6.3.1.1-p1",
+   "1985-SR-VI.6.3.1.1-p3",
+   "1985-SR-VI.6.3.1.1-p4",
+   "1985-GR-VI.6.3.1.1-T1.1",
+   "1985-GR-VI.6.3.1.1-T1.2",
+   "1985-GR-VI.6.3.1.1-T1.3",
+   "1985-GR-VI.6.3.1.1-T1.4",
+   "1985-GR-VI.6.3.1.1-T1.5",
+   "1985-GR-VI.6.3.1.1.1-p1",
+   "1985-GR-VI.6.3.1.1.1-p2",
+   "1985-SR-VI.6.3.1.1.2-3",
+   "1985-GR-VI.6.3.1.1.2-p2",
+   "1985-SR-VI.6.3.1.1.3-p1",
+   "1985-GR-VI.6.3.1.2-p1",
+   "1985-GR-VI.6.3.1.2-5",
+   "1985-SR-VI.6.3.1.2-p3",
+   "1985-GR-VI.6.3.1.2-p4",
+   "1985-GR-VI.6.3.1.2-p5",
+   "1985-GR-VI.6.3.1.2-p6",
+   "1985-GR-VI.6.3.1.2-p7",
+   "1985-GR-VI.6.3.1.2-p8",
+   "1985-SR-VI.6.3.1.2-p9",
+   "1985-GR-VI.6.3.1.3-p1",
+   "1985-GR-VI.6.3.1.3-p2",
+   "1985-GR-VI.6.3.1.3-p3",
+   "1985-SR-VI.6.3.1.4-p1",
+   "1985-GR-VI.6.3.1.4-p2",
+   "1985-GR-VI.6.3.1.5-p1",
+   "1985-GR-VI.6.3.1.5-p2"
+  ],
+  "pointers": {
+   "1985-GR-VI.6.3-p1": {
+    "candidates-2023": [
+     "SR-14.9.37.3-6",
+     "GR-14.9.37.4-2",
+     "GR-7.3.8.3-1"
+    ],
+    "nearest-2023": "SR-14.9.37.3-6",
+    "similarity": 0.435
+   },
+   "1985-GR-VI.6.3.1-p1": {
+    "candidates-2023": [
+     "GR-8.8.4.4.4-1",
+     "GR-8.8.4.4.4-2",
+     "GR-8.8.4.2.1-5"
+    ],
+    "nearest-2023": "GR-8.8.4.4.4-1",
+    "similarity": 0.488
+   },
+   "1985-SR-VI.6.3.1.1-p1": {
+    "candidates-2023": [
+     "GR-8.8.4.2.1-1",
+     "GR-8.8.4.2.7-2",
+     "GR-8.8.4.2.1-5"
+    ],
+    "nearest-2023": "GR-8.8.4.2.1-1",
+    "similarity": 0.487
+   },
+   "1985-SR-VI.6.3.1.1-p3": {
+    "candidates-2023": [
+     "GR-14.9.39.4-2",
+     "GR-14.9.4.4-3",
+     "GR-8.8.4.2.1-13"
+    ],
+    "nearest-2023": "GR-14.9.39.4-2",
+    "similarity": 0.354
+   },
+   "1985-SR-VI.6.3.1.1-p4": {
+    "candidates-2023": [
+     "SR-8.7.5.2-10",
+     "SR-8.7.5.2-9",
+     "SR-14.9.41.3-3"
+    ],
+    "nearest-2023": "SR-8.7.5.2-10",
+    "similarity": 0.567
+   },
+   "1985-GR-VI.6.3.1.1-T1.1": {
+    "candidates-2023": [
+     "FMT-8.7.5.1",
+     "SR-13.18.38.3-16",
+     "SR-8.7.5.2-4"
+    ],
+    "nearest-2023": "FMT-8.7.5.1",
+    "similarity": 0.558
+   },
+   "1985-GR-VI.6.3.1.1-T1.2": {
+    "candidates-2023": [
+     "FMT-8.7.5.1",
+     "SR-8.7.5.2-6",
+     "RV-15.75.4-1"
+    ],
+    "nearest-2023": "FMT-8.7.5.1",
+    "similarity": 0.564
+   },
+   "1985-GR-VI.6.3.1.1-T1.3": {
+    "candidates-2023": [
+     "FMT-8.7.5.1",
+     "FMT-8.8.4.2.2",
+     "AR-15.8.3-2"
+    ],
+    "nearest-2023": "FMT-8.7.5.1",
+    "similarity": 0.54
+   },
+   "1985-GR-VI.6.3.1.1-T1.4": {
+    "candidates-2023": [
+     "FMT-8.7.5.1",
+     "AR-15.8.3-2",
+     "AR-15.10.3-2"
+    ],
+    "nearest-2023": "FMT-8.7.5.1",
+    "similarity": 0.601
+   },
+   "1985-GR-VI.6.3.1.1-T1.5": {
+    "candidates-2023": [
+     "FMT-8.7.5.1",
+     "AR-15.8.3-2",
+     "AR-15.10.3-2"
+    ],
+    "nearest-2023": "FMT-8.7.5.1",
+    "similarity": 0.607
+   },
+   "1985-GR-VI.6.3.1.1.1-p1": {
+    "candidates-2023": [
+     "GR-8.8.4.2.7-2",
+     "GR-8.8.4.2.10-2",
+     "GR-8.8.4.2.8-2"
+    ],
+    "nearest-2023": "GR-8.8.4.2.7-2",
+    "similarity": 0.394
+   },
+   "1985-GR-VI.6.3.1.1.1-p2": {
+    "candidates-2023": [
+     "GR-8.8.4.2.7-2",
+     "GR-7.3.8.3-2",
+     "GR-8.8.4.2.10-2"
+    ],
+    "nearest-2023": "GR-8.8.4.2.7-2",
+    "similarity": 0.452
+   },
+   "1985-SR-VI.6.3.1.1.2-3": {
+    "candidates-2023": [
+     "GR-8.8.4.2.1-13",
+     "GR-8.8.4.2.7-1",
+     "GR-8.8.4.2.1-6",
+     "GR-8.8.4.2.7-2",
+     "GR-8.8.4.2.1-11",
+     "GR-8.8.4.2.1-1",
+     "GR-8.8.4.2.1-7",
+     "SR-8.8.2-5",
+     "GR-14.8.3.3-L3.5",
+     "GR-14.9.25.4-6"
+    ],
+    "nearest-2023": "GR-8.8.4.2.1-13",
+    "similarity": 0.192
+   },
+   "1985-GR-VI.6.3.1.1.2-p2": {
+    "candidates-2023": [
+     "GR-8.8.4.2.7-1",
+     "GR-8.8.4.2.7-2",
+     "GR-8.8.4.2.1-13",
+     "GR-13.18.40.4-14",
+     "GR-8.8.4.2.1-11",
+     "GR-8.8.4.2.1-1",
+     "GR-14.9.25.4-6",
+     "GR-8.8.4.2.10-1",
+     "SR-8.4.3.10.3-1"
+    ],
+    "nearest-2023": "GR-8.8.4.2.7-1",
+    "similarity": 0.309
+   },
+   "1985-SR-VI.6.3.1.1.3-p1": {
+    "candidates-2023": [
+     "GR-8.8.4.2.13-1",
+     "GR-8.8.4.2.13-3",
+     "GR-8.8.4.2.13-2",
+     "SR-8.8.4.12.3-1",
+     "SR-8.8.4.12.1-1",
+     "SR-8.8.4.12.1-2"
+    ],
+    "nearest-2023": "GR-8.8.4.2.13-1",
+    "similarity": 0.177
+   },
+   "1985-GR-VI.6.3.1.2-p1": {
+    "candidates-2023": [
+     "GR-8.8.4.4.4-3",
+     "GR-8.8.4.4.4-1",
+     "GR-8.8.4.4.4-2",
+     "SR-8.8.4.4.3-4",
+     "GR-13.18.11.4-3",
+     "FMT-13.18.11.2"
+    ],
+    "nearest-2023": "GR-8.8.4.4.4-3",
+    "similarity": 0.325
+   },
+   "1985-GR-VI.6.3.1.2-5": {
+    "candidates-2023": [
+     "SR-8.8.4.4.3-4",
+     "SR-8.8.4.4.3-3",
+     "FMT-8.8.4.4.2",
+     "GR-8.8.4.4.4-3",
+     "SR-8.8.4.4.3-8",
+     "GR-8.8.4.4.4-1",
+     "FMT-13.18.11.2",
+     "GR-12.3.7.4-12",
+     "GR-12.3.6.4-7"
+    ],
+    "nearest-2023": "SR-8.8.4.4.3-4",
+    "similarity": 0.584
+   },
+   "1985-SR-VI.6.3.1.2-p3": {
+    "candidates-2023": [
+     "GR-8.8.4.4.4-1",
+     "GR-8.8.4.4.4-3",
+     "GR-8.8.4.4.4-2",
+     "SR-8.8.4.4.3-8",
+     "SR-8.8.4.4.3-3",
+     "GR-8.4.3.3.4-2"
+    ],
+    "nearest-2023": "GR-8.8.4.4.4-1",
+    "similarity": 0.476
+   },
+   "1985-GR-VI.6.3.1.2-p4": {
+    "candidates-2023": [
+     "GR-8.8.4.4.4-1",
+     "GR-8.8.4.4.4-3",
+     "GR-8.8.4.4.4-2",
+     "SR-14.9.28.3-1",
+     "GR-8.8.4.8.4-2",
+     "GR-13.18.11.4-3"
+    ],
+    "nearest-2023": "GR-8.8.4.4.4-1",
+    "similarity": 0.559
+   },
+   "1985-GR-VI.6.3.1.2-p5": {
+    "candidates-2023": [
+     "GR-8.8.4.4.4-3",
+     "GR-8.8.4.4.4-1",
+     "GR-8.8.4.4.4-2",
+     "GR-13.18.52.4-4",
+     "GR-13.18.52.4-5",
+     "GR-13.18.55.4-7"
+    ],
+    "nearest-2023": "GR-8.8.4.4.4-3",
+    "similarity": 0.37
+   },
+   "1985-GR-VI.6.3.1.2-p6": {
+    "candidates-2023": [
+     "GR-8.8.4.4.4-3",
+     "GR-8.8.4.4.4-1",
+     "GR-8.8.4.4.4-2",
+     "GR-8.8.4.7.4-2",
+     "AR-15.3-1",
+     "SR-14.9.28.3-1"
+    ],
+    "nearest-2023": "GR-8.8.4.4.4-3",
+    "similarity": 0.519
+   },
+   "1985-GR-VI.6.3.1.2-p7": {
+    "candidates-2023": [
+     "GR-8.8.4.4.4-3",
+     "GR-8.8.4.4.4-1",
+     "GR-8.8.4.4.4-2",
+     "GR-8.8.4.7.4-2",
+     "SR-14.9.28.3-1",
+     "SR-8.8.4.4.3-4"
+    ],
+    "nearest-2023": "GR-8.8.4.4.4-3",
+    "similarity": 0.533
+   },
+   "1985-GR-VI.6.3.1.2-p8": {
+    "candidates-2023": [
+     "GR-8.8.4.4.4-3",
+     "GR-8.8.4.4.4-1",
+     "GR-8.8.4.4.4-2",
+     "GR-8.8.4.7.4-2",
+     "SR-14.9.28.3-1",
+     "SR-8.8.4.4.3-4"
+    ],
+    "nearest-2023": "GR-8.8.4.4.4-3",
+    "similarity": 0.533
+   },
+   "1985-SR-VI.6.3.1.2-p9": {
+    "candidates-2023": [
+     "GR-8.8.4.4.4-1",
+     "GR-8.8.4.4.4-3",
+     "GR-8.8.4.4.4-2",
+     "SR-8.8.4.4.3-8",
+     "SR-8.8.4.4.3-4",
+     "SR-13.18.60.3-3"
+    ],
+    "nearest-2023": "GR-8.8.4.4.4-1",
+    "similarity": 0.184
+   },
+   "1985-GR-VI.6.3.1.3-p1": {
+    "candidates-2023": [
+     "GR-8.8.4.5.3-1",
+     "FMT-8.8.4.5.2",
+     "GR-8.8.4.5.3-3"
+    ],
+    "nearest-2023": "GR-8.8.4.5.3-1",
+    "similarity": 0.662
+   },
+   "1985-GR-VI.6.3.1.3-p2": {
+    "candidates-2023": [
+     "GR-8.8.4.5.3-1",
+     "GR-8.8.4.5.3-3",
+     "SR-14.9.39.3-6"
+    ],
+    "nearest-2023": "GR-8.8.4.5.3-1",
+    "similarity": 0.792
+   },
+   "1985-GR-VI.6.3.1.3-p3": {
+    "candidates-2023": [
+     "GR-8.8.4.5.3-2",
+     "FMT-8.8.4.5.2",
+     "GR-13.18.63.4-19"
+    ],
+    "nearest-2023": "GR-8.8.4.5.3-2",
+    "similarity": 0.9
+   },
+   "1985-SR-VI.6.3.1.4-p1": {
+    "candidates-2023": [
+     "GR-14.9.39.4-5",
+     "GR-12.3.7.4-2",
+     "FMT-8.8.4.6.2"
+    ],
+    "nearest-2023": "GR-14.9.39.4-5",
+    "similarity": 0.506
+   },
+   "1985-GR-VI.6.3.1.4-p2": {
+    "candidates-2023": [
+     "GR-8.8.4.6.3-1",
+     "GR-8.8.4.5.3-3",
+     "GR-14.9.28.4-10"
+    ],
+    "nearest-2023": "GR-8.8.4.6.3-1",
+    "similarity": 0.869
+   },
+   "1985-GR-VI.6.3.1.5-p1": {
+    "candidates-2023": [
+     "RV-15.81.4-1",
+     "FMT-8.7.5.1",
+     "RV-15.75.4-1"
+    ],
+    "nearest-2023": "RV-15.81.4-1",
+    "similarity": 0.505
+   },
+   "1985-GR-VI.6.3.1.5-p2": {
+    "candidates-2023": [
+     "GR-8.8.4.7.4-1",
+     "RV-15.81.4-1",
+     "RV-15.75.4-1"
+    ],
+    "nearest-2023": "GR-8.8.4.7.4-1",
+    "similarity": 0.521
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-10",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-VI.6.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "conditional expressions in IF",
+     "in EVALUATE (WHEN)",
+     "in PERFORM UNTIL",
+     "in SEARCH WHEN",
+     "simple and complex conditions enclosed in any number of paired parentheses keep their category"
+    ],
+    "evidence-1985": {
+     "IF": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob R1-R8 (run E:/COBOL-coord/scratch/pb5453/runs/s10_cond_contexts-001)",
+     "EVALUATE": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob E1",
+     "PERFORM UNTIL": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob U1",
+     "SEARCH WHEN": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob S1",
+     "paired parentheses (simple and complex)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob R1-R7 (double and quadruple parentheses)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3 p1",
+      "check": "OK  §1985:VI.6.3 p1  (6.3 CONDITIONAL EXPRESSIONS)  the text is in p1",
+      "quote": "Conditional expressions are specified in the EVALUATE, IF, PERFORM, and SEARCH statements"
+     }
+    ],
+    "reason": "1985: 'Conditional expressions are specified in the EVALUATE, IF, PERFORM, and SEARCH statements' and each condition 'may be enclosed within any number of paired parentheses, in which case its category is not changed'. The candidates (SR-14.9.37.3-6, GR-14.9.37.4-2, GR-7.3.8.3-1) state only the SEARCH condition or the complex-condition evaluation; none states the whole paragraph with an 85 witness. The probe runs every statement context and nested parentheses at 85 and matches its expected output.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob (EXPECT: MATCH, run E:/COBOL-coord/scratch/pb5453/runs/s10_cond_contexts-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the five simple conditions: relation, class, condition-name, switch-status, sign",
+     "parenthesized simple conditions keep their truth value"
+    ],
+    "evidence-1985": {
+     "relation": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob R1",
+     "class (incl. class-name)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob R2, R6",
+     "condition-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob R3",
+     "switch-status": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob R4",
+     "sign": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob R5",
+     "parentheses do not change truth value": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob R1-R6 (each in nested parentheses)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1 p1",
+      "check": "OK  §1985:VI.6.3.1 p1  (6.3.1 Simple Conditions)  the text is in p1",
+      "quote": "The inclusion in parentheses of simple conditions does not change the simple condition truth value"
+     }
+    ],
+    "reason": "1985 names exactly five simple conditions and says 'The inclusion in parentheses of simple conditions does not change the simple condition truth value'. The candidates are class-condition rules (GR-8.8.4.4.4-1/-2) and a national comparison (GR-8.8.4.2.1-5), none with an 85 case and none stating this. The probe evaluates each of the five kinds in nested parentheses at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob (EXPECT: MATCH)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "operands: identifier, literal, arithmetic expression, index-name",
+     "true if the relation exists",
+     "two numeric operands compare regardless of USAGE",
+     "all other comparisons require the same usage (refusal)",
+     "a group operand takes the nonnumeric rules"
+    ],
+    "evidence-1985": {
+     "operand kinds": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob O1-O5",
+     "numeric across usages": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob N1, N2 and golden E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-rel-usage-same-85 (PASS)",
+     "same usage otherwise": "covered by goldens E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-rel-usage-comp-alnum-85 and pb5924-rel-usage-index-alnum-85 (refused, PASS) beside pb5924-rel-usage-same-85 (accepted)",
+     "group operand nonnumeric rules": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob G1, G2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1 p1",
+      "check": "OK  §1985:VI.6.3.1.1 p1  (6.3.1.1 Relation Condition)  the text is in p1",
+      "quote": "for all other comparisons, the operands must have the same usage"
+     }
+    ],
+    "reason": "1985: 'Comparison of two numeric operands is permitted regardless of the formats specified in their respective USAGE clauses. However, for all other comparisons, the operands must have the same usage.' 2023 has no same-usage restriction (it pairs classes, GR-8.8.4.2.1-*), so no pointer states the 1985 scope. The prose85 goldens (refusals with an accepted control) PASS on the mint build and the probe covers the operand kinds and the group rule.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob (EXPECT: MATCH) and goldens pb5924-rel-usage-{same,comp-alnum,index-alnum}-85 PASS",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.1.1-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "subject/object naming of the two operands (terminology)",
+     "a relation condition must reference at least one variable"
+    ],
+    "evidence-1985": {
+     "subject/object naming": "not shown (terminology; no program observes a name)",
+     "at least one variable": "covered by conformance-suite/cases/VI.6.22@1985-SEARCH-STATEMENT/pb5826_condition_without_variable_runs (accept [85]; run now: E:/COBOL-coord/scratch/pb5453/runs/pb5826_condition_without_variable_runs-001, EXPECT: MATCH, warning COBOL7609 on each literal-only relation)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1 p3",
+      "check": "OK  §1985:VI.6.3.1.1 p3  (6.3.1.1 Relation Condition)  the text is in p3",
+      "quote": "The relation condition must contain at least one reference to a variable"
+     }
+    ],
+    "reason": "1985: 'The relation condition must contain at least one reference to a variable.' 2023 has no such rule (GR-8.8.4.2.1-13 accepts a relation of two literals), so no pointer states it. At 85 the compiler flags each literal-only relation with warning COBOL7609 and evaluates it as written, the same policy as COBOL3146 later (docs/conformance/3/D-RELLITERAL.md); the prose85 refuter upheld this as CONFORMS. The subject/object sentence only names the operands.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite case VI.6.22@1985-SEARCH-STATEMENT/pb5826_condition_without_variable_runs (COBOL7609 at 85)",
+    "class": "own-text",
+    "needs": "needs-own-witness: attach pb5826_condition_without_variable_runs (or a copy naming this row) as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.1.1-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a space precedes and follows each reserved word of a relational operator",
+     "NOT with the next key word or relation character is one operator",
+     "IS NOT GREATER THAN == IS LESS THAN OR EQUAL TO; IS NOT LESS THAN == IS GREATER THAN OR EQUAL TO"
+    ],
+    "evidence-1985": {
+     "spacing": "covered by goldens E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-rel-op-unspaced-85 and pb5924-rel-op-paren-85 (refused, PASS) beside pb5924-rel-op-spaced-85 (accepted, PASS)",
+     "NOT forms one operator": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob T2, T4, T6, T8, TA, TC",
+     "equivalences": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob T2 vs TF-style and T6 vs TD (values agree)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1 p4",
+      "check": "OK  §1985:VI.6.3.1.1 p4  (6.3.1.1 Relation Condition)  the text is in p4",
+      "quote": "A space must precede and follow each reserved word comprising the relational operator"
+     }
+    ],
+    "reason": "1985: 'A space must precede and follow each reserved word comprising the relational operator' and the two stated equivalences. The candidates are 2023 abbreviation rules (SR-8.7.5.2-9/-10) and START's KEY restriction (SR-14.9.41.3-3); none states the spacing rule. The prose85 read recorded a DEFECT here (N=M compiled); both refusal goldens now PASS on the mint build, so the defect is fixed at 9fdf39b9e8.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob",
+    "compiler-at-1985": "correct: goldens pb5924-rel-op-{unspaced,paren,spaced}-85 PASS on the mint build; E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob (EXPECT: MATCH)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the three pb5924-rel-op goldens as this row's own 85 tests",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.1-T1.1",
+    "to": [
+     "FMT-8.8.4.2.2"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "the operator spellings IS [NOT] GREATER THAN, IS [NOT] > with the meaning 'Greater than or not greater than'"
+    ],
+    "evidence-1985": {
+     "IS [NOT] GREATER THAN, IS [NOT] >": "covered by conformance-suite/cases/8.7.5-Relational-operators/pb1034_printed_relational_operator_set (accept [85]) lines 01-04; also E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob T1-T4, TH"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1 Table 1 row 1",
+      "check": "OK  §1985:VI.6.3.1.1 Table 1 row 1  (6.3.1.1 Relation Condition)  the text is in Table 1 row 1",
+      "quote": "Greater than or not greater than"
+     },
+     {
+      "cite": "§2023:8.8.4.2.2",
+      "check": "OK  §2023:8.8.4.2.2  (General format)  the text is in the clause",
+      "quote": "IS GREATER THAN OR EQUAL TO"
+     }
+    ],
+    "reason": "The 1985 Table 1 row pairs the meaning 'Greater than or not greater than' with IS [NOT] GREATER THAN, IS [NOT] >. 2023's general-relation format (8.8.4.2.2) prints the same spellings with the same optional IS/THAN/TO and the same NOT placement (NOT only on GREATER/LESS/EQUAL and their symbols, never on >=/<=); its extra IS <> is not part of this row and is refused at 85 (COBOL0900, E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relop_ne.cob). The pointer's case pb1034_printed_relational_operator_set runs at 85 and exercises every spelling of this row with true and false outcomes.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85; E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob agrees (EXPECT: MATCH)",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.1-T1.2",
+    "to": [
+     "FMT-8.8.4.2.2"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "the operator spellings IS [NOT] LESS THAN, IS [NOT] < with the meaning 'Less than or not less than'"
+    ],
+    "evidence-1985": {
+     "IS [NOT] LESS THAN, IS [NOT] <": "covered by conformance-suite/cases/8.7.5-Relational-operators/pb1034_printed_relational_operator_set (accept [85]) lines 05-08; also E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob T5-T8"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1 Table 1 row 2",
+      "check": "OK  §1985:VI.6.3.1.1 Table 1 row 2  (6.3.1.1 Relation Condition)  the text is in Table 1 row 2",
+      "quote": "Less than or not less than"
+     },
+     {
+      "cite": "§2023:8.8.4.2.2",
+      "check": "OK  §2023:8.8.4.2.2  (General format)  the text is in the clause",
+      "quote": "IS GREATER THAN OR EQUAL TO"
+     }
+    ],
+    "reason": "The 1985 Table 1 row pairs the meaning 'Less than or not less than' with IS [NOT] LESS THAN, IS [NOT] <. 2023's general-relation format (8.8.4.2.2) prints the same spellings with the same optional IS/THAN/TO and the same NOT placement (NOT only on GREATER/LESS/EQUAL and their symbols, never on >=/<=); its extra IS <> is not part of this row and is refused at 85 (COBOL0900, E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relop_ne.cob). The pointer's case pb1034_printed_relational_operator_set runs at 85 and exercises every spelling of this row with true and false outcomes.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85; E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob agrees (EXPECT: MATCH)",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.1-T1.3",
+    "to": [
+     "FMT-8.8.4.2.2"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "the operator spellings IS [NOT] EQUAL TO, IS [NOT] = with the meaning 'Equal to or not equal to'"
+    ],
+    "evidence-1985": {
+     "IS [NOT] EQUAL TO, IS [NOT] =": "covered by conformance-suite/cases/8.7.5-Relational-operators/pb1034_printed_relational_operator_set (accept [85]) lines 09-12, 22; also E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob T9-TC"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1 Table 1 row 3",
+      "check": "OK  §1985:VI.6.3.1.1 Table 1 row 3  (6.3.1.1 Relation Condition)  the text is in Table 1 row 3",
+      "quote": "Equal to or not equal to"
+     },
+     {
+      "cite": "§2023:8.8.4.2.2",
+      "check": "OK  §2023:8.8.4.2.2  (General format)  the text is in the clause",
+      "quote": "IS GREATER THAN OR EQUAL TO"
+     }
+    ],
+    "reason": "The 1985 Table 1 row pairs the meaning 'Equal to or not equal to' with IS [NOT] EQUAL TO, IS [NOT] =. 2023's general-relation format (8.8.4.2.2) prints the same spellings with the same optional IS/THAN/TO and the same NOT placement (NOT only on GREATER/LESS/EQUAL and their symbols, never on >=/<=); its extra IS <> is not part of this row and is refused at 85 (COBOL0900, E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relop_ne.cob). The pointer's case pb1034_printed_relational_operator_set runs at 85 and exercises every spelling of this row with true and false outcomes.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85; E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob agrees (EXPECT: MATCH)",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.1-T1.4",
+    "to": [
+     "FMT-8.8.4.2.2"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "the operator spellings IS GREATER THAN OR EQUAL TO, IS >= with the meaning 'Greater than or equal to'"
+    ],
+    "evidence-1985": {
+     "IS GREATER THAN OR EQUAL TO, IS >=": "covered by conformance-suite/cases/8.7.5-Relational-operators/pb1034_printed_relational_operator_set (accept [85]) lines 13, 14, 17, 19; also E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob TD, TE"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1 Table 1 row 4",
+      "check": "OK  §1985:VI.6.3.1.1 Table 1 row 4  (6.3.1.1 Relation Condition)  the text is in Table 1 row 4",
+      "quote": "Greater than or equal to"
+     },
+     {
+      "cite": "§2023:8.8.4.2.2",
+      "check": "OK  §2023:8.8.4.2.2  (General format)  the text is in the clause",
+      "quote": "IS GREATER THAN OR EQUAL TO"
+     }
+    ],
+    "reason": "The 1985 Table 1 row pairs the meaning 'Greater than or equal to' with IS GREATER THAN OR EQUAL TO, IS >=. 2023's general-relation format (8.8.4.2.2) prints the same spellings with the same optional IS/THAN/TO and the same NOT placement (NOT only on GREATER/LESS/EQUAL and their symbols, never on >=/<=); its extra IS <> is not part of this row and is refused at 85 (COBOL0900, E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relop_ne.cob). The pointer's case pb1034_printed_relational_operator_set runs at 85 and exercises every spelling of this row with true and false outcomes.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85; E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob agrees (EXPECT: MATCH)",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.1-T1.5",
+    "to": [
+     "FMT-8.8.4.2.2"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "the operator spellings IS LESS THAN OR EQUAL TO, IS <= with the meaning 'Less than or equal to'"
+    ],
+    "evidence-1985": {
+     "IS LESS THAN OR EQUAL TO, IS <=": "covered by conformance-suite/cases/8.7.5-Relational-operators/pb1034_printed_relational_operator_set (accept [85]) lines 15, 16, 18, 20; also E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob TF, TG"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1 Table 1 row 5",
+      "check": "OK  §1985:VI.6.3.1.1 Table 1 row 5  (6.3.1.1 Relation Condition)  the text is in Table 1 row 5",
+      "quote": "Less than or equal to"
+     },
+     {
+      "cite": "§2023:8.8.4.2.2",
+      "check": "OK  §2023:8.8.4.2.2  (General format)  the text is in the clause",
+      "quote": "IS GREATER THAN OR EQUAL TO"
+     }
+    ],
+    "reason": "The 1985 Table 1 row pairs the meaning 'Less than or equal to' with IS LESS THAN OR EQUAL TO, IS <=. 2023's general-relation format (8.8.4.2.2) prints the same spellings with the same optional IS/THAN/TO and the same NOT placement (NOT only on GREATER/LESS/EQUAL and their symbols, never on >=/<=); its extra IS <> is not part of this row and is refused at 85 (COBOL0900, E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relop_ne.cob). The pointer's case pb1034_printed_relational_operator_set runs at 85 and exercises every spelling of this row with true and false outcomes.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85; E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob agrees (EXPECT: MATCH)",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "numeric operands compare by algebraic value",
+     "digit count of literal / arithmetic-expression operands is not significant",
+     "zero is unique regardless of sign"
+    ],
+    "evidence-1985": {
+     "algebraic value": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob N1, N2, N7",
+     "length not significant": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob N3 (5.000), N4 (0000005), O3 (expression)",
+     "signed zero": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob N5 (-0 SIGN LEADING SEPARATE vs +0), N6 (vs literal -0)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1.1 p1",
+      "check": "OK  §1985:VI.6.3.1.1.1 p1  (6.3.1.1.1 Comparison of Numeric Operands)  the text is in p1",
+      "quote": "Zero is considered a unique value regardless of the sign"
+     }
+    ],
+    "reason": "1985: 'a comparison is made with respect to the algebraic value of the operands ... Zero is considered a unique value regardless of the sign.' The candidates (GR-8.8.4.2.7-2, -10-2, -8-2) are unequal-length rules for alphanumeric, national and boolean operands, not numeric comparison. The probe shows the three properties at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob (EXPECT: MATCH)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.1.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "numeric comparison permitted regardless of usage (DISPLAY, COMPUTATIONAL)",
+     "unsigned numeric operands are positive"
+    ],
+    "evidence-1985": {
+     "regardless of usage": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob N1 (DISPLAY vs COMP), N2 (COMP vs COMP scaled) and golden pb5924-rel-usage-same-85 T1",
+     "unsigned positive": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob N7 (unsigned 3 > signed -3), N8"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1.1 p2",
+      "check": "OK  §1985:VI.6.3.1.1.1 p2  (6.3.1.1.1 Comparison of Numeric Operands)  the text is in p2",
+      "quote": "Unsigned numeric operands are considered positive for purposes of comparison"
+     }
+    ],
+    "reason": "1985: 'Comparison of these operands is permitted regardless of the manner in which their usage is described. Unsigned numeric operands are considered positive'. No candidate states either (they are nonnumeric padding rules and a constant-expression rule). Shown at 85 by the probe.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relation.cob (EXPECT: MATCH)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.1.1.2-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a noninteger numeric operand compared with a nonnumeric operand is refused"
+    ],
+    "evidence-1985": {
+     "refusal": "covered by conformance-suite/cases/VI.6.3.1.1@1985-Relation-Condition/1985-SR-VI_6_3_1_1_2-3 (run now at 85: E:/COBOL-coord/scratch/pb5453/runs/1985-SR-VI_6_3_1_1_2-3-001, error COBOL2532)",
+     "conforming control (integer operand accepted)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_nonnum_size.cob and golden pb5924-rel-usage-same-85 T2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1.2 SR3",
+      "check": "OK  §1985:VI.6.3.1.1.2 SR3  (6.3.1.1.2 Comparison of Nonnumeric Operands)  the text is in SR3",
+      "quote": "A noninteger numeric operand cannot be compared to a nonnumeric operand"
+     }
+    ],
+    "reason": "Reopened parent: what is left is item (3) alone: 'A noninteger numeric operand cannot be compared to a nonnumeric operand.' The old target GR-8.8.4.2.1-6 lists the permitted integer pair; its 85 cases are accepted programs and it has no diagnosed-only case at 85, so it does not witness this restriction. The row's own suite case (named for this id) is refused at 85 with COBOL2532.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/VI.6.3.1.1@1985-Relation-Condition/1985-SR-VI_6_3_1_1_2-3 (COBOL2532 at 85)",
+    "class": "own-text",
+    "needs": "needs-own-witness: the existing suite case 1985-SR-VI_6_3_1_1_2-3 already names this row; re-attach it as the row's 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.1.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the size of an operand is its count of standard data format characters (drives equal/unequal size)",
+     "numeric and nonnumeric operands compare only when their usage is the same"
+    ],
+    "evidence-1985": {
+     "size": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_nonnum_size.cob Z1-Z5 (PIC 999 compared as 3 characters, padded against X(4), unequal against XX)",
+     "same usage": "covered by golden pb5924-rel-usage-comp-alnum-85 (COMP vs DISPLAY refused, PASS) beside pb5924-rel-usage-same-85 T2 (DISPLAY vs DISPLAY accepted, PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1.2 p2",
+      "check": "OK  §1985:VI.6.3.1.1.2 p2  (6.3.1.1.2 Comparison of Nonnumeric Operands)  the text is in p2",
+      "quote": "Numeric and nonnumeric operands may be compared only when their usage is the same"
+     }
+    ],
+    "reason": "1985: 'The size of an operand is the total number of standard data format characters in the operand. Numeric and nonnumeric operands may be compared only when their usage is the same.' 2023 has no usage restriction on the integer/alphanumeric pair, so no candidate states it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_nonnum_size.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_nonnum_size.cob (EXPECT: MATCH) and golden pb5924-rel-usage-comp-alnum-85 PASS",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.1.1.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "an index-name or index data item may be compared only in the three listed pairs; any other pairing is refused"
+    ],
+    "evidence-1985": {
+     "index data item vs numeric literal (refused)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_idx_xd_lit.cob (COBOL2533)",
+     "index data item vs numeric item (refused)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_idx_xd_num.cob (COBOL2533)",
+     "index-name vs alphanumeric (refused)": "covered by golden pb5924-rel-usage-index-alnum-85 (PASS)",
+     "listed pairs accepted (controls)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_idx_ix_iy.cob, E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_idx_ix_n3.cob, E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_idx_xd_ix.cob, E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_idx_xd_yd.cob (each runs, T)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1.3 p1",
+      "check": "OK  §1985:VI.6.3.1.1.3 p1  (6.3.1.1.3 Comparisons Involving Index-Names and/or Index Data Items)  the text is in p1",
+      "quote": "Relation tests may be made only between"
+     }
+    ],
+    "reason": "The lead of the list: 'Relation tests may be made only between:' the three pairs. The items have their own rows (1985-GR-VI.6.3.1.1.3-1..3); this row is the restriction 'only'. The 2023 candidates (GR-8.8.4.2.13-*) state the meanings of the pairs, not the exclusion. The probes refuse the unlisted pairings and accept each listed one at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_idx_xd_lit.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_idx_xd_lit.cob and E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_idx_xd_num.cob refused (COBOL2533), controls accepted",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the class condition tests NUMERIC, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER and class-name (SPECIAL-NAMES CLASS)",
+     "the operand's class is determined by the list that follows (items 1-5)"
+    ],
+    "evidence-1985": {
+     "NUMERIC": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob C1-CB",
+     "ALPHABETIC": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob A1, A2",
+     "ALPHABETIC-LOWER": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob L1, L2",
+     "ALPHABETIC-UPPER": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob U1-U3",
+     "class-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob H1-H3"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.2 p1",
+      "check": "OK  §1985:VI.6.3.1.2 p1  (6.3.1.2 Class Condition)  the text is in p1",
+      "quote": "The class of an operand is determined as follows"
+     }
+    ],
+    "reason": "Flagged definitional, but a program shows it: the paragraph names the five tests the class condition makes. 2023's GR-8.8.4.4.4-3 also has alphabet-name, BOOLEAN and the float classes, and its 85 case pb823_refmod_class_numeric exercises NUMERIC and ALPHABETIC only, so no pointer is witnessed for the whole 1985 scope. The probe runs all five tests at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob (EXPECT: MATCH)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.2-5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "an operand conforms to class-name-1 when it consists entirely of the characters of its SPECIAL-NAMES CLASS definition"
+    ],
+    "evidence-1985": {
+     "class-name truth": "covered by conformance-suite/cases/VI.6.3.1@1985-Simple-Conditions/1985-GR-VI_6_3_1_2-5 (accept [85]) and E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob H1-H3 (CLASS with THRU ranges)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.2 GR5",
+      "check": "OK  §1985:VI.6.3.1.2 GR5  (6.3.1.2 Class Condition)  the text is in GR5",
+      "quote": "consists entirely of the characters listed in the definition of class-name-1"
+     }
+    ],
+    "reason": "Reopened parent: what is left is item (5), 'An operand is in conformance to class-name-1, if it consists entirely of the characters listed in the definition of class-name-1 in the SPECIAL-NAMES paragraph', plus the class-condition general format, which is not item 5's text (lead filed). The pointer GR-8.8.4.4.4-3 b) states class-name-1 the same way, but its only 85 case (pb823_refmod_class_numeric) does not use a class-name, so SAME is not witnessed. The suite case named for this row and the probe show it at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob",
+    "compiler-at-1985": "correct: suite case 1985-GR-VI_6_3_1_2-5 (accept [85]) and E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob H1-H3",
+    "class": "own-text",
+    "needs": "needs-own-witness: re-attach the existing suite case 1985-GR-VI_6_3_1_2-5 as the row's 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.1.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "identifier-1 usage explicitly or implicitly DISPLAY (refusal otherwise)",
+     "a function-identifier must be an alphanumeric function (refusal otherwise)",
+     "without NOT, a zero-length group item tests false"
+    ],
+    "evidence-1985": {
+     "usage DISPLAY": "covered by conformance-suite/cases/8.8.4.4-Simple-class-condition/pb5122-numeric-comp-item-at-85 (run now: COBOL6918) beside E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob (DISPLAY items accepted)",
+     "alphanumeric function": "covered by conformance-suite/cases/8.8.4.4-Simple-class-condition/pb5476-function-length-numeric-at-85 and pb5476-odo-function-length-numeric-at-85 (run now: COBOL6918)",
+     "zero-length group false": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob Z1, Z2, Z5 (ODO group at N=0)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.2 p3",
+      "check": "OK  §1985:VI.6.3.1.2 p3  (6.3.1.2 Class Condition)  the text is in p3",
+      "quote": "Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY"
+     }
+    ],
+    "reason": "1985 (as amended): 'Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function. When the class condition does not include the word NOT and identifier-1 is a zero-length group item, the result of the class test is always false.' 2023 permits NUMERIC on any numeric item (SR-8.8.4.4.3-8) and national usage, so it differs; GR-8.8.4.4.4-1 has no 85 case.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob",
+    "compiler-at-1985": "correct: pb5122-numeric-comp-item-at-85 and pb5476-*-at-85 refused (COBOL6918); E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob Z1/Z2/Z5 false",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.2-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "NOT with the next key word is one class condition (reversed test)",
+     "with NOT, a zero-length group item tests true"
+    ],
+    "evidence-1985": {
+     "NOT reversal": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob C3, U3, H3",
+     "zero-length group true with NOT": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob Z3, Z4, Z6"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.2 p4",
+      "check": "OK  §1985:VI.6.3.1.2 p4  (6.3.1.2 Class Condition)  the text is in p4",
+      "quote": "When the class condition includes the word NOT and identifier-1 is a zero-length group item, the result of the class test is always true"
+     }
+    ],
+    "reason": "1985: 'NOT NUMERIC is a truth test for determining that an operand is nonnumeric. When the class condition includes the word NOT and identifier-1 is a zero-length group item, the result of the class test is always true.' GR-8.8.4.4.4-2 ('the truth value is reversed') states the first half but has no 85 case. The probe shows both at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob (EXPECT: MATCH)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.2-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "NUMERIC refused on an alphabetic item",
+     "NUMERIC refused on a group of signed elementary items",
+     "unsigned item: numeric only if digits and no sign",
+     "signed item: numeric only with a valid sign",
+     "SIGN SEPARATE: valid signs are + and -",
+     "non-separate sign validity is implementor-defined"
+    ],
+    "evidence-1985": {
+     "alphabetic refused": "covered by conformance-suite/cases/8.8.4.4-Simple-class-condition/pb5122-numeric-alphabetic-item-at-85 (run now: COBOL6917)",
+     "signed group refused": "covered by pb5122-numeric-signed-group-at-85, -alias-at-85, -thru-alias-at-85 (run now: COBOL6917)",
+     "unsigned": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob C1, C2, C4, C6 (overpunched sign in an unsigned item: false)",
+     "signed": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob C5",
+     "SIGN SEPARATE": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob C7, C8 (+/- true), C9 (space false), CA (* false), CB (trailing - true)",
+     "implementor-defined sign": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob C5 (the overpunch the implementation writes tests valid)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.2 p5",
+      "check": "OK  §1985:VI.6.3.1.2 p5  (6.3.1.2 Class Condition)  the text is in p5",
+      "quote": "the item being tested is determined to be numeric only if the content is numeric and a valid operational sign is present"
+     }
+    ],
+    "reason": "1985 forbids NUMERIC on an alphabetic item or a group of signed items; 2023 (SR-8.8.4.4.3-8) allows both, so no pointer states the 1985 scope. The suite refusal cases named at-85 and the probe cover every sentence at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob",
+    "compiler-at-1985": "correct: pb5122-*-at-85 refused (COBOL6917); E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob (EXPECT: MATCH)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.2-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "ALPHABETIC refused on an item described as numeric",
+     "ALPHABETIC accepted on a numeric edited item (class alphanumeric at 85)",
+     "truth value of the ALPHABETIC test"
+    ],
+    "evidence-1985": {
+     "refused on numeric": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_alpha_num.cob (COBOL6916)",
+     "numeric edited accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_numedit.cob",
+     "truth value": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob A1, A2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.2 p6",
+      "check": "OK  §1985:VI.6.3.1.2 p6  (6.3.1.2 Class Condition)  the text is in p6",
+      "quote": "The ALPHABETIC test cannot be used with an item whose data description describes the item as numeric"
+     }
+    ],
+    "reason": "1985: the ALPHABETIC test 'cannot be used with an item whose data description describes the item as numeric' and is true when the content is entirely of its letters (and space). 2023's SR-8.8.4.4.3-4 also forbids numeric-edited and boolean operands, so it is not the 1985 scope, and GR-8.8.4.4.4-3's 85 case does not test ALPHABETIC truth on mixed content. Probes refuse the numeric operand, accept the numeric edited one and show the truth value at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_alpha_num.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_alpha_num.cob refused; E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_numedit.cob and E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob (EXPECT: MATCH)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.2-p7",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "ALPHABETIC-LOWER refused on an item described as numeric",
+     "ALPHABETIC-LOWER accepted on a numeric edited item (class alphanumeric at 85)",
+     "truth value of the ALPHABETIC-LOWER test"
+    ],
+    "evidence-1985": {
+     "refused on numeric": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_lower_num.cob (COBOL6916)",
+     "numeric edited accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_numedit.cob",
+     "truth value": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob L1, L2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.2 p7",
+      "check": "OK  §1985:VI.6.3.1.2 p7  (6.3.1.2 Class Condition)  the text is in p7",
+      "quote": "consists entirely of the lowercase alphabetic characters a through z and space"
+     }
+    ],
+    "reason": "1985: the ALPHABETIC-LOWER test 'cannot be used with an item whose data description describes the item as numeric' and is true when the content is entirely of its letters (and space). 2023's SR-8.8.4.4.3-4 also forbids numeric-edited and boolean operands, so it is not the 1985 scope, and GR-8.8.4.4.4-3's 85 case does not test ALPHABETIC-LOWER truth on mixed content. Probes refuse the numeric operand, accept the numeric edited one and show the truth value at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_lower_num.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_lower_num.cob refused; E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_numedit.cob and E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob (EXPECT: MATCH)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.2-p8",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "ALPHABETIC-UPPER refused on an item described as numeric",
+     "ALPHABETIC-UPPER accepted on a numeric edited item (class alphanumeric at 85)",
+     "truth value of the ALPHABETIC-UPPER test"
+    ],
+    "evidence-1985": {
+     "refused on numeric": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_upper_num.cob (COBOL6916)",
+     "numeric edited accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_numedit.cob",
+     "truth value": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob U1, U2, U3"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.2 p8",
+      "check": "OK  §1985:VI.6.3.1.2 p8  (6.3.1.2 Class Condition)  the text is in p8",
+      "quote": "consists entirely of the uppercase alphabetic characters A through Z and space"
+     }
+    ],
+    "reason": "1985: the ALPHABETIC-UPPER test 'cannot be used with an item whose data description describes the item as numeric' and is true when the content is entirely of its letters (and space). 2023's SR-8.8.4.4.3-4 also forbids numeric-edited and boolean operands, so it is not the 1985 scope, and GR-8.8.4.4.4-3's 85 case does not test ALPHABETIC-UPPER truth on mixed content. Probes refuse the numeric operand, accept the numeric edited one and show the truth value at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_upper_num.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_upper_num.cob refused; E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_numedit.cob and E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob (EXPECT: MATCH)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.1.2-p9",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "class-name-1 test refused on an item described as numeric",
+     "accepted on an alphanumeric or numeric edited item (control)"
+    ],
+    "evidence-1985": {
+     "refused on numeric": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_name_num.cob (COBOL6916)",
+     "control": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_ctl.cob (same class-name on PIC X: runs, T) and E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_numedit.cob E4"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.2 p9",
+      "check": "OK  §1985:VI.6.3.1.2 p9  (6.3.1.2 Class Condition)  the text is in p9",
+      "quote": "The class-name-1 test must not be used with an item whose data description describes the item as numeric"
+     }
+    ],
+    "reason": "1985: 'The class-name-1 test must not be used with an item whose data description describes the item as numeric.' 2023's SR-8.8.4.4.3-4 adds numeric-edited and boolean, so its scope differs; no candidate has a diagnosed-only case at 85. The refusal probe with its one-line control shows it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_name_num.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_name_num.cob refused (COBOL6916), control E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cls_ctl.cob runs",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "condition-name condition (format: condition-name-1) is true when the conditional variable equals one of its values"
+    ],
+    "evidence-1985": {
+     "single values": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_condname.cob V1, V2, W1, W2, Z1",
+     "format condition-name-1 alone": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_condname.cob (every IF)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.3 p1",
+      "check": "OK  §1985:VI.6.3.1.3 p1  (║6.3.1.3 Condition-Name Condition (Conditional Variable)║)  the text is in p1",
+      "quote": "its value is equal to one of the values associated with condition-name-1"
+     }
+    ],
+    "reason": "1985: 'a conditional variable is tested to determine whether or not its value is equal to one of the values associated with condition-name-1'. GR-8.8.4.5.3-3 states this but none of the candidates (GR-8.8.4.5.3-1/-3, FMT-8.8.4.5.2) has an 85 case. The probe shows it at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_condname.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_condname.cob (EXPECT: MATCH)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.3-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a condition-name with a range or ranges tests the value within them, end values included"
+    ],
+    "evidence-1985": {
+     "range end values": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_condname.cob R1-R4 (10 THRU 20 at 10, 20, 21, 09), M1-M3 (several ranges and values), Z2-Z4 (negative range)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.3 p2",
+      "check": "OK  §1985:VI.6.3.1.3 p2  (║6.3.1.3 Condition-Name Condition (Conditional Variable)║)  the text is in p2",
+      "quote": "its value falls in this range, including the end values"
+     }
+    ],
+    "reason": "1985: 'the conditional variable is tested to determine whether or not its value falls in this range, including the end values.' GR-8.8.4.5.3-1 says the same but has no 85 case (its test-ref l1_value_thru_through_equivalent is not in its at-85 list). The probe shows the end values at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_condname.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_condname.cob (EXPECT: MATCH)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.3-p3",
+    "to": [
+     "GR-8.8.4.5.3-2"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "comparison of a conditional variable with a condition-name value follows the relation-condition rules"
+    ],
+    "evidence-1985": {
+     "relation rules applied": "covered by conformance-suite/cases/8.8.4.5-Simple-condition-name-condition/pb1477_cond88_odo_figurative (accept [85, 2002]); also E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_condname.cob W1/W2 (alphanumeric padding), Z1 (signed zero)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.3 p3",
+      "check": "OK  §1985:VI.6.3.1.3 p3  (║6.3.1.3 Condition-Name Condition (Conditional Variable)║)  the text is in p3",
+      "quote": "The rules for comparing a conditional variable with a condition-name value are the same as those specified for relation conditions"
+     },
+     {
+      "cite": "§2023:8.8.4.5.3 GR2",
+      "check": "OK  §2023:8.8.4.5.3 GR2  (General rules)  the text is in GR2",
+      "quote": "The rules for comparing a conditional variable with a condition-name value are the same as those specified for relation conditions"
+     }
+    ],
+    "reason": "The 1985 sentence and 2023's GR2 are word for word. At --std 85 the relation rules applied are the 1985 ones; the pointer's 85 case pb1477_cond88_odo_figurative compares a variable-length conditional variable with figurative and ALL-literal values by the nonnumeric relation rules, which is this scope.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85; E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_condname.cob agrees",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.1.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "switch-status condition tests the on/off status of an implementor-defined switch",
+     "implementor-name and the on/off condition-name must be named in SPECIAL-NAMES (refusal otherwise)"
+    ],
+    "evidence-1985": {
+     "status test": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-switch-status-85 (PASS) and E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_cond_contexts.cob R4",
+     "must be named": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-10/goldens/pb5924-switch-mnemonic-85 (mnemonic-name used as a condition: refused, PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.4 p1",
+      "check": "OK  §1985:VI.6.3.1.4 p1  (6.3.1.4 Switch-Status Condition)  the text is in p1",
+      "quote": "The implementor-name and the on or off value associated with the condition must be named in the SPECIAL-NAMES paragraph"
+     }
+    ],
+    "reason": "1985: 'The implementor-name and the on or off value associated with the condition must be named in the SPECIAL-NAMES paragraph'. The candidates state SET's effect (GR-14.9.39.4-5), the SPECIAL-NAMES association (GR-12.3.7.4-2) and the format (FMT-8.8.4.6.2); none states the requirement with an 85 refusal. The prose85 goldens PASS on the mint build.",
+    "probe": null,
+    "compiler-at-1985": "correct: goldens pb5924-switch-status-85 and pb5924-switch-mnemonic-85 PASS",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the two pb5924-switch goldens as this row's own 85 tests",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.4-p2",
+    "to": [
+     "GR-8.8.4.6.3-1"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "the switch-status condition is true when the switch is in the position named by condition-name-1"
+    ],
+    "evidence-1985": {
+     "truth value": "covered by conformance-suite/cases/8.8.4.6-Simple-switch-status-condition/pb400_evaluate_condition_subject_forms (accept [85, 2002], SET switch TO ON/OFF then tests its condition-names); also golden pb5924-switch-status-85 (PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.4 p2",
+      "check": "OK  §1985:VI.6.3.1.4 p2  (6.3.1.4 Switch-Status Condition)  the text is in p2",
+      "quote": "The result of the test is true if the switch is set to the specified position corresponding to condition-name-1"
+     },
+     {
+      "cite": "§2023:8.8.4.6.3 GR1",
+      "check": "OK  §2023:8.8.4.6.3 GR1  (General rule)  the text is in GR1",
+      "quote": "The result of the test is true if the switch is set to the specified position corresponding to condition-name-1"
+     }
+    ],
+    "reason": "Word for word the same rule. The pointer's 85 case sets SWITCH-1 on and off (format 3 SET exists in 1985, VI.6.23) and tests the ON STATUS and OFF STATUS condition-names, which is the whole 1985 scope.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85; golden pb5924-switch-status-85 agrees",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "sign condition: arithmetic-expression-1 IS [NOT] POSITIVE | NEGATIVE | ZERO",
+     "tests the algebraic value against zero"
+    ],
+    "evidence-1985": {
+     "identifier operands": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_sign.cob S1-SB (DISPLAY, COMP, scaled, unsigned, signed zero)",
+     "arithmetic-expression operands": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_sign.cob E1-E4"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.5 p1",
+      "check": "OK  §1985:VI.6.3.1.5 p1  (║6.3.1.5 Sign Condition║)  the text is in p1",
+      "quote": "whether or not the algebraic value of an arithmetic expression is less than, greater than, or equal to zero"
+     }
+    ],
+    "reason": "1985: 'The sign condition determines whether or not the algebraic value of an arithmetic expression is less than, greater than, or equal to zero.' The candidates are the SIGN and RANDOM function results and the relational-operator format; GR-8.8.4.7.4-1, the 2023 rule, is not witnessed at 85. The probe covers each phrase on identifiers and expressions.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_sign.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_sign.cob (EXPECT: MATCH)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.5-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "NOT with the next key word is one sign condition",
+     "positive > 0, negative < 0, zero = 0",
+     "arithmetic-expression-1 must reference a variable"
+    ],
+    "evidence-1985": {
+     "NOT forms": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_sign.cob S7-SA, E4",
+     "positive/negative/zero": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_sign.cob S1-S6, SB, E1-E3",
+     "must reference a variable": "covered by conformance-suite/cases/VI.6.22@1985-SEARCH-STATEMENT/pb5826_condition_without_variable_runs (run now at 85: warning COBOL7610 on each literal-only sign condition, EXPECT: MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.5 p2",
+      "check": "OK  §1985:VI.6.3.1.5 p2  (║6.3.1.5 Sign Condition║)  the text is in p2",
+      "quote": "Arithmetic-expression-1 must contain at least one reference to a variable"
+     }
+    ],
+    "reason": "1985: 'NOT ZERO is a truth test for a nonzero (positive or negative) value ... Arithmetic-expression-1 must contain at least one reference to a variable.' 2023's GR-8.8.4.7.4-1 has no 85 case and 2023 has no variable rule. The variable rule is flagged at 85 by warning COBOL7610 (the D-RELLITERAL policy, upheld as CONFORMS by the prose85 refuter); the probe shows the truth values.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_sign.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_sign.cob (EXPECT: MATCH); pb5826_condition_without_variable_runs (COBOL7610 at 85)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (or the named suite case) as this row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "segmentation",
+    "row": "1985-GR-VI.6.3.1.2-5",
+    "what": "The row's text carries the class-condition general format (the <pre> diagram 'identifier-1 IS [NOT] NUMERIC | ALPHABETIC | ... | class-name-1') after item (5); the diagram is the clause's format, not item 5's words, so it should be cut from the list item (an FMT row of its own, or the clause's format).",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py 1985-GR-VI.6.3.1.2-5",
+    "site": "docs/rearchitecture/spec-rule-catalog-1985.json#1985-GR-VI.6.3.1.2-5"
+   },
+   {
+    "kind": "tooling",
+    "row": "1985-GR-VI.6.3.1.2-p1",
+    "what": "Catalog flags the row definitional, but it names the five tests a class condition makes and every one is observable by a program (E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob); the flag is spurious.",
+    "repro": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_class.cob",
+    "site": "docs/rearchitecture/spec-rule-catalog-1985.json#1985-GR-VI.6.3.1.2-p1"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-10",
+  "cases": [
+   {
+    "rule-id": "1985-GR-VI.6.3.1.1-T1.1",
+    "verdict": "UPHELD",
+    "reason": "Strongest attack tried: (a) the 1985 row also states a MEANING, which the format pointer FMT-8.8.4.2.2 only spells; (b) 1985 Table 1 is the whole 1985 operator set, so 2023 additions (IS <>, any NOT on >=/<=) must be refused at 85. Neither yields a difference: the 1985 meaning is the ordinary truth of the relation, which the pointer's at-85 case pb1034_printed_relational_operator_set exercises with T and F outcomes on these spellings, and the reader's probes show <> and NOT >= refused at 85. The 1985 spellings and NOT placement equal 2023's Format 1 exactly. My probe runs every operator family at 85 over less/equal/greater and matches its expectation.",
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1 Table 1 row 1",
+      "quote": "Greater than or not greater than",
+      "check": "OK  §1985:VI.6.3.1.1 Table 1 row 1  (6.3.1.1 Relation Condition)  the text is in Table 1 row 1"
+     },
+     {
+      "cite": "§2023:8.8.4.2.2",
+      "quote": "IS GREATER THAN OR EQUAL TO",
+      "check": "OK  §2023:8.8.4.2.2  (General format)  the text is in the clause"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10-refute/r10_relmeaning.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10-refute/r10_relmeaning.cob (stdout in E:/COBOL-coord/scratch/pb5453/runs/r10_relmeaning-001 equals r10_relmeaning.expect)"
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.1-T1.2",
+    "verdict": "UPHELD",
+    "reason": "Strongest attack tried: (a) the 1985 row also states a MEANING, which the format pointer FMT-8.8.4.2.2 only spells; (b) 1985 Table 1 is the whole 1985 operator set, so 2023 additions (IS <>, any NOT on >=/<=) must be refused at 85. Neither yields a difference: the 1985 meaning is the ordinary truth of the relation, which the pointer's at-85 case pb1034_printed_relational_operator_set exercises with T and F outcomes on these spellings, and the reader's probes show <> and NOT >= refused at 85. The 1985 spellings and NOT placement equal 2023's Format 1 exactly. My probe runs every operator family at 85 over less/equal/greater and matches its expectation.",
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1 Table 1 row 2",
+      "quote": "Less than or not less than",
+      "check": "OK  §1985:VI.6.3.1.1 Table 1 row 2  (6.3.1.1 Relation Condition)  the text is in Table 1 row 2"
+     },
+     {
+      "cite": "§2023:8.8.4.2.2",
+      "quote": "IS GREATER THAN OR EQUAL TO",
+      "check": "OK  §2023:8.8.4.2.2  (General format)  the text is in the clause"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10-refute/r10_relmeaning.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10-refute/r10_relmeaning.cob (stdout in E:/COBOL-coord/scratch/pb5453/runs/r10_relmeaning-001 equals r10_relmeaning.expect)"
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.1-T1.3",
+    "verdict": "UPHELD",
+    "reason": "Strongest attack tried: (a) the 1985 row also states a MEANING, which the format pointer FMT-8.8.4.2.2 only spells; (b) 1985 Table 1 is the whole 1985 operator set, so 2023 additions (IS <>, any NOT on >=/<=) must be refused at 85. Neither yields a difference: the 1985 meaning is the ordinary truth of the relation, which the pointer's at-85 case pb1034_printed_relational_operator_set exercises with T and F outcomes on these spellings, and the reader's probes show <> and NOT >= refused at 85. The 1985 spellings and NOT placement equal 2023's Format 1 exactly. My probe runs every operator family at 85 over less/equal/greater and matches its expectation.",
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1 Table 1 row 3",
+      "quote": "Equal to or not equal to",
+      "check": "OK  §1985:VI.6.3.1.1 Table 1 row 3  (6.3.1.1 Relation Condition)  the text is in Table 1 row 3"
+     },
+     {
+      "cite": "§2023:8.8.4.2.2",
+      "quote": "IS GREATER THAN OR EQUAL TO",
+      "check": "OK  §2023:8.8.4.2.2  (General format)  the text is in the clause"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10-refute/r10_relmeaning.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10-refute/r10_relmeaning.cob (stdout in E:/COBOL-coord/scratch/pb5453/runs/r10_relmeaning-001 equals r10_relmeaning.expect)"
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.1-T1.4",
+    "verdict": "UPHELD",
+    "reason": "Strongest attack tried: (a) the 1985 row also states a MEANING, which the format pointer FMT-8.8.4.2.2 only spells; (b) 1985 Table 1 is the whole 1985 operator set, so 2023 additions (IS <>, any NOT on >=/<=) must be refused at 85. Neither yields a difference: the 1985 meaning is the ordinary truth of the relation, which the pointer's at-85 case pb1034_printed_relational_operator_set exercises with T and F outcomes on these spellings, and the reader's probes show <> and NOT >= refused at 85. The 1985 spellings and NOT placement equal 2023's Format 1 exactly. My probe runs every operator family at 85 over less/equal/greater and matches its expectation. The pointer case pb1034_printed_relational_operator_set never shows >= FALSE (lines 13,14,17,19 all T); my probe fills that: A=5 vs K=6 gives no E for IS >= and for GREATER OR EQUAL.",
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1 Table 1 row 4",
+      "quote": "Greater than or equal to",
+      "check": "OK  §1985:VI.6.3.1.1 Table 1 row 4  (6.3.1.1 Relation Condition)  the text is in Table 1 row 4"
+     },
+     {
+      "cite": "§2023:8.8.4.2.2",
+      "quote": "IS GREATER THAN OR EQUAL TO",
+      "check": "OK  §2023:8.8.4.2.2  (General format)  the text is in the clause"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10-refute/r10_relmeaning.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10-refute/r10_relmeaning.cob (stdout in E:/COBOL-coord/scratch/pb5453/runs/r10_relmeaning-001 equals r10_relmeaning.expect)"
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.1-T1.5",
+    "verdict": "UPHELD",
+    "reason": "Strongest attack tried: (a) the 1985 row also states a MEANING, which the format pointer FMT-8.8.4.2.2 only spells; (b) 1985 Table 1 is the whole 1985 operator set, so 2023 additions (IS <>, any NOT on >=/<=) must be refused at 85. Neither yields a difference: the 1985 meaning is the ordinary truth of the relation, which the pointer's at-85 case pb1034_printed_relational_operator_set exercises with T and F outcomes on these spellings, and the reader's probes show <> and NOT >= refused at 85. The 1985 spellings and NOT placement equal 2023's Format 1 exactly. My probe runs every operator family at 85 over less/equal/greater and matches its expectation.",
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.1 Table 1 row 5",
+      "quote": "Less than or equal to",
+      "check": "OK  §1985:VI.6.3.1.1 Table 1 row 5  (6.3.1.1 Relation Condition)  the text is in Table 1 row 5"
+     },
+     {
+      "cite": "§2023:8.8.4.2.2",
+      "quote": "IS GREATER THAN OR EQUAL TO",
+      "check": "OK  §2023:8.8.4.2.2  (General format)  the text is in the clause"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10-refute/r10_relmeaning.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-10-refute/r10_relmeaning.cob (stdout in E:/COBOL-coord/scratch/pb5453/runs/r10_relmeaning-001 equals r10_relmeaning.expect)"
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.3-p3",
+    "verdict": "UPHELD",
+    "reason": "Word-for-word with 2023 8.8.4.5.3 GR2. The rule is a cross-reference: at 85 it names the 1985 relation rules, whose 1985-only parts (same-usage, noninteger vs nonnumeric) are separate 1985 rows, not this one. The 1985 text is boxed (high level), which --std 85 implements. The pointer's 85 case pb1477_cond88_odo_figurative is 1985-legal source (88 on a group, Format 2 VALUE with figurative constants and THRU, §1985:VI.5.15) and checks the 88 against the explicit relation (N2-REL-ALLX / N2-88-ALLX, N3 control), which is this rule. The reader's s10_condname.cob (re-run by me at 85, output equals its .expect) adds numeric and signed-zero comparison.",
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.3 p3",
+      "quote": "The rules for comparing a conditional variable with a condition-name value are the same as those specified for relation conditions",
+      "check": "OK  §1985:VI.6.3.1.3 p3  (║6.3.1.3 Condition-Name Condition (Conditional Variable)║)  the text is in p3"
+     },
+     {
+      "cite": "§2023:8.8.4.5.3 GR2",
+      "quote": "comparing a conditional variable with a condition-name value",
+      "check": "OK  §2023:8.8.4.5.3 GR2  (General rules)  the text is in GR2"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_condname.cob",
+    "compiler-at-1985": "correct: s10_condname.cob at 85 matches its .expect (my re-run)"
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.1.4-p2",
+    "verdict": "UPHELD",
+    "reason": "Word-for-word with 2023 8.8.4.6.3 GR1. Attack: the pointer's 85 case pb400_evaluate_condition_subject_forms never shows the OFF STATUS condition-name TRUE (SWOFF-SUBJ is tested only while ON). The golden pb5924-switch-status-85 (run 001, output T1 OK / T2 ON / T3 OFF) shows it, and SET mnemonic-name TO ON/OFF is level-1 Nucleus in 1985 (the module table row 'Mnemonic-name TO ON/OFF | 1 NUC'). No 1985 difference in scope.",
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.1.4 p2",
+      "quote": "true if the switch is set to the specified position",
+      "check": "OK  §1985:VI.6.3.1.4 p2  (6.3.1.4 Switch-Status Condition)  the text is in p2"
+     },
+     {
+      "cite": "§2023:8.8.4.6.3 GR1",
+      "quote": "true if the switch is set to the specified position",
+      "check": "OK  §2023:8.8.4.6.3 GR1  (General rule)  the text is in GR1"
+     }
+    ],
+    "class": null,
+    "probe": null,
+    "compiler-at-1985": "correct: golden pb5924-switch-status-85 PASS (E:/COBOL-coord/scratch/pb5453/runs/pb5924-switch-status-85-001)"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "f127ad6dd009324b6d318ee35c3c1ea86314cefa9b3f66a17e2cb4f1cfb2696e",
+  "read": "00fcf43ae29058ca0b0558eadee4b12d4430a23cb58a9be8ba7c23e03c094546",
+  "refute": "6a1be7ae491ea26c5ca989b34588fae7c20da3ac8ddd69a1221ea52311838f3c"
+ }
+}

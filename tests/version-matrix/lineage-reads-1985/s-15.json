@@ -1,0 +1,1574 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-15 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-15",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-15",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-X.1.3.2-p1",
+   "1985-GR-X.1.3.3-p1",
+   "1985-SR-X.1.3.3-p3",
+   "1985-GR-X.1.3.3-p4",
+   "1985-GR-X.1.3.3-p6",
+   "1985-GR-X.1.3.4-p1",
+   "1985-GR-X.1.3.4-p2",
+   "1985-GR-X.1.3.4-p3",
+   "1985-GR-X.1.3.4-p4",
+   "1985-GR-X.1.3.4-p5",
+   "1985-GR-X.1.3.4-p6",
+   "1985-GR-X.1.3.4-p7",
+   "1985-GR-X.1.3.4-p8",
+   "1985-GR-X.1.3.5-p1",
+   "1985-GR-X.1.3.8-p1",
+   "1985-SR-X.1.3.8-p2",
+   "1985-SR-X.1.3.8-1",
+   "1985-SR-X.1.3.8-2",
+   "1985-SR-X.1.3.8-3",
+   "1985-SR-X.1.3.8-p3",
+   "1985-SR-X.1.3.8-L2.1",
+   "1985-SR-X.1.3.8-L2.2",
+   "1985-SR-X.1.3.8-p4",
+   "1985-SR-X.1.3.8-L3.1",
+   "1985-SR-X.1.3.8-L3.2",
+   "1985-SR-X.1.3.8-L3.3",
+   "1985-SR-X.1.3.8-p5",
+   "1985-SR-X.1.3.8-L4.1",
+   "1985-SR-X.1.3.8-L4.2",
+   "1985-SR-X.1.3.8-L4.3",
+   "1985-SR-X.1.3.8-L4.4",
+   "1985-SR-X.1.3.8-L4.5",
+   "1985-GR-X.1.3.8-p6",
+   "1985-GR-X.1.3.8-L5.1",
+   "1985-GR-X.1.3.8-L5.2",
+   "1985-GR-X.1.3.8-L5.3",
+   "1985-GR-X.1.3.8-L5.4",
+   "1985-GR-X.1.3.8-L5.5",
+   "1985-GR-X.1.3.8-L5.6",
+   "1985-GR-X.1.3.8-L5.7"
+  ],
+  "pointers": {
+   "1985-GR-X.1.3.2-p1": {
+    "candidates-2023": [
+     "GR-14.9.10.4-1",
+     "GR-14.9.27.4-5",
+     "GR-14.9.35.4-2"
+    ],
+    "nearest-2023": "GR-14.9.10.4-1",
+    "similarity": 0.348
+   },
+   "1985-GR-X.1.3.3-p1": {
+    "candidates-2023": [
+     "GR-8.4.6.2.1-2",
+     "GR-8.4.6.2.1-1",
+     "GR-13.18.27.4-1"
+    ],
+    "nearest-2023": "GR-8.4.6.2.1-2",
+    "similarity": 0.453
+   },
+   "1985-SR-X.1.3.3-p3": {
+    "candidates-2023": [
+     "GR-8.4.6.2.1-2",
+     "GR-8.4.6.2.1-1",
+     "GR-13.18.27.4-1"
+    ],
+    "nearest-2023": "GR-8.4.6.2.1-2",
+    "similarity": 0.536
+   },
+   "1985-GR-X.1.3.3-p4": {
+    "candidates-2023": [
+     "SR-13.16.3-7",
+     "SR-13.18.27.3-1",
+     "SR-14.9.16.3-3"
+    ],
+    "nearest-2023": "SR-13.16.3-7",
+    "similarity": 0.619
+   },
+   "1985-GR-X.1.3.3-p6": {
+    "candidates-2023": [
+     "SR-13.16.3-23",
+     "SR-13.18.18.3-3",
+     "GR-13.18.27.4-1"
+    ],
+    "nearest-2023": "SR-13.16.3-23",
+    "similarity": 0.393
+   },
+   "1985-GR-X.1.3.4-p1": {
+    "candidates-2023": [
+     "GR-13.18.22.4-4",
+     "GR-9.1.5-1",
+     "GR-13.18.24.4-12"
+    ],
+    "nearest-2023": "GR-13.18.22.4-4",
+    "similarity": 0.244
+   },
+   "1985-GR-X.1.3.4-p2": {
+    "candidates-2023": [
+     "GR-13.18.60.4-22",
+     "GR-13.18.22.4-1",
+     "SR-13.18.22.3-4"
+    ],
+    "nearest-2023": "GR-13.18.60.4-22",
+    "similarity": 0.452
+   },
+   "1985-GR-X.1.3.4-p3": {
+    "candidates-2023": [
+     "GR-13.18.60.4-22",
+     "AR-15.3-11",
+     "SR-8.4.3.9.3-4"
+    ],
+    "nearest-2023": "GR-13.18.60.4-22",
+    "similarity": 0.441
+   },
+   "1985-GR-X.1.3.4-p4": {
+    "candidates-2023": [
+     "GR-8.4.6.2.1-2",
+     "GR-13.18.27.4-1",
+     "GR-8.4.6.2.1-1"
+    ],
+    "nearest-2023": "GR-8.4.6.2.1-2",
+    "similarity": 0.394
+   },
+   "1985-GR-X.1.3.4-p5": {
+    "candidates-2023": [
+     "SR-13.18.38.3-21",
+     "GR-13.18.22.4-1",
+     "GR-13.18.22.4-3"
+    ],
+    "nearest-2023": "SR-13.18.38.3-21",
+    "similarity": 0.605
+   },
+   "1985-GR-X.1.3.4-p6": {
+    "candidates-2023": [
+     "GR-13.18.22.4-4",
+     "GR-13.18.24.4-12",
+     "GR-13.18.22.4-1"
+    ],
+    "nearest-2023": "GR-13.18.22.4-4",
+    "similarity": 0.555
+   },
+   "1985-GR-X.1.3.4-p7": {
+    "candidates-2023": [
+     "GR-13.18.22.4-4",
+     "SR-13.18.38.3-21",
+     "SR-13.16.3-5"
+    ],
+    "nearest-2023": "GR-13.18.22.4-4",
+    "similarity": 0.562
+   },
+   "1985-GR-X.1.3.4-p8": {
+    "candidates-2023": [
+     "GR-14.9.5.4-8",
+     "GR-13.7.4-2",
+     "GR-14.6.2.3.2-L2.2"
+    ],
+    "nearest-2023": "GR-14.9.5.4-8",
+    "similarity": 0.334
+   },
+   "1985-GR-X.1.3.5-p1": {
+    "candidates-2023": [
+     "GR-11.10.4-5",
+     "GR-14.6.2.3.2-1",
+     "GR-14.9.10.4-19"
+    ],
+    "nearest-2023": "GR-11.10.4-5",
+    "similarity": 0.303
+   },
+   "1985-GR-X.1.3.8-p1": {
+    "candidates-2023": [
+     "GR-8.6.7-2",
+     "DOC-A.1-219",
+     "GR-9.1.5-2"
+    ],
+    "nearest-2023": "GR-8.6.7-2",
+    "similarity": 0.392
+   },
+   "1985-SR-X.1.3.8-p2": {
+    "candidates-2023": [
+     "SR-8.3.2.1-4",
+     "DOC-A.1-219",
+     "SR-8.3.2.1-3"
+    ],
+    "nearest-2023": "SR-8.3.2.1-4",
+    "similarity": 0.445
+   },
+   "1985-SR-X.1.3.8-1": {
+    "candidates-2023": [
+     "GR-4.2.10-1",
+     "GR-4.2.10-2",
+     "DOC-A.1-141"
+    ],
+    "nearest-2023": "GR-4.2.10-1",
+    "similarity": 0.154
+   },
+   "1985-SR-X.1.3.8-2": {
+    "candidates-2023": [
+     "SR-8.4.2.2.3-7",
+     "SR-8.3.2.2-2",
+     "SR-8.4.2.2.1-6"
+    ],
+    "nearest-2023": "SR-8.4.2.2.3-7",
+    "similarity": 0.335
+   },
+   "1985-SR-X.1.3.8-3": {
+    "candidates-2023": [
+     "SR-8.3.2.2-2",
+     "GR-4.2.10-1",
+     "GR-4.2.10-2"
+    ],
+    "nearest-2023": "SR-8.3.2.2-2",
+    "similarity": 0.324
+   },
+   "1985-SR-X.1.3.8-p3": {
+    "candidates-2023": [
+     "DOC-A.1-118",
+     "GR-14.9.42.4-2",
+     "GR-14.9.18.4-7"
+    ],
+    "nearest-2023": "DOC-A.1-118",
+    "similarity": 0.292
+   },
+   "1985-SR-X.1.3.8-L2.1": {
+    "candidates-2023": [
+     "GR-4.2.10-1",
+     "GR-4.2.10-2",
+     "DOC-A.1-141"
+    ],
+    "nearest-2023": "GR-4.2.10-1",
+    "similarity": 0.154
+   },
+   "1985-SR-X.1.3.8-L2.2": {
+    "candidates-2023": [
+     "SR-7.2.3.3-3",
+     "GR-4.2.10-1",
+     "GR-4.2.10-2"
+    ],
+    "nearest-2023": "SR-7.2.3.3-3",
+    "similarity": 0.35
+   },
+   "1985-SR-X.1.3.8-p4": {
+    "candidates-2023": [
+     "SR-13.16.3-16",
+     "GR-13.18.51.4-2",
+     "SR-13.18.33.3-5"
+    ],
+    "nearest-2023": "SR-13.16.3-16",
+    "similarity": 0.337
+   },
+   "1985-SR-X.1.3.8-L3.1": {
+    "candidates-2023": [
+     "SR-13.16.3-24",
+     "SR-8.4.4.3-2",
+     "GR-8.8.4.5.3-2"
+    ],
+    "nearest-2023": "SR-13.16.3-24",
+    "similarity": 0.241
+   },
+   "1985-SR-X.1.3.8-L3.2": {
+    "candidates-2023": [
+     "SR-11.7.3-5",
+     "SR-13.15.3-7",
+     "SR-13.16.3-2"
+    ],
+    "nearest-2023": "SR-11.7.3-5",
+    "similarity": 0.237
+   },
+   "1985-SR-X.1.3.8-L3.3": {
+    "candidates-2023": [
+     "GR-4.2.10-1",
+     "GR-4.2.10-2",
+     "DOC-A.1-141"
+    ],
+    "nearest-2023": "GR-4.2.10-1",
+    "similarity": 0.16
+   },
+   "1985-SR-X.1.3.8-p5": {
+    "candidates-2023": [
+     "SR-12.3.3-1",
+     "SR-12.3.3-2",
+     "SR-11.10.3-3"
+    ],
+    "nearest-2023": "SR-12.3.3-1",
+    "similarity": 0.697
+   },
+   "1985-SR-X.1.3.8-L4.1": {
+    "candidates-2023": [
+     "GR-4.2.10-1",
+     "GR-4.2.10-2",
+     "GR-14.7.8-2"
+    ],
+    "nearest-2023": "GR-4.2.10-1",
+    "similarity": 0.172
+   },
+   "1985-SR-X.1.3.8-L4.2": {
+    "candidates-2023": [
+     "GR-4.2.10-1",
+     "GR-4.2.10-2",
+     "DOC-A.1-141"
+    ],
+    "nearest-2023": "GR-4.2.10-1",
+    "similarity": 0.154
+   },
+   "1985-SR-X.1.3.8-L4.3": {
+    "candidates-2023": [
+     "SR-13.16.3-24",
+     "SR-8.4.4.3-2",
+     "GR-8.8.4.5.3-2"
+    ],
+    "nearest-2023": "SR-13.16.3-24",
+    "similarity": 0.241
+   },
+   "1985-SR-X.1.3.8-L4.4": {
+    "candidates-2023": [
+     "GR-12.3.7.4-3",
+     "GR-4.2.10-1",
+     "GR-4.2.10-2"
+    ],
+    "nearest-2023": "GR-12.3.7.4-3",
+    "similarity": 0.336
+   },
+   "1985-SR-X.1.3.8-L4.5": {
+    "candidates-2023": [
+     "GR-8.3.3.6.4-10",
+     "SR-14.9.25.3-5",
+     "SR-12.3.7.3-11"
+    ],
+    "nearest-2023": "GR-8.3.3.6.4-10",
+    "similarity": 0.218
+   },
+   "1985-GR-X.1.3.8-p6": {
+    "candidates-2023": [
+     "GR-13.18.63.4-11",
+     "GR-13.18.63.4-21",
+     "SR-8.3.2.1-3"
+    ],
+    "nearest-2023": "GR-13.18.63.4-11",
+    "similarity": 0.299
+   },
+   "1985-GR-X.1.3.8-L5.1": {
+    "candidates-2023": [
+     "SR-13.16.3-24",
+     "SR-8.4.4.3-2",
+     "GR-8.8.4.5.3-2"
+    ],
+    "nearest-2023": "SR-13.16.3-24",
+    "similarity": 0.241
+   },
+   "1985-GR-X.1.3.8-L5.2": {
+    "candidates-2023": [
+     "SR-11.7.3-5",
+     "SR-13.15.3-7",
+     "SR-13.16.3-2"
+    ],
+    "nearest-2023": "SR-11.7.3-5",
+    "similarity": 0.237
+   },
+   "1985-GR-X.1.3.8-L5.3": {
+    "candidates-2023": [
+     "AR-15.3-4",
+     "SR-12.4.5.13.3-3",
+     "GR-4.2.10-1"
+    ],
+    "nearest-2023": "AR-15.3-4",
+    "similarity": 0.207
+   },
+   "1985-GR-X.1.3.8-L5.4": {
+    "candidates-2023": [
+     "GR-8.8.4.2.13-2",
+     "SR-8.4.2.2.3-6",
+     "SR-14.9.37.3-8"
+    ],
+    "nearest-2023": "GR-8.8.4.2.13-2",
+    "similarity": 0.281
+   },
+   "1985-GR-X.1.3.8-L5.5": {
+    "candidates-2023": [
+     "SR-8.3.2.2-L3.3",
+     "DOC-A.1-143",
+     "SR-8.3.2.2-L3.4"
+    ],
+    "nearest-2023": "SR-8.3.2.2-L3.3",
+    "similarity": 0.31
+   },
+   "1985-GR-X.1.3.8-L5.6": {
+    "candidates-2023": [
+     "GR-4.2.10-1",
+     "GR-4.2.10-2",
+     "DOC-A.1-141"
+    ],
+    "nearest-2023": "GR-4.2.10-1",
+    "similarity": 0.16
+   },
+   "1985-GR-X.1.3.8-L5.7": {
+    "candidates-2023": [
+     "SR-13.18.54.3-7",
+     "SR-14.9.16.3-1",
+     "SR-14.9.46.3-3"
+    ],
+    "nearest-2023": "SR-13.18.54.3-7",
+    "similarity": 0.26
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-15",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-X.1.3.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "IPC/Sequential I-O: a file connector links a file-name to its physical file (ASSIGN) and to its record area (FD records)"
+    ],
+    "evidence-1985": {
+     "file-name to physical file and record area, through the connector": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob (A writes record XREC-A of FD XF and reads the physical file S15XF.DAT back in order BREC/AREC; B's WRITE goes through the same external connector; run E:/COBOL-coord/scratch/pb5453/runs/p02_external-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.2 p1",
+      "quote": "used as the linkage between a file-name and a physical file",
+      "check": "OK  §1985:X.1.3.2 p1  (1.3.2 File Connector)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional, but a program shows it: 'used as the linkage between a file-name and a physical file and between a file-name and its associated record area'. p02 writes through the record area and reads the physical file back, and two programs' file-names reach one external connector. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it (GR-14.9.10.4-1 is DELETE's open-mode rule).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a data-name names a data item; a file-name names a file connector",
+     "both are classified global or local (the global class is IPC level 2, boxed)"
+    ],
+    "evidence-1985": {
+     "global data-name and file-name reachable from contained programs": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (IN1 and IN2 use GD/GS/GC and GR2; IN1 OPENs and WRITEs global file GF; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "local names reach only their own program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r01_local_data.cob (refused: contained program names container-local LD, COBOL1639; control r00_control accepted; run E:/COBOL-coord/scratch/pb5453/runs/r01_local_data-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.3 p1",
+      "quote": "A file-name names a file connector",
+      "check": "OK  §1985:X.1.3.3 p1  (1.3.3 Global Names and Local Names)  the text is in p1"
+     }
+    ],
+    "reason": "'A data-name names a data item. A file-name names a file connector. These names are classified as either global or local.' Flagged definitional; a program shows both classes (p01 accepted, r01 refused). No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.3-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a local name is referenced only from the program that declares it",
+     "some names always global, some always local (paragraph-, section-, cd-names), some either by GLOBAL"
+    ],
+    "evidence-1985": {
+     "local data-name not reachable from a contained program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r01_local_data.cob (refused, COBOL1639; run E:/COBOL-coord/scratch/pb5453/runs/r01_local_data-001)",
+     "container cannot reach a contained program's name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r08_outer_inner_name.cob (refused, COBOL1639; run E:/COBOL-coord/scratch/pb5453/runs/r08_outer_inner_name-001)",
+     "paragraph and section names always local": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r02_para.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/r02_para-001); covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r03_section.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/r03_section-001)",
+     "either, by GLOBAL": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (GLOBAL items reached from IN1 and IN2; IN1 local DUP not seen by IN2 (IN2-DUP=OUTER); run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "control": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob (accepted: GLOBAL name, own paragraph and own section; run E:/COBOL-coord/scratch/pb5453/runs/r00_control-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.3 p3",
+      "quote": "may be used only to refer to the object with which it is associated from within the program in which the local name is declared",
+      "check": "OK  §1985:X.1.3.3 p3  (1.3.3 Global Names and Local Names)  the text is in p3"
+     }
+    ],
+    "reason": "'A local name, however, may be used only to refer to the object ... from within the program in which the local name is declared.' The refusals r01/r08/r02/r03 each change one line of the accepted control r00. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/r01_local_data.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/r01_local_data.cob (refusal twin of E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.3-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "record-name global by GLOBAL on its record entry (WS) or on its FD",
+     "data-name global by GLOBAL on its entry or an ancestor",
+     "condition-name global when subordinate to a GLOBAL entry",
+     "specific rules prohibit GLOBAL on some entries"
+    ],
+    "evidence-1985": {
+     "record GLOBAL (WS)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (GD and GR2 records GLOBAL, used in IN1; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "record under FD GLOBAL": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (GREC under FD GF GLOBAL written by IN1, read back by S15OUT: OUT-GREC=XYZ; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "subordinate data-name and index-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (GS under GD; GX indexes GT under GD, set in IN1: OUT-GX=B; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "condition-name under a GLOBAL entry": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (88 GC under GD tested in IN1 and IN2 (=Y); run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "prohibitions": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/g07_ws05_global.cob (GLOBAL at level 05 refused; run E:/COBOL-coord/scratch/pb5453/runs/g07_ws05_global-001); covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/g03_lk_global.cob (Linkage GLOBAL refused; run E:/COBOL-coord/scratch/pb5453/runs/g03_lk_global-001); covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/g05_cd_global.cob (Communication Section GLOBAL refused; run E:/COBOL-coord/scratch/pb5453/runs/g05_cd_global-001); control covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/g01_ws_global.cob (accepted; run E:/COBOL-coord/scratch/pb5453/runs/g01_ws_global-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.3 p4",
+      "quote": "A condition-name declared in a data description entry is global if that entry is subordinate to another entry in which the GLOBAL clause is specified",
+      "check": "OK  §1985:X.1.3.3 p4  (1.3.3 Global Names and Local Names)  the text is in p4"
+     },
+     {
+      "cite": "§1985:X.4.6.3 SR1",
+      "quote": "in the File Section or the Working-Storage Section",
+      "check": "OK  §1985:X.4.6.3 SR1  (║4.6.3 Syntax Rules║)  the text is in SR1"
+     }
+    ],
+    "reason": "Every clause of the paragraph is shown at 85: record-level and FD-level GLOBAL, subordinate data-names, condition-names, and the prohibitions (§1985:X.4.6.3 SR1). The nearest pointer GR-13.18.27.4-1 has pb1523 at 85, but that case exercises FD GLOBAL records and REDEFINES subjects only, not condition-names or the prohibitions, so it is not the whole scope.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob with refusal twins E:/COBOL-coord/scratch/pb5453/probes/s-15/g07_ws05_global.cob, E:/COBOL-coord/scratch/pb5453/probes/s-15/g03_lk_global.cob, E:/COBOL-coord/scratch/pb5453/probes/s-15/g05_cd_global.cob (control E:/COBOL-coord/scratch/pb5453/probes/s-15/g01_ws_global.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.3-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a data-name, file-name or condition-name (data description entry) that is not global is local"
+    ],
+    "evidence-1985": {
+     "data-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r01_local_data.cob (refused in a contained program; run E:/COBOL-coord/scratch/pb5453/runs/r01_local_data-001); covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (IN1 local DUP not seen by IN2: IN2-DUP=OUTER; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "file-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/q02_local_file.cob (OPEN of non-global LF from a contained program refused; control q00_global_report accepted; run E:/COBOL-coord/scratch/pb5453/runs/q02_local_file-001)",
+     "condition-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/q03_local_cond.cob (88 LC-Y of a local item refused in a contained program; run E:/COBOL-coord/scratch/pb5453/runs/q03_local_cond-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.3 p6",
+      "quote": "is not global, the name is local",
+      "check": "OK  §1985:X.1.3.3 p6  (1.3.3 Global Names and Local Names)  the text is in p6"
+     }
+    ],
+    "reason": "'If a data-name, a file-name, or a condition-name declared in a data description entry is not global, the name is local.' Flagged definitional; programs show it for all three name kinds. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/q03_local_cond.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/q03_local_cond.cob, E:/COBOL-coord/scratch/pb5453/probes/s-15/q02_local_file.cob, E:/COBOL-coord/scratch/pb5453/probes/s-15/r01_local_data.cob (control E:/COBOL-coord/scratch/pb5453/probes/s-15/q00_global_report.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "data items and file connectors have storage",
+     "that storage is external or internal to the declaring program"
+    ],
+    "evidence-1985": {
+     "external storage": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob (XD and XF shared by S15EXA/B/C/D; run E:/COBOL-coord/scratch/pb5453/runs/p02_external-002)",
+     "internal storage": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob (INT1 and IREC are separate in each program: A-INT1=AAAA, A-IREC=AAAA after B sets its own; run E:/COBOL-coord/scratch/pb5453/runs/p02_external-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.4 p1",
+      "quote": "may be external or internal to the program in which the object is declared",
+      "check": "OK  §1985:X.1.3.4 p1  (1.3.4 External Objects and Internal Objects)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional; a program shows both kinds of storage (p02). No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.4-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "external data item or file connector: storage of the run unit",
+     "referenced by any program that describes it",
+     "separate descriptions reach the same object",
+     "one representation per run unit"
+    ],
+    "evidence-1985": {
+     "separate descriptions, one object": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob (XD a group in A and C, elementary PIC X(8) in B and in nested D: B sees ONE 0001, A then sees TWO 0002, C and D see TWO 0002; run E:/COBOL-coord/scratch/pb5453/runs/p02_external-002)",
+     "external file connector": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob (B WRITEs BREC to XF while A has it open; A reads BREC then AREC; run E:/COBOL-coord/scratch/pb5453/runs/p02_external-002)",
+     "any program, a contained one included": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob (D, contained in C, describes XD itself; run E:/COBOL-coord/scratch/pb5453/runs/p02_external-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.4 p2",
+      "quote": "References to an external object from different programs using separate descriptions of the object are always to the same object",
+      "check": "OK  §1985:X.1.3.4 p2  (1.3.4 External Objects and Internal Objects)  the text is in p2"
+     }
+    ],
+    "reason": "Shown for records and for a file connector across separately compiled and contained programs. GR-13.18.22.4-1 states the record half but has no 85 case. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.4-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "an object is internal when its storage belongs only to the describing program"
+    ],
+    "evidence-1985": {
+     "internal objects are per program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob (INT1 (WS) and IREC (FD IF1) of A and B are distinct: A-INT1=AAAA A-IREC=AAAA; run E:/COBOL-coord/scratch/pb5453/runs/p02_external-002); covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (IN1 DUP=INNER, IN2 sees OUTER; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.4 p3",
+      "quote": "associated only with the program which describes the object",
+      "check": "OK  §1985:X.1.3.4 p3  (1.3.4 External Objects and Internal Objects)  the text is in p3"
+     }
+    ],
+    "reason": "Flagged definitional; p02 shows internal storage is per program. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.4-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "external objects with global names",
+     "external objects with local names",
+     "internal objects with global names",
+     "internal objects with local names"
+    ],
+    "evidence-1985": {
+     "external + global": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p07_external_global.cob (XG EXTERNAL GLOBAL and FD XGF EXTERNAL GLOBAL used undescribed by S15XGI; run E:/COBOL-coord/scratch/pb5453/runs/p07_external_global-001)",
+     "external + local": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p07_external_global.cob (XL EXTERNAL reached in S15XGI only through its own description; run E:/COBOL-coord/scratch/pb5453/runs/p07_external_global-001); covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/x01_external_local_name.cob (refused when S15XGI names XL without describing it; run E:/COBOL-coord/scratch/pb5453/runs/x01_external_local_name-001)",
+     "internal + global": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (GD GLOBAL; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "internal + local": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (LD; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003); covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r01_local_data.cob (refused from a contained program; run E:/COBOL-coord/scratch/pb5453/runs/r01_local_data-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.4 p4",
+      "quote": "External and internal objects may have either global or local names",
+      "check": "OK  §1985:X.1.3.4 p4  (1.3.4 External Objects and Internal Objects)  the text is in p4"
+     }
+    ],
+    "reason": "A grant ('may have either global or local names'): all four combinations are accepted at 85, and the local names are refused where they are out of scope. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p07_external_global.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p07_external_global.cob (refusal twin E:/COBOL-coord/scratch/pb5453/probes/s-15/x01_external_local_name.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.4-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a Working-Storage record is external by EXTERNAL on its entry",
+     "its subordinate items attain the external attribute",
+     "without EXTERNAL a record is internal"
+    ],
+    "evidence-1985": {
+     "EXTERNAL WS record and subordinates": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob (XD-A/XD-B subordinate to XD EXTERNAL in A are the storage B sees as elementary XD; run E:/COBOL-coord/scratch/pb5453/runs/p02_external-002)",
+     "internal without EXTERNAL": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob (INT1 separate per program; run E:/COBOL-coord/scratch/pb5453/runs/p02_external-002)",
+     "accepted on a level-01 WS entry": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/g02_ws_external.cob (accepted; run E:/COBOL-coord/scratch/pb5453/runs/g02_ws_external-001)",
+     "not admitted outside WS": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/g04_lk_external.cob (Linkage EXTERNAL refused; run E:/COBOL-coord/scratch/pb5453/runs/g04_lk_external-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.4 p5",
+      "quote": "Any data item described by a data description entry subordinate to an entry describing an external record also attains the external attribute",
+      "check": "OK  §1985:X.1.3.4 p5  (1.3.4 External Objects and Internal Objects)  the text is in p5"
+     }
+    ],
+    "reason": "Shown by p02: the subordinates of an external record are one storage with another program's elementary description. GR-13.18.22.4-1 has no 85 case. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.4-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a file connector is external by EXTERNAL on its FD",
+     "otherwise internal to the program describing the file-name"
+    ],
+    "evidence-1985": {
+     "external connector": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob (XF shared by A and B; run E:/COBOL-coord/scratch/pb5453/runs/p02_external-002)",
+     "internal connector": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob (IF1 in A (S15IA.DAT) and IF1 in B (S15IB.DAT): one file-name, two internal connectors; run E:/COBOL-coord/scratch/pb5453/runs/p02_external-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.4 p6",
+      "quote": "A file connector is given the external attribute by the presence of the EXTERNAL clause in the associated file description entry",
+      "check": "OK  §1985:X.1.3.4 p6  (1.3.4 External Objects and Internal Objects)  the text is in p6"
+     }
+    ],
+    "reason": "Shown by p02. GR-13.18.22.4-4 states the external half with no 85 case. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.4-p7",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "records (and subordinates) of an FD without EXTERNAL are internal",
+     "records of a sort-merge file description are internal",
+     "records of an EXTERNAL FD are external"
+    ],
+    "evidence-1985": {
+     "EXTERNAL FD records external": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob (A MOVEs SHAR to XREC-A; B, with a separate description XREC PIC X(4), shows B-XREC=SHAR; run E:/COBOL-coord/scratch/pb5453/runs/p02_external-002)",
+     "non-EXTERNAL FD records internal": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob (IREC of IF1 separate: A-IREC=AAAA after B sets its IREC to ZZZZ; run E:/COBOL-coord/scratch/pb5453/runs/p02_external-002)",
+     "SD records internal": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/g10_sd_external.cob (EXTERNAL on an SD refused; run E:/COBOL-coord/scratch/pb5453/runs/g10_sd_external-001); control covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/g11_sd_plain.cob (accepted; run E:/COBOL-coord/scratch/pb5453/runs/g11_sd_plain-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.4 p7",
+      "quote": "If the EXTERNAL clause is included in the file description entry, the data records and the data items attain the external attribute",
+      "check": "OK  §1985:X.1.3.4 p7  (1.3.4 External Objects and Internal Objects)  the text is in p7"
+     }
+    ],
+    "reason": "Every part shown at 85. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p02_external.cob (refusal E:/COBOL-coord/scratch/pb5453/probes/s-15/g10_sd_external.cob, control E:/COBOL-coord/scratch/pb5453/probes/s-15/g11_sd_plain.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.4-p8",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Linkage, Communication and Report Section data is always internal",
+     "Linkage data is associated with data items of other programs (CALL USING)"
+    ],
+    "evidence-1985": {
+     "Linkage association": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p03_common_initial.cob (S15NONE LK shows CALR and its MOVE CHGD reaches the caller: CALLER-ARG=CHGD; run E:/COBOL-coord/scratch/pb5453/runs/p03_common_initial-002)",
+     "Linkage never external": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/g04_lk_external.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/g04_lk_external-001)",
+     "Communication never external": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/g06_cd_external.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/g06_cd_external-001)",
+     "Report never external": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/g08_rd_external.cob (EXTERNAL on an RD refused; run E:/COBOL-coord/scratch/pb5453/runs/g08_rd_external-003); control covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/g09_rd_global.cob (RD GLOBAL accepted; run E:/COBOL-coord/scratch/pb5453/runs/g09_rd_global-003)",
+     "control": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/g00_control.cob (accepted; run E:/COBOL-coord/scratch/pb5453/runs/g00_control-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.4 p8",
+      "quote": "are always considered to be internal to the program describing that data",
+      "check": "OK  §1985:X.1.3.4 p8  (1.3.4 External Objects and Internal Objects)  the text is in p8"
+     }
+    ],
+    "reason": "Each section the paragraph names refuses the external attribute at 85, and the Linkage association is shown. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p03_common_initial.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p03_common_initial.cob with refusals E:/COBOL-coord/scratch/pb5453/probes/s-15/g04_lk_external.cob, E:/COBOL-coord/scratch/pb5453/probes/s-15/g06_cd_external.cob, E:/COBOL-coord/scratch/pb5453/probes/s-15/g08_rd_external.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-15/g00_control.cob, E:/COBOL-coord/scratch/pb5453/probes/s-15/g09_rd_global.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a program in a run unit may have none, one, or both of the common and initial attributes"
+    ],
+    "evidence-1985": {
+     "both": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p03_common_initial.cob (S15BOTH IS COMMON INITIAL, called twice from sibling S15SIB: BOTH-N=1 each time; run E:/COBOL-coord/scratch/pb5453/runs/p03_common_initial-002)",
+     "common only": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p03_common_initial.cob (S15COM from the sibling keeps its state: COM-N=1 then 2; run E:/COBOL-coord/scratch/pb5453/runs/p03_common_initial-002)",
+     "initial only": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p03_common_initial.cob (S15INIT called twice from the container: INIT-N=1, 1; run E:/COBOL-coord/scratch/pb5453/runs/p03_common_initial-002)",
+     "none": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p03_common_initial.cob (S15NONE; run E:/COBOL-coord/scratch/pb5453/runs/p03_common_initial-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.5 p1",
+      "quote": "may possess none, one, or more of the following attributes",
+      "check": "OK  §1985:X.1.3.5 p1  (║1.3.5 Common Programs and Initial Programs║)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional, but it is a grant a program shows: all four combinations accepted and behaving at 85. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p03_common_initial.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p03_common_initial.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.8-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "nested programs may use identical user-defined words independently",
+     "a reference is to the object its own program describes, even when the word is another type in another program",
+     "pointer followed: page IV-6, User-Defined Words (uniqueness is within one program)"
+    ],
+    "evidence-1985": {
+     "same type": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (DUP in S15OUT (GLOBAL) and S15IN1: IN1-DUP=INNER; paragraph SAME-P in both, each PERFORM runs its own; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "different type": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p06_different_word_type.cob (S15DWI uses the container GLOBAL data-name SAMEW as its paragraph-name and the container paragraph OPARA as its data-name: IN-SAMEW-PARA, IN-OPARA=IDATA; run E:/COBOL-coord/scratch/pb5453/runs/p06_different_word_type-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 p1",
+      "quote": "is to the object which that program describes rather than to the object, possessing the same name, described in another program",
+      "check": "OK  §1985:X.1.3.8 p1  (1.3.8 Scope of Names)  the text is in p1"
+     }
+    ],
+    "reason": "Both halves shown, including 'even when it is a different type of user-defined word' (p06). GR-8.6.7-2 is the sharing-of-data rule, not this one. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p06_different_word_type.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p06_different_word_type.cob and E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "cd-name, paragraph-name and section-name are referenced only in the declaring program (Communication; Nucleus)"
+    ],
+    "evidence-1985": {
+     "cd-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r04_cdname.cob (refused; control r09_cdname_outer accepted; run E:/COBOL-coord/scratch/pb5453/runs/r04_cdname-001)",
+     "paragraph-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r02_para.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/r02_para-001)",
+     "section-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r03_section.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/r03_section-001)",
+     "control": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob (own paragraph and section accepted; run E:/COBOL-coord/scratch/pb5453/runs/r00_control-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 p2",
+      "quote": "may be referenced only by statements and entries in that program in which the user-defined word is declared",
+      "check": "OK  §1985:X.1.3.8 p2  (1.3.8 Scope of Names)  the text is in p2"
+     }
+    ],
+    "reason": "The lead carries the requirement of items 1-3; each item is refused across a program boundary at 85. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/r02_para.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/r02_para.cob, E:/COBOL-coord/scratch/pb5453/probes/s-15/r03_section.cob, E:/COBOL-coord/scratch/pb5453/probes/s-15/r04_cdname.cob (controls E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob, E:/COBOL-coord/scratch/pb5453/probes/s-15/r09_cdname_outer.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "cd-name: referenced only in the program that declares it"
+    ],
+    "evidence-1985": {
+     "cd-name from a contained program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r04_cdname.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/r04_cdname-001)",
+     "control": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r09_cdname_outer.cob (accepted in the declaring program; run E:/COBOL-coord/scratch/pb5453/runs/r09_cdname_outer-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 SR1",
+      "check": "OK  §1985:X.1.3.8 SR1 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p2",
+      "quote": "may be referenced only by statements and entries in that program in which the user-defined word is declared",
+      "check": "OK  §1985:X.1.3.8 p2  (1.3.8 Scope of Names)  the text is in p2"
+     }
+    ],
+    "reason": "Item '1. cd-name' of the list whose lead reads 'may be referenced only by statements and entries in that program in which the user-defined word is declared'. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/r04_cdname.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/r04_cdname.cob (control E:/COBOL-coord/scratch/pb5453/probes/s-15/r09_cdname_outer.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "paragraph-name: referenced only in the program that declares it"
+    ],
+    "evidence-1985": {
+     "paragraph-name from a contained program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r02_para.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/r02_para-001)",
+     "control": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob (accepted in the declaring program; run E:/COBOL-coord/scratch/pb5453/runs/r00_control-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 SR2",
+      "check": "OK  §1985:X.1.3.8 SR2 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p2",
+      "quote": "may be referenced only by statements and entries in that program in which the user-defined word is declared",
+      "check": "OK  §1985:X.1.3.8 p2  (1.3.8 Scope of Names)  the text is in p2"
+     }
+    ],
+    "reason": "Item '2. paragraph-name' of the list whose lead reads 'may be referenced only by statements and entries in that program in which the user-defined word is declared'. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/r02_para.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/r02_para.cob (control E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "section-name: referenced only in the program that declares it"
+    ],
+    "evidence-1985": {
+     "section-name from a contained program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r03_section.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/r03_section-001)",
+     "control": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob (accepted in the declaring program; run E:/COBOL-coord/scratch/pb5453/runs/r00_control-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 SR3",
+      "check": "OK  §1985:X.1.3.8 SR3 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p2",
+      "quote": "may be referenced only by statements and entries in that program in which the user-defined word is declared",
+      "check": "OK  §1985:X.1.3.8 p2  (1.3.8 Scope of Names)  the text is in p2"
+     }
+    ],
+    "reason": "Item '3. section-name' of the list whose lead reads 'may be referenced only by statements and entries in that program in which the user-defined word is declared'. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/r03_section.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/r03_section.cob (control E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "library-name and text-name may be referenced by any program (Library module), provided the library is supported and its texts known"
+    ],
+    "evidence-1985": {
+     "outermost and contained program both COPY text OF library": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p04_library.cob (COPY S15TXT OF S15LIB, S15PRC OF/IN S15LIB in S15LB and in contained S15LBI; run with -- --copy E:/COBOL-coord/scratch/pb5453/probes/s-15; run E:/COBOL-coord/scratch/pb5453/runs/p04_library-001)",
+     "library not known to the system": "not shown at 85 here (it is the COPY statement's own rule, §1985:XII.2)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 p3",
+      "quote": "may be referenced by any COBOL program, provided that the compiling system supports the associated library",
+      "check": "OK  §1985:X.1.3.8 p3  (1.3.8 Scope of Names)  the text is in p3"
+     }
+    ],
+    "reason": "The grant is shown for an outermost and a contained program. The proviso (a library unknown to the system) is not shown here; it belongs to the COPY rules of §1985:XII.2. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p04_library.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p04_library.cob (run with -- --copy E:/COBOL-coord/scratch/pb5453/probes/s-15)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-L2.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "library-name: may be referenced by any program, contained ones included"
+    ],
+    "evidence-1985": {
+     "library-name in a contained program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p04_library.cob (COPY ... OF S15LIB in S15LBI accepted and run; run E:/COBOL-coord/scratch/pb5453/runs/p04_library-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 SRL2.1",
+      "check": "OK  §1985:X.1.3.8 SRL2.1 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p3",
+      "quote": "may be referenced by any COBOL program",
+      "check": "OK  §1985:X.1.3.8 p3  (1.3.8 Scope of Names)  the text is in p3"
+     }
+    ],
+    "reason": "Item '1. library-name' of the list whose lead reads 'may be referenced by any COBOL program, provided that the compiling system supports the associated library'. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. A grant: the accepted program p04 shows it. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p04_library.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p04_library.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-L2.2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "text-name: may be referenced by any program, contained ones included"
+    ],
+    "evidence-1985": {
+     "text-name in a contained program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p04_library.cob (COPY ... OF S15LIB in S15LBI accepted and run; run E:/COBOL-coord/scratch/pb5453/runs/p04_library-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 SRL2.2",
+      "check": "OK  §1985:X.1.3.8 SRL2.2 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p3",
+      "quote": "may be referenced by any COBOL program",
+      "check": "OK  §1985:X.1.3.8 p3  (1.3.8 Scope of Names)  the text is in p3"
+     }
+    ],
+    "reason": "Item '2. text-name' of the list whose lead reads 'may be referenced by any COBOL program, provided that the compiling system supports the associated library'. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. A grant: the accepted program p04 shows it. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p04_library.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p04_library.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "condition-names, data-names and record-names declared in a Communication Section are referenced only in the program containing that section"
+    ],
+    "evidence-1985": {
+     "condition-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r07_cdcond.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/r07_cdcond-001)",
+     "data-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r05_cddata.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/r05_cddata-001)",
+     "record-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r06_cdrec.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/r06_cdrec-001)",
+     "control": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob (the container references CDIN-K, CDIN-C, IN-QUEUE: accepted; run E:/COBOL-coord/scratch/pb5453/runs/r00_control-001)",
+     "GLOBAL cannot widen it": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/g05_cd_global.cob (GLOBAL on a CD record refused; run E:/COBOL-coord/scratch/pb5453/runs/g05_cd_global-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 p4",
+      "quote": "may be referenced only by statements and entries in that program which contains that section",
+      "check": "OK  §1985:X.1.3.8 p4  (1.3.8 Scope of Names)  the text is in p4"
+     }
+    ],
+    "reason": "Shown for all three kinds at 85. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/r05_cddata.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/r05_cddata.cob, E:/COBOL-coord/scratch/pb5453/probes/s-15/r06_cdrec.cob, E:/COBOL-coord/scratch/pb5453/probes/s-15/r07_cdcond.cob (control E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-L3.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "condition-name declared in a Communication Section: referenced only in that program"
+    ],
+    "evidence-1985": {
+     "condition-name from a contained program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r07_cdcond.cob (refused, COBOL1639; run E:/COBOL-coord/scratch/pb5453/runs/r07_cdcond-001)",
+     "control": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob (accepted in the declaring program; run E:/COBOL-coord/scratch/pb5453/runs/r00_control-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 SRL3.1",
+      "check": "OK  §1985:X.1.3.8 SRL3.1 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p4",
+      "quote": "may be referenced only by statements and entries in that program which contains that section",
+      "check": "OK  §1985:X.1.3.8 p4  (1.3.8 Scope of Names)  the text is in p4"
+     }
+    ],
+    "reason": "Item '1. condition-name' of the list whose lead reads 'when they are declared in a Communication Section may be referenced only by statements and entries in that program which contains that section'. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/r07_cdcond.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/r07_cdcond.cob (control E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-L3.2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "data-name declared in a Communication Section: referenced only in that program"
+    ],
+    "evidence-1985": {
+     "data-name from a contained program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r05_cddata.cob (refused, COBOL1639; run E:/COBOL-coord/scratch/pb5453/runs/r05_cddata-001)",
+     "control": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob (accepted in the declaring program; run E:/COBOL-coord/scratch/pb5453/runs/r00_control-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 SRL3.2",
+      "check": "OK  §1985:X.1.3.8 SRL3.2 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p4",
+      "quote": "may be referenced only by statements and entries in that program which contains that section",
+      "check": "OK  §1985:X.1.3.8 p4  (1.3.8 Scope of Names)  the text is in p4"
+     }
+    ],
+    "reason": "Item '2. data-name' of the list whose lead reads 'when they are declared in a Communication Section may be referenced only by statements and entries in that program which contains that section'. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/r05_cddata.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/r05_cddata.cob (control E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-L3.3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "record-name declared in a Communication Section: referenced only in that program"
+    ],
+    "evidence-1985": {
+     "record-name from a contained program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r06_cdrec.cob (refused, COBOL1639; run E:/COBOL-coord/scratch/pb5453/runs/r06_cdrec-001)",
+     "control": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob (accepted in the declaring program; run E:/COBOL-coord/scratch/pb5453/runs/r00_control-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 SRL3.3",
+      "check": "OK  §1985:X.1.3.8 SRL3.3 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p4",
+      "quote": "may be referenced only by statements and entries in that program which contains that section",
+      "check": "OK  §1985:X.1.3.8 p4  (1.3.8 Scope of Names)  the text is in p4"
+     }
+    ],
+    "reason": "Item '3. record-name' of the list whose lead reads 'when they are declared in a Communication Section may be referenced only by statements and entries in that program which contains that section'. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/r06_cdrec.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/r06_cdrec.cob (control E:/COBOL-coord/scratch/pb5453/probes/s-15/r00_control.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "alphabet-, class-, condition-, mnemonic-names and symbolic-characters of a Configuration Section are referenced in that program or any program it contains (the contained part is boxed)",
+     "not from another, separately compiled program"
+    ],
+    "evidence-1985": {
+     "a contained program uses all five": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (IN1: U7-ON, HEXDIG, CON-DEV, STAR; IN2: SORT ... COLLATING SEQUENCE IS ALPH; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "a separate program is refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/c01_other_config.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/c01_other_config-001); covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/c02_other_cond.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/c02_other_cond-001); covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/c03_other_mnemonic.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/c03_other_mnemonic-001); covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/c04_other_symbolic.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/c04_other_symbolic-001); covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/c05_other_alphabet.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/c05_other_alphabet-001); control covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/c00_own_config.cob (accepted; run E:/COBOL-coord/scratch/pb5453/runs/c00_own_config-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 p5",
+      "quote": "either in that program which contains a Configuration Section or in any program contained within that program",
+      "check": "OK  §1985:X.1.3.8 p5  (1.3.8 Scope of Names)  the text is in p5"
+     }
+    ],
+    "reason": "Both the grant (contained programs) and the limit (separately compiled programs) are shown for all five kinds. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob with refusals E:/COBOL-coord/scratch/pb5453/probes/s-15/c01_other_config.cob to E:/COBOL-coord/scratch/pb5453/probes/s-15/c05_other_alphabet.cob (control E:/COBOL-coord/scratch/pb5453/probes/s-15/c00_own_config.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-L4.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "alphabet-name of a Configuration Section: referenced in that program or a program it contains, not elsewhere"
+    ],
+    "evidence-1985": {
+     "alphabet-name in a contained program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (IN2 SORT ... COLLATING SEQUENCE IS ALPH: IN2-SORT=Abc; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "alphabet-name in a separately compiled program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/c05_other_alphabet.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/c05_other_alphabet-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 SRL4.1",
+      "check": "OK  §1985:X.1.3.8 SRL4.1 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p5",
+      "quote": "either in that program which contains a Configuration Section or in any program contained within that program",
+      "check": "OK  §1985:X.1.3.8 p5  (1.3.8 Scope of Names)  the text is in p5"
+     }
+    ],
+    "reason": "Item '1. alphabet-name' of the list whose lead reads 'either in that program which contains a Configuration Section or in any program contained within that program'. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (refusal E:/COBOL-coord/scratch/pb5453/probes/s-15/c05_other_alphabet.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-L4.2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "class-name of a Configuration Section: referenced in that program or a program it contains, not elsewhere"
+    ],
+    "evidence-1985": {
+     "class-name in a contained program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (IN1 IF W IS HEXDIG: IN1-HEX=YES; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "class-name in a separately compiled program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/c01_other_config.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/c01_other_config-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 SRL4.2",
+      "check": "OK  §1985:X.1.3.8 SRL4.2 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p5",
+      "quote": "either in that program which contains a Configuration Section or in any program contained within that program",
+      "check": "OK  §1985:X.1.3.8 p5  (1.3.8 Scope of Names)  the text is in p5"
+     }
+    ],
+    "reason": "Item '2. class-name' of the list whose lead reads 'either in that program which contains a Configuration Section or in any program contained within that program'. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (refusal E:/COBOL-coord/scratch/pb5453/probes/s-15/c01_other_config.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-L4.3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "condition-name of a Configuration Section: referenced in that program or a program it contains, not elsewhere"
+    ],
+    "evidence-1985": {
+     "condition-name in a contained program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (IN1 IF U7-ON: IN1-U7=OFF; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "condition-name in a separately compiled program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/c02_other_cond.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/c02_other_cond-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 SRL4.3",
+      "check": "OK  §1985:X.1.3.8 SRL4.3 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p5",
+      "quote": "either in that program which contains a Configuration Section or in any program contained within that program",
+      "check": "OK  §1985:X.1.3.8 p5  (1.3.8 Scope of Names)  the text is in p5"
+     }
+    ],
+    "reason": "Item '3. condition-name' of the list whose lead reads 'either in that program which contains a Configuration Section or in any program contained within that program'. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (refusal E:/COBOL-coord/scratch/pb5453/probes/s-15/c02_other_cond.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-L4.4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "mnemonic-name of a Configuration Section: referenced in that program or a program it contains, not elsewhere"
+    ],
+    "evidence-1985": {
+     "mnemonic-name in a contained program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (IN1 DISPLAY ... UPON CON-DEV; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "mnemonic-name in a separately compiled program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/c03_other_mnemonic.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/c03_other_mnemonic-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 SRL4.4",
+      "check": "OK  §1985:X.1.3.8 SRL4.4 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p5",
+      "quote": "either in that program which contains a Configuration Section or in any program contained within that program",
+      "check": "OK  §1985:X.1.3.8 p5  (1.3.8 Scope of Names)  the text is in p5"
+     }
+    ],
+    "reason": "Item '4. mnemonic-name' of the list whose lead reads 'either in that program which contains a Configuration Section or in any program contained within that program'. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (refusal E:/COBOL-coord/scratch/pb5453/probes/s-15/c03_other_mnemonic.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-X.1.3.8-L4.5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "symbolic-character of a Configuration Section: referenced in that program or a program it contains, not elsewhere"
+    ],
+    "evidence-1985": {
+     "symbolic-character in a contained program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (IN1 MOVE STAR: IN1-STAR=*; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "symbolic-character in a separately compiled program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/c04_other_symbolic.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/c04_other_symbolic-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 SRL4.5",
+      "check": "OK  §1985:X.1.3.8 SRL4.5 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p5",
+      "quote": "either in that program which contains a Configuration Section or in any program contained within that program",
+      "check": "OK  §1985:X.1.3.8 p5  (1.3.8 Scope of Names)  the text is in p5"
+     }
+    ],
+    "reason": "Item '5. symbolic-character' of the list whose lead reads 'either in that program which contains a Configuration Section or in any program contained within that program'. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (refusal E:/COBOL-coord/scratch/pb5453/probes/s-15/c04_other_symbolic.cob)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.8-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the conventions of X.1.3.8.1 (program-names), X.1.3.8.2 (condition-, data-, file-, record-, report-names) and X.1.3.8.3 (index-names) govern the seven listed word types"
+    ],
+    "evidence-1985": {
+     "program-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p05_program_name_scope.cob (a non-common contained program is unreachable from a sibling (ON OVERFLOW); a COMMON one is reachable; run E:/COBOL-coord/scratch/pb5453/runs/p05_program_name_scope-001)",
+     "condition, data, file, record and report names": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (global names reached, local DUP resolved to its own; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003); covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/q00_global_report.cob (GLOBAL report used by a contained program; run E:/COBOL-coord/scratch/pb5453/runs/q00_global_report-001); covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/q01_local_report.cob (local report refused; run E:/COBOL-coord/scratch/pb5453/runs/q01_local_report-001)",
+     "index-name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (GX of a GLOBAL table set in IN1; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 p6",
+      "quote": "Specific conventions, for declarations and references, apply to the following types of user-defined words",
+      "check": "OK  §1985:X.1.3.8 p6  (1.3.8 Scope of Names)  the text is in p6"
+     }
+    ],
+    "reason": "A lead-in pointing to the conventions of X.1.3.8.1 to X.1.3.8.3; each convention's core is shown at 85 by the probes named. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p05_program_name_scope.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p05_program_name_scope.cob, E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob, E:/COBOL-coord/scratch/pb5453/probes/s-15/q00_global_report.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.8-L5.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "condition-name: declared and referenced under the specific conventions of §1985:X.1.3.8.2"
+    ],
+    "evidence-1985": {
+     "global": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (88 GC under GLOBAL GD tested in IN1 and IN2; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "local": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/q03_local_cond.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/q03_local_cond-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 GRL5.1",
+      "check": "OK  §1985:X.1.3.8 GRL5.1 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p6",
+      "quote": "Specific conventions, for declarations and references, apply to the following types of user-defined words",
+      "check": "OK  §1985:X.1.3.8 p6  (1.3.8 Scope of Names)  the text is in p6"
+     }
+    ],
+    "reason": "Item '1. condition-name' of the list whose lead reads 'Specific conventions, for declarations and references, apply to the following types of user-defined words'. Flagged definitional, but the conventions it names (X.1.3.8.2) are observable and are shown at 85. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/q03_local_cond.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/q03_local_cond.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.8-L5.2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "data-name: declared and referenced under the specific conventions of §1985:X.1.3.8.2"
+    ],
+    "evidence-1985": {
+     "global, and duplicate resolution": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (IN1-DUP=INNER, IN2-DUP=OUTER; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "local": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r01_local_data.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/r01_local_data-001)",
+     "a container cannot see a contained name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r08_outer_inner_name.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/r08_outer_inner_name-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 GRL5.2",
+      "check": "OK  §1985:X.1.3.8 GRL5.2 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p6",
+      "quote": "Specific conventions, for declarations and references, apply to the following types of user-defined words",
+      "check": "OK  §1985:X.1.3.8 p6  (1.3.8 Scope of Names)  the text is in p6"
+     }
+    ],
+    "reason": "Item '2. data-name' of the list whose lead reads 'Specific conventions, for declarations and references, apply to the following types of user-defined words'. Flagged definitional, but the conventions it names (X.1.3.8.2) are observable and are shown at 85. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.8-L5.3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "file-name: declared and referenced under the specific conventions of §1985:X.1.3.8.2"
+    ],
+    "evidence-1985": {
+     "global": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (IN1 OPENs and WRITEs global GF; the container reads OUT-GREC=XYZ; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "local": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/q02_local_file.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/q02_local_file-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 GRL5.3",
+      "check": "OK  §1985:X.1.3.8 GRL5.3 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p6",
+      "quote": "Specific conventions, for declarations and references, apply to the following types of user-defined words",
+      "check": "OK  §1985:X.1.3.8 p6  (1.3.8 Scope of Names)  the text is in p6"
+     }
+    ],
+    "reason": "Item '3. file-name' of the list whose lead reads 'Specific conventions, for declarations and references, apply to the following types of user-defined words'. Flagged definitional, but the conventions it names (X.1.3.8.2) are observable and are shown at 85. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.8-L5.4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "index-name: declared and referenced under the specific conventions of §1985:X.1.3.8.3"
+    ],
+    "evidence-1985": {
+     "global with its table": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (IN1 SET GX TO 2 on the GLOBAL GD table; the container shows OUT-GX=B; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 GRL5.4",
+      "check": "OK  §1985:X.1.3.8 GRL5.4 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p6",
+      "quote": "Specific conventions, for declarations and references, apply to the following types of user-defined words",
+      "check": "OK  §1985:X.1.3.8 p6  (1.3.8 Scope of Names)  the text is in p6"
+     }
+    ],
+    "reason": "Item '4. index-name' of the list whose lead reads 'Specific conventions, for declarations and references, apply to the following types of user-defined words'. Flagged definitional, but the conventions it names (X.1.3.8.3) are observable and are shown at 85. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.8-L5.5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "program-name: declared and referenced under the specific conventions of §1985:X.1.3.8.1"
+    ],
+    "evidence-1985": {
+     "non-common: container only": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p05_program_name_scope.cob (SIB-PLAIN=NOT-REACHABLE; PLAIN-RAN from the container; run E:/COBOL-coord/scratch/pb5453/runs/p05_program_name_scope-001)",
+     "common: siblings too": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p05_program_name_scope.cob (COMMON-RAN; run E:/COBOL-coord/scratch/pb5453/runs/p05_program_name_scope-001); covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p03_common_initial.cob (S15SIB calls S15BOTH and S15COM; run E:/COBOL-coord/scratch/pb5453/runs/p03_common_initial-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 GRL5.5",
+      "check": "OK  §1985:X.1.3.8 GRL5.5 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p6",
+      "quote": "Specific conventions, for declarations and references, apply to the following types of user-defined words",
+      "check": "OK  §1985:X.1.3.8 p6  (1.3.8 Scope of Names)  the text is in p6"
+     }
+    ],
+    "reason": "Item '5. program-name' of the list whose lead reads 'Specific conventions, for declarations and references, apply to the following types of user-defined words'. Flagged definitional, but the conventions it names (X.1.3.8.1) are observable and are shown at 85. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p05_program_name_scope.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p05_program_name_scope.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.8-L5.6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "record-name: declared and referenced under the specific conventions of §1985:X.1.3.8.2"
+    ],
+    "evidence-1985": {
+     "global": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob (GREC (FD GLOBAL), GD and GR2 (record GLOBAL) used in IN1; run E:/COBOL-coord/scratch/pb5453/runs/p01_global_local-003)",
+     "Communication record local": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/r06_cdrec.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/r06_cdrec-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 GRL5.6",
+      "check": "OK  §1985:X.1.3.8 GRL5.6 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p6",
+      "quote": "Specific conventions, for declarations and references, apply to the following types of user-defined words",
+      "check": "OK  §1985:X.1.3.8 p6  (1.3.8 Scope of Names)  the text is in p6"
+     }
+    ],
+    "reason": "Item '6. record-name' of the list whose lead reads 'Specific conventions, for declarations and references, apply to the following types of user-defined words'. Flagged definitional, but the conventions it names (X.1.3.8.2) are observable and are shown at 85. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/p01_global_local.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-X.1.3.8-L5.7",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "report-name: declared and referenced under the specific conventions of §1985:X.1.3.8.2"
+    ],
+    "evidence-1985": {
+     "global": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/q00_global_report.cob (INITIATE/GENERATE/TERMINATE of GLOBAL RPT in a contained program; run E:/COBOL-coord/scratch/pb5453/runs/q00_global_report-001)",
+     "local": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-15/q01_local_report.cob (refused; run E:/COBOL-coord/scratch/pb5453/runs/q01_local_report-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.1.3.8 GRL5.7",
+      "check": "OK  §1985:X.1.3.8 GRL5.7 (structure only) ok"
+     },
+     {
+      "cite": "§1985:X.1.3.8 p6",
+      "quote": "Specific conventions, for declarations and references, apply to the following types of user-defined words",
+      "check": "OK  §1985:X.1.3.8 p6  (1.3.8 Scope of Names)  the text is in p6"
+     }
+    ],
+    "reason": "Item '7. report-name' of the list whose lead reads 'Specific conventions, for declarations and references, apply to the following types of user-defined words'. Flagged definitional, but the conventions it names (X.1.3.8.2) are observable and are shown at 85. The lead carries the requirement and the item only names the word type, so the item is read as lead + item. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-15/q00_global_report.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-15/q00_global_report.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe (with its refusal twins and control) as the row's own 85 case",
+    "derivation": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "segmentation",
+    "row": "1985-SR-X.1.3.8-p2",
+    "what": "The five lists of §1985:X.1.3.8 (leads p2-p6, items -1..-3, L2.*, L3.*, L4.*, L5.*) were minted one row per item. Each item is a bare word type ('1. cd-name') whose whole requirement is in its lead, so lead and items duplicate one requirement and no item reads without its lead. The leads p2-p5 are SR and p6 is GR within one clause. Consider one row per list (lead plus items).",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py \"1985-SR-X.1.3.8-*\" \"1985-GR-X.1.3.8-*\"",
+    "site": "scripts/spec/rule_catalog_1985.py (list-item minting, PB5452)"
+   },
+   {
+    "kind": "defect",
+    "row": "1985-GR-X.1.3.3-p4",
+    "what": "At --std 85 the refusals are right but the diagnostics cite the wrong rule. GLOBAL on a Communication Section record (g05): COBOL2404 quotes §1985:X.4.3.3 SR4 (level 01 only), which does not forbid the section; the controlling rule is §1985:X.4.6.3 SR1 ('in the File Section or the Working-Storage Section'). GLOBAL on a Linkage record (g03): COBOL0900 cites §2023:13.18.27.3 SR1 and 2002 Annex F.2 item 61 instead of §1985:X.4.6.3 SR1. SORT COLLATING SEQUENCE naming an unknown alphabet (c05): COBOL5989 cites §2023:14.9.40.3 SR1 at 85.",
+    "repro": "python E:/COBOL/scripts/orchestrator/run_probe.py --root E:/COBOL-coord/scratch/pb5453/runs --std 85 --exe E:/COBOL-coord/scratch/pb5453/tree-9fdf39b9e8/src/WiseOwl.Cobol.Cli/bin/Debug/net11.0/cobol.exe --compile-only E:/COBOL-coord/scratch/pb5453/probes/s-15/g05_cd_global.cob (also g03_lk_global.cob, c05_other_alphabet.cob)",
+    "site": "COBOL2404 data-clause placement check; COBOL0900 edition gate for GLOBAL in the Linkage Section; COBOL5989 SORT/MERGE collating sequence check"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-15",
+  "cases": [],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "52b5a8a3315f5f500a963ac8ce470509e62bc8b9d3a31f3e2494b595ab5d5057",
+  "read": "a501985b98bc2a8f89d333cedaa4a7adee3e4712420255f6af03f32fcd025b35",
+  "refute": "e935b0a798047b0435d5744c26067091b1377c40c5d5033bffb31abb88b63448"
+ }
+}

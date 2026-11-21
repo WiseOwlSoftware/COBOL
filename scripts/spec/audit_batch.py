@@ -83,7 +83,7 @@ A ninth pass serves the 1985 transcription, not the change records (kb/Work PB49
                                                                                    # pointers (a rule with no candidate
                                                                                    # pair), each pointer witnessed at
                                                                                    # the edition (section 10.6)
-    python scripts/spec/audit_batch.py derivation-batch --edition 1985 --state DIR --out FILE --signature "claude: <date>"
+    python scripts/spec/audit_batch.py derivation-batch --edition 1985 --state DIR --out FILE --signature "claude: <date>" [--locations FILE]
                                                                                    # an imported run's derivations (a
                                                                                    # read's proposal its refuter UPHELD):
                                                                                    # section 8 rows, refuter records and
@@ -1362,6 +1362,7 @@ def derivation_batch(a: argparse.Namespace) -> int:
                          f"{sorted(schema.derivation.signatures)}: the decision that signs these rows adds its key "
                          "(tests/version-matrix/inventory-schema.json) in the change that writes them")
     by_slice = {s.name: s for s in slices}
+    located = lineage_reads.load_located(pathlib.Path(a.locations), repo) if a.locations else {}
     held = read_store(inventory_dir(ed, repo))
     section = repo / "docs" / "conformance" / "8"
     records, entries, refused, already = [], {}, [], []
@@ -1374,7 +1375,11 @@ def derivation_batch(a: argparse.Namespace) -> int:
             already.append(d.rule_id)
             continue
         record, cells, problems = lineage_reads.derivation_record(
-            ed, s.reads[d.rule_id], s.derivation_refutes.get(d.rule_id), stored, a.signature, schema)
+            ed, s.reads[d.rule_id], s.derivation_refutes.get(d.rule_id), stored, a.signature, schema,
+            located.get(d.rule_id))
+        if not cells:   # a located location the read contradicts: nothing to write
+            refused.append({"rule-id": d.rule_id, "slice": d.slice, "reasons": [f"{r}: {x}" for r, x in problems]})
+            continue
         entry = section / f"{conformance_source.file_name(cells[0])}.md"
         text = conformance_source.with_frontmatter({"cells": cells}, "")
         if entry.exists() and entry.read_text(encoding="utf-8") != text:
@@ -1549,6 +1554,8 @@ def build_parser() -> argparse.ArgumentParser:
     dv.add_argument("--out", required=True, help="the batch file to write")
     dv.add_argument("--signature", required=True, help="the section 8 Signed cell: a key of the schema's derivation "
                                                        "signatures (`claude: <date>`), added by the signing decision")
+    dv.add_argument("--locations", help="a locator's records ({records: [{rule-id, code-location, evidence}]}): the code "
+                                        "location of an unrecorded row whose read names none, each resolved in the tree")
     dv.add_argument("--dry-run", action="store_true", help="write the batch and its refused list, nothing in the tree")
     dv.add_argument("--repo", default=str(spec_pdf.REPO), help="the repository whose register and store are written")
     ir = sub.add_parser("import-reads", help="start a run from the reads of an older edition's rules (a fleet's reader "

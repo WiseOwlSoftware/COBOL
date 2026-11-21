@@ -1,0 +1,1302 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-19 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-19",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-19",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-XV.1.2-p1",
+   "1985-GR-XV.1.2-p2",
+   "1985-GR-XV.1.3.2-p1",
+   "1985-GR-XV.1.3.4-p1",
+   "1985-GR-XV.1.3.4-p2",
+   "1985-GR-XVI.1.1-p1",
+   "1985-GR-XVI.1.1-p2",
+   "1985-GR-XVI.1.3-p1",
+   "1985-SR-XVI.1.4.1-p1",
+   "1985-GR-XVI.1.4.2-p1",
+   "1985-GR-XVI.1.4.2-p2",
+   "1985-GR-XVI.1.4.3-p1",
+   "1985-GR-XVI.1.4.3-3",
+   "1985-GR-XVI.1.6-p1",
+   "1985-SR-XVI.3.3.1-p1",
+   "1985-GR-XVI.3.3.1-p2",
+   "1985-SR-XVI.3.3.2-p1",
+   "1985-SR-XVI.3.3.2-2",
+   "1985-SR-XVI.3.3.2-p2",
+   "1985-SR-XVI.3.3.3-p1",
+   "1985-SR-XVI.3.3.3-2",
+   "1985-SR-XVI.3.3.3-p2",
+   "1985-SR-XVI.3.3.4-2",
+   "1989-GR-A.1.2.1-p1",
+   "1989-GR-A.1.2.3-p1",
+   "1989-AR-A.2.2-p1",
+   "1989-AR-A.2.2-p2",
+   "1989-AR-A.2.2-4",
+   "1989-AR-A.2.2-p3",
+   "1989-AR-A.2.2-p4",
+   "1989-AR-A.2.2-p5"
+  ],
+  "pointers": {
+   "1985-GR-XV.1.2-p1": {
+    "candidates-2023": [
+     "GR-8.1.3.2-3",
+     "GR-14.6.6-1",
+     "GR-8.1.3.2-1"
+    ],
+    "nearest-2023": "GR-8.1.3.2-3",
+    "similarity": 0.14
+   },
+   "1985-GR-XV.1.2-p2": {
+    "candidates-2023": [
+     "FMT-13.18.26.2",
+     "GR-13.18.26.3-1",
+     "GR-13.18.26.3-5"
+    ],
+    "nearest-2023": "FMT-13.18.26.2",
+    "similarity": 0.242
+   },
+   "1985-GR-XV.1.3.2-p1": {
+    "candidates-2023": [
+     "GR-7.3.10.4-2",
+     "SR-8.3.2.1-2",
+     "GR-13.18.12.4-1"
+    ],
+    "nearest-2023": "GR-7.3.10.4-2",
+    "similarity": 0.186
+   },
+   "1985-GR-XV.1.3.4-p1": {
+    "candidates-2023": [
+     "GR-12.3.7.4-4",
+     "GR-12.3.7.4-2",
+     "DOC-A.1-120"
+    ],
+    "nearest-2023": "GR-12.3.7.4-4",
+    "similarity": 0.341
+   },
+   "1985-GR-XV.1.3.4-p2": {
+    "candidates-2023": [
+     "GR-13.18.63.4-18",
+     "GR-8.4.3.13.4-2",
+     "GR-14.9.4.4-3"
+    ],
+    "nearest-2023": "GR-13.18.63.4-18",
+    "similarity": 0.305
+   },
+   "1985-GR-XVI.1.1-p1": {
+    "candidates-2023": [
+     "GR-14.6.6-1",
+     "RV-15.65.4-9",
+     "DOC-A.1-135"
+    ],
+    "nearest-2023": "GR-14.6.6-1",
+    "similarity": 0.204
+   },
+   "1985-GR-XVI.1.1-p2": {
+    "candidates-2023": [
+     "DOC-A.1-134",
+     "GR-11.9.5.2-2",
+     "GR-14.6.6-1"
+    ],
+    "nearest-2023": "DOC-A.1-134",
+    "similarity": 0.261
+   },
+   "1985-GR-XVI.1.3-p1": {
+    "candidates-2023": [
+     "SR-10.6.2-4",
+     "SR-14.2.2-11",
+     "SR-14.9.14.3-7"
+    ],
+    "nearest-2023": "SR-10.6.2-4",
+    "similarity": 0.2
+   },
+   "1985-SR-XVI.1.4.1-p1": {
+    "candidates-2023": [
+     "SR-14.9.28.3-11",
+     "SR-13.7.3-4",
+     "GR-14.6.3-3"
+    ],
+    "nearest-2023": "SR-14.9.28.3-11",
+    "similarity": 0.267
+   },
+   "1985-GR-XVI.1.4.2-p1": {
+    "candidates-2023": [
+     "DOC-A.1-78",
+     "GR-13.18.38.4-4",
+     "RV-15.38.4-2"
+    ],
+    "nearest-2023": "DOC-A.1-78",
+    "similarity": 0.227
+   },
+   "1985-GR-XVI.1.4.2-p2": {
+    "candidates-2023": [
+     "DOC-A.1-78",
+     "GR-13.18.38.4-4",
+     "GR-13.18.43.4-13"
+    ],
+    "nearest-2023": "DOC-A.1-78",
+    "similarity": 0.222
+   },
+   "1985-GR-XVI.1.4.3-p1": {
+    "candidates-2023": [
+     "GR-14.6.2.3.2-3",
+     "GR-14.6.2.3.2-2",
+     "GR-14.9.4.4-3"
+    ],
+    "nearest-2023": "GR-14.6.2.3.2-3",
+    "similarity": 0.171
+   },
+   "1985-GR-XVI.1.4.3-3": {
+    "candidates-2023": [
+     "GR-14.9.1.4-25",
+     "GR-12.4.5.10.3-6",
+     "GR-9.1.14-L2.1"
+    ],
+    "nearest-2023": "GR-14.9.1.4-25",
+    "similarity": 0.196
+   },
+   "1985-GR-XVI.1.6-p1": {
+    "candidates-2023": [
+     "GR-14.9.4.4-3",
+     "GR-14.6.3-3",
+     "GR-14.9.11.4-17"
+    ],
+    "nearest-2023": "GR-14.9.4.4-3",
+    "similarity": 0.32
+   },
+   "1985-SR-XVI.3.3.1-p1": {
+    "candidates-2023": [
+     "SR-14.9.17.3-3",
+     "GR-14.9.17.4-1",
+     "FMT-8.7.5.1"
+    ],
+    "nearest-2023": "SR-14.9.17.3-3",
+    "similarity": 0.287
+   },
+   "1985-GR-XVI.3.3.1-p2": {
+    "candidates-2023": [
+     "SR-14.9.17.3-3",
+     "SR-14.9.49.3-11",
+     "GR-14.9.41.4-2"
+    ],
+    "nearest-2023": "SR-14.9.17.3-3",
+    "similarity": 0.236
+   },
+   "1985-SR-XVI.3.3.2-p1": {
+    "candidates-2023": [
+     "GR-14.9.28.4-1",
+     "SR-14.9.49.3-4",
+     "FMT-15.76.2"
+    ],
+    "nearest-2023": "GR-14.9.28.4-1",
+    "similarity": 0.304
+   },
+   "1985-SR-XVI.3.3.2-2": {
+    "candidates-2023": [
+     "GR-7.3.4-5",
+     "SR-11.10.3-3",
+     "SR-11.10.3-2"
+    ],
+    "nearest-2023": "GR-7.3.4-5",
+    "similarity": 0.206
+   },
+   "1985-SR-XVI.3.3.2-p2": {
+    "candidates-2023": [
+     "GR-14.9.28.4-1",
+     "FMT-15.76.2",
+     "GR-14.9.18.4-6"
+    ],
+    "nearest-2023": "GR-14.9.28.4-1",
+    "similarity": 0.302
+   },
+   "1985-SR-XVI.3.3.3-p1": {
+    "candidates-2023": [
+     "SR-14.9.24.3-1",
+     "SR-14.9.36.3-2",
+     "SR-14.9.7.3-2"
+    ],
+    "nearest-2023": "SR-14.9.24.3-1",
+    "similarity": 0.432
+   },
+   "1985-SR-XVI.3.3.3-2": {
+    "candidates-2023": [
+     "SR-11.10.3-3",
+     "GR-7.3.4-5",
+     "SR-11.10.3-2"
+    ],
+    "nearest-2023": "SR-11.10.3-3",
+    "similarity": 0.225
+   },
+   "1985-SR-XVI.3.3.3-p2": {
+    "candidates-2023": [
+     "SR-14.9.24.3-1",
+     "GR-14.9.24.4-1",
+     "SR-14.9.24.3-7"
+    ],
+    "nearest-2023": "SR-14.9.24.3-1",
+    "similarity": 0.411
+   },
+   "1985-SR-XVI.3.3.4-2": {
+    "candidates-2023": [
+     "SR-11.10.3-3",
+     "GR-7.3.4-5",
+     "SR-11.10.3-2"
+    ],
+    "nearest-2023": "SR-11.10.3-3",
+    "similarity": 0.225
+   },
+   "1989-GR-A.1.2.1-p1": {
+    "candidates-2023": [
+     "GR-8.4.3.12.4-2",
+     "GR-8.4.3.2.4-1",
+     "GR-8.3.2.2-L4.1"
+    ],
+    "nearest-2023": "GR-8.4.3.12.4-2",
+    "similarity": 0.426
+   },
+   "1989-GR-A.1.2.3-p1": {
+    "candidates-2023": [
+     "SR-8.4.3.2.3-1",
+     "SR-14.9.51.3-4",
+     "SR-8.4.3.2.3-2"
+    ],
+    "nearest-2023": "SR-8.4.3.2.3-1",
+    "similarity": 0.347
+   },
+   "1989-AR-A.2.2-p1": {
+    "candidates-2023": [
+     "AR-15.3-2",
+     "AR-15.3-10",
+     "AR-15.3-1",
+     "AR-15.3-14",
+     "AR-15.3-13",
+     "AR-15.3-5",
+     "AR-15.3-11",
+     "GR-14.2.3-2",
+     "RV-15.4.1-2",
+     "AR-15.59.3-2"
+    ],
+    "nearest-2023": "AR-15.3-2",
+    "similarity": 0.309
+   },
+   "1989-AR-A.2.2-p2": {
+    "candidates-2023": [
+     "AR-15.3-2",
+     "AR-15.3-1",
+     "AR-15.3-10",
+     "AR-15.3-13",
+     "AR-15.3-9",
+     "AR-15.3-5",
+     "AR-15.3-14",
+     "DOC-A.1-32",
+     "SR-13.18.11.3-1",
+     "SR-13.18.63.3-7"
+    ],
+    "nearest-2023": "AR-15.3-2",
+    "similarity": 0.211
+   },
+   "1989-AR-A.2.2-4": {
+    "candidates-2023": [
+     "AR-15.3-6",
+     "AR-15.3-10",
+     "AR-15.3-1",
+     "GR-8.4.2.3.4-1",
+     "AR-15.3-3",
+     "AR-15.3-5",
+     "AR-15.3-13",
+     "GR-7.3.6.3-3",
+     "RV-15.27.3-3",
+     "DOC-A.1-124"
+    ],
+    "nearest-2023": "AR-15.3-6",
+    "similarity": 0.87
+   },
+   "1989-AR-A.2.2-p3": {
+    "candidates-2023": [
+     "AR-15.3-2",
+     "AR-15.3-10",
+     "AR-15.3-1",
+     "AR-15.3-14",
+     "AR-15.3-11",
+     "AR-15.3-13",
+     "AR-15.3-5",
+     "GR-14.2.3-2",
+     "RV-15.49.4-1",
+     "GR-13.16.4-4"
+    ],
+    "nearest-2023": "AR-15.3-2",
+    "similarity": 0.186
+   },
+   "1989-AR-A.2.2-p4": {
+    "candidates-2023": [
+     "AR-15.3-1",
+     "AR-15.3-2",
+     "AR-15.3-10",
+     "AR-15.3-14",
+     "AR-15.3-13",
+     "AR-15.3-5",
+     "AR-15.3-9",
+     "SR-8.4.2.3.3-5",
+     "SR-8.4.2.3.3-3",
+     "GR-13.18.63.4-12"
+    ],
+    "nearest-2023": "AR-15.3-1",
+    "similarity": 0.158
+   },
+   "1989-AR-A.2.2-p5": {
+    "candidates-2023": [
+     "AR-15.3-2",
+     "AR-15.3-1",
+     "AR-15.3-10",
+     "AR-15.3-14",
+     "AR-15.3-11",
+     "AR-15.3-13",
+     "AR-15.3-5",
+     "GR-8.4.2.3.4-1",
+     "SR-8.4.2.3.3-6",
+     "GR-14.6.4-4"
+    ],
+    "nearest-2023": "AR-15.3-2",
+    "similarity": 0.105
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-19",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-XV.1.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Debug module level 1: the basic debugging facility (WITH DEBUGGING MODE, USE FOR DEBUGGING on procedure-name-1 / ALL PROCEDURES, DEBUG-ITEM)",
+     "selective procedure monitoring: only the procedures a USE FOR DEBUGGING names trigger it"
+    ],
+    "evidence-1985": {
+     "basic debugging facility": "covered by conformance-suite/cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-FMT-XV_3_2_2 (accepted at 85) and the XV.2.1 cases",
+     "selective procedure monitoring": "covered by probes/s-19/p01_dbg_selective.cob (run p01_dbg_selective-001: DBG P1 / P1 / P2 / DBG P1 / P1; P2 not monitored)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XV.1.2 p1",
+      "quote": "provides a basic debugging capability including the ability to specify selective procedure monitoring",
+      "check": "OK  §1985:XV.1.2 p1  (1.2 LEVEL CHARACTERISTICS)  the text is in p1"
+     }
+    ],
+    "reason": "\"Debug level 1 provides a basic debugging capability including the ability to specify selective procedure monitoring.\" Flagged definitional, but a program shows it: a USE FOR DEBUGGING naming one procedure fires for that procedure and not for another. 2023 has no Debug module (the 1985 Debug rows route REMOVED), and no candidate is about debugging.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/p01_dbg_selective.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/p01_dbg_selective.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place p01_dbg_selective as the row's 85 case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XV.1.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Debug module level 2 (boxed, high subset): the full facility, adding USE FOR DEBUGGING on identifier-1 / ALL REFERENCES OF, file-name-1 and cd-name-1 to level 1"
+    ],
+    "evidence-1985": {
+     "identifier / ALL REFERENCES": "covered by cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-5, -7, -12 (accepted at 85) and probes/s-19/p02_dbg_switch.cob (ALL REFERENCES OF W fires on MOVE and DISPLAY)",
+     "file-name": "covered by cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-2 (accepted at 85)",
+     "cd-name": "covered by cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-23 (accepted at 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XV.1.2 p2",
+      "quote": "provides the full COBOL debugging facility",
+      "check": "OK  §1985:XV.1.2 p2  (1.2 LEVEL CHARACTERISTICS)  the text is in p2"
+     }
+    ],
+    "reason": "\"Debug level 2 provides the full COBOL debugging facility.\" Boxed, so --std 85 implements it; the level-2 subjects of USE FOR DEBUGGING (identifier, file-name, cd-name) each have an 85 case that is accepted and fires. 2023 removed the Debug module; the candidates (FMT-13.18.26.2 and its rules) are unrelated wording matches.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/p02_dbg_switch.cob",
+    "compiler-at-1985": "correct: cases XV.3.2@1985 1985-GR-XV_3_2_4-2, -5, -12, -23 + E:/COBOL-coord/scratch/pb5453/probes/s-19/p02_dbg_switch.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: name this row in the rules of 1985-GR-XV_3_2_4-2 and -23 (or place p02 run with the switch on)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XV.1.3.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "DEBUG-ITEM is a special register the implementation generates (no description written by the user)",
+     "one DEBUG-ITEM per program (every debugging section reads the same one)",
+     "DEBUG-ITEM and the names of its subordinate items are reserved words"
+    ],
+    "evidence-1985": {
+     "generated register": "covered by probes/s-19/p04_dbg_item.cob (run p04_dbg_item-001: D2 [P2...], D1 [P1...] with no description of DEBUG-ITEM written)",
+     "one per program": "covered by probes/s-19/p04_dbg_item.cob (two debugging sections read DEBUG-NAME unqualified; D2's MOVE \"ZZ\" does not survive into D1, which is space-filled and updated)",
+     "subordinate names reserved": "covered by probes/s-19/p05_dbg_reserved_bad.cob (COBOL0901 'DEBUG-LINE' is a reserved word) with control p05_dbg_reserved_ok.cob (DBG-LINE accepted, LINE NAME)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XV.1.3.2 p1",
+      "quote": "Only one DEBUG-ITEM is allocated per program",
+      "check": "OK  §1985:XV.1.3.2 p1  (1.3.2 Special Register DEBUG-ITEM)  the text is in p1"
+     }
+    ],
+    "reason": "\"The reserved word DEBUG-ITEM is the name for a special register generated automatically ... Only one DEBUG-ITEM is allocated per program. The names of the subordinate data items in DEBUG-ITEM are also reserved words.\" 2023 has no DEBUG-ITEM; the candidates are unrelated.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/p04_dbg_item.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/p04_dbg_item.cob + p05_dbg_reserved_bad.cob (refusal, control p05_dbg_reserved_ok.cob)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place p04 (accepted) and p05_bad with p05_ok (refusal with control)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XV.1.3.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "an object time switch, controlled outside the program, activates the debugging code",
+     "switch on: the debugging sections fire",
+     "switch off: every USE FOR DEBUGGING effect is inhibited",
+     "no recompilation is needed to change it"
+    ],
+    "evidence-1985": {
+     "switch on": "covered by probes/s-19/p02_dbg_switch.cob run with WISEOWL_COBOL_DEBUG=ON (run p02_dbg_switch-002: DBG P1, P1, DBG W, W 5, DBG W)",
+     "switch off": "covered by probes/s-19/p02_dbg_switch.cob run with WISEOWL_COBOL_DEBUG=OFF (run p02_dbg_switch-001: P1, W 5, no DBG line)",
+     "no recompilation": "covered by running the one built assembly runs/p02_dbg_switch-002/p02_dbg_switch.dll with OFF then ON (dotnet p02_dbg_switch.dll): OFF prints no DBG line, ON prints them",
+     "not addressable in the program": "not shown (no syntax names it; nothing to refuse)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XV.1.3.4 p1",
+      "quote": "Recompilation of the source program is not required to provide or take away this facility",
+      "check": "OK  §1985:XV.1.3.4 p1  (1.3.4 Object Time Switch)  the text is in p1"
+     }
+    ],
+    "reason": "\"If the switch is on, all the effects of the debugging language ... are permitted. If the switch is off, all the effects described in the USE FOR DEBUGGING statement ... are inhibited. Recompilation ... is not required\". The runtime reads WISEOWL_COBOL_DEBUG (RunUnit.DebugMode); one compiled assembly obeys both settings. 2023 has no Debug module.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/p02_dbg_switch.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/p02_dbg_switch.cob (OFF run p02_dbg_switch-001, ON run p02_dbg_switch-002, same dll both ways)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: a case that runs p02 under both switch settings (the suite runner must set WISEOWL_COBOL_DEBUG per case)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XV.1.3.4-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "without WITH DEBUGGING MODE the object time switch has no effect: switch on, no debugging section runs"
+    ],
+    "evidence-1985": {
+     "switch on, clause absent": "covered by probes/s-19/p03_dbg_nomode.cob run with WISEOWL_COBOL_DEBUG=ON (run p03_dbg_nomode-002: P1, W 5, no DBG line) and cases/XV.2.1@1985-WITH-DEBUGGING-MODE-CLAUSE/pb5291_debug_section_is_comment_without_mode_85 (switch default on)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XV.1.3.4 p2",
+      "quote": "has no effect on the execution of the object program if the WITH DEBUGGING MODE clause was not specified",
+      "check": "OK  §1985:XV.1.3.4 p2  (1.3.4 Object Time Switch)  the text is in p2"
+     }
+    ],
+    "reason": "\"The object time switch has no effect on the execution of the object program if the WITH DEBUGGING MODE clause was not specified\". p03 is p02 without the clause; with the switch explicitly ON no debugging section runs. 2023 has no Debug module.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/p03_dbg_nomode.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/p03_dbg_nomode.cob (WISEOWL_COBOL_DEBUG=ON)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place p03 (or name this row in pb5291_debug_section_is_comment_without_mode_85, which runs with the switch at its default, on)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XVI.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Segmentation module: the user specifies overlay requirements to the compiler through segment-numbers on sections and the SEGMENT-LIMIT clause"
+    ],
+    "evidence-1985": {
+     "segment-numbers and SEGMENT-LIMIT accepted and honoured": "covered by probes/s-19/s19_p07_seg_fixed_state.cob (OBJECT-COMPUTER X SEGMENT-LIMIT IS 10, sections 5, 20, 60; P-INIT O-INIT I-INIT P-ALT O-ALT I-INIT) and golden pb5924-seg-classification-85 (PASS)",
+     "physical overlay": "not shown (no program can see memory overlay; the logical effects are the XVI.1.4 rows)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.1.1 p1",
+      "quote": "to specify object program overlay requirements",
+      "check": "OK  §1985:XVI.1.1 p1  (1.1 FUNCTION)  the text is in p1"
+     }
+    ],
+    "reason": "\"The Segmentation module provides a means by which the user may communicate with the compiler to specify object program overlay requirements.\" Flagged definitional; the means (segment-numbers, SEGMENT-LIMIT) is shown accepted and run. 2023 dropped the Segmentation module.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p07_seg_fixed_state.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p07_seg_fixed_state.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place s19_p07",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XVI.1.1-p2",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "the Segmentation module's status in the standard: an obsolete element, to be deleted from the next revision"
+    ],
+    "evidence-1985": {
+     "the module is still present at 85": "covered by the segmentation probes of this slice (s19_p06 .. s19_p15) and the XVI cases",
+     "obsolescence": "not shown (no program can show a deletion planned for a later revision)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.1.1 p2",
+      "quote": "The Segmentation module is an obsolete element in Standard COBOL",
+      "check": "OK  §1985:XVI.1.1 p2  (1.1 FUNCTION)  the text is in p2"
+     }
+    ],
+    "reason": "\"The Segmentation module is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.\" The 1985 glossary makes an obsolete element present (\"Z\") and only marked for deletion; the sentence obliges no behaviour. No derivation arm fits a rule about the standard's own presentation. Settled by a ruling on how the 'is an obsolete element' sentences (also XV.1.1, ALTER, comment-entry, MEMORY SIZE) close: by the module's presence witness or by a presentation derivation.",
+    "probe": null,
+    "compiler-at-1985": "not probed: nothing to observe beyond the module's presence",
+    "class": null,
+    "needs": "a ruling on the obsolete-element status sentences",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XVI.1.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "segmentation applies to procedures only: data is not segmented (an independent segment's initial state resets its procedures, never Data Division items)",
+     "only the Procedure Division (segment-numbers) and Environment Division (SEGMENT-LIMIT) decide segmentation"
+    ],
+    "evidence-1985": {
+     "procedures reset, data kept": "covered by probes/s-19/s19_p06_seg_scope_data.cob (run s19_p06_seg_scope_data-001: INITIAL CNT 1, INITIAL CNT 2: the ALTER is reset on re-entry, the WORKING-STORAGE count is not)",
+     "Environment Division considered": "covered by probes/s-19/s19_p07_seg_fixed_state.cob (SEGMENT-LIMIT IS 10 accepted; sections 5 and 20 keep their last used state)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.1.3 p1",
+      "quote": "COBOL segmentation deals only with segmentation of procedures",
+      "check": "OK  §1985:XVI.1.3 p1  (1.3 SCOPE)  the text is in p1"
+     }
+    ],
+    "reason": "\"COBOL segmentation deals only with segmentation of procedures. As such, only the Procedure Division and the Environment Division are considered\". Flagged definitional, but a program shows it: re-entering an independent segment resets its ALTER and leaves its data alone. No 2023 counterpart.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p06_seg_scope_data.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p06_seg_scope_data.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place s19_p06",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-XVI.1.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "without segmentation, sections are optional",
+     "with segmentation the whole Procedure Division must be in sections",
+     "each section is classified fixed or independent",
+     "qualification of procedure-names is unaffected by segmentation"
+    ],
+    "evidence-1985": {
+     "sections optional without segmentation": "covered by probes/s-19/s19_p18_fn_args.cob (a Procedure Division of one paragraph, no section, accepted)",
+     "all in sections when segmented": "covered by golden pb5924-seg-all-sections-85 (PASS: refused, 'paragraph P0 is not in a section'); control golden pb5924-seg-classification-85 (PASS)",
+     "classification": "covered by golden pb5924-seg-classification-85 (PASS: fixed F4 kept, independent I3 reset)",
+     "qualification unaffected": "covered by probes/s-19/s19_p08_seg_qual_bad.cob (COBOL2121 PERFORM 'P' not unique, P in sections of segments 10 and 60) with control s19_p08_seg_qual_ok.cob (A-P, B-P)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.1.4.1 p1",
+      "quote": "Segmentation in no way affects the need for qualification of procedure-names",
+      "check": "OK  §1985:XVI.1.4.1 p1  (1.4.1 Program Segments)  the text is in p1"
+     }
+    ],
+    "reason": "\"when segmentation is used, the entire Procedure Division must be in sections. In addition, each section must be classified ... Segmentation in no way affects the need for qualification of procedure-names\". The candidates (PERFORM, Linkage, transfers) do not hold segments.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p08_seg_qual_bad.cob",
+    "compiler-at-1985": "correct: goldens pb5924-seg-all-sections-85, pb5924-seg-classification-85 (PASS) + E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p08_seg_qual_bad.cob (control s19_p08_seg_qual_ok.cob)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place the two goldens and s19_p08 bad/ok",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XVI.1.4.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "(boxed) the fixed portion is logically always in memory: a section in it keeps its state between entries",
+     "it holds fixed permanent and fixed overlayable segments"
+    ],
+    "evidence-1985": {
+     "fixed permanent keeps state": "covered by probes/s-19/s19_p07_seg_fixed_state.cob (section 5: P-INIT then P-ALT)",
+     "fixed overlayable keeps state": "covered by probes/s-19/s19_p07_seg_fixed_state.cob (section 20 above SEGMENT-LIMIT 10: O-INIT then O-ALT, after independent section 60 ran)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.1.4.2 p1",
+      "quote": "logically treated as if it were always in memory",
+      "check": "OK  §1985:XVI.1.4.2 p1  (1.4.2 Fixed Portion)  the text is in p1"
+     }
+    ],
+    "reason": "\"The fixed portion is defined as that part of the object program which is logically treated as if it were always in memory.\" Flagged definitional; 'logically always in memory' is observable as retained ALTER state, which p07 shows for both kinds of fixed segment. No 2023 counterpart.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p07_seg_fixed_state.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p07_seg_fixed_state.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place s19_p07",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XVI.1.4.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a fixed permanent segment is never overlaid",
+     "(boxed) a fixed overlayable segment may be overlaid but is always made available in its last used state",
+     "SEGMENT-LIMIT varies the number of fixed permanent segments"
+    ],
+    "evidence-1985": {
+     "last used state of a fixed overlayable segment": "covered by probes/s-19/s19_p07_seg_fixed_state.cob (O-ALT on the second entry, after section 60) and s19_p10_alter_other_uses.cob",
+     "SEGMENT-LIMIT": "covered by probes/s-19/s19_p07_seg_fixed_state.cob (SEGMENT-LIMIT IS 10 accepted) and cases XVI.2.3@1985-SEGMENT-LIMIT-CLAUSE",
+     "never overlaid": "not shown (memory placement is not observable; its logical effect is the retained state)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.1.4.2 p2",
+      "quote": "is always made available in its last used state",
+      "check": "OK  §1985:XVI.1.4.2 p2  (1.4.2 Fixed Portion)  the text is in p2"
+     }
+    ],
+    "reason": "\"Such a segment, if called for by the program, is always made available in its last used state.\" p07 shows it for segment 20 under SEGMENT-LIMIT IS 10. No 2023 counterpart (the prose85 read classed it not normative; the last sentence is normative and observable).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p07_seg_fixed_state.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p07_seg_fixed_state.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place s19_p07",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XVI.1.4.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "an independent segment can overlay and be overlaid (not observable)",
+     "it is in its initial state on the first transfer of control to it, implicit or explicit",
+     "the lead of the list of later transfers that also give the initial state (items GR1-GR3)"
+    ],
+    "evidence-1985": {
+     "initial on first explicit transfer": "covered by golden pb5924-seg-classification-85 (PASS: first PERFORM IND shows I3) and probes/s-19/s19_p07_seg_fixed_state.cob (I-INIT)",
+     "initial on first implicit transfer": "covered by cases/XVI.1.4@1985-ORGANIZATION/1985-GR-XVI_1_4_3-1 (accepted at 85)",
+     "later transfers": "covered by the item rows' cases 1985-GR-XVI_1_4_3-1, -2, -3"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.1.4.3 p1",
+      "quote": "is in its initial state whenever control is transferred",
+      "check": "OK  §1985:XVI.1.4.3 p1  (1.4.3 Independent Segments)  the text is in p1"
+     }
+    ],
+    "reason": "\"An independent segment is in its initial state whenever control is transferred (either implicitly or explicitly) to that segment for the first time\". No 2023 counterpart; the candidates (initial state of programs, EXIT) are wording matches.",
+    "probe": null,
+    "compiler-at-1985": "correct: golden pb5924-seg-classification-85 (PASS) + E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p07_seg_fixed_state.cob + case 1985-GR-XVI_1_4_3-1",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place golden pb5924-seg-classification-85 naming this row",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XVI.1.4.3-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "on a later explicit transfer (GO TO, PERFORM) from a segment with a different segment-number, an independent segment is in its initial state",
+     "except an EXIT PROGRAM return (the L2.2 row's own text)"
+    ],
+    "evidence-1985": {
+     "explicit GO TO from another segment": "covered by cases/XVI.1.4@1985-ORGANIZATION/1985-GR-XVI_1_4_3-3 (accepted at 85: INITIAL, INITIAL) and probes/s-19/s19_p06_seg_scope_data.cob",
+     "explicit PERFORM from another segment": "covered by golden pb5924-seg-classification-85 (PASS: I3 I4 I3 I4) and probes/s-19/s19_p07_seg_fixed_state.cob (I-INIT twice)",
+     "the EXIT PROGRAM exception": "covered by cases/XVI.1.4@1985-ORGANIZATION/1985-GR-XVI_1_4_3-L2_2 (accepted at 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.1.4.3 GR3",
+      "quote": "Control is transferred explicitly to that segment from a segment with a different segment-number",
+      "check": "OK  §1985:XVI.1.4.3 GR3  (1.4.3 Independent Segments)  the text is in GR3"
+     }
+    ],
+    "reason": "Reopened parent: what is left is item (3) alone, \"Control is transferred explicitly to that segment from a segment with a different segment-number\"; the carved-away second lead belongs to L2.1/L2.2. The row's own case still fits exactly (GO TO SECTION 60 from section 0 twice, INITIAL both times). No 2023 counterpart.",
+    "probe": null,
+    "compiler-at-1985": "correct: case conformance-suite/cases/XVI.1.4@1985-ORGANIZATION/1985-GR-XVI_1_4_3-3 + golden pb5924-seg-classification-85",
+    "class": "removed-form",
+    "needs": "needs-own-witness: its own case already exists and still fits; the record's notes and next.reason (which quote the carved 'last-used state' lead) want rewriting to item (3)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XVI.1.6-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the logical sequence follows the physical sequence across segments",
+     "the implementor provides the control transfers and controls a segment needs to operate",
+     "control may be transferred to any paragraph of a section"
+    ],
+    "evidence-1985": {
+     "logical flow across interleaved segments": "covered by golden pb5924-seg-control-transfers-85 (PASS: S0 S60 S10 S70A S80B S70B S20)",
+     "controls for a segment to operate": "covered by golden pb5924-seg-controls-operate-85 (PASS: PERFORM I1 THRU I2 3 TIMES, J2, J3, END 3)",
+     "transfer to a non-first paragraph": "covered by golden pb5924-seg-control-transfers-85 (GO TO P80B and P70B) and pb5924-seg-controls-operate-85 (PERFORM J2, GO TO J3)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.1.6 p1",
+      "quote": "it is not mandatory to transfer control to the beginning of a section",
+      "check": "OK  §1985:XVI.1.6 p1  (1.6 SEGMENTATION CONTROL)  the text is in p1"
+     }
+    ],
+    "reason": "\"the implementor must provide control transfers to maintain the logical flow ... Control may be transferred within a source program to any paragraph in a section\". Both prose85 goldens pass on the mint build. GR-14.6.3-3 (2023 transfers) has 85 cases but states nothing about segments.",
+    "probe": null,
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-14/goldens/pb5924-seg-control-transfers-85.cob + pb5924-seg-controls-operate-85.cob (PASS)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place the two goldens",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-XVI.3.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "an ALTER in a section with a different segment-number must not refer to a GO TO in a section of segment-number 50 or more",
+     "an ALTER in the same independent segment may"
+    ],
+    "evidence-1985": {
+     "refused across segments": "covered by probes/s-19/s19_p09_alter_bad.cob (COBOL6877 ALTER 'SW': GO TO in independent segment 60, ALTER in segment 0)",
+     "allowed in the same segment": "covered by probes/s-19/s19_p09_alter_ok.cob (the control: ALTER moved into section 60; ALTERED)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.3.3.1 p1",
+      "quote": "must not be referred to by an ALTER statement in a section with a different segment-number",
+      "check": "OK  §1985:XVI.3.3.1 p1  (3.3.1 The ALTER Statement)  the text is in p1"
+     }
+    ],
+    "reason": "\"A GO TO statement in a section whose segment-number is greater than or equal to 50 must not be referred to by an ALTER statement in a section with a different segment-number.\" Refusal with a one-line-moved control. No 2023 counterpart (no segments).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p09_alter_bad.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p09_alter_bad.cob (control s19_p09_alter_ok.cob)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place s19_p09 bad/ok",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XVI.3.3.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "every other ALTER is valid and performed: of a GO TO in a fixed overlayable segment, in a fixed permanent segment, from fixed or independent sections"
+    ],
+    "evidence-1985": {
+     "fixed overlayable GO TO altered from segment 0 and from 60": "covered by probes/s-19/s19_p10_alter_other_uses.cob (O-ALT1, then O-ALT2)",
+     "fixed permanent GO TO altered from 60": "covered by probes/s-19/s19_p10_alter_other_uses.cob (P-ALT)",
+     "same-segment ALTER": "covered by probes/s-19/s19_p07_seg_fixed_state.cob and s19_p09_alter_ok.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.3.3.1 p2",
+      "quote": "are performed even if the GO TO to which the ALTER refers is in a fixed overlayable segment",
+      "check": "OK  §1985:XVI.3.3.1 p2  (3.3.1 The ALTER Statement)  the text is in p2"
+     }
+    ],
+    "reason": "\"All other uses of the ALTER statement are valid and are performed even if the GO TO to which the ALTER refers is in a fixed overlayable segment.\" A granting rule, shown by an accepted program. No 2023 counterpart.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p10_alter_other_uses.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p10_alter_other_uses.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place s19_p10",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-XVI.3.3.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a PERFORM in a non-independent section: its range holds only one of items (1) and (2)",
+     "plus any declarative section its execution causes"
+    ],
+    "evidence-1985": {
+     "only one of: mixed range refused": "covered by probes/s-19/s19_p11_perform_mixed_bad.cob (COBOL6877: segments 20, 30, 60) with control s19_p11_perform_fixed_ok.cob",
+     "item (1) and item (2) accepted": "covered by probes/s-19/s19_p11_perform_fixed_ok.cob (PERFORM S20 THRU S30; PERFORM S60)",
+     "declarative caused within the range": "covered by probes/s-19/s19_p11_perform_fixed_ok.cob (OPEN of a missing file in S60 runs the USE section: S20 S30 S60 USE S60-END DONE)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.3.3.2 p1",
+      "quote": "in addition to any declarative sections whose execution is caused within that range",
+      "check": "OK  §1985:XVI.3.3.2 p1  (3.3.2 The PERFORM Statement)  the text is in p1"
+     }
+    ],
+    "reason": "\"A PERFORM statement that appears in a section that is not in an independent segment can have within its range, in addition to any declarative sections whose execution is caused within that range, only one of the following\". The compiler diagnoses the named span as far as execution reaches it (docs/conformance/3.8, a choice §1985:I.1.6 leaves it); see lead 1 for a reached span it misses. No 2023 counterpart.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p11_perform_fixed_ok.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p11_perform_fixed_ok.cob + s19_p11_perform_mixed_bad.cob (refusal, control the first)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place s19_p11 ok/bad; lead 1 (reach walk) is a separate defect against the documented determination",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-XVI.3.3.2-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a PERFORM in a non-independent section may have a range wholly contained in a single independent segment",
+     "a range spanning two independent segments is not that item"
+    ],
+    "evidence-1985": {
+     "single independent segment accepted": "covered by probes/s-19/s19_p11_perform_fixed_ok.cob (PERFORM S60 from section 0) and case XVI.3.3@1985/pb5442-unreached-section-s1 (accepted at 85)",
+     "two independent segments refused": "covered by case XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_2-2 (refused at 85: A-SEC 60 THRU B-SEC 70 from section 0)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.3.3.2 SR2",
+      "quote": "Sections and/or paragraphs wholly contained in a single independent segment",
+      "check": "OK  §1985:XVI.3.3.2 SR2  (3.3.2 The PERFORM Statement)  the text is in SR2"
+     }
+    ],
+    "reason": "Reopened parent: what is left is item (2) of the first list alone, \"Sections and/or paragraphs wholly contained in a single independent segment\". The row's own refusal case still fits (it is a PERFORM in section 0); the item grants a form, so the accepted s19_p11 joins it. No 2023 counterpart.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p11_perform_fixed_ok.cob",
+    "compiler-at-1985": "correct: case 1985-SR-XVI_3_3_2-2 (refusal) + E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p11_perform_fixed_ok.cob (accepted)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: add the accepted s19_p11 beside the existing refusal case; rewrite the record's notes and next.reason, which quote the carved second lead",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-XVI.3.3.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a PERFORM in an independent segment: its range holds only one of items L2.1 and L2.2",
+     "plus any declarative section its execution causes"
+    ],
+    "evidence-1985": {
+     "only one of: mixed range refused": "covered by probes/s-19/s19_p12_perform_ind_bad.cob (COBOL6877: in segment 60, PERFORM S30 THRU S60B lies in 30 and 60) with control s19_p12_perform_ind_ok.cob",
+     "items accepted": "covered by probes/s-19/s19_p12_perform_ind_ok.cob (from section 60: PERFORM S20 THRU S30; PERFORM S60B)",
+     "declarative caused within the range": "covered by probes/s-19/s19_p12_perform_ind_ok.cob (S20 S30 S60B USE S60B-END DONE)",
+     "another independent segment refused": "covered by case XVI.3.3@1985/1985-SR-XVI_3_3_2-L2_2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.3.3.2 p2",
+      "quote": "A PERFORM statement that appears in an independent segment",
+      "check": "OK  §1985:XVI.3.3.2 p2  (3.3.2 The PERFORM Statement)  the text is in p2"
+     }
+    ],
+    "reason": "\"A PERFORM statement that appears in an independent segment can have within its range, in addition to any declarative sections whose execution is caused within that range, only one of the following\". No 2023 counterpart.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p12_perform_ind_ok.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p12_perform_ind_ok.cob + s19_p12_perform_ind_bad.cob (refusal, control the first)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place s19_p12 ok/bad",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-XVI.3.3.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a MERGE in a non-independent section: its output procedure lies totally within non-independent segments or wholly in a single independent segment, nothing else"
+    ],
+    "evidence-1985": {
+     "non-independent output procedure": "covered by probes/s-19/s19_p13b_merge_fixed_fixed_ok.cob (MERGE in 10, OUTPUT PROCEDURE O20 THRU O30: three records, DONE)",
+     "single independent output procedure": "covered by probes/s-19/s19_p13a_merge_fixed_ind_ok.cob (run -002: O70 AAAA, O70 BBBB, O70 CCCC, DONE)",
+     "mixed refused": "covered by probes/s-19/s19_p13c_merge_fixed_mixed_bad.cob (run -002: COBOL6877, segments 30, 70)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.3.3.3 p1",
+      "quote": "then any output procedure referenced by that MERGE statement must appear",
+      "check": "OK  §1985:XVI.3.3.3 p1  (3.3.3 The MERGE Statement)  the text is in p1"
+     }
+    ],
+    "reason": "\"If the MERGE statement appears in a section that is not in an independent segment, then any output procedure referenced by that MERGE statement must appear:\" No 2023 counterpart; the MERGE candidates say nothing of segments.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p13a_merge_fixed_ind_ok.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p13a_merge_fixed_ind_ok.cob, s19_p13b_merge_fixed_fixed_ok.cob (accepted) + s19_p13c_merge_fixed_mixed_bad.cob (refusal)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place s19_p13a, p13b, p13c",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-XVI.3.3.3-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a MERGE in a non-independent section may name an output procedure wholly contained in a single independent segment"
+    ],
+    "evidence-1985": {
+     "accepted": "covered by probes/s-19/s19_p13a_merge_fixed_ind_ok.cob (MERGE in 10, output in 70, runs)",
+     "not a single independent segment refused": "covered by probes/s-19/s19_p13c_merge_fixed_mixed_bad.cob (COBOL6877)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.3.3.3 SR2",
+      "quote": "Wholly contained in a single independent segment",
+      "check": "OK  §1985:XVI.3.3.3 SR2  (3.3.3 The MERGE Statement)  the text is in SR2"
+     }
+    ],
+    "reason": "Reopened parent: what is left is item (2) of the first list, \"Wholly contained in a single independent segment\", for a MERGE NOT in an independent segment. The row's existing case 1985-SR-XVI_3_3_3-2 puts the MERGE in section 60 (an independent segment) and so now witnesses p2 and L2.2, not this item (lead 3). s19_p13a (accepted) and s19_p13c (refused) are its witnesses.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p13a_merge_fixed_ind_ok.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p13a_merge_fixed_ind_ok.cob + s19_p13c_merge_fixed_mixed_bad.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place s19_p13a and s19_p13c as this row's cases; re-point case 1985-SR-XVI_3_3_3-2 to 1985-SR-XVI.3.3.3-p2",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-XVI.3.3.3-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a MERGE in an independent segment: its output procedure lies totally within non-independent segments or wholly within that same independent segment"
+    ],
+    "evidence-1985": {
+     "non-independent output": "covered by probes/s-19/s19_p14a_merge_ind_fixed_ok.cob (MERGE in 60, output O20 THRU O30, runs)",
+     "same independent segment": "covered by probes/s-19/s19_p14b_merge_ind_same_ok.cob (run -002: O60 AAAA, BBBB, CCCC, DONE)",
+     "another independent segment refused": "covered by probes/s-19/s19_p14c_merge_ind_other_bad.cob (run -002: COBOL6877) and case XVI.3.3@1985/1985-SR-XVI_3_3_3-2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.3.3.3 p2",
+      "quote": "If a MERGE statement appears in an independent segment",
+      "check": "OK  §1985:XVI.3.3.3 p2  (3.3.3 The MERGE Statement)  the text is in p2"
+     }
+    ],
+    "reason": "\"If a MERGE statement appears in an independent segment, then any output procedure referenced by that MERGE statement must be contained:\" No 2023 counterpart.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p14b_merge_ind_same_ok.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p14a_merge_ind_fixed_ok.cob, s19_p14b_merge_ind_same_ok.cob + s19_p14c_merge_ind_other_bad.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place s19_p14a/b/c (or re-point case 1985-SR-XVI_3_3_3-2 here as the refusal)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-XVI.3.3.4-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a SORT in a non-independent section may name input and output procedures each wholly contained in a single independent segment"
+    ],
+    "evidence-1985": {
+     "accepted": "covered by probes/s-19/s19_p15_sort_fixed_ind_ok.cob (SORT in section 0, INPUT in 60, OUTPUT in 70: A B DONE)",
+     "spanning two independent segments refused": "covered by case XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_4-2 (refused at 85: INPUT IA THRU IB, 60 and 70)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.3.3.4 SR2",
+      "quote": "Wholly contained in a single independent segment",
+      "check": "OK  §1985:XVI.3.3.4 SR2  (3.3.4 The SORT Statement)  the text is in SR2"
+     }
+    ],
+    "reason": "Reopened parent: what is left is item (2) of the first list, \"Wholly contained in a single independent segment\". The row's refusal case is a SORT in section 0 and still fits; the item grants a form, so the accepted s19_p15 joins it. No 2023 counterpart.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p15_sort_fixed_ind_ok.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p15_sort_fixed_ind_ok.cob + case 1985-SR-XVI_3_3_4-2",
+    "class": "removed-form",
+    "needs": "needs-own-witness: add the accepted s19_p15 beside the existing refusal case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.1.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a function is a temporary data item whose value is determined when the function is referenced during execution",
+     "a function-name is a COBOL word from the specified list (A-29); another word is not a function-name"
+    ],
+    "evidence-1985": {
+     "value fixed at reference": "covered by probes/s-19/s19_p18_fn_args.cob (FUNCTION MOD (I, 3) in a loop gives 1 2 0 1 2: OK  AT REFERENCE)",
+     "function-name from the list": "covered by probes/s-19/s19_p18b_fn_unknown_bad.cob (COBOL1501 FUNCTION MAXX is not an intrinsic function) with control s19_p18_fn_args.cob (MAX)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.1.2.1 p1",
+      "quote": "a function is a temporary data item whose value is determined",
+      "check": "OK  §1989:A.1.2.1 p1  (1.2.1 Function-Name)  the text is in p1"
+     }
+    ],
+    "reason": "\"a function is a temporary data item whose value is determined by invoking a mechanism provided by the implementor at the time the function is referenced ... A function-name is a COBOL word that is one of a specified list\". The candidates (GR-8.4.3.12.4-2, GR-8.4.3.2.4-1, GR-8.3.2.2-L4.1) have no accepted 85 case, so no witnessed 2023 rule states it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p18_fn_args.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p18_fn_args.cob + s19_p18b_fn_unknown_bad.cob (refusal, control the first)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place s19_p18 and s19_p18b",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.1.2.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a function is referenced by a function-identifier in the Procedure Division"
+    ],
+    "evidence-1985": {
+     "function-identifier in the Procedure Division": "covered by probes/s-19/s19_p18_fn_args.cob (FUNCTION CURRENT-DATE, MAX, MIN, MOD referenced in MOVE and COMPUTE)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.1.2.3 p1",
+      "quote": "A function-identifier is used by the programmer to reference a function",
+      "check": "OK  §1989:A.1.2.3 p1  (1.2.3 Function-Identifier)  the text is in p1"
+     }
+    ],
+    "reason": "\"A function-identifier is used by the programmer to reference a function within the Procedure Division\". Flagged definitional, but any accepted program that references a function through a function-identifier shows it. The candidates (SR-8.4.3.2.3-1/-2, SR-14.9.51.3-4) have no 85 case.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p18_fn_args.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p18_fn_args.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place s19_p18",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-AR-A.2.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "arguments are written in the function-identifier as identifiers, arithmetic expressions or literals",
+     "the number of arguments is zero, one or more, variable for some functions",
+     "the order of the arguments fixes their meaning"
+    ],
+    "evidence-1985": {
+     "zero arguments": "covered by probes/s-19/s19_p18_fn_args.cob (CURRENT-DATE: OK  ZERO ARGS)",
+     "one / variable number": "covered by probes/s-19/s19_p18_fn_args.cob (MAX (7); MAX of 3; MIN of 5)",
+     "identifier, expression, literal": "covered by probes/s-19/s19_p18_fn_args.cob (MAX (A, 4, B + 20) = 23)",
+     "order": "covered by probes/s-19/s19_p18_fn_args.cob (MOD (A, B) = 2, MOD (B, A) = 3)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.2 p1",
+      "quote": "The order in which arguments are specified in a function-identifier determines the interpretation",
+      "check": "OK  §1989:A.2.2 p1  (2.2 ARGUMENTS**)  the text is in p1"
+     }
+    ],
+    "reason": "\"These arguments can be specified as identifiers, as arithmetic expressions, or as literals. The definition of a function specifies the number of arguments required, which can be zero, one, or more ... The order in which arguments are specified ... determines the interpretation\". The 2023 15.3 candidates have no 85 case (at-85 empty); the siblings' KEPT pointers do not witness this paragraph.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p18_fn_args.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p18_fn_args.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place s19_p18",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-AR-A.2.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "an argument may be required to be of a class (refused otherwise)",
+     "or of a subset of a class (refused otherwise)",
+     "a conforming argument is accepted"
+    ],
+    "evidence-1985": {
+     "class": "covered by golden pb5924-fn-arg-class-85 (PASS: UPPER-CASE argument-1 of class numeric refused)",
+     "subset of a class": "covered by golden pb5924-fn-arg-class-subset-85 (PASS: CHAR argument with decimal places refused)",
+     "accepted": "covered by golden pb5924-fn-arg-class-ok-85 (PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.2 p2",
+      "quote": "Arguments may be required to have a certain class",
+      "check": "OK  §1989:A.2.2 p2  (2.2 ARGUMENTS**)  the text is in p2"
+     }
+    ],
+    "reason": "\"Arguments may be required to have a certain class or a subset of a certain class.\" The three prose85 goldens pass on the mint build. No 15.3 candidate has an 85 case.",
+    "probe": null,
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-14/goldens/pb5924-fn-arg-class-85.cob, pb5924-fn-arg-class-subset-85.cob, pb5924-fn-arg-class-ok-85.cob (PASS)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the three goldens",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-AR-A.2.2-4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "an integer argument must be an arithmetic expression that always results in an integer (refused otherwise)",
+     "its value, including the operational sign, determines the function's value"
+    ],
+    "evidence-1985": {
+     "always-integer expressions accepted": "covered by AR-15.3-6's 85 cases 15.3-Arguments/pb5886_integer_term_shapes, pb5891_polynomial_integer_arguments, pb5891_p_scaled_exponent_85",
+     "not always integer refused": "covered by 15.3-Arguments/pb5886-integer-function-quotient, pb5886-integer-function-fraction-factor (diagnosed at 85) and the row's own case A.2@1985/1989-AR-A_2_2-4",
+     "operational sign used": "covered by probes/s-19/s19_p19_fn_integer_sign.cob (MOD (-11, 5) = 4, MOD (11, M5 = -5) = -4); not shown by any AR-15.3-6 85 case (every value there is positive)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.2 AR4",
+      "quote": "An arithmetic expression which will always result in an integer value must be specified",
+      "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
+     },
+     {
+      "cite": "§2023:15.3 AR6",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK  §2023:15.3 AR6  (Arguments)  the text is in AR6"
+     }
+    ],
+    "reason": "Reopened parent; what is left is item (4) alone. AR-15.3-6 states the whole requirement (2023 adds 'or an integer data item', which an always-integer expression already includes), but its 85 cases never pass a negative integer argument, so the \"including operational sign\" half has no 85 witness on the pointer. s19_p19 supplies it; with s19_p19 placed as an AR-15.3-6 case accepted at 85, this becomes SAME to AR-15.3-6.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p19_fn_integer_sign.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p19_fn_integer_sign.cob + the AR-15.3-6 85 cases",
+    "class": "other: the pointer AR-15.3-6 states the whole 1985 scope but no 85 case of it exercises a signed argument",
+    "needs": "place s19_p19 as a 15.3-Arguments case accepting 85 (rules AR-15.3-6), then SAME to AR-15.3-6",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-AR-A.2.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a function's rules may constrain its arguments' permissible values (grants the function definitions authority; no program form)",
+     "an argument outside the permissible range gives an undefined result"
+    ],
+    "evidence-1985": {
+     "constraint authority": "not shown (it obliges nothing by itself; each function's own argument rules are its rows)",
+     "out-of-range result": "not shown (undefined)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.2 p3",
+      "quote": "then the result of such a reference is undefined",
+      "check": "OK  §1989:A.2.2 p3  (2.2 ARGUMENTS**)  the text is in p3"
+     }
+    ],
+    "reason": "\"The rules for a function may place constraints on the permissible values for arguments ... If ... the arguments ... do not have values within the permissible range, then the result of such a reference is undefined.\" The only requirement it states is an undefined consequent.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the consequent is undefined, so no output distinguishes conforming from not",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "undefined-in-rule",
+     "names": "do not have values within the permissible range, then the result of such a reference is undefined"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-AR-A.2.2-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "for an argument repeatable a variable number of times, a table may be referenced by its data-name and qualifiers followed by subscripts of which one or more is ALL"
+    ],
+    "evidence-1985": {
+     "qualified table with ALL": "covered by probes/s-19/s19_p20_fn_all.cob (MAX (T OF G1 (ALL)) = 9; SUM (T IN G1 (ALL)) = 20)",
+     "one of several subscripts ALL": "covered by probes/s-19/s19_p20_fn_all.cob (SUM (C (ALL, 2)) = 4; SUM (C (2, ALL)) = 9)",
+     "ALL among other arguments": "covered by probes/s-19/s19_p20_fn_all.cob (MAX (T OF G1 (ALL), T OF G2 (2), 0) = 9)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.2 p4",
+      "quote": "followed immediately by subscripting where one or more of the subscripts is the word ALL",
+      "check": "OK  §1989:A.2.2 p4  (2.2 ARGUMENTS**)  the text is in p4"
+     }
+    ],
+    "reason": "\"a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL.\" A granting rule, shown accepted. The 15.3 candidates have no 85 case.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p20_fn_all.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p20_fn_all.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place s19_p20",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-AR-A.2.2-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "ALL stands for every element of that subscript position",
+     "expansion order: rightmost ALL varies fastest, left to right",
+     "an ALL on an OCCURS DEPENDING ON table runs to the object's current value",
+     "an ALL that yields no argument gives an undefined result"
+    ],
+    "evidence-1985": {
+     "every element": "covered by probes/s-19/s19_p20_fn_all.cob (SUM (T IN G1 (ALL)) = 20)",
+     "expansion order": "covered by probes/s-19/s19_p20_fn_all.cob (C = 1 3 0 / 6 1 2: ORD-MAX (C (ALL, ALL)) = 4, ORD-MIN = 3, the row-major order)",
+     "ODO range": "covered by probes/s-19/s19_p20_fn_all.cob (SUM (E (ALL)) = 6 with N = 3, 24 with N = 5)",
+     "no argument": "not shown (undefined)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.2 p5",
+      "quote": "the range of values is determined by the object of the OCCURS DEPENDING ON clause",
+      "check": "OK  §1989:A.2.2 p5  (2.2 ARGUMENTS**)  the text is in p5"
+     }
+    ],
+    "reason": "\"the next specification being the same identifier with the rightmost subscript specified by the word ALL incremented by one ... If the ALL subscript is associated with an OCCURS DEPENDING ON clause, the range of values is determined by the object\". ORD-MAX/ORD-MIN expose the order. The 15.3 candidates have no 85 case.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p20_fn_all.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p20_fn_all.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place s19_p20",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "defect",
+    "row": "1985-SR-XVI.3.3.2-p1",
+    "what": "The segmentation reach walk does not follow a path that leaves the named span and comes back. PERFORM O30 THRU O60 from section 10 (segments 30, 60) is accepted and runs O60 (O20, O30-X, O60, DONE) because O30-1 GOes TO O20-1 outside the span, O20 GOes TO O30-X and O30-X falls into O60; ReachedPcs drops O20 (Reach keeps only range.Spans(pc)) and never sees the return. docs/conformance/3.8 promises a diagnosis of the named procedures 'as far as execution reaches them by fall-through and GO TO'; the minimal twin without the detour (s19_p13f) is refused COBOL6877. Same for MERGE: run s19_p13c_merge_fixed_mixed_bad-001 (OUTPUT PROCEDURE O30 THRU O60 accepted). Not a 1985 wrong answer: §1985:I.1.6 leaves a violating program's result undefined.",
+    "repro": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p16_perform_reach_out_and_back_bad.cob (run s19_p16_perform_reach_out_and_back_bad-001); E:/COBOL-coord/scratch/pb5453/runs/s19_p13c_merge_fixed_mixed_bad-001/s19_p13c_merge_fixed_mixed_bad.cob",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#ReachedPcs"
+   },
+   {
+    "kind": "defect",
+    "row": "1985-SR-XI.4.3.3-3",
+    "what": "COBOL7081 (RETURN outside every output procedure, §1985:XI.4.3.3 SR3) depends on physical order: a RETURN in a section O99 that no output procedure names or reaches is accepted when O99 follows the output procedure O20 (p17), refused when O99 precedes it (p17b). The range walk appears to run on past the procedure's last paragraph.",
+    "repro": "E:/COBOL-coord/scratch/pb5453/probes/s-19/s19_p17_return_outside_after.cob (accepted, O20 AAAA, O20 BBBB, DONE) vs s19_p17b_return_outside_before.cob (COBOL7081)",
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateReleaseReturnRange (SortMergeProcedures.Range)"
+   },
+   {
+    "kind": "segmentation",
+    "row": "1985-SR-XVI.3.3.3-2",
+    "what": "After the mint the row is item (2) for a MERGE NOT in an independent segment, but its case 1985-SR-XVI_3_3_3-2 (rules: [1985-SR-XVI.3.3.3-2]) refuses a MERGE in section 60 naming output in 70, which is 1985-SR-XVI.3.3.3-p2's case. The inventory record's notes and next.reason of the four reopened XVI rows (1985-GR-XVI.1.4.3-3, 1985-SR-XVI.3.3.2-2, -3.3-2, -3.4-2) still quote the carved lead paragraphs.",
+    "repro": "conformance-suite/cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_3-2.cob (MRG-SEC SECTION 60)",
+    "site": "tests/version-matrix/inventory-1985/1985-SR-XVI.3.3.3-2.json"
+   },
+   {
+    "kind": "defect",
+    "row": "1985-GR-XV.1.3.4-p1",
+    "what": "Stale comments: DataBinder.cs (~line 416) says 'the object-time switch is permanently off here, so it never triggers' and CobolControlFlow.g4 (~line 512) 'our permanently-off object-time switch', but RunUnit.DebugMode defaults ON and WISEOWL_COBOL_DEBUG turns it (probe p02 fires with ON, not with OFF).",
+    "repro": "E:/COBOL-coord/scratch/pb5453/probes/s-19/p02_dbg_switch.cob with WISEOWL_COBOL_DEBUG=OFF / ON",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4"
+   },
+   {
+    "kind": "tooling",
+    "row": "1989-AR-A.2.2-p1",
+    "what": "The view's subject for the Amendment 1 rows is wrong: 1989-GR-A.1.2.1-p1 and A.1.2.3-p1 read 'THE COBOL MAINTENANCE COMMITTEE', the A.2.2 paragraph rows 'THE EVOLUTION OF CODASYL COBOL' (the real headings: 1.2.1 Function-Name, 1.2.3 Function-Identifier, 2.2 ARGUMENTS). Also specs/ANSI_COBOL_1985.md writes '**2.1.1 Date Conversion Function**' and '**2.2 ARGUMENTS**' as bold text, not headings, so cite.py names the clause '2.2 ARGUMENTS**'.",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/cite_check.py \"§1989:A.2.2 p1\"",
+    "site": "specs/ANSI_COBOL_1985.md (page 858, A-28)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-19",
+  "cases": [],
+  "disputed-different": []
+ },
+ "derivation-refute": {
+  "slice": "s-19",
+  "cases": [
+   {
+    "rule-id": "1989-AR-A.2.2-p3",
+    "arm": "undefined-in-rule",
+    "verdict": "OVERTURNED",
+    "attempt": "E:/COBOL-coord/scratch/pb5453/probes/s-19-refute/r01_unexec_outofrange.cob: FUNCTION LOG (0), SQRT (-4), MOD (7, 0) inside an IF whose condition is false; expected to compile and DISPLAY 'R01 OK'",
+    "reason": "p3 is more than an undefined consequent. It gives the per-function value rules (e.g. §1989:A.2.20.3 AR2 'The value of argument-1 must be greater than zero', checked OK) their meaning: they constrain 'permissible values' and their breach makes only the result undefined, 'at the time a function is referenced' (§1989:A.2.2 p3, checked OK). So out-of-range constant arguments do not make the program nonconforming, and a reference that never executes cannot affect the run. A compiler that refused r01, or one whose run differed, would violate p3. That outcome is observable: at --std 85 the mint build compiles r01 and prints 'R01 OK' (run r01_unexec_outofrange-001, exit 0). The executed case r02 (SQRT of -4, run r02_exec_outofrange-001: 'R02 AFTER') shows only the undefined part. Place r01 as the row's own 85 witness (needs-own-witness, compiler-at-1985 correct) instead of signing a derivation.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19-refute/r01_unexec_outofrange.cob"
+   }
+  ]
+ },
+ "imported": {
+  "asked": "808cc6ddd48d56f8be03b912e1e430724e8f68472dc6f5c2d2db38c1a2792209",
+  "derivation-refute": "076e1df789fa005a2039704fe2071b8d67bbb6da17b099f8f0a12f4882e99abd",
+  "read": "2888f7f0855ceb21b19bff27ef9277998e6619622e04555edf292716b8ffe631",
+  "refute": "cc5d4e3a649ddff63cd913f1ef82a26c3d2a7f16f6b6fc6088f332ab7d10390d"
+ }
+}
