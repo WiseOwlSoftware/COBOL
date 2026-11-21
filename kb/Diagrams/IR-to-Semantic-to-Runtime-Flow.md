@@ -401,7 +401,7 @@ BoundLinageCounterRef --[ §2023:13.18.34.4 GR7b ]-->  connector LINAGE-COUNTER
   BoundAllLiteral     --[ §2023:8.3.3.6.4 ALL Fmt-6       ]-->  pattern repeated to width
   BoundComputedOperand--[ operand = arith expr       ]-->  NumericRenderer
 
-  BoundBoolBinary  --[ §2023:8.8.2 GR9/10  (2002 gate) ]-->  CobolBool.And/Or/Xor
+  BoundBoolBinary  --[ §2023:8.8.2 rule 9/10  (2002 gate) ]-->  CobolBool.And/Or/Xor
   BoundBoolNot     --[ §2023:8.7.2 B-NOT, len preserved    ]-->  CobolBool.Not
   BoundBoolShift   --[ §2023:8.8.2 GR8    (2023 gate)   ]-->  CobolBool.Shift{Left,Right,*Circular}
   BoundBoolRef     --[ category-boolean item          ]-->  '0'/'1' string read (PlaceRenderer)

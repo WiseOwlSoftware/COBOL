@@ -1,4 +1,4 @@
-- **D-INCOMPATIBLE-DYNAMIC — Incompatible dynamic-length and dynamic-capacity data (§2023:14.6.13.2 GR5 and 6; kb/Work PB1118).** A
+- **D-INCOMPATIBLE-DYNAMIC — Incompatible dynamic-length and dynamic-capacity data (§2023:14.6.13.2 rules 5 and 6; kb/Work PB1118).** A
   dynamic-length item IS a managed string, so its internal format — a length and that many characters — is always
   correctly formed, and the one way its content can disagree with "the corresponding DYNAMIC LENGTH clause" is to be
   longer than THAT clause's maximum size (§2023:8.5.1.10.1; the minimum length is zero). Content stored through a

@@ -966,7 +966,7 @@ a constant-name, on the literal §2023:13.10.4 GR1/GR2 substitutes.
   §2023:12.3.8.4 GR10c resolves in the external repository — checks the COUNT and every argument's §2023:14.8.2 conformance at
   runtime (`BoundaryItem.ArgumentViolation`, the bullet below on the argument's description; kb/Work PB165).
 - **"The same PICTURE clause" is ONE identity (kb/Work PB1166).** Every identical-description rule — §2023:8.5.3.1,
-  §2023:9.3.6 3), §2023:9.3.8.2.3 GR3/6, §2023:14.8.2.3.2 rule 2, §2023:14.8.3.3 — carries the same two exceptions (currency
+  §2023:9.3.6 3), §2023:9.3.8.2.3 rules 3/6, §2023:14.8.2.3.2 rule 2, §2023:14.8.3.3 — carries the same two exceptions (currency
   symbols match iff their currency STRINGS do; period/comma symbols match iff DECIMAL-POINT IS COMMA is in effect
   for both source elements or neither), and both are facts of the DECLARING source element, not of the
   character-string. `PictureAnalyzer.Analyze` attaches `PicInfo.Clause` (`PictureClauseIdentity`) to every analyzed

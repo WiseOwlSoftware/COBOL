@@ -1,4 +1,4 @@
-- **D-CORRFILLER — an item under a FILLER group corresponds (§2023:14.7.6 GR1 and 5; kb/Work PB229).** Rule 1
+- **D-CORRFILLER — an item under a FILLER group corresponds (§2023:14.7.6 rules 1 and 5; kb/Work PB229).** Rule 1
   excludes the data item that is itself "implicitly or explicitly described with the keyword FILLER" and pairs items
   with "the same data-name and the same qualifiers, if any, up to, but not including, D1 and D2" (`cite.py --check
   14.7.6` → OK, rule 1). The qualifiers are names: "Qualification is the specification of superordinate names from

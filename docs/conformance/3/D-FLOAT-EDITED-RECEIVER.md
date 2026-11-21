@@ -10,7 +10,7 @@
   with no exception. An ARITHMETIC statement's floating-point numeric-edited resultant takes the size error
   condition in BOTH directions (§2023:14.7.5 items 3 and 4 — the receiver unchanged, EC-SIZE-TRUNCATION) under ON SIZE
   ERROR / EC-SIZE checking; without either, the MOVE disposition above. The receiver's ROUNDED [MODE] rounds the
-  SIGNIFICAND at its last digit (§2023:14.7.4.3 GR3 to 10; a MOVE truncates, §2023:14.6.8.4 GR2): a carry out of
+  SIGNIFICAND at its last digit (§2023:14.7.4.3 rules 3 to 10; a MOVE truncates, §2023:14.6.8.4 GR2): a carry out of
   the last digit renormalizes and the exponent is tested after it (`9.996` into `+9.99E+99` is `+1.00E+01`,
   §2023:14.7.5 item 3 "after … any applicable rounding specifications"), and ROUNDED MODE IS PROHIBITED with a
   significand that cannot be held exactly is the size error condition with the receiver unchanged (§2023:14.7.4.3

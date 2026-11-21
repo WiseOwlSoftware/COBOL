@@ -1154,7 +1154,7 @@ the group.
   25)), and GR26 is its function-pointer twin, so the SET relation (and the rules that send to it) admits two pointers
   restricted to two differently named prototypes of one signature (kb/Work PB2464 / PB3162). Every other relation —
   §2023:14.8.2.3.2's "of the same type", §2023:9.3.6 3 e), §2023:14.8.3.3, §2023:8.5.3.1's type-declaration equivalence, the pair-mode
-  conformance of §2023:9.3.8.2.3 GR3 and 6 (kb/Work PB4442) and the signature itself (§2023:8.13 "the description of the
+  conformance of §2023:9.3.8.2.3 rules 3 and 6 (kb/Work PB4442) and the signature itself (§2023:8.13 "the description of the
   parameters", §2023:13.7.3 SR2; kb/Work PB4491) — compares the USAGE clause's TO phrase by the prototype it NAMES, its folded
   externalized name (`PrototypeSignatures.NamedRestriction`; docs/CONFORMANCE.md D-RP1, kb/Work PB4107). So the §2023:8.5.3.1
   keys two compilations compare (`ActivationDescription.StrongType`, `PointerType`) are the same text whether or not a

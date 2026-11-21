@@ -171,7 +171,8 @@ _SCAN = re.compile(PATTERN + r"(?: (?P<rule>" + RULE + r"))?")
 SPACED_PATH = re.compile(r" [a-z]\)(?: \d{1,2}(?:\)|\.(?=[\s)]))(?: [a-z](?:\)|\.(?=[\s)])))?)?")
 #: What, right after a spaced path or a bare rule label, makes the spelling a LIST rather than one designator: another
 #: label of the same shape (`a) b)`, `37) 39)`) or a range or conjunction of them (`a)/c)`, `a)-c)`, `3) and 5)`).
-_LISTED = re.compile(r"(?: (?:and|or|to|through) |\s?[/,–-]\s?| )\(?(?:[a-z]|\d{1,2})\)")
+_LISTED = re.compile(r"(?: (?:and|or|to|through) |\s?[/,–-]\s?| )\(?(?:[a-z]|\d{1,2})\)"
+                     r"|,? (?:and|or|to|through) \d|\s?[/–-]\s?\d|, \d{1,2}(?:[,;)]| (?:and|or)\b)")
 #: A rule or list item named in words, or by a bare printed label, after a citation that names no rule: `rule 2`,
 #: `rules 3`, `<x> phrase rule 1`, `item 1`, `item (1)`, a bare `1)`.
 LOOSE_RULE = re.compile(r" (?:(?P<item>items? \(?\d+\)?)|(?:[A-Za-z-]+ phrase )?rules? (?P<word>\d+)|(?P<label>\d{1,2})\))"
@@ -215,7 +216,8 @@ def loose_designator(text: str, c: Citation) -> Loose | None:
     if m["item"] is None and (p := SPACED_PATH.match(text, end)):
         end, path = p.end(), tuple(re.findall(r"[a-z]|\d+", p.group(0)))
     ordinal = None if m["item"] is not None else int(m["word"] or m["label"])
-    return Loose(c, text[c.start:end], end, ordinal, path, _LISTED.match(text, end) is not None)
+    plural = re.match(r" (?:[A-Za-z-]+ phrase )?rules ", text[c.end:]) is not None   # `rules 3 and 5` names several
+    return Loose(c, text[c.start:end], end, ordinal, path, plural or _LISTED.match(text, end) is not None)
 
 
 #: A WHOLE citation, as `cite.py --check` takes it.

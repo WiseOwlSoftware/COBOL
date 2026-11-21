@@ -568,7 +568,7 @@ Post-condition (the GR1 obligation): the leftmost of the `SigDigits` digits is n
 
 1. Exponent capacity: `maxExp = 10^ExpDigits - 1`. `E10 > maxExp` → `Overflow`; `E10 < -maxExp` → `Underflow`.
 2. Significand: place `sigDigits10` into the `'9'` positions of `SigPattern` right-to-left; each `'.'`, `','`,
-   `'B'`(→space), `'0'`, `'/'` supplies its insertion character in its own position (§2023:13.18.40.5 GR3 and 4,
+   `'B'`(→space), `'0'`, `'/'` supplies its insertion character in its own position (§2023:13.18.40.5 rules 3 and 4,
    simple and special insertion — Table 7 admits exactly these plus fixed insertion).
 3. Significand sign: `SigSign == '+'` → `'+'`/`'-'` by Table 8; `SigSign == '-'` → space/`'-'`; no sign symbol →
    the sign is not represented (the absolute value is edited — the same loss a fixed-point unsigned edited mask

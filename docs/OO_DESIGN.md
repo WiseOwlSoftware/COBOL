@@ -371,7 +371,7 @@ The procedure-division header's BY phrases parse and CARRY on a method (kb/Work 
    `ReturningMatches` (§2023:9.3.6), `ParameterViolation` / `ReturningViolation` (§2023:14.8.2 / §2023:14.8.3 for a method),
    `CallArgumentViolation` / `CallReturningViolation` (a program or function: rule 1's length or rule 2's identity,
    §2023:14.8.2.3.3's SET / COMPUTE / MOVE regime through `MoveViolation` / `MaySet`, §2023:14.8.2.2) and `SignatureDifference`
-   (the symmetric identity of §2023:9.3.8.2.3 GR2, 3, 6 and 7, which §2023:11.7.3 SR9, §2023:9.3.11, §2023:8.4.3.9.3 SR7 and §2023:13.7.3
+   (the symmetric identity of §2023:9.3.8.2.3 rules 2, 3, 6 and 7, which §2023:11.7.3 SR9, §2023:9.3.11, §2023:8.4.3.9.3 SR7 and §2023:13.7.3
    SR2 import; null when the two are the same description). `ParameterConformance.CheckArgument`
    is the ONE bind-time entry: CALL Format 2, a function reference and INVOKE build the argument's description
    (`OfCallArgument` / `OfPlace` / `OfValue`, the §2023:14.9.4.4 GR8 reduction written once) and the formal's, and ask

@@ -862,6 +862,9 @@ def resolve_self_test() -> bool:
         ("the regions (§2023:14.9.22.4 GR9 a) b)) of", None),  # citation-audit: example
         ("the keys (§2023:14.9.51.4 37) 39)) of", None),  # citation-audit: example
         ("the operands (§2023:14.9.18.3 SR4 a)/c)) of", None),  # citation-audit: example
+        ("identity (§2023:9.3.8.2.3 rules 2, 3, 6 and 7) of", None),  # citation-audit: example
+        ("the length (§2023:8.8.2 rule 9/10) of", None),  # citation-audit: example
+        ("the modes (§2023:14.7.4.3 rule 3 to 10; a MOVE", None),  # citation-audit: example
         ("a phantom's (§2023:14.9.25.4 rule 6)", None),  # citation-audit: example
     ]
     rewrote = all(canonicalize_line(a) == (b if b is not None else a) for a, b in rewrites)

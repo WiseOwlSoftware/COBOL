@@ -28,7 +28,7 @@
       *>   statement "the associated declarative is executed"; NOTE 1 (after 4))
       *>   "The user is able to continue by using a RESUME statement".
       *>   OK  §2023:14.6.13.1.3 GR5  (Fatal exception conditions)
-      *> §2023:14.9.33.4 GR2a.1 and 3.: NEXT STATEMENT transfers to an
+      *> §2023:14.9.33.4 GR2 a) 1. and 3.: NEXT STATEMENT transfers to an
       *>   implicit CONTINUE that "immediately follows the end of the
       *>   statement that was executing"; "the applicable statement is
       *>   the one in which the exception condition was raised", and for
