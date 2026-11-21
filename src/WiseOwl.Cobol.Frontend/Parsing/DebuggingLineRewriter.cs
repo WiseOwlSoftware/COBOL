@@ -65,9 +65,13 @@ public static class DebuggingLineRewriter
     /// makes comment is added to it (kb/Work PB5588): each hidden debugging line, and each line of a hidden debugging section,
     /// "compiled as if they were comment lines" (§1985:VI.4.3.4 GR5, §1985:XV.2.1.3 GR2). The lexer skips a floating comment, so
     /// no token says what a comment line held; a reader of the TEXT that must not judge a comment line (the COBOL-85 gate of
-    /// <c>*&gt;</c>, <c>SurvivingFloatingComments</c>) asks this set, the one place that decides it.</para></summary>
+    /// <c>*&gt;</c>, <c>SurvivingFloatingComments</c>) asks this set, the one place that decides it.</para>
+    /// <para>When <paramref name="hiddenSections"/> is given, the header token of every USE FOR DEBUGGING section this pass makes comment is
+    /// added to it, so the caller can still say the program holds one: a comment-treated section is an element the obsolete Debug module
+    /// has (§1985:p.XVII-86 (obsolete list item 18)), and the warning mechanism of §1985:I.1.5.2.3 indicates its use whether or not the mode compiles it.</para></summary>
     public static IToken? Rewrite(CommonTokenStream tokenStream, List<IToken>? sourceLines = null, List<IToken>? misplacedLines = null,
-        bool debuggingSectionsAreComments = false, HashSet<int>? commentLines = null, List<IToken>? hiddenLines = null)
+        bool debuggingSectionsAreComments = false, HashSet<int>? commentLines = null, List<IToken>? hiddenLines = null,
+        List<IToken>? hiddenSections = null)
     {
         tokenStream.Fill();
         var tokens = tokenStream.GetTokens();
@@ -100,7 +104,7 @@ public static class DebuggingLineRewriter
                         : new UnitFrame(inheritedMode: false));
                     break;
                 case CobolLexer.END when v + 1 < visible.Count && IsUnitKind(tokens[visible[v + 1]].Type):
-                    if (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced, comment, hidden);
+                    if (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced, comment, hidden, hiddenSections);
                     break;
                 case CobolLexer.DECLARATIVES when debuggingSectionsAreComments && units.Count > 0
                     && v + 1 < visible.Count && tokens[visible[v + 1]].Type == CobolLexer.DOT
@@ -121,8 +125,8 @@ public static class DebuggingLineRewriter
             }
         }
         while (nextLine < lines.Count) (units.Count > 0 ? units.Peek() : outside).Lines.Add(lines[nextLine++]);
-        while (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced, comment, hidden);
-        Resolve(tokens, outside, kept, keptSource, misplaced, comment, hidden);
+        while (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced, comment, hidden, hiddenSections);
+        Resolve(tokens, outside, kept, keptSource, misplaced, comment, hidden, hiddenSections);
         tokenStream.Seek(0);
         sourceLines?.AddRange(keptSource.Select(i => tokens[i]));
         misplacedLines?.AddRange(misplaced.Order().Select(i => tokens[i]));
@@ -177,7 +181,9 @@ public static class DebuggingLineRewriter
     /// <summary>A stretch of a DECLARATIVES portion that is comment text: the tokens <see cref="First"/> to <see cref="Last"/>
     /// (hidden-channel text between them included) and the last line of the text it covers, which also holds what the lexer
     /// skipped (a floating comment) after the last token.</summary>
-    private readonly record struct HiddenSection(int First, int Last, int LastLine);
+    /// <param name="IsSection">True for a USE FOR DEBUGGING section itself, false for the DECLARATIVES portion's own header and END DECLARATIVES
+    /// that leave with the last of them: only a section is a use of the obsolete Debug module's declarative (§1985:p.XVII-86 (obsolete list item 18)).</param>
+    private readonly record struct HiddenSection(int First, int Last, int LastLine, bool IsSection = true);
 
     private static List<Extent> DebugLines(IList<IToken> tokens)
     {
@@ -280,18 +286,19 @@ public static class DebuggingLineRewriter
         if (found.Count > 0 && found.Count == sections && i < visible.Count)
         {
             int last = i + 1 < visible.Count && i + 2 < visible.Count && tokens[visible[i + 2]].Type == CobolLexer.DOT ? i + 2 : i + 1;
-            found.Add(new HiddenSection(visible[at], visible[at + 1], tokens[visible[at + 1]].Line));   // the portion's own header and END DECLARATIVES: their own lines
-            found.Add(new HiddenSection(visible[i], visible[last], tokens[visible[last]].Line));
+            found.Add(new HiddenSection(visible[at], visible[at + 1], tokens[visible[at + 1]].Line, IsSection: false));   // the portion's own header and END DECLARATIVES: their own lines
+            found.Add(new HiddenSection(visible[i], visible[last], tokens[visible[last]].Line, IsSection: false));
         }
         return found;
     }
 
     private static void Resolve(IList<IToken> tokens, UnitFrame unit, List<int> keptRegionLines, List<int> keptSourceLines,
-        List<int> misplacedLines, HashSet<int> commentLines, List<int> hiddenLines)
+        List<int> misplacedLines, HashSet<int> commentLines, List<int> hiddenLines, List<IToken>? hiddenSections)
     {
         if (!unit.Mode)
-            foreach (var (first, last, lastLine) in unit.DebuggingSections)
+            foreach (var (first, last, lastLine, isSection) in unit.DebuggingSections)
             {
+                if (isSection) hiddenSections?.Add(tokens[first]);
                 for (int i = first; i <= last; i++)
                     if (tokens[i].Channel == TokenConstants.DefaultChannel && tokens[i].Type != TokenConstants.EOF)
                         tokens[i] = new CommonToken(tokens[i]) { Channel = CobolLexer.ABSENT_DEBUG_LINE };

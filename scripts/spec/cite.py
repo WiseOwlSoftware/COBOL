@@ -481,21 +481,31 @@ def _iso_furniture(edition: int) -> tuple[re.Pattern[str], re.Pattern[str]]:
     return erc.furniture(year), erc.running_header(year)
 
 
+_FURNITURE_85: dict[int, tuple[list[str], list[str | None]]] = {}
+
+
+def _furniture_85(lines: list[str]) -> list[str | None]:
+    """The 1985 transcription's furniture, read once per transcription by THE ONE reader of it,
+    `rule_catalog_1985.furniture` (kb/Work PB5998, PB5997): per line, the kind of furniture it is, else None. The entry
+    keeps `lines` alive, so its id is never reused."""
+    held = _FURNITURE_85.get(id(lines))
+    if held is None:
+        _erc, rc85 = _extractors()
+        held = _FURNITURE_85[id(lines)] = (lines, rc85.furniture(lines))
+    return held[1]
+
+
 def _furniture(lines: list[str], i: int, edition: int) -> bool:
     """Page-break furniture inside a rule (a page marker, an anchor, a folio, a running header or footer): never text.
-    The shapes are the extractors' (`furniture(year)`, `running_header(year)`, `PAGE`; the 1985 page's running header,
-    `rule_catalog_1985.running_header`, the first line after its page marker)."""
-    erc, rc85 = _extractors()
+    The extractor's shapes (`furniture(year)`, `running_header(year)`, `PAGE`; the arms with no year serve 1985
+    too) and, for 1985, `rule_catalog_1985.furniture`'s, the reader the catalog's own walks use, so a quotation reads
+    the lines the catalog does, across a folio or a reconstruction's boundary as across any page break."""
+    erc, _rc85 = _extractors()
     furniture, running_header = _iso_furniture(edition)
     line = lines[i]
-    if furniture.match(line) or running_header.match(line) or erc.PAGE.match(line) or citation.FOLIO_85.match(line):
+    if furniture.match(line) or running_header.match(line) or erc.PAGE.match(line):
         return True
-    if citation.EDITIONS[edition].locator == "clause":
-        return False
-    k = i - 1
-    while k >= 0 and not lines[k].strip():
-        k -= 1
-    return k >= 0 and bool(spec_pdf.PAGE_HEADING.match(lines[k])) and rc85.running_header(line)
+    return citation.EDITIONS[edition].locator != "clause" and _furniture_85(lines)[i] is not None
 
 
 def catalog_path(edition: int, repo: pathlib.Path = spec_pdf.REPO) -> pathlib.Path | None:
@@ -1098,6 +1108,19 @@ def self_test() -> int:
         ("passes a citation of a page transcribed from another scan unmarked (TYPE SR2, folio XIII-55)",
          (r := v("§1985:XIII.3.20.3 SR2", "may each appear no more than once in the description of a report")).ok
          and RECONSTRUCTED_MARK not in r.message),
+        # kb/Work PB5997: ONE reader of the 1985 page furniture (`rule_catalog_1985.furniture`): a quotation reads across a
+        # folio and the running header after it, and across a reconstruction's closing note, as the catalog's walks do.
+        ("1985: a quotation across a folio, its page heading and the running header, and across a reconstruction's boundary, "
+         "reads as one text",
+         (lambda ls: (lambda rule: (lambda book: all(
+             norm(q) in book.text_of(rule)[1] for q in
+             ("the first half joins the second half", "the second half joins the third half"))
+             and "Running Header" not in book.text_of(rule)[1])(
+                 RuleBook(1985, None, ls, [], {"X.1.1": [rule]}, {}, [])))(
+                     Rule(1985, "X.1.1", "SR", 1, 1, tuple(range(len(ls))), "", False)))(
+             ["(1) The first half joins", "", "X-1", "", "## Page 2", "", "Running Header", "",
+              "the second half joins", "> ⚠ **END RECONSTRUCTED (folio X-2).** Printed again.", "", "Running Header Two", "",
+              "the third half"])),
         ("reads a SOURCE note as editorial, naming its folios",
          EDITORIAL_NOTE.match(n := "> ⚠ **SOURCE — folios XIII-54 and XIII-55, not in our copy.** Planted.") is not None
          and (m := SOURCE.match(n)) is not None and folios_of(m["folios"]) == ["XIII-54", "XIII-55"]),

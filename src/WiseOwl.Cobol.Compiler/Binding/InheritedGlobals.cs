@@ -38,8 +38,8 @@ public sealed class InheritedGlobals
     public IReadOnlyDictionary<DataItem, FileModel> RecordAreas => _recordAreas;
 
     /// <summary>Every file of every containing program that is NOT a global name here — its FD has no GLOBAL clause
-    /// (§2023:13.18.27.3 SR1 d)), so its file-name is not among the inherited file-names (<see cref="SymbolTable.InheritFiles"/>). It is still reachable through a record: a
-    /// file-section level-1 entry may carry its own GLOBAL clause (SR1 b)), and the record-name is then visible here.
+    /// (§2023:13.18.27.3 SR1d), so its file-name is not among the inherited file-names (<see cref="SymbolTable.InheritFiles"/>). It is still reachable through a record: a
+    /// file-section level-1 entry may carry its own GLOBAL clause (SR1b), and the record-name is then visible here.
     /// Read by <c>StatementValidation.ResolveRecordName</c>, to refuse WRITE / REWRITE of such a record by §2023:14.9.51.3 SR21
     /// / §2023:14.9.35.3 SR3 (kb/Work PB1193), and by the APPLY COMMIT screen (§2023:12.4.6.3.3 SR1).</summary>
     public IReadOnlyList<FileModel> ContainerLocalFiles => _containerLocalFiles;

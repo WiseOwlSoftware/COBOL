@@ -219,20 +219,21 @@ public sealed class Listing1985Tests : IDisposable
             Assert.Contains("(--std 85)  OUTER85  ", other.Split('\n')[0], StringComparison.Ordinal);
         string[] pages = ListingPages.Of(text, ListingSection.Source);
         Assert.True(pages.Length > 4, $"only {pages.Length} pages");
-        int checkedPages = 0;
+        int checkedPages = 0, onlyTheFlag = 0;
         foreach (string page in pages)
         {
             string[] rows = page.Split('\n');
             // The first row of the page that is a numbered source row: its listing number names its line.
             string? first = rows.Skip(ListingRequest.TextHeadingLines).FirstOrDefault(r => r.Length > 6 && int.TryParse(r[..6], out _));
-            if (first is null) continue;
+            // A page the DATE-COMPILED paragraph's obsolete-element warning (COBOL0903, §1985:p.XVII-82 (obsolete list item 3)) fills alone holds no source row.
+            if (first is null) { Assert.Contains("COBOL0903", page, StringComparison.Ordinal); onlyTheFlag++; continue; }
             var line = listing.Lines[int.Parse(first[..6], CultureInfo.InvariantCulture) - 1];
             string program = listing.Programs.Single(p => p.Id == line.Program).Name;
             Assert.Contains($"(--std 85)  {program}  ", rows[0], StringComparison.Ordinal);
             checkedPages++;
         }
         Assert.Contains(pages, p => p.Split('\n')[0].Contains("  INNER85  ", StringComparison.Ordinal));
-        Assert.True(checkedPages == pages.Length, $"{pages.Length - checkedPages} page(s) held no source row");
+        Assert.True(checkedPages + onlyTheFlag == pages.Length, $"{pages.Length - checkedPages} page(s) held no source row");
     }
 
     /// <summary>A listing is produced on every outcome once the source was read (DESIGN-listing.md section 4.6), and a section

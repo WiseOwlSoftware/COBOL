@@ -1,1 +1,1 @@
-{"refuse-at": ["85"], "expect": "organization is sequential by default, the ORGANIZATION clause being omitted (ISO §1985:VII.2.6.3 GR3)"}
+{"refuse-at": ["85"], "expect": "organization is sequential by default, the ORGANIZATION clause being omitted (ANSI §1985:VII.2.6.3 GR3)"}

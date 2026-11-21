@@ -1100,7 +1100,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>The subscript sentence of every caller whose own rule forbids an operand <i>"subject to any OCCURS
     /// clauses"</i> — the file clauses (§2023:13.18.34.3 SR1, §2023:12.4.5.12.3 SR1, §2023:12.4.5.6.3 SR1, §2023:12.4.5.13.3 SR1) and the
-    /// SORT / MERGE file keys (§2023:14.9.40.3 SR6 b), §2023:14.9.24.3 SR4 b)). A caller whose operand MAY lie under an OCCURS
+    /// SORT / MERGE file keys (§2023:14.9.40.3 SR6 b), §2023:14.9.24.3 SR4b). A caller whose operand MAY lie under an OCCURS
     /// (a table SORT key, a REDEFINES data-name-2) states its own rule instead.</summary>
     internal const string NotSubjectToOccurs = "the operand shall not be subject to any OCCURS clauses";
 
@@ -2531,7 +2531,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 ? $"{why}: \"{BasedResidence.Sentence}\" (ISO {BasedResidence.Rule})"
             : subject.Property is not null
                 ? "the PROPERTY clause shall not be specified in the same data description entry as a BASED clause "
-                  + "(ISO §2023:13.16.3 SR21 a))"
+                  + "(ISO §2023:13.16.3 SR21a)"
             : subject.HasExternalClause
                 ? "the EXTERNAL clause shall not be specified in the same data description entry as the BASED "
                   + "clause (ISO §2023:13.16.3 SR5)"
@@ -4034,7 +4034,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         CheckMessageTagExclusivity(firstUsage, extraUsages, entryWhere);
 
         // ⛔ THE CLAUSE-PLACEMENT SCREEN'S ENTRY-LOCAL ROWS (DataBinder.ClausePlacement.cs; kb/Work PB518/PB519):
-        // EXTERNAL / GLOBAL residence (§2023:13.16.3 SR6, §2023:13.18.22.3 SR1, §2023:13.18.27.3 SR1 b)), the data-name format
+        // EXTERNAL / GLOBAL residence (§2023:13.16.3 SR6, §2023:13.18.22.3 SR1, §2023:13.18.27.3 SR1b), the data-name format
         // (§2023:13.16.3 SR7) and EXTERNAL×REDEFINES/BASED (§2023:13.16.3 SR5). A refused clause is DROPPED here, so it never
         // reaches HasExternalClause / HasGlobalClause — the only inputs of CallBindExternalAndGlobal's re-basing
         // and global-name registration.

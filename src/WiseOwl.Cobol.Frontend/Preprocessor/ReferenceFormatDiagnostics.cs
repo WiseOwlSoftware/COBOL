@@ -24,7 +24,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive, DiagnosticBag diagnostics)
 {
     private bool _col7Flagged, _wordFlagged, _floatingCommentFlagged, _floatingContinuationFlagged, _debuggingLineFlagged,
-        _floatingDebuggingFlagged;
+        _floatingDebuggingFlagged, _hiddenDebuggingSectionFlagged;
 
     /// <summary>The debugging lines (physical file and line) the §2023:6.5 walk passed over because a literal awaited its
     /// continuation (kb/Work PB2490): comment lines when their source unit says no WITH DEBUGGING MODE, which is not known
@@ -105,6 +105,12 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     /// <c>debugging-line-removed-2014</c>). Gated once per compilation, at its first use.</summary>
     public void OnDebuggingLine(string file, int line)
         => GateOnce(ref _debuggingLineFlagged, Constructs.DebuggingLineRemoved2014, file, line, FixedFormLine.IndicatorColumn);
+
+    /// <summary>A USE FOR DEBUGGING section that the source unit's lack of WITH DEBUGGING MODE makes comment (§1985:XV.2.1.3 GR2:
+    /// "compiled as if they were comment lines"): no parse or bind sees it, yet the program holds the obsolete Debug module's declarative
+    /// (§1985:p.XVII-86 (obsolete list item 18); row <c>use-for-debugging-removed-2002</c>, kb/Work PB5986). Gated once per compilation, at its first.</summary>
+    public void OnHiddenDebuggingSection(string file, int line, int column)
+        => GateOnce(ref _hiddenDebuggingSectionFlagged, Constructs.UseForDebuggingRemoved2002, file, line, column);
 
     /// <summary>A line with the 2002 FLOATING debugging indicator <c>&gt;&gt;D</c> (clause 6.1.2), in either reference format —
     /// the same obsolete-at-2002, removed-at-2014 facility as the fixed indicator, but introduced with the floating

@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "file 'SQF' has a RECORD KEY clause, which the general format prints only in the indexed file control entry (ANSI §1985:IX.2.3.2), but this file is sequential by default, the ORGANIZATION clause being omitted (ANSI §1985:VII.2.6.3 GR3)"}

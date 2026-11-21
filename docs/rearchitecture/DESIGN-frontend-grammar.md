@@ -2798,7 +2798,7 @@ the scraped Table 12 and proves the proxy sound (only a row with a conditional p
 END-PERFORM, reaches a `statementBlock`).
 
 **Format 1 (with sections) versus Format 2 (without sections) (COBOL2797; §2023:14.2.1, §2023:14.4.1).** The rule
-`declarativePart* sentence* paragraphDefinition* sectionDefinition*` is the union of the two formats, and each
+`(declarativePart | sentence)* (paragraphDefinition+ (sectionDefinition | declarativePart)* | sectionDefinition (sectionDefinition | declarativePart)*)?` is the union of the two formats, and each
 section holds the paragraphs that follow its header (`sectionDefinition : … sentence* paragraphDefinition*`), as
 §2023:14.4.2 says: "A section consists of a section header followed by zero, one, or more successive paragraphs. A section
 ends immediately before the next section or at the end of the procedure division". The section owns its paragraphs
