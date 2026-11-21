@@ -207,7 +207,8 @@ def render(w: Witness, row: dict[str, Any], spelling: str, code: str | None, als
     else:
         why = (f"A refusal: the rule forbids line {w.draft['expected']['line']} of the program below, and WiseOwl refuses "
                f"it at {spelling} with {code} there; a compiler that accepts it fails.")
-    comment = wrapped(f"{row['citation']} ({row.get('subject') or row['section']}). {why} Placed from {w.source} by "
+    cited = "; ".join(dict.fromkeys([row["citation"], *(r["citation"] for r in also)]))
+    comment = wrapped(f"{cited} ({row.get('subject') or row['section']}). {why} Placed from {w.source} by "
                       f"scripts/spec/place_witnesses.py (kb/Work PB4995).")
     lines = ["      *>--- conformance-case", *(COMMENT + h for h in header), "      *>---", *comment]
     return "\n".join(lines + [w.draft["program"].rstrip("\n")]) + "\n"
@@ -277,7 +278,18 @@ def placed_from(program: pathlib.Path) -> str:
 
 def judge_all(witnesses: list[Witness], adapter: pathlib.Path, variables: dict[str, str], edition: str,
               jobs: int) -> dict[str, tuple[str, str | None]]:
-    """Each witness judged on this build: rule id -> (its verdict or the reason it fails, the refusal's code)."""
+    """Each witness judged on this build: rule id -> (its verdict or the reason it fails, the refusal's code). Equal
+    drafts (`draft_key`) are judged once, under the first one's rule, and the verdict is every one's."""
+    lead: dict[str, str] = {}
+    for w in witnesses:
+        lead.setdefault(draft_key(w.draft), w.rule_id)
+    unique = [w for w in witnesses if lead[draft_key(w.draft)] == w.rule_id]
+    got = _judge_unique(unique, adapter, variables, edition, jobs)
+    return {w.rule_id: got[lead[draft_key(w.draft)]] for w in witnesses}
+
+
+def _judge_unique(witnesses: list[Witness], adapter: pathlib.Path, variables: dict[str, str], edition: str,
+                  jobs: int) -> dict[str, tuple[str, str | None]]:
     with tempfile.TemporaryDirectory(prefix="witnesses-") as scratch:
         root = pathlib.Path(scratch)
         tests = {w.rule_id: run_drafts.tests_of(root, w.rule_id, w.draft) for w in witnesses}
@@ -304,25 +316,35 @@ def place(witnesses: list[Witness], rows: dict[str, dict[str, Any]], names: dict
     cases: dict[str, dict[pathlib.Path, str]] = {}
     #: rule id -> its library texts (path -> text), a part of its case
     library_texts: dict[str, dict[pathlib.Path, str]] = {}
+    # Records whose drafts are equal witness their rules with ONE program: one case, its header naming every rule, led
+    # by the first record's rule (its id, its clause folder), never a copy per rule.
+    groups: dict[str, list[Witness]] = {}
     for w in witnesses:
-        row = rows.get(w.rule_id)
+        if rows.get(w.rule_id) is None:
+            out.skipped[w.rule_id] = f"no rule of the {ed.year} catalog"
+        else:
+            groups.setdefault(draft_key(w.draft), []).append(w)
+    for w, *also in groups.values():
+        members = [w.rule_id, *(x.rule_id for x in also)]
+        row = rows[w.rule_id]
         verdict, code = judged.get(w.rule_id, ("not judged", None))
         refused = w.draft["expected"]["outcome"] != "output"
-        if row is None:
-            out.skipped[w.rule_id] = f"no rule of the {ed.year} catalog"
-        elif any("/" in name for name in w.draft.get("files", {})):
-            out.skipped[w.rule_id] = ("its library texts lie in a library folder, which only a WiseOwl test may declare "
-                                      "(where a library-name's text is found is the implementor's, design §3.1)")
+        why = None
+        if any("/" in name for name in w.draft.get("files", {})):
+            why = ("its library texts lie in a library folder, which only a WiseOwl test may declare "
+                   "(where a library-name's text is found is the implementor's, design §3.1)")
         elif verdict != run_drafts.MATCH:
-            out.skipped[w.rule_id] = verdict
+            why = verdict
         elif refused and code is None:
-            out.skipped[w.rule_id] = (f"the compiler reports no error at its violating line "
-                                      f"{w.draft['expected']['line']} (a warning refuses nothing)")
+            why = (f"the compiler reports no error at its violating line {w.draft['expected']['line']} "
+                   "(a warning refuses nothing)")
+        if why is not None:
+            out.skipped.update(dict.fromkeys(members, why))
         else:
             clause = clause_of(row["section"])
             folder, tid = f"{clause}@{ed.year}-{names[clause]}", test_id(w.rule_id)
             where = suite / "cases" / folder
-            case = {where / f"{tid}.cob": render(w, row, ed.spelling, code)}
+            case = {where / f"{tid}.cob": render(w, row, ed.spelling, code, [rows[x.rule_id] for x in also])}
             if refused:
                 case[suite / "wiseowl" / "diagnostics" / f"{tid}.json"] = json.dumps(
                     {"refuse-at": [ed.spelling], "expect": code}) + "\n"
@@ -332,7 +354,7 @@ def place(witnesses: list[Witness], rows: dict[str, dict[str, Any]], names: dict
             case.update(libraries)
             cases[w.rule_id] = case
             library_texts[w.rule_id] = libraries
-            out.placed[w.rule_id] = (folder, tid, code)
+            out.placed.update(dict.fromkeys(members, (folder, tid, code)))
     by_rule = {w.rule_id: w for w in witnesses}
     held = {rid: case_files(suite, out.placed[rid][1]) for rid in cases}
     for rid, case in cases.items():
@@ -667,13 +689,18 @@ def self_test() -> int:
         own_batch, own_summary = run_placement(own_confirm, state, 1985, root / "adapters" / "stub.json", {}, 2,
                                                own_suite, own_rows, schema)
         own_folder = "VI.6.18@1985-INSPECT-STATEMENT"
+        shared = f"conformance:cases/{own_folder}/{test_id(own_rid)}"
         ok(sorted(own_batch["records"], key=lambda r: r["rule-id"]) == [
-            {"rule-id": own_rid, "verdict": "CONFORMS", "code-location": site,
-             "test-ref": f"conformance:cases/{own_folder}/{test_id(own_rid)}"},
-            {"rule-id": owned, "test-ref": f"conformance:cases/{own_folder}/{test_id(owned)}"}]
+            {"rule-id": own_rid, "verdict": "CONFORMS", "code-location": site, "test-ref": shared},
+            {"rule-id": owned, "test-ref": shared}]
            and own_summary["unclassified"] == [bare],
            "an unadjudicated rule's record carries its own verdict and code location with the placed test, in the one "
            "batch; a row with a verdict of its own takes a witness-only record; a rule with neither is unclassified")
+        lead_case = own_suite / "cases" / own_folder / f"{test_id(own_rid)}.cob"
+        ok(sorted(p.name for p in (own_suite / "cases" / own_folder).glob("*.cob")) == [lead_case.name]
+           and f"rules: [{own_rid}, {owned}, {bare}]" in lead_case.read_text(encoding="utf-8"),
+           "kb/Work PB5453: three records of one draft are ONE case led by the first rule, its header naming all three, "
+           "never a copy of the program per rule")
         (own_confirm / "own.json").write_text(json.dumps({"records": [
             {"rule-id": bare, "decision": "DRAFTED", "pass": "p", "redraft_run": "MATCH", "draft": out_w,
              "verdict": "CONFORMS"},
