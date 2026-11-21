@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-AR-A.2.2-p2",
+ "rule-digest": "71747a28ccb2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntrinsicArgumentRules; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CobolClass",
+ "test-ref": "conformance:cases/A.2@1985-EVOLUTION-OF-CODASYL-COBOL/pb5924-fn-arg-class-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-19.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/A.2@1985-EVOLUTION-OF-CODASYL-COBOL/pb5924-fn-arg-class-85), joined as the row's own test. The read: \"Arguments may be required to have a certain class or a subset of a certain class.\" The three prose85 goldens pass on the mint build. No 15.3 candidate has an 85 case. Code location located after the read: CobolClass/ArgRule kinds encode the required argument class per function"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.15.1-p1",
+ "rule-digest": "910b80f74913",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#goToStatement",
+ "test-ref": "conformance:cases/14.9.17-GO-TO/pb412_go_to_general_formats",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/14.9.17-GO-TO/pb412_go_to_general_formats), joined as the row's own test. The read: GR-14.9.17.4-1 (with pb413 at 85) states the format-1 transfer, but the paragraph also names the format-1 GO TO without procedure-name-1, which 2023 does not have. That form is shown only by the 1985 ALTER cases. Every part runs correctly at 85. Code location located after the read: GO TO binding and grammar"
+}

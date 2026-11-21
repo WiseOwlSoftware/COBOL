@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.2-p5",
+ "rule-digest": "d9c287c4990a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Runtime/IO/ReportLinePlacement.cs#FirstLine",
+ "test-ref": "conformance:cases/XIII.1.2@1985-LANGUAGE-CONCEPTS/pb5924-line-counter-range-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-17.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XIII.1.2@1985-LANGUAGE-CONCEPTS/pb5924-line-counter-range-85), joined as the row's own test. The read: The candidates GR-13.18.57.4-7/8 define the limits for a paged report and SR-13.18.57.3-12 (PH/PF need PAGE) has no 85 case; none states that an unpaged report has no limits. The golden shows a report with no PAGE clause growing without any boundary or page advance. Code location located after the read: no PAGE clause: no vertical partition or fit test; ReportLinePlacement.FirstLine places lines"
+}

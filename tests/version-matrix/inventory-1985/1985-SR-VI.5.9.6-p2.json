@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.5.9.6-p2",
+ "rule-digest": "dcd15eb96501",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#PictureComposition",
+ "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/pb5924-pic-content-symbols-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/pb5924-pic-content-symbols-85), joined as the row's own test. The read: SR-13.18.40.3-33 (Z or 9, for one category) is not this rule. The prose85 read recorded a DEFECT; its goldens now PASS on the mint build, so the compiler is correct at 85. Code location located after the read: cites §1985:VI.5.9.6 at PictureComposition.cs:422/427; symbol set validation"
+}

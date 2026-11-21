@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.2.2-p1",
+ "rule-digest": "3bc373fe8678",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/ArithmeticFormationRules.cs#ArithmeticFormationRules; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#addOp",
+ "test-ref": "conformance:cases/VI.6.2@1985-ARITHMETIC-EXPRESSIONS/pb5924-arith-unary-paren-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.6.2@1985-ARITHMETIC-EXPRESSIONS/pb5924-arith-unary-paren-85), joined as the row's own test. The read: The 1985 text has no parenthesis exception, which 2023 adds; the prose85 read recorded a DEFECT whose goldens now PASS on the mint build. Code location located after the read: operator characters and sign abutment (SignAbuts) enforced; addOp/mulOp grammar"
+}

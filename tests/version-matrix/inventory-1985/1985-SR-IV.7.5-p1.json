@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.5-p1",
+ "rule-digest": "0f6375836cbf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#VisitDeclarativePart",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/pb5924-declaratives-own-lines-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-08.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.7@1985-REFERENCE-FORMAT/pb5924-declaratives-own-lines-85), joined as the row's own test. The read: \"The key word DECLARATIVES and the pair of key words END DECLARATIVES ... must each appear on a line by itself. Each must begin in area A and be followed by the separator period.\" The candidates are USE/PERFORM rules; line and area placement has no 2023 counterpart. Code location located after the read: AreaPlacementPass.VisitDeclarativePart cites 1985:IV.7.5"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.9.1-p1",
+ "rule-digest": "254dfb75f561",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindContinue; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#continueStatement",
+ "test-ref": "conformance:cases/VI.6.9@1985-CONTINUE-STATEMENT/1985-GR-VI_6_9_4-1",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.6.9@1985-CONTINUE-STATEMENT/1985-GR-VI_6_9_4-1), joined as the row's own test. The read: 2023's CONTINUE has the AFTER phrase and implicit-CONTINUE rules; no 2023 rule states the 1985 'no operation statement' as such, and the candidates' at-85 lists are empty. The 1985 CONTINUE cases run at 85 and show it. Code location located after the read: CONTINUE binding and grammar"
+}

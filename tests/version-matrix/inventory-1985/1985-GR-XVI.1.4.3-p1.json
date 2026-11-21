@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XVI.1.4.3-p1",
+ "rule-digest": "fd06cc183087",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/SegmentNumber.cs#SegmentNumber; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures",
+ "test-ref": "conformance:cases/XVI.1.4@1985-ORGANIZATION/pb5924-seg-classification-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-19.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XVI.1.4@1985-ORGANIZATION/pb5924-seg-classification-85), joined as the row's own test. The read: \"An independent segment is in its initial state whenever control is transferred (either implicitly or explicitly) to that segment for the first time\". No 2023 counterpart; the candidates (initial state of programs, EXIT) are wording matches. Code location located after the read: independent segments classified by SegmentNumber (cites 1985:XVI.3.2.4 GR2); transfers checked by Segmentation.CheckProcedures"
+}

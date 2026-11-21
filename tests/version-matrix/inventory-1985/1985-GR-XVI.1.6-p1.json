@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XVI.1.6-p1",
+ "rule-digest": "baad35ce9554",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#ValueOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#MeaningKept",
+ "test-ref": "conformance:cases/XVI.1@1985-INTRODUCTION-TO-THE-SEGMENTATION-MODULE/pb5924-seg-control-transfers-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-19.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XVI.1@1985-INTRODUCTION-TO-THE-SEGMENTATION-MODULE/pb5924-seg-control-transfers-85), joined as the row's own test. The read: \"the implementor must provide control transfers to maintain the logical flow ... Control may be transferred within a source program to any paragraph in a section\". Both prose85 goldens pass on the mint build. GR-14.6.3-3 (2023 transfers) has 85 cases but states nothing about segments. Code location located after the read: segment-number from section header (Segmentation.ValueOf); segmentation meaning kept per edition (MeaningKept)"
+}

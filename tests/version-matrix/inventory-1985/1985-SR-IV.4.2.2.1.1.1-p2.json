@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1.1.1-p2",
+ "rule-digest": "e4a1aac87229",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#conditionName; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckConditionNameAssociationsPass.cs#CheckConditionNameAssociationsPass",
+ "test-ref": "conformance:cases/IV.4.2.2.1.1@1985-User-Defined-Words/pb5924-cond-name-not-a-switch-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-03.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.4.2.2.1.1@1985-User-Defined-Words/pb5924-cond-name-not-a-switch-85), joined as the row's own test. The read: 1985: condition-names 'may be defined in the Data Division or in the SPECIAL-NAMES paragraph ... where a condition-name must be assigned to the on status or off status, or both, of implementor-defined switches'. GR-12.3.7.4-2 grants the switch association ('may each be associated') but states neither the restriction to switches nor the Data Division half, so no witnessed pointer states the whole scope. prose85's goldens witness both halves at 85. Code location located after the read: condition-name placement/association in Data Division or SPECIAL-NAMES"
+}

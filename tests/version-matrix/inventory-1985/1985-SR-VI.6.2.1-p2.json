@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.2.1-p2",
+ "rule-digest": "c358ff076356",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ArithmeticOperandRule.cs#ArithmeticOperandRule",
+ "test-ref": "conformance:cases/VI.6.2@1985-ARITHMETIC-EXPRESSIONS/pb5924-arith-group-operand-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.6.2@1985-ARITHMETIC-EXPRESSIONS/pb5924-arith-group-operand-85), joined as the row's own test. The read: The candidates are compile-time-expression and argument rules; the prose85 goldens all PASS on the mint build. Code location located after the read: cites §1985:VI.6.2.1 at line 18; group operand screening"
+}

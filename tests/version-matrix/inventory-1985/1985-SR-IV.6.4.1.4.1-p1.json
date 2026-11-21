@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.6.4.1.4.1-p1",
+ "rule-digest": "6984dd87196e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitProcedureDivision; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sectionDefinition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#paragraphDefinition",
+ "test-ref": "conformance:cases/IV.6.4.1.4@1985-Procedure-Division-Structure/pb5924-pd-header-missing-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.6.4.1.4@1985-Procedure-Division-Structure/pb5924-pd-header-missing-85), joined as the row's own test. The read: \"The Procedure Division is identified by, and must begin with, the following header\". No candidate states it (SR-14.2.2-11 is a method prototype rule). The three prose85 goldens pass on the mint build. Code location located after the read: ProcedureFormatPass cites 1985:IV.6.4.1.2; section/paragraph grammar"
+}

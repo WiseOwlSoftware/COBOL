@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIV.3.3.1-p1",
+ "rule-digest": "cded62b22b1b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindEnable; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#enableStatement",
+ "test-ref": "conformance:cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-1",
+ "notes": "Own witness from the read lineage-reads-1985/s-18.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-1), joined as the row's own test. The read: Function of ENABLE plus the obsolete-element note; programs show it at 85, and the WITH KEY phrase is accepted and checked. No 2023 counterpart. Code location located after the read: ENABLE statement bound by BindEnable"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.2.1.2-p1",
+ "rule-digest": "7273f3584597",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/CobolKeywordTokens.cs#CobolKeywordTokens; src/WiseOwl.Cobol.Editions/CobolKeywords.cs#CobolKeywords",
+ "test-ref": "conformance:cases/IV.2.1@1985-DEFINITION-OF-A-GENERAL-FORMAT/pb5924-keyword-required-refused-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-01.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.2.1@1985-DEFINITION-OF-A-GENERAL-FORMAT/pb5924-keyword-required-refused-85), joined as the row's own test. The read: No 2023 rule (the 2023 notation (§2023:5) has no catalog row: PB5451 has not minted 2023's paragraph rows, so no 2023 rule is this rule's pointer). Key-word and spelling parts are witnessed; the optional-word grant needs an accepted case (e.g. DISPLAY ... UPON, IS in PICTURE IS). Code location located after the read: key words (required) vs optional words are the keyword token set and its edition table"
+}

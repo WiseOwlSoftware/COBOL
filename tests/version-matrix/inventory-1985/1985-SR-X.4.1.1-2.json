@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-X.4.1.1-2",
+ "rule-digest": "7e39bcd23026",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#EntryNameObligation",
+ "test-ref": "conformance:cases/X.4.1@1985-LINKAGE-SECTION/pb5924-linkage-77-no-name-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-16.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/X.4.1@1985-LINKAGE-SECTION/pb5924-linkage-77-no-name-85), joined as the row's own test. The read: List item \"2. data-name\" under \"The following data clauses are required\"; no 2023 candidate requires it; the goldens refuse FILLER and an omitted name at 85. Code location located after the read: cites 1985:X.4.1.1 at LevelNumberPass.cs line 213"
+}

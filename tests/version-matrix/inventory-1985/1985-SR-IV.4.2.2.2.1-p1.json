@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.2.1-p1",
+ "rule-digest": "6f70fa9954f1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#CobolLiteral; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#LiteralScreen",
+ "test-ref": "conformance:cases/IV.4.2.2.2@1985-Literals/pb5924-nonnumeric-literal-160-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-03.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.4.2.2.2@1985-Literals/pb5924-nonnumeric-literal-160-85), joined as the row's own test. The read: The candidates are PICTURE-omission rules. No 2023 row states the 1-160 range; the golden and probe witness it at 85. Code location located after the read: nonnumeric literal form and the 160-character length (LiteralRule.Length)"
+}

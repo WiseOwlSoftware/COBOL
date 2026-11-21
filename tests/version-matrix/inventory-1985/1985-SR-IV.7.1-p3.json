@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.1-p3",
+ "rule-digest": "e1346a8fcec2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#compilationUnit",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/pb5924-division-order-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.7@1985-REFERENCE-FORMAT/pb5924-division-order-85), joined as the row's own test. The read: 'The divisions of a COBOL source program must be ordered as follows: the Identification Division, then the Environment Division, then the Data Division, then the Procedure Division. Each division must be written according to the rules for the reference format.' The candidates (prototype rules, FMT-12.2.1) are wording only. Both prose85 goldens pass on the mint build; the earlier refuter overturned the second sentence's accepted-only witness, so the p10 refusals (area violations in the Procedure Division, one line changed from p09) are added for the 'must'. Code location located after the read: programUnit grammar fixes division order IDENTIFICATION, ENVIRONMENT, DATA, PROCEDURE"
+}

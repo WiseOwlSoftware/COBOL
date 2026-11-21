@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.5.2.1-p2",
+ "rule-digest": "1bbd6b85d6ac",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckPictureRequiredPass.cs#CheckPictureRequiredPass; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.PictureRequired.cs#DataBinder",
+ "test-ref": "conformance:cases/VI.5.2@1985-WORKING-STORAGE-SECTION/pb5924-l77-required-clauses-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.5.2@1985-WORKING-STORAGE-SECTION/pb5924-l77-required-clauses-85), joined as the row's own test. The read: Lead of the three-item list \"The following data clauses are required in each data description entry\"; the prose85 goldens pass on the mint build. 2023 has no such list (the candidates are BASED and initialization rules). Code location located after the read: required clauses of a data description entry (PICTURE required) are checked here"
+}

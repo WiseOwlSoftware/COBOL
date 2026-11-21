@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.2-p7",
+ "rule-digest": "f11604d973ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Runtime/IO/ReportLinePlacement.cs#FirstLine",
+ "test-ref": "conformance:cases/XIII.1.2@1985-LANGUAGE-CONCEPTS/pb5924-line-counter-range-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-17.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XIII.1.2@1985-LANGUAGE-CONCEPTS/pb5924-line-counter-range-85), joined as the row's own test. The read: GR-13.18.35.4-4 ('If the report is divided into pages ... a page fit test is performed') implies the converse but has no 85 case; GR-14.9.16.4-6 likewise. The golden shows an unpaged report never advancing. Code location located after the read: no PAGE clause: no vertical partition or fit test; ReportLinePlacement.FirstLine places lines"
+}

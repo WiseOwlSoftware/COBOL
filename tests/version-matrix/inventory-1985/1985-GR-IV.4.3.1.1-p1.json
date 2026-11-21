@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.1.1-p1",
+ "rule-digest": "e28a941acf8b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileControlBinder; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#RecordFraming",
+ "test-ref": "conformance:cases/IV.4.3.1@1985-Logical-Record-Concept/pb5924-logical-records-in-blocks-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-04.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.4.3.1@1985-Logical-Record-Concept/pb5924-logical-records-in-blocks-85), joined as the row's own test. The read: A lead-in whose two items ('(1) The grouping of logical records within the physical limitations of the file medium. (2) The means by which the file can be identified.') were not minted as rows (lead filed), so the lead-in carries them; the golden exercises both features at 85. No candidate states it with an 85 witness: the candidates are wording matches only (WRITE, AT END). Code location located after the read: logical vs physical record: file section binder and record framing"
+}

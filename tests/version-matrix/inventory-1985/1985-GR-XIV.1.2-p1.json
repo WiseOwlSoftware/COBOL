@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIV.1.2-p1",
+ "rule-digest": "af04556faa2c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CommunicationSectionBinder; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationSection",
+ "test-ref": "conformance:cases/XIV.3.1@1985-ACCEPT-MESSAGE-COUNT-STATEMENT/1985-GR-XIV_3_1_4-1",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XIV.3.1@1985-ACCEPT-MESSAGE-COUNT-STATEMENT/1985-GR-XIV_3_1_4-1), joined as the row's own test. The read: \"Communication level 1 provides limited capabilities for the communication description entry. Within the Procedure Division, Communication level 1 provides limited capabilities for the RECEIVE and SEND statements and full capabilities for the ACCEPT MESSAGE COUNT statement.\" The paragraph names facilities the implementation provides, an observable property: each is accepted and runs at 85. The three conformance cases were run this pass at 85 and match their .out. Communication was removed from the standard after 1985 (no 2023 counterpart). Code location located after the read: communication description entry bound by CommunicationSectionBinder"
+}

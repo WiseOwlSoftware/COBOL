@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XV.1.1-p1",
+ "rule-digest": "f0f0e8fe7503",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useDebugTarget; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#debuggingModeClause; src/WiseOwl.Cobol.Compiler/Binding/ImplicitRegisters.cs#ActivateDebugRegisters",
+ "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-5",
+ "notes": "Own witness from the read lineage-reads-1985/s-18.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-5), joined as the row's own test. The read: Flagged definitional, but programs show it: \"The Debug module provides a means by which the user can describe his debugging algorithm including the conditions under which data items or procedures are to be monitored\". The Debug module left the standard after 1985; the 2023 candidates (MODULE-NAME, locale) are wording-only. Code location located after the read: Debug module: USE FOR DEBUGGING grammar, WITH DEBUGGING MODE clause, DEBUG-ITEM register activation"
+}

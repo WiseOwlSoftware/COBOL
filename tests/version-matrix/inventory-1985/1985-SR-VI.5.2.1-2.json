@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.5.2.1-2",
+ "rule-digest": "7e39bcd23026",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataName; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DataBinder",
+ "test-ref": "conformance:cases/VI.5.2@1985-WORKING-STORAGE-SECTION/pb5924-l77-filler-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.5.2@1985-WORKING-STORAGE-SECTION/pb5924-l77-filler-85), joined as the row's own test. The read: Item 2 \"data-name\" of the list \"The following data clauses are required in each data description entry\". Both refusals and the accepted control witness it at 85; no 2023 candidate states it. Code location located after the read: data-name/FILLER of the level-77 entry parsed by dataName, bound by DataBinder"
+}

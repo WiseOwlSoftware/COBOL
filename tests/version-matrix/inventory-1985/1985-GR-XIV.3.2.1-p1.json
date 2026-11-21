@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIV.3.2.1-p1",
+ "rule-digest": "d67151146536",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindDisable; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#disableStatement",
+ "test-ref": "conformance:cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-1",
+ "notes": "Own witness from the read lineage-reads-1985/s-18.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-1), joined as the row's own test. The read: Function of DISABLE plus the obsolete-element note. Flagged definitional, but programs show it; the obsolete WITH KEY phrase is still present at 85 and is accepted and checked. No 2023 counterpart (the candidates are OPEN and SORT restrictions). Code location located after the read: DISABLE statement bound by BindDisable"
+}

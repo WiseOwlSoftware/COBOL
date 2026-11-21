@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.6-p1",
+ "rule-digest": "f4e426a074d8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#VisitChildren; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/pb5924-end-program-area-b-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-08.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.7@1985-REFERENCE-FORMAT/pb5924-end-program-area-b-85), joined as the row's own test. The read: \"The end program header must start in area A.\" No 2023 counterpart: 2023 fixed form has no areas A and B (the compiler gates the area rules to 85, citing §2023:6.3.1), and every candidate is a wording-only match with no 85 witness for this scope. Code location located after the read: AreaPlacementPass places end program header"
+}

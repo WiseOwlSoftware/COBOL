@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XV.1.1-p3",
+ "rule-digest": "275fb2e9e603",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useDebugTarget; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#debuggingModeClause; src/WiseOwl.Cobol.Compiler/Binding/ImplicitRegisters.cs#ActivateDebugRegisters",
+ "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-FMT-XV_3_2_2",
+ "notes": "Own witness from the read lineage-reads-1985/s-18.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-FMT-XV_3_2_2), joined as the row's own test. The read: \"The Debug module is an obsolete element in Standard COBOL because it is to be deleted from the next revision\". Read as the s-09 and s-13 obsolete-element rows were: an obsolete element is still present in its level at 85, so its programs must compile and run, and they do with no diagnostic. 2023 has no Debug module. Code location located after the read: Debug module: USE FOR DEBUGGING grammar, WITH DEBUGGING MODE clause, DEBUG-ITEM register activation"
+}

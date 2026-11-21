@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.3.2-p3",
+ "rule-digest": "b16dd37d2f87",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/LogicalOperatorGate.cs#LogicalOperatorGate; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#logicalOrExpression",
+ "test-ref": "conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/pb5924-logop-space-required-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-11.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/pb5924-logop-space-required-85), joined as the row's own test. The read: 'The logical operators must be preceded by a space and followed by a space.' 2023 has no such rule: a parenthesis is a separator (§2023:8.3.5), so (A = 1)AND(B = 2) is 2023-legal; the candidates SR-7.3.3-5/-2 and SR-7.2.3.3-2 are unrelated. At 85 the compiler refuses the unspaced form with COBOL7672 and accepts the spaced control. Code location located after the read: logical operators are separate keyword tokens; gate checks their placement"
+}

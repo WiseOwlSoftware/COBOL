@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.2.10.1-p1",
+ "rule-digest": "9a090608eaf1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlParagraph",
+ "test-ref": "conformance:cases/VII.2.10@1985-I-O-CONTROL-PARAGRAPH/1985-GR-VII_2_10_4-1",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VII.2.10@1985-I-O-CONTROL-PARAGRAPH/1985-GR-VII_2_10_4-1), joined as the row's own test. The read: 2023 I-O-CONTROL has APPLY COMMIT and SAME only; RERUN and MULTIPLE FILE TAPE are gone, so no pointer states the 1985 scope. The 1985 I-O-CONTROL, RERUN and MULTIPLE FILE TAPE cases and the SAME case run at 85. Code location located after the read: I-O-CONTROL binder and grammar rule"
+}

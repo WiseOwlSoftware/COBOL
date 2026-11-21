@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.1.3.5-p3",
+ "rule-digest": "0a953276f9ce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IoStatus1985.cs#IsCritical; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SetStatus",
+ "test-ref": "conformance:cases/VII.1.3@1985-LANGUAGE-CONCEPTS/pb5924-seq-critical-status-continues-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VII.1.3@1985-LANGUAGE-CONCEPTS/pb5924-seq-critical-status-continues-85), joined as the row's own test. The read: The action is implementor-defined (2023 DOC-A.1-218 and GR-14.9.49.4-7 describe it, with 85 cases of their own that show other behavior). Both prose85 goldens pass at 85: with FILE STATUS and no USE the run unit continues; after a USE procedure for 35/47 control returns to the next statement, the documented WiseOwl action. The prose85 refutation of sentence 2 was DOUBTFUL; it rests on whether the implementor's choice is documented, which the golden's header names (DOC-A.1-218). Code location located after the read: IsCritical classes 3x/4x/9x"
+}

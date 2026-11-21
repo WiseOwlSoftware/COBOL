@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XV.1.1-p2",
+ "rule-digest": "40def80df6e3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useDebugTarget; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#debuggingModeClause; src/WiseOwl.Cobol.Compiler/Binding/ImplicitRegisters.cs#ActivateDebugRegisters",
+ "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-10",
+ "notes": "Own witness from the read lineage-reads-1985/s-18.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-10), joined as the row's own test. The read: \"The decisions of what to monitor and what information to display on the output device are explicitly in the domain of the user. The COBOL facility simply provides a convenient access to pertinent information.\" Shown at 85 by the USE FOR DEBUGGING cases that read DEBUG-ITEM. No 2023 counterpart. Code location located after the read: Debug module: USE FOR DEBUGGING grammar, WITH DEBUGGING MODE clause, DEBUG-ITEM register activation"
+}

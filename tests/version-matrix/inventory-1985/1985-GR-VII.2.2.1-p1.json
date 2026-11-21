@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.2.2.1-p1",
+ "rule-digest": "8cc4a15cab4e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlParagraph",
+ "test-ref": "conformance:cases/VII.2.2@1985-FILE-CONTROL-PARAGRAPH/1985-FMT-VII_2_2_2",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VII.2.2@1985-FILE-CONTROL-PARAGRAPH/1985-FMT-VII_2_2_2), joined as the row's own test. The read: Definitional flag, but a program shows it: an accepted FILE-CONTROL paragraph whose entries drive the file. FMT-12.4.4.2 has only a refused case at 85 (diagnosed-only), so it is not a witness of a grant; the other candidates are SAME/APPLY rules. The 1985 format case runs at 85. Code location located after the read: FILE-CONTROL paragraph binder and grammar"
+}

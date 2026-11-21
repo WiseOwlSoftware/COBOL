@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-GR-A.2.3-p1",
+ "rule-digest": "674128bf2d42",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/FunctionValueLane.cs#FunctionValueLane; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/A.2@1985-EVOLUTION-OF-CODASYL-COBOL/pb5924-fn-not-receiving-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-20.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/A.2@1985-EVOLUTION-OF-CODASYL-COBOL/pb5924-fn-not-receiving-85), joined as the row's own test. The read: 1989: 'Data item functions are elementary data items and return alphanumeric, numeric, or integer values. Data item functions are treated as elementary data items and can not be receiving operands.' The 2023 candidates (GR-15.2-1 (85 accepted 0, diagnosed-only 0), GR-15.2-4 (85 accepted 0, diagnosed-only 0), GR-15.2-5 (85 accepted 0, diagnosed-only 0), GR-8.4.3.2.4-1 (85 accepted 0, diagnosed-only 0), GR-15.2-2 (85 accepted 0, diagnosed-only 0), GR-15.2-6 (85 accepted 0, diagnosed-only 0), GR-15.2-3 (85 accepted 0, diagnosed-only 0), GR-14.9.20.4-5 (85 accepted 1, diagnosed-only 1), GR-8.5.2.3-1 (85 accepted 0, diagnosed-only 0), SR-8.4.3.3.3-1 (85 accepted 0, diagnosed-only 0)) have no 85 case that exercises this paragraph (the one accepted case, GR-14.9.20.4-5's INITIALIZE refmod case, is about INITIALIZE). The two prose85 goldens pass on the mint build and the s-20 probes show each of the three value types. Code location located after the read: FunctionValueLane carries function results as elementary data items of alphanumeric/numeric/integer type"
+}

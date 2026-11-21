@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.8.1-p1",
+ "rule-digest": "0ce5de667ffa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindCompute; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitCompute",
+ "test-ref": "conformance:cases/VI.6.8@1985-COMPUTE-STATEMENT/1985-GR-VI_6_8_4-1",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.6.8@1985-COMPUTE-STATEMENT/1985-GR-VI_6_8_4-1), joined as the row's own test. The read: The candidates are wrong (boolean identifier-2, report SOURCE, receiver category). The 2023 rule that states the function is GR-14.9.8.4-1 ('determination of a numeric value and the subsequent storing'), but none of its test-refs runs at 85 (pb230 at 2002, rounded_modes, arithmetic_standard_decimal and pb157_compute_sdidi_sole at 2014). The 1985 COMPUTE cases and the 85 multi-receiver case show the 1985 scope. Code location located after the read: COMPUTE binding and emission"
+}

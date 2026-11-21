@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.3-L2.3",
+ "rule-digest": "818d8bbe2b4a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#FigurativeAssociation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant",
+ "test-ref": "conformance:cases/IV.4.2.2.2@1985-Literals/1985-GR-IV_4_2_2_2_3-L2_3",
+ "notes": "Own witness from the read lineage-reads-1985/s-03.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.4.2.2.2@1985-Literals/1985-GR-IV_4_2_2_2_3-L2_3), joined as the row's own test. The read: Reopened: the old text carried p4 ('A figurative constant may be used whenever literal appears ...'), now its own row; what is left is rule (3) alone. GR-8.3.3.6.4-3 c) states it but has no case at 85, so it cannot be the pointer; the placed own case names this row and runs at 85. Code location located after the read: ALL literal unassociated length: figurative association rules"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.6.4.2.3.1-p3",
+ "rule-digest": "718cdf4cd991",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sentence",
+ "test-ref": "conformance:cases/IV.6.4.2.3@1985-Imperative-Statements-and-Imperative-Sentences/pb5924-imperative-seq-scope-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.6.4.2.3@1985-Imperative-Statements-and-Imperative-Sentences/pb5924-imperative-seq-scope-85), joined as the row's own test. The read: 'imperative-statement refers to that sequence of consecutive imperative statements that must be ended by a period or by any phrase associated with a statement containing that imperative-statement.' 2023 states the same in §2023:14.5.1 ('Wherever imperative-statement appears ...'), but that paragraph has no 2023 catalog row, so there is no pointer; the candidate SR-14.9.17.3-2 (GO TO last in a sequence) is a different rule. The prose85 golden passes on the mint build. Code location located after the read: ProcedureFormatPass cites 1985:IV.6.4.2.3.1; imperative/conditional split and sentences"
+}
