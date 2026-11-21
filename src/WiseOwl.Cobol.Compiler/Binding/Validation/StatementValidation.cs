@@ -579,7 +579,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (name is not null && declared is { Kind: DeclarationKind.TypeDeclarationCondition
                 or DeclarationKind.TypeName or DeclarationKind.TypeDeclarationMember })
             data.Edition.Error(DiagnosticCatalog.UndefinedReference,
-                $"{set} — '{refText}' {declared.Value.DeclaredAs(refText, name)}, so the reference "
+                $"{set} — '{refText}' {declared.Value.DeclaredAs(refText, name, data.Edition.Edition)}, so the reference "
                 + $"identifies no resource (ISO {data.Edition.Edition.Citation()}), and {SetConditionRule(data.Edition.Edition)} requires a condition-name associated with "
                 + "a conditional variable.");
         else if (switchName is not null)

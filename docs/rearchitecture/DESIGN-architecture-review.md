@@ -1424,7 +1424,7 @@ those helpers replace one by one. `ReportScope` (`Binding/ReportScope.cs`, `Data
 writes: `Declared`, `Visible`, `Depth`, `NearestInScope` and the refused PRESENT WHEN conditions; it holds no binder, so it is
 what `DataBindResult` carries at step 11. (Listing step 6b, slice 5, kb/Work PB5932:) its names are the symbol table's: the
 report-names, the sum counters (their reference arm keeps the `FilesResolved` watermark gate) and the lookups over the report
-entries (`EntriesNamed`, `NearerEntryHides`) moved into `SymbolTable.Reports.cs`, and every reference to them is
+entries (`EntriesNamed`, which the one name-set resolver `SymbolTable.NearestInNameSet` reads since kb/Work PB5975) moved into `SymbolTable.Reports.cs`, and every reference to them is
 `SymbolTable.Identify` (docs/rearchitecture/DESIGN-listing.md section 6.7.1).
 The code generator, the symbol table and `StatementBinder` read `ReportScope`, a type in `WiseOwl.Cobol.Binding` beside
 `ReportModel`, so their new pairs are tolerated in `architecture-edges.json`, and PB2420 removes them: it names

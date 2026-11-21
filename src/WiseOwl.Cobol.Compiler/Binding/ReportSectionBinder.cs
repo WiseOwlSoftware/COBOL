@@ -4730,7 +4730,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         ParseTreeWalk.SelfAndDescendants(node).OfType<Core.DataReferenceContext>().SelectMany(SubscriptWordsOfReference);
 
     /// <summary>How many report entries the written reference also reaches in the SAME source element as
-    /// <paramref name="dataItems"/> (the tier the data-name lookup leaves standing, <see cref="SymbolTable.NearerEntryHides"/>): a
+    /// <paramref name="dataItems"/> (the tier the data-name lookup leaves standing, <c>SymbolTable.NearestInNameSet</c>): a
     /// report entry is a data-name §2023:8.4.2.2.3 SR1 counts with the ordinary ones (kb/Work PB3232, PB3767 review R1-2), so the
     /// ambiguity's wording counts it too.</summary>
     internal int ReportEntriesInTierOf(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
@@ -4780,7 +4780,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// reported; false when the written reference names no report entry, or when it reaches several
     /// <paramref name="dataItems"/> (kb/Work PB3767: §2023:8.4.2.2.3 SR1's ambiguity is then the verdict), leaving the caller's
     /// own verdict. ⛔ THE ORDER IS THE LOOKUP'S, NOT THIS METHOD'S (kb/Work PB4196): <c>SymbolTable.IdentifyDataName</c> leaves
-    /// no data item that a NEARER report entry hides (<see cref="SymbolTable.NearerEntryHides"/>, ISO §2023:8.4.6.2.1 3) a)), so the data
+    /// no data item that a NEARER report entry hides (<c>SymbolTable.NearestInNameSet</c>, ISO §2023:8.4.6.2.1 3) a)), so the data
     /// items an arm passes are already the ones that rank with the report entries, and several of them are the ambiguity
     /// whichever report entries spell the same.</summary>
     /// <param name="dataItems">The data items the written reference reaches (<c>SymbolTable.IdentifyDataName</c>, the

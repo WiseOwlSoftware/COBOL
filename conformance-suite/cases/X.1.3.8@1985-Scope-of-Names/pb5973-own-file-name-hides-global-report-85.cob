@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5973.
+      *> kb/Work PB5973, PB5976 (the refusal names the hider).
       *> §1985:X.1.3.8 (cite.py: OK): "a program's reference to such a
       *> name, even when it is a different type of user-defined word,
       *> is to the object which that program describes rather than to

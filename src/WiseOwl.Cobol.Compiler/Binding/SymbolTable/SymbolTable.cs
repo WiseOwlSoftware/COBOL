@@ -107,47 +107,37 @@ public sealed partial class SymbolTable
         return tier;
     }
 
-    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) FOR A DATA-NAME OR CONDITION-NAME REFERENCE — THE ONE NARROWING OF A QUALIFIED SET, in
-    /// every lookup that has one (<see cref="TryResolveUnqualified"/>; <see cref="DataNameCandidates"/> and
-    /// <see cref="IdentifyConditionName"/>, which apply the qualifier walk and pass the survivors):
-    /// <see cref="NearestDeclaring{T}"/> keeps the survivors of the nearest declaring source element, and the report
-    /// entries that element declares take part in the same ranking (kb/Work PB4196). A REPORT SECTION entry is a
-    /// data-name of the source element that declares its report (§2023:8.4.2.2.3 SR1 counts it with the ordinary ones), so "if
-    /// the name is declared in source element B, the item in source element B is the referenced item": a report entry
-    /// NEARER than the survivors' tier leaves NO survivor. The caller then meets an unidentified reference and names the
-    /// entry (§2023:13.8.6.2.3, <c>ReportEntryReferenceRefused</c>) instead of using a container's GLOBAL item, which the entry
-    /// hides. <paramref name="qualifiers"/> are the ones the reference wrote, which the report entry's own qualification
-    /// must also satisfy.
-    /// <para>⛔ AND ACROSS THE TWO CLASSES (kb/Work PB4219's sibling): rule 1's set is "all names", so a condition-name and a
-    /// data-name of one spelling compete in it. A contained program's own level-88 RELF is what `RELF` names there, not
-    /// its container's GLOBAL data item RELF, and its own data item RELF hides the container's GLOBAL condition-name RELF:
-    /// each lookup leaves no survivor when the OTHER class declares the spelling nearer (<see cref="NearerConditionNameHides"/>,
-    /// <see cref="NearerDataNameHides"/>), and the caller's own verdict then says what the name is declared as.</para></summary>
+    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) FOR A DATA-NAME REFERENCE — THE ONE NARROWING OF A QUALIFIED SET, in every lookup that has one
+    /// (<see cref="TryResolveUnqualified"/>; <see cref="DataNameCandidates"/>, which applies the qualifier walk and passes the
+    /// survivors): <see cref="NearestDeclaring{T}"/> keeps the survivors of the nearest declaring source element, and that tier
+    /// stands only when no declaration of ANOTHER class of §1985:X.1.3.8.2 GR1's set, reached by the written
+    /// <paramref name="qualifiers"/>, is nearer (<see cref="NearestInNameSet"/>, kb/Work PB5975): "If the name is declared in
+    /// program B, the object in program B is the referenced object" (GR3a), whatever class B declares it as. A nearer report entry
+    /// (kb/Work PB4196), condition-name (kb/Work PB4219), file-name or report-name (kb/Work PB5786, PB5973), index-name, cd-name,
+    /// constant-name or CAPACITY register leaves NO survivor; the caller then meets an unidentified reference and its own verdict
+    /// says what the name is declared as (<see cref="Declarations.OtherThanData"/>, or the report entry's refusal,
+    /// §2023:13.8.6.2.3), instead of using a container's GLOBAL item the nearer declaration hides.</summary>
     private List<DataItem> NearestDeclaringData(List<DataItem> candidates, string name, IReadOnlyList<string> qualifiers)
     {
         var tier = NearestDeclaring(candidates, static i => i);
         if (tier.Count == 0) return tier;
-        int depth = _data.State.Forest.DeclaringDepth(tier[0]);
-        return NearerEntryHides(name, qualifiers, depth) || NearerConditionNameHides(name, qualifiers, depth)
-            || Declared.NearerFileOrReportNameHides(name, qualifiers, depth)
+        return DeclaredNearerInNameSet(name, qualifiers, _data.State.Forest.DeclaringDepth(tier[0]), NameSetClass.All & ~NameSetClass.DataItem)
             ? []
             : tier;
     }
 
     /// <summary>The condition-name twin of <see cref="NearestDeclaringData"/>: the nearest declaring source element's
-    /// condition-names, or none when a data-name (or a report entry) of the spelling is declared nearer
-    /// (<see cref="NearerDataNameHides"/>), or a constant-name, index-name or file-name is
-    /// (<see cref="SymbolTable.Declarations.NonConditionDeclarationHides"/>, kb/Work PB4432 review R1-1): the reverse arm of the
-    /// ranking <c>IndexCandidates</c> and <c>ReferenceResolver.CapacityRegisterFor</c> already apply to a condition-name
-    /// beside them. (A nearer CAPACITY register is asked by <c>ConditionBinder.ConditionOf</c> of the register's one lookup.)
-    /// The caller's own verdict then says what the name is declared as.</summary>
-    private List<Condition88> NearestDeclaringConditions(
-        List<Condition88> candidates, string name, IReadOnlyList<string> qualifiers, Scope scope)
+    /// condition-names, or none when a declaration of another class of the spelling is declared nearer
+    /// (<see cref="NearestInNameSet"/>, kb/Work PB4196, PB4219, PB4432, PB5975). The CAPACITY register is the one class not asked
+    /// here: it has ONE lookup, which judges the written reference (<c>CapacityRegisterReferenceDriftTests</c>), and
+    /// <c>ConditionBinder.ConditionOf</c> asks that one of a condition-name. The caller's own verdict then says what the name is
+    /// declared as.</summary>
+    private List<Condition88> NearestDeclaringConditions(List<Condition88> candidates, string name, IReadOnlyList<string> qualifiers)
     {
         var tier = NearestDeclaring(candidates, static c => c.Parent);
         if (tier.Count == 0) return tier;
-        int depth = _data.State.Forest.DeclaringDepth(tier[0].Parent);
-        return NearerDataNameHides(name, qualifiers, depth) || Declared.NonConditionDeclarationHides(name, qualifiers, scope, depth)
+        return DeclaredNearerInNameSet(name, qualifiers, _data.State.Forest.DeclaringDepth(tier[0].Parent),
+                NameSetClass.All & ~(NameSetClass.ConditionName | NameSetClass.CapacityRegister))
             ? []
             : tier;
     }
@@ -160,21 +150,8 @@ public sealed partial class SymbolTable
     private bool NearerDataItemHidesConditions(List<Condition88> candidates, string name, IReadOnlyList<string> qualifiers)
     {
         var tier = NearestDeclaring(candidates, static c => c.Parent);
-        return tier.Count != 0 && NearerDataItemHides(name, qualifiers, _data.State.Forest.DeclaringDepth(tier[0].Parent));
-    }
-
-    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) FOR A DATA-NAME AGAINST A NEARER CONDITION-NAME — does a level-88 of this spelling,
-    /// reached by the written <paramref name="qualifiers"/>, sit in a source element NEARER than <paramref name="depth"/>?
-    /// A type declaration's condition-name identifies nothing alone (§2023:13.18.58.4 GR1), so it hides nothing. Free for a
-    /// unit that inherits nothing (every candidate is then depth 0).</summary>
-    public bool NearerConditionNameHides(string name, IReadOnlyList<string> qualifiers, int depth)
-    {
-        if (depth == 0 || !_data.State.Forest.InheritsGlobalData || !_conditionNames.TryGetValue(Key(name), out var conditions)) return false;
-        foreach (var c in conditions)
-            if (_data.State.Forest.DeclaringDepth(c.Parent) < depth && !DataBinder.IsTypeDeclarationCondition(c)
-                && ConditionQualifierChainMatches(c, qualifiers))
-                return true;
-        return false;
+        return tier.Count != 0
+            && DeclaredNearerInNameSet(name, qualifiers, _data.State.Forest.DeclaringDepth(tier[0].Parent), NameSetClass.DataItem);
     }
 
     /// <summary>The candidates an UNQUALIFIED data-name reference can name: <see cref="TryResolve"/>'s set narrowed
@@ -219,44 +196,16 @@ public sealed partial class SymbolTable
 
 
 
-    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) ACROSS NAME CLASSES — the ONE answer to "does an ordinary DATA-name of this spelling,
-    /// reached by the written <paramref name="qualifiers"/>, sit in a source element NEARER than
-    /// <paramref name="depth"/>?" A name class resolved BEFORE the ordinary data-name lookup — an index-name
-    /// (kb/Work PB1047), a named OCCURS DYNAMIC CAPACITY register (kb/Work PB1674) — asks it of its own nearest
-    /// candidate, and yields the reference to the data-name when the answer is yes: a contained program's `01 IX` or
-    /// `01 CAP` hides its container's global table's index-name or register exactly as its `01 X` hides the
-    /// container's global `X`. At EQUAL depth the other class keeps the reference. A REPORT SECTION entry is such a
-    /// data-name of its source element too (<see cref="NearerEntryHides"/>, kb/Work PB4196): the
-    /// reference is then the report entry's, refused by the callers' unidentified-reference report (§2023:13.8.6.2.3). Free
-    /// for a unit that inherits nothing (every candidate is then depth 0).</summary>
-    public bool NearerDataNameHides(string name, IReadOnlyList<string> qualifiers, int depth) =>
-        NearerDataItemHides(name, qualifiers, depth) || NearerEntryHides(name, qualifiers, depth);
-
     /// <summary>⛔ ISO §2023:8.4.6.2.1 3) FOR A NAME CLASS THAT THE ORDINARY LOOKUPS DO NOT RANK — an index-name
-    /// (<c>IndexCandidates</c>) or a named CAPACITY register (<c>ReferenceResolver.CapacityRegisterFor</c>) — against
-    /// EVERY other class of §1985:X.1.3.8.2's set: does a data-name (<see cref="NearerDataNameHides"/>), a condition-name
-    /// (<see cref="NearerConditionNameHides"/>), or, for an unqualified reference, a file-name or report-name
-    /// (<see cref="Declarations.NearerFileOrReportNameHides"/>, kb/Work PB5973) of the spelling, reached by the written
-    /// <paramref name="qualifiers"/>, sit in a source element NEARER than <paramref name="depth"/>? "If the name is declared in
-    /// source element B, the item in source element B is the referenced item", whichever class B declares it as, so a contained
-    /// program's own level-88 or RD hides its container's GLOBAL index-name exactly as its own data item does (kb/Work PB4432,
-    /// PB4219's index-name sibling). One question for the classes resolved before the data-name lookup, never a data-name test a
-    /// successor extends to one class and forgets in the other.</summary>
-    public bool NearerNameOfAnotherClassHides(string name, IReadOnlyList<string> qualifiers, int depth) =>
-        NearerDataNameHides(name, qualifiers, depth) || NearerConditionNameHides(name, qualifiers, depth)
-        || Declared.NearerFileOrReportNameHides(name, qualifiers, depth);
-
-    /// <summary>The ordinary-data-item half of <see cref="NearerDataNameHides"/>: a data description entry of this
-    /// spelling (no report entry), reached by the written <paramref name="qualifiers"/>, in a source element NEARER than
-    /// <paramref name="depth"/>. Free for a unit that inherits nothing.</summary>
-    public bool NearerDataItemHides(string name, IReadOnlyList<string> qualifiers, int depth)
-    {
-        if (depth == 0 || !_data.State.Forest.InheritsGlobalData || !_dataNames.TryGetValue(Key(name), out var dataNames)) return false;
-        foreach (var item in dataNames)
-            if (_data.State.Forest.DeclaringDepth(item) < depth && QualifierChainMatches(item, qualifiers))
-                return true;
-        return false;
-    }
+    /// (<c>IndexCandidates</c>) or a named CAPACITY register (<c>ReferenceResolver.CapacityRegisterFor</c>), resolved before the
+    /// data-name lookup — against EVERY other class of §1985:X.1.3.8.2's set (<see cref="NearestInNameSet"/>): is the spelling,
+    /// reached by the written <paramref name="qualifiers"/>, declared in a class other than <paramref name="own"/> in a source element
+    /// NEARER than <paramref name="depth"/>? "If the name is declared in source element B, the item in source element B is the
+    /// referenced item", whichever class B declares it as, so a contained program's own data item, level-88, RD or SELECT hides its
+    /// container's GLOBAL index-name exactly as its own data item does (kb/Work PB1047, PB4432, PB5973, PB5975). At EQUAL depth the
+    /// asking class keeps the reference.</summary>
+    internal bool NearerNameOfAnotherClassHides(string name, IReadOnlyList<string> qualifiers, int depth, NameSetClass own) =>
+        DeclaredNearerInNameSet(name, qualifiers, depth, NameSetClass.All & ~own);
 
     /// <summary>Makes ONE container GLOBAL item (no recursion: <c>DataBinder.InheritGlobalSubtree</c> walks the subtree) visible here,
     /// <paramref name="depth"/> containment levels out (ISO §2023:13.18.27.4 GR2, "may reference that name without describing it

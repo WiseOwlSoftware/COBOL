@@ -81,16 +81,15 @@ public sealed partial class SymbolTable
             return null;
         }
 
-        /// <summary>⛔ THE ONE LIST OF THE NAME CLASSES BESIDE A CONDITION-NAME, each with the depth of the element that declares
-        /// it (kb/Work PB4432): the constant-name, the index-name and the file-name of the spelling (this element's own SELECT
-        /// or a containing element's GLOBAL file, §2023:13.18.27.4 GR1) and this element's cd-name (never inherited, so depth 0; kb/Work
-        /// PB4713), in the order a tie at one depth keeps.
-        /// <see cref="OtherThanData"/> ranks them with the condition-name for a reference that identifies no data
-        /// item, and <see cref="NonConditionDeclarationNearerThan"/> asks the same list the other way round for the
-        /// condition-name lookup, so a class added here ranks in both. (A named CAPACITY register is not in it: the register
-        /// has ONE lookup, <c>ReferenceResolver.CapacityRegisterFor</c>, which judges the written reference
-        /// (<c>CapacityRegisterReferenceDriftTests</c>), so the condition-name lookup asks that one,
-        /// <c>ConditionBinder.ConditionOf</c>.)
+        /// <summary>THE NAME CLASSES BESIDE A CONDITION-NAME THAT <see cref="OtherThanData"/> WORDS, each with the depth of the element
+        /// that declares it (kb/Work PB4432): the constant-name, the index-name, the file-name (this element's own SELECT or a
+        /// containing element's GLOBAL file, §2023:13.18.27.4 GR1), the report-name and this element's cd-name (never inherited, so
+        /// depth 0; kb/Work PB4713), in the order a tie at one depth keeps, the order of <see cref="SymbolTable.NearestInNameSet"/>'s
+        /// arms. It answers "what is this name declared as", so it offers only a declaration a reference can still name (a hidden
+        /// GLOBAL file or report is no answer) and carries what the wording needs (a refused constant); whether a declaration of
+        /// ANOTHER class hides a tier is the one resolver's question, never this list's (kb/Work PB5975). (A named CAPACITY register is
+        /// not in it: the register has ONE lookup, <c>ReferenceResolver.CapacityRegisterFor</c>, which judges the written reference,
+        /// <c>CapacityRegisterReferenceDriftTests</c>.)
         /// <paramref name="dataName"/> is whether the ranked data-name lookup left a data item standing: it answers for
         /// itself, so the constant and the file are not offered beside it (an index-name is, because
         /// <c>SymbolTable.IndexCandidates</c> has already weighed it against the data-name). The inherited
@@ -121,29 +120,6 @@ public sealed partial class SymbolTable
                 yield return new(DeclarationKind.CdName);
         }
 
-        /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) FOR A CONDITION-NAME REFERENCE AGAINST THE OTHER NAME CLASSES (kb/Work PB4432, the
-        /// reverse arm of <see cref="OtherThanData"/>'s ranking): the nearest constant-name, index-name or file-name of
-        /// the spelling declared in a source element NEARER than <paramref name="depth"/>, the depth of the level-88 tier the
-        /// reference reaches, or null when none is. "If the name is declared in source element B, the item in source element
-        /// B is the referenced item", so a contained program's own `INDEXED BY RELF`, `RELF CONSTANT` or SELECT RELF hides its
-        /// container's GLOBAL level-88 RELF exactly as its own `01 RELF` does. A tie is not "nearer": at one depth the
-        /// condition-name keeps the reference, as it always has. Free for a unit that inherits nothing (every level-88 is
-        /// then depth 0).</summary>
-        private DeclarationFact? NonConditionDeclarationNearerThan(
-            string name, IReadOnlyList<string> qualifiers, Scope scope, int depth)
-        {
-            if (depth == 0 || !_data.State.Forest.InheritsGlobalData) return null;
-            DeclarationFact? nearest = null;
-            foreach (var other in NonConditionDeclarationsOf(name, qualifiers, scope, dataName: false))
-                if (other.Depth < depth && (nearest is not { } best || other.Depth < best.Depth)) nearest = other;
-            return nearest;
-        }
-
-        /// <summary>Whether <see cref="NonConditionDeclarationNearerThan"/> finds a declaration — the question
-        /// <c>SymbolTable.NearestDeclaringConditions</c> asks, which has no use for the declaration itself.</summary>
-        public bool NonConditionDeclarationHides(string name, IReadOnlyList<string> qualifiers, Scope scope, int depth) =>
-            NonConditionDeclarationNearerThan(name, qualifiers, scope, depth) is not null;
-
         /// <summary>Does the data description entry <paramref name="entry"/> declare <paramref name="word"/> (its own data-name, never a
         /// subordinate's)? Asked of the entry whose description is being bound (<c>DataBinder.IsBeingDescribed</c>, §2023:13.10.3 SR4).</summary>
         public bool EntryDeclares(Core.DataDescriptionEntryContext entry, string word) =>
@@ -160,60 +136,46 @@ public sealed partial class SymbolTable
                 ? new DeclarationFact(DeclarationKind.FileName, Depth: _data.State.Inherited.FileDepth(file), Spelling: file.CobolName)
                 : null;
 
-        /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) FOR A DATA-NAME AGAINST A NEARER FILE-NAME OR REPORT-NAME (kb/Work PB5786, PB5973;
-        /// §1985:X.1.3.8.2 GR3a). By §1985:X.1.3.8 a reference is "to the object which that program describes" even when the name there
-        /// is "a different type of user-defined word", so a contained program's own file-name FX or report-name FX is what `FX` names
-        /// there, never its container's GLOBAL data item FX. True when an unqualified spelling names a file-name (this element's own
-        /// SELECT, or a containing element's GLOBAL file) or a report-name (its own RD, or a containing element's GLOBAL report) declared
-        /// in a source element NEARER than <paramref name="depth"/>; neither takes a qualifier, so a qualified reference is never hidden
-        /// by one (GR1 qualifies over the whole set first). The caller meets an unidentified reference, and <see cref="OtherThanData"/>
-        /// words it as "declared as a file-name" or "a report-name". The reverse arms — an own declaration hiding a container's GLOBAL
-        /// file or report — are <see cref="SymbolTable.HideShadowedFiles"/>' and <see cref="SymbolTable.HideShadowedReports"/>'.</summary>
-        public bool NearerFileOrReportNameHides(string name, IReadOnlyList<string> qualifiers, int depth) =>
-            depth != 0 && qualifiers.Count == 0
-            && (_table.FileNamed(Key(name), NameReach.Visible) is { } file && _data.State.Inherited.FileDepth(file) < depth
-                || _table.ReportNameDepth(Key(name)) is { } reportDepth && reportDepth < depth);
-
         /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION, FOR THE NAME CLASSES THAT ARE NOT DATA ITEMS
         /// (kb/Work PB4432 review R1-1, the class twin of <see cref="SymbolTable.ConditionNameHiddenByNearerDataItem"/>): the written
-        /// qualifiers reach a level-88 of the spelling, but a constant-name, index-name or file-name of it declared in a
-        /// NEARER source element is the referenced item. The declaration that hides it, or null. Pure: it reports nothing.</summary>
+        /// qualifiers reach a level-88 of the spelling, but a constant-name, index-name, file-name, report-name or cd-name of it
+        /// declared in a NEARER source element is the referenced item (<see cref="SymbolTable.NearestInNameSet"/>, kb/Work PB5975).
+        /// The declaration that hides it, or null. Pure: it reports nothing.</summary>
         public DeclarationFact? ConditionNameHiddenByNearerNonDataName(
             string name, IReadOnlyList<string> qualifiers, Scope scope)
         {
             var tier = _table.ConditionTier(name, qualifiers, scope);
-            return tier.Count == 0 ? null : NonConditionDeclarationNearerThan(name, qualifiers, scope, _data.State.Forest.DeclaringDepth(tier[0].Parent));
+            if (tier.Count == 0) return null;
+            int depth = _data.State.Forest.DeclaringDepth(tier[0].Parent);
+            return depth > 0 && _table.NearestInNameSet(name, qualifiers, NameSetClass.ConstantName | NameSetClass.IndexName
+                       | NameSetClass.FileName | NameSetClass.ReportName | NameSetClass.CdName) is { } hider && hider.Depth < depth
+                ? hider
+                : null;
         }
 
-        /// <summary>⛔ ISO §2023:8.4.6.2.1 3) ACROSS NAME CLASSES for a word that stands for a literal: whether this unit's set
-        /// of names (its own and every container's global ones) declares <paramref name="name"/> as a data-name, a
-        /// condition-name or an index-name in a source element NEARER than <paramref name="depth"/> (the containment
-        /// distance of the element that declared the constant or symbolic-character; 1 = the direct container). "b) 1.
-        /// The item in source element A if the name is declared in source element A. 2. The item in the containing
-        /// source element if the name is not declared in source element A and is declared in the source element
-        /// containing source element A." A condition-name is placed by its conditional variable.
-        /// <para>⛔ EVERY NAME INDEX A DATA DESCRIPTION ENTRY DECLARES INTO, not only the data-names, <c>_dataNames</c> (kb/Work PB3154
-        /// review R2-1): a named OCCURS DYNAMIC CAPACITY register is a data-name (§2023:13.18.38.3 SR30) kept off
-        /// the data-names in the table's own register table (<c>CapacityRegisterDeclaredNearerThan</c>), placed by its table
-        /// (a METHOD's own register is never in that index: it lives in the method's <c>MethodNames</c>, the method tier
-        /// <see cref="OoDataBinder.ActiveMethodDeclares"/> asks, kb/Work PB3165); a REPORT SECTION sum
-        /// counter is a data-name too (§2023:13.18.54.4 GR5) kept off it in the table's sum counters, placed by its report
-        /// (<see cref="ReportScope.Depth"/>: 0 for this element's own, n for a container's GLOBAL report, §2023:13.18.27.4 GR1), so
-        /// a FARTHER container's sum counter never hides a NEARER container's constant (kb/Work PB3154 review R3-1).
-        /// <c>GlobalNameClassDriftTests</c> holds this predicate to the inherited name-index list, so a name index
-        /// added there is asked here too.</para></summary>
-        public bool DeclaredNearerThan(string name, int depth)
-        {
-            if (_table._dataNames.TryGetValue(Key(name), out var items) && items.Any(i => _data.State.Forest.DeclaringDepth(i) < depth)) return true;
-            if (_table._conditionNames.TryGetValue(Key(name), out var conds) && conds.Any(c => _data.State.Forest.DeclaringDepth(c.Parent) < depth)) return true;
-            if (_table.CapacityRegisterDeclaredNearerThan(name, depth)) return true;
-            if (_table._sumCounters.TryGetValue(Key(name), out var counters) && counters.Any(c => _data.State.Reports.Depth(c.Report) < depth)) return true;
-            if (_table.NearerEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
-            // The file-names and the report-names of §1985:X.1.3.8.2's set (kb/Work PB5973): a contained program's own SELECT or RD of
-            // the spelling hides a container's GLOBAL name of any class, as its own data-name does.
-            if (_table.FileNameDeclaredNearerThan(name, depth) || _table.ReportNameDeclaredNearerThan(name, depth)) return true;
-            return _table.IndexNameDeclaredNearerThan(name, depth);
-        }
+        /// <summary>⛔ §1985:X.1.3.8.2 GR3a FOR A REPORT-NAME (kb/Work PB5976): the declaration that hides a containing program's GLOBAL
+        /// report-name <paramref name="name"/> here, or null when no visible report of the spelling is hidden. "If the name is declared
+        /// in program B, the object in program B is the referenced object", so `INITIATE R1` in a program that declares its own `01 R1`
+        /// names that data item, and the refusal that it names no report says so (<see cref="DeclarationFact.Placed"/>) rather than
+        /// reading as if the container's RD did not exist.</summary>
+        public DeclarationFact? ReportNameHiddenBy(string name) =>
+            _table.HiddenReportDepth(name) is { } reportDepth
+            && _table.NearestInNameSet(name, [], NameSetClass.All & ~NameSetClass.ReportName) is { } hider && hider.Depth < reportDepth
+                ? hider
+                : null;
+
+        /// <summary>⛔ §1985:X.1.3.8.2 GR3a / ISO §2023:8.4.6.2.1 3) FOR AN INHERITED NAME A NEARER DECLARATION HIDES, of any class:
+        /// whether this unit's set of names (its own and every container's global ones, <see cref="SymbolTable.NearestInNameSet"/>)
+        /// declares <paramref name="name"/>, as anything, in a source element NEARER than <paramref name="depth"/> (the containment
+        /// distance of the element that declared the inherited name; 1 = the direct container). "b) 1. The item in source element A if
+        /// the name is declared in source element A. 2. The item in the containing source element if the name is not declared in source
+        /// element A and is declared in the source element containing source element A." Asked unqualified, by the inherited constants
+        /// and symbolic-characters, file-names and report-names (<c>InheritStep.DropShadowed</c>) and a container's sum counter
+        /// (<c>CounterResolver</c>). A METHOD's own names are the one tier nearer still, asked at reference time
+        /// (<see cref="OoDataBinder.ActiveMethodDeclares"/>, kb/Work PB3165). <c>GlobalNameClassDriftTests</c> holds the resolver's
+        /// arms to every inherited name index, so a name index added there is asked here too.</summary>
+        public bool DeclaredNearerThan(string name, int depth) =>
+            _table.DeclaredNearerInNameSet(name, [], depth, NameSetClass.All);
 
         // ── The REPORT SECTION's declarations (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 5") ──────────
 

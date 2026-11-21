@@ -105,7 +105,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         // can write more qualifiers to single out. The report entry is the verdict only when no ambiguity among data items
         // stands in its way: the candidates (SymbolTable.IdentifyDataName) are the ones that rank with the report entries, because
         // the lookup leaves none that a report entry of a NEARER source element hides (§2023:8.4.6.2.1 3) a), kb/Work PB4196,
-        // SymbolTable.NearerEntryHides), so the refusal still stands when the data items are ambiguous GLOBAL ones of
+        // SymbolTable.NearestInNameSet, kb/Work PB5975), so the refusal still stands when the data items are ambiguous GLOBAL ones of
         // a farther element (review R1-1) and when there is only one.
         var dataItems = written is { } named ? data.Symbols.IdentifyDataName(named, report: false) : new NameCandidates<DataItem>([]);
         if (data.ReportSection.ReportEntryReferenceRefused(dataItems, $"'{text}'", name, qualifiers)) return;
@@ -135,7 +135,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         else if (nonData is { Kind: DeclarationKind.ConditionName })
             msg = MisqualifiedConditionText(text, name, qualifiers, data.Edition.Edition);
         else if (nonData is { } declared)
-            msg = $"'{text}' {declared.DeclaredAs(text, name)}, so this reference identifies no data item ({data.Edition.Edition.Quoted()}).";
+            msg = $"'{text}' {declared.DeclaredAs(text, name, data.Edition.Edition)}, so this reference identifies no data item ({data.Edition.Edition.Quoted()}).";
         else if (data.Symbols.DataNameDeclarationCounts(name, qualifiers, data.ActiveScope) is not { Declared: > 0 } counts)
             msg = $"'{text}' is not defined — no declaration in this source element gives the name '{name}', so "
                 + $"the statement's reference identifies no resource ({data.Edition.Edition.Quoted()}). Check the spelling, or declare the item.";
@@ -177,24 +177,24 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
               + edition.Cite("§1985:IV.4.3.8.1 SRL2.4", "§2023:13.16.3 SR23; §2023:8.4.2.2.3 SR4, SR5")
               + ").";
 
-    /// <summary>What a named CAPACITY register is, as the noun phrase <see cref="HiddenConditionText"/> says (the register
-    /// is no data item of the name table, so <see cref="DeclarationFact.ClassPhrase"/> does not cover it).</summary>
-    internal const string CapacityRegisterClassPhrase =
-        "the CAPACITY register of an OCCURS DYNAMIC table (a CAPACITY IN phrase, ISO §2023:13.18.38.3 SR30)";
-
     /// <summary>The wording of a reference in a CONDITION-ONLY position whose word names a level-88 of a containing program
     /// that a nearer declaration of the spelling hides (<see cref="SymbolTable.ConditionNameHiddenByNearerDataItem"/>, kb/Work
     /// PB4219 review R1-1; <see cref="SymbolTable.Declarations.ConditionNameHiddenByNearerNonDataName"/>, kb/Work PB4432 review R1-1):
     /// the reference names that item, so it is neither a misqualified condition-name nor an undeclared word, and saying
     /// either states the opposite of the facts. <paramref name="nearer"/> is what the nearer declaration is ("a data
-    /// item", <see cref="DeclarationFact.ClassPhrase"/>, <see cref="CapacityRegisterClassPhrase"/>).</summary>
+    /// item", a CAPACITY register: <see cref="DeclarationFact.ClassPhrase"/>).</summary>
     internal static string HiddenConditionText(string text, string name, string nearer, EditionInfo edition) =>
         $"'{text}' names {nearer}, not a condition-name, and this position requires a condition-name: '{name}' is "
         + "declared in a source element nearer than the containing program whose GLOBAL condition-name "
-        + $"'{name}' it hides (ISO "
-        + edition.Cite("§1985:X.1.3.8.2 GR3a: \"If the name is declared in program B, the object in program B is the referenced object\"",
-            "§2023:8.4.6.2.1 3) a): \"If the name is declared in source element B, the item in source element B is the referenced item\"")
-        + ").";
+        + $"'{name}' it hides ({NearerDeclarationRule(edition)}).";
+
+    /// <summary>THE ONE CITATION of the rule a nearer declaration hides a containing program's GLOBAL name by, whatever the classes
+    /// (§1985:X.1.3.8.2 GR3a; §2023:8.4.6.2.1 GR3a), quoted in <paramref name="edition"/>'s own words: the refusals that name a hiding
+    /// declaration (<see cref="HiddenConditionText"/>; the report verbs', kb/Work PB5976) each say it.</summary>
+    internal static string NearerDeclarationRule(EditionInfo edition) =>
+        "ISO " + edition.Cite(
+            "§1985:X.1.3.8.2 GR3a: \"If the name is declared in program B, the object in program B is the referenced object\"",
+            "§2023:8.4.6.2.1 GR3a: \"If the name is declared in source element B, the item in source element B is the referenced item\"");
 
     /// <summary>⛔ ISO §2023:13.7.3 SR4 FOR A DATA-NAME REFERENCE (kb/Work PB1249): the procedure division may reference a
     /// linkage item "if, and only if" it is a header operand, under one, a redefinition or renaming of one, or BASED

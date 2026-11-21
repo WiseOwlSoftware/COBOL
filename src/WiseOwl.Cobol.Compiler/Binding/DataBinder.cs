@@ -1344,10 +1344,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"{clauseFace} '{written}': the clause's data-name references no data item — "
               + (nonData is { } declared
-                  ? $"'{written}' {declared.DeclaredAs(written, name)} ({Edition.Edition.Quoted()})"
+                  ? $"'{written}' {declared.DeclaredAs(written, name, Edition.Edition)} ({Edition.Edition.Quoted()})"
                   : Symbols.DeclaresDataNameSpelled(operand, Model.Scope.Program)
                   ? $"'{name}' is declared, but not under the given qualifier{(quals.Count == 1 ? "" : "s")} "
-                    + "(ISO §2023:8.4.2.2 — qualification shall establish uniqueness)"
+                    + $"(ISO {Edition.Edition.Cite("§1985:IV.4.3.8.1 SR3", "§2023:8.4.2.2")} — qualification shall establish uniqueness)"
                   : $"no declaration in this source element gives the name '{name}' ({Edition.Edition.Quoted()})"));
         return null;
     }
