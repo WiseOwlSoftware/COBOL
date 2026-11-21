@@ -470,11 +470,21 @@ they close nothing.
 5. **Citation.** `cite.py --check` takes the designators `p<n>` (`§2023:8.4.2.1 p3`) and `Table <t> row <r>`
    (`§2023:14.5.1 Table 12 row 2`); the existing `Table <t>` is the whole table. A prose clause's item number has no
    designator yet: the tree writes `item <n>` both for it and for lists that are no unit (`§2023:5.4 item 2`, `§1985:VIII.1.3.4
-   item 1 b`, six such citations when PB5449 landed), so the form is added when those are re-pointed. A unit that is a
-   row has the catalog's extent (`rule_book`), as every rule has; a pending unit has none yet, so a quotation cited to
-   it is held to its clause. A quotation inside a unit that has no row yet
+   item 1 b`, six such citations when PB5449 landed), so the form is added when those are re-pointed. **The extent of
+   a row is read from the units the catalog's own mint segments** (`extract_rule_catalog.units_by_locator`, read by
+   `cite.rule_book`; kb/Work PB6014): a row minted from a unit holds exactly its unit's lines (`text_units.Unit.lines`),
+   and a numbered rule holds the lines from its number to the next row's less every line a unit of the clause holds. An
+   extent that ran on to the next row's anchor swallowed every later unit with no row, so `§1985:IV.4.2.2.1.3` "There
+   are three types of reserved words", unit p3 (`not-a-rule`), answered "it lies in p1". A quotation cited to a unit
+   with no row (pending, `restates` or `not-a-rule`) is held to that unit's own lines, and a refusal names the row or
+   the unit that holds the text; a clause citation of text in such a unit answers "it lies in p3" when the clause has
+   no pending unit. In a clause with a pending unit a quotation in no row's text
    answers `OK §<clause> (unnumbered prose, pending)` and never names the rule above it: that is kb/Work PB222's
-   repair. A glued paragraph stays inside its rule's extent until the 2023 mint carves it (point 7), so the "it lies in
+   repair. A numbered prose item with no row has no designator a citation can carry yet (`item <n>`, above), so its
+   text answers as the clause's. **`Table <t>` is held to the printed caption** (kb/Work PB6015): the caption is the
+   line the segmentation reads as one (`text_units.caption_number`: a short title, a level-2 box `║` stripped, never
+   a sentence that names the table), and it captions the table right above it when that table has no caption of its
+   own (the 1985 style), else the table right below it; "Table 2 shown below points to ..." is no part of Table 2. A glued paragraph stays inside its rule's extent until the 2023 mint carves it (point 7), so the "it lies in
    GR13" and "it lies in SR2" answers disappear in that landing, together with the stored citations that rely on them.
 6. **Every held edition, one mechanism.** 2002 runs the ISO extractor unchanged; 1985's reader
    (`rule_catalog_1985.py`) takes the same segmentation, dispositions and level data (a 1985 unit also carries its
