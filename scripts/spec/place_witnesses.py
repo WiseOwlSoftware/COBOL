@@ -408,6 +408,8 @@ def adjudication_errors(witnesses: list[Witness], rows: dict[str, dict[str, Any]
         if not own or row is None:
             continue
         where = f"{w.origin}: {w.rule_id}"
+        if all(str(row.get(k) or "") == str(v) for k, v in own.items()):
+            continue   # the store holds this very adjudication (a re-run after its batch was applied): a witness-only join
         if not unadjudicated(row, schema.next):
             out.append(f"{where}: the record adjudicates a rule the store already adjudicates; a witness joins that "
                        "adjudication as a witness-only record, so drop its verdict fields")
@@ -701,6 +703,12 @@ def self_test() -> int:
            and f"rules: [{own_rid}, {owned}, {bare}]" in lead_case.read_text(encoding="utf-8"),
            "kb/Work PB5453: three records of one draft are ONE case led by the first rule, its header naming all three, "
            "never a copy of the program per rule")
+        applied = [{**own_rows[0], "verdict": "CONFORMS", "code-location": site}, *own_rows[1:]]
+        rerun, _ = run_placement(own_confirm, state, 1985, root / "adapters" / "stub.json", {}, 2, own_suite, applied,
+                                 schema)
+        ok({"rule-id": own_rid, "test-ref": shared} in rerun["records"],
+           "review lead R1-1: a re-run after the batch was applied finds the store holding the record's own adjudication "
+           "and joins the witness alone, never refusing the run")
         (own_confirm / "own.json").write_text(json.dumps({"records": [
             {"rule-id": bare, "decision": "DRAFTED", "pass": "p", "redraft_run": "MATCH", "draft": out_w,
              "verdict": "CONFORMS"},
