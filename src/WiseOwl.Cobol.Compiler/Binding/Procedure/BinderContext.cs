@@ -71,6 +71,21 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     /// VARYING / TEST PERFORM ranges recorded while the unit binds, answered once its procedures are bound.</summary>
     public UntilExitPlacement UntilExit { get; } = new();
 
+    /// <summary>The PERFORM, SORT and MERGE ranges whose named procedures' span breaks a COBOL-85 segmentation restriction
+    /// (kb/Work PB6007), recorded while the unit binds and decided over the bound procedures by
+    /// <see cref="Segmentation.ReportProcedures"/>.</summary>
+    public List<Segmentation.PendingRange> SegmentedRanges { get; } = [];
+
+    /// <summary>⛔ THE RULES DECIDED OVER THE WHOLE BOUND PC SPACE, asked once per unit after its procedures (and their exception-checking
+    /// handler paragraphs) are bound, because a range anywhere in <paramref name="paragraphs"/> may reach any paragraph: §2023:14.9.28.3
+    /// SR8's out-of-line "under" (<see cref="UntilExit"/>, kb/Work PB434) and the COBOL-85 segmentation restrictions on the procedures a
+    /// PERFORM, SORT or MERGE names (<see cref="SegmentedRanges"/>, kb/Work PB6007). The program and the class bind both call it.</summary>
+    public void DecideBoundRangeRules(IReadOnlyList<BoundParagraph> paragraphs)
+    {
+        UntilExit.Report(paragraphs, Edition);
+        Segmentation.ReportProcedures(this, paragraphs);
+    }
+
     /// <summary>The pc whose sentences are being bound (RESUME SR1/SR2 declarative context + the §2023:15.30.3 r2
     /// location anchoring; 10r — the host's <c>_currentBindPc</c> relocated). −1 outside the bind loop.</summary>
     public int BindCursor { get; set; } = -1;

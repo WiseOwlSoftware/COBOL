@@ -95,39 +95,72 @@ internal static class ProcedureReach
     /// shortest chain — every range a reached paragraph transfers to and returns from.
     /// <para><paramref name="followGoTo"/> is the reading of a RANGE the 1985 sort-merge rules use (§1985:XI.4.4.4 GR7: "The range includes all
     /// statements that are executed as the result of a transfer of control by CALL, EXIT, GO TO, and PERFORM statements in the range of the
-    /// input procedure"; kb/Work PB5104): a GO TO in a reached paragraph also reaches its destination (an alterable one, every paragraph any ALTER of it names), and — since where a destination's
-    /// sequential flow ends is a run-time fact — every paragraph after it to the end of the program, so a statement this walk does not reach
-    /// is one no execution of the range can reach. False keeps the model above, which a syntax rule about "under" needs (it does not
-    /// follow a GO TO, so it never refuses a statement no execution reaches under the PERFORM).</para></summary>
+    /// input procedure"; kb/Work PB5104): control is also followed as it flows (<see cref="Walk{TOrigin}"/>: every GO TO destination, an
+    /// alterable one's ALTER destinations, and the fall-through to the next paragraph until the range's return mechanism), so a statement this
+    /// walk does not reach is one no execution of the range can reach. False keeps the model above, which a syntax rule about "under" needs (it
+    /// does not follow a GO TO, so it never refuses a statement no execution reaches under the PERFORM).</para></summary>
     public static Dictionary<int, TOrigin> Closure<TOrigin>(
-        IReadOnlyList<BoundParagraph> paragraphs, IEnumerable<(PcRange Range, TOrigin Origin)> seeds, bool followGoTo = false)
+        IReadOnlyList<BoundParagraph> paragraphs, IEnumerable<(PcRange Range, TOrigin Origin)> seeds, bool followGoTo = false) =>
+        Walk(paragraphs, seeds, fromEntry: false, followReturning: true, followFlow: followGoTo);
+
+    /// <summary>The paragraphs execution of <paramref name="range"/> reaches from its FIRST paragraph by the flow of control alone: the
+    /// fall-through and every GO TO (<see cref="Walk{TOrigin}"/>), wherever it leads, out of the range's procedures and back included, and no
+    /// PERFORM, SORT or MERGE range inside it (each of those is its own statement's question). The question the COBOL-85 segmentation
+    /// restrictions ask of the procedures a statement names (<c>Segmentation.CheckProcedures</c>, kb/Work PB5442, PB6007).</summary>
+    public static IReadOnlyCollection<int> FlowFromEntry(IReadOnlyList<BoundParagraph> paragraphs, PcRange range) =>
+        Walk(paragraphs, [(range, 0)], fromEntry: true, followReturning: false, followFlow: true).Keys;
+
+    /// <summary>⛔ THE ONE REACH WALK (kb/Work PB6007, PB6008): every question "which paragraphs does control reach from a range" is answered
+    /// here, each reader choosing what it follows. A range is entered at its first paragraph (<paramref name="fromEntry"/>) or at every
+    /// paragraph of its lexical span (<see cref="PcRange.SpannedPcs"/>, either physical order); <paramref name="followReturning"/> enters
+    /// every range a reached paragraph transfers to and returns from (<see cref="ReturningTransfersIn"/>).
+    /// <para><paramref name="followFlow"/> follows control as it runs: each GO TO in a reached paragraph reaches its destination ("control is
+    /// transferred to procedure-name-1", §1985:VI.6.15.4 GR1; an alterable GO TO also each paragraph any ALTER of it names), and a reached
+    /// paragraph falls through to the next one unless one of its own statements transfers control away for certain (an unconditional GO TO, or
+    /// STOP RUN, by which "execution of the run unit ceases", §1985:VI.6.24.4 GR1) or it is the last paragraph of the range whose execution
+    /// reached it: there the compiler-inserted return mechanism ends the range ("When control passes the last statement in the output
+    /// procedure, the return mechanism provides for termination of the merge", §1985:XI.4.1.4 GR9; §1985:XI.4.4.4 GR8 and GR11 for the
+    /// SORT's procedures; §1985:VI.6.21.4 GR11 for a PERFORM). Each walk step carries that return point, so a path that leaves the range and
+    /// comes back stops where the range ends, and a procedure written after the range is reached only if some path really flows into it, never
+    /// because of where it stands in the text (kb/Work PB6008).</para></summary>
+    private static Dictionary<int, TOrigin> Walk<TOrigin>(IReadOnlyList<BoundParagraph> paragraphs,
+        IEnumerable<(PcRange Range, TOrigin Origin)> seeds, bool fromEntry, bool followReturning, bool followFlow)
     {
         var reached = new Dictionary<int, TOrigin>();
-        var work = new Queue<int>();
-        var flowed = new HashSet<int>();
-        var altered = followGoTo ? AlteredTargetsOf(paragraphs) : null;
+        var work = new Queue<(int Pc, int Exit)>();
+        var walked = new HashSet<(int Pc, int Exit)>();
+        var altered = followFlow ? AlteredTargetsOf(paragraphs) : null;
+        void Reach(int pc, int exit, TOrigin origin)
+        {
+            if ((uint)pc >= (uint)paragraphs.Count) return;
+            reached.TryAdd(pc, origin);
+            if (walked.Add((pc, exit))) work.Enqueue((pc, exit));
+        }
         void Enter(PcRange range, TOrigin origin)
         {
-            foreach (int pc in range.SpannedPcs())
-                if (reached.TryAdd(pc, origin)) work.Enqueue(pc);
-        }
-        void EnterFlow(int destination, TOrigin origin)
-        {
-            for (int pc = destination; (uint)pc < (uint)paragraphs.Count; pc++)
-            {
-                if (reached.TryAdd(pc, origin)) work.Enqueue(pc);
-                if (!flowed.Add(pc)) break;   // its sequential flow is already followed
-            }
+            if (range.IsEmpty) return;
+            if (fromEntry) Reach(range.Start, range.End, origin);
+            else foreach (int pc in range.SpannedPcs()) Reach(pc, range.End, origin);
         }
         foreach (var (range, origin) in seeds) Enter(range, origin);
-        while (work.TryDequeue(out int pc))
+        while (work.TryDequeue(out var step))
         {
-            foreach (var range in ReturningTransfersIn(paragraphs[pc].Statements))
-                Enter(range, reached[pc]);
-            if (followGoTo)
-                foreach (int destination in GoToTargetsIn(paragraphs[pc].Statements, altered!))
-                    EnterFlow(destination, reached[pc]);
+            var (pc, exit) = step;
+            var origin = reached[pc];
+            var paragraph = paragraphs[pc];
+            if (followReturning)
+                foreach (var range in ReturningTransfersIn(paragraph.Statements)) Enter(range, origin);
+            if (!followFlow) continue;
+            foreach (int destination in GoToTargetsIn(paragraph.Statements, altered!)) Reach(destination, exit, origin);
+            if (pc != exit && !TransfersAway(paragraph)) Reach(pc + 1, exit, origin);
         }
         return reached;
     }
+
+    /// <summary>Does one of <paramref name="paragraph"/>'s own statements (not one nested in a conditional) transfer control away for
+    /// certain, so the paragraph never falls through: a GO TO without the DEPENDING phrase, written or alterable (§1985:VI.6.15.4 GR1), or
+    /// STOP RUN (§1985:VI.6.24.4 GR1). A GO TO DEPENDING whose identifier is out of range falls through, and so does every other
+    /// statement.</summary>
+    private static bool TransfersAway(BoundParagraph paragraph) =>
+        paragraph.Statements.Any(s => s is BoundGoTo or BoundGoToAlterable or BoundStop);
 }
