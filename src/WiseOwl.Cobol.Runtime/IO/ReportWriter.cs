@@ -1070,7 +1070,7 @@ public sealed class CobolReport(
     /// GR2: with NO GENERATE since INITIATE, no report group is processed at all — the sole effect is
     /// active→inactive. GR3: otherwise the control items revert to their prior values (GR3a), each control
     /// footing prints minor→major as though a most-major break occurred (GR3b), the page footing of the last
-    /// page prints (§2023:13.18.57.4 GR6f — every page's last group; "immediately followed by the report footing"),
+    /// page prints (§2023:13.18.57.4 GR6 — every page's last group; "immediately followed by the report footing"),
     /// the report footing prints (GR3c), and the control items are restored (GR3d). GR6: the file is NOT closed.</summary>
     public void Terminate(Func<int, bool>? beforeReporting = null)
     {

@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para><b>The rule.</b> At COBOL-85 a function reference whose arguments "do not have values that comply with the specified
 /// constraints" has an undefined returned value (§1989:A.2.2 p3), and the Correction Amendment's clarification "allows an
-/// implementation of amended third Standard COBOL to terminate processing" (§1985:p.B-46); from COBOL-2002 the breach is
+/// implementation of amended third Standard COBOL to terminate processing" (§1993:p.B-46); from COBOL-2002 the breach is
 /// EC-ARGUMENT-FUNCTION (§2002:15.2 AR13, §2014:15.3 AR13, §2023:15.3 AR14). <c>ExceptionEngine.ArgumentError</c> and its two
 /// text twins are the one place that answer lives: at 85 every breach terminates the run unit, after it the condition is
 /// raised when checking is enabled and the documented default returned when it is not.</para>
@@ -40,7 +40,7 @@ public sealed class ArgumentBreachEditionTests
         {
             var x = Assert.Throws<CobolImplementorFatalException>(breach);
             Assert.Contains("§1989:A.2.2 p3", x.Message);
-            Assert.Contains("§1985:p.B-46", x.Message);
+            Assert.Contains("§1993:p.B-46", x.Message);
         }
         // Checking state is not the 1985 answer: a TURN cannot exist at 85, and the answer is the same with the flag set.
         e.ArgumentFunctionChecking = true;
@@ -106,7 +106,7 @@ public sealed class ArgumentBreachEditionTests
             $"{offenders.Count} runtime site(s) answer a broken intrinsic argument rule outside ExceptionEngine.ArgumentError:"
             + Environment.NewLine + string.Join(Environment.NewLine, offenders.Select(o => "    " + o))
             + Environment.NewLine + "Call ExceptionState.ArgumentError (or ArgumentErrorZeroLength / ArgumentErrorSpaces): it is the one "
-            + "place the activation's edition decides the breach (terminate at COBOL-85, §1985:p.B-46; EC-ARGUMENT-FUNCTION from "
+            + "place the activation's edition decides the breach (terminate at COBOL-85, §1993:p.B-46; EC-ARGUMENT-FUNCTION from "
             + "2002, §2023:15.3 AR14). See kb/Work/PB6019.");
     }
 }

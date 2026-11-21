@@ -112,7 +112,7 @@ public static partial class CobolIntrinsics
     // EC-ARGUMENT-FUNCTION, fatal, under the edition's checking rules; with checking off the intake's truncated integer is the
     // result the implementor defines, DOC-A.1-124). COBOL-85 has no exception conditions; the result is undefined (§1985:I.1.6), and
     // the Correction Amendment's clarification "allows an implementation of amended third Standard COBOL to terminate processing"
-    // (§1985:p.B-46), so there the run unit is terminated (docs/conformance D-INTEGER-ARGUMENT-SCREEN). Which of the two a breach
+    // (§1993:p.B-46), so there the run unit is terminated (docs/conformance D-INTEGER-ARGUMENT-SCREEN). Which of the two a breach
     // takes is not this check's to decide: it is the activation's edition, read by the one answer to every broken argument rule,
     // ExceptionEngine.ArgumentError (kb/Work PB6019). The emitter renders the check only for an undecided argument
     // (IntrinsicArgumentRules.NeedsRunTimeIntegerCheck), so a proven or literal argument carries no test it cannot fail.

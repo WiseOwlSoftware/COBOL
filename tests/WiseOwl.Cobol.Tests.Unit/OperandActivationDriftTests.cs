@@ -142,7 +142,7 @@ public sealed class OperandActivationDriftTests
     /// <summary>kb/Work PB1432 — a §2023:15.4 subscript temporary STORE in a short-circuited operand is an
     /// operand-evaluation step too: its size-error selection throws to the IF's landing from inside the lambda
     /// (it was <c>goto __xfer</c> there, CS0159), and hoisted before a first operand it throws as well rather than
-    /// falling back into the IF (§2023:14.9.33.4 GR2a.1 and NOTE 1: "transfer would be after the END-IF").</summary>
+    /// falling back into the IF (§2023:14.9.33.4 GR2a.1; NOTE 1 of §2023:14.9.33.4 GR2b: "transfer would be after the END-IF").</summary>
     [Fact]
     public void GeneratedCode_SubscriptTemporaryStoreLandsAtItsStatement()
     {

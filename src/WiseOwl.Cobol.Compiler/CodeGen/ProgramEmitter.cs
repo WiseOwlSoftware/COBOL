@@ -505,10 +505,10 @@ internal sealed class ProgramEmitter
                 w.Line($"int INonfatalSelector.NonfatalDispatch(string __ec) => {Current.Ec.EcDispatchExpr("__ec", "\"\"")};"
                     + "   // ISO §2023:14.6.13.1.4 #3 / §2023:14.9.49.4 GR3");
             // A COBOL-85 element's intrinsic argument that breaks its function's argument rules terminates the run unit
-            // (§1989:A.2.2 p3: the result is undefined; §1985:p.B-46 allows termination; kb/Work PB6019). The activation
+            // (§1989:A.2.2 p3: the result is undefined; §1993:p.B-46 allows termination; kb/Work PB6019). The activation
             // boundary installs this for the activation; a later edition emits nothing and raises EC-ARGUMENT-FUNCTION.
             if (data.DialectLevel < 2002)
-                w.Line("bool ICobolProgram.IsCobol85 => true;   // §1989:A.2.2 p3 / §1985:p.B-46 (kb/Work PB6019)");
+                w.Line("bool ICobolProgram.IsCobol85 => true;   // §1989:A.2.2 p3 / §1993:p.B-46 (kb/Work PB6019)");
             if (unit.Children.Count > 0 && ChainHasGlobalUse(unit))
                 EmitRunGlobalUse(unit, w);
             // The Format-2 half of §2023:14.9.49.4 GR4 (kb/Work PB369): per visible report, the selector its GENERATE

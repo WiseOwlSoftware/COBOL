@@ -16,7 +16,7 @@
       *> N - 1 is 0. §1989:A.2.2 p3 makes the returned value
       *> undefined, and the Correction Amendment's clarification
       *> "allows an implementation of amended third Standard COBOL
-      *> to terminate processing" (§1985:p.B-46).
+      *> to terminate processing" (§1993:p.B-46).
       *> EXPECTED: CHAR (66) is "A" in the native collating sequence
       *> (position 66 is code 65, as ORD ("A") is 66), shown as
       *> CHAR A; BEFORE is shown; CHAR (0) ends the run, so AFTER is

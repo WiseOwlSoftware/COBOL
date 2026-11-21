@@ -188,7 +188,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// and a terminator of that statement's kind met later in the same unit is that statement's own: it terminates "the
     /// most-recently preceding unterminated statement having the statement-name for which that scope terminator is
     /// defined" (§2023:14.5.3.2 GR1, so the newest record of the kind is searched first), and no separator period stands
-    /// between (a separator period terminates every statement's scope, §2023:14.5.3.3 GR1c). The one fault was reported,
+    /// between (a separator period terminates every statement's scope, §2023:14.5.3.3 GR1, its item c). The one fault was reported,
     /// the recovery consumes the terminator with the rest of the statement, and nothing more is said. Read from the same
     /// terminator map hint 13 reads, so a statement that gains a terminator is covered.</summary>
     private bool EndsAStatementTheRecoveryLeft(Parser recognizer, OffendingPosition at)
@@ -359,7 +359,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// which <paramref name="takes"/> (the token at <paramref name="token"/> is its terminator or its next phrase), returned
     /// in <paramref name="taker"/>; removed from the records when <paramref name="consume"/> (its terminator is met). A
     /// record is no longer due where a separator period stands
-    /// between (§2023:14.5.3.3 GR1c), where the statement ended in its own terminator after all, or where the statement
+    /// between (§2023:14.5.3.3 GR1, its item c), where the statement ended in its own terminator after all, or where the statement
     /// enclosing it ended (§2023:14.5.3.2 GR2).</summary>
     private bool TakenByALeftStatement(Parser recognizer, IToken token, Func<LeftStatement, bool> takes, bool consume,
         out LeftStatement? taker)

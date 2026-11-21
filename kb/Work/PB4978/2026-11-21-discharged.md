@@ -1,7 +1,7 @@
 **2026-11-21, discharged with evidence (wave 20262131 group u).** The note's premise is false: at `--std 85` SEARCH identifier-1 is
 not the only whole-table reference. A function argument subscripted ALL references an elementary item under a table as a whole
 (§1985:IV.4.3.8.2.3 SR7: "The subscript ALL may be used only when the subscripted identifier is used as a function argument";
-§1985:p.A-28: "When ALL is specified as a subscript, the effect is as if each table element associated with that subscript position
+§1989:p.A-28: "When ALL is specified as a subscript, the effect is as if each table element associated with that subscript position
 were specified"; both `cite.py --check` OK). So any item under a table can be named whole at 85, and from 2002 a table SORT key can
 too; the register's width is set before any statement binds (`ProcedureTableBuilder.FinalizeDebug`), so it cannot know which items
 a program will name that way. `RecordLayout.AllOccurrencesImageWidth` for every target is the width §1985:XV.3.2.4 GR15 requires

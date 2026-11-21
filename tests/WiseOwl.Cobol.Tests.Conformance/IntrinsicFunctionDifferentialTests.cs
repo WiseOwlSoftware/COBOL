@@ -177,7 +177,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         // §2023:15.3: with EC-ARGUMENT-FUNCTION checking disabled "the implementor defines the result" — this
         // implementation returns 0 (NaN → 0 in FromDouble; the legacy-compatible default the goldens encode). That is the
         // 2023 rule, so the program is compiled for 2023: at COBOL-85 the same breach terminates the run unit (§1989:A.2.2 p3,
-        // §1985:p.B-46; kb/Work PB6019, goldens pb6019_argument_breach_85 / pb6019_argument_breach_text_85).
+        // §1993:p.B-46; kb/Work PB6019, goldens pb6019_argument_breach_85 / pb6019_argument_breach_text_85).
         AssertSpec(Program("01 R PIC S9(4)V9(2) SIGN LEADING SEPARATE.", """
                 COMPUTE R = FUNCTION SQRT(0 - 4).
                 DISPLAY R.

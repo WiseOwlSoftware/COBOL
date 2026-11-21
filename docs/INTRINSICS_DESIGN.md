@@ -1002,7 +1002,7 @@ It reads `ExceptionEngine.IsCobol85`, which the activation boundary (`ProgramTab
 installs from `ICobolProgram.IsCobol85` and restores on return, exactly as it installs the nonfatal selector. A program
 class compiled for COBOL-85 overrides it to `true` (`ProgramEmitter`): there the result "of such a reference is undefined" (§1989:A.2.2
 p3) and the Correction Amendment's clarification "allows an implementation of amended third Standard COBOL to terminate processing"
-(§1985:p.B-46), so the run unit is terminated with the message (`CobolImplementorFatalException`, no exception condition, COBOL-85 having
+(§1993:p.B-46), so the run unit is terminated with the message (`CobolImplementorFatalException`, no exception condition, COBOL-85 having
 none). A later edition takes the interface default and the breach is EC-ARGUMENT-FUNCTION (§2002:15.2 AR13, §2014:15.3 AR13, §2023:15.3
 AR14): fatal under checking, DOC-A.1-90's substituted result without it. The edition is the ELEMENT's, not the compilation's or the run
 unit's, so a COBOL-85 program CALLed from a 2023 one terminates and a 2023 program CALLed from a COBOL-85 one raises the condition. Before

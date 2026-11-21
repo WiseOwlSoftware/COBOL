@@ -1055,7 +1055,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <paramref name="i"/> is one the compile-time screen neither proved nor refuted (<see cref="IntrinsicArgumentRules.NeedsRunTimeIntegerCheck"/>),
     /// so the value is tested where it is evaluated and a failure names the function and the argument. The failure takes the one
     /// path of every broken argument rule (kb/Work PB6019): a COBOL-85 element terminates the run unit (the 1985 text has no
-    /// exception conditions; §1985:p.B-46 lets the run terminate), a later one raises EC-ARGUMENT-FUNCTION (§2023:15.3 AR14).</summary>
+    /// exception conditions; §1993:p.B-46 lets the run terminate), a later one raises EC-ARGUMENT-FUNCTION (§2023:15.3 AR14).</summary>
     private static RuntimeApi.IntegerArgumentSite? UndecidedIntegerSite(BoundIntrinsicCall ic, int i) =>
         IntrinsicArgumentRules.NeedsRunTimeIntegerCheck(ic.Args[i], ic.Arithmetic)
             ? new RuntimeApi.IntegerArgumentSite(ic.Sig.Name, i + 1)

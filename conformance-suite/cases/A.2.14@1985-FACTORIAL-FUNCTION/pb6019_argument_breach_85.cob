@@ -16,7 +16,7 @@
       *> comply with the specified constraints" the returned value
       *> is undefined, and the Correction Amendment's clarification
       *> "allows an implementation of amended third Standard COBOL
-      *> to terminate processing" (§1985:p.B-46). The run unit is
+      *> to terminate processing" (§1993:p.B-46). The run unit is
       *> terminated with a message naming the function and the
       *> value, never continued with a made-up 0.
       *> EXPECTED: SQRT (4) is 2 (§1989:A.2.40.4 RV1 "the absolute

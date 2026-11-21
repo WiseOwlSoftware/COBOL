@@ -8,7 +8,7 @@ outcomes (`IntrinsicArgumentRules.ClassifyTypeSix`; docs/INTRINSICS_DESIGN.md, t
   counterexample.
 - UNDECIDED: accepted; `IntrinsicRenderer.UndecidedIntegerSite` renders `CobolIntrinsics.CheckedIntegerArgument*` (one per carrier)
   before the integer intake, naming the function, the argument and the value: EC-ARGUMENT-FUNCTION from 2002 (§2023:15.3 AR14), run-unit
-  termination at 85 (§1985:p.B-46).
+  termination at 85 (§1993:p.B-46).
 
 The probes of the adjudication (`E:/COBOL-coord/scratch/w20262131/pb5889/src/`): IDMAX prints 6 and IDMEAN 120 at 85 and 2023 (base:
 COBOL1627 at both); MODTHIRD stays refused, "at N = 1 it is 1/3"; SQRTARG stays refused by the type bar. COBOL1627's citations are now

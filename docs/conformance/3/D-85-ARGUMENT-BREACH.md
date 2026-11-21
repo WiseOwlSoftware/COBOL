@@ -6,7 +6,7 @@
   such a reference is undefined" (`§1989:A.2.2 p3`; the same in `§1989:A.1.2.2`, "do not have values that comply with the
   specified constraints, then the result of such a reference is undefined"). COBOL-85 has no exception
   conditions, and the Correction Amendment's clarification of that rule "allows an implementation of amended third Standard COBOL
-  to terminate processing" (`§1985:p.B-46`). **Determination:** at `--std 85` every such breach detected at run time terminates
+  to terminate processing" (`§1993:p.B-46`). **Determination:** at `--std 85` every such breach detected at run time terminates
   the run unit with a message naming the function, the argument and its value and the rule it breaks; no reference returns a
   value the implementation made up. It is the same path an integer argument that is not an integer takes
   (D-INTEGER-ARGUMENT-SCREEN), and the one place it is decided is the runtime's answer to every broken argument rule

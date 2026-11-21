@@ -578,7 +578,7 @@ public sealed class ExceptionEngine
     /// <item>A COBOL-85 activation (<see cref="IsCobol85"/>): the result is undefined — if the arguments "do not have
     /// values within the permissible range, then the result of such a reference is undefined" (§1989:A.2.2 p3; §1989:A.1.2.2 says
     /// the same of values that do not "comply with the specified constraints") — and the Correction Amendment's
-    /// clarification "allows an implementation of amended third Standard COBOL to terminate processing" (§1985:p.B-46). The
+    /// clarification "allows an implementation of amended third Standard COBOL to terminate processing" (§1993:p.B-46). The
     /// run unit is terminated with the message (<see cref="CobolImplementorFatalException"/>: it raises no exception condition,
     /// for COBOL-85 has none), so a 1985 program never runs on with a value the implementation made up.</item>
     /// <item>From COBOL-2002: EC-ARGUMENT-FUNCTION is set to exist (§2002:15.2 AR13, §2014:15.3 AR13, §2023:15.3 AR14). With
@@ -590,7 +590,7 @@ public sealed class ExceptionEngine
     {
         if (IsCobol85)
             throw new CobolImplementorFatalException(detail + "; at COBOL-85 the result of such a reference is undefined (§1989:A.2.2 p3) "
-                + "and the run unit is terminated, as §1985:p.B-46 allows");
+                + "and the run unit is terminated, as §1993:p.B-46 allows");
         FatalIfEnabled(ArgumentFunctionChecking, "EC-ARGUMENT-FUNCTION", detail);
         return 0;
     }

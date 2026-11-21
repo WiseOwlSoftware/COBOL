@@ -1775,7 +1775,7 @@ target:
   same malformed statement again and gave up in turn, so the IF around it ended and its ELSE branch and END-IF were
   parsed as the sentence's. Not where the report retyped the word ahead for a fresh parse (PB4218), never a period.
 - ⛔ **The terminator of a statement the recovery left is that statement's own** (kb/Work PB4382; ISO §2023:14.5.3.2 GR1,
-  §2023:14.5.3.3 GR1c). A fault caught by the rule of a statement an explicit scope terminator closes ends that rule (the
+  §2023:14.5.3.3 GR1, its item c). A fault caught by the rule of a statement an explicit scope terminator closes ends that rule (the
   generated rule reports, recovers and returns): `IF W-N = 1 ELSE …` fails at the THEN?/block decision of the IF itself,
   so the IF returned and its END-IF met no open IF, a false COBOL0306. `Recover` records each such statement it leaves
   (and the statement a consumed first token opens; `Report` does the same for the constructs a prediction closed early

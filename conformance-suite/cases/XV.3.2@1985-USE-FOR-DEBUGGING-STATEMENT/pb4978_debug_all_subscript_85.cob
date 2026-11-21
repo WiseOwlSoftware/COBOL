@@ -9,7 +9,7 @@
       *> referenced as a whole table by a function argument subscripted
       *> ALL (§1985:IV.4.3.8.2.3 SR7: "The subscript ALL may be used only
       *> when the subscripted identifier is used as a function argument";
-      *> §1985:p.A-28: "the effect is as if each table element associated
+      *> §1989:p.A-28: "the effect is as if each table element associated
       *> with that subscript position were specified"), so SEARCH
       *> identifier-1 is not the only whole-table reference there.
       *> §1985:XV.3.2.4 GR24c: "DEBUG-CONTENTS contains the content of the
