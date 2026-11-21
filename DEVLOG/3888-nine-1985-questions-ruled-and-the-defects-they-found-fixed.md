@@ -1,4 +1,4 @@
-## Nine 1985 questions ruled, and the defects they found fixed: LINE-COUNTER after LINE PLUS 0, BY REFERENCE, ADVANCING ZERO held, citations, the LINAGE externality rule
+## Entry 3888 — 2026-11-21 00:40 PST — Nine 1985 questions ruled, and the defects they found fixed: LINE-COUNTER after LINE PLUS 0, BY REFERENCE, ADVANCING ZERO held, citations, the LINAGE externality rule
 
 A sweep of the work register for open notes about `--std 85` found nine questions nobody had ruled: analyses and adjudications
 filed by the 1985 code-read passes. Three adjudicators took three each against main at 8244f1aa4b, wrote one ruling per note,
@@ -86,3 +86,4 @@ and FILE STATUS (2023, a clause 1985 does not carry); LINAGE was the one arm mis
 ### PB5902 decided
 
 The implementer held the refusal of `WRITE ... ADVANCING ZERO` at 85 because CCVS-85 program SQ101M exercises it on purpose. The text admits two readings (a figurative constant where the format prints `literal`, against `integer` defined as a numeric literal that SR5 lets be zero), so CLAUDE.md rule 1 sends it to GnuCOBOL, which accepts it: the acceptance stays, recorded as D-85-ADVANCING-ZERO, and PB5902 is retired. The adjudicator and its refuter had read the rule narrowly without the CCVS evidence.
+
