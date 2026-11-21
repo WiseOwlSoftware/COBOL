@@ -531,7 +531,7 @@ internal sealed class LinkageBinder(DataBinder data)
                           + "referenced in the procedure division header as a BY REFERENCE formal parameter or "
                           + "as the RETURNING item (ISO §2023:13.18.2.3 SR3)");
                 else
-                    continue;   // conformant — keep the flag. A RETURNING item (SR3 b)) is seeded with the
+                    continue;   // conformant — keep the flag. A RETURNING item (SR3b) is seeded with the
                                 // ACTIVATOR's receiver length at activation entry (§2023:13.18.2.4 GR1 b); ProgramEmitter.EmitCallMethod).
             }
             root.IsAnyLength = false;
@@ -608,11 +608,11 @@ internal sealed class LinkageBinder(DataBinder data)
     {
         // ⛔ READ FROM THE BOUND ITEMS, NEVER FROM THE PARSE TREE (kb/Work PB518 / PB519). The clause-placement
         // screen (DataBinder.ClausePlacement.cs) has already ADMITTED or REFUSED every EXTERNAL / GLOBAL clause at
-        // its entry — level 1 (§2023:13.16.3 SR6, §2023:13.18.22.3 SR1, §2023:13.18.27.3 SR1 b)), the data-name format (SR7), the
+        // its entry — level 1 (§2023:13.16.3 SR6, §2023:13.18.22.3 SR1, §2023:13.18.27.3 SR1b), the data-name format (SR7), the
         // section (EXTERNAL: working-storage only), and EXTERNAL×REDEFINES/BASED (SR5) — and only an admitted
         // clause sets HasExternalClause / HasGlobalClause. The parse-tree scan this replaces re-derived the rule
         // as `continue` filters, so a misplaced clause was accepted and silently annulled; it never read the FILE
-        // SECTION, so a GLOBAL record there (legal per SR1 b)) was UNDEFINED in every containee; and it re-based
+        // SECTION, so a GLOBAL record there (legal per SR1b) was UNDEFINED in every containee; and it re-based
         // an EXTERNAL REDEFINES entry, folding the redefines ANCHOR onto the external cell and discarding its VALUE.
         // The population is every residence SR1 b) admits: working-storage, local-storage, linkage and file.
         foreach (var item in data.State.Forest.WorkingStorageRoots.Concat(data.State.Forest.LocalStorageRoots).Concat(_roots)

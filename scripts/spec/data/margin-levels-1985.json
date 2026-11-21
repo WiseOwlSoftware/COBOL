@@ -2058,16 +2058,6 @@
    "text": "MOVE identifier-1 TO record-name-1 according to the rules specified for the MOVE"
   },
   {
-   "clause": "§1985:X.3.1.4",
-   "follows": "(3)",
-   "digest": "8065ed138611",
-   "order": 0,
-   "page": 529,
-   "level": "not found",
-   "x_offset_pt": null,
-   "text": "Inter-Program Communication - Linkage Section"
-  },
-  {
    "clause": "§1985:X.5.1",
    "follows": "(4)",
    "digest": "4a2c71c60113",
@@ -2469,16 +2459,6 @@
   },
   {
    "clause": "§1985:XIII.3.10.7",
-   "follows": "(1)",
-   "digest": "bdf5a9d3df10",
-   "order": 0,
-   "page": 612,
-   "level": "not found",
-   "x_offset_pt": null,
-   "text": "Report Writer - Page Heading Group Presentation Rules"
-  },
-  {
-   "clause": "§1985:XIII.3.10.7",
    "follows": "(2)",
    "digest": "65331753d134",
    "order": 0,
@@ -2496,16 +2476,6 @@
    "level": "not found",
    "x_offset_pt": null,
    "text": "Otherwise the sum of the integer of the first LINE NUMBER clause of the page hea"
-  },
-  {
-   "clause": "§1985:XIII.3.10.7",
-   "follows": "(4)",
-   "digest": "3dc0391fd543",
-   "order": 0,
-   "page": 612,
-   "level": "not found",
-   "x_offset_pt": null,
-   "text": "Report Writer - Body Group Presentation Rules"
   },
   {
    "clause": "§1985:XIII.3.10.8",
@@ -2898,16 +2868,6 @@
    "text": "Sum counters are initially set to zero by the report writer control system durin"
   },
   {
-   "clause": "§1985:XIII.3.19.4",
-   "follows": "(12)",
-   "digest": "7fca74d59a5e",
-   "order": 0,
-   "page": 634,
-   "level": "not found",
-   "x_offset_pt": null,
-   "text": "Report Writer - TYPE"
-  },
-  {
    "clause": "§1985:XIII.3.20.3",
    "follows": "(1)",
    "digest": "290a1939a13c",
@@ -2966,16 +2926,6 @@
    "level": "not found",
    "x_offset_pt": null,
    "text": "RF is an abbreviation for REPORT FOOTING."
-  },
-  {
-   "clause": "§1985:XIII.3.20.3",
-   "follows": "(4)",
-   "digest": "7fca74d59a5e",
-   "order": 0,
-   "page": 634,
-   "level": "not found",
-   "x_offset_pt": null,
-   "text": "Report Writer - TYPE"
   },
   {
    "clause": "§1985:XIII.3.20.3",

@@ -343,7 +343,7 @@ public sealed class FileModel
         IsSortMerge ? "a sort-merge file (described by a sort-merge file description entry)"
         : LineSequentialByDelimiter ? "LINE SEQUENTIAL, by its RECORD DELIMITER IS LINE-SEQUENTIAL clause"
         : !OrganizationWritten ? edition.Cite(
-            "sequential by default, the ORGANIZATION clause being omitted (ISO §1985:VII.2.6.3 GR3)",
+            "sequential by default, the ORGANIZATION clause being omitted (ANSI §1985:VII.2.6.3 GR3)",
             "record sequential by default, the ORGANIZATION clause being omitted (ISO §2023:12.4.5.10.3 GR6)")
         : Organization switch
         {

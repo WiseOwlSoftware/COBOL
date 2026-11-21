@@ -180,6 +180,50 @@ def running_header(line: str) -> bool:
             and ORDINAL.match(s) is None)
 
 
+def furniture(lines: list[str]) -> frozenset[int]:
+    """THE ONE READER of the 1985 transcription's page furniture (kb/Work PB5997): the index of every line that is no
+    rule text, so `parse`, `_bodies` and `cite.py` read the same lines as text. A line is furniture when it stands on a
+    page the scan prints twice (SCAN_REPEAT_85, with the marker itself), is an editorial note (EDITORIAL_NOTE, and the
+    blockquote lines that continue it), is a folio (FOLIO_85) or is the running header that opens a printed page: the
+    first text line after a page heading, after a folio (printed pages from another scan stand inside one page,
+    cite.SOURCE, kb/Work PB5789) or after a reconstruction's closing note (RECONSTRUCTED_END; a reconstruction's opening
+    note, RECONSTRUCTED, carries no running header and so closes the expectation). A page heading and a blank line are
+    never furniture: the walks read them for their own parts."""
+    out: set[int] = set()
+    page_top = repeat = note = False
+    for at, line in enumerate(lines):
+        if PAGE_HEADING.match(line):
+            page_top, repeat = True, False
+            continue
+        if repeat:
+            out.add(at)
+            note = False
+            continue
+        if not line.strip():
+            note = False
+            continue
+        if EDITORIAL_NOTE.match(line) or (note and line.startswith(">")):
+            note = True
+            out.add(at)
+            if RECONSTRUCTED.match(line):
+                page_top = False
+            elif RECONSTRUCTED_END.match(line):
+                page_top = True
+            continue
+        note = False
+        if SCAN_REPEAT_85.match(line):
+            repeat = True
+            out.add(at)
+        elif FOLIO_85.match(line):
+            page_top = True
+            out.add(at)
+        elif page_top:
+            page_top = False
+            if running_header(line):
+                out.add(at)
+    return frozenset(out)
+
+
 @dataclasses.dataclass
 class Paragraph:
     """One paragraph of the transcription as `parse` walks it: its locator (`<section or appendix>.<number>`, or the bare
@@ -289,7 +333,6 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
     sublist, last = 1, 0
     band = ""
     page = 0
-    page_top = False
     amendment: str | None = None       # the amendment whose part is being read
     change_rows: list[tuple[str, str, str]] = []   # (document, page cell, change)
     open_change = False                # the last change row's new text follows the table row as prose
@@ -334,8 +377,7 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
     spec: str | dict | None = None  # the open block's kind as the manifest admits it (rule_kind), or None
     scan: tuple[str, str] | None = None   # (citation, title) of the paragraph the content-keyed scan reads
     scan_body: list[str] = []
-    repeat = False                 # on a page the scan prints twice (SCAN_REPEAT_85): no rule is read from it
-    in_note = False                # inside an editorial note's blockquote paragraph (EDITORIAL_NOTE)
+    furniture_at = furniture(lines)   # THE page furniture (a repeated page, an editorial note, a folio, a running header)
     met: set[str] = set()          # every adjudicated locator the transcription still has
     # ⛔ A RECONSTRUCTION IS READ AS TEXT, ITS ROWS MARKED (kb/Work PB4952): it stands where the scan lacks printed pages
     # and carries their headings and rules, so a rule continues across it as across a page break; `drawn_from` records
@@ -347,34 +389,14 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
     para: Paragraph | None = None   # the paragraph the walk is in (Catalog.paragraphs), None outside every section
     for at, line in enumerate(lines):
         if PAGE_HEADING.match(line):
-            page, page_top, repeat = int(line.split()[-1]), True, False
+            page = int(line.split()[-1])
             continue
-        if repeat or not line.strip():
-            in_note = False
+        # ⛔ A PAGE'S FURNITURE AND AN EDITORIAL NOTE ARE NOT RULE TEXT (R66, kb/Work PB4972, PB4952, PB5997): see
+        # `furniture`. A correction note flags where a correction was made and quotes the printed form, the rule's text
+        # being the corrected line above it; a reconstruction's opening and closing notes name its folios, sources and
+        # confidence.
+        if at in furniture_at or not line.strip():
             continue
-        # ⛔ AN EDITORIAL NOTE IS NOT RULE TEXT (R66, kb/Work PB4972, PB4952): `> ⚠ **CORRECTED — see the Errata (Cn).**`
-        # flags a correction where it was made and quotes the printed form, the rule's text being the corrected line above
-        # it; a reconstruction's opening and closing notes name its folios, sources and confidence.
-        if EDITORIAL_NOTE.match(line) or (in_note and line.startswith(">")):
-            in_note = True
-            if RECONSTRUCTED.match(line):
-                page_top = False           # the reconstruction is no printed page: it carries no running header
-            elif RECONSTRUCTED_END.match(line):
-                page_top = True            # the printed page resumes with its running header
-            continue
-        in_note = False
-        if SCAN_REPEAT_85.match(line):
-            repeat = True
-            continue
-        if FOLIO_85.match(line):
-            # A folio ends a printed page. It is the last line of a `## Page` but where printed pages from another scan
-            # stand inside one (cite.SOURCE, kb/Work PB5789), and the next printed page opens with its running header.
-            page_top = True
-            continue
-        if page_top:
-            page_top = False
-            if running_header(line):
-                continue
         if AMENDMENT_85.match(line):
             close_block()
             close_scan()
@@ -733,33 +755,19 @@ def _bodies(lines: list[str], rows: list[dict]) -> dict[str, list[tuple[int, str
     regions += [(f"§1989:{loc}", s, e) for loc, _t, s, e in citation.amendment_regions(lines, 1989)
                 if loc.startswith("A.")]
     bodies: dict[str, list[tuple[int, str]]] = {}
+    furniture_at = furniture(lines)
     for clause, start, end in regions:
         if clause in formats:
             continue
         body = bodies.setdefault(clause, [])
-        page_top, note, repeat = False, False, False
         for at in range(start + 1, end):
             line = lines[at]
-            if PAGE_HEADING.match(line):
-                page_top, repeat = True, False
+            if PAGE_HEADING.match(line) or at in furniture_at:
                 continue
-            if repeat:
-                continue
-            if EDITORIAL_NOTE.match(line) or (note and line.startswith(">")):
-                note = True
-                continue
-            note = False
             if not line.strip():
                 body.append((at + 1, line))
                 continue
-            if SCAN_REPEAT_85.match(line):
-                repeat = True
-                continue
-            if page_top:
-                page_top = False
-                if running_header(line):
-                    continue
-            if FOLIO_85.match(line) or ANY_HEADING.match(line):
+            if ANY_HEADING.match(line):
                 continue
             body.append((at + 1, unboxed(line)))
     return bodies

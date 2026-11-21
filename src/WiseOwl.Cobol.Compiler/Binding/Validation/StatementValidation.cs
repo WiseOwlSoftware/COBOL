@@ -814,7 +814,7 @@ internal sealed class StatementValidation(DataBinder data)
             if (data.Edition.DialectLevel < 2002) { file = hiddenFile; return true; }
             data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
                 $"{verb} '{refText}' — '{refText}' is a logical record of '{hiddenFile.CobolName}', which a containing "
-                + "program describes without the GLOBAL clause; the record's own GLOBAL clause (ISO §2023:13.18.27.3 SR1 b)) "
+                + "program describes without the GLOBAL clause; the record's own GLOBAL clause (ISO §2023:13.18.27.3 SR1b) "
                 + $"makes the record-name visible here, not the file. {containedRule}. Specify GLOBAL in the file "
                 + $"description entry of '{hiddenFile.CobolName}', or write the {verb} in the program that describes it.");
             return false;
