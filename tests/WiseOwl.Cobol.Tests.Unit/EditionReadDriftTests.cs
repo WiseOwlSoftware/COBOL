@@ -107,7 +107,7 @@ public sealed class EditionReadDriftTests
     {
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
-            "EditionInForce", "FreeGatedWord", "HeaderReadingRefused", "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedAsAName", "ReservedGatedWord",
+            "EditionInForce", "FreeGatedWord", "HeaderReadingRefused", "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedAsAName", "ReservedEntryName", "ReservedGatedWord",
             "ReservedProcedureName", "ReservedUserWordViolation", "ReservedWord", "ReservedWordHere", "UserWordViolationOf", "conditionalPhraseAssociates",
             "entryNameHere", "facilityWord",
             "gatedDeclaration", "gatedWordFreeHere", "is2002", "is2014",
@@ -182,6 +182,10 @@ public sealed class EditionReadDriftTests
         // read it as its keyword (kb/Work PB4229): whether the word is reserved at the edition decides only whether it is
         // a candidate for that report (COBOL0901). It refuses nothing the error had not refused and gates no construct.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.Report | ReservedProcedureName"] = (1, Verdict.WordStatus),
+        // ... and a syntax error inside an entry that wrote no name, where the keyword after the level-number began a clause and the
+        // entry reads whole with that word as its name (`01 CLASS PIC X.`, kb/Work PB382): whether the word is reserved at the edition
+        // decides only whether it is a candidate for that report (COBOL0901). It refuses nothing the error had not refused.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.Report | ReservedEntryName"] = (1, Verdict.WordStatus),
         // ... and the sentence that is a reservation-gated verb alone (`FREE.`) is reported at its period and skipped whole where a
         // sentence may begin, because the paragraph-header reading procedureHeaderHere refuses for it is what the prediction keeps
         // alive beside the statement's (kb/Work PB4494): whether the verb is reserved at the edition decides only where the
