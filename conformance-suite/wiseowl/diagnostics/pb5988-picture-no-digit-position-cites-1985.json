@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "'A', 'X', 'Z', '9', '*', or at least two occurrences of one of '+', '-', '$' (ISO §1985:VI.5.9.6)"}
