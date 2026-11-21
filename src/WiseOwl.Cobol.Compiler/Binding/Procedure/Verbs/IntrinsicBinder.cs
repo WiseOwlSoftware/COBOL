@@ -2001,8 +2001,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
         if (operands.Count is < 1 or > 2)
         {
-            ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name} takes argument-1 [argument-2 | LOCALE "
-                + $"[locale-name-1]] [ANYCASE] (ISO §2023:{fmt}); {operands.Count} operand argument(s) given");
+            ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name} takes "
+                + ctx.Edition.Edition.Cite("argument-1 [argument-2] (§1989:A.2.30.2)",
+                    $"argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE] (ISO §2023:{fmt})")
+                + $"; {operands.Count} operand argument(s) given");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} arity");
         }
         // ⛔ THE §2023:15.3 SCREEN IS CALLED HERE BECAUSE THIS BINDER RETURNS BEFORE THE GENERIC ONE REACHES IT
@@ -2397,8 +2399,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             + "boolean LITERAL, a based entry, a type-name, or a DATA ITEM of any class (write the expression's "
             + "result to a boolean item and take its LENGTH)", ArgumentClause(sig, "§2023:15.50.3 r1")),
         _ => InadmissibleArgument(sig,
-            $"is {WrittenForm(args[0])}, which {ArgumentClause(sig, "§2023:15.50.3 r1")} does not admit — it takes an alphanumeric, national or "
-            + "boolean literal, a based entry, a type-name, or a DATA ITEM of any class (a numeric ITEM is fine)",
+            $"is {WrittenForm(args[0])}, which {ArgumentClause(sig, "§2023:15.50.3 r1")} does not admit — it takes "
+            + ctx.Edition.Edition.Cite("a nonnumeric literal or a data item of any class or category (a numeric ITEM is fine)",
+                "an alphanumeric, national or boolean literal, a based entry, a type-name, or a DATA ITEM of any class (a numeric ITEM is fine)"),
             ArgumentClause(sig, "§2023:15.50.3 r1")),
     };
 
@@ -2522,7 +2525,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (operands.Count != 1)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid,
-                $"FUNCTION {sig.Name} takes argument-1 [PHYSICAL] ({EditionInfo.Designated((isByte ? "§2023:15.14.2" : "§2023:15.50.2"))}); {operands.Count} operand argument(s) given");
+                $"FUNCTION {sig.Name} takes "
+                + ctx.Edition.Edition.Cite("argument-1 (§1985:IV.4.3.8.3.3 SR1; §1989:A.2.19.1)",
+                    $"argument-1 [PHYSICAL] ({EditionInfo.Designated((isByte ? "§2023:15.14.2" : "§2023:15.50.2"))})")
+                + $"; {operands.Count} operand argument(s) given");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} arity");
         }
         if (typeArg is not null)
@@ -3149,8 +3155,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // diagnostics and threw at run time (§2023:4.2.2 ¶3 obliges the indication).
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentNotAValue,
                 $"the reserved phrase word '{kw.GetText()}' is written as an intrinsic-function argument, but "
-                + "this function's §15.x.2 general format takes no phrase — a phrase word is not an identifier, "
-                + "literal, or expression (ISO §2023:15.3)");
+                + ctx.Edition.Edition.Cite(
+                    "an argument \"must be an identifier, a literal, or an arithmetic expression\" (§1985:IV.4.3.8.3.3 SR1), "
+                    + "and a phrase word is none of them",
+                    "this function's §15.x.2 general format takes no phrase — a phrase word is not an identifier, "
+                    + "literal, or expression (ISO §2023:15.3)"));
             return BoundOperandError.Refused(ctx.Edition, $"intrinsic argument '{kw.GetText()}'");
         }
         if (a.nonNumericLiteral() is { } nn)

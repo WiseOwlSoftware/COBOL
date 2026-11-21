@@ -716,7 +716,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                         : $"occupies character positions {win.Offset + 1}..{win.MaxEnd}")
                     + $" of the record, but '{file.CobolName}' describes variable-length records with minimum size "
                     + $"{min} — all key data items shall be contained within the first {min} bytes "
-                    + "(ISO §2023:14.9.40.3 SR6 g); §2023:14.9.24.3 SR4 g) for MERGE)");
+                    + ctx.Edition.Edition.Cite($"({SortKeyAdmission.Clause(rules, ctx.Edition.Edition)} {SortKeyAdmission.MinimumSize(ctx.Edition.Edition)})",
+                        "(ISO §2023:14.9.40.3 SR6 g); §2023:14.9.24.3 SR4 g) for MERGE)"));
             // A numeric key carries the LEAF ITSELF, so the runtime decodes its window with the leaf's own
             // profile — the one description of its bytes (zoned digits for DISPLAY, radix-2 / BCD for
             // BINARY / PACKED, the IEEE interchange forms for the float family — kb/Work PB164 wave 2; V59).

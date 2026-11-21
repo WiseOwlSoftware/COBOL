@@ -20,5 +20,5 @@ edition and is outside the computed half). 0 hits; a theory plants each form.
 
 **Not moved, by decision:** the doc comment of `src/WiseOwl.Cobol.Listing/ListingDataMap.cs` line 86 keeps `ISO §1985:XIV.2.2`: the
 published listing JSON schema carries that comment as a description, and changing it means a schema version bump
-(`ListingJsonSchemaDriftTests`, DESIGN-listing.md section 7.3) for a comment. Thirty source lines print `ANSI §1985:` (for example
+(`ListingJsonSchemaDriftTests`, DESIGN-listing.md section 7.3) for a comment. Thirty source lines print `ANSI ` before a 1985 citation (for example
 `FileControlKeyRules.cs` rows `1985-FMT-...`): correct, and a second spelling of the same designation; left for a later sweep.

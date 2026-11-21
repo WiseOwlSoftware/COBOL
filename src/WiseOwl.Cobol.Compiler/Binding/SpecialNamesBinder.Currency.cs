@@ -119,7 +119,11 @@ public sealed partial class SpecialNamesBinder
                 value = new(k.Text, hex, k.Category is PicCategory.National ? LiteralClass.National : LiteralClass.Alphanumeric);
         }
         if (value is not null) return value;
-        Report($"CURRENCY SIGN {spelling}: {op.Name} shall be {op.Requirement} — this is {what} ({EditionInfo.Designated(op.CitationAt(Edition.Edition))})");
+        // At COBOL-85 a numeric literal-6 breaks GR11 ("The literal must be nonnumeric"); SR12 names only the figurative
+        // constant (kb/Work PB4950).
+        string rule = what == "a numeric literal" ? Edition.Edition.Cite("§1985:VI.4.5.4 GR11", op.CitationAt(Edition.Edition))
+            : op.CitationAt(Edition.Edition);
+        Report($"CURRENCY SIGN {spelling}: {op.Name} shall be {op.Requirement} — this is {what} ({EditionInfo.Designated(rule)})");
         return null;
 
         // The clause's one report: the pre-catalog COBOL0892 band of CURRENCY SIGN operand rules.
@@ -187,7 +191,7 @@ public sealed partial class SpecialNamesBinder
         if (bare.Text.Length != 1)
         {
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{bare.Text}\": without PICTURE SYMBOL the literal "
-                + "shall consist of a single character (ISO §2023:12.3.7.3 r22)");
+                + "shall consist of a single character (" + Edition.Edition.CiteRule("§1985:VI.4.5.4 GR11", "§2023:12.3.7.3 r22") + ")");
             return;
         }
         ValidateCurrencyChar(bare.Text[0], "CURRENCY SIGN literal");

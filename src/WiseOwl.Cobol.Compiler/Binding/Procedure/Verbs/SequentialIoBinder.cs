@@ -114,7 +114,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ClosePhraseOrganization,
                     $"CLOSE '{name}' with the {(o.REWIND() is not null ? "NO REWIND" : "REEL/UNIT")} phrase — "
-                    + $"the phrase may be used only with a sequential-organization file (ISO §2023:14.9.6.3 SR1)");
+                    + $"the phrase may be used only with a sequential-organization file ({ctx.Edition.Edition.CiteRule("§1985:VIII.4.2.2 and §1985:IX.4.2.2: the relative and indexed CLOSE formats print WITH LOCK alone", "§2023:14.9.6.3 SR1")})");
             }
             // The WRITTEN FORM only — the four rows of Table 14 (§2023:14.9.6.4 GR3) plus WITH LOCK. What each form
             // DOES is the runtime's Table14 lookup against the file's §2023:14.9.6.4 GR2 category; the binder no

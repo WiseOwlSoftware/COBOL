@@ -183,7 +183,7 @@ internal sealed class VersionConformancePass
     private void ReportReservedWord(ReservedWordSet reserved, string word, string message) =>
         _sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
             EditionSeverityPolicy.For(reserved.UserWordVerdictAt(word, _edition.Year), _edition),
-            "edition-reserved-word", message, "", "ISO §2023:8.9"));
+            "edition-reserved-word", message, "", _edition.CiteRule("§1985:IV.4.2.2.1.3", "§2023:8.9")));
 
     private void WalkProgram(BoundProgram? prog)
     {
@@ -3770,7 +3770,7 @@ internal sealed class VersionConformancePass
             if (CobolCharacterRepertoire.LengthInCharacters(raw) > max && (_overlongWords ??= []).Add(CobolNames.Fold(raw)))
                 _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.WordLengthExceeded.Code,
                     EditionSeverity.Error, DiagnosticCatalog.WordLengthExceeded.Id,
-                    CobolWordRule.LengthViolation(raw, _p._edition.Year)!, "", "ISO §2023:8.3.2.1"));
+                    CobolWordRule.LengthViolation(raw, _p._edition.Year)!, "", _p._edition.Cite("§1985:IV.4.2.2.1", "ISO §2023:8.3.2.1")));
             if (!CheckedTokenTypes.Contains(ctx.Start.Type) && !IsProvableUserWordPosition(ctx))
                 return base.VisitChildren(ctx);
             string word = CobolNames.UpperFold(ctx.Start.Text);

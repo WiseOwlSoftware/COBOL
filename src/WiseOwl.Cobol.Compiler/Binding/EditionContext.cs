@@ -608,6 +608,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
                 "ISO/IEC 1989 limits a numeric item to 31 digit positions (ISO §2023:13.18.40.3 SR14)"));
         else
             Error(excess, $"{what} has {digits} digit positions; COBOL-85 limits fixed-point items and "
-                + $"literals to 18 digits — 19–31 digits require --std 2002 or later (targeting COBOL-{DialectLevel})");
+                + $"literals to 18 digits — 19–31 digits require --std 2002 or later (targeting COBOL-{DialectLevel})"
+                + Edition.Cite("; the number of digit positions a PICTURE character-string describes must range from 1 to 18 inclusive (§1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a1)", ""));
     }
 }

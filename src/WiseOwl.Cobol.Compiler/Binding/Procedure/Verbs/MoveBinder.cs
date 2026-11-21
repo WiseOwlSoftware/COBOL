@@ -788,8 +788,10 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                 Table16Operand.Lenient(receiverPos, false, receiverIsView).Heading,
                 MoveTable16.CitationsOf(ctx.Edition.Edition)) is null)   // only the verdict is read: no reason is shown
             ctx.Edition.Warning(DiagnosticCatalog.MoveShapeInvalid, $"{where}: {refusal}; accepted under --permissive "
-                + (senderIsFunction ? "as the function's literal text (a NUMERIC-typed function is the Noninteger sender, ISO §2023:15.2 item 4)"
-                                    : "reading the reference-modified view as plain alphanumeric (ISO §2023:8.4.3.3.4 GR6 keeps it alphabetic)"));
+                + (senderIsFunction ? "as the function's literal text (a NUMERIC-typed function is the Noninteger sender, "
+                                      + ctx.Edition.Edition.Cite("§1989:A.2.3", "ISO §2023:15.2 item 4") + ")"
+                                    : "reading the reference-modified view as plain alphanumeric ("
+                                      + ctx.Edition.Edition.Cite("§1985:IV.4.3.8.4.4 GR5", "ISO §2023:8.4.3.3.4 GR6") + " keeps it alphabetic)"));
         else
             ctx.Edition.Error(DiagnosticCatalog.MoveShapeInvalid, $"{where}: MOVE is invalid — {refusal}"
                 + (senderIsFunction && senderPos is { Category: PicCategory.Numeric, IsNonInteger: true }

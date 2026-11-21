@@ -1569,7 +1569,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (!file.IsSortMerge) return null;
         string msg = $"{verb} may not name the sort-merge file '{file.CobolName}' — an SD file-name may "
             + "appear only in SORT/MERGE/RELEASE/RETURN ("
-            + data.Edition.Edition.CiteRule("§1985:II.2.2.2.1.1; §1985:II.2.2.2.1.2", "§2023:13.4.6.3 SR3/SR4")
+            + data.Edition.Edition.CiteRule("§1985:XI.3.2.3 SR3", "§2023:13.4.6.3 SR3/SR4")
             + (verbRule is null ? ")" : $"; {verbRule})");
         data.Edition.Error(DiagnosticCatalog.SortMergeFileInIoStatement, msg);
         return msg;

@@ -139,8 +139,10 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     binder.Edition.Error(DiagnosticCatalog.RenamesRangeContent,
                         $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromOperand.Name}{(info.ThruOperand?.Name is { } tn8 ? " THRU " + tn8 : "")}: "
                         + $"{rangeFault}; none of the items within the range, including data-name-2 and data-name-3, "
-                        + "shall be of class object, message-tag, or pointer, a variable-length data item, or an "
-                        + $"occurs-depending table ({binder.Edition.Edition.CiteRule("§1985:VI.5.11.3 SR6", "§2023:13.18.45.3 SR8")})");
+                        + binder.Edition.Edition.Cite("if specified, can be variable occurrence data items",
+                            "shall be of class object, message-tag, or pointer, a variable-length data item, or an "
+                            + "occurs-depending table")
+                        + $" ({binder.Edition.Edition.CiteRule("§1985:VI.5.11.3 SR6", "§2023:13.18.45.3 SR8")})");
                     continue;
                 }
                 // The no-THRU alias inherits the renamed item's description (§2023:13.18.45.4 GR1) — the resolver

@@ -79,7 +79,7 @@ public static partial class ConstructRegistry
                 $"{c.Display} requires COBOL-{c.IntroducedIn} (targeting COBOL-{edition.Year}) — {where} ({citation})",
             ConstructAvailability.Removed =>
                 $"{c.Display} was removed in COBOL-{c.RemovedIn} (targeting COBOL-{edition.Year}) — {where} ({citation})",
-            _ => $"{c.Display} is obsolete as of COBOL-{c.ObsoleteIn} — {where} ({citation})",
+            _ => $"{c.Display} is obsolete as of COBOL-{c.ObsoleteIn} — {where} ({citation}{edition.Cite("; §1985:I.1.5.2.3", "")})",
         };
         sink.Report(new EditionDiagnostic(verdict.Code, verdict.Severity, c.Id, message, where, citation, verdict.Flag));
     }

@@ -434,7 +434,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             if (group!.Kind != ReportGroupKindModel.Detail)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNotDetail, $"{where}: the named report group is not a "
-                    + "DETAIL group (ISO §2023:14.9.16.3 SR1)");
+                    + "DETAIL group (" + ctx.Edition.Edition.CiteRule("§1985:XIII.4.3.3 SR1", "§2023:14.9.16.3 SR1") + ")");
             // SR3's REPORT half ("the report description entry in which data-name-1 is specified ... shall contain a
             // GLOBAL clause") holds by construction — a container's non-GLOBAL report is not visible here at all,
             // so its groups resolve to nothing (§2023:13.18.27.4 GR2). The FILE half is asked here.
