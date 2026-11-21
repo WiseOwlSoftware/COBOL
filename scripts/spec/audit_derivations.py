@@ -150,9 +150,24 @@ def self_test() -> int:
                   "not-computed-anchor", "names-shape", "self-indistinguishable", "unknown-rule",
                   "has-spec-derived-test", "verdict-does-not-resolve", "determination-not-stated",
                   "a2-lists-rule", "quote-not-in-rule", "no-refuter-record", "refuter-not-upheld",
-                  "determination-not-in-register"}
+                  "determination-not-in-register", "explains-itself"}
     check("EVERY refusal code the evaluator can emit is driven by a case",
           codes == want_codes, f"missing {sorted(want_codes - codes)}, extra {sorted(codes - want_codes)}")
+
+    # ⛔ The seventh arm, `informative` (kb/Work PB6012), is ARGUED and quoted from the row's own text: its planted rows
+    # whose quotation is not in the text, whose `explains` names no rule, and whose claude: signature has no UPHELD record
+    # must each be REFUSED with that code, and the two well-formed ones must close.
+    by_rule = {c["row"]["rule-id"]: a for c, a in zip(fixture["cases"], answers) if c["row"]["rule-id"].startswith(
+        ("1985-GR-IV.3.1-8", "1985-GR-IV.4.3.7-8"))}
+    want_informative = {"1985-GR-IV.3.1-83": ["quote-not-in-rule"], "1985-GR-IV.4.3.7-84": ["unknown-rule"],
+                        "1985-GR-IV.3.1-87": ["no-refuter-record"]}
+    got_informative = {rid: by_rule.get(rid, {}).get("refusals") for rid in want_informative}
+    check("the informative arm refuses a quotation not in its text, an `explains` naming no rule, and a claude: "
+          "signature with no UPHELD refuter record",
+          got_informative == want_informative, f"got {got_informative}")
+    check("the informative arm closes a well-formed `describes` row and an UPHELD `explains` row",
+          [by_rule.get(rid, {}).get("state") for rid in ("1985-GR-IV.3.1-80", "1985-GR-IV.4.3.7-81")] == ["OK", "OK"],
+          f"got {[by_rule.get(rid) for rid in ('1985-GR-IV.3.1-80', '1985-GR-IV.4.3.7-81')]}")
 
     # ⛔ THE COMPARISON MUST BE ABLE TO FAIL. A `parity_findings` that returned [] unconditionally would satisfy
     # the first case above and measure nothing (feedback_green_gates_arent_evidence).

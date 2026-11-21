@@ -672,6 +672,43 @@ public sealed class SpecTraceabilityInventoryDriftTests
                         + "register (a section 7 item or a section 3 determination)"));
                 }
                 break;
+            case "informs":
+                // kb/Work PB6012: the row only INFORMS the reader of the standard. `describes the standard's <what>:
+                // "<quotation>"` (groups 1, 2) or `explains <rule-id>: "<quotation>"` (groups 3, 4); the quotation lies
+                // inside the row's own catalog text, and an explained rule is another rule of the row's own edition.
+                string quote = m.Groups[2].Success ? m.Groups[2].Value : m.Groups[4].Value;
+                bool hasOwn = s.Catalog.TryGetValue(r.RuleId, out var ownEntry);
+                if (m.Groups[3].Success)
+                {
+                    string explained = m.Groups[3].Value;
+                    if (string.Equals(explained, r.RuleId, StringComparison.Ordinal))
+                    {
+                        bad.Add(new("explains-itself",
+                            $"{r.RuleId}: determination '{key}': a rule cannot explain itself — `explains` names the "
+                            + "requirement another rule states"));
+                        break;
+                    }
+                    if (!s.Catalog.TryGetValue(explained, out var explainedEntry) || !hasOwn
+                        || explainedEntry.Year != ownEntry.Year)
+                    {
+                        bad.Add(new("unknown-rule",
+                            $"{r.RuleId}: determination '{key}': explains '{explained}', not a rule of the catalog of its "
+                            + "own edition"));
+                        break;
+                    }
+                }
+                if (!hasOwn)
+                {
+                    bad.Add(new("unknown-rule",
+                        $"{r.RuleId}: determination '{key}': the rule is in no held catalog"));
+                }
+                else if (!Spaced(ownEntry.Text).Contains(Spaced(quote), StringComparison.Ordinal))
+                {
+                    bad.Add(new("quote-not-in-rule",
+                        $"{r.RuleId}: determination '{key}': the quotation '{quote}' is not in the rule's text in its "
+                        + "edition's catalog"));
+                }
+                break;
             default:
                 bad.Add(new("unknown-check",
                     $"{r.RuleId}: determination '{key}': arm {entry.Arm} declares check '{arm.Check}', which "
