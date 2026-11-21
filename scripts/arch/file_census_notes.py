@@ -76,6 +76,7 @@ from collections import OrderedDict
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(REPO, "scripts", "spec"))
 import work  # noqa: E402 — named_missing_paths: the one rule that a path a note names exists
+import work_editions  # noqa: E402 — a filed note declares the editions it blocks (kb/Work PB5995)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 NOTES_DIR = os.path.join(REPO, "kb", "Work")
@@ -558,6 +559,7 @@ def file_notes(findings_path, id_pool, notes_dir, dry_run, targets=None, rerende
         path = os.path.join(notes_dir, nid + ".md")
         if os.path.exists(path):
             raise SystemExit("refusing to overwrite " + path)
+        text = work_editions.seeded(text)
         if not dry_run:
             with open(path, "w", encoding="utf-8", newline="\n") as fh:
                 fh.write(text)
@@ -583,6 +585,8 @@ def file_notes(findings_path, id_pool, notes_dir, dry_run, targets=None, rerende
             path = os.path.join(notes_dir, nid + ".md")
             with open(path, encoding="utf-8", newline="") as fh:
                 have = fh.read().replace("\r\n", "\n")
+            # a re-render keeps the value the note declares (a recorded judgment may have narrowed its seed)
+            text = work_editions.seeded(text, work.declared_editions(work.parse_frontmatter(have) or {}))
             if have.rstrip("\n") != text.rstrip("\n"):
                 if not dry_run:
                     with open(path, "w", encoding="utf-8", newline="\n") as fh:
@@ -816,6 +820,7 @@ def file_r2(collected_path, id_pool, notes_dir, dry_run, path_root=REPO, areas=N
     written = []
     for r, nid in zip(todo, id_pool):
         text, title = render_r2(r, nid, rep["pin"], areas)
+        text = work_editions.seeded(text)
         path = os.path.join(notes_dir, nid + ".md")
         if os.path.exists(path):
             raise SystemExit("refusing to overwrite " + path)
@@ -946,8 +951,8 @@ def self_test():
         assert sorted(os.listdir(nd)) == ["PB9001.md", "PB9002.md", "PB9003.md"]
         with open(os.path.join(nd, "PB9001.md"), encoding="utf-8", newline="") as fh:
             text = fh.read().replace("\r\n", "\n")
-        expect_tail = frontmatter("PB9001 — Delete: 1 dead root-file artifact(s) in (repository root) "
-                                  "(census R0-9001 at abcdef012)", "PB9001")
+        expect_tail = work_editions.seeded(frontmatter("PB9001 — Delete: 1 dead root-file artifact(s) in (repository root) "
+                                                       "(census R0-9001 at abcdef012)", "PB9001"))
         assert text.startswith(expect_tail), text[:900]
         assert "census_ids: R0-9001" in text and "**Target:** delete it" in text
 

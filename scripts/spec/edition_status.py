@@ -10,13 +10,12 @@ It measures four parts and prints a verdict line. An edition is COMPLETE only wh
      untyped rule-shaped headings), whose rules have no row yet; the verdict names them beside the GAP (`Part.shown`).
   2. CODE READS: the rows owed a read, owed a re-read, contradicted or undecided (`code_reads`, `code_read_store`). The
      newest held edition has no store (its rows carry their own verdicts): that is said, and it counts 0.
-  3. OPEN WORK NOTES that touch the edition: every note of the register whose status is not terminal and whose text,
-     frontmatter AND body with its addenda, matches the edition's patterns (`EDITION_PATTERNS`, one table), by
-     `work.load`, the one reader of the register. Each is HARM (a harm flag set, not process_only), else QUESTION (kind
-     analysis, adjudication or decision), else TOOLING (process_only), else OTHER; the first test that fits decides.
-     The patterns over-count by design (a note that only mentions the edition is counted): an under-count is a false
-     COMPLETE (review R1-1). Reading text is the interim; the structural fix is a declared `editions:` field (kb/Work
-     PB5995).
+  3. OPEN WORK NOTES that block the edition: every note of the register whose status is not terminal and whose
+     declared `editions:` field names it (`work.declared_editions`, the field's one reader; what the field means and its
+     check are `work_editions.py`, kb/Work PB5995), by `work.load`, the one reader of the register. Each is HARM (a harm
+     flag set, not process_only), else QUESTION (kind analysis, adjudication or decision), else TOOLING (process_only),
+     else OTHER; the first test that fits decides. A non-terminal note that declares no editions makes the part NOT
+     MEASURED, naming it: a note the measure cannot place is never read as blocking nothing (a false COMPLETE).
   4. CATALOG PROSE HOLES: the printed paragraphs of the transcription's normative region in no catalog row at or under
      their locator, none discounted until kb/Work PB5452 records dispositions, with the deontic sentences among them as a
      labelled floor (`catalog_prose_holes`, kb/Work PB479's measure; measured for 1985 only).
@@ -31,7 +30,6 @@ import argparse
 import dataclasses
 import json
 import pathlib
-import re
 import sys
 from typing import Callable
 
@@ -45,19 +43,6 @@ import inventory_view  # noqa: E402  (each edition's rows and `gaps`)
 import work  # noqa: E402  (THE reader of the register)
 from standard_streams import ensure_utf8  # noqa: E402
 
-EDITIONS = (1985, 2002, 2014, 2023)
-
-#: What in a note's text (frontmatter and body) says it touches an edition: one row per edition, each a regular expression.
-#: A year not inside a longer word (`PB2014` is a note id, never the edition) names 1985, 2002 and 2014, whose years carry
-#: no other meaning in the register; 2023's year does (ISO/IEC 1989:2023 is the standard the whole register cites), so
-#: 2023 is named only by a citation, a `--std` spelling or a 2023 rule id (unprefixed, `GR-14.9.1-3`). 1985 is also
-#: named by Amendment 1's citations (`§1989:`) and the standard's number (`X3.23`).
-EDITION_PATTERNS: dict[int, tuple[str, ...]] = {
-    1985: (r"(?<!\w)1985(?!\d)", r"\bstd[ =-]?85\b", r"§1989:", r"\bX3\.23"),
-    2002: (r"(?<!\w)2002(?!\d)", r"\bstd[ =-]?(?:2002|02)\b"),
-    2014: (r"(?<!\w)2014(?!\d)", r"\bstd[ =-]?(?:2014|14)\b"),
-    2023: (r"§2023:", r"\bstd[ =-]?(?:2023|23)\b", r"(?<![\w-])(?:SR|GR|AR|RV|FMT|DOC)-[A-Z]?\d+(?:\.\d+)*-\d"),
-}
 CATEGORIES = ("HARM", "QUESTION", "TOOLING", "OTHER")
 QUESTION_KINDS = ("analysis", "adjudication", "decision")
 
@@ -143,13 +128,6 @@ def code_reads_part(year: int) -> Part:
                       "contradicted": contradicted, "undecided": undecided, "stale": by[store.STALE]})
 
 
-def touches(it: dict, year: int) -> bool:
-    """Whether the text of note `it` matches `EDITION_PATTERNS`: its frontmatter (every value but the reader's own `_`
-    keys) and its body with its addenda (`_body`, as `work.load` folds them)."""
-    text = "\n".join(f"{k}: {v}" for k, v in it.items() if not k.startswith("_")) + "\n" + str(it.get("_body", ""))
-    return any(re.search(p, text, re.IGNORECASE) for p in EDITION_PATTERNS[year])
-
-
 def categorize(it: dict) -> str:
     """The category of an open note (module docstring); the first test that fits decides."""
     if not it.get("process_only") and any(it.get(f) for f in work.HARM_FLAGS):
@@ -161,9 +139,19 @@ def categorize(it: dict) -> str:
 
 def work_part(year: int, work_dir: pathlib.Path = work.WORK) -> Part:
     by: dict[str, list[str]] = {c: [] for c in CATEGORIES}
+    undeclared: list[str] = []
     for it in work.load(work_dir):
-        if it.get("status") not in work.TERMINAL_STATUSES and touches(it, year):
+        if it.get("status") in work.TERMINAL_STATUSES:
+            continue
+        eds = work.declared_editions(it)
+        if eds is None:
+            undeclared.append(it["id"])
+        elif year in eds:
             by[categorize(it)].append(it["id"])
+    if undeclared:
+        ids = sorted(undeclared, key=work.id_order)
+        return unmeasured("open work notes", f"{len(ids)} non-terminal note(s) declare no editions (kb/Work PB5995; "
+                          f"python scripts/spec/work.py check): {' '.join(ids[:10])}{' ...' if len(ids) > 10 else ''}")
     total = sum(len(v) for v in by.values())
     lines = tuple(f"{c} {len(ids)}: {' '.join(sorted(ids, key=work.id_order))}" for c, ids in by.items() if ids)
     return Part("open work notes", total, lines=lines or ("none",), data={c: sorted(v, key=work.id_order) for c, v in by.items()})
@@ -218,7 +206,7 @@ def as_doc(year: int, parts: list[Part]) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Is edition N complete? Four measured parts and a verdict (kb/Work PB5924).")
-    ap.add_argument("--edition", type=int, required=True, choices=EDITIONS)
+    ap.add_argument("--edition", type=int, required=True, choices=work.EDITIONS)
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
     parts = status(a.edition)

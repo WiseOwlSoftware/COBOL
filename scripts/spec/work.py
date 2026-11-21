@@ -28,6 +28,8 @@ discarded. The views of the register are the subcommands below (kb/Work PB3799);
     python scripts/spec/work.py analyses   # every analysis note;  landed: finished defects and the rows each closed
     python scripts/spec/work.py upstream   # records of another project's defects (every view takes --json and --top N)
     python scripts/spec/work.py stats      # counts by kind/status/harm
+    python scripts/spec/work.py backfill-editions [--write]             # seed `editions:` where a non-terminal note lacks it
+    python scripts/spec/work.py set-editions --from <file.json> [--write]  # a recorded judgment: the value and its reason
     python scripts/spec/work.py --self-test   # the frontmatter reader against tests/version-matrix/work-frontmatter-cases.json
 
 ⭐ `inventory_rows:` — THE BACK-LINK TO THE P14 TRACEABILITY INVENTORY, and the register's newest field
@@ -54,6 +56,14 @@ closed no row says so with `closes_rows: []` **and** a `closes_rows_reason:`; si
 replaced. The spelling is `closes_rows`, not the decision's `closes-rows`: every multiword key in this
 frontmatter is snake_case, so no key needs quoting in any reader. Checked against the inventory by `work_inventory.py` (the
 landed-note and the closed-row halves); the SHAPE half is :func:`closes_rows_shape` here.
+
+⭐ `editions:` — THE EDITIONS WHOSE COMPLETION A NOTE BLOCKS (kb/Work PB5995). A defect names the `--std` values at
+which the wrong behaviour occurs; a tooling, analysis or decision note names the editions whose inventory, catalog,
+reads or status it must change before that edition can be called complete; `[]` is a note no edition's completion waits
+on. `check` refuses a non-terminal note without it, a value outside `EDITIONS`, and an open note that cites an
+edition's text (`§1985:` ...) without declaring it unless a recorded judgment (`set-editions`) says why. The meaning,
+the check, the seed and the narrowing are `work_editions.py`; `declared_editions` here is the field's one reader, and
+`edition_status.py` part 3 reads nothing else.
 
 ⭐ `kind: upstream` — A RECORD OF ANOTHER PROJECT'S DEFECT (kb/Work PB3838), the register's newest kind. GnuCOBOL's
 departures from ISO and its defects, found by our differentials, are kept as notes carrying a minimal repro, the exact
@@ -102,7 +112,26 @@ STATUSES = {"open", "half", "landed", "owner", "blocked", "retired"}
 #: self-test holds the fixture to it: :func:`reading_view` reports `terminal`, and :func:`self_test` refuses a fixture
 #: that leaves any status of STATUSES without a case, so a status added here reaches the reader's answers.
 TERMINAL_STATUSES = ("landed", "retired")
-HARM = {"wrong-answer", "crashes", "silent", "rejects-legal-source", "under-rejects", "process"}
+#: THE EDITIONS of the mission (D13), the one vocabulary of a note's `editions:` field (kb/Work PB5995, `work_editions.py`
+#: holds what the field means and its check) and of every reader that measures an edition (`edition_status.py`).
+EDITIONS = (1985, 2002, 2014, 2023)
+
+
+def declared_editions(it: dict) -> frozenset[int] | None:
+    """THE ONE READER of a note's `editions:` field (kb/Work PB5995): the editions it declares, or None when the note
+    declares none or a value that is not a list of `EDITIONS` (which `work.py check` refuses). None is never an empty
+    set: a reader that meets it reports the note, never counts it as touching no edition."""
+    v = it.get("editions")
+    if not isinstance(v, list):
+        return None
+    try:
+        eds = frozenset(int(x) for x in v)
+    except ValueError:
+        return None
+    return eds if eds <= set(EDITIONS) else None
+
+
+HARM ={"wrong-answer", "crashes", "silent", "rejects-legal-source", "under-rejects", "process"}
 
 PB_HEAD = re.compile(
     r"^### (?P<id>PB\d+)\s*·\s*\[(?P<sev>[A-Z]+)\]\s*·\s*(?P<area>[^·]+?)\s*·\s*(?P<rest>.*)$", re.M)
@@ -562,7 +591,7 @@ UPSTREAM_STATUSES = ("unreported", "reported", "fixed-upstream", "declined", "du
 UPSTREAM_DONE = ("fixed-upstream", "declined", "duplicate", "withdrawn")
 #: The upstream states that never reached the other project, so a record in one carries no `upstream_ref`.
 UPSTREAM_UNFILED = ("unreported", "withdrawn")
-UPSTREAM_EDITIONS = ("1985", "2002", "2014", "2023")
+UPSTREAM_EDITIONS = tuple(str(y) for y in EDITIONS)
 #: The edition whose behaviour only the newest standard requires: a request for a feature, never a bug against a release
 #: that claims an older `-std` (PB3838, item 4 of the bar).
 UPSTREAM_FEATURE_EDITION = "2023"
@@ -790,6 +819,9 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
         bad += frontier_model_shape(it)
         bad += process_only_problems(it)
         bad += upstream_problems(it)
+    import work_editions  # noqa: PLC0415  (this directory's; it imports this module)
+
+    bad += work_editions.problems(items)
     bad += topology_problems(items)
     bad += running_limit_problems(items)
     bad += sites_problems(items)
@@ -2027,7 +2059,7 @@ def _upstream_fixture(**changes: str | None) -> str:
     fm = {"id": "PB9100", "kind": "upstream", "status": "open", "area": "tooling/upstream", "wrong_answer": "true",
           "process_only": "true", "spec_refs": '["14.9.25"]', "upstream_project": "GnuCOBOL", "upstream_version": "3.2.0",
           "upstream_class": "wrong-output", "upstream_status": "unreported", "upstream_edition": "2014",
-          "upstream_ref": "", "cluster": "[]", "blocked_by": "[]", "inventory_rows": "[]"}
+          "upstream_ref": "", "cluster": "[]", "blocked_by": "[]", "inventory_rows": "[]", "editions": "[]"}
     fm = {k: v for k, v in {**fm, **{k: v for k, v in changes.items() if not k.startswith("section_")}}.items()
           if v is not None}
     lines = ["---", *(f"{k}: {v}" for k, v in fm.items()), "---", "", "# PB9100 — a record", ""]
@@ -2478,10 +2510,17 @@ def self_test() -> int:
     return 0
 
 
+#: The commands that write a note's `editions:` field (kb/Work PB5995; `work_editions.py`).
+EDITIONS_COMMANDS = ("backfill-editions", "set-editions")
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", nargs="?", choices=["migrate", "check", "next", "stats", *VIEWS])
+    ap =argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("cmd", nargs="?", choices=["migrate", "check", "next", "stats", *EDITIONS_COMMANDS, *VIEWS])
     ap.add_argument("--self-test", action="store_true", help="the frontmatter reader against its cases")
+    ap.add_argument("--write", action="store_true", help="backfill-editions, set-editions: write (default: print only)")
+    ap.add_argument("--from", dest="source", metavar="FILE", help="set-editions: the JSON records "
+                    '[{"id": "PB1", "editions": [2002], "reason": "<one sentence>"}]')
     ap.add_argument("--top", type=int, default=None, help="next: how many to name (default 3); a view: list only the first N")
     ap.add_argument("--json", action="store_true", help="emit one machine-readable JSON line (next --cluster, and every view)")
     ap.add_argument("--work", default=str(WORK), help="the register directory (default kb/Work; a test seam)")
@@ -2496,6 +2535,14 @@ def main() -> int:
         return migrate()
     if a.cmd == "check":
         return check(pathlib.Path(a.work))
+    if a.cmd in EDITIONS_COMMANDS:
+        import work_editions  # noqa: PLC0415  (this directory's; it imports this module)
+
+        if a.cmd == "backfill-editions":
+            return work_editions.backfill(pathlib.Path(a.work), a.write)
+        if not a.source:
+            ap.error("set-editions takes --from <file.json>")
+        return work_editions.set_editions(pathlib.Path(a.work), pathlib.Path(a.source), a.write)
     if a.cluster and a.cmd != "next":
         ap.error("--cluster goes with next")
     items = load(pathlib.Path(a.work))

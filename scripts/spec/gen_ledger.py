@@ -22,7 +22,7 @@ the normative text with no catalog row. So the page is now, in this order:
 
 ⛔ ONE MEASURE, ONE FUNCTION (PB5994 decision 1). Everything the page says about an edition is `edition_status.py`'s:
 `edition_status.status` gives the parts and `edition_status.verdict` the verdict, and this file computes nothing about an
-edition a second way. Which edition a note or a branch belongs to is `edition_status.touches`, the one pattern table. A
+edition a second way. Which editions a note blocks is its declared `editions:` field (`work.declared_editions`, kb/Work PB5995), and a branch's are its notes'. A
 part `edition_status` cannot measure is shown as not measured, and the edition is NOT COMPLETE.
 
 ⛔ NO FIGURE WITHOUT ITS INPUT (PB5994 decision 2, 3). The work in flight is `prune_worktrees.live_survey` (the branch
@@ -153,22 +153,23 @@ def measure_edition(year: int, sources: edition_status.Sources = edition_status.
     return Edition(year, tuple(parts), complete, line)
 
 
-def note_editions(items: list[dict]) -> dict[str, frozenset[int]]:
-    """Every note's editions, by `edition_status.touches` (the one pattern table)."""
-    return {it["id"]: frozenset(y for y in ORDER if edition_status.touches(it, y)) for it in items}
+def note_editions(items: list[dict]) -> dict[str, frozenset[int] | None]:
+    """Every note's declared editions (`work.declared_editions`; None for a note that declares none: a terminal note
+    closed before the field existed, which `landings` counts apart, never as touching no edition)."""
+    return {it["id"]: work.declared_editions(it) for it in items}
 
 
-def branch_of(name: str, state: str, why: str, lead: str | None, editions_of: dict[str, frozenset[int]]) -> Branch:
-    """A survey row as the page shows it: the notes its report's lead and its name carry, and the editions of those
-    notes and of its name (`edition_status.touches` on the name: `group-1985-fixes-2`)."""
+def branch_of(name: str, state: str, why: str, lead: str | None, editions_of: dict[str, frozenset[int] | None]) -> Branch:
+    """A survey row as the page shows it: the notes its report's lead and its name carry, and the editions those notes
+    declare (a branch's name is no declaration: kb/Work PB5995)."""
     notes = tuple(dict.fromkeys([*([lead] if lead else []), *(f"PB{n}" for n in BRANCH_NOTE.findall(name))]))
-    eds = {y for y in ORDER if edition_status.touches({"title": name}, y)}
+    eds: set[int] = set()
     for n in notes:
-        eds |= editions_of.get(n, frozenset())
+        eds |= editions_of.get(n) or frozenset()
     return Branch(name, state, why, notes, frozenset(eds))
 
 
-def measure_flight(editions_of: dict[str, frozenset[int]]) -> tuple[Branch, ...] | Unmeasured:
+def measure_flight(editions_of: dict[str, frozenset[int] | None]) -> tuple[Branch, ...] | Unmeasured:
     """Every branch the survey does not read as LANDED (`prune_worktrees.live_survey`, after the fetch its own main
     makes), or UNMEASURED with the reason the survey could not run."""
     import prune_worktrees  # noqa: PLC0415  (the branch survey: git, the reports, GitHub; only a write render reads it)
@@ -180,7 +181,7 @@ def measure_flight(editions_of: dict[str, frozenset[int]]) -> tuple[Branch, ...]
     return in_flight(rows, editions_of)
 
 
-def in_flight(rows, editions_of: dict[str, frozenset[int]]) -> tuple[Branch, ...]:
+def in_flight(rows, editions_of: dict[str, frozenset[int] | None]) -> tuple[Branch, ...]:
     """The survey's rows (`prune_worktrees.Row`) whose work is not on main, as the page shows them."""
     return tuple(branch_of(r.name, r.state, r.why, r.report.lead if r.report else None, editions_of)
                  for r in rows if r.state != "LANDED")
@@ -203,12 +204,21 @@ LANDING = "LANDING "
 ADDED_STATUS = re.compile(r"^\+status:\s*(\S+)")
 
 
-def landings(log: str, editions_of: dict[str, frozenset[int]]) -> dict:
+def landings(log: str, editions_of: dict[str, frozenset[int] | None]) -> dict:
     """What the landings `log` lists did to the register (`git log --first-parent -m --merges -p -U0 --format=LANDING %h --
     kb/Work`): per edition, the notes FILED (a new note file) and CLOSED (its `status:` set to one of
-    `work.TERMINAL_STATUSES`) by them; {filed: {year: n}, closed: {year: n}}."""
+    `work.TERMINAL_STATUSES`) by them; {filed: {year: n}, closed: {year: n}, undeclared: {filed: n, closed: n}}: a note
+    that declares no editions (`note_editions`) is counted apart, never as no edition."""
     filed: collections.Counter[int] = collections.Counter()
     closed: collections.Counter[int] = collections.Counter()
+    undeclared: collections.Counter[str] = collections.Counter()
+
+    def count(into: collections.Counter, what: str, nid: str) -> None:
+        eds = editions_of.get(nid)
+        if eds is None:
+            undeclared[what] += 1
+        else:
+            into.update(eds)
     note, new = None, False
     for line in log.splitlines():
         if line.startswith(LANDING):
@@ -218,13 +228,14 @@ def landings(log: str, editions_of: dict[str, frozenset[int]]) -> dict:
         elif line.startswith("+++ "):
             note = m.group(1) if (m := NOTE_FILE.match(line)) is not None else None
             if note and new:
-                filed.update(editions_of.get(note, frozenset()))
+                count(filed, "filed", note)
         elif note and (m := ADDED_STATUS.match(line)) is not None and m.group(1) in work.TERMINAL_STATUSES:
-            closed.update(editions_of.get(note, frozenset()))
-    return {"filed": {y: filed[y] for y in ORDER}, "closed": {y: closed[y] for y in ORDER}}
+            count(closed, "closed", note)
+    return {"filed": {y: filed[y] for y in ORDER}, "closed": {y: closed[y] for y in ORDER},
+            "undeclared": {k: undeclared[k] for k in ("filed", "closed")}}
 
 
-def measure_landings(editions_of: dict[str, frozenset[int]], days: int = WINDOW_DAYS) -> dict | Unmeasured:
+def measure_landings(editions_of: dict[str, frozenset[int] | None], days: int = WINDOW_DAYS) -> dict | Unmeasured:
     """The landings on origin/main's first-parent line over the last `days` days (each a merge of the merge queue), and
     the notes of each edition they filed and closed."""
     since = f"--since={days}.days.ago"
@@ -370,9 +381,13 @@ def pacing_html(budget: dict | Unmeasured, land: dict | Unmeasured) -> str:
     else:
         rows = "".join(f'<tr><td>{y}</td><td class="r num">{land["filed"][y]}</td><td class="r num">{land["closed"][y]}</td>'
                        f'<td class="r num">{land["closed"][y] - land["filed"][y]:+d}</td></tr>' for y in ORDER)
+        und = land["undeclared"]
+        if und["filed"] or und["closed"]:
+            rows += (f'<tr><td>no editions declared</td><td class="r num">{und["filed"]}</td><td class="r num">'
+                     f'{und["closed"]}</td><td class="r num">{und["closed"] - und["filed"]:+d}</td></tr>')
         thru = (f"<p>Landings on origin/main over the last {land['days']} days: <strong>{land['total']}</strong> "
                 f"({land['total'] / land['days']:.1f} a day). The notes of each edition those landings filed and closed "
-                "(a note counts for every edition it touches):</p>"
+                "(a note counts for every edition it declares; one closed before the field existed is counted apart):</p>"
                 '<div class="tablecard"><table><thead><tr><th>Edition</th><th class="r">Notes filed</th>'
                 f'<th class="r">Notes closed</th><th class="r">Net</th></tr></thead><tbody>{rows}</tbody></table></div>'
                 "<p>No completion date is estimated: the open notes are no measured unit of work, and an edition that "
