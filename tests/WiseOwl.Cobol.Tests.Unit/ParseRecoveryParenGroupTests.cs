@@ -48,7 +48,7 @@ public sealed class ParseRecoveryParenGroupTests
             string src = Path.Combine(dir, "prpg.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "prpg.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "prpg.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             Assert.False(r.Success, "the source holds one syntax error and must be rejected");
             return r.Errors;
         }

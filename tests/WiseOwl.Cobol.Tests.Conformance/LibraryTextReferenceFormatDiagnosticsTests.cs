@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using WiseOwl.Cobol.Frontend.Preprocessor;
 
 namespace WiseOwl.Cobol.Tests.Conformance;
 
@@ -33,7 +34,7 @@ public sealed class LibraryTextReferenceFormatDiagnosticsTests
     public void UnseparatedFloatingComment_InACopybook_IsDiagnosed_AtTheCopybooksOwnFile(string library)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Program, 2023,
-            copybooks: new Dictionary<string, string> { ["BK1.cpy"] = library });
+            copybooks: new Dictionary<string, string> { ["BK1.cpy"] = library }, format: InitialReferenceFormat.Fixed);
         Assert.False(ok, "the copybook breaks §2023:6.2.3.2 SR2");
         string error = Assert.Single(errors, e => e.Contains("COBOL2495"));
         Assert.Contains("BK1.cpy", error, StringComparison.OrdinalIgnoreCase);   // sited at the copybook, not at the COPY statement of the main source
@@ -45,7 +46,7 @@ public sealed class LibraryTextReferenceFormatDiagnosticsTests
         const string hyphen = "           MOVE 1 TO N\n      -    .\n";
         string main = Program.Replace("           COPY BK1.\n", hyphen + "           COPY BK1.\n");
         var (ok, _, warnings) = EditionHarness.CompileFull(main, 2023,
-            copybooks: new Dictionary<string, string> { ["BK1.cpy"] = hyphen });
+            copybooks: new Dictionary<string, string> { ["BK1.cpy"] = hyphen }, format: InitialReferenceFormat.Fixed);
         Assert.True(ok);
         Assert.Single(warnings, w => w.Contains("COBOL0903"));
     }
@@ -54,7 +55,7 @@ public sealed class LibraryTextReferenceFormatDiagnosticsTests
     public void ObsoleteContinuationIndicator_FirstUsedInACopybook_IsSitedAtTheCopybook()
     {
         var (ok, _, warnings) = EditionHarness.CompileFull(Program, 2023,
-            copybooks: new Dictionary<string, string> { ["BK1.cpy"] = "           MOVE 1 TO N\n      -    .\n" });
+            copybooks: new Dictionary<string, string> { ["BK1.cpy"] = "           MOVE 1 TO N\n      -    .\n" }, format: InitialReferenceFormat.Fixed);
         Assert.True(ok);
         string warning = Assert.Single(warnings, w => w.Contains("COBOL0903"));
         Assert.Contains("BK1.cpy", warning, StringComparison.OrdinalIgnoreCase);

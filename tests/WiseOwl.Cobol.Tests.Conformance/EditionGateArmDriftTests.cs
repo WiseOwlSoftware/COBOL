@@ -256,7 +256,7 @@ public sealed class EditionGateArmDriftTests
         var c = VersionMatrixCatalogue.ById[constructId];
         string mutant = BreakOperands(c.Source)!;
 
-        var (ok, diagnostics) = EditionHarness.Compile(mutant, edition);
+        var (ok, diagnostics) = EditionHarness.Compile(mutant, edition, format: c.SourceFormat);
         Assert.False(ok, $"[{constructId}] every name it references is undefined and it compiled at COBOL-{edition}");
 
         string code = VersionMatrixCatalogue.ExpectedRejection(c, edition)!;
@@ -283,7 +283,7 @@ public sealed class EditionGateArmDriftTests
         {
             string id = (string)row[0];
             var (_, diagnostics) = EditionHarness.Compile(
-                BreakOperands(VersionMatrixCatalogue.ById[id].Source)!, (int)row[1]);
+                BreakOperands(VersionMatrixCatalogue.ById[id].Source)!, (int)row[1], format: VersionMatrixCatalogue.ById[id].SourceFormat);
             (diagnostics.Any(d => d.Contains("COBOL1639", StringComparison.Ordinal)) ? reached : missed).Add(id);
         }
 

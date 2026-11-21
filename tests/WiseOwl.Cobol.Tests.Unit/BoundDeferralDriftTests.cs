@@ -261,7 +261,7 @@ SKIPPER.
             string src = Path.Combine(dir, "pb909.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb909.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "pb909.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return (r.Success, r.Errors, r.Warnings);
         }
         finally { ScratchDirectory.Remove(dir); }

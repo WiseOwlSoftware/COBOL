@@ -41,7 +41,7 @@ public sealed class NationalStorageFormTests
         try
         {
             var diags = new DiagnosticBag();
-            var frontend = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2002 };
+            var frontend = new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = 2002 };
             var tree = frontend.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             Assert.NotNull(tree);

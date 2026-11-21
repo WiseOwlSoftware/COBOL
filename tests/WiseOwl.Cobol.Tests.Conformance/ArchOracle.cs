@@ -192,7 +192,7 @@ public static class ArchOracle
         var c = VersionMatrixCatalogue.ById[id];
         yield return new($"matrix/{id}@{edition}{(permissive ? "+permissive" : "")}",
             $"matrix/{edition}{(permissive ? "+permissive" : "")}",
-            () => EditionHarness.CompileStaged(c.Source, edition, permissive, c.Copybooks, flagExtensions: false, Observe));
+            () => EditionHarness.CompileStaged(c.Source, edition, permissive, c.Copybooks, flagExtensions: false, Observe, c.SourceFormat));
     }
 
     // ── observation ─────────────────────────────────────────────────────────────────────────────────────────────

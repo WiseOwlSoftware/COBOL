@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Binding.Procedure;
 using WiseOwl.Cobol.Runtime;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -50,7 +51,7 @@ public sealed class WhenCompiledStampTests : WiseOwlCobolTestBase
     /// (§2023:7.3.17.3 SR1); a caller writing one passes <see cref="InitialReferenceFormat.Free"/> so it may start in
     /// column 1 — free form is selectable at every edition.</summary>
     private string CompileUnderClock(string programId, DateTimeOffset clock, string directiveLine = "",
-        int dialectLevel = 2023, InitialReferenceFormat format = InitialReferenceFormat.Auto)
+        int dialectLevel = 2023, InitialReferenceFormat format = TestSourceFormat.Inline)
     {
         string srcPath = Path.Combine(TempDir, programId + ".cob");
         string source = WcSource.Replace("{0}", programId);
@@ -109,10 +110,10 @@ public sealed class WhenCompiledStampTests : WiseOwlCobolTestBase
         string dir2 = Directory.CreateDirectory(Path.Combine(TempDir, "d2")).FullName;
 
         var r1 = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, OutputPath: Path.Combine(dir1, "out.dll"), DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Auto));
+            srcPath, OutputPath: Path.Combine(dir1, "out.dll"), DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
         Assert.True(r1.Success, string.Join("\n", r1.Errors));
         var r2 = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, OutputPath: Path.Combine(dir2, "out.dll"), DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Auto));
+            srcPath, OutputPath: Path.Combine(dir2, "out.dll"), DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
         Assert.True(r2.Success, string.Join("\n", r2.Errors));
 
         Assert.Equal(

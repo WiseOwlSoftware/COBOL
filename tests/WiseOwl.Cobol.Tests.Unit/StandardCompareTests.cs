@@ -268,7 +268,7 @@ public sealed class StandardCompareTests
                 + "       MAIN.\n" + body
                 + "           STOP RUN.\n");
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "sc.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "sc.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return (r.Success, r.Errors, r.Warnings);
         }
         finally { ScratchDirectory.Remove(dir); }

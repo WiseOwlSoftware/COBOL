@@ -233,7 +233,7 @@ public sealed class GroupValueAreaStorageFormDriftTests : WiseOwlCobolTestBase
         try
         {
             var diags = new DiagnosticBag();
-            var frontend = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = edition };
+            var frontend = new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = edition };
             var tree = frontend.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var bound = new BinderDriver().Bind(tree!, new EditionContext(edition, permissive: false), frontend.Directives);

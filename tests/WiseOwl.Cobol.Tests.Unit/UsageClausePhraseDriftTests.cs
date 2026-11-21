@@ -525,7 +525,7 @@ public sealed class UsageClausePhraseDriftTests : WiseOwlCobolTestBase
         string id = ProgramId(tag, dialect);
         string src = Path.Combine(TempDir, $"{id}.cob");
         File.WriteAllText(src, source(id));
-        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: dialect, SourceFormat: InitialReferenceFormat.Auto));
+        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: dialect, SourceFormat: TestSourceFormat.Inline));
         return [.. r.Errors, .. r.Warnings];
     }
 }

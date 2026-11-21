@@ -23,11 +23,12 @@ public static class EditionHarness
     /// (P2.7): returns success plus BOTH channels — the failing errors and the non-failing warnings (permissive
     /// removals, 0903 flags). <paramref name="copybooks"/> (file name → library text), when given, is staged beside
     /// the program and that directory is named as a <c>--copy</c> search path, as a user names theirs (the default
-    /// COBOL library never includes the source file's own directory — DOC-A.1-40, kb/Work PB1355).</summary>
+    /// COBOL library never includes the source file's own directory — DOC-A.1-40, kb/Work PB1355). <paramref name="format"/>
+    /// is the reference format the text is written in (<see cref="TestSourceFormat"/>: free form unless the test says fixed).</summary>
     public static (bool Ok, IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings) CompileFull(
         string source, int edition, bool permissive = false, IReadOnlyDictionary<string, string>? copybooks = null,
-        bool flagExtensions = false) =>
-        CompileStaged(source, edition, permissive, copybooks, flagExtensions, static (_, r) => Outcome(r));
+        bool flagExtensions = false, InitialReferenceFormat format = TestSourceFormat.Inline) =>
+        CompileStaged(source, edition, permissive, copybooks, flagExtensions, static (_, r) => Outcome(r), format);
 
     /// <summary>
     /// THE staging-and-compile path every source-text compile of this harness takes: stage
@@ -38,7 +39,7 @@ public static class EditionHarness
     /// </summary>
     internal static T CompileStaged<T>(string source, int edition, bool permissive,
         IReadOnlyDictionary<string, string>? copybooks, bool flagExtensions,
-        Func<string, CompilerDriver.Result, T> observe)
+        Func<string, CompilerDriver.Result, T> observe, InitialReferenceFormat format = TestSourceFormat.Inline)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_Ed_");
         try
@@ -48,7 +49,7 @@ public static class EditionHarness
                 copybooks?.ToDictionary(c => c.Key, c => Encoding.UTF8.GetBytes(c.Value), StringComparer.Ordinal));
             var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "prog.dll"), DialectLevel: edition, Permissive: permissive,
-                CopyPaths: copybooks is null ? null : [Path.GetDirectoryName(src)!], SourceFormat: InitialReferenceFormat.Auto,
+                CopyPaths: copybooks is null ? null : [Path.GetDirectoryName(src)!], SourceFormat: format,
                 FlagExtensions: flagExtensions));
             return observe(dir, r);
         }
@@ -64,9 +65,9 @@ public static class EditionHarness
     /// <summary>Compile <paramref name="source"/> targeting <paramref name="edition"/> (strict); returns success
     /// and the diagnostics (empty on success). Delegates to <see cref="CompileFull"/>.</summary>
     public static (bool Ok, IReadOnlyList<string> Diagnostics) Compile(string source, int edition,
-        IReadOnlyDictionary<string, string>? copybooks = null)
+        IReadOnlyDictionary<string, string>? copybooks = null, InitialReferenceFormat format = TestSourceFormat.Inline)
     {
-        var (ok, errors, _) = CompileFull(source, edition, copybooks: copybooks);
+        var (ok, errors, _) = CompileFull(source, edition, copybooks: copybooks, format: format);
         return (ok, errors);
     }
 
@@ -103,7 +104,8 @@ public static class EditionHarness
     /// <summary>Compile <paramref name="source"/> at <paramref name="edition"/> AND run it, returning the program's
     /// stdout — the INV-3 behavior-variant path (does the SAME source produce different OUTPUT across editions?).
     /// Uses the shared <see cref="CutRunner"/> (the golden-runner's execution path).</summary>
-    public static (bool Ok, string Stdout, string Detail) CompileAndRun(string source, int edition, bool permissive = false)
+    public static (bool Ok, string Stdout, string Detail) CompileAndRun(string source, int edition, bool permissive = false,
+        InitialReferenceFormat format = TestSourceFormat.Inline)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_Run_");
         try
@@ -111,7 +113,7 @@ public static class EditionHarness
             string src = Path.Combine(dir, "prog.cob");
             src = CompiledProgramCache.StageSource(src, source);
             string dll = Path.Combine(dir, "prog.dll");
-            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: edition, Permissive: permissive, SourceFormat: InitialReferenceFormat.Auto));
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: edition, Permissive: permissive, SourceFormat: format));
             if (!r.Success) return (false, "", $"[compile] {r.Status}: {string.Join("\n", r.Errors)}");
             return CutRunner.Run(dll, dir);
         }

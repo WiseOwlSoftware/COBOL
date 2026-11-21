@@ -71,7 +71,7 @@ public sealed class PerformVaryingOperandWindowDriftTests
         try
         {
             var diags = new DiagnosticBag();
-            var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2002 }.Parse(path, diags);
+            var tree = new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = 2002 }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var emitter = new CSharpEmitter();
             return emitter.EmitBound(new BinderDriver().Bind(tree!, new EditionContext(2002)), "DRIFTPROBE");

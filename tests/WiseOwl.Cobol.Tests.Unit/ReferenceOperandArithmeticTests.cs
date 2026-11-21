@@ -54,7 +54,7 @@ public sealed class ReferenceOperandArithmeticTests
             string src = Path.Combine(dir, "pb1425r.cob");
             File.WriteAllText(src, Source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, "pb1425r.dll"),
-                DialectLevel: 2002, Permissive: permissive, SourceFormat: InitialReferenceFormat.Auto));
+                DialectLevel: 2002, Permissive: permissive, SourceFormat: TestSourceFormat.Inline));
             Assert.False(r.Success);
             // Both operands are refused by §2023:8.8.1.1 itself, as errors — never handed to the back end.
             Assert.Equal(2, r.Errors.Count(e => e.Contains("error COBOL0844:", StringComparison.Ordinal)));

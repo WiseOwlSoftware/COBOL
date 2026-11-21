@@ -42,7 +42,9 @@ internal static class StorageFormEquivalence
         var diags = new DiagnosticBag();
         var frontend = new CnFrontend
         {
-            InitialFormat = InitialReferenceFormat.Auto, DialectLevel = dialect, NistTestName = nistTestName,
+            // A NIST CCVS program is fixed form; a crafted source is a test's own text (kb/Work PB1757).
+            InitialFormat = nistTestName is null ? TestSourceFormat.Inline : InitialReferenceFormat.Fixed,
+            DialectLevel = dialect, NistTestName = nistTestName,
         };
         // Resolve the NIST COPY library the SM/COPY suite needs (sibling copylib/, the CLI convention).
         if (Path.GetDirectoryName(Path.GetFullPath(path)) is { } srcDir

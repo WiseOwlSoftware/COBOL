@@ -3,6 +3,7 @@
 using WiseOwl.Cobol;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -258,7 +259,7 @@ public sealed class FlowUseReentrancyTests : WiseOwlCobolTestBase
         string srcPath = Path.Combine(TempDir, "gen.cob");
         File.WriteAllText(srcPath, source);
         var r = CompilerDriver.Compile(
-            new CompilerDriver.Options(srcPath, Path.Combine(TempDir, "gen.dll"), DialectLevel: dialectLevel, SourceFormat: InitialReferenceFormat.Auto));
+            new CompilerDriver.Options(srcPath, Path.Combine(TempDir, "gen.dll"), DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
         Assert.True(r.Success, string.Join("\n", r.Errors));
         return File.ReadAllText(r.GeneratedCsPath!);
     }

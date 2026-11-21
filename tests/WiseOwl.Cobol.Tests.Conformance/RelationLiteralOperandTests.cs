@@ -208,7 +208,7 @@ public sealed class RelationLiteralOperandTests
         {
             string src = CompiledProgramCache.StageSource(Path.Combine(dir, "prog.cob"), source);
             var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, "prog.dll"),
-                DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+                DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return (r.Success ? [] : [.. r.Errors.DefaultIfEmpty($"status {r.Status}")], r.Warnings);
         }
         finally { ScratchDirectory.Remove(dir); }

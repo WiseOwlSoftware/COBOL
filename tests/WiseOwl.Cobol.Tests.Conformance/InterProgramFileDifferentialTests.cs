@@ -259,7 +259,7 @@ public sealed class InterProgramFileDifferentialTests
     {
         string src = Path.Combine(dir, name + ".cob");
         src = CompiledProgramCache.StageSource(src, source);
-        var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"), DialectLevel: dialect, SourceFormat: InitialReferenceFormat.Auto));
+        var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"), DialectLevel: dialect, SourceFormat: TestSourceFormat.Inline));
         Assert.True(r.Success, $"compile {name}: {string.Join("; ", r.Errors)}");
     }
 

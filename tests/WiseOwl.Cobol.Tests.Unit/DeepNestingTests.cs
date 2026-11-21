@@ -5,6 +5,7 @@ using WiseOwl.Cobol;
 using WiseOwl.Cobol.CodeGen;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -61,7 +62,7 @@ public sealed class DeepNestingTests : WiseOwlCobolTestBase
         PhysicalModel.Observer.Value = models.Add;   // AsyncLocal: only this test's own compilation reports here
         try
         {
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, Path.Combine(TempDir, $"deep{depth}.dll"), SourceFormat: InitialReferenceFormat.Auto));
+            var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, Path.Combine(TempDir, $"deep{depth}.dll"), SourceFormat: TestSourceFormat.Inline));
             Assert.True(result.Success, $"depth-{depth} compile failed: {result.Status}: {string.Join("\n", result.Errors)}");
         }
         finally { PhysicalModel.Observer.Value = null; }

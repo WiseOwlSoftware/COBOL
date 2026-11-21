@@ -163,7 +163,7 @@ public sealed class LocaleCollationFailureTests
             + "           DISPLAY \"OK\"\n"
             + "           STOP RUN.\n");
         var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(site.Path, "ot.dll"),
-            DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+            DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
         Assert.True(r.Success, string.Join("; ", r.Errors));
         Assert.Contains(r.Warnings, w => w.Contains("COBOL1662") && w.Contains(file) && w.Contains("negated UnicodeSets"));
     }

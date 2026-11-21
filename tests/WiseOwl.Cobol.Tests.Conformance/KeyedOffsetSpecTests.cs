@@ -28,7 +28,7 @@ public sealed class KeyedOffsetSpecTests
             string src = Path.Combine(dir, "prog.cob");
             src = CompiledProgramCache.StageSource(src, source);
             string dll = Path.Combine(dir, "prog.dll");
-            var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.CompilerDriver.Options(src, dll, DialectLevel: 85, SourceFormat: InitialReferenceFormat.Auto));
+            var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.CompilerDriver.Options(src, dll, DialectLevel: 85, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, "must compile strict: " + string.Join("\n", r.Errors));
             return CutRunner.Run(dll, dir);
         }
@@ -58,7 +58,7 @@ public sealed class KeyedOffsetSpecTests
                     STOP RUN.
                 """);
             var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.CompilerDriver.Options(
-                src, Path.Combine(dir, "prog.dll"), DialectLevel: 85, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "prog.dll"), DialectLevel: 85, SourceFormat: TestSourceFormat.Inline));
             Assert.False(r.Success, "an SR8-illegal wider redefinition must be rejected");
             Assert.Contains(r.Errors, e => e.Contains("COBOL1539"));
         }

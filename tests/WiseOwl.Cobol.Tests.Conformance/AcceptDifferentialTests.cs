@@ -29,7 +29,7 @@ public sealed class AcceptDifferentialTests
             string src = Path.Combine(dir, "prog.cob");
             string dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
-            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialect, SourceFormat: InitialReferenceFormat.Auto, NumericDisplay: numericDisplay));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialect, SourceFormat: TestSourceFormat.Inline, NumericDisplay: numericDisplay));
             if (!result.Success)
                 return (false, "", $"[compile] {result.Status}: {string.Join("\n", result.Errors)}");
 

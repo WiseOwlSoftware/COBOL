@@ -35,7 +35,7 @@ public sealed class ExternalRecordValueGateTests
             string src = Path.Combine(dir, "pb5072r.cob");
             File.WriteAllText(src, Source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb5072r.dll"), DialectLevel: dialect, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "pb5072r.dll"), DialectLevel: dialect, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             Assert.Equal(expected, r.Errors.Count(e => e.Contains("COBOL0900") && e.Contains("an EXTERNAL data item")));
         }
         finally { ScratchDirectory.Remove(dir); }

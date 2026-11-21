@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.Json;
+using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -21,7 +22,8 @@ internal static class VersionMatrixCatalogue
 {
     internal sealed record Construct(string Id, string Description, int IntroducedIn, int? RemovedIn, string Vcr,
         string Source, string Status, string? ExpectDiagnostic, int? ObsoleteIn, string? ExpectDiagnosticBelow,
-        IReadOnlyDictionary<string, string>? Copybooks = null, string? Declined = null);
+        IReadOnlyDictionary<string, string>? Copybooks = null, string? Declined = null,
+        InitialReferenceFormat SourceFormat = TestSourceFormat.Inline);
 
     internal static IReadOnlyList<Construct> All { get; } = LoadCatalogue();
 
@@ -130,11 +132,20 @@ internal static class VersionMatrixCatalogue
                     : null,
                 // A DECLINED row (kb/Work PB5007): the code that refuses the construct at and after its introduction,
                 // because WiseOwl COBOL does not claim the optional element it belongs to (Annex A.4.1).
-                e.TryGetProperty("declined", out var dc) ? dc.GetString() : null));
+                e.TryGetProperty("declined", out var dc) ? dc.GetString() : null,
+                // The reference format the row's program is written in (kb/Work PB1757, PB6033): free form unless the row
+                // says "fixed" — a row that exercises a fixed-form rule. Never the detector.
+                e.TryGetProperty("sourceFormat", out var sf) ? StatedFormat(e.GetProperty("id").GetString()!, sf.GetString()) : TestSourceFormat.Inline));
         }
 
         return list;
     }
+
+    /// <summary>A row's <c>sourceFormat</c>: <c>fixed</c> or <c>free</c>. Anything else, <c>auto</c> included, is a broken row.</summary>
+    private static InitialReferenceFormat StatedFormat(string id, string? value) =>
+        InitialReferenceFormatOption.TryParse(value, out var format) && format is InitialReferenceFormat.Fixed or InitialReferenceFormat.Free
+            ? format
+            : throw new InvalidOperationException($"construct row {id}: sourceFormat is fixed or free, not '{value}'");
 }
 
 /// <summary>
@@ -177,7 +188,7 @@ public abstract class VersionMatrixTestsBase<TSlot>
     {
         var c = VersionMatrixCatalogue.ById[constructId];
         bool expectCompiles = VersionMatrixCatalogue.ExpectCompiles(c, edition);
-        var (ok, diagnostics) = EditionHarness.Compile(c.Source, edition, c.Copybooks);
+        var (ok, diagnostics) = EditionHarness.Compile(c.Source, edition, c.Copybooks, c.SourceFormat);
 
         if (expectCompiles)
         {
@@ -233,7 +244,7 @@ public abstract class VersionMatrixTestsBase<TSlot>
     public void IntroducedConstruct_IsRejectedUnderPermissive(string constructId, int edition)
     {
         var c = VersionMatrixCatalogue.ById[constructId];
-        var (ok, errors, warnings) = EditionHarness.CompileFull(c.Source, edition, permissive: true, copybooks: c.Copybooks);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(c.Source, edition, permissive: true, copybooks: c.Copybooks, format: c.SourceFormat);
         Assert.False(ok, $"[{constructId}] is a COBOL-{c.IntroducedIn} introduction and must be REJECTED at "
             + $"COBOL-{edition} under --permissive as well as strict — permissive is the migration mode for "
             + $"REMOVED constructs, not a licence for future ones ({c.Vcr}). It compiled"
@@ -260,7 +271,7 @@ public abstract class VersionMatrixTestsBase<TSlot>
     public void RemovedConstruct_CompilesPermissive_WithWarning(string constructId, int edition)
     {
         var c = VersionMatrixCatalogue.ById[constructId];
-        var (ok, errors, warnings) = EditionHarness.CompileFull(c.Source, edition, permissive: true, copybooks: c.Copybooks);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(c.Source, edition, permissive: true, copybooks: c.Copybooks, format: c.SourceFormat);
         Assert.True(ok, $"[{constructId}] permissive at COBOL-{edition} must COMPILE (the §10 #1 migration "
             + $"contract): {string.Join("\n", errors)}");
         if (c.ExpectDiagnostic is { } code)
@@ -288,7 +299,7 @@ public abstract class VersionMatrixTestsBase<TSlot>
     public void ObsoleteConstruct_CompilesEverywhere_WarnsFromObsoleteEdition(string constructId, int edition)
     {
         var c = VersionMatrixCatalogue.ById[constructId];
-        var (ok, errors, warnings) = EditionHarness.CompileFull(c.Source, edition, copybooks: c.Copybooks);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(c.Source, edition, copybooks: c.Copybooks, format: c.SourceFormat);
         Assert.True(ok, $"[{constructId}] must COMPILE at COBOL-{edition} (archaic ≠ removed): {string.Join("\n", errors)}");
         if (edition >= c.ObsoleteIn)
         {

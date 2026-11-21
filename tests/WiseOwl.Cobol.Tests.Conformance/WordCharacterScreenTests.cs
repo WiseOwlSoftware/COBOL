@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using WiseOwl.Cobol.Frontend.Preprocessor;
 
 namespace WiseOwl.Cobol.Tests.Conformance;
 
@@ -73,12 +74,12 @@ public sealed class WordCharacterScreenTests
     [Fact]
     public void ASurvivingFloatingComment_DoesNotHideTheScreen()
     {
-        // sequence numbers in columns 1-6, so the layout reads as fixed form (the harness detects the format)
+        // fixed form, stated: sequence numbers in columns 1-6
         string source = string.Join(Environment.NewLine,
             "000100 IDENTIFICATION DIVISION.", "000200 PROGRAM-ID. PB5588S.", "000300 DATA DIVISION.",
             "000400 WORKING-STORAGE SECTION.", "000500 01  W_A PIC 9 VALUE 1.", "000600 PROCEDURE DIVISION.",
             "000700 MAIN-P.", "000800     DISPLAY W_A *> floating", "000900     STOP RUN.") + Environment.NewLine;
-        var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 85, format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
         Assert.Equal(2, errors.Count(e => e.Contains("COBOL0900")));
         Assert.Contains(errors, e => e.Contains("underscore"));
@@ -180,7 +181,7 @@ public sealed class WordCharacterScreenTests
             "           DISPLAY \"A\" " + NoSender + ".",
             "           STOP RUN.",
             "");
-        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition, format: InitialReferenceFormat.Fixed);
         string all = string.Join('\n', errors.Concat(warnings));
         Assert.False(ok);
         Assert.Contains(ParseError, all);
@@ -628,7 +629,7 @@ public sealed class WordCharacterScreenTests
             "      D    DISPLAY T- .",
             "           STOP RUN.",
             "");
-        var (ok, errors, warnings) = EditionHarness.CompileFull(source, 85);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, 85, format: InitialReferenceFormat.Fixed);
         string all = string.Join('\n', errors.Concat(warnings));
         Assert.False(ok);
         Assert.Contains("COBOL2633", all);
