@@ -55,7 +55,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         : "(" + string.Join($" {n.Op} ", n.Operands.Select(Render)) + ")";
     public string Visit(BoundNot n) => $"!({Render(n.Operand)})";
     public string Visit(BoundCondition88 n) => RenderCondition88(n);
-    // A switch-status condition (ISO §2023:8.8.4.6 GR1): true when the external switch is at the posited position.
+    // A switch-status condition (ISO §2023:8.8.4.6.3 GR1): true when the external switch is at the posited position.
     public string Visit(BoundSwitchCondition n) => n.TestsOn
         ? $"ExternalSwitches.Get({EmitText.CsLiteral(n.ImplementorName)})"
         : $"!ExternalSwitches.Get({EmitText.CsLiteral(n.ImplementorName)})";
@@ -294,7 +294,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             return r.Op == "==" ? core : $"!({core})";
         }
         // Function-pointer relations — the ProgramPointer arm's twin over the SEPARATE FunctionPointer carrier
-        // (§2023:8.8.4.2.16 compares pointers only within a category, and §2023:8.4.3.10 GR2/GR3 keep the predefined NULL
+        // (§2023:8.8.4.2.16 compares pointers only within a category, and §2023:8.4.3.10.4 GR2/GR3 keep the predefined NULL
         // function address distinct from the NULL program address). kb/Work PB452/PB817.
         static bool IsFp(BoundOperand o) =>
             o is BoundFieldOperand f && f.Place.Item.OperandPic?.Category == PicCategory.FunctionPointer;
@@ -432,7 +432,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             return $"CobolString.Compare({OperandText.AsString(r.Left, num)}, {OperandText.AsString(r.Right, num)}, pad: '0') {r.Op} 0";
         // NATIONAL relations (§2023:8.8.4.2.9/.10): full ordering under the NATIONAL collating sequence — the
         // default is the UTF-16 code-unit ordinal (D-N3; NATIVE/UCS-4 are that same identity), and a
-        // NON-native ALPHABET … FOR NATIONAL sequence rides ctx.NatCollateArg (§2023:12.3.6 GR11). The
+        // NON-native ALPHABET … FOR NATIONAL sequence rides ctx.NatCollateArg (§2023:12.3.6.4 GR11). The
         // ALPHANUMERIC program collating sequence never applies (ctx.CollateArg — whose 256-entry weight
         // table would alias national chars through `& 0xFF` — is deliberately absent). A mixed alphanumeric
         // operand converts to national by the D-N4 Latin-1 identity (§2023:8.8.4.2.6).
@@ -1029,7 +1029,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // character IMAGE rather than the record struct.
         bool isString = c.Parent.Item.IsGroup || cat is PicCategory.Alphanumeric
             or PicCategory.NumericEdited or PicCategory.National or PicCategory.Boolean;
-        // ISO §2023:8.8.4.5 GR2: a condition-name test compares the conditional variable by the RELATION-CONDITION rules, so
+        // ISO §2023:8.8.4.5.3 GR2: a condition-name test compares the conditional variable by the RELATION-CONDITION rules, so
         // the variable is rendered as a comparison operand exactly as a relation condition renders it — an alphanumeric
         // GROUP is treated as an elementary alphanumeric data item (§2023:8.8.4.1), i.e. its character IMAGE, not the raw
         // struct. (The numeric branch reads the scaled value directly; a numeric view stored as its image is a later

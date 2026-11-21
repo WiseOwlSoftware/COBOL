@@ -33,7 +33,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `BoundCompilation` | Immutable whole-group Binder result | — | binder invariant (emitter reads read-only) | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundParagraph` | Paragraph: sentences at a pc index | §2023:14.9.19 | §2023:14.9.19.4 GR4/GR6 (sentence boundary = NEXT SENTENCE target, either arm) | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundMethod` | One class METHOD's pc range | §2023:11.7 | exit-bounded dispatch range (fall-off = return) | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
-| `BoundDeclarative` | One USE declarative section + trigger scope | §2023:14.9.49 | §2023:14.9.49 GR3/GR7 (file/mode scope, handler exit) | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
+| `BoundDeclarative` | One USE declarative section + trigger scope | §2023:14.9.49 | §2023:14.9.49.4 GR3/GR7 (file/mode scope, handler exit) | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundDebugSubject` | USE FOR DEBUGGING subject procedure | X3.23-1985 debug module | edition gate (85-only; VCR 7.17) | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundSequence` | Fixed pre/main/post statement-group carrier | — (bind-time desugar) | no pc identity; children render in line | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 
@@ -43,7 +43,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 |---|---|---|---|---|---|
 | `BoundMove` | MOVE source TO targets | §2023:14.9.25 | §2023:14.9.25.3 SR / MoveClassifier per-target kinds | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundCorresponding` | MOVE/ADD/SUBTRACT CORR → pairs | §2023:14.7.6 | §2023:14.7.6 identification-once; statement-level SIZE ERROR | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
-| `BoundInitialize` | INITIALIZE expanded to elementary MOVEs | §2023:14.9.20 | §2023:14.9.20 GR4 expansion (no runtime INITIALIZE) | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
+| `BoundInitialize` | INITIALIZE expanded to elementary MOVEs | §2023:14.9.20 | §2023:14.9.20.4 GR4 expansion (no runtime INITIALIZE) | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundSetConditions` | SET condition-name(s) TO TRUE | §2023:14.9.39 | store first VALUE into parent place | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundSetTo` | SET receivers TO value (index) | §2023:14.9.39 Format 1 | GR2 sender determined once | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundSetUpDown` | SET index UP/DOWN BY amount | §2023:14.9.39 Format 2 | GR3/GR4 amount once, per-index apply | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
@@ -65,7 +65,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `BoundDivideGiving` | DIVIDE … GIVING targets | §2023:14.9.12 | GIVING = write-only | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundDivideRemainder` | DIVIDE GIVING quotient REMAINDER | §2023:14.9.12 Formats 4–5 | §2023:14.9.12.4 GR7 truncated intermediate quotient | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundCompute` | COMPUTE targets = rhs | §2023:14.9.8 | §2023:14.7.4 ROUNDED; receiver-scale store | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
-| `BoundComputeBoolean` | COMPUTE boolean-targets = bool-expr | §2023:14.9.8 Format 2 | §2023:14.9.8 GR3 width; no ROUNDED/SIZE ERROR | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
+| `BoundComputeBoolean` | COMPUTE boolean-targets = bool-expr | §2023:14.9.8 Format 2 | §2023:14.9.8.4 GR3 width; no ROUNDED/SIZE ERROR | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `Receiver` | Arithmetic resultant + rounding mode | §2023:14.7.4 | no phrase→Truncation; ROUNDED→NearestAway | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `SizeErrorPhrase` | ON / NOT ON SIZE ERROR imperatives | §2023:14.7.5 | absent → checked path not emitted | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 
@@ -110,7 +110,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | IR Node | Purpose | Related Spec Construct (ISO §) | Semantic Rule | Compiler Phase | Diagram |
 |---|---|---|---|---|---|
 | `BoundGoTo` | GO TO — set program counter | §2023:14.9.20 Format 1 | unconditional pc transfer | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
-| `BoundGoToDepending` | GO TO … DEPENDING ON selector | §2023:14.9.20 Format 2 | out-of-range falls through | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
+| `BoundGoToDepending` | GO TO … DEPENDING ON selector | §2023:14.9.17 Format 2 | out-of-range falls through | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundGoToAlterable` | GO TO in ALTER-target paragraph | §2023:14.9.17 | control-flow D4 (mutable alter field) | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundAlter` | ALTER paragraph GO TO targets | §2023:14.9.17 (deleted 2002) | edition gate (85-only); latest ALTER wins | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundAlterEntry` | One resolved ALTER entry | §2023:14.9.17 | assign NewPc into alter field | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
@@ -181,9 +181,9 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `BoundMerge` | k-way MERGE of pre-sorted files | §2023:14.9.24 | GR4 stable; GR12 each GIVING gets full result | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundRelease` | RELEASE record to active sort | §2023:14.9.32 | GR4 FROM ≡ MOVE then RELEASE; short images space-fill | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundReturn` | RETURN next sorted record [AT END] | §2023:14.9.34 | GR3 key-order; §2023:13.18.43.4 GR15 restores the varying length | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
-| `BoundSortMergeKey` | One sort/merge key window | §2023:14.9.40 GR1 | GR5/GR8 collating vs algebraic; SR6a fixed positions | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
+| `BoundSortMergeKey` | One sort/merge key window | §2023:14.9.40.4 GR1 | GR5/GR8 collating vs algebraic; SR6a fixed positions | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundTableSort` | In-place table SORT (typed array) | §2023:14.9.40 Format 2 | typed-array compare (design §8.2); GR20/24 extent | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
-| `BoundTableSortKey` | One table-sort key member-path | §2023:14.9.40 GR23 | empty path = element itself | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
+| `BoundTableSortKey` | One table-sort key member-path | §2023:14.9.40.4 GR23 | empty path = element itself | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 
 ## Interprogram & pointers
 
@@ -195,7 +195,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `BoundAllocate` | ALLOCATE storage (chars / BASED) | §2023:14.9.3 | GR1 round-up; GR2 ≤0→NULL; GR6/7 init | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundFree` | FREE pointer(s) | §2023:14.9.15 | GR1 three-way; GR2 left-to-right (EC-STORAGE-NOT-ALLOC) | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundSetPointer` | SET data-pointer TO NULL/pointer/ADDRESS | §2023:14.9.39 Format 7 | ManagedPointer carrier copy | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
-| `BoundAddressOf` | ADDRESS OF identifier as pointer value | §2023:8.4.3.11 GR1 | BASED implicit ptr / cell offset; occurrence displacement | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
+| `BoundAddressOf` | ADDRESS OF identifier as pointer value | §2023:8.4.3.11.4 GR1 | BASED implicit ptr / cell offset; occurrence displacement | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundSetAddressOfBased` | SET ADDRESS OF based TO pointer | §2023:14.9.39 Format 7 | SR18 receiver BASED; GR12/13 snapshot | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundSetProgramPointer` | SET program-pointer TO NULL/pointer | §2023:14.9.39 Format 9 | SR21 both category program-pointer | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundSetEntry` | SET program-pointer TO ENTRY name | §2023:14.9.39 Format 9 | §2023:8.4.3.13.4 GR4 miss→NULL + EC-PROGRAM-NOT-FOUND | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
@@ -248,7 +248,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `BoundFieldOperand` | Data-item reference operand | §2023:8.4.1 | category decides string-vs-numeric render | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundComputedOperand` | Computed numeric expr as operand | §2023:8.8.1 | wraps BoundExpr for comparison/args | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundFigurative` | Figurative constant operand | §2023:8.3.3.6 | materialized to receiver/other-operand width | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
-| `BoundAllLiteral` | ALL 'literal' figurative operand | §2023:8.3.3.6.4 Format 6 | GR2 repeated to width; SR5 digit-only→numeric MOVE | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
+| `BoundAllLiteral` | ALL 'literal' figurative operand | §2023:8.3.3.6 Format 6 | GR2 repeated to width; SR5 digit-only→numeric MOVE | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundBoolOperand` | Boolean expr as relation operand | §2023:8.8.4.2.2 | rides shared BoundRelational renderer | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundNumLiteral` | Numeric literal (expr, raw text) | §2023:8.3.3.3.2 | backend scales | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundNumRef` | Numeric data-item reference | §2023:8.4.1 | resolved Place | Bind | [[kb/Diagrams/IR Node Hierarchy]] |

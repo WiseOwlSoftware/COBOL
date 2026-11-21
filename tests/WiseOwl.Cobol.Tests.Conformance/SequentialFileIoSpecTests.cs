@@ -79,7 +79,7 @@ public sealed class SequentialFileIoSpecTests
         Assert.Equal("1:ABCDE FS=06\n2:FGH   FS=00\nE FS=10", Run(prog, ("lslong.txt", "ABCDEFGH\n")));
     }
 
-    /// <summary>CA16 — §2023:14.9.27 GR17 + §2023:14.9.30.4 GR21 rule e / GR24: an ABSENT OPTIONAL file opened I-O is CREATED
+    /// <summary>CA16 — §2023:14.9.27.4 GR17 + §2023:14.9.30.4 GR21 rule e / GR24: an ABSENT OPTIONAL file opened I-O is CREATED
     /// (as if OPEN OUTPUT + CLOSE; OPEN returns '05'), the FPI is 1 (GR14), and the first READ on the now-empty file
     /// finds no record → AtEnd '10'. The buggy path created only a writer, so the first READ returned '47'
     /// (not-open-for-input) — which flips the AT END control flow (status[0] != '1'), running NOT AT END instead.</summary>

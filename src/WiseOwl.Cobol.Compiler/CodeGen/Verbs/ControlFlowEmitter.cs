@@ -373,7 +373,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         switch (control)
         {
             case PerformTimes t:
-                // The TIMES count is determined ONCE at the start of the PERFORM (ISO §2023:14.9.28 GR7) — the body
+                // The TIMES count is determined ONCE at the start of the PERFORM (ISO §2023:14.9.28.4 GR7) — the body
                 // modifying the count item must not change the iteration count (NC102A PFM-TEST-F2-6); a zero or
                 // negative count runs the body zero times.
                 int id = ctx.Names.NextLoop();
@@ -621,7 +621,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         var w = ctx.Writer;
         int id = ctx.Names.NextSearch();
         // An OCCURS DYNAMIC table brackets the scan with EnterSearch/ExitSearch so a SET Format 14 on that same
-        // table WHILE searching raises EC-FLOW-SEARCH (ISO §2023:14.9.39 GR31; data-model D9). A try/finally is required
+        // table WHILE searching raises EC-FLOW-SEARCH (ISO §2023:14.9.39.4 GR31; data-model D9). A try/finally is required
         // because the WHEN/AT-END arms `goto __searchEnd` OUT of the scan — ExitSearch must run on every exit path.
         // The table is read ONCE into a local: a nested table's path is subscripted by the enclosing indices
         // identifier-1 writes (kb/Work PB3365), and a WHEN or AT END body that moves one of them must neither send
@@ -650,7 +650,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// SEARCH ALL the overshoot only Format 1 is licensed for, and the AT END phrase — part of this statement's own
     /// execution (GR1 b) 1.) — could then read outside the table through the search index.</para>
     /// <para>The bound is the table's MAXIMUM occurrence count — or an occurs-depending table's CURRENT count, or
-    /// (D9) a dynamic table's current <c>Capacity</c> (§2023:13.18.38 GR7/§2023:8.5.1.9.1). Extracted so a dynamic table can
+    /// (D9) a dynamic table's current <c>Capacity</c> (§2023:13.18.38.4 GR7/§2023:8.5.1.9.1). Extracted so a dynamic table can
     /// wrap it in an EnterSearch/ExitSearch try/finally.</para></summary>
     private void EmitSearchScan(BoundSearch s, int id, string? dynTable)
     {

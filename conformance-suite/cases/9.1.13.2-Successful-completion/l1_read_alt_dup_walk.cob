@@ -100,7 +100,7 @@
            READ F NEXT AT END DISPLAY "A5-ATEND=" F-ST END-READ.
       *> LEG B - reverse over the same key of reference.  The START
       *> re-establishes a valid file position indicator after the at
-      *> end above (§2023:14.9.41 GR16/GR17).
+      *> end above (§2023:14.9.41.4 GR16/GR17).
            MOVE "ZZ" TO R-ALT.
            START F KEY IS <= R-ALT
                INVALID KEY DISPLAY "B-START-INV"

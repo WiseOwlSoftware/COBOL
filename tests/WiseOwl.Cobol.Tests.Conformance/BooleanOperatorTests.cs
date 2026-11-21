@@ -154,7 +154,7 @@ public sealed class BooleanOperatorTests
                 COMPUTE N = A B-AND B.
                 STOP RUN.
             """, 2002);
-        Assert.False(ok, "a boolean COMPUTE receiver shall be an elementary boolean item (ISO §2023:14.9.8 SR2)");
+        Assert.False(ok, "a boolean COMPUTE receiver shall be an elementary boolean item (ISO §2023:14.9.8.3 SR2)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1511");
     }
 

@@ -93,7 +93,7 @@ public sealed class DataDisplayDifferentialTests
     public void MoveThenDisplay(string ws, string proc) => AssertMatchesGolden(Program(ws, proc));
 
     [Theory]
-    // Alphanumeric → alphanumeric MOVE: left-justified, space-filled to the receiver width (ISO §2023:14.9.24 GR4).
+    // Alphanumeric → alphanumeric MOVE: left-justified, space-filled to the receiver width (ISO §2023:14.9.24.4 GR4).
     // The trailing "]" exposes the fill, so this is spec-pinned (legacy trims).
     [InlineData("01 WS-A PIC X(3) VALUE \"XY\".\n01 WS-B PIC X(6) VALUE \"......\".",
                 "    MOVE WS-A TO WS-B.\n    DISPLAY \"[\" WS-B \"]\".", "[XY    ]")]

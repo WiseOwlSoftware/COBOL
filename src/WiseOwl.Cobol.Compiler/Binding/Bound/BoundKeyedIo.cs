@@ -72,13 +72,13 @@ public sealed record BoundKeyedRead(
     /// "The I-O status is set in accordance with the rules for the RETRY phrase") to the one place that
     /// executes §2023:14.7.9.3, <c>FileRegistry.RetryLoop</c>. See <see cref="RetryKind"/>.</summary>
     public RetrySpec? Retry { get; init; }
-    /// <summary>ADVANCING ON LOCK (§2023:14.9.30 GR22, Format 1 only — SR6) — bracket 1: skip-scan locked records.</summary>
+    /// <summary>ADVANCING ON LOCK (§2023:14.9.30.4 GR22, Format 1 only — SR6) — bracket 1: skip-scan locked records.</summary>
     public bool AdvancingOnLock { get; init; }
-    /// <summary>IGNORING LOCK (§2023:14.9.30 GR12) — bracket 1, INDEPENDENT of <see cref="Lock"/> (§2023:5.2.6.1).</summary>
+    /// <summary>IGNORING LOCK (§2023:14.9.30.4 GR12) — bracket 1, INDEPENDENT of <see cref="Lock"/> (§2023:5.2.6.1).</summary>
     public bool IgnoringLock { get; init; }
 }
 
-/// <summary><c>WRITE record [FROM x] [INVALID KEY …]</c> on a RELATIVE or INDEXED file (ISO §2023:14.9.51 GR29–GR33
+/// <summary><c>WRITE record [FROM x] [INVALID KEY …]</c> on a RELATIVE or INDEXED file (ISO §2023:14.9.51.4 GR29–GR33
 /// relative / GR34–GR42 indexed). For a sequential-access relative file the released RRN is MOVEd back into the
 /// RELATIVE KEY item on success (GR29a/GR30); for random/dynamic access the key item is read first (GR29b).</summary>
 public sealed record BoundKeyedWrite(
@@ -87,11 +87,11 @@ public sealed record BoundKeyedWrite(
     /// <summary>The explicit record-lock phrase (ISO §2023:14.9.51 — WITH LOCK / WITH NO LOCK), or None; WITH LOCK
     /// locks the record written on a sharing-active file (GR11), single locking releases the prior lock (GR10).</summary>
     public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
-    /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.51 GR16), or null.</summary>
+    /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.51.4 GR16), or null.</summary>
     public RetrySpec? Retry { get; init; }
 }
 
-/// <summary><c>REWRITE record [FROM x] [INVALID KEY …]</c> on a RELATIVE or INDEXED file (ISO §2023:14.9.35 GR18–GR25):
+/// <summary><c>REWRITE record [FROM x] [INVALID KEY …]</c> on a RELATIVE or INDEXED file (ISO §2023:14.9.35.4 GR18–GR25):
 /// relative random/dynamic replaces the slot named by the relative key (absent → '23', GR21); indexed sequential
 /// requires the prime key to equal the last-read key ('21', GR22), random/dynamic an existing prime key ('23',
 /// GR23).</summary>
@@ -101,7 +101,7 @@ public sealed record BoundKeyedRewrite(
     /// <summary>The explicit record-lock phrase (ISO §2023:14.9.35 — WITH LOCK / WITH NO LOCK), or None; a record
     /// locked by another connector blocks the rewrite (GR11 → status 51), the GR12 discipline follows.</summary>
     public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
-    /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.35 GR11), or null.</summary>
+    /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.35.4 GR11), or null.</summary>
     public RetrySpec? Retry { get; init; }
 }
 
@@ -110,7 +110,7 @@ public sealed record BoundKeyedRewrite(
 /// (GR3), relative by the relative key item (GR4) — absent record → invalid key '23'. The FPI is unaffected (GR9).</summary>
 public sealed record BoundKeyedDelete(FileModel File, KeyedInvalidKey? InvalidKey) : BoundStatement
 {
-    /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.10 GR6 — a record locked by another connector blocks the
+    /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.10.4 GR6 — a record locked by another connector blocks the
     /// deletion, status 51), or null. (DELETE RECORD carries no record-lock phrase — §2023:14.9.10 general format.)</summary>
     public RetrySpec? Retry { get; init; }
 }
@@ -122,7 +122,7 @@ public sealed record BoundKeyedDelete(FileModel File, KeyedInvalidKey? InvalidKe
 public sealed record BoundKeyedDeleteFile(
     FileModel File, IReadOnlyList<BoundStatement>? OnException, IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement
 {
-    /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.10 GR15 — the physical file open by another connector is the
+    /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.10.4 GR15 — the physical file open by another connector is the
     /// '62' file-sharing conflict, re-attempted under RETRY), or null.</summary>
     public RetrySpec? Retry { get; init; }
 

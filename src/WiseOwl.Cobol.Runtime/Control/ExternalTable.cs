@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Runtime;
 public enum ExternalChecks
 {
     None = 0,
-    /// <summary>EC-EXTERNAL-FORMAT-CONFLICT — §2023:14.8.4.3 / §2023:13.18.22 GR6 (Fatal).</summary>
+    /// <summary>EC-EXTERNAL-FORMAT-CONFLICT — §2023:14.8.4.3 / §2023:13.18.22.4 GR6 (Fatal).</summary>
     FormatConflict = 1,
     /// <summary>EC-EXTERNAL-DATA-MISMATCH — §2023:14.8.4.2 file status / linage / relative key storage identity (Fatal).</summary>
     DataMismatch = 2,
@@ -26,7 +26,7 @@ public enum ExternalChecks
 /// <summary>One runtime element's compile-time description of an external item or external file connector —
 /// the facts §2023:14.8.4 compares across the run unit's describers. Every field is a compile-time constant emitted
 /// at the describing element's activation entry.
-/// RECORD kind (§2023:14.8.4.3 / §2023:13.18.22 GR6): <see cref="ByteCount"/> = the record's byte count;
+/// RECORD kind (§2023:14.8.4.3 / §2023:13.18.22.4 GR6): <see cref="ByteCount"/> = the record's byte count;
 /// <see cref="ValueImage"/> = the record name's OWN VALUE clause specification as a canonical KEY, else null (the
 /// GR6 "identical VALUE clause specification" identity: the clause's words are case-folded, a literal's characters
 /// are kept exactly — <c>OoEmitter.ValueSpecificationKey</c>; it is NOT a composed image); a complete-record
@@ -71,7 +71,7 @@ public sealed record ExternalDescriptor(
 /// The run-unit EXTERNAL data store (ISO §2023:8.6.7 / §2023:13.18.22): ONE storage copy per external name for the whole
 /// run unit, represented as the record's character image (the same Tier-B string-canonical shape the data model
 /// uses for shared storage — never a persisted byte substrate). Every program describing the same external name
-/// windows the same cell; CANCEL does NOT reset it (§2023:14.9.5 GR8). The §2023:13.18.22 GR6 / §2023:14.8.4 conformance checks
+/// windows the same cell; CANCEL does NOT reset it (§2023:14.9.5.4 GR8). The §2023:13.18.22.4 GR6 / §2023:14.8.4 conformance checks
 /// run through <see cref="Describe"/> — each describing runtime element registers its compile-time
 /// <see cref="ExternalDescriptor"/> at activation entry and is compared against every OTHER describer already
 /// registered (the run-unit-global SHALLs of §2023:14.8.4.2–.4), raising the paired EC-EXTERNAL condition when the
@@ -84,7 +84,7 @@ public sealed class ExternalTable
     private readonly Dictionary<string, StorageCell> _cells = new(ExternalizedNames.Comparer);
     // Per external name: each describing element's descriptor, keyed by the describer's unit path. A
     // re-activation re-describes identically (compile-time constants), so same-key replacement is a no-op;
-    // CANCEL does not remove entries (the external storage — and hence its description — persists, §2023:14.9.5 GR8).
+    // CANCEL does not remove entries (the external storage — and hence its description — persists, §2023:14.9.5.4 GR8).
     private readonly Dictionary<string, Dictionary<string, ExternalDescriptor>> _describers = new(ExternalizedNames.Comparer);
 
     /// <summary>The run-unit cell for <paramref name="name"/>, created with <paramref name="initialImage"/> on

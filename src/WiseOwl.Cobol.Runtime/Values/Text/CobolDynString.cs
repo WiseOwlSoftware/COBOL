@@ -187,11 +187,11 @@ public static class CobolDynString
     {
         if (leg == Leg.NotNonnegative)
             ExceptionState.StorageNotAvailError(
-                $"SET SIZE: the evaluated length {shown} is not a nonnegative number (ISO §2023:14.9.39.4 Format 16 GR37)");
+                $"SET SIZE: the evaluated length {shown} is not a nonnegative number (ISO §2023:14.9.39.4 GR37, Format 16)");
         else
             ExceptionState.StorageNotAvailError(
                 $"SET SIZE: the evaluated length {shown} exceeds the item's maximum size {maxSize} "
-                + "(ISO §2023:14.9.39.4 Format 16 GR38 / §2023:8.5.1.10.1)");
+                + "(ISO §2023:14.9.39.4 GR38, Format 16 / §2023:8.5.1.10.1)");
     }
 
     /// <summary>GR37 – GR39 once the leg is known: length 0 (GR37), the maximum (GR38), or the truncated whole
@@ -217,7 +217,7 @@ public static class CobolDynString
             if (leg == Leg.InRange)
                 ExceptionState.StorageNotAvailError(
                     $"SET SIZE: the storage required to expand the item to {n} characters is not available "
-                    + "(ISO §2023:14.9.39.4 Format 16 GR38)");
+                    + "(ISO §2023:14.9.39.4 GR38, Format 16)");
             return current;
         }
     }

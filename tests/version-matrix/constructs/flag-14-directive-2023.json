@@ -11,7 +11,7 @@
  "directiveOperand": {
   "form": "stage",
   "owner": "FlagDirectiveProcessor",
-  "citation": "ISO §2023:7.3.15.2 general format: a list of syntax-option words with ON/OFF (§2023:7.3.15.3 GR4 names the options) — a structured operand, diagnosed by its own stage as COBOL1622."
+  "citation": "ISO §2023:7.3.15.2 general format: a list of syntax-option words with ON/OFF (§2023:7.3.15.4 GR4 names the options) — a structured operand, diagnosed by its own stage as COBOL1622."
  },
  "description": "The >>FLAG-14 { ALL | option... } { ON | OFF } migration-flagging directive (ISO §2023:7.3.15) — a COBOL-2023 addition: Annex E.2 item 5 lists FLAG-14 among the compiler-directive words new to 2023. It directs the implementor's warning mechanism to flag 2014-to-2023 incompatibilities (GR1). Recognized and collected by FlagDirectiveProcessor and folded per option per source line by FlagState (FlagConformancePass emits the per-option COBOL1621 warning); the introduction gate rejects the directive word below 2023.",
  "display": ">>FLAG-14 directive",

@@ -26,7 +26,7 @@
       *> arithmetic of the statement itself. INITIATE sets PAGE-COUNTER to 1 (§2023:14.9.21.4 GR1 c) and no page
       *> advance occurs here (one GENERATE on a 60-line page), so the counter's whole history is the program's.
       *>
-      *>   MOVE 7 TO PAGE-COUNTER OF RPT1        -> 0007   (§2023:14.9.25 — the qualified spelling, §2023:8.4.3.15 SR2)
+      *>   MOVE 7 TO PAGE-COUNTER OF RPT1        -> 0007   (§2023:14.9.25 — the qualified spelling, §2023:8.4.3.15.3 SR2)
       *>   ADD 3 TO PAGE-COUNTER                 -> 0010
       *>   SUBTRACT 4 FROM PAGE-COUNTER          -> 0006
       *>   MULTIPLY 2 BY PAGE-COUNTER            -> 0012

@@ -80,7 +80,7 @@ public sealed class RefModRangeTests
     }
 
     [Fact]   // V48: an OCCURS 0 TO n DEPENDING group at count 0 is a zero-extent receive — a plain group MOVE is a
-             // no-op (§2023:13.18.38 GR8a), NOT a reference-modification violation, so it must not raise under checking.
+             // no-op (§2023:13.18.38.4 GR8a), NOT a reference-modification violation, so it must not raise under checking.
     public void OdoGroup_ZeroExtentReceive_DoesNotRaise()
     {
         var (ok, stdout, detail) = WiseOwlCobol.CompileAndRun(Prog(

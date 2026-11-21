@@ -32,7 +32,7 @@ public sealed class NationalBooleanMoveTests
     //    §2023:8.3.3.6.3 — ZERO and a digit-only-0/1 ALL literal are the legal figurative senders per SR7) ────────
 
     /// <summary>Receiver category BOOLEAN, every legal sender: alphanumeric (Table 16 :28846 AN→Boolean = Yes),
-    /// national (National→Boolean = Yes), boolean, MOVE ZERO (§2023:8.3.3.6 GR4 — boolean zeros by context), and
+    /// national (National→Boolean = Yes), boolean, MOVE ZERO (§2023:8.3.3.6.4 GR4 — boolean zeros by context), and
     /// ALL of boolean characters (SR7's surviving figurative). Right fill is boolean ZEROS (§2023:14.6.8.6
     /// :24304–24308), never spaces.</summary>
     [Fact]
@@ -62,7 +62,7 @@ public sealed class NationalBooleanMoveTests
 
     /// <summary>Receiver category NATIONAL, every legal sender: alphabetic, alphanumeric, alphanumeric-edited,
     /// integer numeric (Table 16 :28849 Numeric-int→National = Yes), numeric-edited, boolean, national — plus
-    /// the zero-length N"" literal (MOVE GR2 :28895 — behaves as SPACE). Conversion is the §2023:14.9.25 GR6a
+    /// the zero-length N"" literal (MOVE GR2 :28895 — behaves as SPACE). Conversion is the §2023:14.9.25.4 GR6a
     /// alphanumeric→national correspondence (Latin-1 identity under D-N4); right fill is NATIONAL SPACES
     /// (§2023:14.6.8.5 :24297–24301). The trailing "!" sentinel makes the space fill observable through the
     /// harness's per-line trailing-space trim.</summary>

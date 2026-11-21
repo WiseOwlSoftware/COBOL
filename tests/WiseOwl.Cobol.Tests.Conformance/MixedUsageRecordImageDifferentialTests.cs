@@ -14,8 +14,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// (§2023:14.9.25.4 GR4) / group compare (§2023:8.8.4.2.1) are statements about that representation. The facts here are
 /// therefore <b>spec-pinned</b>, never legacy-pinned (the NIST ST goldens stay the regression net — they observe
 /// COMP values only through numeric moves, never raw bytes). What the spec DOES fix regardless of representation is pinned throughout: SORT/MERGE keys compare by
-/// ALGEBRAIC value (§2023:14.9.40 GR8 / §2023:8.8.4.2.4 — "regardless of the manner in which their usage is described"),
-/// DUPLICATES IN ORDER stability (GR3b), the RELEASE/RETURN record-area round trip (§2023:14.9.32 GR2 / §2023:14.9.34 GR3),
+/// ALGEBRAIC value (§2023:14.9.40.4 GR8 / §2023:8.8.4.2.4 — "regardless of the manner in which their usage is described"),
+/// DUPLICATES IN ORDER stability (GR3b), the RELEASE/RETURN record-area round trip (§2023:14.9.32.4 GR2 / §2023:14.9.34.4 GR3),
 /// group-move positional fill without conversion (§2023:14.9.25.4 GR4), and SAME RECORD AREA as an implicit leftmost-
 /// aligned redefinition (§2023:12.4.6.4.4 GR2). Exercised end-to-end by NIST ST108A/ST127A/ST133A/ST134A.
 /// </summary>
@@ -89,10 +89,10 @@ public sealed class MixedUsageRecordImageDifferentialTests
             STOP RUN.
         """;
 
-    // ── SORT keys over signed BINARY/PACKED leaves (ISO §2023:14.9.40 GR8 / §2023:8.8.4.2.4 — algebraic order) ─────────
+    // ── SORT keys over signed BINARY/PACKED leaves (ISO §2023:14.9.40.4 GR8 / §2023:8.8.4.2.4 — algebraic order) ─────────
 
     /// <summary>An ASCENDING signed-COMP key orders NEGATIVES algebraically (−8000 &lt; −14 &lt; 0 &lt; +1 &lt; +99)
-    /// — §2023:14.9.40 GR8 via §2023:8.8.4.2.4: numeric comparison is "with respect to the algebraic value of the operands
+    /// — §2023:14.9.40.4 GR8 via §2023:8.8.4.2.4: numeric comparison is "with respect to the algebraic value of the operands
     /// regardless of the manner in which their usage is described". The load-bearing piece is the decode of the key
     /// WINDOW through the key item's own profile (<c>CobolSort.Key.Profile</c>): reading two's-complement bytes as
     /// text would sort every negative LAST, since a negative's first byte is 0xFF (hazard 1 — silent if untested).</summary>
@@ -386,7 +386,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
                 FiveThenMinusFourteen('A'), MinusFourteenThenFive('B')),
             "K=+0005\nK=-0003\nK=-0014\nFIRST-DONE\nSECOND-DONE");
 
-    // ── RELEASE/RETURN round trip (ISO §2023:14.9.32 GR2 / §2023:14.9.34 GR3 — the record area carries the image) ──────
+    // ── RELEASE/RETURN round trip (ISO §2023:14.9.32.4 GR2 / §2023:14.9.34.4 GR3 — the record area carries the image) ──────
 
     /// <summary>RELEASE then RETURN round-trips signed COMP values EXACTLY — ±0 and ±max at 2/6/8 digits (the
     /// overpunch encode/decode tables are mutual inverses; the brief's hazard 7-iv verification). The checks

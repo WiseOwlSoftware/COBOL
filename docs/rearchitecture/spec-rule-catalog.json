@@ -3,6 +3,11 @@
  "rule_count": 4214,
  "blocks": 702,
  "parse_gaps": [],
+ "outside-denominator": {
+  "pending-clauses": [],
+  "untyped-headings": [],
+  "pending-units": 2298
+ },
  "rules": [
   {
    "id": "GR-4.2.10-1",

@@ -1,0 +1,221 @@
+{
+ "_comment": [
+  "THE JOIN POPULATION of text_units.segment (kb/Work PB5449, decision PB5448 point 1): every place the 2023",
+  "transcription breaks one sentence across a plain blank line, the line that ends no sentence (`tail`) and the line",
+  "that continues it (`head`), found by kb/Work PB479's design-review probe (a line ending no sentence, blank lines",
+  "only, then a lowercase opening that is no lettered item). `text_units.py --self-test` holds each pair in ONE unit.",
+  "`line` is the tail's line in specs/ISO_COBOL_2023.md when recorded (informative: the pair is the test)."
+ ],
+ "joins": [
+  {
+   "line": 34,
+   "tail": "— FACT©, DSI 27A5260-2760, copyrighted 1960 by Minneapolis-Honeywell",
+   "head": "have specifically authorized the use of this material in whole or in part, in the COBOL specifications. Such"
+  },
+  {
+   "line": 1158,
+   "tail": "— FACT©, DSI 27A5260-2760, copyrighted 1960 by Minneapolis-Honeywell",
+   "head": "have specifically authorized the use of this material in whole or in part, in the COBOL specifications. Such authorization extends to the reproduction and use of COBOL specifications in programming manuals or similar publications."
+  },
+  {
+   "line": 8068,
+   "tail": "&emsp;&emsp;&emsp;-9.999 999 999 999 999 999 999 999 999 999 999E+6144",
+   "head": "to"
+  },
+  {
+   "line": 8072,
+   "tail": "&emsp;&emsp;&emsp;+9.999 999 999 999 999 999 999 999 999 999 999E+6144",
+   "head": "inclusive, with a maximum precision of 34 decimal digits; the smallest positive nonzero value is 1.0E-6176; and the smallest normalized positive nonzero value is 1.0E-6143. All values representable in a standard-decimal intermediate data item are the product of an integer and 1.0E**-6176."
+  },
+  {
+   "line": 8702,
+   "tail": "1\\. If the category of the data item referenced by identifier-1 is numeric,",
+   "head": "a. If the usage of the data item referenced by identifier-1 is implicitly or explicitly display or national, the condition is true if the presence or absence of an operational sign in the content of the data item referenced by identifier-1 is in agreement with the data description of identifier-1 and if the content, except for the operational sign, consists entirely of the characters 0, 1, 2, 3, ..., 9. Valid operational signs are defined in 13.18.52, SIGN clause."
+  },
+  {
+   "line": 10668,
+   "tail": "a. both specify the same SIZE phrase in the LOCALE phrase of the PICTURE clause, and",
+   "head": "b. both specify the LOCALE phrase without a locale-name or both specify the LOCALE phrase with the same external identification, where the external identification is the external-locale-name or literal value associated with the locale-name in the LOCALE clause of the SPECIAL-NAMES paragraph."
+  },
+  {
+   "line": 10807,
+   "tail": "a. if described with the FACTORY phrase, the factory object of the specified class shall be described with an IMPLEMENTS clause that references int-r,",
+   "head": "b. if described without the FACTORY phrase, the instance objects of the specified class shall be described with an IMPLEMENTS clause that references int-r."
+  },
+  {
+   "line": 14928,
+   "tail": "c) If the literal is national, 'PICTURE N(length)'",
+   "head": "where length is the length of the literal as specified in 8.3.3, Literals."
+  },
+  {
+   "line": 15100,
+   "tail": "c) if the literal is national, 'PICTURE N(length)'",
+   "head": "where length is the length of the literal as specified in 8.3.3, Literals."
+  },
+  {
+   "line": 20041,
+   "tail": "+9.999 999 999 999 999E+384,",
+   "head": "nor can it be less than"
+  },
+  {
+   "line": 20053,
+   "tail": "+9.999 999 999 999 999 999 999 999 999 999 999E+6144,",
+   "head": "nor can it be less than"
+  },
+  {
+   "line": 20788,
+   "tail": "— a function",
+   "head": "then this allocated record is"
+  },
+  {
+   "line": 22067,
+   "tail": "— a function",
+   "head": "then the definition of the formal parameter and the definition of the argument shall have the same ALIGN, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses, with the following exceptions:"
+  },
+  {
+   "line": 22113,
+   "tail": "— a function",
+   "head": "then the conformance rules depend on the type of the formal parameter as specified in the following rules:"
+  },
+  {
+   "line": 22450,
+   "tail": "`MOVE screen-item TO receiving-field`",
+   "head": "where:"
+  },
+  {
+   "line": 23910,
+   "tail": "selection-subject >= left-part AND selection-subject <= right-part",
+   "head": "when 'NOT' is specified in the selection object"
+  },
+  {
+   "line": 23912,
+   "tail": "when 'NOT' is specified in the selection object",
+   "head": "selection-subject < left-part OR selection-subject > right-part"
+  },
+  {
+   "line": 23914,
+   "tail": "selection-subject < left-part OR selection-subject > right-part",
+   "head": "where left-part is identifier-3, literal-3, or arithmetic-expression-3 and right-part is identifier-4, literal-4, or arithmetic-expression-4. The result of the analysis is the truth value of the resulting conditional expression."
+  },
+  {
+   "line": 23920,
+   "tail": "selection-subject [NOT] = selection-object",
+   "head": "where 'NOT' is present if it is present in the selection object. The result of the analysis is the truth value of the resulting conditional expression."
+  },
+  {
+   "line": 24538,
+   "tail": "a. Either the category of the elementary data item is data-pointer, message-tag, object-reference, or program-pointer, or",
+   "head": "b. A data-item format VALUE clause is specified in the data description entry of the elementary data item."
+  },
+  {
+   "line": 26007,
+   "tail": "a. the induction variable associated with the current condition is set to its initialization value, and",
+   "head": "b. the condition to the left of the current condition becomes the current condition, and"
+  },
+  {
+   "line": 26009,
+   "tail": "b. the condition to the left of the current condition becomes the current condition, and",
+   "head": "c. the induction variable associated with the new current condition is incremented by its associated augment value, and"
+  },
+  {
+   "line": 26011,
+   "tail": "c. the induction variable associated with the new current condition is incremented by its associated augment value, and",
+   "head": "d. if the current condition is condition-1 execution proceeds to step a, else execution proceeds to the beginning of step 13 b;"
+  },
+  {
+   "line": 26548,
+   "tail": "MOVE identifier-1 TO record-name-1",
+   "head": "or MOVE literal-1 TO record-name-1 according to the rules specified for the MOVE statement."
+  },
+  {
+   "line": 26769,
+   "tail": "MOVE identifier-1 TO record-name-1",
+   "head": "or"
+  },
+  {
+   "line": 26773,
+   "tail": "MOVE literal-1 TO record-name-1",
+   "head": "according to the rules specified for the MOVE statement."
+  },
+  {
+   "line": 26787,
+   "tail": "MOVE identifier-1 TO implicit-record-1",
+   "head": "or"
+  },
+  {
+   "line": 26795,
+   "tail": "REWRITE implicit-record-1",
+   "head": "where implicit-record-1 refers to the record area for file-name-1 and is treated:"
+  },
+  {
+   "line": 27664,
+   "tail": "1\\. If arithmetic-expression-1 is specified,",
+   "head": "a. If the value of arithmetic-expression-1 does not result in an integer, and"
+  },
+  {
+   "line": 29343,
+   "tail": "`MOVE identifier-1 TO record-name-1`",
+   "head": "or"
+  },
+  {
+   "line": 29347,
+   "tail": "`MOVE literal-1 TO record-name-1`",
+   "head": "according to the rules specified for the MOVE statement."
+  },
+  {
+   "line": 29363,
+   "tail": "`MOVE identifier-1 TO implicit-record-1`",
+   "head": "or"
+  },
+  {
+   "line": 29373,
+   "tail": "WRITE implicit-record-1",
+   "head": "where implicit-record-1 refers to the record area for file-name-1 and is treated:"
+  },
+  {
+   "line": 29842,
+   "tail": "NOTE 2 As a result, the relation condition",
+   "head": "function-identifier = equivalent-arithmetic-expression"
+  },
+  {
+   "line": 29844,
+   "tail": "function-identifier = equivalent-arithmetic-expression",
+   "head": "will evaluate to true."
+  },
+  {
+   "line": 30624,
+   "tail": "result: \"41\" expressed in alphanumeric characters",
+   "head": "b. FUNCTION CONVERT (X\"41\" HEX ANUM)"
+  },
+  {
+   "line": 30628,
+   "tail": "Result: \"A\" expressed in alphanumeric characters",
+   "head": "c. Item-b PIC 111 VALUE B\"101\""
+  },
+  {
+   "line": 32684,
+   "tail": "[ space-string ]",
+   "head": "where"
+  },
+  {
+   "line": 38625,
+   "tail": "— USAGE clause",
+   "head": "specified or implied for each of these elementary items, together with the presence or absence of the STRONG phrase and the presence or absence of the EXTERNAL clause at level 1 of the type declaration"
+  },
+  {
+   "line": 39981,
+   "tail": "— TRUNCATION",
+   "head": "for which the descriptions are found in D.17, Rounding."
+  },
+  {
+   "line": 42847,
+   "tail": "&nbsp;&nbsp;&nbsp;&nbsp;SET numeric-item TO NEAREST-TO-ZERO IN-ARITHMETIC-RANGE",
+   "head": "and"
+  },
+  {
+   "line": 42851,
+   "tail": "&nbsp;&nbsp;&nbsp;&nbsp;MOVE SMALLEST-ALGEBRAIC (numeric-item) TO numeric-item",
+   "head": "may be used to set the minimum nonzero value permitted for any numeric or numeric-edited item."
+  }
+ ]
+}

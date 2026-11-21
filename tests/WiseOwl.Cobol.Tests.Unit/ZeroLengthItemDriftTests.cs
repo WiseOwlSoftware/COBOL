@@ -39,7 +39,7 @@ public sealed class ZeroLengthItemDriftTests
         new() { Min = min, Max = max, DependingOperand = new WrittenDataName("N") };
 
     /// <summary>§2023:8.5.4 item 1 — "A group data item containing only an occurs-depending table in which the number
-    /// of occurrences is zero." integer-1 of the OCCURS is what makes the MINIMUM zero (§2023:13.18.38 SR16 permits
+    /// of occurrences is zero." integer-1 of the OCCURS is what makes the MINIMUM zero (§2023:13.18.38.3 SR16 permits
     /// it); the run-time half is the length test the MOVE emitter writes.</summary>
     [Fact]
     public void Item1_OccursDependingGroupWithZeroMinimum_HasZeroMinimumLength() =>

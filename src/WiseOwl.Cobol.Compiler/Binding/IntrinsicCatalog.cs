@@ -287,7 +287,7 @@ public static class IntrinsicCatalog
         // 2^arg-2, Annex D.10). A boolean function result IS class/category boolean (§2023:15.2 item 2).
         Add(new("BOOLEAN-OF-INTEGER", IntrinsicType.Boolean, IntrinsicArity.Fixed, 2, 2, "ii", "BooleanOfInteger", IntrinsicBind.Runtime, false, 2002)); // §2023:15.13
         // BYTE-LENGTH (§2023:15.14) — a COMPILE-TIME FOLD like LENGTH (§2023:15.50), but counting BYTES, not character
-        // positions (the D7 distinction). The per-usage byte widths are IMPLEMENTOR-DEFINED (§2023:13.18.60 GR4/6/7/
+        // positions (the D7 distinction). The per-usage byte widths are IMPLEMENTOR-DEFINED (§2023:13.18.60.4 GR4/6/7/
         // 8/11/12; §2023:8.1.2) — WiseOwl COBOL pins them in DataItem.ByteWidth (documented in INTRINSICS_DESIGN):
         // 1 byte/character-position for DISPLAY (and boolean/BIT, the §2023:13.18.40.4 R14 one-character
         // representation), 2 bytes/position for NATIONAL (UTF-16, D-N1), the binary/packed StorageWidth,

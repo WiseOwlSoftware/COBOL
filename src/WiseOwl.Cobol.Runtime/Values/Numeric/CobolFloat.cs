@@ -12,11 +12,11 @@ namespace WiseOwl.Cobol.Runtime;
 /// any float-bearing expression in binary64. This class is the boundary between that native-double world and the
 /// scaled-integer substrate (<see cref="CobolNum"/>): <see cref="ToScaled"/> lands a double into an unscaled
 /// <see cref="Int128"/> at a receiver's scale (so the existing store funnel applies ROUNDED + SIZE ERROR), and
-/// <see cref="Display(double)"/> renders the algebraic value for DISPLAY (ISO §2023:14.9.11 GR1 — implementor-defined).
+/// <see cref="Display(double)"/> renders the algebraic value for DISPLAY (ISO §2023:14.9.11.4 GR1 — implementor-defined).
 /// </summary>
 public static class CobolFloat
 {
-    /// <summary>DISPLAY of a float item (§2023:14.9.11 GR1, implementor-defined): the .NET shortest round-trippable
+    /// <summary>DISPLAY of a float item (§2023:14.9.11.4 GR1, implementor-defined): the .NET shortest round-trippable
     /// decimal in the invariant culture (a leading '-' only when negative; E-notation for extreme magnitudes, as
     /// .NET produces). The ONE float→string path — never a bare <c>.ToString()</c>.</summary>
     public static string Display(float v) => v.ToString(CultureInfo.InvariantCulture);

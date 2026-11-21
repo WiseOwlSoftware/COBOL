@@ -362,8 +362,9 @@ they close nothing.
    - **The dispositions.** A kind (`SR`, `GR`, `AR`, `RV`, `DOC`): a ROW. `restates` with the rule ids that state the
      same requirement: no row; each id must exist. `not-a-rule` with a class from the closed vocabulary below: no row.
      `pending` until decided: outside the denominator, and counted, so every reader that prints the edition's rule count
-     prints the pending count beside it as a lower bound (`inventory_view.lower_bound`, 2002's mechanism, section 10.4
-     of this document). There is no other way out of the denominator.
+     prints the pending count beside it as a lower bound and the edition's status counts it (`inventory_view.pending`, the
+     one reader of the bound, which `lower_bound` prints and `edition_status.inventory_part` counts; 2002's mechanism,
+     section 10.4 of this document). There is no other way out of the denominator.
    - **A unit that states or defines anything normative is a ROW** (rule 4: one mechanism per question). If it obliges
      the implementation to nothing observable (it defines a property of the user's program), it closes through the
      `definitional` arm of section 1.1 of this document, signed and refuter-upheld as kb/Work PB5373 requires, never by
@@ -417,9 +418,12 @@ they close nothing.
    splits, joins or re-levels a paragraph, or adds a table row) writes the move batch for `record_verdicts.py` itself,
    a record moving only when its `rule-digest` matches (the renumbering rule of section 10.2 of this document), and the
    audit refuses a catalog whose moves are not applied.
-5. **Citation.** `cite.py --check` takes the designators `p<n>` (`§2023:14.8.2.2 p3`), `Table <t> row <r>`
-   (`§2023:14.5.1 Table 12 row 2`) and a prose clause's item number; the existing `Table <t>` is the whole table. Their
-   extent is the catalog's reading (`rule_book`), as for every rule. A quotation inside a unit that has no row yet
+5. **Citation.** `cite.py --check` takes the designators `p<n>` (`§2023:8.4.2.1 p3`) and `Table <t> row <r>`
+   (`§2023:14.5.1 Table 12 row 2`); the existing `Table <t>` is the whole table. A prose clause's item number has no
+   designator yet: the tree writes `item <n>` both for it and for lists that are no unit (`§2023:5.4 item 2`, `§1985:VIII.1.3.4
+   item 1 b`, six such citations when PB5449 landed), so the form is added when those are re-pointed. A unit that is a
+   row has the catalog's extent (`rule_book`), as every rule has; a pending unit has none yet, so a quotation cited to
+   it is held to its clause. A quotation inside a unit that has no row yet
    answers `OK §<clause> (unnumbered prose, pending)` and never names the rule above it: that is kb/Work PB222's
    repair. A glued paragraph stays inside its rule's extent until the 2023 mint carves it (point 7), so the "it lies in
    GR13" and "it lies in SR2" answers disappear in that landing, together with the stored citations that rely on them.
@@ -431,7 +435,8 @@ they close nothing.
 7. **Existing ids and chains do not move; a carved row inherits nothing.** The 18 PB284 rows are reproduced byte for
    byte (their clauses have no dash list, no table and no ".)" ending; a drift test holds it). A numbered row from
    which a margin paragraph is carved keeps its id and loses the carved text: the carve is ONE mechanical operation of
-   `record_verdicts.py` (`split`), which checks that the old text is the new text plus the carved paragraphs in order.
+   `record_verdicts.py`, the `split` record of a batch (`{"rule-id": <parent>, "split": {...}}`, its rules in
+   `scripts/spec/rule_moves.py`), which checks that the old text is the new text plus the carved paragraphs in order.
    - **The carved row is minted OPEN**, with no record. Its record was decided against text that held the paragraph,
      but not FOR it: `GR-14.7.5-L3.5`'s text holds the NOT SIZE ERROR paragraph while its notes and tests are about
      ROUNDED-mode truncation, and `GR-8.8.4.2.1-13`'s carved alphabetic and national-group comparison sentences are
@@ -477,7 +482,7 @@ stratified sample of the tables by kind:
 
 | step | note | what | effect on the denominator |
 |---|---|---|---|
-| 1 | PB5449 | the mechanism: segmentation, ids, the dispositions schema and its refuter records, level data for 2023, the audit's checks, the move batch, `split` and the recheck, `cite.py` designators and the pending answer, the lower bound | none: every unit `pending`; every catalog's `rules` array byte-identical, only its `outside-denominator` block gaining the pending units; 2023 reads "4,214 rules (a lower bound: N units pending)" |
+| 1 | PB5449 | the mechanism: segmentation, ids, the dispositions schema and its refuter records, level data for 2023, the audit's checks, the move batch, the `split` batch record and the recheck, `cite.py` designators and the pending answer, the lower bound | none: every unit `pending`; every catalog's `rules` array byte-identical, only its `outside-denominator` block gaining the pending units; 2023 reads "4,214 rules (a lower bound: N units pending)" |
 | 2 | PB5450 | the 2023 dispositions, each `restates` and `not-a-rule` refuted, by clause; the table sample first | none (a branch) |
 | 3 | PB5451 | the 2023 mint: dispositions + regeneration + carve + parent rechecks + citation re-pointing + PB5319, ONE landing | the 2023 correction, every new row open |
 | 4 | PB5454 | record the fourteen held 1985 records (records-85p's batch, `to` filled) and re-check the round-2 records against their prose carriers | none (1985 records) |
@@ -487,6 +492,50 @@ stratified sample of the tables by kind:
 | 8 | PB5456 | 2002: the same, with its pending clauses | the 2002 correction |
 
 Steps 6 and 8 need only step 1, step 7 needs steps 3 and 6, and steps 4 and 5 need only step 3.
+
+**Step 1 as built (kb/Work PB5449, its first landing).** `scripts/spec/text_units.py` is the one segmentation of point 1
+(its cases: `scripts/selftests/spec/text_units/`, the 42 joins as `scripts/spec/data/paragraph-joins-2023.json`), with the
+key, the dispositions' regeneration and THE DISPOSITIONS AUDIT of point 3: a unit with no entry, an entry no unit has, a
+moved unit, a kind the clause does not take, a `restates` naming no existing rule, a `not-a-rule` failing its class test
+or (a lead-in excepted) the verbal forms (`scripts/spec/data/verbal-forms.json`) or the shape guard, either without an
+UPHELD refuter record of its digest (JSON lines named by the entry's `refuted`, kb/Work PB5374's record form keyed by
+`unit` and `digest`), per-class counts unequal, and a `not-rules` block without its record once the manifest's
+`not-rules-refuted` is set (PB5450 for 2023, PB5452 for 1985). The ISO reader (`extract_rule_catalog.iso_units`: clause 6
+on and the normative annexes, a numbered clause contributing its lead-in, a general format and the implementor-defined
+list none) and the 1985 reader (`rule_catalog_1985.units`: Sections IV, VI to XVI and Amendment 1's Section A, over
+`citation.regions_1985`) enter every unit pending in each manifest's `paragraph-blocks` (the 18 PB284 rows and 2002's
+8.8.4.1.5.2 as per-unit dispositions; `kind`/`kinds` gone); each catalog's `outside-denominator` gains `pending-units`
+(2023 2,298, 2002 1,766, 1985 911 at landing) and every `rules` array regenerated byte-identical; `inventory_view.pending`
+counts it, so `lower_bound` prints it and the edition's status counts it; `cite.py` answers `(unnumbered prose, pending)` for prose in no row and reads `p<n>` and `Table <t> row <r>` (point
+5).
+
+**Step 1, its second landing (kb/Work PB5449 items 6 and 3 for 1985).** The MOVE and the SPLIT are `scripts/spec/rule_moves.py`'s
+rules, applied by the one writer as records of a batch (`record_verdicts.py`). This DEPARTS from the earlier wording of
+point 7 and of the step table, which named a command `record_verdicts.py split`: a split is a batch record type, as a
+withdrawal is, so every store change passes one writer and one all-or-nothing validation, and a regeneration's move
+batch and a split can be applied in one run. A move (`{"rule-id", "move-from"}`)
+carries a record to the id its unchanged text now has and is refused when the digest differs; a split (`{"rule-id",
+"split": {old-text, carved, rows, recheck}}`) checks the old text against the parent's text now plus the carved
+paragraphs in order, refuses a carved row with a record, and keeps the parent's record only through an UPHELD recheck
+of the remaining text (re-stamped, its notes marked `split-recheck:`), withdrawing it otherwise; both re-point the older
+held editions' change records (`next.to` and `next.digests` renamed for a move, a parent's digest re-stamped for a
+split, but only for a record decided against the parent's old text: one already stale, or whose `reason` quotes eight
+consecutive words of carved text, is left STALE for adjudication). A
+regeneration that relabels a decided row unit writes the move batch itself (`text_units.moves`,
+`TestResults/rule-moves/<year>.json`) and prints the command; until it is applied the view refuses the moved records.
+The margin levels of point 4 are `scripts/spec/measure_margin_levels.py`, one mechanism for every edition: the
+edition's reader names the paragraphs after a rule and the lead-ins, each keyed as a unit and placed on its PDF page; a
+paragraph's first printed line is found fuzzily and set against its page's margin (the leftmost edge two long lines
+share), and level 0 is calibrated on the lead-ins (1985 indents every paragraph's first line: 17.8 pt). The 1985 data
+(`scripts/spec/data/margin-levels-1985.json`) records 381 paragraphs after a rule: 48 at level 0, 243 deeper, 18 left
+of the indent (a first line that continues the text after a display), 9 ambiguous and 63 not found (to be read on the
+rendered page). The 1985 reader (`rule_catalog_1985.block_paragraphs`, `units`) makes each level-0 paragraph a pending
+unit numbered after its clause's lead-ins, while it stays in its rule's text, and the 1985 catalog refuses a paragraph
+after a rule the data does not hold; the 1985 pending units went from 911 to 956, every `rules` array byte-identical.
+NOT YET BUILT, each a later landing of PB5449: 2023's reader of the paragraphs after a rule and its data (the mechanism
+takes it as a reader, not a parameter: `READERS`), a decided level-0 paragraph leaving its rule's text and the 1985
+rows minted from decided units (PB5452's mint), a prose clause's `item <n>` designator (point 5), a 1985 unit's `box`,
+and a 2002 unit's `candidate` (point 6).
 
 **Attacked.** Run on the current `prose_paragraphs` (the code PB284 landed), on the clauses the dispositions will
 admit, and once more by an adversarial review of the design (2026-11-12, kb/Work PB479's dated file of that day):
@@ -1644,8 +1693,9 @@ the 2002 denominator until it is adjudicated by §2002:5.2.1 and 5.2.2. Each car
 manifest clause of the same title nearest in text, its disposition and kind) as the adjudicator's starting point. Until
 then the 2002 rule count is a lower bound: the catalog records what it leaves out (`outside-denominator`: the pending
 clauses and the untyped headings), and every reader that prints the count prints it beside it
-(`inventory_view.lower_bound`: the session probe's `invent` line, the ledger), so a 2002 count at zero GAP cannot read
-as a complete denominator (branch review R1-5).
+(`inventory_view.pending`, the one reader of the bound: `lower_bound` prints it on the session probe's `invent` line, and
+`edition_status.inventory_part` counts it in the GAP the ledger shows), so a 2002 count at zero GAP cannot read as a
+complete denominator (branch review R1-5, kb/Work PB5994).
 
 **The stability rule.** An id is its clause, its kind and its printed number (`IsoEdition.rule_id`), so regenerating the
 catalog after the reconciliation corrects a page keeps every id whose clause and number did not change and changes only

@@ -245,7 +245,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   Pinned by `pb60_numval_standard_decimal`, `pb3839_numval_f_one_value` + the NUMVAL tests in
 >   `CobolIntrinsicsDecTests` (incl. the one-projection theory on the shared fixed-point domain).
 > - **The RW SUM clause (§2023:8.8.1.5.1 names it):** documented-equivalence consumption at the ReportWriterEmitter
->   chokepoint — each §2023:13.18.54 GR3 accumulation is one ≤32-digit fixed-point addition, exact and digit-identical
+>   chokepoint — each §2023:13.18.54.4 GR3 accumulation is one ≤32-digit fixed-point addition, exact and digit-identical
 >   in both engines; no routing needed.
 > - **STANDARD-BINARY — documented-unsupported** (COBOL0806 at every edition that has it): spec-obsolete
 >   (§2023:8.8.1.4.1 NOTE 1); a binary128 SDIDI has no exact .NET carrier; revisit only if the spec retains it. Its
@@ -429,7 +429,7 @@ or not checking is enabled — checking picks only the disposition, and with che
 termination, save in a COBOL-85 arithmetic statement, which ends and lets the program continue, kb/Work PB5484); `ZeroDivisorLaneTests` holds all three arms and both checked twins.
 
 **MOVE/DISPLAY/compare.** literal→float = the fixed→float cast; float→fixed = `ToScaled`; float→float = a `ClrType`
-cast. DISPLAY = `CobolFloat.Display(float/double)` — invariant-culture shortest round-trip (§2023:14.9.11 GR1
+cast. DISPLAY = `CobolFloat.Display(float/double)` — invariant-culture shortest round-trip (§2023:14.9.11.4 GR1
 implementor-defined; goldens use exact binary fractions for cross-platform stability). Compare = under NATIVE
 arithmetic (the default), a native `double` comparison when either operand is `Real` (§2023:8.8.4.2.4 — native
 arithmetic compares by native rules; IEEE NaN-unordered / ±0-equal fall out of C# — spec-conformant, no epsilon);

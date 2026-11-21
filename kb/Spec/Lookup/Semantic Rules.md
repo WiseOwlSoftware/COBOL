@@ -31,15 +31,15 @@ they attach to, and the runtime consequence. See [[kb/Semantics/Validation Rules
 | Digit-capacity | ≤18 digits pre-2002, ≤31 after | §2023:8.8 / editions | `EditionContext.CheckDigitCapacity` (0801/0802) | numeric `PicInfo` | overflow behavior |
 | REDEFINES overlay legality | one canonical backing; type/SYNC puns limited | §2023:13.16 REDEFINES | data binder (4-tier) | `RedefViewPlace` | view accessor |
 | VALUE on redefiner | a redefining view emits no stored VALUE (SR9) | §2023:13.16 | data binder | init nodes | init from original |
-| Whole-group-as-alphanumeric | group operand fills without regard to leaves (GR4) | §2023:14.9.25.3 GR4 | `StorageFormPass` | `StorageForm.CharImage` | image materialize |
+| Whole-group-as-alphanumeric | group operand fills without regard to leaves (GR4) | §2023:14.9.25.4 GR4 | `StorageFormPass` | `StorageForm.CharImage` | image materialize |
 
 ## Control-flow rules
 | Rule | Description | Spec Source | Validation Pass | IR Node | Runtime Impact |
 |---|---|---|---|---|---|
-| GO TO DEPENDING range | out-of-range selector → fall-through | §2023:14.9.17 GR2 | binder | `BoundGoToDepending` | inner switch default |
+| GO TO DEPENDING range | out-of-range selector → fall-through | §2023:14.9.17.4 GR2 | binder | `BoundGoToDepending` | inner switch default |
 | PERFORM range bounding | THRU range is exit-bounded, return-address | §2023:14.9.28 | binder | `BoundOutOfLinePerform` | recursive Dispatch |
 | VARYING AFTER re-init | inner indices re-init each outer increment | §2023:14.9.28 | binder | `BoundPerformControl` | loop nesting |
-| EXIT format gating | EXIT PARAGRAPH/SECTION/PERFORM introduced 2002 | §2023:14.9.14 GR5-7 | `VersionConformancePass` (0900) | `BoundExit*` | pc/return |
+| EXIT format gating | EXIT PARAGRAPH/SECTION/PERFORM introduced 2002 | §2023:14.9.14.4 GR5-7 | `VersionConformancePass` (0900) | `BoundExit*` | pc/return |
 | ALTER removal | ALTER removed in 2002 | §2023:14.9.3 / Annex F | `VersionConformancePass` (0902) | `BoundAlter` | alter field (85) |
 | Duplicate paragraph names | resolved by symbol identity, not text | §2023:14.4 | binder | `BoundParagraph` | correct target |
 
@@ -51,7 +51,7 @@ they attach to, and the runtime consequence. See [[kb/Semantics/Validation Rules
 | Level-88 value-set | VALUE/THRU defines the truth set | §2023:8.8.4.4 | binder | `BoundCondition88` | bool property |
 | Class condition | NUMERIC/ALPHABETIC/CLASS test | §2023:8.8.4.2.16 | binder | `BoundClassCondition` | class test |
 | EC checking scope | ECs off by default; `>>TURN` folds at compile | §2023:14.6.12 / §2023:7.3.13 | `EcFeatures` fold | `BoundEcChecked` | EC engine |
-| EC hierarchy & fatality | Table 13 exception hierarchy | §2023:14.6.12 Table 13 | binder | `BoundRaise` | fatal/nonfatal |
+| EC hierarchy & fatality | Table 13 exception hierarchy | §2023:14.6.13.1.6 Table 13 | binder | `BoundRaise` | fatal/nonfatal |
 
 ## File & I-O rules
 | Rule | Description | Spec Source | Validation Pass | IR Node | Runtime Impact |

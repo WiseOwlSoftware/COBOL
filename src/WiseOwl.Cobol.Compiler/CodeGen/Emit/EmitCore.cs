@@ -104,12 +104,12 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
 
     /// <summary>The trailing collation argument for collated comparison renders — <c>", __COLLATE"</c> (the program's
     /// ONE <c>CobolCollation</c> carrier — a literal-phrase table or a LOCALE sequence, kb/Work PB101) when a
-    /// PROGRAM COLLATING SEQUENCE is active (ISO §2023:12.3.6 GR11 — relation and condition-name comparisons), else empty
+    /// PROGRAM COLLATING SEQUENCE is active (ISO §2023:12.3.6.4 GR11 — relation and condition-name comparisons), else empty
     /// (the native two-argument <c>CobolString.Compare</c> overload).</summary>
     public string CollateArg => Data.Configuration.Collating is null ? "" : ", __COLLATE";
 
     /// <summary>The NATIONAL twin of <see cref="CollateArg"/> — <c>", __COLLATE_NAT"</c> when a NON-native
-    /// NATIONAL program collating sequence is active (ISO §2023:12.3.6 GR11 / §2023:8.8.4.2.9 — an <c>ALPHABET … FOR
+    /// NATIONAL program collating sequence is active (ISO §2023:12.3.6.4 GR11 / §2023:8.8.4.2.9 — an <c>ALPHABET … FOR
     /// NATIONAL</c> literal phrase; the identity sequences NATIVE/UCS-4 stay null, D-N3), else empty. National
     /// comparisons NEVER take the alphanumeric <c>__COLLATE</c> table (its 256-entry domain would alias national
     /// characters through <c>&amp; 0xFF</c>).</summary>

@@ -484,7 +484,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   reference site wrote and a usage the template wrote, and neither entry carries it alone — that program compiled
   clean on the screen's first landing while its byte-identical inline spelling was rejected. Provenance keeps the
   verdict count honest: `DataItem.ValueCopiedFrom` names the entry a VALUE this entry only ASSUMED was copied from
-  (§2023:13.18.57.4 GR1 / §2023:13.18.49 GR1), so SR13/SR14 answer once per WRITTEN VALUE clause rather than once per reference
+  (§2023:13.18.57.4 GR1 / §2023:13.18.49.4 GR1), so SR13/SR14 answer once per WRITTEN VALUE clause rather than once per reference
   site. SR1 is the exception that proves why it names the entry and not a flag (kb/Work PB2517): a TYPEDEF STRONG
   template's group is not a typed item (§2023:8.5.3.1), so SR1 is false there and becomes true only when a TYPE reference
   composes it; `ScreenAssumedGroupValueSubject` asks SR1 of every assumed group VALUE and stays silent only when the
@@ -929,7 +929,7 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   order and every connector's position within a duplicate set (kb/Work PB341, PB342, PB2693).
 - **Multiple 01s under one FD (and SAME RECORD AREA) = a discriminated record-area wrapper:** READ deserializes the
   raw bytes into EVERY 01 view; WRITE serializes the named view. This is the file-edge analogue of REDEFINES (ISO
-  §2023:9.1.2 NOTE / §2023:13.18.33 GR3).
+  §2023:9.1.2 NOTE / §2023:13.18.33.4 GR3).
 - **SORT/MERGE:** SD record is a typed struct; the sort store holds serialized images ordered by the same `CobolKey`
   policy; key offsets AND WIDTHS are BYTE windows into the deterministic serialized image, computed at compile time
   (a national position is two of those bytes — §2023:13.18.60.4 GR8, D-N1). Format-2 in-place table SORT operates on the
@@ -1062,7 +1062,7 @@ inclusive FPI); EXTERNAL FDs — **IMPLEMENTED (IC227A; §2023:13.18.22.4 GR4a/G
 the run-unit registry by `"::EXT::" + externalized-name` (= the FD name, GR5) instead of the per-program
 `PROG::FILE` qualification, so every describer's verbs converge on ONE connector (`CobolFile.Register` keeps an
 existing `::EXT::` key — a later describer's activation never clobbers the live connector; CANCEL's `CloseFiles`
-skips external connectors, §2023:14.9.5 GR8/GR9), and the record area re-bases onto ONE run-unit `ExternalStore` cell
+skips external connectors, §2023:14.9.5.4 GR8/GR9), and the record area re-bases onto ONE run-unit `ExternalStore` cell
 keyed `"FD::" + externalized-name` via the same Tier-B string-canonical machinery WS EXTERNAL 01s use
 (`LinkageBinder.cs::CallBindExternalAndGlobal`); FILE STATUS items stay per-program; the GR6 same-byte-count
 cross-describer check is §2023:14.8.4 EC-band work (documented-deferred). GLOBAL FD inheritance — **IMPLEMENTED
@@ -1172,7 +1172,7 @@ single reflection-free home for universal/dynamic dispatch, NULL/`IS class` sema
 
 ### 10.2 Storage scopes (two counterintuitive)
 
-OBJECT-para WORKING-STORAGE → **INSTANCE** fields; METHOD WORKING-STORAGE → **STATIC** fields (ISO §2023:11.7 GR5/§2023:11.8:
+OBJECT-para WORKING-STORAGE → **INSTANCE** fields; METHOD WORKING-STORAGE → **STATIC** fields (ISO §2023:11.7.4 GR5/§2023:11.8:
 method WS persists across activations, shared across instances — NOT per-instance); METHOD LOCAL-STORAGE → C# locals
 (re-init each call); LINKAGE → method parameters; a method-local name SHADOWS object data. FACTORY → static
 members/methods + static data.
@@ -1182,7 +1182,7 @@ members/methods + static data.
 `Class "New" RETURNING o`→`o = (C?)__FACTORY_C.__Instance.__New()` (New is the standard class BASE's factory method,
 §2023:16.2 — present only in a class that INHERITS FROM BASE, COBOL2448 otherwise; its creation step is the generated
 ctor: base ctor first, then VALUE-init own instance fields — OO deep-dive D4); `obj "M"`→`obj.M(args)` (virtual); `SELF "M"`→`this.M()` (virtual — runtime-class dispatch,
-§2023:8.4.3.8 GR2); `SUPER "M"`→`base.M()`; `Class "M"` (non-NEW)→static call; dynamic/universal (method-name in a data
+§2023:8.4.3.8.4 GR2); `SUPER "M"`→`base.M()`; `Class "M"` (non-NEW)→static call; dynamic/universal (method-name in a data
 item, or a universal `object?` receiver)→`recv.__CobolInvoke(name, args)` (a per-class switch — reflection-free).
 Instance methods are `virtual` by default (COBOL forbids implicit hiding, §2023:11.7 SR4a → never emit C# `new`); OVERRIDE→
 `override`; FINAL→`sealed override`; ABSTRACT→`abstract`. BY REFERENCE → typed `ref` (§2023:9.3.6 match-rule 3c requires
@@ -1801,7 +1801,7 @@ ISO-conforming output under the `LEGACY_DIVERGENT` protocol (`scripts/guard.sh` 
 
 ### G6 — Deferred data cases (the byte-boundary islands) ✅ COMPLETE
 - REDEFINES/RENAMES 4-tier model (§4) — Tiers A/B (no bytes) first; Tier C resolved as the ZONED DIGIT-IMAGE
-  codec (§4.2 — no `RedefCodec` byte plan needed; ISO §2023:13.18.60 GR4 implementor latitude; Q1 thereby settled:
+  codec (§4.2 — no `RedefCodec` byte plan needed; ISO §2023:13.18.60.4 GR4 implementor latitude; Q1 thereby settled:
   the island narrowed to float/COMP-5 puns, which stay loud).
 - The whole-group **`AsImage()`/`FromImage()`** facility (§14.4) — wired into whole-group MOVE/compare, file
   records, and SORT, including fixed-point BINARY/PACKED leaves.
@@ -2110,8 +2110,8 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
 14. **Figurative HIGH/LOW-VALUE + collating.** No PCS ⇒ `HIGH-VALUE`=U+FFFF / `LOW-VALUE`=U+0000 in BOTH classes —
     the extremes of the 65,536-position native sequence (§2023:8.3.3.6.4 GR6/GR7; owner decision kb/Work R52, which
     retired the former alphanumeric U+00FF pin — kb/Work PB1093; `WiseOwl.Cobol.Runtime.NativeCollatingSequence`). With a
-    PROGRAM COLLATING SEQUENCE they are the sequence's EXTREME characters (ISO §2023:8.3.3.6 GR6/7 +
-    §2023:12.3.7 GR8/9 — character identity, ties: highest→last-specified, lowest→first-specified). The custom-`ALPHABET`
+    PROGRAM COLLATING SEQUENCE they are the sequence's EXTREME characters (ISO §2023:8.3.3.6.4 GR6/7 +
+    §2023:12.3.7.4 GR8/9 — character identity, ties: highest→last-specified, lowest→first-specified). The custom-`ALPHABET`
     subsystem is LIVE in BOTH classes (§2023:12.3.7.2 two-branch format, the FOR phrase in its ISO position between the
     name and IS; a FOR phrase written after the definition — once an accepted "historical superset" on ALPHABET and a
     bare parse error on CLASS — is the grammar's `misplacedSpecialNamesForPhrase` error production, refused by name
@@ -2145,17 +2145,17 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
       the generated `__COLLATE` field (declared by `ObjectComputerEmit.EmitMembers` for EVERY runtime-module
       type — a program class and a CLASS-ID's instance/factory classes alike, kb/Work PB111, beside the
       `__COLLATE_NAT` and `__CLASSIFY` members), consumed by the settled seam `CobolString.Compare(a,b,weights)` at every
-      relation/condition-name comparison site (§2023:12.3.6 GR11), by CHAR/ORD (H5 flag), and by the PCS-aware
+      relation/condition-name comparison site (§2023:12.3.6.4 GR11), by CHAR/ORD (H5 flag), and by the PCS-aware
       figurative fills.
     - **National** (P10 Step 4): the SAME `CollatingTable` over the 65,536 UTF-16 code units — built by
       `AlphabetBindNational` through the shared `AlphabetLiteralPhrase` (`NationalAlphabets`/`NationalCollating`),
       rendered as the generated `__COLLATE_NAT` `NationalCollation` instance, consumed by
-      `CobolString.Compare(a,b,national)` at national relation/condition-name sites (§2023:8.8.4.2.9 / §2023:12.3.6 GR11),
+      `CobolString.Compare(a,b,national)` at national relation/condition-name sites (§2023:8.8.4.2.9 / §2023:12.3.6.4 GR11),
       by CHAR-NATIONAL/ORD-over-national (`CollateNat`, §2023:15.16.4/§2023:15.70.4 r2), and by the national figurative
-      fills (§2023:12.3.7 GR8/9). Code-set phrases: **UCS-4** names the ISO 10646 collating sequence — on the D-N1
+      fills (§2023:12.3.7.4 GR8/9). Code-set phrases: **UCS-4** names the ISO 10646 collating sequence — on the D-N1
       one-code-unit-per-position substrate that IS the native code-unit order (§2023:8.5.1.4 denies surrogate-pair
       recognition, so the supplementary-plane codepoint/code-unit divergence is unreachable; the correspondence is
-      the BMP identity, implementor item 188) — and **UTF-8/UTF-16** name coded character sets ONLY (§2023:12.3.7 GR7
+      the BMP identity, implementor item 188) — and **UTF-8/UTF-16** name coded character sets ONLY (§2023:12.3.7.4 GR7
       Table 6): referencing them as a collating sequence is rejected (0898), and their coded-set role reaches the
       medium only as the documented A.3 item 27 non-support — a variable-width medium encoding is not a code this
       processor writes (item 14a below; the CODE-SET boundary codec itself is LIVE, kb/Work PB793).

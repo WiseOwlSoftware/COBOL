@@ -69,7 +69,7 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move, Debug
                 // §2023:14.9.20.4 GR4 + GR6b: an implicit `SET Target TO identifier-2`, rendered as THE SET STATEMENT
                 // renders it for the same operand pair — SetEmitter.EmitSetPointer's straight handle copy for the
                 // pointer family (§2023:14.9.39 Format 7), OoEmitter's Format-5 cast-and-copy for an object-reference
-                // receiver (§2023:14.9.39 GR9, "reference copy"). §2023:14.9.20.3 SR3 has already refused literal-1 and SR4
+                // receiver (§2023:14.9.39.4 GR9, "reference copy"). §2023:14.9.20.3 SR3 has already refused literal-1 and SR4
                 // the category mismatch, so the pair is a valid SET by the time it reaches here.
                 w.Line(PlaceRenderer.Write(s.Target,
                         s.Target.Item.Pic is { Category: PicCategory.ObjectReference } orp

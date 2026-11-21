@@ -91,7 +91,7 @@ is this closed, documented set:
    `EditionInfo.MaxDigits` is the table; §2023:8.3.3.3.2 caps fixed-point literals at 1–31 digits and §2023:13.18.40.3 SR14
    caps a numeric/fixed-point-numeric-edited item's PICTURE digit positions at 1–31).
 3. **The three sanctioned BEHAVIORAL edition reads** (they select semantics for VALID programs, no diagnostic):
-   the <2002 keyword-omitted FUNCTION routing gate (`IntrinsicBinder` — §2023:8.4.3.2 SR2 routing is inert below
+   the <2002 keyword-omitted FUNCTION routing gate (`IntrinsicBinder` — §2023:8.4.3.2.3 SR2 routing is inert below
    2002), its program twin, the <2002 program-prototype-name routing (`CallBinder.ProgramPrototypeNamesExist`,
    row program-prototype-name-2002: below 2002 a bare word after CALL or CANCEL is identifier-1, never §2023:14.9.4.2
    Format 2's bracket-omitted spelling, and the same read is what judges a CALL's argument spellings up front,

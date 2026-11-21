@@ -299,7 +299,7 @@ public sealed class FileControlKeyRuleSpecTests
 
     /// <summary>§2023:12.4.5.13.3's three syntax rules, each on an entry-only program: SR1 (OCCURS), SR2 (an unsigned
     /// integer without 'P'), SR3 (not defined in a record description entry subordinate to the file-name).
-    /// SR2 and SR3 were cited as "§2023:12.4.5.13 SR2/SR3" before PB699 — a clause that carries no syntax rules.</summary>
+    /// SR2 and SR3 were cited as "§2023:12.4.5.13 SR2/SR3" before PB699 — a clause that carries no syntax rules. (citation-audit: example)</summary>
     [Theory]
     [InlineData("§2023:12.4.5.13.3 SR1", "01 F-REC PIC X(8).", "WORKING-STORAGE SECTION.\n01 W-T.\n   05 W-RK PIC 9(4) OCCURS 3 TIMES.")]
     [InlineData("§2023:12.4.5.13.3 SR2", "01 F-REC PIC X(8).", "WORKING-STORAGE SECTION.\n01 W-RK PIC S9(4).")]

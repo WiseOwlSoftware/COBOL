@@ -30,7 +30,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// <c>_top</c> / <c>_bottom</c>. That is a page property, not an operand source.</para>
 /// </summary>
 /// <param name="Body">Page size — the number of lines that may be written or spaced on the logical page
-/// (§2023:13.18.34 GR2, integer-1 / data-name-1).</param>
+/// (§2023:13.18.34.4 GR2, integer-1 / data-name-1).</param>
 /// <param name="Footing">The line number within the page body at which the footing area begins (GR3,
 /// integer-2 / data-name-2); <see langword="null"/> when the WITH FOOTING phrase is absent (GR1 — no end-of-page
 /// condition independent of page overflow). A PRESENT phrase evaluating to 0 is a GR6 b) 2 violation, which is

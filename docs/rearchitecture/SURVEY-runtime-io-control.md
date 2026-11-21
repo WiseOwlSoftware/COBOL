@@ -46,7 +46,7 @@ The typed-native invariant holds: the only `string`-image boundaries are the dis
 | `CobolObject` (abstract) | `Control/CobolObject.cs` | 90 | OO root: universal `__CobolInvoke`, null-guard, per-object instance-file tracking. **`~CobolObject` finalizer (`:85-89`)** — the prior data-race site; now enqueue-only (see §4). `SuppressFinalize` by default, re-arm only for file-owning objects (`:68,75`) — a thoughtful fix. |
 | `CobolModule` (static) | `Control/CobolModule.cs` | 81 | `FUNCTION MODULE-NAME` stack. **The LONE `[ThreadStatic]` store (`:24`)** — inconsistent with every other (plain-static) run-unit store. |
 | `CobolPtr` (static) | `Control/CobolPtr.cs` | 107 | ADDRESS OF / BASED / SET / ALLOCATE / FREE over `ManagedPointer`+`StorageCell`. Loud-fatal on null/freed/out-of-range. Clean; stateless. |
-| `ExternalSwitches` (static) | `Control/ExternalSwitches.cs` | 49 | **Process-global `ConcurrentDictionary States` (`:22`)**, run-unit scope per §2023:12.3.7 GR4, but its `Reset()` is "test isolation only" (`:47`) — switch state leaks across in-process run units. |
+| `ExternalSwitches` (static) | `Control/ExternalSwitches.cs` | 49 | **Process-global `ConcurrentDictionary States` (`:22`)**, run-unit scope per §2023:12.3.7.4 GR4, but its `Reset()` is "test isolation only" (`:47`) — switch state leaks across in-process run units. |
 | `CobolInvokeArg` | `Control/CobolInvokeArg.cs` | 21 | Universal-dispatch arg carrier. Fine. |
 | `MethodReturn`/`StopRun`/`NotImplemented(+Exception)` | `Control/{MethodReturn,StopRun,NotImplemented}.cs` | 17/10/31 | One-purpose control signals; scattered between `Control/` and `Exceptions/`. |
 

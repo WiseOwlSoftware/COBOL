@@ -7,8 +7,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The data-pointer runtime rules (Phase-4b increment 2; ISO §2023:8.8.4.2 pointer equality, §2023:13.18.5 GR3/GR4,
-/// §2023:14.9.3 GR1/GR2/GR6, §2023:14.9.15 GR1, §2023:14.9.39 F10 GR18/GR20). End-to-end behavior rides the three pointer
+/// The data-pointer runtime rules (Phase-4b increment 2; ISO §2023:8.8.4.2 pointer equality, §2023:13.18.5.4 GR3/GR4,
+/// §2023:14.9.3.4 GR1/GR2/GR6, §2023:14.9.15.4 GR1, §2023:14.9.39 F10 GR18/GR20). End-to-end behavior rides the three pointer
 /// goldens; these lock the carrier/cell semantics the emitters wire to.
 /// </summary>
 public sealed class CobolPtrTests
@@ -105,7 +105,7 @@ public sealed class CobolPtrTests
     public void Deref_Null_And_OutOfBounds_AreLoud()
     {
         Assert.Equal("EC-DATA-PTR-NULL",
-            Assert.Throws<CobolFatalException>(() => CobolPtr.Deref(ManagedPointer.Null, 1)).EcName);   // §2023:13.18.5 GR3
+            Assert.Throws<CobolFatalException>(() => CobolPtr.Deref(ManagedPointer.Null, 1)).EcName);   // §2023:13.18.5.4 GR3
         var cell = new StorageCell { Ref = "ABCDE" };
         Assert.Equal("EC-BOUND-PTR",
             Assert.Throws<CobolFatalException>(() => CobolPtr.Deref(ManagedPointer.At(cell, 4), 5)).EcName);   // GR4 — window past the end
@@ -115,7 +115,7 @@ public sealed class CobolPtrTests
     [Fact]
     public void Allocate_SizeRules_And_InitializedFill()
     {
-        Assert.True(CobolPtr.Allocate(0, ' ', out _).IsNull);        // §2023:14.9.3 GR2 — ≤0 ⇒ NULL, no exception condition
+        Assert.True(CobolPtr.Allocate(0, ' ', out _).IsNull);        // §2023:14.9.3.4 GR2 — ≤0 ⇒ NULL, no exception condition
         Assert.True(CobolPtr.Allocate(-5, ' ', out _).IsNull);
         var p = (CellPointer)CobolPtr.Allocate(4, ' ', out _);
         Assert.Equal("    ", p.Cell.Ref);                // GR8 undefined — this implementation space-fills
