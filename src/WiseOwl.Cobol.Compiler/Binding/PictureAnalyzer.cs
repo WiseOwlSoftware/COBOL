@@ -164,9 +164,12 @@ public static class PictureAnalyzer
         // is not the currency symbol (§1985:VI.5.9.3 SR3; kb/Work PB5174).
         if (!TryExpandRepeats(picture, edition, where, currencySet.ContainsKey, decimalPointIsComma, out string expanded))
             return PicInfo.Recovery();
+        // Every question below is asked of the expansion's RUNS, never of its characters one at a time: a repetition
+        // factor is a count, and a 64 M-position PICTURE cost 30 s asked per character (kb/Work PB5913).
+        var runs = PictureSymbolRuns.Of(expanded);
 
         char cs = '\0';
-        foreach (char up in expanded)
+        foreach (var (up, _) in runs.Runs)
         {
             if (!currencySet.ContainsKey(up)) continue;
             if (cs == '\0') { cs = up; continue; }
@@ -183,7 +186,7 @@ public static class PictureAnalyzer
         LiteralClass? currencyClass = cs == '\0' || currencySet[cs].ClauseRefused ? null : currencySet[cs].LiteralClass;
         if (cs == '\0') cs = '$';   // no currency symbol in this picture: the whitelist/editing checks see the default
         // GR14: the first occurrence contributes the whole string; the mask below is canonical ('$').
-        int currencyExtra = expanded.Contains(cs) ? currencyString.Length - 1 : 0;
+        int currencyExtra = runs.Contains(cs) ? currencyString.Length - 1 : 0;
         clause = PictureClauseIdentity.Of(expanded, cs, currencyString, decimalPointIsComma);
 
         // ── PICTURE format 2 (the LOCALE phrase, §2023:13.18.40.2; kb/Work PB64 T6): its own analysis — the format-1
@@ -216,9 +219,16 @@ public static class PictureAnalyzer
         // 2002) plus the not-implemented error at 2002+. Anything else is an invalid PICTURE. ──
         bool hasN = false, has1 = false, hasE = false;
         char? invalid = null;
-        for (int i = 0; i < expanded.Length; i++)
+        // Over the runs: a symbol's membership is its run's, and CR / DB is a 'C' / 'D' run of one followed by a run that
+        // opens with 'R' / 'B', whose first character the pair takes (`pairTaken`).
+        var symbolRuns = runs.Runs;
+        int pairTaken = 0;
+        for (int i = 0; i < symbolRuns.Count; i++)
         {
-            char c = expanded[i];
+            char c = symbolRuns[i].Symbol;
+            int remaining = symbolRuns[i].Count - pairTaken;
+            pairTaken = 0;
+            if (remaining == 0) continue;
             if (char1Declared.Contains(c)) continue;   // a declared PICTURE EDITING character-1 (ISO §2023:13.18.40.3 SR8) — not an invalid symbol
             // The program's currency symbol (ISO §2023:12.3.7.4 GR13), asked BEFORE the picture letters: no edition's
             // exclusion list admits a letter that is a picture symbol of that edition, but E and N are symbols only from
@@ -237,9 +247,9 @@ public static class PictureAnalyzer
                 case 'A' or 'B' or 'P' or 'S' or 'V' or 'X' or 'Z'
                     or '0' or '9' or '/' or ',' or '.' or '+' or '-' or '*':
                     break;
-                case 'C' when i + 1 < expanded.Length && expanded[i + 1] == 'R':
-                case 'D' when i + 1 < expanded.Length && expanded[i + 1] == 'B':
-                    i++; break;   // CR / DB — each two-character pair is ONE symbol (§2023:13.18.40.3 SR12 NOTE 2)
+                case 'C' when remaining == 1 && i + 1 < symbolRuns.Count && symbolRuns[i + 1].Symbol == 'R':
+                case 'D' when remaining == 1 && i + 1 < symbolRuns.Count && symbolRuns[i + 1].Symbol == 'B':
+                    pairTaken = 1; break;   // CR / DB — each two-character pair is ONE symbol (§2023:13.18.40.3 SR12 NOTE 2)
                 case 'N': hasN = true; break;
                 case '1': has1 = true; break;
                 case 'E': hasE = true; break;
@@ -296,8 +306,9 @@ public static class PictureAnalyzer
 
         // The composition is legal, so the mask can take the shape the runtime reads: one kind of insertion per
         // rule key (SeparateFixedFromFloating, kb/Work PB3220). GR14's size is re-asked of that mask.
-        (expanded, editRules) = SeparateFixedFromFloating(expanded, editRules, cs, char1Set, char1Extended,
-            decimalPointIsComma);
+        var separated = SeparateFixedFromFloating(expanded, editRules, cs, char1Set, char1Extended, decimalPointIsComma);
+        if (!ReferenceEquals(separated.Mask, expanded)) runs = PictureSymbolRuns.Of(separated.Mask);
+        (expanded, editRules) = separated;
         editingExtra = EditingPositions(expanded, editRules);
 
         // ── Category national (§2023:8.5.2.10) / national-edited (§2023:8.5.2.11) / boolean (§2023:8.5.2.5) — LIVE. The
@@ -316,8 +327,8 @@ public static class PictureAnalyzer
             // (kb/Work PB492): two arms spelling one set out is how this one lost character-1.
             // NationalData2002 / NationalEdited2002 (the introduction gates) fire on the RESOLVED item in the
             // VersionConformancePass GateData/GateReports enumerator (Step 14g.1 / 14g.5).
-            bool nationalEdited = expanded.Any(c => CobolEdit.IsEditedCategorySymbol(c, char1Set));
-            if (expanded.All(c => c is 'N' || CobolEdit.IsEditedCategorySymbol(c, char1Set)))
+            bool nationalEdited = runs.Any(c => CobolEdit.IsEditedCategorySymbol(c, char1Set));
+            if (runs.All(c => c is 'N' || CobolEdit.IsEditedCategorySymbol(c, char1Set)))
             {
                 ScreenUsageAgainstPicture(PicCategory.National, usage, explicitUsage, picture, edition, where);
                 // GR4 through the ONE count (kb/Work PB535): every symbol of a national or national-edited
@@ -327,7 +338,7 @@ public static class PictureAnalyzer
                 // (Table 10), so the exclusion takes nothing away here — that agreement is the point of asking
                 // ONE function rather than writing `expanded.Length` as a second reading of the same rule.
                 return new PicInfo(PicCategory.National, Usage.National,
-                    Length: CharacterPositions(expanded, editingExtra: editingExtra), Digits: 0, Scale: 0, Signed: false)
+                    Length: CharacterPositions(runs, editingExtra: editingExtra), Digits: 0, Scale: 0, Signed: false)
                 { EditMask = nationalEdited ? expanded : null, EditingRules = nationalEdited ? editRules : null };
             }
             // Unreachable while Table 10 and GR9/GR10 agree — the matrix admits nothing else beside an 'N'. It
@@ -341,7 +352,7 @@ public static class PictureAnalyzer
         }
         if (has1)
         {
-            if (expanded.All(c => c is '1'))
+            if (runs.All(c => c is '1'))
             {
                 // BooleanData2002 (the introduction gate) fires on the RESOLVED item in the VersionConformancePass
                 // GateData enumerator (keyed on Pic.Category Boolean); Step 14g.1.
@@ -350,7 +361,7 @@ public static class PictureAnalyzer
                 // … Each symbol '1' is counted in the size of the item" — is the "boolean positions" half of
                 // GR4's own sentence.
                 return new PicInfo(PicCategory.Boolean, usage,
-                    Length: CharacterPositions(expanded), Digits: 0, Scale: 0, Signed: false);
+                    Length: CharacterPositions(runs), Digits: 0, Scale: 0, Signed: false);
             }
             // REACHABLE, and the citation is the one that governs: §2023:13.18.40.4 GR8 admits ONLY the symbol '1',
             // while Table 10 is transparent to a declared EDITING character-1 — so `PIC 11T EDITING "T" IS ":"`
@@ -362,10 +373,19 @@ public static class PictureAnalyzer
             return PicInfo.Recovery(expanded.Length);
         }
 
-        bool signed = expanded.Contains('S');
-        bool hasV = expanded.Contains('V');
-        int digits = expanded.Count(c => c is '9');
-        int afterV = hasV ? expanded[(expanded.IndexOf('V') + 1)..].Count(c => c is '9') : 0;
+        bool signed = runs.Contains('S');
+        bool hasV = runs.Contains('V');
+        int digits = runs.Count(c => c is '9');
+        int afterV = 0;
+        if (hasV)
+        {
+            bool pastV = false;   // SR12 b leaves one 'V', so the '9's after it are those of the runs after its run
+            foreach (var (symbol, count) in runs.Runs)
+            {
+                if (pastV && symbol == '9') afterV += count;
+                pastV |= symbol == 'V';
+            }
+        }
 
         // PICTURE 'P' scaling positions (ISO §2023:13.18.40): each P holds no digit and no storage but shifts the implied
         // decimal point. TRAILING P (e.g. 99P) scales the stored digits UP → a NEGATIVE fraction scale (the value is
@@ -388,13 +408,15 @@ public static class PictureAnalyzer
             decimalPointIsComma);
         int floatingExtra = floatOcc >= 2 ? floatOcc - 1 : 0;
         bool IsDigitAnchor(char c) => c is '9' or 'Z' or '*' || (floatChar != '\0' && c == floatChar);
-        int firstNine = -1, lastNine = -1;
-        for (int i = 0; i < expanded.Length; i++)
-            if (IsDigitAnchor(expanded[i])) { if (firstNine < 0) firstNine = i; lastNine = i; }
-        int leadingP = 0, trailingP = 0;
-        for (int i = 0; i < expanded.Length; i++)
-            if (expanded[i] == 'P') { if (firstNine < 0 || i < firstNine) leadingP++; else if (i > lastNine) trailingP++; }
-        int digitPositions = expanded.Count(c => c is '9' or 'Z' or '*');
+        var (firstNine, lastNine) = runs.Span(IsDigitAnchor);
+        int leadingP = 0, trailingP = 0, at = 0;
+        foreach (var (symbol, count) in runs.Runs)
+        {
+            // A run of P is never an anchor, so it lies wholly before the first anchor, after the last, or between them.
+            if (symbol == 'P') { if (firstNine < 0 || at < firstNine) leadingP += count; else if (at > lastNine) trailingP += count; }
+            at += count;
+        }
+        int digitPositions = runs.Count(c => c is '9' or 'Z' or '*');
         int scale = trailingP > 0 ? -trailingP : leadingP > 0 ? leadingP + digitPositions + floatingExtra : afterV;
 
         // §2023:13.18.40.3 SR14 DIGIT-POSITION count for the 1–31 capacity cap: the 9/Z/* positions, every P (counted in the
@@ -405,13 +427,13 @@ public static class PictureAnalyzer
         // Digits + P. (CA33 — the cap must NOT undercount to only the '9's, which let Z(35)/Z(11)9(8) slip past.)
         int digitPos = digitPositions + leadingP + trailingP + floatingExtra;   // floatingExtra hoisted above the P split
 
-        bool anyAlpha = expanded.Any(c => c is 'X' or 'A');
+        bool anyAlpha = runs.Any(c => c is 'X' or 'A');
         // CR / DB are fixed-insertion editing symbols too (ISO §2023:13.18.40.4) — `PIC 9(5)CR` is NUMERIC-EDITED
         // (NC104A MOVE-TEST-F1-14), not pure numeric with stray letters. The program's currency symbol (ISO
         // §2023:12.3.7.4 GR13) is an editing symbol exactly like '$' — without it a `PIC WWWWW` would fall through to
         // "pure numeric, zero digits".
-        bool anyEdit = expanded.Any(c => c is 'Z' or '*' or '+' or '-' or ',' or '.' or '$' or 'B' or '0' or '/' || c == cs)
-            || expanded.Contains("CR", StringComparison.Ordinal) || expanded.Contains("DB", StringComparison.Ordinal)
+        bool anyEdit = runs.Any(c => c is 'Z' or '*' or '+' or '-' or ',' or '.' or '$' or 'B' or '0' or '/' || c == cs)
+            || runs.Contains('C') || runs.Contains('D')   // the SR2 whitelist admits a 'C' / 'D' only opening CR / DB
             || char1Set.Count > 0;   // a PICTURE EDITING character-1 makes the item numeric-/alphanumeric-edited (ISO §2023:13.18.40.5 Table 7)
 
         // ── THE §2023:13.18.60.3 USAGE × PICTURE SCREEN over the picture's resolved CATEGORY (SR3 / SR5 / SR12) —
@@ -430,7 +452,7 @@ public static class PictureAnalyzer
             // in the length, and the mask drives MOVE editing. A plain alphanumeric has no insertion symbols and no
             // editing character-1. ⛔ The insertion SET is CobolEdit's one definition of it — the SAME predicate
             // the national arm above reads, because GR7 and GR10 name the same set word for word (kb/Work PB492).
-            bool edited = expanded.Any(c => CobolEdit.IsEditedCategorySymbol(c, char1Set));
+            bool edited = runs.Any(c => CobolEdit.IsEditedCategorySymbol(c, char1Set));
             // GR5 / GR6 / GR7's ANTECEDENT, stated at the arm that answers it — the same loud assertion the
             // national (GR9/GR10) and boolean (GR8) arms above carry, and for the same reason (kb/Work PB535).
             // GR6 admits "a combination of symbols from the set 'A', 'X', and '9'" and GR7 adds character-1 and
@@ -439,7 +461,7 @@ public static class PictureAnalyzer
             // predicate that GETS here is "contains an 'A' or an 'X'", which is not GR6's antecedent, and the
             // gap between the two is exactly what bound `PIC XX,XX`, `PIC AAZZ`, `PIC XXCR` and `PIC ZZ9AA` as
             // silently SHORT alphanumeric items for as long as no rule read symbol COMBINATION.
-            if (!expanded.All(c => c is 'A' or 'X' or '9' || CobolEdit.IsEditedCategorySymbol(c, char1Set)))
+            if (!runs.All(c => c is 'A' or 'X' or '9' || CobolEdit.IsEditedCategorySymbol(c, char1Set)))
             {
                 edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE {picture} — {where} (ISO §2023:13.18.40.4 GR6/GR7: a "
                     + "character-string containing the symbol 'A' or 'X' defines an item only when its symbols "
@@ -452,9 +474,9 @@ public static class PictureAnalyzer
             return new PicInfo(PicCategory.Alphanumeric, usage,
                 // GR4 through the ONE count (kb/Work PB535): this arm used to spell GR4 as a WHITELIST of the
                 // symbols it expected, which answered every other symbol by dropping it from the size.
-                Length: CharacterPositions(expanded, editingExtra: editingExtra),
+                Length: CharacterPositions(runs, editingExtra: editingExtra),
                 Digits: 0, Scale: 0, Signed: false)
-            { EditMask = edited ? expanded : null, IsAlphabetic = expanded.All(c => c is 'A'),
+            { EditMask = edited ? expanded : null, IsAlphabetic = runs.All(c => c is 'A'),
               EditingRules = editRules };
         }
 
@@ -484,7 +506,7 @@ public static class PictureAnalyzer
             // count. NOTE no digits>0 requirement — an all-symbol mask (PIC ****, $$$$) is numeric-edited too,
             // its digit positions being the Z/*/floating symbols themselves (§2023:13.18.40).
             return new PicInfo(PicCategory.NumericEdited, usage,
-                Length: CharacterPositions(mask, currencyExtra, editingExtra), Digits: digits, Scale: scale, Signed: false)
+                Length: CharacterPositions(runs, currencyExtra, editingExtra), Digits: digits, Scale: scale, Signed: false)
             { SignKind = PicInfo.SignKindFor(usage, false, sign), EditMask = CanonicalCurrencyMask(mask, cs), EditingRules = editRules, DigitPositions = digitPos,
               CurrencyString = currencyString == "$" ? null : currencyString, CurrencyClass = currencyClass };
         }
@@ -510,7 +532,7 @@ public static class PictureAnalyzer
         // Pure numeric. The stored-digit count (Digits) and DISPLAY width (Length) are the '9' count — which is
         // GR4's count too, GR14 excluding exactly the 'S', 'V' and 'P' that are all this arm's alphabet holds
         // beside the '9's. P holds no storage; the implied decimal position lives entirely in the signed Scale.
-        return new PicInfo(PicCategory.Numeric, usage, Length: CharacterPositions(expanded), Digits: digits, Scale: scale, Signed: signed)
+        return new PicInfo(PicCategory.Numeric, usage, Length: CharacterPositions(runs), Digits: digits, Scale: scale, Signed: signed)
         { SignKind = signKind, DigitPositions = digitPos };
     }
 
@@ -687,7 +709,11 @@ public static class PictureAnalyzer
     /// whose symbols Table 10 will not let stand beside a currency symbol.</param>
     /// <param name="editingExtra">GR14's 'es' widening — <see cref="EditingPositions"/>.</param>
     internal static int CharacterPositions(string expanded, int currencyExtra = 0, int editingExtra = 0)
-        => expanded.Count(c => c is not ('P' or 'S' or 'V')) + currencyExtra + editingExtra;
+        => CharacterPositions(PictureSymbolRuns.Of(expanded), currencyExtra, editingExtra);
+
+    /// <summary>The same count over the expansion's runs (kb/Work PB5913): the one implementation.</summary>
+    internal static int CharacterPositions(PictureSymbolRuns runs, int currencyExtra = 0, int editingExtra = 0)
+        => runs.Count(c => c is not ('P' or 'S' or 'V')) + currencyExtra + editingExtra;
 
     /// <summary>⛔ ISO §2023:13.18.40.4 GR14's 'es' entry — the PICTURE EDITING character-1's contribution to the
     /// item's SIZE, which is the literal's width and not the one character position the symbol occupies in

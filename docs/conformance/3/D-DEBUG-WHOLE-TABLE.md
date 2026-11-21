@@ -14,6 +14,6 @@
   with identifier-1's content. (4) DEBUG-CONTENTS is as wide as every occurrence of each target item at its maximum (rule 15: "large enough
   to contain the data required"; `RecordLayout.AllOccurrencesImageWidth`); a dynamic-capacity table has no maximum (§2023:8.5.1.9.1 2), so
   it counts its expected capacity (TO integer-5), else its initial capacity (FROM integer-4), at least one occurrence, and an image past the
-  register's width is truncated by rule 11's alphanumeric move. Witnesses: `conformance:cases/_unassigned/pb4855-debug-whole-table-search`,
+  register's width is truncated by rule 11's alphanumeric move. The width is every occurrence for every target under a table, not only for a table SEARCH can name: at COBOL-85 a function argument subscripted ALL references any such item as a whole (§1985:IV.4.3.8.2.3 SR7, "The subscript ALL may be used only when the subscripted identifier is used as a function argument"; §1985:p.A-28, "the effect is as if each table element associated with that subscript position were specified"), and from COBOL-2002 a table SORT key does too (kb/Work PB4978). Witnesses: `conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/pb4978_debug_all_subscript_85`, `conformance:cases/_unassigned/pb4855-debug-whole-table-search`,
   `conformance-test:DebugFacilityTests.TableSortOperands_AreWholeTableReferences`,
   `conformance-test:DebugFacilityTests.InitializeWholeDynamicTable_IsOneWholeTableReference`.

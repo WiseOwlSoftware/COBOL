@@ -2229,6 +2229,19 @@ non-floating `+`/`-` is either the leading or the trailing sign, a non-floating 
 leading or the trailing one — so the assignment is SEARCHED, not guessed: the string is allowable when SOME
 assignment satisfies the matrix. SR24 bounds each to one occurrence, so the search is at most four assignments.
 
+**Every rule is asked of RUNS, never of characters (kb/Work PB5913).** SR4 bounds character-string-1 AS WRITTEN, so
+`PIC X(67108864)` is legal and its expansion holds 64 M characters, while every composition and category question
+(does a symbol occur, how many times, do all belong to a set, where is the first or last of one, which role each
+occurrence takes) is a question about which symbols occur and in what order. `PictureSymbolRuns` holds the
+expansion as its runs of identical characters (built once by a vectorized scan) and answers those questions for
+`PictureAnalyzer.Analyze`; `PictureComposition`'s `Sym` is a run (its first symbol's ordinal and its length; CR and
+DB never merge), so a count is a sum of run lengths and the Table-10 walk asks the matrix once per run, plus once
+for a run's second symbol, whose own role is then in the seen set (a role whose row refuses itself may not repeat).
+`PictureCompositionTests.ARepeatFactor_CostsTheTableWalkNoWork` pins the walk's count equal at 3 000, 30 000 and
+67 108 864 symbols. The expanded string itself remains, built by `TryExpandRepeats`, because the edit mask, the clause
+identity (`PictureClauseIdentity`, built with whole-string operations) and the run-time image are per position by
+nature. Measured on the PB5913 repro (`check-batch`, Debug): 36 s before, 0.94 s after.
+
 That is what makes the next case automatic. **SR25 and SR26 need no code of their own**: Table 10's leading-sign
 ROW is entirely blank, so nothing may precede a leading sign; its trailing-sign and CR/DB COLUMNS are entirely
 blank, so nothing may follow one; and the leading-currency row admits only the leading-sign column, which is

@@ -246,18 +246,21 @@ public sealed class PictureCompositionTests
     /// walk makes one test per symbol, so tenfold more symbols is at most ~10x the tests; the quadratic pair walk
     /// is ~100x. The count is deterministic, so no runner load can move it — the stopwatch ratio this replaced read
     /// 36x under load on untouched code (train 61).</para>
+    /// <para>⛔ kb/Work PB5913 made the bound exact: the walk asks the matrix once per RUN of identical symbols (twice where
+    /// the run repeats), so a repetition factor costs it nothing at all. The same five shapes at 3 000, 30 000 and
+    /// 67 108 864 symbols (the D-ITEM-SIZE limit's half, the PB5913 repro) report the SAME count; a per-symbol walk
+    /// reports one test per symbol and fails at once.</para>
     [Fact]
-    public void ALargeRepeatExpandedPicture_CostsLinearWork()
+    public void ARepeatFactor_CostsTheTableWalkNoWork()
     {
-        long small = TableWalkTests(3_000), large = TableWalkTests(30_000);
-        // The seam is connected and every symbol of every shape was walked: without this an unobserved walk (0)
-        // would make any ratio pass.
-        Assert.True(small >= 5 * 2_900 && large >= 5 * 29_000,
-            $"the Table 10 walk reported {small} / {large} role tests — the WalkObserver seam is disconnected or the "
-            + "shapes no longer reach the walk");
-        Assert.True(large <= 11 * small,
-            $"tenfold more symbols cost {(double)large / small:F1}x the role tests in the §2023:13.18.40.6 Table 10 walk "
-            + "(linear is ~10x, quadratic ~100x) — it is quadratic in the symbol count again");
+        long small = TableWalkTests(3_000), large = TableWalkTests(30_000), limit = TableWalkTests(67_108_864);
+        // The seam is connected and every shape reached the walk: without this an unobserved walk (0) would pass.
+        Assert.True(small >= 5,
+            $"the Table 10 walk reported {small} role tests for five shapes — the WalkObserver seam is disconnected or "
+            + "the shapes no longer reach the walk");
+        Assert.True(small == large && large == limit,
+            $"the §2023:13.18.40.6 Table 10 walk reported {small} / {large} / {limit} role tests at 3 000 / 30 000 / "
+            + "67 108 864 symbols — its work depends on a repetition factor again (one symbol per element)");
     }
 
     private long TableWalkTests(int n)
