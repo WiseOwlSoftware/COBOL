@@ -231,9 +231,10 @@ public static class ClosedFormats
         for (int i = section.ChildCount - 1; i >= 0; i--)
         {
             if (section.GetChild(i) is not Core.ConfigurationParagraphContext { ChildCount: > 0 } written) continue;
-            // On the paragraph's own line: a word on a later line begins what follows it (a misplaced FILE-CONTROL. is no name).
+            // On the header's own line (the paragraph holds nothing else): a word on a later line begins what follows it (a
+            // misplaced FILE-CONTROL. is no name).
             return written.sourceComputerParagraph() is { nnComputerName1: null } source
-                   && source.debuggingModeClause() is null && source.unrecognizedClause() is null && source.Stop?.Line == word.Line
+                   && source.debuggingModeClause() is null && source.unrecognizedClause() is null && source.Start.Line == word.Line
                 ? "SOURCE-COMPUTER" : null;
         }
         return null;

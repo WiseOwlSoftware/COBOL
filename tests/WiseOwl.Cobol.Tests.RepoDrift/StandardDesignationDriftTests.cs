@@ -21,7 +21,7 @@ public sealed class StandardDesignationDriftTests
     private static readonly TreeScope Sources = new(Under: ["src/"], Kinds: [".cs"]);
 
     /// <summary>The count of unmoved lines on this tree (kb/Work PB6013 stays open while it is above zero).</summary>
-    private const int Unmoved = 440;
+    private const int Unmoved = 439;
 
     private static readonly Regex HandTyped = new(@"ISO §1985|ISO \{[^}]*\bCite\(|""ISO "" \+ [^;]*\bCite\(", RegexOptions.Compiled);
 
