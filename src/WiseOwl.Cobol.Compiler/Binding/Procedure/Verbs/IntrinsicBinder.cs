@@ -2219,7 +2219,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     continue;
                 }
                 // An unsigned integer literal satisfies r3 and goes on to r2's usage family below: a numeric literal's implied
-                // usage is DISPLAY (ISO §2023:9.3.6 SR3, "the implied usage is DISPLAY"), so it is refused
+                // usage is DISPLAY (ISO §2023:9.3.6 GRL4.3, "the implied usage is DISPLAY"), so it is refused
                 // beside a national argument like a numeric display item (kb/Work PB4801; PB4766 review R2-1).
             }
             // r2: the usage family.

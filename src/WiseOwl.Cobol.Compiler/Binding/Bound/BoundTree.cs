@@ -1116,8 +1116,8 @@ public sealed record BoundConditionError(string Feature) : BoundCondition;
 /// <summary>A condition carrying the user-defined-function <paramref name="Activations"/> its
 /// <paramref name="Inner"/> predicate consumes, for a CONDITIONALLY or REPEATEDLY evaluated window: each
 /// activation runs ONCE PER EVALUATION of this condition — a function-identifier "references a temporary data
-/// item whose value is determined when the function is referenced at runtime" and its arguments are evaluated
-/// "at the beginning of the evaluation of the function-identifier" (ISO §2023:8.4.3.2.4 GR1 :6963 / GR6a :6995), and
+/// item whose value is determined when the function is referenced at runtime" (ISO §2023:8.4.3.2.4 GR1, spec :6963) and its
+/// arguments are evaluated "at the beginning of the evaluation of the function-identifier" (§2023:8.4.3.2.4 GR6a, spec :6995), and
 /// functions in conditions are evaluated "if and when the conditions containing them are evaluated"
 /// (§2023:8.8.4.13 r2). The binder attaches the statement-pending activations here instead of the once-per-statement
 /// hoist at every such window: a PERFORM UNTIL / VARYING UNTIL condition (re-evaluated per iteration, §2023:14.9.28),

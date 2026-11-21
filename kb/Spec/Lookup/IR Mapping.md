@@ -110,7 +110,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | IR Node | Purpose | Related Spec Construct (ISO §) | Semantic Rule | Compiler Phase | Diagram |
 |---|---|---|---|---|---|
 | `BoundGoTo` | GO TO — set program counter | §2023:14.9.20 Format 1 | unconditional pc transfer | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
-| `BoundGoToDepending` | GO TO … DEPENDING ON selector | §2023:14.9.20 Format 2 | out-of-range falls through | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
+| `BoundGoToDepending` | GO TO … DEPENDING ON selector | §2023:14.9.17 Format 2 | out-of-range falls through | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundGoToAlterable` | GO TO in ALTER-target paragraph | §2023:14.9.17 | control-flow D4 (mutable alter field) | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundAlter` | ALTER paragraph GO TO targets | §2023:14.9.17 (deleted 2002) | edition gate (85-only); latest ALTER wins | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundAlterEntry` | One resolved ALTER entry | §2023:14.9.17 | assign NewPc into alter field | Bind | [[kb/Diagrams/IR Node Hierarchy]] |

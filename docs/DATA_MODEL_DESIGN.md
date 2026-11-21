@@ -1524,7 +1524,7 @@ over an occurs-depending group** · the 2014 edition gate + matrix/VCR rows. **S
 FIXED record window — WRITE/RELEASE (§2023:14.6.9; the two shapes CONFORMANCE.md A.1 item 57 excludes - a dynamic-capacity
 table of variable-length elements as a MOVE / comparison / CALL operand, and a record holding an OCCURS DEPENDING
 table of them - stay loud) · ref-mod of a
-subordinate (**1526**, §2023:13.7.1 SR6) · REDEFINES **object** carries an OCCURS clause of any format, dynamic included
+subordinate (**1526**, withdrawn: see below) · REDEFINES **object** carries an OCCURS clause of any format, dynamic included
 (**1701**, §2023:13.18.44.3 SR5 sentence 1) · REDEFINES **subject** IS a dynamic table (**1525**, §2023:13.18.44.4 GR1 +
 §2023:8.5.1.9.1 — the one side no syntax rule names) · REDEFINES either side a variable-length group, i.e. with a
 dynamic-length item or dynamic-capacity table SUBORDINATE (**1698**, §2023:13.18.44.3 SR17 + §2023:8.5.1.12.1).
@@ -1614,7 +1614,7 @@ SUBORDINATE to a dynamic table). Each forces the class `Rejected`. **1527** (the
 group INITIALIZE `InitializeErrorAction` message; the whole-dynamic-table value op stays a runtime `NotImplemented`
 loud) — the §2023:14.6.9 variable-length-group family. **1526 is unnecessary and omitted:** reference modification of a
 dynamic-table element works correctly (a `RefModPlace` over the
-`DynTablePlace` — `WS-E(i)(1:2)` gives the right substring), and the cited "§2023:13.7.1 SR6" restriction is actually the
+`DynTablePlace` — `WS-E(i)(1:2)` gives the right substring), and the restriction cited from §2023:13.7.1 (as its SR6) is actually the
 §2023:8.4.3.11.4 ADDRESS-OF/bit-item SR6, not a general ref-mod prohibition — so a 1526 guard would over-restrict valid
 code. Negative tests: `OccursDynamicGuardTests` (1522/1525 + the positive companions, which now include both halves
 of the Format 1 VALUE pair — see the §2023:13.18.63 BAND SCOPING paragraph below). **EC-BOUND-OVERFLOW**

@@ -496,7 +496,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
     (POINTER 8-byte handle + NULL + SET p TO NULL + SET p TO q + `= NULL`/`= q` equality) is standalone; Phase-2
     dereference (ADDRESS OF/BASED) uses **managed .NET references** (`ManagedPointer`) in the data-model Stage 4 — the
     `PointerRegistry` design is REJECTED (settled, NOT gated; DEVLOG 428). NULL = handle 0 = 8 zero bytes. **Spec corrections to the slice above:** (a) **`VALUE NULL` is PROHIBITED on
-    pointer items** (§2023:13.18.26 SR9) — do NOT implement it; instead REJECT a VALUE clause on a pointer (mirror the
+    pointer items** (§2023:13.18.63.3 SR9: the USAGE FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE and PROGRAM-POINTER phrases) — do NOT implement it; instead REJECT a VALUE clause on a pointer (mirror the
     boolean VALUE check). (b) Comparison is **equality only** (= / NOT =), operands same category or NULL.
     **Lean approach — reuse existing machinery, minimal new code:** model pointer as `CobolCategory.Pointer`
     (8 bytes); **SET p TO NULL / SET p TO q → lower as a MOVE** in `BindSetToValue` when the target is a pointer

@@ -1603,7 +1603,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             ? PlaceRenderer.WriteFullGroupImage(p, value, "CALL boundary copy")   // the FULL image — an ODO wrapper is unwrapped (kb/Work PB80)
         // ⛔ AN IMAGE-CARRIED NUMERIC LEAF: the boundary text IS its storage image, of EVERY byte form (kb/Work
         // PB970 — the mirror of CallStringRead's arm). §2023:14.6.5 delivers "the content of the data item" and
-        // §2023:14.2.3 GR8 makes a BY REFERENCE formal "occupy the same storage area as the argument" — content in,
+        // §2023:14.2.3 GR8: a BY REFERENCE formal "occupies the same storage area as the argument" — content in,
         // content out — so the text is stored as it stands, fitted to the item's character positions: no decode,
         // and so no value conversion to lose content that is not a valid representation (a RETURNING item
         // holding spaces came home as 000 — kb/Work PB962). This used to be TWO arms: the zoned one stored the

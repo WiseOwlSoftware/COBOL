@@ -30,7 +30,7 @@
       *> Unparenthesized + runs left to right (§2023:8.8.1.2 GR3). Every
       *> store truncates (§2023:14.7.4.3 GR2: no ROUNDED = TRUNCATION).
       *> The composite-of-operands cap of 31 digits is a NATIVE rule
-      *> (§2023:14.7.7 GR2), so these 35-digit composites are legal only
+      *> (§2023:14.7.7 SR2), so these 35-digit composites are legal only
       *> because standard-decimal arithmetic is in effect.
       *>
       *> TO-1  ADD X Z Y TO R1 (R1 = 0): initial evaluation

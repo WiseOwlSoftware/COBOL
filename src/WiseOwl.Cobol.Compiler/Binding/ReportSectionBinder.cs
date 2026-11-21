@@ -2972,7 +2972,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         && int.TryParse(entries[self + 1].levelNumber().GetText(), out int next) && next > level;
 
     /// <summary>True when <paramref name="self"/> "is subordinate to an entry with a LINE clause" — the
-    /// qualifier ISO §2023:13.18.38.3 SR25d and §2023:13.18.38.4 GR10b/GR12b attach to the COLUMN legs. An ANCESTOR is a
+    /// qualifier ISO §2023:13.18.38.3 SR25 d) and §2023:13.18.38.4 GR10b/GR12b attach to the COLUMN legs. An ANCESTOR is a
     /// preceding entry with a strictly lower level-number, taken innermost-first (the §2023:13.15 level hierarchy).</summary>
     private static bool SubordinateToLineClause(Core.ReportGroupEntryContext[] entries, int self)
     {
