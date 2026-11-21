@@ -24,7 +24,7 @@ public static partial class ConstructRegistry
     /// same row <see cref="Check"/> reports from, so the branch and the diagnostic cannot name different editions.</summary>
     public static bool IsAvailable(EditionInfo edition, string id) =>
         (Find(id) ?? throw new ArgumentException($"unregistered construct id '{id}'", nameof(id)))
-            .StatusAt(edition.Year) == ConstructAvailability.Available;
+            .IsInForceAt(edition.Year);
 
     /// <summary>The code <see cref="Check"/> reports construct <paramref name="id"/> under at <paramref name="edition"/> when that
     /// report is an ERROR, else null (in force, obsolete, or removed under a permissive edition, all of which report a warning
@@ -35,7 +35,7 @@ public static partial class ConstructRegistry
     public static string? GateErrorCodeAt(EditionInfo edition, string id) =>
         VerdictAt(edition, id) is { Severity: EditionSeverity.Error } verdict ? verdict.Code : null;
 
-    /// <summary>⛔ THE ONE VERDICT of construct <paramref name="id"/> at <paramref name="edition"/>, or null when it is in force:
+    /// <summary>⛔ THE ONE VERDICT of construct <paramref name="id"/> at <paramref name="edition"/>, or null when it is in force and unflagged (an obsolete construct is in force and drawn a warning):
     /// the severity <see cref="EditionSeverityPolicy"/> dictates, the code (NotYetIntroduced: the 0900 band for a row whose
     /// availability is a WINDOW, whose <see cref="ConstructDialectStatus.DiagnosticCode"/> names the removal edge, else the row's
     /// pinned code; Removed: the row's code; Obsolete: COBOL0903), and the edition flag of an obsolete or removed construct

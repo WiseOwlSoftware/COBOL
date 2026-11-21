@@ -57,6 +57,34 @@ COBOL0903, which does not change the program. For example, at `--std 2023`, `NEX
 The same use compiles silently with `--std 2002`, where the standard does not yet list it. A construct that the chosen
 edition has removed is the previous section's error.
 
+## The obsolete elements of COBOL-85
+
+ANSI X3.23-1985 requires the documentation to identify the obsolete language elements an implementation has and a
+warning mechanism for their use (paragraph 1.5.2.3), and lists them in Appendix C, paragraph 1, items 1 to 18. At
+`--std 85` a use of any of them draws warning COBOL0903, which does not change the program: the element compiles and
+runs as written. From `--std 2002` each is a removed construct (the debugging clause and line, from `--std 2014`), the previous
+sections' error or, with `--permissive`, its warning.
+
+| Item | Obsolete element | Construct row |
+|---|---|---|
+| 1 | Double character substitution | none: the source character set holds every character of the COBOL character set, so no double character is ever substituted |
+| 2 | ALL literal of more than one character with a numeric or numeric-edited item | `all-literal-multichar-numeric-removed-2002` |
+| 3 | AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED and SECURITY paragraphs | `identification-comments-removed-2002` |
+| 4 | MEMORY SIZE clause | `memory-size-removed-2002` |
+| 5 | RERUN clause | `rerun-removed-2002` |
+| 6 | MULTIPLE FILE TAPE clause | `multiple-file-tape-removed-2002` |
+| 7 | LABEL RECORDS clause | `label-records-removed-2002` |
+| 8 | VALUE OF clause | `value-of-removed-2002` |
+| 9 | DATA RECORDS clause | `data-records-removed-2002` |
+| 10 | ALTER statement | `alter-removed-2002` |
+| 11, 12 | KEY phrase of the DISABLE and ENABLE statements | `communication-key-phrase-removed-2002` |
+| 13 | ENTER statement | none: the statement is refused at every edition, COBOL7240, because the language-names it connects to are the implementor's and this compiler provides none (paragraph 1.5.2.5.5) |
+| 14 | GO TO without a procedure-name | `bare-goto-removed-2002` |
+| 15 | REVERSED phrase of OPEN | `open-reversed-removed-2002` |
+| 16 | STOP literal | `stop-literal-removed-2002` |
+| 17 | The Segmentation module: SEGMENT-LIMIT and a section's segment-number | `segment-limit-removed-2002`, `segment-numbers-removed-2002` |
+| 18 | The Debug module: USE FOR DEBUGGING, WITH DEBUGGING MODE and the debugging line | `use-for-debugging-removed-2002`, `debugging-mode-removed-2014`, `debugging-line-removed-2014` |
+
 ## Nonstandard extensions
 
 Clause 4.2.10 requires the documentation to identify the nonstandard extensions the implementation supports and the

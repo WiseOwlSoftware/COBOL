@@ -563,6 +563,7 @@ public sealed class Frontend
         var misplacedDebuggingLines = new List<IToken>();   // the final stream's own (§1985:VI.7.3)
         var hiddenDebuggingLines = new List<IToken>();      // the final stream's debugging lines that are comment (§1985:VI.7.3, kb/Work PB5990)
         var commentLines = new HashSet<int>();   // the text lines the final stream makes comment (kb/Work PB5588)
+        var hiddenDebuggingSections = new List<IToken>();   // the final stream's USE FOR DEBUGGING sections made comment (kb/Work PB5986)
         LexerErrorListener lexErrors;
         // Where the final lexer met each inline comment, for the source listing only (kb/Work PB5949).
         List<(int Line, int Column)>? commentStarts;
@@ -576,15 +577,25 @@ public sealed class Frontend
             misplacedDebuggingLines.Clear();
             hiddenDebuggingLines.Clear();
             commentLines.Clear();
+            hiddenDebuggingSections.Clear();
             if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines, misplacedDebuggingLines,
                     debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002),
-                    commentLines: commentLines, hiddenLines: hiddenDebuggingLines) is not { } sourceRegionLine)
+                    commentLines: commentLines, hiddenLines: hiddenDebuggingLines, hiddenSections: hiddenDebuggingSections) is not { } sourceRegionLine)
             {
                 sourceDebuggingLines.AddRange(streamSourceLines);
                 break;
             }
             sourceDebuggingLines.Add(sourceRegionLine);
             text = DebuggingLineRewriter.WithCarriersBlanked(text, [sourceRegionLine]);
+        }
+        // A USE FOR DEBUGGING section the mode makes comment is still a use of the obsolete Debug module (§1985:p.XVII-86 (obsolete list item 18)): no
+        // parse or bind sees it, so the one place that knows of it says so (kb/Work PB5986).
+        // The header's RESULTANT position goes through the map's one conversion: a fixed-form resultant line has lost the sequence
+        // and indicator areas, so its raw column is not the physical one (kb/Work PB5986, review R1-1).
+        if (hiddenDebuggingSections.Count > 0 && LineMap.Origin(hiddenDebuggingSections[0].Line) is not null)
+        {
+            var hiddenAt = LineMap.Locate(hiddenDebuggingSections[0].Line, hiddenDebuggingSections[0].Column, sourcePath);
+            gates.OnHiddenDebuggingSection(hiddenAt.FileName, hiddenAt.Line + 1, hiddenAt.Column);
         }
         // The COBOL-85 `*>` gate reports after this stage (Parse), yet its error keeps the binder from running like any prior
         // error, so the word-character screen below must know of it now (kb/Work PB5588, review R1-1).

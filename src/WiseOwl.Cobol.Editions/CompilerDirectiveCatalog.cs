@@ -81,8 +81,7 @@ public static class CompilerDirectiveCatalog
     public static void CheckOperand(string word, string operand, EditionInfo edition, IDiagnosticSink sink)
     {
         if (Map.Value.GetValueOrDefault(word) is not { } row) return;
-        if (row.StatusAt(edition.Year) is ConstructAvailability.NotYetIntroduced or ConstructAvailability.Removed)
-            return;
+        if (!row.IsInForceAt(edition.Year)) return;
         if (row.DirectiveOperand is not { } syntax) return;
         // A word of a multi-word row whose own format writes no operand (kb/Work PB806): §2023:7.3.3 SR3/SR4 — only spaces
         // and an optional inline comment may follow the directive, so ANY operand word is a violation, whatever the
@@ -176,8 +175,7 @@ public static class CompilerDirectiveCatalog
         foreach (string name in syntax.ExcludedDirectives)
             foreach (string w in (Find(name)?.DirectiveWords ?? [name])) excluded.Add(w);   // the whole ROW, by one of its words
         return [.. Words.Where(w => !excluded.Contains(w)
-                                    && Find(w)!.StatusAt(edition.Year) is not (ConstructAvailability.NotYetIntroduced
-                                                                               or ConstructAvailability.Removed))];
+                                    && Find(w)!.IsInForceAt(edition.Year))];
     }
 
     /// <summary>The row ids of every directive whose STATE a <c>&gt;&gt;PUSH ALL</c> saves — ISO §2023:7.3.22.4 GR2:

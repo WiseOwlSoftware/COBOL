@@ -64,8 +64,9 @@ public sealed class ConstructRegistryDriftTests
             Assert.True(e.DiagnosticCode == r.DiagnosticCode, $"DiagnosticCode drift on {id}: '{e.DiagnosticCode}' vs json '{r.DiagnosticCode}'");
             Assert.True(e.Citation == r.Citation, $"Citation drift on {id}: '{e.Citation}' vs json '{r.Citation}'");
             // Intra-json consistency: the matrix's expectDiagnostic must agree with the registry diagnosticCode
-            // for a non-obsolete row (obsolete rows always warn with the fixed 0903 band code).
-            if (r.ExpectDiagnostic is { } code && r.ObsoleteIn is null)
+            // for a row whose code is not the fixed 0903 band code: an obsolete row that is never removed only warns with 0903,
+            // while a row that is also REMOVED keeps its removal code in both fields.
+            if (r.ExpectDiagnostic is { } code && (r.ObsoleteIn is null || r.RemovedIn is not null))
                 Assert.True(e.DiagnosticCode == code, $"code mismatch on {id}: diagnosticCode {e.DiagnosticCode} vs expectDiagnostic {code}");
         }
     }

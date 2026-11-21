@@ -11,7 +11,7 @@ public enum ConstructAvailability
     NotYetIntroduced,
     /// <summary>Removed by the edition — error strict / warning permissive (the removed-construct severity seam).</summary>
     Removed,
-    /// <summary>Obsolete at the edition (ISO §2023:4.2.13 over Annex F.2) — warning always (0903).</summary>
+    /// <summary>Obsolete at the edition (ISO §2023:4.2.13 over Annex F.2; at 1985 §1985:C.1) — in force, and a warning always (0903).</summary>
     Obsolete,
 }
 
@@ -62,6 +62,13 @@ public sealed record ConstructDialectStatus(
     /// every row whose directive may be written anywhere §2023:7.3.3 SR8 allows. A <c>&gt;&gt;PUSH</c> or
     /// <c>&gt;&gt;POP</c> naming the directive inherits the rule (§2023:7.3.20.3 SR2, §2023:7.3.22.3 SR2).</summary>
     public DirectivePlacement? Placement { get; init; }
+
+    /// <summary>True when the construct is IN FORCE at <paramref name="edition"/>: introduced and not yet removed, whether or
+    /// not flagged obsolete. An obsolete element is still a supported one (§1985:I.1.5.2.3: "A conforming implementation of
+    /// Standard COBOL is required to support obsolete language elements"), so <see cref="ConstructAvailability.Obsolete"/> is
+    /// in force: the ONE spelling of that rule for every site that branches on the edition fact.</summary>
+    public bool IsInForceAt(int edition) =>
+        StatusAt(edition) is ConstructAvailability.Available or ConstructAvailability.Obsolete;
 
     /// <summary>The availability verdict at <paramref name="edition"/>.</summary>
     public ConstructAvailability StatusAt(int edition)
