@@ -4,7 +4,7 @@ Wave 20262131's second 1985 train lands in one pull request. It carries the fix 
 r (with l), x (with o, j and e), s, t, u, v, w, y and z. They were merged into `train-1985-c` on top of train B (#1932) and
 gated once. `edition_status.py --edition 1985` read `195 inventory GAP · 8 code reads · 52 open work notes · 16 catalog
 prose holes` on train B's head (its integrator's report). On this train's head it reads
-`1 inventory GAP · 4 code reads · 32 open work notes · 16 catalog prose holes`. The one GAP left is §1985:III.2 p139
+`1 inventory GAP · 4 code reads · 33 open work notes · 16 catalog prose holes`. The one GAP left is §1985:III.2 p139
 (Input-Output Statement): the compiler holds only 2023's set of eight statements (PB6032).
 
 **Area A in the procedure division (p, PB6018).** At --std 85, a paragraph or section header after a sentence that lost its

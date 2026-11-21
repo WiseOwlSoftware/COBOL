@@ -32,7 +32,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   (PB5913, PB5965, PB5138, PB4978, PB5633, PB5559), the harnesses' stated source format (PB1757, PB5048, PB5057), six
   1985 rulings (PB5790 and five), Report Writer at 85 (PB6024-PB6027), the kill-by-name guard (PB6034) and train B's
   review leads (rule_moves applied order; PB904). `python scripts/spec/edition_status.py --edition 1985`:
-  `=== EDITION 1985: NOT COMPLETE — 1 inventory GAP · 4 code reads · 32 open work notes · 16 catalog prose holes ===`
+  `=== EDITION 1985: NOT COMPLETE — 1 inventory GAP · 4 code reads · 33 open work notes · 16 catalog prose holes ===`
   (the one GAP is §1985:III.2 p139, PB6032).
 - **▶ 1985: TRAIN B (2026-11-21, branch train-1985-b, wave 20262131).** Eleven fix branches in one landing: one
   reach walk for segmentation and the sort-merge range (PB6007, PB6008), the `informative` derivation arm (PB6012), the
