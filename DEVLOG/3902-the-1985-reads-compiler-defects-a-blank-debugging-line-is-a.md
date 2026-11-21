@@ -1,4 +1,4 @@
-## The 1985 reads' compiler defects: a blank debugging line is a blank line, and a recovered token is no operator
+## Entry 3902 — 2026-11-21 08:19 PST — The 1985 reads' compiler defects: a blank debugging line is a blank line, and a recovered token is no operator
 
 kb/Work PB5453's 1985 reads turned up ten compiler leads (triage `E:/COBOL-coord/scratch/pb5453/out/leads-triage.md`). One
 branch, one gate, fixed at the root where the deadline allowed, the rest filed.
@@ -16,3 +16,4 @@ physical order), PB6009 (COBOL2987 drops comment-entry text in its quotation), P
 PB6011 (weak diagnostics for a missing period and `SOURCE-COMPUTER. MERGE.`). Each needs a derivation or a redesign that one
 pass under a deadline would have shrunk. The LINAGE read-back lead was ruled CORRECT (PB5815's documented choice), so nothing
 was changed. The three stale prose85 goldens were PB5924 scratch products, corrected outside the repository.
+
