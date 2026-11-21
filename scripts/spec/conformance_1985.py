@@ -10,9 +10,9 @@ verdict, or, for a rule KEPT into ISO/IEC 1989:2023, its chain's), so the statem
 close, and a rule that opens names itself here the moment it does.
 
 `render(root)` returns the section's computed text and its findings. `conformance_source.read_sources` appends the text
-to section 9's preamble (`conformance_source.GENERATED`), so every reader of the document, the rendered view and the
-package's copy see one statement, and `conformance_doc.py --check` (the RENDERED VIEWS and DOC AUDITS gate audits) fails
-on a finding. The findings hold the hand-written parts to the rows, both ways:
+to section 9's preamble (`conformance_source.GENERATORS`) in the rendered view and the package's copy (a reader's `load`
+takes the frame alone: the computed text holds nothing a reader looks up), and `conformance_doc.py --check` (the RENDERED
+VIEWS and DOC AUDITS gate audits) fails on a finding. The findings hold the hand-written parts to the rows, both ways:
   - section 9.1 names, with its ground, every rule the claim does not support: a rule whose own verdict is
     DOCUMENTED-NON-SUPPORT, or a rule KEPT into a 2023 rule that is. A rule in that set and not in 9.1, a 9.1 row of a
     rule not in it, and a 9.1 row whose citation or subject is not its rule's are each a finding;
@@ -39,6 +39,7 @@ import citation  # noqa: E402
 import element_standing  # noqa: E402
 import inventory_view  # noqa: E402
 import lineage  # noqa: E402
+import spec_pdf  # noqa: E402  (the one locator of a transcription)
 from inventory_schema import REPO, Tree, load_schema  # noqa: E402
 
 YEAR = 1985
@@ -56,7 +57,6 @@ REQUIRED = ("Nucleus", "Sequential I-O", "Relative I-O", "Indexed I-O", "Inter-P
 OPTIONAL = ("Report Writer", "Communication", "Debug", "Segmentation", "Intrinsic Function")
 NOT_SUPPORTED = "DOCUMENTED-NON-SUPPORT"
 STANDING_REL = "docs/rearchitecture/spec-element-standing-1985.json"
-SPEC_REL = "specs/ANSI_COBOL_1985.md"
 CONSTRUCTS_REL = "tests/version-matrix/constructs"
 SOURCE_REL = "docs/conformance"
 
@@ -96,7 +96,7 @@ def _exception_rows(root: pathlib.Path, findings: list[str]) -> dict[str, list[s
 
 
 def _obsolete_names(root: pathlib.Path) -> dict[int, str]:
-    lines = (root / SPEC_REL).read_text(encoding="utf-8").split("\n")
+    lines = spec_pdf.markdown(YEAR, root).read_text(encoding="utf-8").split("\n")
     return {n: element_standing.plain(name) for n, name in
             element_standing.listed(lines, citation.regions_1985(lines), "C.1").items()}
 

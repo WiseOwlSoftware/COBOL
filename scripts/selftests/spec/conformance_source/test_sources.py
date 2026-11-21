@@ -89,7 +89,8 @@ def case_00_a_planted_tree_renders_the_regular_document(expect):
         expect.equal("no source out of shape", findings, [])
         expect.equal("the render: sections in number order, entries in key order, blocks by `order:`", text, EXPECTED)
         expect.equal("and the render is regular", cs.check(cs.parse(text)), [])
-        expect.equal("load reads the same document", cs.load(root).text, EXPECTED)
+        expect.equal("load reads the same document, a generated section's frame alone",
+                     cs.load(root).text, EXPECTED.replace("The frame.\n\nthe computed part\n\n", "The frame.\n\n"))
     expect.equal("frontmatter round-trips through JSON values",
                  cs.frontmatter(cs.with_frontmatter({"cells": ["a | b", "“q”"], "order": 3}, "body"), "x"),
                  ({"cells": ["a | b", "“q”"], "order": 3}, "body"))

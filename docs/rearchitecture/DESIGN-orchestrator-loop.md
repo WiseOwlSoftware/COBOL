@@ -2234,8 +2234,10 @@ marker), and, for a section that has entries, one file per entry named by the en
 
 A section may be partly COMPUTED (kb/Work PB4997): an index whose frontmatter names a generator of
 `conformance_source.GENERATORS` (`generated:`) has the text the generator computes from tracked data appended to its
-preamble, every reader and the rendered view see that text, and the generator's findings are the sources' findings, so
-`conformance_doc.py --check` fails when the computed part and the hand-written parts it holds to disagree. Section 9 is
+preamble in the rendered whole (the view, the package's copy, `problems`), and the generator's findings are the sources'
+findings, so `conformance_doc.py --check` fails when the computed part and the hand-written parts it holds to disagree. A reader's `load` takes the frame alone: the computed text holds no register row,
+determination or key, and computing it reads the inventory view, whose state rule reads the registers, so a reader that
+computed it would pay for the view on every load and could reach the view computed from the document. Section 9 is
 the one such section: `scripts/spec/conformance_1985.py` computes the COBOL-85 claim from the 1985 inventory and holds
 section 9.1's rows to the rules the claim does not support, both ways (DESIGN-spec-conformance-review.md section 10.2,
 slice 6). A computed text is never committed, so it cannot go stale and two landings never collide on it.

@@ -949,6 +949,7 @@ const WiseOwl.Cobol.Runtime.Repository.CobolPrototypeDescriptionAttribute.Return
 const WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion = 2 -> int
 const WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.MaxUnits = 65536 -> int
 const WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.MaxFileBytes = 268435456 -> long
+const WiseOwl.Cobol.Runtime.RunUnit.DebugSwitchVariable = "WISEOWL_COBOL_DEBUG" -> string!
 override WiseOwl.Cobol.Runtime.CobolDecWithPrecision.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.IO.KeySegment.GetHashCode() -> int
@@ -1356,4 +1357,3 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
-const WiseOwl.Cobol.Runtime.RunUnit.DebugSwitchVariable = "WISEOWL_COBOL_DEBUG" -> string!

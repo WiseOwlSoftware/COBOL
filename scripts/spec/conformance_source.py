@@ -91,9 +91,10 @@ def _conformance_1985(root: pathlib.Path) -> tuple[str, tuple[str, ...]]:
 
 
 #: THE COMPUTED PARTS OF THE DOCUMENT (kb/Work PB4997): a section whose index names one of these in its frontmatter
-#: (`generated: "<name>"`) has the text its generator computes appended to its preamble, and the generator's findings are
-#: the sources' findings, so `--check` fails when what the section claims and the rows it is computed from disagree. A
-#: generator takes the repository root and returns `(text, findings)`.
+#: (`generated: "<name>"`) has the text its generator computes appended to its preamble in the rendered whole
+#: (`read_sources(computed=True)`: the view, the package's copy, `problems`), and the generator's findings are the
+#: sources' findings, so `--check` fails when what the section claims and the rows it is computed from disagree. A
+#: reader's `load` takes the frame alone. A generator takes the repository root and returns `(text, findings)`.
 GENERATORS = {"conformance_1985": _conformance_1985}
 
 #: The line that opens a section's epilogue: the text after it speaks for the whole section, not for one entry.
@@ -612,9 +613,10 @@ def _heading_number(heading: str) -> str | None:
     return None if found is None else found.group(2)
 
 
-def _section_from(directory: pathlib.Path, rel: str, findings: list[str]) -> str | None:
+def _section_from(directory: pathlib.Path, rel: str, findings: list[str], computed: bool) -> str | None:
     """One section rendered from its directory (`rel` its repository-relative name), each file out of shape a finding;
-    None when the section cannot be rendered at all (no readable index)."""
+    None when the section cannot be rendered at all (no readable index). With `computed`, a generated section carries its
+    generator's text and findings (`GENERATORS`); without it, its frame alone."""
     number = directory.name
     kind = KINDS.get(number, PROSE)
     try:
@@ -632,9 +634,9 @@ def _section_from(directory: pathlib.Path, rel: str, findings: list[str]) -> str
     if (generator := fields.get("generated")) is not None:
         if generator not in GENERATORS:
             findings.append(f"{rel}/{INDEX_FILE}: `generated: {generator!r}` names no generator (`GENERATORS`: {sorted(GENERATORS)})")
-        else:
-            computed, computed_findings = GENERATORS[generator](directory.parents[2])   # <root>/docs/conformance/<n>
-            preamble = f"{preamble}\n\n{computed}" if preamble else computed
+        elif computed:
+            text, computed_findings = GENERATORS[generator](directory.parents[2])   # <root>/docs/conformance/<n>
+            preamble = f"{preamble}\n\n{text}" if preamble else text
             findings += computed_findings
     epilogue_path = directory / EPILOGUE_FILE
     epilogue = _read(epilogue_path).strip("\n") if epilogue_path.is_file() else None
@@ -690,10 +692,12 @@ def _section_from(directory: pathlib.Path, rel: str, findings: list[str]) -> str
     return render_section(heading, shape)
 
 
-def read_sources(root: pathlib.Path = REPO) -> tuple[str, list[str]]:
+def read_sources(root: pathlib.Path = REPO, computed: bool = True) -> tuple[str, list[str]]:
     """The whole document rendered from its sources at `root` (`render_section` per section, in section-number order),
     and a finding for every source out of shape: a missing or malformed frontmatter, a key that is not its file's name, a
-    row whose cells are not its columns, a stray file or directory."""
+    row whose cells are not its columns, a stray file or directory. With `computed` (the rendered view, the package's copy
+    and `--check`) a generated section carries its generator's text and findings; without it (`load`, the readers) it is
+    its frame alone."""
     base = root / SOURCE_REL
     if not (base / HEAD_FILE).is_file():
         return "", [f"{SOURCE_REL}: no {HEAD_FILE} (the document's title and status, before section 1)"]
@@ -706,7 +710,7 @@ def read_sources(root: pathlib.Path = REPO) -> tuple[str, list[str]]:
                 findings.append(f"{rel}: a file outside every section")
         elif re.fullmatch(r"[1-9][0-9]*(?:\.[1-9][0-9]*)*", path.name) is None:
             findings.append(f"{rel}: a directory that is no section number")
-        elif (rendered := _section_from(path, rel, findings)) is not None:
+        elif (rendered := _section_from(path, rel, findings, computed)) is not None:
             parts.append(rendered)
     return "\n\n".join(parts) + "\n", findings
 
@@ -719,9 +723,12 @@ def problems(root: pathlib.Path = REPO) -> list[str]:
 
 
 def load(root: pathlib.Path = REPO) -> Conformance:
-    """The conformance statement of the repository at `root`, rendered from its sources once. A source out of shape is a
+    """The conformance statement of the repository at `root`, rendered from its sources once, for a READER: a generated
+    section is its frame alone. The computed text holds no register row, determination or key a reader asks for, and it
+    is computed from the inventory view, whose state rule reads the registers: a reader that computed it would pay for the
+    view on every load and could reach the view computed from the document (kb/Work PB4997). A source out of shape is a
     SystemExit naming it: no reader works from a document it could only partly read."""
-    text, findings = read_sources(root)
+    text, findings = read_sources(root, computed=False)
     if findings:
         raise SystemExit(f"⛔ {SOURCE_REL} does not read: " + "; ".join(findings[:5])
                          + (f" (+{len(findings) - 5} more)" if len(findings) > 5 else "")

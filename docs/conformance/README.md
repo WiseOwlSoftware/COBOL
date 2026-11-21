@@ -14,8 +14,8 @@ at pack time by the `CobolPackConformanceStatement` target in `Directory.Build.p
 (frontmatter `heading:`, and `columns:` for a table section; its body is the section's opening prose), an optional
 `epilogue.md` (prose that speaks for the whole section, after its entries), and one file per entry named by the entry's
 key. Frontmatter values are JSON, one `<name>: <value>` a line. An index may also name a GENERATOR (`generated:`, one of
-`conformance_source.GENERATORS`): the text it computes from tracked data is appended to the section's opening prose, and
-its findings are the sources' findings (section 9's, computed from the 1985 inventory by `scripts/spec/conformance_1985.py`).
+`conformance_source.GENERATORS`): the text it computes from tracked data is appended to the section's opening prose in
+the rendered whole, and its findings are the sources' findings (section 9's, computed from the 1985 inventory by `scripts/spec/conformance_1985.py`).
 
 | Section | What it holds | One file per |
 |---|---|---|
