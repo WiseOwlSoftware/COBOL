@@ -353,7 +353,7 @@ internal sealed class CheckUsageDeclarationsPass : IBindPass
     /// INDEX. Keeping them as two predicates is the whole guard against a future "unification" that would start
     /// rejecting legal <c>05 IX USAGE INDEX.</c>; the unit drift test asserts the difference is exactly INDEX.
     /// <para>⛔ BOTH PHRASE READERS NOW LIVE ON <see cref="ItemCategory"/> (kb/Work PB391), because SR4's
-    /// population is also §2023:14.7.6 rule 4's CLASS exclusion and §2023:13.16.3 SR24 e)'s, and the CORRESPONDING binder
+    /// population is also §2023:14.7.6 GR4's CLASS exclusion and §2023:13.16.3 SR24e's, and the CORRESPONDING binder
     /// is outside <c>DataBinder</c>. This file keeps only what is about USAGE-CLAUSE PLACEMENT.</para>
     /// <para>Reads the RESOLVED class as well as the written clause, because SR4's reach is "in a data item
     /// described with the CONSTANT RECORD clause, or in any item subordinate to" it — an inherited usage inside

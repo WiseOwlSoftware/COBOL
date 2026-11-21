@@ -64,7 +64,7 @@ public sealed class PhysicalLineKindDriftTests
 
     /// <summary>Free form, where the edition reads the floating comment indicator and has compiler directives (2023): a
     /// <c>*&gt;</c> line is a comment line (§2023:6.2.3.1), a <c>&gt;&gt;</c> line a directive (§2023:7.3.3), an empty line
-    /// blank, and a discarded <c>&gt;&gt;SOURCE FORMAT</c> line a directive too (§2023:6.5 1)).</summary>
+    /// blank, and a discarded <c>&gt;&gt;SOURCE FORMAT</c> line a directive too (§2023:6.5 GR1).</summary>
     [Fact]
     public void FreeFormLines_RecordCommentDirectiveBlankAndSource()
     {

@@ -130,17 +130,17 @@ public sealed class WideArgumentBodiesTests
         try
         {
             ExceptionState.ArgumentFunctionChecking = false;
-            Assert.NotNull(CobolIntrinsics.DomainWideAdmitted(W(one), 45, closed, "ACOS", "§2023:15.8.3 rule 2"));
-            Assert.NotNull(CobolIntrinsics.DomainWideAdmitted(W("-" + one), 45, closed, "ACOS", "§2023:15.8.3 rule 2"));
-            Assert.Null(CobolIntrinsics.DomainWideAdmitted(W(past), 45, closed, "ACOS", "§2023:15.8.3 rule 2"));
-            Assert.Null(CobolIntrinsics.DomainWideAdmitted(W("-" + past), 45, closed, "ACOS", "§2023:15.8.3 rule 2"));
-            Assert.Null(CobolIntrinsics.DomainWideAdmitted(W("0"), 45, positive, "LOG", "§2023:15.55.3 rule 2"));
-            Assert.NotNull(CobolIntrinsics.DomainWideAdmitted(W("1"), 45, positive, "LOG", "§2023:15.55.3 rule 2"));
+            Assert.NotNull(CobolIntrinsics.DomainWideAdmitted(W(one), 45, closed, "ACOS", "§2023:15.8.3 AR2"));
+            Assert.NotNull(CobolIntrinsics.DomainWideAdmitted(W("-" + one), 45, closed, "ACOS", "§2023:15.8.3 AR2"));
+            Assert.Null(CobolIntrinsics.DomainWideAdmitted(W(past), 45, closed, "ACOS", "§2023:15.8.3 AR2"));
+            Assert.Null(CobolIntrinsics.DomainWideAdmitted(W("-" + past), 45, closed, "ACOS", "§2023:15.8.3 AR2"));
+            Assert.Null(CobolIntrinsics.DomainWideAdmitted(W("0"), 45, positive, "LOG", "§2023:15.55.3 AR2"));
+            Assert.NotNull(CobolIntrinsics.DomainWideAdmitted(W("1"), 45, positive, "LOG", "§2023:15.55.3 AR2"));
             Assert.True(double.IsNaN(CobolIntrinsics.AcosWide(null, 45)));
             Assert.True(double.IsNaN(CobolIntrinsics.LogWide(null, 45)));
             ExceptionState.ArgumentFunctionChecking = true;
             Assert.Throws<CobolFatalException>(() =>
-                CobolIntrinsics.DomainWideAdmitted(W(past), 45, closed, "ACOS", "§2023:15.8.3 rule 2"));
+                CobolIntrinsics.DomainWideAdmitted(W(past), 45, closed, "ACOS", "§2023:15.8.3 AR2"));
         }
         finally { ExceptionState.ArgumentFunctionChecking = saved; }
     }

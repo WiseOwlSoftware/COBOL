@@ -22,7 +22,7 @@ public sealed class ReportItemOperandDriftTests
     private static readonly Dictionary<string, string> RawCallers = new(StringComparer.Ordinal)
     {
         ["Binding/ReportSectionBinder.cs"] = "the refusal's own home and its one wrapper, ReportItemOperandRefused",
-        ["Binding/NameResolution.cs"] = "a procedure division reference: a sum counter resolves there before name lookup fails (§2023:13.8.6.2.3 1)",
+        ["Binding/NameResolution.cs"] = "a procedure division reference: a sum counter resolves there before name lookup fails (§2023:13.8.6.2.3 SR1",
         ["Binding/Procedure/Verbs/ConditionBinder.cs"] = "a procedure division condition operand, the same reading",
         ["Binding/Passes/OdoResolvePass.cs"] = "OCCURS DEPENDING ON asks SumCounterOperand85 itself, on the line before, for its clone-by-clone tiers",
     };

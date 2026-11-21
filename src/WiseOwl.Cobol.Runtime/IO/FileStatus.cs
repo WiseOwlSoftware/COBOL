@@ -66,7 +66,7 @@ public static class FileStatusCode
     /// the mapping is directly unit-testable (kb/Work PB140).</summary>
     public static string ForDeleteFileFailure(IOException ex) =>
         ex.HResult is unchecked((int)0x80070013) or 30 ? PermissionDenied
-        // §2023:9.1.13.9 2) — "a DELETE FILE statement is attempted on a physical file and that physical file is
+        // §2023:9.1.13.9 GR2 — "a DELETE FILE statement is attempted on a physical file and that physical file is
         // currently open by another file connector": the host's sharing refusal, when the other connector is
         // not this run unit's (kb/Work PB860).
         : HostFile.IsSharingRefusal(ex) ? DeleteFileSharing
@@ -112,7 +112,7 @@ public static class FileStatusCode
     /// (§2023:13.18.51.4 GR4). The statement is unsuccessful and the medium is unchanged.</summary>
     public const string RecordIdentificationFailure = "45";
 
-    /// <summary>71 — a line-sequential WRITE (ISO §2023:14.9.51.4 GR23) or REWRITE (§2023:14.9.35.4 GR17 d) whose record area
+    /// <summary>71 — a line-sequential WRITE (ISO §2023:14.9.51.4 GR23) or REWRITE (§2023:14.9.35.4 GR17d whose record area
     /// contains a character outside the implementor-defined line sequential character set. The statement is
     /// UNSUCCESSFUL and, per §2023:9.1.13.10 item 1, "the record area remains unchanged" — nothing reaches the medium.
     /// The set is <see cref="LineSequentialCharacterSet"/> (Annex A.1 item 115; docs/CONFORMANCE.md DOC-A.1-115),
@@ -136,15 +136,15 @@ public static class FileStatusCode
     /// <summary>24 — invalid-key boundary violation (§2023:9.1.13.5 item 4): a relative or indexed WRITE or REWRITE whose
     /// record would take the file past the boundary WiseOwl COBOL defines for those organizations, the host's maximum
     /// file size capped by the format at <see cref="Store.PagedFile.FormatPages"/> (2^32) pages (Annex A.1 item 107,
-    /// docs/CONFORMANCE.md DOC-A.1-107; §2023:14.9.51.4 GR33 b) / GR42 d); <c>KeyedConnector.RecordWriteFailed</c>) — or a
+    /// docs/CONFORMANCE.md DOC-A.1-107; §2023:14.9.51.4 GR33b / GR42 d); <c>KeyedConnector.RecordWriteFailed</c>) — or a
     /// sequential-access relative WRITE whose relative record number has more significant digits than the relative key
-    /// item (§2023:14.9.51.4 GR33 c)).</summary>
+    /// item (§2023:14.9.51.4 GR33c).</summary>
     public const string BoundaryViolation = "24";
     /// <summary>34 — permanent-error boundary violation: a sequential WRITE or REWRITE the host medium cannot
     /// store (§2023:9.1.13.6 item 3, §2023:14.9.51.4 GR20 — the boundary is the medium's capacity, Annex A.1 item 108,
     /// DOC-A.1-108, classified by <see cref="HostFile.IsMediumBoundary"/>), or a random/dynamic relative WRITE
     /// whose relative key is less than 1 or greater than <see cref="RelativeConnector.HighestRelativeRecordNumber"/>
-    /// (§2023:14.9.51.4 GR29 b), first in §2014:14.9.47.3 GR26 b); below 2014 that WRITE answers <see cref="BoundaryViolation"/>,
+    /// (§2023:14.9.51.4 GR29b, first in §2014:14.9.47.3 GR26b; below 2014 that WRITE answers <see cref="BoundaryViolation"/>,
     /// <see cref="DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError"/>).</summary>
     public const string PermanentBoundary = "34";
 
@@ -180,7 +180,7 @@ public static class FileStatusCode
     /// <see cref="CharacterWithoutByteImage"/>'s '91'; ISO §2023:9.1.13.11 item 1:
     /// <i>"I-O status = 9x. An implementor-defined condition exists. This condition shall not duplicate any other
     /// condition specified by another I-O status value. The value of x is defined by the implementor."</i>) — the
-    /// LINAGE value-rule violation of §2023:13.18.34.4 GR6 b): the page size is not greater than zero, or a specified
+    /// LINAGE value-rule violation of §2023:13.18.34.4 GR6b: the page size is not greater than zero, or a specified
     /// footing start is not greater than zero or greater than the page size. Annex A.1 item 110 is the
     /// documentation obligation it carries; the determination is docs/CONFORMANCE.md §7 DOC-A.1-110.
     /// <para><b>Why 9x and not a value in another class.</b> §2023:9.1.13.2–§2023:9.1.13.10 enumerate every other class's
@@ -192,7 +192,7 @@ public static class FileStatusCode
     /// (<c>ExceptionCatalog.IsFatalIoStatus</c> — §2023:9.1.13.1's <i>"any that begin with the digit 9 that the
     /// implementor defines as fatal"</i>), which is what Table 13's <b>Fatal</b> for EC-I-O-LINAGE requires.</para>
     /// <para>⛔ IT TRAVELS WITH AN EXCEPTION-NAME. §2023:9.1.13.1's status→EC correspondence would read a '9x' as
-    /// EC-I-O-IMP, and §2023:13.18.34.4 GR6 b) 2 names EC-I-O-LINAGE, so the connector records the name beside the
+    /// EC-I-O-IMP, and §2023:13.18.34.4 GR6b 2 names EC-I-O-LINAGE, so the connector records the name beside the
     /// status (<see cref="FileConnector.IoConditionName"/>) and the generated hook reads the pair. A status
     /// alone cannot carry a condition the status table does not list.</para></summary>
     public const string LinageValueViolation = "90";

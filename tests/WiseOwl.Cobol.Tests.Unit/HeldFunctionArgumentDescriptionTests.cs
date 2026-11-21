@@ -178,7 +178,7 @@ public sealed class HeldFunctionArgumentDescriptionTests : WiseOwlCobolTestBase
     }
 
     /// <summary>⛔ A table(ALL) THAT RANGES OVER NOTHING ENDS THE REFERENCE AT ITS PLACE IN THE LIST, BEFORE A LATER ACTIVATION (kb/Work
-    /// PB4162). §2023:15.3 14) leaves the reference undefined when "the evaluation of an ALL subscript" yields no argument, and WiseOwl COBOL
+    /// PB4162). §2023:15.3 AR14 leaves the reference undefined when "the evaluation of an ALL subscript" yields no argument, and WiseOwl COBOL
     /// defines that as a fatal EC-ARGUMENT-FUNCTION, checking or not (<c>CobolTable.RequireOccurrences</c>). The held form of the argument
     /// is that evaluation (§2023:8.4.3.2.4 GR2), so the user-defined function in argument-2 must never run. Both range kinds that can be
     /// empty: an OCCURS DEPENDING table whose object is 0, and a dynamic-capacity table at capacity 0.</summary>

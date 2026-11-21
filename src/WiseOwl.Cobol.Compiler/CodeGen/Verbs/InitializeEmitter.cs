@@ -53,11 +53,11 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move, Debug
                 move.Emit(s.Move);
                 break;
             case InitializeStoreValue s:
-                // §2023:14.9.20.4 GR6 a) 3. for a receiver a MOVE would edit / justify / blank (kb/Work PB4512): the
+                // §2023:14.9.20.4 GR6a.3 for a receiver a MOVE would edit / justify / blank (kb/Work PB4512): the
                 // result the rule asks for is the initial value, so it is the ONE §2023:13.18.63 VALUE recipe's image —
                 // the same call the item's declaration, a report field and SET condition-name TO TRUE make.
                 w.Line(PlaceRenderer.Write(s.Target, Data.ValueImageOf(s.Target.Item, s.Raw))
-                    + "   // INITIALIZE TO VALUE — the VALUE clause's initial value (ISO §2023:14.9.20.4 GR6 a) 3.)");
+                    + "   // INITIALIZE TO VALUE — the VALUE clause's initial value (ISO §2023:14.9.20.4 GR6a.3)");
                 break;
             case InitializeSetNull s:
                 // §2023:14.9.20.4 GR4/GR6c: an implicit SET Target TO the predefined NULL (data-pointer → ManagedPointer.Null,

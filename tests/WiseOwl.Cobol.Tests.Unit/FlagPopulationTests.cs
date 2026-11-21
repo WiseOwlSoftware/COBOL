@@ -32,7 +32,7 @@ public sealed class FlagPopulationTests
     private static int WarningLine(string warning) =>
         int.Parse(Regex.Match(warning, @"flag\.cob\((\d+),").Groups[1].Value);
 
-    // ── FLAG-02 b EC-PROGRAM-EXCEPTIONS (§2023:7.3.14.4 GR4 b): "A TURN directive for EC-ALL, EC-PROGRAM,
+    // ── FLAG-02 b EC-PROGRAM-EXCEPTIONS (§2023:7.3.14.4 GR4b: "A TURN directive for EC-ALL, EC-PROGRAM,
     //    EC-PROGRAM-ARG-OMITTED, or EC-PROGRAM-NOT-FOUND shall be flagged if 1. the source element calls any
     //    function, or 2. the source element invokes any method." A source element is "source unit excluding any
     //    contained source units" (§2023:3.164). ──
@@ -195,7 +195,7 @@ public sealed class FlagPopulationTests
         Assert.Empty(Warnings(Program("    MOVE 1 TO N."), "COBOL1620"));
     }
 
-    // ── FLAG-02 d MOVE-TO-SAME-NAME (§2023:7.3.14.4 GR4 d): flagged when the operands are described by the same DDE and
+    // ── FLAG-02 d MOVE-TO-SAME-NAME (§2023:7.3.14.4 GR4d: flagged when the operands are described by the same DDE and
     //    1. "the operands are of category alphanumeric-edited" — a reference-modified operand is category alphanumeric
     //    (§2023:8.4.3.3.4 GR6 a), or 2. the DDE has a subordinate OCCURS … DEPENDING whose object is subordinate to it. ──
 
@@ -236,7 +236,7 @@ public sealed class FlagPopulationTests
         Assert.True(AtLine(warnings[0], LineOf(source, "MOVE AE TO AE")), warnings[0]);
     }
 
-    // ── FLAG-14 b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4 b): a compile-time arithmetic expression "may be
+    // ── FLAG-14 b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4b: a compile-time arithmetic expression "may be
     //    specified in the DEFINE and EVALUATE directives, in a constant conditional expression, and in a constant
     //    entry" (§2023:7.3.6.1). ──
 
@@ -264,7 +264,7 @@ public sealed class FlagPopulationTests
         Assert.Empty(Warnings(source, "COBOL1621"));
     }
 
-    // ── FLAG-14 i REF-MOD-ZERO-LENGTH (§2023:7.3.15.4 GR4 i): "A reference modification of a data-item shall be flagged" — the
+    // ── FLAG-14 i REF-MOD-ZERO-LENGTH (§2023:7.3.15.4 GR4i: "A reference modification of a data-item shall be flagged" — the
     //    reference modification of a function's RESULT is not a data item's. ──
 
     [Theory]
@@ -283,7 +283,7 @@ public sealed class FlagPopulationTests
         Assert.True(AtLine(warnings[0], LineOf(source, "MOVE ")), warnings[0]);
     }
 
-    // ── FLAG-14 d I-O-DECLARATIVE (§2023:7.3.15.4 GR4 d): "An input-output statement that can be specified with an INVALID
+    // ── FLAG-14 d I-O-DECLARATIVE (§2023:7.3.15.4 GR4d: "An input-output statement that can be specified with an INVALID
     //    KEY phrase" — REWRITE shall not specify it for a relative file in sequential access mode (§2023:14.9.35.3 SR2) and
     //    DELETE RECORD shall not for a file in sequential access mode (§2023:14.9.10.3 SR2). ──
 
@@ -423,7 +423,7 @@ public sealed class FlagPopulationTests
         Assert.Equal(2, Warnings(source, "COBOL1621").Count);   // g and l
     }
 
-    // ── FLAG-14 m WRITE-END-OF-PAGE (§2023:7.3.15.4 GR4 m): "A WRITE statement that allows an END-OF-PAGE phrase when the
+    // ── FLAG-14 m WRITE-END-OF-PAGE (§2023:7.3.15.4 GR4m: "A WRITE statement that allows an END-OF-PAGE phrase when the
     //    END-OF-PAGE phrase is not specified shall be flagged." §2023:14.9.51.3 SR19 names the END-OF-PAGE phrase and the NOT
     //    END-OF-PAGE phrase separately, so a WRITE with only the NOT phrase does not specify the END-OF-PAGE phrase. ──
 
@@ -448,7 +448,7 @@ public sealed class FlagPopulationTests
         Assert.True(AtLine(warnings[0], LineOf(source, "WRITE OUT-REC")), warnings[0]);
     }
 
-    // ── FLAG-02 f TERMINATE-WITH-VARYING (§2023:7.3.14.4 GR4 f): "if the report being terminated contains a VARYING clause" —
+    // ── FLAG-02 f TERMINATE-WITH-VARYING (§2023:7.3.14.4 GR4f: "if the report being terminated contains a VARYING clause" —
     //    any VARYING clause of the report description, on a group entry included (§2023:13.18.64.3 SR1). ──
 
     [Fact]

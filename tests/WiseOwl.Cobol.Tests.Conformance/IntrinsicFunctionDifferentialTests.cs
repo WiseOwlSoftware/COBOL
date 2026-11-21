@@ -151,7 +151,7 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void Median_EvenCount_MeanOfMiddles_PinnedToSpec() =>
-        // §2023:15.61.4 rule 2: an even argument count returns (b + c) / 2 of the two middle values — exact at one
+        // §2023:15.61.4 RV2: an even argument count returns (b + c) / 2 of the two middle values — exact at one
         // extra fraction digit (the renderer's ×10/2 discipline).
         AssertSpec(Program("01 R PIC 9(3)V9(2).",
             "    COMPUTE R = FUNCTION MEDIAN(1, 2, 3, 4).\n    DISPLAY R."), "002.50");
@@ -390,7 +390,7 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     /// <summary>kb/Work PB244 - the cell-backed twin of
     /// <see cref="LengthOfAnOdoTableOfVariableLengthElements_SumsTheCurrentOccurrences"/>: an EXTERNAL group's OCCURS
-    /// DEPENDING table of variable-length elements is the length of the group's current image too (§2023:15.50.4 rule 7;
+    /// DEPENDING table of variable-length elements is the length of the group's current image too (§2023:15.50.4 RV7;
     /// A.1 item 57), here 2 + 1 for N = 2 - the cell composes the element's own dynamic slots.</summary>
     [Fact]
     public void LengthOfACellBackedOdoTableOfVariableLengthElements_SumsTheCurrentOccurrences()
@@ -403,7 +403,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     }
 
     /// <summary>kb/Work PB244 - an OCCURS DEPENDING table whose ELEMENTS are variable-length groups: each of the
-    /// first N occurrences is its own variable-length group (ISO §2023:8.5.1.12.1), and §2023:15.50.4 rule 7 sums their current
+    /// first N occurrences is its own variable-length group (ISO §2023:8.5.1.12.1), and §2023:15.50.4 RV7 sums their current
     /// lengths - here 2 + 1 for N = 2, the length of the group's current image (A.1 item 57).</summary>
     [Fact]
     public void LengthOfAnOdoTableOfVariableLengthElements_SumsTheCurrentOccurrences()
@@ -463,7 +463,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void Concat_ConcatenatesArgumentImages_2023()
     {
-        // §2023:15.18.4 rule 1 — all characters of each argument (a fixed-width image includes its trailing padding);
+        // §2023:15.18.4 RV1 — all characters of each argument (a fixed-width image includes its trailing padding);
         // rule 4 — variadic, left to right. A = PIC X(3) VALUE "AB" ⇒ image "AB " ⇒ CONCAT(A, B) = "AB CD".
         AssertSpec(Program(
             "01 A PIC X(3) VALUE \"AB\".\n           01 B PIC X(2) VALUE \"CD\".\n           01 R PIC X(8).",

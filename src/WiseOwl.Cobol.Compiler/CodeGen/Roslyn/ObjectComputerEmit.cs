@@ -85,7 +85,7 @@ internal static class ObjectComputerEmit
     /// GR5 a)–e) establish the initial ALPHANUMERIC classification and f)–j) the initial NATIONAL one, so the
     /// operand's class chooses between them — asked of THE ONE operand-category reader
     /// (<see cref="IntrinsicResultType.OperandCategory"/>), never a raw <c>Pic</c>: a national GROUP is category
-    /// national (§2023:13.18.29.4 GR2 b), a ref-modified national item keeps class national (§2023:8.4.3.3.4 GR6), and a
+    /// national (§2023:13.18.29.4 GR2b, a ref-modified national item keeps class national (§2023:8.4.3.3.4 GR6), and a
     /// national function result carries its own category. The two private two-case copies this replaced read
     /// <c>Place.Item.Pic</c>, null for every group, so <c>FUNCTION UPPER-CASE(NG)</c> over a GROUP-USAGE NATIONAL
     /// group mapped case through the ALPHANUMERIC locale where its elementary twin used the national one.</summary>

@@ -32,7 +32,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///   GR26's duplicate order kept across run units, the '02' look-ahead (GR27), the READ ONLY writer beside the INPUT reader
 ///   (finding R2-6), and a reader walking an alternate key's duplicates through a tree another run unit splits.</item>
 ///   <item>The tree's COBOL surface (2.2.1.12): START with each relational operator, a
-///   full key and a partial key, found and not found (§2023:14.9.41.4 GR17); §2023:14.9.35.4 GR24 a)'s untouched duplicate order of
+///   full key and a partial key, found and not found (§2023:14.9.41.4 GR17); §2023:14.9.35.4 GR24a's untouched duplicate order of
 ///   the keys a REWRITE does not change; the <c>WISEOWL_COBOL_KEYCHECK</c> opt-out's trees (DOC-A.1-129); the format's key
 ///   bounds ('39'); the whole-store formats ('39').</item>
 /// </list>
@@ -47,7 +47,7 @@ public sealed class IndexedEngineTests
 
     /// <summary>Every record of the file, read by the next run unit's OPEN INPUT: by the prime key (READ NEXT from the
     /// OPEN) and by the alternate key (START at its lowest value, then READ NEXT), each walk ending at end ('10', never
-    /// '30': the file is not torn). A file with no records answers that START '23', §2023:14.9.41.4 GR17 e) 2.'s invalid key
+    /// '30': the file is not torn). A file with no records answers that START '23', §2023:14.9.41.4 GR17e 2.'s invalid key
     /// condition (no record satisfies the comparison).</summary>
     private static (List<string> ByPrime, List<string> ByAlternate) Records(string host)
     {
@@ -74,7 +74,7 @@ public sealed class IndexedEngineTests
     public enum Change { Write, Rewrite, Delete }
 
     /// <summary>Each change touches BOTH trees: the WRITE releases a duplicate of AAAA, the REWRITE moves record 2's
-    /// alternate entry from BBBB to the end of AAAA's duplicates (§2023:14.9.35.4 GR24 b)), the DELETE removes record 1's two
+    /// alternate entry from BBBB to the end of AAAA's duplicates (§2023:14.9.35.4 GR24b), the DELETE removes record 1's two
     /// entries.</summary>
     private static string Run(FileRegistry reg, Change change) => change switch
     {
@@ -282,7 +282,7 @@ public sealed class IndexedEngineTests
             b.OpenStatic("B", FileOpenMode.IO);
             Assert.Equal("02", Write(a, "A", FileOrg.Indexed, 4, "AAAA"));       // released second under AAAA
             Assert.Equal("02", Write(b, "B", FileOrg.Indexed, 3, "AAAA"));       // released third — B's mint follows A's
-            Assert.Equal("22", Write(b, "B", FileOrg.Indexed, 4, "ZZZZ"));       // §2023:14.9.51.4 GR42 b): the prime key A wrote exists
+            Assert.Equal("22", Write(b, "B", FileOrg.Indexed, 4, "ZZZZ"));       // §2023:14.9.51.4 GR42b: the prime key A wrote exists
             Assert.Equal("00", Delete(b, "B", FileOrg.Indexed, 2));
             Assert.Equal("23", ReadKey(a, "A", -1, Rec(2, "    "), out _));   // §2023:9.1.13.5 3 a): B deleted it
             Assert.Equal("00", ReadKey(a, "A", 0, Rec(0, "AAAA"), out string first));   // GR32: the FIRST released
@@ -307,7 +307,7 @@ public sealed class IndexedEngineTests
     }
 
     /// <summary>⛔ FINDING R2-6 FOR THE INDEXED CONNECTOR (2.2.1.7): a <c>SHARING WITH READ ONLY</c> writer beside the
-    /// <c>INPUT SHARING WITH ALL OTHER</c> reader Table 19 admits (§2023:9.1.15 2)) runs under the store mutex, so every READ of
+    /// <c>INPUT SHARING WITH ALL OTHER</c> reader Table 19 admits (§2023:9.1.15 GR2) runs under the store mutex, so every READ of
     /// the reader on another thread — by the prime key and by the alternate key — answers '00', '02', '10' or '23', never
     /// '30', the half-written path, while each WRITE changes two trees. Counted, not timed: the writer releases a fixed
     /// number of records and the reader reads until it has seen the last.</summary>
@@ -453,7 +453,7 @@ public sealed class IndexedEngineTests
 
     /// <summary>§2023:14.9.41.4 GR17 over the trees, each relational operator with a FULL key and a PARTIAL one (GR17 b)'s length
     /// below the key's): the first record satisfying the comparison (for the LESS relations the LAST — the file searched in
-    /// reverse order, GR17 d)) becomes the position, '00', and the next READ NEXT delivers it (§2023:14.9.30.4 GR21 d) 1., the
+    /// reverse order, GR17 d)) becomes the position, '00', and the next READ NEXT delivers it (§2023:14.9.30.4 GR21d 1., the
     /// key value alone); none satisfies it: '23', the invalid key condition, with the file position indicator invalidated
     /// (GR7; the next sequential READ is '46'). Under an alternate key a START into a set of duplicates enters it at the end
     /// §2023:14.9.30.4 GR26 names for the READ's direction: NEXT from the first released, PREVIOUS from the last.</summary>
@@ -511,7 +511,7 @@ public sealed class IndexedEngineTests
         }
     }
 
-    /// <summary>⛔ §2023:14.9.35.4 GR24 a) BY CONSTRUCTION: <i>"When the value of a specific alternate record key is not changed,
+    /// <summary>⛔ §2023:14.9.35.4 GR24a BY CONSTRUCTION: <i>"When the value of a specific alternate record key is not changed,
     /// the order of retrieval when that key is the key of reference remains unchanged"</i>. A REWRITE that changes alternate
     /// key 2 of 3 — away, and then back to its old value — leaves the trees of keys 1 and 3 byte-identical (nothing touched
     /// them), and puts the record LAST among key 2's duplicates (GR24 b), a fresh ordinal).</summary>

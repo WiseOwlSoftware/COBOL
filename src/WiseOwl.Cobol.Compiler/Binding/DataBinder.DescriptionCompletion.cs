@@ -110,8 +110,8 @@ public sealed partial class DataBinder
     }
 
     /// <summary>⛔ A LENGTH OPERAND MAY BE A SUBORDINATE THAT A TYPE OR SAME AS CLAUSE SUPPLIES (kb/Work PB2844).
-    /// §2023:13.18.57.4 GR2 a) makes a TYPE'd group's subject "a group whose subordinate elements have the same names,
-    /// descriptions, and hierarchy as the subordinate elements of type-name-1" (§2023:13.18.49.4 GR2 a) says the same of SAME
+    /// §2023:13.18.57.4 GR2a makes a TYPE'd group's subject "a group whose subordinate elements have the same names,
+    /// descriptions, and hierarchy as the subordinate elements of type-name-1" (§2023:13.18.49.4 GR2a says the same of SAME
     /// AS), so `01 V TYPE T.` has the subordinate `M OF V` — but those subordinates exist only once the clause is
     /// expanded, and the pipeline expands after the DATA DIVISION is bound, while a constant's length phrase is
     /// evaluated during it. When a length operand's name finds no item, every bound subject whose composition is still

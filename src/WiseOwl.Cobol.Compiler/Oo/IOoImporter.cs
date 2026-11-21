@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.Compiler.Oo;
 
 /// <summary>
-/// ⛔ WHERE A CLASS OR INTERFACE THE COMPILATION GROUP DOES NOT DEFINE COMES FROM (ISO §2023:12.3.8.3 SR6 b), SR9: "there shall be
+/// ⛔ WHERE A CLASS OR INTERFACE THE COMPILATION GROUP DOES NOT DEFINE COMES FROM (ISO §2023:12.3.8.3 SR6b, SR9: "there shall be
 /// information in the external repository for the class" / "the interface"; DESIGN-external-repository §8.4 step 3, §2023:10.1, §2023:10.6).
 /// The class table asks it for an IDENTITY — the externalized name a class- or interface-specifier states (<c>lit ?? word</c>,
 /// §2023:12.3.8.4 GR2) — after the group's own definitions and the standard class BASE have not claimed it, and registers what it

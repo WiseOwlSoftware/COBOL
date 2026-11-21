@@ -42,7 +42,7 @@ public abstract class CompileTimeArithmetic
     /// <summary>The mode ISO/IEC 1989:2014 prescribes for compile-time arithmetic expressions (§2014:7.3.5.2 GR1: "as if
     /// ARITHMETIC IS STANDARD-DECIMAL were in effect at compile time"), on the SDIDI decimal engine (§2023:8.8.1.5: 34
     /// significant digits, the decimal128 range) with the standard-decimal default intermediate rounding,
-    /// NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3 a) — a compile-time expression has no OPTIONS paragraph to name
+    /// NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3a — a compile-time expression has no OPTIONS paragraph to name
     /// another).</summary>
     public static readonly CompileTimeArithmetic StandardDecimal = new StandardDecimalMode();
 

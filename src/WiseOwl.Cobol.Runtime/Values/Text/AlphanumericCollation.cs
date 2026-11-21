@@ -3,7 +3,7 @@
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// A non-native ALPHANUMERIC program collating sequence (an <c>ALPHABET</c> literal phrase, ISO §2023:12.3.7.4 GR7 k)
+/// A non-native ALPHANUMERIC program collating sequence (an <c>ALPHABET</c> literal phrase, ISO §2023:12.3.7.4 GR7k
 /// over the native alphanumeric character set — the 65,536 UTF-16 code units (implementor item 188). The rule
 /// itself lives ONCE, in <see cref="LiteralPhraseCollation"/>, which the <c>FOR NATIONAL</c> twin
 /// <see cref="NationalCollation"/> shares: §2023:12.3.7.4 GR7 k governs both classes with one set of sub-rules, and

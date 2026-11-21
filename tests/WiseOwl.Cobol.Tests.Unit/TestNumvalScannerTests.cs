@@ -117,8 +117,8 @@ public sealed class TestNumvalScannerTests
     }
 
     /// <summary>kb/Work PB4511 - the trailing sign of format B is <c>+</c>, <c>-</c>, <c>CR</c> or <c>DB</c> (§2023:15.67.3 r1). A C
-    /// or D that opens the pair is a valid prefix, so the first character IN ERROR (§2023:15.93.4 1) b)) is the one that fails
-    /// to complete it, and text that ends right after it is valid-but-incomplete (§2023:15.93.4 1) c): LENGTH + 1). With a
+    /// or D that opens the pair is a valid prefix, so the first character IN ERROR (§2023:15.93.4 RV1b) is the one that fails
+    /// to complete it, and text that ends right after it is valid-but-incomplete (§2023:15.93.4 RV1c: LENGTH + 1). With a
     /// leading sign no CR/DB is admitted, so the C or D itself is the character in error.</summary>
     [Theory]
     [InlineData("4.5 D", 6)]

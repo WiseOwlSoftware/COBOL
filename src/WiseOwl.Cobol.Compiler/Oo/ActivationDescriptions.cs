@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// <see cref="ActivationRelations"/>, in the runtime.
 /// <para>It replaced <c>OoConformance.ConformanceDescriptor</c>, a string compared for equality that could not express
 /// either relation: a group keyed like a <c>PIC X(n)</c> of its width matched one (§2023:9.3.6 3 e) says it does not), a
-/// smaller formal group did not match a larger argument (§2023:14.8.2.2 rule 1 admits it), a national, boolean or
+/// smaller formal group did not match a larger argument (§2023:14.8.2.2 SR1 admits it), a national, boolean or
 /// numeric-edited operand had no key at all and was refused at bind (COBOL0866), and an ACTIVE-CLASS formal was keyed
 /// by its containing class where §2023:9.3.6 3 d) 4. asks a question of the argument's run-time object.</para>
 /// </summary>
@@ -47,7 +47,7 @@ public static class ActivationDescriptions
         // A bit / national group is "treated as an elementary item" at the activation boundary (§2023:14.8.2.1 / §2023:14.8.3.1
         // NOTE), of class and category boolean / national (§2023:8.5.2.1) — and "treated as though it were an elementary data
         // item of usage bit … described with PICTURE 1(m)" / "of usage national … described with PICTURE N(m)"
-        // (§2023:13.18.29.4 GR1 b) / GR2 b)), so match rule 3 e) compares THAT picture: a national group matches an
+        // (§2023:13.18.29.4 GR1b / GR2 b)), so match rule 3 e) compares THAT picture: a national group matches an
         // elementary PIC N(m) USAGE NATIONAL of its length and no national group of another length (kb/Work PB2077 —
         // the typed lane's answer, §2023:14.8.2.3.2 "Additionally" b) / c); this description carried no clauses, so the
         // universal lane refused the first pair and matched the second).
@@ -107,7 +107,7 @@ public static class ActivationDescriptions
                 Shape = ActivationShape.ObjectReference,
                 Category = ActivationCategory.Object,
                 ObjectKind = d.RuntimeKind,
-                // The containing class of an ACTIVE-CLASS description is not part of its identity (§2023:9.3.8.2.3 rule 2
+                // The containing class of an ACTIVE-CLASS description is not part of its identity (§2023:9.3.8.2.3 GR2
                 // d)); the SET table reads it from the class facts (ObjectClasses' first entry).
                 // A reader with no class table (classes: null — the signature identity of a prototype, which hashes this
                 // text) spells the identity the description was resolved to, as the table does.
@@ -147,7 +147,7 @@ public static class ActivationDescriptions
     /// (alphanumeric- and national-edited, numeric and numeric-edited read as alphanumeric or national; alphabetic and
     /// boolean kept — the ONE GR6 reader, <see cref="ItemCategory.CategoryName(Place)"/>). It is described by no PICTURE
     /// clause and none of §2023:9.3.6 match rule 3 e)'s other clauses (kb/Work PB3098), so it matches only a formal that has
-    /// none of them either — a group of its class — and §2023:14.8.2.2 rule 1 then compares its length. At run time that is
+    /// none of them either — a group of its class — and §2023:14.8.2.2 SR1 then compares its length. At run time that is
     /// the EVALUATED length (GR5 c)), which the universal call site sets from the slice it boxes
     /// (<see cref="CobolInvokeArg.ReferenceModified"/>). At compile time it is the length when that is static
     /// (<see cref="RefModPlace.StaticLength"/>), otherwise the slice's MAXIMUM extent — identifier-1's positions from a
@@ -157,7 +157,7 @@ public static class ActivationDescriptions
     /// exact length, <see cref="RefModPlace.MaximumInnerPositions"/> for the bound), so a slice of an alphanumeric group,
     /// whose length is static, is measured too, and so is a slice of an item whose own length is a run-time value: a
     /// DYNAMIC LENGTH item's slice by its §2023:8.5.1.10.1 maximum size, an ANY LENGTH item's by the carrier's ceiling, which
-    /// every group formal fits (§2023:13.18.2.4 GR1 b) — its length is the argument's; kb/Work PB3128).</summary>
+    /// every group formal fits (§2023:13.18.2.4 GR1b — its length is the argument's; kb/Work PB3128).</summary>
     public static ActivationDescription OfReferenceModification(RefModPlace r) => new()
     {
         Shape = ActivationShape.Elementary,
@@ -169,7 +169,7 @@ public static class ActivationDescriptions
     };
 
     /// <summary>The most positions a slice whose length is a run-time value can have: identifier-1's
-    /// <see cref="RefModPlace.MaximumInnerPositions"/> from a static leftmost position to the end (§2023:8.4.3.3.4 GR5 b) /
+    /// <see cref="RefModPlace.MaximumInnerPositions"/> from a static leftmost position to the end (§2023:8.4.3.3.4 GR5b /
     /// c)), or all of them when the leftmost position is a run-time value too.</summary>
     private static int MaximumExtent(RefModPlace r)
     {
@@ -198,7 +198,7 @@ public static class ActivationDescriptions
         p is RefModPlace r ? OfReferenceModification(r) : p.DescribedItem is { } item ? Of(item, classes) : null;
 
     /// <summary>⛔ THE DESCRIPTION OF ONE CALL ARGUMENT whose activated program is located by name at run time (kb/Work
-    /// PB165) — what §2023:14.9.4.4 GR3 d) compares with the activated program's registered formal
+    /// PB165) — what §2023:14.9.4.4 GR3d compares with the activated program's registered formal
     /// (<c>ActivationRelations.CallArgumentViolation</c>). An identifier is described as the place it is
     /// (<see cref="OfPlace"/>), an address-identifier as the unique pointer item it creates (<see cref="OfAddress"/>;
     /// <paramref name="programRestriction"/> is a program-address-identifier's prototype's two restrictions), and a BY

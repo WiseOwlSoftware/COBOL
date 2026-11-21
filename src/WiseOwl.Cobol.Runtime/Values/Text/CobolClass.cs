@@ -5,12 +5,12 @@ namespace WiseOwl.Cobol.Runtime;
 /// <summary>
 /// Class-condition predicates over a value's character image (ISO §2023:8.8.4.4). ALPHABETIC is the closed Latin set
 /// {A–Z, a–z, space} — NOT <c>char.IsLetter</c> (DESIGN §11.2); NUMERIC over an alphanumeric operand is the
-/// digits 0–9 only (no operational sign — §2023:8.8.4.4.4 GR3 n)2).
+/// digits 0–9 only (no operational sign — §2023:8.8.4.4.4 GR3n2).
 /// </summary>
 public static class CobolClass
 {
     /// <summary>
-    /// The NUMERIC class test of a NON-NUMERIC-category operand (ISO §2023:8.8.4.4.4 GR3 n)2 — "If the category of the
+    /// The NUMERIC class test of a NON-NUMERIC-category operand (ISO §2023:8.8.4.4.4 GR3n2 — "If the category of the
     /// data item referenced by identifier-1 is not numeric, the condition is true if the content of the data item
     /// referenced by identifier-1 consists entirely of the characters 0, 1, 2, 3, …, 9"): true iff the value
     /// consists ENTIRELY of those digits. An operational sign is NOT a valid character here — n)2 admits none. So
@@ -29,7 +29,7 @@ public static class CobolClass
         return true;
     }
 
-    /// <summary>The BOOLEAN class test (ISO §2023:8.8.4.4.4 GR3 e): "the condition is true if the content of the data
+    /// <summary>The BOOLEAN class test (ISO §2023:8.8.4.4.4 GR3e: "the condition is true if the content of the data
     /// item referenced by identifier-1 consists entirely of the boolean values '0' and '1'". A zero-length operand
     /// is FALSE, like every other class condition (§2023:8.8.4.4.4 GR1).
     /// <para>⛔ THE ZERO-LENGTH ANSWER IS WHY <see cref="HasNonBooleanPosition"/> EXISTS BESIDE THIS. §2023:14.6.13.2
@@ -42,7 +42,7 @@ public static class CobolClass
     public static bool IsBoolean(string? s) => !string.IsNullOrEmpty(s) && !HasNonBooleanPosition(s);
 
     /// <summary>Does the value carry a position that is neither <c>'0'</c> nor <c>'1'</c>? The scan behind
-    /// <see cref="IsBoolean"/> and behind <see cref="CobolBool.Sending"/>'s §2023:14.6.13.2 rule 1 test — see the
+    /// <see cref="IsBoolean"/> and behind <see cref="CobolBool.Sending"/>'s §2023:14.6.13.2 GR1 test — see the
     /// zero-length note there. A null value has no positions.</summary>
     public static bool HasNonBooleanPosition(string? s)
     {
@@ -162,13 +162,13 @@ public static class CobolClass
         return true;
     }
 
-    /// <summary>The NUMERIC class test of a SIGNED zoned item's character image (ISO §2023:8.8.4.4.4 GR3 n)1.a — "the
+    /// <summary>The NUMERIC class test of a SIGNED zoned item's character image (ISO §2023:8.8.4.4.4 GR3n1.a — "the
     /// presence or absence of an operational sign … is in agreement with the data description … and … the content,
     /// except for the operational sign, consists entirely of the characters 0, 1, 2, 3, …, 9"). <paramref name="signMode"/> 1 = overpunch (the
     /// sign zone shares the digit position); 2 = SEPARATE (a leading/trailing <c>+</c>/<c>-</c> character position,
     /// §2023:13.18.52.4 GR6 b, which carries no implementor latitude). Every other position must be a digit.
     /// <para>⛔ The over-punch set is <b>not written here</b> (kb/Work PB803): n)1.a closes with "Valid operational
-    /// signs are defined in 13.18.52, SIGN clause", §2023:13.18.52.4 GR5 b) makes that set the IMPLEMENTOR's, and the
+    /// signs are defined in 13.18.52, SIGN clause", §2023:13.18.52.4 GR5b makes that set the IMPLEMENTOR's, and the
     /// owner made it a compile option — so the answer comes from <see cref="ZonedSign.IsSignCharacter"/> over the
     /// program's <paramref name="encoding"/>, the same tables <c>CobolNum</c> encodes and decodes with. The
     /// literal range pattern that used to stand here was a second copy of those tables and could only ever have

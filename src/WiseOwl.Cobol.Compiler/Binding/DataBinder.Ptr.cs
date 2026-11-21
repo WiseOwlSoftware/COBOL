@@ -159,7 +159,7 @@ public sealed partial class DataBinder
         // one per occurrence of every enclosing fixed table, and a table's element is a scope of its own
         // (AssignCellComponents). A dynamic-length item occupies zero bytes of the backing — its ByteWidth — and a
         // table reserves its one-element ByteWidth, so the class walk above has already laid out the FIXED RUN every
-        // variable-length group view of the class composes over. §2023:8.5.1.9.1 3) — "it may be defined in any place,
+        // variable-length group view of the class composes over. §2023:8.5.1.9.1 SR3 — "it may be defined in any place,
         // other than the file section, in which a fixed-capacity table may be defined" — is why an EXTERNAL or
         // ADDRESS-OF-taken record carries the table rather than refusing it.
         int dynOrdinal = 0;
@@ -210,7 +210,7 @@ public sealed partial class DataBinder
     /// dynamic-capacity table's ELEMENT is a scope of its own — each occurrence is an element cell
     /// (<c>StorageCell.DynTableAt</c>) — so the element's members are re-laid out from offset zero and numbered from
     /// zero, which is what makes a table, or a dynamic-length item, inside a table element the same mechanism one
-    /// level down (§2023:8.5.1.9.1 3): "may be nested in any combination to the same number of levels as a fixed-capacity
+    /// level down (§2023:8.5.1.9.1 SR3: "may be nested in any combination to the same number of levels as a fixed-capacity
     /// table").</summary>
     private static int AssignCellComponents(DataItem node, int next)
     {

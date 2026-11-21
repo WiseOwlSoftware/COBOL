@@ -77,7 +77,7 @@ public abstract class CobolObject
         receiver ?? throw new CobolFatalException("EC-OO-NULL",
             "INVOKE: the object reference used as the receiver is null (ISO §2023:14.9.23.4 GR5)");
 
-    /// <summary>⛔ THE ACTIVE-CLASS RETURNING ITEM'S CONFORMANCE FOR A UNIVERSAL INVOCATION (ISO §2023:14.9.23.4 GR7 c) with
+    /// <summary>⛔ THE ACTIVE-CLASS RETURNING ITEM'S CONFORMANCE FOR A UNIVERSAL INVOCATION (ISO §2023:14.9.23.4 GR7c with
     /// §2023:14.8.3.3 rule 2 b) 4.; kb/Work PB2985), asked BEFORE the bound method runs by every method whose returning item is
     /// described ACTIVE-CLASS — each emitted <c>__CobolInvoke</c> case that has one, and the standard class BASE's New and
     /// FactoryObject (§2023:16.2). The method was invoked through a universal reference, so its ACTIVE-CLASS item is sent as a
@@ -97,10 +97,10 @@ public abstract class CobolObject
     {
         if (!enabledInMethod || !ExceptionState.OoUniversalChecking) return;
         if (ActivationRelations.ActiveClassReturningViolation(receiving, sending) is { } why)
-            throw new CobolFatalException("EC-OO-UNIVERSAL", $"{what}: {why} (ISO §2023:14.9.23.4 GR7 c))");
+            throw new CobolFatalException("EC-OO-UNIVERSAL", $"{what}: {why} (ISO §2023:14.9.23.4 GR7c)");
     }
 
-    /// <summary>⛔ THE ACTIVE-CLASS FORMAL'S CONFORMANCE FOR A UNIVERSAL INVOCATION (ISO §2023:14.9.23.4 GR7 c) with §2023:14.8.2.3.2
+    /// <summary>⛔ THE ACTIVE-CLASS FORMAL'S CONFORMANCE FOR A UNIVERSAL INVOCATION (ISO §2023:14.9.23.4 GR7c with §2023:14.8.2.3.2
     /// rule 4; kb/Work PB2985) — the formal half of <see cref="CheckActiveClassReturning"/>, asked by each emitted
     /// <c>__CobolInvoke</c> case for each of its ACTIVE-CLASS formals, after §2023:9.3.6's match bound the method and before
     /// it runs. The method was invoked through a universal reference, which rule 4 a) / b) do not admit, so the argument
@@ -117,7 +117,7 @@ public abstract class CobolObject
     {
         if (!enabledInMethod || !ExceptionState.OoUniversalChecking) return;
         if (ActivationRelations.ActiveClassFormalViolation(argument, formal) is { } why)
-            throw new CobolFatalException("EC-OO-UNIVERSAL", $"{what}: {why} (ISO §2023:14.9.23.4 GR7 c))");
+            throw new CobolFatalException("EC-OO-UNIVERSAL", $"{what}: {why} (ISO §2023:14.9.23.4 GR7c)");
     }
 
     /// <summary>Deliver an object reference that crossed a UNIVERSAL invocation (D10) into a receiving item of type
@@ -126,7 +126,7 @@ public abstract class CobolObject
     /// already refused a method whose returning item's DESCRIPTION a SET could not send into the receiving item (an
     /// unrelated class, an interface the class does not implement; kb/Work PB2463), but a returning item described
     /// ACTIVE-CLASS — the standard class BASE's New and FactoryObject among them (§2023:16.2) — references an object of the
-    /// class the method was invoked on (§2023:13.18.60.4 GR22 e)), which only the object can answer. This is the FLOOR under
+    /// class the method was invoked on (§2023:13.18.60.4 GR22e), which only the object can answer. This is the FLOOR under
     /// the conformance rules, never the rule: §2023:14.8.3.3 rule 2 conformance of an ACTIVE-CLASS item is decided by how the
     /// method was invoked, before the method runs (<see cref="CheckActiveClassReturning"/>; kb/Work PB2985), and this
     /// delivery runs for the invocation that proceeds because no checking was enabled. A non-conforming object

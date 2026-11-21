@@ -22,12 +22,12 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// run-time relation a universal dispatch asks of two descriptions compiled apart are one copy of the rule. This class
 /// owns the atoms (<see cref="GroupAtoms"/>) and words the walk's reasons with item names:</para>
 /// <list type="number">
-/// <item>§2023:8.5.1.12.1 rule 1 + §2023:8.5.1.12.2 sentence 2 — for each dynamic-capacity table in either group there is
+/// <item>§2023:8.5.1.12.1 GR1 + §2023:8.5.1.12.2 sentence 2 — for each dynamic-capacity table in either group there is
 /// a corresponding table in the other: "at least one of them is a dynamic-capacity table and they occupy the
 /// same relative byte positions within their groups".</item>
-/// <item>§2023:8.5.1.12.1 rule 2 + §2023:8.5.1.12.3 sentence 2 — corresponding tables MATCH "when the byte length of
+/// <item>§2023:8.5.1.12.1 GR2 + §2023:8.5.1.12.3 sentence 2 — corresponding tables MATCH "when the byte length of
 /// their elements is equal and their elements are compatible" (the element compatibility recurses HERE).</item>
-/// <item>§2023:8.5.1.12.1 rule 3 + §2023:8.5.1.12.2 sentence 1 — for each dynamic-length elementary item in either group
+/// <item>§2023:8.5.1.12.1 GR3 + §2023:8.5.1.12.2 sentence 1 — for each dynamic-length elementary item in either group
 /// there is a corresponding one in the other, correspondence being "start at the same relative byte positions
 /// within their groups"; §2023:8.5.1.12.3 sentence 1 then makes any two of them match "regardless of their
 /// definitions".</item>
@@ -261,7 +261,7 @@ internal static class VariableLengthCompatibility
     {
         if (!IsVariableLength(one) && !IsVariableLength(other)) return null;
         // §2023:8.5.1.12.1: compatibility is a relation between GROUPS ("unless the other operand is a compatible
-        // group"). An elementary counterpart — which §2023:14.8.2.2 rule 1 would otherwise admit for a fixed-length
+        // group"). An elementary counterpart — which §2023:14.8.2.2 SR1 would otherwise admit for a fixed-length
         // group — has no atom sequence to correspond with.
         // ⛔ The CATEGORY question, never the structural IsGroup: a level-66 THROUGH alias is a group item with
         // no subordinates (§2023:13.18.45.4 GR2 — kb/Work PB907), and its atoms are its span (AliasAtoms).
@@ -330,19 +330,19 @@ internal static class VariableLengthCompatibility
             case GroupMismatchKind.DynamicLengthUnpaired:
                 return $"the dynamic-length item '{Item(m.OnFirst, m.Atom)}' of '{Host(m.OnFirst)}' starts at "
                     + $"relative byte position {m.Position} and the other group has no dynamic-length item there "
-                    + "(ISO §2023:8.5.1.12.1 rule 3 / §2023:8.5.1.12.2)";
+                    + "(ISO §2023:8.5.1.12.1 GR3 / §2023:8.5.1.12.2)";
             case GroupMismatchKind.DynamicLengthBeyondEnd:
                 return $"the dynamic-length item '{Item(m.OnFirst, m.Atom)}' of '{Host(m.OnFirst)}' lies beyond "
                     + $"the last byte of '{Host(!m.OnFirst)}', which therefore has no corresponding "
-                    + "dynamic-length item (ISO §2023:8.5.1.12.1 rule 3 / §2023:8.5.1.12.2)";
+                    + "dynamic-length item (ISO §2023:8.5.1.12.1 GR3 / §2023:8.5.1.12.2)";
             case GroupMismatchKind.DynamicTableOppositeNonTable:
                 return $"the dynamic-capacity table '{Item(m.OnFirst, m.Atom)}' of '{Host(m.OnFirst)}' occupies "
                     + $"relative byte position {m.Position} and the other group has no table there "
-                    + "(ISO §2023:8.5.1.12.1 rule 1 / §2023:8.5.1.12.2)";
+                    + "(ISO §2023:8.5.1.12.1 GR1 / §2023:8.5.1.12.2)";
             case GroupMismatchKind.DynamicTableUnpaired:
                 return $"the dynamic-capacity table '{Item(m.OnFirst, m.Atom)}' of '{Host(m.OnFirst)}' occupies relative "
                     + $"byte position {m.Position} and the other group has no corresponding table there "
-                    + "(ISO §2023:8.5.1.12.1 rule 1 / §2023:8.5.1.12.2)";
+                    + "(ISO §2023:8.5.1.12.1 GR1 / §2023:8.5.1.12.2)";
         }
         DataItem x = a.Items[m.Atom], y = b.Items[m.OtherAtom];
         if (m.Kind is GroupMismatchKind.ElementBytesDiffer)

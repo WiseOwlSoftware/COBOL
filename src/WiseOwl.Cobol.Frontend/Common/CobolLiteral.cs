@@ -68,7 +68,7 @@ public static class CobolLiteral
     /// <summary>True when <paramref name="raw"/> opens a delimited literal and never closes it — the text of a literal
     /// TOKEN the line ended inside (kb/Work PB3245). The general formats close every alphanumeric, boolean and national
     /// literal (ISO §2023:8.3.3.2.2, §2023:8.3.3.4.2, §2023:8.3.3.5.2), and one may stay open at a line's end only when a continuation
-    /// line continues it (§2023:6.3.5 1), §2023:6.4.2), which the reference-format stage has already joined; the lexer still makes
+    /// line continues it (§2023:6.3.5 SR1, §2023:6.4.2), which the reference-format stage has already joined; the lexer still makes
     /// such a literal ITS token (CobolLexer.g4 STR_BODY), and this is the question that tells the two apart. Read left to
     /// right as the lexer reads it, a doubled delimiter being one embedded delimiter (§2023:8.3.3.2.3 r3): <c>"AB""</c> is
     /// open, <c>"AB"</c> is closed. Not a well-formedness test: text with an undoubled delimiter before its end

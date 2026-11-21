@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// advancing shall be provided by the implementor to act as if the user has specified AFTER ADVANCING 1 LINE."</i>
 /// (checked: <c>cite.py --check 14.9.51.4 "If the ADVANCING phrase is not used, automatic advancing shall be
 /// provided by the implementor to act as if the user has specified AFTER ADVANCING 1 LINE"</c> is
-/// <c>OK  §2023:14.9.51.4 25)</c>). The standard names no implementor choice of PLACEMENT, so the two spellings produce
+/// <c>OK  §2023:14.9.51.4 GR25</c>). The standard names no implementor choice of PLACEMENT, so the two spellings produce
 /// the SAME file, byte for byte, whatever the file already holds — the property this class pins over every
 /// placement mix instead of over the handful of mixes a hand-written golden would name.
 ///

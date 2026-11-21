@@ -80,7 +80,7 @@ public static class CobolTable
     /// item subordinate to it passes through this level's subscript, so the test is made HERE, before the element is
     /// located (kb/Work PB1268 — only the superordinate group's extent, <see cref="OdoExtent"/>, used to test it).
     /// With checking off the condition is not raised and the element reference proceeds exactly as
-    /// <see cref="At{T}(T[], Occurrence)"/>; the subscript's own range is still 1..integer-2 (§2023:8.4.2.3.4 2): "the highest
+    /// <see cref="At{T}(T[], Occurrence)"/>; the subscript's own range is still 1..integer-2 (§2023:8.4.2.3.4 GR2: "the highest
     /// permissible occurrence number … of an occurs-depending table is the maximum number of occurrences").</summary>
     public static ref T At<T>(T[] table, Occurrence occurrence, Occurrence depending, int min, int max)
     {
@@ -109,7 +109,7 @@ public static class CobolTable
     /// <c>--permissive</c> position operand has: an index DATA item (an <c>IndexCell</c> is a <c>long</c>) and an
     /// alphanumeric / national / boolean item whose digit characters the documented COBOL0844 leniency decodes
     /// as an unsigned integer. A NUMERIC position operand never comes here: it reads through the profile arity
-    /// below, which is where §2023:14.6.13.2 rule 2 lives.</summary>
+    /// below, which is where §2023:14.6.13.2 GR2 lives.</summary>
     public static long Occ(long value) => value;
 
     /// <inheritdoc cref="Occ(long)"/>
@@ -126,7 +126,7 @@ public static class CobolTable
     /// wide tier, or the unsigned <c>ulong</c> / <see cref="UInt128"/> BINARY-CAPACITY containers of §2023:13.18.60.4
     /// GR12) at backend-compile time — kb/Work PB201's carrier set, which <c>PositionCarrierOverloadDriftTests</c>
     /// holds to the compiler's list.
-    /// <para><b>The profile carries both rules the read owes.</b> (1) ISO §2023:14.6.13.2 rule 2 — "When the content of
+    /// <para><b>The profile carries both rules the read owes.</b> (1) ISO §2023:14.6.13.2 GR2 — "When the content of
     /// a numeric sending item that is not described with a standard floating-point usage is referenced during the
     /// execution of a statement and the content of that sending operand would evaluate to false in a numeric class
     /// condition", EC-DATA-INCOMPATIBLE is set. A position operand is item identification, and rule 1 says so in
@@ -337,7 +337,7 @@ public static class CobolTable
     }
 
     /// <summary>"The evaluation of an ALL subscript shall result in at least one argument, otherwise the result of the reference to the
-    /// function-identifier is undefined" (ISO §2023:15.3 14)), defined here as EC-ARGUMENT-FUNCTION (set when checking is on, fatal,
+    /// function-identifier is undefined" (ISO §2023:15.3 AR14), defined here as EC-ARGUMENT-FUNCTION (set when checking is on, fatal,
     /// USE-dispatchable) ending the reference either way - raised by the enumeration that ranged over nothing (<see cref="AllArgs{T}"/>)
     /// and by the HELD form of the argument (<c>BoundHoldTableAll</c>) when its copy found nothing, which is the same evaluation, at the
     /// argument's place in the list (§2023:8.4.3.2.4 GR2), before a later argument's activation.</summary>
@@ -364,7 +364,7 @@ public static class CobolTable
     /// <summary>Whether an occurrence's RANK lies in the run <paramref name="lo"/>..<paramref name="hi"/> of a
     /// Format-2 (table) VALUE phrase AND is the run position that takes literal number <paramref name="residue"/>
     /// of <paramref name="modulus"/> (ISO §2023:13.18.63.4 GR13: the literals "are reused, in the order specified") — the
-    /// run-time occurrence test of INITIALIZE … TO VALUE (§2023:14.9.20.4 GR6 a) 3.).</summary>
+    /// run-time occurrence test of INITIALIZE … TO VALUE (§2023:14.9.20.4 GR6a.3).</summary>
     public static bool InSpan(long rank, long lo, long hi, int modulus, int residue) =>
         rank >= lo && rank <= hi && (modulus == 1 || (rank - lo) % modulus == residue);
 
@@ -394,7 +394,7 @@ public static class CobolTable
     /// GR19c/GR3c require of equal keys. But the framework's array sort CATCHES anything a comparer throws and
     /// re-throws it as <see cref="InvalidOperationException"/> "Failed to compare two elements in the array",
     /// on the assumption that a throwing comparer is an inconsistent one. A COBOL comparer is not: §2023:14.9.40.4
-    /// GR8 makes a key comparison follow the relation-condition rules, and §2023:14.6.13.2 rule 2 makes REFERENCING a
+    /// GR8 makes a key comparison follow the relation-condition rules, and §2023:14.6.13.2 GR2 makes REFERENCING a
     /// numeric key whose content is not valid set the fatal EC-DATA-INCOMPATIBLE. Wrapped, that fatal never
     /// matched the emitted statement guard's <c>catch (CobolFatalException)</c>, so a program with a USE
     /// declarative for the condition died with an unhandled .NET exception instead of running its declarative.

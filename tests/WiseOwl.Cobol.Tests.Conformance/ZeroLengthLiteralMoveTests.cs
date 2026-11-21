@@ -109,7 +109,7 @@ public sealed class ZeroLengthLiteralMoveTests
     /// <c>MOVE "" TO x</c> produces — the two are the SAME statement, so no implementation may distinguish
     /// them. The written SPACE is refused into a numeric or numeric-edited item at every edition (§2023:14.9.25.3 SR5;
     /// kb/Work PB3605), so its side moves into the item's full-width reference-modified view, an alphanumeric item
-    /// over the same character positions (§2023:8.4.3.3.4 GR6 c)), and the two images are compared.</summary>
+    /// over the same character positions (§2023:8.4.3.3.4 GR6c), and the two images are compared.</summary>
     [Fact]
     public void Gr2_AndMoveSpace_AreTheSameStatement()
     {
@@ -338,7 +338,7 @@ public sealed class ZeroLengthLiteralMoveTests
     // the same, of NATIONAL leaves — its storage image is bytes, two per national position (D-N1)
     [InlineData("ZLG2", "01 G. 05 GE PIC N USAGE NATIONAL OCCURS 0 TO 4 DEPENDING ON N.", "\"\"",
         "A(3)|X(3)|XX/XX|1(4)|1(3) USAGE BIT|N(3)|NN/NN|9(3)|ZZ9")]
-    // a BIT group — an elementary BOOLEAN sender (§2023:13.18.29.4 GR1 b)); GR3's ZERO; Table 16's Boolean row
+    // a BIT group — an elementary BOOLEAN sender (§2023:13.18.29.4 GR1b); GR3's ZERO; Table 16's Boolean row
     [InlineData("ZLG3", "01 G GROUP-USAGE BIT. 05 GE PIC 1 OCCURS 0 TO 8 DEPENDING ON N.", "B\"\"",
         "X(3)|XX/XX|1(4)|1(3) USAGE BIT|N(3)|NN/NN")]
     // a NATIONAL group — an elementary NATIONAL sender (GR2 b)); GR2's SPACE; Table 16's National row

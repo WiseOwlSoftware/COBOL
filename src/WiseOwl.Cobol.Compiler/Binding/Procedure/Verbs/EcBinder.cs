@@ -249,7 +249,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             if (!isNull && op is null) return null;   // reported
             if (op?.Item.Pic is not { Category: PicCategory.ObjectReference } opic)
             {
-                // NULL references no object, and §2023:14.9.18.4 GR1 b) 2. makes "the object referenced by identifier-1"
+                // NULL references no object, and §2023:14.9.18.4 GR1b.2 makes "the object referenced by identifier-1"
                 // the exception object — there is nothing to propagate (kb/Work PB1425's determination).
                 ctx.Edition.Error(DiagnosticCatalog.RaisingObjectOperandRule, isNull
                     ? $"{site.Context} NULL: the predefined NULL references no object, and the object referenced by "
@@ -293,7 +293,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // line (§2023:7.3.25.4 GR7); the statement name is the Table 12 row (verb's first word: GOBACK, or EXIT —
         // EXIT PROGRAM / FUNCTION / METHOD are formats of the EXIT statement).
         // ⛔ NO `Enabled:` ARGUMENT (kb/Work PB408). This element's own §2023:7.3.25 fold answers "is checking
-        // enabled HERE"; §2023:14.9.18.4 GR1 b) asks whether it is enabled in the ACTIVATING runtime element, which
+        // enabled HERE"; §2023:14.9.18.4 GR1b asks whether it is enabled in the ACTIVATING runtime element, which
         // is a different element and not knowable here. Staging is unconditional; the activating statement's
         // EcCheckingProfile decides.
         return new BoundRaising(info.Name, IsLast: false,
@@ -415,7 +415,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     // ── The per-statement TurnState fold (deep-dive D10) ─────────────────────────────────────────────────────
 
     /// <summary>Give every <see cref="IProfiledStatement"/> in <paramref name="node"/> the activating
-    /// statement's own checking profile (§2023:14.9.18.4 GR1 b)). A no-op when nothing is enabled at the line — the
+    /// statement's own checking profile (§2023:14.9.18.4 GR1b). A no-op when nothing is enabled at the line — the
     /// zero-scaffolding gate: such a site emits byte-identical text.
     /// <para>BOTH container shapes are traversed, and both must be: a bind-time desugar hoists its activation
     /// into a <see cref="BoundSequence"/>, and <see cref="BoundImplicitSeries.Rewrap"/> keeps a multi-operand
@@ -446,7 +446,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     {
         if (!ctx.EcState.Turn.AnyEnabled) return bound;
         int line = s.Start.Line;
-        // §2023:14.9.18.4 GR1 b) — THE ACTIVATOR'S HALF, stamped here because here is the one exit every statement
+        // §2023:14.9.18.4 GR1b — THE ACTIVATOR'S HALF, stamped here because here is the one exit every statement
         // funnels through. A condition a callee's GOBACK / EXIT … RAISING stages is raised in the ACTIVATING
         // runtime element only "if checking for that exception condition is enabled in the activating runtime
         // element", and RAISING LAST EXCEPTION picks the name at RUN time — so the activating statement carries
@@ -482,7 +482,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // CLOSE / FREE / INITIALIZE / INITIATE / OPEN / TERMINATE / VALIDATE *is* a separate statement per operand
         // (ISO §2023:14.9.6.4 GR10, §2023:14.9.15.4 GR2, §2023:14.9.20.4 GR3, §2023:14.9.21.4 GR5, §2023:14.9.27.4 GR20, §2023:14.9.46.4 GR4,
         // §2023:14.9.50.4 GR3), and each of those seven rules names the resumption point of a declarative's RESUME …
-        // NEXT STATEMENT as "the next implicit … statement, if any" — the §2023:14.9.33.4 GR2 a) escape ("unless
+        // NEXT STATEMENT as "the next implicit … statement, if any" — the §2023:14.9.33.4 GR2a escape ("unless
         // general rules associated with the applicable statement specify otherwise"). The checked wrapper IS the
         // statement site the `-2` action falls out of, so one wrapper around the whole series would put the
         // landing past the LAST operand: measured as a silent wrong answer on INITIALIZE (kb/Work PB419).

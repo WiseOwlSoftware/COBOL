@@ -96,7 +96,7 @@ public sealed class ConditionalCompilationDefineTests
     [Theory] // DOC-A.1-49 (kb/Work PB1533, PB1626): the value's CATEGORY is SYNTACTIC, as GnuCOBOL 3.2 classifies it — NUMERIC
              // exactly when the text is the spelling of a fixed-point numeric literal (§2023:8.3.3.3.2: an optional leading sign,
              // digits, at most one decimal point that is not the rightmost character), a quoted value is that ONE literal,
-             // and every other text is ALPHANUMERIC exactly as given. §2023:7.3.8.2 SR1 a): a relation's operands are of the same
+             // and every other text is ALPHANUMERIC exactly as given. §2023:7.3.8.2 SR1a: a relation's operands are of the same
              // category, so the literal the relation compares against names the category the value has.
     [InlineData("7", "7")]
     [InlineData("-2.5", "-2.5")]
@@ -106,7 +106,7 @@ public sealed class ConditionalCompilationDefineTests
     [InlineData("7x", "\"7x\"")]
     [InlineData("1,000", "\"1,000\"")]   // the comma is no part of a numeric literal's spelling
     [InlineData("1,5", "\"1,5\"")]
-    [InlineData("5.", "\"5.\"")]         // §2023:8.3.3.3.2 3): the decimal point is never the rightmost character
+    [InlineData("5.", "\"5.\"")]         // §2023:8.3.3.3.2 SR3: the decimal point is never the rightmost character
     [InlineData("1E5", "\"1E5\"")]       // no floating-point spelling: the classification is a fixed-point literal's
     [InlineData("7 ", "\"7 \"")]         // trailing white space is content, not ignored
     [InlineData("\"ab\"\"c\"", "\"ab\"\"c\"")]   // a quoted value is the literal as written: the doubled quotation symbol is content

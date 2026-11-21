@@ -27,7 +27,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// permits to share (<c>OPEN INPUT F-A</c> then <c>OPEN EXTEND F-B</c>) were refused by the host and the second
 /// OPEN answered '30' — a status no Table 19 row and no §2023:9.1.13.9 item produces — and the appended record was
 /// never written. Its mirror, measured across processes: a connector opened <c>SHARING WITH NO OTHER</c>, the
-/// mode §2023:9.1.15 1) calls <i>exclusive access</i>, took <see cref="FileShare.ReadWrite"/>, so an external process
+/// mode §2023:9.1.15 GR1 calls <i>exclusive access</i>, took <see cref="FileShare.ReadWrite"/>, so an external process
 /// appended four bytes to a file the program held open, while a connector with NO clause refused the same
 /// write.</para>
 ///
@@ -40,7 +40,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>⛔ AND WHAT THE OPERATING ENVIRONMENT CAN EXPRESS IS MEASURED, NOT ASSUMED (kb/Work PB795). The file
 /// lock is only ever as strong as the host's share modes, and .NET reaches them on Unix through an advisory
 /// <c>flock</c> with two states: <see cref="FileShare.None"/> is <c>LOCK_EX</c> and every other value is
-/// <c>LOCK_SH</c>. §2023:9.1.15 2)'s <i>"restricts concurrent access … to input mode"</i> therefore has no
+/// <c>LOCK_SH</c>. §2023:9.1.15 GR2's <i>"restricts concurrent access … to input mode"</i> therefore has no
 /// expression on such a host at all, and asserting it there was two days of red CI that named nothing.
 /// <see cref="ExpectedOutsideWriter"/> translates the standard's answer through
 /// <see cref="HostCapability.Sharing"/>'s MEASUREMENT, <see cref="TheHostsShareModeSemanticsAreTheDocumentedOnes"/>
@@ -195,19 +195,19 @@ public sealed class FileLockPostureDriftTests
         var data = new TheoryData<Mode, bool, bool, FileOrg>();
         foreach (var org in Enum.GetValues<FileOrg>())
         {
-            data.Add(Mode.NoOther, false, false, org);     // §2023:9.1.15 1) exclusive — nothing else may read or write
-            data.Add(Mode.ClauseLess, true, false, org);   // OPEN INPUT's default: SHARING WITH READ ONLY (§2023:9.1.15 2))
-            data.Add(Mode.AllOther, true, true, org);      // §2023:9.1.15 3) concurrent access through other connectors
+            data.Add(Mode.NoOther, false, false, org);     // §2023:9.1.15 GR1 exclusive — nothing else may read or write
+            data.Add(Mode.ClauseLess, true, false, org);   // OPEN INPUT's default: SHARING WITH READ ONLY (§2023:9.1.15 GR2)
+            data.Add(Mode.AllOther, true, true, org);      // §2023:9.1.15 GR3 concurrent access through other connectors
         }
         return data;
     }
 
     /// <summary>⛔ THE MIRROR, and it needs no second process: a host share mode names no requester, so a handle
     /// opened by this test is exactly as foreign to the connector's handle as one opened by another program.
-    /// §2023:9.1.15 1) — <i>"The sharing with no other mode specifies exclusive access to a physical file"</i> — with
+    /// §2023:9.1.15 GR1 — <i>"The sharing with no other mode specifies exclusive access to a physical file"</i> — with
     /// two control arms, because the defect was a RELATIVE inversion and an absolute assertion about one mode
     /// cannot see one: the clause-less arm is the posture PB740 left untouched (an open owner question), and
-    /// the ALL OTHER arm is §2023:9.1.15 3)'s <i>"allows concurrent access"</i>. Before the fix the three arms read
+    /// the ALL OTHER arm is §2023:9.1.15 GR3's <i>"allows concurrent access"</i>. Before the fix the three arms read
     /// (refused, refused, refused) with NO OTHER the most permissive of them at the OS.
     /// <para>⚠ THE ARMS ARE THE STANDARD'S; WHAT THE HOST CAN MAKE OF THEM IS MEASURED (kb/Work PB795). The
     /// clause-less arm asserted that a <see cref="FileShare.Read"/> file lock refuses an outside WRITER, and on
@@ -250,7 +250,7 @@ public sealed class FileLockPostureDriftTests
     /// <para><b>The determination, and it belongs to the RUNTIME, not to this test</b>
     /// (<c>DESIGN-runtime-library.md</c>). .NET implements <see cref="FileShare"/> on Unix with an advisory
     /// <c>flock</c> that has two states — <see cref="FileShare.None"/> takes <c>LOCK_EX</c> and every other
-    /// value takes <c>LOCK_SH</c> — so §2023:9.1.15 2)'s <i>"restricts concurrent access … to input mode"</i> has no
+    /// value takes <c>LOCK_SH</c> — so §2023:9.1.15 GR2's <i>"restricts concurrent access … to input mode"</i> has no
     /// expression there at all. The posture is NOT changed to compensate: mapping it onto
     /// <see cref="FileShare.None"/> would refuse the reader rule 2 explicitly ADMITS, trading an under-refusal
     /// for an over-refusal of access the standard grants. So against a handle that is NOT a run unit — this
@@ -271,11 +271,11 @@ public sealed class FileLockPostureDriftTests
                 + host.Because);
         if (FileLockPosture.OfSharingMode(SharingOf(mode, FileOpenMode.Input)) == FileShare.None)
             return (isoAnswer,
-                "§2023:9.1.15 1)'s exclusive access is the one rule a binary advisory lock can still express, so "
+                "§2023:9.1.15 GR1's exclusive access is the one rule a binary advisory lock can still express, so "
                 + "this arm is unchanged on this host. " + host.Because);
         return (true,
             "⚠ MEASURED: this host's FileShare cannot express a share mode that "
-            + "admits a reader and refuses a writer, so §2023:9.1.15 2)'s file lock degrades toward rule 3's "
+            + "admits a reader and refuses a writer, so §2023:9.1.15 GR2's file lock degrades toward rule 3's "
             + "concurrent access rather than toward rule 1's exclusivity (widening it to FileShare.None would "
             + "refuse the reader rule 2 admits). This probe is a bare handle, NOT a run unit: another run unit of "
             + "this runtime is refused by RunUnitFileLock's region lock (RunUnitFileLockDriftTests, kb/Work "
@@ -294,15 +294,15 @@ public sealed class FileLockPostureDriftTests
     {
         var host = HostCapability.Sharing;
         Assert.True(host.EnforcesExclusiveAccess,
-            "§2023:9.1.15 1) — a FileShare.None handle shall exclude an outside reader AND an outside writer. This "
+            "§2023:9.1.15 GR1 — a FileShare.None handle shall exclude an outside reader AND an outside writer. This "
             + "host excludes neither or only one, so nothing above can measure a file lock at all. " + host.Because);
         Assert.True(host.ReadShareAdmitsAnOutsideReader,
-            "§2023:9.1.15 2) restricts other access *to input mode*; it does not exclude it. " + host.Because);
+            "§2023:9.1.15 GR2 restricts other access *to input mode*; it does not exclude it. " + host.Because);
         Assert.True(host.ReadWriteShareAdmitsAnOutsideWriter,
-            "§2023:9.1.15 3) — *allows concurrent access*. " + host.Because);
+            "§2023:9.1.15 GR3 — *allows concurrent access*. " + host.Because);
         Assert.True(HostFile.ShareModesAreMandatory == host.SeparatesReadersFromWriters,
             "THE DOCUMENTED DETERMINATION (DESIGN-runtime-library.md, kb/Work PB795): Windows share modes are "
-            + "mandatory and per-access, so §2023:9.1.15 2) is enforced as written there; every other host reaches "
+            + "mandatory and per-access, so §2023:9.1.15 GR2 is enforced as written there; every other host reaches "
             + "FileShare through .NET's advisory flock, which has one shared state for every mode but None and "
             + "therefore cannot express rule 2. If this assertion moved, the runtime's own guarantee moved with "
             + "it and the design doc has to be re-derived — never this line adjusted. " + host.Because);
@@ -389,7 +389,7 @@ public sealed class FileLockPostureDriftTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    /// <summary>⛔ THE SECOND ATTEMPT OF AN OPEN IS REFUSED TOO, AND THEN THE OPEN IS UNSUCCESSFUL (kb/Work PB3498; §2023:9.1.13.9 1),
+    /// <summary>⛔ THE SECOND ATTEMPT OF AN OPEN IS REFUSED TOO, AND THEN THE OPEN IS UNSUCCESSFUL (kb/Work PB3498; §2023:9.1.13.9 GR1,
     /// <i>"A file sharing conflict condition exists because an OPEN statement is attempted on a physical file and that
     /// physical file is already open by another file connector in a manner that conflicts with this request"</i>, and
     /// §2023:14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>). Another
@@ -548,9 +548,9 @@ public sealed class FileLockPostureDriftTests
     /// Measured where a lock is observable at all — through a sibling connector's view of the lock table — so
     /// the three rules are asserted whole rather than in the half the OS handle happens to show.</summary>
     [Theory]
-    [InlineData(Mode.NoOther, false)]    // §2023:9.1.15 1) "Record locks are ignored."
-    [InlineData(Mode.ReadOnly, true)]    // §2023:9.1.15 2) "Record locks are in effect."
-    [InlineData(Mode.AllOther, true)]    // §2023:9.1.15 3) "Record locks are in effect."
+    [InlineData(Mode.NoOther, false)]    // §2023:9.1.15 GR1 "Record locks are ignored."
+    [InlineData(Mode.ReadOnly, true)]    // §2023:9.1.15 GR2 "Record locks are in effect."
+    [InlineData(Mode.AllOther, true)]    // §2023:9.1.15 GR3 "Record locks are in effect."
     public void TheSharingModeAlsoDecidesWhetherRecordLocksAreInEffect(Mode mode, bool locksInEffect)
     {
         string host = FileHarness.Tmp($"locks-{mode}");
@@ -581,11 +581,11 @@ public sealed class FileLockPostureDriftTests
 
     /// <summary>⛔ THE DELIVERABLE INVARIANT: <b>no organization completes an OPEN without a live host handle
     /// carrying its derived posture</b> — measured THROUGH the connectors on a real physical file, never
-    /// asserted about them. §2023:9.1.15 3): <i>"The successful opening of a file establishes a file lock for the
+    /// asserted about them. §2023:9.1.15 GR3: <i>"The successful opening of a file establishes a file lock for the
     /// applicable sharing rules, thereby preventing other run units from opening that file with incompatible
     /// sharing rules"</i>, and it names no organization, so all three owe it.
     /// <para>The measurement is <see cref="HostCapability.OutsiderCan"/> with the connector open in
-    /// <c>SHARING WITH NO OTHER</c>: §2023:9.1.15 1)'s <i>"exclusive access to a physical file"</i> is the one rule
+    /// <c>SHARING WITH NO OTHER</c>: §2023:9.1.15 GR1's <i>"exclusive access to a physical file"</i> is the one rule
     /// every host this compiler supports can express (<see cref="TheHostsShareModeSemanticsAreTheDocumentedOnes"/>
     /// measures that), so a live, correctly-postured handle is exactly what an outsider being refused proves —
     /// and its absence is exactly what RELATIVE and INDEXED had. Asserting the FIELD would have proved only that
@@ -610,12 +610,12 @@ public sealed class FileLockPostureDriftTests
                 + "over an open that did not happen.");
 
             Assert.False(HostCapability.OutsiderCan(host, FileAccess.Write),
-                $"({org} {mode}) §2023:9.1.15 1) — SHARING WITH NO OTHER 'specifies exclusive access to a physical "
+                $"({org} {mode}) §2023:9.1.15 GR1 — SHARING WITH NO OTHER 'specifies exclusive access to a physical "
                 + "file', and another run unit wrote to it while this connector held it open. That is a "
                 + "connector completing an OPEN without a live host handle carrying its derived posture "
                 + $"(kb/Work PB771). {HostCapability.Sharing.Because}");
             Assert.False(HostCapability.OutsiderCan(host, FileAccess.Read),
-                $"({org} {mode}) exclusive access excludes a READER too — §2023:9.1.15 1) admits no other connector "
+                $"({org} {mode}) exclusive access excludes a READER too — §2023:9.1.15 GR1 admits no other connector "
                 + $"in any mode. {HostCapability.Sharing.Because}");
 
             // §2023:9.1.15: "The file lock is removed by an explicit or implicit CLOSE statement executed for that

@@ -17,7 +17,7 @@ public static partial class CobolNum
     /// is <c>00000012.5</c>, <c>FUNCTION NUMVAL("0.000000001")</c> is <c>.000000001</c>.
     /// </summary>
     /// <param name="value">The exact returned value (an SDIDI, which carries any scale the value has).</param>
-    /// <param name="commaMode">The unit's decimal separator (§2023:12.3.7.4 GR14 a).</param>
+    /// <param name="commaMode">The unit's decimal separator (§2023:12.3.7.4 GR14a.</param>
     public static string DeviceFunctionText(CobolDec value, bool commaMode) =>
         DeviceFunctionText(value, signedItem: value.Sig < 0, commaMode);
 

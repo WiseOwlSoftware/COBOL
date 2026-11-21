@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.CodeGen;
 using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 
 /// <summary>
-/// ⛔ THE ONE RENDERER OF THE FORMAT-1 USE SELECTION TIERS — ISO/IEC 1989:2023 §2023:14.9.49.4 GR3 a)/GR5 (the
+/// ⛔ THE ONE RENDERER OF THE FORMAT-1 USE SELECTION TIERS — ISO/IEC 1989:2023 §2023:14.9.49.4 GR3a/GR5 (the
 /// FILE-NAME scope) followed by GR3 b)/GR6 b)–e) (the OPEN-MODE scope, "for any file open in the input mode or
 /// in the process of being opened in the input mode" and its three siblings).
 /// <para><b>Why it exists.</b> That switch pair was written THREE times — <c>DispatchEmitter.__IoCheck</c>,
@@ -43,14 +43,14 @@ internal static class UseTierEmitter
     /// the mode tier (null = unconditional; it is never an EDITION condition — see the type remarks);
     /// <paramref name="modeTierNote"/> is the trailing generated-source comment that explains it.
     /// <paramref name="globalOnly"/> selects only <c>USE … GLOBAL</c>
-    /// declaratives (§2023:14.9.49.4 GR4 b)'s outward walk examines the container's GLOBAL ones alone).</summary>
+    /// declaratives (§2023:14.9.49.4 GR4b's outward walk examines the container's GLOBAL ones alone).</summary>
     public static void EmitScopeTiers(CodeWriter w, IReadOnlyList<BoundDeclarative> decls,
         Func<int, string> action, string? modeTierWhen = null, string? modeTierNote = null,
         bool globalOnly = false)
     {
         bool Qualifies(BoundDeclarative d) => !globalOnly || d.Global;
         if (decls.Any(d => Qualifies(d) && d.Files.Count > 0))
-            using (w.Block("switch (__f)"))   // file-name scope first (§2023:14.9.49.4 GR3 a)/GR5)
+            using (w.Block("switch (__f)"))   // file-name scope first (§2023:14.9.49.4 GR3a/GR5)
             {
                 for (int i = 0; i < decls.Count; i++)
                     if (Qualifies(decls[i]))

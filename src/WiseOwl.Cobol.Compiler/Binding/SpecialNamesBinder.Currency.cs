@@ -211,7 +211,7 @@ public sealed partial class SpecialNamesBinder
         // SR23 b is a compile-time limitation on the characters of a currency string, which SR19's NOTE 1 says
         // does not reach "the alphanumeric or national characters represented by hexadecimal literals used as
         // currency strings" — their content is the runtime coded character set's, used exactly as written. ⛔ That NOTE
-        // first appears in the 2014 text (§2014:12.3.6.2 SR19); §2002:12.2.6.2 SR20 b) has no such exemption and refuses
+        // first appears in the 2014 text (§2014:12.3.6.2 SR19); §2002:12.2.6.2 SR20b has no such exemption and refuses
         // the digits and + - , . * of a literal-7 whatever its form (kb/Work PB5595), so below 2014 a hexadecimal
         // literal's decoded characters are checked like any other's.
         bool exempt = literal7.Hexadecimal && Edition.DialectLevel >= 2014;
@@ -234,7 +234,7 @@ public sealed partial class SpecialNamesBinder
         // other character in the computer's compile-time coded character set" of a symbol that is not a COBOL character to
         // the implementor, and Annex A.1 item 43 requires it documented — docs/CONFORMANCE.md DOC-A.1-43 states it: two
         // characters are equivalent exactly when they have the same invariant-culture upper-case mapping. A COBOL character
-        // folds by §2023:8.1.3.2 GR3 b), which the same mapping gives (kb/Work PB1092). Change the key and that row together.
+        // folds by §2023:8.1.3.2 GR3b, which the same mapping gives (kb/Work PB1092). Change the key and that row together.
         char key = CurrencySymbolEquivalence.Fold(symbol, Edition.DialectLevel);
         if (key == '$') Cfg.DollarSpecified = true;   // r25 — a clause named '$' as literal-8: no implied clause
         bool isBound = Cfg.DeclaredCurrencySigns.TryGetValue(key, out var bound);

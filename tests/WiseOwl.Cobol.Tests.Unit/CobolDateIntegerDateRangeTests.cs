@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para><b>What it did:</b> <c>ISOWeek.ToDateTime</c> threw <c>ArgumentOutOfRangeException</c> from inside the
 /// SHARED analyzer, so the raw CLR fault escaped THREE intrinsics — INTEGER-OF-FORMATTED-DATE,
-/// TEST-FORMATTED-DATETIME and SECONDS-FROM-FORMATTED-TIME. §2023:15.3 rule 14 permits only EC-ARGUMENT-FUNCTION or the
+/// TEST-FORMATTED-DATETIME and SECONDS-FROM-FORMATTED-TIME. §2023:15.3 AR14 permits only EC-ARGUMENT-FUNCTION or the
 /// implementor-defined result.</para>
 ///
 /// <para>⚠ These run with EC-ARGUMENT-FUNCTION checking OFF, so an argument/returned-value error surfaces as the

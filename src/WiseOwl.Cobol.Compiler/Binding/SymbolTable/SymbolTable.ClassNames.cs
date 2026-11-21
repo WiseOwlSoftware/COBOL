@@ -224,7 +224,7 @@ public sealed partial class SymbolTable
             edition.Error(code,
                 cls is { Origin: OoSymbolOrigin.Standard }
                     // The standard class is reached exactly like a written one — through a REPOSITORY class-specifier
-                    // (§2023:12.3.8.3 SR6 b): name the missing entry, which is the whole fix.
+                    // (§2023:12.3.8.3 SR6b: name the missing entry, which is the whole fix.
                     ? $"{where} '{nameWritten}': '{nameWritten}' is the standard class BASE (ISO §2023:16.1), but {notDeclared} — "
                       + $"add `CLASS {nameWritten}` to the REPOSITORY paragraph"
                 : definedInGroup
@@ -356,7 +356,7 @@ public sealed partial class SymbolTable
                 : null;
 
         /// <summary>A class of the group by its table key, or the standard class BASE (ISO §2023:16.1), whose information the
-        /// implementation's external repository always holds (§2023:12.3.8.3 SR6 b)). A class DEFINED in the group wins.</summary>
+        /// implementation's external repository always holds (§2023:12.3.8.3 SR6b). A class DEFINED in the group wins.</summary>
         private OoClassSymbol? ClassKeyed(string name)
         {
             var key = Key(name);
@@ -380,7 +380,7 @@ public sealed partial class SymbolTable
         }
 
         /// <summary>The interface's FULL method surface: own prototypes + the INHERITS closure (§2023:9.3.8.2.2), ONE prototype per
-        /// method-name. An inherited name cannot also be an own prototype (§2023:11.7.3 SR4 b), refused at Build), and a name
+        /// method-name. An inherited name cannot also be an own prototype (§2023:11.7.3 SR4b, refused at Build), and a name
         /// inherited from several interfaces presents the prototype every other one conforms to (<see cref="ChooseInheritedPrototype"/>;
         /// §2023:11.6.3 SR5) — before that pass, and for a name with one prototype, discovery order.</summary>
         internal IReadOnlyList<OoMethodSymbol> AllPrototypes(OoInterfaceSymbol iface)

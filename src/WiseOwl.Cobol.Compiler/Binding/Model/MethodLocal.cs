@@ -17,7 +17,7 @@ public abstract record MethodLocal;
 /// <summary>The construct that declares a <see cref="StatementLocal"/>: with the ordinal, the local's whole identity.</summary>
 public enum StatementLocalRole
 {
-    /// <summary>An INITIALIZE per-occurrence loop counter (ISO §2023:14.9.20.4 5) b) 2.: "each occurrence of the elementary data
+    /// <summary>An INITIALIZE per-occurrence loop counter (ISO §2023:14.9.20.4 GR5b 2.: "each occurrence of the elementary data
     /// item is a possible receiving-operand"); the ordinal is the unit's INITIALIZE loop serial.</summary>
     InitializeOccurrence,
 
@@ -39,7 +39,7 @@ public enum StatementLocalRole
     /// <see cref="CorrespondingSendingAnchor"/>; the same ordinal.</summary>
     CorrespondingReceivingAnchor,
 
-    /// <summary>A table(ALL) enumeration's index vector (ISO §2023:15.3 14), one current occurrence per ALL level); the ordinal is
+    /// <summary>A table(ALL) enumeration's index vector (ISO §2023:15.3 AR14, one current occurrence per ALL level); the ordinal is
     /// the unit's table(ALL) serial.</summary>
     TableAllIndices,
 
@@ -53,7 +53,7 @@ public enum StatementLocalRole
     /// <see cref="DataItem.Uid"/>.</summary>
     WholeTableIndices,
 
-    /// <summary>A report VARYING counter (ISO §2023:13.18.64.4 1): "an independent temporary integer data item"); the ordinal is
+    /// <summary>A report VARYING counter (ISO §2023:13.18.64.4 GR1: "an independent temporary integer data item"); the ordinal is
     /// the counter's compilation-unique <c>ReportVaryingModel.Uid</c>.</summary>
     ReportVaryingCounter,
 

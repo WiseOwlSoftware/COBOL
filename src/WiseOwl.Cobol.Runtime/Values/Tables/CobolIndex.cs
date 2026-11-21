@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <see cref="CobolPtr.UpByAmount"/>.</summary>
 public enum SetAmountRule
 {
-    /// <summary>ISO §2023:14.9.39.4 GR2 a) 1. — Format 1, <c>SET index-name-1 TO arithmetic-expression-1</c>:
+    /// <summary>ISO §2023:14.9.39.4 GR2a.1 — Format 1, <c>SET index-name-1 TO arithmetic-expression-1</c>:
     /// a) non-integer ⇒ EC-BOUND-SUBSCRIPT; b) outside the §2023:13.18.38.4 GR2 implementor index range ⇒
     /// EC-RANGE-INDEX. Both are "the execution of the SET statement is unsuccessful, and the content of the
     /// receiving operand is unchanged".</summary>
@@ -34,7 +34,7 @@ public enum SetAmountRule
 }
 
 /// <summary>
-/// THE ONE LANDING for every SET-family AMOUNT and for every modification of an index (ISO §2023:14.9.39.4 GR2 a) 1.,
+/// THE ONE LANDING for every SET-family AMOUNT and for every modification of an index (ISO §2023:14.9.39.4 GR2a 1.,
 /// GR3, GR4 a), GR29; §2023:13.18.38.4 GR2). kb/Work PB459.
 ///
 /// <para><b>Why this type exists.</b> §2023:14.9.39.4 states the SAME integrality guard once per amount-taking format
@@ -78,7 +78,7 @@ public static class CobolIndex
     /// is still present; a <c>(long)</c> narrowing at the emitter would have destroyed both the fraction and any
     /// magnitude past the carrier).
     /// <list type="bullet">
-    /// <item>Not an integer ⇒ EC-BOUND-SUBSCRIPT (§2023:14.9.39.4 GR2 a) 1. a / GR3 / GR29) and <c>false</c>.</item>
+    /// <item>Not an integer ⇒ EC-BOUND-SUBSCRIPT (§2023:14.9.39.4 GR2a.1 a / GR3 / GR29) and <c>false</c>.</item>
     /// <item><see cref="SetAmountRule.Capacity"/> and negative ⇒ EC-BOUND-SUBSCRIPT (GR29's "nonnegative")
     /// and <c>false</c>.</item>
     /// <item>Outside the implementor index range ⇒ EC-RANGE-INDEX (GR2 a) 1. b) — or, for a capacity amount,
@@ -156,7 +156,7 @@ public static class CobolIndex
     /// <paramref name="index"/> itself on that leg. GR4 b) is the ordinary result, "even if that occurrence is
     /// not a valid occurrence within this table", so no table bound is consulted.</summary>
     /// <remarks>The amount is <see cref="Int128"/>, not <see cref="long"/>: a PERFORM VARYING BY operand is an
-    /// integer data item (§2023:14.9.28.3 SR4 a) of up to 31 digits, and narrowing it at the emitter would wrap it
+    /// integer data item (§2023:14.9.28.3 SR4a of up to 31 digits, and narrowing it at the emitter would wrap it
     /// before this guard could see it — the very shape kb/Work PB459 is about.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static long Augment(long index, Int128 amount, bool down, string detail)

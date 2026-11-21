@@ -52,7 +52,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// literal"). It is the sibling of <see cref="PictureSeparatorPeriodRule"/>, which decides the §2023:13.18.40.3 SR7
 /// question at a PICTURE string's right edge the same way, and it is reported through the same listener.</para>
 /// <para>⚠ THE SPACE-LESS COMMA OF A NUMERIC LITERAL IS NOT THIS RULE'S. Under DECIMAL-POINT IS COMMA the comma is a
-/// numeric literal's decimal point (§2023:12.3.7.4 GR14 a)), and the lexer delivers <c>1,5</c> as INTEGERLIT COMMA
+/// numeric literal's decimal point (§2023:12.3.7.4 GR14a), and the lexer delivers <c>1,5</c> as INTEGERLIT COMMA
 /// INTEGERLIT for the parser to assemble (a list region's signed <c>-1,5</c> is one SIGNED_DECIMALLIT token, kb/Work
 /// PB2506, so no COMMA token reaches this rule for it); whether that literal is legal is the numeric-literal rules' question (the
 /// binder's one normalizer reports a comma decimal point without the clause). So a comma touching a following digit,
@@ -61,7 +61,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// DOT / COMMA / SEMICOLON token, so rules 2 and 3 cannot misfire on one ("except when appearing in a literal", and
 /// the PICMODE lexer owns the picture's own separators). A <c>;</c> with no space after it is a HIDDEN-channel token
 /// (<c>SEMICOLON</c>) precisely so this rule can see it; the parser never does.</para>
-/// <para>⚠ ONE REPORT PER BOUNDARY. An operator touching a literal breaks two rules at one boundary — §2023:8.3.5 5) for the
+/// <para>⚠ ONE REPORT PER BOUNDARY. An operator touching a literal breaks two rules at one boundary — §2023:8.3.5 SR5 for the
 /// literal's delimiter and §2023:8.7.3 / §2023:8.7.4 for the operator. The operator's clause is the specific one (it names the
 /// very character that touches), so the operator reports the boundary and the literal's delimiter check stands down
 /// for it: <c>O ::"M"</c> is one COBOL2993, never a COBOL2633 beside it.</para>
@@ -93,14 +93,14 @@ public static class SeparatorRule
                     if (!IsSeparatorSpace(CharAt(text, t.StopIndex + 1)) && !IsDecimalComma(text, t))
                         yield return new(t, DiagnosticCatalog.SeparatorCommaWithoutSpace,
                             $"the {Name(t)} is not immediately followed by a space, so it is not a separator — "
-                            + $"{EditionInfo.Designated(edition.Cite("§1985:IV.4.2.1 SR2", "§2023:8.3.5 rule 2"))} makes a comma or semicolon a separator only when a space follows it; write a space "
+                            + $"{EditionInfo.Designated(edition.Cite("§1985:IV.4.2.1 SR2", "§2023:8.3.5 SR2"))} makes a comma or semicolon a separator only when a space follows it; write a space "
                             + "after it");
                     break;
                 case CobolLexer.DOT:
                     if (!IsSeparatorSpace(CharAt(text, t.StopIndex + 1)))
                         yield return new(t, DiagnosticCatalog.SeparatorPeriodWithoutSpace,
                             $"the period is not followed by a space, so it is not a separator period — "
-                            + $"{EditionInfo.Designated(edition.Cite("§1985:IV.4.2.1 SR3", "§2023:8.3.5 rule 3"))} makes a period a separator only when a space follows it; write a space after it");
+                            + $"{EditionInfo.Designated(edition.Cite("§1985:IV.4.2.1 SR3", "§2023:8.3.5 SR3"))} makes a period a separator only when a space follows it; write a space after it");
                     break;
                 default:
                     if (!LiteralTokens.Types.Contains(t.Type)) break;
@@ -108,14 +108,14 @@ public static class SeparatorRule
                         && !IsOperatorTouching(tokens, i - 1, t.StartIndex - 1))
                         yield return new(t, DiagnosticCatalog.SeparatorLiteralDelimiter,
                             $"the literal {Abbreviated(t.Text)} begins immediately after '{(char)CharAt(text, t.StartIndex - 1)}' — "
-                            + $"{edition.CiteRule("§1985:IV.4.2.1 SR5", "§2023:8.3.5 rule 5")} requires an opening delimiter to be immediately preceded by a space, a "
+                            + $"{edition.CiteRule("§1985:IV.4.2.1 SR5", "§2023:8.3.5 SR5")} requires an opening delimiter to be immediately preceded by a space, a "
                             + "left parenthesis or an opening pseudo-text delimiter");
                     if (!ClosingDelimiterSeparated(text, t.StopIndex) && !IsOperatorTouching(tokens, i + 1, t.StopIndex + 1))
                     {
                         reportedCloseStop = t.StopIndex;
                         yield return new(t, DiagnosticCatalog.SeparatorLiteralDelimiter,
                             $"the literal {Abbreviated(t.Text)} is immediately followed by '{(char)CharAt(text, t.StopIndex + 1)}' — "
-                            + $"{edition.CiteRule("§1985:IV.4.2.1 SR5", "§2023:8.3.5 rule 5")} requires a closing delimiter to be immediately followed by a space, "
+                            + $"{edition.CiteRule("§1985:IV.4.2.1 SR5", "§2023:8.3.5 SR5")} requires a closing delimiter to be immediately followed by a space, "
                             + "comma, semicolon, period, right parenthesis or closing pseudo-text delimiter");
                     }
                     break;
@@ -126,7 +126,7 @@ public static class SeparatorRule
     /// <summary>Whether <paramref name="u"/> heads a LITERAL-ONLY slot rather than an arithmetic expression: the VALUE
     /// clauses' <c>valueClauseOperand : unaryExpression | …</c> parses its signs as unary operators (a superset parse), but
     /// the position admits a literal and nothing else, so a sign there is the literal's — `--5` is "more than one sign
-    /// character" (§2023:8.3.3.3.2 2), <c>COBOL2155</c>, which the literal rules own — and no operator exists to be spaced.</summary>
+    /// character" (§2023:8.3.3.3.2 SR2, <c>COBOL2155</c>, which the literal rules own — and no operator exists to be spaced.</summary>
     private static bool InLiteralSlot(Core.UnaryExpressionContext u)
     {
         IParseTree top = u;
@@ -151,7 +151,7 @@ public static class SeparatorRule
     /// left parenthesis, on either side — and, at COBOL-85, the left parenthesis before a unary operator or a logical NOT that the
     /// determination D-85-OPERATOR-SPACING (<c>docs/conformance/3/</c>, kb/Work PB5989) admits. A comma or semicolon
     /// immediately followed by a space is "a separator that may be used anywhere the separator space is used"
-    /// (§2023:8.3.5 2)), so <c>1 *, 1</c> follows its operator with one — while <c>1 *,1</c> does not: that comma is the
+    /// (§2023:8.3.5 SR2), so <c>1 *, 1</c> follows its operator with one — while <c>1 *,1</c> does not: that comma is the
     /// literal's decimal point (<see cref="IsDecimalComma"/>), no separator.</summary>
     private static string? OperatorSpacingMessage(string text, IToken op, string name, string clause,
         bool parenthesisBefore, bool parenthesisAfter)
@@ -160,7 +160,7 @@ public static class SeparatorRule
             || (parenthesisBefore && CharAt(text, op.StartIndex - 1) == '(');
         int next = CharAt(text, op.StopIndex + 1);
         bool after = IsSeparatorSpace(next) || (parenthesisAfter && next == '(')
-            || (next is ',' or ';' && IsSeparatorSpace(CharAt(text, op.StopIndex + 2)));   // §2023:8.3.5 2): usable anywhere the space is
+            || (next is ',' or ';' && IsSeparatorSpace(CharAt(text, op.StopIndex + 2)));   // §2023:8.3.5 SR2: usable anywhere the space is
         if (before && after) return null;
         var (missing, fix) = (before, after) switch
         {
@@ -187,7 +187,7 @@ public static class SeparatorRule
     /// operator (spaced on both sides), a UNARY operator (a left parenthesis may stand where the space does) or no
     /// operator at all is a question of grammar, not of the character beside it: <c>N -1</c> is a subtraction written
     /// without its second space, <c>-1</c> alone is a numeric literal whose sign is its leftmost character
-    /// (§2023:8.3.3.3.2 2) — the ONE contiguity test, <see cref="ArithmeticFormationRules.SignIsPartOfLiteral"/>), and the
+    /// (§2023:8.3.3.3.2 SR2 — the ONE contiguity test, <see cref="ArithmeticFormationRules.SignIsPartOfLiteral"/>), and the
     /// same <c>+</c> in <c>LINE + 1</c> is a screen clause's relative-line symbol. Only the expression tiers know, so the
     /// verdict is read off <c>addOp</c> / <c>mulOp</c> / <c>POWER</c> under <c>additiveExpression</c>,
     /// <c>multiplicativeExpression</c>, <c>powerExpression</c> (binary) and <c>unaryExpression</c> (unary) — every
@@ -320,14 +320,14 @@ public static class SeparatorRule
     /// which no character-string can extend past.</summary>
     private static bool IsSeparatorSpace(int c) => c == -1 || CobolSpace.IsSeparator((char)c);
 
-    /// <summary>§2023:8.3.5 5): space, left parenthesis, or the opening pseudo-text delimiter <c>==</c>.</summary>
+    /// <summary>§2023:8.3.5 SR5: space, left parenthesis, or the opening pseudo-text delimiter <c>==</c>.</summary>
     private static bool OpeningDelimiterSeparated(string text, int start)
     {
         int before = CharAt(text, start - 1);
         return IsSeparatorSpace(before) || before == '(' || (before == '=' && CharAt(text, start - 2) == '=');
     }
 
-    /// <summary>§2023:8.3.5 5): space, comma, semicolon, period, right parenthesis, or the closing pseudo-text delimiter
+    /// <summary>§2023:8.3.5 SR5: space, comma, semicolon, period, right parenthesis, or the closing pseudo-text delimiter
     /// <c>==</c>. (A comma, semicolon or period with no space after it is rule 2's or 3's violation, reported on its
     /// own token.)</summary>
     private static bool ClosingDelimiterSeparated(string text, int stop)
@@ -339,7 +339,7 @@ public static class SeparatorRule
 
     /// <summary>A comma that is a numeric literal's decimal point under DECIMAL-POINT IS COMMA: a digit follows it, and a
     /// digit, an operator character, a left parenthesis or a separator space precedes it (<c>1,5</c>, <c>,5</c>,
-    /// <c>-,5</c>, <c>*,5</c>, <c>=,5</c>). §2023:8.3.3.3.2 3) lets the decimal point be the leftmost character of a literal,
+    /// <c>-,5</c>, <c>*,5</c>, <c>=,5</c>). §2023:8.3.3.3.2 SR3 lets the decimal point be the leftmost character of a literal,
     /// so a literal that begins with it can follow anything that ends a character-string; an operator touching it is
     /// the OPERATOR's violation (§2023:8.7.1, <see cref="ArithmeticOperatorViolations"/>), and calling the comma a missing
     /// separator advises a space that changes the program's meaning: <c>1 *,1</c> is 1 times 0,1, and <c>1 *, 1</c> —

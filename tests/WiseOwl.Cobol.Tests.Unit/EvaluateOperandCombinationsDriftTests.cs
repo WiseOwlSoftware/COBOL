@@ -157,7 +157,7 @@ public sealed class EvaluateOperandCombinationsDriftTests
         // ⚠ A LITERAL object against a LITERAL subject is INVALID — a blank cell that is easy to assume is 'Y'.
         Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.Literal, EvaluateObjectOperand.Literal, 2023));
         Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.Literal, EvaluateObjectOperand.Literal, 2002));
-        // ⚠ Below 2002 there is no table (§1985:VI.6.13.3 SR6 a): the literal x literal cell is permitted at --std 85
+        // ⚠ Below 2002 there is no table (§1985:VI.6.13.3 SR6a: the literal x literal cell is permitted at --std 85
         // (kb/Work PB5481), and no other blank cell changes.
         Assert.True(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.Literal, EvaluateObjectOperand.Literal, 85));
         Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.Condition, EvaluateObjectOperand.Identifier, 85));

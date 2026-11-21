@@ -91,7 +91,7 @@ public sealed record ImplementorCodeName(string Name, bool National, int Ordinal
 /// already computes, so GR7 i's obligation to give EVERY character a collating position is discharged by
 /// adopting GR7 k3's own rule as this implementor's specification; (2) as a CODED CHARACTER SET they are simply
 /// not members, so no SYMBOLIC CHARACTERS or CLASS ordinal reaches them and a CODE-SET record area holding one
-/// cannot be represented on the medium (§2023:13.18.13.4 GR6 b) — reported by the runtime, never silently mangled.
+/// cannot be represented on the medium (§2023:13.18.13.4 GR6b — reported by the runtime, never silently mangled.
 /// The page's own 256 native characters are exactly U+0000…U+00FF, so an alphanumeric record area — one byte per
 /// character on this substrate — never holds one of the 65 280 in practice.</para>
 /// </summary>
@@ -172,7 +172,7 @@ public static class ImplementorCodeNames
             if (!pos.TryAdd(toNative[unit], unit))
                 throw new InvalidOperationException(
                     $"code page {codePage} maps two code units to U+{(int)toNative[unit]:X4}: it cannot define "
-                    + "a collating sequence (ISO §2023:12.3.7.4 GR7 i)");
+                    + "a collating sequence (ISO §2023:12.3.7.4 GR7i");
             order.Add(toNative[unit]);
             repByPos.Add(toNative[unit]);
         }

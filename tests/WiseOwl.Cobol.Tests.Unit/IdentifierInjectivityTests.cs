@@ -89,7 +89,7 @@ public sealed class IdentifierInjectivityTests
             ObjectRefDescriptor.ActiveClass(OoStandardClasses.BaseName, factory: true).ClrTypeName);
     }
 
-    /// <summary>kb/Work PB929 (Annex A.1 item 121, docs/CONFORMANCE.md DOC-A.1-121; ISO §2023:11.7.4 GR1 a), "the name is
+    /// <summary>kb/Work PB929 (Annex A.1 item 121, docs/CONFORMANCE.md DOC-A.1-121; ISO §2023:11.7.4 GR1a, "the name is
     /// implementor-defined"): the documented accessor name is <c>__GET_&lt;P&gt;</c> / <c>__SET_&lt;P&gt;</c>, <c>&lt;P&gt;</c> the
     /// upper-cased property-name written by <see cref="DataItem.IdentifierCharacters"/>, for EVERY legal property-name. A
     /// name spelled like a C# keyword, or starting with a digit (a user-defined word needs one letter, ISO §2023:8.3.2.2 3)), takes

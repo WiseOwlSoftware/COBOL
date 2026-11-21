@@ -62,7 +62,7 @@ public static class CobolFile
         => _reg.AddAlternateKey(name, key, duplicates, collation, suppress);
 
     // ⛔ EVERY OPEN ENTRY CARRIES THE EXECUTING ELEMENT'S OWN ASSIGN SPECIFICATION AND LINAGE PAGE, and none of
-    // the three parameters has a default: ISO §2023:12.4.5.3 GR3 a)/b) and §2023:13.18.34.4 GR6 b) both name the runtime
+    // the three parameters has a default: ISO §2023:12.4.5.3 GR3 a)/b) and §2023:13.18.34.4 GR6b both name the runtime
     // element that EXECUTES the statement, and one file connector can be described by several of them (an
     // EXTERNAL file connector is ONE object per run unit, §2023:13.18.22.4 GR4 a; a RECURSIVE unit's is unit-scoped
     // across activations, §2023:8.6.4). Requiring the arguments makes an emitter path that forgets them a COMPILE
@@ -117,7 +117,7 @@ public static class CobolFile
     public static void CloseNoRewind(string name) => _reg.CloseNoRewind(name);
 
     // ⛔ AND EVERY WRITE ENTRY CARRIES THE EXECUTING ELEMENT'S LINAGE PAGE, for the same reason and with the same
-    // no-default discipline: §2023:13.18.34.4 GR6 b) 2 and 3 read the operand values DURING a WRITE statement — the
+    // no-default discipline: §2023:13.18.34.4 GR6b 2 and 3 read the operand values DURING a WRITE statement — the
     // ADVANCING PAGE one and the one that causes a page overflow — so the values belong to the element executing
     // that WRITE. `null` says the FD referenced by this statement has no LINAGE clause at all (kb/Work PB673).
 
@@ -143,7 +143,7 @@ public static class CobolFile
     // ⛔ No ungoverned READ / REWRITE / BEFORE-AND-AFTER-WRITE entry exists on this facade any more, and none may
     // come back (kb/Work PB683): the emitted code reaches those verbs ONLY through ReadShared / RewriteShared /
     // WriteShared, which decide record-lock governance where the OPEN statement's own SHARING phrase is visible
-    // (§2023:9.1.15) and govern EVERY connector — a miss on the posture map is §2023:12.4.5.9.4 GR1 b) 2.'s implementor
+    // (§2023:9.1.15) and govern EVERY connector — a miss on the posture map is §2023:12.4.5.9.4 GR1b 2.'s implementor
     // default, not an ungoverned path (kb/Work PB669). The physical bodies live on the connectors, reached from
     // those governed entries. `Write` and `WriteAdvancing`
     // survive as the physical layer the runtime's own report writer and the unit tests drive directly.
@@ -174,7 +174,7 @@ public static class CobolFile
     /// <summary>⛔ THE LOGICAL RECORD A WRITE, REWRITE OR RELEASE RELEASES, at its released length — what the
     /// "also available as a record of other files referenced in the same SAME RECORD AREA clause" rule makes
     /// available in the other records of the area (§2023:14.9.51.4 GR4, §2023:14.9.35.4 GR6, §2023:14.9.32.4 GR3; kb/Work PB1195):
-    /// the record-area image cut to the §2023:13.18.43.4 GR13 a) length when a DEPENDING ON item names one
+    /// the record-area image cut to the §2023:13.18.43.4 GR13a length when a DEPENDING ON item names one
     /// (<paramref name="length"/> ≥ 0), else the image itself (GR13 b)/c) — a record of its own size). A length past
     /// the image releases the image: a record cannot be longer than the area it was released from, so there is
     /// nothing to pad (and a byte-level pad would be wrong for a national area).</summary>
@@ -371,7 +371,7 @@ public static class CobolFile
 
     /// <summary>Governed REWRITE for a sharing-active connector, any organization (§2023:14.9.35.4 GR11/GR12).
     /// <paramref name="nationalRecord"/> is the category of the record the statement sends, as for
-    /// <see cref="WriteShared"/> (§2023:14.9.35.4 GR17 c)'s space fill, kb/Work PB1191).</summary>
+    /// <see cref="WriteShared"/> (§2023:14.9.35.4 GR17c's space fill, kb/Work PB1191).</summary>
     public static string RewriteShared(string name, string image, int length, FileRecordLock phrase,
         FileRetryKind retryKind, long retryAmount, RecordExtents? areaExtents = null, bool nationalRecord = false, int namedEntry = RecordFormat.BySelectWhen)
         => _reg.RewriteShared(name, image, length, phrase, retryKind, retryAmount, areaExtents, nationalRecord, namedEntry);
@@ -413,11 +413,11 @@ public static class CobolFile
     /// docs/CONFORMANCE.md DOC-A.1-71.)</para>
     /// <para>⛔ IT IS TOTAL (kb/Work PB2848): it runs where no OPEN's I-O-status catch exists — at registration, and in
     /// <see cref="FileConnector.AssociationFailure"/> before the OPEN body — and the content of a data-name-1
-    /// (§2023:12.4.5.3 GR3 b)) is an arbitrary string, so a spelling the host cannot make absolute (a path longer than the
+    /// (§2023:12.4.5.3 GR3b) is an arbitrary string, so a spelling the host cannot make absolute (a path longer than the
     /// host allows, a NUL) must not escape as a .NET exception. Such a spelling names no physical file the host can
     /// reach, so it is returned as written; it is its own identity, and the OPEN that follows meets the host's
     /// refusal where every other open failure is already an I-O status ('35' for a probe that finds nothing, '30'
-    /// for a creation the host refuses; <c>FileConnector.Open</c>). The content that §2023:12.4.5.3 GR3 b) itself calls
+    /// for a creation the host refuses; <c>FileConnector.Open</c>). The content that §2023:12.4.5.3 GR3b itself calls
     /// not consistent, empty or carrying a control character, is '31' before this is asked.</para></summary>
     public static string ResolveHostPath(string assignTarget)
     {

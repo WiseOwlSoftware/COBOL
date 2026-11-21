@@ -119,7 +119,7 @@ public sealed class IndexNameUniquenessTests
         Assert.Equal("12 21", stdout.Trim());
     }
 
-    /// <summary>§2023:8.4.6.2.3 + §2023:8.4.6.2.1 3) a): a contained program's own IX wins over its container's GLOBAL one,
+    /// <summary>§2023:8.4.6.2.3 + §2023:8.4.6.2.1 GR3a: a contained program's own IX wins over its container's GLOBAL one,
     /// and the global one stays reachable qualified through its table.</summary>
     [Fact]
     public void ContainedProgram_LocalIndexWins_GlobalReachableQualified()
@@ -158,7 +158,7 @@ public sealed class IndexNameUniquenessTests
 
     /// <summary>The <c>--permissive</c> disposition of an ambiguous index-name (§2023:8.4.2.2.3 SR1, warned, resolved to
     /// the first declaration) still screens the table it resolves to: here that table lies in a LINKAGE record that
-    /// is no operand of the USING phrase, so §2023:13.7.3 SR4 e) ("It is a condition-name or index-name associated with a
+    /// is no operand of the USING phrase, so §2023:13.7.3 SR4e ("It is a condition-name or index-name associated with a
     /// data item that satisfies one of the above conditions") refuses the reference, COBOL2746, exactly as it
     /// refuses the qualified <c>IX OF T1</c>.</summary>
     [Fact]

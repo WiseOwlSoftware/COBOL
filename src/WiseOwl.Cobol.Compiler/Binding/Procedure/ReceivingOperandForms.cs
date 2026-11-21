@@ -59,8 +59,8 @@ internal static class ReceivingOperandForms
     internal readonly record struct Rule(DiagnosticDescriptor Descriptor, Func<string, EditionInfo, string> Message);
 
     /// <summary>Every <see cref="NonReceivableForm"/>, with the rule that forbids it. Each message quotes or names its own
-    /// clause (cite.py --check: §2023:8.4.3.5.3 2), §2023:8.4.3.6.3 1), §2023:8.4.3.7.3 1), §2023:8.4.3.8.3 2), §2023:8.4.3.11.3 5),
-    /// §2023:8.4.3.12.3 3), §2023:8.4.3.13.3 4), §2023:8.4.3.14.3 2), §2023:8.4.3.15.3 3) — all OK).</summary>
+    /// clause (cite.py --check: §2023:8.4.3.5.3 SR2, §2023:8.4.3.6.3 SR1, §2023:8.4.3.7.3 SR1, §2023:8.4.3.8.3 SR2, §2023:8.4.3.11.3 SR5,
+    /// §2023:8.4.3.12.3 SR3, §2023:8.4.3.13.3 SR4, §2023:8.4.3.14.3 SR2, §2023:8.4.3.15.3 SR3 — all OK).</summary>
     internal static readonly FrozenDictionary<NonReceivableForm, Rule> Rules = new Dictionary<NonReceivableForm, Rule>
     {
         [NonReceivableForm.ObjectView] = new(DiagnosticCatalog.ObjectViewReceiving, (w, _) =>
@@ -93,7 +93,7 @@ internal static class ReceivingOperandForms
             "LINAGE-COUNTER shall not be referenced as a receiving operand ("
             + edition.CiteRule("§1985:VII.1.3.7", "§2023:8.4.3.14.3 SR2") + "); only the "
             + "input-output control system may change its value ("
-            + edition.CiteRule("§1985:VII.1.3.7)", "§2023:13.18.34.4 GR7 b)")),
+            + edition.CiteRule("§1985:VII.1.3.7)", "§2023:13.18.34.4 GR7b")),
         [NonReceivableForm.LineCounter] = new(DiagnosticCatalog.ReportLineCounterReceiving, (_, edition) =>
             "LINE-COUNTER shall not be referenced as a receiving operand ("
             + edition.CiteRule("§1985:XIII.1.2.3", "§2023:8.4.3.15.3 SR3") + ")"),

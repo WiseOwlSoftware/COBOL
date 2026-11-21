@@ -10,12 +10,12 @@ namespace WiseOwl.Cobol.Editions;
 /// <c>*&gt;</c> inside a literal is content, and a quotation symbol inside a comment opens nothing. That is one fact
 /// about source text, so it is written here, beside <see cref="CobolSpace"/>, and each stage asks it:
 /// <list type="bullet">
-/// <item>ISO §2023:8.3.5 5): "The opening delimiters and closing delimiters of literals are separators. Either an apostrophe
+/// <item>ISO §2023:8.3.5 SR5: "The opening delimiters and closing delimiters of literals are separators. Either an apostrophe
 /// or a quotation mark may be used as the quotation symbol character in opening and closing delimiters." The opening
 /// delimiters are a quotation symbol, "the two contiguous characters B", B', N", N', X", and X'" and "the three
 /// contiguous characters BX", BX', NX", and NX'" (<see cref="TryOpeningDelimiterAt"/>); the closing delimiter is the
 /// quotation symbol of the opening one (<see cref="ClosingDelimiterAt"/>).</item>
-/// <item>§2023:8.3.3.2.3 3): "Two contiguous quotation symbol characters matching the quotation symbol used in the opening
+/// <item>§2023:8.3.3.2.3 SR3: "Two contiguous quotation symbol characters matching the quotation symbol used in the opening
 /// delimiter represent a single occurrence of that quotation symbol character in the content of the literal" — so a
 /// doubled quotation symbol is content and never closes the literal (<see cref="ClosingDelimiterAt"/>,
 /// <see cref="LiteralContent"/>).</item>
@@ -36,7 +36,7 @@ public static class CobolSourceText
     /// <summary>The floating comment indicator (§2023:6.2.3.1).</summary>
     public const string CommentIndicator = "*>";
 
-    /// <summary>Whether <paramref name="c"/> is a quotation symbol — a quotation mark or an apostrophe (§2023:8.3.5 5),
+    /// <summary>Whether <paramref name="c"/> is a quotation symbol — a quotation mark or an apostrophe (§2023:8.3.5 SR5,
     /// §2023:8.3.3.1).</summary>
     public static bool IsQuotationSymbol(char c) => c is '"' or '\'';
 
@@ -46,11 +46,11 @@ public static class CobolSourceText
         => text[pos..].StartsWith(CommentIndicator, StringComparison.Ordinal);
 
     /// <summary>
-    /// Whether a literal's opening delimiter (§2023:8.3.5 5)) begins at <paramref name="pos"/>, which is outside any literal:
+    /// Whether a literal's opening delimiter (§2023:8.3.5 SR5) begins at <paramref name="pos"/>, which is outside any literal:
     /// a quotation symbol, or a <c>B</c>, <c>N</c> or <c>X</c> prefix (any letter case) — or <c>BX</c> / <c>NX</c> —
     /// immediately followed by one. A prefix letter that continues a COBOL word (a word character stands right before
     /// it) is that word's, as the lexer reads it: <c>ABX"41"</c> is the word <c>ABX</c> and the literal <c>"41"</c>
-    /// (whose missing separator the §2023:8.3.5 5) separator rule reports, "The opening delimiter shall be immediately
+    /// (whose missing separator the §2023:8.3.5 SR5 separator rule reports, "The opening delimiter shall be immediately
     /// preceded by a space, left parenthesis, or opening pseudo-text delimiter").
     /// </summary>
     public static bool TryOpeningDelimiterAt(ReadOnlySpan<char> text, int pos, out OpeningDelimiter delimiter)
@@ -77,7 +77,7 @@ public static class CobolSourceText
 
     /// <summary>The index of the closing delimiter of a literal whose opening quotation symbol is
     /// <paramref name="quote"/>, searching from <paramref name="from"/> (the first content character): the first
-    /// <paramref name="quote"/> that is not one of a doubled pair (§2023:8.3.3.2.3 3)), or <c>text.Length</c> when the text
+    /// <paramref name="quote"/> that is not one of a doubled pair (§2023:8.3.3.2.3 SR3), or <c>text.Length</c> when the text
     /// ends inside the literal. A quotation symbol that is the LAST character of the text is returned as the closing
     /// delimiter: a caller whose literal may continue on the next line decides it from that line's first
     /// character.</summary>
@@ -104,7 +104,7 @@ public static class CobolSourceText
     }
 
     /// <summary>The content of the literal whose opening quotation symbol is at <paramref name="quotePos"/>, each doubled
-    /// quotation symbol read as the one character it represents (§2023:8.3.3.2.3 3)); <paramref name="closing"/> is the index
+    /// quotation symbol read as the one character it represents (§2023:8.3.3.2.3 SR3); <paramref name="closing"/> is the index
     /// of its closing delimiter, or <c>text.Length</c> when the text ends inside the literal.</summary>
     public static string LiteralContent(ReadOnlySpan<char> text, int quotePos, out int closing)
     {
@@ -131,7 +131,7 @@ public static class CobolSourceText
     }
 }
 
-/// <summary>A literal's opening delimiter (§2023:8.3.5 5)): its prefix letter, upper-cased (<c>B</c>, <c>N</c> or <c>X</c>;
+/// <summary>A literal's opening delimiter (§2023:8.3.5 SR5): its prefix letter, upper-cased (<c>B</c>, <c>N</c> or <c>X</c>;
 /// NUL for a bare quotation symbol), and the length of its prefix — 0, 1, or 2 for <c>BX</c> and <c>NX</c>. The
 /// quotation symbol stands at the delimiter's start plus <see cref="PrefixLength"/>.</summary>
 public readonly record struct OpeningDelimiter(char Prefix, int PrefixLength)

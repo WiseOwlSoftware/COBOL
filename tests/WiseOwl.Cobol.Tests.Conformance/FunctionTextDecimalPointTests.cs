@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// ⛔ THE CHARACTER IMAGE OF A NUMERIC FUNCTION'S RETURNED VALUE IS THE LITERAL FORM IN THE PROGRAM'S DECIMAL
 /// SEPARATOR (kb/Work PB2507). §2023:14.9.11.4 GR1 leaves the device conversion to the implementor (CONFORMANCE.md
-/// DOC-A.1-92 fixes the form: the literal form of the value, exactly the result's scale), and §2023:12.3.7.4 GR14 a)
+/// DOC-A.1-92 fixes the form: the literal form of the value, exactly the result's scale), and §2023:12.3.7.4 GR14a
 /// makes the comma "the character written in numeric literals to represent the decimal separator" under
 /// DECIMAL-POINT IS COMMA, so the image carries the comma — which is GnuCOBOL 3.2's separator for these values too
 /// (the precedence order of CLAUDE.md rule 1: the standard leaves the choice, GnuCOBOL decides).

@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Binding.Passes;
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
-/// The type forest of ONE bound unit (ISO §2023:8.4.6.2.1 3): the roots of its WORKING-STORAGE, LOCAL-STORAGE and the rest of the
+/// The type forest of ONE bound unit (ISO §2023:8.4.6.2.1 GR3: the roots of its WORKING-STORAGE, LOCAL-STORAGE and the rest of the
 /// forest, the element's own index declarations and type declarations in source order, and the inheritance tier of each GLOBAL item a
 /// container offered. It holds no name table: every name of the element (its data-names, condition-names, index-names, type-names,
 /// CAPACITY registers and screen-names) is keyed by <see cref="SymbolTable"/>, the one store of names (docs/rearchitecture/DESIGN-listing.md
@@ -67,7 +67,7 @@ public sealed class ForestSlice
 
     /// <summary>How many containment levels out <paramref name="item"/> is declared: 0 for an item this source element
     /// declares (or any item of a unit that inherits nothing), n for a GLOBAL item of its n-th container. ⛔ THE NESTING
-    /// DISTANCE OF EVERY INHERITED GLOBAL DECLARATION (kb/Work PB1047 / PB1243) — the tier ISO §2023:8.4.6.2.1 3) selects on. Keyed
+    /// DISTANCE OF EVERY INHERITED GLOBAL DECLARATION (kb/Work PB1047 / PB1243) — the tier ISO §2023:8.4.6.2.1 GR3 selects on. Keyed
     /// by identity, because the SAME container item is inherited into every contained program at a different distance.</summary>
     public int DeclaringDepth(DataItem item) =>
         _inheritedGlobalDepth.Count != 0 && _inheritedGlobalDepth.TryGetValue(item, out int depth) ? depth : 0;

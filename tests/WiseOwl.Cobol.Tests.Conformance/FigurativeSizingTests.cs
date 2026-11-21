@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// NOTE 1 names comparison as an association ("moved to it, COMPARED WITH IT, or paired with it in a binary
 /// operation"). §2023:8.4.3.3.4 GR5 makes a reference-modified operand "a unique data item" whose positions are the
 /// SLICE's, so <c>X(1:1) = LOW-VALUE</c> over a <c>PIC X(2)</c> item associates the figurative with ONE position.
-/// The compiler sized it from the BASE item's PICTURE instead, and §2023:8.8.4.2.7 rule 2's space extension then made
+/// The compiler sized it from the BASE item's PICTURE instead, and §2023:8.8.4.2.7 GR2's space extension then made
 /// the answer FALSE — silently, and for every figurative except SPACE, whose value IS the pad.</para>
 ///
 /// <para>⛔ THIS CLASS HOLDS THE ARMS A SINGLE GOLDEN CANNOT ([[two_arm_dispatch]]): the figurative on the LEFT as
@@ -60,7 +60,7 @@ public sealed class FigurativeSizingTests
         AssertAnswers(edition, "01 X PIC X(2) VALUE LOW-VALUES.", Test("LOW-VALUE = X(1:1)"), "Y");
 
     /// <summary>ORDERING, not only equality: two equal-length equal operands are neither less nor greater
-    /// (§2023:8.8.4.2.7 rule 1), so a base-width figurative — which made the slice look SHORTER and therefore
+    /// (§2023:8.8.4.2.7 GR1), so a base-width figurative — which made the slice look SHORTER and therefore
     /// space-extended — inverted the answer of every inequality as well.</summary>
     [Theory]
     [InlineData(85)]
@@ -83,7 +83,7 @@ public sealed class FigurativeSizingTests
             "01 X PIC X(4) VALUE LOW-VALUES.\n01 I PIC 9 VALUE 2.\n01 L PIC 9 VALUE 2.",
             Test("X(I:L) = LOW-VALUES"), "Y");
 
-    /// <summary>§2023:8.4.3.3.4 GR5 c) "If length is not specified, the unique data item extends from and includes the
+    /// <summary>§2023:8.4.3.3.4 GR5c "If length is not specified, the unique data item extends from and includes the
     /// position identified by leftmost-position up to and including the rightmost position" — two positions here,
     /// not the item's four.</summary>
     [Theory]
@@ -105,8 +105,8 @@ public sealed class FigurativeSizingTests
         AssertAnswers(edition, "01 A PIC X(4) VALUE \"abab\".", Test("A(1:3) = ALL \"ab\""), "Y");
 
     /// <summary>⛔ THE LENGTH-UNSPECIFIED CASE. With figuratives on BOTH sides there is no associated data item,
-    /// so GR2 does not apply and §2023:8.3.3.6.4 GR3 c) gives each operand "the length of literal-1": "ab" and "aba".
-    /// §2023:8.8.4.2.7 rule 2 then space-extends the shorter to "ab ", which differs from "aba" at position 3.
+    /// so GR2 does not apply and §2023:8.3.3.6.4 GR3c gives each operand "the length of literal-1": "ab" and "aba".
+    /// §2023:8.8.4.2.7 GR2 then space-extends the shorter to "ab ", which differs from "aba" at position 3.
     /// Sizing BOTH operands to one of them — the shape the old anchor-width code produced — answered TRUE.</summary>
     [Theory]
     [InlineData(85)]
@@ -116,7 +116,7 @@ public sealed class FigurativeSizingTests
     public void TwoAllLiterals_KeepTheirOwnLengths(int edition) =>
         AssertAnswers(edition, "01 FILLER PIC X.", Test("ALL \"ab\" = ALL \"aba\""), "N");
 
-    /// <summary>§2023:8.3.3.6.4 GR3 b) "When a figurative constant is other than ALL literal-1, the length of the
+    /// <summary>§2023:8.3.3.6.4 GR3b "When a figurative constant is other than ALL literal-1, the length of the
     /// string is one character" — the same length-unspecified rule for a bare figurative pair.</summary>
     [Theory]
     [InlineData(85)]
@@ -126,7 +126,7 @@ public sealed class FigurativeSizingTests
     public void TwoBareFiguratives_AreOneCharacterEach(int edition) =>
         AssertAnswers(edition, "01 FILLER PIC X.", Test("SPACE = ALL \"  \""), "Y");
 
-    /// <summary>⛔ THE NO-REGRESSION GUARD, and the reason the defect survived: §2023:8.8.4.2.7 rule 2 extends the
+    /// <summary>⛔ THE NO-REGRESSION GUARD, and the reason the defect survived: §2023:8.8.4.2.7 GR2 extends the
     /// shorter operand "by sufficient alphanumeric SPACES", so a SPACE-valued test came out right under the wrong
     /// sizing and every corpus test written with SPACES was silent about the bug. It must stay right.</summary>
     [Theory]

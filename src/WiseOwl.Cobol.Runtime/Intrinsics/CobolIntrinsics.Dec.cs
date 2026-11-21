@@ -220,7 +220,7 @@ public static partial class CobolIntrinsics
     {
         if (v.Sig < 0)
             return CobolDec.From(Exceptions.ExceptionState.ArgumentError(
-                "SQRT argument-1 shall be zero or positive (ISO §2023:15.84.3 rule 2)"), 0);
+                "SQRT argument-1 shall be zero or positive (ISO §2023:15.84.3 AR2)"), 0);
         return ar.Sqrt(v);
     }
 
@@ -236,7 +236,7 @@ public static partial class CobolIntrinsics
     {
         if (n < 0)
             return CobolDec.From(Exceptions.ExceptionState.ArgumentError(
-                $"FACTORIAL argument {n} violates §2023:15.36.3 rule 1 (shall be an integer greater than or equal to zero)"), 0);
+                $"FACTORIAL argument {n} violates §2023:15.36.3 AR1 (shall be an integer greater than or equal to zero)"), 0);
         CobolDec r = CobolDec.From(1, 0);
         for (long i = 2; i <= n; i++) r = ar.Mul(r, CobolDec.From(i, 0));
         return r;

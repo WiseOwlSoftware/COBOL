@@ -58,7 +58,7 @@ public sealed partial class SymbolTable
     /// contained program "may reference that name without describing it again"; kb/Work PB1009). A constant occupies no
     /// storage, so it needs no bridge: the container's folded definition is read here, after the unit's own constants (a
     /// local constant entry of the spelling hides the inherited one, §2023:8.4.6), and it leaves this table when a name
-    /// declared NEARER hides it (<see cref="DropShadowedConstants"/>; §2023:8.4.6.2.1 3) a)). Written before the unit's first
+    /// declared NEARER hides it (<see cref="DropShadowedConstants"/>; §2023:8.4.6.2.1 GR3a). Written before the unit's first
     /// data phase (<see cref="InheritConstants"/>).</summary>
     private readonly Dictionary<CobolName, InheritedConstant> _inheritedConstants = [];
 
@@ -181,7 +181,7 @@ public sealed partial class SymbolTable
 
     /// <summary>The containment distance of the container whose GLOBAL constant <paramref name="name"/> names here (1 = the
     /// direct container), 0 when the name is not an inherited constant: this element's own declaration hides it (ISO
-    /// §2023:8.4.6.2.1 3); kb/Work PB4432: the depth <see cref="Declarations.NonConditionDeclarationsOf"/> ranks it at).</summary>
+    /// §2023:8.4.6.2.1 GR3; kb/Work PB4432: the depth <see cref="Declarations.NonConditionDeclarationsOf"/> ranks it at).</summary>
     internal int InheritedConstantDepthOf(string name) =>
         Key(name) is var key && !_ownConstants.Declared.ContainsKey(key) && _inheritedConstants.TryGetValue(key, out var inherited)
             ? inherited.Depth : 0;
@@ -254,7 +254,7 @@ public sealed partial class SymbolTable
     }
 
     /// <summary>Drops each inherited constant that a declaration in a source element NEARER than its container hides
-    /// (<paramref name="declaredNearerThan"/>: the name and the container's distance; §2023:8.4.6.2.1 3) a); kb/Work PB1009,
+    /// (<paramref name="declaredNearerThan"/>: the name and the container's distance; §2023:8.4.6.2.1 GR3a; kb/Work PB1009,
     /// PB1047), so it leaves the table before any procedure reference can substitute it. <see cref="InheritStep"/> only.</summary>
     internal void DropShadowedConstants(Func<string, int, bool> declaredNearerThan)
     {

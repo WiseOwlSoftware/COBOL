@@ -107,7 +107,7 @@ internal readonly record struct ExternalizedSubject(
 /// The activation the emitter writes names the callee THIS way, because that is the key the run-unit registry
 /// holds it under — the two must not drift (kb/Work PB303).</param>
 /// <param name="DefinitionCompiledHere">True when the signature is a DEFINITION this compilation group compiles
-/// (§2023:12.3.8.4 GR11 a), or §2023:8.4.6.6's containing definition), so a reference to it activates the function whose formals
+/// (§2023:12.3.8.4 GR11a, or §2023:8.4.6.6's containing definition), so a reference to it activates the function whose formals
 /// were checked at bind time (<c>RepositoryOrigin.IsDefinitionCompiledHere</c>; DESIGN-external-repository §4.2).</param>
 public sealed record UserFunctionSignature(
     string Name, string Externalized, DataItem? Returning, IReadOnlyList<LinkageFormal> Formals, bool DefinitionCompiledHere)
@@ -239,7 +239,7 @@ internal sealed class LinkageBinder(DataBinder data)
     /// <c>FieldEmitter</c> must not declare it (<see cref="SuppressedRootFields"/>).</summary>
     internal void SuppressRootField(string clrName) => _suppressedRootFields.Add(clrName);
 
-    /// <summary>Level-1 roots carrying an ADMITTED GLOBAL clause (ISO §2023:13.18.27.3 SR1 b) — file, working-storage,
+    /// <summary>Level-1 roots carrying an ADMITTED GLOBAL clause (ISO §2023:13.18.27.3 SR1b — file, working-storage,
     /// local-storage or linkage section), plus the records of a GLOBAL FD (§2023:13.18.27.4 GR1) — visible to every
     /// directly/indirectly contained program (GR1–2); the emitter injects them into contained units' binders and
     /// bridges their fields into the nested classes.</summary>
@@ -252,7 +252,7 @@ internal sealed class LinkageBinder(DataBinder data)
     /// container's class name for a static one — kb/Work PB1133) (ISO §2023:13.18.27.4 GR2: "A statement in a program
     /// contained directly or indirectly within a program that describes a global name may reference that name
     /// without describing it again" — the storage stays the container's). A reference renders the root's STORAGE member and, for the residences that
-    /// have them, the members around it, so every residence §2023:13.18.27.3 SR1 b) admits (file, working-storage,
+    /// have them, the members around it, so every residence §2023:13.18.27.3 SR1b admits (file, working-storage,
     /// local-storage, linkage) is answered here:
     /// <list type="bullet">
     /// <item>a Tier-B class (REDEFINES / EXTERNAL / BASED / ADDRESS-OF-taken) → its string backing, plus the
@@ -440,7 +440,7 @@ internal sealed class LinkageBinder(DataBinder data)
             }
 
             // ⛔ THE CARRIER NAME IS Uid-KEYED, NOT POSITIONAL (kb/Work PB1009). A carrier-resident formal's
-            // "field" IS `carrier.Value`, and a GLOBAL formal (§2023:13.18.27.3 SR1 b) admits GLOBAL in the linkage
+            // "field" IS `carrier.Value`, and a GLOBAL formal (§2023:13.18.27.3 SR1b admits GLOBAL in the linkage
             // section) is referenced from every contained program by that same text through a ref-bridge — so
             // a positional `__lnkp0` collided with the contained program's OWN first formal: its references to
             // either item read one carrier, and the bridge declared a second member of the same name. The
@@ -538,7 +538,7 @@ internal sealed class LinkageBinder(DataBinder data)
                           + "as the RETURNING item (ISO §2023:13.18.2.3 SR3)");
                 else
                     continue;   // conformant — keep the flag. A RETURNING item (SR3b) is seeded with the
-                                // ACTIVATOR's receiver length at activation entry (§2023:13.18.2.4 GR1 b); ProgramEmitter.EmitCallMethod).
+                                // ACTIVATOR's receiver length at activation entry (§2023:13.18.2.4 GR1b; ProgramEmitter.EmitCallMethod).
             }
             root.IsAnyLength = false;
         }
@@ -598,7 +598,7 @@ internal sealed class LinkageBinder(DataBinder data)
     /// <summary>
     /// Collect the roots whose EXTERNAL / GLOBAL clause the clause-placement screen ADMITTED
     /// (<see cref="DataItem.HasExternalClause"/> / <see cref="DataItem.HasGlobalClause"/> — ISO §2023:13.18.22.3 SR1,
-    /// §2023:13.18.27.3 SR1 b), §2023:13.16.3 SR5–SR7) and re-base each EXTERNAL record onto a run-unit <c>ExternalStore</c>
+    /// §2023:13.18.27.3 SR1b, §2023:13.16.3 SR5–SR7) and re-base each EXTERNAL record onto a run-unit <c>ExternalStore</c>
     /// cell. Runs at the END of <c>Bind</c>
     /// (after REDEFINES classification) so an EXTERNAL record that is also a redefines anchor folds its whole
     /// class onto the shared backing. The mechanism is the existing Tier-B string-canonical machinery: the

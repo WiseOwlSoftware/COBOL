@@ -1539,7 +1539,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // medium placement ever changes.
             // ⚙ The TENTH, ELEVENTH and TWELFTH, added deliberately (owner decisions Q25–Q27, 2026-09-09, after a
             // plain-language brief; DEVLOG 1577). GR-14.9.27.4-12: OPEN's rewindable-medium rule, arm
-            // unpopulatable-antecedent over the SAME closed medium set as §2023:14.9.6.4 GR3 e) 1. (§2023:14.9.27.4 GR11 and GR12
+            // unpopulatable-antecedent over the SAME closed medium set as §2023:14.9.6.4 GR3e.1 (§2023:14.9.27.4 GR11 and GR12
             // partition the media; every connector answers non-unit, forced by §2023:9.1.13.2 item 6; kb/Work PB317).
             // GR-14.9.20.4-9 and GR-14.9.28.4-2: the MECHANICAL undefined-A.2 arm — Annex A.2 items 20
             // (INITIALIZE onto overlapping storage) and 37 (overlapping PERFORM ranges) resolve to exactly these
@@ -1579,7 +1579,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // indistinguishable-consequent (each names the rule whose consequent it cannot be told from):
             "GR-14.9.35.4-8", "GR-8.5.1.11.3-3", "DOC-A.1-220",
             // definitional, R43's arm EXTENDED by this signing to a user-program constraint no rule gives a
-            // consequence (§2023:4.4 2) leaves a violation undefined) and to a term definition no other rule reads:
+            // consequence (§2023:4.4 GR2 leaves a violation undefined) and to a term definition no other rule reads:
             "GR-13.18.16.4-6", "GR-14.9.24.4-10", "GR-14.9.24.4-11", "GR-12.3.5.4-2", "GR-12.3.5.4-3",
             // (The seven listing-only rows under §2023:7.3.18.3 GR1's "Otherwise", GR-7.2.3.4-4 and -5, GR-7.3.18.3-2 to -5
             // and GR-7.3.19.4-2, LEFT this list with kb/Work PB5925 step 4a: a listing is produced on request, so their

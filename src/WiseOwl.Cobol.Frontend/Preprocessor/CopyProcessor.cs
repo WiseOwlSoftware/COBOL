@@ -80,7 +80,7 @@ public sealed class CopyProcessor(
 
     /// <summary>Record the reference format <paramref name="file"/> was read in — the normalizer's
     /// <see cref="ReferenceFormatMap"/> for the compilation group — so library text copied from it starts in the format
-    /// in effect for its COPY statement (§2023:7.3.24.3 3)). A text with no registered map (a caller that normalized
+    /// in effect for its COPY statement (§2023:7.3.24.3 GR3). A text with no registered map (a caller that normalized
     /// without one) has its library text's initial format detected, as the compilation group's is.</summary>
     public void RegisterReferenceFormat(string file, ReferenceFormatMap formats) => _referenceFormats[file] = formats;
 
@@ -374,7 +374,7 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>COPY/REPLACE replacement scope: a whole text-word sequence, or the LEADING/TRAILING characters of
-    /// a single text-word (ISO §2023:7.2.3.4 GR 9 b / §2023:7.2.4.4 GR 8 b).</summary>
+    /// a single text-word (ISO §2023:7.2.3.4 GR 9 b / §2023:7.2.4.4 GR8b.</summary>
     private enum ReplaceKind { Whole, Leading, Trailing }
 
     /// <summary>One REPLACING-phrase operand pair of a COPY (§2023:7.2.3) or REPLACE (§2023:7.2.4) statement: pseudo-text-1 or
@@ -478,7 +478,7 @@ public sealed class CopyProcessor(
     /// <summary>What <paramref name="produced"/> — text a replacing action places into the resultant text — holds that
     /// <paramref name="rule"/> forbids: a COPY statement, a REPLACE statement (REPLACE's rule only), a SOURCE FORMAT
     /// directive or a comment; null when nothing. Comments and blank lines were removed from pseudo-text before text
-    /// manipulation began — §2023:6.5 2) "If the line is a comment line or a blank line, that line is logically discarded"
+    /// manipulation began — §2023:6.5 GR2 "If the line is a comment line or a blank line, that line is logically discarded"
     /// — so a comment can arrive only as the <c>*&gt;</c> a partial-word result spells (<c>LEADING ==Q== BY ==*==</c>
     /// on <c>Q&gt;1</c>), which is asked of the TEXT: the text-word scanner skips a comment, so no word ever starts with
     /// its indicator. A blank line cannot arrive at all: an empty line inside a written pseudo-text-2 (NIST SM208A) is
@@ -565,7 +565,7 @@ public sealed class CopyProcessor(
         string text = mapped.Text;
         // The words compared, and — apart — the compiler directive lines: each is "a single space" for matching
         // (c) 5.), so a match runs across it, but "A compiler directive line is not affected by the replacing action"
-        // (§2023:7.3.4 1)), so one lying inside a matched span is written back, on its own line, after the replacement.
+        // (§2023:7.3.4 GR1), so one lying inside a matched span is written back, on its own line, after the replacement.
         var words = new List<TextWord>();
         var directives = new List<TextWord>();
         foreach (var t in TextWordScanner.Scan(text, edition.HasCompilerDirectives))
@@ -761,8 +761,8 @@ public sealed class CopyProcessor(
         }
 
         // Library text goes through the same §2023:6.5 logical conversion as the source text, starting in the format in
-        // effect for this COPY statement (§2023:7.3.24.3 3)) — its own >>SOURCE FORMAT directives switch it from there, and
-        // the COPY's text is unaffected after it (5), the revert). Then COPY … REPLACING (§2023:7.2.3.4 9)).
+        // effect for this COPY statement (§2023:7.3.24.3 GR3) — its own >>SOURCE FORMAT directives switch it from there, and
+        // the COPY's text is unaffected after it (5), the revert). Then COPY … REPLACING (§2023:7.2.3.4 GR9).
         var copyLine = copyOrigin;   // the file and physical line the COPY word stands on
         bool? copyFixed = _referenceFormats.TryGetValue(copyLine.File, out var copyFormats) ? copyFormats.LibraryTextDefaultAt(copyLine.Line) : null;
         // The library text's bytes become characters in SourceTextDecoder (A.1 items 25 and 26, kb/Work PB1397): a marked
@@ -1206,7 +1206,7 @@ public sealed class CopyProcessor(
 
     /// <summary>Normalize library text to logical free form (kb/Work PB82 / PB1067) through the ONE §2023:6.5 walker the
     /// source text uses — <see cref="ReferenceFormatProcessor.NormalizeToFreeFormMapped(string, ReferenceFormatDiagnostics?, string, bool?, out ReferenceFormatMap, bool, IReadOnlyList{DirectiveStackOp}?, bool?, CommentEntryPins?, int)"/>
-    /// — starting in <paramref name="copyFixed"/>, the format in effect for the COPY statement (§2023:7.3.24.3 3); null
+    /// — starting in <paramref name="copyFixed"/>, the format in effect for the COPY statement (§2023:7.3.24.3 GR3; null
     /// when that is unknown, and then detected as the compilation group's is). The text's own &gt;&gt;SOURCE FORMAT
     /// directives switch it (1), 5)); the resulting map is registered so a COPY inside this library text starts its
     /// library text in the format in effect THERE. Per line: the copybook's path and physical line.</summary>
@@ -1260,7 +1260,7 @@ public sealed class CopyProcessor(
     /// the REPLACE general formats of §2023:7.2.4.2 both end with their period), and a period inside pseudo-text is a text-word of the operand and ends nothing (kb/Work PB1354), so
     /// the walk is the statements' own: the same <see cref="TextWordScanner"/> words, a statement opened by the keyword
     /// <see cref="FindStatementKeyword"/> finds, the pseudo-text delimiters toggling. The merged driver asks it of the
-    /// text before each compiler directive line (§2023:7.3.3 SR8 b): "within a source text manipulation statement",
+    /// text before each compiler directive line (§2023:7.3.3 SR8b: "within a source text manipulation statement",
     /// kb/Work PB1384), so the question has ONE answer for COPY and REPLACE alike. <c>InPseudoText</c> says the text ends
     /// between a pair of pseudo-text delimiters — the place §2023:7.2.3.3 SR10 / §2023:7.2.4.3 SR10 bar a directive line from
     /// (kb/Work PB1353).</summary>
@@ -1284,19 +1284,19 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>Whether the blank line at <paramref name="at"/> is where logical conversion DISCARDED a
-    /// <c>&gt;&gt;SOURCE FORMAT</c> line (§2023:6.5 1): "the SOURCE FORMAT directive line is logically discarded"). That
+    /// <c>&gt;&gt;SOURCE FORMAT</c> line (§2023:6.5 GR1: "the SOURCE FORMAT directive line is logically discarded"). That
     /// stage runs before this one and leaves only the blank, so the merged driver cannot see the directive in the text
     /// it walks; it asks the registered map of the text the line was read from (kb/Work PB1353 — the directive inside a
-    /// COPY or REPLACE statement, §2023:7.3.3 SR8 b) and inside pseudo-text, §2023:7.2.3.3 SR10 / §2023:7.2.4.3 SR10).</summary>
+    /// COPY or REPLACE statement, §2023:7.3.3 SR8b and inside pseudo-text, §2023:7.2.3.3 SR10 / §2023:7.2.4.3 SR10).</summary>
     internal bool IsDiscardedFormatDirective(SourceOrigin at)
         => _referenceFormats.TryGetValue(at.File, out var map) && map.HoldsDirectiveAt(at.Line);
 
     /// <summary>A cursor over the text-words of ONE COPY or REPLACE statement — the parser of their general formats
     /// (§2023:7.2.3.2 / §2023:7.2.4.2) reads through it. Separator commas and semicolons "may be used anywhere the separator
-    /// space is used" (§2023:8.3.5 2)), so <see cref="TryPeek"/> steps over them. Only a statement's FIRST syntax error is
+    /// space is used" (§2023:8.3.5 SR2), so <see cref="TryPeek"/> steps over them. Only a statement's FIRST syntax error is
     /// reported; recovery (<see cref="ExpectSeparatorPeriod"/>) skips to the statement's separator period.
     /// <para>⛔ A LITERAL ITS LINE ENDS INSIDE IS NAMED WHERE IT IS CONSUMED (kb/Work PB4176). The text-word scanner makes
-    /// an open literal run to the end of its line, as the lexer does (ISO §2023:6.3.5 1) and §2023:6.4.2 let a literal stay open at
+    /// an open literal run to the end of its line, as the lexer does (ISO §2023:6.3.5 SR1 and §2023:6.4.2 let a literal stay open at
     /// a line's end only where a continuation line continues it, and the reference-format stage has joined every one that
     /// was), so a COPY or REPLACE statement holding one has lost the rest of its line: <c>COPY "ABC</c> drew COBOL2450 "not
     /// an alphanumeric literal" and then COBOL2449 at the next line's first word. Every text-word the statement consumes
@@ -1568,7 +1568,7 @@ public sealed class CopyProcessor(
                 $"the subscript '{words[0].Source[start..end].TrimSpaces()}' is an arithmetic expression");
         }
 
-        /// <summary>COBOL2573 — a pseudo-text delimiter not separated as §2023:8.3.5 6) requires.</summary>
+        /// <summary>COBOL2573 — a pseudo-text delimiter not separated as §2023:8.3.5 SR6 requires.</summary>
         public void Delimiter(int at, string what)
             => diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.PseudoTextDelimiterPlacement.Code,
                 $"{Rules.Statement} statement: {what} — " + Edition.Cite(
@@ -1577,7 +1577,7 @@ public sealed class CopyProcessor(
                     PseudoTextDelimiterRule2002), mapped.LocateAt(at), default);
 
         private const string PseudoTextDelimiterRule2002 =
-            "§2023:8.3.5 6): \"An opening pseudo-text delimiter shall be immediately preceded by a space; a closing pseudo-text "
+            "§2023:8.3.5 SR6: \"An opening pseudo-text delimiter shall be immediately preceded by a space; a closing pseudo-text "
             + "delimiter shall be immediately followed by one of the separators space, comma, semicolon, or period\"";
     }
 
@@ -1700,14 +1700,14 @@ public sealed class CopyProcessor(
     {
         public string Text => Written.Text;
 
-        /// <summary>The text-words compared (§2023:7.2.3.4 9) c) / §2023:7.2.4.4 8) c): no separator comma or semicolon and no
+        /// <summary>The text-words compared (§2023:7.2.3.4 GR9c / §2023:7.2.4.4 GR8c: no separator comma or semicolon and no
         /// compiler directive line — each is a single space).</summary>
         public List<TextWord> MatchWords => Elements.FindAll(e => !e.IsSpaceForMatching);
     }
 
     /// <summary>Read one REPLACING operand (see <see cref="Operand"/>): the content of a <c>==pseudo-text==</c>
     /// (bounded by the pseudo-text-delimiter TEXT-WORDS, so an <c>==</c> inside a literal does not end it; each
-    /// delimiter's separation checked against §2023:8.3.5 6)), or — the COBOL-85 / 2002 / 2014 COPY forms (removed by ISO
+    /// delimiter's separation checked against §2023:8.3.5 SR6), or — the COBOL-85 / 2002 / 2014 COPY forms (removed by ISO
     /// 2023, Annex E.2 item 1) — a literal, or an identifier / word: a word with its OF/IN qualifiers, or a
     /// function-identifier's FUNCTION function-name, and every balanced parenthesized group after it (subscripts,
     /// arguments, a reference modifier; kb/Work PB5469). Null (and a syntax error) when no operand is there.</summary>

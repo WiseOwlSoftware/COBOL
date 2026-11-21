@@ -29,7 +29,7 @@ namespace WiseOwl.Cobol.CodeGen.Emit;
 /// neither special rule, so neither exemption.</para>
 /// <para>Rule 1 (a boolean sending item) shares rule 2's two-entry list; when it is wired it reads
 /// <see cref="FixedPointChecked"/>'s sibling off this same value rather than growing a third flag.</para>
-/// <para><b>And one rule that is not §2023:14.6.13.2's at all.</b> §2023:14.9.25.4 GR6 d) 1's closing sentence raises
+/// <para><b>And one rule that is not §2023:14.6.13.2's at all.</b> §2023:14.9.25.4 GR6d 1's closing sentence raises
 /// EC-DATA-INCOMPATIBLE for an ALPHANUMERIC sending operand whose content is not numeric — a rule §2023:14.6.13.2
 /// cannot state, because such content is perfectly valid for the SENDER's own data description; it is the MOVE
 /// into a numeric receiver that asks a numeric question of it. That makes it the one rule here whose list is an
@@ -57,16 +57,16 @@ internal enum SendingRef
     SameUsageMove,
 
     /// <summary>An operand processed by a VALIDATE statement (§2023:14.9.50). Exempt from rules 1, 2 AND 3 — the last
-    /// dash of each list; §2023:14.6.13.2 rule 1 instead sets the condition "when invalid data is detected during item
+    /// dash of each list; §2023:14.6.13.2 GR1 instead sets the condition "when invalid data is detected during item
     /// identification", which is VALIDATE's own stage discipline (§2023:14.9.50.4 GR6).</summary>
     Validate,
 
     /// <summary>A sending operand read under the MOVE rules with a NUMERIC or NUMERIC-EDITED receiving item and
-    /// §2023:14.9.25.4 GR6 c) not applying — the scope of GR6 d), and therefore the ONE context in which GR6 d) 1's
+    /// §2023:14.9.25.4 GR6c not applying — the scope of GR6 d), and therefore the ONE context in which GR6 d) 1's
     /// closing sentence can raise EC-DATA-INCOMPATIBLE for an alphanumeric or national sender. Exempt from
     /// nothing: §2023:14.6.13.2's five conditions all apply to a MOVE sender exactly as to any other reference. Set by
     /// MOVE itself and by every statement whose own rules transfer "according to the rules for the MOVE
-    /// statement" with such a receiver (§2023:14.9.48.4 GR11 c) — UNSTRING INTO).</summary>
+    /// statement" with such a receiver (§2023:14.9.48.4 GR11c — UNSTRING INTO).</summary>
     MoveToNumeric,
 }
 

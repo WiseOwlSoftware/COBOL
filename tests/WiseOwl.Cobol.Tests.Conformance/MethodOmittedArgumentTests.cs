@@ -89,7 +89,7 @@ public sealed class MethodOmittedArgumentTests
             {{string.Format(TakeClass, "CMOA1")}}
             """, 2023));
 
-    /// <summary>§2023:8.4.3.4.4 GR1 c) through a UNIVERSAL receiver: the forwarded formal's presence rides the
+    /// <summary>§2023:8.4.3.4.4 GR1c through a UNIVERSAL receiver: the forwarded formal's presence rides the
     /// <c>CobolInvokeArg</c> box (§2023:14.9.23.4 GR7c's runtime path), so omission stays transitive.</summary>
     [Fact]
     public void UniversalForward_OmittedFormal_StaysOmitted()
@@ -154,7 +154,7 @@ public sealed class MethodOmittedArgumentTests
             END CLASS CMOA3.
             """), "is not OPTIONAL");
 
-    /// <summary>§2023:9.3.8.2.3 rule 8: "The presence or absence of the OPTIONAL phrase is the same for corresponding
+    /// <summary>§2023:9.3.8.2.3 GR8: "The presence or absence of the OPTIONAL phrase is the same for corresponding
     /// parameters" — an IMPLEMENTS whose method drops the prototype's OPTIONAL does not conform (0841).</summary>
     [Fact]
     public void Implements_OptionalPresenceDiffers_0841()
@@ -226,11 +226,11 @@ public sealed class MethodOmittedArgumentTests
             END METHOD OV.
             END OBJECT.
             END CLASS CMOA5.
-            """), "§2023:9.3.8.2.3 rule 8");
+            """), "§2023:9.3.8.2.3 GR8");
 
     /// <summary>§2023:9.3.6 match rule 3 b) through a universal receiver: a spelled OMITTED needs an OPTIONAL formal, so a
     /// method whose formal is not OPTIONAL does not MATCH the invocation and is never bound; with no matching method
-    /// in the hierarchy, §2023:9.3.6 6) sets EC-OO-METHOD (§2023:14.9.23.4 GR7 b); kb/Work PB1500) — the run unit stops before
+    /// in the hierarchy, §2023:9.3.6 6) sets EC-OO-METHOD (§2023:14.9.23.4 GR7b; kb/Work PB1500) — the run unit stops before
     /// the method runs.</summary>
     [Fact]
     public void Universal_OmittedIntoNonOptionalFormal_StopsAtRuntime()

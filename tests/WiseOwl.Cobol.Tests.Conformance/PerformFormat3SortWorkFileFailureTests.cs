@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// reason and the variable that sets it (<c>WISEOWL_COBOL_SORT_TMPDIR</c>), "no record is dropped silently". This class pins
 /// that the Format-3 PERFORM's frame does not turn the stop into anything else: no later WHEN phrase, no WHEN OTHER,
 /// no FINALLY and not the statements after END-PERFORM run, the exit status is not zero, and the GIVING file was
-/// never created: the run file fails while the input procedure releases records, and §2023:14.9.40.4 GR15 a) initiates the
+/// never created: the run file fails while the input procedure releases records, and §2023:14.9.40.4 GR15a initiates the
 /// GIVING file only after the execution of any input procedure, so a stop there leaves no GIVING file behind, empty or
 /// half written. The same program with a usable work directory sorts, which is what makes the stop attributable to
 /// the work file and not to the program.</para>
@@ -138,7 +138,7 @@ public sealed class PerformFormat3SortWorkFileFailureTests
             Assert.Equal("IN-WHEN 35", stdout);   // everything before the SORT ran; nothing after it did
             Assert.Contains(DirectoryVariable, detail, StringComparison.Ordinal);
             Assert.Contains("no-such-directory", detail, StringComparison.Ordinal);
-            // §2023:14.9.40.4 GR15 a): the GIVING file is initiated only after the input procedure, so it was never opened
+            // §2023:14.9.40.4 GR15a: the GIVING file is initiated only after the input procedure, so it was never opened
             Assert.False(File.Exists(GivingPath(dir)), "the stopped SORT left its GIVING file behind");
         }
         finally { ScratchDirectory.Remove(dir); }

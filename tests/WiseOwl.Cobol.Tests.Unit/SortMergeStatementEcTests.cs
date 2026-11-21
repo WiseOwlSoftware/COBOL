@@ -78,7 +78,7 @@ public sealed class SortMergeStatementEcTests
         }
     }
 
-    /// <summary>§2023:13.18.43.4 GR14 b): a size outside integer-2..integer-3 raises -RELEASE and "the execution of the
+    /// <summary>§2023:13.18.43.4 GR14b: a size outside integer-2..integer-3 raises -RELEASE and "the execution of the
     /// RELEASE statement is unsuccessful". With checking off the record releases at the DEPENDING ON size exactly
     /// as the lenient reference modification <c>(1:size)</c> sliced it before PB1036.</summary>
     [Fact]
@@ -137,7 +137,7 @@ public sealed class SortMergeStatementEcTests
         }
     }
 
-    /// <summary>§2023:14.9.40.4 GR12 b): the implicit USING release tests the size the record had when READ — larger
+    /// <summary>§2023:14.9.40.4 GR12b: the implicit USING release tests the size the record had when READ — larger
     /// than the largest record, or (variable-length SD) smaller than the smallest.</summary>
     [Fact]
     public void ImplicitRelease_TestsTheReadSize()
@@ -238,7 +238,7 @@ public sealed class SortMergeStatementEcTests
             Assert.True(gates.TryGetValue(name, out var flag) && flag is not null, $"{name} has no flagged fatal gate row");
     }
 
-    /// <summary>§2023:14.6.13.1.3 2) keys on the statement that EXECUTED: a condition a SORT/MERGE statement entry raises
+    /// <summary>§2023:14.6.13.1.3 GR2 keys on the statement that EXECUTED: a condition a SORT/MERGE statement entry raises
     /// carries <see cref="CobolFatalException.RaisedBySortMerge"/> — the mark the SORT/MERGE guard disposes of by
     /// the verb — and the same name raised by the RELEASE statement does not; only SORT and MERGE guards consult it.</summary>
     [Fact]

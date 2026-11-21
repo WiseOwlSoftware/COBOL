@@ -114,7 +114,7 @@ public sealed class MessagingProcessTests : IDisposable
     [Fact]
     public void ARequestAndItsReplyCrossTwoProcesses_AndTheServerNameMatchesWithoutRegardToCase()
     {
-        // §2023:14.9.38.4 GR4 (the SEND waits until the server run unit receives the message), GR6 (the tag), §2023:14.9.31.4 GR1 a) (the server's RECEIVE of NULL names its requestor),
+        // §2023:14.9.38.4 GR4 (the SEND waits until the server run unit receives the message), GR6 (the tag), §2023:14.9.31.4 GR1a (the server's RECEIVE of NULL names its requestor),
         // GR3 (the length of the message), GR7 (the server answers the requestor it received) and §2023:14.9.31.4 GR1b (the requestor receives the answer by the server tag).
         // D-MCS-SERVER: a server name is compared with trailing spaces removed and without regard to case ("srv " serves SRV).
         Compile("PB4744S1", Server("PB4744S1", 20, ReplyAfter));
@@ -261,7 +261,7 @@ public sealed class MessagingProcessTests : IDisposable
     {
         // §2023:14.9.31.4 GR2: with the CONTINUE phrase the statement completes when the CONTINUE parameters are completed, "the content of identifier-1 will be all space characters
         // and the RECEIVE statement is assumed to be successful" (Q5: MESSAGE RECEIVED polls; a zero interval polls; a negative interval is zero and sets
-        // EC-CONTINUE-LESS-THAN-ZERO as §2023:14.9.9.4 GR1 b) does for CONTINUE).
+        // EC-CONTINUE-LESS-THAN-ZERO as §2023:14.9.9.4 GR1b does for CONTINUE).
         const string source = """
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4744P1.
@@ -758,7 +758,7 @@ public sealed class MessagingProcessTests : IDisposable
     [Fact]
     public void ASuccessfulReceiveWhoseNonfatalConditionADeclarativeHandled_DoesNotRunItsNotOnExceptionPhrase()
     {
-        // §2023:14.6.13.1.4 3): "If a conditional phrase with a NOT phrase is specified in the interrupted statement, the imperative-statement in that phrase is not executed"
+        // §2023:14.6.13.1.4 GR3: "If a conditional phrase with a NOT phrase is specified in the interrupted statement, the imperative-statement in that phrase is not executed"
         // after a USE declarative handled the nonfatal condition (here EC-CONTINUE-LESS-THAN-ZERO of §2023:14.9.31.4 GR2 on a negative interval); without the declarative the
         // condition interrupts nothing and the NOT phrase runs.
         const string source = """

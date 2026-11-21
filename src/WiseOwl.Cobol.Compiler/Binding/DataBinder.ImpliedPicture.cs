@@ -47,7 +47,7 @@ internal readonly record struct ImpliedPicture(LiteralClass Class, int Length)
 /// clause"). From that moment the item is INDISTINGUISHABLE from one whose entry wrote the clause, so
 /// §2023:13.18.60.4 GR1 group-usage inheritance, the §2023:13.18.60.3 SR3/SR5/SR12/SR20 screens, SIGN inheritance, REDEFINES
 /// classification, the VALUE initializer and the emitter all apply to it unchanged and UNTOUCHED — one screen, one
-/// diagnostic, no second copy of any rule. §2023:13.18.60.3 SR13 a) and SR20 are written for exactly this ("if the
+/// diagnostic, no second copy of any rule. §2023:13.18.60.3 SR13a and SR20 are written for exactly this ("if the
 /// explicit or <b>implicit</b> picture character-string contains the symbol 'N', a USAGE NATIONAL clause is
 /// implied"), so an implied <c>N(length)</c> acquires usage national by the standard's own words.</para>
 ///
@@ -128,7 +128,7 @@ public sealed partial class DataBinder
     internal static ImpliedPicture? Sr9ImpliedFor(string raw, Usage context)
     {
         // ── §2023:8.3.3.6.2 Format 6 (`ALL literal-1`) and Format 7 (`ALL symbolic-character-1`, which the VALUE
-        // reader has already re-quoted as a one-character ALL literal of its class). §2023:8.3.3.6.4 GR3 c) — "The
+        // reader has already re-quoted as a one-character ALL literal of its class). §2023:8.3.3.6.4 GR3c — "The
         // length of the string is the length of literal-1" — so the length is literal-1's and, by §2023:8.3.3.6.3 SR2
         // ("Literal-1 shall be an alphanumeric, boolean, or national literal"), so is the category.
         // ⛔ THIS IS THE ARM kb/Work PB831 MEASURED WRONG: GR3 c) is the rule for an item of unstated size; GR2,
@@ -144,7 +144,7 @@ public sealed partial class DataBinder
         if (CobolLiteral.IsStringLiteral(raw)) return LiteralImplied(raw);
 
         // ── §2023:8.3.3.6.2 Formats 1-5, the keyword figuratives. The optional ALL word is part of each of those
-        // formats (only Format 6 underlines ALL as required), so `ALL SPACES` is Format 2 and §2023:8.3.3.6.4 GR3 b)
+        // formats (only Format 6 underlines ALL as required), so `ALL SPACES` is Format 2 and §2023:8.3.3.6.4 GR3b
         // — "When a figurative constant is other than ALL literal-1, the length of the string is one character"
         // — gives it length ONE, exactly as the bare word. The parse-tree GetText concatenates the two words, so
         // the operand arrives spelled "ALLSPACES"; the classifier above accepts both spellings.

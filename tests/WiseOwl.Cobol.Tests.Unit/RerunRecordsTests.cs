@@ -125,7 +125,7 @@ public sealed class RerunRecordsTests
     }
 
     /// <summary>An OPEN of an open file is unsuccessful ('41') and leaves the file unaffected (§2023:14.9.27.4 GR25), so the
-    /// count of records processed since its one successful OPEN goes on (§1985:VII.2.12.4 GR2 d).</summary>
+    /// count of records processed since its one successful OPEN goes on (§1985:VII.2.12.4 GR2d.</summary>
     [Fact]
     public void AnOpenRefusedAs41_DoesNotRestartTheCount()
     {

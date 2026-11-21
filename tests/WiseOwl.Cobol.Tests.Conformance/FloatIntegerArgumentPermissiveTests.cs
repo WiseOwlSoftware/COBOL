@@ -301,7 +301,7 @@ public sealed class FloatIntegerArgumentPermissiveTests
        """;
 
     /// <summary>The three values from the equivalent arithmetic expressions over the TRUNCATED integers: §2023:15.64.4
-    /// 7 − 3 × INTEGER(7 / 3) = 1; §2023:15.17.4 143951 + 3600 / 100000 = 143951.03600; §2023:15.9.4 1) b)
+    /// 7 − 3 × INTEGER(7 / 3) = 1; §2023:15.17.4 143951 + 3600 / 100000 = 143951.03600; §2023:15.9.4 RV1b
     /// 0.05 / (1 − 1.05 ** −3) = 0.367208564…, truncated to the receiver's nine fraction digits.</summary>
     [Fact]
     public void Pb651FractionalFloat_AtATypeSixPosition_UnderPermissive_IsTruncatedOnEveryLane()

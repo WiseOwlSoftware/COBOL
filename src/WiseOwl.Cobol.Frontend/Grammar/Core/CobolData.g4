@@ -281,7 +281,7 @@ dataName
     // ⛔ noHeaderWrittenHere (kb/Work PB4706): the gated word before SECTION or DIVISION writes a header, and no format
     // follows a data-name with either, so `01` with its period forgotten, then `LOCAL-STORAGE SECTION.`, stops at the
     // word as the missing period rather than naming an entry after it.
-    // ⛔ NO PROCEDURE ALTERNATIVE (kb/Work PB4706): §2023:8.9 reserves PROCEDURE at every edition, so §2023:8.3.2.1 1) keeps it out of
+    // ⛔ NO PROCEDURE ALTERNATIVE (kb/Work PB4706): §2023:8.9 reserves PROCEDURE at every edition, so §2023:8.3.2.1 SR1 keeps it out of
     // this slot. NC205A names no item PROCEDURE: its `77 PROCEDURE` continues on the next line as `DIVISION`, one word.
     | {noHeaderWrittenHere()}? nameReservedGatedWord1=reservedGatedWord
       ) { declareName(TokenStream.LT(-1)); }
@@ -511,7 +511,7 @@ globalClause
 // group TYPE clause, CobolReportWriter.g4), not this one's.
 // ⛔ type-name-1 IS A cobolWord, NEVER A BARE IDENTIFIER (kb/Work PB2721). A type-name is a user-defined word
 // (§2023:8.3.2.2), declared through `dataName` — which is cobolWord — so its REFERENCE slot must admit the same word set.
-// The rule used to read `TYPE TO? IDENTIFIER`, and a type-name that is a §2023:8.10 context-sensitive word (§2023:8.3.2.1 3):
+// The rule used to read `TYPE TO? IDENTIFIER`, and a type-name that is a §2023:8.10 context-sensitive word (§2023:8.3.2.1 SR3:
 // "Context-sensitive words may be used as user-defined words … in contexts other than the language construct in
 // which they are defined") was declared cleanly by `01 CAPACITY TYPEDEF …` and then refused by `TYPE CAPACITY`
 // (COBOL0001), because CAPACITY has a lexer token. UserWordSlotDriftTests holds every name slot to cobolWord.
@@ -569,7 +569,7 @@ pictureLocalePhrase
 // canonical PDF, printed page 441 — is `EDITING character-1 { IS literal-1 | FOR { … } }`: character-1 carries
 // no quotation marks and is named character-1, exactly as character-string-1 is, while literal-1/-2/-3 are named
 // as literals. SR8 types it as "any basic letter in the COBOL character set", §2023:13.18.40.4 GR14 ("Character-1 in
-// character-string-1 represents a character position") and §2023:13.18.40.5 rule 3 make it a PICTURE SYMBOL occurring
+// character-string-1 represents a character position") and §2023:13.18.40.5 GR3 make it a PICTURE SYMBOL occurring
 // in character-string-1, and SR9 — the rule that types the phrase's literals — enumerates only literal-1,
 // literal-2 and literal-3. This rule used to demand a quoted literal there, so EVERY conforming EDITING phrase
 // was a parse error and the SR8/SR10/SR11 checks were reachable only through a spelling the standard does not
@@ -724,7 +724,7 @@ usageKeyword
 // is COMPUTED from the generated ATN, never a hand list, and a clause added to a closed format is excluded
 // automatically. ⛔ Never the context-free FOLLOW(usageKeyword) (kb/Work PB4235): the usage clause is also a clause
 // of the screen and report group entries, and that union refused AUTO, BELL, SECURE and the other §2023:8.10 screen
-// words — user-defined words outside the screen description entry (§2023:8.3.2.1 3)) — as a data entry's type-name.
+// words — user-defined words outside the screen description entry (§2023:8.3.2.1 SR3) — as a data entry's type-name.
 // ⛔ The optional operand must stay each rule's LAST element: the predicate reads the rule's end as the slot's
 // exit (PointerUsageOperandDriftTests holds the shape). With TO written, the word IS the operand; the predicate
 // guards only the TO-less arm.
@@ -910,9 +910,9 @@ valueClauseFalsePhrase
 // One Format-2 table phrase: a literal list, then FROM (subscript-1 …) [TO (subscript-2 …)]. The subscripts are
 // integer literals (SR19), one per OCCURS dimension (SR20/SR21) — validated at bind (COBOL1585-1590).
 // ⛔ THE SUBSCRIPTS ARE `signedIntegerLiteral`, NOT `integerLiteral` (kb/Work PB553). §2023:13.18.63.2 Format 2
-// prints these slots as `subscript-1` / `subscript-2`, NOT as `integer-n`, so §2023:5.5 1)'s unsigned-and-nonzero
+// prints these slots as `subscript-1` / `subscript-2`, NOT as `integer-n`, so §2023:5.5 SR1's unsigned-and-nonzero
 // default does not reach them; §2023:13.18.63.3 SR19 — "Subscript-1 and subscript-2 shall be integer numeric
-// literals" — routes through §2023:5.5 2) a) to §2023:8.3.3.3.2, which admits a leading sign. `FROM (+1) TO (+3)` is
+// literals" — routes through §2023:5.5 SR2a to §2023:8.3.3.3.2, which admits a leading sign. `FROM (+1) TO (+3)` is
 // therefore conforming source and used to be `error COBOL0001: unexpected '+'`. A NEGATIVE or zero subscript
 // still fails, but by §2023:8.4.2.3.4 GR2 ("The value of a subscript shall be a positive integer") through the
 // existing SR20/SR21 range screen's named COBOL1586/1587 — never as a parse error.

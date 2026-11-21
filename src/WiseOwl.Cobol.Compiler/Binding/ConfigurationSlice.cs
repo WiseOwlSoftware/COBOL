@@ -74,7 +74,7 @@ public sealed class ConfigurationSlice
     /// SPECIAL-NAMES is walked at the top of <c>DataBinder.Bind</c>.</summary>
     public bool DecimalPointIsComma { get; internal set; }
 
-    /// <summary>The character a numeric literal of this program writes its decimal separator with (ISO §2023:12.3.7.4 GR14 a):
+    /// <summary>The character a numeric literal of this program writes its decimal separator with (ISO §2023:12.3.7.4 GR14a:
     /// ',' under DECIMAL-POINT IS COMMA, else '.'. A contained program inherits the container's
     /// (<c>ConfigurationStep.Produce</c>, §2023:12.3.4 GR1).</summary>
     public char DecimalSeparator => DecimalPointIsComma ? ',' : '.';

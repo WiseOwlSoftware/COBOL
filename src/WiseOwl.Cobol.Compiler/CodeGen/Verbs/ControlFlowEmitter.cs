@@ -270,7 +270,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
 
     /// <summary>One execution of an out-of-line PERFORM's range — the bounded dispatch, and, for a PERFORM that
     /// ENTERS A DECLARATIVE from the nondeclarative portion in a unit that has RESUME, the RESUME landing ISO
-    /// §2023:14.9.33.4 GR2 b) gives that PERFORM:
+    /// §2023:14.9.33.4 GR2b gives that PERFORM:
     /// <list type="bullet">
     ///   <item>RESUME AT NEXT STATEMENT — "the implicit CONTINUE statement immediately follows the last statement
     ///         of the terminating procedure referenced in that PERFORM statement": the range's own end, so the
@@ -294,7 +294,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         using (w.Block("try"))
             Statements.EmitProcedureRange(p.Range, lastUsedFlag: lastUsedFlag);
         w.Line($"catch (ResumeSignal __rp{id}) {{ {dispatch.ResumeTransfer($"__rp{id}.TargetPc", "")} }}"
-            + "   // §2023:14.9.33.4 GR2 b) NEXT STATEMENT → after the range's last statement; GR3 procedure-name → GO TO");
+            + "   // §2023:14.9.33.4 GR2b NEXT STATEMENT → after the range's last statement; GR3 procedure-name → GO TO");
     }
 
 
@@ -429,7 +429,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// symmetric, and each is written to its own sub-step.</para>
     /// <para>FROM/BY render inline so each set/augment re-reads their current contents (GR12).</para>
     /// <para>⚠ THE ORDER IS PER EDITION (<see cref="PerformVarying.AugmentOuterFirst"/>, kb/Work PB436, PB5101). From 2002,
-    /// GR13 e) 2 gives 8 executions for the TEST BEFORE <c>AFTER B FROM A</c> nest; the 1985 text (§1985:VI.6.21.4 GR10 d) 1)
+    /// GR13 e) 2 gives 8 executions for the TEST BEFORE <c>AFTER B FROM A</c> nest; the 1985 text (§1985:VI.6.21.4 GR10d.1
     /// augments the outer variable first and gives 6, which NIST NC201A PFM-TEST-F4-23 asserts and which now passes
     /// at <c>--std 85</c>. Determination: <c>docs/CONFORMANCE.md</c> §3.</para></summary>
     private void EmitVarying(PerformVarying v, Action body)
@@ -453,7 +453,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                     {
                         EmitBefore(k + 1);
                         // The inner while exited ⇒ the condition at k+1 is the current condition and it is TRUE, so
-                        // ISO §2023:14.9.28.4 GR13 e) 2's true-branch runs, IN ITS ORDER:
+                        // ISO §2023:14.9.28.4 GR13e 2's true-branch runs, IN ITS ORDER:
                         //   a. "the induction variable associated with the current condition is set to its
                         //      initialization value"   — level k+1 RESETS FIRST, reading its FROM operand NOW, and
                         //   b. "the condition to the left of the current condition becomes the current condition"
@@ -464,7 +464,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                         // ⛔ The two orders are EDITIONS, not a choice: reset-then-augment from 2002 (this text),
                         // augment-then-reset at 1985 (below) — see the method doc-comment, the docs/CONFORMANCE.md §3
                         // determination and kb/Work PB436, PB5101.
-                        // §1985:VI.6.21.4 GR10 d) 1 (v.AugmentOuterFirst, PB5101) states the OTHER order: "the content of
+                        // §1985:VI.6.21.4 GR10d 1 (v.AugmentOuterFirst, PB5101) states the OTHER order: "the content of
                         // the data item referenced by identifier-2 is augmented …" and only then "the content of the data
                         // item referenced by identifier-5 is set to literal-3 or the current value of … identifier-6".
                         if (v.AugmentOuterFirst)
@@ -527,7 +527,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// (<see cref="SetEmitter.LandAmount"/>) — §2023:13.18.38.4 GR2 names PERFORM VARYING beside SET and SEARCH as a
     /// statement that "creates a value for the index", and makes a value outside the implementor's index range the
     /// EC-RANGE-INDEX case. The former bare <c>(long)(Align(…, 0))</c> narrowing WRAPPED such a value silently, and
-    /// §2023:14.9.28.3 SR4 a) admits an integer data item of up to 31 digits as the FROM operand, so the wrap is
+    /// §2023:14.9.28.3 SR4a admits an integer data item of up to 31 digits as the FROM operand, so the wrap is
     /// reachable from conforming source (kb/Work PB459). The landing's own integrality test is satisfied by that
     /// same SR4 a)/b), so on legal source it never fires; the range test is the live one.</para>
     /// <para>Inside that success leg, when EC-RANGE-PERFORM-VARYING checking is enabled (§2023:14.9.28.4 GR3) and the
@@ -677,7 +677,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             {
                 if (checking)
                 {
-                    Ec.EmitConditionSet(ecName, "the search operation is unsuccessful (§2023:14.9.37.4 GR1 b))");
+                    Ec.EmitConditionSet(ecName, "the search operation is unsuccessful (§2023:14.9.37.4 GR1b)");
                     if (dispatchEc) w.Line($"{ecVar} = \"{ecName}\";");
                 }
                 w.Line($"goto __searchAtEnd{id};");
@@ -719,7 +719,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// outside the permissible range of occurrence values, in which case the search operation is unsuccessful,
     /// the EC-RANGE-SEARCH-NO-MATCH exception condition is set to exist". The new value is formed before it is
     /// judged, so an unsuccessful serial search leaves the index (and the in-step item) one past the table — a
-    /// state GR4 contemplates in as many words. "Outside the permissible range" is either bound: §1985:VI.6.22.4 GR2 b)
+    /// state GR4 contemplates in as many words. "Outside the permissible range" is either bound: §1985:VI.6.22.4 GR2b
     /// words the advance the same, so at <c>--std 85</c> an index that started below 0 is still below occurrence 1 after
     /// the increment and the search is unsuccessful; GR10's figure, which loops back to the "greater than" test only, "is
     /// not intended to dictate implementation" (kb/Work PB5302). From 2002 the start test leaves no index below 1 to
@@ -737,10 +737,10 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         w.Line($"__search{id}:");
         EmitSearchWhens(s, id);
         w.Line($"{s.IndexField} += 1;");
-        // §2023:14.9.37.4 GR3 b): identifier-2 is incremented with the search index, so an object-property identifier-2 is SET with each
+        // §2023:14.9.37.4 GR3b: identifier-2 is incremented with the search index, so an object-property identifier-2 is SET with each
         // increment, before the next WHEN evaluation can read it (kb/Work PB2078).
         if (s.AlsoVaried is { } also) brackets.Receive(also, () => set.AugmentSetTarget(also, down: false, new NumX("1", 0), "SEARCH VARYING"));
-        // The new value is judged against BOTH bounds (§2023:14.9.37.4 GR4; §1985:VI.6.22.4 GR2 b) words it the same). From 2002 the
+        // The new value is judged against BOTH bounds (§2023:14.9.37.4 GR4; §1985:VI.6.22.4 GR2b words it the same). From 2002 the
         // start test admitted only an index at or above 1, so after an increment the lower half cannot hold and is not emitted; at
         // COBOL-85 an index that started below 0 is still below 1 after the increment and ends the search (kb/Work PB5302).
         unsuccessful(s.IndexBelowTableIsUnsuccessful ? upper : outside, "EC-RANGE-SEARCH-NO-MATCH", s.CheckSearchNoMatch);

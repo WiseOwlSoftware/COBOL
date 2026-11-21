@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// area's characters are written as UTF-16BE (§2023:13.18.60.4 GR8 / D-N1) and keep no ceiling.</para>
 /// <para><b>WHY ONE TYPE:</b> the standard names this one set from three places and they must never disagree —
 /// §2023:14.9.30.4 GR16 (a successful READ whose record area holds one ⇒ I-O status '09', §2023:9.1.13.2 item 7),
-/// §2023:14.9.51.4 GR23 (WRITE ⇒ unsuccessful, '71') and §2023:14.9.35.4 GR17 d) (REWRITE ⇒ unsuccessful, '71';
+/// §2023:14.9.51.4 GR23 (WRITE ⇒ unsuccessful, '71') and §2023:14.9.35.4 GR17d (REWRITE ⇒ unsuccessful, '71';
 /// §2023:9.1.13.10 item 1 covers both write directions and adds that the record area remains unchanged). Before
 /// kb/Work PB329 only the REWRITE arm existed and it carried its own ad-hoc CR/LF test, so the WRITE arm was
 /// missing outright and the READ arm could not produce '09' at all.</para>

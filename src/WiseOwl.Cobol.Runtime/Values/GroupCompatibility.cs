@@ -48,12 +48,12 @@ public sealed record GroupAtom(GroupAtomKind Kind, int Bytes, int Chars, int Ele
 public enum GroupMismatchKind
 {
     /// <summary>A dynamic-length item with no dynamic-length item at its relative byte position in the other group
-    /// (§2023:8.5.1.12.1 rule 3 / §2023:8.5.1.12.2).</summary>
+    /// (§2023:8.5.1.12.1 GR3 / §2023:8.5.1.12.2).</summary>
     DynamicLengthUnpaired,
     /// <summary>A dynamic-capacity table opposite an atom that starts at its position but is not a table (§2023:8.5.1.12.1
     /// rule 1 / §2023:8.5.1.12.2).</summary>
     DynamicTableOppositeNonTable,
-    /// <summary>A dynamic-capacity table at a position the other group has no atom starting at (§2023:8.5.1.12.1 rule 1 /
+    /// <summary>A dynamic-capacity table at a position the other group has no atom starting at (§2023:8.5.1.12.1 GR1 /
     /// §2023:8.5.1.12.2).</summary>
     DynamicTableUnpaired,
     /// <summary>Two corresponding tables whose element byte lengths, as the pair measures them, differ (§2023:8.5.1.12.3
@@ -104,12 +104,12 @@ public sealed class GroupCharTally
 /// <para>THE THREE RULES are ONE positional walk because they are three statements about the SAME left-to-right byte
 /// accounting:</para>
 /// <list type="number">
-/// <item>§2023:8.5.1.12.1 rule 1 + §2023:8.5.1.12.2 sentence 2 — for each dynamic-capacity table in either group there is a
+/// <item>§2023:8.5.1.12.1 GR1 + §2023:8.5.1.12.2 sentence 2 — for each dynamic-capacity table in either group there is a
 /// corresponding table in the other: "Two tables correspond if at least one of them is a dynamic-capacity table and they
 /// occupy the same relative byte positions within their groups".</item>
-/// <item>§2023:8.5.1.12.1 rule 2 + §2023:8.5.1.12.3 sentence 2 — "Two corresponding tables match when the byte length of their
+/// <item>§2023:8.5.1.12.1 GR2 + §2023:8.5.1.12.3 sentence 2 — "Two corresponding tables match when the byte length of their
 /// elements is equal and their elements are compatible" (the element compatibility recurses HERE).</item>
-/// <item>§2023:8.5.1.12.1 rule 3 + §2023:8.5.1.12.2 sentence 1 — "Two dynamic-length elementary items correspond if they start at
+/// <item>§2023:8.5.1.12.1 GR3 + §2023:8.5.1.12.2 sentence 1 — "Two dynamic-length elementary items correspond if they start at
 /// the same relative byte positions within their groups"; §2023:8.5.1.12.3 sentence 1 then makes them match "regardless of
 /// their definitions".</item>
 /// </list>

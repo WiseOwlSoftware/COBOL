@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Binding;
 
 /// <summary>What <see cref="SymbolTable.Identify(Antlr4.Runtime.ParserRuleContext, Symbols.NameClass, bool, NameReach, ProcedureSite?, ReportSite)"/>
 /// answers for a named OCCURS DYNAMIC CAPACITY register (§2023:13.18.38.3 SR30): the dynamic tables whose register carries the
-/// name and that the reference's scope reaches, nearest declaring source element first (§2023:8.4.6.2.1 3)). A TYPE or SAME AS copy
+/// name and that the reference's scope reaches, nearest declaring source element first (§2023:8.4.6.2.1 GR3). A TYPE or SAME AS copy
 /// of one written entry reproduces its register (kb/Work PB2988), so the reference's qualifiers tell the copies apart; its funnel
 /// (<c>ReferenceResolver.CapacityRegisterFor</c>) applies them and words the ambiguity, so it is no identification until the funnel
 /// has one table, and listing step 7b records an occurrence only then (as for <see cref="ReportCandidates{T}"/>).</summary>
@@ -46,7 +46,7 @@ public sealed partial class SymbolTable
     /// <summary>§2023:13.18.38.3 SR30, "Data-name-3 shall not be defined elsewhere in the source element": whether a register named
     /// <paramref name="name"/> on <paramref name="table"/> duplicates a data-name of its source element (this element's own, or the
     /// method's when the table is a method's, kb/Work PB3165) or the register of another written entry. A container's GLOBAL name
-    /// is defined in ANOTHER source element, which this element's declaration hides (§2023:8.4.6.2.1 3); kb/Work PB3766 review
+    /// is defined in ANOTHER source element, which this element's declaration hides (§2023:8.4.6.2.1 GR3; kb/Work PB3766 review
     /// R2-1), and a TYPE or SAME AS copy of the same written entry reproduces the one register (kb/Work PB2988). Asked while the
     /// registers are still being minted, so it reads them with no watermark gate.</summary>
     internal bool DuplicatesCapacityRegister(OoMethodDataScope? method, string name, DataItem table)

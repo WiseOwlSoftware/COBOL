@@ -347,7 +347,7 @@ public static class BoundStores
         public StoreKind Visit(BoundSort n) => SortTransferHit(n.Using, n.Giving) ? StoreKind.Write : StoreKind.None;
         public StoreKind Visit(BoundMerge n) => SortTransferHit(n.Using, n.Giving) ? StoreKind.Write : StoreKind.None;
 
-        /// <summary>The USING files are read by implicit READ statements (§2023:14.9.40.4 GR9 a)), each storing what an explicit
+        /// <summary>The USING files are read by implicit READ statements (§2023:14.9.40.4 GR9a), each storing what an explicit
         /// READ stores, and the GIVING files are written as if by WRITE statements, each setting the FILE STATUS item and, for a
         /// relative file, the RELATIVE KEY item.</summary>
         private bool SortTransferHit(IReadOnlyList<FileModel> usingFiles, IReadOnlyList<FileModel> givingFiles) =>
@@ -475,7 +475,7 @@ public static class BoundStores
         public StoreKind Visit(BoundKeyedRead n) => StoreOrKids(IntoHit(n.IntoMove) || ReadHit(n.File, sequential: n.Kind != ReadKind.Random), StoreKind.Write,
             n.AtEnd, n.NotAtEnd, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
         // A sequential-access WRITE of a relative file moves the number of the record released into the RELATIVE KEY item
-        // (§2023:14.9.51.4 GR29 a)); under random or dynamic access the item is the WRITE's input (GR29 b)).
+        // (§2023:14.9.51.4 GR29a); under random or dynamic access the item is the WRITE's input (GR29 b)).
         public StoreKind Visit(BoundKeyedWrite n) => StoreOrKids((n.FromMove is not null && Hit(n.Record)) || StatusHit([n.File])
                 || (n.File.AccessMode == FileAccessMode.Sequential && ConnectorHit(n.File, FileConnectorStore.RelativeKey)),
             StoreKind.ReadWrite, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
@@ -533,7 +533,7 @@ public static class BoundStores
         // ALLOCATE's RETURNING pointer is stored whole (§2023:14.9.3.4 GR2/GR4); the BASED item's own implicit pointer is
         // not a Place and so never a property temp.
         public StoreKind Visit(BoundAllocate n) => Hit(n.Returning) ? StoreKind.Write : StoreKind.None;
-        // FREE reads each pointer to release its storage and then sets it to NULL (§2023:14.9.15.4 GR1 a)).
+        // FREE reads each pointer to release its storage and then sets it to NULL (§2023:14.9.15.4 GR1a).
         public StoreKind Visit(BoundFree n) => n.Operands.Any(Hit) ? StoreKind.ReadWrite : StoreKind.None;
         public StoreKind Visit(BoundRaiseObject n) => StoreKind.None;                  // RAISE identifier-1 is sent
         // SET capacity names a dynamic-capacity TABLE (an AccessPath, never a Place) — and a property subject cannot

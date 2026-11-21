@@ -27,7 +27,7 @@ public static class CobolLocale
 {
     /// <summary>⛔ THE SUBSTITUTED RESULT OF A REJECTED <c>LOCALE-DATE</c> / <c>LOCALE-TIME</c> /
     /// <c>LOCALE-TIME-FROM-SECONDS</c> IS <b>ONE SPACE</b>, NOT A ZERO-LENGTH VALUE (kb/Work PB470) — the number
-    /// of character positions the three §2023:15.3 rule 14 guards below hand back when EC-ARGUMENT-FUNCTION checking
+    /// of character positions the three §2023:15.3 AR14 guards below hand back when EC-ARGUMENT-FUNCTION checking
     /// is off. The class and the length are decided HERE, once, and the guards cite this member.
     /// <para>⚖ The derivation, from docs/CONFORMANCE.md row <c>DOC-A.1-90</c>, which settles the class by asking
     /// what determines the returned item's LENGTH. For these three functions §2023:15.52.4 / §2023:15.53.4 / §2023:15.54.4 rule
@@ -41,7 +41,7 @@ public static class CobolLocale
     /// whose rendered width varies with the VALUE as well as with the format — under <c>fr-FR</c>'s
     /// <c>dd/MM/yyyy</c> it is 10, under <c>en-US</c>'s <c>M/d/yyyy</c> it is 8 for 1 February and 10 for
     /// 31 December — so once the value is rejected the format alone fixes no width to fill. The standard answers
-    /// exactly that shape itself, at §2023:15.30.3 rule 1 for EXCEPTION-LOCATION — an alphanumeric function whose
+    /// exactly that shape itself, at §2023:15.30.3 RV1 for EXCEPTION-LOCATION — an alphanumeric function whose
     /// length is "based on its contents" (rule 2) returns "one alphanumeric space character" when the contents
     /// are absent — and the row adopts that answer here.</para>
     /// <para>⛔ Do NOT "simplify" this back to <c>return "";</c>. Zero length and one space are INDISTINGUISHABLE

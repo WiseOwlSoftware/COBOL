@@ -37,7 +37,7 @@ public sealed partial class SymbolTable
         /// <see cref="ReportSectionBinder.ReportEntryReferenceRefused"/>'s: its refusal is a section rule (§2023:13.8.6.2.3), not this one.
         /// <para>⛔ A CONSTANT-NAME, AN INDEX-NAME, A FILE-NAME AND A CONDITION-NAME ARE RANKED BY THE ELEMENT THAT DECLARES
         /// THEM (kb/Work PB4219, PB4432): ISO
-        /// §2023:8.4.6.2.1 3) a) makes the declaration of the source element B the referenced item, and b) the nearest
+        /// §2023:8.4.6.2.1 GR3a makes the declaration of the source element B the referenced item, and b) the nearest
         /// containing one otherwise, so a contained program's own level-88 RELF is what `RELF` names there, not its
         /// container's GLOBAL file, constant-name or index-name RELF; each used to be asked first whatever the nesting. Each answer carries its
         /// <see cref="DeclarationFact.Depth"/> so a caller that weighs it against a declaration this query does not
@@ -46,14 +46,14 @@ public sealed partial class SymbolTable
         {
             if (_table.DeclaresScreenName(name)) return new(DeclarationKind.ScreenEntry);
             if (_data.SpecialNames.IsAlphabetName(name)) return new(DeclarationKind.AlphabetName);
-            // An unqualified reference's data-name answer is the RANKED one (§2023:8.4.6.2.1 3)): a container's GLOBAL data item that
+            // An unqualified reference's data-name answer is the RANKED one (§2023:8.4.6.2.1 GR3): a container's GLOBAL data item that
             // a nearer condition-name hides is no answer here, so the condition-name below is (kb/Work PB4219). A qualified
             // one keeps the raw answer, which the callers word as "declared, but not under the given qualifiers".
             bool dataName = qualifiers.Count == 0
                 ? _table.TryResolveUnqualified(name, scope, out _)
                 : _table.TryResolve(name, scope, out _);
             // ⛔ THE NON-DATA DECLARATIONS OF THE SPELLING ARE RANKED TOGETHER, by the depth of the element that declares each
-            // (§2023:8.4.6.2.1 3), kb/Work PB4219, PB4432): the classes NonConditionDeclarationsOf offers (constant-name, index-name,
+            // (§2023:8.4.6.2.1 GR3, kb/Work PB4219, PB4432): the classes NonConditionDeclarationsOf offers (constant-name, index-name,
             // file-name; the CAPACITY register has its own one lookup) and a condition-name. The nearest wins; at EQUAL depth one element declares both, a
             // §2023:8.3.2.2 conflict reported at the declaration, and the first offered keeps the answer as it always has.
             DeclarationFact? nearest = null;
@@ -105,7 +105,7 @@ public sealed partial class SymbolTable
             // An index-name that the written qualifiers reach NONE of is still the declaration a refusal words ("declared, but not
             // under the given qualifiers"), but the reference does not name it: it ranks behind every other class (int.MaxValue),
             // so a qualified `RELF OF X` that only a container's GLOBAL level-88 satisfies is not hidden by an own `INDEXED BY RELF`
-            // (§2023:8.4.6.2.1 2): qualification is applied over the whole set before rule 3 ranks it; kb/Work PB4432 review R2-1).
+            // (§2023:8.4.6.2.1 GR2: qualification is applied over the whole set before rule 3 ranks it; kb/Work PB4432 review R2-1).
             if (_table.IndexCandidates(name, qualifiers, scope) is { } indexes)
                 yield return new(DeclarationKind.IndexName,
                     Depth: indexes.Count > 0 ? indexes.NearestDepth(i => _data.State.Forest.DeclaringDepth(i.Table)) : int.MaxValue);
@@ -136,7 +136,7 @@ public sealed partial class SymbolTable
                 ? new DeclarationFact(DeclarationKind.FileName, Depth: _data.State.Inherited.FileDepth(file), Spelling: file.CobolName)
                 : null;
 
-        /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION, FOR THE NAME CLASSES THAT ARE NOT DATA ITEMS
+        /// <summary>⛔ ISO §2023:8.4.6.2.1 GR3a SEEN FROM A CONDITION-ONLY POSITION, FOR THE NAME CLASSES THAT ARE NOT DATA ITEMS
         /// (kb/Work PB4432 review R1-1, the class twin of <see cref="SymbolTable.ConditionNameHiddenByNearerDataItem"/>): the written
         /// qualifiers reach a level-88 of the spelling, but a constant-name, index-name, file-name, report-name or cd-name of it
         /// declared in a NEARER source element is the referenced item (<see cref="SymbolTable.NearestInNameSet"/>, kb/Work PB5975).
@@ -190,7 +190,7 @@ public sealed partial class SymbolTable
             return null;
         }
 
-        /// <summary>⛔ §1985:X.1.3.8.2 GR3a / ISO §2023:8.4.6.2.1 3) FOR AN INHERITED NAME A NEARER DECLARATION HIDES, of any class:
+        /// <summary>⛔ §1985:X.1.3.8.2 GR3a / ISO §2023:8.4.6.2.1 GR3 FOR AN INHERITED NAME A NEARER DECLARATION HIDES, of any class:
         /// whether this unit's set of names (its own and every container's global ones, <see cref="SymbolTable.NearestInNameSet"/>)
         /// declares <paramref name="name"/>, as anything, in a source element NEARER than <paramref name="depth"/> (the containment
         /// distance of the element that declared the inherited name; 1 = the direct container). "b) 1. The item in source element A if
@@ -207,7 +207,7 @@ public sealed partial class SymbolTable
 
         /// <summary>The report entries a written reference, held as text by the data division's lookups, reaches (the table's one walk,
         /// <c>EntriesNamed</c>: every report this element can name, the written qualifiers through the §2023:8.4.2.2.3 SR4 walk, the
-        /// nearest declaring source element, §2023:8.4.6.2.1 rule 3), each as a fact: <see cref="DeclarationKind.ReportSumCounter"/> or
+        /// nearest declaring source element, §2023:8.4.6.2.1 GR3), each as a fact: <see cref="DeclarationKind.ReportSumCounter"/> or
         /// <see cref="DeclarationKind.ReportEntry"/>, its depth, its data-name and its report-name. Read by the report-item refusal
         /// (<see cref="ReportSectionBinder.ReportEntryReferenceRefused"/>, §2023:13.8.6.2.3), the ambiguity's wording
         /// (<see cref="ReportSectionBinder.ReportEntriesInTierOf"/>) and APPLY COMMIT's operand (kb/Work PB4196).</summary>

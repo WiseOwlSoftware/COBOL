@@ -56,7 +56,7 @@ public sealed class CobolSizeError(string detail, string ecName) : CobolFatalExc
         catch (OverflowException) { return false; }
     }
 
-    /// <summary>Is this §2023:14.7.4.3 rule 7's condition — ROUNDED MODE IS PROHIBITED and a value the resultant identifier
+    /// <summary>Is this §2023:14.7.4.3 GR7's condition — ROUNDED MODE IS PROHIBITED and a value the resultant identifier
     /// cannot represent exactly (<see cref="ProhibitedInexact"/>)? The one fact the emitted code of an arithmetic
     /// statement with no SIZE ERROR phrase and checking off filters on: there the resultant is left unchanged and
     /// execution continues (docs/CONFORMANCE.md DOC-A.1-70), while every OTHER size error such a statement meets keeps
@@ -73,7 +73,7 @@ public sealed class CobolSizeError(string detail, string ecName) : CobolFatalExc
     /// a value it cut (a Try form answers false instead).</summary>
     public static CobolSizeError ProhibitedInexact() =>
         new("ROUNDED MODE IS PROHIBITED and the value cannot be represented exactly in the resultant identifier "
-            + "(ISO §2023:14.7.4.3 rule 7 — EC-SIZE-TRUNCATION; the resultant identifier is unchanged)", "EC-SIZE-TRUNCATION")
+            + "(ISO §2023:14.7.4.3 GR7 — EC-SIZE-TRUNCATION; the resultant identifier is unchanged)", "EC-SIZE-TRUNCATION")
         { IsProhibitedInexact = true };
 
     /// <summary>The zero divisor — §2023:14.7.5 case 2, "if the divisor in a divide operation or in a DIVIDE statement is

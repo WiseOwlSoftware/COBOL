@@ -584,7 +584,7 @@ public sealed class OoClassTable
                 // A GET/SET PROPERTY prototype (kb/Work PB1449): §2023:11.7.2's format is shared by method definitions and
                 // prototypes, and §2023:11.7.4 GR6/GR7 make a METHOD-ID with the GET / SET phrase a get / set property
                 // method — so the prototype joins the roster under the SAME pinned accessor name a class's accessor
-                // has (§2023:11.7.4 GR1 a)), and IMPLEMENTS conformance pairs the two by that roster key.
+                // has (§2023:11.7.4 GR1a), and IMPLEMENTS conformance pairs the two by that roster key.
                 var psel = m.methodPropertySelector();
                 string protoName = psel is null ? pname
                     : psel.GET() is not null ? NamingConvention.GetAccessorName(pname)
@@ -614,7 +614,7 @@ public sealed class OoClassTable
         foreach (var isym in table._interfaces.Concat(table._parameterizedInterfaces))
         {
             // §2023:11.6.3 SR6: "A given interface-name shall not appear more than once in an INHERITS clause" — the rule is
-            // about the WRITTEN NAME (two spellings are one name under the Annex C fold, §2023:8.1.3.2 GR3 b)/GR4 b)), not the interface it resolves to:
+            // about the WRITTEN NAME (two spellings are one name under the Annex C fold, §2023:8.1.3.2 GR3b/GR4 b)), not the interface it resolves to:
             // two different REPOSITORY names for one externalized interface (§2023:12.3.8.3 — INTERFACE R6X AS "E" and
             // INTERFACE R6Y AS "E") are two interface-names, which no sentence of the standard forbids, so both are
             // legal and name ONE base (docs/CONFORMANCE.md D-INH1; kb/Work PB1502, following the PB946 determination).
@@ -666,7 +666,7 @@ public sealed class OoClassTable
             }
         }
 
-        // §2023:11.7.3 SR4 b): "if this method definition is contained in an interface definition, no inherited method
+        // §2023:11.7.3 SR4b: "if this method definition is contained in an interface definition, no inherited method
         // prototype shall have the same method resolution signature as the method prototype declared by this method
         // definition" — the interface twin of the class arm's SR4 a) (the OVERRIDE marking below). Since SR2 forbids
         // OVERRIDE in a prototype there is no legal way to redeclare an inherited prototype, so ANY inherited
@@ -681,7 +681,7 @@ public sealed class OoClassTable
                         using var atPrototype = edition.At(sources.Of(own));
                         edition.Error(DiagnosticCatalog.InterfacePrototypeRedeclaresInherited,
                             $"interface '{isym.Name}', method '{own.Name}': the method prototype has the same method "
-                            + $"resolution signature as one inherited from interface '{inherited.Name}' (ISO §2023:11.7.3 SR4 b); "
+                            + $"resolution signature as one inherited from interface '{inherited.Name}' (ISO §2023:11.7.3 SR4b; "
                             + "OVERRIDE, the only way to redeclare an inherited method, is forbidden in a prototype by SR2)");
                         break;
                     }
@@ -772,7 +772,7 @@ public sealed class OoClassTable
                   Accessor = sel is null ? '\0' : sel.GET() is not null ? 'G' : 'S',
                   PropertyName = sel?.propertyName().GetText(),
                   // §2023:11.7.2 prints [AS literal-1] on the method-name-1 arm only — a GET/SET PROPERTY
-                  // method's name is implementor-defined (§2023:11.7.4 GR1 a), so `sel` never has one.
+                  // method's name is implementor-defined (§2023:11.7.4 GR1a, so `sel` never has one.
                   ExternalizedName = Externalized(m.externalizedNamePhrase(), methodName,
                       "METHOD-ID", "ISO §2023:11.7.3 SR1") };
                 sources.Add(method, m);

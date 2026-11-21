@@ -22,7 +22,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// <item>⛔ THE EXCEPTION CONDITION IS THE RUNTIME'S, THE SELECTION THE SITE'S. <c>AsyncMessaging</c> sets the condition to exist when the statement's own
 /// <see cref="IProfiledStatement.CheckingProfile"/> enables it; the site then takes the §2023:14.6.13.1.3 / §2023:14.6.13.1.4 path over the raised name
 /// (<see cref="EcEmitter.EmitSelection"/>, the shape of the GOBACK … RAISING pickup, whose name is also chosen at run time) unless the statement's ON EXCEPTION
-/// phrase takes it (§2023:14.6.13.1.3 1) and §2023:14.6.13.1.4 1)). Whether the statement is successful, and so which phrase runs, never depends on checking (D-MCS-CHECK, Q8).</item>
+/// phrase takes it (§2023:14.6.13.1.3 GR1 and §2023:14.6.13.1.4 GR1). Whether the statement is successful, and so which phrase runs, never depends on checking (D-MCS-CHECK, Q8).</item>
 /// </list>
 /// </summary>
 internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcState ecState, EcEmitter ec,
@@ -89,7 +89,7 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
             // slots the message carries beside its image (AsyncMessaging.Resolved), position for position, and the vector is stored back.
             if (HoldsTags(n.Into))
                 w.Line(PlaceRenderer.WriteGroupLeaves(n.Into, RuntimeApi.AsyncResolved(PlaceRenderer.ImagedGroupLeaves(n.Into), $"{m}.Slots")));
-            // §2023:14.6.11 7): the run unit's end answers an unanswered message with spaces of identifier-1's size, and an area with no allocated maximum has the
+            // §2023:14.6.11 GR7: the run unit's end answers an unanswered message with spaces of identifier-1's size, and an area with no allocated maximum has the
             // size the store just recreated it to (its dynamic tables at the message's occurrences, raised to each FROM minimum), which only its current image states.
             if (unbounded)
                 w.Line(RuntimeApi.AsyncReceived($"{m}.Tag", $"{OperandText.RecordAreaImage(n.Into, transfer: true)}.Length") + ";");
@@ -129,14 +129,14 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
     private void EmitOutcome(string m, IReadOnlyList<BoundStatement>? onException, IReadOnlyList<BoundStatement>? notOnException)
     {
         var w = ctx.Writer;
-        // §2023:14.6.13.1.4 3): a nonfatal condition a USE declarative or WHEN handled on a statement that then completes does not run its NOT phrase - the statement's
+        // §2023:14.6.13.1.4 GR3: a nonfatal condition a USE declarative or WHEN handled on a statement that then completes does not run its NOT phrase - the statement's
         // selection result decides, as SequentialIoEmitter.EmitNotPhrase's gate does for the I-O statements.
         string handled = $"{m}handled";
         bool gated = ecState.Active && notOnException is not null;
         if (gated) w.Line($"bool {handled} = false;");
         if (ecState.Active)
         {
-            // §2023:14.6.13.1.3 1) / §2023:14.6.13.1.4 1): a conditional phrase without the NOT phrase takes the condition; otherwise the selection runs over the
+            // §2023:14.6.13.1.3 GR1 / §2023:14.6.13.1.4 GR1: a conditional phrase without the NOT phrase takes the condition; otherwise the selection runs over the
             // name the message control system chose, and Table 13's fatality - known only at run time - decides the default.
             using (w.Block($"if ({m}.Raised is {{ }} {m}name)"))
             {
@@ -147,7 +147,7 @@ internal sealed class MessagingEmitter(EmitContext ctx, NumericRenderer num, EcS
                         fatalWhen: $"{m}.RaisedFatal");
                     if (gated) w.Line($"{handled} = DispatchResult.RanAHandler({r});");
                 }
-                else w.Line("// the statement's ON EXCEPTION phrase takes the condition (§2023:14.6.13.1.3 1); §2023:14.6.13.1.4 1))");
+                else w.Line("// the statement's ON EXCEPTION phrase takes the condition (§2023:14.6.13.1.3 GR1; §2023:14.6.13.1.4 GR1)");
             }
         }
         if (onException is not null)

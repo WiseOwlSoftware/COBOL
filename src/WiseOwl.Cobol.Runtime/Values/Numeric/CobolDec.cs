@@ -306,7 +306,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// <summary>§2002:8.8.1.3.1.1: the leading digit's exponent runs from -999 (10^-999) through 999 (9.99…E+999).</summary>
     private const int SidiMinAdjustedExp = -999, SidiMaxAdjustedExp = 999;
 
-    /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF DIVIDE ... GIVING ... REMAINDER ON THE SDIDI (ISO §2023:14.9.12.4 6) c), kb/Work
+    /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF DIVIDE ... GIVING ... REMAINDER ON THE SDIDI (ISO §2023:14.9.12.4 GR6c, kb/Work
     /// PB3017): "a subsidiary quotient is developed that is signed and derived from the quotient by truncation of digits
     /// at the least significant end and that has the same number of digits and the same decimal point location as the
     /// data item referenced by identifier-3" — the SDIDI <paramref name="quotient"/> truncated toward zero at
@@ -581,7 +581,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// change the accumulator's 34th digit. Every VALUE-producing operation is <see cref="Add"/>/
     /// <see cref="Sub"/>/<see cref="Mul"/>/<see cref="Div"/> under the CALLER's INTERMEDIATE ROUNDING mode
     /// (§2023:11.9.11), which is what makes INTERMEDIATE ROUNDING IS PROHIBITED report this development as inexact —
-    /// §2023:11.9.11.2 rule 3 d, and the same thing <see cref="Sqrt"/> already did for an inexact root.</para>
+    /// §2023:11.9.11.2 GR3 d, and the same thing <see cref="Sqrt"/> already did for an inexact root.</para>
     /// <para>ln 10 is not a magic constant: it is <see cref="LnReduced"/>(10) — the same series over the same
     /// reduction — so there is nothing here to transcribe wrongly and nothing to re-derive when the development
     /// changes. It is developed once per rounding mode, not once per call (<see cref="Ln10"/>).</para></summary>
@@ -813,7 +813,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
             //     the exact magnitude is |near| − |tail|, i.e. one unit below |near| plus a positive remainder, so
             //     the truncated magnitude is |near| − 1 and the remainder is (1 − |tail|) > 0. Folding the tail in as
             //     a bare sticky bit read it as EXCESS in the result's direction, which over-stated the magnitude:
-            //     `1 − 1.0E−50` held 1.000…0 (and TRUNCATION kept it) where §2023:11.9.11.2 GR3 e) owes the nearest SDIDI
+            //     `1 − 1.0E−50` held 1.000…0 (and TRUNCATION kept it) where §2023:11.9.11.2 GR3e owes the nearest SDIDI
             //     value NEARER ZERO, 0.999…9 (34 nines).
             // The jam is exact only while the digits that decide the rounding all come from `near`, i.e. while
             // |near| − 1 still has ≥ 35 digits. That holds whenever the operands are the ≤ 34-digit results every

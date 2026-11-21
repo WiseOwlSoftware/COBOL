@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// derived from the rule it names, so a mutant of any one arm fails a case:
 /// <list type="bullet">
 /// <item>§2023:8.8.3.1 writes literal-1 / literal-2, and the two WORDS that stand for a literal are operands: a
-/// constant-name (§2023:13.10.3 SR2) and a symbolic-character (a figurative constant, §2023:12.3.7.4 GR11 a). They are admitted
+/// constant-name (§2023:13.10.3 SR2) and a symbolic-character (a figurative constant, §2023:12.3.7.4 GR11a. They are admitted
 /// in EVERY literal position, because the concatenation rule is one grammar alternative of the literal rule.</item>
 /// <item>§2023:8.8.3.3 GR1 is applied to each (accumulated, next) pair: the accumulated operand is a concatenation
 /// expression from the first pair on, so a class mix after two figuratives is §2023:8.8.3.2 SR1's COBOL1540.</item>

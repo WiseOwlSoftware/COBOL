@@ -100,8 +100,8 @@ public static class ZonedSign
         return false;
     }
 
-    /// <summary>§2023:13.18.52.4 GR5 b) — "The implementor defines what constitutes valid signs for data items", the set
-    /// §2023:8.8.4.4.4 GR3 n)1.a's closing sentence delegates here ("Valid operational signs are defined in 13.18.52,
+    /// <summary>§2023:13.18.52.4 GR5b — "The implementor defines what constitutes valid signs for data items", the set
+    /// §2023:8.8.4.4.4 GR3n1.a's closing sentence delegates here ("Valid operational signs are defined in 13.18.52,
     /// SIGN clause"): true when <paramref name="c"/> may stand at the SIGN POSITION of an unseparated signed DISPLAY
     /// item under <paramref name="encoding"/> — a plain digit (an item whose sign was never punched, e.g. one filled
     /// by a group MOVE), or any character of either table. Every OTHER character position must be a plain digit,

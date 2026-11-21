@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// stream is counter-only (§2023:13.18.34.4 GR8 — pages are contiguous, no margin spacing)". It is not. §2023:13.18.34.4 GR1
 /// makes the logical page the SUM of top margin + page body + bottom margin, GR4/GR5 name those margins as lines
 /// OF that page, and GR8's "no additional spacing" forbids spacing BEYOND the logical page rather than deleting
-/// the margins the page contains; §2023:14.9.51.4 GR25 g) then repositions an ADVANCING PAGE write to the next logical
+/// the margins the page contains; §2023:14.9.51.4 GR25g then repositions an ADVANCING PAGE write to the next logical
 /// page instead of emitting a form feed. Under the counter-only reading GR4 and GR5 had no content at all, and
 /// `LINES AT TOP` / `LINES AT BOTTOM` changed no byte of the output for the whole life of the connector while
 /// every test here stayed green (kb/Work PB523). The <c>Bytes_*</c> tests below close that hole: they assert the
@@ -71,7 +71,7 @@ public sealed class LinageConformanceTests
         {proc}
         """;
 
-    // ── The BYTES on the medium (§2023:13.18.34.4 GR1/GR4/GR5/GR8, §2023:14.9.51.4 GR25 g)/GR26 a)) ─────────────────
+    // ── The BYTES on the medium (§2023:13.18.34.4 GR1/GR4/GR5/GR8, §2023:14.9.51.4 GR25g/GR26 a)) ─────────────────
 
     /// <summary><see cref="WiseOwl.Cobol"/> at the shipping default edition, for the one fixture that needs a post-85 construct:
     /// ORGANIZATION IS LINE SEQUENTIAL is COBOL-2023 (§2023:12.4.5.10.3; COBOL0900 rejects it at --std 85). The
@@ -133,9 +133,9 @@ public sealed class LinageConformanceTests
     //   GR2  page body = 2 writable lines: page-1 physical 4-5 (body lines 1-2), page-2 physical 11-12.
     //   GR5  bottom margin = 2 lines: page-1 physical 6-7.
     //   GR7d counter := 1 at OPEN OUTPUT (device at body line 1).
-    // W1 AFTER ADVANCING 1 (§2023:14.9.51.4 GR25 f) advance then present, §2023:13.18.34.4 GR7 c) 2 counter += 1): counter 1→2, so
+    // W1 AFTER ADVANCING 1 (§2023:14.9.51.4 GR25f advance then present, §2023:13.18.34.4 GR7c 2 counter += 1): counter 1→2, so
     //    AAAA is on page-1 body line 2 = physical line 5.
-    // W2: counter would be 3, past the page size — §2023:14.9.51.4 GR26 a) page overflow, AFTER phrase, so "the
+    // W2: counter would be 3, past the page size — §2023:14.9.51.4 GR26a page overflow, AFTER phrase, so "the
     //    device is repositioned to the first line that may be written on the next logical page and the logical
     //    record is presented on that line": page-2 body line 1 = physical line 11. GR7 c) 4 resets the counter.
     // W3: counter 1→2 ⇒ page-2 body line 2 = physical line 12.
@@ -170,7 +170,7 @@ public sealed class LinageConformanceTests
             "\r\nAAAA\r\nBBBB\r\nCCCC\r\n");
 
     [Fact]
-    // ⛔ ADVANCING PAGE ON A LINAGE FILE IS A REPOSITION, NEVER A FORM FEED. §2023:14.9.51.4 GR25 g): "If PAGE is
+    // ⛔ ADVANCING PAGE ON A LINAGE FILE IS A REPOSITION, NEVER A FORM FEED. §2023:14.9.51.4 GR25g: "If PAGE is
     // specified and the LINAGE clause is specified in the associated file description entry, the record is
     // presented on the logical page before or after (depending on the phrase used) the device is repositioned
     // to the next logical page. The repositioning is to the first line that may be written on the next logical
@@ -191,7 +191,7 @@ public sealed class LinageConformanceTests
             "\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\nAAAA\r\nBBBB\r\n");
 
     [Fact]
-    // §2023:14.9.51.4 GR25 g)'s OTHER half — "the record is presented on the logical page BEFORE ... the device is
+    // §2023:14.9.51.4 GR25g's OTHER half — "the record is presented on the logical page BEFORE ... the device is
     // repositioned": BEFORE ADVANCING PAGE prints on the page it is standing on and only then leaves it. Same
     // FD as above (logical page 6 = 2 + 3 + 1).
     // W1 BEFORE ADVANCING PAGE: AAAA is presented at page-1 body line 1 = physical line 3 (the top margin, GR4,
@@ -208,7 +208,7 @@ public sealed class LinageConformanceTests
             "\r\n\r\nAAAA\r\n\r\n\r\n\r\n\r\n\r\n\r\nBBBB\r\n");
 
     [Fact]
-    // §2023:14.9.51.4 GR26 a)'s OTHER ordering, the one only a BEFORE phrase reaches: "If the BEFORE phrase is
+    // §2023:14.9.51.4 GR26a's OTHER ordering, the one only a BEFORE phrase reaches: "If the BEFORE phrase is
     // specified, the logical record is presented and the device is repositioned to the first line that may be
     // written on the next logical page." The AFTER arm can never show this, because it repositions first and so
     // never presents on the LAST line of a page body.
@@ -235,7 +235,7 @@ public sealed class LinageConformanceTests
 
     [Fact]
     // kb/Work PB864, on a print file with NO LINAGE clause — the plain print stream, where the one-flag defect
-    // was not tied to a logical page at all. §2023:14.9.51.4 GR25 e): "If the BEFORE phrase is used, the line is
+    // was not tied to a logical page at all. §2023:14.9.51.4 GR25e: "If the BEFORE phrase is used, the line is
     // presented before the representation of the printed page is advanced", so each record is followed by its
     // own advance and the last advance ends the file. No trailing blank line.
     public void Bytes_BeforeAdvancing_LastLineEndedByItsOwnAdvance_CloseAddsNothing()
@@ -335,14 +335,14 @@ public sealed class LinageConformanceTests
     // ⛔ THE SECOND ARM OF THE WRITE DISPATCH — a LINE SEQUENTIAL LINAGE file gets the SAME logical page. This is
     // the arm kb/Work PB523 found unfixed while its record-sequential twin was fixed: a plain WRITE there emitted
     // the record and a bare newline, so the margins never reached a line sequential medium. §2023:14.9.51.4 GR25 makes
-    // an omitted ADVANCING phrase a one-line advance and §2023:13.18.34.4 GR7 c) 3 adds one to the counter, so that
+    // an omitted ADVANCING phrase a one-line advance and §2023:13.18.34.4 GR7c 3 adds one to the counter, so that
     // newline IS the device travelling one line on the logical page.
     // FD: LINAGE IS 2 LINES LINES AT TOP 3 LINES AT BOTTOM 2 (page 1 = physical 1-7, page 2 starts at 8).
     // A plain WRITE is an AFTER ADVANCING 1 LINE (§2023:14.9.51.4 GR25: "automatic advancing shall be provided by the
     // implementor to act as if the user has specified AFTER ADVANCING 1 LINE"; kb/Work PB1027), so the file is
     // BYTE FOR BYTE the one Bytes_TopAndBottomMarginsAreLinesOfTheLogicalPage derives for the same FD with the
     // phrase spelled out: AAAA lands on page-1 body line 2 = physical 5 (GR25 f): the counter was 1 at OPEN,
-    // §2023:13.18.34.4 GR7 d), and the advance makes it 2, GR7 c) 3), BBBB's advance would reach body line 3, past the
+    // §2023:13.18.34.4 GR7d, and the advance makes it 2, GR7 c) 3), BBBB's advance would reach body line 3, past the
     // page size, so GR26 a) repositions to page-2 body line 1 = physical 11 and presents it there, and CCCC lands
     // on body line 2 = physical 12.
     public void Bytes_LineSequentialLinageFile_GetsTheSameMargins()
@@ -691,8 +691,8 @@ public sealed class LinageConformanceTests
 
     [Fact]   // SR18 names the END-OF-PAGE phrase (GR27 b)'s imperative-statement-1); SR19 and GR28 name the NOT
              // END-OF-PAGE phrase separately, so a NOT-only phrase beside ADVANCING PAGE is legal — and its
-             // imperative does not run, because ADVANCING PAGE is a page overflow (§2023:13.18.34.4 GR7 c) 1's implicit
-             // increment → §2023:14.9.51.4 GR26 a); kb/Work PB578). A plain write after it is the live control.
+             // imperative does not run, because ADVANCING PAGE is a page overflow (§2023:13.18.34.4 GR7c 1's implicit
+             // increment → §2023:14.9.51.4 GR26a; kb/Work PB578). A plain write after it is the live control.
     public void Sr18_AdvancingPageWithNotEopOnly_IsLegalAndTheEndOfPageConditionOccurs()
         => AssertSpec(Program("LINAGE IS 5 LINES", "", """
                 WRITE P-REC AFTER ADVANCING PAGE
@@ -789,7 +789,7 @@ public sealed class LinageConformanceTests
 
     // ── GR6 b)'s VALUE RULES and what a violation does (kb/Work PB525 + PB526) ────────────────────────────
     //
-    // §2023:13.18.34.4 GR6 b) 1 "The page size shall be greater than zero." and GR6 b) 2 "The footing start shall be
+    // §2023:13.18.34.4 GR6b 1 "The page size shall be greater than zero." and GR6 b) 2 "The footing start shall be
     // greater than zero and not greater than the page size.", then: "If the value does not conform to these two
     // rules, the EC-I-O-LINAGE exception condition is set to exist. If execution continues after processing of
     // this exception condition, it continues with the statement following the WRITE statement; the
@@ -797,7 +797,7 @@ public sealed class LinageConformanceTests
     // statements referencing the file cause the EC-I-O-LINAGE exception condition to continue to exist until the
     // file is closed."
     //
-    // EC-I-O-LINAGE is Fatal (Table 13) and §2023:14.6.13.1.3 3) routes a fatal EC-I-O condition through §2023:9.1.13's
+    // EC-I-O-LINAGE is Fatal (Table 13) and §2023:14.6.13.1.3 GR3 routes a fatal EC-I-O condition through §2023:9.1.13's
     // rules, which are rules about the I-O STATUS — so the violation reports one: '90', §2023:9.1.13.11's
     // implementor-defined value (docs/CONFORMANCE.md §7 DOC-A.1-110). That is what these tests read, because it
     // is what a program with NO >>TURN can see; the exception-NAME half is

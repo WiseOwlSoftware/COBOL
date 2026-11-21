@@ -165,7 +165,7 @@ public static class Table19
         (OpenRequestRow.AllOtherInput, ExistingSharingColumn.AllOtherInput) => OpenSharingOutcome.NormalOpen,
 
         // Row "SHARING WITH ALL OTHER / OUTPUT":                  U     |  U     |  U      |  U     |  U
-        // (§2023:9.1.13.9 1) e): "An attempt is made to open a physical file in the output mode and the physical file
+        // (§2023:9.1.13.9 GR1e: "An attempt is made to open a physical file in the output mode and the physical file
         // is currently open by another file connector" — the sub-case that had no implementation at all.)
         (OpenRequestRow.AllOtherOutput, ExistingSharingColumn.NoOtherAnyMode) => OpenSharingOutcome.UnsuccessfulOpen,
         (OpenRequestRow.AllOtherOutput, ExistingSharingColumn.ReadOnlyNonInput) => OpenSharingOutcome.UnsuccessfulOpen,

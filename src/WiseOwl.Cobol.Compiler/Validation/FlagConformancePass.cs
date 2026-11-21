@@ -76,7 +76,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     // has an INPUT / I-O one (the AT-END rule). Reset per program unit and per method (a contained one does not inherit).
     private bool _hasAnyModeDecl;
     private bool _hasReadModeDecl;
-    // FLAG-02 b EC-PROGRAM-EXCEPTIONS (§2023:7.3.14.4 GR4 b): the SOURCE ELEMENTS of the compilation group (§2023:3.164 — a source
+    // FLAG-02 b EC-PROGRAM-EXCEPTIONS (§2023:7.3.14.4 GR4b: the SOURCE ELEMENTS of the compilation group (§2023:3.164 — a source
     // unit excluding any contained source units: a program, a function, a contained program, a class, an interface and
     // a method definition each), in source order, each recording whether its own text calls a function or invokes a
     // method. A >>TURN directive for an EC-PROGRAM-family exception is flagged (post-walk) when the source element it
@@ -96,7 +96,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     }
 
     /// <summary>The EC-PROGRAM-family exception-names whose <c>&gt;&gt;TURN</c> directive FLAG-02 b flags
-    /// (§2023:7.3.14.4 GR4 b) — EC-ALL plus the three EC-PROGRAM level-3 names.</summary>
+    /// (§2023:7.3.14.4 GR4b — EC-ALL plus the three EC-PROGRAM level-3 names.</summary>
     private static readonly IReadOnlySet<string> EcProgramFamily =
         new HashSet<string>(CobolNames.Comparer)
         { "EC-ALL", "EC-PROGRAM", "EC-PROGRAM-ARG-OMITTED", "EC-PROGRAM-NOT-FOUND" };
@@ -170,7 +170,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         pass.FlagEcProgramDirectives();   // b EC-PROGRAM-EXCEPTIONS — cross-ref >>TURN lines with the source elements that call/invoke
     }
 
-    /// <summary>FLAG-02 b EC-PROGRAM-EXCEPTIONS (§2023:7.3.14.4 GR4 b) — flag EACH <c>&gt;&gt;TURN</c> directive that names an
+    /// <summary>FLAG-02 b EC-PROGRAM-EXCEPTIONS (§2023:7.3.14.4 GR4b — flag EACH <c>&gt;&gt;TURN</c> directive that names an
     /// EC-PROGRAM-family exception when the source element it belongs to calls a function or invokes a method. Runs
     /// after the walk: the directive lines come from <see cref="TurnState"/> (a frontend event, not a parse node), and
     /// the elements' call facts were collected during the walk. Each warning is positioned AT its directive's line, so
@@ -267,7 +267,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         _hasReadModeDecl = declaratives.Any(d => d.ModeIndex == (int)FileOpenMode.Input || d.ModeIndex == (int)FileOpenMode.IO);
     }
 
-    // ── FLAG-02 b EC-PROGRAM-EXCEPTIONS (§2023:7.3.14.4 GR4 b) — record that the current source element calls a function
+    // ── FLAG-02 b EC-PROGRAM-EXCEPTIONS (§2023:7.3.14.4 GR4b — record that the current source element calls a function
     //    (a FUNCTION activation, a keyword-omitted function-identifier §2023:8.4.3.2.3 SR2) or invokes a method (INVOKE,
     //    the §2023:8.4.3.4 inline method invocation, or a §2023:8.4.3.9 property reference, whose accessor is a method). The
     //    >>TURN directives are flagged post-walk (FlagEcProgramDirectives), keyed on the source element they belong to. ──
@@ -329,7 +329,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         Flag(option, line, where);
     }
 
-    // ── FLAG-14 h READ-PREVIOUS (§2023:7.3.15.4 GR4 h) — a READ … PREVIOUS (sequential or keyed; the parse rule is
+    // ── FLAG-14 h READ-PREVIOUS (§2023:7.3.15.4 GR4h — a READ … PREVIOUS (sequential or keyed; the parse rule is
     //    common). Purely syntactic. ──
     public override object? VisitReadStatement(CobolParserCore.ReadStatementContext ctx)
     {
@@ -353,7 +353,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         return base.VisitChildren(ctx);
     }
 
-    // ── FLAG-02 c I-O-STATUS-07 (§2023:7.3.14.4 GR4 c) — a CLOSE specifying WITH NO REWIND or the REEL/UNIT phrase
+    // ── FLAG-02 c I-O-STATUS-07 (§2023:7.3.14.4 GR4c — a CLOSE specifying WITH NO REWIND or the REEL/UNIT phrase
     //    (§2023:14.9.6.3 SR2 makes REEL and UNIT one phrase). Purely syntactic; one flag per CLOSE statement. ──
     public override object? VisitCloseStatement(CobolParserCore.CloseStatementContext ctx)
     {
@@ -461,7 +461,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         return base.VisitChildren(ctx);
     }
 
-    // ── FLAG-14 b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4 b) at the CONSTANT entry — arithmetic-expression-1
+    // ── FLAG-14 b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4b at the CONSTANT entry — arithmetic-expression-1
     //    of `CONSTANT AS …` is a compile-time arithmetic expression (§2023:7.3.6.1; "may be specified in the DEFINE and
     //    EVALUATE directives, in a constant conditional expression, and in a constant entry"). The directive operands
     //    are flagged at the conditional-compilation stage; this is the one site that stage never sees. Both ask
@@ -475,7 +475,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         return base.VisitChildren(ctx);
     }
 
-    // ── FLAG-14 m WRITE-END-OF-PAGE (§2023:7.3.15.4 GR4 m) — a WRITE that ALLOWS an END-OF-PAGE phrase (its file has a
+    // ── FLAG-14 m WRITE-END-OF-PAGE (§2023:7.3.15.4 GR4m — a WRITE that ALLOWS an END-OF-PAGE phrase (its file has a
     //    LINAGE clause, §2023:14.9.51) but does not specify it. "The END-OF-PAGE phrase" is the positive AT END-OF-PAGE
     //    phrase: §2023:14.9.51.3 SR19 names it and the NOT END-OF-PAGE phrase separately, so a WRITE written with only the
     //    NOT phrase does not specify it. The "allows EOP" fact is the LINAGE of the file the WRITE resolves to in the
@@ -518,7 +518,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     }
 
     /// <summary>Rule 1 of GR4 d — flag a statement that CAN be specified with an INVALID KEY phrase
-    /// (<see cref="IoPhraseAdmission.AdmitsInvalidKey"/>: §2023:7.3.15.4 GR4 d) "can be specified with an INVALID KEY
+    /// (<see cref="IoPhraseAdmission.AdmitsInvalidKey"/>: §2023:7.3.15.4 GR4d "can be specified with an INVALID KEY
     /// phrase") but lacks it, when the unit has ANY open-mode USE declarative.</summary>
     private void IoDeclarativeInvalidKey(InvalidKeyVerb verb, bool phrasePresent, FileModel? file, int line)
     {
@@ -548,7 +548,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         return _currentData?.Symbols.FileWhoseRecordIs(item);
     }
 
-    // ── FLAG-02 f TERMINATE-WITH-VARYING (§2023:7.3.14.4 GR4 f) — a TERMINATE of a report whose description contains a
+    // ── FLAG-02 f TERMINATE-WITH-VARYING (§2023:7.3.14.4 GR4f — a TERMINATE of a report whose description contains a
     //    VARYING clause (§2023:13.18.64). Flagged once per TERMINATE when any named report carries a VARYING; each named
     //    report is the one of the current unit's scope (its own, or a container's GLOBAL one: Reports.Visible). ──
     public override object? VisitTerminateStatement(CobolParserCore.TerminateStatementContext ctx)
@@ -563,11 +563,11 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         return base.VisitChildren(ctx);
     }
 
-    // ── FLAG-02 d MOVE-TO-SAME-NAME (§2023:7.3.14.4 GR4 d) — a MOVE whose sending and a receiving operand are described
+    // ── FLAG-02 d MOVE-TO-SAME-NAME (§2023:7.3.14.4 GR4d — a MOVE whose sending and a receiving operand are described
     //    by the SAME data description entry (symbol identity: both resolve to the one <see cref="DataItem"/>, so
     //    differing subscripts / ref-mod of one item still count — §2023:14.9.39 "same data description entry"), when that
     //    DDE is (1) of category alphanumeric-edited — the category of the OPERANDS, so a reference-modified operand
-    //    (alphanumeric, §2023:8.4.3.3.4 GR6 a) does not meet it — or (2) has a subordinate OCCURS…DEPENDING whose DEPENDING
+    //    (alphanumeric, §2023:8.4.3.3.4 GR6a does not meet it — or (2) has a subordinate OCCURS…DEPENDING whose DEPENDING
     //    item is subordinate to it. Resolved in the CURRENT unit's scope (VisitUnit). ──
     public override object? VisitMoveStatement(CobolParserCore.MoveStatementContext ctx)
     {
@@ -622,7 +622,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     /// subordinate to it (§2023:13.18.38 — a group moved to itself whose length depends on a count inside the moved region;
     /// a property of the entry, which a reference modification does not change).
     /// <para>⛔ NATIONAL-EDITED IS DELIBERATELY ABSENT, and it is not the PB492 oversight it looks like: §2023:7.3.14.4
-    /// GR4 d) 1. names "category alphanumeric-edited" and stops, while §2023:14.9.25.4 GR6 b) 1. — the rule about the
+    /// GR4 d) 1. names "category alphanumeric-edited" and stops, while §2023:14.9.25.4 GR6b.1 — the rule about the
     /// same overlap — names "alphanumeric-edited or national-edited". The FLAG is narrower than the undefined
     /// behaviour it flags, in the printed standard, so this reads <see cref="PicInfo.EditMask"/> beside the
     /// ALPHANUMERIC category rather than <c>PicInfo.IsCharacterEdited</c>. Widening it would flag conforming
@@ -631,7 +631,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         => (!operandsRefModified && item.Pic is { Category: PicCategory.Alphanumeric, EditMask: not null })
         || (OdoModel.TableUnder(item) is { OccursSpec.Depending: { } dep } && OdoModel.IsWithin(dep, item));
 
-    // ── FLAG-02 e RANGE-EXCEPTION-FOR-INDEX (§2023:7.3.14.4 GR4 e) — a Format-1 index-assignment (SET … TO) or Format-2
+    // ── FLAG-02 e RANGE-EXCEPTION-FOR-INDEX (§2023:7.3.14.4 GR4e — a Format-1 index-assignment (SET … TO) or Format-2
     //    index-arithmetic (SET … UP/DOWN BY) whose receiving field is an INDEX-NAME, flagged when EC-RANGE-INDEX
     //    checking is enabled. **Only an index-NAME receiver range-checks** (§2023:14.9.39.4 Format-1 GR2a / Format-2 GR4a):
     //    a class-index DATA item (USAGE INDEX) receiver copies its value UNCHANGED (Format-1 GR2b) and never raises

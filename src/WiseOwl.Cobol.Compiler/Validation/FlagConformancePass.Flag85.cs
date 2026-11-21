@@ -77,7 +77,7 @@ internal sealed partial class FlagConformancePass
         return Arithmetic(sig.ArgKind(0)) && Arithmetic(sig.ArgKind(1));
     }
 
-    // ── FLAG-85 b CORRESPONDING (§2002:7.2.11.3 GR4 b): an ADD, MOVE or SUBTRACT with the CORRESPONDING phrase, when
+    // ── FLAG-85 b CORRESPONDING (§2002:7.2.11.3 GR4b: an ADD, MOVE or SUBTRACT with the CORRESPONDING phrase, when
     //    "subscripting with other than a constant is specified on any of the operands". A constant is a numeric literal. ──
     private void FlagCorresponding(int line, params CobolParserCore.DataReferenceContext?[] operands)
     {
@@ -131,7 +131,7 @@ internal sealed partial class FlagConformancePass
         return base.VisitChildren(ctx);
     }
 
-    // ── FLAG-85 d DIVIDE (§2002:7.2.11.3 GR4 d): a DIVIDE with the REMAINDER phrase, "if the quotient data item is not
+    // ── FLAG-85 d DIVIDE (§2002:7.2.11.3 GR4d: a DIVIDE with the REMAINDER phrase, "if the quotient data item is not
     //    described with a sign … and either the divisor or dividend is described with a sign". The quotient is the GIVING
     //    item (REMAINDER is a GIVING-format phrase); the dividend and the divisor are the statement's other two operands,
     //    whichever of INTO / BY names them. ──
@@ -193,7 +193,7 @@ internal sealed partial class FlagConformancePass
         return 0;
     }
 
-    // ── FLAG-85 h SET (§2002:7.2.11.3 GR4 h): "If a condition-setting format SET statement references a variable length
+    // ── FLAG-85 h SET (§2002:7.2.11.3 GR4h: "If a condition-setting format SET statement references a variable length
     //    group item". The condition-name's conditional variable is the item the statement references; a variable-length
     //    group is a group holding an OCCURS … DEPENDING ON table. ──
     public override object? VisitSetBooleanStatement(CobolParserCore.SetBooleanStatementContext ctx)
@@ -223,7 +223,7 @@ internal sealed partial class FlagConformancePass
         return base.VisitChildren(ctx);
     }
 
-    // ── FLAG-85 k ZERO-LENGTH (§2002:7.2.11.3 GR4 k): "A READ statement that could return a zero-length item or any statement
+    // ── FLAG-85 k ZERO-LENGTH (§2002:7.2.11.3 GR4k: "A READ statement that could return a zero-length item or any statement
     //    that references a data item that could be a zero-length item". "Could be" is the DESCRIPTION's answer — a minimum
     //    length of zero (DataItem.MinimumLengthIsZero, the first half of §2023:8.5.4) — and a file whose smallest record
     //    could have no character positions (FileModel.VaryMin). ──

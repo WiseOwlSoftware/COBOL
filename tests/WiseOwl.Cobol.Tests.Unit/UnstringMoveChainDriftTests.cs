@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB979 — UNSTRING's stores ARE moves. ISO §2023:14.9.48.4 GR11 c): the examined characters "shall be treated
+/// kb/Work PB979 — UNSTRING's stores ARE moves. ISO §2023:14.9.48.4 GR11c: the examined characters "shall be treated
 /// as an elementary national data item if identifier-1 is of category national, and otherwise as an elementary
 /// alphanumeric data item, and shall be moved into the current receiving area according to the rules for the MOVE
 /// statement"; GR11 d) says the same of the delimiting characters. The defect was a private per-category copy of

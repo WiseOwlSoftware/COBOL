@@ -27,21 +27,21 @@ namespace WiseOwl.Cobol.Runtime.IO;
 public enum PhysicalFileCategory
 {
     /// <summary>(a) Non-unit — <i>"A file whose input or output medium is such that the concepts of rewind and
-    /// units have no meaning."</i> (§2023:14.9.6.4 GR2 a). Every <see cref="SequentialConnector"/> file: a host path
+    /// units have no meaning."</i> (§2023:14.9.6.4 GR2a. Every <see cref="SequentialConnector"/> file: a host path
     /// on mass storage, with no reel, unit or volume behind it.</summary>
     NonUnit,
 
     /// <summary>(b) Sequential single-unit — <i>"A sequential file that is entirely contained on one unit."</i>
-    /// (§2023:14.9.6.4 GR2 b). ⛔ NO SUPPORTED MEDIUM IS IN THIS CATEGORY (see the type remarks); the arm exists so
+    /// (§2023:14.9.6.4 GR2b. ⛔ NO SUPPORTED MEDIUM IS IN THIS CATEGORY (see the type remarks); the arm exists so
     /// that adding one is a compile-time obligation rather than a silent omission.</summary>
     SequentialSingleUnit,
 
     /// <summary>(c) Sequential multi-unit — <i>"A sequential file that is contained on more than one unit."</i>
-    /// (§2023:14.9.6.4 GR2 c). ⛔ NO SUPPORTED MEDIUM IS IN THIS CATEGORY.</summary>
+    /// (§2023:14.9.6.4 GR2c. ⛔ NO SUPPORTED MEDIUM IS IN THIS CATEGORY.</summary>
     SequentialMultiUnit,
 
     /// <summary>(d) Non-sequential single/multi-unit — <i>"A file with organization other than sequential, that
-    /// resides on a mass storage device."</i> (§2023:14.9.6.4 GR2 d). Every <see cref="RelativeConnector"/> and
+    /// resides on a mass storage device."</i> (§2023:14.9.6.4 GR2d. Every <see cref="RelativeConnector"/> and
     /// <see cref="IndexedConnector"/> file.</summary>
     NonSequential,
 }

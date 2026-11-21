@@ -14,8 +14,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>ALL OTHER</c> — MAKES EVERY PAGE WRITE OF A STATEMENT INSIDE THE STORE MUTEX, AND GIVES THE MUTEX BACK WHEN THE
 /// HOST REFUSES ONE (kb/Work PB3414; the behavioural witness of traceability row GR-14.9.51.4-12's keyed half).
 ///
-/// <para><b>The rule.</b> §2023:9.1.15 1): <i>"The sharing with no other mode specifies exclusive access to a physical
-/// file"</i>; every other mode admits another run unit's connector, and §2023:9.1.15 2) admits an INPUT one beside a
+/// <para><b>The rule.</b> §2023:9.1.15 GR1: <i>"The sharing with no other mode specifies exclusive access to a physical
+/// file"</i>; every other mode admits another run unit's connector, and §2023:9.1.15 GR2 admits an INPUT one beside a
 /// <c>SHARING WITH READ ONLY</c> writer. §2023:14.9.51.4 GR12 releases a written record to the operating environment at the
 /// WRITE. The keyed store engine writes the statement's tree pages and then page 2, which names the trees
 /// (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.6, 2.2.1.7); a reader that followed the tree between those
@@ -96,7 +96,7 @@ public sealed class ReadOnlyKeyedWriterStoreMutexTests
     /// <summary>A WRITE, a REWRITE and a DELETE of a writer admitting another run unit — <c>READ ONLY</c> and
     /// <c>ALL OTHER</c> alike, on the machine's region host and on the lock-file host — make every page write and sync
     /// inside the store mutex: a WRITE of a new record writes at least its tree page and page 2, and the mutex is held at
-    /// each. The INPUT reader of another run unit open beside the writer (§2023:9.1.15 2)) reads the tree as it stood before
+    /// each. The INPUT reader of another run unit open beside the writer (§2023:9.1.15 GR2) reads the tree as it stood before
     /// each statement and as the statement left it, record by record.</summary>
     [Theory]
     [MemberData(nameof(Shapes))]

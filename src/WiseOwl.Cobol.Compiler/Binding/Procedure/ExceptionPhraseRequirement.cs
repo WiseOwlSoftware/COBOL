@@ -16,7 +16,7 @@ using Core = CobolParserCore;
 /// X3.23-1985 closes the syntax rules of READ, WRITE, REWRITE, DELETE and START with one rule of the same shape — "The
 /// INVALID KEY phrase or the AT END phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is
 /// specified for file-name-1" (§1985:IX.4.5.3 SR7) — and qualifies it for REWRITE and DELETE by the access mode
-/// (§1985:VIII.4.6.3 SR4, §1985:VIII.4.3.3 SR2). COBOL-2002 and later print no such rule (§2023:14.9.30.4 GR24 d)
+/// (§1985:VIII.4.6.3 SR4, §1985:VIII.4.3.3 SR2). COBOL-2002 and later print no such rule (§2023:14.9.30.4 GR24d
 /// sends control to the end of the statement when neither a phrase nor a declarative takes the exception), so the
 /// requirement is the 1985 dialect's alone.
 /// <para><b>The rule has two halves and this type owns both.</b> WHICH statements need the phrase is the rule's
@@ -70,7 +70,7 @@ internal sealed class ExceptionPhraseRequirement(BinderContext ctx)
     /// <summary>Does a USE declarative of this unit (or a containing program's GLOBAL one) apply to <paramref name="file"/>: it names the
     /// file, or it is scoped to an open mode (INPUT, OUTPUT, I-O, EXTEND). The file may be in ANY mode when a statement
     /// executes, a mode the statement does not suit included: a READ of a file open OUTPUT raises status 47, which a USE
-    /// ON OUTPUT procedure takes (§1985:VII.4.6.4 GR5 c), and CCVS-85's SQ148A is written on exactly that. So a mode
+    /// ON OUTPUT procedure takes (§1985:VII.4.6.4 GR5c, and CCVS-85's SQ148A is written on exactly that. So a mode
     /// declarative is applicable to every statement of every file that can be open in that mode: INPUT, OUTPUT and I-O
     /// cover every file (a DELETE, REWRITE or START of a file open in the mode raises its exception to that procedure), but
     /// EXTEND only a file that can be opened EXTEND (<see cref="FileModel.CanOpenExtend"/>; §1985:VIII.4.8.4 GR5: the procedure

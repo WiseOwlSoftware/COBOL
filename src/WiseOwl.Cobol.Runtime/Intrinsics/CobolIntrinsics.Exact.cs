@@ -58,7 +58,7 @@ public static partial class CobolIntrinsics
     public static Int128 Factorial(long n)
     {
         if (n < 0)                                           // EC-ARGUMENT-FUNCTION raise point / §2023:15.3 default 0
-            return Exceptions.ExceptionState.ArgumentError($"FACTORIAL argument {n} violates §2023:15.36.3 rule 1 (shall be an integer greater than or equal to zero)");
+            return Exceptions.ExceptionState.ArgumentError($"FACTORIAL argument {n} violates §2023:15.36.3 AR1 (shall be an integer greater than or equal to zero)");
         if (n > 33)
             throw new CobolSizeError($"FACTORIAL({n}) exceeds the native Int128 intermediate (33! is the "
                 + "largest representable factorial; ISO §2023:15.36.4 r1c evaluated per §2023:8.8.1.3)", "EC-SIZE-OVERFLOW");
@@ -146,12 +146,12 @@ public static partial class CobolIntrinsics
     /// agree on it.</para>
     /// </remarks>
     internal static long ModZeroDivisor() =>
-        Exceptions.ExceptionState.ArgumentError("MOD with a zero divisor (ISO §2023:15.64.3 rule 2)");
+        Exceptions.ExceptionState.ArgumentError("MOD with a zero divisor (ISO §2023:15.64.3 AR2)");
 
     /// <summary>The §2023:15.77.3 r2 zero-divisor rule — one raise site for REM, whichever carrier evaluates it
     /// (see <see cref="ModZeroDivisor"/> for why this is not written per body).</summary>
     internal static long RemZeroDivisor() =>
-        Exceptions.ExceptionState.ArgumentError("REM with a zero divisor (ISO §2023:15.77.3 rule 2)");
+        Exceptions.ExceptionState.ArgumentError("REM with a zero divisor (ISO §2023:15.77.3 AR2)");
 
     /// <summary>MOD (§2023:15.64.4): <c>a − b × FUNCTION INTEGER(a / b)</c> — the floored modulus (the spec NOTE's sign
     /// table: −11 MOD 5 = 4, 11 MOD −5 = −4). Operands aligned to one scale, result at that scale (0 for the §2023:15.64.3
@@ -251,10 +251,10 @@ public static partial class CobolIntrinsics
     /// an arithmetic operation on the intermediate data item would cause the new value to be outside of the
     /// allowed range". §2023:8.8.1.3 makes native arithmetic implementor-defined, D1 defines the intermediate as
     /// Int128 and declares its range CHECKED, and r5 then makes each step past it the size error condition
-    /// exactly. PB32's original message cited "§2023:8.8.1.2 rule 7" — a REAL clause answering a DIFFERENT question
+    /// exactly. PB32's original message cited "§2023:8.8.1.2 GR7" — a REAL clause answering a DIFFERENT question
     /// (arithmetic expressions are exempt from the composite-of-operands limit; every other citation of r7 in the
     /// tree uses it correctly for that). Corrected by kb/Work PB252; it had been user-visible text.</para>
-    /// <para>Left-to-right accumulation is normative (§2023:8.8.1.2 rule 3), so a partial sum that escapes the carrier
+    /// <para>Left-to-right accumulation is normative (§2023:8.8.1.2 GR3), so a partial sum that escapes the carrier
     /// IS an r5 size error even when later terms would bring the total back inside — the modular cancellation the
     /// old unchecked <c>s += x</c> happened to deliver for such a list was never the standard's answer, it was
     /// two's complement's.</para>
@@ -485,7 +485,7 @@ public static partial class CobolIntrinsics
         return CobolDec.FromParsed(p.Neg ? -p.Unscaled : p.Unscaled, p.Exp - p.Frac, mode);
     }
 
-    /// <summary>NUMVAL-F's value converted ONCE into a BINARY32 receiver of an ACCEPT device transfer (ISO §2023:14.6.8.3 rule 2: "in a manner
+    /// <summary>NUMVAL-F's value converted ONCE into a BINARY32 receiver of an ACCEPT device transfer (ISO §2023:14.6.8.3 GR2: "in a manner
     /// consistent with the specifications of ISO/IEC 60559:2020" — one correctly rounded conversion; kb/Work
     /// PB1110): <see cref="CobolFloat.ScaledToSingle"/> of the scan's exact (significand, scale). Narrowing
     /// <see cref="NumvalFDouble"/> would round twice — a text a hair above a binary32 midpoint lands ON that
@@ -552,7 +552,7 @@ public static partial class CobolIntrinsics
         Exceptions.ExceptionState.ArgumentError(
             $"NUMVAL-C argument-2 \"{currency}\" shall contain at least one non-space character and none "
             + "of the digits 0-9, the characters '*' '+' '-' ',' '.', or the letter pair CR/DB in any "
-            + "case (§2023:15.68.3 rule 2)");
+            + "case (§2023:15.68.3 AR2)");
 
     /// <summary>The §2023:15.68 reject projection of <see cref="NumvalCDec"/> (see <see cref="NumvalReject"/>).</summary>
     private static Int128 NumvalCReject(NvParse p, string text, int digitCap) =>
@@ -613,7 +613,7 @@ public static partial class CobolIntrinsics
             Exceptions.ExceptionState.ArgumentError(
                 $"TEST-NUMVAL-C argument-2 \"{currency}\" shall contain at least one non-space character and "
                 + "none of the digits 0-9, the characters '*' '+' '-' ',' '.', or the letter pair CR/DB in "
-                + "any case (§2023:15.68.3 rule 2 via §2023:15.94.3 rule 1)");
+                + "any case (§2023:15.68.3 AR2 via §2023:15.94.3 AR1)");
             return text.Length + 1;
         }
         return NvScan(text, commaMode, currency, anycase, digitCap, allowGroup: true, classification).ErrPos;
@@ -702,9 +702,9 @@ public static partial class CobolIntrinsics
                          || (c is 'D' or 'd' && text[i + 1] is 'B' or 'b'))) { neg = true; i += 2; }
             // A C or D that opens the CR / DB pair but is not completed (only when no leading sign was taken: with
             // one, CR/DB is not admitted at all and the C or D itself is the character in error): the C or D is a
-            // valid prefix, so the first character in error is the one that fails to complete it (§2023:15.93.4 1) b) -
+            // valid prefix, so the first character in error is the one that fails to complete it (§2023:15.93.4 RV1b -
             // "12CX" → 4, "1 D B" → 4), and when the text ends right after it the argument is valid but incomplete
-            // (§2023:15.93.4 1) c), NOTE: LENGTH+1 - "4.5 D" → 6).
+            // (§2023:15.93.4 RV1c, NOTE: LENGTH+1 - "4.5 D" → 6).
             else if (!leadSign && c is 'C' or 'c' or 'D' or 'd') return new(i + 1 < n ? i + 2 : n + 1, false, false, 0, 0);
             else return new(i + 1, false, false, 0, 0);               // r1b — first char in error ("0 1" → 3)
         }

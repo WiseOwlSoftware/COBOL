@@ -52,7 +52,7 @@ public static class CobolFloat
     }
 
     /// <summary>⛔ THE ONE scaled-value→binary32 conversion (kb/Work PB1110): the CORRECTLY-ROUNDED binary32 of the
-    /// algebraic value <c>unscaled × 10^(−scale)</c> in ONE rounding (ISO §2023:14.6.8.3 rule 2: "in a manner consistent
+    /// algebraic value <c>unscaled × 10^(−scale)</c> in ONE rounding (ISO §2023:14.6.8.3 GR2: "in a manner consistent
     /// with the specifications of ISO/IEC 60559:2020", one conversion under roundTiesToEven). Narrowing
     /// <see cref="ScaledToDouble"/> is a SECOND rounding: a value a hair above a binary32 midpoint rounds onto the
     /// midpoint in binary64 and the cast then ties to even, storing the lower neighbour. When the unscaled magnitude
@@ -125,16 +125,16 @@ public static class CobolFloat
 
     /// <summary>The checked store of a MOVE algebraic value that is a FIXED-POINT scaled sender into a SINGLE-precision
     /// receiver, converted ONCE by <see cref="ScaledToSingle"/> (kb/Work PB1110). A scaled value is never
-    /// ±Infinity, so an infinite result IS the overflow past the single-precision range (§2023:14.9.25.4 GR6 d)4.a).</summary>
+    /// ±Infinity, so an infinite result IS the overflow past the single-precision range (§2023:14.9.25.4 GR6d4.a).</summary>
     public static float StoreScaledSingleChecked(float converted)
     {
         if (float.IsInfinity(converted))
-            ExceptionState.FloatOverflowError("a MOVE algebraic value overflows the single-precision float receiver (ISO §2023:14.9.25.4 GR6 d)4.a)");
+            ExceptionState.FloatOverflowError("a MOVE algebraic value overflows the single-precision float receiver (ISO §2023:14.9.25.4 GR6d4.a)");
         return converted;
     }
 
     /// <summary>The checked store of a MOVE algebraic value into a SINGLE-precision float receiver (ISO
-    /// §2023:14.9.25.4 GR6 d)4.a): cast to <see cref="float"/> and, when a FINITE source overflows the single-precision
+    /// §2023:14.9.25.4 GR6d4.a): cast to <see cref="float"/> and, when a FINITE source overflows the single-precision
     /// exponent range to ±Infinity and EC-DATA-OVERFLOW checking is enabled, raise the fatal EC-DATA-OVERFLOW (via
     /// <see cref="ExceptionState.FloatOverflowError"/>). The <c>double.IsFinite(src)</c> guard keeps a NaN/±Infinity
     /// source out of overflow (that is EC-DATA-NOT-FINITE at the sending read, or the valid §2023:14.6.8.3 GR1 result under
@@ -147,12 +147,12 @@ public static class CobolFloat
     {
         float r = (float)src;
         if (double.IsFinite(src) && float.IsInfinity(r))
-            ExceptionState.FloatOverflowError("a MOVE algebraic value overflows the single-precision float receiver (ISO §2023:14.9.25.4 GR6 d)4.a)");
+            ExceptionState.FloatOverflowError("a MOVE algebraic value overflows the single-precision float receiver (ISO §2023:14.9.25.4 GR6d4.a)");
         return r;
     }
 
     /// <summary>The checked store of a MOVE algebraic value that is a STANDARD-DECIMAL intermediate into a float
-    /// receiver (ISO §2023:14.9.25.4 GR6 d)4.a; kb/Work PB271).
+    /// receiver (ISO §2023:14.9.25.4 GR6d4.a; kb/Work PB271).
     /// <para>⛔ THE TEST IS ON THE ALGEBRAIC VALUE, WHICH MEANS IT MUST HOLD THE <see cref="CobolDec"/> — after
     /// <see cref="CobolDec.ToDouble"/> the magnitude is gone. An SDIDI reaches ±9.999…E+6144, twenty decades past
     /// binary64 and 6100 past binary32, so <c>MOVE 1.0E+400 TO F</c> collapsed to ±Infinity at the conversion and
@@ -168,7 +168,7 @@ public static class CobolFloat
     /// <c>&gt; MaxValue</c> comparison would get wrong.</para>
     /// <para>SCOPE. GR6 d)4.a binds a receiver "described with a standard floating-point usage" — FLOAT-BINARY-32
     /// and FLOAT-BINARY-64 here (§2023:13.18.60.4 GR14/GR15). For COMP-1/COMP-2/FLOAT-SHORT/FLOAT-LONG/FLOAT-EXTENDED
-    /// §2023:14.6.8.3 rule 1 instead says "the implementor specifies any exception conditions that might be set to
+    /// §2023:14.6.8.3 GR1 instead says "the implementor specifies any exception conditions that might be set to
     /// exist during data conversion" (cite.py-verified), and WiseOwl COBOL's determination is the SAME condition —
     /// one rule for every float receiver, published in CONFORMANCE.md. The single-precision arm has raised it for
     /// COMP-1 since D21, so this makes the family consistent rather than adding a second regime.</para></summary>
@@ -179,7 +179,7 @@ public static class CobolFloat
         if (double.IsInfinity(r))
             ExceptionState.FloatOverflowError("a MOVE algebraic value is farther from zero than the "
                 + (single ? "single" : "double") + "-precision float receiver's usage permits "
-                + "(ISO §2023:14.9.25.4 GR6 d)4.a)");
+                + "(ISO §2023:14.9.25.4 GR6d4.a)");
         return r;
     }
 
@@ -187,7 +187,7 @@ public static class CobolFloat
 
     /// <summary>The EXACT value of a finite binary64 at <paramref name="scale"/> fraction digits, rounded per
     /// <paramref name="mode"/>, WHEN that value fits the <see cref="Int128"/> carrier — the ONE landing every
-    /// float→fixed transfer is defined by (kb/Work PB623). ISO §2023:14.6.8.2 rule 1 makes it a rule and not a
+    /// float→fixed transfer is defined by (kb/Work PB623). ISO §2023:14.6.8.2 GR1 makes it a rule and not a
     /// latitude: "If the sending operand is an intermediate data item or a data item described with a standard
     /// floating-point usage, the value is treated as if it had been converted to a fixed-point value"
     /// (cite.py-verified) — THE VALUE, which for a binary64 is the exact ±man·2^exp it holds and always a
@@ -209,13 +209,13 @@ public static class CobolFloat
     /// exactly with man &lt; 2^53 (<see cref="Decompose"/>), so v·10^scale = ±man·5^scale·2^(exp+scale): ONE
     /// integer multiply and ONE shift, both exact in the carrier whenever man·5^scale fits it. man &lt; 2^53 and
     /// 5^31 &lt; 2^72 give man·5^scale &lt; 2^125 &lt; 2^127 for every scale ≤ 31 — which covers every PICTURE
-    /// fraction, since §2023:13.18.40.3 rule 14 caps a PICTURE at 31 digit positions ("For data items of category
+    /// fraction, since §2023:13.18.40.3 SR14 caps a PICTURE at 31 digit positions ("For data items of category
     /// numeric, and for fixed-point data items of category numeric-edited, the number of digit positions described
     /// by character-string-1 shall range from 1 through 31", cite.py-verified). A wider scale, a shift
     /// past the carrier, or a negative scale (a trailing-P receiver, whose 5^|scale| is a DIVISOR) falls to the
     /// same expansion over <see cref="BigInteger"/>. No binary64 multiply is left anywhere in the landing.</para>
     /// <para>ROUNDING MODE PROHIBITED is never landed cut: an inexact value raises
-    /// <see cref="CobolSizeError.ProhibitedInexact"/> from <c>RoundDiv</c>'s one rounding decision (§2023:14.7.4.3 rule 7 —
+    /// <see cref="CobolSizeError.ProhibitedInexact"/> from <c>RoundDiv</c>'s one rounding decision (§2023:14.7.4.3 GR7 —
     /// the resultant identifier is unchanged; kb/Work PB3990), for the checked, unchecked and intermediate forms alike.
     /// It is asked of the EXACT ratio (<see cref="ExactRatio"/>, kb/Work PB623), never of a binary64 product, which
     /// cannot answer it: the double nearest 0.1 does NOT fit one fraction digit, yet <c>0.1 * 10.0</c> is exactly 1.0

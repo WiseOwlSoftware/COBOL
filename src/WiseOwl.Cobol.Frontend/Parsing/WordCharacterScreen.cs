@@ -52,7 +52,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// Two such runs are not words: one holding a MINUS the tree made an arithmetic operator (<see cref="CobolParserCore.AddOpContext"/>:
 /// that boundary is §2023:8.7.1's — "shall be preceded by a space and followed by a space" — and
 /// <see cref="SeparatorRule.ArithmeticOperatorViolations"/> reports it, one report per boundary), and a hyphen followed by
-/// digits alone, a numeric literal's sign (§2023:8.3.3.3.2 2), which the lexer cut from its digits outside a list region and the
+/// digits alone, a numeric literal's sign (§2023:8.3.3.3.2 SR2, which the lexer cut from its digits outside a list region and the
 /// literal rules own. A word token inside a joined run is judged as part of that run, never again alone.</para>
 /// <para>⛔ TWO WORD SOURCES, ONE RULE, chosen by whether the binder will run. When the frontend reported ANY error (a
 /// parse that FAILED, or one that parsed beside a separator, PICTURE or preprocessor error: the compiler driver stops

@@ -314,7 +314,7 @@ public sealed class OriginWriter
 
     /// <summary>Append <paramref name="s"/>, text this stage writes itself: every piece of it originates at
     /// <paramref name="at"/> (<see cref="MappedText.PointAt"/>, one stretch), its characters a CHARACTER POSITION further
-    /// each (<see cref="CharacterPositions"/>, §2023:6.1 1) c): a supplementary-plane character is two resultant units and one
+    /// each (<see cref="CharacterPositions"/>, §2023:6.1 GR1c: a supplementary-plane character is two resultant units and one
     /// position, so the span splits at its second unit exactly as the reference-format stage's <c>TextSite.Spans</c> does
     /// for text it reads (kb/Work PB3031) — a column the parser reports inside the written text names the position the
     /// programmer counts, whatever the characters.</summary>

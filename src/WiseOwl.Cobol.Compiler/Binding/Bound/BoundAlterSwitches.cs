@@ -23,7 +23,7 @@ public sealed record BoundSwitchCondition(string ImplementorName, bool TestsOn) 
 /// into the target paragraph's alterable-GO-TO field (CONTROL_FLOW_DESIGN D4 — a mutable static int per
 /// altered paragraph, NOT the legacy slot table). <paramref name="AlteredPc"/> is that paragraph's pc and
 /// <paramref name="NewName"/> the procedure-name-2 as written, which an ALTER debug trigger reports as DEBUG-CONTENTS
-/// (§1985:XV.3.2.4 GR17 c).</summary>
+/// (§1985:XV.3.2.4 GR17c.</summary>
 public sealed record BoundAlterEntry(string AlterField, int NewPc, int AlteredPc, string NewName);
 
 /// <summary><c>ALTER</c> (ANSI X3.23-1985 ¶VI.6 — obsolete there; DELETED by ISO/IEC 1989:2002; the 2023 standard

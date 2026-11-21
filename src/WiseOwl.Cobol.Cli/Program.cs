@@ -135,8 +135,8 @@ internal static class Program
                 result.AddError($"--numeric-display must be one of {string.Join(", ", NumericDisplayFormOption.OptionSpellings)} (got {v}).");
         });
 
-        // kb/Work PB1362: the reference format the source starts in. ISO §2023:7.3.24.3 2) makes FIXED form the default;
-        // free form and the structural auto-detection are the implementor-defined selection mechanism §2023:4.2.10 3)
+        // kb/Work PB1362: the reference format the source starts in. ISO §2023:7.3.24.3 GR2 makes FIXED form the default;
+        // free form and the structural auto-detection are the implementor-defined selection mechanism §2023:4.2.10 GR3
         // requires for a nonstandard behavior (docs/CONFORMANCE.md DOC-A.1-158). A >>SOURCE FORMAT directive in the
         // text switches the format whichever one it started in. An unknown value is a CLI argument error.
         var sourceFormatOption = new Option<string?>("--source-format")
@@ -176,7 +176,7 @@ internal static class Program
 
         // kb/Work PB2103: the external repository the compilation reads (DESIGN-external-repository §9.3; Annex A.1 item 66):
         // a REPOSITORY specifier the compilation group cannot answer is looked for in the --repository directories in the
-        // order given (by default the output directory), then in the --reference assemblies in order (ISO §2023:12.3.8.4 GR10 c) /
+        // order given (by default the output directory), then in the --reference assemblies in order (ISO §2023:12.3.8.4 GR10c /
         // GR11 c)). A place that does not exist is REPO-10 (a bind diagnostic, with every other).
         var repositoryOption = new Option<string[]>("--repository")
         {

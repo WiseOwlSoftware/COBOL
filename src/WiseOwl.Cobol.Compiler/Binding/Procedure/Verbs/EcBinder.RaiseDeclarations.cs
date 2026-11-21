@@ -60,7 +60,7 @@ internal sealed partial class EcBinder
         ["EC-SIZE-TRUNCATION", "EC-SIZE-OVERFLOW", "EC-SIZE-UNDERFLOW", "EC-SIZE-ZERO-DIVIDE", "EC-SIZE-EXPONENTIATION"];
 
     /// <summary>The EC-I-O family a file connector can set to exist — §2023:9.1.13.1's status-derived names plus the
-    /// ones a rule names outright (EC-I-O-LINAGE, §2023:13.18.34.4 GR6 b) 2) — in THE canonical mask order
+    /// ones a rule names outright (EC-I-O-LINAGE, §2023:13.18.34.4 GR6b.2 — in THE canonical mask order
     /// (<see cref="ExceptionCatalog.IoMaskNames"/>; the emitter's per-statement mask bits).</summary>
     private static readonly string[] IoNames = ExceptionCatalog.IoMaskNames;
 
@@ -69,7 +69,7 @@ internal sealed partial class EcBinder
     /// phase commences — §2023:14.9.40.4 GR9).</summary>
     private static readonly string[] SortProcedureNames = ["EC-SORT-MERGE-ACTIVE", "EC-SORT-MERGE-FILE-OPEN"];
 
-    /// <summary>…and one with a USING phrase, whose implicit release also raises -RELEASE (§2023:14.9.40.4 GR12 b)).</summary>
+    /// <summary>…and one with a USING phrase, whose implicit release also raises -RELEASE (§2023:14.9.40.4 GR12b).</summary>
     private static readonly string[] SortUsingNames = [.. SortProcedureNames, "EC-SORT-MERGE-RELEASE"];
 
     /// <summary>The conditions a MERGE raises itself (kb/Work PB1036): -ACTIVE (§2023:14.9.24.4 GR8), -FILE-OPEN
@@ -140,7 +140,7 @@ internal sealed partial class EcBinder
 
     /// <summary>The EC-EXTERNAL family an ACTIVATION raises when the activated element's external descriptions do not
     /// conform (ISO §2023:14.8.4): a CALL through <c>CobolCallException</c> (§2023:14.9.4.4 GR3e), an INVOKE's method activation
-    /// through <c>CobolFatalException</c> (§2023:14.9.23.4 GR7 d); kb/Work PB1138). The checkable trio — EC-EXTERNAL-IMP has
+    /// through <c>CobolFatalException</c> (§2023:14.9.23.4 GR7d; kb/Work PB1138). The checkable trio — EC-EXTERNAL-IMP has
     /// no raise site, this implementation defines no implementor-specific external checks. The site-enabled subset is
     /// ALSO §2023:14.8.4.1's activating-element half (<c>EcEmitter.FatalAmbientGates</c>).</summary>
     internal static readonly string[] ExternalNames =
@@ -224,7 +224,7 @@ internal sealed partial class EcBinder
         // The sort-merge flow conditions (kb/Work PB349, PB1036). PRECISE: the ONLY raise sites are CobolSort's
         // RELEASE / RETURN statement entries, reached from exactly these bound nodes — the implicit USING release and
         // GIVING return use the unchecked primitives, because GR1 of each verb governs the STATEMENT the program
-        // writes. RELEASE's record size is §2023:13.18.43.4 GR14 b) / GR19 b); the -ACTIVE rule for a RELEASE in an output
+        // writes. RELEASE's record size is §2023:13.18.43.4 GR14b / GR19 b); the -ACTIVE rule for a RELEASE in an output
         // procedure / a RETURN in an input procedure is §2023:14.9.40.4 GR10 / GR13, §2023:14.9.24.4 GR8.
         new(s => s is BoundRelease, ["EC-FLOW-RELEASE", "EC-SORT-MERGE-ACTIVE", "EC-SORT-MERGE-RELEASE"]),
         // COMMIT / ROLLBACK (kb/Work PB3338). PRECISE: the run unit's TransactionControl raises EC-FLOW-COMMIT /
@@ -234,7 +234,7 @@ internal sealed partial class EcBinder
         // name has no FileModel here, so its EC-I-O-PERMANENT-ERROR (the one condition a refusal raises, '30') is declared
         // with no file, and only a directive naming no file enables it (review finding w1154a R1-3).
         // VALIDATE (kb/Work PB5577). PRECISE: stage five's raise sites are ValidateEmitter's — EC-VALIDATE-FORMAT when an element's internal indicator is
-        // invalid on format (§2023:14.9.50.4 GR6 e). Stages three and four (EC-VALIDATE-CONTENT, EC-VALIDATE-RELATION) join as they are built.
+        // invalid on format (§2023:14.9.50.4 GR6e. Stages three and four (EC-VALIDATE-CONTENT, EC-VALIDATE-RELATION) join as they are built.
         new(s => s is BoundValidate, ["EC-VALIDATE-FORMAT"]),
         new(s => s is BoundCommitRollback { IsCommit: true }, ["EC-FLOW-COMMIT", "EC-I-O-PERMANENT-ERROR"]),
         new(s => s is BoundCommitRollback { IsCommit: false }, ["EC-FLOW-ROLLBACK", "EC-I-O-PERMANENT-ERROR"]),
@@ -291,7 +291,7 @@ internal sealed partial class EcBinder
         new(s => s is BoundInlinePerform { Control: PerformVarying { CheckIndexRange: true } }
                   or BoundOutOfLinePerform { Control: PerformVarying { CheckIndexRange: true } },
             ["EC-RANGE-PERFORM-VARYING"]),
-        // EC-DATA-OVERFLOW (fatal, §2023:14.9.25.4 GR6 d)4.a) is MOVE-only: a MOVE whose finite algebraic value overflows a
+        // EC-DATA-OVERFLOW (fatal, §2023:14.9.25.4 GR6d4.a) is MOVE-only: a MOVE whose finite algebraic value overflows a
         // single-precision float receiver to ±Inf; MOVE CORRESPONDING expands to BoundMove steps the sequence walk sees.
         new(s => s is BoundMove, ["EC-DATA-OVERFLOW"]),
         // EC-RANGE-INSPECT-SIZE (fatal, §2023:14.9.22.4 GR14/GR15/GR22 — kb/Work PB1126) is INSPECT's own: the three rules

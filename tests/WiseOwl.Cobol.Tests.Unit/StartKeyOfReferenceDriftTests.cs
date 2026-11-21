@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// That is exactly what PB356 was. <c>IndexedConnector.StartFirstLast</c> ordered the file with
 /// <c>Ordered(_refKey)</c> and never reset it, so a START LAST after a START on an ALTERNATE key answered the
 /// alternate ordering's last record — with the prime and alternate orderings inverted, the FIRST record — and
-/// left every following sequential READ walking the alternate (§2023:14.9.30.4 GR21 b)'s "Otherwise, the key of
+/// left every following sequential READ walking the alternate (§2023:14.9.30.4 GR21b's "Otherwise, the key of
 /// reference is set to the last key of reference in the file position indicator"). Where the alternate carried
 /// SUPPRESS WHEN it additionally hid records §2023:12.4.5.6.4 GR6 withholds from the ALTERNATE path only, which
 /// GR18/GR19's primary-key view must include.
@@ -71,7 +71,7 @@ public sealed class StartKeyOfReferenceDriftTests
         ["\n    /// ", "\n    public ", "\n    private ", "\n    protected ", "\n    internal "];
 
     /// <summary>True when the connector has ONE successful-START epilogue and it takes the key of reference as a
-    /// parameter. <c>_positioner = 'S'</c> is the marker of that epilogue — §2023:14.9.30.4 GR21 d) keys the whole
+    /// parameter. <c>_positioner = 'S'</c> is the marker of that epilogue — §2023:14.9.30.4 GR21d keys the whole
     /// following sequential walk on it — so a second occurrence IS a second epilogue.</summary>
     internal static bool OneStartEpilogueTakingTheKeyOfReference(string source)
     {

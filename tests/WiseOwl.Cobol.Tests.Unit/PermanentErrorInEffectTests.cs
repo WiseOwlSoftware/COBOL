@@ -124,7 +124,7 @@ public sealed class PermanentErrorInEffectTests
             reg.OpenStatic("F", FileOpenMode.IO);
 
             reg.SetRelativeKey("F", 0);
-            Assert.Equal("34", reg.WriteKeyed("F", "BBBB", -1));   // §2023:14.9.51.4 GR29 b) — the real producer
+            Assert.Equal("34", reg.WriteKeyed("F", "BBBB", -1));   // §2023:14.9.51.4 GR29b — the real producer
             reg.SetRelativeKey("F", 2);
             Assert.Equal("34", reg.WriteKeyed("F", "CCCC", -1));   // would be '00': the condition is in effect
             Assert.Equal("34", reg.ReadKeyedNext("F", out _));

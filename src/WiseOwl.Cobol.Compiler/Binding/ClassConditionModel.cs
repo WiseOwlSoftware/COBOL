@@ -37,7 +37,7 @@ internal enum ClassOperandRule
 
     /// <summary>§2023:8.8.4.4.3 SR6 — "If FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE, or NEAREST-TO-ZERO is specified,
     /// identifier-1 shall reference a data item whose category is numeric." A POSITIVE requirement, unlike SR3–SR5
-    /// and SR8: an alphanumeric group and a reference-modified slice (category alphanumeric, §2023:8.4.3.3.4 GR6 c)
+    /// and SR8: an alphanumeric group and a reference-modified slice (category alphanumeric, §2023:8.4.3.3.4 GR6c
     /// BREAK it — the operand's CATEGORY is asked, never its base item's.</summary>
     NumericCategory,
 
@@ -111,7 +111,7 @@ internal readonly record struct ClassOperandFacts(PicCategory? Category, Usage? 
 /// </remarks>
 internal static class ClassConditionModel
 {
-    /// <summary>NUMERIC (§2023:8.8.4.4.4 GR3 n).</summary>
+    /// <summary>NUMERIC (§2023:8.8.4.4.4 GR3n.</summary>
     public const char Numeric = 'N';
     /// <summary>ALPHABETIC (GR3 b).</summary>
     public const char Alphabetic = 'A';
@@ -210,7 +210,7 @@ internal static class ClassConditionModel
     /// <paramref name="operand"/>'s.
     /// <para>⛔ THE CATEGORY IS THE OPERAND'S, NOT ITS BASE ITEM'S (kb/Work PB823's screen twin): the caller
     /// reads it through THE ONE operand-category reader, so a reference-modified slice is category alphanumeric
-    /// (national when its usage is national) per §2023:8.4.3.3.4 GR6 c) while keeping its item's usage per GR6's
+    /// (national when its usage is national) per §2023:8.4.3.3.4 GR6c while keeping its item's usage per GR6's
     /// opening sentence ("the same class, category, and usage as that defined for identifier-1, except that…").
     /// The screen used to read the BASE item's picture, so <c>IF NUM (1:2) IS ALPHABETIC</c> was refused under SR4
     /// as though the slice were category numeric.</para>

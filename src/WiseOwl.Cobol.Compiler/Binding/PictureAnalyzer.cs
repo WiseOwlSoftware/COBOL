@@ -113,7 +113,7 @@ public static class PictureAnalyzer
         LocaleEditSpec? localeFormat2, bool decimalPointIsComma, out PictureClauseIdentity? clause)
     {
         clause = null;
-        // A TRAILING ';' is the clause SEPARATOR (ISO §2023:8.3.5 rule 2 — a semicolon immediately followed by a
+        // A TRAILING ';' is the clause SEPARATOR (ISO §2023:8.3.5 SR2 — a semicolon immediately followed by a
         // space is a separator; ';' is never a PICTURE symbol). The REAL cure is the W3 lexer-mode trim
         // (DEVLOG 596; VCR Table 7 row 7.14): PIC_STRING trims a trailing ','/';' when LA(1) is whitespace —
         // the separator shape — so a legal SR7 trailing-',' mask (NC125A's `…9,.`) keeps its comma. This
@@ -203,7 +203,7 @@ public static class PictureAnalyzer
         // ── PICTURE EDITING phrases (ISO §2023:13.18.40.2 Format 1, COBOL-2023): validate SR8–SR12 and build the
         // render rules. char1Set lets the SR2 whitelist admit the declared editing characters (else char-1
         // letters like 'L'/'T'/'G' would trip COBOL0808); char1Extended is the FOR-phrase subset, which
-        // §2023:13.18.40.5 rule 6 makes FLOATING insertion symbols. The introduction gate below 2023 is fired by
+        // §2023:13.18.40.5 GR6 makes FLOATING insertion symbols. The introduction gate below 2023 is fired by
         // VersionConformancePass.ParseArm.VisitPictureClause.
         var editRules = ValidateEditing(editing, expanded, usage, edition, where, cs, decimalPointIsComma,
             out var char1Set, out var char1Extended, out var char1Declared);
@@ -861,7 +861,7 @@ public static class PictureAnalyzer
     /// <c>ArgumentOutOfRangeException</c> and <c>PIC X(2000000000)</c> as an <c>OutOfMemoryException</c> — a
     /// compiler crash with no diagnostic and no source location, by either arm.</para>
     /// <para>A '(' can never be anything BUT a repetition factor's left parenthesis: it is not a picture symbol
-    /// (SR2), and §2023:12.3.7.3 SR27 c) excludes '(' and ')' from literal-8, so no CURRENCY SIGN clause can make one
+    /// (SR2), and §2023:12.3.7.3 SR27c excludes '(' and ')' from literal-8, so no CURRENCY SIGN clause can make one
     /// a currency symbol either. That is what lets an unclosed or unparsable factor be reported as the SR6
     /// violation it is instead of being handed on as ordinary text.</para>
     /// </summary>
@@ -1008,7 +1008,7 @@ public static class PictureAnalyzer
     /// <summary>Validate the PICTURE EDITING phrases (ISO §2023:13.18.40.3 SR8–SR12; COBOL-2023) and build the render
     /// rules. Emits the SR diagnostics (COBOL1591–1596, COBOL1955). Every legal shape produces a rule: a
     /// literal of any width (SR9 allows 50 characters) and a floating character-1 (the same character-1 appearing
-    /// ≥2 times under a FOR phrase, §2023:13.18.40.5 rule 6) are rendered by <c>CobolEdit</c>'s variable-width
+    /// ≥2 times under a FOR phrase, §2023:13.18.40.5 GR6) are rendered by <c>CobolEdit</c>'s variable-width
     /// materialization, not staged (kb/Work PB491). <paramref name="char1Set"/> (uppercased) collects every
     /// accepted character-1 so the SR2 whitelist admits them; <paramref name="char1Extended"/> is the subset
     /// declared with the FOR phrase, which SR12 makes EXTENDED editing sign control symbols and rule 6 therefore
@@ -1378,11 +1378,11 @@ public static class PictureAnalyzer
         void Bad(string why) => edition.Error(DiagnosticCatalog.PictureFloatEdited,
             $"invalid floating-point numeric-edited PICTURE {picture} — {where}: {why}");
         int eCount = expanded.Count(c => c == 'E');
-        if (eCount > 1) { Bad("the symbol E may appear only once (ISO §2023:13.18.40.3 SR12 b)"); return PicInfo.Recovery(expanded.Length); }
+        if (eCount > 1) { Bad("the symbol E may appear only once (ISO §2023:13.18.40.3 SR12b"); return PicInfo.Recovery(expanded.Length); }
         // ⛔ §2023:13.18.40.3 SR12 bars only the FOR form here: "Extended editing sign control symbols shall not be
         // specified for a floating-point edited item" is a rule of SR12's FOR-phrase list (printed as that list's
         // SECOND 'a)', after 'c)' — the standard's own lettering, p.442; kb/Work PB866). An IS-form character-1 is
-        // a SIMPLE INSERTION symbol (§2023:13.18.40.5 rule 3), and Table 7 gives this category "Simple insertion, special
+        // a SIMPLE INSERTION symbol (§2023:13.18.40.5 GR3), and Table 7 gives this category "Simple insertion, special
         // insertion, and fixed insertion for the significand part" — so it is admitted in the significand below.
         if (char1Extended.Count > 0)
         {
@@ -1394,7 +1394,7 @@ public static class PictureAnalyzer
         bool IsChar1(char c) => editRules is not null && editRules.Any(r => r.SimpleInsertion && char.ToUpperInvariant(r.Char1) == c);
         int e = expanded.IndexOf('E');
         string sig = expanded[..e], exp = expanded[(e + 1)..];
-        // the exponent: '+' then 1..4 '9's, nothing else (§2023:13.18.40.4 GR13 b)
+        // the exponent: '+' then 1..4 '9's, nothing else (§2023:13.18.40.4 GR13b
         if (exp.Any(IsChar1))
         {
             Bad("a PICTURE EDITING character-1 may not appear in the exponent — Table 7 gives the exponent part no "
@@ -1403,7 +1403,7 @@ public static class PictureAnalyzer
         }
         if (exp.Length < 2 || exp[0] != '+' || exp[1..].Any(c => c != '9') || exp.Length - 1 > 4)
         {
-            Bad("the exponent shall be +9, +99, +999 or +9999 (ISO §2023:13.18.40.4 GR13 b)");
+            Bad("the exponent shall be +9, +99, +999 or +9999 (ISO §2023:13.18.40.4 GR13b");
             return PicInfo.Recovery(expanded.Length);
         }
         // the significand: an optional leading fixed sign, then Table 10 row E's symbols only
@@ -1419,12 +1419,12 @@ public static class PictureAnalyzer
                 case var p when p == point: points++; break;
                 case 'B': case '0': case '/': break;
                 case var g when g == grouping: break;   // simple insertion (rule 3): the comma, or the period under DECIMAL-POINT IS COMMA
-                case var c1 when IsChar1(c1): break;   // an IS-form character-1: simple insertion (§2023:13.18.40.5 rule 3)
+                case var c1 when IsChar1(c1): break;   // an IS-form character-1: simple insertion (§2023:13.18.40.5 GR3)
                 case '+': case '-':
                     Bad("a second sign symbol in the significand — the significand admits one leading + or − (ISO §2023:13.18.40.6 Table 10 row E; SR25 applies per string)");
                     return PicInfo.Recovery(expanded.Length);
                 case 'Z': case '*':
-                    Bad($"the symbol '{c}' — zero suppression with replacement shall not be specified for the significand (ISO §2023:13.18.40.4 GR13 b)");
+                    Bad($"the symbol '{c}' — zero suppression with replacement shall not be specified for the significand (ISO §2023:13.18.40.4 GR13b");
                     return PicInfo.Recovery(expanded.Length);
                 case 'V': case 'P': case 'S':
                     Bad($"the symbol '{c}' may not appear in the significand — its point is the real '{point}' (ISO §2023:13.18.40.6 Table 10 row E; SR17/SR18/SR20)");

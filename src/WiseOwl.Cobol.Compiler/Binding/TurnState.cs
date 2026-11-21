@@ -147,7 +147,7 @@ public sealed class TurnState
 
     /// <summary>The 1-based lines of every <c>&gt;&gt;TURN</c> directive that NAMES one of <paramref name="ecNames"/>
     /// (matched on the canonical exception-name, ON or OFF alike) — the FLAG-02 b EC-PROGRAM-EXCEPTIONS detector
-    /// flags such a directive when its source element calls a function or invokes a method (§2023:7.3.14.4 GR4 b). A
+    /// flags such a directive when its source element calls a function or invokes a method (§2023:7.3.14.4 GR4b. A
     /// directive naming several of the set contributes its line once per name; the caller de-duplicates.</summary>
     public IEnumerable<int> DirectiveLinesNaming(IReadOnlySet<string> ecNames)
         => _events.Where(e => ecNames.Contains(e.Ec)).Select(e => e.Line);
@@ -177,8 +177,8 @@ public sealed class TurnState
         Fold(level3, file, statementLine) is { On: true };
 
     /// <summary>⛔ THE ACTIVATED ELEMENT'S HALF OF AN "ENABLED IN BOTH" GATE — asked at its PROCEDURE DIVISION HEADER
-    /// (kb/Work PB1381). The parameter-conformance conditions §2023:14.9.4.4 GR3 d) (EC-PROGRAM-ARG-MISMATCH) and
-    /// §2023:14.9.23.4 GR7 c) (EC-OO-UNIVERSAL) are set "if checking for it is enabled in both the activated program
+    /// (kb/Work PB1381). The parameter-conformance conditions §2023:14.9.4.4 GR3d (EC-PROGRAM-ARG-MISMATCH) and
+    /// §2023:14.9.23.4 GR7c (EC-OO-UNIVERSAL) are set "if checking for it is enabled in both the activated program
     /// [method] and activating runtime element", and a TURN reaches the activated side through its header: §2023:7.3.25.4
     /// GR6 / GR8 enable or disable checking "for the procedure division statements and procedure division headers
     /// that follow in the compilation group". So the fold point is the header's line — NOT the Environment division
@@ -218,7 +218,7 @@ public sealed class TurnState
         ExceptionCatalog.DirectiveCovers(evName, level3);
 
     /// <summary>The §2023:7.3.25 checking state that governs the statement starting on <paramref name="statementLine"/>,
-    /// as a RUNTIME-queryable profile — the carrier for §2023:14.9.18.4 GR1 b), whose enablement question is asked in
+    /// as a RUNTIME-queryable profile — the carrier for §2023:14.9.18.4 GR1b, whose enablement question is asked in
     /// the ACTIVATING runtime element about an exception-name a callee may not choose until run time
     /// (<c>GOBACK … RAISING LAST EXCEPTION</c>). It is the same event prefix <see cref="Fold"/> walks, so
     /// <c>profile.Enabled(n)</c> and <c>Enabled(n, null, statementLine)</c> agree for every level-3 <c>n</c> —

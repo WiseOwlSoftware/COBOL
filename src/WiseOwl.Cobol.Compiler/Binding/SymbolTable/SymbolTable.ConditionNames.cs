@@ -12,7 +12,7 @@ public sealed partial class SymbolTable
     /// (<c>ConditionBinder.ConditionOf</c> reports it; a pass that only reads which condition a bare operand names,
     /// <c>FlagConformancePass</c>, ignores it, kb/Work PB3288). Every level-88 of the spelling visible in the active scope (the
     /// method's own first, §2023:11.7.4 GR5) whose conditional-variable chain carries each written qualifier (§2023:8.4.2.2.3 SR4
-    /// and SR5), narrowed to the nearest declaring source element (§2023:8.4.6.2.1 3), kb/Work PB1047), and none when a declaration of
+    /// and SR5), narrowed to the nearest declaring source element (§2023:8.4.6.2.1 GR3, kb/Work PB1047), and none when a declaration of
     /// the spelling in another class of the name set is declared nearer (<see cref="NearestInNameSet"/>, kb/Work PB4196, PB4219,
     /// PB4432, PB5975),
     /// or when every survivor is a lapsed type-declaration condition (§2023:8.4.2.2.1 SR4: alone it names nothing to test).
@@ -38,12 +38,12 @@ public sealed partial class SymbolTable
         TryResolveCondition(written.Name, _data.ActiveScope, out var conditions) && conditions.Count > 0;
 
     /// <summary>The nearest declaring source element's level-88s that <paramref name="written"/>'s qualifiers reach, BEFORE a nearer
-    /// declaration of another name class hides them: the tier the §2023:8.4.6.2.1 3) a) question "is a nearer element's declaration
+    /// declaration of another name class hides them: the tier the §2023:8.4.6.2.1 GR3a question "is a nearer element's declaration
     /// the referenced item?" is asked of (<c>ConditionBinder</c>'s CAPACITY register arm).</summary>
     internal List<Condition88> ConditionTier(WrittenQualifiedName written) =>
         ConditionTier(written.Name, written.QualifierWords, _data.ActiveScope);
 
-    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION (kb/Work PB4219 review R1-1): the written qualifiers
+    /// <summary>⛔ ISO §2023:8.4.6.2.1 GR3a SEEN FROM A CONDITION-ONLY POSITION (kb/Work PB4219 review R1-1): the written qualifiers
     /// reach a level-88 of the spelling, but an ordinary data item of the spelling declared in a NEARER source element hides it, and
     /// that data item is what the reference names (it survives <see cref="DataNameCandidates"/>, so no report entry or
     /// condition-name nearer still takes the reference from it). "If the name is declared in source element B, the item in source
@@ -62,7 +62,7 @@ public sealed partial class SymbolTable
         NearestDeclaring(ConditionsUnderQualifiers(name, qualifiers, scope), static c => c.Parent);
 
     /// <summary>Every level-88 of <paramref name="name"/> visible in <paramref name="scope"/> whose conditional-variable chain carries
-    /// each written qualifier, BEFORE the §2023:8.4.6.2.1 3) narrowing: the qualifier walk of <see cref="IdentifyConditionName"/>,
+    /// each written qualifier, BEFORE the §2023:8.4.6.2.1 GR3 narrowing: the qualifier walk of <see cref="IdentifyConditionName"/>,
     /// <see cref="ConditionTier(string, IReadOnlyList{string}, Scope)"/> and <see cref="ConditionNameHiddenByNearerDataItem"/>.</summary>
     private List<Condition88> ConditionsUnderQualifiers(string name, IReadOnlyList<string> qualifiers, Scope scope)
     {

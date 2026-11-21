@@ -15,10 +15,10 @@ public sealed class GroupDigitsTests
 {
     [Theory]
     [InlineData("456", "456")]            // a bare digit run is its own image
-    [InlineData("-456", "456")]           // the sign is no digit (§2023:14.9.25.4 GR6 a)
+    [InlineData("-456", "456")]           // the sign is no digit (§2023:14.9.25.4 GR6a
     [InlineData("+456", "456")]
     [InlineData("-4.56", "456")]          // the decimal point is no digit
-    [InlineData("-4,56", "456")]          // nor the comma of DECIMAL-POINT IS COMMA (§2023:12.3.7.4 GR14 a)
+    [InlineData("-4,56", "456")]          // nor the comma of DECIMAL-POINT IS COMMA (§2023:12.3.7.4 GR14a
     [InlineData("-0.05", "005")]          // leading zeros are digits
     [InlineData("0.00", "000")]
     [InlineData("1.5E+3", "15")]          // a floating-point text sends its significand

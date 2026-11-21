@@ -88,7 +88,7 @@ internal static class OptionsBinder
     /// something other than the edition gate (kb/Work PB232).
     ///
     /// <para>⛔ THE CLAUSE HAS NO MODEL FIELD (kb/Work PB298). A clause that passes this screen says COBOL, which is
-    /// also the convention when the clause is absent (§2023:11.9.7.4 GR4 c), so it can change nothing; the field that
+    /// also the convention when the clause is absent (§2023:11.9.7.4 GR4c, so it can change nothing; the field that
     /// used to hold the written name was read by nobody. Should an entry-convention-name ever be defined, its field
     /// arrives WITH its consumer (<c>OptionsModelConsumerDriftTests</c>).</para>
     ///

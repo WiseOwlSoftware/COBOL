@@ -18,7 +18,7 @@ internal sealed record KeptHandle(FileStream Stream, SafeFileHandle Handle, Regi
 /// <c>InheritKept</c>). It names the file (<see cref="HostPath"/>, <see cref="Physical"/>, <see cref="Store"/>) and the
 /// order its trees restore by (<see cref="Restoring"/>, the declaration of the OPEN that kept it), so it does not depend on
 /// the connector that kept it: a connector that is displaced by its element's next activation (<c>FileRegistry.Retire</c>),
-/// or that an ASSIGN USING (§2023:12.4.5.3 GR3 b) associates with ANOTHER physical file, hands it to the registry, which ends it
+/// or that an ASSIGN USING (§2023:12.4.5.3 GR3b associates with ANOTHER physical file, hands it to the registry, which ends it
 /// with the rest at the COMMIT, the ROLLBACK or the run unit's end.
 /// <para><see cref="Handle"/> is null once given back early (a re-OPEN whose share mode it refused and could not be taken
 /// again) and <see cref="Adopted"/> is true while a re-OPEN that would take the same handle uses it as its own; the Table 19

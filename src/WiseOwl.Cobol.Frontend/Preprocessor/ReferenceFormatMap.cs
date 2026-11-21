@@ -8,9 +8,9 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// <summary>
 /// The reference format in effect at each physical line of ONE source file or library text (kb/Work PB1067) — what
 /// the §2023:6.5 logical conversion decided while it read that text: the initial format, then each change a
-/// <c>&gt;&gt;SOURCE FORMAT</c> directive (§2023:7.3.24.3 1)) or a <c>&gt;&gt;POP</c> of the format (§2023:7.3.22) makes.
+/// <c>&gt;&gt;SOURCE FORMAT</c> directive (§2023:7.3.24.3 GR1) or a <c>&gt;&gt;POP</c> of the format (§2023:7.3.22) makes.
 /// <para>Its asker is the COPY statement: "The default reference format of library text is the reference format that
-/// was in effect for the COPY statement that resulted in processing of this library text" (§2023:7.3.24.3 3)). The COPY
+/// was in effect for the COPY statement that resulted in processing of this library text" (§2023:7.3.24.3 GR3). The COPY
 /// statement's physical line — its <see cref="Common.SourceOrigin"/> — is looked up in the map of the text it was
 /// written in, so a COPY inside library text asks that library text's map
 /// (<see cref="LibraryTextDefaultAt"/>).</para>
@@ -85,8 +85,8 @@ public sealed class ReferenceFormatMap
 
     /// <summary>Whether 1-based physical <paramref name="line"/> of this text is a written <c>&gt;&gt;SOURCE FORMAT</c>,
     /// <c>&gt;&gt;PUSH</c> or <c>&gt;&gt;POP</c> line (<see cref="DirectiveLines"/>). The conversion DISCARDS a
-    /// <c>&gt;&gt;SOURCE FORMAT</c> line (§2023:6.5 1)) and leaves a blank one in its place, so a later stage that must ask
-    /// whether a blank line is one — the COPY or REPLACE statement a directive interrupts (§2023:7.3.3 SR8 b), kb/Work
+    /// <c>&gt;&gt;SOURCE FORMAT</c> line (§2023:6.5 GR1) and leaves a blank one in its place, so a later stage that must ask
+    /// whether a blank line is one — the COPY or REPLACE statement a directive interrupts (§2023:7.3.3 SR8b, kb/Work
     /// PB1353 — asks the line's origin here.</summary>
     public bool HoldsDirectiveAt(int line) => Array.BinarySearch(_directiveLines, line) >= 0;
 
@@ -206,10 +206,10 @@ public sealed class ReferenceFormatMap
     }
 
     /// <summary>The initial reference format of library text copied by a COPY statement at 1-based physical line
-    /// <paramref name="line"/> of this text — §2023:7.3.24.3 3)'s "reference format that was in effect for the COPY
+    /// <paramref name="line"/> of this text — §2023:7.3.24.3 GR3's "reference format that was in effect for the COPY
     /// statement" — or null when this text holds no format to hand on and the library text's own is detected.
     /// <para>A format a directive stated, or one the library text inherited, is handed on as the rule says. A
-    /// DETECTED format comes only from the documented <c>--source-format auto</c> extension over §2023:7.3.24.3 2)'s
+    /// DETECTED format comes only from the documented <c>--source-format auto</c> extension over §2023:7.3.24.3 GR2's
     /// fixed-form default (text is classified by its structure — kb/Work PB1362): a text detected FIXED showed the fixed
     /// column structure and hands fixed form on; a text detected FREE showed only that it is not column-bound —
     /// seven-space indentation is legal in both formats — which says nothing of the library text, so that library text

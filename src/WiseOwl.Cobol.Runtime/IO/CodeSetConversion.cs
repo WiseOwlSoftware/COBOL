@@ -79,11 +79,11 @@ public sealed class CodeSetConversion
             char native = toNative[unit];
             if (native >= ChannelUnits)
                 throw new ArgumentException($"medium code unit {unit} corresponds to U+{(int)native:X4}, which "
-                    + "is outside the one-byte record channel (ISO §2023:13.18.13.4 GR6 b)", nameof(toNative));
+                    + "is outside the one-byte record channel (ISO §2023:13.18.13.4 GR6b", nameof(toNative));
             if (assigned[native])
                 throw new ArgumentException($"medium code units {(int)_toMedium[native]} and {unit} both "
                     + $"correspond to U+{(int)native:X4}: the correspondence is not invertible "
-                    + "(ISO §2023:13.18.13.4 GR6 b)", nameof(toNative));
+                    + "(ISO §2023:13.18.13.4 GR6b", nameof(toNative));
             _toMedium[native] = (char)unit;
             assigned[native] = true;
         }
@@ -167,7 +167,7 @@ public sealed class CodeSetConversion
                 if (c >= ChannelUnits)
                     throw new InvalidOperationException($"the record contains U+{(int)c:X4}, which the file's "
                         + "CODE-SET coded character set does not represent, and no WRITE or REWRITE screen refused it "
-                        + "(ISO §2023:13.18.13.4 GR6 b)");
+                        + "(ISO §2023:13.18.13.4 GR6b");
                 dst[i] = map[c];
             }
         });

@@ -13,13 +13,13 @@ namespace WiseOwl.Cobol.Runtime;
 /// <see cref="CobolString"/> with the boolean-zero pad.
 /// </summary>
 /// <remarks>
-/// <para><b>Length rules (§2023:8.8.2 rule 9 / rule 10).</b> A binary operation combines its operands positionwise
+/// <para><b>Length rules (§2023:8.8.2 GR9 / rule 10).</b> A binary operation combines its operands positionwise
 /// left-to-right, "without regard to usage"; when the operands differ in length the shorter is treated as
 /// extended on the RIGHT with boolean zeros — no error, no exception condition (rule 9). The result length is
 /// the length of the LARGER operand referenced in that operation (rule 10; <see cref="Not"/> preserves its
 /// operand's length). Two zero-length operands combine to a zero-length result (NOTE 2).</para>
 /// <para><b>Content.</b> The operators combine per-position with the natural bit logic; a position outside
-/// {'0','1'} is undefined-result territory (§2023:14.6.13.2 rule 1) and is treated as boolean zero here — which is
+/// {'0','1'} is undefined-result territory (§2023:14.6.13.2 GR1) and is treated as boolean zero here — which is
 /// what "the result of the reference is undefined" licenses while checking is OFF. Under checking the condition
 /// is raised at the SENDING READ instead, by <see cref="Sending"/> (kb/Work PB230).</para>
 /// </remarks>
@@ -27,7 +27,7 @@ public static class CobolBool
 {
     private static char Bit(string s, int i) => i < s.Length && s[i] == '1' ? '1' : '0';
 
-    /// <summary>The checked read of a BOOLEAN SENDING operand (ISO §2023:14.6.13.2 rule 1): "When the content of a
+    /// <summary>The checked read of a BOOLEAN SENDING operand (ISO §2023:14.6.13.2 GR1): "When the content of a
     /// boolean sending item is referenced during the execution of a statement and the content of that sending
     /// operand would evaluate to false in a boolean class condition, the result of the reference is undefined and
     /// an EC-DATA-INCOMPATIBLE exception condition is set to exist" — with the same TWO exemptions rule 2 has
@@ -45,7 +45,7 @@ public static class CobolBool
         if (ExceptionState.DataIncompatibleChecking && CobolClass.HasNonBooleanPosition(v))
             ExceptionState.DataIncompatibleError(
                 "the content of a boolean sending item is not valid for its data description "
-                + "(ISO §2023:14.6.13.2 rule 1 — it would evaluate to false in a boolean class condition)");
+                + "(ISO §2023:14.6.13.2 GR1 — it would evaluate to false in a boolean class condition)");
         return v ?? "";
     }
 
@@ -86,21 +86,21 @@ public static class CobolBool
     /// value defensively tests position 1.</summary>
     public static bool IsTrue(string? a) => a is { Length: > 0 } && a[0] == '1';
 
-    /// <summary>Boolean SHIFT LEFT (ISO §2023:8.8.2 rule 8, B-SHIFT-L): each position takes its immediate successor to
+    /// <summary>Boolean SHIFT LEFT (ISO §2023:8.8.2 GR8, B-SHIFT-L): each position takes its immediate successor to
     /// the right; the rightmost becomes boolean 0 and the original leftmost is discarded — repeated <paramref name="k"/>
     /// times. Result length = the operand's length (rule 9). Example (Annex A Table A.2): <c>1100 B-SHIFT-L 3 = 0000</c>.</summary>
     public static string ShiftLeft(string? v, long k) => Shift(v, k, circular: false, left: true);
-    /// <summary>Boolean SHIFT RIGHT (ISO §2023:8.8.2 rule 8, B-SHIFT-R): each position takes its immediate successor to
+    /// <summary>Boolean SHIFT RIGHT (ISO §2023:8.8.2 GR8, B-SHIFT-R): each position takes its immediate successor to
     /// the left; the leftmost becomes boolean 0 and the original rightmost is discarded. <c>1100 B-SHIFT-R 3 = 0001</c>.</summary>
     public static string ShiftRight(string? v, long k) => Shift(v, k, circular: false, left: false);
-    /// <summary>Boolean CIRCULAR SHIFT LEFT (ISO §2023:8.8.2 rule 8, B-SHIFT-LC): a left rotation — the leftmost digit
+    /// <summary>Boolean CIRCULAR SHIFT LEFT (ISO §2023:8.8.2 GR8, B-SHIFT-LC): a left rotation — the leftmost digit
     /// wraps into the rightmost position. <c>1100 B-SHIFT-LC 3 = 0110</c>.</summary>
     public static string ShiftLeftCircular(string? v, long k) => Shift(v, k, circular: true, left: true);
-    /// <summary>Boolean CIRCULAR SHIFT RIGHT (ISO §2023:8.8.2 rule 8, B-SHIFT-RC): a right rotation — the rightmost digit
+    /// <summary>Boolean CIRCULAR SHIFT RIGHT (ISO §2023:8.8.2 GR8, B-SHIFT-RC): a right rotation — the rightmost digit
     /// wraps into the leftmost position. <c>1100 B-SHIFT-RC 3 = 1001</c>.</summary>
     public static string ShiftRightCircular(string? v, long k) => Shift(v, k, circular: true, left: false);
 
-    /// <summary>The shared shift kernel (ISO §2023:8.8.2 rule 8) over the D-B1 '0'/'1' substrate, "without regard for the
+    /// <summary>The shared shift kernel (ISO §2023:8.8.2 GR8) over the D-B1 '0'/'1' substrate, "without regard for the
     /// usage of the first operand" (rule 8). A count ≤ 0 leaves the value unchanged; a logical shift by ≥ the length
     /// yields all boolean zeros; a circular shift is periodic in the length. The result length equals the operand's
     /// length (rule 9 — the integer count contributes no positions).</summary>
@@ -133,7 +133,7 @@ public static class CobolBool
     /// <summary>⚖ DETERMINATION D-B5 (docs/CONFORMANCE.md §3; kb/Work PB3666) — the characters a boolean data item
     /// RECEIVES from a character sender. ISO §2023:14.6.8.6 transfers the data "after any necessary conversion, into the
     /// corresponding boolean positions of the receiving data item", §2023:3.21 makes a boolean character "the value zero
-    /// or one", and no rule converts any other character: the standard leaves it to the implementor (§2023:14.6.13.2 1)
+    /// or one", and no rule converts any other character: the standard leaves it to the implementor (§2023:14.6.13.2 GR1
     /// calls a later reference to such content undefined). This implementation converts EACH transferred character:
     /// <c>'1'</c> to boolean one and every other character (a <c>'0'</c>, a letter, a space) to boolean zero. It is
     /// the rule the boolean OPERATORS already apply to a position outside <c>{'0','1'}</c> (<see cref="Bit"/>) and
@@ -196,7 +196,7 @@ public static class CobolBool
     public static CobolBoolSized Item(string? v) { v ??= ""; return new CobolBoolSized(v, v.Length); }
 
     /// <summary>A boolean LITERAL (or a positionless figurative) operand: its positions take part in the value
-    /// (§2023:8.8.2 rule 10) but it is not an ITEM, so it contributes nothing to the GR3 width.</summary>
+    /// (§2023:8.8.2 GR10) but it is not an ITEM, so it contributes nothing to the GR3 width.</summary>
     public static CobolBoolSized Literal(string? v) => new(v ?? "", 0);
 
     public static CobolBoolSized And(CobolBoolSized a, CobolBoolSized b) => new(And(a.Bits, b.Bits), System.Math.Max(a.ItemWidth, b.ItemWidth));

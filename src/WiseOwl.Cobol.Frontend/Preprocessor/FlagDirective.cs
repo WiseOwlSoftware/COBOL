@@ -177,7 +177,7 @@ public static class FlagOptions
 
     /// <summary>Resolve a general-format option WORD to its option within <paramref name="directive"/>; null when the
     /// word is not a valid option of that directive. The word is a COBOL word, so it is keyed by the Annex C fold
-    /// (<see cref="DirWordComparer"/>, ISO §2023:8.1.3.2 GR3 b) — never by the host's case mapping, which would find an
+    /// (<see cref="DirWordComparer"/>, ISO §2023:8.1.3.2 GR3b — never by the host's case mapping, which would find an
     /// option under a spelling Annex C does not give it (kb/Work PB2845).</summary>
     public static FlagOption? TryOption(FlagDirective directive, string word) =>
         ByWord.TryGetValue((directive, word), out var info) ? info.Option : null;
@@ -237,7 +237,7 @@ public static class FlagDirectiveLine
         out IReadOnlyList<FlagOption> options, out bool on, out string? error)
     {
         options = [];
-        on = true;   // §2023:5.2.6.3: ON is the un-underlined alternative of its braces, hence the default; §2023:7.3.15.4 2): "explicitly or implicitly specified"
+        on = true;   // §2023:5.2.6.3: ON is the un-underlined alternative of its braces, hence the default; §2023:7.3.15.4 GR2: "explicitly or implicitly specified"
         error = null;
 
         var tokens = operand.SplitSpaces();

@@ -72,7 +72,7 @@ public sealed class FunctionDeviceTextTests
     public void NoDigitIsCutAndNoneIsInvented(string value, string expected) =>
         Assert.Equal(expected, CobolNum.DeviceFunctionText(Dec(value), commaMode: false));
 
-    /// <summary>The decimal separator is the unit's (§2023:12.3.7.4 GR14 a); a scaled integer carrier reaches the same text.</summary>
+    /// <summary>The decimal separator is the unit's (§2023:12.3.7.4 GR14a; a scaled integer carrier reaches the same text.</summary>
     [Fact]
     public void TheSeparatorIsTheUnits_AndTheScaledCarrierReachesTheSameRule()
     {
@@ -229,7 +229,7 @@ public sealed class FunctionDeviceTextTests
         FunctionValueField display = FunctionValueField.OfItem(Dec("-12.5"), Item(7, 2, signed: true), 7, 7);
         Assert.Equal(5, FunctionValueField.Max(packed, display).ByteLength);
         Assert.Equal(7, FunctionValueField.Min(packed, display).ByteLength);
-        Assert.Equal(7, FunctionValueField.Max(display, FunctionValueField.OfItem(Dec("-12.5"), Packed(9, 2), 5, 5)).ByteLength);   // equal: the leftmost wins (§2023:15.59.4 2)
+        Assert.Equal(7, FunctionValueField.Max(display, FunctionValueField.OfItem(Dec("-12.5"), Packed(9, 2), 5, 5)).ByteLength);   // equal: the leftmost wins (§2023:15.59.4 RV2
         Assert.Equal(5, FunctionValueField.Median(CobolRounding.NearestEven, display, packed, FunctionValueField.OfLiteral(Dec("9"), 1, 0, signed: false)).ByteLength);
     }
 

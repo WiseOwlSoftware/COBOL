@@ -55,7 +55,7 @@ public abstract class CobolCollation
     /// comparison is a table lookup per character, cheaper than any key.</summary>
     public virtual bool SupportsKeys => false;
 
-    /// <summary>True when this sequence is compared by the STANDARD comparison of ISO §2023:8.8.4.2.7 1) — <i>"comparing
+    /// <summary>True when this sequence is compared by the STANDARD comparison of ISO §2023:8.8.4.2.7 GR1 — <i>"comparing
     /// alphanumeric characters in corresponding alphanumeric character positions starting from the high-order end"</i>,
     /// the first unequal pair deciding — and false for a LOCALE-BASED one (§2023:8.8.4.2.11: <i>"is not necessarily performed
     /// character-by-character"</i>; under the CLDR/UCA engine a primary difference late in an operand outranks a secondary

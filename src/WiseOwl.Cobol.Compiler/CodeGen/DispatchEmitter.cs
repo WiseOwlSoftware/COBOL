@@ -33,7 +33,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // pc let ControlFlowEmitter derive each handler's __useActive id (DeclCount + pc − base). Null base ⇒ no F3.
         dispatchState.DeclCount = bound.Declaratives?.Count ?? 0;
         dispatchState.F3HandlerBasePc = bound.F3HandlerBasePc;
-        dispatchState.UnitHasResume = bound.Ec?.HasResume ?? false;   // §2023:14.9.33.4 GR2 b)'s PERFORM landing
+        dispatchState.UnitHasResume = bound.Ec?.HasResume ?? false;   // §2023:14.9.33.4 GR2b's PERFORM landing
         // §2023:14.9.18.4 GR6 (kb/Work PB409): the GLOBAL declaratives' __useActive slots, so a GOBACK can ask at run
         // time whether it is executing within one's RANGE. Empty for a program with no USE … GLOBAL, which keeps
         // such a program's generated source byte-identical.
@@ -68,7 +68,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             foreach (var sub in bound.DebugSubRegisters ?? [])
                 w.Line($"private static readonly NumProfile {sub.ProfileName} = {sub.Pic!.ProfileInitializer(ctx.SignEncoding)};   // {sub.CobolName}");
             w.Line("private DebugCause __dbgCause;   // the transfer-of-control cause of the next debug trigger (default Transfer → SPACES)");
-            w.Line("private int __dbgFrom = -1;   // the paragraph (pc) the transfer that set __dbgCause was made from, -1 for none: a section subject runs only for control reaching the section from outside it (§1985:XV.3.2.4 GR3 a)");
+            w.Line("private int __dbgFrom = -1;   // the paragraph (pc) the transfer that set __dbgCause was made from, -1 for none: a section subject runs only for control reaching the section from outside it (§1985:XV.3.2.4 GR3a");
             w.Line("private bool __dbgStarted;   // this program instance has begun its first execution: START PROGRAM is the first execution only (§1985:XV.3.2.4 GR16)");
             w.Line("private int __dbgLine;   // the CAUSING statement's source line — DEBUG-LINE for a non-START-PROGRAM trigger");
             w.Line("private bool __dbgRaisedInSection;   // the statement last begun lies in a debugging section (recorded with __dbgLine where a debugging section monitors a USE procedure)");
@@ -196,7 +196,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 // its debugging declarative just BEFORE its own body — populate DEBUG-ITEM from the
                 // transfer cause (__dbgCause, set by whatever transferred control here) and run the
                 // section over its bounded pc range.
-                // One procedure-name is one trigger (§1985:XV.3.2.4 GR3 a): a section subject and the paragraph subject
+                // One procedure-name is one trigger (§1985:XV.3.2.4 GR3a: a section subject and the paragraph subject
                 // of its first paragraph are two, the section first, each under its own name.
                 if (dispatchState.DebugActive)
                     foreach (var subj in dispatchState.DebugByPc[i].OrderByDescending(s => s.IsSection))
@@ -265,7 +265,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 // transfer-free unit's generated source is unchanged.
                 if (dispatchState.TransferUsed)
                     w.Line($"{dispatchState.TransferLabel}: ;   // a transfer of control out of a paragraph (ISO §2023:14.9.14.4 GR6/GR7, §2023:14.9.17.4, §2023:14.9.19.4 GR4/GR6, §2023:14.9.33.4 GR3)");
-                w.Line("if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph COMPLETED (an explicit GO TO cleared __atExit — §2023:14.6.3 rule 1)");
+                w.Line("if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph COMPLETED (an explicit GO TO cleared __atExit — §2023:14.6.3 GR1)");
                 // ⛔ CONTROL THAT RUNS PAST THE ELEMENT'S LAST PARAGRAPH WITHOUT COMPLETING THIS CALL'S RANGE EXECUTES
                 // THE IMPLICIT GOBACK (kb/Work PB3511). §2023:14.6.3: "There is also no next executable statement after the
                 // last statement in a source element when the procedure in which it appears is not being executed under
@@ -273,7 +273,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 // is executed." A nested call (an out-of-line PERFORM, a SORT/MERGE procedure, a __RunUse) whose range
                 // a GO TO left, or whose THRU exit lies before its start (§2023:14.9.28.4 GR6), arrives here without the
                 // at-exit return above: returning __pc would read as its range COMPLETING and resume after the
-                // performing statement, although the return mechanism (§2023:14.9.28.4 GR5 b)) was never reached. It leaves
+                // performing statement, although the return mechanism (§2023:14.9.28.4 GR5b) was never reached. It leaves
                 // by the element's return signal instead, the path an explicit GOBACK takes, which unwinds every nested
                 // frame to the activation entry. Fall-through, EXIT PARAGRAPH / SECTION and NEXT SENTENCE all arrive
                 // here, so the test sits after the transfer label, not in the paragraph epilogue. The activation's
@@ -312,7 +312,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             w.Line("__dbgItem.Populate(__line, __nm, __dbgCause);");
             // The debugging section's own PERFORMs and GO TOs set the cause of the transfer they make; the cause this
             // trigger found is the next trigger's too when one procedure-name pair shares the pc (a section and its
-            // first paragraph, §1985:XV.3.2.4 GR3 a), so it is restored.
+            // first paragraph, §1985:XV.3.2.4 GR3a, so it is restored.
             w.Line("var __savedCause = __dbgCause; int __savedLine = __dbgLine; int __savedFrom = __dbgFrom; bool __savedRaised = __dbgRaisedInSection;");
             w.Line("try { __Dispatch(__ds, __de); } finally { __dbgCause = __savedCause; __dbgLine = __savedLine; __dbgFrom = __savedFrom; __dbgRaisedInSection = __savedRaised; __dbgInSection = false; }");
         }
@@ -342,7 +342,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     /// <paramref name="asLocal"/> true, so every member below becomes a LOCAL FUNCTION of the emitted method —
     /// capturing the method's locals (its LINKAGE / LOCAL-STORAGE data, which its USE procedures reference) and
     /// shadowing any class-level funnel of the same name, which is how each raise site in the body reaches the
-    /// declaratives of the source element containing it (§2023:14.9.49.4 GR4 a)) and never a sibling method's.
+    /// declaratives of the source element containing it (§2023:14.9.49.4 GR4a) and never a sibling method's.
     /// <paramref name="f3Handlers"/> is the handler slot count above the declarative slots — the unit's own
     /// appended handlers for a program, the CLASS total for a method (the ONE <c>HandlerUseId</c> formula).</para></summary>
     public void EmitUseMachinery(IReadOnlyList<BoundDeclarative> decls, int f3Handlers, bool hasIoChecked,
@@ -379,7 +379,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // ⛔ THE HOOK REPORTS WHETHER A PROCEDURE RAN (kb/Work PB993). Every explicit I-O statement treats "no
         // declarative applied" and "a declarative completed normally" alike — both fall through — but the SORT/MERGE
         // implicit transfers do not: MERGE's rules turn on "an applicable USE procedure that completes normally"
-        // (§2023:14.9.24.4 GR7 a), GR12 a)/b)). So the EC-model form answers -3 (no procedure) apart from -1 (ran,
+        // (§2023:14.9.24.4 GR7a, GR12 a)/b)). So the EC-model form answers -3 (no procedure) apart from -1 (ran,
         // completed normally), exactly as __IoCheckEc and __EcDispatch already do, and the EC-free form answers a
         // bool (a void __RunUse that returns HAS completed normally — RESUME is an EC-model statement, and every
         // other not-normal completion unwinds by its own signal). Callers that do not need the answer discard it.
@@ -470,7 +470,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // of its statements sets only what its own line enables (§2023:7.3.25.4 GR6; kb/Work PB891). This is also
             // §2023:14.9.28.4 GR14's implicit PUSH ALL + TURN OFF ALL for the F3 handlers imp-2/3/4, which run here.
             w.Line("var __ckU = ExceptionState.PushAllCheckingOff();   // the procedure's checking baseline (§2023:7.3.25.4 GR6)");
-            // ⛔ THE FALL-OFF IS TWO-WAY (kb/Work PB1122 Task B). §2023:14.6.13.1.2 1): a declarative does not complete normally
+            // ⛔ THE FALL-OFF IS TWO-WAY (kb/Work PB1122 Task B). §2023:14.6.13.1.2 GR1: a declarative does not complete normally
             // when a RESUME / GOBACK / EXIT PROGRAM / STOP it specifies is executed "or a fatal exception occurs within
             // the scope of the declarative". The statements unwind (a RESUME returns its action below; the others leave
             // through the finally), so what is left to record is the fatal exception — and a RESUME that GR1 made a
@@ -481,15 +481,15 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             if (decls > 0)
             {
                 w.Line(dispatchState.F3HandlerBasePc is not null
-                    ? $"int __tok = __id < {decls} ? ExceptionState.EnterDeclarative(__useActive) : -1;   // the declarative's activation record (§2023:14.6.13.1.2 1))"
-                    : "int __tok = ExceptionState.EnterDeclarative(__useActive);   // the declarative's activation record (§2023:14.6.13.1.2 1))");
+                    ? $"int __tok = __id < {decls} ? ExceptionState.EnterDeclarative(__useActive) : -1;   // the declarative's activation record (§2023:14.6.13.1.2 GR1)"
+                    : "int __tok = ExceptionState.EnterDeclarative(__useActive);   // the declarative's activation record (§2023:14.6.13.1.2 GR1)");
                 w.Line("int __act;");
                 w.Line($"try {{ {dispatchState.DispatchName}(__startPc, __endPc);"
                     + " __act = ExceptionState.DeclarativeNotNormal(__tok) ? DispatchResult.NotNormal : DispatchResult.Normal; }"
-                    + "   // fell off its end: normal completion unless a fatal exception occurred within its scope (§2023:14.6.13.1.2 1))");
+                    + "   // fell off its end: normal completion unless a fatal exception occurred within its scope (§2023:14.6.13.1.2 GR1)");
                 w.Line("catch (ResumeSignal __rs) { __act = __rs.TargetPc; }   // RESUME (§2023:14.9.33) — the resume action");
                 // EXIT PROGRAM / GOBACK (and an automatic propagation's return) leave the declarative by the element's
-                // return signal — a completion that is not normal (§2023:14.6.13.1.2 1)) that the §2023:14.9.40.4 GR17 question
+                // return signal — a completion that is not normal (§2023:14.6.13.1.2 GR1) that the §2023:14.9.40.4 GR17 question
                 // below never sees. The filter asks it on the way out and declines (CobolSort.UseProcedureExited):
                 // another element's active SORT is then terminated once this activation has returned (kb/Work PB1177).
                 w.Line(UseProcedureExitFilter(inMethod, dispatchState.F3HandlerBasePc is not null ? $"__id < {decls} && " : ""));
@@ -504,7 +504,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 // or INVOKEd it — and SortEmitter's landing ends the statement: one mechanism for every USE procedure
                 // the rule reaches, implicit transfers and other elements' declaratives included. Only
                 // a DECLARATIVE id asks: the exception-checking PERFORM's handlers are not USE procedures (§2023:14.9.28.4
-                // GR17 selects them), and their RESUME keeps the §2023:14.9.33.4 GR2 a) landing at the raise site.
+                // GR17 selects them), and their RESUME keeps the §2023:14.9.33.4 GR2a landing at the raise site.
                 string gr17 = RuntimeApi.SortAfterUseProcedure("__useActive", "__act");
                 w.Line(dispatchState.F3HandlerBasePc is not null
                     ? $"return __id < {decls} ? {gr17} : __act;   // §2023:14.9.40.4 GR17 — a SORT procedure's USE procedure that did not complete normally terminates the SORT"
@@ -536,7 +536,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
 
     /// <summary>The declining exception filter a declarative's <c>__RunUse</c> puts on its element's return signal —
     /// <c>MethodReturn</c> in a method, <c>ProgramReturn</c> otherwise — for §2023:14.9.40.4 GR17 (kb/Work PB1177): an EXIT
-    /// PROGRAM, EXIT METHOD or GOBACK leaves the declarative not normally (§2023:14.6.13.1.2 1)), and
+    /// PROGRAM, EXIT METHOD or GOBACK leaves the declarative not normally (§2023:14.6.13.1.2 GR1), and
     /// <c>CobolSort.UseProcedureExited</c> records it when another element's format 1 SORT is active, which is then
     /// terminated once this activation has returned. <paramref name="idTest"/> limits it to DECLARATIVE ids.</summary>
     private static string UseProcedureExitFilter(bool inMethod, string idTest) =>

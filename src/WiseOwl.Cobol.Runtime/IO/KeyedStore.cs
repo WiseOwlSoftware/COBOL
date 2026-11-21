@@ -640,7 +640,7 @@ internal sealed class RelativeStore : KeyedStore
     }
 
     /// <summary>The lowest (<paramref name="last"/> false) or highest record number the file holds; null when none — the
-    /// highest is §2023:14.9.51.4 GR29 a)'s <i>"the highest relative record number existing in the physical file"</i>.</summary>
+    /// highest is §2023:14.9.51.4 GR29a's <i>"the highest relative record number existing in the physical file"</i>.</summary>
     public StoreStatus Edge(bool last, out long? rrn)
     {
         rrn = null;

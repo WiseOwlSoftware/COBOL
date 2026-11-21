@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// ⛔ THE .NET HOST ENTRY — A GENERATED CALLER (DESIGN-external-repository §4.3, §4.4; kb/Work PB2099). For every
 /// outermost program and every function unit — a definition, or a prototype the group does not also define — the module
 /// declares one <c>public static class</c> whose <c>Call</c> is the .NET counterpart of a CALL statement naming the unit,
-/// and whose <c>Cancel</c> (a program's only) is the counterpart of a CANCEL statement. ISO §2023:14.2.3 13): "When either the
+/// and whose <c>Cancel</c> (a program's only) is the counterpart of a CANCEL statement. ISO §2023:14.2.3 GR13: "When either the
 /// activating or the activated runtime element is other than a COBOL runtime element, the implementor shall specify the
 /// restrictions and mechanisms for all supported language products"; this is that mechanism for .NET, and its one
 /// restriction — the landing loses nothing — is <see cref="HostLanding"/>'s.
@@ -28,11 +28,11 @@ namespace WiseOwl.Cobol.CodeGen;
 /// each published unit's record (<see cref="BoundUnit.Record"/>; DESIGN-external-repository §6.2, §9.1; kb/Work PB4319), and
 /// <see cref="RepositoryAttributeRenderer"/> transcribes it onto the class, the <c>Call</c> parameters and its return value; a unit
 /// without one carries its identity alone.</para>
-/// <para>⛔ <b>THE DETACHED STORAGE IS IMAGE-STORED FOR A FIXED-POINT FORMAL.</b> ISO §2023:14.2.3 9) allocates "a data item with
+/// <para>⛔ <b>THE DETACHED STORAGE IS IMAGE-STORED FOR A FIXED-POINT FORMAL.</b> ISO §2023:14.2.3 GR9 allocates "a data item with
 /// the same description and the same number of bytes as the formal parameter"; the entry holds a fixed-point one as its
 /// record image (the CALL lane's TEXT crossing of an image-stored numeric item, with the item's <c>NumProfile</c>), so the
 /// write-back sees the CONTENT the activated program left — the content a REDEFINES alias or a reference modification can
-/// leave — and decodes it only when the class test NUMERIC is true of it (ISO §2023:8.8.4.4.4 3) n);
+/// leave — and decodes it only when the class test NUMERIC is true of it (ISO §2023:8.8.4.4.4 GR3n;
 /// <see cref="HostLanding.TryDecode"/>). A native cell could not hold such content to be refused.</para>
 /// </summary>
 /// <param name="atoms">The module's one §2023:8.5.1.12 atom table (<c>ProgramEmitter._atoms</c>, emitted after the entries): the
@@ -140,8 +140,8 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable
         }
 
         string kind = unit.IsFunction ? "FUNCTION-ID" : "PROGRAM-ID";
-        w.Line($"/// <summary>{kind} {unit.Name} (ISO §2023:14.2.3 13), DESIGN-external-repository §4.3): activates the "
-            + $"{(unit.IsFunction ? "function" : "program")} through the run unit's activation boundary (§2023:14.9.4.4 3)) as "
+        w.Line($"/// <summary>{kind} {unit.Name} (ISO §2023:14.2.3 GR13, DESIGN-external-repository §4.3): activates the "
+            + $"{(unit.IsFunction ? "function" : "program")} through the run unit's activation boundary (§2023:14.9.4.4 GR3) as "
             + "a CALL statement naming it does, landing each argument exactly or refusing it.</summary>");
         // The unit's repository record (DESIGN-external-repository §6.2 "Anchoring"): its identity always; with
         // --repository-update on, its signature too — the unit facts on [CobolUnit], the record's tables on the class,
@@ -179,8 +179,8 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable
     }
 
     /// <summary>A formal's <c>Call</c> parameter: BY VALUE by value, BY REFERENCE by <c>ref</c> (the variable the
-    /// activated program's stores reach, ISO §2023:14.2.3 8)), and nullable when the formal is OPTIONAL (null is the omitted
-    /// argument, §2023:14.9.4.4 11)).</summary>
+    /// activated program's stores reach, ISO §2023:14.2.3 GR8), and nullable when the formal is OPTIONAL (null is the omitted
+    /// argument, §2023:14.9.4.4 GR11).</summary>
     private static string ParameterText(Item f) =>
         $"{(f.ByValue ? "" : "ref ")}{f.CsType}{(f.Optional && !f.CsType.EndsWith('?') ? "?" : "")} {f.Name}";
 
@@ -325,7 +325,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable
         pic is { Truncation: NumericTruncation.BinaryCapacity, Signed: false, StorageWidth: 16 };
 
     /// <summary>The RETURNING item's storage, allocated by the entry as an activating COBOL element allocates it (ISO
-    /// §2023:14.2.3 6) NOTE 1): the initial content of its description's storage form — for a group, the image of a record
+    /// §2023:14.2.3 GR6 NOTE 1): the initial content of its description's storage form — for a group, the image of a record
     /// the host would construct (text members spaces, numbers zero).</summary>
     private static string ReceiverSeed(Item r)
     {
@@ -363,14 +363,14 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable
 
     /// <summary>⛔ THE ARGUMENT OVER THE DETACHED STORAGE, stating what a CALL site that checks EC-PROGRAM-ARG-MISMATCH
     /// states for storage of this description (<c>CallEmitter</c>'s carried description, kb/Work PB873/PB165): a numeric
-    /// item's <c>NumProfile</c>, the fixed storage length (§2023:14.8.2.3.2 1)), and the §2023:14.8.2 description, so §2023:14.9.4.4 3) d)
+    /// item's <c>NumProfile</c>, the fixed storage length (§2023:14.8.2.3.2 1)), and the §2023:14.8.2 description, so §2023:14.9.4.4 GR3d
     /// compares it with the activated program's formal when that program enables the check. The length and the description
     /// are stated by the CALL lane's own renderer, <see cref="CallEmitter.Described(string, int, string?)"/>
     /// (DESIGN-external-repository §17.3 "One renderer").</summary>
     private string ArgOver(Item f, CobolPassMode mode)
     {
         // A record holding references crosses as a COBOL argument of cell-backed storage does (CallEmitter.AreaOf): its
-        // characters, and the cell area the activated program's formal is laid over (ISO §2023:14.2.3 8)).
+        // characters, and the cell area the activated program's formal is laid over (ISO §2023:14.2.3 GR8).
         string carrier = f.Cell, area = "";
         if (f.Type.Kind is HostTypeKind.Group && PublishedRecordEmitter.HoldsSlots(f.Description))
         {

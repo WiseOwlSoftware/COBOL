@@ -23,7 +23,7 @@ internal static class BooleanRenderer
 
     /// <summary>Render a boolean expression whose value is taken at ISO §2023:14.9.8.4 GR3's width — "the number of
     /// boolean positions in the largest boolean item referenced in the expression" — for every site that states
-    /// it: COMPUTE Format 2, and the BY CONTENT boolean-expression argument of CALL and INVOKE (§2023:8.8.2 rule 10's
+    /// it: COMPUTE Format 2, and the BY CONTENT boolean-expression argument of CALL and INVOKE (§2023:8.8.2 GR10's
     /// same width). ⛔ THE WIDTH IS A RUN-TIME QUANTITY, so it is carried at run time (kb/Work PB589): each ITEM
     /// leaf is wrapped <c>CobolBool.Item</c> (its own positions), each literal <c>CobolBool.Literal</c> (none),
     /// the operators' <c>CobolBoolSized</c> overloads keep the max, and <c>CobolBool.ToItemWidth</c> applies it
@@ -87,7 +87,7 @@ internal static class BooleanRenderer
 
         private string RenderShift(BoundBoolShift s) =>
             // The count is a numeric operand rendered as an integer (m=0 implementor choice — a fractional count
-            // truncates, ISO §2023:8.8.2 rule 8 "repeat until iterations == K"); the runtime kernel guards k ≤ 0 / k ≥ N.
+            // truncates, ISO §2023:8.8.2 GR8 "repeat until iterations == K"); the runtime kernel guards k ≤ 0 / k ≥ N.
             RuntimeApi.BoolShift(s.Kind, s.Operand.Accept(this),
                 RuntimeApi.HostInt64(NumericRenderer.Align(num.Render(s.Count, ReceiverContext.None, sending), 0)));
     }

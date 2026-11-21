@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A HOST WITHOUT OPEN-FILE-DESCRIPTION LOCKS ARBITRATES A SECOND RUN UNIT BY TABLE 19 TOO (kb/Work PB2484).
-/// ISO §2023:9.1.15 2): <i>"The sharing with read only mode restricts concurrent access to a physical file through file
+/// ISO §2023:9.1.15 GR2: <i>"The sharing with read only mode restricts concurrent access to a physical file through file
 /// connectors other than this one, to input mode"</i>, and the file lock of §2023:9.1.15 binds <i>"other run units"</i>. On
 /// macOS (and every Unix whose process shape <c>OfdRegionLocks</c> was not written for) the only lock a connector met
 /// was .NET's one advisory <c>flock</c>, which says rule 1 and nothing of rules 2 and 3, so a second run unit's OPEN
@@ -126,7 +126,7 @@ public sealed class SidecarColumnLockHostDriftTests
                 foreach (var t in threads) t.Join();
 
                 Assert.False(outcomes[0] == RunUnitFileLock.Outcome.Held && outcomes[1] == RunUnitFileLock.Outcome.Held,
-                    $"Round {round}: both holders took SHARING WITH NO OTHER on {file} — §2023:9.1.15 1) 'specifies exclusive access'.");
+                    $"Round {round}: both holders took SHARING WITH NO OTHER on {file} — §2023:9.1.15 GR1 'specifies exclusive access'.");
                 Assert.DoesNotContain(RunUnitFileLock.Outcome.Unavailable, outcomes);
                 foreach (var hold in holds) hold?.Dispose();
             }
@@ -162,7 +162,7 @@ public sealed class SidecarColumnLockHostDriftTests
     /// <summary>A dead holder's file that SEVERAL testers sweep at the same instant refuses none of them: probes ask for a
     /// SHARED lock and only a holder holds the exclusive one, so a tester never reads another tester as a holder (kb/Work
     /// PB2917, the train 1052 review: exclusive probes made the second tester's OPEN '61' for a connector that did not
-    /// exist, §2023:9.1.13.9 1)). The file is recreated every round, so every round has a dead file to race over.</summary>
+    /// exist, §2023:9.1.13.9 GR1). The file is recreated every round, so every round has a dead file to race over.</summary>
     [Fact]
     public void ManyTestersSweepingOneDeadFileNeverRefuseEachOther()
     {
@@ -232,7 +232,7 @@ public sealed class SidecarColumnLockHostDriftTests
     /// <summary>⛔ A LOCK DIRECTORY THIS USER MAY ENTER BUT NOT LIST HIDES EVERY HOLDER (the train 1056b review). A parent
     /// of mode 0711, which the lock directory copies, lets another user reach the physical file and its lock directory by
     /// name but not list it, and the listing's "access denied" was read as a lock this host cannot hold: the OPEN was
-    /// granted with no file lock where a live holder may be, against §2023:9.1.15 2). It is refused ('61', §2023:9.1.13.9 1)) and
+    /// granted with no file lock where a live holder may be, against §2023:9.1.15 2). It is refused ('61', §2023:9.1.13.9 GR1) and
     /// leaves nothing behind, both for a user who may not write the directory (search only, the other user of a 0711
     /// parent) and for one who may (write and search). Unix modes only; the test witnesses nothing as root.</summary>
     [Fact]
@@ -271,7 +271,7 @@ public sealed class SidecarColumnLockHostDriftTests
     /// process may not open was read as "nobody holds it" and swept, so another user's live holder was deleted and the OPEN
     /// §2023:9.1.15 requires refused was granted. The entry here is a directory named like a holder file — which no host lets
     /// a file open read, on Windows and on Unix alike — so the test needs no second account: a request row that refuses
-    /// its column is refused ('61', §2023:9.1.13.9 1)) and the entry is left where it is; a request row that does not refuse
+    /// its column is refused ('61', §2023:9.1.13.9 GR1) and the entry is left where it is; a request row that does not refuse
     /// its column is not affected by it.</summary>
     [Fact]
     public void AColumnFileThatCannotBeObservedRefusesAndIsNotSwept()
@@ -324,7 +324,7 @@ public sealed class SidecarColumnLockHostDriftTests
     }
 
     /// <summary>⛔ A USER WHO MAY NOT WRITE THE LOCK DIRECTORY CAN STILL LOOK (kb/Work PB2917): it cannot publish its own
-    /// column, but a live holder it can see still refuses it (§2023:9.1.15 2), '61'), and with no conflicting holder its OPEN
+    /// column, but a live holder it can see still refuses it (§2023:9.1.15 GR2, '61'), and with no conflicting holder its OPEN
     /// has the share mode alone, <see cref="RunUnitFileLock.Outcome.Unavailable"/>. Unix modes only; skipped as root.</summary>
     [Fact]
     public void AUserWhoMayNotPublishStillRefusesAgainstALiveHolder()
@@ -358,7 +358,7 @@ public sealed class SidecarColumnLockHostDriftTests
 
     /// <summary>⛔ THE LOCK DIRECTORY AND ITS FILES CARRY THE PERMISSIONS OF THE PHYSICAL FILE'S DIRECTORY, not of the first
     /// holder's umask (kb/Work PB2917). A directory made at the default umask 022 is 0755 and its owner's alone to write,
-    /// so a second user of a group-writable shared directory could not publish into it and was granted an OPEN §2023:9.1.15 2)
+    /// so a second user of a group-writable shared directory could not publish into it and was granted an OPEN §2023:9.1.15 GR2
     /// requires refused; a file made under a umask of 077 is 0600 and unreadable to that user. Unix modes only.</summary>
     [Fact]
     public void TheLockDirectoryAndItsFilesTakeTheSharedDirectorysPermissions()
@@ -458,7 +458,7 @@ public sealed class SidecarColumnLockHostDriftTests
     /// <summary>⛔ AN EXHAUSTED PUBLICATION DOES NOT HIDE A CONFLICT THE HOST CAN SEE (kb/Work PB3632, the lock-file host's twin of
     /// <c>HandleColumnLockHostDriftTests.APublicationThatEveryTryCollidesInIsRefusedByAHeldColumnTable19Refuses</c>, PB3518): Table 19
     /// (§2023:14.9.27.4) prints <i>Unsuccessful open</i> for a SHARING WITH ALL OTHER I-O request beside a READ ONLY INPUT connector,
-    /// and §2023:9.1.13.9 1) makes that '61'. When every try of the request's own publication loses its race
+    /// and §2023:9.1.13.9 GR1 makes that '61'. When every try of the request's own publication loses its race
     /// (<see cref="SidecarLockFiles.RaceInjector"/>) the request cannot be held, but the file the other holder published is
     /// still there to be seen, so the answer is <see cref="RunUnitFileLock.Outcome.Refused"/> and not
     /// <see cref="RunUnitFileLock.Outcome.Unavailable"/>, which would let the OPEN go on beside a connector the table refuses it.

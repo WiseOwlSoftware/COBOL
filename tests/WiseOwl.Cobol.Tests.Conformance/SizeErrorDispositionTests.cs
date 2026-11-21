@@ -242,10 +242,10 @@ public sealed class SizeErrorDispositionTests
     [InlineData("NATIVE", "COMPUTE A = FL * 400", "A=007 E=  0 R=0 F=-")]
     [InlineData("NATIVE", "COMPUTE A = FL * 2", "A=010 E=  0 R=0 F=N")]
     [InlineData("NATIVE", "COMPUTE FR = FL * 2", "A=007 E=  0 R=0 F=N")]
-    // §2023:14.9.12.4 6) c): the remainder is a resultant too; 59 / 30 leaves 29, past PIC 9, so R keeps 0 and NOT is skipped.
+    // §2023:14.9.12.4 GR6c: the remainder is a resultant too; 59 / 30 leaves 29, past PIC 9, so R keeps 0 and NOT is skipped.
     [InlineData("NATIVE", "DIVIDE 59 BY 30 GIVING A REMAINDER R", "A=001 E=  0 R=0 F=-")]
     [InlineData("NATIVE", "DIVIDE 66 BY 30 GIVING A REMAINDER R", "A=002 E=  0 R=6 F=N")]
-    // §2023:14.9.12.4 6) c) after a QUOTIENT size error (kb/Work PB3975): 4003 / 2 = 2001 is past PIC 9(3), so A keeps 7 and,
+    // §2023:14.9.12.4 GR6c after a QUOTIENT size error (kb/Work PB3975): 4003 / 2 = 2001 is past PIC 9(3), so A keeps 7 and,
     // the NOT-only statement keeping every receiver as the ON phrase does (PB3989), no remainder is stored (R keeps 0).
     [InlineData("NATIVE", "DIVIDE 4003 BY 2 GIVING A REMAINDER R", "A=007 E=  0 R=0 F=-")]
     [InlineData("STANDARD-DECIMAL", "DIVIDE 4003 BY 2 GIVING A REMAINDER R", "A=007 E=  0 R=0 F=-")]
@@ -276,7 +276,7 @@ public sealed class SizeErrorDispositionTests
     }
 
     /// <summary>kb/Work PB3990 — ROUNDED MODE IS PROHIBITED in a statement with NO SIZE ERROR phrase and checking off.
-    /// §2023:14.7.4.3 rule 7: "If the PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly
+    /// §2023:14.7.4.3 GR7: "If the PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly
     /// in the resultant identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition
     /// exists, and the content of the resultant identifier is unchanged" — and with checking off execution continues
     /// (§2023:14.6.13.1.3 item 8, DOC-A.1-70; GnuCOBOL 3.2 prints the same). Every receiver usage and category, every final

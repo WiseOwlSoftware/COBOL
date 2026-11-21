@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <c>2002/w73d2_pb1119_propagate_on</c> cannot hold — a golden must exit 0, and two arms here end in abnormal
 /// termination — plus the METHOD, I-O and exception-OBJECT arms.
 /// <list type="bullet">
-/// <item>ISO §2023:14.6.13.1.3 6): "If checking for the exception condition is enabled, and the exception condition is
+/// <item>ISO §2023:14.6.13.1.3 GR6: "If checking for the exception condition is enabled, and the exception condition is
 /// neither EC-FLOW-GLOBAL-EXIT nor EC-FLOW-GLOBAL-GOBACK, and there is an applicable PROPAGATE ON directive, the
 /// exception condition is propagated as if a GOBACK statement with the RAISING LAST EXCEPTION phrase were
 /// executed." It follows 5) — a declarative that completes normally still terminates the run unit.</item>
@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// </summary>
 public sealed class AutomaticPropagationTests
 {
-    /// <summary>§2023:14.6.13.1.3 5) precedes 6): the callee's own declarative runs and completes normally, so the run
+    /// <summary>§2023:14.6.13.1.3 GR5 precedes 6): the callee's own declarative runs and completes normally, so the run
     /// unit terminates abnormally even though the callee is under PROPAGATE ON — nothing reaches the caller.</summary>
     [Fact]
     public void DeclarativeCompletesNormally_TerminatesInsteadOfPropagating()
@@ -72,7 +72,7 @@ public sealed class AutomaticPropagationTests
     }
 
     /// <summary>A MAIN program under PROPAGATE ON has no activating element to propagate to (§2023:7.3.21.1), so an
-    /// unhandled fatal condition terminates the run unit (§2023:14.6.13.1.3 7)) — never the normal STOP a literal
+    /// unhandled fatal condition terminates the run unit (§2023:14.6.13.1.3 GR7) — never the normal STOP a literal
     /// GOBACK would be (§2023:14.9.18.4 GR3).</summary>
     [Fact]
     public void MainProgram_HasNoActivator_Terminates()
@@ -101,7 +101,7 @@ public sealed class AutomaticPropagationTests
     }
 
     /// <summary>The METHOD arm (a method is one of §2023:7.3.21.4 GR1's "functions, methods, and programs") and the EC-I-O
-    /// arm (§2023:14.6.13.1.3 3) sends a fatal EC-I-O condition on to 6)): each propagates to its activator, whose
+    /// arm (§2023:14.6.13.1.3 GR3 sends a fatal EC-I-O condition on to 6)): each propagates to its activator, whose
     /// declarative resumes.</summary>
     [Fact]
     public void MethodAndIoArms_PropagateToTheActivator()

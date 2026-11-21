@@ -132,7 +132,7 @@ public sealed class OccursDynamicGuardTests
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1526");
     }
 
-    /// <summary>§2023:8.5.1.9.1 3) holds on EVERY route a description reaches a file record by, not only the one
+    /// <summary>§2023:8.5.1.9.1 SR3 holds on EVERY route a description reaches a file record by, not only the one
     /// written in place (kb/Work PB1604): a dynamic-capacity table arriving through a TYPE clause (whole record or
     /// a subordinate group), through SAME AS, or written in a SORT-MERGE file description is refused with
     /// COBOL1526. This is what makes the record-sizing walks (<c>FileModel.MaxDynamicExtent</c> /
@@ -168,7 +168,7 @@ public sealed class OccursDynamicGuardTests
                 DISPLAY "X".
                 STOP RUN.
             """, 2023);
-        Assert.False(ok, "a dynamic-capacity table under a FILE SECTION record must be rejected (ISO §2023:8.5.1.9.1 3))");
+        Assert.False(ok, "a dynamic-capacity table under a FILE SECTION record must be rejected (ISO §2023:8.5.1.9.1 SR3)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1526");
     }
 

@@ -137,7 +137,7 @@ public sealed class GroupKindDriftTests
         Assert.Equal(GroupKinds.Any, CorrespondingOperandRule.Move.Admitted);
         Assert.False(CorrespondingOperandRule.Add.Admitted.HasFlag(GroupKinds.Bit),
             "ISO §2023:14.9.2.3 SR6 names alphanumeric, national, variable-length and strongly-typed groups — a bit "
-            + "group is the one kind it leaves out, and §2023:14.7.6 rule 3 (both items numeric) is why.");
+            + "group is the one kind it leaves out, and §2023:14.7.6 GR3 (both items numeric) is why.");
         foreach (GroupKinds k in new[]
                  {
                      GroupKinds.Alphanumeric, GroupKinds.National, GroupKinds.VariableLength,

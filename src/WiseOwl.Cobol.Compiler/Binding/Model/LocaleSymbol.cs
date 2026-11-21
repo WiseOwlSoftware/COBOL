@@ -24,7 +24,7 @@ public sealed record LocaleSymbol(string Name, string External, bool FromLiteral
     /// <c>INVARIANT</c> → "") — what the generated code carries and the runtime resolves at use.</summary>
     public string Tag { get; } = LocaleIdentification.Normalize(External);
 
-    /// <summary>Do two symbols carry "the same external identification" (ISO §2023:8.5.3.1 "Additionally", §2023:9.3.8.2.3 rule 3
+    /// <summary>Do two symbols carry "the same external identification" (ISO §2023:8.5.3.1 "Additionally", §2023:9.3.8.2.3 GR3
     /// "Additionally", §2023:14.8.2.3.2 "Additionally" a), §2023:14.8.3.3 "Additionally" 1))? The identification AS WRITTEN,
     /// through the ONE rule <see cref="LocaleIdentification.SameExternalIdentification"/>, which the run-time
     /// universal-dispatch relation asks too (kb/Work PB480). The locale-NAME never enters: two locale-names bound to the
@@ -83,7 +83,7 @@ public readonly record struct LocaleRef(LocaleSymbol? Named)
 
     /// <summary>The LOCALE-phrase half of the "same PICTURE clause" rules: "both specify the LOCALE phrase without
     /// a locale-name or both specify the LOCALE phrase with the same external identification" (ISO §2023:8.5.3.1,
-    /// §2023:9.3.8.2.3 rule 3, §2023:14.8.2.3.2, §2023:14.8.3.3 — each clause's "Additionally" sentence) — <see cref="LocaleSymbol.SameExternalIdentificationAs"/>.</summary>
+    /// §2023:9.3.8.2.3 GR3, §2023:14.8.2.3.2, §2023:14.8.3.3 — each clause's "Additionally" sentence) — <see cref="LocaleSymbol.SameExternalIdentificationAs"/>.</summary>
     public bool SameIdentificationAs(LocaleRef other) =>
         IsCurrent ? other.IsCurrent : !other.IsCurrent && Named!.SameExternalIdentificationAs(other.Named!);
 

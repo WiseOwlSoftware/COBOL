@@ -60,7 +60,7 @@ public static partial class CobolIntrinsics
             // returned length is fixed by the FUNCTION at one character position (§2023:15.15.4), not by the rejected
             // argument, so the row's zero-length class does not reach here (kb/Work PB383, PB470).
             return Exceptions.ExceptionState.ArgumentErrorSpaces(
-                $"CHAR argument {n} outside the collating sequence (§2023:15.15.3 rule 1)", CharPositions);
+                $"CHAR argument {n} outside the collating sequence (§2023:15.15.3 AR1)", CharPositions);
         }
         return ((char)c).ToString();
     }
@@ -85,7 +85,7 @@ public static partial class CobolIntrinsics
         {
             return Exceptions.ExceptionState.ArgumentErrorSpaces(     // row DOC-A.1-90's general clause — §2023:15.15.4 fixes the length at 1
                 $"CHAR argument {n} outside the collating sequence of "
-                + $"{collation.PositionCount} positions (§2023:15.15.3 rule 2)", CharPositions);
+                + $"{collation.PositionCount} positions (§2023:15.15.3 AR2)", CharPositions);
         }
         return ((char)c).ToString();
     }
@@ -95,7 +95,7 @@ public static partial class CobolIntrinsics
     /// position n is code unit n−1). This parameterless body serves every IDENTITY national program collating
     /// sequence (none declared, NATIVE, UCS-4 — the §2023:8.5.1.4 codepoint≡code-unit equivalence); a non-native
     /// <c>ALPHABET … FOR NATIONAL</c> literal phrase routes to the <see cref="NationalCollation"/> overload.
-    /// An out-of-range ordinal violates §2023:15.16.3 rule 2 — EC-ARGUMENT-FUNCTION, with the §2023:15.3 default
+    /// An out-of-range ordinal violates §2023:15.16.3 AR2 — EC-ARGUMENT-FUNCTION, with the §2023:15.3 default
     /// one-space result when checking is off. The result is CLASS NATIONAL (§2023:15.16.1) — the catalog row's
     /// National category carries that.</summary>
     public static string CharNational(long n)
@@ -104,7 +104,7 @@ public static partial class CobolIntrinsics
         if (c is < 0 or > 0xFFFF)
         {
             return Exceptions.ExceptionState.ArgumentErrorSpaces(     // row DOC-A.1-90's general clause — §2023:15.16.4 fixes the length at 1
-                $"CHAR-NATIONAL argument {n} outside the national collating sequence (§2023:15.16.3 rule 2)", CharPositions);
+                $"CHAR-NATIONAL argument {n} outside the national collating sequence (§2023:15.16.3 AR2)", CharPositions);
         }
         return ((char)c).ToString();
     }
@@ -118,7 +118,7 @@ public static partial class CobolIntrinsics
         if (c < 0)
         {
             return Exceptions.ExceptionState.ArgumentErrorSpaces(     // row DOC-A.1-90's general clause — §2023:15.16.4 fixes the length at 1
-                $"CHAR-NATIONAL argument {n} outside the national collating sequence (§2023:15.16.3 rule 2)", CharPositions);
+                $"CHAR-NATIONAL argument {n} outside the national collating sequence (§2023:15.16.3 AR2)", CharPositions);
         }
         return ((char)c).ToString();
     }
@@ -199,7 +199,7 @@ public static partial class CobolIntrinsics
 
     /// <summary>CONCAT (§2023:15.18.4, 2023): the characters of all arguments in order — argument-1 followed by each
     /// argument-2 (rules 1 &amp; 4). Each argument arrives as its fixed-width display IMAGE (trailing padding
-    /// included — §2023:15.18.4 rule 1 "all of the characters"), so the result length is the sum of the argument
+    /// included — §2023:15.18.4 RV1 "all of the characters"), so the result length is the sum of the argument
     /// widths. That sum is the one CONCAT length that can pass the §2023:15.4 maximum (<see cref="ReturnedValueMaximum"/>),
     /// so it is measured before the value is built.</summary>
     public static string Concat(params string[] parts)
@@ -232,12 +232,12 @@ public static partial class CobolIntrinsics
     {
         if (fromBase is < 2 or > 16 || toBase is < 2 or > 16)
             return Exceptions.ExceptionState.ArgumentErrorZeroLength(
-                $"BASECONVERT base(s) {fromBase}/{toBase} out of the range 2..16 (§2023:15.12.3 rule 1)");
+                $"BASECONVERT base(s) {fromBase}/{toBase} out of the range 2..16 (§2023:15.12.3 AR1)");
         // §2023:15.12.3 r1 — "with UNEQUAL values": the runtime twin of the compile-time equal-literals screen
         // (PB59 / AR-15.12.3-1 leg (b)); reachable only through data-item bases the binder cannot read.
         if (fromBase == toBase)
             return Exceptions.ExceptionState.ArgumentErrorZeroLength(
-                $"BASECONVERT argument-2 and argument-3 shall have unequal values — both are {fromBase} (§2023:15.12.3 rule 1)");
+                $"BASECONVERT argument-2 and argument-3 shall have unequal values — both are {fromBase} (§2023:15.12.3 AR1)");
         System.Numerics.BigInteger acc = 0;
         int digitsSeen = 0;
         foreach (char ch in value.TrimEnd(' '))
@@ -246,13 +246,13 @@ public static partial class CobolIntrinsics
                   : ch is >= 'A' and <= 'F' ? ch - 'A' + 10 : -1;
             if (d < 0 || d >= fromBase)
                 return Exceptions.ExceptionState.ArgumentErrorZeroLength(
-                    $"BASECONVERT: '{ch}' is not a base-{fromBase} digit (§2023:15.12.3 rule 2 — the basic-letters A to F, §2023:8.1.3.1 Table 1)");
+                    $"BASECONVERT: '{ch}' is not a base-{fromBase} digit (§2023:15.12.3 AR2 — the basic-letters A to F, §2023:8.1.3.1 Table 1)");
             acc = acc * fromBase + d;
             digitsSeen++;
         }
         if (digitsSeen == 0)
             return Exceptions.ExceptionState.ArgumentErrorZeroLength(
-                "BASECONVERT argument-1 contains no digits (§2023:15.12.3 rule 2; §2023:15.3)");
+                "BASECONVERT argument-1 contains no digits (§2023:15.12.3 AR2; §2023:15.3)");
         if (acc == 0) return "0";
         const string digits = "0123456789ABCDEF";
         // The digits come out low-order first and are reversed once at the end: inserting each at the front made
@@ -303,7 +303,7 @@ public static partial class CobolIntrinsics
             // Row DOC-A.1-90's ZERO-LENGTH class: §2023:15.19.4 builds the returned value out of argument-1, so the
             // returned length derives from the very argument being rejected and nothing survives to size it.
             return Exceptions.ExceptionState.ArgumentErrorZeroLength(
-                "FUNCTION CONVERT argument-1 is of zero length (§2023:15.19.3 rule 1)");
+                "FUNCTION CONVERT argument-1 is of zero length (§2023:15.19.3 AR1)");
         }
 
         // Character translation (§2023:15.19.4 r1/r3): both sides character, no HEX — the ONE item-33 correspondence
@@ -425,7 +425,7 @@ public static partial class CobolIntrinsics
         // (NOT r1: the ITEM is not zero length — citing the zero-length rule here would be a mis-citation).
         if (t.Length == 0)
         {
-            Exceptions.ExceptionState.ArgumentError("CONVERT: HEX source contains no hexadecimal digits (§2023:15.19.3 rule 4)");
+            Exceptions.ExceptionState.ArgumentError("CONVERT: HEX source contains no hexadecimal digits (§2023:15.19.3 AR4)");
             return [];
         }
         if ((t.Length & 1) != 0)                                     // SR4 — complete bytes ⇒ an even digit count
@@ -462,12 +462,12 @@ public static partial class CobolIntrinsics
     /// a zero-length value (rule 1). FIRST/LAST target the pair's first/last occurrence in the source.</summary>
     public static string Substitute(string source, string[] froms, string[] tos, int[] modes, LocaleFacts? classification = null)
     {
-        if (source.Length == 0 || froms.Any(f => f.Length == 0))                 // §2023:15.87.4 rule 1
+        if (source.Length == 0 || froms.Any(f => f.Length == 0))                 // §2023:15.87.4 RV1
         {
             // §2023:15.87.4 r1 states the result itself — "the returned value is of zero length" — so this arm does
             // NOT rest on an implementor determination; it shares only the mechanism.
             return Exceptions.ExceptionState.ArgumentErrorZeroLength(
-                "SUBSTITUTE argument-1 or an argument-2 is of zero length (§2023:15.87.4 rule 1)");
+                "SUBSTITUTE argument-1 or an argument-2 is of zero length (§2023:15.87.4 RV1)");
         }
         int k = froms.Length;
         // ANYCASE (rule 5) folds via LOWER-CASE without the LOCALE argument - the ONE fold every ANYCASE matcher
@@ -568,7 +568,7 @@ public static partial class CobolIntrinsics
     /// <paramref name="anycase"/> folds case per LOWER-CASE without a LOCALE argument (rule 4) - under the module's
     /// <paramref name="classification"/> when it has one (§2023:15.57.4 r3). A zero-length argument-1 or
     /// argument-2 (rule 5), or no remaining match (rule 3), returns 0. An OCCURRENCE is any character position at
-    /// which argument-2 matches a substring of argument-1 (§2023:15.37.4 rule 1 — a plain substring match, OVERLAPPING
+    /// which argument-2 matches a substring of argument-1 (§2023:15.37.4 RV1 — a plain substring match, OVERLAPPING
     /// occurrences included; §2023:15.37 defines no consumption/advance and never references INSPECT's scanning).</summary>
     /// <remarks>⛔ <paramref name="skip"/> IS <c>Int128</c> BECAUSE ARGUMENT-3 IS TOTAL (kb/Work PB254).
     /// §2023:15.37.3 r3 is the whole argument rule — "argument-3 shall be an integer data item or integer literal" —
@@ -582,7 +582,7 @@ public static partial class CobolIntrinsics
     public static long FindString(string hay, string needle, bool last, Int128 skip, bool anycase,
                                   LocaleFacts? classification = null)
     {
-        if (hay.Length == 0 || needle.Length == 0) return 0;                     // §2023:15.37.4 rule 5
+        if (hay.Length == 0 || needle.Length == 0) return 0;                     // §2023:15.37.4 RV5
         // rule 4 - the LOWER-CASE-without-LOCALE fold, ONE for every ANYCASE matcher (kb/Work PB2631): the module's
         // CHARACTER CLASSIFICATION when it has one (§2023:15.57.4 r3), else the implementor's correspondence (r4).
         string h = anycase ? CobolLocale.FoldLower(hay, classification) : hay;
@@ -603,7 +603,7 @@ public static partial class CobolIntrinsics
 
     /// <summary>TRIM (§2023:15.96.4): the argument with LEADING (<paramref name="mode"/> 1), TRAILING (2), or BOTH
     /// (0) characters that match the delete set removed. The delete set is each argument-2's single character
-    /// (§2023:15.96.3 rule 2); with no argument-2 it is a space (rule 3.a). An argument consisting only of delete-set
+    /// (§2023:15.96.3 AR2); with no argument-2 it is a space (rule 3.a). An argument consisting only of delete-set
     /// characters (or of zero length) returns a zero-length string (rule 4).</summary>
     public static string Trim(string s, long mode, params string[] chars)
     {
@@ -632,7 +632,7 @@ public static partial class CobolIntrinsics
             // predicate decides every argument-2 whose width is STATIC and fails OPEN on the rest (an ANY
             // LENGTH or DYNAMIC LENGTH item, a computed-length ref-mod, a table(ALL) element), so the VALUE
             // screen is owed here: a specified argument-2 that is not one character position is an incorrect
-            // argument value, §2023:15.3 rule 14 — "If the evaluation of an argument results in an incorrect value
+            // argument value, §2023:15.3 AR14 — "If the evaluation of an argument results in an incorrect value
             // for that argument … the EC-ARGUMENT-FUNCTION exception condition is set to exist". The
             // substituted result is the zero-length value (docs/CONFORMANCE.md DOC-A.1-90's first class:
             // TRIM's returned LENGTH is derived from the rejected argument, since argument-2 alone decides
@@ -640,7 +640,7 @@ public static partial class CobolIntrinsics
             if (c.Length != 1)
                 return Exceptions.ExceptionState.ArgumentErrorZeroLength(
                     $"FUNCTION TRIM argument-2 is {c.Length} character positions, not the single character "
-                    + "ISO §2023:15.96.3 rule 2 requires");
+                    + "ISO §2023:15.96.3 AR2 requires");
             r = TrimOne(r, mode, c[0]);
         }
         return r;
@@ -763,9 +763,9 @@ public static partial class CobolIntrinsics
         // different documented substituted results. A single `length < 1 || length > 8191` arm answering "0"
         // conflated the first two and got the answer wrong for both.
 
-        // ── §2023:15.13.3 rule 2 — an ARGUMENT rule: "Argument-2 shall be a positive nonzero integer."
+        // ── §2023:15.13.3 AR2 — an ARGUMENT rule: "Argument-2 shall be a positive nonzero integer."
         // The rejected argument IS the one the returned length derives from, so there is no length to return at
-        // all: docs/CONFORMANCE.md row DOC-A.1-90's zero-length class (§2023:15.3 rule 14), the same answer its
+        // all: docs/CONFORMANCE.md row DOC-A.1-90's zero-length class (§2023:15.3 AR14), the same answer its
         // FORMATTED-DATE / FORMATTED-DATETIME / FORMATTED-TIME / BASECONVERT siblings give.
         if (length < 1)
             return Exceptions.ExceptionState.ArgumentErrorZeroLength(
@@ -778,7 +778,7 @@ public static partial class CobolIntrinsics
         // the value is allocated.
         if (ReturnedValueOverMaximum("BOOLEAN-OF-INTEGER", length) is { } over) return over;
 
-        // ── §2023:15.13.3 rule 1 — an ARGUMENT rule about argument-1. ⚠ THE SUBSTITUTE IS DELIBERATELY NOT ZERO
+        // ── §2023:15.13.3 AR1 — an ARGUMENT rule about argument-1. ⚠ THE SUBSTITUTE IS DELIBERATELY NOT ZERO
         // LENGTH: argument-2 is valid here, so the returned length is fully determined and row DOC-A.1-90's
         // general clause applies instead of its zero-length class — "the zero value of the type the function
         // returns", which for the §2023:15.13.4 r1 boolean item of argument-2 positions is that many '0' positions.

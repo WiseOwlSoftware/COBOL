@@ -239,7 +239,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // prints condition-name-1 as an alternative to the whole comparison, so `WHEN cond-name (IX) = 05` is a
         // shape the format does not print. Without this arm it drew SR8's "not referenced in the KEY phrase",
         // which sends a reader looking for a KEY phrase edit that would not help. A level-88 that a NEARER data item of
-        // the spelling hides is not what the operand names (ISO §2023:8.4.6.2.1 3) a), kb/Work PB4219 review R1-1): the
+        // the spelling hides is not what the operand names (ISO §2023:8.4.6.2.1 GR3a, kb/Work PB4219 review R1-1): the
         // operand is that data item, and SR8 is its verdict.
         if (item is null
             && WrittenQualifiedName.Of(dref) is { } written   // a register names no condition-name (kb/Work PB4154)
@@ -315,7 +315,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // violation in `WHEN CN OF K2 (IX)` went unreported. One reference, one resolution.
         // A declared condition-name the written reference does not reach is the CONDITION binder's verdict, given once
         // per reference by its one wording (kb/Work PB4226): a misqualified condition-name, or — when a report entry or a
-        // data item of a NEARER source element is the referenced item (ISO §2023:8.4.6.2.1 3) a)) — the report-item refusal or
+        // data item of a NEARER source element is the referenced item (ISO §2023:8.4.6.2.1 GR3a) — the report-item refusal or
         // the "names a data item, not a condition-name" verdict (kb/Work PB4219 review R1-1). For a report entry or a
         // misqualified name the bind's bare-operand analysis has already asked it; asking again here reports nothing
         // twice. For a nearer data item the bare operand is the data item's (kb/Work PB4433), so this call is the first
@@ -524,7 +524,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
     }
 
     /// <summary>ISO §2023:3.178 asked of a <c>nonNumericLiteral</c>: a figurative constant is never zero-length
-    /// (§2023:8.3.3.6.4 GR3 b) — "when a figurative constant is other than ALL literal-1, the length of the string is
+    /// (§2023:8.3.3.6.4 GR3b — "when a figurative constant is other than ALL literal-1, the length of the string is
     /// one character" — and the ALL form's literal-1 cannot be zero-length either, §2023:8.3.3.6.3 SR2), a
     /// concatenation expression is zero-length exactly when its value is (§2023:8.8.3.3 GR2 — asked of the diagnostic-free
     /// <see cref="ConcatFolder.Peek"/>, so a constant-name operand counts by the literal it stands for, kb/Work

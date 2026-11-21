@@ -150,7 +150,7 @@ public sealed class NationalBooleanLiteralTests
 
     /// <summary>CALL USING with national and boolean LITERAL arguments (ISO §2023:14.9.4 — a literal argument
     /// passes BY CONTENT: spelled explicitly here, though Format 2's keyword-less literal binds the same
-    /// mode per §2023:14.9.4.4 GR9 a)2 since kb/Work PB130/PB131; the callee is CONTAINED because AS NESTED
+    /// mode per §2023:14.9.4.4 GR9a2 since kb/Work PB130/PB131; the callee is CONTAINED because AS NESTED
     /// requires it, §2023:14.9.4.3 SR15): the formals see the decoded values, never the prefixed token text.</summary>
     [Fact]
     public void Call_UsingNationalAndBooleanLiterals_PassesDecodedContent()
@@ -219,7 +219,7 @@ public sealed class NationalBooleanLiteralTests
                 DISPLAY N"{new string('A', 8192)}".
                 STOP RUN.
             """;
-        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §2023:6.1 3) a): not one free-form line
+        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §2023:6.1 SR3a: not one free-form line
         Assert.False(ok, "an 8,192-position national literal must be rejected (ISO §2023:8.3.3.5.3 SR1)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0814");
     }
@@ -237,7 +237,7 @@ public sealed class NationalBooleanLiteralTests
                 DISPLAY B"{new string('0', 8192)}".
                 STOP RUN.
             """;
-        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §2023:6.1 3) a): not one free-form line
+        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §2023:6.1 SR3a: not one free-form line
         Assert.False(ok, "an 8,192-position boolean literal must be rejected (ISO §2023:8.3.3.4.3 SR1)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0814");
     }

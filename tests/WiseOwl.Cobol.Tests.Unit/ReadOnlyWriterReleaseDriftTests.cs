@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ADMITS ANY OTHER FILE CONNECTOR — A READER AS WELL AS A WRITER (kb/Work PB1587).
 ///
 /// <para><b>The derivation.</b> §2023:14.9.51.4 GR12: <i>"The successful execution of a WRITE statement releases a logical
-/// record to the operating environment."</i> §2023:9.1.15 2): <i>"The sharing with read only mode restricts concurrent
+/// record to the operating environment."</i> §2023:9.1.15 GR2: <i>"The sharing with read only mode restricts concurrent
 /// access to a physical file through file connectors other than this one, to input mode."</i> — so the INPUT
 /// connector Table 19 admits beside a <c>SHARING WITH READ ONLY</c> writer exists, and §2023:14.9.30.4 GR21 makes its READ
 /// select from <i>"the physical file"</i>. The standard prints no buffering rule for a WRITE: the release is the
@@ -249,7 +249,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
     /// physical-file table nor a host handle with the first, as <c>RunUnitFileLockDriftTests</c> relies on): a record a
     /// <c>SHARING WITH READ ONLY</c> writer's WRITE answered '00' for is READ by the reader at once, before the
     /// writer's CLOSE — the same rule as the sequential arms, §2023:14.9.51.4 GR12 and §2023:9.1.15 2). A rejected WRITE (the
-    /// duplicate key, '22', §2023:14.9.51.4 GR33 a) on a relative file, GR42 b) on an indexed one) releases nothing, so the reader meets
+    /// duplicate key, '22', §2023:14.9.51.4 GR33a on a relative file, GR42 b) on an indexed one) releases nothing, so the reader meets
     /// exactly the records that were accepted.</summary>
     [Theory]
     [InlineData(FileOrg.Relative)]

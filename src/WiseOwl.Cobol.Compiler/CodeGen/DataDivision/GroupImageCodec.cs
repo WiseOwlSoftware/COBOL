@@ -118,7 +118,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// an unwritten slot already is) — and a <c>.SeedDynTable(ordinal, table)</c> for EVERY dynamic-capacity table,
     /// which has no unwritten state: its FROM capacity of element cells, each seeded by this same method one scope
     /// down (§2023:8.5.1.9.1). Empty when the scope has no component, so every cell without one is emitted as before.</summary>
-    /// <param name="useValues">False for a PLAIN external record (§2023:13.18.63.4 GR4 a): no VALUE seeds the initial
+    /// <param name="useValues">False for a PLAIN external record (§2023:13.18.63.4 GR4a: no VALUE seeds the initial
     /// state — though the occurrences a statement creates under the INITIALIZED phrase are still composed as an
     /// INITIALIZE … TO VALUE composes them (§2023:8.5.1.9.5).</param>
     /// <param name="firstOrdinal">The ordinal of the root's first component; null for the root's class ordinal
@@ -405,7 +405,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// element's POSITIONS, where the image holds its BYTES (kb/Work PB546's two widths).
     /// <para>The table is counted in the member's own unit: CHARACTERS (bytes on the physical basis), or BITS when a
     /// USAGE BIT leaf lies in the subtree (§2023:8.5.1.6.3 places a bit item "at the next bit position in storage", so a bit
-    /// occurrence shares bytes and the current extent is <c>ceiling(bits / 8)</c> characters, §2023:15.50.4 rule 9; kb/Work
+    /// occurrence shares bytes and the current extent is <c>ceiling(bits / 8)</c> characters, §2023:15.50.4 RV9; kb/Work
     /// PB3030). Every consumer asks this record, never the unit.</para></summary>
     /// <param name="Tail">The table as the runtime states it (<see cref="OdoModel.FixedImageTail"/>).</param>
     /// <param name="MemberWidth">The member's emitted field width in characters (its image at the maximum).</param>
@@ -425,7 +425,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         public (int StartChar, int Unit, int MaxUnits) RecordTail => (MemberWidth - Tail.Width, Tail.RecordUnit, Tail.RecordMaxUnits);
 
         /// <summary>The C# statement that keeps the member's occurrences past the RECEIVING count <c>__odo</c>
-        /// (§2023:13.18.38.4 GR8 a): the received fixed run <c>__s</c>, whose member starts at character
+        /// (§2023:13.18.38.4 GR8a: the received fixed run <c>__s</c>, whose member starts at character
         /// <paramref name="off"/>, takes the member's own content (<paramref name="ownImage"/>) from the first unused
         /// occurrence on — <c>OdoTail.KeepUnused</c>, the one splice a cell-backed group's store asks too (a bit window
         /// for a table counted in bits, whose first unused occurrence may start inside a character).</summary>
@@ -460,7 +460,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
 
     /// <summary>The parameters of <c>AsVarImage</c>: the OCCURS DEPENDING count when the group holds the table
     /// (<see cref="OdoParameter"/>) and <c>__agree</c> — whether this is a STATEMENT's read of the group, which
-    /// asks a LINKAGE dynamic-length member to agree with its DYNAMIC LENGTH clause (ISO §2023:14.6.13.2 rule 5; kb/Work
+    /// asks a LINKAGE dynamic-length member to agree with its DYNAMIC LENGTH clause (ISO §2023:14.6.13.2 GR5; kb/Work
     /// PB1937 / PB1118), as opposed to the activation boundary's own copy-out, which references nothing.</summary>
     private static string AsVarImageParameters(DataItem group) =>
         DataItem.HasOdoBeneath(group) ? "int __odo, bool __agree = false, bool __byReference = false"
@@ -468,7 +468,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
 
     /// <summary>The parameters of <c>FromVarImage</c>: the carrier, <c>__storage</c> (a LINKAGE formal's copy-in, kb/Work
     /// PB1937) and, for a group that holds the OCCURS DEPENDING table, the RECEIVING count <c>__odo</c> - how many
-    /// occurrences the operation uses (kb/Work PB244; ISO §2023:13.18.38.4 GR8 a): "If the data item referenced by data-name-1
+    /// occurrences the operation uses (kb/Work PB244; ISO §2023:13.18.38.4 GR8a: "If the data item referenced by data-name-1
     /// is outside the group, only that part of the table area that is specified by the value of the data item ... at the
     /// start of the operation will be used", so the occurrences past it keep their content). The default is the
     /// MAXIMUM - GR8 b) for a receiving group whose DEPENDING item is inside it, and the activation boundary's own
@@ -786,7 +786,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // ⛔ __storage (kb/Work PB1937) — the boundary copy-in of a LINKAGE formal: §2023:14.2.3 GR8 makes the formal
         // "occupy the same storage area as the argument", so a dynamic-length member keeps the argument's WHOLE
         // content even when this description's LIMIT is smaller (the shortened copy was then written back over the
-        // caller's). A read through this description agrees with its maximum (CurrentMemberImage: §2023:14.6.13.2 rule 5,
+        // caller's). A read through this description agrees with its maximum (CurrentMemberImage: §2023:14.6.13.2 GR5,
         // kb/Work PB1118); every other store — a MOVE into the group — still truncates (§2023:8.5.1.10.4).
         using (w.Block($"public void FromVarImage({FromVarImageParameters(group)})"))
         {
@@ -800,7 +800,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                     case VarPartKind.OdoFixed:   // the whole maximum width: a carrier shorter than it pads (StrStore above)
                         if (p.Kind is VarPartKind.OdoFixed)
                         {
-                            // §2023:13.18.38.4 GR8 a): only the first __odo occurrences are used, so the table's remaining
+                            // §2023:13.18.38.4 GR8a: only the first __odo occurrences are used, so the table's remaining
                             // occurrences keep the content they have (the carrier's fixed run is spliced over the member's
                             // CURRENT image from the first unused occurrence on).
                             w.Line(OdoMemberTail.Of(p).KeepUnusedOccurrences(off, AsImageOf(p.Field)));

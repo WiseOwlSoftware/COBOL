@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// stay the STANDARD-DECIMAL bodies, where §2023:15.4.1 1) makes the 34-digit SDIDI evaluation the value.</para>
 /// <para>WHAT IS ROUNDED, ONCE. A computed value (a sum, a difference, a remainder, a quotient) is rounded to the SDIDI's 34 digits in
 /// the native intermediate rounding mode; a selection returns the content of the selected argument itself, every digit of it
-/// (§2023:15.59.4 1), §2023:15.63.4 1), §2023:15.61.1: a float item's 41-digit expansion included, kb/Work PB4730); an ordinal is exact. The SUM,
+/// (§2023:15.59.4 RV1, §2023:15.63.4 RV1, §2023:15.61.1: a float item's 41-digit expansion included, kb/Work PB4730); an ordinal is exact. The SUM,
 /// RANGE, MEAN, MIDRANGE, MEDIAN, MOD and REM bodies are exact at any size the arbitrary-precision form holds (|value| &lt; 10^6145);
 /// VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE take the wide form first and, where their work leaves it, the same identity on the
 /// arbitrary-precision form (kb/Work PB4750); none of them evaluates an SDIDI image.</para>
@@ -27,7 +27,7 @@ namespace WiseOwl.Cobol.Runtime;
 public static partial class CobolIntrinsics
 {
     /// <summary>The position of the greatest (<paramref name="greatest"/>) or least exact value; the leftmost of equal values
-    /// (§2023:15.59.4, §2023:15.63.4, §2023:15.71.4 3), §2023:15.72.4), compared by algebraic value (§2023:15.71.4 2): "according to the rules for simple
+    /// (§2023:15.59.4, §2023:15.63.4, §2023:15.71.4 RV3, §2023:15.72.4), compared by algebraic value (§2023:15.71.4 RV2: "according to the rules for simple
     /// conditions", §2023:8.8.4.2.4).</summary>
     private static int SelectExact(CobolExact[] xs, bool greatest, string function)
     {
@@ -62,7 +62,7 @@ public static partial class CobolIntrinsics
     public static CobolExact MedianWhole(params CobolExact[] xs) => Median(xs, null);
 
     /// <summary>⛔ MEDIAN (§2023:15.61.4), ONE BODY FOR BOTH LANES (kb/Work PB4827, PB4859, PB4891). An odd count returns the middle argument whole,
-    /// as its own kind (§2023:15.61.4 1)). An even count is the mean of the two middle values (§2023:15.61.4 2)), a new value: when a MIDDLE value
+    /// as its own kind (§2023:15.61.4 RV1). An even count is the mean of the two middle values (§2023:15.61.4 RV2), a new value: when a MIDDLE value
     /// is binary64 (<see cref="CobolExact.TryBinary64"/>: a float item's content or an engine's approximation, written or returned by a nested
     /// selection, which only the run time knows) the mean is evaluated in binary64 (§2023:15.4.1: "an implementor-defined approximation of the value
     /// of that expression"; docs/CONFORMANCE.md DOC-A.1-92b), as <see cref="MedianReal"/> forms it for a count the binder knows, and is itself a
@@ -163,7 +163,7 @@ public static partial class CobolIntrinsics
         return sdidi is { } mode ? CobolExact.FromDec(difference.ToDecRounded(mode)) : difference;
     }
 
-    /// <summary>MEAN (§2023:15.60.4 1): <c>(argument-11 + … + argument-1n) / n</c>, the exact sum divided ONCE — the SDIDI quotient every
+    /// <summary>MEAN (§2023:15.60.4 RV1: <c>(argument-11 + … + argument-1n) / n</c>, the exact sum divided ONCE — the SDIDI quotient every
     /// lane forms (kb/Work PB3860, PB4075; <see cref="MeanWide"/> is the same quotient over a wide sum); the binary64 mean when an
     /// argument is binary64 (<see cref="TryBinary64Body"/>).</summary>
     public static CobolExact MeanExact(CobolRounding mode, params CobolExact[] xs)
@@ -196,7 +196,7 @@ public static partial class CobolIntrinsics
             : CobolExact.Remainder(a, b, floored: false).ToDecRounded(mode);
     }
 
-    /// <summary>⛔ VARIANCE (§2023:15.98.4 1) OF THE EXACT ARGUMENTS, DIVIDED ONCE (kb/Work PB4111): the mean of the squared deviations from
+    /// <summary>⛔ VARIANCE (§2023:15.98.4 RV1 OF THE EXACT ARGUMENTS, DIVIDED ONCE (kb/Work PB4111): the mean of the squared deviations from
     /// the EXACT mean. With every argument aligned to the common scale s as an integer Xᵢ and shifted by the first, dᵢ = Xᵢ − X₁ (the
     /// variance of a list does not move with it, and the shift makes the differences small exactly where the expression cancels),
     /// Σ(xᵢ − mean)² / n is algebraically <c>(n·Σdᵢ² − (Σdᵢ)²) / (n²·10^(2s))</c>: one numerator and one denominator on the wide form,
@@ -254,7 +254,7 @@ public static partial class CobolIntrinsics
         return true;
     }
 
-    /// <summary>STANDARD-DEVIATION (§2023:15.86.4 1): <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c>, the two bodies composed,
+    /// <summary>STANDARD-DEVIATION (§2023:15.86.4 RV1: <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c>, the two bodies composed,
     /// so §2023:15.84.4's square root is the ONE SQRT body's (<see cref="SqrtDec"/>). The variance rounded once at 34 digits before the
     /// root is harmless: the square root's condition number is ½.
     /// <para>A binary64 argument (<see cref="TryBinary64Body"/>) takes the binary64 body, <c>StandardDeviation (F M)</c>'s (kb/Work PB4979).</para></summary>
@@ -266,7 +266,7 @@ public static partial class CobolIntrinsics
             : CobolExact.FromDec(SqrtDec(DecArithmetic.Sdidi(mode), VarianceOfExact(xs, mode)));
     }
 
-    /// <summary>⛔ PRESENT-VALUE (§2023:15.74.4 1) OF THE EXACT ARGUMENTS, DIVIDED ONCE (kb/Work PB4111): <c>Σ aₖ / (1 + rate)^k</c>, k = 1…n,
+    /// <summary>⛔ PRESENT-VALUE (§2023:15.74.4 RV1 OF THE EXACT ARGUMENTS, DIVIDED ONCE (kb/Work PB4111): <c>Σ aₖ / (1 + rate)^k</c>, k = 1…n,
     /// with the discount base written as the reduced fraction <c>1 + rate = p / q</c> and the amounts aligned to their common scale t
     /// as integers Aₖ, is <c>Σ Aₖ·q^k·p^(n−k) / (10^t·p^n)</c>: one numerator (Horner, <c>Nₖ = Nₖ₋₁·p + Aₖ·q^k</c>) and one
     /// denominator on the wide form, rounded once. §2023:15.74.3 r2 (rate &gt; −1, so p &gt; 0) is screened on the exact rate through the ONE

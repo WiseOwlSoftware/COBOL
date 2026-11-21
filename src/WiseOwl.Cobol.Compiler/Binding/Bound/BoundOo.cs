@@ -73,7 +73,7 @@ public sealed record BoundInvoke(
 /// which keeps its CATEGORY, or the raw numeric text), and whether the argument writes back (BY REFERENCE identifier —
 /// changes visible to the caller; BY CONTENT and the §2023:14.9.23.3 SR 10 object-data auto-CONTENT case do not).
 /// <para>⛔ THE NONNUMERIC LITERAL IS THE BOUND LITERAL, NOT ITS DECODED STRING (kb/Work PB3587): a national literal is
-/// "usage NATIONAL" (§2023:8.3.3.5.4 GR3 a), and the crossing into a plain-group formal is §2023:14.9.25.4 GR4's unconverted move,
+/// "usage NATIONAL" (§2023:8.3.3.5.4 GR3a, and the crossing into a plain-group formal is §2023:14.9.25.4 GR4's unconverted move,
 /// which sends the sender's representation - a fact the characters alone do not state. (A boolean literal rides
 /// <see cref="ContentBool"/>.)</para></summary>
 public sealed record BoundInvokeArg(
@@ -98,7 +98,7 @@ public sealed record BoundInvokeArg(
     /// operand shape the format's BY CONTENT branch admits, and the one BY VALUE deliberately does not.</summary>
     /// <remarks>
     /// It is its OWN value channel, not a spelling of <see cref="ContentExpr"/>: a boolean expression evaluates
-    /// to a '0'/'1' bit-string value (§2023:8.8.2; D-B1) whose length is fixed by §2023:8.8.2 rule 10, never to an
+    /// to a '0'/'1' bit-string value (§2023:8.8.2; D-B1) whose length is fixed by §2023:8.8.2 GR10, never to an
     /// algebraic value, so it can neither be rendered by the numeric renderer nor stored by the numeric store.
     /// A bare boolean LITERAL argument rides this same slot — it is a boolean VALUE with no storage, which is
     /// exactly what this channel carries. BY CONTENT by construction, like <see cref="ContentExpr"/>.
@@ -111,7 +111,7 @@ public sealed record BoundInvokeArg(
     /// value has no length of its own — §2023:14.2.3 GR9's MOVE into the formal's allocated record sizes it
     /// (§2023:8.3.3.6.4 GR2) and the formal's category picks HIGH-/LOW-VALUE's sequence — so the emitter renders it
     /// through the ONE argument fill the CALL and function lanes use (<c>CallEmitter.FigurativeArgumentImage</c>).
-    /// BY CONTENT by construction: a literal never meets SR9 (§2023:14.9.23.4 GR6 a) 2.).</summary>
+    /// BY CONTENT by construction: a literal never meets SR9 (§2023:14.9.23.4 GR6a.2).</summary>
     public BoundOperand? ContentFill { get; init; }
 
     /// <summary>The argument is OMITTED (kb/Work PB757): the OMITTED phrase was written (ISO §2023:14.9.23.2) or the
@@ -144,7 +144,7 @@ public sealed record BoundInvokeArg(
 /// carries its caller-side DESCRIPTION (<see cref="WiseOwl.Cobol.Runtime.ActivationDescription"/>, built by
 /// <see cref="WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions"/>), which the callee's generated switch hands to the run-time
 /// relations: no §2023:9.3.6 match is EC-OO-METHOD after the INHERITS walk, a bound method's §2023:14.8 violation is
-/// §2023:14.9.23.4 GR7 c)'s EC-OO-UNIVERSAL (kb/Work PB1500, PB480). Every argument is BY REFERENCE (SR6 — implicit),
+/// §2023:14.9.23.4 GR7c's EC-OO-UNIVERSAL (kb/Work PB1500, PB480). Every argument is BY REFERENCE (SR6 — implicit),
 /// so every argument writes back through its box.</summary>
 public sealed record BoundInvokeUniversal(
     Place Receiver, string? MethodLiteral, Place? MethodSource,
@@ -169,7 +169,7 @@ public sealed record BoundInvokeUniversal(
 /// conform to. Its meaning is §2023:14.9.23.4 GR5 — "If identifier-1 is null, the EC-OO-NULL exception condition is set to
 /// exist and execution of the INVOKE statement is terminated" — so the node carries no arguments and no returning item:
 /// the binder screened them by the syntax rules that read no method, and nothing is ever passed or delivered. The
-/// activations an argument carries still run ahead of the node, since §2023:14.9.23.4 GR7 a) evaluates the arguments with
+/// activations an argument carries still run ahead of the node, since §2023:14.9.23.4 GR7a evaluates the arguments with
 /// identifier-1 at the beginning of the statement (see <c>OoBinder.OoBindNullInvoke</c>).</summary>
 public sealed record BoundInvokeNull : BoundStatement;
 
@@ -212,7 +212,7 @@ public sealed record BoundObjectView(Place Target, Place? Source, ObjectRefDescr
 /// operand (§2023:8.8.4.2.15), an argument, a RAISING phrase's identifier-1. §2023:8.4.3.8.4 GR1: SELF references "the object
 /// that was used to invoke the method in which the reference to SELF … appears", and §2023:8.4.3.8.3 SR7 describes it as
 /// class object, category object reference, not universal. The binder gives it the one description that says
-/// exactly that — ACTIVE-CLASS (§2023:13.18.60.4 GR22 e), "the same class as the object that was used to invoke the
+/// exactly that — ACTIVE-CLASS (§2023:13.18.60.4 GR22e, "the same class as the object that was used to invoke the
 /// method"), FACTORY OF in a factory method — on a compiler temporary this statement pre-op fills with the
 /// reference, so every position reads it as it reads an object-view's or an inline invocation's temporary. No
 /// conformance check: the object is, by GR1, of that class. SR2 forbids SELF as a receiving operand, so nothing

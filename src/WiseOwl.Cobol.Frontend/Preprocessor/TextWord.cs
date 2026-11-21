@@ -8,35 +8,35 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// REPLACE) needs to parse its statements and to compare text-words.</summary>
 internal enum TextWordKind
 {
-    /// <summary>§2023:7.2.2.5 3): "any other character or sequence of contiguous characters … bounded by separators" —
+    /// <summary>§2023:7.2.2.5 GR3: "any other character or sequence of contiguous characters … bounded by separators" —
     /// COBOL words, numeric literals, picture character-strings, operators.</summary>
     CharacterString,
 
-    /// <summary>§2023:7.2.2.5 2): "an alphanumeric, boolean, or national literal including the opening and closing
-    /// delimiters that bound the literal" — every §2023:8.3.5 5) opening delimiter, prefixed (<c>X"</c>, <c>N"</c>,
+    /// <summary>§2023:7.2.2.5 GR2: "an alphanumeric, boolean, or national literal including the opening and closing
+    /// delimiters that bound the literal" — every §2023:8.3.5 SR5 opening delimiter, prefixed (<c>X"</c>, <c>N"</c>,
     /// <c>NX"</c>, <c>B"</c>, <c>BX"</c>) or not.</summary>
     Literal,
 
-    /// <summary>§2023:7.2.2.5 1): a separator that is a text-word — the colon and the parentheses (separators "in any
-    /// context except within alphanumeric or national literals") and the separator period (§2023:8.3.5 3), a period
+    /// <summary>§2023:7.2.2.5 GR1: a separator that is a text-word — the colon and the parentheses (separators "in any
+    /// context except within alphanumeric or national literals") and the separator period (§2023:8.3.5 SR3, a period
     /// followed by a space).</summary>
     Separator,
 
-    /// <summary>§2023:8.3.5 2): a comma or semicolon immediately followed by a space. A text-word, but one that matching
-    /// treats as a space (§2023:7.2.3.4 9) c) 1. / §2023:7.2.4.4 8) c) 1.) and that a statement's syntax treats as the
+    /// <summary>§2023:8.3.5 SR2: a comma or semicolon immediately followed by a space. A text-word, but one that matching
+    /// treats as a space (§2023:7.2.3.4 GR9c.1 / §2023:7.2.4.4 GR8c.1) and that a statement's syntax treats as the
     /// separator space it may stand for.</summary>
     SeparatorCommaOrSemicolon,
 
-    /// <summary>§2023:8.3.5 6): the pseudo-text delimiter <c>==</c>. Not a text-word (§2023:7.2.2.5 1) excepts it); it bounds
+    /// <summary>§2023:8.3.5 SR6: the pseudo-text delimiter <c>==</c>. Not a text-word (§2023:7.2.2.5 GR1 excepts it); it bounds
     /// the pseudo-text operands of COPY REPLACING and REPLACE.</summary>
     PseudoTextDelimiter,
 
     /// <summary>A whole compiler directive line (§2023:7.3.3: the <c>&gt;&gt;</c> indicator preceded only by spaces, as
     /// <see cref="WiseOwl.Cobol.Editions.CompilerDirectiveLine.TryParse(string, out WiseOwl.Cobol.Editions.CompilerDirectiveLine)"/>
     /// recognizes it), from its indicator to the end of its line. Not a text-word: "Each occurrence of a compiler
-    /// directive line is treated as a single space" for matching (§2023:7.2.3.4 9) c) 5. / §2023:7.2.4.4 8) c) 5.), and "A
+    /// directive line is treated as a single space" for matching (§2023:7.2.3.4 GR9c.5 / §2023:7.2.4.4 GR8c.5), and "A
     /// compiler directive line is not affected by the replacing action of a COPY statement or a REPLACE statement"
-    /// (§2023:7.3.4 1)) — so nothing inside it is ever a text-word to compare, a replacement target, or a COPY
+    /// (§2023:7.3.4 GR1) — so nothing inside it is ever a text-word to compare, a replacement target, or a COPY
     /// statement.</summary>
     DirectiveLine,
 }
@@ -57,15 +57,15 @@ internal readonly record struct TextWord(string Source, TextWordKind Kind, int S
     public bool IsWord(string reservedWord)
         => Kind == TextWordKind.CharacterString && CobolKeywords.Same(Span, reservedWord);
 
-    /// <summary>The separator period that ends a COPY or REPLACE statement (§2023:8.3.5 3)).</summary>
+    /// <summary>The separator period that ends a COPY or REPLACE statement (§2023:8.3.5 SR3).</summary>
     public bool IsSeparatorPeriod => Kind == TextWordKind.Separator && Source[Start] == '.';
 
     /// <summary>Whether matching treats this element as a single space rather than a text-word to compare: a
-    /// separator comma or semicolon (§2023:7.2.3.4 9) c) 1. / §2023:7.2.4.4 8) c) 1.) or a compiler directive line
+    /// separator comma or semicolon (§2023:7.2.3.4 GR9c.1 / §2023:7.2.4.4 GR8c.1) or a compiler directive line
     /// (c) 5.). A statement's syntax steps over the same elements where a separator space may stand.</summary>
     public bool IsSpaceForMatching => Kind is TextWordKind.SeparatorCommaOrSemicolon or TextWordKind.DirectiveLine;
 
-    /// <summary>The two text-words match for COPY REPLACING (ISO §2023:7.2.3.4 9) c)) and REPLACE (§2023:7.2.4.4 8) c) — the
+    /// <summary>The two text-words match for COPY REPLACING (ISO §2023:7.2.3.4 GR9c) and REPLACE (§2023:7.2.4.4 GR8c — the
     /// same rules, one implementation):
     /// <list type="bullet">
     /// <item>3. "Except when used in the non-hexadecimal formats of alphanumeric and national literals, … each
@@ -97,10 +97,10 @@ internal readonly record struct TextWord(string Source, TextWordKind Kind, int S
 
 /// <summary>A literal text-word taken apart: its opening-delimiter prefix (<c>""</c>, <c>X</c>, <c>N</c>, <c>NX</c>,
 /// <c>B</c>, <c>BX</c> — as written), its quotation symbol, and its content with doubled quotation symbols collapsed
-/// (§2023:7.2.3.4 9) c) 4. b.). <see cref="Terminated"/> is false when the line ended before the closing delimiter.</summary>
+/// (§2023:7.2.3.4 GR9c.4.b). <see cref="Terminated"/> is false when the line ended before the closing delimiter.</summary>
 internal readonly record struct LiteralParts(string Prefix, char Quote, string Content, bool Terminated)
 {
-    /// <summary>The "non-hexadecimal formats of alphanumeric and national literals" (§2023:7.2.3.4 9) c) 3.) —
+    /// <summary>The "non-hexadecimal formats of alphanumeric and national literals" (§2023:7.2.3.4 GR9c.3) —
     /// <c>"…"</c> and <c>N"…"</c> — whose content keeps its letter case in matching.</summary>
     public bool IsNonHexadecimalAlphanumericOrNational
         => Prefix.Length == 0 || CobolKeywords.Same(Prefix, "N");
@@ -114,22 +114,22 @@ internal readonly record struct LiteralParts(string Prefix, char Quote, string C
 /// statements are parsed over its words, and COPY REPLACING / REPLACE compare its words — so what a text-word is
 /// is decided here and nowhere else.
 /// <list type="bullet">
-/// <item>A space separates and is not a text-word; so is a comment (§2023:7.2.3.4 9) c) 6. "Comments, if any, are
+/// <item>A space separates and is not a text-word; so is a comment (§2023:7.2.3.4 GR9c.6 "Comments, if any, are
 /// treated as a single space") — a floating comment indicator <c>*&gt;</c> outside a literal runs to the end of the
 /// line, as the lexer reads it.</item>
-/// <item>§2023:7.2.2.5 1): the colon and the parentheses are separator text-words "in any context except within
+/// <item>§2023:7.2.2.5 GR1: the colon and the parentheses are separator text-words "in any context except within
 /// alphanumeric or national literals"; a period, comma or semicolon is a separator only "when followed by a space"
 /// (§2023:8.3.5 2) / 3)) — so <c>Z,ZZ9</c> and <c>ZZ.ZZ</c> are ONE text-word each, and <c>1:5</c> is three.</item>
-/// <item>§2023:7.2.2.5 2): a literal is ONE text-word from its opening delimiter — including the §2023:8.3.5 5) prefixes
+/// <item>§2023:7.2.2.5 GR2: a literal is ONE text-word from its opening delimiter — including the §2023:8.3.5 SR5 prefixes
 /// <c>B" N" X" BX" NX"</c> (either quotation symbol, any letter case) — through its closing delimiter, a doubled
 /// quotation symbol being content. An unterminated literal ends at its line's end, as the lexer ends it.</item>
-/// <item>§2023:7.2.3.4 9) c) 2.: "Each operand and operator of a concatenation expression is a separate text-word" —
+/// <item>§2023:7.2.3.4 GR9c 2.: "Each operand and operator of a concatenation expression is a separate text-word" —
 /// <c>&amp;</c> (which no COBOL word contains) is always a text-word of its own.</item>
-/// <item>§2023:8.3.5 6): <c>==</c> is a pseudo-text delimiter wherever it begins outside a literal.</item>
+/// <item>§2023:8.3.5 SR6: <c>==</c> is a pseudo-text delimiter wherever it begins outside a literal.</item>
 /// <item>A compiler directive line left in the text (the stages after text manipulation read <c>&gt;&gt;TURN</c>,
 /// <c>&gt;&gt;PROPAGATE</c>, <c>&gt;&gt;PAGE</c> …; library text is replaced before its own <c>&gt;&gt;DEFINE</c> /
 /// <c>&gt;&gt;IF</c> lines are processed) is ONE <see cref="TextWordKind.DirectiveLine"/> element, never scanned
-/// for text-words (§2023:7.3.4 1); §2023:7.2.3.4 9) c) 5.).</item>
+/// for text-words (§2023:7.3.4 GR1; §2023:7.2.3.4 GR9c.5).</item>
 /// </list>
 /// A fixed-form debugging line reaches this stage as <see cref="ReferenceFormatProcessor.DebugLineCarrier"/> + its
 /// text: the carrier is skipped and the text scanned, so its text-words take part in matching as if the <c>D</c>
@@ -142,7 +142,7 @@ internal readonly record struct LiteralParts(string Prefix, char Quote, string C
 /// </summary>
 internal static class TextWordScanner
 {
-    // The separator space — §2023:8.3.5 1) "The COBOL character space is a separator", the space and the line end and nothing
+    // The separator space — §2023:8.3.5 SR1 "The COBOL character space is a separator", the space and the line end and nothing
     // Unicode calls white space — is CobolSpace's: a text-word ends where the lexer's word ends (kb/Work PB1543, PB1660).
 
     /// <summary>Every text-word of <paramref name="text"/>, in order.</summary>
@@ -155,8 +155,8 @@ internal static class TextWordScanner
     }
 
     /// <summary>The text-words of <paramref name="text"/> that take part in matching: every text-word but the
-    /// separator comma and semicolon, which "is considered to be a single space" (§2023:7.2.3.4 9) c) 1. /
-    /// §2023:7.2.4.4 8) c) 1.), and every compiler directive line, which "is treated as a single space" (c) 5.) — so,
+    /// separator comma and semicolon, which "is considered to be a single space" (§2023:7.2.3.4 GR9c.1 /
+    /// §2023:7.2.4.4 GR8c.1), and every compiler directive line, which "is treated as a single space" (c) 5.) — so,
     /// like the spaces around them, neither is a word to compare (<see cref="TextWord.IsSpaceForMatching"/>).</summary>
     public static List<TextWord> MatchWords(string text, bool directiveLines)
     {
@@ -275,7 +275,7 @@ internal static class TextWordScanner
 
     /// <summary>A period, comma or semicolon is a separator only "when followed by a space" (§2023:8.3.5 2) / 3)); the end
     /// of a line and of the text count as one (a space is assumed at the end of a source line — §2023:7.2.4.4 NOTE 2), and
-    /// so does a closing pseudo-text delimiter: §2023:8.3.5 8) lets the separator space OPTIONALLY precede that separator,
+    /// so does a closing pseudo-text delimiter: §2023:8.3.5 SR8 lets the separator space OPTIONALLY precede that separator,
     /// so <c>==STOP RUN.==</c> and <c>==STOP RUN. ==</c> must form the same text-words (⚠ determination, PB1350).</summary>
     private static bool SeparatorFollows(string text, int pos)
         => pos + 1 >= text.Length || CobolSpace.IsSeparator(text[pos + 1]) || IsPseudoTextDelimiter(text, pos + 1);
@@ -300,7 +300,7 @@ internal static class TextWordScanner
         return WiseOwl.Cobol.Editions.CompilerDirectiveLine.TryParse(text[pos..lineEnd], out _) ? lineEnd : -1;
     }
 
-    /// <summary>Where a character-string ends: at a space, at a separator (§2023:7.2.2.5 1) / §2023:8.3.5), at a literal's
+    /// <summary>Where a character-string ends: at a space, at a separator (§2023:7.2.2.5 GR1 / §2023:8.3.5), at a literal's
     /// opening delimiter and at the concatenation operator. The comment indicator ends nothing: no comment reaches
     /// text manipulation (see <see cref="TextWordScanner"/>).</summary>
     private static bool EndsCharacterString(string text, int pos)
@@ -327,7 +327,7 @@ internal static class TextWordScanner
 /// <summary>
 /// The public face of text-word EQUALITY for the later stages: whether two source texts are the same ordered sequence
 /// of §2023:7.2.2.5 text-words under the ONE text-word comparison, <see cref="TextWord.MatchesForReplacing"/> (ISO
-/// §2023:7.2.3.4 9) c) — separators collapse to a space, COBOL words compare case-insensitively, the non-hexadecimal
+/// §2023:7.2.3.4 GR9c — separators collapse to a space, COBOL words compare case-insensitively, the non-hexadecimal
 /// alphanumeric and national literals case-sensitively, and the two quotation symbols match).
 /// <para>Its asker is §2023:13.10.3 SR9 (kb/Work PB1230): a duplicated constant-name's "specification of
 /// arithmetic-expression-1, literal-1, data-name-1, data-name-2, or compilation-variable-name-1 shall be the same as

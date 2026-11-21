@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// ISO §2023:14.9.41.4 GR17 a) — "The specified key is set up by moving the relevant parts of the record area into a
+/// ISO §2023:14.9.41.4 GR17a — "The specified key is set up by moving the relevant parts of the record area into a
 /// temporary data area" — names TWO things and neither is data-name-1: the SOURCE is the record area, and the
 /// key is GR16's key of reference ("The key specified in the KEY phrase, or that shares a leftmost character
 /// with the data item specified in the KEY phrase, becomes the key of reference"). data-name-1's whole role is
@@ -98,13 +98,13 @@ public sealed class StartTemporaryKeyAreaDriftTests
 
     // ── the gates ────────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>§2023:14.9.41.4 GR17 a) — the moved characters come from the record area.</summary>
+    /// <summary>§2023:14.9.41.4 GR17a — the moved characters come from the record area.</summary>
     [Fact]
     public void IndexedStart_BuildsTheTemporaryArea_FromTheRecordArea()
     {
         Assert.True(StartCutsTheTemporaryAreaOutOfTheRecordArea(IndexedConnectorSource()),
             "IndexedConnector.Start must build its search key as AreaKey(keyedRecordImage, areaExtents, keyIndex) "
-            + "truncated to compareLength, and must pad nothing. ISO §2023:14.9.41.4 GR17 a) — \"The specified key is "
+            + "truncated to compareLength, and must pad nothing. ISO §2023:14.9.41.4 GR17a — \"The specified key is "
             + "set up by moving the relevant parts of the record area into a temporary data area\" — sources it "
             + "from the RECORD AREA at GR16's key of reference; padding data-name-1's own content to the GR17 b) "
             + "length searches for invented spaces (kb/Work PB355).");
@@ -116,7 +116,7 @@ public sealed class StartTemporaryKeyAreaDriftTests
     {
         Assert.True(StartTakesTheRecordAreaImage(IndexedConnectorSource()),
             "IndexedConnector.Start's comparand parameter must be `string keyedRecordImage` — the record area, "
-            + "the same image ReadKeyed and Delete take, because §2023:14.9.41.4 GR17 a), §2023:14.9.30.4 GR32 and "
+            + "the same image ReadKeyed and Delete take, because §2023:14.9.41.4 GR17a, §2023:14.9.30.4 GR32 and "
             + "§2023:14.9.10.4 GR3 all take their key value out of it (kb/Work PB355).");
     }
 
@@ -127,7 +127,7 @@ public sealed class StartTemporaryKeyAreaDriftTests
         Assert.True(EmitStartSendsTheRecordArea(KeyedIoEmitterSource()),
             "KeyedIoEmitter.EmitStart must pass the whole record area, SequentialIoEmitter.RecordAreaSendImage(file) (kb/Work PB5217), "
             + "to RuntimeApi.FileStartIndexed. Sending OperandText.AsStorageImage(sta.Operand) makes the record-area "
-            + "slice §2023:14.9.41.4 GR17 a) names unavailable to the connector at all (kb/Work PB355).");
+            + "slice §2023:14.9.41.4 GR17a names unavailable to the connector at all (kb/Work PB355).");
     }
 
     /// <summary>⛔ The failure proof: every predicate must DISCRIMINATE, not merely return a constant.</summary>

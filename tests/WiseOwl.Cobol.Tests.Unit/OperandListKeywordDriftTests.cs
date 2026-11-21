@@ -113,7 +113,7 @@ public sealed class OperandListKeywordDriftTests
         }
         Assert.True(pairs > 0 && sawGroupUsage, $"the derivation found {pairs} pairs and GROUP-USAGE={sawGroupUsage} — it broke");
         Assert.True(failures.Count == 0,
-            $"a VALUE operand list absorbed a clause-opening word (kb/Work PB805; §2023:13.16.3 4) clauses in any order): "
+            $"a VALUE operand list absorbed a clause-opening word (kb/Work PB805; §2023:13.16.3 SR4 clauses in any order): "
             + string.Join(" | ", failures));
     }
 

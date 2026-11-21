@@ -157,7 +157,7 @@ internal static class IntrinsicCarrierRules
     /// (<paramref name="anyFloatItemArgument"/>: every binary64 argument is itself an approximation, so the value of a
     /// value-preserving function of it is one too: ABS (FUNCTION EXP10 (-6)) stays 0.000001). Otherwise the value is
     /// derived from a float ITEM's exact binary64 by the function's own definition: MAX, MIN and an odd MEDIAN return "the
-    /// content of the argument" (§2023:15.59.4 1), §2023:15.63.4 1), §2023:15.61.1), INTEGER the greatest integer not above it (§2023:15.44.4
+    /// content of the argument" (§2023:15.59.4 RV1, §2023:15.63.4 RV1, §2023:15.61.1), INTEGER the greatest integer not above it (§2023:15.44.4
     /// 1)), and ABS, INTEGER-PART, FRACTION-PART, SIGN, REM, SUM, MEAN, RANGE and MIDRANGE have an equivalent arithmetic
     /// expression (§2023:15.4.1) that a float item's binary64 evaluates exactly or as the written-out expression itself does
     /// (D16). It lands by its exact binary value, as <c>COMPUTE R = F</c> and <c>MOVE F</c> land the item.
@@ -168,7 +168,7 @@ internal static class IntrinsicCarrierRules
     /// <summary>
     /// ⛔ DOES A SELECTION LIST (MAX, MIN, ORD-MAX, ORD-MIN, an odd MEDIAN) NEED THE EXACT LANE TO DELIVER THE SELECTED ARGUMENT FROM ITS OWN
     /// CARRIER (kb/Work PB65 RV-15.59.4-1 D2, PB4622)? Asked by <c>IntrinsicRenderer.RenderNum</c> and <c>FunctionValueLane.Of</c> alike.
-    /// §2023:15.59.4 1), §2023:15.63.4 1) and §2023:15.61.1 return "the content of the argument" selected, so the value is the selected argument's own:
+    /// §2023:15.59.4 RV1, §2023:15.63.4 RV1 and §2023:15.61.1 return "the content of the argument" selected, so the value is the selected argument's own:
     /// <list type="bullet">
     ///   <item>a list that mixes a binary64 with a fixed-point item (<paramref name="allBinary64"/> false), as the PB65 finding found;</item>
     ///   <item>a list whose binary64 arguments are of TWO KINDS (<paramref name="anyFloatItem"/> and <paramref name="anyApproximation"/>):
@@ -208,8 +208,8 @@ internal static class IntrinsicCarrierRules
 
     /// <summary>Is the count of arguments of a MEDIAN a RUN-TIME fact (kb/Work PB4827)? True when an argument is a table(ALL) with no
     /// bind-time element count (<see cref="TableAllPlace.StaticCount"/> null: an OCCURS DEPENDING or dynamic-capacity range), whose
-    /// number of elements is "as if each table element associated with that subscript position were specified" (§2023:15.3 14)) at the
-    /// time of the call. Whether the value is a selection (§2023:15.61.4 1)) or the mean of the middle pair (§2023:15.61.4 2)) is then decided
+    /// number of elements is "as if each table element associated with that subscript position were specified" (§2023:15.3 AR14) at the
+    /// time of the call. Whether the value is a selection (§2023:15.61.4 RV1) or the mean of the middle pair (§2023:15.61.4 RV2) is then decided
     /// at run time, by the body, and not by the lane the binder or renderer picks.</summary>
     internal static bool MedianParityIsRunTime(string functionName, IReadOnlyList<BoundOperand> arguments) =>
         functionName == "MEDIAN"

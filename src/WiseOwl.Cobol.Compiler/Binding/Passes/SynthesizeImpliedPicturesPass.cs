@@ -97,7 +97,7 @@ internal sealed class SynthesizeImpliedPicturesPass : IBindPass
     }
 
     /// <summary>The usage that applies to <paramref name="item"/> by §2023:13.18.60.4 GR1 — its own clause (or the one
-    /// a GROUP-USAGE clause implies), else the NEAREST ENCLOSING entry's, else §2023:13.18.60.3 SR13 b)'s implied
+    /// a GROUP-USAGE clause implies), else the NEAREST ENCLOSING entry's, else §2023:13.18.60.3 SR13b's implied
     /// DISPLAY. It is the CONTEXT §2023:8.3.3.6.4 GR1 and GR4 ask about, and nothing else: a written literal carries
     /// its own class, so only a figurative constant consults it.
     /// <para><see cref="DataBinder.DeclaredUsageOf"/> is the "own or implied" half, shared verbatim with

@@ -248,7 +248,7 @@ public sealed class MarginRCutNoteTests : IDisposable
     /// <summary>A DISPLAY with program text AND a cut (<c>UPON CONSOLE</c> from position 73): the line holds a statement.</summary>
     private static readonly string TextAndCut = "           DISPLAY \"TRACE\" WS-MSG".PadRight(72) + "UPON CONSOLE";
 
-    [Fact] // PB4372 (review R1-1): ISO §2023:7.3.16.4 3): a false >>IF branch is omitted, so its tokenless line is no cut's effect
+    [Fact] // PB4372 (review R1-1): ISO §2023:7.3.16.4 GR3: a false >>IF branch is omitted, so its tokenless line is no cut's effect
     public void ALineOfAnOmittedConditionalBranch_IsNotAskedAbout()
     {
         var diagnostics = Compile(Program([.. Head, "           CALL \"SUBPROG\" USING WS-MSG BY", "       >>IF TRACING IS DEFINED", TextAndCut,
@@ -281,7 +281,7 @@ public sealed class MarginRCutNoteTests : IDisposable
     /// <summary>The call the parse fails to finish at <c>STOP</c> when the line after it vanishes.</summary>
     private const string OpenCall = "           CALL \"SUBPROG\" USING WS-MSG BY";
 
-    [Fact] // PB4412: ISO §2023:7.3.16.4 3): the lines of a false >>IF branch are omitted, so a line with text ONLY past margin R there is never read
+    [Fact] // PB4412: ISO §2023:7.3.16.4 GR3: the lines of a false >>IF branch are omitted, so a line with text ONLY past margin R there is never read
     public void ALineWithTextOnlyPastMarginR_InAnOmittedIfBranch_IsNotAskedAbout()
     {
         var diagnostics = Compile(Program([.. Head, OpenCall, "       >>IF TRACING IS DEFINED", OnlyPastMarginR,
@@ -322,7 +322,7 @@ public sealed class MarginRCutNoteTests : IDisposable
         Assert.Contains("main.cob(15,12) may be this", note);
     }
 
-    [Fact] // PB4412: ISO §2023:7.3.13.4 5) (no WHEN true, Format 2 as GR 9): the WHEN phrases that do not match are omitted like the branch of a false IF
+    [Fact] // PB4412: ISO §2023:7.3.13.4 GR5 (no WHEN true, Format 2 as GR 9): the WHEN phrases that do not match are omitted like the branch of a false IF
     public void ALineWithTextOnlyPastMarginR_InAnUnmatchedWhenPhrase_IsNotAskedAbout()
     {
         var diagnostics = Compile(Program([.. Head, OpenCall, "       >>EVALUATE TRUE", "       >>WHEN TRACING IS DEFINED",
@@ -338,7 +338,7 @@ public sealed class MarginRCutNoteTests : IDisposable
         "       >>END-EVALUATE", "           STOP RUN.",
     ];
 
-    [Fact] // PB4412 review R1-1: ISO §2023:6.5 2): a blank debugging line is a blank line, so it is no text before the first >>WHEN (§2023:7.3.13.2)
+    [Fact] // PB4412 review R1-1: ISO §2023:6.5 GR2: a blank debugging line is a blank line, so it is no text before the first >>WHEN (§2023:7.3.13.2)
     public void ABlankDebuggingLine_BetweenEvaluateAndItsFirstWhen_IsNoText()
     {
         foreach (string blank in new[] { "      D", "      D      " })
@@ -414,7 +414,7 @@ public sealed class MarginRCutNoteTests : IDisposable
         Assert.Contains("main.cob(12,12) may be this", note);
     }
 
-    [Fact] // PB4412: carrying a blank debugging line to the rewriter changes nothing else: it still reads as a blank line (§2023:6.5 2)
+    [Fact] // PB4412: carrying a blank debugging line to the rewriter changes nothing else: it still reads as a blank line (§2023:6.5 GR2
     public void ABlankDebuggingLine_BetweenTheLinesOfALiteral_StillContinuesIt()
     {
         string[] lines =

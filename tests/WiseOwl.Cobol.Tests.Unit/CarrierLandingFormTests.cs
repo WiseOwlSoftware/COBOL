@@ -66,7 +66,7 @@ public sealed class CarrierLandingFormTests
 
     // ── the float family's two landings ───────────────────────────────────────────────────────────────────────
 
-    /// <summary>A landing's answer as one comparable value: the landed integer, or §2023:14.7.4.3 rule 7's raise, which every
+    /// <summary>A landing's answer as one comparable value: the landed integer, or §2023:14.7.4.3 GR7's raise, which every
     /// form makes alike for a PROHIBITED value the scale cannot hold exactly (kb/Work PB3990).</summary>
     private static string Landed(Func<Int128> land)
     {
@@ -375,7 +375,7 @@ public sealed class CarrierLandingFormTests
     // ── ONE binary64, ONE landing: the EXACT value (kb/Work PB623) ───────────────────────────────────────────
 
     /// <summary>⛔ THE LANDING IS THE EXACT VALUE OF THE BINARY64, never a binary64 product of it (kb/Work PB623).
-    /// ISO §2023:14.6.8.2 rule 1 — "If the sending operand is an intermediate data item or a data item described with a
+    /// ISO §2023:14.6.8.2 GR1 — "If the sending operand is an intermediate data item or a data item described with a
     /// standard floating-point usage, the value is treated as if it had been converted to a fixed-point value" —
     /// and rule 4's "truncation on either end" of THAT value. Both entry points answer with it, which is what
     /// §2023:15.4.1 ("the returned value is the same for all instances of a given function within a single execution of

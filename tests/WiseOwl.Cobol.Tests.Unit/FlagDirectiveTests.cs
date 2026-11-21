@@ -350,7 +350,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // ── Incr 3: FLAG-14 i REF-MOD-ZERO-LENGTH (§2023:7.3.15.4 GR4 i) — a ref-mod flagged when the >>REF-MOD-ZERO-LENGTH
+    // ── Incr 3: FLAG-14 i REF-MOD-ZERO-LENGTH (§2023:7.3.15.4 GR4i — a ref-mod flagged when the >>REF-MOD-ZERO-LENGTH
     //    directive is UNSPECIFIED at the site AND EC-BOUND-REF-MOD checking is on. ──
 
     private static string RefModProgram(string directives) =>
@@ -385,7 +385,7 @@ public sealed class FlagDirectiveTests
 
     // ── Incr 2: the frontend-inline options (emitted in ConditionalCompilationProcessor, never reach the bound tree) ──
 
-    // c EVALUATE (§2023:7.3.15.4 GR4 c) — a >>EVALUATE directive carrying both a >>WHEN and a >>WHEN OTHER.
+    // c EVALUATE (§2023:7.3.15.4 GR4c — a >>EVALUATE directive carrying both a >>WHEN and a >>WHEN OTHER.
     private static string EvaluateDirectiveProgram(string otherArm) =>
         "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGEV.\n       PROCEDURE DIVISION.\n       MAIN.\n" +
         "       >>DEFINE N AS 1\n       >>FLAG-14 EVALUATE ON\n       >>EVALUATE N\n       >>WHEN 1\n" +
@@ -408,7 +408,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4 b) — a compile-time arithmetic expression with an operator.
+    // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4b — a compile-time arithmetic expression with an operator.
     private static string DefineArithmeticProgram(string expr) =>
         "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGB.\n       PROCEDURE DIVISION.\n       MAIN.\n" +
         "       >>FLAG-14 COMPILE-TIME-ARITHMETIC-EXPRESSIONS ON\n       >>DEFINE X AS " + expr + "\n           STOP RUN.\n";
@@ -429,7 +429,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // ── Incr 1b: FLAG-14 j VALUE-EDITING (§2023:7.3.15.4 GR4 j) — numeric-edited VALUE literal without editing symbols ──
+    // ── Incr 1b: FLAG-14 j VALUE-EDITING (§2023:7.3.15.4 GR4j — numeric-edited VALUE literal without editing symbols ──
 
     [Fact]
     public void Compile_ValueEditingOn_Flags_NumericLiteralOnNumericEdited()
@@ -464,7 +464,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // ── Incr 1b: FLAG-14 k VALUE-FIG-CON-LENGTH (§2023:7.3.15.4 GR4 k) — figurative VALUE on an item with no length ──
+    // ── Incr 1b: FLAG-14 k VALUE-FIG-CON-LENGTH (§2023:7.3.15.4 GR4k — figurative VALUE on an item with no length ──
 
     [Fact]
     public void Compile_ValueFigConLengthOn_Flags_FigurativeValueNoPictureNoUsage()
@@ -507,7 +507,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // ── Incr 1c: FLAG-14 m WRITE-END-OF-PAGE (§2023:7.3.15.4 GR4 m) — WRITE + file has LINAGE + no AT EOP ──
+    // ── Incr 1c: FLAG-14 m WRITE-END-OF-PAGE (§2023:7.3.15.4 GR4m — WRITE + file has LINAGE + no AT EOP ──
 
     private static string WriteProgram(bool linage, string directive, string writeStmt) =>
         "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGWR.\n       ENVIRONMENT DIVISION.\n" +
@@ -543,7 +543,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // ── Incr 1c: FLAG-02 f TERMINATE-WITH-VARYING (§2023:7.3.14.4 GR4 f) — TERMINATE of a report with a VARYING clause ──
+    // ── Incr 1c: FLAG-02 f TERMINATE-WITH-VARYING (§2023:7.3.14.4 GR4f — TERMINATE of a report with a VARYING clause ──
 
     private static string ReportProgram(bool varying, string directive) =>
         "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGT.\n       ENVIRONMENT DIVISION.\n" +
@@ -572,7 +572,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1620", StringComparison.Ordinal));
     }
 
-    // ── Incr 3: FLAG-02 d MOVE-TO-SAME-NAME (§2023:7.3.14.4 GR4 d) — a MOVE whose sending and receiving operands are the
+    // ── Incr 3: FLAG-02 d MOVE-TO-SAME-NAME (§2023:7.3.14.4 GR4d — a MOVE whose sending and receiving operands are the
     //    SAME data description entry, when that DDE is (1) category alphanumeric-edited, or (2) has a subordinate
     //    OCCURS…DEPENDING whose DEPENDING item is subordinate to it. ──
 
@@ -679,7 +679,7 @@ public sealed class FlagDirectiveTests
 
     /// <summary>kb/Work PB5932 (listing step 6b-close review R1-1) — a FACTORY or OBJECT half declares files too, and every
     /// file question the flag pass asks inside its methods is the method's element's: the record-name and the FILE
-    /// file-name forms of one WRITE find the one LINAGE file (§2023:7.3.15.4 GR4 m), a relation on the half's FILE STATUS
+    /// file-name forms of one WRITE find the one LINAGE file (§2023:7.3.15.4 GR4m, a relation on the half's FILE STATUS
     /// item tests it (GR4 e), and a method's own open-mode USE declarative governs that method's keyed WRITE (GR4 d) and
     /// no sibling method's. Before the fix the pass looked for files in program units only: WRITE FREC in a method, the
     /// FILE STATUS relation and the method's declarative were all missed.</summary>
@@ -727,7 +727,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1620", StringComparison.Ordinal));
     }
 
-    // ── Incr 3: FLAG-02 e RANGE-EXCEPTION-FOR-INDEX (§2023:7.3.14.4 GR4 e) — a Format-1 index-assignment (SET … TO) or
+    // ── Incr 3: FLAG-02 e RANGE-EXCEPTION-FOR-INDEX (§2023:7.3.14.4 GR4e — a Format-1 index-assignment (SET … TO) or
     //    Format-2 index-arithmetic (SET … UP/DOWN BY) whose receiver is an INDEX-NAME, flagged when EC-RANGE-INDEX
     //    checking is enabled. Only index-names range-check (§2023:14.9.39.4 Format-1 GR2b copies a class-index DATA item
     //    unchanged), so a USAGE INDEX data item / plain numeric receiver is NOT flagged. ──
@@ -962,7 +962,7 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
     }
 
-    // ── Incr 4: FLAG-02 b EC-PROGRAM-EXCEPTIONS (§2023:7.3.14.4 GR4 b) — a >>TURN for an EC-PROGRAM-family exception in a
+    // ── Incr 4: FLAG-02 b EC-PROGRAM-EXCEPTIONS (§2023:7.3.14.4 GR4b — a >>TURN for an EC-PROGRAM-family exception in a
     //    source element that calls a function or invokes a method. ──
 
     private static string EcProgramProgram(string directive, string turn, string stmt) =>

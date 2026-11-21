@@ -60,10 +60,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             shift: BindBoolShiftSuffix);
 
     /// <summary>Apply one boolean shift suffix (<c>(B-SHIFT-L|R|LC|RC) integer</c>) to <paramref name="operand"/>
-    /// (ISO §2023:8.8.2 rule 8, COBOL-2023). Rule 5 has two halves: the first operand shall not be the figurative ALL
+    /// (ISO §2023:8.8.2 GR8, COBOL-2023). Rule 5 has two halves: the first operand shall not be the figurative ALL
     /// literal (COBOL1511, the boolean-constraint band), and "The second operand shall be an integer operand"
     /// (COBOL2513, kb/Work PB1413) — asked through the ONE integer classifier (<see cref="IntrinsicResultType.IsIntegerOperand(BoundExpr)"/>:
-    /// §2023:5.5 2)'s integer literal, integer data item, or integer-type function; a numeric function is refused even
+    /// §2023:5.5 SR2's integer literal, integer data item, or integer-type function; a numeric function is refused even
     /// when its value is integral, §2023:8.4.3.2.3 SR11). The count's SHAPE — Table 4's single identifier or literal —
     /// is <see cref="ArithmeticFormationRules.ShiftCountNotSoleOperand"/>'s, reported by ExpressionFormationPass
     /// (COBOL1719); a malformed count is not asked the integer question too, so it draws one diagnostic. The 2023
@@ -76,14 +76,14 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                  : BoolShiftKind.Right;
         if (operand is BoundBoolAll { IsAllLiteral: true })   // NOT figurative ZERO — a disjoint §2023:8.8.2 operand (kb/Work PB157)
             ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "the first operand of a boolean shift operation shall not be the "
-                + "figurative constant ALL literal (ISO §2023:8.8.2 rule 5)");
+                + "figurative constant ALL literal (ISO §2023:8.8.2 SR5)");
         var count = host.Expr.BindExpr(suf.arithmeticExpression());
         if (count is not BoundExprError && ArithmeticFormationRules.ShiftCountNotSoleOperand(suf) is null
             && !IntrinsicResultType.IsIntegerOperand(count))
             ctx.Edition.Error(DiagnosticCatalog.BooleanShiftCountNotInteger, $"the second operand of a boolean shift operation shall be an integer "
-                + $"operand (ISO §2023:8.8.2 rule 5) — '{WrittenSource.Of(suf.arithmeticExpression())}' is not: an integer operand "
+                + $"operand (ISO §2023:8.8.2 SR5) — '{WrittenSource.Of(suf.arithmeticExpression())}' is not: an integer operand "
                 + "is an integer literal (no decimal point, §2023:8.3.3.3.2), an integer data item, or an integer-type "
-                + "function (ISO §2023:5.5 2); a numeric function is not one even when its value is integral, "
+                + "function (ISO §2023:5.5 SR2; a numeric function is not one even when its value is integral, "
                 + "§2023:8.4.3.2.3 SR11)");
         return new BoundBoolShift(operand, kind, count);
     }
@@ -95,7 +95,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             // Rule 4 restricts the Format-6 ALL literal, not figurative ZERO — `ZERO B-AND ALL B"1"` has ONE
             // ALL-literal operand and is legal (kb/Work PB157).
             ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "both operands of a boolean operator shall not be ALL literals "
-                + "(ISO §2023:8.8.2 rule 4)");
+                + "(ISO §2023:8.8.2 SR4)");
         return new BoundBoolBinary(left, op, right);
     }
 
@@ -560,7 +560,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>⛔ ISO §2023:14.9.13.3 SR8 — THE partial-expression rewrite, and the only place it happens: "If a
     /// selection object is specified by partial-expression-1, that selection object is treated as though it were
     /// specified as condition-2, where condition-2 is the conditional expression that results from preceding
-    /// partial-expression-1 by the selection subject." §2023:14.9.13.4 GR4 a) 2. then evaluates that expression and
+    /// partial-expression-1 by the selection subject." §2023:14.9.13.4 GR4a.2 then evaluates that expression and
     /// makes its truth value the result of the pair's analysis, and SR8's second sentence ("the corresponding
     /// selection subject is treated as though it were specified by the word TRUE") is what makes the pair's term
     /// the condition ITSELF rather than a comparison against the subject — so the caller returns this unchanged.
@@ -903,7 +903,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         }
         // The one alternative left is `booleanLiteral`: the WORDS TRUE and FALSE. They are no condition —
         // §2023:8.8.4.2.1's list of the simple conditions has no member that is a bare truth word — and they are
-        // written only as an EVALUATE selection subject or selection object (§2023:14.9.13.3 SR7 b); GR3 f), GR4 a) 4.).
+        // written only as an EVALUATE selection subject or selection object (§2023:14.9.13.3 SR7b; GR3 f), GR4 a) 4.).
         // EVALUATE decides its own TRUE/FALSE pairs by Table 15 and never binds one as a condition
         // (EvaluateBinder.BindWhenItem), so a word that reaches here is in an IF, a PERFORM UNTIL, a SEARCH WHEN or
         // an operand of NOT / AND / OR / XOR, where the standard has no meaning for it (kb/Work PB1668).
@@ -917,7 +917,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     {
         var truthWord = literal.GetText().ToUpperInvariant();
         ReportNotACondition(truthWord, $"the word {truthWord}, which is written only as an EVALUATE selection subject or "
-            + "selection object (ISO §2023:14.9.13.3 SR7 b)");
+            + "selection object (ISO §2023:14.9.13.3 SR7b");
         return truthWord;
     }
 
@@ -1116,7 +1116,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// §2023:14.9.13.3 SR5's "class condition without the identifier" (the EVALUATE selection subject's own class test
     /// reaches it through the latter). Extracted rather than copied because FIVE rules live in
     /// it — the §2023:8.8.4.4.3 operand screen, the SR2 LOCALE-alphabet refusal, the §2023:12.3.7 user-class membership
-    /// and the §2023:8.8.4.4.4 GR3 a) coded-set class — and a second copy is five chances for the spellings to
+    /// and the §2023:8.8.4.4.4 GR3a coded-set class — and a second copy is five chances for the spellings to
     /// diverge. It WAS copied: <c>EvaluateBinder.SubjectAsCondition</c> carried its own kind decode over its
     /// own grammar rule, so the EVALUATE subject had no BOOLEAN, no class-name and no alphabet-name arm and
     /// offered an ALPHANUMERIC one the general format does not print (kb/Work PB590).
@@ -1335,7 +1335,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             // WRITTEN HERE, in the relation arm, ABOVE the checkpoint (kb/Work PB399). They are now in
             // StatementValidation.CheckRelationalOperands, beside the class-boolean and strongly-typed-group
             // rules of the same §2023:8.8.4.2 band, because a rule about what may be COMPARED belongs to the ONE
-            // BoundRelational construction site and not to one of its callers: §2023:14.9.13.3 SR7 a) makes an EVALUATE
+            // BoundRelational construction site and not to one of its callers: §2023:14.9.13.3 SR7a makes an EVALUATE
             // pair's objects "valid operands for comparison … in accordance with 8.8.4.2", and
             // written here the bands screened `IF P >= Q` and said nothing about `EVALUATE P WHEN Q THRU R` or
             // `EVALUATE P WHEN X` — the second of which reached the BACKEND and failed as a raw C# CS1503.
@@ -1397,7 +1397,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             carry.Reset();
             return sole;
         }
-        // A bare object after a boolean relation would be an abbreviation (§2023:8.8.4.12.1 2), which SR1 forbids.
+        // A bare object after a boolean relation would be an abbreviation (§2023:8.8.4.12.1 SR2, which SR1 forbids.
         return BareObjectRoleOf(carry) switch
         {
             BareObjectRole.AbbreviationAfterBooleanRelation =>
@@ -1425,7 +1425,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         var dref = ConditionOperandExpression(vo) is { } expr ? SoleDataRef(expr) : null;   // `(X)` names X (kb/Work PB1464)
         string? what = null;
         // A constant-name is the literal it substitutes (§2023:13.10.4 GR1), and a symbolic-character a figurative constant
-        // (§2023:12.3.7.4 GR11 a)): neither is a data item, and neither is a condition — a boolean constant never gets
+        // (§2023:12.3.7.4 GR11a): neither is a data item, and neither is a condition — a boolean constant never gets
         // here, it is the §2023:8.8.4.3 simple boolean condition AnalyzeBareOperand routed it as (kb/Work PB3191).
         // ⛔ A COUNTER REGISTER IS NO CONDITION (kb/Work PB4947): LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER reference "a
         // temporary unsigned integer data item of class and category numeric" (§2023:8.4.3.14.4 GR1; §2023:8.4.3.15.4 GR1), which
@@ -1537,7 +1537,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // either — is a condition-name reference that identifies nothing. It is classified as the CONDITION-NAME
         // it was written as (so EVALUATE's Table-15 screen does not re-read it as an identifier and report a
         // pairing error about the wrong thing) and reported ONCE, through the one wording.
-        // A data item of a NEARER source element that hides the level-88 is NOT this arm's reference (ISO §2023:8.4.6.2.1 3) a)):
+        // A data item of a NEARER source element that hides the level-88 is NOT this arm's reference (ISO §2023:8.4.6.2.1 GR3a):
         // a bare operand admits a data item, so the reference is the data item's and the value arm reports whatever is
         // wrong with it, such as a subscript on a scalar (§2023:8.4.2.3.3 SR2, COBOL2096; kb/Work PB4433). A constant-name,
         // index-name, CAPACITY register or file-name of a NEARER source element is the referenced item the same way
@@ -1726,7 +1726,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The OTHER comparison node's construction, through the SAME checkpoint (kb/Work PB1468). An EVALUATE
     /// THROUGH range lowers to <see cref="BoundRangeMembership"/> instead of the inclusive
     /// <see cref="CheckedRelational"/> pair when it carries an IN alphabet-name or EC-RANGE-INVALID checking — but it
-    /// is still §2023:14.9.13.4 GR4 a) 5.'s "selection-subject &gt;= left-part AND selection-subject &lt;= right-part", so
+    /// is still §2023:14.9.13.4 GR4a 5.'s "selection-subject &gt;= left-part AND selection-subject &lt;= right-part", so
     /// every §2023:8.8.4.2 operand rule is owed to both of those relations. Built anywhere else, the node skipped the
     /// checkpoint: `EVALUATE NB WHEN "0001" THRU "0020" IN AL` (NB COMP) and `EVALUATE I1 WHEN "1" THRU "5" IN AL`
     /// (I1 an index-name) compiled clean while the identical ranges without the phrase were refused.</summary>
@@ -1848,7 +1848,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Bind a <c>valueOperand</c> as a comparison operand: the ONE body of <see cref="ComparisonOperand"/>,
     /// the boolean-alt unwrap path, and EVALUATE's subject and object operands (<c>EvaluateBinder.BindValueOperand</c>,
-    /// whose pair §2023:14.9.13.4 GR4 a) 6. "is considered to be a conditional expression" of the form
+    /// whose pair §2023:14.9.13.4 GR4a.6 "is considered to be a conditional expression" of the form
     /// <c>selection-subject = selection-object</c>). The EVALUATE binder used to keep an
     /// arm-for-arm copy of this dispatch (kb/Work PB224 aligned its order by hand); kb/Work PB1935 found both copies
     /// mapping a parenthesized operand to the item it encloses, and the copy is now this call. <paramref name="role"/>
@@ -1923,7 +1923,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The condition-name references already reported as reference-modified (kb/Work PB2468).</summary>
     private readonly HashSet<Core.DataReferenceContext> _refModCondDiagnosed = [];
 
-    /// <summary>The condition-name references already reported as §2023:13.7.3 SR4 e) violations.</summary>
+    /// <summary>The condition-name references already reported as §2023:13.7.3 SR4e violations.</summary>
     private readonly HashSet<Core.DataReferenceContext> _linkageCondDiagnosed = [];
 
     /// <summary>Resolve a condition-name reference, honoring OF/IN qualifiers (ISO §2023:8.4.2.2 Format 2: a
@@ -1937,7 +1937,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // §2023:8.4.2.2 Format 2 (kb/Work R33's sweep — the condition-name sibling of the data-name fix): the
         // reference must identify EXACTLY ONE level-88. The candidate set is SymbolTable.IdentifyConditionName,
         // the ONE resolution this and FlagConformancePass read (kb/Work PB3288): one namespace tier, narrowed by the
-        // written qualifiers, then by §2023:8.4.6.2.1 3) after qualification (a condition-name of this source element hides
+        // written qualifiers, then by §2023:8.4.6.2.1 GR3 after qualification (a condition-name of this source element hides
         // a container's global one, a nearer container's a farther one, kb/Work PB1047), and EMPTY for a lapsed
         // type-declaration condition-name alone (§2023:8.4.2.2.1 SR4 — it only COUNTS against a condition-name the
         // reference also reaches). A plural SURVIVOR set — unqualified with duplicate 88 names, or qualifiers matching
@@ -1952,7 +1952,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // declared-but-misqualified condition-name case — or a caller that admits only a condition-name asks
         // ReportMisqualifiedCondition.
         if (matches.Count == 0) return null;
-        // A named CAPACITY register of a NEARER source element is the referenced item, not the level-88 (ISO §2023:8.4.6.2.1 3) a);
+        // A named CAPACITY register of a NEARER source element is the referenced item, not the level-88 (ISO §2023:8.4.6.2.1 GR3a;
         // kb/Work PB4432 review R1-1). The register has ONE lookup, which judges the written reference
         // (ReferenceResolver.CapacityRegisterFor, already weighed against a nearer condition-name), so it is asked here.
         if (CapacityRegisterHides(dref, matches)) return null;
@@ -2010,7 +2010,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                     + $" ({ctx.Edition.Edition.CiteRule("§1985:IV.4.3.8.1 SRL2.1", "§2023:8.4.2.2 Format 2")} — qualification shall establish uniqueness). Qualify by the conditional "
                     + "variable or its containing groups");
         }
-        // §2023:13.7.3 SR4 e): a condition-name of a linkage item is referenceable exactly when its conditional variable
+        // §2023:13.7.3 SR4e: a condition-name of a linkage item is referenceable exactly when its conditional variable
         // is — the same decision the data-name arm asks (NameResolution.ScreenLinkageReference), once per reference.
         if (ctx.Data.Linkage.UnreferenceableLinkageRecord(matches[0].Parent) is { } record && _linkageCondDiagnosed.Add(dref))
             ctx.Refs.Names.ReportUnreferenceableLinkage(WrittenSource.Of(dref), record);
@@ -2022,7 +2022,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// none under the written qualifiers, report that through the ONE wording
     /// (<see cref="NameResolution.MisqualifiedConditionText"/>) and answer true; otherwise report nothing and
     /// answer false, leaving the caller's own not-a-condition-name verdict (kb/Work PB567). The word's level-88s
-    /// may also be HIDDEN rather than misqualified (ISO §2023:8.4.6.2.1 3) a)): by a nearer data item or a nearer report
+    /// may also be HIDDEN rather than misqualified (ISO §2023:8.4.6.2.1 GR3a): by a nearer data item or a nearer report
     /// entry, and the report then names THAT item.</summary>
     public bool ReportMisqualifiedCondition(Core.DataReferenceContext dref)
     {
@@ -2031,7 +2031,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         string name = written.Name;
         var qualifiers = written.QualifierWords;
         string text = WrittenSource.Of(dref);
-        // A data item of a NEARER source element than the condition-name is the referenced item (ISO §2023:8.4.6.2.1 3) a),
+        // A data item of a NEARER source element than the condition-name is the referenced item (ISO §2023:8.4.6.2.1 GR3a,
         // kb/Work PB4219 review R1-1: the condition lookup leaves the container's GLOBAL condition-name no survivor), so
         // the reference names that data item where this position admits only a condition-name.
         if (NamesHidingDataItem(dref))
@@ -2049,7 +2049,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>True when the written word of <paramref name="dref"/> is a level-88 that a data item of a NEARER source
-    /// element hides, so the reference names that data item (ISO §2023:8.4.6.2.1 3) a); kb/Work PB4219 review R1-1). It is a
+    /// element hides, so the reference names that data item (ISO §2023:8.4.6.2.1 GR3a; kb/Work PB4219 review R1-1). It is a
     /// fact about the reference; what to do with it is the POSITION's: a condition-only position refuses the data item
     /// (<see cref="ReportMisqualifiedCondition"/>), a bare operand position takes it as the data item it is.</summary>
     private bool NamesHidingDataItem(Core.DataReferenceContext dref) =>
@@ -2057,7 +2057,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>What hides the level-88 <paramref name="dref"/> names, when it is a declaration of another name class than
     /// a data item — a constant-name, index-name or file-name (<see cref="SymbolTable.Declarations.ConditionNameHiddenByNearerNonDataName"/>)
-    /// or a CAPACITY register (<see cref="CapacityRegisterHides"/>) of a NEARER source element (ISO §2023:8.4.6.2.1 3) a); kb/Work
+    /// or a CAPACITY register (<see cref="CapacityRegisterHides"/>) of a NEARER source element (ISO §2023:8.4.6.2.1 GR3a; kb/Work
     /// PB4432 review R1-1) — as the noun phrase the refusal says, else null. The class twin of
     /// <see cref="NamesHidingDataItem"/>.</summary>
     private string? HidingClassPhrase(Core.DataReferenceContext dref)
@@ -2071,11 +2071,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Does <paramref name="dref"/> name a CAPACITY register declared in a source element NEARER than the level-88s
-    /// <paramref name="tier"/> (ISO §2023:8.4.6.2.1 3) a); kb/Work PB4432 review R1-1)? A tie is not "nearer": the condition-name
+    /// <paramref name="tier"/> (ISO §2023:8.4.6.2.1 GR3a; kb/Work PB4432 review R1-1)? A tie is not "nearer": the condition-name
     /// keeps the reference at one depth, as it always has. ⛔ Only a register the WRITTEN QUALIFIERS REACH hides
     /// (<c>CapacityRef.Reached</c> non-empty): <c>CapacityRegisterFor</c> also answers the nearest register with
     /// <c>CapacityRefFault.Qualifiers</c> so the qualifier fault can be stated about it, but a reference those qualifiers
-    /// do not take to that register names only the level-88 (§2023:8.4.6.2.1 2): rule 1 applies qualification over the whole
+    /// do not take to that register names only the level-88 (§2023:8.4.6.2.1 GR2: rule 1 applies qualification over the whole
     /// set before rule 3 ranks it; kb/Work PB4432 review R2-2).</summary>
     private bool CapacityRegisterHides(Core.DataReferenceContext dref, List<Condition88> tier) =>
         tier.Count != 0 && ctx.Refs.CapacityRegisterFor(dref, report: false) is { Reached.Count: > 0 } cap
@@ -2117,7 +2117,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <para>⛔ THIS MEMBER DOES NOT RIDE <see cref="SolePrimary"/>, AND THAT IS THE RULE, NOT AN EXCEPTION
     /// (kb/Work PB400). Its siblings answer §2023:8.8.4.7.3 SR2's "a single data item … not enclosed in
     /// parentheses", for which a leading sign makes the operand compound; this one answers "consists of a
-    /// single literal", and §2023:8.3.3.3.2 rule 2 puts an ADJACENT sign INSIDE the literal. Sharing the
+    /// single literal", and §2023:8.3.3.3.2 SR2 puts an ADJACENT sign INSIDE the literal. Sharing the
     /// primary-only descent answered the second question with the first one's answer, so
     /// <c>EVALUATE -5 WHEN 6</c> classified as an arithmetic expression (Table 15 accepted a blank cell) and
     /// <c>EVALUATE WS-X WHEN -5</c> over a <c>PIC X</c> item bound the object as a COMPUTED expression instead

@@ -153,7 +153,7 @@ public sealed class CobolVarGroupContiguousTests
     {
         Assert.Equal(2, BitTail.Width);                 // 1 + 8 bits
         Assert.Equal(0, BitTail.CutAt(8));
-        Assert.Equal(1, BitTail.CutAt(7));              // 1 + 7 = 8 bits: one character (§2023:15.50.4 rule 9)
+        Assert.Equal(1, BitTail.CutAt(7));              // 1 + 7 = 8 bits: one character (§2023:15.50.4 RV9)
         Assert.Equal(1, BitTail.CutAt(2));              // 1 + 2 = 3 bits: still one character
         Assert.Equal(1, BitTail.CutAt(0));              // B alone shares the table's first character
         Assert.Equal(1, BitTail.CutAt(-3));             // clamped to 0, as the declared group's count is
@@ -165,7 +165,7 @@ public sealed class CobolVarGroupContiguousTests
     [Fact]
     public void BitOdoTail_KeepUnused_SplicesAtTheFirstUnusedOccurrencesBit()
     {
-        // §2023:13.18.38.4 GR8 a): a receiving count of 2 uses B, TB(1) and TB(2) — bits 0..2 — from the sender and keeps
+        // §2023:13.18.38.4 GR8a: a receiving count of 2 uses B, TB(1) and TB(2) — bits 0..2 — from the sender and keeps
         // every later bit of the receiver's own image, inside the shared first character too.
         string received = CobolBits.Pack("010" + "00000" + "00000000");
         string current = CobolBits.Pack("111" + "11111" + "10000000");
@@ -267,7 +267,7 @@ public sealed class CobolVarGroupContiguousTests
     [Fact]
     public void AReceivingCellWindow_UsesOnlyTheCurrentOccurrences_AndTheRestKeepTheirContent()
     {
-        // ISO §2023:13.18.38.4 GR8 a): with the DEPENDING item outside the group, "only that part of the table area that is
+        // ISO §2023:13.18.38.4 GR8a: with the DEPENDING item outside the group, "only that part of the table area that is
         // specified by the value of the data item ... at the start of the operation will be used" - occurrence 1 of 3.
         var carrier = new CobolVarGroup("HNEW", ["n1", "n2", "n3"]);
         var cell = ElementCell();
@@ -333,7 +333,7 @@ public sealed class CobolVarGroupContiguousTests
         var one = layout.Decompose("1abx", null, count: 1);
         Assert.Equal("1x", one.Fixed);
         Assert.Equal(["ab"], one.Dynamic);
-        // at the maximum (the default, §2023:13.18.38.4 GR8 b) the same record leaves every component empty, the fixed run
+        // at the maximum (the default, §2023:13.18.38.4 GR8b the same record leaves every component empty, the fixed run
         // taking the characters in turn: the first pass, which places a data-name-1 the record holds before the table
         var max = layout.Decompose("1abx");
         Assert.Equal("1abx", max.Fixed);

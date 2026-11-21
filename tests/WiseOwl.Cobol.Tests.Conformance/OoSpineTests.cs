@@ -284,7 +284,7 @@ public sealed class OoSpineTests
             + string.Join("\n", knownErrors));
     }
 
-    /// <summary>§2023:14.9.23.3 SR4 b) — for a TYPED receiver an unknown method is a COMPILE-time diagnostic (the
+    /// <summary>§2023:14.9.23.3 SR4b — for a TYPED receiver an unknown method is a COMPILE-time diagnostic (the
     /// static analog of EC-OO-METHOD, GR7b).</summary>
     [Fact]
     public void InvokeUnknownMethod_0825()
@@ -550,7 +550,7 @@ public sealed class OoSpineTests
             END METHOD M.
             """)), "COBOL1520");
 
-    /// <summary>kb/Work PB1045 — a CONSTANT entry is an entry §2023:13.18.27.3 SR1 a) lets carry the GLOBAL clause, so SR4
+    /// <summary>kb/Work PB1045 — a CONSTANT entry is an entry §2023:13.18.27.3 SR1a lets carry the GLOBAL clause, so SR4
     /// bars it in every factory, instance and method definition, a method prototype included (§2023:10.6.1 NOTE: "A
     /// method-definition in an interface-definition defines a method prototype"). Each constant here compiled
     /// clean: the class arm asked only the bound files, reports and level-1 data items, and the method arm only its
@@ -1797,7 +1797,7 @@ public sealed class OoSpineTests
         Assert.Equal("FACTORY-PING\nINSTANCE-PING", CutRunner.Normalize(stdout));
 
         // kb/Work PB1582: a factory METHOD-ID NEW in a BASE subclass redefines BASE's New, so without OVERRIDE it is
-        // ISO §2023:11.7.3 SR4 a) (0837) — it used to be the blanket 0836 "a factory method may not be named NEW".
+        // ISO §2023:11.7.3 SR4a (0837) — it used to be the blanket 0836 "a factory method may not be named NEW".
         EditionHarness.AssertHasDiagnostic(ErrorsOf("""
             IDENTIFICATION DIVISION.
             CLASS-ID. OSPC37 INHERITS FROM BASE.
@@ -2216,7 +2216,7 @@ public sealed class OoSpineTests
             END INTERFACE OTHER52.
             """), "COBOL2793");
 
-    /// <summary>§2023:10.6.2 SR4 f) — a method prototype is a header only. A body is COBOL2272, the ONE
+    /// <summary>§2023:10.6.2 SR4f — a method prototype is a header only. A body is COBOL2272, the ONE
     /// prototype-body screen every prototype kind shares (kb/Work PB894; formerly the 0840 family).</summary>
     [Fact]
     public void Interface_PrototypeWithBody_2272()
@@ -2637,7 +2637,7 @@ public sealed class OoSpineTests
     public void Universal_ReturningDescriptionMismatch_Bound_EcOoUniversal()
     {
         // RD4 RETURNING PIC 9(4) into the caller's PIC 9(8): the pair can meet in a MOVE, so §2023:9.3.6 match rule 7 BINDS
-        // GET — and §2023:14.8.3.3 then requires the SAME PICTURE, which §2023:14.9.23.4 GR7 c) checks of the bound method:
+        // GET — and §2023:14.8.3.3 then requires the SAME PICTURE, which §2023:14.9.23.4 GR7c checks of the bound method:
         // EC-OO-UNIVERSAL, checking being enabled in both elements (kb/Work PB1500).
         var (ok, _, detail) = CompileAndRun(UnivHazard("OOUVRD", """
             INVOKE CUH4A "NEW" RETURNING U.
@@ -2771,7 +2771,7 @@ public sealed class OoSpineTests
         Assert.Equal("CONTINUED", CutRunner.Normalize(stdout));
     }
 
-    /// <summary>§2023:14.6.13.1.5 rule 4 + §2023:14.9.18.4 GR1 b) — the EC-OO-EXCEPTION conversion of an object no F4 declarative
+    /// <summary>§2023:14.6.13.1.5 rule 4 + §2023:14.9.18.4 GR1b — the EC-OO-EXCEPTION conversion of an object no F4 declarative
     /// took is RAISED in the activating element only "if checking for that exception condition is enabled" THERE
     /// (§2023:14.6.13.1.1: off by default), and then it enters the F3 tiers: a USE AFTER EC EC-OO declarative catches it.
     /// EC-OO-EXCEPTION is FATAL (Table 13), so surviving it needs RESUME AT NEXT STATEMENT (§2023:14.6.13.1.3 #5 NOTE 2
@@ -2842,7 +2842,7 @@ public sealed class OoSpineTests
     }
 
     /// <summary>kb/Work PB1121 — the checking-OFF twin of <see cref="GobackRaisingObject_NoF4_ActivatorChecked_F3CatchesEcOoException"/>:
-    /// EC-OO-EXCEPTION checking is not enabled in the activator, so §2023:14.9.18.4 GR1 b) raises nothing, the F3
+    /// EC-OO-EXCEPTION checking is not enabled in the activator, so §2023:14.9.18.4 GR1b raises nothing, the F3
     /// declarative does not run and the INVOKE completes. (The unrecovered checked arm is
     /// <c>FatalRaiseSelectionTests.ObjectPropagation_ActivatorChecked_NoHandler_TerminatesAbnormally</c>.)</summary>
     [Fact]

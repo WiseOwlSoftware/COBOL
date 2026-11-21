@@ -164,7 +164,7 @@ public sealed class ApplyCommitEnclosingFileTests
         Assert.True(ok, string.Join("\n", errors));
     }
 
-    /// <summary>⛔ THE NEARER DECLARATION DECIDES, NOT THE NAME TABLE (review R2-2; §2023:8.4.6.2.1 3) a): "If the name is
+    /// <summary>⛔ THE NEARER DECLARATION DECIDES, NOT THE NAME TABLE (review R2-2; §2023:8.4.6.2.1 GR3a: "If the name is
     /// declared in source element B, the item in source element B is the referenced item"). The contained program's own
     /// report entry RREC hides the container's GLOBAL record area RREC, so the operand names a report item and the refusal
     /// is the report section's (§2023:13.8.6.2.3, COBOL5092), never §2023:12.4.6.3.3 SR11: the kb/Work PB4196 order, on the APPLY COMMIT arm.</summary>
@@ -212,7 +212,7 @@ public sealed class ApplyCommitEnclosingFileTests
     }
 
     /// <summary>⛔ DEPTH, BOTH WAYS (review R2-1): the nearest containing element's declaration is the referenced item
-    /// (§2023:8.4.6.2.1 3) b)). A middle program's GLOBAL working-storage item X hides the outermost program's GLOBAL file X, so
+    /// (§2023:8.4.6.2.1 GR3b). A middle program's GLOBAL working-storage item X hides the outermost program's GLOBAL file X, so
     /// the innermost clause names a working-storage 01 item (SR3 holds; SR11 is about files and record areas only); and a
     /// middle program's GLOBAL file X hides the outermost program's GLOBAL item X, so the clause names a GLOBAL file (SR11).</summary>
     [Fact]

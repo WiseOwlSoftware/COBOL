@@ -6,10 +6,10 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <summary>One resolved USING formal: the LINKAGE item, the 0-based positional slot, the emitted C# parameter name
 /// (the argument's carrier), and whether the
 /// procedure division header specifies the OPTIONAL phrase for it (ISO §2023:14.2.1 general format; §2023:14.2.3 GR3 — what §2023:14.9.23.3 SR18 and
-/// §2023:14.8.2.1 read, and what §2023:9.3.8.2.3 rule 8 compares between a method and its prototype). <paramref name="ByValue"/>
+/// §2023:14.8.2.1 read, and what §2023:9.3.8.2.3 GR8 compares between a method and its prototype). <paramref name="ByValue"/>
 /// is the passing mode of the formal — the BY VALUE phrase specified or implied for it (§2023:14.2.1; §2023:14.2.3 GR4: "Both the
 /// BY REFERENCE and the BY VALUE phrases are transitive"), what §2023:14.9.23.3 SR5 and §2023:14.9.23.4 GR6 select the argument's
-/// mode by and what §2023:9.3.8.2.3 rule 1 compares ("consistent BY REFERENCE and BY VALUE specifications"). A BY VALUE
+/// mode by and what §2023:9.3.8.2.3 GR1 compares ("consistent BY REFERENCE and BY VALUE specifications"). A BY VALUE
 /// formal crosses the method ABI exactly as a BY REFERENCE one does — the carrier, the area and the omitted flag —
 /// but the activator hands it a DETACHED cell and no area (never its own storage) and the method never copies it back
 /// (§2023:14.2.3 GR10), so the mode is a fact of the binding, not a second C# signature.

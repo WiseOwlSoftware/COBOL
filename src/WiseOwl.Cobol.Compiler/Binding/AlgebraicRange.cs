@@ -8,16 +8,16 @@ namespace WiseOwl.Cobol.Binding;
 /// <summary>The extreme values ONE data description permits, rendered as decimal literal TEXT.</summary>
 /// <param name="Farthest">The POSITIVE algebraic value of greatest finite magnitude the description permits —
 /// ISO §2023:15.43.4 r2 ("the positive algebraic value of greatest finite magnitude that may be represented in
-/// argument-1") and §2023:14.9.39.4 GR32 a) ("the value farthest away from zero permitted by the specifications of
+/// argument-1") and §2023:14.9.39.4 GR32a ("the value farthest away from zero permitted by the specifications of
 /// identifier-14") name the same quantity.</param>
 /// <param name="FarthestNegative">The NEGATIVE value of greatest finite magnitude, or <c>null</c> when the
 /// description cannot represent a sign at all. ⚠ It is NOT always <c>-Farthest</c>: a two's-complement container
 /// reaches one further down (<c>PIC S9(4) COMP-5</c> spans −32768..32767 — DOC-A.1-208; BINARY-SHORT likewise,
-/// §2023:13.18.60.4 GR12 / DOC-A.1-206), which is exactly the asymmetry §2023:14.9.39.3 SR31 a) makes the SIGN phrase
+/// §2023:13.18.60.4 GR12 / DOC-A.1-206), which is exactly the asymmetry §2023:14.9.39.3 SR31a makes the SIGN phrase
 /// mandatory for.</param>
 /// <param name="Nearest">The nonzero value NEAREST to zero the description permits — §2023:15.83.4 r2's "smallest
 /// algebraic value that may represent the difference between two values represented in argument-1" and
-/// §2023:14.9.39.4 GR36 a)'s "the nonzero value nearest to zero permitted by the specifications of identifier-14".
+/// §2023:14.9.39.4 GR36a's "the nonzero value nearest to zero permitted by the specifications of identifier-14".
 /// Always a POSITIVE magnitude; a caller wanting the negative one prefixes the sign. <c>null</c> for a
 /// FLOATING-POINT numeric-edited picture, and deliberately so: no rule in the standard asks for it (§2023:15.83.3 r1
 /// admits category numeric ONLY, and §2023:14.9.39.3 SR31 likewise), so deriving one here would be a lookup nothing
@@ -110,7 +110,7 @@ internal static class AlgebraicRanges
         else if (edited)
         {
             // The EDITING rules travel with the mask: a FLOATING extended editing sign control symbol's
-            // repetitions are digit positions (§2023:13.18.40.5 rule 6), so the capacity is wrong without them
+            // repetitions are digit positions (§2023:13.18.40.5 GR6), so the capacity is wrong without them
             // (kb/Work PB491).
             var (cap, frac) = WiseOwl.Cobol.Runtime.CobolEdit.MaskCapacity(pic.EditMask!,
                 pic.EditingRules as WiseOwl.Cobol.Runtime.CobolEdit.EditRule[], '$', decimalPointIsComma);
@@ -122,7 +122,7 @@ internal static class AlgebraicRanges
         {
             // ⛔ Keyed on the ONE capacity-discipline datum (PicInfo.Truncation), never on a usage list: the
             // item owns its container's FULL two's-complement range (COMP-5: DOC-A.1-208; BINARY-*: §2023:13.18.60.4
-            // GR12), the shape whose |min| ≠ |max| makes §2023:14.9.39.3 SR31 a) demand the SIGN phrase.
+            // GR12), the shape whose |min| ≠ |max| makes §2023:14.9.39.3 SR31a demand the SIGN phrase.
             // AlgebraicFoldContainerAgreementTests pins this bound against the runtime capacity for every
             // BinaryCapacity profile.
             scale = pic.Scale;
@@ -147,7 +147,7 @@ internal static class AlgebraicRanges
             farthest,
             signable ? Decimalize(unscaled, scale, negative: true) : null,
             // The smallest positive increment 10^(−scale) — independent of digit count, sign and container
-            // (§2023:15.83.4 r2; §2023:14.9.39.4 GR36 a).
+            // (§2023:15.83.4 r2; §2023:14.9.39.4 GR36a.
             Decimalize(BigInteger.One, scale, negative: false),
             Decimalize(BigInteger.Zero, scale, negative: false));
     }

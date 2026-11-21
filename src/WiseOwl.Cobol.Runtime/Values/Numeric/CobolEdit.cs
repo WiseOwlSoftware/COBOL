@@ -72,7 +72,7 @@ public static partial class CobolEdit
         public int Width => Neg.Length;
     }
 
-    /// <summary>⛔ THE SIMPLE INSERTION EDITING SYMBOLS — ISO §2023:13.18.40.5 rule 3, written down ONCE: "the symbols
+    /// <summary>⛔ THE SIMPLE INSERTION EDITING SYMBOLS — ISO §2023:13.18.40.5 GR3, written down ONCE: "the symbols
     /// 'B', '0', '/', ',' and, if literal=1 is specified, character-1 are used as the simple insertion editing
     /// symbols". Every consumer of the set reads <see cref="IsSimpleInsertionSymbol"/> or
     /// <see cref="TrySimpleInsertion"/> — <see cref="Format"/>'s pass 1 (place the insertion character), its
@@ -87,7 +87,7 @@ public static partial class CobolEdit
     public static ReadOnlySpan<char> SimpleInsertionSymbols => "B0/,";
 
     /// <summary>Is <paramref name="maskChar"/> one of the picture's SIMPLE INSERTION editing symbols
-    /// (§2023:13.18.40.5 rule 3)? <paramref name="grouping"/> is the character playing the GROUPING separator's part —
+    /// (§2023:13.18.40.5 GR3)? <paramref name="grouping"/> is the character playing the GROUPING separator's part —
     /// ',' in the dot-canonical core, and the caller's own choice on a RAW picture, because DECIMAL-POINT IS
     /// COMMA exchanges the two (§2023:13.18.40.3 SR13: "the rules for the symbol period apply to the symbol comma, and
     /// the rules for the symbol comma apply to the symbol period"). Whichever of the pair is NOT the grouping
@@ -121,7 +121,7 @@ public static partial class CobolEdit
     }
 
     /// <summary>The picture's simple insertion symbols INCLUDING every IS-form PICTURE EDITING character-1, with
-    /// the character each one inserts: §2023:13.18.40.5 rule 3 — "Simple insertion editing results in the insertion
+    /// the character each one inserts: §2023:13.18.40.5 GR3 — "Simple insertion editing results in the insertion
     /// character occupying the same character position in the edited item as the associated symbol occupies in
     /// character-string-1" — over §2023:13.18.40.4 GR14's per-symbol text ('B' "a character position into which the
     /// character space will be inserted", '0' "the character zero", '/' "the character slant", ',' "the character
@@ -205,7 +205,7 @@ public static partial class CobolEdit
         // ⛔ THE VARIABLE-WIDTH MARKER. `placedBy[i]` names (upper-cased; '\0' for none) the symbol whose whole
         // STRING — the currency string, or literal-1/literal-2/literal-3 — is rendered at position i, as opposed
         // to a digit, a space or a replacement character there. It is the ONE fact Materialize cannot re-derive,
-        // because where a FLOATING symbol lands is decided by the suppression walk (§2023:13.18.40.5 rule 6 a) and
+        // because where a FLOATING symbol lands is decided by the suppression walk (§2023:13.18.40.5 GR6a and
         // not by the mask — and the landing position can be a simple insertion symbol EMBEDDED in the string
         // (rule 6: "part of the string"), whose own character is then NOT the one that lands: the symbol must
         // travel with the position, or Materialize writes the embedded symbol's string where the floating
@@ -217,7 +217,7 @@ public static partial class CobolEdit
         // The currency symbol is the program's CURRENCY SIGN PICTURE SYMBOL (ISO §2023:12.3.7.4 GR13; '$' per SR25).
         // ⛔ The digit-position count is MaskFacts' — the ONE derivation Format, TryFormat, MaskCapacity,
         // MaskScale and DeEdit all read (kb/Work PB2639) — never a loop of this method's own.
-        // ⛔ §2023:13.18.40.5 rule 6, first sentence: "The currency symbol, the extended editing sign control
+        // ⛔ §2023:13.18.40.5 GR6, first sentence: "The currency symbol, the extended editing sign control
         // symbols, if specified, and the fixed editing sign control symbols '+' and '-' are used as the floating
         // insertion symbols" — character-1 under a FOR phrase is one of them, and rule 6's fourth paragraph
         // ("The second floating symbol represents the leftmost limit of the numeric data that may be stored in
@@ -238,7 +238,7 @@ public static partial class CobolEdit
         // render the absolute digit string at the mask's capacity (excess INTEGER digits truncate high-order).
         // ⛔ The widening is the STORE-CAP form (kb/Work PB639): the digits this mask could never show are
         // dropped decimally BEFORE the multiply, so the high-order truncation two lines below is the LOW-ORDER
-        // digits of the true value (§2023:14.6.8.2 5): a numeric-edited receiver takes "further alignment, zero fill or truncation"), not the low-order
+        // digits of the true value (§2023:14.6.8.2 GR5: a numeric-edited receiver takes "further alignment, zero fill or truncation"), not the low-order
         // digits of an Int128 wrap. MOVE 10^30 TO PIC Z(8)9.9(9) showed 123822295.304634368 for 0.000000000.
         Int128 scaled = CobolNum.RescaleStoreCap(value, valueScale, fracDigits, CobolRounding.Truncation);
         string digits = CobolDec.UAbs(scaled).ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -246,9 +246,9 @@ public static partial class CobolEdit
         else if (digits.Length > effectiveDigitCount) digits = digits[^effectiveDigitCount..];
 
         // ⛔ THE SIGN IS THE STORED VALUE'S, decided here once, from the digit string above (kb/Work PB3664).
-        // §2023:13.18.40.5 5): "Table 8, Results of fixed insertion editing, shows the character(s) produced by an
+        // §2023:13.18.40.5 GR5: "Table 8, Results of fixed insertion editing, shows the character(s) produced by an
         // editing sign control symbol, depending on the value of the data item" — and Table 8's first column is
-        // "Positive or zero value". §2023:14.9.25.4 6) d) sends a numeric-edited receiver to §2023:14.6.8.2 5): "further
+        // "Positive or zero value". §2023:14.9.25.4 GR6d sends a numeric-edited receiver to §2023:14.6.8.2 GR5: "further
         // alignment, zero fill or truncation, and transfer of digits take place as described in the general rules
         // and editing rules in 13.18.40", so a sending -0.001 into PIC -9.99 stores the value ZERO (§2023:8.8.4.2.4 says
         // the same of comparisons: "Zero is considered a unique value regardless of the sign"): the sign position shows the
@@ -259,9 +259,9 @@ public static partial class CobolEdit
 
         // ⛔ BLANK WHEN ZERO (ISO §2023:13.18.8.4 GR1) — "the content of the data item is set to all spaces when the
         // item is a receiving operand and THE VALUE BEING STORED is zero", which is the value the item ENDS UP
-        // HOLDING: exactly the digit string above. §2023:14.9.25.4 GR6 d) closes "Alignment of the numeric value by
+        // HOLDING: exactly the digit string above. §2023:14.9.25.4 GR6d closes "Alignment of the numeric value by
         // decimal point, any necessary zero filling, any truncation of digits, and transfer of the algebraic data
-        // into the receiving data item, take place as defined in 14.6.8", and §2023:14.6.8.2 5) gives a numeric-edited
+        // into the receiving data item, take place as defined in 14.6.8", and §2023:14.6.8.2 GR5 gives a numeric-edited
         // receiver "further alignment, zero fill or truncation" — so a store that truncates to zero at EITHER end (0.4 into
         // PIC 9(3), 100 into PIC 99) stores zero and blanks. §2023:13.18.8.1 says the same in one line: the clause
         // "causes the blanking of an item when a value of zero is being stored in it".
@@ -279,7 +279,7 @@ public static partial class CobolEdit
         for (int i = pattern.Length - 1; i >= 0; i--)
         {
             char p = char.ToUpperInvariant(pattern[i]);
-            // SIMPLE INSERTION (ISO §2023:13.18.40.5 rule 3) — 'B', '0', '/', ',' and every IS-form PICTURE EDITING
+            // SIMPLE INSERTION (ISO §2023:13.18.40.5 GR3) — 'B', '0', '/', ',' and every IS-form PICTURE EDITING
             // character-1, from the ONE set (TrySimpleInsertion), resolved BEFORE the metacharacter switch so a
             // literal that happens to be a mask symbol (':', '/', '(', …) is never re-interpreted. Not a digit
             // position (SR8 for character-1; GR14 for the four symbols) — the digit index is untouched.
@@ -322,7 +322,7 @@ public static partial class CobolEdit
                 case '-':
                     output[i] = isFixedMinus ? (negative ? '-' : ' ') : digitIdx >= 0 ? digits[digitIdx--] : '0';
                     break;
-                case '.': output[i] = '.'; break;   // SPECIAL insertion (§2023:13.18.40.5 rule 4)
+                case '.': output[i] = '.'; break;   // SPECIAL insertion (§2023:13.18.40.5 GR4)
                 case 'C':   // CR — spaces when the value is not negative (§2023:13.18.40.4 fixed insertion)
                     if (i + 1 < pattern.Length && char.ToUpperInvariant(pattern[i + 1]) == 'R')
                     {
@@ -347,7 +347,7 @@ public static partial class CobolEdit
         }
 
         // Pass 2 — left-to-right zero suppression/replacement (Z → space, * → asterisk; a floating symbol's zone
-        // suppresses like Z). §2023:13.18.40.5 rule 7 a): "the corresponding replacement character is placed into any
+        // suppresses like Z). §2023:13.18.40.5 GR7a: "the corresponding replacement character is placed into any
         // character position immediately preceding whichever of the following is encountered first" — the first
         // nonzero numeric character, the first character position for which no zero suppression is specified, or
         // the decimal point position (rule 6 a) is the same walk for a floating string, its landing placed below).
@@ -428,10 +428,10 @@ public static partial class CobolEdit
         // Zero + every position suppressible (no fixed 9 anywhere) → the whole field blanks (spaces, or asterisk
         // fill keeping the actual decimal point — §2023:13.18.40.4 zero-suppression rules).
         // ⛔ "If the value is zero and the zero-suppression symbol is the symbol 'Z', all character positions of the
-        // item will contain the character space" (§2023:13.18.40.5 rule 7 b) — the value is the one the item ENDS UP
+        // item will contain the character space" (§2023:13.18.40.5 GR7b — the value is the one the item ENDS UP
         // HOLDING — the STORED digit string, the very test the BLANK WHEN ZERO guard above reads (kb/Work PB566),
         // never the pre-truncation `scaled`: 1000 into PIC ***.** stores 00.00 (the high-order digits truncate,
-        // §2023:14.6.8.2 5) and is all asterisks, decimal point kept (kb/Work PB4515).
+        // §2023:14.6.8.2 GR5 and is all asterisks, decimal point kept (kb/Work PB4515).
         bool fullFieldBlanked = false;
         if (allIntegerSuppressed && digits.AsSpan().IndexOfAnyExcept('0') < 0 && !pattern.Contains('9'))
         {
@@ -509,7 +509,7 @@ public static partial class CobolEdit
     /// landing spot — contributes zero), yielding the unscaled value at the mask's fraction scale
     /// (<see cref="MaskScale"/>); the value is negative when the image carries the mask's negative sign
     /// (<c>-</c> anywhere a sign can land, or a non-blank CR/DB). Under EC-DATA-INCOMPATIBLE checking (ISO
-    /// §2023:14.6.13.2 rule 4: content "not a possible result for any editing operation in that data item" → the
+    /// §2023:14.6.13.2 GR4: content "not a possible result for any editing operation in that data item" → the
     /// exception, the result undefined) the image is verified to be an editing result — <see cref="Format"/> of the
     /// de-edited value at the mask's scale (with the item's BLANK WHEN ZERO, <paramref name="blankWhenZero"/>) must
     /// reproduce it: Format IS the one editor, so the round trip is the exact test (kb/Work PB66 sweep — the
@@ -630,7 +630,7 @@ public static partial class CobolEdit
             {
                 value = value * 10 + (c is >= '0' and <= '9' ? c - '0' : 0);
                 if (c is >= '0' and <= '9') digitSeen = true;
-                // ⛔ A FLOATING '+' or '-' member holds the sign where it LANDS (§2023:13.18.40.5 rule 6 a): a position of
+                // ⛔ A FLOATING '+' or '-' member holds the sign where it LANDS (§2023:13.18.40.5 GR6a: a position of
                 // the string holds a digit, a suppression space or the landed sign, so a '-' at one IS the item's
                 // negative sign — for the floating '+' string as much as for the floating '-' one (kb/Work PB4514;
                 // Format writes '-' for a negative value at the landing of either). Read AT the position, never as a
@@ -705,7 +705,7 @@ public static partial class CobolEdit
     ///     which then carries that many replacement characters — and a floating one is literal-wide at exactly
     ///     the occurrence it landed on.</item>
     /// </list>
-    /// <para>When a floating symbol never landed — §2023:13.18.40.5 rule 6 b)'s zero value, or a BLANK WHEN ZERO
+    /// <para>When a floating symbol never landed — §2023:13.18.40.5 GR6b's zero value, or a BLANK WHEN ZERO
     /// image — "all character positions will contain the space character", so the item's own width is still
     /// owed: the FIRST occurrence carries it, and every position is a space either way. This is the shape the
     /// currency string had alone (kb/Work PB60), generalized so the EDITING literal of §2023:13.18.40.3 SR9 — up to
@@ -807,7 +807,7 @@ public static partial class CobolEdit
     /// position the floating symbol itself occupies) and its fraction scale — the §2023:14.7.5 size-error bound. Both
     /// come from <see cref="MaskFacts"/>, the same facts <see cref="Format"/> renders from, so the bound and the
     /// image cannot disagree (kb/Work PB2639). <paramref name="edits"/> is required: a FLOATING extended editing
-    /// sign control symbol is a digit position (§2023:13.18.40.5 rule 6) only when the rules are in hand, and a
+    /// sign control symbol is a digit position (§2023:13.18.40.5 GR6) only when the rules are in hand, and a
     /// caller with no PICTURE EDITING phrase says so with <c>null</c>. Public so the compiler can reuse the ONE
     /// canonical edited digit-position count for the HIGHEST/LOWEST-ALGEBRAIC PICTURE fold (§2023:15.43/§2023:15.58;
     /// singular-pattern).</summary>
@@ -882,7 +882,7 @@ public static partial class CobolEdit
     }
 
     /// <summary>The rightmost suppressed position within a floating symbol's string — its own occurrences plus the
-    /// SIMPLE INSERTION symbols the string absorbs (ISO §2023:13.18.40.5 rule 6: "Any of the simple insertion editing
+    /// SIMPLE INSERTION symbols the string absorbs (ISO §2023:13.18.40.5 GR6: "Any of the simple insertion editing
     /// symbols embedded in this string or to the immediate right of this string are part of the string"), read
     /// from the ONE set (<see cref="TrySimpleInsertion"/>). Rule 6 a) then lands "a single occurrence of the
     /// replacement character(s) … into the character position(s) immediately preceding whichever of the following
@@ -903,7 +903,7 @@ public static partial class CobolEdit
     }
 
     /// <summary>⛔ THE EXTENT OF A FLOATING STRING — written ONCE, read by <see cref="FindFloatingPlacement"/> (where
-    /// the sign lands) and by <see cref="DeEdit"/> (where a landed sign can be read back). ISO §2023:13.18.40.5 rule 6:
+    /// the sign lands) and by <see cref="DeEdit"/> (where a landed sign can be read back). ISO §2023:13.18.40.5 GR6:
     /// "Any of the simple insertion editing symbols embedded in this string or to the immediate right of this
     /// string are part of the string", so the string runs from the first <paramref name="floatChar"/> through
     /// every following occurrence of it or simple insertion symbol (<see cref="TrySimpleInsertion"/>), and ends at
@@ -1016,7 +1016,7 @@ public static partial class CobolEdit
     /// <summary>⛔ DE-EDITING'S HALF OF A LANDING ON AN EMBEDDED SYMBOL: does the image, at the physical offset
     /// <paramref name="phys"/> of the simple insertion symbol at mask position <paramref name="at"/>, carry the
     /// string a floating string landed there? <see cref="Materialize"/> writes it as the slot's
-    /// <paramref name="slot"/> - 1 replacement spaces and then the landed text (ISO §2023:13.18.40.5 rule 6 a), the
+    /// <paramref name="slot"/> - 1 replacement spaces and then the landed text (ISO §2023:13.18.40.5 GR6a, the
     /// text being literal-2 on a negative value, literal-3 otherwise, and the currency string either way).
     /// Reports which sign text it was (<c>Negative</c>; <c>Positive</c> for a nonnegative text of a zone whose
     /// two texts differ, the evidence <see cref="DeEdit"/> needs when the negative text is blank) and the

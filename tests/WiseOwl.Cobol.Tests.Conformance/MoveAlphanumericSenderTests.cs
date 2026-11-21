@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ISO §2023:14.9.25.4 GR6 d) — AN ALPHANUMERIC OR NATIONAL SENDING OPERAND MOVING TO A NUMERIC OR NUMERIC-EDITED
+/// ISO §2023:14.9.25.4 GR6d — AN ALPHANUMERIC OR NATIONAL SENDING OPERAND MOVING TO A NUMERIC OR NUMERIC-EDITED
 /// RECEIVER. GR6 d) 3 makes it "an unsigned integer of category numeric" whose SIZE the standard caps at the
 /// rightmost 31 character positions (sub-rule a for a data item, sub-rule c for a literal); GR6 d) 1's closing
 /// sentence sets EC-DATA-INCOMPATIBLE when its content "would result in a false value in a numeric class
@@ -51,7 +51,7 @@ public sealed class MoveAlphanumericSenderTests
     {
         var (ok, stdout, detail) = new WiseOwlCobolCompiler(std).CompileAndRun(
             Prog(id, ws, proc, ">>TURN EC-DATA-INCOMPATIBLE CHECKING ON"));
-        Assert.False(ok, $"[--std {std}] §2023:14.9.25.4 GR6 d) 1 requires EC-DATA-INCOMPATIBLE to be set to exist; "
+        Assert.False(ok, $"[--std {std}] §2023:14.9.25.4 GR6d 1 requires EC-DATA-INCOMPATIBLE to be set to exist; "
                          + $"the run completed with stdout:\n{stdout}");
         Assert.Contains("EC-DATA-INCOMPATIBLE", detail);
     }
@@ -132,7 +132,7 @@ public sealed class MoveAlphanumericSenderTests
             """,
             "000001234\n     1234");
 
-    // §2023:14.9.48.4 GR11 c) transfers UNSTRING's examined characters "according to the rules for the MOVE
+    // §2023:14.9.48.4 GR11c transfers UNSTRING's examined characters "according to the rules for the MOVE
     // statement", so the window reaches the UNSTRING receiver dispatch too. (Only the plain-numeric arm is
     // reachable: §2023:14.9.48.3 SR4 screens a numeric-edited INTO receiver out before emit.)
     [Fact]
@@ -205,7 +205,7 @@ public sealed class MoveAlphanumericSenderTests
             01 R9  PIC 9(9).
             """, "    MOVE QLO TO R9\n    DISPLAY R9");
 
-    // The UNSTRING channel raises for the same reason it windows — §2023:14.9.48.4 GR11 c).
+    // The UNSTRING channel raises for the same reason it windows — §2023:14.9.48.4 GR11c.
     [Fact]
     public void UnstringIntoANumericReceiver_RaisesOnNonNumericContent()
         => AssertFatalIncompatible("PB844UNS",
@@ -234,7 +234,7 @@ public sealed class MoveAlphanumericSenderTests
             """,
             "    COMPUTE R = AQ + 1\n    DISPLAY \"R=\" R",
             ">>TURN EC-DATA-INCOMPATIBLE CHECKING ON"), 2023, permissive: true);
-        Assert.True(ok, "§2023:14.9.25.4 GR6 d) 1 is a MOVE rule — an arithmetic operand is outside its scope and "
+        Assert.True(ok, "§2023:14.9.25.4 GR6d 1 is a MOVE rule — an arithmetic operand is outside its scope and "
                         + $"must not raise: {detail}\nstdout:\n{stdout}");
         Assert.Equal("R=000001", stdout.Trim());
     }

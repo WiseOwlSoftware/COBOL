@@ -454,7 +454,7 @@ public sealed class CobolBigExactFormTests
 
     /// <summary>⛔ A FLOAT ITEM'S CONTENT CARRIES ITS BINARY64 MARK (kb/Work PB4891): a selection returns it whole and a negation and a
     /// precision change keep it, an operation over it is a binary64 operation (kb/Work PB4923) and one over fixed-point values forms an unmarked value, and an even MEDIAN reads it off its two middles, so the mean
-    /// of the content MAX selected beside 0.5 is the binary64 mean 0.3 (§2023:15.61.4 2), DOC-A.1-92b), not the exact mean
+    /// of the content MAX selected beside 0.5 is the binary64 mean 0.3 (§2023:15.61.4 RV2, DOC-A.1-92b), not the exact mean
     /// .30000000000000000277..., in both lanes; two fixed-point middles keep the exact mean whatever else the list holds.</summary>
     [Fact]
     public void FloatContent_CarriesItsBinary64MarkIntoAnEvenMedian()

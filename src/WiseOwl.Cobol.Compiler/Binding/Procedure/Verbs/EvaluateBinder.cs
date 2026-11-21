@@ -103,7 +103,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // (§2023:14.9.13.2 + §2023:5.2.7), so the grammar now admits it once and only last. The rule used to live in a
         // COMMENT on an `other = body` assignment inside this loop, which meant a second WHEN OTHER overwrote
         // the first and the first's imperative-statement-2 became dead source, never emitted and never
-        // reported; §2023:14.9.13.4 GR5 b) is written for exactly one such phrase and says nothing about two.
+        // reported; §2023:14.9.13.4 GR5b is written for exactly one such phrase and says nothing about two.
         var other = ev.evaluateWhenOther() is { } o ? host.BindBlocks([o.statementBlock()]) : null;
         return new BoundEvaluate(whens, other);
     }
@@ -246,7 +246,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         var s = SubjectKind(subject, subjectBare);
         var o = ObjectKind(item, objectBare);
 
-        // §2023:14.9.13.3 SR6 a) — a TRUE/FALSE subject makes a one-boolean-character boolean object condition-2.
+        // §2023:14.9.13.3 SR6a — a TRUE/FALSE subject makes a one-boolean-character boolean object condition-2.
         if (s is EvaluateSubjectOperand.TrueOrFalse && o is EvaluateObjectOperand.BooleanExpression
             && IsOneBooleanCharacter(objectBare.BooleanLength))
             o = EvaluateObjectOperand.Condition;
@@ -272,7 +272,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         return new EvaluatePairing(s, o, subjectBare, objectBare);
     }
 
-    /// <summary>§2023:14.9.13.3 SR6 e)'s antecedent — "the selection subject is a data item of the class boolean or
+    /// <summary>§2023:14.9.13.3 SR6e's antecedent — "the selection subject is a data item of the class boolean or
     /// numeric". A DATA ITEM, so a literal, an arithmetic expression, a function result and a condition-name are
     /// all excluded by construction (the reference must reduce to one data reference); the CLASS is read from the
     /// ONE category reader, <c>DataItem.OperandPic</c>, so a bit GROUP or a national group's §2023:13.18.29.4 GR1b/GR2b
@@ -363,7 +363,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// not a class) or an already-reported error node, and abstains — the direction that cannot reject legal
     /// source. Class MESSAGE-TAG, SR4's fourth exclusion, is a lattice member since kb/Work PB4740.</para>
     /// <para>The pointer case is the sharpest, and it is why SR4 cannot be left to the relation checkpoint: a
-    /// range lowers to `subject &gt;= low AND subject &lt;= high` (§2023:14.9.13.4 GR4 a) 5.), and where that pair is
+    /// range lowers to `subject &gt;= low AND subject &lt;= high` (§2023:14.9.13.4 GR4a.5), and where that pair is
     /// NOT what gets emitted — an inverted or IN-alphabet range builds a <c>BoundRangeMembership</c> instead —
     /// the checkpoint is never reached at all. SR4 forbids the range outright, one phase earlier than any
     /// question about the comparison.</para></summary>
@@ -448,7 +448,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The subject's Table-15 COLUMN before SR6, or null when the shape cannot be named with
     /// certainty. The two subject-only forms are grammatical (TRUE/FALSE, and a written condition — condition-1
-    /// per §2023:14.9.13.4 GR3 e)); everything else is the SHARED bare-operand classification.</summary>
+    /// per §2023:14.9.13.4 GR3e); everything else is the SHARED bare-operand classification.</summary>
     private static EvaluateSubjectOperand? SubjectKind(Core.EvaluateSubjectContext subject, in BareOperandAnalysis bare)
     {
         if (subject.booleanLiteral() is not null) return EvaluateSubjectOperand.TrueOrFalse;
@@ -536,7 +536,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// shape is not one of those with certainty — §2023:14.9.13.4 GR1's question: "If an operand of the EVALUATE
     /// statement consists of a single literal, that operand is treated as a literal, not as an expression."
     /// <c>ConditionBinder.SoleNumLiteral</c> answers the "consists of a single literal" half, sign included
-    /// (§2023:8.3.3.3.2 rule 2), which is what makes <c>-5</c> a literal and the SEPARATED <c>- 5</c> an arithmetic
+    /// (§2023:8.3.3.3.2 SR2), which is what makes <c>-5</c> a literal and the SEPARATED <c>- 5</c> an arithmetic
     /// expression.</summary>
     private static EvaluateObjectOperand? OperandKindOf(Core.ValueOperandContext vo)
     {
@@ -592,7 +592,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // No subject window stages COBOL1509 any more: the narrowed residue stage had exactly these two
         // callers, and it is deleted with them.
 
-        // A CONDITION subject (§2023:14.9.13.4 GR3 e), Table 15's Condition column) pairs with TRUE/FALSE objects:
+        // A CONDITION subject (§2023:14.9.13.4 GR3e, Table 15's Condition column) pairs with TRUE/FALSE objects:
         // the term is the subject's ONE truth value (or its negation). Four spellings reach it — a written
         // condition (`EVALUATE X NUMERIC`, `EVALUATE WS-N > 1`, `EVALUATE NOT BW`, any combined condition), a
         // level-88, a switch-status condition-name, and SR6 b)'s one-boolean-character boolean subject — and the
@@ -600,7 +600,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // which is what refused `EVALUATE W-ON WHEN TRUE`).
         if (pair.Subject is EvaluateSubjectOperand.Condition && slot.Truth is { } subjCond)
         {
-            // §2023:14.9.13.4 GR4 a) 4. — a TRUE/FALSE object: "the selection subject is condition-1 … if the truth
+            // §2023:14.9.13.4 GR4a.4 — a TRUE/FALSE object: "the selection subject is condition-1 … if the truth
             // value of the selection subject and selection object match, the result of the analysis is true",
             // which for a constant object IS the subject condition or its negation.
             if (item.booleanLiteral() is { } objWord)
@@ -628,7 +628,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         }
 
         // ⛔ TRUE-or-FALSE × TRUE-or-FALSE (Table 15's two 'Y' cells for the words) IS A CONSTANT, AND NO CONDITION
-        // IS BOUND FOR IT (kb/Work PB1668). §2023:14.9.13.4 GR3 f) gives the subject word its truth value, GR4 a) 4. makes
+        // IS BOUND FOR IT (kb/Work PB1668). §2023:14.9.13.4 GR3f gives the subject word its truth value, GR4 a) 4. makes
         // the pair "true" exactly when the two truth values match — so `EVALUATE TRUE WHEN TRUE` is true and
         // `EVALUATE FALSE WHEN TRUE` is false. The object's word used to go through BindCondition, whose bare-word
         // arm is not a condition (§2023:8.8.4.2.1) and refused conforming source through the COBOL2319 net.
@@ -665,7 +665,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             return subjFalse ? new BoundNot(bound) : bound;
         }
 
-        // §2023:14.9.13.3 SR8 + §2023:14.9.13.4 GR4 a) 2. — partial-expression-1. The object is "treated as though it were
+        // §2023:14.9.13.3 SR8 + §2023:14.9.13.4 GR4a.2 — partial-expression-1. The object is "treated as though it were
         // specified as condition-2, where condition-2 is the conditional expression that results from preceding
         // partial-expression-1 by the selection subject", and "the corresponding selection subject is treated as
         // though it were specified by the word TRUE" — so the pair's term IS that condition, with no comparison
@@ -751,7 +751,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             // strongly-typed range orders element by element (§2023:8.8.4.2.12 — `EVALUATE A WHEN LO THRU HI` over float
             // leaves answered OUT for -10 <= -5 <= 3 the moment EC-RANGE-INVALID checking routed it here), and a
             // variable-length group has no image at all (§2023:8.8.4.2.17). Those take the inclusive relation pair, which
-            // is §2023:14.9.13.4 GR4 a) 5.'s own lowering and passes through the ONE relation checkpoint.
+            // is §2023:14.9.13.4 GR4a 5.'s own lowering and passes through the ONE relation checkpoint.
             bool flatRange = RelationPair.Classify(left, lo) is RelationPairShape.Flat
                 && RelationPair.Classify(left, hi) is RelationPairShape.Flat;
             if (flatRange && (collation is not null || ecApplies))
@@ -762,7 +762,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                 [host.Cond.CheckedRelational(left, ">=", lo), host.Cond.CheckedRelational(left, "<=", hi)]),
                 objMark);
         }
-        // boolean-expression-2 (§2023:14.9.13.4 GR4 a) 6.): "selection-subject [NOT] = selection-object" with the object a
+        // boolean-expression-2 (§2023:14.9.13.4 GR4a.6): "selection-subject [NOT] = selection-object" with the object a
         // boolean expression — the boolean relation of §2023:8.8.4.2.2 Format 2, built through the ONE relation checkpoint
         // exactly as the IF form `subject = A B-AND C` is (ConditionBinder.BindPrimaryBoolean). The expression was bound
         // ONCE, by the classification, so this reads that node.
@@ -861,14 +861,14 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The selection OBJECT's condition when <see cref="ClassifyPair"/> put it in Table 15's Condition
     /// ROW: an explicit <c>condition</c> object, or the bare form (a level-88, a switch-status condition-name,
-    /// or — through §2023:14.9.13.3 SR6 a) — a one-boolean-character boolean object) that the SHARED analysis
+    /// or — through §2023:14.9.13.3 SR6a — a one-boolean-character boolean object) that the SHARED analysis
     /// already resolved. One helper, so the two arms that need condition-2 cannot recognise different
     /// shapes.</summary>
     private BoundCondition? ObjectAsCondition(Core.EvaluateWhenItemContext item, in EvaluatePairing pair) =>
         item.condition() is { } cond ? host.Cond.BindCondition(cond) : host.Cond.AsCondition(pair.ObjectBare);
 
     /// <summary>Bind (and, when more than one pair reads it, MATERIALIZE) one selection subject's assigned
-    /// TRUTH value — ISO §2023:14.9.13.4 GR3 e), "Any selection subject specified by condition-1 is assigned a truth
+    /// TRUTH value — ISO §2023:14.9.13.4 GR3e, "Any selection subject specified by condition-1 is assigned a truth
     /// value according to the rules for evaluating conditional expressions". Null when the subject has no
     /// condition form (a value subject that is not SR6 b)'s one-boolean-character boolean).
     /// <para>The condition is a written <c>condition</c> — bound by THE ONE condition binder, so a class test, a
@@ -998,9 +998,9 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     {
         inPlace = null;
         var subject = slot.Node;
-        // ⛔ boolean-expression-1 (§2023:14.9.13.4 GR3 d) — "assigned a boolean value according to the rules for evaluating
+        // ⛔ boolean-expression-1 (§2023:14.9.13.4 GR3d — "assigned a boolean value according to the rules for evaluating
         // boolean expressions" (kb/Work PB1412). The slot's ONE bound tree is the value, held in a boolean intermediate of
-        // its §2023:8.8.2 rule 10 result length through the same store a boolean function argument takes
+        // its §2023:8.8.2 GR10 result length through the same store a boolean function argument takes
         // (SendingValueTemp.MaterializeBoolean) when more than one pair reads it. A length no intermediate item can
         // describe (positionless, or a run-time function length) stays un-held, as ArgumentOrder.StoreAt leaves it.
         if (BooleanOperatorBearing(subject) is not null && slot.Bare.Boolean is { } boolean)
@@ -1081,11 +1081,11 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Bind a <c>valueOperand</c> (an arithmetic expression or a non-numeric literal) as an EVALUATE subject
-    /// or object operand. §2023:14.9.13.4 GR4 a) 6. says the pair "is considered to be a conditional expression" of the
+    /// or object operand. §2023:14.9.13.4 GR4a.6 says the pair "is considered to be a conditional expression" of the
     /// form <c>selection-subject = selection-object</c>, so the binding IS the relation operand's, <see cref="ConditionBinder.ComparisonOperandOf"/>. This
     /// method used to be an arm-for-arm copy of that dispatch (kb/Work PB172 added its missing HEXLIT arm, PB224
     /// aligned its order by hand), and both copies mapped a parenthesized operand to the item it encloses (kb/Work
-    /// PB1935); one body now answers both. NULL is admitted as on the relation side: §2023:14.9.13.3 SR7 a) makes a
+    /// PB1935); one body now answers both. NULL is admitted as on the relation side: §2023:14.9.13.3 SR7a makes a
     /// selection object "valid operands for comparison … in accordance with 8.8.4.2", a §2023:8.4.3.10.3 SR1 context.</summary>
     private BoundOperand BindValueOperand(Core.ValueOperandContext vo) =>
         host.Cond.ComparisonOperandOf(vo, "EVALUATE operand");

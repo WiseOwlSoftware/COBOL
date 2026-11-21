@@ -249,7 +249,7 @@ public sealed class RelativeEngineTests
             b.OpenStatic("B", FileOpenMode.IO);
             Assert.Equal("00", FileHarness.Read(b, "B", FileOrg.Relative, 3, out string image));
             Assert.Equal("0003CCCC", image);
-            Assert.Equal("22", FileHarness.Write(b, "B", FileOrg.Relative, 3, "XXXX"));      // §2023:14.9.51.4 GR33 a): the record A wrote exists
+            Assert.Equal("22", FileHarness.Write(b, "B", FileOrg.Relative, 3, "XXXX"));      // §2023:14.9.51.4 GR33a: the record A wrote exists
             Assert.Equal("00", FileHarness.Rewrite(b, "B", FileOrg.Relative, 3, "DDDD"));
             Assert.Equal("00", FileHarness.Delete(b, "B", FileOrg.Relative, 1));
             Assert.Equal("00", FileHarness.Read(a, "A", FileOrg.Relative, 3, out image)); // A's entry adopts B's page 2 after B's fence
@@ -275,7 +275,7 @@ public sealed class RelativeEngineTests
     }
 
     /// <summary>⛔ THE REGRESSION FINDING R2-6 NAMED (2.2.1.7; 2.2.1.14): a <c>SHARING WITH READ ONLY</c> writer beside the
-    /// <c>INPUT SHARING WITH ALL OTHER</c> reader Table 19 admits (§2023:9.1.15 2): <i>"restricts concurrent access to a physical
+    /// <c>INPUT SHARING WITH ALL OTHER</c> reader Table 19 admits (§2023:9.1.15 GR2: <i>"restricts concurrent access to a physical
     /// file through file connectors other than this one, to input mode"</i>). The engine writes at every statement, so the
     /// writer runs under the store mutex (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>) and every READ NEXT of the
     /// reader, running concurrently on another thread, answers '00' or '10' — never '30', the half-written path. Counted,
@@ -306,7 +306,7 @@ public sealed class RelativeEngineTests
             int highest = 0;
             while (highest < 2 + Records)
             {
-                // The next record past the last one seen: none yet is the invalid key ('23', §2023:14.9.41.4 GR9 c)), and the
+                // The next record past the last one seen: none yet is the invalid key ('23', §2023:14.9.41.4 GR9c), and the
                 // reader asks again — the writer is still releasing.
                 string started = reader.StartRelative("R", ">", highest);
                 Assert.True(started is "00" or "23", $"START answered '{started}' beside the READ ONLY writer");
@@ -327,7 +327,7 @@ public sealed class RelativeEngineTests
     }
 
     /// <summary>The PB3333 row of 2.2.1.12's tree cases: a READ NEXT that steps across leaves ANOTHER run unit's inserts split
-    /// between its reads selects, every time, §2023:14.9.30.4 GR21 c)'s <i>"first existing record in the physical file whose
+    /// between its reads selects, every time, §2023:14.9.30.4 GR21c's <i>"first existing record in the physical file whose
     /// relative key number is greater than the file position indicator"</i> — in the tree as it is NOW — so the reader sees
     /// every record, its own sequence and the other run unit's, in ascending order; at the edge, AT END ('10').</summary>
     [Fact]
@@ -468,7 +468,7 @@ public sealed class RelativeEngineTests
     }
 
     /// <summary>The PB3333 rows of 2.2.1.12's tree cases through the connector: a WRITE of a present record number is
-    /// declined ('22', §2023:14.9.51.4 GR33 a)) and an absent one released ('00'); a READ, REWRITE and DELETE of a key the tree
+    /// declined ('22', §2023:14.9.51.4 GR33a) and an absent one released ('00'); a READ, REWRITE and DELETE of a key the tree
     /// does not hold answer '23' (§2023:9.1.13.5 3 a)); and a record statement whose tree read meets a TORN page answers '30'
     /// (§2023:9.1.13.6 item 1, 2.2.1.6 R3) with the file unchanged and §2023:9.1.13.1's permanent error in effect until the CLOSE.</summary>
     [Fact]

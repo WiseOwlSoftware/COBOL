@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
 /// ⛔ THE ONE literal-phrase collating-sequence / coded-character-set model (ISO §2023:12.3.6 PROGRAM COLLATING
-/// SEQUENCE; §2023:12.3.7.2 ALPHABET; §2023:12.3.7.4 GR7 k) — for the ALPHANUMERIC arm and the <c>FOR NATIONAL</c> arm
+/// SEQUENCE; §2023:12.3.7.2 ALPHABET; §2023:12.3.7.4 GR7k — for the ALPHANUMERIC arm and the <c>FOR NATIONAL</c> arm
 /// ALIKE. GR7 k states ONE set of six sub-rules "where the native coded character set is the type of coded
 /// character set or collating sequence being defined, either alphanumeric or national", and both native sets are
 /// the 65,536 UTF-16 code units on this substrate (implementor item 188 / D-N1), so one table shape serves both.
@@ -97,7 +97,7 @@ public sealed record CollatingTable(ushort[] Codes, ushort[] Positions, ushort[]
     /// materializes it in the compiler's own process), so a COMPILE-TIME question about the ordering this
     /// sequence gives is answered by the ONE §2023:12.3.7.4 GR7 k weighting and the ONE §2023:8.8.4.2.7 comparison, never
     /// by a second copy of either.
-    /// <para>Asked by the §2023:13.18.63.3 SR27 b) screen (kb/Work PB555): "<i>when literal-2 is of class alphanumeric
+    /// <para>Asked by the §2023:13.18.63.3 SR27b screen (kb/Work PB555): "<i>when literal-2 is of class alphanumeric
     /// or national, and the runtime collating sequence is known, the value of literal-4 shall not be equal to the
     /// value of any literal-2 or any value in the range of any occurrence of literal-2 through literal-3,
     /// inclusive</i>" — a rule the compiler can only enforce by ordering the literals itself.</para>
@@ -191,7 +191,7 @@ public sealed record CollatingAlphabet(string Name, AlphabetDef? Alphanumeric, N
 /// <param name="Phrase">The defining phrase, for diagnostics ("NATIVE", "STANDARD-1", "STANDARD-2",
 /// "literal-phrase", "LOCALE", or a supported code-name's own spelling).</param>
 /// <param name="CodeName">The <c>ImplementorCodeNames</c> row when the definition is a code-name-1 (ISO
-/// §2023:12.3.7.3 SR15 / §2023:12.3.7.4 GR7 i), else null. It is what carries GR7 i's OTHER two obligations — the set's
+/// §2023:12.3.7.3 SR15 / §2023:12.3.7.4 GR7i, else null. It is what carries GR7 i's OTHER two obligations — the set's
 /// ordinal count and its correspondence with the native set — which <see cref="CodedCharacterSet"/> reads;
 /// the collating half is already in <paramref name="Table"/>.</param>
 public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Locale, string Phrase,
@@ -250,7 +250,7 @@ public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Loc
 /// <param name="Phrase">The defining phrase, for diagnostics ("NATIVE", "UCS-4", "UTF-8", "UTF-16",
 /// "literal-phrase", "LOCALE").</param>
 /// <param name="CodeName">The <c>ImplementorCodeNames</c> row when the definition is a code-name-2 (ISO
-/// §2023:12.3.7.3 SR15 / §2023:12.3.7.4 GR7 j), else null. ⚠ This implementation supports no code-name-2 spelling today,
+/// §2023:12.3.7.3 SR15 / §2023:12.3.7.4 GR7j, else null. ⚠ This implementation supports no code-name-2 spelling today,
 /// so the component is always null in practice — it exists because SR15 states ONE rule for both classes and the
 /// binder asks the SAME table for both, so a national row would work the moment one is added (CLAUDE.md rule 5).</param>
 public sealed record NationalAlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Locale, bool HasCollatingSequence, string Phrase,

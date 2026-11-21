@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// now read through <c>IntegerOperandRules.HostValue</c>, which saturates; <c>SpecialNamesOrdinalReaderDriftTests</c>
 /// holds the paragraph to that one reader.
 /// <para>Every expected diagnostic below is derived from the rule it names, never from a run: the native alphanumeric and
-/// national sets have 65,536 characters (DOC-A.1-188), STANDARD-1 has 128 (§2023:12.3.7.4 GR7 c) and UCS-4 has 1,112,064
+/// national sets have 65,536 characters (DOC-A.1-188), STANDARD-1 has 128 (§2023:12.3.7.4 GR7c and UCS-4 has 1,112,064
 /// scalar values (GR7 f), so an ordinal above the set's count does not exist in it.</para>
 /// </summary>
 public sealed class SpecialNamesOrdinalTests

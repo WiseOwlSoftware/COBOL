@@ -70,7 +70,7 @@ public sealed partial class SymbolTable
     }
 
     /// <summary>The candidate set of a written data-name WITHIN the record or table <paramref name="root"/> (itself included): a SORT
-    /// table key, §2023:14.9.40.3 SR14 a) ("The data item identified by a key data-name shall be the same as, or subordinate to, the data
+    /// table key, §2023:14.9.40.3 SR14a ("The data item identified by a key data-name shall be the same as, or subordinate to, the data
     /// item referenced by data-name-2"), narrowed by the written qualifiers and counted (kb/Work PB1018).</summary>
     internal NameCandidates<DataItem> IdentifyWithin(DataItem root, WrittenQualifiedName written, bool report)
     {
@@ -87,7 +87,7 @@ public sealed partial class SymbolTable
 
     /// <summary>How many data items of <paramref name="name"/> are visible in <paramref name="scope"/> (<c>Declared</c>, 0 when the
     /// spelling names none) and how many of them the written <paramref name="qualifiers"/> reach (<c>Reached</c>), before the
-    /// §2023:8.4.6.2.1 3) narrowing: the counts the unidentified-reference wording quotes (<c>NameResolution.ReportUnidentified</c>).</summary>
+    /// §2023:8.4.6.2.1 GR3 narrowing: the counts the unidentified-reference wording quotes (<c>NameResolution.ReportUnidentified</c>).</summary>
     internal (int Declared, int Reached) DataNameDeclarationCounts(string name, IReadOnlyList<string> qualifiers, Scope scope)
     {
         if (!TryResolve(name, scope, out var candidates)) return (0, 0);
@@ -154,7 +154,7 @@ public sealed partial class SymbolTable
             // stays an invalid reference.
             if (survivors.TrueForAll(DataBinder.InTypeDeclaration)) return new([]);
         }
-        // §2023:8.4.6.2.1 3) AFTER qualification (rule 1 applies "the normal rules for qualification" over the whole set first): the
+        // §2023:8.4.6.2.1 GR3 AFTER qualification (rule 1 applies "the normal rules for qualification" over the whole set first): the
         // survivors of the nearest declaring source element (kb/Work PB1047 / PB1243), and none when a report entry of a nearer source
         // element is the referenced item (kb/Work PB4196).
         var tier = NearestDeclaringData(survivors, name, quals);

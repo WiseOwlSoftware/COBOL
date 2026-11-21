@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// </summary>
 public sealed class SearchIndexRangeSpecTests
 {
-    /// <summary>A program with a five-occurrence keyed table holding 1 3 5 7 9 (ASCENDING, so §2023:14.9.37.4 GR5 a) is
+    /// <summary>A program with a five-occurrence keyed table holding 1 3 5 7 9 (ASCENDING, so §2023:14.9.37.4 GR5a is
     /// satisfied and GR9 — not GR6 — governs), plus an OCCURS DEPENDING twin whose current count the caller
     /// chooses. <paramref name="body"/> is the PROCEDURE DIVISION text under test.</summary>
     private static string Program(string programId, string body, string odoMin = "1") => $"""

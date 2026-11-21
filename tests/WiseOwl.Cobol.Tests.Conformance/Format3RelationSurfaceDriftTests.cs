@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// ⛔ THE DRIFT TEST FOR "ONE RELATION CHECKPOINT" (kb/Work PB399).
 /// <para>ISO §2023:8.8.4.2's operand rules belong to the relation CONDITION, not to the statement that writes one.
-/// For EVALUATE, §2023:14.9.13.3 SR7 a) delegates to §2023:8.8.4.2 by name (kb/Work PB1468 removed a "§2023:14.9.13.4 GR2"
+/// For EVALUATE, §2023:14.9.13.3 SR7a delegates to §2023:8.8.4.2 by name (kb/Work PB1468 removed a "§2023:14.9.13.4 GR2"
 /// quotation here that is in no clause of the standard): the selection
 /// objects "shall be valid operands for comparison to the corresponding operand in the set of selection
 /// subjects in accordance with 8.8.4.2, Simple relation conditions."</para>
@@ -55,7 +55,7 @@ public sealed class Format3RelationSurfaceDriftTests
     [Theory]
     // The written relation condition — the ONE surface the band ever screened.
     [InlineData("PB399S1", "    IF WS-P = WS-X DISPLAY \"X\" END-IF.")]
-    // An EVALUATE selection pair (§2023:14.9.13.3 SR7 a) — "valid operands for comparison … in accordance with 8.8.4.2").
+    // An EVALUATE selection pair (§2023:14.9.13.3 SR7a — "valid operands for comparison … in accordance with 8.8.4.2").
     [InlineData("PB399S2", "    EVALUATE WS-P WHEN WS-X DISPLAY \"X\" END-EVALUATE.")]
     // A PERFORM UNTIL condition.
     [InlineData("PB399S3", "    PERFORM UNTIL WS-P = WS-X CONTINUE END-PERFORM.")]
@@ -90,7 +90,7 @@ public sealed class Format3RelationSurfaceDriftTests
 
     /// <summary>⛔ THE COMPLEMENT LEG, so the theories above cannot pass by rejecting everything
     /// (feedback_measure_the_selectors_complement). The SAME surfaces over a LEGAL Format 3 pair — two data
-    /// pointers, and a data pointer against the predefined NULL, which §2023:8.4.3.10.3 SR1 a) admits by name "in a
+    /// pointers, and a data pointer against the predefined NULL, which §2023:8.4.3.10.3 SR1a admits by name "in a
     /// pointer-or-object-reference relation condition" — shall compile.</summary>
     [Theory]
     [InlineData("PB399L1", "    IF WS-P = WS-Q DISPLAY \"X\" END-IF.")]

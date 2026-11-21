@@ -209,7 +209,7 @@ internal static class StorageFormPass
     /// <para>⛔ BINARY AND PACKED ARE PROMOTED, NOT DISPLAY ALONE (kb/Work PB1466). Content reaches such a leaf
     /// through a character channel — a group MOVE, a READ into its record, a BY REFERENCE crossing — "without
     /// consideration for the individual elementary or group items" (§2023:14.9.25.4 GR4), so it can be anything, and
-    /// ISO §2023:8.8.4.4.4 GR3 n) 1. c. exists to ask about exactly that content: "the content … consists entirely of a
+    /// ISO §2023:8.8.4.4.4 GR3n.1.c exists to ask about exactly that content: "the content … consists entirely of a
     /// valid representation for the usage and, if a PICTURE clause is specified, the numeric value is within the
     /// range of values implied by the PICTURE clause". A native carrier holds a DECODED value — a packed nibble
     /// A–F or a binary value past the PICTURE's range is normalized away on the way in — so the class condition
@@ -313,7 +313,7 @@ internal static class StorageFormPass
         // identifier-1": a character it receives is IN the counter, a non-digit included, as in any stored item. The
         // engine's integer register cannot hold one, so the procedure division sees the counter as its character
         // image (CobolReport.SumImage / SetSumImage) and every consumer reads it as any image-carried numeric item —
-        // §2023:14.6.13.2 rule 2's checked decode, the class condition's image test, a figurative fill's plain store.
+        // §2023:14.6.13.2 GR2's checked decode, the class condition's image test, a figurative fill's plain store.
         foreach (var report in data.State.Reports.Declared)
             foreach (var family in report.SumFamilies)
                 family.Register.Storage = new StorageForm.CharImage(family.Register.ImageWidth, PicCategory.Numeric);
@@ -333,7 +333,7 @@ internal static class StorageFormPass
         // ⛔ THE ELEMENT IS PROMOTED BY THE SAME RULE AS ANY LEAF (kb/Work PB1939, PB2004). An occurrence receives
         // characters exactly as a fixed-table occurrence does — §2023:14.6.9.4's space fill ("each element of the
         // dynamic table is space-filled"), a group MOVE's characters (§2023:14.9.25.4 GR4), INSPECT's retained sign
-        // over a zero magnitude (§2023:14.9.22.4 GR4 d), a negative zero) — and a native carrier holds a VALUE, so
+        // over a zero magnitude (§2023:14.9.22.4 GR4d, a negative zero) — and a native carrier holds a VALUE, so
         // the element whose item a channel writes stores its image: CobolDynTable<string>, not <long>.
         if (item.IsDynamicTable) return new StorageForm.DynamicTable(Promoted(item, BaseElementary(item), promoted));
 

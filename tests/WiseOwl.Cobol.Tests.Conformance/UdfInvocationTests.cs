@@ -701,7 +701,7 @@ public sealed class UdfInvocationTests
 
     /// <summary>UDF-3: a prototype-declared function with NO in-group definition BINDS — the prototype supplies
     /// the §2023:8.4.3.2.4 GR1 signature and the definition is a separately-compiled target resolved at run time
-    /// (§2023:12.3.8.4 GR11 b) / §2023:8.4.3.2.4 GR6b). The former COBOL1505 "not implemented" gap is closed for the
+    /// (§2023:12.3.8.4 GR11b / §2023:8.4.3.2.4 GR6b). The former COBOL1505 "not implemented" gap is closed for the
     /// prototyped case (the cross-assembly run is proven in InterProgramFileDifferentialTests).</summary>
     [Fact]
     public void PrototypeOnly_NoInGroupDefinition_Binds()
@@ -830,7 +830,7 @@ public sealed class UdfInvocationTests
     // ── M2-UDF-4: REPOSITORY specifiers + the §2023:8.4.3.2.3 SR2 keyword-omitted reference form (DEVLOG 626) ────────
 
     /// <summary>A function prototype of the user-defined function UDFDBL, ahead of every unit (ISO §2023:10.6.2 SR1): what a
-    /// REPOSITORY <c>FUNCTION UDFDBL</c> entry names when the group has no definition of it (§2023:12.3.8.4 GR11 b); a specifier
+    /// REPOSITORY <c>FUNCTION UDFDBL</c> entry names when the group has no definition of it (§2023:12.3.8.4 GR11b; a specifier
     /// nothing answers is REPO-1, kb/Work PB2103).</summary>
     private const string UdfdblPrototype = """
         IDENTIFICATION DIVISION.
@@ -888,7 +888,7 @@ public sealed class UdfInvocationTests
         Assert.True(ok, string.Join("\n", errors));
     }
 
-    /// <summary>ISO §2023:8.3.2.1 rule 5 (kb/Work PB65): under FUNCTION ALL INTRINSIC every intrinsic-function-name is
+    /// <summary>ISO §2023:8.3.2.1 SR5 (kb/Work PB65): under FUNCTION ALL INTRINSIC every intrinsic-function-name is
     /// "identified in a function-specifier in the REPOSITORY paragraph", so a data item named MOD is an ILLEGAL
     /// user-defined word — COBOL1649 at the declaration. (The previous form of this test pinned "the data item
     /// wins" as green while its own remark conceded "enforcing it is staged" — the green-test-holds-a-gap-open
@@ -899,12 +899,12 @@ public sealed class UdfInvocationTests
         string src = KoGroup("UDFT24", "    FUNCTION ALL INTRINSIC.", "    MOVE MOD(2) TO WS-R.",
             ws: "01 GRP.\n           05 MOD PIC 9(4) OCCURS 3 VALUE 7.");
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
-        Assert.False(ok, "a data item spelling a REPOSITORY-identified intrinsic-function-name shall be rejected (ISO §2023:8.3.2.1 rule 5)");
+        Assert.False(ok, "a data item spelling a REPOSITORY-identified intrinsic-function-name shall be rejected (ISO §2023:8.3.2.1 SR5)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1649");
     }
 
     /// <summary>The rule-5 CONTROL: without a REPOSITORY entry for MOD an intrinsic-function-name IS a legal
-    /// user-defined word (§2023:8.3.2.1 rule 5's permission), and the FUNCTION-less spelling `MOD(2)` is the subscripted
+    /// user-defined word (§2023:8.3.2.1 SR5's permission), and the FUNCTION-less spelling `MOD(2)` is the subscripted
     /// data item — never mis-routed to the intrinsic (§2023:8.4.3.2.3 SR2 requires the word FUNCTION there).</summary>
     [Fact]
     public void KeywordOmitted_UndeclaredIntrinsicName_StaysADataItem()

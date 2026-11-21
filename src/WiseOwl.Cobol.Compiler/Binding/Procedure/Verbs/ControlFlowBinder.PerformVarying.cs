@@ -99,7 +99,7 @@ internal sealed partial class ControlFlowBinder
         // the fatal EC-RANGE-PERFORM-VARYING. Capture the enable flag NOW (F10/V3 template) so the emitter keeps
         // the directive-free output byte-identical (no check emitted when off).
         bool checkIndexRange = ctx.EcState.Turn.Enabled("EC-RANGE-PERFORM-VARYING", null, v.Start.Line);
-        // §1985:VI.6.21.4 GR10 d) 1 augments the outer variable BEFORE setting the inner one; §2002 and §2023:14.9.28.4
+        // §1985:VI.6.21.4 GR10d 1 augments the outer variable BEFORE setting the inner one; §2002 and §2023:14.9.28.4
         // GR13 e) 2 a–c set the inner one first (kb/Work PB5101, PB436).
         bool augmentOuterFirst = !DialectBehaviors.IsActive(DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter, ctx.Edition.Edition.Year);
         return new PerformVarying(levels, v.TEST() is not null && v.AFTER() is not null, augmentOuterFirst, checkIndexRange);
@@ -151,7 +151,7 @@ internal sealed partial class ControlFlowBinder
     /// <param name="Literal">The literal's value when <paramref name="Kind"/> is <c>Literal</c> and the text
     /// parses — SR4 b) ("a positive integer"), SR4 c) ("a nonzero integer") and SR6 ("shall not be zero") are
     /// value tests, and they are decidable entirely at compile time because they constrain a LITERAL.</param>
-    /// <param name="IsInteger">The §2023:5.5 2) integer test, through the ONE classifier
+    /// <param name="IsInteger">The §2023:5.5 SR2 integer test, through the ONE classifier
     /// (<see cref="IntrinsicResultType.IsIntegerOperand(BoundExpr)"/>).</param>
     /// <param name="Text">The operand as written, for the diagnostics.</param>
     /// <param name="Present">False for an OMITTED BY phrase — §2023:14.9.28.4 GR12 "For any BY phrase that is
@@ -235,7 +235,7 @@ internal sealed partial class ControlFlowBinder
         // placement rule's (§1985:IV.4.3.8.3.3 SR4; IntrinsicBinder.ScreenIdentifierPlacement, kb/Work PB5108).
         if (soleFunction is not null)
             host.Intrinsic.ScreenIdentifierPlacement(soleFunction, e is BoundUdfEvaluatedExpr window ? window.Inner : e);
-        // ⛔ ONLY A SOLE PRIMARY OR ONE SIGNED LITERAL IS A MEMBER OF THE BRACE GROUP (§2023:8.8.1.1, §2023:8.3.3.3.2 rule 2; kb/Work PB4865):
+        // ⛔ ONLY A SOLE PRIMARY OR ONE SIGNED LITERAL IS A MEMBER OF THE BRACE GROUP (§2023:8.8.1.1, §2023:8.3.3.3.2 SR2; kb/Work PB4865):
         // the binder drops grouping parentheses and a separated unary sign, so Classify sees only the BoundNumRef or literal
         // underneath and would admit `BY (FUNCTION TWO)`, `BY + FUNCTION TWO` or `FROM + (1)` as the identifier or literal
         // §2023:14.9.28.2 prints. The WRITTEN shape decides, through the ONE sole-operand readers: a single unparenthesized primary
@@ -258,7 +258,7 @@ internal sealed partial class ControlFlowBinder
                     : ". An arithmetic expression is not admitted here; compute it into a data item first"));
             kind = VaryingOperandKind.Invalid;
         }
-        // The §2023:5.5 2) integer test reads the function value through its OPERAND twin, so the LENGTH sum is the integer function
+        // The §2023:5.5 SR2 integer test reads the function value through its OPERAND twin, so the LENGTH sum is the integer function
         // value it is (IntrinsicBinder.OperandOf marks it FunctionValue) and not the unmarked BoundBinary of an expression.
         // The per-evaluation carrier (BoundUdfEvaluatedExpr, the GR12 window's function activations) is transparent to the
         // TYPE as Classify makes it transparent to the KIND: the integer test reads the value the carrier wraps (kb/Work PB4865).
@@ -275,7 +275,7 @@ internal sealed partial class ControlFlowBinder
     /// (qualified, subscripted, reference-modified) data reference, a function-identifier, a user-function
     /// result, a special register — so a new reference node is an identifier automatically, which is precisely
     /// what the <c>is BoundNumRef</c> test it replaced could never be (kb/Work PB439). A leading sign is part of
-    /// the numeric literal (§2023:8.3.3.3.2 rule 2), so a negated literal is a literal and a negated identifier is
+    /// the numeric literal (§2023:8.3.3.3.2 SR2), so a negated literal is a literal and a negated identifier is
     /// not an identifier.</para></summary>
     private static (VaryingOperandKind Kind, decimal? Literal) Classify(BoundExpr e) => e switch
     {

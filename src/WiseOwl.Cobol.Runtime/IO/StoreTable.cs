@@ -82,7 +82,7 @@ internal sealed class StoreTable
     /// for <paramref name="host"/> that no other connector of this run unit holds (kb/Work PB754).
     /// <para>Emptying a store is a change every attached connector would see instantly (kb/Work PB143), so it is
     /// only ever done HERE, where the precondition that makes it safe is checked rather than remembered: Table 19
-    /// refuses every OUTPUT open beside any other open connector — §2023:9.1.13.9 1) e), <i>"An attempt is made to open a
+    /// refuses every OUTPUT open beside any other open connector — §2023:9.1.13.9 GR1e, <i>"An attempt is made to open a
     /// physical file in the output mode and the physical file is currently open by another file connector"</i> —
     /// and <c>FileRegistry.OpenShared</c> runs that arbitration BEFORE the connector's OPEN body. An entry that
     /// still exists here therefore means the arbitration was bypassed, and the answer is a loud defect, never a
@@ -100,7 +100,7 @@ internal sealed class StoreTable
         if (arbitrated && _byHost.TryGetValue(host, out var e) && !NamesAnotherFile(e, identity))
             throw new InvalidOperationException(
                 $"physical file '{host}' is being created by OPEN OUTPUT while {e.Attached} other connector(s) of this "
-                + "run unit hold it open; Table 19 refuses that OPEN (§2023:9.1.13.9 1) e)), so reaching here is an "
+                + "run unit hold it open; Table 19 refuses that OPEN (§2023:9.1.13.9 GR1e), so reaching here is an "
                 + "arbitration defect (kb/Work PB754)");
         return Enter(host, identity, created);
     }

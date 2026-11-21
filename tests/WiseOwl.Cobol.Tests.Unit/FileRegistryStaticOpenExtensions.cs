@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// with a STATIC ASSIGN specification and NO LINAGE clause.
 /// <para>The real entry points (<see cref="FileRegistry.Open"/> / <see cref="FileRegistry.OpenNoRewind"/>) require
 /// the executing element's own operands — its ASSIGN specification and its LINAGE operand values — with no
-/// defaults, because ISO §2023:12.4.5.3 GR3 a)/b) and §2023:13.18.34.4 GR6 b) name the element that EXECUTES the statement and
+/// defaults, because ISO §2023:12.4.5.3 GR3 a)/b) and §2023:13.18.34.4 GR6b name the element that EXECUTES the statement and
 /// a file connector may be shared by several of them (kb/Work PB673). A test that describes the file once and
 /// writes no USING phrase and no LINAGE clause supplies: the connector's own registered association (re-associating
 /// with the same specification is a no-op — §2023:12.4.5.3 GR3 a's value is a source-text constant), <c>false</c> for

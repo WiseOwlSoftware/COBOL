@@ -39,7 +39,7 @@ public static partial class ConditionalCompilationProcessor
         {
             if (operand.compileTimeOperand() is { } compileTime)
             {
-                diag.FlagArithmetic(compileTime);          // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4 b), as every evaluated operand
+                diag.FlagArithmetic(compileTime);          // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4b, as every evaluated operand
                 diag.GateBooleanOperators(compileTime);
                 if (evaluator.EvaluateOperand(compileTime, ">>DISPLAY") is { } value) images.Add(DisplayImage(value));
                 else valid = false;                        // already reported by the shared evaluator
@@ -64,7 +64,7 @@ public static partial class ConditionalCompilationProcessor
     /// <summary>The value of the PARAMETER phrase's compilation-variable-name from the operating environment (§2023:7.3.11.4
     /// GR4, §2023:7.3.12.4 GR3), or null when none is made available: the environment variable named by the name in its
     /// canonical UPPER-CASE spelling (DOC-A.1-49, DOC-A.1-55), which is <see cref="CobolNames.UpperFold"/> — the Annex C
-    /// fold of §2023:8.1.3.2 GR3 b) with the basic letters raised, the ONE upper-case key of a COBOL word — and not the
+    /// fold of §2023:8.1.3.2 GR3b with the basic letters raised, the ONE upper-case key of a COBOL word — and not the
     /// host's <c>ToUpperInvariant</c>. A compilation-variable-name is a COBOL word, so every spelling of one name (§2023:8.3.1;
     /// an extended letter and its own lowercase) reads ONE variable, and two names Annex C keeps apart (the Kelvin sign
     /// and K, kb/Work PB4420) read two. The ONE lookup of the DEFINE and DISPLAY directives, recorded on the compilation's inputs (kb/Work PB985,
@@ -100,7 +100,7 @@ public static partial class ConditionalCompilationProcessor
             if (ImplementorNames.Lookup(word) is not { Kind: SystemNameKind.Device } row || !row.Device.HasFlag(DeviceCapability.Output))
             {
                 diag.DisplayUpon($"'{word}' is not an output device this implementation makes available as compile-time-device-1 "
-                    + $"(ISO §2023:7.3.12.4 GR5 b); the device-names are {ImplementorNames.DescribeDevices()}, and LISTING names the listing");
+                    + $"(ISO §2023:7.3.12.4 GR5b; the device-names are {ImplementorNames.DescribeDevices()}, and LISTING names the listing");
                 valid = false;
                 continue;
             }

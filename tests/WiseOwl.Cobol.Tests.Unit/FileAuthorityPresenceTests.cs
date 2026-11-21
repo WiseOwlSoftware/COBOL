@@ -432,7 +432,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     /// from the file, and the read half of <c>HostAccess</c> and the record count it feeds exist only to number the
     /// records a LOCK is published under (<see cref="OpenExtend_RecordLockingWriterOnAWriteOnlyFile_Is37"/>), which
     /// <c>FileRegistry.RecordLocksSetUnder</c> says this connector never sets: (1) a SHARING clause with no LOCK MODE
-    /// clause (§2023:12.4.5.9.4 GR1 a)), (2) a SHARING phrase on the OPEN and no clause (GR1 b) 1.), (3) a LOCK MODE clause
+    /// clause (§2023:12.4.5.9.4 GR1a), (2) a SHARING phrase on the OPEN and no clause (GR1 b) 1.), (3) a LOCK MODE clause
     /// under the NO OTHER default of EXTEND (GR3: "the LOCK MODE clause has no effect"). Before PB3372 each registered
     /// a posture, asked for the read and answered '37'. The appended record is in the file.</summary>
     [Theory]
@@ -470,7 +470,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
 
     /// <summary>⛔ kb/Work PB2848 — the host path of an ASSIGN target the host cannot make absolute is data, not a
     /// crash. <see cref="CobolFile.ResolveHostPath"/> runs at registration and before the OPEN body, outside every
-    /// I-O-status catch, and the content of a data-name-1 is an arbitrary string (§2023:12.4.5.3 GR3 b)): a path longer
+    /// I-O-status catch, and the content of a data-name-1 is an arbitrary string (§2023:12.4.5.3 GR3b): a path longer
     /// than the host allows or a NUL threw <see cref="PathTooLongException"/> / <see cref="ArgumentException"/>
     /// out of the run unit. The spelling is returned as written and the OPEN reports what the host says.
     /// <para>A NUL is refused by every host. A 40,000-character spelling is refused where the host bounds a path's
@@ -506,7 +506,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     /// <summary>⛔ kb/Work PB4097 (review round 1, R1-2) — a dynamic target that names a file system ROOT (<c>C:/</c>, <c>/</c>) is a
     /// directory, not a file: the OPEN's entry step looks for a lock directory beside the file, and a root has no directory to
     /// hold one, so it names no transaction (<c>SequentialJournal.Enter</c>) and the OPEN's own probe answers, an I-O status like
-    /// every other open failure (§2023:12.4.5.3 GR3 b): data-name-1 holds an arbitrary string; §2023:9.1.13.6 1)). The OPEN INPUT of the
+    /// every other open failure (§2023:12.4.5.3 GR3b: data-name-1 holds an arbitrary string; §2023:9.1.13.6 GR1). The OPEN INPUT of the
     /// file, which no entry step touched before the reader's OPEN settled dead transactions, must answer what it answered then:
     /// '35' for a file not found, '05' for an OPTIONAL one.</summary>
     [Theory]

@@ -307,8 +307,8 @@ public sealed class SharingFacilityEditionTests
     /// file connector with no sibling open pays nothing for it. §2023:14.9.51.4 GR12 releases a record to the operating environment,
     /// not to the physical file at once (the 2002 program with no sharing clause buffers its OUTPUT the same way), so a
     /// lone writer keeps its records in its input-output areas; a sibling connector of the run unit that OPENs the file
-    /// later is owed what was already written, and every WRITE while it is open reaches the medium at once (§2023:9.1.15 3), the
-    /// reader's next READ selects it (§2023:14.9.30.4 GR21 c)); when the sibling closes the writer buffers again. The control
+    /// later is owed what was already written, and every WRITE while it is open reaches the medium at once (§2023:9.1.15 GR3, the
+    /// reader's next READ selects it (§2023:14.9.30.4 GR21c); when the sibling closes the writer buffers again. The control
     /// arms: 2002's clause-less OUTPUT buffers (NO OTHER), and 2002's SHARING WITH ALL OTHER writes through.</summary>
     [Fact]
     public void AtCobol85_ALoneWriterBuffers_AndASiblingThatArrivesFindsWhatWasWritten()
@@ -347,7 +347,7 @@ public sealed class SharingFacilityEditionTests
     }
 
     /// <summary>A sibling OPEN OUTPUT truncates the file an open INPUT connector has read ahead of (admitted at COBOL-85, where
-    /// Table 19 is not asked): the reader's next READ selects an existing record of the physical file (§2023:14.9.30.4 GR21 c), and
+    /// Table 19 is not asked): the reader's next READ selects an existing record of the physical file (§2023:14.9.30.4 GR21c, and
     /// the truncated file holds none, so it is the at end condition ('10') whether or not the truncating connector has written
     /// anything yet. Fails on a reader serving its read-ahead of records the file no longer holds. The control arm writes first:
     /// the reader, positioned after its first record, finds the new second record, never one of the old ones.</summary>

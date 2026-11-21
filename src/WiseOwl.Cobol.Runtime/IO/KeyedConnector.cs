@@ -100,7 +100,7 @@ public abstract partial class KeyedConnector : FileConnector
     /// the ONE handle the store's pages are read and written through (kb/Work PB771).
     /// <para><i>"The successful opening of a file establishes a file lock for the applicable sharing rules,
     /// thereby preventing other run units from opening that file with incompatible sharing rules"</i>
-    /// (§2023:9.1.15 3)) — and a host share mode is the only thing a .NET process can say to another run unit, which
+    /// (§2023:9.1.15 GR3) — and a host share mode is the only thing a .NET process can say to another run unit, which
     /// means a connector that holds no handle says nothing.</para>
     /// <para>⛔ AND IT HAS TO BE THE SAME HANDLE THE STORE TRAVELS THROUGH. A second handle taken for a page read or
     /// write would ask the operating environment for access this connector's own <see cref="FileShare.None"/> forbids,
@@ -119,7 +119,7 @@ public abstract partial class KeyedConnector : FileConnector
     /// <inheritdoc/>
     /// <remarks>⛔ THE ENGINE READS THE FILE BEFORE IT WRITES IT, so every writable mode reads — <c>OPEN EXTEND</c>
     /// included, where <see cref="FileLockPosture.AccessOf"/>'s mode-derived floor says <see cref="FileAccess.Write"/>
-    /// alone: the adoption rule reads the meta pages (2.2.1.6 R6), and §2023:14.9.51.4 GR29 a)'s release number is
+    /// alone: the adoption rule reads the meta pages (2.2.1.6 R6), and §2023:14.9.51.4 GR29a's release number is
     /// <i>"one greater than the highest relative record number existing in the physical file"</i>, a fact of the
     /// records already there. Stating it here is what lets the registry widen a SIBLING's file lock by the access this
     /// handle really takes (kb/Work PB771).</remarks>
@@ -192,7 +192,7 @@ public abstract partial class KeyedConnector : FileConnector
             _regions = HostRegionLocks.Open(_handle, HostPath, writable: taken.CanWrite);
         }
         // ⛔ The engine writes at every statement, so it serializes against EVERY other run unit's connector — a
-        // SHARING WITH READ ONLY writer against the INPUT reader §2023:9.1.15 2) admits beside it (2.2.1.7, finding R2-6) —
+        // SHARING WITH READ ONLY writer against the INPUT reader §2023:9.1.15 GR2 admits beside it (2.2.1.7, finding R2-6) —
         // and only SHARING WITH NO OTHER runs without the mutex.
         _coherent = FileLockPosture.AdmitsAnotherRunUnit(HostShare);
     }
@@ -901,7 +901,7 @@ public abstract partial class KeyedConnector : FileConnector
         status == StoreStatus.Ok ? null : FileStatusCode.PermanentError;
 
     /// <summary>The I-O status a record WRITE's or REWRITE's store failure answers, in either organization: '24' for the
-    /// boundary of the physical file (§2023:9.1.13.5 item 4; §2023:14.9.51.4 GR33 b) for a relative file, GR42 d) for an indexed
+    /// boundary of the physical file (§2023:9.1.13.5 item 4; §2023:14.9.51.4 GR33b for a relative file, GR42 d) for an indexed
     /// one; 2.2.1.9; DOC-A.1-107), otherwise <see cref="Failed"/>'s '30'; null on success.</summary>
     private protected static string? RecordWriteFailed(StoreStatus status) =>
         status == StoreStatus.Boundary ? FileStatusCode.BoundaryViolation : Failed(status);
@@ -994,7 +994,7 @@ public abstract partial class KeyedConnector : FileConnector
     }
 
     /// <summary>⛔ HAND THE KEPT STATE OVER TO THE REGISTRY (kb/Work PB3494, PB3576): the connector is displaced by its element's next
-    /// activation, or its next OPEN associates it with another physical file (§2023:12.4.5.3 GR3 b), or the path of its OPEN no longer
+    /// activation, or its next OPEN associates it with another physical file (§2023:12.4.5.3 GR3b, or the path of its OPEN no longer
     /// names the file it was kept on, and what its CLOSE kept belongs to the file it was kept on, not to the connector — the
     /// COMMIT, the ROLLBACK and the run unit's end still reach it there (<c>FileRegistry.Retire</c>), and the connector holds
     /// nothing of it any more. Nothing when it kept nothing. The ONE hand-over: every path that parts a connector from its kept
@@ -1235,7 +1235,7 @@ public abstract partial class KeyedConnector : FileConnector
     /// COHERENT (<see cref="BeginStatement"/>): it runs inside the store mutex, starting from the file as it is now. The
     /// engine writes at every statement, so this is every sharing mode that admits ANY other run unit's connector
     /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>, docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7 and
-    /// 2.2.1.13; kb/Work PB3333): the INPUT reader §2023:9.1.15 2) admits beside a READ ONLY writer would otherwise meet a
+    /// 2.2.1.13; kb/Work PB3333): the INPUT reader §2023:9.1.15 GR2 admits beside a READ ONLY writer would otherwise meet a
     /// half-written path.</summary>
     private bool _coherent;
 
@@ -1266,7 +1266,7 @@ public abstract partial class KeyedConnector : FileConnector
     }
 
     /// <summary>⛔ A HOST FAILURE OF A STATEMENT'S OWN ENTRY IS A PERMANENT ERROR, NOT AN EXCEPTION (kb/Work PB2842).
-    /// Taking the mutex and reading page 2 are host I/O, and §2023:9.1.13.6 1)'s <i>"A permanent error exists and no further
+    /// Taking the mutex and reading page 2 are host I/O, and §2023:9.1.13.6 GR1's <i>"A permanent error exists and no further
     /// information is available concerning the input-output operation"</i> ('30') is what the standard gives such a
     /// failure. The statement is entered all the same, holding what it took: the status is recorded
     /// (<see cref="FileConnector.SetStatus"/>, which starts the permanent error of §2023:9.1.13.1, <i>"The permanent error

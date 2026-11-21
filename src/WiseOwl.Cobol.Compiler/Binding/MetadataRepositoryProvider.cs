@@ -60,7 +60,7 @@ internal sealed record RepositoryEntryOrigin(string Path, Guid Mvid, RepositoryU
 }
 
 /// <summary>
-/// ⛔ THE EXTERNAL REPOSITORY'S PROVIDER (ISO §2023:12.3.8.4 GR10 c) / GR11 c), §2023:8.13; DESIGN-external-repository §8.0, §8.2 step
+/// ⛔ THE EXTERNAL REPOSITORY'S PROVIDER (ISO §2023:12.3.8.4 GR10c / GR11 c), §2023:8.13; DESIGN-external-repository §8.0, §8.2 step
 /// 3, §2023:8.3, §2023:8.6): what the compiled assemblies of the search space publish, read through the runtime's
 /// <see cref="RepositoryLocator"/> (which file publishes a unit) and the compiler's <see cref="RepositoryReader"/> (its record),
 /// and bound into the throw-away forest by <see cref="RepositoryCodec.Decode"/>, which gives each decoded restricted pointer
@@ -481,7 +481,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
             $"{what} the {(isInterface ? "interface" : "class")} \"{identity}\", which no {(isInterface ? "interface" : "class")} of this "
             + "compilation group defines and no entry of the external repository publishes (ISO §2023:12.3.8.4 GR6; DESIGN-external-repository §14)");
 
-    /// <summary>⛔ THE CLASS IMPORT (ISO §2023:12.3.8.3 SR6 b), §2023:12.3.8.4 GR6; DESIGN-external-repository §8.4 step 3, §2023:10.1): the class
+    /// <summary>⛔ THE CLASS IMPORT (ISO §2023:12.3.8.3 SR6b, §2023:12.3.8.4 GR6; DESIGN-external-repository §8.4 step 3, §2023:10.1): the class
     /// the first entry of the search space publishes under <paramref name="identity"/> (§2023:8.6), as a symbol of
     /// <see cref="OoSymbolOrigin.Imported"/> — <see cref="OoClassSymbol.ClrName"/> the TypeDef's full name under <c>global::</c> in the
     /// module's namespace (§2023:4.5), the superclass resolved by identity through the table (transitively; the standard class BASE
@@ -703,7 +703,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     /// <summary>One recorded method as a symbol of the importing group (§2023:10.1): its signature is the decoded forest's, exactly the
     /// shape <c>OoStandardClasses</c> gives the standard class's methods, so every consumer that reads a method's signature —
     /// override conformance, the activation descriptions, the universal dispatch — reads it as it reads a method written in COBOL.
-    /// An accessor is rostered under the pinned name its record carries (§2023:11.7.4 GR1 a)); its externalized name is its property's.</summary>
+    /// An accessor is rostered under the pinned name its record carries (§2023:11.7.4 GR1a); its externalized name is its property's.</summary>
     private OoMethodSymbol MethodOf(OoClassSymbol? owner, DecodedMethod dm, string what)
     {
         var r = dm.Record;
