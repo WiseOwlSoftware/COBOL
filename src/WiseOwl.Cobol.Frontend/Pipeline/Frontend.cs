@@ -568,9 +568,8 @@ public sealed class Frontend
         List<(int Line, int Column)>? commentStarts;
         while (true)
         {
-            var lexer = new CobolLexer(new AntlrInputStream(text));
+            var lexer = NewLexer(text, retypes, edition);
             lexer.CommentStarts = commentStarts = RecordsListing ? [] : null;
-            retypes.PrimeLexer(lexer, edition);
             lexErrors = LexerErrorListener.AttachTo(lexer);
             tokens = new CommonTokenStream(lexer);
             var streamSourceLines = new List<IToken>();
@@ -731,6 +730,15 @@ public sealed class Frontend
         diagnostics.ReportError(descriptor.Code, descriptor.Title, LineMap.Locate(at.Line, at.Column, sourcePath), default);
     }
 
+    /// <summary>The ONE place a text gets its lexer: primed with the group's synonyms, the de-reserved words and the edition's
+    /// spellings (<see cref="TokenRetypes.PrimeLexer"/>) before any tokenization.</summary>
+    private static CobolLexer NewLexer(string text, TokenRetypes retypes, EditionInfo edition)
+    {
+        var lexer = new CobolLexer(new AntlrInputStream(text));
+        retypes.PrimeLexer(lexer, edition);
+        return lexer;
+    }
+
     /// <summary>§1985:VI.7.3, the other direction of "with or without" (kb/Work PB5990): the stream parsed clean with the
     /// <paramref name="hiddenLines"/> (the debugging lines of a unit without WITH DEBUGGING MODE, which are comment lines) as
     /// they stand; here <paramref name="text"/> is lexed again with every debugging line SOURCE
@@ -741,8 +749,7 @@ public sealed class Frontend
         TokenRetypes retypes, EditionInfo edition, CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts,
         DiagnosticBag diagnostics)
     {
-        var lexer = new CobolLexer(new AntlrInputStream(DebuggingLineRewriter.WithCarriersBlanked(text, sourceLines.Concat(hiddenLines))));
-        retypes.PrimeLexer(lexer, edition);
+        var lexer = NewLexer(DebuggingLineRewriter.WithCarriersBlanked(text, sourceLines.Concat(hiddenLines)), retypes, edition);
         LexerErrorListener.AttachTo(lexer);
         var asSource = new CommonTokenStream(lexer);
         DebuggingLineRewriter.Rewrite(asSource,
