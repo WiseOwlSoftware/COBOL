@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p38",
+ "rule-digest": "48744b67836d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/CommunicationModel.cs#CommunicationDescription; src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#MessageControl",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p235",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (COMMS.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter is right that the subject is an external mechanism, not the user's program, so the definitional arm fails. This implementation's MCS supports the Communication module at 85 (docs/conformance/3.3), and a device \"capable of sending data to a queue and/or receiving data from a queue\" is observable: the probe, with its own mcs.json, receives a message a terminal originated and sends messages that land on the terminal's and the destination device's files. 2023 removed the module, so no pointer exists. Code location located after the read: WEAK: CommunicationDescription is the CD entry defining the mechanism and MessageControl is what sends to and receives from queues for it."
+}

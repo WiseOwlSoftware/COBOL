@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p39",
+ "rule-digest": "747f2e75275c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationSection",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p37",
+ "notes": "Own witness from the read lineage-reads-1985/g-01.json: the reader showed the compiler correct at 85 with its probe (p39_twocd.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"composed of one or more communication description areas\" (catalog: not definitional) grants one or several; both are accepted. A removed module: no 2023 rule states it. Code location located after the read: communicationSection is the Data Division section made of CD entries, bound by CommunicationSectionBinder."
+}

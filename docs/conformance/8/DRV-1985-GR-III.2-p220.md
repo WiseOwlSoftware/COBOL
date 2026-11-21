@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-III.2-p220", "informative", "describes the standard's vocabulary for a block: \"The term is synonymous with block\"", "\"The term is synonymous with block.\" A statement of vocabulary; candidates (BLOCK CONTAINS rules, report synonyms) are wording-only. Cited: §1985:III.2 p220. Proposed by the read lineage-reads-1985/g-04.json; its refuter, trying to write the witness the derivation says cannot exist (One sentence, a synonym ('The term is synonymous with block'); the BLOCK CONTAINS rules state what a block is. No behaviour violates a synonym statement.), UPHELD it: Vocabulary of the document; the quotation is the whole row.", "claude: 2026-11-21", "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"]
+---

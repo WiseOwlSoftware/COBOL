@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p71",
+ "rule-digest": "c48efc5949d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundDebugSubject",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p71",
+ "notes": "Derivation from the read lineage-reads-1985/g-02.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p71); the code location is where the compiler meets the rule's subject. The read: \"A debugging section is a section that contains a USE FOR DEBUGGING statement.\" The sentence names a kind of section of the user's program; it obliges no behaviour of its own. Every observable property of such a section is stated by the USE FOR DEBUGGING rules. No candidate states the definition. The code location was located after the read (locations-x.json): BoundDebugSubject holds the debugging section a USE FOR DEBUGGING statement heads, as the section's pc range [SectionStartPc..SectionEndPc] that runs for its subject, and keeps a subject out of every debugging section."
+}

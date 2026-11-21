@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p122",
+ "rule-digest": "09095bf39e52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#FileOpenMode; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p122",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (MODES.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: As for p92, the refuter's ruling stands: a run-time state that statement outcomes depend on. Rerun now at --std 85, MODES.cob shows I-O mode (READ 00, REWRITE 00, WRITE 48, readback CCCCBBBB). Code location located after the read: FileOpenMode.IO is the I-O mode and MutationOpenModeGuard admits REWRITE and DELETE only in it (status 49 otherwise)."
+}

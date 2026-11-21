@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-L4.1",
+ "rule-digest": "7de70aead7e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-L4_1",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (picparen.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter's overturn stands: the 1985 item makes the parentheses text words \"regardless of context within the library, source program, or pseudo-text\", which reaches a PICTURE character-string, while the pointer GR-7.2.2.5-1's 85 case pb1350 only exercises parentheses in a Procedure Division reference. Rerun now at 85, picparen.cob shows the 6 inside X(6) is a separate text word that REPLACE can replace. Code location located after the read: TextWordScanner.TryNext makes every left or right parenthesis a separator text-word regardless of context."
+}

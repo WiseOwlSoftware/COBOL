@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p8",
+ "rule-digest": "d5b22b690f8a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#AlternateKeyClause",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p8",
+ "notes": "Derivation from the read lineage-reads-1985/g-01.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p8); the code location is where the compiler meets the rule's subject. The read: \"A key, other than the prime record key, whose contents identify a record within an indexed file\" names the concept used by the ALTERNATE RECORD KEY clause and the READ KEY phrase; it adds no requirement of its own. Candidates are wording matches. The code location was located after the read (locations-all.json): AlternateKeyClause represents an ALTERNATE RECORD KEY of an indexed file, a key other than the prime record key."
+}

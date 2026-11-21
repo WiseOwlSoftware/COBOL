@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p183",
+ "rule-digest": "ce72538427be",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitParagraphBody; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundNextSentence",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p183",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p183); the code location is where the compiler meets the rule's subject. The read: \"The next sentence to which control will be transferred after execution of the current statement is complete.\" The row names a term and refers to IV-25 for the requirement. Candidates (ROLLBACK, IF NEXT SENTENCE) are wording-only. The code location was located after the read (locations-all.json): EmitParagraphBody labels each sentence boundary so that BoundNextSentence transfers control to the next sentence (or falls out at the paragraph end)."
+}

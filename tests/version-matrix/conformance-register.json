@@ -1018,6 +1018,545 @@
  ],
  "derivations": [
   {
+   "key": "DRV-1985-GR-B.2.1-p1",
+   "arm": "informative",
+   "names": "describes the standard's appendix list of substantive changes: \"list of the changes of substance included in third Standard COBOL\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-07.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-B.2.1-p2",
+   "arm": "informative",
+   "names": "describes the standard's appendix list of Intrinsic Function Amendment changes: \"changes of substance introduced by the Intrinsic Function Amendment\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-07.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-B.2.1-p3",
+   "arm": "informative",
+   "names": "describes the standard's appendix list of Correction Amendment changes: \"changes of substance introduced by the Correction Amendment\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-07.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p2",
+   "arm": "definitional",
+   "names": "defines the access mode of a file in a user's program as the manner in which its records are operated upon",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p8",
+   "arm": "definitional",
+   "names": "defines an alternate record key of an indexed file in a user's program as a key other than the prime record key whose contents identify a record",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p20",
+   "arm": "definitional",
+   "names": "defines a called program of a user's run unit as the program that is the object of a CALL statement, combined at object time with the calling program",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p21",
+   "arm": "definitional",
+   "names": "defines a calling program of a user's run unit as a program which executes a CALL to another program",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p22",
+   "arm": "definitional",
+   "names": "defines a cd-name in a user's program as a user-defined word that names an MCS interface area described in a communication description entry",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p28",
+   "arm": "definitional",
+   "names": "defines a clause of a user's source program as an ordered set of consecutive COBOL character-strings that specifies an attribute of an entry",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p29",
+   "arm": "definitional",
+   "names": "defines the COBOL character set of a user's source program as exactly the characters listed in the table that follows (rows 1985-GR-III.2-T7.*)",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p31",
+   "arm": "definitional",
+   "names": "defines the collating sequence of a user's program as the ordering of characters used for sorting, merging, comparing and sequential indexed processing",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p40",
+   "arm": "definitional",
+   "names": "defines compile time of a user's source program as the time at which it is translated by a COBOL compiler to an object program",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p52",
+   "arm": "definitional",
+   "names": "defines contiguous items of a user's program as items described by consecutive Data Division entries that bear a definite hierarchical relationship",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p56",
+   "arm": "definitional",
+   "names": "defines a control data-name of a user's report as a data-name that appears in a CONTROL clause and refers to a control data item",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p61",
+   "arm": "definitional",
+   "names": "defines a counter in a user's program as a data item storing numbers that may be increased, decreased, reset to zero or set to any value",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p64",
+   "arm": "definitional",
+   "names": "defines the current record of a file in a user's program as the record available in the record area associated with that file",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p66",
+   "arm": "definitional",
+   "names": "defines a data clause of a user's program as a clause of a data description entry describing a particular attribute of a data item",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p68",
+   "arm": "definitional",
+   "names": "defines a data item of a user's program as a unit of data, other than a literal, defined by the program or by the rules for function evaluation",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p71",
+   "arm": "definitional",
+   "names": "defines a debugging section of the user's program as a section in it that contains a USE FOR DEBUGGING statement",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p85",
+   "arm": "definitional",
+   "names": "defines the end of the Procedure Division of the user's source program as the physical position after which no further procedures appear",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p87",
+   "arm": "definitional",
+   "names": "defines an entry of the user's program as a descriptive set of consecutive clauses ended by a separator period in its Identification, Environment or Data Division",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p88",
+   "arm": "definitional",
+   "names": "defines an environment clause of the user's program as a clause that appears as part of one of its Environment Division entries",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p89",
+   "arm": "informative",
+   "names": "describes the standard's vocabulary term execution time: \"The time at which an object program is executed\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p91",
+   "arm": "informative",
+   "names": "describes the standard's vocabulary term expression: \"An arithmetic or conditional expression\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p93",
+   "arm": "definitional",
+   "names": "defines the external data of the user's program as the data it describes as external data items and external file connectors",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p99",
+   "arm": "definitional",
+   "names": "defines a file of the user's program as a collection of logical records",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p101",
+   "arm": "definitional",
+   "names": "defines a file clause of the user's program as a clause that appears as part of one of its FD or SD entries",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p111",
+   "arm": "definitional",
+   "names": "defines a fixed length record of the user's program as a record of a file whose FD or SD entry requires every record to hold the same number of character positions",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p112",
+   "arm": "definitional",
+   "names": "defines the footing area of a report page of the user's program as the position of its page body adjacent to the bottom margin",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p113",
+   "arm": "informative",
+   "names": "describes the standard's vocabulary term format: \"A specific arrangement of a set of data\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p121",
+   "arm": "definitional",
+   "names": "defines an I-O-CONTROL entry of the user's program as an entry in its I-O-CONTROL paragraph whose clauses give the transmission and handling information for named files",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p131",
+   "arm": "definitional",
+   "names": "defines an indexed file of a program as a file whose file control entry gives it indexed organization",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-03.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p135",
+   "arm": "definitional",
+   "names": "defines an input file of a program as a file the program has opened in the input mode",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-03.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p137",
+   "arm": "definitional",
+   "names": "defines an input-output file of a program as a file the program has opened in the I-O mode",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-03.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p147",
+   "arm": "definitional",
+   "names": "defines an intra-record data structure of a program as the groups and elementary items of a logical record that a contiguous subset of its data description entries describes",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-03.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p149",
+   "arm": "definitional",
+   "names": "defines a key of a program as a data item identifying the location of a record, or a set of data items identifying the ordering of data",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-03.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p150",
+   "arm": "definitional",
+   "names": "defines the key of reference of a program's indexed file as the prime or alternate record key currently used to access its records",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-03.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p157",
+   "arm": "definitional",
+   "names": "defines the library text a program copies as a sequence of text words, comment lines, separator spaces or pseudo-text delimiters in a COBOL library",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-03.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p166",
+   "arm": "definitional",
+   "names": "defines the low order end of a string of characters in a program as its rightmost character",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-03.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p169",
+   "arm": "definitional",
+   "names": "defines a mass storage file of a program as a collection of records assigned to a mass storage medium",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-98.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p178",
+   "arm": "indistinguishable-consequent",
+   "names": "1985-GR-III.2-p168",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-03.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p181",
+   "arm": "definitional",
+   "names": "defines a negated combined condition of the user's program: the NOT operator immediately followed by a parenthesized combined condition",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p182",
+   "arm": "definitional",
+   "names": "defines a negated simple condition of the user's program: the NOT operator immediately followed by a simple condition",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p183",
+   "arm": "definitional",
+   "names": "defines the next executable sentence of the user's program: the sentence control passes to after the current statement completes",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p185",
+   "arm": "definitional",
+   "names": "defines the next record of a file of the user's program: the record that logically follows the current record",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p187",
+   "arm": "definitional",
+   "names": "defines a nonnumeric item of the user's program: a data item whose description permits any characters of the computer's character set",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p189",
+   "arm": "definitional",
+   "names": "defines the numeric characters of the user's program as the ten digits 0, 1, 2, 3, 4, 5, 6, 7, 8, 9",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p190",
+   "arm": "definitional",
+   "names": "defines a numeric function referenced in the user's program: class and category numeric, not always satisfying the integer function requirements",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p195",
+   "arm": "definitional",
+   "names": "defines the object of an entry in the user's program: the operands and reserved words of a Data Division entry that follow its subject",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p196",
+   "arm": "informative",
+   "names": "describes the standard's terminology for a compiled program: \"Where there is no danger of ambiguity, the word 'program' alone may be used\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p197",
+   "arm": "informative",
+   "names": "describes the standard's vocabulary for execution time: \"The term is synonymous with execution time\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p198",
+   "arm": "informative",
+   "names": "describes the standard's obsolete element category: \"that is to be deleted from the next revision of Standard COBOL\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p200",
+   "arm": "informative",
+   "names": "describes the standard's general-format notation for operands: \"for the purposes of this document, any lowercase word\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p204",
+   "arm": "definitional",
+   "names": "defines an output file of the user's program: a file the program opened in the output mode or the extend mode",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p208",
+   "arm": "definitional",
+   "names": "defines a page of a report of the user's program: a vertical division representing a physical separation of report data",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p218",
+   "arm": "definitional",
+   "names": "defines a phrase of the user's program: an ordered set of consecutive character-strings forming part of a statement or clause",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p220",
+   "arm": "informative",
+   "names": "describes the standard's vocabulary for a block: \"The term is synonymous with block\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p222",
+   "arm": "definitional",
+   "names": "defines a printable group of the user's report: a report group that contains at least one print line",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p225",
+   "arm": "definitional",
+   "names": "defines the procedure branching statements of the user's program: ALTER, CALL, EXIT, EXIT PROGRAM, GO TO, MERGE, PERFORM, SORT",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p227",
+   "arm": "definitional",
+   "names": "defines the program identification entry of the user's program: the PROGRAM-ID entry naming the program and its attributes",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p231",
+   "arm": "definitional",
+   "names": "defines the punctuation characters of the user's program as the set of characters the glossary tabulates on page III-18",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p236",
+   "arm": "definitional",
+   "names": "defines a queue name supplied by the user's program: a symbolic name telling the message control system the logical path to a queue",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p240",
+   "arm": "definitional",
+   "names": "defines a record description of the user's program: the total set of data description entries associated with one record",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p241",
+   "arm": "definitional",
+   "names": "defines a record description entry as the total set of data description entries associated with one record of the user's program",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-05.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p243",
+   "arm": "definitional",
+   "names": "defines a record-name as the user-defined word of the user's program that names a record described in a record description entry",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-05.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p248",
+   "arm": "informative",
+   "names": "describes the standard's vocabulary of synonymous terms: \"The term is synonymous with relational operator\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-05.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p252",
+   "arm": "definitional",
+   "names": "defines a relative file as a file of the user's program whose organization is relative",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-05.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p256",
+   "arm": "definitional",
+   "names": "defines a report clause as a clause of the user's program that appears in a report description entry or a report group description entry",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-05.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p284",
+   "arm": "definitional",
+   "names": "defines a sequential file as a file of the user's program whose organization is sequential",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-05.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p301",
+   "arm": "definitional",
+   "names": "defines standard data format: a program's Data Division expresses the properties of its data by their appearance on a printed page, not by their internal storage",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-06.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p304",
+   "arm": "definitional",
+   "names": "defines the subject of a Data Division entry of the program as the operand or reserved word immediately following its level indicator or level-number",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-06.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p305",
+   "arm": "definitional",
+   "names": "defines a subprogram as a program of the run unit that is the object of a CALL statement, the same thing as a called program",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-06.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p313",
+   "arm": "definitional",
+   "names": "defines a table element of the program as a data item that is one of the repeated items comprising a table",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-06.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p315",
+   "arm": "definitional",
+   "names": "defines a text-name of the program's COPY statement as the user-defined word that identifies library text",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-06.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p324",
+   "arm": "definitional",
+   "names": "defines a variable length record of a program's file as one whose FD or SD entry permits records of a varying number of character positions",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-06.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p325",
+   "arm": "definitional",
+   "names": "defines a variable occurrence data item of the program as a table element whose entry contains OCCURS DEPENDING ON or that is subordinate to such an item",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-06.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-III.2-p326",
+   "arm": "definitional",
+   "names": "defines a verb of the program as a word that expresses an action to be taken by the compiler or the object program",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-06.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-IV.1-p1",
    "arm": "informative",
    "names": "describes the standard's scope of Section IV, its boxes and its flowcharts: \"specifications unique to the high level are enclosed in boxes\"",

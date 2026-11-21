@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p263",
+ "rule-digest": "e81a9d012aea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportLinePlacement.cs#ReportLinePlacement; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ReportLineImage",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p258",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its probe (rw.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"Report lines are numbered from 1, by 1, starting at the top of the page.\" The candidates (GR-13.18.35.4-1 etc.) have no 85 case; the probe places LINE 1 and LINE 3 at the first and third physical lines. Code location located after the read: ReportLinePlacement computes the page line number each report line is placed on, and ReportLineImage holds one line row with each column position used by at most one item."
+}

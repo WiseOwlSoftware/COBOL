@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p253",
+ "rule-digest": "414f9012b690",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RelativeKeyItem",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p253",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its probe (files.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A key whose contents identify a logical record in a relative file.\" The candidates (FMT-12.4.5.13.2, GR-12.4.5.13.4-1, GR-14.9.30.4-25) carry no 85 case. The probe shows the key's contents select the record on READ and START. Code location located after the read: ResolveFiles resolves the RELATIVE KEY clause operand to the data item held in FileModel.RelativeKeyItem, whose value identifies the record of the relative file."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p3",
+ "rule-digest": "53bf865d272d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#DecimalPointPosition; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#SwitchBindDecimalPoint",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p3",
+ "notes": "Own witness from the read lineage-reads-1985/g-01.json: the reader showed the compiler correct at 85 with its probe (p3_point.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The 1985 text says the actual decimal point is represented \"using the decimal point characters period (.) or comma (,)\". The candidates (SR-8.3.3.3.2-3 literals, GR-14.6.8.2-3 MOVE, SR-13.18.40.3-36) speak of literals and assumed points, not of the physical point character. Both probes accepted and showed the character in the edited item. Code location located after the read: DecimalPointPosition places the actual decimal point character (period or comma) in an edited picture and SwitchBindDecimalPoint binds DECIMAL-POINT IS COMMA."
+}

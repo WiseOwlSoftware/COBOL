@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p74",
+ "rule-digest": "1304d6537c0b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#DeEdit",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p74",
+ "notes": "Own witness from the read lineage-reads-1985/g-02.json: the reader showed the compiler correct at 85 with its probe (deedit.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The logical removal of all editing characters from a numeric edited data item in order to determine that item's unedited numeric value.\" A program shows it: the value recovered from an edited item. No candidate states it (all 'wording only', no 85 case). The probe MOVEs $Z,ZZ9.99CR holding -1234.56 to S9(4)V99 and gets -1234.56. Code location located after the read: CobolEdit.DeEdit removes the editing characters of a numeric edited item and returns its numeric value."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p22",
+ "rule-digest": "4f5f485834f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#cdName; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CommunicationSectionBinder",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p22",
+ "notes": "Derivation from the read lineage-reads-1985/g-01.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p22); the code location is where the compiler meets the rule's subject. The read: \"A user-defined word that names an MCS interface area described in a communication description entry\" defines the word class; the Communication module was dropped by 2014 so no 2023 rule states it (candidates are wording matches). The code location was located after the read (locations-all.json): cdName parses the user-defined word that names a CD entry, and CommunicationSectionBinder declares it as the name of an MCS interface area."
+}

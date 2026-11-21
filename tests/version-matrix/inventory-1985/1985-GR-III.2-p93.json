@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p93",
+ "rule-digest": "8ce5a913659b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ExternalStore.cs#ExternalStore; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#ExternalFileConnectorRules",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p93",
+ "notes": "Derivation from the read lineage-reads-1985/g-02.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p93); the code location is where the compiler meets the rule's subject. The read: \"The data described in a program as external data items and external file connectors.\" A term only; the EXTERNAL-clause candidates state behaviour, not this. The code location was located after the read (locations-all.json): ExternalStore holds the run-unit shared storage of EXTERNAL data items and ExternalFileConnectorRules governs external file connectors."
+}

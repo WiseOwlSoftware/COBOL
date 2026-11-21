@@ -1,0 +1,514 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice g-07 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "g-07",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-02",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-IV.4.2.2.1.3-L2.1",
+   "1985-GR-IV.4.2.2.1.3-L2.2",
+   "1985-GR-IV.4.2.2.1.3-L2.3",
+   "1985-GR-B.2.1-p1",
+   "1985-SR-B.2.1-29",
+   "1985-GR-B.2.1-48",
+   "1985-SR-B.2.1-97",
+   "1985-SR-B.2.1-99",
+   "1985-GR-B.2.1-p2",
+   "1985-GR-B.2.1-p3"
+  ],
+  "pointers": {
+   "1985-GR-IV.4.2.2.1.3-L2.1": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.1-2",
+     "SR-8.3.2.2-L3.2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.667
+   },
+   "1985-GR-IV.4.2.2.1.3-L2.2": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.1-2",
+     "SR-8.3.2.2-L3.2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.646
+   },
+   "1985-GR-IV.4.2.2.1.3-L2.3": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.1-2",
+     "SR-8.3.2.2-L3.2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.495
+   },
+   "1985-GR-B.2.1-p1": {
+    "candidates-2023": [
+     "GR-7.3.15.4-1",
+     "GR-16.2.1.2-2",
+     "GR-14.9.39.4-30"
+    ],
+    "nearest-2023": "GR-7.3.15.4-1",
+    "similarity": 0.278
+   },
+   "1985-SR-B.2.1-29": {
+    "candidates-2023": [
+     "FMT-12.4.6.2",
+     "SR-12.3.7.3-31",
+     "SR-11.8.3-1"
+    ],
+    "nearest-2023": "FMT-12.4.6.2",
+    "similarity": 0.329
+   },
+   "1985-GR-B.2.1-48": {
+    "candidates-2023": [
+     "SR-14.9.27.3-9",
+     "SR-13.15.3-4",
+     "SR-13.18.24.3-2"
+    ],
+    "nearest-2023": "SR-14.9.27.3-9",
+    "similarity": 0.293
+   },
+   "1985-SR-B.2.1-97": {
+    "candidates-2023": [
+     "SR-14.9.36.3-2",
+     "SR-14.9.7.3-2",
+     "SR-14.9.24.3-1"
+    ],
+    "nearest-2023": "SR-14.9.36.3-2",
+    "similarity": 0.57
+   },
+   "1985-SR-B.2.1-99": {
+    "candidates-2023": [
+     "GR-14.9.43.4-4",
+     "GR-14.9.43.4-7",
+     "SR-14.9.43.3-6"
+    ],
+    "nearest-2023": "GR-14.9.43.4-4",
+    "similarity": 0.376
+   },
+   "1985-GR-B.2.1-p2": {
+    "candidates-2023": [
+     "GR-7.3.15.4-1",
+     "GR-12.3.8.4-14",
+     "GR-7.3.17.4-3"
+    ],
+    "nearest-2023": "GR-7.3.15.4-1",
+    "similarity": 0.352
+   },
+   "1985-GR-B.2.1-p3": {
+    "candidates-2023": [
+     "GR-7.3.15.4-1",
+     "GR-14.9.51.4-14",
+     "GR-14.9.35.4-20"
+    ],
+    "nearest-2023": "GR-7.3.15.4-1",
+    "similarity": 0.345
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-02",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.3-L2.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus, COBOL words: required words are one of the three types of reserved words, so a required word (a key word such as MOVE) must not appear as a user-defined word or system-name (read with 4.2.2.1.3 p1)",
+     "required words of type 2, special character words (arithmetic operators, relation characters): not COBOL words a user could form as user-defined words, so no program reaches this half"
+    ],
+    "evidence-1985": {
+     "key word refused as a data-name": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\rw-required.cob (run rw-required-001: COBOL0901 'MOVE' is a reserved word in COBOL-85), control rw-control.cob (run rw-control-001: RWCTL ABC)",
+     "special character words": "not shown (unreachable: the formation rule for user-defined words, §1985:IV.4.2.2.1.1 p1, admits no operator character)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.3 GRL2.1",
+      "quote": "",
+      "check": "OK  §1985:IV.4.2.2.1.3 GRL2.1 (structure only) ok"
+     },
+     {
+      "cite": "§1985:IV.4.2.2.1.3 p2",
+      "quote": "There are three types of reserved words",
+      "check": "OK  §1985:IV.4.2.2.1.3 p2  (4.2.2.1.3 Reserved Words)  the text is in the clause"
+     },
+     {
+      "cite": "§1985:IV.4.2.2.1.3 p1",
+      "quote": "which must not appear in the programs as user-defined words or system-names",
+      "check": "OK  §1985:IV.4.2.2.1.3 p1  (4.2.2.1.3 Reserved Words)  the text is in p1"
+     },
+     {
+      "cite": "§1985:IV.4.2.2.1.3.1 p1",
+      "quote": "A required word is a word whose presence is required",
+      "check": "OK  §1985:IV.4.2.2.1.3.1 p1  (4.2.2.1.3.1 Required Words)  the text is in the clause"
+     }
+    ],
+    "reason": "Flagged definitional but testable: 'There are three types of reserved words: 1. required words' makes every required word a reserved word, which 'must not appear in the programs as user-defined words'. A program can show it, so it is read as a rule. The candidate SR-8.3.2.1-1 ('Reserved words shall not be used as user-defined words') is the consequence, but 2023 8.3.2.1 does not classify required words as reserved words, and the candidates were proposed on wording only. So no pointer states this row's own text, and the row needs its own witness. The refusal probe has a control beside it that changes one word.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\rw-required.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\rw-required.cob (refused COBOL0901) with control E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\rw-control.cob (accepted, RWCTL ABC)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place rw-required.cob (diagnosed COBOL0901) and rw-control.cob (accepted) as the row's 85 case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.3-L2.2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus, COBOL words: optional words (uppercase, not underlined, in a format) are reserved words, so an optional word such as THAN must not appear as a user-defined word (read with 4.2.2.1.3 p1 and 4.2.2.1.3.2 p1)"
+    ],
+    "evidence-1985": {
+     "optional word refused as a data-name": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\rw-optional.cob (run rw-optional-001: COBOL0901 'THAN' is a reserved word in COBOL-85), control rw-control.cob (run rw-control-001: RWCTL ABC)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.3 GRL2.2",
+      "quote": "",
+      "check": "OK  §1985:IV.4.2.2.1.3 GRL2.2 (structure only) ok"
+     },
+     {
+      "cite": "§1985:IV.4.2.2.1.3 p1",
+      "quote": "which must not appear in the programs as user-defined words or system-names",
+      "check": "OK  §1985:IV.4.2.2.1.3 p1  (4.2.2.1.3 Reserved Words)  the text is in p1"
+     },
+     {
+      "cite": "§1985:IV.4.2.2.1.3.2 p1",
+      "quote": "uppercase words that are not underlined are called optional words",
+      "check": "OK  §1985:IV.4.2.2.1.3.2 p1  (4.2.2.1.3.2 Optional Words)  the text is in p1"
+     }
+    ],
+    "reason": "'There are three types of reserved words: ... 2. optional words' makes an optional word (for example THAN or IS) a reserved word, so it cannot be a user-defined word. That property is testable. No 2023 candidate says optional words are reserved (SR-8.3.2.1-1 states only the consequence for reserved words in general), and none of the at-85 cases of SR-8.3.2.1-1 uses an optional word. The own probe refuses THAN, and its control, which changes one word, is accepted.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\rw-optional.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\rw-optional.cob (refused COBOL0901) with control E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\rw-control.cob (accepted)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place rw-optional.cob (diagnosed) and rw-control.cob (accepted) as the row's 85 case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.3-L2.3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus, COBOL words: special purpose words (special registers DEBUG-ITEM, LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER, and figurative constants, per 4.2.2.1.3.3) are reserved words, so they must not appear as user-defined words",
+     "modules reached through the registers: Sequential I-O (LINAGE-COUNTER), Report Writer (LINE-COUNTER, PAGE-COUNTER), Debug (DEBUG-ITEM); Nucleus (figurative constants)"
+    ],
+    "evidence-1985": {
+     "special register LINAGE-COUNTER refused as a data-name": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\rw-special.cob (run rw-special-001: COBOL0901 'LINAGE-COUNTER' is a reserved word in COBOL-85), control rw-control.cob",
+     "DEBUG-ITEM, LINE-COUNTER, PAGE-COUNTER, figurative constants as user words": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.3 GRL2.3",
+      "quote": "",
+      "check": "OK  §1985:IV.4.2.2.1.3 GRL2.3 (structure only) ok"
+     },
+     {
+      "cite": "§1985:IV.4.2.2.1.3.3 p1",
+      "quote": "There are two types of special purpose words",
+      "check": "OK  §1985:IV.4.2.2.1.3.3 p1  (4.2.2.1.3.3 Special Purpose Words)  the text is in the clause"
+     },
+     {
+      "cite": "§1985:IV.4.2.2.1.3 p1",
+      "quote": "which must not appear in the programs as user-defined words or system-names",
+      "check": "OK  §1985:IV.4.2.2.1.3 p1  (4.2.2.1.3 Reserved Words)  the text is in p1"
+     }
+    ],
+    "reason": "'3. special purpose words' makes the special registers and figurative constants reserved words, which is testable. No 2023 candidate states this classification (the candidates are wording-only matches). The probe shows LINAGE-COUNTER refused, with a control that changes one word. The own witness should also cover the other three registers and one figurative constant (for example ZERO).",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\rw-special.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\rw-special.cob (refused COBOL0901) with control E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\rw-control.cob; the other registers and the figurative constants were not probed",
+    "class": "own-text",
+    "needs": "needs-own-witness: rw-special.cob plus variants for DEBUG-ITEM, LINE-COUNTER, PAGE-COUNTER and ZERO, each beside the control",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-B.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Appendix B (informative summary): introduces the list of 1985 changes that are new features not affecting existing programs; it governs no format, entry or module"
+    ],
+    "evidence-1985": {
+     "list introduction": "not shown (no program can show the standard's own list heading)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:B.2.1 p1",
+      "quote": "list of the changes of substance included in third Standard COBOL",
+      "check": "OK  §1985:B.2.1 p1  (2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL))  the text is in p1"
+     }
+    ],
+    "reason": "'The following is a list of the changes of substance included in third Standard COBOL that are new features not impacting existing programs' only describes the appendix list that follows it. Its subject is the document, and it requires nothing of a program or an implementation. Each change it introduces is a separate item row, and the requirement each item restates belongs to its body clause. The candidate GR-7.3.15.4-1 (a flagging mechanism for incompatibilities) is a wording-only match.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the sentence introduces the standard's appendix list; no program text can show or violate it",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's appendix list of substantive changes: \"list of the changes of substance included in third Standard COBOL\""
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-B.2.1-29",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "I-O-CONTROL paragraph in Sequential I-O (RERUN, SAME [RECORD] AREA, MULTIPLE FILE TAPE), Relative I-O and Indexed I-O (RERUN, SAME), and Report Writer (XIII.2.4): the clauses may be written in any order",
+     "body rule restated: §1985:VII.2.10.3 SR1 (and the REL/INX/RPW counterparts)"
+    ],
+    "evidence-1985": {
+     "Sequential I-O: MULTIPLE FILE TAPE, then SAME RECORD AREA, then RERUN (the reverse of the printed order)": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\iocontrol-order.cob (run iocontrol-order-002: IOCORD OK, two COBOL0903 obsolete-element warnings)",
+     "Relative I-O, Indexed I-O, Report Writer I-O-CONTROL order": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:B.2.1 SR29",
+      "quote": "The order of clauses is immaterial in the I-O-CONTROL paragraph",
+      "check": "OK  §1985:B.2.1 SR29  (2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL))  the text is in item 29"
+     },
+     {
+      "cite": "§1985:VII.2.10.3 SR1",
+      "quote": "The order of appearance of the clauses is immaterial",
+      "check": "OK  §1985:VII.2.10.3 SR1  (2.10.3 Syntax Rules)  the text is in SR1"
+     },
+     {
+      "cite": "§2023:12.4.6.2",
+      "quote": "The apply-commit and same clauses may be specified in any order",
+      "check": "OK  §2023:12.4.6.2  (General format)  the text is in the clause"
+     }
+    ],
+    "reason": "'The order of clauses is immaterial in the I-O-CONTROL paragraph' grants a form, so the witness must be an accepted program. The nearest pointer, FMT-12.4.6.2, grants any order only for the 2023 clauses apply-commit and SAME. Its at-85 cases are all diagnosed-only, and the 1985 clauses RERUN and MULTIPLE FILE TAPE do not exist in 2023. The probe writes the three 1985 clauses in reverse printed order, is accepted at 85, and runs: SAME RECORD AREA shares the record, so R2 = WXYZ after MOVE to R1.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\iocontrol-order.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\iocontrol-order.cob (IOCORD OK) for Sequential I-O; REL/INX/RPW not probed",
+    "class": "removed-form",
+    "needs": "needs-own-witness: iocontrol-order.cob, plus a Relative or Indexed variant (RERUN after SAME) if the row's scope is closed for every module it names",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-B.2.1-48",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication module (1 COM), communication description entry, FOR I-O format: one CD entry serves both input (RECEIVE, ACCEPT MESSAGE COUNT) and output (SEND) functions",
+     "the FOR I-O record (33 standard data format characters, §1985:XIV.2.2.3 per the compiler's COBOL6169 citation)"
+    ],
+    "evidence-1985": {
+     "CD FOR I-O entry accepted, with RECEIVE and SEND both naming the same cd-name": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\cd-for-io.cob (run cd-for-io-003: compile-only, EXIT 0)",
+     "runtime input and output through the one CD": "not shown (needs an MCS; the program was not run)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:B.2.1 GR48",
+      "quote": "provides for both input and output functions by one CD entry",
+      "check": "OK  §1985:B.2.1 GR48  (2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL))  the text is in item 48"
+     }
+    ],
+    "reason": "'The FOR I-O phrase in a communication description entry provides for both input and output functions by one CD entry.' The Communication module was removed from 2023, so no 2023 rule has this scope, and every candidate is a wording-only match about OPEN I-O, report groups or FORMAT. The probe's CD FOR I-O is accepted at 85 with RECEIVE and SEND on the same cd-name. Earlier attempts drew diagnostics that conform (Communication section ordering, and the 33-character FOR I-O record), so the CD checks are live.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\cd-for-io.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\cd-for-io.cob (compile accepted); runtime behaviour not probed (no MCS on this host)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: cd-for-io.cob as an accepted compile case; a runtime witness through the implementation's MCS stand-in if one exists",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-B.2.1-97",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Sort-Merge (1 SRT), SORT and MERGE statements: an input or output procedure may contain an explicit transfer of control to a point outside it",
+     "the rest of the Procedure Division may contain a transfer of control to a point inside an input or output procedure",
+     "INPUT PROCEDURE and OUTPUT PROCEDURE may name a paragraph-name (not only a section-name)"
+    ],
+    "evidence-1985": {
+     "SORT input procedure GO TO outside it": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\sort-transfers.cob (run sort-transfers-001: SRTXFR OK)",
+     "GO TO from outside into the input procedure": "covered by the same probe (OUTSIDE-PARA. GO TO IN-PARA.)",
+     "paragraph-name in INPUT/OUTPUT PROCEDURE": "covered by the same probe (INPUT PROCEDURE IS IN-PARA, OUTPUT PROCEDURE IS OUT-PARA)",
+     "MERGE output procedure, the same three grants": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:B.2.1 SR97",
+      "quote": "A paragraph-name may be specified in the INPUT PROCEDURE phrase or the OUTPUT PROCEDURE phrase",
+      "check": "OK  §1985:B.2.1 SR97  (2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL))  the text is in item 97"
+     },
+     {
+      "cite": "§1985:B.2.1 SR97",
+      "quote": "may contain explicit transfers of control to points outside the input or output procedure",
+      "check": "OK  §1985:B.2.1 SR97  (2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL))  the text is in item 97"
+     }
+    ],
+    "reason": "Three grants ('may contain explicit transfers of control to points outside', transfers 'to points inside', and 'A paragraph-name may be specified in the INPUT PROCEDURE phrase'), so the witness must be an accepted program. The candidates (ROLLBACK, COMMIT and MERGE placement bans) restrict statements and grant nothing, and their at-85 lists are empty. The probe sorts 3,1,2, released in two passes through an out-and-back GO TO, into 123 through a one-paragraph output procedure, and prints SRTXFR OK at 85.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\sort-transfers.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\sort-transfers.cob (SRTXFR OK); MERGE not probed",
+    "class": "own-text",
+    "needs": "needs-own-witness: sort-transfers.cob plus a MERGE OUTPUT PROCEDURE paragraph-name variant",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-B.2.1-99",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus level 2, STRING statement: the INTO identifier (the receiving item) may be a group item"
+    ],
+    "evidence-1985": {
+     "STRING ... INTO a group item, with POINTER": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\string-into-group.cob (run string-into-group-001: STRGRP OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:B.2.1 SR99",
+      "quote": "The identifier in the INTO phrase of the STRING statement may be a group item",
+      "check": "OK  §1985:B.2.1 SR99  (2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL))  the text is in item 99"
+     }
+    ],
+    "reason": "'The identifier in the INTO phrase of the STRING statement may be a group item' grants a form. The candidates are wording-only: SR-14.9.43.3-6 forbids a strongly-typed group, and the GR-4 and GR-7 rules concern POINTER and the unchanged portion. None grants a group receiver, and none has an at-85 case. The probe strings AB and CDE into an 8-byte group pre-filled with '*'. The result ABCDE*** with POINTER 6 shows the group receiver accepted at 85, and the unreferenced portion left unchanged.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\string-into-group.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\s-02\\string-into-group.cob (STRGRP OK)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place string-into-group.cob as the row's 85 case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-B.2.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Appendix B 2.1A (informative, inserted by Amendment 2): introduces the list of Intrinsic Function Amendment changes that do not affect existing programs; it governs no format, entry or module"
+    ],
+    "evidence-1985": {
+     "list introduction": "not shown (no program can show the standard's own list heading)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:B.2.1 p2",
+      "quote": "changes of substance introduced by the Intrinsic Function Amendment",
+      "check": "OK  §1985:B.2.1 p2  (2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL))  the text is in p2"
+     }
+    ],
+    "reason": "'The following is a list of the changes of substance introduced by the Intrinsic Function Amendment that are new features not impacting existing programs' introduces the appendix list in 2.1A. It informs the reader and requires nothing. The Intrinsic Function module it points to is covered by the §1989:A rows. The candidates are wording-only matches.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the sentence introduces the standard's appendix list; no program text can show or violate it",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's appendix list of Intrinsic Function Amendment changes: \"changes of substance introduced by the Intrinsic Function Amendment\""
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-B.2.1-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Appendix B 2.1B (informative, inserted by Amendment 2): introduces the list of Correction Amendment changes that do not affect existing programs; it governs no format, entry or module"
+    ],
+    "evidence-1985": {
+     "list introduction": "not shown (no program can show the standard's own list heading)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:B.2.1 p3",
+      "quote": "changes of substance introduced by the Correction Amendment",
+      "check": "OK  §1985:B.2.1 p3  (2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL))  the text is in p3"
+     }
+    ],
+    "reason": "'The following is a list of the changes of substance introduced by the Correction Amendment that are new features not impacting existing programs' introduces the appendix list in 2.1B. It informs the reader and requires nothing of a program or an implementation. Each listed change (INSPECT, MAX, MIN and the others) is stated in its body clause. The candidates are wording-only matches.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the sentence introduces the standard's appendix list; no program text can show or violate it",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's appendix list of Correction Amendment changes: \"changes of substance introduced by the Correction Amendment\""
+    },
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "tooling",
+    "row": null,
+    "what": "run_goldens.py fails before running anything: prose85-map.json is missing under the workflow directory. It also builds EXE by joining BASE with an absolute path in a non-raw string (SyntaxWarning on '\\C'). No row in s-02 has prose85, so no golden was lost here.",
+    "repro": "python E:\\COBOL-coord\\scratch\\w20262131o\\tools\\run_goldens.py s-02",
+    "site": "E:\\COBOL-coord\\scratch\\w20262131o\\tools\\run_goldens.py#EXE, line 23 prose85-map.json"
+   },
+   {
+    "kind": "tooling",
+    "row": null,
+    "what": "BRIEF-reader.md's Output section names the stop file E:\\COBOL-coord\\scratch\\w20262131o\\w20262131o\\STOP-reads (the directory doubled); the dispatch names E:\\COBOL-coord\\scratch\\w20262131o\\STOP-reads. Both were checked: neither exists.",
+    "repro": "E:\\COBOL-coord\\scratch\\w20262131o\\BRIEF-reader.md line 105",
+    "site": "BRIEF-reader.md#Output"
+   },
+   {
+    "kind": "segmentation",
+    "row": "1985-GR-B.2.1-p2",
+    "what": "p2 and p3 are the opening paragraphs of 2.1A and 2.1B, the subclauses Amendment 2 inserted (C324). The catalog and cite.py file them as B.2.1 p2 and p3 and name the 2.1 heading, so 2.1A and 2.1B have no locator of their own. Their numbered items, such as 2.1A (1) and 2.1B (1) to (5), would collide with 2.1's items (1) to (5) under B.2.1-<n>.",
+    "repro": "python E:\\COBOL-coord\\scratch\\w20262131o\\tools\\cite_check.py \"§1985:B.2.1 p3\" \"changes of substance introduced by the Correction Amendment\"",
+    "site": "specs/ANSI_COBOL_1985.md lines 28544-28554; docs/rearchitecture/spec-rule-catalog-1985.json"
+   },
+   {
+    "kind": "segmentation",
+    "row": "1985-GR-IV.4.2.2.1.3-L2.1",
+    "what": "The required-word definition has no catalog row: 'A required word is a word whose presence is required when the format in which the word appears is used in a source program' (§1985:IV.4.2.2.1.3.1 p1, checked OK), and its lead 'Required words are of two types'. Only the items 1985-SR-IV.4.2.2.1.3.1-1/-2 exist. The 4.2.2.1.3.3 lead and 4.2.2.1.3.3.2 p1 (Figurative Constants) also have no row.",
+    "repro": "python E:\\COBOL-coord\\scratch\\w20262131o\\tools\\show.py \"1985-GR-IV.4.2.2.1*\" \"1985-SR-IV.4.2.2.1*\"",
+    "site": "docs/rearchitecture/spec-rule-catalog-1985.json"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-02",
+  "cases": [],
+  "disputed-different": []
+ },
+ "derivation-refute": {
+  "slice": "s-02",
+  "cases": [
+   {
+    "rule-id": "1985-GR-B.2.1-p1",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "Tried to write a program whose outcome depends on the row. The strongest reading is that 'new features not impacting existing programs' requires a 1985 compiler to keep a 1974-conforming program's meaning for each listed feature. A 1974 program using a listed feature (for example lowercase letters, item 1) shows nothing that this sentence decides: the item's own body clause decides it. A compiler that broke a 1974 program would violate that item's body rule, never this sentence, and 1985 requires no 1974 mode.",
+    "reason": "The row is one sentence (specs/ANSI_COBOL_1985.md line 28280). Its main clause, 'The following is a list of the changes of substance included in third Standard COBOL', describes the appendix list. The qualifier 'that are new features not impacting existing programs' classifies the items. The example clause 'for example, a new verb or an additional capability for an old verb' illustrates the classification. No part of it is something a program or a compiler could violate. Every change it introduces is required by its own body clause, and the listed items are rows of their own (for example 1985-GR-B.2.1-48). The quotation lies in the row's own text (the reader's cite_check OK), and the 'describes the standard's ...' form fits a row about the document.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-B.2.1-p2",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "Tried a witness through the Intrinsic Function module: a program calling FUNCTION LENGTH. Its outcome is decided by the §1989:A function rows, not by this heading sentence. The only reading that could bind, that the amendment's features do not change existing programs, is contradicted by 2.2A's own item 1 (FUNCTION becomes reserved), and that item is stated there, not here.",
+    "reason": "The row is one sentence (line 28546): 'The following is a list of the changes of substance introduced by the Intrinsic Function Amendment that are new features not impacting existing programs.' It introduces and classifies the 2.1A list and requires nothing of a program or an implementation. The quotation lies in the row's own text. The reader's segmentation lead (2.1A and 2.1B filed as B.2.1 p2 and p3) concerns the locator and does not affect the arm.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-B.2.1-p3",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "Tried a witness through the listed INSPECT change (2.1B item 1, identifier-1 is a sending item). That outcome belongs to the item and its INSPECT body rule, not to the introducing sentence. No program outcome depends on the sentence itself.",
+    "reason": "The row is one sentence (line 28554): 'The following is a list of the changes of substance introduced by the Correction Amendment that are new features not impacting existing programs.' It describes the 2.1B list and requires nothing. The quotation lies in the row's own text, and the 'describes the standard's ...' form fits.",
+    "probe": null
+   }
+  ]
+ },
+ "imported": {
+  "asked": "37a3479608b4417335f287566055f1792bd6cbccf60833a272fa34f250ce05b8",
+  "derivation-refute": "68243d69a377c431f558ef8f7a46bdea9f358daa5d81b373ad88e75af2fed20f",
+  "read": "baa5b60ff9e572df6b41b865e9857f9ab28ea288ebe7e08d03f3ad45d1603daf",
+  "refute": "8658ab4a587efb961be9d33b963c275d367da636eeac877b4591001853255f85"
+ }
+}

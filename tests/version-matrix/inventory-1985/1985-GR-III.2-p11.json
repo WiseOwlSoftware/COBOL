@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p11",
+ "rule-digest": "e0507c37153d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#ArithmeticBinder; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#ArithmeticEmitter; src/WiseOwl.Cobol.Runtime/Values/Numeric/DecArithmetic.cs#DecArithmetic",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p11",
+ "notes": "Own witness from the read lineage-reads-1985/g-01.json: the reader showed the compiler correct at 85 with its probe (p11_arith.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"that results in a mathematically correct solution to the arguments presented\" (catalog: not definitional). No 2023 candidate states it (E constant RV, native arithmetic A.1 item, numeric argument rule). The probe shows exact decimal results for an expression and four statements. Code location located after the read: The binder and emitter turn an arithmetic statement or expression into decimal arithmetic whose result DecArithmetic computes exactly (no binary-float rounding)."
+}

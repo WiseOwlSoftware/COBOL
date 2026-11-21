@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p190",
+ "rule-digest": "6a48ce94532b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#Resolve",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p190",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p190); the code location is where the compiler meets the rule's subject. The read: The row classifies function types for the vocabulary of the Intrinsic Function module; candidates (argument rules of three functions) are wording-only. The code location was located after the read (locations-all.json): WEAK: Resolve types a function result as numeric when it is not an integer function; the classification is shared with the integer case."
+}

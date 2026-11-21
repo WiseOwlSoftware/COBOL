@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p204",
+ "rule-digest": "1874ea5b36ed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#FileOpenMode",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p204",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p204); the code location is where the compiler meets the rule's subject. The read: A term defined from 'output mode' (p205); candidates (status 48, INITIATE, write file connector) are wording-only. The code location was located after the read (locations-all.json): FileOpenMode.Output and FileOpenMode.Extend are the two modes an output file is opened in."
+}

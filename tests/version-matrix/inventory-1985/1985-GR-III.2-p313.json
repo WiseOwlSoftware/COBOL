@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p313",
+ "rule-digest": "b68c14437aaa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#IsTableElement",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p313",
+ "notes": "Derivation from the read lineage-reads-1985/g-06.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p313); the code location is where the compiler meets the rule's subject. The read: 'A data item that belongs to the set of repeated items comprising a table.' is vocabulary for the subscripting and OCCURS rules. Candidates are screen OCCURS (DOCUMENTED-NON-SUPPORT), SORT table and VALUE rules (wording only). The code location was located after the read (locations-all.json): IsTableElement is true when the item has subscript arity above zero, i.e. it belongs to the repeated set of an OCCURS table."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p272",
+ "rule-digest": "7acc316ae62c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#RunUnit",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p272",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its probe (nested.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"One or more object programs which interact with one another and which function, at object time, as an entity to provide problem solutions.\" Candidates (SR-8.4.3.7.3-2 etc.) have no 85 case; the probes run several programs as one entity. Code location located after the read: RunUnit is the single owner of the state of the object programs executing together as one entity."
+}

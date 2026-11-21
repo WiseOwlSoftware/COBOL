@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p87",
+ "rule-digest": "e94921c584fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Cst/ParagraphPeriods.cs#ParagraphPeriods; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p87",
+ "notes": "Derivation from the read lineage-reads-1985/g-02.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p87); the code location is where the compiler meets the rule's subject. The read: \"Any descriptive set of consecutive clauses terminated by a separator period and written in the Identification Division, Environment Division, or Data Division.\" A term for parts of the user's program; it obliges nothing. The code location was located after the read (locations-x.json): dataDescriptionEntry parses a data entry as its clauses closed by a separator period, and ParagraphPeriods reads an Environment Division paragraph as its entries and the separator period that closes them (§1985:IV.4.2.1 SR3 at 85)."
+}

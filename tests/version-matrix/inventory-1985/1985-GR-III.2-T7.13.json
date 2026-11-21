@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-T7.13",
+ "rule-digest": "b134d698aa0a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#GT",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-T7_10",
+ "notes": "Own witness from the read lineage-reads-1985/g-06.json: the reader showed the compiler correct at 85 with its probe (specchar.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Table 7 row '> | greater than symbol'. The candidates are PICTURE and OCCURS rules matched on the word 'greater' only. The accepted probe uses '>'. Code location located after the read: The GT lexer rule tokenises the > character used as the greater-than relation symbol."
+}

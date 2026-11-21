@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-III.2-p99", "definitional", "defines a file of the user's program as a collection of logical records", "\"A collection of logical records.\" A term only. Cited: §1985:III.2 p99. Proposed by the read lineage-reads-1985/g-02.json; its refuter, trying to write the witness the derivation says cannot exist (None: 'A collection of logical records' imposes no ordering, size or access behaviour; those are the I-O modules' rows.), UPHELD it: Names a file the user's program describes; as for p252/p284 in the sibling slice, nothing is required by the name itself.", "claude: 2026-11-21", "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"]
+---

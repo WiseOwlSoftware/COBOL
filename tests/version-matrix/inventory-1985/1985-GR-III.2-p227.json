@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p227",
+ "rule-digest": "20e7c9aa9593",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programIdParagraph; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p227",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p227); the code location is where the compiler meets the rule's subject. The read: A vocabulary term; candidates (nested program names, RECURSIVE/INITIAL) are wording-only. The code location was located after the read (locations-all.json): programIdParagraph is the PROGRAM-ID entry (name plus COMMON/INITIAL attributes) and MakeUnit reads its name and attribute clauses into the program unit."
+}

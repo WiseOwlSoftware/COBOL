@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p78",
+ "rule-digest": "71d2518c902d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageDefinitions.cs#DestinationDefinition",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p235",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (COMMS.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter's objection holds: the receiver is the MCS's, outside the user's program, so the definitional arm does not fit. The identification is observable at 85 through this implementation's MCS: the symbolic destination LOOP delivers the message to its receiver (queue HOLD), and an unknown symbolic name delivers nowhere (status 20, error key 1). Communication is removed from 2023, so no pointer. Code location located after the read: DestinationDefinition names the receiver of a transmission from a queue."
+}

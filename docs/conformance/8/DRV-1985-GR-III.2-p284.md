@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-III.2-p284", "definitional", "defines a sequential file as a file of the user's program whose organization is sequential", "\"Sequential File. A file with sequential organization.\" A name only. Cited: §1985:III.2 p284. Proposed by the read lineage-reads-1985/g-05.json; its refuter, trying to write the witness the derivation says cannot exist (As for p252: no program outcome depends on the name 'sequential file' for a file of sequential organization; sequential organization's behaviour is the Sequential I-O rows.), UPHELD it: \"A file with sequential organization.\" names a file of the user's program by its organization.", "claude: 2026-11-21", "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-05.jsonl"]
+---

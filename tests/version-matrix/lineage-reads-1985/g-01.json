@@ -1,0 +1,1380 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice g-01 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "g-01",
+ "edition": 1985,
+ "asked": {
+  "slice": "g-01",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-III.2-p2",
+   "1985-GR-III.2-p3",
+   "1985-GR-III.2-p5",
+   "1985-GR-III.2-p6",
+   "1985-GR-III.2-p7",
+   "1985-GR-III.2-p8",
+   "1985-GR-III.2-p11",
+   "1985-GR-III.2-p17",
+   "1985-GR-III.2-p18",
+   "1985-GR-III.2-p19",
+   "1985-GR-III.2-p20",
+   "1985-GR-III.2-p21",
+   "1985-GR-III.2-p22",
+   "1985-GR-III.2-p24",
+   "1985-GR-III.2-p28",
+   "1985-GR-III.2-p29",
+   "1985-GR-III.2-p31",
+   "1985-GR-III.2-p32",
+   "1985-GR-III.2-p37",
+   "1985-GR-III.2-p38",
+   "1985-GR-III.2-p39",
+   "1985-GR-III.2-p40",
+   "1985-SR-III.2-p44",
+   "1985-SR-III.2-p45",
+   "1985-GR-III.2-p52",
+   "1985-GR-III.2-p56",
+   "1985-GR-III.2-p61",
+   "1985-GR-III.2-p62",
+   "1985-GR-III.2-p64",
+   "1985-GR-III.2-p66",
+   "1985-GR-III.2-p68"
+  ],
+  "pointers": {
+   "1985-GR-III.2-p2": {
+    "candidates-2023": [
+     "FMT-12.4.5.5.1",
+     "GR-12.4.5.5.3-1",
+     "GR-12.4.5.5.3-4"
+    ],
+    "nearest-2023": "FMT-12.4.5.5.1",
+    "similarity": 0.266
+   },
+   "1985-GR-III.2-p3": {
+    "candidates-2023": [
+     "SR-8.3.3.3.2-3",
+     "GR-14.6.8.2-3",
+     "SR-13.18.40.3-36"
+    ],
+    "nearest-2023": "SR-8.3.3.3.2-3",
+    "similarity": 0.599
+   },
+   "1985-GR-III.2-p5": {
+    "candidates-2023": [
+     "RV-15.97.4-6",
+     "GR-8.3.3.6.4-5",
+     "SR-13.18.40.3-8"
+    ],
+    "nearest-2023": "RV-15.97.4-6",
+    "similarity": 0.334
+   },
+   "1985-GR-III.2-p6": {
+    "candidates-2023": [
+     "DOC-A.1-31",
+     "GR-8.1.2-3",
+     "RV-15.26.4-1"
+    ],
+    "nearest-2023": "DOC-A.1-31",
+    "similarity": 0.476
+   },
+   "1985-GR-III.2-p7": {
+    "candidates-2023": [
+     "GR-8.3.3.6.4-4",
+     "AR-15.19.3-5",
+     "RV-15.78.4-1"
+    ],
+    "nearest-2023": "GR-8.3.3.6.4-4",
+    "similarity": 0.329
+   },
+   "1985-GR-III.2-p8": {
+    "candidates-2023": [
+     "SR-14.9.41.3-6",
+     "GR-12.4.5.6.4-1",
+     "GR-14.9.35.4-24"
+    ],
+    "nearest-2023": "SR-14.9.41.3-6",
+    "similarity": 0.592
+   },
+   "1985-GR-III.2-p11": {
+    "candidates-2023": [
+     "RV-15.27.3-3",
+     "DOC-A.1-124",
+     "AR-15.3-10"
+    ],
+    "nearest-2023": "RV-15.27.3-3",
+    "similarity": 0.376
+   },
+   "1985-GR-III.2-p17": {
+    "candidates-2023": [
+     "GR-13.18.10.4-1",
+     "FMT-13.18.10.2",
+     "GR-13.18.10.4-2"
+    ],
+    "nearest-2023": "GR-13.18.10.4-1",
+    "similarity": 0.53
+   },
+   "1985-GR-III.2-p18": {
+    "candidates-2023": [
+     "SR-13.18.57.3-15",
+     "SR-13.18.57.3-14",
+     "SR-13.18.57.3-11"
+    ],
+    "nearest-2023": "SR-13.18.57.3-15",
+    "similarity": 0.538
+   },
+   "1985-GR-III.2-p19": {
+    "candidates-2023": [
+     "GR-13.18.34.4-5",
+     "GR-13.18.34.4-6",
+     "GR-13.18.34.4-3"
+    ],
+    "nearest-2023": "GR-13.18.34.4-5",
+    "similarity": 0.439
+   },
+   "1985-GR-III.2-p20": {
+    "candidates-2023": [
+     "GR-14.9.4.4-3",
+     "GR-14.9.4.4-10",
+     "DOC-A.1-16"
+    ],
+    "nearest-2023": "GR-14.9.4.4-3",
+    "similarity": 0.41
+   },
+   "1985-GR-III.2-p21": {
+    "candidates-2023": [
+     "GR-8.5.1.11.3-2",
+     "SR-11.10.3-3",
+     "DOC-A.1-16"
+    ],
+    "nearest-2023": "GR-8.5.1.11.3-2",
+    "similarity": 0.487
+   },
+   "1985-GR-III.2-p22": {
+    "candidates-2023": [
+     "SR-13.16.3-16",
+     "SR-8.4.3.11.3-1",
+     "SR-13.18.33.3-5"
+    ],
+    "nearest-2023": "SR-13.16.3-16",
+    "similarity": 0.252
+   },
+   "1985-GR-III.2-p24": {
+    "candidates-2023": [
+     "GR-13.18.40.4-1",
+     "RV-15.78.4-1",
+     "GR-13.18.40.4-15"
+    ],
+    "nearest-2023": "GR-13.18.40.4-1",
+    "similarity": 0.378
+   },
+   "1985-GR-III.2-p28": {
+    "candidates-2023": [
+     "GR-13.18.63.4-9",
+     "SR-13.18.63.3-12",
+     "SR-13.18.38.3-25"
+    ],
+    "nearest-2023": "GR-13.18.63.4-9",
+    "similarity": 0.214
+   },
+   "1985-GR-III.2-p29": {
+    "candidates-2023": [
+     "GR-12.3.7.4-12",
+     "GR-8.1.2-3",
+     "GR-12.3.7.4-7"
+    ],
+    "nearest-2023": "GR-12.3.7.4-12",
+    "similarity": 0.373
+   },
+   "1985-GR-III.2-p31": {
+    "candidates-2023": [
+     "GR-12.4.5.7.4-1",
+     "GR-12.4.5.5.3-2",
+     "GR-12.3.6.4-9"
+    ],
+    "nearest-2023": "GR-12.4.5.7.4-1",
+    "similarity": 0.301
+   },
+   "1985-GR-III.2-p32": {
+    "candidates-2023": [
+     "GR-13.18.14.4-10",
+     "GR-14.9.1.4-15",
+     "GR-14.9.22.4-8"
+    ],
+    "nearest-2023": "GR-13.18.14.4-10",
+    "similarity": 0.443
+   },
+   "1985-GR-III.2-p37": {
+    "candidates-2023": [
+     "SR-13.18.49.3-2",
+     "SR-13.16.3-16",
+     "SR-13.18.38.3-22"
+    ],
+    "nearest-2023": "SR-13.18.49.3-2",
+    "similarity": 0.286
+   },
+   "1985-GR-III.2-p38": {
+    "candidates-2023": [
+     "SR-14.9.11.3-2",
+     "SR-14.9.1.3-2",
+     "GR-14.9.1.4-14"
+    ],
+    "nearest-2023": "SR-14.9.11.3-2",
+    "similarity": 0.301
+   },
+   "1985-GR-III.2-p39": {
+    "candidates-2023": [
+     "SR-8.4.3.11.3-1",
+     "SR-13.16.3-16",
+     "SR-13.18.33.3-5"
+    ],
+    "nearest-2023": "SR-8.4.3.11.3-1",
+    "similarity": 0.295
+   },
+   "1985-GR-III.2-p40": {
+    "candidates-2023": [
+     "GR-8.4.3.13.4-2",
+     "GR-8.3.2.2-L4.1",
+     "GR-8.3.2.2-L5.2"
+    ],
+    "nearest-2023": "GR-8.4.3.13.4-2",
+    "similarity": 0.343
+   },
+   "1985-SR-III.2-p44": {
+    "candidates-2023": [
+     "GR-8.8.4.8.4-2",
+     "GR-8.8.4.4.4-1",
+     "GR-8.8.4.4.4-2"
+    ],
+    "nearest-2023": "GR-8.8.4.8.4-2",
+    "similarity": 0.323
+   },
+   "1985-SR-III.2-p45": {
+    "candidates-2023": [
+     "SR-8.4.2.2.3-5",
+     "GR-8.8.4.5.3-2",
+     "SR-13.16.3-24"
+    ],
+    "nearest-2023": "SR-8.4.2.2.3-5",
+    "similarity": 0.337
+   },
+   "1985-GR-III.2-p52": {
+    "candidates-2023": [
+     "GR-8.8.1.2-3",
+     "SR-13.18.54.3-6",
+     "SR-13.16.3-16"
+    ],
+    "nearest-2023": "GR-8.8.1.2-3",
+    "similarity": 0.225
+   },
+   "1985-GR-III.2-p56": {
+    "candidates-2023": [
+     "SR-13.18.57.3-14",
+     "GR-13.18.16.4-4",
+     "GR-13.18.16.4-3"
+    ],
+    "nearest-2023": "SR-13.18.57.3-14",
+    "similarity": 0.384
+   },
+   "1985-GR-III.2-p61": {
+    "candidates-2023": [
+     "GR-13.18.40.5-13",
+     "AR-15.75.3-2",
+     "AR-15.84.3-2"
+    ],
+    "nearest-2023": "GR-13.18.40.5-13",
+    "similarity": 0.28
+   },
+   "1985-GR-III.2-p62": {
+    "candidates-2023": [
+     "SR-12.3.7.3-20",
+     "GR-8.1.2-3",
+     "GR-9.3.5.3-4"
+    ],
+    "nearest-2023": "SR-12.3.7.3-20",
+    "similarity": 0.445
+   },
+   "1985-GR-III.2-p64": {
+    "candidates-2023": [
+     "GR-14.9.51.4-4",
+     "GR-14.9.32.4-3",
+     "GR-14.9.35.4-6"
+    ],
+    "nearest-2023": "GR-14.9.51.4-4",
+    "similarity": 0.525
+   },
+   "1985-GR-III.2-p66": {
+    "candidates-2023": [
+     "SR-13.18.38.3-21",
+     "SR-13.16.3-16",
+     "GR-13.5.4-2"
+    ],
+    "nearest-2023": "SR-13.18.38.3-21",
+    "similarity": 0.367
+   },
+   "1985-GR-III.2-p68": {
+    "candidates-2023": [
+     "GR-14.6.4-2",
+     "GR-8.4.3.13.4-2",
+     "GR-12.4.5.3-4"
+    ],
+    "nearest-2023": "GR-14.6.4-2",
+    "similarity": 0.282
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "g-01",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-III.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Glossary term 'access mode' (Sequential, Relative, Indexed I-O): names the concept; the ACCESS MODE clause rules state the behaviour"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition no program can violate on its own; the ACCESS MODE clause rows carry the behaviour"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p2",
+      "quote": "The manner in which records are to be operated upon within a file",
+      "check": "OK  §1985:III.2 p2  (2. <u>DEFINITIONS</u>)  the text is in p2"
+     }
+    ],
+    "reason": "\"The manner in which records are to be operated upon within a file\" names a concept; it requires nothing a program or compiler could break apart from the ACCESS MODE clause rules. The 2023 candidates are wording matches only (the clause format and its GRs), which state clause behaviour, not this definition.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines the access mode of a file in a user's program as the manner in which its records are operated upon"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: the actual decimal point of a numeric edited item is the period",
+     "Nucleus: with DECIMAL-POINT IS COMMA it is the comma"
+    ],
+    "evidence-1985": {
+     "period": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p3_point.cob (run runs\\p3_point-001: POINT 12.34 OK)",
+     "comma": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p3_comma.cob (run runs\\p3_comma-001: COMMA 12,34 OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p3",
+      "quote": "using the decimal point characters period (.) or comma (,)",
+      "check": "OK  §1985:III.2 p3  (2. <u>DEFINITIONS</u>)  the text is in p3"
+     }
+    ],
+    "reason": "The 1985 text says the actual decimal point is represented \"using the decimal point characters period (.) or comma (,)\". The candidates (SR-8.3.3.3.2-3 literals, GR-14.6.8.2-3 MOVE, SR-13.18.40.3-36) speak of literals and assumed points, not of the physical point character. Both probes accepted and showed the character in the edited item.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p3_point.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p3_point.cob and p3_comma.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p3_point.cob and p3_comma.cob as the row's 85 cases",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: an alphabetic character is a letter or a space (ALPHABETIC class test: letters and spaces true, digits and special characters false)"
+    ],
+    "evidence-1985": {
+     "letter or space": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p5_alpha.cob (run runs\\p5_alpha-001: A1 Y, A2 Y, A3 N, A4 N)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p5",
+      "quote": "A letter or a space character",
+      "check": "OK  §1985:III.2 p5  (2. <u>DEFINITIONS</u>)  the text is in p5"
+     }
+    ],
+    "reason": "\"A letter or a space character\": the probe shows \"AB C\" and all spaces are ALPHABETIC, a digit or a hyphen makes the item not alphabetic. No 2023 candidate states the definition (UPPER-CASE RV, SPACE figurative, CURRENCY character).",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p5_alpha.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p5_alpha.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p5_alpha.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: an alphanumeric item holds any character of the computer's character set",
+     "Intrinsic Functions (§1989): CHAR and ORD reach every ordinal position"
+    ],
+    "evidence-1985": {
+     "any character": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p6_alnum.cob (run runs\\p6_alnum-001: CHARS 256 OK, every ordinal position 1..256 round-trips through PIC X)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p6",
+      "quote": "Any character in the computer's character set",
+      "check": "OK  §1985:III.2 p6  (2. <u>DEFINITIONS</u>)  the text is in p6"
+     }
+    ],
+    "reason": "\"Any character in the computer's character set\": the probe stores each of the 256 characters in a PIC X item and reads its ordinal back. DOC-A.1-31 (2023 implementor-defined coded character set) documents the set, it does not say an alphanumeric character is any member of it.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p6_alnum.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p6_alnum.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p6_alnum.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p7",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Intrinsic Functions (§1989): an alphanumeric function's value is a string of one or more characters (UPPER-CASE of length 3, CHAR of length 1)"
+    ],
+    "evidence-1985": {
+     "one or more characters": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p7_anfunc.cob (run runs\\p7_anfunc-002: F1 ABC 3 OK, F2 B 1 OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p7",
+      "quote": "composed of a string of one or more characters",
+      "check": "OK  §1985:III.2 p7  (2. <u>DEFINITIONS</u>)  the text is in p7"
+     }
+    ],
+    "reason": "\"composed of a string of one or more characters\": the probe shows UPPER-CASE(\"abc\") is the 3-character \"ABC\" and CHAR(67) the 1-character \"B\". The candidates are wording matches (ZERO figurative, ANUM source-format, REVERSE RV), none states the definition. The first run (runs\\p7_anfunc-001) used MOVE FUNCTION LENGTH(...) and was refused COBOL0900 citing §1985:IV.4.3.8.3.3 SR4, a correct refusal at 85 (an integer function only in an arithmetic expression); the probe now uses COMPUTE.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p7_anfunc.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p7_anfunc.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p7_anfunc.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p8",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Indexed I-O: glossary term 'alternate record key'; the ALTERNATE RECORD KEY clause rules state the behaviour"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition; the ALTERNATE RECORD KEY clause rows carry the behaviour"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p8",
+      "quote": "other than the prime record key",
+      "check": "OK  §1985:III.2 p8  (2. <u>DEFINITIONS</u>)  the text is in p8"
+     }
+    ],
+    "reason": "\"A key, other than the prime record key, whose contents identify a record within an indexed file\" names the concept used by the ALTERNATE RECORD KEY clause and the READ KEY phrase; it adds no requirement of its own. Candidates are wording matches.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines an alternate record key of an indexed file in a user's program as a key other than the prime record key whose contents identify a record"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p11",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: arithmetic statements (ADD, SUBTRACT, DIVIDE ... GIVING, COMPUTE) give the mathematically correct result",
+     "Nucleus: arithmetic expressions with precedence and fractional results"
+    ],
+    "evidence-1985": {
+     "arithmetic statements": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p11_arith.cob (run runs\\p11_arith-001: C2 0.3 OK, C3 2.50 OK, C4 -12 OK)",
+     "arithmetic expression": "covered by the same probe (C1 +041.5 OK for 7 * 6 - 2 / 4)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p11",
+      "quote": "that results in a mathematically correct solution to the arguments presented",
+      "check": "OK  §1985:III.2 p11  (2. <u>DEFINITIONS</u>)  the text is in p11"
+     }
+    ],
+    "reason": "\"that results in a mathematically correct solution to the arguments presented\" (catalog: not definitional). No 2023 candidate states it (E constant RV, native arithmetic A.1 item, numeric argument rule). The probe shows exact decimal results for an expression and four statements.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p11_arith.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p11_arith.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p11_arith.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p17",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Sequential/Relative/Indexed I-O: glossary term 'block' (physical record); the size relationship and the mass-storage portion are properties of the medium, see page IV-13 Conceptual Characteristics of a File; the BLOCK CONTAINS clause carries the program-visible rules"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition of a physical unit on the medium; nothing a program observes"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p17",
+      "quote": "The term is synonymous with physical record",
+      "check": "OK  §1985:III.2 p17  (2. <u>DEFINITIONS</u>)  the text is in p17"
+     }
+    ],
+    "reason": "\"A physical unit of data that is normally composed of one or more logical records ... The term is synonymous with physical record.\" It describes the medium; a program sees logical records only, and the BLOCK CONTAINS rules are their own rows. Candidates are the 2023 BLOCK CONTAINS rules, wording matches.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term for the physical medium, which no conforming program observes",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a block of a file in a user's program as a physical unit of data, synonymous with physical record, normally composed of one or more logical records"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p18",
+    "to": [
+     "SR-13.18.57.3-15"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "Report Writer: 'body group' names the report groups of TYPE DETAIL, CONTROL HEADING and CONTROL FOOTING"
+    ],
+    "evidence-1985": {
+     "body groups DE, CH, CF": "covered by conformance-suite cases/13.18.57-TYPE/pb1299_report_group_census_legal (at-85 accepted of SR-13.18.57.3-15)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p18",
+      "quote": "Generic name for a report group of TYPE DETAIL, CONTROL HEADING, or CONTROL FOOTING",
+      "check": "OK  §1985:III.2 p18  (2. <u>DEFINITIONS</u>)  the text is in p18"
+     },
+     {
+      "cite": "§2023:13.18.57.3 SR15",
+      "quote": "Groups of type DETAIL, CONTROL HEADING, and CONTROL FOOTING are referred to as body groups",
+      "check": "OK  §2023:13.18.57.3 SR15  (Syntax rules)  the text is in SR15"
+     }
+    ],
+    "reason": "1985: \"Generic name for a report group of TYPE DETAIL, CONTROL HEADING, or CONTROL FOOTING\"; 2023 SR15: \"Groups of type DETAIL, CONTROL HEADING, and CONTROL FOOTING are referred to as body groups\" — the same three types under the same name. pb1299_report_group_census_legal runs at 85 with a DETAIL, two CONTROL HEADINGs and two CONTROL FOOTINGs (the body groups) and checks their printed lines, so the pointer's 85 case exercises the whole 1985 scope.",
+    "probe": null,
+    "compiler-at-1985": null,
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p19",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Sequential I-O: LINAGE ... LINES AT BOTTOM: the bottom margin lines after the page body are empty",
+     "Report Writer: the lines of a page after its last body/footing line up to PAGE LIMIT"
+    ],
+    "evidence-1985": {
+     "LINAGE bottom margin empty": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p19_bottom.cob (run runs\\p19_bottom-002: L01 X, L02 Y, L03 EMPTY, L04 EMPTY, L05 Z)",
+     "Report Writer page": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p19",
+      "quote": "An empty area which follows the page body",
+      "check": "OK  §1985:III.2 p19  (2. <u>DEFINITIONS</u>)  the text is in p19"
+     }
+    ],
+    "reason": "\"An empty area which follows the page body\". GR-13.18.34.4-5 (2023 LINAGE integer-4) says only that integer-4 is the number of lines in the bottom margin, not that the area is empty, and its 85 case pb523_linage_margins_on_the_medium_85 reports record positions. The probe, LINAGE 2 LINES AT BOTTOM 2, writes X, Y, Z: X and Y fill the body, lines 3 and 4 are empty, Z begins page 2 at line 5.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p19_bottom.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p19_bottom.cob (LINAGE half; the Report Writer page not probed)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p19_bottom.cob; add a Report Writer page whose lines after the last footing line are read back empty",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p20",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Inter-Program Communication: glossary term 'called program'; the CALL statement rules carry the behaviour"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p20",
+      "quote": "A program which is the object of a CALL statement",
+      "check": "OK  §1985:III.2 p20  (2. <u>DEFINITIONS</u>)  the text is in p20"
+     }
+    ],
+    "reason": "\"A program which is the object of a CALL statement combined at object time with the calling program to produce a run unit\" names a role; the CALL GRs state what happens. Candidates are the 2023 CALL execution rules, wording matches.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a called program of a user's run unit as the program that is the object of a CALL statement, combined at object time with the calling program"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p21",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Inter-Program Communication: glossary term 'calling program'"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p21",
+      "quote": "A program which executes a CALL to another program",
+      "check": "OK  §1985:III.2 p21  (2. <u>DEFINITIONS</u>)  the text is in p21"
+     }
+    ],
+    "reason": "\"A program which executes a CALL to another program\" names a role only.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a calling program of a user's run unit as a program which executes a CALL to another program"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p22",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication: glossary term 'cd-name' (the user-defined word of a CD entry)"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition; the CD entry rows and 1985-GR-IV.6.3.2.1-p5's case carry the form"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p22",
+      "quote": "A user-defined word that names an MCS interface area",
+      "check": "OK  §1985:III.2 p22  (2. <u>DEFINITIONS</u>)  the text is in p22"
+     }
+    ],
+    "reason": "\"A user-defined word that names an MCS interface area described in a communication description entry\" defines the word class; the Communication module was dropped by 2014 so no 2023 rule states it (candidates are wording matches).",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a cd-name in a user's program as a user-defined word that names an MCS interface area described in a communication description entry"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p24",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: a DISPLAY character occupies one character position (sizes of DISPLAY items and groups)",
+     "implementor: further characteristics of the physical storage"
+    ],
+    "evidence-1985": {
+     "one DISPLAY character per position": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p24_charpos.cob (run runs\\p24_charpos-002: LEN 05 OK, a group of X(3) and 9(2) is 5 positions and equals \"ABC12\")",
+     "implementor characteristics": "not shown: implementor-defined"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p24",
+      "quote": "the amount of physical storage required to store a single standard data format character whose usage is DISPLAY",
+      "check": "OK  §1985:III.2 p24  (2. <u>DEFINITIONS</u>)  the text is in p24"
+     }
+    ],
+    "reason": "\"the amount of physical storage required to store a single standard data format character whose usage is DISPLAY\". GR-13.18.40.4-1 (2023) concerns national vs alphanumeric positions; no candidate states this. The first run (runs\\p24_charpos-001) used MOVE FUNCTION LENGTH and was correctly refused COBOL0900 (§1985:IV.4.3.8.3.3 SR4); the probe uses COMPUTE.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p24_charpos.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p24_charpos.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p24_charpos.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p28",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "All divisions: glossary term 'clause'"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p28",
+      "quote": "an ordered set of consecutive COBOL character-strings",
+      "check": "OK  §1985:III.2 p28  (2. <u>DEFINITIONS</u>)  the text is in p28"
+     }
+    ],
+    "reason": "\"an ordered set of consecutive COBOL character-strings whose purpose is to specify an attribute of an entry\" defines a unit of source; each clause's format is its own row. Candidates are VALUE/STEP rules, wording matches.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a clause of a user's source program as an ordered set of consecutive COBOL character-strings that specifies an attribute of an entry"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p29",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "All modules: the COBOL character set is the characters of the table that follows (rows 1985-GR-III.2-T7.*, each its own row)"
+    ],
+    "evidence-1985": {
+     "lead sentence": "not shown: the characters are rows of their own; this sentence only introduces the table"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p29",
+      "quote": "consists of the characters listed below",
+      "check": "OK  §1985:III.2 p29  (2. <u>DEFINITIONS</u>)  the text is in p29"
+     }
+    ],
+    "reason": "\"The complete COBOL character set consists of the characters listed below.\" The listed characters are separate rows (1985-GR-III.2-T7.1 '+' through T7.15 ':' and beyond), each testable there; this lead adds nothing beyond them.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the characters are the table rows' own; the lead sentence requires nothing they do not",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines the COBOL character set of a user's source program as exactly the characters listed in the table that follows (rows 1985-GR-III.2-T7.*)"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p31",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus, Sort-Merge, Indexed I-O: glossary term 'collating sequence'; PROGRAM COLLATING SEQUENCE, ALPHABET and the comparison rules carry the behaviour"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p31",
+      "quote": "The sequence in which the characters that are acceptable to a computer are ordered",
+      "check": "OK  §1985:III.2 p31  (2. <u>DEFINITIONS</u>)  the text is in p31"
+     }
+    ],
+    "reason": "\"The sequence in which the characters that are acceptable to a computer are ordered for purposes of sorting, merging, comparing, and for processing indexed files sequentially\" names the ordering the other rules apply.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines the collating sequence of a user's program as the ordering of characters used for sorting, merging, comparing and sequential indexed processing"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p32",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: COLUMN numbers count from 1 at the leftmost character position of the print line"
+    ],
+    "evidence-1985": {
+     "numbered from 1, by 1, from the left": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p32_column.cob (run runs\\p32_column-002: COL [A   B] OK, COLUMN 1 and COLUMN 5 at characters 1 and 5)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p32",
+      "quote": "The columns are numbered from 1, by 1, starting at the leftmost character position of the print line",
+      "check": "OK  §1985:III.2 p32  (2. <u>DEFINITIONS</u>)  the text is in p32"
+     }
+    ],
+    "reason": "\"The columns are numbered from 1, by 1, starting at the leftmost character position of the print line\" (catalog: not definitional). GR-13.18.14.4-10 (unoccupied columns are spaces) has no 85 case and states another property. The probe prints COLUMN 1 'A' and COLUMN 5 'B' and reads the line back as \"A   B\". The first run (runs\\p32_column-001) wrote an absolute LINE 1 in an RD without PAGE and was refused COBOL2199 citing §1985:XIII.3.15.3 SR5, a correct refusal; the probe uses LINE PLUS 1.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p32_column.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p32_column.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p32_column.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p37",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication: a communication description entry is the level indicator CD, a cd-name, then its clauses (input CD and output CD)",
+     "it describes the MCS interface"
+    ],
+    "evidence-1985": {
+     "CD, cd-name, clauses": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p39_twocd.cob (run runs\\p39_twocd-001: CD2 OK, an input and an output CD accepted and their fields usable) and by conformance-suite cases/IV.6.3.2@1985-Physical-and-Logical-Aspects-of-Data/1985-GR-IV_6_3_2_1-p5 (85 witness, input CD)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p37",
+      "quote": "composed of the level indicator CD, followed by a cd-name, and then followed by a set of clauses as required",
+      "check": "OK  §1985:III.2 p37  (2. <u>DEFINITIONS</u>)  the text is in p37"
+     }
+    ],
+    "reason": "\"composed of the level indicator CD, followed by a cd-name, and then followed by a set of clauses as required\" (catalog: not definitional). The Communication module left the standard by 2014, so no 2023 rule states it; the candidates (SAME AS, BASED, OCCURS) are wording matches. Two CD entries of that shape are accepted and run.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p39_twocd.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p39_twocd.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place p39_twocd.cob (it serves p37 and p39)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p38",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication: glossary term 'communication device' (hardware or software sending to or receiving from a queue)"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition of an external mechanism"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p38",
+      "quote": "capable of sending data to a queue and/or receiving data from a queue",
+      "check": "OK  §1985:III.2 p38  (2. <u>DEFINITIONS</u>)  the text is in p38"
+     }
+    ],
+    "reason": "\"A mechanism (hardware or hardware/software) capable of sending data to a queue and/or receiving data from a queue\" describes the environment; the closing sentence (programs with CD entries define these mechanisms) adds a role, no requirement. Candidates are wording matches.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term for an external mechanism and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a communication device as a mechanism sending to or receiving from a queue, which the communication description entries of a user's programs define"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p39",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication: the Communication Section of the Data Division holds one or more communication description areas"
+    ],
+    "evidence-1985": {
+     "one CD": "covered by conformance-suite cases/IV.6.3.2@1985-Physical-and-Logical-Aspects-of-Data/1985-GR-IV_6_3_2_1-p5 (85 witness)",
+     "more than one CD": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p39_twocd.cob (run runs\\p39_twocd-001: CD2 OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p39",
+      "quote": "composed of one or more communication description areas",
+      "check": "OK  §1985:III.2 p39  (2. <u>DEFINITIONS</u>)  the text is in p39"
+     }
+    ],
+    "reason": "\"composed of one or more communication description areas\" (catalog: not definitional) grants one or several; both are accepted. A removed module: no 2023 rule states it.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p39_twocd.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p39_twocd.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place p39_twocd.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p40",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "All modules: glossary term 'compile time'"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p40",
+      "quote": "The time at which a COBOL source program is translated",
+      "check": "OK  §1985:III.2 p40  (2. <u>DEFINITIONS</u>)  the text is in p40"
+     }
+    ],
+    "reason": "\"The time at which a COBOL source program is translated, by a COBOL compiler, to a COBOL object program\" names a phase; rules that act at compile time are their own rows.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines compile time of a user's source program as the time at which it is translated by a COBOL compiler to an object program"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-III.2-p44",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: condition-n of a general format (IF, PERFORM UNTIL, ...) is a simple condition",
+     "optionally parenthesized",
+     "or a combined condition of simple conditions, logical operators and parentheses"
+    ],
+    "evidence-1985": {
+     "simple": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p44_cond.cob (run runs\\p44_cond-001: K1 OK)",
+     "parenthesized": "covered by the same probe (K2 OK, ((A = 1)))",
+     "combined": "covered by the same probe (K3 OK in IF, K4 OK in PERFORM UNTIL)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p44",
+      "quote": "either a simple condition optionally parenthesized, or a combined condition",
+      "check": "OK  §1985:III.2 p44  (2. <u>DEFINITIONS</u>)  the text is in p44"
+     }
+    ],
+    "reason": "\"it is a conditional expression consisting of either a simple condition optionally parenthesized, or a combined condition\" grants the forms wherever a format writes condition-n; the probe's IF and PERFORM UNTIL accept and evaluate each. The candidates (OMITTED, zero-length class, NOT) do not state it.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p44_cond.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p44_cond.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p44_cond.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-III.2-p45",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: condition-name of a conditional variable",
+     "condition-name of an implementor switch status",
+     "in a general format: the reference with qualifiers",
+     "and with subscripts, as uniqueness requires"
+    ],
+    "evidence-1985": {
+     "conditional variable": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p45_condname.cob (run runs\\p45_condname-001: N1..N4 OK)",
+     "switch status": "covered by conformance-suite cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names (accept 85: SWITCH-3 ON/OFF STATUS, UPSI-7)",
+     "qualifiers": "covered by the probe (IS-SET OF GA, IS-SET OF FLG OF GB)",
+     "subscripts": "covered by the probe (ON-V (2), ON-V OF E OF T (3), ON-V OF T (2))"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p45",
+      "quote": "together with qualifiers and subscripts, as required for uniqueness of reference",
+      "check": "OK  §1985:III.2 p45  (2. <u>DEFINITIONS</u>)  the text is in p45"
+     }
+    ],
+    "reason": "\"it represents a unique data item reference consisting of a syntactically correct combination of a condition-name, together with qualifiers and subscripts, as required for uniqueness of reference\". SR-8.4.2.2.3-5 (2023, 85 case pb567_condition_name_qualification) states the qualification half only, not subscripts or the switch status, so no single pointer covers the scope; the probe and pb862 do.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p45_condname.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p45_condname.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p45_condname.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p52",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Data Division: glossary term 'contiguous items'"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p52",
+      "quote": "bear a definite hierarchical relationship to each other",
+      "check": "OK  §1985:III.2 p52  (2. <u>DEFINITIONS</u>)  the text is in p52"
+     }
+    ],
+    "reason": "\"Items that are described by consecutive entries in the Data Division, and that bear a definite hierarchical relationship to each other\" names a relationship that other rules use. Candidates are wording matches.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines contiguous items of a user's program as items described by consecutive Data Division entries that bear a definite hierarchical relationship"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p56",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: glossary term 'control data-name' (a data-name in a CONTROL clause)"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition; the CONTROL clause rows carry the behaviour"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p56",
+      "quote": "A data-name that appears in a CONTROL clause",
+      "check": "OK  §1985:III.2 p56  (2. <u>DEFINITIONS</u>)  the text is in p56"
+     }
+    ],
+    "reason": "\"A data-name that appears in a CONTROL clause and refers to a control data item\" names a role. Candidates (TYPE SR14, CONTROL GR3/GR4) state other rules.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a control data-name of a user's report as a data-name that appears in a CONTROL clause and refers to a control data item"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p61",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus/Report Writer: glossary term 'counter'"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p61",
+      "quote": "increased or decreased by the value of another number",
+      "check": "OK  §1985:III.2 p61  (2. <u>DEFINITIONS</u>)  the text is in p61"
+     }
+    ],
+    "reason": "\"A data item used for storing numbers ... in a manner that permits these numbers to be increased or decreased by the value of another number\" names a use of a data item; the arithmetic and SUM rows carry the behaviour.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a counter in a user's program as a data item storing numbers that may be increased, decreased, reset to zero or set to any value"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p62",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: the currency sign is '$' (PICTURE currency symbol with no CURRENCY SIGN clause, floating and fixed)"
+    ],
+    "evidence-1985": {
+     "'$' as currency sign": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p62_currency.cob (run runs\\p62_currency-001: CUR1 [ $12.50] OK, CUR2 [$7] OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p62",
+      "quote": "The character '$' of the COBOL character set",
+      "check": "OK  §1985:III.2 p62  (2. <u>DEFINITIONS</u>)  the text is in p62"
+     }
+    ],
+    "reason": "\"The character '$' of the COBOL character set\" (catalog: not definitional). SR-12.3.7.3-20 (2023, non-COBOL currency character equivalence) states another rule. The probe edits with floating $$$9.99 and fixed $9.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p62_currency.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01\\p62_currency.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p62_currency.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p64",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Sequential/Relative/Indexed I-O: glossary term 'current record'"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition; READ/WRITE record-area rules carry the behaviour"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p64",
+      "quote": "the record which is available in the record area associated with a file",
+      "check": "OK  §1985:III.2 p64  (2. <u>DEFINITIONS</u>)  the text is in p64"
+     }
+    ],
+    "reason": "\"In file processing, the record which is available in the record area associated with a file\" names the record; candidates (WRITE, RELEASE, REWRITE record-area rules) state when a record stops being available, other rules.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines the current record of a file in a user's program as the record available in the record area associated with that file"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p66",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Data Division: glossary term 'data clause'"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p66",
+      "quote": "that provides information describing a particular attribute of a data item",
+      "check": "OK  §1985:III.2 p66  (2. <u>DEFINITIONS</u>)  the text is in p66"
+     }
+    ],
+    "reason": "\"A clause, appearing in a data description entry ... that provides information describing a particular attribute of a data item\" names a category of clause.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a data clause of a user's program as a clause of a data description entry describing a particular attribute of a data item"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p68",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus, Intrinsic Functions: glossary term 'data item' (excluding literals; including function values)"
+    ],
+    "evidence-1985": {
+     "definition of the term": "not shown: a definition"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p68",
+      "quote": "A unit of data (excluding literals) defined by a COBOL program",
+      "check": "OK  §1985:III.2 p68  (2. <u>DEFINITIONS</u>)  the text is in p68"
+     }
+    ],
+    "reason": "\"A unit of data (excluding literals) defined by a COBOL program or by the rules for function evaluation\" names the category that every data rule uses.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row defines a term and requires no observable behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a data item of a user's program as a unit of data, other than a literal, defined by the program or by the rules for function evaluation"
+    },
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "tooling",
+    "row": null,
+    "what": "run_goldens.py cannot run: it reads prose85-map.json from the slice base directory, which does not exist, and its EXE path joins BASE with an absolute Windows string holding an invalid escape (SyntaxWarning \\C). No row of g-01 carries prose85, so no golden evidence was lost here.",
+    "repro": "python E:\\COBOL-coord\\scratch\\w20262131o\\tools\\run_goldens.py g-01",
+    "site": "E:\\COBOL-coord\\scratch\\w20262131o\\tools\\run_goldens.py#EXE,prose85-map.json"
+   },
+   {
+    "kind": "tooling",
+    "row": null,
+    "what": "The brief names the stop file as E:\\COBOL-coord\\scratch\\w20262131o\\w20262131o\\STOP-reads (a doubled directory) while the dispatch names E:\\COBOL-coord\\scratch\\w20262131o\\STOP-reads; both were checked.",
+    "repro": "E:\\COBOL-coord\\scratch\\w20262131o\\BRIEF-reader.md line 105",
+    "site": "E:\\COBOL-coord\\scratch\\w20262131o\\BRIEF-reader.md"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "g-01",
+  "cases": [
+   {
+    "rule-id": "1985-GR-III.2-p18",
+    "verdict": "UPHELD",
+    "reason": "Strongest reading tried: 2023 SR15 carries a second sentence (at least one body group) that 1985 might not require, and the census case shows no rule that depends on the body-group class. Neither holds: 1985 TYPE SR7 states the same requirement, so the pointer's whole verdict is true of the 1985 scope; the census case runs at 85 accepted with DE, CH and CF groups. The classification itself is also correct at 85: probe bodynp.cob (LINE ... ON NEXT PAGE in CH, DE and CF, allowed only in body groups by 1985 LINE SR7) is accepted and runs (BODYNP OK); phnp.cob, the same with a PAGE HEADING using NEXT PAGE, is refused COBOL2199 citing XIII.3.15.3 SR7. That pair is a stronger own witness than the census case, if one is wanted.",
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.20.3 SR7",
+      "quote": "The description of a report must include at least one body group",
+      "check": "OK  §1985:XIII.3.20.3 SR7  (3.20.3 Syntax Rules)  the text is in SR7"
+     },
+     {
+      "cite": "§2023:13.18.57.3 SR15",
+      "quote": "Each report description shall include at least one body group",
+      "check": "OK  §2023:13.18.57.3 SR15  (Syntax rules)  the text is in SR15"
+     },
+     {
+      "cite": "§1985:XIII.3.15.3 SR7",
+      "quote": "may appear only in the description of body groups",
+      "check": "OK  §1985:XIII.3.15.3 SR7  (3.15.3 Syntax Rules)  the text is in SR7"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01-refute\\bodynp.cob; E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01-refute\\phnp.cob (runs E:\\COBOL-coord\\scratch\\w20262131o\\runs\\bodynp-001, phnp-001)",
+    "compiler-at-1985": "correct: probes\\g-01-refute\\bodynp.cob accepted, BODYNP OK; probes\\g-01-refute\\phnp.cob refused COBOL2199 (XIII.3.15.3 SR7)"
+   }
+  ],
+  "disputed-different": []
+ },
+ "derivation-refute": {
+  "slice": "g-01",
+  "cases": [
+   {
+    "rule-id": "1985-GR-III.2-p2",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A program whose result depends on what 'access mode' means, apart from what the ACCESS MODE clause and the I-O statement rules say for each mode.",
+    "reason": "None found. The row names the concept and its subject is a file of the user's program. Every observable behaviour (which statements are allowed, sequential or random retrieval) is stated by the ACCESS MODE clause and statement rows.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p8",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A program declaring ALTERNATE RECORD KEY on the prime key's item, to show 'other than the prime record key'.",
+    "reason": "That program is refused under §1985:IX.2.5.3 SR4 (cite_check OK: 'must not reference an item whose leftmost character position corresponds'), its own row. The definition itself requires nothing further.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p17",
+    "arm": "definitional",
+    "verdict": "OVERTURNED",
+    "attempt": "probes\\g-01-refute\\blkfile.cob: write 3 records to a file with BLOCK CONTAINS 5 RECORDS, read it back and count them. A compiler that let block size shape file size (padding to a whole block, so extra records come back) would break the row's third sentence, 'The size of a block has no direct relationship to the size of the file' (cite_check OK §1985:III.2 p17).",
+    "reason": "The row has more than a definition: sentences 2-3 state properties of the medium (a block may hold part of a logical record; block size is unrelated to file and record size), and a program can see a violation. Its subject is also the implementation's physical medium, not the user's program, which the definitional arm excludes. At 85 the compiler is correct: BLKFILE OK 3 (run E:\\COBOL-coord\\scratch\\w20262131o\\runs\\blkfile-001). The row needs an own witness, not a derivation.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-01-refute\\blkfile.cob"
+   },
+   {
+    "rule-id": "1985-GR-III.2-p20",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A program whose outcome depends on 'combined at object time', such as a CALL that must resolve at run time.",
+    "reason": "The run-time resolution and the effects of CALL are the CALL statement's GRs, in their own rows. This row names a role in the user's run unit and adds nothing a program could see.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p21",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "Same as for p20.",
+    "reason": "It names a role in the user's run unit, and no outcome depends on it.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p22",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A program using a cd-name in a way that tests the definition.",
+    "reason": "The form and use of a cd-name are stated by the CD entry rows. This row defines the class of user-defined word, a property of the user's program.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p28",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A program that depends on what counts as a clause.",
+    "reason": "Each clause's format and rules are separate rows. This row defines a unit of the user's source and requires nothing.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p29",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "Read 'complete' as closing the set: a program at 85 that uses a character outside the set outside literals and comments must be refused.",
+    "reason": "That closure is stated as its own requirement in §1985:IV.4.1 p1 (cite_check OK: 'The character set consists of the characters as defined under COBOL Character Set'), together with the literal and comment expansion. The members are the T7 rows. The lead requires nothing beyond those rows.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p31",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A program whose comparisons, SORT/MERGE or sequential indexed retrieval depend on the definition.",
+    "reason": "Each of the four uses is a separate rule (the comparison rules, PROGRAM COLLATING SEQUENCE, SORT/MERGE, READ NEXT ordering). The row only names the ordering they apply.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p38",
+    "arm": "definitional",
+    "verdict": "OVERTURNED",
+    "attempt": "No program witness written. The attack is on the arm's precondition.",
+    "reason": "The subject of the row is not the user's program. It is an external mechanism: 'A mechanism (hardware or hardware/software)... This mechanism may be a computer or a peripheral device' (cite_check OK §1985:III.2 p38 on 'This mechanism may be a computer or a peripheral device'). The definitional arm requires a property OF THE USER'S PROGRAM and never one of the implementation or environment. The names given recast the subject as the device. Only the third sentence touches programs with CD entries. The arm does not fit, so the row needs another arm (informative about the environment, if every sentence qualifies) or a Communication-module witness of the third sentence.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p40",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "Read the subject as the implementation's translation phase, not the user's program, and look for a program whose result depends on the term.",
+    "reason": "Rules that act 'at compile time' are their own rows. The term qualifies when the user's source program is translated. No program outcome depends on this row alone.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p52",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A program whose result depends on 'contiguous items' apart from the rules that use the term.",
+    "reason": "The rules that use the term state the behaviour. This row defines a relationship among items of the user's program.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p56",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A program depending on what a control data-name is.",
+    "reason": "The CONTROL clause rows state the form and the control-break behaviour. This row names a role in the user's report.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p61",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A program whose result depends on a data item being a 'counter'.",
+    "reason": "The arithmetic, SUM and SET rows state the behaviour. This row names a use of a data item of the user's program.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p64",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A program showing that the record area holds the record after a READ.",
+    "reason": "That is a READ general rule, in its own row. This row names the record available in the record area of a user's file.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p66",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A program depending on what counts as a data clause.",
+    "reason": "Each data clause is a separate set of rows. This row names a category of clause in the user's program.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p68",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A program depending on 'excluding literals' or on function values being data items.",
+    "reason": "The rows that use the term state the behaviour for literals and for functions. This row defines a category in the user's program.",
+    "probe": null
+   }
+  ]
+ },
+ "imported": {
+  "asked": "de112c1b4db92361f556bff24e84ea952590f29464371d9be4ad82c6c0300e8b",
+  "derivation-refute": "00ba133a7cdebe39aca11c608082ef9f7d3d119b6c44a7c57abb0229abc49bdd",
+  "read": "ca916ea3d4db17189f6c90911fb8e9acb173605c8693d90971a4628dc5371975",
+  "refute": "a077b2842f11881fab91b9a4ae3e95931d4b0a3ddd6e7699b9397afe7010c8b1"
+ }
+}

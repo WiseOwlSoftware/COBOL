@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-III.2-p212",
+ "rule-digest": "2584defe3bb1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#paragraphDefinition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#configurationParagraph",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-SR-III_2-p212",
+ "notes": "Own witness from the read lineage-reads-1985/g-04.json: the reader showed the compiler correct at 85 with its probe (p212_paragraphs.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The row grants a form (\"zero, one, or more sentences\", \"zero, one, or more entries\"), so it needs an accepted program. Candidates (separator period, USE placement, prototype restrictions) are wording-only. Run p212_paragraphs-001 printed 'P212 OK' (COBOL0903 obsolete warnings only, correct for the five comment paragraphs at 85). Code location located after the read: paragraphDefinition is a paragraph-name, separator period and zero or more sentences; identificationParagraph and configurationParagraph are the header-plus-entries paragraphs of the Identification and Environment Divisions."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p323",
+ "rule-digest": "5ae14ae7f72e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ArithmeticOperandRule.cs#ArithmeticOperandRule; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericInNumericContext",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p323",
+ "notes": "Own witness from the read lineage-reads-1985/g-06.json: the reader showed the compiler correct at 85 with its refusal probe (vargrp.cob, refused at its line 13; its control varctl compiles), placed as the row's own test. The read: 'A variable used in an arithmetic-expression must be a numeric elementary item.' is a testable restriction (also VI.6.2.1). The candidates are conditional-variable and SET rules (wording 'variable'); none states it. Control accepted, both one-line refusals diagnosed COBOL0844 citing §1985:VI.6.2.1. Code location located after the read: ArithmeticOperandRule.Admits states and ExpressionBinder refuses operands of an arithmetic expression that are not a numeric elementary item, numeric literal or ZERO (COBOL0844)."
+}

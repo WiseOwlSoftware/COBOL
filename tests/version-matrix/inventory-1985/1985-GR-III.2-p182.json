@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p182",
+ "rule-digest": "e3f50aaaad8a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#unaryLogicalExpression; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundNot",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p182",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p182); the code location is where the compiler meets the rule's subject. The read: The row defines a term only. Candidates (a boolean-expression format, condition-name format, a BOOLEAN SR) match wording only. The code location was located after the read (locations-all.json): NOT before a simple condition parses as unaryLogicalExpression and binds to BoundNot over the simple condition."
+}

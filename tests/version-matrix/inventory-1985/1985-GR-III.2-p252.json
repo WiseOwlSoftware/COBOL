@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p252",
+ "rule-digest": "be81762c5bd8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#RelativeConnector",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p252",
+ "notes": "Derivation from the read lineage-reads-1985/g-05.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p252); the code location is where the compiler meets the rule's subject. The read: \"Relative File. A file with relative organization.\" A name only; relative organization's requirements are the Relative I-O rows. The code location was located after the read (locations-all.json): MapOrganization maps ORGANIZATION IS RELATIVE to FileOrganization.Relative and RelativeConnector is the connector realising a relative file."
+}

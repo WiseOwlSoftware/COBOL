@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p163",
+ "rule-digest": "a0ec4845efbb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#logicalAndExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#logicalOrExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#unaryLogicalExpression; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundLogical; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundNot",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p163",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with its probe (p163_logical_operators.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"In the formation of a condition, either AND, or OR, or both, can be used as logical connectives. NOT can be used for logical negation.\" grants forms, so it takes an accepted program; the probe uses each and checks the results. The candidates (WRITE, reserved words, RELEASE) are unrelated wording matches. Code location located after the read: The logical tiers parse AND, OR and NOT, and BoundLogical/BoundNot represent the connectives and negation."
+}

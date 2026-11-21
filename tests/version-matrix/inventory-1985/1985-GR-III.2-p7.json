@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p7",
+ "rule-digest": "28421431436b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicType; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IntrinsicResultType",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p7",
+ "notes": "Own witness from the read lineage-reads-1985/g-01.json: the reader showed the compiler correct at 85 with its probe (p7_anfunc.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"composed of a string of one or more characters\": the probe shows UPPER-CASE(\"abc\") is the 3-character \"ABC\" and CHAR(67) the 1-character \"B\". The candidates are wording matches (ZERO figurative, ANUM source-format, REVERSE RV), none states the definition. The first run (runs\\p7_anfunc-001) used MOVE FUNCTION LENGTH(...) and was refused COBOL0900 citing §1985:IV.4.3.8.3.3 SR4, a correct refusal at 85 (an integer function only in an arithmetic expression); the probe now uses COMPUTE. Code location located after the read: IntrinsicType.Alphanumeric classifies a function whose value is a string of characters and IntrinsicResultType resolves that result type per function."
+}

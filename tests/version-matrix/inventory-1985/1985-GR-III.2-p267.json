@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p267",
+ "rule-digest": "0b968a65eeff",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ReportGroupLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ReportLineImage",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p258",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its probe (rw.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A record that consists of the report writer print line and associated control information necessary for its selection and vertical positioning.\" The observable part is that each print line lands at its vertical position; the probe shows it. Candidates have no 85 case. Code location located after the read: WEAK: ReportGroupLine pairs a print line (the compose delegate) with its LINE clause control information used for vertical positioning, and ReportLineImage holds the composed line."
+}

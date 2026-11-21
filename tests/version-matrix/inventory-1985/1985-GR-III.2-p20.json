@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p20",
+ "rule-digest": "d1b711bf7ed6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramRegistry.cs#CallProgram",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p20",
+ "notes": "Derivation from the read lineage-reads-1985/g-01.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p20); the code location is where the compiler meets the rule's subject. The read: \"A program which is the object of a CALL statement combined at object time with the calling program to produce a run unit\" names a role; the CALL GRs state what happens. Candidates are the 2023 CALL execution rules, wording matches. The code location was located after the read (locations-all.json): CallProgram resolves the called program by name at run time and runs it with the caller arguments inside the run unit."
+}

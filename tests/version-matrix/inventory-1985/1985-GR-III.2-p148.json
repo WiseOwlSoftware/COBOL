@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p148",
+ "rule-digest": "8c08f240e982",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#KeyedInvalidPhrase; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#FileStatusCode",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p148",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with its probe (p148_invalid_key.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The condition is observable through the INVALID KEY phrase on both organizations. GR-14.9.35.4-21's 85 case covers a relative REWRITE only, and GR-9.1.14-1 and GR-14.9.10.4-4 have no 85 case, so no pointer covers indexed and relative at 85. Code location located after the read: KeyedInvalidPhrase binds the INVALID KEY phrase and FileStatusCode.RecordNotFound (23) is the status the runtime sets when the key value is invalid."
+}

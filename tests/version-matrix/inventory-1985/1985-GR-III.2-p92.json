@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p92",
+ "rule-digest": "2ebd815dde3a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#FileOpenMode; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadOpenModeGuard",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p122",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (MODES.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter's ruling stands: the row defines a run-time state of the file connector that statement outcomes depend on, not a property of the user's program. Rerun now at --std 85, the refuter's MODES.cob shows the extend mode (READ 47, WRITE appends 00, the record follows the earlier one). Code location located after the read: FileOpenMode.Extend is the extend mode and ReadOpenModeGuard refuses a READ in it with status 47 while WRITE appends."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p121",
+ "rule-digest": "6eadf09e58d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlParagraph; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#FileControlBinder",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p121",
+ "notes": "Derivation from the read lineage-reads-1985/g-02.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p121); the code location is where the compiler meets the rule's subject. The read: \"An entry in the I-O-CONTROL paragraph of the Environment Division which contains clauses which provide information required for the transmission and handling of data on named files.\" A term only. The code location was located after the read (locations-all.json): ioControlParagraph parses the I-O-CONTROL entry clauses and FileControlBinder.IoControl binds them."
+}

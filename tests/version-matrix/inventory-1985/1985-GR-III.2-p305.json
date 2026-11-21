@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p305",
+ "rule-digest": "4982c56498b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p305",
+ "notes": "Derivation from the read lineage-reads-1985/g-06.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p305); the code location is where the compiler meets the rule's subject. The read: 'A program which is the object of a CALL statement combined at object time with the calling program to produce a run unit. The term is synonymous with called program.' The behaviour (CALL transfers control, run unit) is the CALL statement's rules; this names the role. Candidates are 2023 CALL/GOBACK rules with no 85 case. The code location was located after the read (locations-all.json): BindCall binds a CALL statement to its called program and ProgramTable.CallProgram combines the called program with the caller at run time within the one run unit."
+}

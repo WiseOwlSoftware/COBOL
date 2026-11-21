@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-III.2-p66", "definitional", "defines a data clause of a user's program as a clause of a data description entry describing a particular attribute of a data item", "\"A clause, appearing in a data description entry ... that provides information describing a particular attribute of a data item\" names a category of clause. Cited: §1985:III.2 p66. Proposed by the read lineage-reads-1985/g-01.json; its refuter, trying to write the witness the derivation says cannot exist (A program depending on what counts as a data clause.), UPHELD it: Each data clause is a separate set of rows. This row names a category of clause in the user's program.", "claude: 2026-11-21", "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"]
+---

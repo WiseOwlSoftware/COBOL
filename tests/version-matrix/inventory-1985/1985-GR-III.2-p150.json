@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p150",
+ "rule-digest": "7d8c43f15b26",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#_refKey",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p150",
+ "notes": "Derivation from the read lineage-reads-1985/g-03.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p150); the code location is where the compiler meets the rule's subject. The read: \"The key, either prime or alternate, currently being used to access records within an indexed file\" names a state that the statement rules set and read; the definition itself establishes nothing. The code location was located after the read (locations-all.json): _refKey holds the key (prime or i-th alternate) currently used to access records, set by READ KEY, START and OPEN."
+}

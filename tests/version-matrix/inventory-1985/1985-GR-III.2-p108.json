@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p108",
+ "rule-digest": "8b37c9ac9cd1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#InvalidateFilePosition; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FpiValid; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#TargetReadOrdinal",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p108",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (FPIAT.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter's ruling stands: READ outcomes depend on each state the indicator holds, so a program shows it. Rerun now at --std 85: 00, 10, then 46 once the at-end state exists, and 10 on an absent optional file. Code location located after the read: The connector holds the position indicator (key plus validity bit for keyed files, read ordinal for sequential) and InvalidateFilePosition clears it on an unsuccessful READ or START."
+}

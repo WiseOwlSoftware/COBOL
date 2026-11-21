@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-B.2.1-99",
+ "rule-digest": "b3010a9e7760",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString",
+ "test-ref": "conformance:cases/B.2@1985-SUBSTANTIVE-CHANGES/1985-SR-B_2_1-99",
+ "notes": "Own witness from the read lineage-reads-1985/g-07.json: the reader showed the compiler correct at 85 with its probe (string-into-group.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'The identifier in the INTO phrase of the STRING statement may be a group item' grants a form. The candidates are wording-only: SR-14.9.43.3-6 forbids a strongly-typed group, and the GR-4 and GR-7 rules concern POINTER and the unchanged portion. None grants a group receiver, and none has an at-85 case. The probe strings AB and CDE into an 8-byte group pre-filled with '*'. The result ABCDE*** with POINTER 6 shows the group receiver accepted at 85, and the unreferenced portion left unchanged. Code location located after the read: BindString screens the INTO receiver by its syntax rules and admits a group item that is not strongly typed or variable-length."
+}

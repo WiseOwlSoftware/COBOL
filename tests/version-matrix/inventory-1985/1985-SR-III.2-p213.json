@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-III.2-p213",
+ "rule-digest": "6c33fa1a9d66",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationParagraph; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-SR-III_2-p213",
+ "notes": "Own witness from the read lineage-reads-1985/g-04.json: the reader showed the compiler correct at 85 with its probe (p213_headers.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A reserved word, followed by the separator period, that indicates the beginning of a paragraph in the Identification and Environment Divisions. The permissible paragraph headers in the Identification Division are:\" The row's text ends at the lead; the two lists of headers are in no catalog row (lead filed). Run p213_headers-001 printed 'P213 OK' with every Identification and Environment header, DECIMAL-POINT IS COMMA in effect. Candidates (prototype restrictions, the 2023 identification division format, locale) are wording-only. Code location located after the read: identificationParagraph lists the permitted paragraph headers and ClosedFormatPass.VisitUnrecognizedClause refuses any other header word run (COBOL1971)."
+}

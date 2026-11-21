@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p223",
+ "rule-digest": "900dadf74baa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p223",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its refusal probe (p223-gi-nocol.cob, refused at its line 33; its control p223-gi-col-control compiles), placed as the row's own test. The read: The refuter's ruling stands: whether GROUP INDICATE is legal turns on this row's sentence. Rerun now, the case without COLUMN is refused COBOL2519 (citing XIII.3.13.3 SR1 and III.2), and my control, the same program with COLUMN 6, is accepted and prints the item, so the pair isolates the COLUMN NUMBER part of the definition. Code location located after the read: The method refuses a GROUP INDICATE entry that does not define a printable item (no COLUMN clause) with COBOL2519 citing III.2."
+}

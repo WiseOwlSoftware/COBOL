@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p66",
+ "rule-digest": "d300f71da58e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionClause",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p66",
+ "notes": "Derivation from the read lineage-reads-1985/g-01.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p66); the code location is where the compiler meets the rule's subject. The read: \"A clause, appearing in a data description entry ... that provides information describing a particular attribute of a data item\" names a category of clause. The code location was located after the read (locations-all.json): dataDescriptionClause is the grammar rule enumerating the clauses of a data description entry."
+}

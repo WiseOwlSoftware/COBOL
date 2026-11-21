@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p239",
+ "rule-digest": "58f41406b3b5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#AreaRecord; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeRange",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p239",
+ "notes": "Own witness from the read lineage-reads-1985/g-04.json: the reader showed the compiler correct at 85 with its probe (p239_record_area_v2.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but its second sentence is observable: \"the current number of character positions in the record area is determined by the explicit or implicit RECORD clause.\" Run p239_record_area_v2-001 printed 'P239 05 ABCDE 12 ABCDEFGHIJKL' and 'P239 OK'. (The first version, p239_record_area-001, was refused for READ without AT END, correctly per §1985:VII.4.4.3 SR2.) Candidates (READ INTO, CLOSE record availability, RETURN INTO) state neighbouring rules, not this one. Code location located after the read: AreaRecord selects the record description that sizes the FD record area, and RecordSizeRange gives its current character-position range from the explicit RECORD clause or else the record descriptions."
+}

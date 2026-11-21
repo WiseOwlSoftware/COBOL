@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-B.2.1-29",
+ "rule-digest": "8a5ff1765494",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlParagraph; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/B.2@1985-SUBSTANTIVE-CHANGES/1985-SR-B_2_1-29",
+ "notes": "Own witness from the read lineage-reads-1985/g-07.json: the reader showed the compiler correct at 85 with its probe (iocontrol-order.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'The order of clauses is immaterial in the I-O-CONTROL paragraph' grants a form, so the witness must be an accepted program. The nearest pointer, FMT-12.4.6.2, grants any order only for the 2023 clauses apply-commit and SAME. Its at-85 cases are all diagnosed-only, and the 1985 clauses RERUN and MULTIPLE FILE TAPE do not exist in 2023. The probe writes the three 1985 clauses in reverse printed order, is accepted at 85, and runs: SAME RECORD AREA shares the record, so R2 = WXYZ after MOVE to R1. Code location located after the read: ioControlParagraph accepts its clauses in any order ((ioControlClause DOT?)*) and BindIoControl binds each clause independent of position."
+}

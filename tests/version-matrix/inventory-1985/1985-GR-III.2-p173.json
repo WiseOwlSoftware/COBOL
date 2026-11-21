@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p173",
+ "rule-digest": "fa5429f8edb6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#MessageControl",
+ "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-10",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-10), joined as the row's own test. The read: \"A communication control system that supports the processing of messages\" names the system the Communication module requires; WiseOwl provides one at 85 (docs/conformance/3.3, kb/Work PB4677), and the SEND case exercises it end to end. 2023 has no communication module (its candidates are unrelated: STOP RUN, a locale A.1 item, a report TYPE rule). Code location located after the read: MessageControl is the runtime message control system processing SEND and RECEIVE of messages."
+}

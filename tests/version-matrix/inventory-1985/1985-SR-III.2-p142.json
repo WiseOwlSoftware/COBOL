@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-III.2-p142",
+ "rule-digest": "4a7f03c721e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandPass",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-SR-III_2-p142",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with its refusal probe (p142_zero_refused.cob, refused at its line 10; its control p142_zero_allowed compiles), placed as the row's own test. The read: \"integer must be a numeric literal which is an integer, and it must be neither signed nor zero unless explicitly allowed by the rules for that format\". The candidates are the FUNCTION INTEGER format and two intrinsic argument rules, none of which states the general-format constraint. Probes show all three parts and the 'unless explicitly allowed' arm. Code location located after the read: IntegerOperandPass refuses a zero integer operand wherever the format does not allow it, and the grammar gives integerLiteral no sign."
+}

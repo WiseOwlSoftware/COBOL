@@ -1,0 +1,1075 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice g-99 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "g-99",
+ "edition": 1985,
+ "asked": {
+  "slice": "g-99",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-III.2-p17",
+   "1985-GR-III.2-p38",
+   "1985-GR-III.2-p78",
+   "1985-GR-III.2-p92",
+   "1985-GR-III.2-p100",
+   "1985-GR-III.2-p108",
+   "1985-GR-III.2-p110",
+   "1985-GR-III.2-p122",
+   "1985-GR-III.2-p126",
+   "1985-GR-III.2-p167",
+   "1985-GR-III.2-p168",
+   "1985-GR-III.2-p219",
+   "1985-GR-III.2-p223",
+   "1985-GR-III.2-p235",
+   "1985-GR-III.2-p244",
+   "1985-GR-III.2-p245",
+   "1985-GR-III.2-p269",
+   "1985-GR-III.2-p291",
+   "1985-GR-III.2-p303",
+   "1985-GR-III.2-p312",
+   "1985-GR-III.2-p314",
+   "1985-GR-III.2-p320",
+   "1985-GR-III.2-p327",
+   "1985-GR-III.2-p159",
+   "1985-GR-III.2-p160",
+   "1985-GR-III.2-L4.1"
+  ],
+  "pointers": {
+   "1985-GR-III.2-p17": {
+    "candidates-2023": [
+     "GR-13.18.10.4-1",
+     "FMT-13.18.10.2",
+     "GR-13.18.10.4-2"
+    ],
+    "nearest-2023": "GR-13.18.10.4-1",
+    "similarity": 0.53
+   },
+   "1985-GR-III.2-p38": {
+    "candidates-2023": [
+     "SR-14.9.11.3-2",
+     "SR-14.9.1.3-2",
+     "GR-14.9.1.4-14"
+    ],
+    "nearest-2023": "SR-14.9.11.3-2",
+    "similarity": 0.301
+   },
+   "1985-GR-III.2-p78": {
+    "candidates-2023": [
+     "FMT-13.18.18.2",
+     "GR-13.18.18.4-1",
+     "GR-13.18.18.4-5"
+    ],
+    "nearest-2023": "FMT-13.18.18.2",
+    "similarity": 0.267
+   },
+   "1985-GR-III.2-p92": {
+    "candidates-2023": [
+     "GR-14.9.51.4-18",
+     "GR-14.9.6.4-8",
+     "SR-13.4.5.3-9"
+    ],
+    "nearest-2023": "GR-14.9.51.4-18",
+    "similarity": 0.477
+   },
+   "1985-GR-III.2-p100": {
+    "candidates-2023": [
+     "GR-14.9.27.4-10",
+     "GR-14.9.10.4-18",
+     "GR-9.1.13.6-7"
+    ],
+    "nearest-2023": "GR-14.9.27.4-10",
+    "similarity": 0.564
+   },
+   "1985-GR-III.2-p108": {
+    "candidates-2023": [
+     "GR-14.9.30.4-21",
+     "GR-9.1.13.4-2",
+     "GR-12.4.5.13.4-1"
+    ],
+    "nearest-2023": "GR-14.9.30.4-21",
+    "similarity": 0.585
+   },
+   "1985-GR-III.2-p110": {
+    "candidates-2023": [
+     "GR-14.9.30.4-14",
+     "GR-14.9.51.4-42",
+     "GR-14.9.35.4-25"
+    ],
+    "nearest-2023": "GR-14.9.30.4-14",
+    "similarity": 0.528
+   },
+   "1985-GR-III.2-p122": {
+    "candidates-2023": [
+     "GR-14.9.27.4-16",
+     "GR-14.9.6.4-8",
+     "GR-9.1.13.2-6"
+    ],
+    "nearest-2023": "GR-14.9.27.4-16",
+    "similarity": 0.55
+   },
+   "1985-GR-III.2-p126": {
+    "candidates-2023": [
+     "DOC-A.1-198",
+     "SR-7.3.13.3-1",
+     "DOC-A.1-118"
+    ],
+    "nearest-2023": "DOC-A.1-198",
+    "similarity": 0.187
+   },
+   "1985-GR-III.2-p167": {
+    "candidates-2023": [
+     "GR-13.18.13.4-2",
+     "GR-13.18.44.4-2",
+     "GR-14.9.6.4-2"
+    ],
+    "nearest-2023": "GR-13.18.13.4-2",
+    "similarity": 0.214
+   },
+   "1985-GR-III.2-p168": {
+    "candidates-2023": [
+     "GR-14.7.9.3-3",
+     "GR-12.4.5.13.4-2",
+     "SR-13.18.16.3-1"
+    ],
+    "nearest-2023": "GR-14.7.9.3-3",
+    "similarity": 0.337
+   },
+   "1985-GR-III.2-p219": {
+    "candidates-2023": [
+     "GR-14.9.1.4-1",
+     "SR-8.4.3.11.3-1",
+     "GR-14.9.11.4-10"
+    ],
+    "nearest-2023": "GR-14.9.1.4-1",
+    "similarity": 0.22
+   },
+   "1985-GR-III.2-p223": {
+    "candidates-2023": [
+     "SR-13.15.3-12",
+     "SR-13.15.3-10",
+     "SR-13.15.3-13"
+    ],
+    "nearest-2023": "SR-13.15.3-12",
+    "similarity": 0.491
+   },
+   "1985-GR-III.2-p235": {
+    "candidates-2023": [
+     "SR-8.4.3.11.3-1",
+     "SR-14.9.51.3-5",
+     "SR-14.9.35.3-1"
+    ],
+    "nearest-2023": "SR-8.4.3.11.3-1",
+    "similarity": 0.145
+   },
+   "1985-GR-III.2-p244": {
+    "candidates-2023": [
+     "GR-12.4.5.10.3-3",
+     "GR-12.4.5.10.3-6",
+     "FMT-12.4.5.10.2"
+    ],
+    "nearest-2023": "GR-12.4.5.10.3-3",
+    "similarity": 0.453
+   },
+   "1985-GR-III.2-p245": {
+    "candidates-2023": [
+     "GR-14.9.30.4-23",
+     "GR-14.9.51.4-24",
+     "GR-14.9.6.4-3"
+    ],
+    "nearest-2023": "GR-14.9.30.4-23",
+    "similarity": 0.346
+   },
+   "1985-GR-III.2-p269": {
+    "candidates-2023": [
+     "GR-14.9.18.4-7",
+     "GR-14.9.18.4-8",
+     "GR-14.9.18.4-9"
+    ],
+    "nearest-2023": "GR-14.9.18.4-7",
+    "similarity": 0.263
+   },
+   "1985-GR-III.2-p291": {
+    "candidates-2023": [
+     "SR-8.3.3.6.3-4",
+     "GR-12.3.4-1",
+     "GR-14.6.4-1"
+    ],
+    "nearest-2023": "SR-8.3.3.6.3-4",
+    "similarity": 0.188
+   },
+   "1985-GR-III.2-p303": {
+    "candidates-2023": [
+     "SR-14.9.51.3-5",
+     "SR-14.9.35.3-1",
+     "GR-8.8.4.13-1"
+    ],
+    "nearest-2023": "SR-14.9.51.3-5",
+    "similarity": 0.224
+   },
+   "1985-GR-III.2-p312": {
+    "candidates-2023": [
+     "GR-13.18.63.4-12",
+     "GR-14.6.2.3.2-L2.6",
+     "GR-13.18.63.4-6"
+    ],
+    "nearest-2023": "GR-13.18.63.4-12",
+    "similarity": 0.302
+   },
+   "1985-GR-III.2-p314": {
+    "candidates-2023": [
+     "GR-7.2.4.4-4",
+     "GR-7.2.4.4-7",
+     "DOC-A.1-199"
+    ],
+    "nearest-2023": "GR-7.2.4.4-4",
+    "similarity": 0.15
+   },
+   "1985-GR-III.2-p320": {
+    "candidates-2023": [
+     "GR-14.9.30.4-23",
+     "GR-14.9.51.4-24",
+     "GR-14.9.6.4-3"
+    ],
+    "nearest-2023": "GR-14.9.30.4-23",
+    "similarity": 0.346
+   },
+   "1985-GR-III.2-p327": {
+    "candidates-2023": [
+     "GR-14.9.30.4-23",
+     "GR-14.9.51.4-24",
+     "GR-14.9.6.4-3"
+    ],
+    "nearest-2023": "GR-14.9.30.4-23",
+    "similarity": 0.346
+   },
+   "1985-GR-III.2-p159": {
+    "candidates-2023": [
+     "GR-13.18.35.4-1",
+     "GR-13.18.39.4-2",
+     "GR-13.18.35.4-5"
+    ],
+    "nearest-2023": "GR-13.18.35.4-1",
+    "similarity": 0.508
+   },
+   "1985-GR-III.2-p160": {
+    "candidates-2023": [
+     "GR-13.18.35.4-6",
+     "GR-13.18.35.4-7",
+     "GR-13.18.39.4-2"
+    ],
+    "nearest-2023": "GR-13.18.35.4-6",
+    "similarity": 0.513
+   },
+   "1985-GR-III.2-L4.1": {
+    "candidates-2023": [
+     "GR-7.2.2.5-1",
+     "SR-8.3.5-6",
+     "SR-8.3.5-5"
+    ],
+    "nearest-2023": "GR-7.2.2.5-1",
+    "similarity": 0.619
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "g-99",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-III.2-p17",
+    "supersedes": "g-01",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Sequential/Relative/Indexed I-O: a block (physical record) holds one or more logical records, or part of one; its size has no direct relationship to the size of the file or of the logical records"
+    ],
+    "evidence-1985": {
+     "block size unrelated to file size: BLOCK CONTAINS 5 RECORDS, 3 records written, 3 read back": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\blkfile.cob (run E:\\COBOL-coord\\scratch\\w20262131o\\runs\\blkfile-002: BLKFILE OK 3)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p17",
+      "quote": "The size of a block has no direct relationship to the size of the file",
+      "check": "OK  §1985:III.2 p17  (2. <u>DEFINITIONS</u>)  the text is in p17"
+     }
+    ],
+    "reason": "The refuter's objection stands: beyond the definition, the row states \"The size of a block has no direct relationship to the size of the file\", a property a program can see violated (a file padded to whole blocks returns extra records), and its subject is the medium, which the definitional arm excludes. No 2023 pointer carries an 85 witness of it. Own witness rerun now at --std 85: 3 records through BLOCK CONTAINS 5 RECORDS come back as exactly 3.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\blkfile.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\blkfile.cob (runs\\blkfile-002: BLKFILE OK 3)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place blkfile.cob as the row's case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p38",
+    "supersedes": "g-01",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication: a communication device sends data to a queue and/or receives data from a queue (computer or peripheral)",
+     "programs with communication description entries define such mechanisms"
+    ],
+    "evidence-1985": {
+     "a device originates a message the program receives (terminal TERM1, I-O CD RECEIVE)": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (run runs\\COMMS-001: TERM [FROM-TERM] 00)",
+     "a device receives messages the program sends (TERM1 via the I-O CD, DEV via the output CD; TERM1.out holds REPLY, DEV.out holds HELLO)": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (runs\\COMMS-001: TERM SEND 00, SEND DEV 00 0, COMMS PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p38",
+      "quote": "capable of sending data to a queue and/or receiving data from a queue",
+      "check": "OK  §1985:III.2 p38  (2. <u>DEFINITIONS</u>)  the text is in p38"
+     },
+     {
+      "cite": "§1985:III.2 p38",
+      "quote": "This mechanism may be a computer or a peripheral device",
+      "check": "OK  §1985:III.2 p38  (2. <u>DEFINITIONS</u>)  the text is in p38"
+     }
+    ],
+    "reason": "The refuter is right that the subject is an external mechanism, not the user's program, so the definitional arm fails. This implementation's MCS supports the Communication module at 85 (docs/conformance/3.3), and a device \"capable of sending data to a queue and/or receiving data from a queue\" is observable: the probe, with its own mcs.json, receives a message a terminal originated and sends messages that land on the terminal's and the destination device's files. 2023 removed the module, so no pointer exists.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (with E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\mcs.json)",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (runs\\COMMS-001: COMMS PASS; TERM1.out = REPLY, DEV.out = HELLO)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: COMMS.cob with its mcs.json as the row's case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p78",
+    "supersedes": "g-02",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication: a destination is the symbolic identification of the receiver of a transmission from a queue (output CD SYMBOLIC DESTINATION)"
+    ],
+    "evidence-1985": {
+     "a known destination name identifies its receiver: SEND to LOOP arrives in queue HOLD": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (runs\\COMMS-001: SEND LOOP 00 0, HOLD [HELLO] LOOPSRC)",
+     "a name the MCS does not know identifies no receiver": "covered by COMMS.cob (SEND NOPE 20 1)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p78",
+      "quote": "The symbolic identification of the receiver of a transmission from a queue",
+      "check": "OK  §1985:III.2 p78  (2. <u>DEFINITIONS</u>)  the text is in p78"
+     }
+    ],
+    "reason": "The refuter's objection holds: the receiver is the MCS's, outside the user's program, so the definitional arm does not fit. The identification is observable at 85 through this implementation's MCS: the symbolic destination LOOP delivers the message to its receiver (queue HOLD), and an unknown symbolic name delivers nowhere (status 20, error key 1). Communication is removed from 2023, so no pointer.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (with mcs.json beside it)",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (runs\\COMMS-001: COMMS PASS)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: COMMS.cob with its mcs.json",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p92",
+    "supersedes": "g-02",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Sequential/Relative/Indexed I-O: extend mode, the state of a file from OPEN EXTEND until a CLOSE without REEL or UNIT"
+    ],
+    "evidence-1985": {
+     "in extend mode a READ is refused (47) and a WRITE appends": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\MODES.cob (run runs\\MODES-003: PASS MODES 4700000048 CCCCBBBB)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p92",
+      "quote": "The state of a file after execution of an OPEN statement, with the EXTEND phrase specified",
+      "check": "OK  §1985:III.2 p92  (2. <u>DEFINITIONS</u>)  the text is in p92"
+     }
+    ],
+    "reason": "The refuter's ruling stands: the row defines a run-time state of the file connector that statement outcomes depend on, not a property of the user's program. Rerun now at --std 85, the refuter's MODES.cob shows the extend mode (READ 47, WRITE appends 00, the record follows the earlier one).",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\MODES.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\MODES.cob (runs\\MODES-003: PASS MODES 4700000048 CCCCBBBB)",
+    "class": "own-text",
+    "needs": "needs-own-witness: MODES.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p100",
+    "supersedes": "g-02",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "I-O modules: the file attribute conflict condition, an unsuccessful I-O operation whose program-specified attributes do not match the file's fixed attributes (status 39 on OPEN; the validated set is the implementor's, VII.4.3.4 GR8)"
+    ],
+    "evidence-1985": {
+     "a mismatched record size, record type or organization makes the OPEN unsuccessful, 39": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\ATTRCONF.cob (a copy of conformance-suite\\cases\\9.1.13.6-...\\open_fixed_attribute_conflict, accept [85, 2002]; run runs\\ATTRCONF-001: S2-BIGGER=39, S5-EXTEND=39, S9-VARYING=39, S13-SEQ-AS-RELATIVE=39, S14-VARY-FOREIGN=39, output equal to the golden)",
+     "a matching description opens normally (control)": "covered by ATTRCONF.cob (S4-MATCH=00, S8-NEW-40=00)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p100",
+      "quote": "do not match the fixed attributes for that file",
+      "check": "OK  §1985:III.2 p100  (2. <u>DEFINITIONS</u>)  the text is in p100"
+     },
+     {
+      "cite": "§1985:VII.4.3.4 GR8",
+      "quote": "The implementor defines which of the fixed file attributes are validated",
+      "check": "OK  §1985:VII.4.3.4 GR8  (4.3.4 General Rules)  the text is in GR8"
+     },
+     {
+      "cite": "§1985:VII.1.3.5",
+      "quote": "a conflict has been detected between the fixed file attributes",
+      "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.3f"
+     }
+    ],
+    "reason": "The refuter is right that the condition is a run-time event the implementation detects, so not a derivation. The conformance case open_fixed_attribute_conflict runs at 85 and, rerun now, shows the condition (\"do not match the fixed attributes for that file\") as an unsuccessful OPEN with status 39 for each validated attribute, beside matching controls. Which attributes are validated is the implementor's (VII.4.3.4 GR8; the set is recorded in docs/conformance/3/D-IO-STATUS-39). The case is filed under 2023 rules only; the 1985 row needs it attached.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\ATTRCONF.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\ATTRCONF.cob (runs\\ATTRCONF-001, equal to open_fixed_attribute_conflict.out)",
+    "class": "own-text",
+    "needs": "needs-own-witness: attach conformance case open_fixed_attribute_conflict (runs at 85) to this row",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p108",
+    "supersedes": "g-02",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "I-O modules: the file position indicator, holding the current key or record number, or the at-end, optional-file-not-present or no-valid-next-record state"
+    ],
+    "evidence-1985": {
+     "READ after AT END gives 46; READ of an absent OPTIONAL file gives AT END": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\FPIAT.cob (run runs\\FPIAT-003: PASS FPIAT 00 10 46 10)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p108",
+      "quote": "A conceptual entity that contains the value of the current key",
+      "check": "OK  §1985:III.2 p108  (2. <u>DEFINITIONS</u>)  the text is in p108"
+     }
+    ],
+    "reason": "The refuter's ruling stands: READ outcomes depend on each state the indicator holds, so a program shows it. Rerun now at --std 85: 00, 10, then 46 once the at-end state exists, and 10 on an absent optional file.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\FPIAT.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\FPIAT.cob (runs\\FPIAT-003: PASS FPIAT 00 10 46 10)",
+    "class": "own-text",
+    "needs": "needs-own-witness: FPIAT.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p110",
+    "supersedes": "g-02",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "I-O modules: fixed file attributes are established when a file is created and cannot change during the file's existence (organization, keys, code set, record sizes and type, collating sequence, block sizes, padding, record delimiter)"
+    ],
+    "evidence-1985": {
+     "established at creation: a later OPEN through a different record size, type or organization conflicts, 39": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\ATTRCONF.cob (runs\\ATTRCONF-001: S2=39, S9=39, S13=39)",
+     "cannot be changed: an OPEN EXTEND through a 40-byte description cannot change a 20-byte relative file (S5-EXTEND=39); only a new creation (OPEN OUTPUT) sets new attributes (S6=00, S7-OLD-20=39, S8-NEW-40=00)": "covered by ATTRCONF.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p110",
+      "quote": "cannot subsequently be changed during the existence of the file",
+      "check": "OK  §1985:III.2 p110  (2. <u>DEFINITIONS</u>)  the text is in p110"
+     },
+     {
+      "cite": "§1985:VII.4.3.4 GR8",
+      "quote": "The implementor defines which of the fixed file attributes are validated",
+      "check": "OK  §1985:VII.4.3.4 GR8  (4.3.4 General Rules)  the text is in GR8"
+     }
+    ],
+    "reason": "The refuter is right: \"cannot subsequently be changed during the existence of the file\" binds the implementation's file system and is observable through the p100 condition. The 85-accepting case open_fixed_attribute_conflict, rerun now, shows both halves: the attributes are fixed at the creating OPEN OUTPUT and an EXTEND through another description cannot change them. Which attributes are recorded for each organization is the implementor's determination (VII.4.3.4 GR8; D-IO-STATUS-39). A sequential FD over a relative store opening 00 (S3) is inside that latitude.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\ATTRCONF.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\ATTRCONF.cob (runs\\ATTRCONF-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: attach open_fixed_attribute_conflict (runs at 85) to this row",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p122",
+    "supersedes": "g-02",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "I-O modules: I-O mode, the state of a file from OPEN I-O until a CLOSE without REEL or UNIT"
+    ],
+    "evidence-1985": {
+     "in I-O mode READ and REWRITE succeed and a sequential WRITE is refused (48)": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\MODES.cob (runs\\MODES-003: PASS MODES 4700000048 CCCCBBBB)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p122",
+      "quote": "The state of a file after execution of an OPEN statement, with the I-O phrase specified",
+      "check": "OK  §1985:III.2 p122  (2. <u>DEFINITIONS</u>)  the text is in p122"
+     }
+    ],
+    "reason": "As for p92, the refuter's ruling stands: a run-time state that statement outcomes depend on. Rerun now at --std 85, MODES.cob shows I-O mode (READ 00, REWRITE 00, WRITE 48, readback CCCCBBBB).",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\MODES.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\MODES.cob (runs\\MODES-003)",
+    "class": "own-text",
+    "needs": "needs-own-witness: MODES.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p126",
+    "supersedes": "g-02",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus (SPECIAL-NAMES) and every clause taking an implementor-name: an implementor-name is a system-name that refers to a feature of the implementor's system"
+    ],
+    "evidence-1985": {
+     "implementor-names this system provides are accepted and denote their feature (CONSOLE as a DISPLAY device, SWITCH-1 with its status condition)": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\IMPNAME.cob (run runs\\IMPNAME-001: IMPNAME VIA CONSOLE, SW1 OFF, IMPNAME PASS)",
+     "a name referring to no feature of the system is refused (control, one line changed)": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\IMPNAME-BAD.cob (runs\\IMPNAME-BAD-001: COBOL2241 'FOOBAR' is not a switch-name, feature-name or device-name this implementation makes available, listing CONSOLE, SYSERR, SYSIN, SYSOUT, C01, CSP, SWITCH-0..36, UPSI-0..7)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p126",
+      "quote": "refers to a particular feature available on that implementor's computing system",
+      "check": "OK  §1985:III.2 p126  (2. <u>DEFINITIONS</u>)  the text is in p126"
+     }
+    ],
+    "reason": "The refuter's objection holds: the sentence binds the implementation (its implementor-names must denote real features), so the informative arm does not fit. A program shows it: an implementor-name the system provides is accepted and works, and one that \"refers to\" no \"particular feature available on that implementor's computing system\" is refused, the diagnostic naming the available set.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\IMPNAME.cob; E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\IMPNAME-BAD.cob",
+    "compiler-at-1985": "correct: IMPNAME.cob accepted and runs (IMPNAME PASS); IMPNAME-BAD.cob refused COBOL2241",
+    "class": "own-text",
+    "needs": "needs-own-witness: the IMPNAME pair",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p167",
+    "supersedes": "g-03",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Relative/Indexed I-O: mass storage, a medium on which data may be organized and maintained both sequentially and nonsequentially"
+    ],
+    "evidence-1985": {
+     "nonsequential: records written in key order 3,1,2 and a random READ of key 2": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\MASS.cob (run runs\\MASS-003: RANDOM 2 [BBBB] 00)",
+     "sequential: START and READ NEXT return the same file in key order": "covered by MASS.cob (SEQUENTIAL [XXXXBBBBEOF ], MASS PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p167",
+      "quote": "organized and maintained in both a sequential and nonsequential manner",
+      "check": "OK  §1985:III.2 p167  (2. <u>DEFINITIONS</u>)  the text is in p167"
+     }
+    ],
+    "reason": "The refuter's objection holds: the subject is the medium, not the user's program. What the row requires, a medium on which one file is \"organized and maintained in both a sequential and nonsequential manner\", is witnessed at 85 by a relative DYNAMIC file maintained randomly and then read sequentially.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\MASS.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\MASS.cob (runs\\MASS-003: MASS PASS)",
+    "class": "own-text",
+    "needs": "needs-own-witness: MASS.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p168",
+    "supersedes": "g-03",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Relative/Indexed I-O: the mass storage control system directs the processing of mass storage files (READ by key, REWRITE replaces, DELETE removes)"
+    ],
+    "evidence-1985": {
+     "the MSCS replaces a record (REWRITE 1), removes one (DELETE 3, then READ 3 = 23) and selects by key": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\MASS.cob (runs\\MASS-003: REWRITE 1 00, DELETE 3 00, READ 3 INVALID 23, SEQUENTIAL [XXXXBBBBEOF ])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p168",
+      "quote": "directs, or controls, the processing of mass storage files",
+      "check": "OK  §1985:III.2 p168  (2. <u>DEFINITIONS</u>)  the text is in p168"
+     }
+    ],
+    "reason": "The refuter is right that the row names an implementation component and fits neither arm. It also points to the witness: the MSCS behaviour the I-O rows require. MASS.cob shows the MSCS that \"directs, or controls, the processing of mass storage files\" doing it at 85: a random read selects by key, REWRITE replaces, DELETE removes, and sequential reading sees the result.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\MASS.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\MASS.cob (runs\\MASS-003: MASS PASS)",
+    "class": "own-text",
+    "needs": "needs-own-witness: MASS.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p219",
+    "supersedes": "g-04",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Sequential I-O (WRITE ADVANCING PAGE) and Report Writer: the physical page, a device dependent concept the implementor defines"
+    ],
+    "evidence-1985": {
+     "WRITE AFTER ADVANCING PAGE presents the record on the next physical page, this implementation's page boundary being a form feed": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\p219-page2.cob (run runs\\p219-page2-002: p219pg.txt = 0A 41 41 41 0C 42 42 42 0A)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p219",
+      "quote": "A device dependent concept defined by the implementor",
+      "check": "OK  §1985:III.2 p219  (2. <u>DEFINITIONS</u>)  the text is in p219"
+     },
+     {
+      "cite": "§1985:VII.4.7.4 GR16h",
+      "quote": "the record is presented on the physical page",
+      "check": "OK  §1985:VII.4.7.4 GR16h  (4.7.4 General Rules)  the text is in GR16h"
+     }
+    ],
+    "reason": "The refuter's objection holds: the row assigns the implementor the duty to define the concept, and the informative arm requires nothing of an implementation. Rerun now at 85, the probe shows this implementation's physical page: BBB written AFTER ADVANCING PAGE follows a form feed (0C). The probe displays only WRITTEN; to be placed as the row's case it should read the bytes back and DISPLAY PASS/FAIL.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\p219-page2.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\p219-page2.cob (runs\\p219-page2-002: form feed before BBB)",
+    "class": "own-text",
+    "needs": "needs-own-witness: p219-page2.cob made self-checking (or its output file as the golden), with the A.1 determination of the page boundary",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p223",
+    "supersedes": "g-04",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: a printable item is an elementary report entry with a COLUMN NUMBER clause, a PICTURE clause and a SOURCE, SUM or VALUE clause (read by GROUP INDICATE SR1 and USAGE SR8a)"
+    ],
+    "evidence-1985": {
+     "an entry without COLUMN defines no printable item, so GROUP INDICATE on it is refused": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\p223-gi-nocol.cob (= conformance case XIII.3.13 pb5806-group-indicate-no-column-85; run runs\\p223-gi-nocol-002: COBOL2519)",
+     "the same entry with COLUMN 6 is a printable item and is accepted (control, one line changed)": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\p223-gi-col-control.cob (run runs\\p223-gi-col-control-001: P223CTL ACCEPTED, report line ' AAA   7')"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p223",
+      "quote": "contains a COLUMN NUMBER clause, a PICTURE clause",
+      "check": "OK  §1985:III.2 p223  (2. <u>DEFINITIONS</u>)  the text is in p223"
+     },
+     {
+      "cite": "§1985:XIII.3.13.3 SR1",
+      "quote": "must only be specified in a detail report group entry that defines a printable item",
+      "check": "OK  §1985:XIII.3.13.3 SR1  (3.13.3 Syntax Rules)  the text is in SR1"
+     }
+    ],
+    "reason": "The refuter's ruling stands: whether GROUP INDICATE is legal turns on this row's sentence. Rerun now, the case without COLUMN is refused COBOL2519 (citing XIII.3.13.3 SR1 and III.2), and my control, the same program with COLUMN 6, is accepted and prints the item, so the pair isolates the COLUMN NUMBER part of the definition.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\p223-gi-nocol.cob; E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\p223-gi-col-control.cob",
+    "compiler-at-1985": "correct: p223-gi-nocol.cob refused COBOL2519; p223-gi-col-control.cob accepted (P223CTL ACCEPTED)",
+    "class": "own-text",
+    "needs": "needs-own-witness: attach pb5806-group-indicate-no-column-85 plus the accepted control",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p235",
+    "supersedes": "g-04",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication: a queue is a logical collection of messages awaiting transmission or processing"
+    ],
+    "evidence-1985": {
+     "messages awaiting processing are counted, and a received message no longer awaits (2 then 1)": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (run runs\\COMMS-001: QUEUE COUNT 000002 00, RECV1 [MSG-A], QUEUE COUNT 000001)",
+     "a message sent is held in the queue awaiting processing until received": "covered by COMMS.cob (SEND LOOP 00, HOLD [HELLO])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p235",
+      "quote": "A logical collection of messages awaiting transmission or processing",
+      "check": "OK  §1985:III.2 p235  (2. <u>DEFINITIONS</u>)  the text is in p235"
+     },
+     {
+      "cite": "§1985:XIV.2.2.4 GR14",
+      "quote": "indicates the number of messages that exist in a queue",
+      "check": "OK  §1985:XIV.2.2.4 GR14  (2.2.4 General Rules)  the text is in GR14"
+     }
+    ],
+    "reason": "The refuter's shape, run now: with this implementation's MCS, ACCEPT MESSAGE COUNT reports the two messages of Q1, one RECEIVE leaves one, so the queue is the collection of messages \"awaiting transmission or processing\". Communication is removed from 2023, so no pointer.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (with mcs.json)",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (runs\\COMMS-001: COMMS PASS)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: COMMS.cob with its mcs.json",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p244",
+    "supersedes": "g-05",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Sequential I-O: the record number, the ordinal number of a record in a sequential file (governs READ order, VII.4.4.4 GR4)"
+    ],
+    "evidence-1985": {
+     "records come back in ascending record number = write order": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\RECNUM.cob (run runs\\RECNUM-002: PASS RECNUM CAB)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p244",
+      "quote": "The ordinal number of a record in the file",
+      "check": "OK  §1985:III.2 p244  (2. <u>DEFINITIONS</u>)  the text is in p244"
+     },
+     {
+      "cite": "§1985:VII.4.4.4 GR4",
+      "quote": "Comparisons for records in sequential files relate to the record number",
+      "check": "OK  §1985:VII.4.4.4 GR4  (4.4.4 General Rules)  the text is in GR4"
+     }
+    ],
+    "reason": "The refuter's ruling stands: VII.4.4.4 GR4 makes sequential READ order depend on the record number this row defines. Rerun now at 85: records written C, A, B read back CAB.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\RECNUM.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\RECNUM.cob (runs\\RECNUM-002: PASS RECNUM CAB)",
+    "class": "own-text",
+    "needs": "needs-own-witness: RECNUM.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p245",
+    "supersedes": "g-05",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Sequential I-O: a reel is a portion of a storage medium whose dimensions each implementor determines; synonymous with unit and volume (CLOSE REEL/UNIT)"
+    ],
+    "evidence-1985": {
+     "the implementor's dimensions: this implementation's disk files are non-reel/unit media (D-MEDIUM-85), so CLOSE REEL completes 07 and leaves the file open, position unchanged": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\REEL.cob (run runs\\REEL-002: STATUS [070007000707] DATA [AAAABBBBCCCC], REEL PASS)",
+     "synonymous with unit: CLOSE REEL and CLOSE UNIT act alike on output and input": "covered by REEL.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p245",
+      "quote": "the dimensions of which are determined by each implementor",
+      "check": "OK  §1985:III.2 p245  (2. <u>DEFINITIONS</u>)  the text is in p245"
+     },
+     {
+      "cite": "§1985:III.2 p245",
+      "quote": "The term is synonymous with unit and volume",
+      "check": "OK  §1985:III.2 p245  (2. <u>DEFINITIONS</u>)  the text is in p245"
+     },
+     {
+      "cite": "§1985:VII.4.2.4 GR3",
+      "quote": "The file remains in the open mode, the file position indicator is unchanged",
+      "check": "OK  §1985:VII.4.2.4 GR3  (4.2.4 General Rules)  the text is in GR3"
+     },
+     {
+      "cite": "§1985:VII.1.3.5",
+      "quote": "the referenced file is on a non-reel/unit medium",
+      "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.1d"
+     }
+    ],
+    "reason": "The refuter's objection holds: the subject is the medium and the implementor's choice, not the user's program. A program does see the choice and the synonymy: on this implementation's non-reel/unit medium, CLOSE REEL and CLOSE UNIT each complete 07, the file stays open with its position unchanged (VII.4.2.4 GR3 F), and every record survives on output and input.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\REEL.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\REEL.cob (runs\\REEL-002: REEL PASS)",
+    "class": "own-text",
+    "needs": "needs-own-witness: REEL.cob, with D-MEDIUM-85 as the determination of the reel's dimensions",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p269",
+    "supersedes": "g-05",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Inter-Program Communication (and the environment): a resource is an operating-system facility or service an executing program can use; the object time resources checked for a called program's availability are the implementor's (X.5.2.4 GR3)"
+    ],
+    "evidence-1985": {
+     "a called program that cannot be made available takes ON EXCEPTION; an available one runs": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\RESRC.cob (run runs\\RESRC-001: UNAVAILABLE TAKEN Y, RESSUB RUNS, AVAILABLE TAKEN N, RESRC PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p269",
+      "quote": "controlled by the operating system, that can be used by an executing program",
+      "check": "OK  §1985:III.2 p269  (2. <u>DEFINITIONS</u>)  the text is in p269"
+     },
+     {
+      "cite": "§1985:X.5.2.4 GR3",
+      "quote": "The object time resources which must be checked",
+      "check": "OK  §1985:X.5.2.4 GR3  (5.2.4 General Rules)  the text is in GR3"
+     }
+    ],
+    "reason": "The refuter is right that the definitional arm does not fit (the subject is an operating-system facility). Informative does not fit either: the row is not about the document and gives no reason for another row. The one rule that uses this sense, X.5.2.4 GR3 (\"The object time resources which must be checked\" for a called program's availability), makes it observable: RESRC.cob at 85 takes ON EXCEPTION for a program the system cannot make available and runs one it can.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\RESRC.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\RESRC.cob (runs\\RESRC-001: RESRC PASS)",
+    "class": "own-text",
+    "needs": "needs-own-witness: RESRC.cob (or a ruling that a pure environment term takes a derivation arm not yet in section 1.1)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p291",
+    "supersedes": "g-05",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication: source, the symbolic identification of the originator of a transmission to a queue (input CD SYMBOLIC SOURCE)"
+    ],
+    "evidence-1985": {
+     "each received message carries its originator's symbolic identification (SRC1, SRC2; LOOPSRC for a message sent through destination LOOP)": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (run runs\\COMMS-001: RECV1 ... SRC1, RECV2 ... SRC2, HOLD [HELLO] LOOPSRC)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p291",
+      "quote": "The symbolic identification of the originator of a transmission to a queue",
+      "check": "OK  §1985:III.2 p291  (2. <u>DEFINITIONS</u>)  the text is in p291"
+     }
+    ],
+    "reason": "The refuter is right that the identification is the MCS's datum, so the definitional arm fails. It is observable at 85: SYMBOLIC SOURCE after each RECEIVE names the originator the MCS recorded for that message. Communication is removed from 2023, so no pointer.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (with mcs.json)",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (runs\\COMMS-001: COMMS PASS)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: COMMS.cob with its mcs.json",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p303",
+    "supersedes": "g-06",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication: a sub-queue is a logical hierarchical division of a queue (CD SYMBOLIC SUB-QUEUE-1/2/3)"
+    ],
+    "evidence-1985": {
+     "each sub-queue of Q1 is counted on its own (SA 0, SB 1) and the whole queue counts both levels (2, then 1)": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (run runs\\COMMS-001: SUBQ SA 000000, SUBQ SB 000001)",
+     "a RECEIVE naming only the queue reports the sub-queue it took the message from": "covered by COMMS.cob (RECV1 [MSG-A] [SA], RECV2 [MSG-B] [SB])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p303",
+      "quote": "A logical hierarchical division of a queue",
+      "check": "OK  §1985:III.2 p303  (2. <u>DEFINITIONS</u>)  the text is in p303"
+     }
+    ],
+    "reason": "The refuter's objection holds (an MCS structure, not the program's). The hierarchy is observable at 85 through this MCS: sub-queues SA and SB of Q1 are counted separately and together, and a RECEIVE from Q1 returns the level it drew from in SUB-QUEUE-1.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (with mcs.json)",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (runs\\COMMS-001: COMMS PASS)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: COMMS.cob with its mcs.json",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p312",
+    "supersedes": "g-06",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus/Table Handling: a table is a set of logically consecutive data items defined by OCCURS"
+    ],
+    "evidence-1985": {
+     "elements of an OCCURS table follow one another in order within the group": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\tabconsec.cob (run runs\\tabconsec-002: TABCONSEC PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p312",
+      "quote": "A set of logically consecutive items of data",
+      "check": "OK  §1985:III.2 p312  (2. <u>DEFINITIONS</u>)  the text is in p312"
+     }
+    ],
+    "reason": "The refuter's ruling stands: \"logically consecutive\" is a property a program observes, and no other 1985 row carries it. Rerun now at 85: MOVE \"AABBCC\" to the group gives elements AA/BB/CC, and a MOVE to element 2 changes positions 3-4 of the group.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\tabconsec.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\tabconsec.cob (runs\\tabconsec-002: TABCONSEC PASS)",
+    "class": "own-text",
+    "needs": "needs-own-witness: tabconsec.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p314",
+    "supersedes": "g-06",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication: a terminal is the originator of a transmission to a queue or the receiver of a transmission from a queue (I-O CD SYMBOLIC TERMINAL)"
+    ],
+    "evidence-1985": {
+     "originator: TERM1's message is received through the I-O CD": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (run runs\\COMMS-001: TERM [FROM-TERM] 00)",
+     "receiver: a SEND through the I-O CD reaches TERM1 (TERM1.out = REPLY)": "covered by COMMS.cob (TERM SEND 00)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p314",
+      "quote": "The originator of a transmission to a queue",
+      "check": "OK  §1985:III.2 p314  (2. <u>DEFINITIONS</u>)  the text is in p314"
+     }
+    ],
+    "reason": "The refuter's objection holds (an entity of the MCS environment). Both roles are observable at 85 through this MCS: the terminal TERM1 originates the message the program receives, and receives the one the program sends, which lands in its device file.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (with mcs.json)",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\COMMS.cob (runs\\COMMS-001: COMMS PASS; TERM1.out = REPLY)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: COMMS.cob with its mcs.json",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p320",
+    "supersedes": "g-06",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Sequential I-O: a unit is a portion of a storage medium whose dimensions each implementor determines; synonymous with reel and volume (CLOSE UNIT)"
+    ],
+    "evidence-1985": {
+     "CLOSE UNIT acts exactly as CLOSE REEL (07, file stays open, position unchanged) on this implementation's non-reel/unit medium": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\REEL.cob (run runs\\REEL-002: STATUS [070007000707] DATA [AAAABBBBCCCC], REEL PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p320",
+      "quote": "The term is synonymous with reel and volume",
+      "check": "OK  §1985:III.2 p320  (2. <u>DEFINITIONS</u>)  the text is in p320"
+     },
+     {
+      "cite": "§1985:VII.4.2.4 GR3",
+      "quote": "The file remains in the open mode, the file position indicator is unchanged",
+      "check": "OK  §1985:VII.4.2.4 GR3  (4.2.4 General Rules)  the text is in GR3"
+     }
+    ],
+    "reason": "The refuter's objection holds (a property of the medium and the implementor). The row's program-visible content, the synonymy with reel and the implementor's dimensions, is witnessed at 85 by REEL.cob: CLOSE UNIT and CLOSE REEL give the same 07 and leave the file open and positioned.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\REEL.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\REEL.cob (runs\\REEL-002: REEL PASS)",
+    "class": "own-text",
+    "needs": "needs-own-witness: REEL.cob, with D-MEDIUM-85",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p327",
+    "supersedes": "g-06",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Sequential I-O: a volume is a portion of a storage medium whose dimensions each implementor determines; synonymous with reel and unit (the current volume pointer of CLOSE REEL/UNIT)"
+    ],
+    "evidence-1985": {
+     "on this implementation's media a file is one volume: CLOSE REEL/UNIT completes 07, no volume swap, the next record follows on the same file": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\REEL.cob (run runs\\REEL-002: REEL PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p327",
+      "quote": "The term is synonymous with reel and unit",
+      "check": "OK  §1985:III.2 p327  (2. <u>DEFINITIONS</u>)  the text is in p327"
+     },
+     {
+      "cite": "§1985:VII.1.3.5",
+      "quote": "the referenced file is on a non-reel/unit medium",
+      "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.1d"
+     }
+    ],
+    "reason": "Same text as p320 with the synonyms rotated; the refuter's objection holds for the same reason. REEL.cob witnesses it at 85: no volume swap occurs on this implementation's non-reel/unit medium and both CLOSE forms answer alike.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\REEL.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\REEL.cob (runs\\REEL-002: REEL PASS)",
+    "class": "own-text",
+    "needs": "needs-own-witness: REEL.cob, with D-MEDIUM-85",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p159",
+    "supersedes": "g-03",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: a line is one row of character positions of a page",
+     "report lines are numbered from 1, by 1, from the top of EACH page",
+     "'line' is synonymous with 'report line'"
+    ],
+    "evidence-1985": {
+     "numbering from 1 at the top of page 1 and again at the top of page 2 after the form feed": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\p159_two_pages.cob (run runs\\p159_two_pages-002: P1 L01..L05, FF, P2 L01 [PH 2], P2 L03 [D 4 03], P2 L04 [D 5 04])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p159",
+      "quote": "Report lines are numbered from 1, by 1, starting at the top of the page",
+      "check": "OK  §1985:III.2 p159  (2. <u>DEFINITIONS</u>)  the text is in p159"
+     }
+    ],
+    "reason": "The refuter's overturn stands: the pointer GR-13.18.39.4-1 states the rule, but its 85 cases (pb484 unpaged, pb1270 one page) never show the numbering restart at the top of a second page. Rerun now at 85, the refuter's two-page report restarts at line 1 on page 2 and places details on lines 3-4 there with LINE-COUNTER 03-04. Since SAME needs the pointer's own 85 case to exercise the scope, the row takes this own witness.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\p159_two_pages.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\p159_two_pages.cob (runs\\p159_two_pages-002)",
+    "class": "other: the pointer GR-13.18.39.4-1 states the rule, but no 85 case of it is a paged, multi-page report",
+    "needs": "needs-own-witness: p159_two_pages.cob (or add a two-page leg to a GR-13.18.39.4-1 case that runs at 85, then SAME)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p160",
+    "supersedes": "g-03",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: a line number is an integer denoting the vertical position of a report line on its page"
+    ],
+    "evidence-1985": {
+     "line number 03 on page 2 lands on physical line 3 after the form feed, LINE-COUNTER 03": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\p159_two_pages.cob (runs\\p159_two_pages-002: P2 L03 [D 4 03])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p160",
+      "quote": "An integer that denotes the vertical position of a report line on a page",
+      "check": "OK  §1985:III.2 p160  (2. <u>DEFINITIONS</u>)  the text is in p160"
+     }
+    ],
+    "reason": "The refuter's overturn stands: pb484, the only 85 case of GR-13.18.35.4-6, is unpaged, so a position in the file cannot be told from a position \"on a page\". The two-page probe, rerun now, places line number 3 on physical line 3 of page 2.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\p159_two_pages.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\p159_two_pages.cob (runs\\p159_two_pages-002)",
+    "class": "other: the pointer GR-13.18.35.4-6's only 85 case is an unpaged report",
+    "needs": "needs-own-witness: p159_two_pages.cob",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-L4.1",
+    "supersedes": "g-06",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Library module: every separator is a text word except space, a pseudo-text delimiter and the delimiters of a nonnumeric literal",
+     "the parentheses are always text words, regardless of context in library, source program or pseudo-text, including inside a PICTURE character-string"
+    ],
+    "evidence-1985": {
+     "separators other than the excepted ones are text words (')' and ':' in a reference)": "covered by conformance case 7.2.2.5-Text-words/pb1350_text_words_85 (runs at 85)",
+     "parentheses inside a PICTURE string are text words: REPLACE ==6== BY ==3== turns PIC X(6) into PIC X(3)": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\picparen.cob (run runs\\picparen-002: [PQR], PICPAREN PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 GRL4.1",
+      "quote": "regardless of context within the library, source program, or pseudo-text",
+      "check": "OK  §1985:III.2 GRL4.1  (2. <u>DEFINITIONS</u>)  the text is in item L4.1"
+     },
+     {
+      "cite": "§1985:III.2 GRL4.1",
+      "quote": "are always considered text words",
+      "check": "OK  §1985:III.2 GRL4.1  (2. <u>DEFINITIONS</u>)  the text is in item L4.1"
+     }
+    ],
+    "reason": "The refuter's overturn stands: the 1985 item makes the parentheses text words \"regardless of context within the library, source program, or pseudo-text\", which reaches a PICTURE character-string, while the pointer GR-7.2.2.5-1's 85 case pb1350 only exercises parentheses in a Procedure Division reference. Rerun now at 85, picparen.cob shows the 6 inside X(6) is a separate text word that REPLACE can replace.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\picparen.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-99\\picparen.cob (runs\\picparen-002: [PQR] PICPAREN PASS)",
+    "class": "own-text",
+    "needs": "needs-own-witness: picparen.cob beside pb1350_text_words_85",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "tooling",
+    "row": null,
+    "what": "run_goldens.py fails before running anything: it reads E:\\COBOL-coord\\scratch\\w20262131o\\prose85-map.json, which does not exist, and builds EXE as BASE / a non-raw Windows string (SyntaxWarning on \\C). No g-99 row has prose85 goldens, so no verdict here depends on it.",
+    "repro": "python E:\\COBOL-coord\\scratch\\w20262131o\\tools\\run_goldens.py g-99",
+    "site": "E:\\COBOL-coord\\scratch\\w20262131o\\tools\\run_goldens.py lines 12, 23"
+   },
+   {
+    "kind": "tooling",
+    "row": "1985-GR-III.2-p235",
+    "what": "The MCS conformance cases conformance-suite\\wiseowl\\cases\\_unassigned\\pb4677_mcs_receive, pb4677_mcs_send and pb4677_mcs_transaction run at 85 and already show queues, sub-queues, sources, destinations and terminals, but declare rules: [], so no 1985 Communication glossary row (p38, p78, p235, p291, p303, p314) can count them as a witness. Attaching the rows (or placing COMMS.cob) closes six rows.",
+    "repro": "conformance-suite\\wiseowl\\cases\\_unassigned\\pb4677_mcs_receive.cob header",
+    "site": "conformance-suite/wiseowl/cases/_unassigned/pb4677_mcs_*.cob"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "g-99",
+  "cases": [],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "95f7ac2462fe17d513f7b7c845a4f5ea9ccee1427b315d073cf15028b3c96554",
+  "read": "3b128375257e228a53ce937363727d8b85d3ceac61f6229a76972d3481599bce",
+  "refute": "39208743c03cba160fb70f39edccf2711ef685ca8d163c10125d0271844c34b0"
+ }
+}

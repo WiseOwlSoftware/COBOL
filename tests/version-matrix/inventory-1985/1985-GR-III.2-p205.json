@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p205",
+ "rule-digest": "a9485bff698b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#FileOpenMode; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Mode",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p205",
+ "notes": "Own witness from the read lineage-reads-1985/g-04.json: the reader showed the compiler correct at 85 with its probe (p205_output_mode.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The state of a file after execution of an OPEN statement, with the OUTPUT or EXTEND phrase specified, for that file and before the execution of a CLOSE statement without the REEL or UNIT phrase for that file.\" No candidate (REPORT-file references, OPEN OUTPUT creation, an FD SR) states the mode's extent across CLOSE REEL; this is 1985's own text. The probe run p205_output_mode-001 printed 'P205 00 07 00 00 48 00 00' and 'P205 OK': 07 is the I-O status for CLOSE REEL on a non-reel medium, 48 the status for WRITE on a file not open in output or extend mode (both in VII.1.3.5's I-O status list). Code location located after the read: FileOpenMode.Output/Extend are set into FileConnector.Mode by OPEN OUTPUT/EXTEND and stand until the CLOSE."
+}

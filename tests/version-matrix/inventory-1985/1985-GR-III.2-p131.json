@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p131",
+ "rule-digest": "7f5fa151d919",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#FileOrganization; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#IndexedConnector",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p131",
+ "notes": "Derivation from the read lineage-reads-1985/g-03.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p131); the code location is where the compiler meets the rule's subject. The read: \"A file with indexed organization\" names a term; no program can conform to or violate a name. The candidates are wording matches (GR-12.4.5.3-5, GR-12.4.5.10.3-5 state the ORGANIZATION INDEXED clause, which the 1985 Indexed I-O rows carry). The code location was located after the read (locations-all.json): FileOrganization.Indexed is the organization the compiler binds and IndexedConnector is the runtime file of that organization."
+}

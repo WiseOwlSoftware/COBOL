@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p175",
+ "rule-digest": "8f587d0bc134",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#SendIndicator",
+ "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-10",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-10), joined as the row's own test. The read: \"Within the hierarchy of EGI, EMI, and ESI, an EGI is conceptually equivalent to an ESI, EMI, and EGI. An EMI is conceptually equivalent to an ESI and EMI. Thus, a segment may be terminated by an ESI, EMI, or EGI. A message may be terminated by an EMI or EGI.\" The 1985 SEND case shows each indicator closing exactly its levels (end keys 1, 2, 3; message count rising after EMI and EGI only). 2023 has no indicators; the candidates (end markers, message-server SEND) are wording matches. Code location located after the read: SendIndicator names the ESI, EMI and EGI indications a SEND gives the message control system."
+}

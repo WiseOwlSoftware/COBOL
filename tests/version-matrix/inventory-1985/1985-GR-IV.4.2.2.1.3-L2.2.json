@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.1.3-L2.2",
+ "rule-digest": "c497fb58fcd0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#ReservedWordSet; src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsUserWord",
+ "test-ref": "conformance:cases/IV.4.2.2.1@1985-COBOL-Words/1985-GR-IV_4_2_2_1_3-L2_2",
+ "notes": "Own witness from the read lineage-reads-1985/g-07.json: the reader showed the compiler correct at 85 with its refusal probe (rw-optional.cob, refused at its line 9; its control rw-control compiles), placed as the row's own test. The read: 'There are three types of reserved words: ... 2. optional words' makes an optional word (for example THAN or IS) a reserved word, so it cannot be a user-defined word. That property is testable. No 2023 candidate says optional words are reserved (SR-8.3.2.1-1 states only the consequence for reserved words in general), and none of the at-85 cases of SR-8.3.2.1-1 uses an optional word. The own probe refuses THAN, and its control, which changes one word, is accepted. Code location located after the read: WEAK: ReservedWordSet/AdmitsAsUserWord refuse a reserved word (optional words such as THAN included) as a user-defined word; the table does not record the word type."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p5",
+ "rule-digest": "9db8ab519eae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsAlphabetic",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p5",
+ "notes": "Own witness from the read lineage-reads-1985/g-01.json: the reader showed the compiler correct at 85 with its probe (p5_alpha.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A letter or a space character\": the probe shows \"AB C\" and all spaces are ALPHABETIC, a digit or a hyphen makes the item not alphabetic. No 2023 candidate states the definition (UPPER-CASE RV, SPACE figurative, CURRENCY character). Code location located after the read: CobolClass.IsAlphabetic tests that every character is a letter or a space (the closed Latin set)."
+}

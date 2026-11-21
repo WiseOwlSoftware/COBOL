@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p135",
+ "rule-digest": "9e679da2fa85",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#FileOpenMode; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#IsOpen",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p135",
+ "notes": "Derivation from the read lineage-reads-1985/g-03.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p135); the code location is where the compiler meets the rule's subject. The read: \"A file that is opened in the input mode\" names files in a state that p136 defines; it adds no requirement of its own. The candidates (OPTIONAL INPUT, sharing modes) are wording matches. The code location was located after the read (locations-all.json): FileOpenMode.Input is the mode an OPEN INPUT puts a connector in, making it an input file while IsOpen holds."
+}

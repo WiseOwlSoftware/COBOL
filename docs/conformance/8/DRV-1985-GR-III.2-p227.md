@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-III.2-p227", "definitional", "defines the program identification entry of the user's program: the PROGRAM-ID entry naming the program and its attributes", "A vocabulary term; candidates (nested program names, RECURSIVE/INITIAL) are wording-only. Cited: §1985:III.2 p227. Proposed by the read lineage-reads-1985/g-04.json; its refuter, trying to write the witness the derivation says cannot exist (Looked for an outcome that turns on this term rather than the PROGRAM-ID paragraph's own rules (program-name, COMMON, INITIAL): none.), UPHELD it: Vocabulary for the user's PROGRAM-ID entry; nothing observable beyond the PROGRAM-ID rows.", "claude: 2026-11-21", "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"]
+---

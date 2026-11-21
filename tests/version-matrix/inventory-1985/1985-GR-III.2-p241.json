@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p241",
+ "rule-digest": "554abf404fdf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#WrittenRecords",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p241",
+ "notes": "Derivation from the read lineage-reads-1985/g-05.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p241); the code location is where the compiler meets the rule's subject. The read: The row only names a construct: \"The total set of data description entries associated with a particular record. The term is synonymous with record description.\" It requires nothing a program can violate. The 2023 candidates (SR-13.18.24.3-1 FORMAT/SELECT WHEN, SR-13.18.43.3-1, GR-13.18.43.4-5 RECORD) are wording matches about other requirements. The code location was located after the read (locations-all.json): dataDescriptionEntry parses each entry and FileModel.WrittenRecords holds the entry set the program wrote under each FD."
+}
