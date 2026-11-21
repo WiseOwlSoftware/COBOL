@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """The completion ledger, per edition (kb/Work PB5994): every edition's verdict on the page IS edition_status's for the
 same parts, at the top and in its own section, in the owner's order; the page reads COMPLETE for an edition only when all
-four of its parts are measured and zero; the work in flight is attributed to an edition by its notes and its name, and a
+four of its parts are measured and zero; the work in flight is attributed to an edition by the editions its notes declare (never its name), and a
 landed branch is not in flight; an input the render could not read says UNMEASURED; and the landings' notes are counted
-filed and closed per edition."""
+filed and closed per edition, a note that declares none counted apart."""
 import itertools
 import re
 import sys
@@ -16,7 +16,7 @@ C = selftest_cases.subject(__file__)   # scripts/spec/gen_ledger.py
 
 def case_00_the_owners_order(expect):
     expect.equal("1985, 2002, 2023, 2014", C.ORDER, (1985, 2002, 2023, 2014))
-    expect.equal("every edition edition_status measures", sorted(C.ORDER), sorted(C.edition_status.EDITIONS))
+    expect.equal("every edition edition_status measures", sorted(C.ORDER), sorted(C.work.EDITIONS))
     page = C.render(F.ledger({}))
     expect.equal("the top table in that order", [int(y) for y in re.findall(r'href="#e(\d+)"', page)], list(C.ORDER))
 
@@ -62,17 +62,17 @@ def case_03_the_work_in_flight_by_edition(expect):
     expect.equal("a landed branch is not in flight", [b.name for b in flight],
                  ["group-1985-fixes", "worktree-wf_x-1", "pb10-thing", "tidy-tools"])
     by = {b.name: b for b in flight}
-    expect.equal("the name names an edition", by["group-1985-fixes"].editions, frozenset({1985}))
+    expect.equal("a name is no declaration", by["group-1985-fixes"].editions, frozenset())
     expect.equal("the report's lead note", (by["worktree-wf_x-1"].notes, by["worktree-wf_x-1"].editions),
                  (("PB20",), frozenset({2002, 2023})))
     expect.equal("a note id in the name", (by["pb10-thing"].notes, by["pb10-thing"].editions), (("PB10",), frozenset({1985})))
     page = C.render(F.ledger({}, flight=flight))
     sec = {y: page[page.index(f'id="e{y}"'):] for y in C.ORDER}
-    expect("1985's section lists its branches", "group-1985-fixes" in sec[1985].split('id="e2002"')[0]
-           and "pb10-thing" in sec[1985].split('id="e2002"')[0])
+    expect("1985's section lists its notes' branches", "pb10-thing" in sec[1985].split('id="e2002"')[0]
+           and "group-1985-fixes" not in sec[1985].split('id="e2002"')[0])
     expect("2002's lists the lead's", "worktree-wf_x-1" in sec[2002].split('id="e2023"')[0])
     tail = page[page.index("Work in flight on no edition"):]
-    expect("a branch of no edition has its own list", "tidy-tools" in tail and "group-1985-fixes" not in tail)
+    expect("a branch of no edition has its own list", "tidy-tools" in tail and "group-1985-fixes" in tail)
 
 
 def case_04_an_unread_input_is_unmeasured(expect):
@@ -88,8 +88,16 @@ def case_05_the_landings_filed_and_closed(expect):
     got = C.landings(F.LOG, {"PB1": frozenset({1985}), "PB2": frozenset({1985, 2002}), "PB3": frozenset({2023})})
     expect.equal("a new note is filed", got["filed"], {1985: 1, 2002: 0, 2023: 0, 2014: 0})
     expect.equal("a status set to landed closes, an addendum never", got["closed"], {1985: 1, 2002: 1, 2023: 0, 2014: 0})
+    expect.equal("every note declares", got["undeclared"], {"filed": 0, "closed": 0})
     page = C.render(F.ledger({}, landings={**got, "total": 2, "days": 7}))
     expect("the landings are counted", "<strong>2</strong>" in page)
+    expect("no row for undeclared notes when there are none", "no editions declared" not in page)
+    und = C.landings(F.LOG, {"PB1": frozenset({1985}), "PB2": None, "PB3": frozenset({2023})})
+    expect.equal("a note that declares none is counted apart", (und["closed"], und["undeclared"]),
+                 ({1985: 0, 2002: 0, 2023: 0, 2014: 0}, {"filed": 0, "closed": 1}))
+    expect("and shown", "no editions declared" in C.render(F.ledger({}, landings={**und, "total": 2, "days": 7})))
+    expect.equal("note_editions reads the declared field", C.note_editions(
+        [{"id": "PB1", "editions": ["2002"]}, {"id": "PB2"}]), {"PB1": frozenset({2002}), "PB2": None})
 
 
 def case_06_the_stamp_reads_every_part_s_inputs(expect):
