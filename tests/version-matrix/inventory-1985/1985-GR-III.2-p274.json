@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p274",
+ "rule-digest": "641e9f3cc7e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sectionDefinition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#declarativeSection",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p274",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its probe (sections.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A set of zero, one, or more paragraphs or entries, called a section body, the first of which is preceded by a section header.\" It grants a section of zero paragraphs; the accepted probe has one (S-ZERO) and performs it. Candidates (SR-8.4.3.11.3-1 etc.) have no 85 case. Code location located after the read: sectionDefinition is a section header followed by zero or more sentences and paragraphs, the section body."
+}

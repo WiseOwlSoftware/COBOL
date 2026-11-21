@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-III.2-p195", "definitional", "defines the object of an entry in the user's program: the operands and reserved words of a Data Division entry that follow its subject", "A vocabulary term for the operands following the subject of a Data Division entry; candidates are wording-only. Cited: §1985:III.2 p195. Proposed by the read lineage-reads-1985/g-04.json; its refuter, trying to write the witness the derivation says cannot exist (Searched for any rule reading 'object of entry': the glossary is its only occurrence.), UPHELD it: A term definition about the user's Data Division entries that no other rule reads; nothing a program can show.", "claude: 2026-11-21", "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"]
+---

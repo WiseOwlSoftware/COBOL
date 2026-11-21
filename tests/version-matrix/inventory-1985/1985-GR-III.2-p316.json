@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p316",
+ "rule-digest": "4762f3338dab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWord; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-L4_3",
+ "notes": "Own witness from the read lineage-reads-1985/g-06.json: the reader showed the compiler correct at 85 with its probe (textword2.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'A character or a sequence of contiguous characters between margin A and margin R in a COBOL library, source program, or in pseudo-text' bounds text words by the margins; 2023 §2023:7.2.2.5 p1 says 'in source text or in library text' with no margin bound, and the candidates are LINAGE margin rules (the word 'margin' only). The probe passes. Code location located after the read: TextWordScanner.Scan/TryNext scans source or library text into TextWord values (character strings, literals, separators) that COPY and REPLACE compare."
+}

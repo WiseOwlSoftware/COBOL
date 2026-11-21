@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-III.2-p137", "definitional", "defines an input-output file of a program as a file the program has opened in the I-O mode", "\"A file that is opened in the I-O mode\" names a term and requires nothing. The candidates carry no case at 85 and are wording matches. Cited: §1985:III.2 p137. Proposed by the read lineage-reads-1985/g-03.json; its refuter, trying to write the witness the derivation says cannot exist (The p135 attempt again, for OPEN I-O. No outcome depends on the name.), UPHELD it: One sentence, \"A file that is opened in the I-O mode\". It names a state of the program's file.", "claude: 2026-11-21", "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-03.jsonl"]
+---

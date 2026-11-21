@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p167",
+ "rule-digest": "eb23e9f6acc4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#RelativeConnector; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#FileAccessMode",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p167",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (MASS.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter's objection holds: the subject is the medium, not the user's program. What the row requires, a medium on which one file is \"organized and maintained in both a sequential and nonsequential manner\", is witnessed at 85 by a relative DYNAMIC file maintained randomly and then read sequentially. Code location located after the read: WEAK: RelativeConnector with ACCESS MODE DYNAMIC realises a mass storage file kept both sequentially and non-sequentially; the medium itself is a host file."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p62",
+ "rule-digest": "5b50493e7da6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#FinalizeCurrencySigns; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p62",
+ "notes": "Own witness from the read lineage-reads-1985/g-01.json: the reader showed the compiler correct at 85 with its probe (p62_currency.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The character '$' of the COBOL character set\" (catalog: not definitional). SR-12.3.7.3-20 (2023, non-COBOL currency character equivalence) states another rule. The probe edits with floating $$$9.99 and fixed $9. Code location located after the read: FinalizeCurrencySigns adds the implied currency sign $ and the picture analyzer treats $ as the currency symbol of an edited picture."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.1.3-L2.3",
+ "rule-digest": "314a16118831",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#ReservedWordSet; src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsUserWord",
+ "test-ref": "conformance:cases/IV.4.2.2.1@1985-COBOL-Words/1985-GR-IV_4_2_2_1_3-L2_3",
+ "notes": "Own witness from the read lineage-reads-1985/g-07.json: the reader showed the compiler correct at 85 with its refusal probe (rw-special.cob, refused at its line 10; its control rw-control compiles), placed as the row's own test. The read: '3. special purpose words' makes the special registers and figurative constants reserved words, which is testable. No 2023 candidate states this classification (the candidates are wording-only matches). The probe shows LINAGE-COUNTER refused, with a control that changes one word. The own witness should also cover the other three registers and one figurative constant (for example ZERO). Code location located after the read: WEAK: ReservedWordSet/AdmitsAsUserWord refuse a reserved word (special registers such as LINAGE-COUNTER included) as a user-defined word; the table does not record the word type."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p326",
+ "rule-digest": "1e1e6d7e59f6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statement",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p326",
+ "notes": "Derivation from the read lineage-reads-1985/g-06.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p326); the code location is where the compiler meets the rule's subject. The read: 'A word that expresses an action to be taken by a COBOL compiler or object program.' is vocabulary for the statement rules (a statement begins with a verb). Candidates are unrelated (wording only). The code location was located after the read (locations-all.json): WEAK: the statement rule enumerates one alternative per verb-led statement, the closest representation of a verb; no member classifies a word as a verb."
+}

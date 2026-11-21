@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p303",
+ "rule-digest": "7d2aa0e1072a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageDefinitions.cs#QueueDefinition; src/WiseOwl.Cobol.Compiler/Binding/Model/CommunicationModel.cs#CommunicationField",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p235",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (COMMS.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter's objection holds (an MCS structure, not the program's). The hierarchy is observable at 85 through this MCS: sub-queues SA and SB of Q1 are counted separately and together, and a RECEIVE from Q1 returns the level it drew from in SUB-QUEUE-1. Code location located after the read: QueueDefinition.Children holds the hierarchical sub-queues and CommunicationField.SubQueue1-3 are the CD fields naming them."
+}

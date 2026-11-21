@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p37",
+ "rule-digest": "80e571b7c943",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationDescriptionEntry",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p37",
+ "notes": "Own witness from the read lineage-reads-1985/g-01.json: the reader showed the compiler correct at 85 with its probe (p39_twocd.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"composed of the level indicator CD, followed by a cd-name, and then followed by a set of clauses as required\" (catalog: not definitional). The Communication module left the standard by 2014, so no 2023 rule states it; the candidates (SAME AS, BASED, OCCURS) are wording matches. Two CD entries of that shape are accepted and run. Code location located after the read: communicationDescriptionEntry parses the CD level indicator, the cd-name and its clauses."
+}

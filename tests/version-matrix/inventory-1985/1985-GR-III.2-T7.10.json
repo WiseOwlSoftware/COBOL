@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-T7.10",
+ "rule-digest": "6247121a4bd4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STRINGLIT",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-T7_10",
+ "notes": "Own witness from the read lineage-reads-1985/g-06.json: the reader showed the compiler correct at 85 with its probe (specchar.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Table 7 row '\" | quotation mark'. The 2023 candidates (GR-8.3.3.6.4-8 QUOTE figurative, SR-8.3.3.2.3-4 doubled quotes) each state one use, not membership in the special-character set. The accepted probe exercises the character. Code location located after the read: STR_BODY/STRINGLIT delimits a nonnumeric literal by the quotation mark character."
+}

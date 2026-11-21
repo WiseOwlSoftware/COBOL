@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p321",
+ "rule-digest": "24940d7c6a44",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Unsuccessful",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p321",
+ "notes": "Own witness from the read lineage-reads-1985/g-06.json: the reader showed the compiler correct at 85 with its probe (unsucc.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'The unsuccessful execution of a statement does not affect any data referenced by that statement, but may affect status indicators.' 2023 keeps only the first sentence as a clause-3 definition (no catalog row); the candidates are DELETE, FILE STATUS and STRING rules, each one statement. The probe shows the requirement on WRITE. Note the general statement yields to specific rules (READ GR12 leaves the record area undefined after an unsuccessful READ), so the own test belongs on statements with no such override. Code location located after the read: WEAK: Unsuccessful is the one terminal of an unsuccessful READ/START that sets only the I-O status and file position and leaves the referenced data untouched; it covers the I-O statements only, not every statement."
+}

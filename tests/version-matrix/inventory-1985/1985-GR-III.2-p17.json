@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p17",
+ "rule-digest": "62212f787ec6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindBlockContainsClause",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p17",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (blkfile.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter's objection stands: beyond the definition, the row states \"The size of a block has no direct relationship to the size of the file\", a property a program can see violated (a file padded to whole blocks returns extra records), and its subject is the medium, which the definitional arm excludes. No 2023 pointer carries an 85 witness of it. Own witness rerun now at --std 85: 3 records through BLOCK CONTAINS 5 RECORDS come back as exactly 3. Code location located after the read: WEAK: BindBlockContainsClause screens the BLOCK CONTAINS clause, whose values never alter the records a file returns (no blocking model)."
+}

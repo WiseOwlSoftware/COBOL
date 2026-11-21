@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p126",
+ "rule-digest": "6105906b5a56",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ImplementorNameRegistry.cs#ImplementorNameRegistry",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p126",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its refusal probe (IMPNAME-BAD.cob, refused at its line 8; its control IMPNAME compiles), placed as the row's own test. The read: The refuter's objection holds: the sentence binds the implementation (its implementor-names must denote real features), so the informative arm does not fit. A program shows it: an implementor-name the system provides is accepted and works, and one that \"refers to\" no \"particular feature available on that implementor's computing system\" is refused, the diagnostic naming the available set. Code location located after the read: ImplementorNameRegistry.Lookup holds the one set of implementor-names this implementation specifies and refuses any other word at those positions."
+}

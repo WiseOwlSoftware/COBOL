@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p76",
+ "rule-digest": "5eea9f1c55f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p76",
+ "notes": "Own witness from the read lineage-reads-1985/g-02.json: the reader showed the compiler correct at 85 with its probe (delim.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A delimiter is not part of the string of characters that it delimits.\" Observable through STRING and UNSTRING; no candidate (INSPECT, LOCALE, an intrinsic) states it with an 85 case. The probe shows the comma delimiter is not moved into either receiver. Code location located after the read: UnstringExtract finds the delimiter ending each field and stores the field without the delimiter."
+}

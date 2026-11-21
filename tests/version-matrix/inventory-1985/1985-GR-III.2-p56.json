@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p56",
+ "rule-digest": "846009b27ecf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportControlName; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionBinder",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p56",
+ "notes": "Derivation from the read lineage-reads-1985/g-01.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p56); the code location is where the compiler meets the rule's subject. The read: \"A data-name that appears in a CONTROL clause and refers to a control data item\" names a role. Candidates (TYPE SR14, CONTROL GR3/GR4) state other rules. The code location was located after the read (locations-all.json): The CONTROL clause names are parsed by reportControlName and bound by ReportSectionBinder into the report ordered control hierarchy."
+}

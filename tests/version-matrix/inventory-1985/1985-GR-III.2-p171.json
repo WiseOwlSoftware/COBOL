@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p171",
+ "rule-digest": "339c3b2926fa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenSortMergeFile",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p171",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with its refusal probe (p171_merge_file_open_refused.cob, refused at its line 16; its control p171_merge_file_control compiles), placed as the row's own test. The read: \"The merge file is created and can be used only by the merge function\" withholds every other use, shown by the refused OPEN beside the conforming MERGE. The candidates are MERGE operand rules (file-name repetition, ordering) with no 85 accepted case and do not state the restriction. Code location located after the read: BindMerge requires an SD file and ScreenSortMergeFile refuses a sort-merge file-name outside SORT/MERGE (the OPEN in the probe), keeping the merge file to the merge function."
+}

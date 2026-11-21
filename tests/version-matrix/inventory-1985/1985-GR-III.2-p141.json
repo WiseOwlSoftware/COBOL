@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p141",
+ "rule-digest": "7f6eb1dbb155",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#INTEGERLIT",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p141",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with its refusal probe (p141_integer_literal_refused.cob, refused at its line 10; its control p141_integer_literal_control compiles), placed as the row's own test. The read: \"A numeric literal that does not include any digit positions to the right of the decimal point\" withholds integer-ness from 3.0, which a program shows by a refusal where a format requires an integer, beside the conforming OCCURS 3. SR-8.3.3.3.2-3 is about one decimal point per literal and SR-5.5-2 has only a refusal case at 85 for a data item, so no pointer states this sense with an 85 witness. Code location located after the read: IsIntegerOperand accepts a literal only in the no-decimal-point form and INTEGERLIT is the token for the integer literal."
+}

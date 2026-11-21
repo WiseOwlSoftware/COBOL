@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-III.2-p115",
+ "rule-digest": "80fd98d487a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#IntrinsicBinder",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p124",
+ "notes": "Own witness from the read lineage-reads-1985/g-02.json: the reader showed the compiler correct at 85 with its probe (ident.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The row grants three forms (a reference-modifier; an alphanumeric function where an identifier may be; an integer/numeric function where an arithmetic expression may be), which need accepted programs; ident.cob gives all three with correct values, and fnnum-move.cob shows the SR4 restriction the row points to (page IV-22). The candidates (2023 qualification rules, USE) do not state it. Code location located after the read: functionCall parses FUNCTION name(args) with optional ref-mod and IntrinsicBinder binds it to the data item the function represents."
+}

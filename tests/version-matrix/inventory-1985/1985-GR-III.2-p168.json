@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p168",
+ "rule-digest": "179aec18e0c3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#FileRegistry; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#FileConnector",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p167",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (MASS.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter is right that the row names an implementation component and fits neither arm. It also points to the witness: the MSCS behaviour the I-O rows require. MASS.cob shows the MSCS that \"directs, or controls, the processing of mass storage files\" doing it at 85: a random read selects by key, REWRITE replaces, DELETE removes, and sequential reading sees the result. Code location located after the read: WEAK: FileRegistry and FileConnector are the run-time component that directs OPEN, READ, WRITE, REWRITE, DELETE of the files; no member is named as the MSCS."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-III.2-p230",
+ "rule-digest": "a1a8cd26ee6e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#IsPseudoTextDelimiter; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-SR-III_2-p230",
+ "notes": "Own witness from the read lineage-reads-1985/g-04.json: the reader showed the compiler correct at 85 with its refusal probe (p230_single_equal_refused.cob, refused at its line 7; its control p230_control.cob compiles), placed as the row's own test. The read: A syntax definition: a refusal witnesses it with the conforming control beside it. REPLACE =BUMP= BY ==ADD 1 TO N== is refused (COBOL1641 'a REPLACE statement operand is not pseudo-text'), and the == form in p229 is accepted and runs. Candidate SR-8.3.5-6 states delimiter spacing, not the delimiter's spelling, and has no 85 case. Code location located after the read: IsPseudoTextDelimiter recognises exactly two contiguous equal signs as the delimiter, so a single = is not one, and ReadOperand opens and closes pseudo-text on it."
+}

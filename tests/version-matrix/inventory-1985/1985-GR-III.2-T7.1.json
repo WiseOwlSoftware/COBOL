@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-T7.1",
+ "rule-digest": "0b116b720722",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PLUS",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-T7_1",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its probe (specchar.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Table 7 row 1: \"+ | plus sign\". The probe forms character-strings with '+' as an operator and a PICTURE symbol. Candidates (FMT-15.81.2, DOC-A.1-178, SR-13.18.35.3-1) are unrelated. Code location located after the read: The PLUS lexer rule tokenises the + character used as plus sign / addition operator and sign."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-III.2-p69",
+ "rule-digest": "479b2e52f01e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataName",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-SR-III_2-p69",
+ "notes": "Own witness from the read lineage-reads-1985/g-02.json: the reader showed the compiler correct at 85 with its refusal probe (dn-sub.cob, refused at its line 10; its control dn-ok compiles), placed as the row's own test. The read: The 1985 text: \"'data-name' represents a word which must not be reference-modified, subscripted, or qualified unless specifically permitted by the rules of the format.\" No candidate states this convention (all three are 'wording only' matches about PROPERTY, level 77 and COBOL-WORDS literals, none with an 85 case). The compiler refuses a subscripted and a reference-modified OCCURS DEPENDING ON operand and a qualified REDEFINES object, and accepts the qualification VI.5.8.3 SR2 permits. Code location located after the read: dataName is the one slot that names a data item in a data description entry and is a plain name carrying no subscript, ref-mod or qualifier of its own."
+}

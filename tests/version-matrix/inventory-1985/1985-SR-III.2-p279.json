@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-III.2-p279",
+ "rule-digest": "bd2782ac43a3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#ScreenSegmentNumber; src/WiseOwl.Cobol.Compiler/Binding/Model/SegmentNumber.cs#SegmentNumber",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-SR-III_2-p279",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its refusal probe (seg3digit.cob, refused at its line 36; its control sections compiles), placed as the row's own test. The read: \"Segment-numbers may contain only the characters '0','1', ... , '9'. A segment-number may be expressed either as a one or two digit number.\" Segmentation is absent from 2023, so no pointer can state it; the probes accept one and two digits and refuse three digits and a letter (each refusal one line from the accepted control). Code location located after the read: ScreenSegmentNumber refuses a segment-number that is not a one or two digit number or is outside 0-99, and SegmentNumber classifies it as fixed or independent."
+}

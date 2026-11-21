@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p31",
+ "rule-digest": "482eec5828ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CollatingSelection",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p31",
+ "notes": "Derivation from the read lineage-reads-1985/g-01.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p31); the code location is where the compiler meets the rule's subject. The read: \"The sequence in which the characters that are acceptable to a computer are ordered for purposes of sorting, merging, comparing, and for processing indexed files sequentially\" names the ordering the other rules apply. The code location was located after the read (locations-all.json): CollatingSelection picks the collating sequence (native or alphabet-defined ordering of the characters) used for a comparison or sort."
+}

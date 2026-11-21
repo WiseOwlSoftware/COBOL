@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-B.2.1-48",
+ "rule-digest": "e8560f3197ac",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#cdMode; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/B.2@1985-SUBSTANTIVE-CHANGES/1985-GR-B_2_1-48",
+ "notes": "Own witness from the read lineage-reads-1985/g-07.json: the reader showed the compiler correct at 85 with its probe (cd-for-io.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'The FOR I-O phrase in a communication description entry provides for both input and output functions by one CD entry.' The Communication module was removed from 2023, so no 2023 rule has this scope, and every candidate is a wording-only match about OPEN I-O, report groups or FORMAT. The probe's CD FOR I-O is accepted at 85 with RECEIVE and SEND on the same cd-name. Earlier attempts drew diagnostics that conform (Communication section ordering, and the 33-character FOR I-O record), so the CD checks are live. Code location located after the read: The cdMode rule accepts FOR I-O and BindEntry gives it CommunicationFormat.InputOutput, one CD entry with both input and output fields."
+}

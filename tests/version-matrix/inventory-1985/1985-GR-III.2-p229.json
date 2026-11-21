@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p229",
+ "rule-digest": "fc68d306fd63",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p229",
+ "notes": "Own witness from the read lineage-reads-1985/g-04.json: the reader showed the compiler correct at 85 with its probe (p229_pseudo_text.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but a program can show it: a compiler that refused a comment line inside pseudo-text, or kept the delimiters, would violate \"A sequence of text words, comment lines, or the separator space ... bounded by, but not including, pseudo-text delimiters.\" Candidates (2023 separator and text-word length SRs) have no 85 witness and do not state the content of pseudo-text. Run p229_pseudo_text-001 printed 'P229 OK'. Code location located after the read: ReadOperand collects the text-words between an opening and a closing == delimiter (delimiters excluded, adjoining separator spaces trimmed) as the pseudo-text operand."
+}

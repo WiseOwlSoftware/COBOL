@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p198",
+ "rule-digest": "2869476a67e9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/EditionFlag.cs#EditionFlag; src/WiseOwl.Cobol.Editions/ConstructDialectStatus.cs#ConstructAvailability",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p198",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p198); the code location is where the compiler meets the rule's subject. The read: The subject is the standard's revision process, not a program; the compiler's obsolete-element flagging (COBOL0903 seen in the p212 probe) answers the obsolete-list rows, not this one. The code location was located after the read (locations-all.json): ConstructAvailability.Obsolete marks an element to be deleted in a later edition and EditionFlag.Of turns it into the obsolete-element flag (COBOL0903)."
+}

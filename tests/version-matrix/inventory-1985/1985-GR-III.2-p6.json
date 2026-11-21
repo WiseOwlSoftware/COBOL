@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p6",
+ "rule-digest": "d48c4ac9db5a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#CobolString",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p6",
+ "notes": "Own witness from the read lineage-reads-1985/g-01.json: the reader showed the compiler correct at 85 with its probe (p6_alnum.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"Any character in the computer's character set\": the probe stores each of the 256 characters in a PIC X item and reads its ordinal back. DOC-A.1-31 (2023 implementor-defined coded character set) documents the set, it does not say an alphanumeric character is any member of it. Code location located after the read: CobolString stores and holds alphanumeric characters, accepting any character of the computer character set (each of the 256 ordinals round-trips)."
+}

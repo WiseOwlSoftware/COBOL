@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p231",
+ "rule-digest": "a8bb7b9c437e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#SeparatorRule; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#EndsCharacterString",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p231",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p231); the code location is where the compiler meets the rule's subject. The read: The row's own text is only the lead \"A character that belongs to the following set:\"; the table is in no row (segmentation lead). As a glossary term it names a set used by the separator rules. Candidates are wording-only. The code location was located after the read (locations-all.json): WEAK: SeparatorRule decides which of the punctuation characters (comma, semicolon, period, quotation delimiters, parentheses) act as separators from the source characters around them."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p181",
+ "rule-digest": "4adbc5c17420",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#unaryLogicalExpression; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundNot",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p181",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p181); the code location is where the compiler meets the rule's subject. The read: The row only names a form: \"The 'NOT' logical operator immediately followed by a parenthesized combined condition.\" Every candidate is a wording-only match (abbreviated relation conditions, a date argument rule), none states this definition. The code location was located after the read (locations-all.json): NOT before a parenthesised primaryCondition parses as unaryLogicalExpression and binds to BoundNot over the combined condition."
+}

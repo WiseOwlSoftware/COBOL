@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-T7.2",
+ "rule-digest": "db73ccbc0ef8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#MINUS",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-T7_1",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its probe (specchar.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Table 7 row 2: \"- | minus sign\". The probe uses '-' as an operator and a PICTURE symbol. Candidates are unrelated. Code location located after the read: The MINUS lexer rule tokenises the - character used as minus sign / subtraction operator and sign."
+}

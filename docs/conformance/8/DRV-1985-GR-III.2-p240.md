@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-III.2-p240", "definitional", "defines a record description of the user's program: the total set of data description entries associated with one record", "A vocabulary term and a synonym; candidates (FORMAT clause, RECORD clause SR, implicit RECORD) are wording-only. Cited: §1985:III.2 p240. Proposed by the read lineage-reads-1985/g-04.json; its refuter, trying to write the witness the derivation says cannot exist (Looked for an outcome that turns on 'record description' beyond the record description entry rules: none; the second sentence is a synonym.), UPHELD it: Vocabulary for the user's Data Division entries.", "claude: 2026-11-21", "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"]
+---

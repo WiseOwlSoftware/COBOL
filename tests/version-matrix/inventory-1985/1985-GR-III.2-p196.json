@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p196",
+ "rule-digest": "d17708630ddd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CompilerDriver.cs#CompilerDriver",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p196",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p196); the code location is where the compiler meets the rule's subject. The read: \"an object program is generally the machine language result of the operation of a COBOL compiler\"; \"the word 'program' alone may be used in place of the phrase 'object program'.\" The subject is the implementation and the document's wording, so the definitional arm does not fit; nothing a program or compiler can violate. The code location was located after the read (locations-all.json): CompilerDriver produces the object program (the built assembly) from the source program."
+}

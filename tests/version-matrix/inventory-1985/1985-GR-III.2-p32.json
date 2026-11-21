@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p32",
+ "rule-digest": "4fc07d67fcd3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Place",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p32",
+ "notes": "Own witness from the read lineage-reads-1985/g-01.json: the reader showed the compiler correct at 85 with its probe (p32_column.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The columns are numbered from 1, by 1, starting at the leftmost character position of the print line\" (catalog: not definitional). GR-13.18.14.4-10 (unoccupied columns are spaces) has no 85 case and states another property. The probe prints COLUMN 1 'A' and COLUMN 5 'B' and reads the line back as \"A B\". The first run (runs\\p32_column-001) wrote an absolute LINE 1 in an RD without PAGE and was refused COBOL2199 citing §1985:XIII.3.15.3 SR5, a correct refusal; the probe uses LINE PLUS 1. Code location located after the read: CobolReport.Place puts a printable item at its COLUMN number, 1 being the leftmost character position of the print line (start = column - 1)."
+}

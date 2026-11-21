@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-L2.2",
+ "rule-digest": "6ff4c82224e5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#PicInfo; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#CountOperand",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-L2_2",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with its refusal probe (L22_integer_item_refused.cob, refused at its line 13; its control L22_integer_item_control compiles), placed as the row's own test. The read: The row's own words, \"(2) A numeric data item defined in the Data Division that does not include any digit positions to the right of the decimal point\", cannot be cited: cite.py names this unit 'item L2.2' (unit_designator) but its parser refuses both 'L2.2' and 'item L2.2' (lead below). The sense is shown by a refusal of PIC 9V9 where SR4 requires a numeric integer, beside the accepted PIC 99. SR-5.5-2's only 85 case is diagnosed-only and this is a GR row, so it is no SAME. Code location located after the read: PicInfo.IsIntegerDescription tests a numeric item with no digit positions right of the decimal point and CountOperand applies it to the PERFORM TIMES item."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p29",
+ "rule-digest": "3c97320f679a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CobolCharacterRepertoire.cs#CobolCharacterRepertoire",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p29",
+ "notes": "Derivation from the read lineage-reads-1985/g-01.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p29); the code location is where the compiler meets the rule's subject. The read: \"The complete COBOL character set consists of the characters listed below.\" The listed characters are separate rows (1985-GR-III.2-T7.1 '+' through T7.15 ':' and beyond), each testable there; this lead adds nothing beyond them. The code location was located after the read (locations-all.json): WEAK: CobolCharacterRepertoire classifies which characters the COBOL character set admits in words (basic and extended letters, digits, hyphen, underscore)."
+}

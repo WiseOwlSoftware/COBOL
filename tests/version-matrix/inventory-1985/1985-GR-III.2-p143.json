@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p143",
+ "rule-digest": "7fcffc1f0b83",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#Resolve",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p143",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with its probe (p143_integer_function.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation\". GR-15.2-5 states the 2023 integer-function type but has no case at 85, so it cannot be a SAME pointer. Code location located after the read: Resolve decides a function result type and IsIntegerOperand tells an integer-class function result (no digits right of the point) from other numeric results."
+}

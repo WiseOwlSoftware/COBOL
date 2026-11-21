@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p301",
+ "rule-digest": "205908c5b7e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#PicInfo",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p301",
+ "notes": "Derivation from the read lineage-reads-1985/g-06.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p301); the code location is where the compiler meets the rule's subject. The read: 'The concept used in describing data in a COBOL Data Division under which the characteristics or properties of the data are expressed in a form oriented to the appearance of the data on a printed page': it names a concept that other rules (PICTURE, USAGE DISPLAY) apply; it states no behaviour of its own. The candidates are unrelated (wording only). The code location was located after the read (locations-all.json): WEAK: PictureAnalyzer derives an item category and size from the PICTURE character-string describing the data by its printed appearance, held in PicInfo, independent of internal storage."
+}

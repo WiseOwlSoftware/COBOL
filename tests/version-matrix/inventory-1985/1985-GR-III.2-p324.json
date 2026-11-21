@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p324",
+ "rule-digest": "9e1bfeae7567",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeVaries",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p324",
+ "notes": "Derivation from the read lineage-reads-1985/g-06.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p324); the code location is where the compiler meets the rule's subject. The read: 'A record associated with a file whose file description or sort-merge description entry permits records to contain a varying number of character positions.' names a property the RECORD clause rules govern. The candidates are SD/OCCURS/file-control rules. The code location was located after the read (locations-all.json): RecordSizeVaries is true when the FD or SD permits records of varying length (explicit RECORD VARYING or the implied variable format)."
+}

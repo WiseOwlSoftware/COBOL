@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p83",
+ "rule-digest": "4041fd4e79f9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#IsEditedCategorySymbol; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p83",
+ "notes": "Own witness from the read lineage-reads-1985/g-02.json: the reader showed the compiler correct at 85 with its probe (editchars.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The row is the lead of the editing-character table (B space, 0 zero, + plus, - minus, CR credit, DB debit, Z zero suppress, * check protect, $ currency sign, comma, period, / slant); the table is not itself catalogued (lead filed). Every character edits as PICTURE editing requires in the probe. No candidate states it: every candidate is a 'wording only' match. Code location located after the read: IsEditedCategorySymbol and the picture analyzer recognise the editing characters (B 0 / , . + - CR DB $ Z *) of a picture."
+}

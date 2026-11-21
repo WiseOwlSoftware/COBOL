@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p179",
+ "rule-digest": "64c8830b3d7b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#NativeCollatingSequence; src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#StorageByte",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/l1c01_native_ordinal_positions",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/12.3.7-SPECIAL-NAMES/l1c01_native_ordinal_positions), joined as the row's own test. The read: \"The implementor-defined character set associated with the computer specified in the OBJECT-COMPUTER paragraph\". GR-12.3.7.4-6 (with l1c01 at 85) states only that the implementor orders the native set, not its tie to the object computer, and the other candidates are ALPHABET/CLASS clause rules; so no pointer carries the whole scope. Code location located after the read: StorageByte maps the native character set to its storage bytes and NativeCollatingSequence fixes its high and low characters."
+}
