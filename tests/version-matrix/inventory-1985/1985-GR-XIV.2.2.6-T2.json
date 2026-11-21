@@ -1,5 +1,5 @@
 {
- "rule-id": "1985-GR-XIV.2.2.6-T1",
+ "rule-id": "1985-GR-XIV.2.2.6-T2",
  "rule-digest": "ea954f08eda6",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#MessageControl; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath",
