@@ -683,7 +683,7 @@ public sealed class Frontend
         if (DialectLevel < 2002)
         {
             ReportMisplacedDebuggingLines(misplacedDebuggingLines, diagnostics, sourcePath);
-            if (parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any && sourceDebuggingLines.Count > 0)
+            if (parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any)
                 ReportDebuggingLinesBreakingTheProgram(tokens.GetTokens(), sourceDebuggingLines, retypes, edition, cobolWordsMap,
                     sourcePath, cuts, diagnostics);
         }
@@ -706,22 +706,48 @@ public sealed class Frontend
     }
 
     /// <summary>§1985:VI.7.3: "The content of a debugging line must be such that a syntactically correct program is formed with or
-    /// without the debugging lines being considered as comment lines." The stream parsed clean with its
-    /// <paramref name="sourceLines"/> (the debugging lines that are source) as they stand; here it is parsed again with them
-    /// hidden, and a program that no longer parses is COBOL7061 at the last such line before the first syntax error (the
-    /// one whose removal left what the error found), or at the first when none precedes it.</summary>
+    /// without the debugging lines being considered as comment lines." The stream parsed clean as it stands, so ONE direction holds;
+    /// the other is parsed here from a copy, and a program that no longer parses is COBOL7061 at the last debugging line before
+    /// the first syntax error (the one whose change left what the error found), or at the first when none precedes it (kb/Work
+    /// PB5212, PB5466).
+    /// <list type="bullet">
+    /// <item>The lines <paramref name="sourceLines"/> are source (their unit declares WITH DEBUGGING MODE): the program is parsed
+    /// again with them HIDDEN, as comment lines.</item>
+    /// <item>A line the rewriter left as a COMMENT (a unit without the mode; its marker on the absent-line channel): the program is
+    /// parsed again with the text of every such line EXPOSED, as source. A hidden USE FOR DEBUGGING section is exposed with them,
+    /// because the mode that makes a debugging line source makes the section source too. A debugging line inside a PICTURE or
+    /// subscript region is not here: the lexer skipped its text, so the unit's own mode decided it (kb/Work PB1913).</item></list></summary>
     private void ReportDebuggingLinesBreakingTheProgram(IList<IToken> tokens, List<IToken> sourceLines, TokenRetypes retypes,
         EditionInfo edition, CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts, DiagnosticBag diagnostics)
     {
-        var lineNumbers = sourceLines.Select(t => t.Line).ToHashSet();
-        var hidden = tokens.Select(t => lineNumbers.Contains(t.Line) && t.Type != TokenConstants.EOF
-            && t.Channel == TokenConstants.DefaultChannel
-            ? new CommonToken(t) { Channel = CobolLexer.ABSENT_DEBUG_LINE }
-            : t).ToList();
-        var verdict = ParseCopyOf(hidden, retypes, edition, cobolWordsMap, sourcePath, cuts);
+        if (sourceLines.Count > 0)
+        {
+            var lineNumbers = sourceLines.Select(t => t.Line).ToHashSet();
+            var hidden = tokens.Select(t => lineNumbers.Contains(t.Line) && t.Type != TokenConstants.EOF
+                && t.Channel == TokenConstants.DefaultChannel
+                ? new CommonToken(t) { Channel = CobolLexer.ABSENT_DEBUG_LINE }
+                : t).ToList();
+            ReportIfDebuggingLinesBreak(ParseCopyOf(hidden, retypes, edition, cobolWordsMap, sourcePath, cuts), sourceLines, sourcePath, diagnostics);
+        }
+        var commentLines = tokens.Where(t => t.Type == CobolLexer.DEBUG_LINE && t.Channel == CobolLexer.ABSENT_DEBUG_LINE).ToList();
+        if (commentLines.Count > 0)
+        {
+            var exposed = tokens.Select(t => t.Channel == CobolLexer.ABSENT_DEBUG_LINE
+                && t.Type is not (CobolLexer.DEBUG_LINE or CobolLexer.DEBUG_LINE_IN_REGION)
+                ? new CommonToken(t) { Channel = TokenConstants.DefaultChannel }
+                : t).ToList();
+            ReportIfDebuggingLinesBreak(ParseCopyOf(exposed, retypes, edition, cobolWordsMap, sourcePath, cuts), commentLines, sourcePath, diagnostics);
+        }
+    }
+
+    /// <summary>COBOL7061 for a debugging-line direction whose parse failed: at the last of <paramref name="lines"/> at or before the
+    /// first syntax error, else at the first line.</summary>
+    private void ReportIfDebuggingLinesBreak((bool Clean, IToken? Offender) verdict, List<IToken> lines, string sourcePath,
+        DiagnosticBag diagnostics)
+    {
         if (verdict.Clean) return;
         int errorLine = verdict.Offender?.Line ?? int.MaxValue;
-        var at = sourceLines.Where(t => t.Line <= errorLine).MaxBy(t => t.Line) ?? sourceLines.MinBy(t => t.Line)!;
+        var at = lines.Where(t => t.Line <= errorLine).MaxBy(t => t.Line) ?? lines.MinBy(t => t.Line)!;
         var descriptor = Editions.Diagnostics.DiagnosticCatalog.DebuggingLineSyntaxBothWays;
         diagnostics.ReportError(descriptor.Code, descriptor.Title, LineMap.Locate(at.Line, at.Column, sourcePath), default);
     }
@@ -738,6 +764,9 @@ public sealed class Frontend
         CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts)
     {
         var copy = new CommonTokenStream(new ListTokenSource(tokens.Select(t => (IToken)new CommonToken(t)).ToList()));
+        // Filled up front, as the driver's own stream is: the parser's error recovery reads the tokens AHEAD of the offender by
+        // index (ReadingParses), and a lazily fetched stream has not fetched them (kb/Work PB5466).
+        copy.Fill();
         var parser = NewParser(copy, edition, cobolWordsMap);
         var first = new FirstOffender();
         ReservationGateRewriter.ParseToFixpoint(parser, copy, retypes, new DiagnosticBag(), (bag, witness) =>

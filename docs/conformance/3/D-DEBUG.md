@@ -62,13 +62,17 @@
   with none, before its Data or Procedure Division) and "The content of a debugging line must be such that a syntactically
   correct program is formed with or without the debugging lines being considered as comment lines" (COBOL7061: a program that
   parses with its debugging lines as source is parsed again with them hidden, and reported at the last debugging line before the
-  first syntax error of that parse; the converse direction, a unit without the mode whose debugging lines would not parse as source, is
-  not asked). Both are 1985 rules and bind below COBOL-2002 only: the later editions carry the facility as
+  first syntax error of that parse; and, from kb/Work PB5466, the converse: a program that parses with the lines of a unit
+  WITHOUT the mode as comment lines is parsed again with their text exposed as source, a hidden USE FOR DEBUGGING section with it,
+  and reported the same way. The rule reads "with or without" and refuses neither side's program, so each parse is asked, and
+  the 1985 text gives no reason to refuse one program form and accept the other). Both are 1985 rules and bind below COBOL-2002 only: the later editions carry the facility as
   obsolete or removed (the edition windows above). Witnesses:
   `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5214-debugging-line-copy-no-mode`,
   `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5214-debugging-line-copy-mode`,
   `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5212-debugging-line-before-object-computer`,
-  `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5212-debugging-line-syntax-both-ways`.
+  `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5212-debugging-line-syntax-both-ways`,
+  `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5466-debugging-line-syntax-no-mode` (the converse; its control
+  `pb5466-debugging-line-no-mode-parses-both-ways`).
 
   **The FLOATING spelling `>>D`** (ISO/IEC 1989:2002 clause 6.1.2 "`>>D` debugging indicator — a debugging line when followed by
   at least one space character", clause 6.3.4, clause 6.1.2.1 SR7 and SR8; the 2002 text is not in the repository and is read from the
