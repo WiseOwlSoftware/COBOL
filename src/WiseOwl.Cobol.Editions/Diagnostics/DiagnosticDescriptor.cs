@@ -82,7 +82,7 @@ public enum DeclinedAnnex
 /// <c>EditionInfo.Cite</c> chooses between them, the one choice of a citation by edition.</param>
 /// <param name="Rule1985">The 1985 rule this diagnostic enforces at <c>--std 85</c>, in the edition form (<c>§1985:VI.5.3.4 GR1</c>),
 /// where <see cref="IsoSection"/> names a later edition's (kb/Work PB5993). The message's site writes the same rule as the 1985
-/// arm of <c>EditionInfo.Cite</c>; <see cref="CitationAt"/> chooses between the two for a site that cites the descriptor itself.
+/// arm of <c>EditionInfo.Cite</c>, and the conformance suite's <c>EditionCitationNet</c> holds the message to it.
 /// At most one of <see cref="Rule1985"/> and <see cref="No1985Rule"/> is set, and a descriptor whose <see cref="IsoSection"/> cites
 /// only a later edition carries one of them (<c>EditionCitationCatalogDriftTests</c>).</param>
 public sealed record DiagnosticDescriptor(
@@ -98,9 +98,6 @@ public sealed record DiagnosticDescriptor(
     string? Title1985 = null,
     string? Rule1985 = null)
 {
-    /// <summary>The rule this diagnostic enforces at <paramref name="edition"/>: <see cref="Rule1985"/> at COBOL-85 when the
-    /// descriptor carries it, else <see cref="IsoSection"/>, chosen by <see cref="EditionInfo.Cite"/>.</summary>
-    public string CitationAt(EditionInfo edition) => edition.Cite(Rule1985 ?? IsoSection, IsoSection);
 
     /// <summary>The effective <c>--suppress</c> family key: <see cref="SuppressKey"/> when set, else
     /// <see cref="Code"/>.</summary>
