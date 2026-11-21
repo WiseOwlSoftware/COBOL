@@ -139,8 +139,8 @@ public sealed class RunUnit
     private static bool DebugSwitchFromEnvironment()
     {
         string value = (Environment.GetEnvironmentVariable(DebugSwitchVariable) ?? "").Trim();
-        if (value.Length == 0 || value.Equals("ON", StringComparison.OrdinalIgnoreCase)) return true;
-        if (value.Equals("OFF", StringComparison.OrdinalIgnoreCase)) return false;
+        if (value.Length == 0 || value.Equals("ON", StringComparison.OrdinalIgnoreCase)) return true;   // not a COBOL word: an environment variable value
+        if (value.Equals("OFF", StringComparison.OrdinalIgnoreCase)) return false;   // not a COBOL word: an environment variable value
         throw new CobolImplementorFatalException(
             $"{DebugSwitchVariable}='{value}' is neither ON nor OFF (the object-time debug switch, §1985:XV.1.3.4); "
             + "unset it to leave the switch on");
