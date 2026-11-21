@@ -32,4 +32,4 @@ and `docs/FILES_DESIGN.md` carrying the two new edges. The 2023 line sequential 
 Goldens at 85: `VII.4.7@1985-WRITE-STATEMENT/pb5984_line_delimited_advancing_one_record_per_write_85` (three passes, ten
 WRITEs, every read-back exact), its LINAGE twin `pb5984_line_delimited_linage_one_record_per_write_85` (LINAGE-COUNTER 2, 1, 1, 1 and three end-of-page imperatives, computed from §1985:VII.3.7.4 GR9, four records read back) and `VII.4.5@1985-REWRITE-STATEMENT/pb5915_line_delimited_rewrite_size_85` (shorter 44,
 longer 44, equal 00 and replaced, after a truncating READ 44, the file read back). No inventory row was re-verdicted: the
-1985 rows these rules hold are KEPT bridges or CONFORMS.
+1985 rows these rules hold are KEPT bridges or CONFORMS. Branch review round 1 (R1-1) found the REWRITE's two other refusals unpinned; `pb5915_line_delimited_rewrite_medium_85` now pins them and their order: a record of the line's character positions whose characters take more or fewer UTF-8 bytes is 44, a record holding the line delimiter is 99 (2023's '71' reported at 85), and a record that does both is 44, each leaving the file unchanged.

@@ -1819,7 +1819,7 @@ public sealed partial class SequentialConnector : FileConnector
         // ⛔ THE TRAVEL HAS NO IMAGE ON A LINE-FRAMED FILE BEFORE 2023 (LineDelimiterOnlyFrames; kb/Work PB5984): its delimiter
         // is the record boundary and nothing else, so a line end, a form feed or an overprint return written for the
         // positioning would be read back as a record of its own or inside one (§1985:VII.2.6.3 GR2). ADVANCING positions
-        // "the representation of a printed page" (§1985:VII.4.7.4 GR16), a phrase "dependent upon a device capable of
+        // "on a representation of a printed page" (§1985:VII.4.7.4 GR16), a phrase "dependent upon a device capable of
         // vertical positioning" (§1985:C.3, its item 19), which this file is not; LINAGE-COUNTER and the end-of-page conditions,
         // the logical page's (PositionOnLogicalPage), still follow the travel. AdvanceLines asks the same for every margin
         // and page fill; WriteTravel's overprint return needs no test, since Present never leaves such a file's line open.
