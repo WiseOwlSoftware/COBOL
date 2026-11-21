@@ -1,0 +1,1 @@
+{"refuse-at": ["2002"], "expect": "COBOL6848: PADDING CHARACTER IS ALL SYM1: literal-1 is not a one-character alphanumeric literal"}

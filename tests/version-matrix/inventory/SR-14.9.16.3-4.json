@@ -4,6 +4,6 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
  "test-ref": "unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused; unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWithAGlobalFile_Binds",
- "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB369. Rule text (cite.py --check 14.9.16.3 \"If report-name-1 is defined in a containing program\" -> OK, SR 4). The summary-reporting GENERATE report-name-1 of a container's GLOBAL report is refused COBOL2392 when the report's FD is not GLOBAL, and binds when it is; one check (RejectContainedReportFile) with INITIATE/TERMINATE and the file half of SR3."
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB369, PB5080, PB5139. Rule text (cite.py --check \"§2023:14.9.16.3 SR4\" \"shall contain a GLOBAL clause\" -> OK). The rule begins at 2002 (§2002:14.8.15.2 SR4, §2014:14.9.15.2 SR4; each checked with cite.py --check), so the row's editions are 2002, 2014 and 2023. There the summary-reporting GENERATE report-name-1 of a container's GLOBAL report is refused COBOL2392 when the report's FD is not GLOBAL, citing the rule of the edition compiled, and binds when it is; one check (RejectContainedReportFile) with INITIATE/TERMINATE and the file half of SR3. 1985 has no such rule (§1985:X.4.6.4 GR2), so --std 85 accepts it (kb/Work PB5080)."
 }

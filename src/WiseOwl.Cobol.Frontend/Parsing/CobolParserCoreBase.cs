@@ -809,6 +809,48 @@ public abstract class CobolParserCoreBase : Parser
         return null;
     }
 
+    /// <summary>⛔ A WORD §2023:8.9 RESERVES, WRITTEN AS THE NAME OF AN ENTRY WHOSE CLAUSE READING TOOK IT (kb/Work PB382) — the word
+    /// and its §2023:8.9 message when the syntax error at <paramref name="offending"/> falls in an entry that wrote no name, the
+    /// word right after the entry's level-number is a keyword reserved at this edition (any keyword, gated or not:
+    /// <see cref="ReservedWordHere"/>), and the entry reads COMPLETELY with that word taken as a user-defined word (retyped
+    /// <c>IDENTIFIER</c> in a copy, so it stands in the entry's <c>dataName</c>); else null. ISO §2023:8.3.2.1 1) and
+    /// §1985:IV.4.2.2.1.3: a reserved word may not be a user-defined word, and a data-name is one.
+    /// <para>The name slot of an entry is optional (§1985:VI.5.3.2 Format 1 brackets <c>data-name-1 | FILLER</c>; §2023:13.16.3
+    /// SR4), so a word that BEGINS a clause is read as that clause: <c>01 CLASS PIC X.</c> parsed as the CLASS clause and died at
+    /// PIC, where a class-name was due, with a COBOL5506 that never named the word, while <c>01 MOVE PIC X.</c>, whose word begins
+    /// no clause, dies AT the word and has always drawn COBOL0901 (<c>OffendingPosition.EntryNameIsDue</c>, kb/Work PB4604). The
+    /// question is the grammar's, never a list of the words that begin a clause, so a clause a format gains tomorrow is covered.
+    /// A genuine fault elsewhere in the entry fails the re-read too, and its own report stands. <c>Through</c> is the stream index of
+    /// the entry's separator period: the one fault covers the entry. Read-only.</para></summary>
+    internal (IToken Word, string Message, int Through)? ReservedEntryName(IToken offending)
+    {
+        for (var ctx = Context; ctx is not null; ctx = ctx.Parent as ParserRuleContext)
+        {
+            if (!Cst.ClosedFormats.LevelNumberEntryRules.Contains(RuleNames[ctx.RuleIndex])) continue;
+            if (ctx.Start is not { } level
+                || ctx.children?.OfType<ParserRuleContext>().Any(c => c.RuleIndex == CobolParserCore.RULE_dataName) == true)
+                return null;
+            var span = new List<IToken>();
+            for (int i = level.TokenIndex; i < TokenStream.Size; i++)
+            {
+                var t = TokenStream.Get(i);
+                if (t.Type == TokenConstants.EOF) break;
+                if (t.Channel != Lexer.DefaultTokenChannel) continue;
+                span.Add(t);
+                if (t.Type == CobolLexer.DOT && t.TokenIndex >= offending.TokenIndex) break;
+            }
+            if (span.Count < 3 || span[1] is not { } word || word.TokenIndex >= offending.TokenIndex
+                || ReservedWordHere(word) is null || ClosesAHeader(span[2].Type))
+                return null;
+            var copies = span.Select(t => (IToken)new CommonToken(t)).ToList();
+            ((CommonToken)copies[1]).Type = CobolLexer.IDENTIFIER;
+            return Reading(copies, ctx.RuleIndex, out _) is { Next: TokenConstants.EOF }
+                ? (word, UserWordViolationOf(word), span[^1].TokenIndex)
+                : null;
+        }
+        return null;
+    }
+
     /// <summary>Whether <paramref name="span"/>, the tokens of one sentence, reads completely as <paramref name="rule"/> with its
     /// token <paramref name="at"/> taken as a user-defined word (the token is retyped <c>IDENTIFIER</c> in a copy) and that
     /// word then stands in a <c>procedureName</c> (<see cref="NamesAProcedure"/>): the one question "is this reserved word
