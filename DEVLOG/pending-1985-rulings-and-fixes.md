@@ -9,7 +9,8 @@ reversed a landed note to an independent refuter.
   line 0 by §1985:XIII.3.10.8 rule 4d, and the report writer clamps it to line 1, so LINE-COUNTER reads one too high.
   PB5901: `PROCEDURE DIVISION USING BY REFERENCE` compiles at 85, where the 1985 header has no BY phrase. PB5902: `WRITE ...
   ADVANCING ZERO LINES` compiles at 85, where a figurative constant may stand only where the format says 'literal' and
-  integer must be a numeric literal; the refuter upheld it, and it reverses the 85 half of PB5289. PB5933: the refusal of
+  integer must be a numeric literal; the refuter upheld it (a ruling later reversed: see "PB5902 decided" below; ADVANCING ZERO
+  stays accepted and PB5289 stands). PB5933: the refusal of
   DELETE on a sequential file is right but cites a 2023 rule. PB5982, new: a LINAGE data-name of an EXTERNAL file need not be
   external at 85, though §1985:VII.3.7.4 GR11c says it must, and the check ran only at 2023.
 - **Not defects.** PB5897 (an out-of-domain literal argument is legal source; the result is undefined only when evaluated),
