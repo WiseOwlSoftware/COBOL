@@ -24,3 +24,13 @@
 Measure: 16 → 2 (p1 and p7 of VI.6.18.5, pending). Printed paragraphs measured 4,188 → 4,150. Self-tests that fail on
 the base: `edition_status` case_07c (an Examples clause is units; its fenced code is no hole), `text_units` case_17
 (the one display reading).
+
+**Disposed (four refuter rounds, slices 85e-01 to 85e-04, records in `docs/rearchitecture/spec-dispositions-1985/85e-0N-refute.jsonl`).**
+`import_dispositions.py --edition 1985 --slices 85e-01,85e-02,85e-03,85e-04 --write`: `19 units disposed ... GR 3,
+not-a-rule (lead-in) 5, restates 11`. The reader (the implementer) read p1 a definitional GR, p2-p6 lead-ins, p7 and the
+12 rows `restates`; the refuters made p7 and T4.1 rows of their own (p7 states the CONVERTING equivalence; T4.1's AB that
+runs into the BEFORE "BC" is fixed only by the printed row) and widened each row's `restates` list (p1 for the zeroed
+counters, GR8, SR3 and §1985:IV.4.2.2.2.3 GR5 for QUOTE), each correction refuted again until UPHELD. Three rows minted:
+`1985-GR-VI.6.18.5-p1` (definitional: GAP until its derivation and that derivation's refuter), `-p7` and `-T4.1`, both
+CONFORMS on their own witnesses (`conformance-suite/cases/VI.6.18@1985-INSPECT-STATEMENT/1985-GR-VI_6_18_5-p7`, `-T4_1`).
+Measure: holes 0, pending units 0; 1985 GAP 195 -> 198 (minted) -> 196 (witnessed).

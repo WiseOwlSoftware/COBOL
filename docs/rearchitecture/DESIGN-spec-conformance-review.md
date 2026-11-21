@@ -1402,7 +1402,7 @@ kb/Work PB5256), its change records do not yet.
   Examples paragraph is text like any other (its preamble, its five labels, its prose and its result-table rows are 19
   units, disposed on their own records); and 14 of the 16 were lines of fenced code the measure read as prose although
   the segmentation makes no unit of code (the measure had read `<pre>` but not a fence as a display: 38 fenced lines of
-  the region, 24 of them counted covered by a row). 16 became 2, both pending units of VI.6.18.5 (p1, p7).
+  the region, 24 of them counted covered by a row). 16 became 2, both pending units of VI.6.18.5 (p1, p7), and 0 when the 19 units were disposed on their refuter records (slices 85e-01 to 85e-04: three rows, p1, p7 and T4.1; 5 lead-ins; 11 `restates`).
 - **The scan's own defects.** The scan prints folios X-11 and X-12 twice (PDF pages 527-528); the transcription keeps
   both copies under `citation.SCAN_REPEAT_85`'s comment, and the catalog reads no rule from the repeat.
 - **The scan's missing pages come from another scan** (kb/Work PB4952, PB5789). Our scan lacks printed pages XIII-30,
