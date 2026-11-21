@@ -68,8 +68,7 @@ class Tree:
     the repository at `root`. The state rule reads more than the store: the schema, the catalog, docs/CONFORMANCE.md's
     registers and the Annex A.2 list. A view of a commit reads each of them as that commit has it, and a view of another
     worktree reads that worktree's (branch review R1-3, R1-4). `files`, when given, are the commit's files already read
-    (by path), as a reader that reads many commits' blobs in one batch has them (`gen_ledger.measure_commits`,
-    `read_view_ahead`): every path it was ASKED, its text or None for a file the commit lacks.
+    (by path), as a reader that reads a commit's blobs in one batch has them (`read_view_ahead`): every path it was ASKED, its text or None for a file the commit lacks.
 
     ⛔ A PATH IT WAS NOT ASKED IS `NotReadAhead`, never None (kb/Work PB5374 branch review R1-1). The view's inputs grow
     (the older catalogs, then the refuter record files a §8 row names), and when a read-ahead list missed one the commit's
@@ -166,10 +165,11 @@ class Edition:
         """The adjudicated fields of a rule nobody has adjudicated: each empty (the change record an empty object)."""
         return {f: {} if f == "next" else "" for f in self.adjudicated}
 
-    def outside(self, tree: Tree = WORKING_TREE) -> dict[str, list[str]]:
+    def outside(self, tree: Tree = WORKING_TREE) -> dict[str, Any]:
         """What this edition's rule count leaves out (kb/Work PB5256, branch review R1-5): the catalog's
-        `outside-denominator`, the content-keyed manifest's clauses awaiting a disposition (`pending-clauses`) and the
-        rule-shaped headings no kind types (`untyped-headings`); empty when the count is the whole denominator."""
+        `outside-denominator`, the content-keyed manifest's clauses awaiting a disposition (`pending-clauses`), the
+        rule-shaped headings no kind types (`untyped-headings`) and the number of units of unnumbered text awaiting a
+        disposition (`pending-units`, kb/Work PB5449); empty when the count is the whole denominator."""
         doc = tree.json(self.catalog) or {}
         return doc.get("outside-denominator", {})
 
@@ -1509,8 +1509,7 @@ def refuter_files(extract: dict[str, Any] | None) -> list[str]:
 def read_view_ahead(tree: Tree) -> Tree:
     """`tree` (a commit) with EVERY file its view reads besides the store read ahead, in two batches: the files its schema
     names (`Schema.view_files`), then the refuter record files its register extract names (`refuter_files`). The one
-    list of a commit's view inputs, read by `inventory_view.inventory_at`; `gen_ledger.measure_commits` reads the same
-    two stages for many commits at once. A file both miss is `NotReadAhead` when the view reads it. A working tree is
+    list of a commit's view inputs, read by `inventory_view.inventory_at`. A file both miss is `NotReadAhead` when the view reads it. A working tree is
     returned as it is."""
     if tree.rev is None:
         return tree

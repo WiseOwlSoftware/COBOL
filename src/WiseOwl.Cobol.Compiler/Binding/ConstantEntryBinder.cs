@@ -496,7 +496,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     private static readonly CtValue FailedConstantOperand = CtValue.Numeric(new WiseOwl.Cobol.Runtime.CobolDec(1, 0), "1");
 
     /// <summary>Routes the shared compile-time evaluator's diagnostics to the CONSTANT-entry binder's own codes: an
-    /// arithmetic rule → the <c>ConstantEntryRule</c> descriptor; a §2023:12.3.7 GR14a separator violation →
+    /// arithmetic rule → the <c>ConstantEntryRule</c> descriptor; a §2023:12.3.7.4 GR14a separator violation →
     /// COBOL0895 — unchanged from the pre-shared-evaluator binder.</summary>
     private sealed class ConstantEvaluatorDiagnostics(DataBinder owner) : WiseOwl.Cobol.Frontend.Expressions.ICtDiagnostics
     {

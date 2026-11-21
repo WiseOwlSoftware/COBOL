@@ -18,7 +18,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// </summary>
 internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState ecState, EcEmitter ec)
 {
-    /// <summary>The C# expression for an <c>ADDRESS OF identifier</c> value (ISO §2023:8.4.3.11 GR1): a BASED
+    /// <summary>The C# expression for an <c>ADDRESS OF identifier</c> value (ISO §2023:8.4.3.11.4 GR1): a BASED
     /// item's value IS its implicit data-address pointer (§2023:8.6.5 :8791); a cell-forced record renders a
     /// window pointer at the item's class offset; an EXTERNAL record's cell is the run-unit
     /// <c>ExternalStore</c> cell (the increment-2 unification — no special case). The bind pass guaranteed
@@ -30,7 +30,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         while (root.Parent is { } p) root = p;
         if (root.Class is not { } cls)
             return LoudValue("ManagedPointer", $"ADDRESS OF '{item.CobolName}' without cell storage");
-        // A SUBSCRIPTED operand addresses the OCCURRENCE (§2023:8.4.3.11 GR1): the class offset plus the binder's
+        // A SUBSCRIPTED operand addresses the OCCURRENCE (§2023:8.4.3.11.4 GR1): the class offset plus the binder's
         // occurrence displacement — the occurrences lie end-to-end in the ONE cell image.
         string offsetText = PositionRenderer.Render(new PositionOffset(new PositionConstant(item.ClassOffset), a.OccursDisplacement ?? []));
         // A REFERENCE-MODIFIED operand's address is its leftmost position's (§2023:8.4.3.11.4 GR1 over §2023:8.4.3.3.4 GR5): the
@@ -52,7 +52,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         }
         if (cls.BasedPointerField is { } addr)
             // The based item itself reads its implicit pointer (§2023:8.6.5 :8791); a SUBORDINATE's address is
-            // the base displaced by its class offset (§2023:8.4.3.11 GR1 — the address OF THE ITEM; the review's
+            // the base displaced by its class offset (§2023:8.4.3.11.4 GR1 — the address OF THE ITEM; the review's
             // ClassOffset-drop finding). UpBy's GR18 null trap is the right posture: taking the address of a
             // child of an unallocated based record has no address to take.
             return item.ClassOffset == 0 && ReferenceEquals(item, root) && a.OccursDisplacement is null && a.RefMod is null
@@ -107,7 +107,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
     /// <para><paramref name="src"/> is the already-landed sender expression, rendered ONCE by
     /// <c>SetEmitter.EmitSetPointer</c> for the whole receiving list, because identifier-6 sits OUTSIDE the
     /// printed repetition. A <c>ManagedPointer.Null</c> sender is SR19's TO NULL, which disassociates the item
-    /// (§2023:13.18.5 GR2's initial state; kb/Work PB89).</para></summary>
+    /// (§2023:13.18.5.4 GR2's initial state; kb/Work PB89).</para></summary>
     public void EmitSetAddressOfBased(DataItem based, string src)
     {
         if (based.Class?.BasedPointerField is not { } addr)
@@ -259,7 +259,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         var w = ctx.Writer;
         string nameExpr = s.NameLiteral is { } lit
             ? EmitText.CsLiteral(lit)
-            : NameImage(s.NamePlace!);   // §2023:8.4.3.13 GR1a — the identifier's value names the program
+            : NameImage(s.NamePlace!);   // §2023:8.4.3.13.4 GR1a — the identifier's value names the program
         int id = ctx.Names.NextPtr();
         string nf = $"__ppNf{id}";
         string nm = $"__ppNm{id}";
@@ -357,7 +357,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             w.Line($"_ = {nf};   // EC-FUNCTION-NOT-FOUND checking not enabled: fatal, so §2023:14.6.13.1.3 8) leaves continuation to the implementor — this one continues with the GR4 NULL value");
     }
 
-    /// <summary>FREE (ISO §2023:14.9.15 GR1/GR2 — per operand, left to right): the helper runs the three-way;
+    /// <summary>FREE (ISO §2023:14.9.15.4 GR1/GR2 — per operand, left to right): the helper runs the three-way;
     /// the nonfatal EC-STORAGE-NOT-ALLOC (GR1c) reports through the TurnState-gated status block ONLY when
     /// its checking is enabled (§2023:14.6.13.1.4 — an unchecked nonfatal condition is not raised).</summary>
     public void EmitFree(BoundFree s)

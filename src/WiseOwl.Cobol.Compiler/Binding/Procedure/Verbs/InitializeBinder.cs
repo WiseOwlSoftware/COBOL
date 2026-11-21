@@ -178,7 +178,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         return BoundImplicitSeries.Of(members);
     }
 
-    /// <summary>The ALLOCATE based-item INITIALIZED lowering (ISO §2023:14.9.3 GR7): "the allocated storage is
+    /// <summary>The ALLOCATE based-item INITIALIZED lowering (ISO §2023:14.9.3.4 GR7): "the allocated storage is
     /// initialized as if an INITIALIZE data-name-1 WITH FILLER ALL TO VALUE THEN TO DEFAULT statement were
     /// executed" — bind EXACTLY that statement's expansion over the based item (the ONE INITIALIZE mechanism:
     /// WITH FILLER, the bare-ALL TO VALUE, no REPLACING, THEN TO DEFAULT), sequenced by the ALLOCATE bind
@@ -708,7 +708,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // POST-PASS OVER ALL THREE. GR7 is printed unconditionally, and read that way it would erase the sender
         // GR6a and GR6b have just designated. It is read as the answer GR6c's fill table cannot give for a
         // dynamic-length receiver, for four reasons, each mechanically cited at docs/CONFORMANCE.md §3:
-        //   (i)   §2023:14.6.2.3.2 GR7 states THE SAME ACTION at the OTHER occasion with the carve-out spelled out —
+        //   (i)   §2023:14.6.2.3.2 GRL2.7 states THE SAME ACTION at the OTHER occasion with the carve-out spelled out —
         //         "The length of each dynamic-length elementary item that is specified WITHOUT a VALUE clause is
         //         set to zero" — so the standard's own parallel sentence excludes the VALUE case;
         //   (ii)  §2023:8.6.4 makes a dynamic-length item's initial-state LENGTH the VALUE clause's length, and
@@ -864,7 +864,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The INITIALIZE category of an elementary item (ISO §2023:8.5.2 via §2023:14.9.20.2 category-name), or null
     /// when the item is excluded (GR5a1 — an index data item is not a valid MOVE receiver; only SET stores it,
-    /// §2023:14.9.39 GR2b). Alphanumeric-edited = an X/A picture with insertion symbols; alphabetic = an all-A picture
+    /// §2023:14.9.39.4 GR2b). Alphanumeric-edited = an X/A picture with insertion symbols; alphabetic = an all-A picture
     /// (the COBOL-85 alphabetic-edited category folds into alphanumeric-edited per the 2023 categorization).</summary>
     private static InitializeCategory? InitializeItemCategory(DataItem item) => item.Pic switch
     {

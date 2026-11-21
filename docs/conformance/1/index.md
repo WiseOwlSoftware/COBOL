@@ -2,7 +2,8 @@
 heading: "## 1. Conformance summary (§2023:4.2.16)"
 ---
 WiseOwl COBOL is a **standard-conforming** COBOL implementation targeting ISO/IEC 1989:2023, with correct support for
-the 1985, 2002, and 2014 editions selected by `--std`. It implements the required nucleus and the standard modules
+the 1985, 2002, and 2014 editions selected by `--std`. The COBOL-85 claim (`--std 85`: the high subset of ANSI X3.23-1985
+with the highest level of every optional module) is §9, computed from the 1985 rules and their states. It implements the required nucleus and the standard modules
 except the optional/processor-dependent facilities listed as **not supported** below; the per-module
 optional-element dispositions are §5 (only Claimed/Partial rows there are claimed). Per §2023:4.2.6, an
 implementation need not implement processor-dependent elements for which support is not claimed; per §2023:4.2.7, an

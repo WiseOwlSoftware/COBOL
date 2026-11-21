@@ -885,8 +885,8 @@ def inherited_harm(items: list[dict]) -> dict[str, list[str]]:
     answer) waits on PB4734 and PB4735, and PB4744 (rejected legal source) and the PB4700 umbrella wait, through
     PB4741 and PB4742, on PB4739, so a register that ranked only stored flags listed neither in `next` and the fix lane
     planned neither, and the harmed notes waited for ever. Derived, never stored: the ONE reading `actionable`,
-    `view_notes`, the planner's ready view (clusters.ready_notes_view), the ledger (ledger_plan) and the landing
-    order (prune_worktrees.note_rank) share. Another project's record (kind upstream) inherits nothing, and a link held
+    `view_notes`, the planner's ready view (clusters.ready_notes_view) and the landing order
+    (prune_worktrees.note_rank) share. Another project's record (kind upstream) inherits nothing, and a link held
     `owner` ends the walk: the owner has not decided that work, so nothing below it is owed (review R1-3)."""
     by_id = {i.get("id"): i for i in items}
     owed: dict[str, set[str]] = {}
@@ -919,8 +919,8 @@ def fixable(it: dict) -> bool:
     `process_only`, read on `with_inherited_harm`'s copy, so a prerequisite counts with the harm it owes. Whatever its
     `kind`: `next` ranks a harmed analysis as it ranks a harmed defect, and the fix lane's population was once
     `.agent-fleet.json`'s `kind: defect`, so the harmed analyses `next` listed first (PB4929, PB4923) no lane ever
-    planned (kb/Work PB4951). The ONE predicate `actionable`, the planner's view (clusters.ready_notes_view) and the
-    ledger's lane reading (ledger_plan.lanes_of) share."""
+    planned (kb/Work PB4951). The ONE predicate `actionable` and the planner's view (clusters.ready_notes_view)
+    share."""
     return any(it.get(f) for f in HARM_FLAGS) and not it.get("process_only")
 
 
@@ -1084,9 +1084,8 @@ def waiting_on(it: dict, by_id: dict[str, dict]) -> list[str]:
 
 
 def cluster_members(items: list[dict], lead: str) -> list[dict]:
-    """Every note whose `cluster` list names `lead`, terminal or not — THE membership rule, so `cluster_order` and the
-    ledger's lanes (`ledger_plan.py`: the campaign and held clusters of WHAT REMAINS) count one population. A list only: a scalar `cluster: PB2108` would
-    match by SUBSTRING (`check` reports that shape)."""
+    """Every note whose `cluster` list names `lead`, terminal or not — THE membership rule `cluster_order` reads. A list
+    only: a scalar `cluster: PB2108` would match by SUBSTRING (`check` reports that shape)."""
     return [i for i in items if isinstance(i.get("cluster"), list) and lead in i["cluster"]]
 
 

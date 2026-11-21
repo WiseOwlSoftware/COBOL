@@ -214,7 +214,7 @@ public abstract class FileConnector
     protected FileOpenMode Mode;
     protected bool OptionalAbsent, LastReadUnsuccessful, PrevOpWasSuccessfulRead;   // the shared position pair
     protected readonly string HostPath;
-    public int  OpenModeView { get; protected set; } = -1;    // §2023:14.9.49 GR6 USE-declarative mode scoping
+    public int  OpenModeView { get; protected set; } = -1;    // §2023:14.9.49.4 GR6 USE-declarative mode scoping
     public int  LastReadLength { get; protected set; }
 
     public string Open(FileOpenMode mode);                     // shared preamble → OpenCore; returns the status
@@ -3712,7 +3712,7 @@ Order the work so each step is independently green and the emitted-code surface 
 Steps 1–5 below are DONE (PHASE-08; battery green at every commit; zero compiler-side changes, so the emitted
 C# is byte-identical by construction). Step 6 remains for G8. Additions beyond the plan, per the §5 hidden-
 static gate: `ExternalSwitches` → instance `SwitchStore` on `RunUnit` (+ static shim) — switch scope is the run
-unit (§2023:12.3.7 GR4 NOTE 1); the only statics left are genuinely immutable (`ExceptionCatalog`, `Pow10`,
+unit (§2023:12.3.7.4 GR4 NOTE 1); the only statics left are genuinely immutable (`ExceptionCatalog`, `Pow10`,
 `SystemClock.Instance`). Naming as landed: the instance types are `ProgramTable`, `ExceptionEngine`,
 `ExternalTable`, `ModuleStack`, `SwitchStore`, `FileRegistry` (+ `PhysicalFileTable` under `IO/Sharing/`);
 every pre-P8 static name survives as the emitted-surface shim.

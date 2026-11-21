@@ -1486,7 +1486,7 @@ public static class DiagnosticCatalog
     // ⛔ `NationalThroughRange` (`national-through-range`) IS GONE — kb/Work PB761, discharged in landing train
     // 18, and this comment stands where it was so it is not re-added. It staged a condition-name THROUGH range
     // over a national conditional variable as "recognized but not yet implemented (Phase 4a residue)" on the
-    // citation §2023:13.18.63 SR31 — a clause that governs when the IN alphabet-name-1 phrase may be written and
+    // citation §2023:13.18.63.3 SR31 — a clause that governs when the IN alphabet-name-1 phrase may be written and
     // says nothing about implementability. §2023:14.7.8 GR2 governs the range, ConditionRenderer has emitted it
     // under __COLLATE_NAT since PB678, and it was MEASURED correct for the elementary and the group shape alike
     // (both flip with the national alphabet). The stage was refusing conforming source. The SR29 boolean ban
@@ -4316,7 +4316,7 @@ public static class DiagnosticCatalog
     /// KEY clause (or the LINAGE-COUNTER qualifier that reads one of the same file description entries) violates
     /// its own rule. Covers ISO §2023:12.4.5.1 (the file control entry's required clauses), §2023:12.4.5.2 SR10 (RELATIVE
     /// KEY required for DYNAMIC/RANDOM access), §2023:12.4.5.12.3 (RECORD KEY), §2023:12.4.5.6.3 (ALTERNATE RECORD KEY),
-    /// §2023:12.4.5.13.3 (RELATIVE KEY) and §2023:8.4.3.14 / §2023:13.18.34 GR7 a) (LINAGE-COUNTER). The three key clauses state
+    /// §2023:12.4.5.13.3 (RELATIVE KEY) and §2023:8.4.3.14 / §2023:13.18.34.4 GR7 a) (LINAGE-COUNTER). The three key clauses state
     /// the SAME OCCURS ban in the same words, which is why they share one code: a rule set with one member written
     /// down is where the missing members hide (kb/Work PB354).
     /// <para>⛔ THE KEY-CLAUSE ARM IS ONE TABLE, <c>FileControlKeyRules</c>, run from
@@ -4704,7 +4704,7 @@ public static class DiagnosticCatalog
         + "or if character-string-1 contains the symbol 'N', literal-1, literal-2, and literal-3 shall be "
         + "national literals. Otherwise, literal1, literal-2, and literal-3 shall be alphanumeric literals.\" "
         + "The two conditions that make the subject national are the same two that make it a category-national "
-        + "or category-national-edited item (§2023:13.18.40.4 GR9/GR10 with §2023:13.18.60.4 SR13a), so the insertion "
+        + "or category-national-edited item (§2023:13.18.40.4 GR9/GR10 with §2023:13.18.60.3 SR13a), so the insertion "
         + "characters a PICTURE EDITING phrase supplies are of the same class as the positions they occupy "
         + "(GR2: \"When the usage of the item being edited is national, the value is the national character "
         + "representation\"). Both halves are refused: a national literal in `PIC XXTXX EDITING \"T\" IS N\":\"` "
@@ -7480,6 +7480,19 @@ public static class DiagnosticCatalog
         + "left parenthesis).",
         "ISO §2023:8.7.1 · §2023:8.7.3 · §2023:8.7.4");
 
+    /// <summary>COBOL7672 — a relational operator or a logical connective of a condition not immediately preceded and followed by a
+    /// separator space, at COBOL-85 (kb/Work PB5989). §1985:VI.6.3.1.1: "A space must precede and follow each reserved word
+    /// comprising the relational operator" (a relation character is a special character word, so a reserved word,
+    /// §1985:IV.4.2.2.1.3.1); §1985:VI.6.3.2: "The logical operators must be preceded by a space and followed by a space". No later
+    /// edition states either rule. The lexer skips the separator space, so <c>IF (A = 1)AND(B = 2)</c> and <c>IF N=M</c> are one
+    /// token run with their spaced spellings; decided by <c>SeparatorRule</c> over the parse tree, which alone says which AND, OR or
+    /// NOT is a logical operator and which words make up a relational operator.</summary>
+    public static readonly DiagnosticDescriptor SeparatorConditionOperatorSpacing = new(
+        "COBOL7672", "separator-condition-operator-spacing", EditionSeverity.Error,
+        "A relational operator (each of its words and relation characters) or a logical operator (AND, OR, NOT) of a "
+        + "condition is not immediately preceded and followed by a separator space (COBOL-85).",
+        "ISO §1985:VI.6.3.1.1 · §1985:VI.6.3.2");
+
     /// <summary>COBOL2994 — an inline method invocation written with an empty parenthesis pair, <c>O :: "M" ( )</c>
     /// (kb/Work PB1430). §2023:8.4.3.4.2 brackets the whole parenthesised group (so it may be omitted) but encloses the five
     /// argument forms in braces repeated by the ellipsis INSIDE the one pair, and §2023:5.2.6.3 requires one alternative
@@ -9189,7 +9202,7 @@ public static class DiagnosticCatalog
     /// <summary>COBOL1511 — boolean expression rule (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor BooleanExpressionRule = new(
         "COBOL1511", "boolean-expression-rule", EditionSeverity.Error,
-        "A boolean expression, boolean COMPUTE or boolean relation breaks a rule of §2023:8.8.2, §2023:14.9.8.3 Format 2 or "
+        "A boolean expression, boolean COMPUTE or boolean relation breaks a rule of §2023:8.8.2, §2023:14.9.8 Format 2 or "
         + "§2023:8.8.4.3.3. §2023:8.8.2 rule 4: \"The two operands in a binary boolean operation shall not both be the figurative "
         + "constant ALL literal.\"; §2023:14.9.8.3 SR2: \"Identifier-2 shall reference an elementary boolean data item.\"; "
         + "§2023:8.8.4.3.3 SR1: \"Boolean-expression-1 shall reference only boolean items of length 1.\"",
@@ -9523,10 +9536,7 @@ public static class DiagnosticCatalog
         "COBOL0865", "delete-record-on-sequential-file", EditionSeverity.Error,
         "A DELETE statement names a file of sequential organization. §2023:14.9.10.3 SR1: \"The DELETE RECORD statement shall "
         + "not be specified for a file with sequential organization.\"",
-        "ISO §2023:14.9.10.3 SR1",
-        No1985Rule: "ANSI X3.23-1985 defines the DELETE statement only in the relative I-O module (§1985:VIII.4.3.1) and the indexed "
-            + "I-O module (§1985:IX.4.3.1); the sequential I-O module (§1985:VII) has no DELETE statement and so states no rule about "
-            + "one on a sequential file (kb/Work PB4950).");
+        "ISO §2023:14.9.10.3 SR1");
 
     /// <summary>COBOL0866 — an INVOKE through a universal object reference, or by a dynamic method name (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor InvokeUniversalReferenceRule = new(

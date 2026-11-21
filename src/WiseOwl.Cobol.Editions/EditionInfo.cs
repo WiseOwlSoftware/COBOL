@@ -129,6 +129,20 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// §2023:8.3.2.2).</summary>
     public bool ConditionNamesShareTheDataNameSet => Year < 2002;
 
+    /// <summary>Whether a UNARY arithmetic operator may be FOLLOWED by a left parenthesis with no separator space (kb/Work PB5989): from 2002
+    /// "no space is required between a left parenthesis and a unary operator or between a unary operator and a left parenthesis"
+    /// (§2002:8.7.1; §2023:8.7.1). COBOL-85 has no exception: its arithmetic operators, unary ones included, "must be preceded by a
+    /// space and followed by a space" (§1985:VI.6.2.2). A left parenthesis directly BEFORE a unary operator (or a logical NOT) is accepted at
+    /// every edition: the determination D-85-OPERATOR-SPACING (<c>docs/conformance/3/</c>) rules it from the 1985 text, which itself
+    /// writes <c>(NOT (a = b))</c> (§1985:VI.6.3.3) and <c>(- argument-2)</c> (§1985:p.A-34).</summary>
+    public bool UnaryOperatorMayTouchParenthesis => Year >= 2002;
+
+    /// <summary>Whether the relational operators and the logical connectives of a condition each need a separator space on both sides
+    /// (kb/Work PB5989): at COBOL-85 "A space must precede and follow each reserved word comprising the relational operator"
+    /// (§1985:VI.6.3.1.1) and "The logical operators must be preceded by a space and followed by a space" (§1985:VI.6.3.2); no later
+    /// edition states either sentence, so there a parenthesis or an operand's edge may touch them.</summary>
+    public bool ConditionOperatorsNeedSeparatorSpaces => Year < 2002;
+
     /// <summary>The name of the standard this edition is, as its document is titled: what the source listing's page heading
     /// prints beside <c>--std</c> (DESIGN-listing.md section 6.1).</summary>
     public string StandardName => Year switch

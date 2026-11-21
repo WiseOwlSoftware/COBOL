@@ -14,5 +14,5 @@ from the 1985 text), or (b) it is reachable only through a construct the edition
 the repository as a drift check that fails on any class (a) code, so the measurement is reproducible from the tree.
 
 Also from the review, not fixed here: the pb742 golden's loosened expectation no longer pins either edition's wording (lead R1-2);
-COBOL1858 at 85 says "ISO §1985:..." where 1985 is ANSI X3.23-1985 (FileModel.cs:328; the pb5993-access-random golden pins it);
+COBOL1858 at 85 says "ISO" followed by a 1985 locator where 1985 is ANSI X3.23-1985 (FileModel.cs:328; the pb5993-access-random golden pins it);
 COBOL2198's message now prints the usage word at every edition, a cosmetic change beyond the 1985 arm.

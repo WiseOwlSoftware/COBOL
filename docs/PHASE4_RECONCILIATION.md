@@ -28,8 +28,8 @@ NOT-STARTED = no greenfield surface; OBSOLETE = superseded by a ratified decisio
 |---|---|---|---|---|---|---|
 | M2-UDF-1 | Inline UDF invocation FUNCTION user-name(args) | done | **LANDED** (+ the **category-carrying RETURNING channel**, P10 Step 9 2026-07-16: alphanumeric/edited/national/character-form-group results; the per-shape 1510 residues (float/boolean/pointer-class + strong-typed/REDEFINES/variable-length groups) were discharged by kb/Work PB1419) | UdfBinder.cs (Binding/Procedure/Verbs/; bind → hoisted CALL…RETURNING over a §2023:8.4.3.2.4 GR1 result temp — a GROUP model deep-clones via the unregistered `CloneTempNode`); 6 udf_* runtime goldens ENABLED byte-exact (invocation, inline_expression, value_args, recursion, nested_args, returning_categories); UdfInvocationTests; user-function-invocation-2002 registry+matrix row | none | As-built + adversarial-review notes below (the two-phase bind was REALIZED, not found; the non-numeric-RETURNING finding is RESOLVED — see the review note). |
 | M2-UDF-2 | Literal/arith args to a UDF | done | **LANDED (DEVLOG 615)** | §2023:8.4.3.2.4 GR5b private-copy cells conformed by CobolArgAdapt; udf_value_args ENABLED byte-exact (LIT/ARI) | none | Folded into M2-UDF-1 as designed. |
-| M2-UDF-3 | Separate-compilation function prototypes (§2023:8.13 / §2023:11.5 Format 2) | open | **LANDED (DEVLOG 624)** | `FUNCTION-ID … IS PROTOTYPE` parses (PROTOTYPE token, `functionIdParagraph` tail, 0900 at 85); a prototype registers a signature but emits no runtime module (CallUnit.IsPrototype filters CallEmitProgramClass/Register); cross-assembly resolution reuses the sibling probe (§2023:12.3.8 GR11c); EC-FUNCTION-NOT-FOUND (Fatal) on a locate miss. Golden `udf_prototype` (P=000049, GreenfieldOnly) + 2 cross-assembly tests + 5 UdfInvocationTests | (c) | AS-BUILT below. Runtime half was free (D1). |
-| M2-UDF-4 | Bind REPOSITORY FUNCTION specifiers (ALL INTRINSIC / named) | open | **LANDED (DEVLOG 626)** | `FUNCTION ALL INTRINSIC` (GR14) + `FUNCTION name INTRINSIC` now BIND (DataBinder.RepositoryAllIntrinsic / RepositoryIntrinsics, inherited into contained programs); the §2023:8.4.3.2 SR2 **FUNCTION-keyword-omitted** reference form is LIVE bind-side (D2 — the ONE dataReference→Bound* chokepoints RefExpr/FieldOperand re-route `name(args)` to BindIntrinsicCore when the head is a repository intrinsic/ALL/user-function, SR6; data-item-wins guard). Gated ≥2002. Golden `udf_keyword_omitted` (MAX/MIN/MOD without FUNCTION, GreenfieldOnly) + 5 UdfInvocationTests | (c) | AS-BUILT below. GR12 named-specifier leg landed with UDF-1. |
+| M2-UDF-3 | Separate-compilation function prototypes (§2023:8.13 / §2023:11.5 Format 2) | open | **LANDED (DEVLOG 624)** | `FUNCTION-ID … IS PROTOTYPE` parses (PROTOTYPE token, `functionIdParagraph` tail, 0900 at 85); a prototype registers a signature but emits no runtime module (CallUnit.IsPrototype filters CallEmitProgramClass/Register); cross-assembly resolution reuses the sibling probe (§2023:12.3.8.4 GR11c); EC-FUNCTION-NOT-FOUND (Fatal) on a locate miss. Golden `udf_prototype` (P=000049, GreenfieldOnly) + 2 cross-assembly tests + 5 UdfInvocationTests | (c) | AS-BUILT below. Runtime half was free (D1). |
+| M2-UDF-4 | Bind REPOSITORY FUNCTION specifiers (ALL INTRINSIC / named) | open | **LANDED (DEVLOG 626)** | `FUNCTION ALL INTRINSIC` (GR14) + `FUNCTION name INTRINSIC` now BIND (DataBinder.RepositoryAllIntrinsic / RepositoryIntrinsics, inherited into contained programs); the §2023:8.4.3.2.3 SR2 **FUNCTION-keyword-omitted** reference form is LIVE bind-side (D2 — the ONE dataReference→Bound* chokepoints RefExpr/FieldOperand re-route `name(args)` to BindIntrinsicCore when the head is a repository intrinsic/ALL/user-function, SR6; data-item-wins guard). Gated ≥2002. Golden `udf_keyword_omitted` (MAX/MIN/MOD without FUNCTION, GreenfieldOnly) + 5 UdfInvocationTests | (c) | AS-BUILT below. GR12 named-specifier leg landed with UDF-1. |
 
 ### M2-UDF-1 — DECISION-COMPLETE DESIGN (recon workflow wf_a1e33856-215, 2026-07-05; ready to implement)
 
@@ -102,7 +102,7 @@ surface; no grammar change), with these deviations/realizations — recorded per
 2. **The table is `Dictionary<string, UserFunctionSignature>`** (`DataBinder.Linkage.cs` — Name, Returning
    DataItem, LinkageFormals), not name→CallUnit: `CallUnit` is emitter-private and the binder needs only the
    bound signature. FUNCTION-ID units get `Recursive = true` structurally (§2023:9.4 :12529 — always recursive).
-3. **GR12 dispatch precedence.** §2023:12.3.8.2 GR12 (:14885) makes a REPOSITORY-declared name refer to the USER
+3. **GR12 dispatch precedence.** §2023:12.3.8.4 GR12 (:14885) makes a REPOSITORY-declared name refer to the USER
    function "and not to an intrinsic function of the same name" (the spec's factorial example :43651) — so the
    user-function check runs BEFORE `IntrinsicCatalog.TryGet`, not on its miss as the design sketched.
    `DataBinder.UserFunctionNames` collects the non-INTRINSIC FUNCTION specifiers (the M2-UDF-4 named leg).
@@ -131,7 +131,7 @@ surface; no grammar change), with these deviations/realizations — recorded per
    §2023:8.4.3.2 parse error by design), 1507 function without PD RETURNING (§2023:14.2 :23666, checked once per unit even
    uncalled), 1508 duplicate FUNCTION-ID, 1509 re-evaluation guard.
 9. **Residue (named, staged):** function prototypes/cross-assembly locate (UDF-3 → EC-FUNCTION-NOT-FOUND
-   surface), ALL INTRINSIC semantic bind + the FUNCTION-keyword-omitted reference form §2023:8.4.3.2 SR2 (UDF-4),
+   surface), ALL INTRINSIC semantic bind + the FUNCTION-keyword-omitted reference form §2023:8.4.3.2.3 SR2 (UDF-4),
    EXIT FUNCTION (M2-PROC-6 leg — now unblocked, needs the in-function placement flag), UDF references from
    class-unit methods, ~~per-evaluation activation (1509)~~ (CLOSED P10 Step 10 for condition windows; 1509
    narrowed to VARYING BY / AFTER-level FROM / EVALUATE subjects), ~~BY VALUE header formals~~ (CLOSED P10
@@ -167,7 +167,7 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
   the misleading add-a-REPOSITORY hint can no longer fire there. (The same inheritance for PROPERTY
   specifiers is a pre-existing hole, noted for the OO track.)
 - **§2023:8.4.6.6 self-name (major).** A function's OWN name is referable with no repository entry
-  (self-recursion; §2023:12.3.8 GR11 makes a present self-entry a no-op) — `UdfSelfName` threaded per unit;
+  (self-recursion; §2023:12.3.8.4 GR11 makes a present self-entry a no-op) — `UdfSelfName` threaded per unit;
   the udf_recursion golden (5! = 120 through five nested activations) proves it end-to-end.
 - **Non-numeric RETURNING mis-carry (critical) — RESOLVED (P10 Step 9).** The result reads through
   `BoundNumRef`, but every operand chokepoint maps it through the ONE `IntrinsicBinder.OperandOf` to a
@@ -232,17 +232,17 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
 
 > Scope: COMPLETE the user-defined-function subsystem (track (c) residue) to spec. Two catalog items:
 > **M2-UDF-3** = separate-compilation function **prototypes** (`FUNCTION-ID … IS PROTOTYPE`, §2023:11.5 Format 2) +
-> cross-assembly function resolution (→ **EC-FUNCTION-NOT-FOUND** on absence) + the §2023:12.3.8 GR11/SR10
+> cross-assembly function resolution (→ **EC-FUNCTION-NOT-FOUND** on absence) + the §2023:12.3.8.4 GR11/SR10
 > forward-reference resolution. **M2-UDF-4** = REPOSITORY FUNCTION-specifier binding — `FUNCTION ALL INTRINSIC`
-> (§2023:12.3.8 GR14) + the §2023:8.4.3.2 SR2 **FUNCTION-keyword-omitted** reference form. The in-group inline invocation
+> (§2023:12.3.8.4 GR14) + the §2023:8.4.3.2.3 SR2 **FUNCTION-keyword-omitted** reference form. The in-group inline invocation
 > (`FUNCTION user-name(args)`) already LANDED (DEVLOG 615/616); this closes the residue named there.
 
 - **Spec (ISO/IEC 1989:2023; `specs/ISO_COBOL_2023.md` :line anchors, all read directly this wave).**
   - **Prototype unit.** §2023:11.5 FUNCTION-ID Format 2 (:13127) `FUNCTION-ID. function-prototype-name-1 [AS literal-1] IS PROTOTYPE.` (GR2 :13143 — literal-1 is the externalized name). §2023:10.6.2 SR4 (:12852) makes a prototype a **signature-only** unit: (a) no ARITHMETIC clause, (b) no object-computer, (c) SPECIAL-NAMES limited, (d) **no input-output section**, (e) **data division may contain only a LINKAGE SECTION**, (f) **procedure division shall contain only a procedure division header** (no statements). §2023:10.6.2 SR1 (:12837) — function/program prototypes **shall precede all other source units** in the group. §2023:10.6.2 SR3 (:12850) — an in-group definition + prototype with the same externalized name **shall have the same signature**. §2023:10.6.3 GR1 (:12871) — compiling a prototype generates the external-repository info (§2023:8.13 :11117; :11135 "whether from a prototype or a definition, the signature info is the same").
-  - **Resolution (deterministic — NOT implementor-defined).** §2023:12.3.8 GR11 (:14869): a `FUNCTION function-prototype-name` specifier resolves in order — **(a)** :14871 same externalized name as a function **definition specified PREVIOUSLY in the group** ⇒ details from that definition (repository ignored); **(b)** :14875 else a **prototype definition in the group** ⇒ details from the prototype, the activated function is the same-externalized-name one; **(c)** :14883 else the **external repository** entry. GR12 (:14885) — within the environment-division scope a reference to the prototype-name is to the **user function, not a same-named intrinsic**. SR10 (:14780) — the specifier name shall be (a) an in-group prototype, (b) a **previously**-specified in-group definition, or (c) an external-repository entry. SR11 (:14786) — a self-referential specifier is ignored (§2023:8.4.6.6 self-name). §2023:8.4.6.7 (:7938) — a user-function-name is referable in the REPOSITORY of any element that **follows** that definition, and (if the repository is updated) in any **subsequently-compiled** unit.
+  - **Resolution (deterministic — NOT implementor-defined).** §2023:12.3.8.4 GR11 (:14869): a `FUNCTION function-prototype-name` specifier resolves in order — **(a)** :14871 same externalized name as a function **definition specified PREVIOUSLY in the group** ⇒ details from that definition (repository ignored); **(b)** :14875 else a **prototype definition in the group** ⇒ details from the prototype, the activated function is the same-externalized-name one; **(c)** :14883 else the **external repository** entry. GR12 (:14885) — within the environment-division scope a reference to the prototype-name is to the **user function, not a same-named intrinsic**. SR10 (:14780) — the specifier name shall be (a) an in-group prototype, (b) a **previously**-specified in-group definition, or (c) an external-repository entry. SR11 (:14786) — a self-referential specifier is ignored (§2023:8.4.6.6 self-name). §2023:8.4.6.7 (:7938) — a user-function-name is referable in the REPOSITORY of any element that **follows** that definition, and (if the repository is updated) in any **subsequently-compiled** unit.
   - **Runtime locate + EC.** §2023:8.4.3.2.4 GR6b (:6997) — for a function-prototype-name/pointer the runtime **locates** the function (§2023:8.4.6/§2023:8.4.6.6 + §2023:12.3.8); **if not found, EC-FUNCTION-NOT-FOUND is set, the function is not activated**. Table 13 (:24702) — **EC-FUNCTION-NOT-FOUND is `Fatal`** ("Function not found or function pointer does not point to a function"). GR1 (:6963) — the caller's result temp takes the description of the LINKAGE item named in the prototype's RETURNING phrase. GR3 (:6973) — the activated function is identified per §2023:12.3.8 (GR11 a/b/c).
   - **Keyword omission.** §2023:8.4.3.2.2 (:6887) — the general format is `[ FUNCTION ] { function-pointer-name | function-prototype-name | intrinsic-function-name } [(args…)]` (FUNCTION optional in the syntax; SRs govern when it may drop). SR2 (:6902) — FUNCTION **may be omitted** iff intrinsic-function-name-1 **or ALL** is in the REPOSITORY paragraph, **or** a function-prototype-name/function-pointer-name is specified; otherwise FUNCTION is required. SR6 (:6918) — **a `(` immediately following a function-prototype-name-1 or intrinsic-function-name-1 that permits arguments is ALWAYS the argument list** (the disambiguator). SR3 (:6912) — function-prototype-name-1 shall be the containing definition's user-function-name or a REPOSITORY prototype.
-  - **ALL INTRINSIC.** §2023:12.3.8 GR14 (:14889) — `ALL` = as if every §2023:8.11 intrinsic-function-name were listed (minus COBOL-WORDS-undefined; SUBSTITUTE/EQUATE edits the list). GR13 (:14887) — a REPOSITORY intrinsic name is usable **without** FUNCTION. SR12 (:14788)/SR13 (:14790) — a named / (under ALL) **any** intrinsic-function-name shall **not** be a user-defined word within the REPOSITORY scope. §2023:9.4 (:12529) — a UDF is always implicitly RECURSIVE; **FUNCTION-ID carries NO explicit RECURSIVE keyword** (unlike PROGRAM-ID) — the only FUNCTION-ID options are `AS literal` and `IS PROTOTYPE`.
+  - **ALL INTRINSIC.** §2023:12.3.8.4 GR14 (:14889) — `ALL` = as if every §2023:8.11 intrinsic-function-name were listed (minus COBOL-WORDS-undefined; SUBSTITUTE/EQUATE edits the list). GR13 (:14887) — a REPOSITORY intrinsic name is usable **without** FUNCTION. SR12 (:14788)/SR13 (:14790) — a named / (under ALL) **any** intrinsic-function-name shall **not** be a user-defined word within the REPOSITORY scope. §2023:9.4 (:12529) — a UDF is always implicitly RECURSIVE; **FUNCTION-ID carries NO explicit RECURSIVE keyword** (unlike PROGRAM-ID) — the only FUNCTION-ID options are `AS literal` and `IS PROTOTYPE`.
 
 - **Editions.** The whole subsystem is a **COBOL-2002 introduction** (prototypes, REPOSITORY FUNCTION specifiers, keyword omission), carried unchanged through 2014/2023 (`VERSION_CHANGE_REFERENCE.md` has no 85→2002 rows — derive from the 2002 standard; the one documented 2014→2023 delta touching it is Annex E item 13 :49178, seven **new** intrinsics prohibited as user words inside `ALL INTRINSIC` scope — the ALL reserved-word set edition-tracks §2023:8.11, but the FEATURE is 2002). `PROTOTYPE` §2023:8.9 row already present (`ReservedWords.Table.cs:340`, `r85=false / 2002,14,23=true`) — no `reserved-words.json` regen needed. Gate the new grammar `{is2002()}?`.
 
@@ -273,7 +273,7 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
   - **UDF-4 ALL INTRINSIC + named-intrinsic** — `DataBinder.cs` REPOSITORY loop (:140–148): ADD legs collecting `bool RepositoryAllIntrinsic` (the `FUNCTION ALL INTRINSIC` alt — `re.ALL() is not null && re.INTRINSIC() is not null`) and `HashSet<string> RepositoryIntrinsics` (the `FUNCTION name INTRINSIC` alt — `re.INTRINSIC() is not null && re.functionName() is {}`). Inherit into contained programs like `UserFunctionNames` (:329, §2023:12.3.4 GR1). SR12/SR13 (a named/all intrinsic name used as a user word in scope) → a `COBOL1513`-band check at data-name declaration (light: flag a WS/LINKAGE name equal to a repository intrinsic; full §2023:8.11-set enumeration for ALL is a documented light form — enumerate the catalog's known names).
   - **Keyword-omitted dispatch (D2)** — the reference resolver's data-name binding (`ReferenceResolver` / `StatementBinder` operand path): when a `dataReference` head name does **not** resolve to a data item BUT is in `UserFunctionNames` / a prototype / (`RepositoryAllIntrinsic` || `RepositoryIntrinsics`.Contains) an intrinsic, and a subscript/`(args)` follows, re-route to `BindIntrinsicCore(name, argTokens)` (the SAME chokepoint the FUNCTION-keyword form uses, `StatementBinder.Intrinsics.cs:54`). GR12 precedence (user shadows intrinsic) already lives there (:61). SR6 makes the `(` unambiguously the arg list. Guard: only when the name is NOT also a visible data item (a data item wins — the reference is a subscript, §2023:8.4.3.2 is about names that ARE functions).
 
-- **Diagnostics.** Reuse **1505** (reworded: unresolved function — neither defined, prototyped, nor in the external repository). **NEW `COBOL1513`** (next free — 1501–1512 taken; 1512 = the file-sharing SR band): message-differentiated for (a) an in-group prototype/definition signature mismatch (§2023:10.6.2 SR3), (b) a REPOSITORY intrinsic-name used as a user-defined word (§2023:12.3.8 SR12/SR13). Runtime **EC-FUNCTION-NOT-FOUND** (Fatal) on a UDF locate miss (§2023:8.4.3.2.4 GR6b). Introduction gate = the existing `user-function-invocation-2002` row (prototypes/keyword-omission ride the same 2002 gate) + a new `function-prototype-2002` registry row for the `IS PROTOTYPE` construct.
+- **Diagnostics.** Reuse **1505** (reworded: unresolved function — neither defined, prototyped, nor in the external repository). **NEW `COBOL1513`** (next free — 1501–1512 taken; 1512 = the file-sharing SR band): message-differentiated for (a) an in-group prototype/definition signature mismatch (§2023:10.6.2 SR3), (b) a REPOSITORY intrinsic-name used as a user-defined word (§2023:12.3.8.3 SR12/SR13). Runtime **EC-FUNCTION-NOT-FOUND** (Fatal) on a UDF locate miss (§2023:8.4.3.2.4 GR6b). Introduction gate = the existing `user-function-invocation-2002` row (prototypes/keyword-omission ride the same 2002 gate) + a new `function-prototype-2002` registry row for the `IS PROTOTYPE` construct.
 
 - **Tests / goldens / docs (SAME change set).**
   - **NEW golden `conformance-suite/cases/12.3.8-REPOSITORY/udf_prototype.cob` + `.out`** (manifest `enabled`, alphabetical; `GreenfieldOnly` — the legacy cannot parse `IS PROTOTYPE`): a single source, SR1-ordered — `FUNCTION-ID SQUARER IS PROTOTYPE.` (LINKAGE `L-X`/`L-R` + `PROCEDURE DIVISION USING L-X RETURNING L-R.` header only) FIRST, then `PROGRAM-ID` caller `REPOSITORY. FUNCTION SQUARER.` invoking `COMPUTE R = FUNCTION SQUARER(WS-N)` (+ the keyword-omitted `MOVE SQUARER(WS-N) TO R` for UDF-4), then `FUNCTION-ID SQUARER.` DEFINITION (`COMPUTE L-R = L-X * L-X`). Proves prototype parse + no-body emit + GR11(a/b) resolution + keyword omission. Expected `.out` derived (e.g. `P=0049 / K=0049` for WS-N=7).
@@ -297,7 +297,7 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
 | M2-DATA-2 | USAGE FLOAT-SHORT/LONG/EXTENDED | done | STAGED-LOUD | PicInfo.cs:75-81 skeleton → 0899; ConstructDialectStatus 114-115 "Phase 6"; float_usage.cob PENDING | phase 6 | IEEE-float families deferred to Phase 6 (D16). |
 | M2-DATA-3 | National data — USAGE NATIONAL + PIC N | done | **LANDED (Phase 4a track (a), 2026-07-05)** | One UTF-16 char per national position (D-N1) on the string substrate; SR13a implied usage; Table 16 MOVE legality (0819) incl. the sanctioned-narrowing reject; §2023:8.8.4.2.9 ordinal comparison (no alphanumeric PCS); byte-surface guards (REDEFINES/cells/FD records/SORT keys → 0899, D-N2); N"…" literals at every funnel (0814 band); `national_data` ENABLED (N2A leg re-baselined per Table 16 + full-width §2023:14.9.11.4 GR6 — LegacyDivergent) | none (residue in the design section) | national-edited LANDED 2026-09-12 (kb/Work PB492 - category National carrying an EditMask, D-N6; GR10's character-1 leg included); the national-form NUMERIC / NUMERIC-EDITED / BOOLEAN shapes of §2023:13.18.60.3 SR12 LANDED 2026-09-13 (kb/Work PB646 — design D-N7: the DISPLAY twin's carrier and character image composed with the ONE national byte transform; the four COBOL0899 staging arms are gone and all five SR12 picture shapes are live); **P10 wave 2026-07-16: DISPLAY-OF/NATIONAL-OF (§2023:15.26/§2023:15.66) LANDED as Runtime rows (both argument forms — argument-2 is a substitution character in the 2023 text) and the non-Latin-1 N"…" guard LIFTED (full UTF-16 repertoire, D-N1; substitution + EC-DATA-CONVERSION via the ONE CONVERT translator; `national_intrinsics` ENABLED, COBOL1546 negatives)**; **P10 Step 11 (2026-07-16): the remaining -N legs LANDED — CHAR-NATIONAL §2023:15.16 (`CharNational`, the native national PCS = UTF-16 order) + ORD-over-national §2023:15.70.4 r2 (`char_national` ENABLED), EXCEPTION-FILE-N §2023:15.29 / EXCEPTION-LOCATION-N §2023:15.31 (`EcFunctions.FileN/LocationN` via the ONE `NationalOf` translator; `exception_file_n` ENABLED)**. |
 | M2-DATA-4 | Boolean & bit — USAGE BIT + PIC 1 | done | **LANDED (Phase 4a track (a), 2026-07-05)** | One '0'/'1' char per boolean position for BOTH usages (GR14 R14, D-B1); zero-fill stores (§2023:14.6.8.6) via the CobolString pad params; equality-only relations (0844, CheckedRelational); VALUE/level-88 validation (0898); figurative SR7 (0819); `boolean_data` ENABLED byte-exact | increment 2 = the B-AND/B-OR/B-XOR/B-NOT operator leg (design below; grammar grant 2026-07-05) | True bit-packing stays an optional residue (never required — R14). |
-| M2-DATA-5 | Pointers & based addressing (POINTER/NULL/SET/BASED/ADDRESS OF) | partial | **LANDED (increments 1+2, DEVLOG 613/617)** | Increment 1: USAGE POINTER + SET TO NULL/pointer + [NOT] EQUAL. Increment 2: ADDRESS OF / BASED / SET ADDRESS OF / F10 arithmetic on the StorageCell+CellPointer window model (structural §2023:8.8.4.2 equality; the deref bridge makes §2023:13.18.5 GR3/GR4 loud); based_pointer/pointer_alloc/pointer_arith ENABLED byte-exact; 6 negative cases; CobolPtrTests ×6; 0869/0881 bands; set-address-2002 + pointer-arithmetic-2002 rows | none (residue named in the as-built) | CALL-boundary pointers, restricted `POINTER TO`, FUNCTION/PROGRAM-POINTER stay staged (M3-4 leg). |
+| M2-DATA-5 | Pointers & based addressing (POINTER/NULL/SET/BASED/ADDRESS OF) | partial | **LANDED (increments 1+2, DEVLOG 613/617)** | Increment 1: USAGE POINTER + SET TO NULL/pointer + [NOT] EQUAL. Increment 2: ADDRESS OF / BASED / SET ADDRESS OF / F10 arithmetic on the StorageCell+CellPointer window model (structural §2023:8.8.4.2 equality; the deref bridge makes §2023:13.18.5.4 GR3/GR4 loud); based_pointer/pointer_alloc/pointer_arith ENABLED byte-exact; 6 negative cases; CobolPtrTests ×6; 0869/0881 bands; set-address-2002 + pointer-arithmetic-2002 rows | none (residue named in the as-built) | CALL-boundary pointers, restricted `POINTER TO`, FUNCTION/PROGRAM-POINTER stay staged (M3-4 leg). |
 
 ### M2-DATA-5 / M2-PROC-5 — increment 2 (ADDRESS OF / BASED / SET ADDRESS OF / ALLOCATE-FREE) — DECISION-COMPLETE DESIGN (recon wave 2026-07-05; ready to implement)
 
@@ -315,7 +315,7 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
   but the SET receiving form is "syntactical notation", D.9.2.1 :44419). BASED §2023:13.18.5 (:17701-17729 — GR1
   template + implicit data-address pointer; GR2 initial NULL — ⚠ standard erratum: GR2 cites "SET GR 17, 18, 19"
   but the 2023 numbering puts Format 7 at GR12-13 :31600-31604, cite both in code; GR3 deref-while-NULL →
-  **EC-DATA-PTR-NULL** Fatal :24669; GR4 invalid address → **EC-BOUND-PTR** Fatal :24643); §2023:13.16 SR16 (:17261)
+  **EC-DATA-PTR-NULL** Fatal :24669; GR4 invalid address → **EC-BOUND-PTR** Fatal :24643); §2023:13.16.3 SR16 (:17261)
   level 1/77 in WS/LS/LINKAGE only; no REDEFINES (:17215) / no EXTERNAL (:17219) with BASED; lifecycle §2023:8.6.5
   (:8789-8801 — `ADDRESS OF based-item` READS the implicit pointer :8791). SET F7 §2023:14.9.39 (:31172-31175; SR18
   :31399 **the ADDRESS OF receiver shall be BASED** — the IBM non-BASED-linkage idiom is NOT ISO; GR12-13
@@ -471,13 +471,13 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
   Rejected-tier / OCCURS-resident / carrier-resident-formal (staged-loud wording); UP/DOWN pointer-mix or
   statically non-integer amount (SR23/GR19); ALLOCATE data-name not BASED (SR1), CHARACTERS without RETURNING
   (SR2 — the grammar leaves RETURNING optional, :1048), RETURNING not a pointer (SR3); FREE operand not a
-  pointer (SR1 :27500); **the SR9 misuse sweep** (§2023:13.18.60.4 SR9 :22730 enumerates the ONLY legal reference
+  pointer (SR1 :27500); **the SR9 misuse sweep** (§2023:13.18.60.3 SR9 :22730 enumerates the ONLY legal reference
   contexts) — MOVE/DISPLAY/arithmetic over a `PicCategory.Pointer` operand rejects loud (closes increment-1
   gap #7; safe: the active usage-pointer-2002 witness displays a literal); whole-group image spanning a
   pointer leaf (gap #10). (ii) **NEW 0881 (declaration-entry band; 0881 verified free — 0898 is the only other
   free 08xx code):** PICTURE with USAGE POINTER (§2023:13.18.60.4 pointer is PICTURE-less; today it silently
   misbinds by picture at DataBinder.cs:720-721 — the W2 hazard class); BASED level not 01/77 or outside
-  WS/LS/LINKAGE (§2023:13.16 SR16 :17261); BASED+REDEFINES (:17215); BASED+EXTERNAL (:17219); VALUE on a BASED
+  WS/LS/LINKAGE (§2023:13.16.3 SR16 :17261); BASED+REDEFINES (:17215); BASED+EXTERNAL (:17219); VALUE on a BASED
   entry (LINKAGE posture). (iii) **0900 introduction gates** via `ConstructRegistry.Check` (the
   PicInfo.cs:515-520 pattern — binder-side, NOT a `{is2002()}?` predicate inside setStatement: a failing
   predicate there would fall through to the OTHER SET alternatives and mis-diagnose).
@@ -527,7 +527,7 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
   feedback_singular_pattern with guard-proof; escalate only if the guard shows a diff. **OWNER-2** GR6
   "binary zeros" for `ALLOCATE … CHARACTERS INITIALIZED` in the character model: DECIDED `'\0'` fill (the
   faithful image; DISPLAY of such storage is undefined-content anyway) — flag if a vendor-comparison corpus
-  ever expects spaces. **OWNER-3** §2023:13.18.60.4 SR14 literally says USAGE POINTER at "level 1" (elementary, or
+  ever expects spaces. **OWNER-3** §2023:13.18.60.3 SR14 literally says USAGE POINTER at "level 1" (elementary, or
   STRONG-typedef subordinate) — unlike BASED SR16/§2023:14.2.2 SR1 which spell "1 or 77" — yet the repo's own
   matrix witnesses use `77 P USAGE POINTER` (the construct catalogue:47,:57): DECIDED lenient (01/77 + elementary
   group members, the vendor norm; reading the omission as editorial), strict enforcement deferred to a
@@ -552,11 +552,11 @@ zero grammar change). Deviations/realizations, recorded per the process rule:
    fixed-point leaves) — the design suggested the classifier's broader zoned-BINARY/PACKED gate for
    addressable/BASED callers; the narrower gate only rejects MORE loudly (never silently wrong), and gate
    convergence stays the named follow-up (RESIDUE-10).
-3. **The §2023:13.18.60.4 SR9 misuse sweep is DEFERRED** (was increment-1 gap #7, stays a documented gap): a
+3. **The §2023:13.18.60.3 SR9 misuse sweep is DEFERRED** (was increment-1 gap #7, stays a documented gap): a
    pointer operand misused in MOVE/DISPLAY/arithmetic today fails at the Roslyn level (a loud CS error over
    the ManagedPointer field — never silent), not with a named 0869; the total operand-context sweep is
    follow-up. The `move_pointer` negative case is dropped with it.
-4. **ALLOCATE based-item INITIALIZED — LANDED (P10 Step-6 slice, 2026-07-16, DEVLOG 858):** the §2023:14.9.3 GR7
+4. **ALLOCATE based-item INITIALIZED — LANDED (P10 Step-6 slice, 2026-07-16, DEVLOG 858):** the §2023:14.9.3.4 GR7
    lowering binds the allocation + EXACTLY the spec's `INITIALIZE data-name-1 WITH FILLER ALL TO VALUE THEN
    TO DEFAULT` expansion (`InitializeBinder.BindAllocateInitialized` → a `BoundSequence`; the ONE INITIALIZE
    mechanism, no new emitter leg); witness = the ENABLED `2002/allocate_initialized` golden (GR7 + GR6
@@ -584,7 +584,7 @@ The 4-lens find→2-skeptic-verify workflow (wf_4c49e522-ec0) over the landed di
 **Fixed:**
 - **ADDRESS OF a SUBORDINATE of a BASED record dropped its ClassOffset (major)** — the BASED leg of
   `PtrAddressOfText` returned the raw implicit pointer for ANY item under a based root (silent wrong-bytes
-  aliasing); now `CobolPtr.UpBy(__addr_X, classOffset)` for non-root items (§2023:8.4.3.11 GR1 — the address OF
+  aliasing); now `CobolPtr.UpBy(__addr_X, classOffset)` for non-root items (§2023:8.4.3.11.4 GR1 — the address OF
   THE ITEM; UpBy's GR18 null trap is the right posture for a child of an unallocated record). CLI-probed:
   `ADDRESS OF B2` reads `PQR`, not the base's `XYZ`.
 - **GR19 was a silent truncation (major)** — `SET P UP BY 2.5` moved by 2 via the Align(…, 0) rescale, and
@@ -596,7 +596,7 @@ The 4-lens find→2-skeptic-verify workflow (wf_4c49e522-ec0) over the landed di
   more conformant than a static-type reject.
 - **BASED+EXTERNAL undetected (§2023:13.16.3 SR5)** — both mechanisms would emit a bridge under the ONE
   BackingCsName (CS0102); the 0881 band gained the arm.
-- **A BASED USING formal undetected (§2023:14.2 SR1 :23658** — the same sentence as the implemented REDEFINES
+- **A BASED USING formal undetected (§2023:14.2.2 SR1 :23658** — the same sentence as the implemented REDEFINES
   half**)** — the carrier-resident CsName rewrite would poison the based BackingCsName into invalid C#;
   0889 now covers both clauses.
 - **BASED/ADDRESS OF in a CLASS unit → CS0103** — class binders ran the pointer pass but the OO emitter has
@@ -655,13 +655,13 @@ both ways); negative corpus +1 (based-level-05).
   boolean prohibited (:28817); GR2/3 zero-length literal ⇒ SPACE / ZERO (:28895–28897); GR6a alignment +
   A→N correspondence + EC-DATA-CONVERSION (:28909–28925); GR6d3 AN/national → numeric as unsigned integer.
   Receivers: national fills/truncates right with **national spaces** §2023:14.6.8.5 (:24297–24301); boolean with
-  **boolean zeros** §2023:14.6.8.6 (:24304–24308); JUSTIFIED §2023:13.18.32 SR3 legal for boolean/national, GR1/2 left
+  **boolean zeros** §2023:14.6.8.6 (:24304–24308); JUSTIFIED §2023:13.18.32.3 SR3 legal for boolean/national, GR1/2 left
   fill = national spaces / bit zeros (:19264–19273). Comparisons §2023:8.8.4.2: boolean = Format 2 **equality only**
   (F1 SR2/SR3 exclude class boolean :9608–9610; F2 :9566–9581), by VALUE regardless of usage, right-extend with
   boolean zeros (§2023:8.8.4.2.8 :9683–9689); national = full ordering under the **national** program collating
   sequence, right-extend national spaces (§2023:8.8.4.2.9/10 :9692–9715); AN-vs-national converts AN to a national
-  temp (§2023:8.8.4.2.6 :9645). DISPLAY §2023:14.9.11 SR1 admits both; device conversion implementor-defined (GR1 :26893).
-  VALUE §2023:13.18.63 SR5 national literal for national items (:23232), SR10 boolean literal ≤ size (:23254),
+  temp (§2023:8.8.4.2.6 :9645). DISPLAY §2023:14.9.11.3 SR1 admits both; device conversion implementor-defined (GR1 :26893).
+  VALUE §2023:13.18.63.3 SR5 national literal for national items (:23232), SR10 boolean literal ≤ size (:23254),
   SR29 no THROUGH for boolean (:23327). INITIALIZE §2023:14.9.20.4 GR6c fill table: Boolean → ZEROES, National →
   national SPACES (:27995–28009). Figuratives §2023:8.3.3.6: GR4 ZERO is boolean '0's by context (:6375); GR1/6/7
   national SPACE/QUOTE/HIGH/LOW (:6350, :6383–6407); no boolean SPACE/QUOTE/HIGH/LOW (MOVE SR7). Ref-mod
@@ -678,7 +678,7 @@ both ways); negative corpus +1 (based-level-05).
   adjudication into enforced coverage via a NEW negative case `move-national-to-an` (below). Legacy re-run on
   the edited program in the same commit (pure deletion — expected green; escalation ladder in the test plan).
   Everything else audited conforming: A2N (Table 16 AN→National Yes + GR6a conversion), NUM=042
-  (Numeric-int→National Yes), boolean JR=0011 (§2023:13.18.32 GR2 bit-zero left fill), MOVE ZERO/INITIALIZE fills
+  (Numeric-int→National Yes), boolean JR=0011 (§2023:13.18.32.4 GR2 bit-zero left fill), MOVE ZERO/INITIALIZE fills
   (GR4 :6375 / GR6c), equality-only boolean relations, `<` national ordering under the default national PCS,
   `MOVE B-NAME TO B-FLAG` display-form→bit-form (§2023:8.8.4.2.8's usage-independence, value moved per §2023:14.9.25.4 GR6 a)).
 
@@ -707,7 +707,7 @@ both ways); negative corpus +1 (based-level-05).
   collating sequence defaults to the native UTF-16 code-unit ordinal (§2023:8.8.4.2.9's implementor default);
   the alphanumeric PCS **never** applies to national comparisons (separate sequences). A NON-native national
   sequence is LIVE (P10 Step 4): `ALPHABET … FOR NATIONAL` literal phrases build the sparse
-  `NationalCollatingTable` (§2023:12.3.7 GR7 k over the 65,536-code-unit set), resolved by `PROGRAM COLLATING
+  `NationalCollatingTable` (§2023:12.3.7.4 GR7 k over the 65,536-code-unit set), resolved by `PROGRAM COLLATING
   SEQUENCE FOR NATIONAL`/alphabet-name-2 (§2023:12.3.6) into the emitted `__COLLATE_NAT` channel (relations,
   condition-names, CHAR-NATIONAL/ORD, national HIGH-/LOW-VALUE = the sequence's extremes per §2023:12.3.7
   GR8/GR9); UCS-4 collates identically to NATIVE (ISO 10646 order over one-code-unit-per-position characters
@@ -766,7 +766,7 @@ both ways); negative corpus +1 (based-level-05).
   `N`/`B` (case-insensitive) when followed by the opening quote — safe (no other raw shape starts `N"`/`B"`).
   **Chokepoint arms** at `LiteralOperand` (StatementBinder.cs:937–943): `nn?.NATLIT()` ⇒
   `Check("national-data-2002")` + Latin-1 guard (any char > U+00FF ⇒ **COBOL0814**, the staged non-Latin-1
-  correspondence §2023:8.3.3.5 SR2/GR3 + §2023:8.1.2 :5137) + length ≤ 8,191 (SR1, 0814) ⇒
+  correspondence §2023:8.3.3.5.3 SR2/GR3 + §2023:8.1.2 :5137) + length ≤ 8,191 (SR1, 0814) ⇒
   `BoundStringLiteral(decoded){Category = National}`; `nn?.BOOLLIT()` ⇒ `Check("boolean-data-2002")` + length
   cap ⇒ `{Category = Boolean}` (lexer already restricts content to [01]+, CobolLexer.g4:596–598; zero-length
   N"" ⇒ SPACE per MOVE GR2 falls out of `Store("", w)`). **Sweep the remaining funnels** — each gains an arm
@@ -786,7 +786,7 @@ both ways); negative corpus +1 (based-level-05).
   non-integer stays legal→numeric per :28847 col Numeric = Yes; sender Boolean rejects receivers alphabetic,
   numeric[-edited]; **SR7** (:28817): BoundFigurative S/Q/H/L or a BoundAllLiteral containing a non-'0'/'1'
   char → category-Boolean receiver rejected (ZERO and digit-only ALL of 0/1s legal). Ref-mod receivers keep the
-  §2023:8.4.3.3 GR6 view (the RefModPlace exemption pattern :79). **Emit** — `ConvertSource` (CSharpEmitter.cs:701–
+  §2023:8.4.3.3.4 GR6 view (the RefModPlace exemption pattern :79). **Emit** — `ConvertSource` (CSharpEmitter.cs:701–
   762) gains two arms: `case PicCategory.National:` ⇒ `CobolString.Store(OperandText.AsString(source, deSign:
   true), pic.Length{, justifiedRight})` (identical shape to the Alphanumeric arm :738–741 — A→N widening, N→N,
   9→N digit imaging, boolean→N all ride `AsString`, the Latin-1 identity correspondence per GR6 :28909); `case
@@ -820,13 +820,13 @@ both ways); negative corpus +1 (based-level-05).
 
 - **DISPLAY / VALUE / INITIALIZE / figuratives / ref-mod.** **DISPLAY** (CSharpEmitter.cs:467–474): zero code —
   national/boolean fields and tagged literals flow through `OperandText.AsString` as strings; console
-  conversion is implementor-defined (§2023:14.9.11 GR1); ASCII-only goldens are encoding-safe (no OutputEncoding
+  conversion is implementor-defined (§2023:14.9.11.4 GR1); ASCII-only goldens are encoding-safe (no OutputEncoding
   change). **VALUE**: `FieldEmitter.InitializerFor` (FieldEmitter.cs:335–382) — the :376–377 arm becomes
   `PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National` ⇒ `CobolString.Store(
   DecodeCobolString(raw), Length)` and a Boolean arm with `pad: '0'`; `ImageInitOf` :146–147 and the default
   tail :149–151 gain the same category+pad arms (defensive — national never reaches Tier-B backings, boolean
   does); `FigurativeInitializer`/`FillCharFor` :404–428 already yield VALUE ZERO ⇒ '0'-fill and VALUE SPACE ⇒
-  ' '-fill correctly. **VALUE validation** (**COBOL0898**, §2023:13.18.63 SR5/SR10, checked at DataBinder entry
+  ' '-fill correctly. **VALUE validation** (**COBOL0898**, §2023:13.18.63.3 SR5/SR10, checked at DataBinder entry
   build where RawValue+pic meet): category National requires an N"…" literal or a legal figurative
   (SPACE/QUOTE/HIGH/LOW/ZERO — GR1 :6350); category Boolean requires B"…" or ZERO; conversely N"/B" VALUE on
   any other category ⇒ 0898; length ≤ item size (SR5/SR10). **INITIALIZE** (StatementBinder.Initialize.cs):
@@ -837,7 +837,7 @@ both ways); negative corpus +1 (based-level-05).
   `BoundFigurative('Z')` leg, National the `'S'` leg (GR6c :27995–28009 — the golden's INIT=0000/INIT=R);
   `InitializeValueOperand` :233–246 gains N"/B" prefix decode arms (TO VALUE fidelity). **Figuratives**: no
   FigFill changes (EmitCore.cs:89–97 — Z '0', S ' ', H (now U+FFFF, kb/Work R52), L U+0000, Q '"' all conform under D-N3/D-N4).
-  **Ref-mod**: zero structural change — `CobolString.RefMod`/`SpliceInto` are position-based (§2023:8.4.3.3 GR1;
+  **Ref-mod**: zero structural change — `CobolString.RefMod`/`SpliceInto` are position-based (§2023:8.4.3.3.4 GR1;
   under D-B1 a bit position IS a char index, so GR5a's bit-position rule is satisfied); the boolean splice pad
   is the one addition (above). **Group images**: `DataItem.IsCharacterImage` :142–145 category test gains
   `or PicCategory.National or PicCategory.Boolean` (a national/boolean leaf is string-stored ⇒ groups
@@ -871,12 +871,12 @@ both ways); negative corpus +1 (based-level-05).
 
 - **Diagnostics band plan (all four free 08xx codes allocated — verified free this recon: 0814/0819/0844/0898;
   0900–0903 = the edition band; 0899 = the pinned staging code).** **NEW 0814** — national/boolean literal
-  repertoire/size: non-Latin-1 char in N"…" (staged correspondence, §2023:8.3.3.5 SR2/GR3 + §2023:8.1.2 :5137); length
-  > 8,191 (§2023:8.3.3.4 SR1 :6111 / §2023:8.3.3.5 SR1 :6196). **NEW 0819** — MOVE category legality: the Table 16
+  repertoire/size: non-Latin-1 char in N"…" (staged correspondence, §2023:8.3.3.5.3 SR2/GR3 + §2023:8.1.2 :5137); length
+  > 8,191 (§2023:8.3.3.4.3 SR1 :6111 / §2023:8.3.3.5.3 SR1 :6196). **NEW 0819** — MOVE category legality: the Table 16
   boolean/national arms (§2023:14.9.25.3 SR10 + Table 16 :28839–28852) and SR7 figurative→boolean (:28817).
   **NEW 0844** — operand/relation misuse: ordering operator on boolean operands (§2023:8.8.4.2.2 F1 SR2/SR3
   :9608–9610); boolean-vs-non-boolean relation mix; boolean/national literal in a numeric-expression position
-  (§2023:8.8.1); CHAR/ORD national-arg guard. **NEW 0898** — VALUE clause category mismatch (§2023:13.18.63 SR5 :23232 /
+  (§2023:8.8.1); CHAR/ORD national-arg guard. **NEW 0898** — VALUE clause category mismatch (§2023:13.18.63.3 SR5 :23232 /
   SR10 :23254, both directions) + boolean THROUGH (SR29 :23327). **0881 (existing declaration band, extended
   message-differentiated — the M2-DATA-5 precedent)**: SR5 USAGE BIT with non-boolean PIC (:22722); SR20 PIC N
   with explicit non-NATIONAL usage (:22764); SR12/SR30 illegal PIC-with-NATIONAL shapes (:22744/:20395);
@@ -984,14 +984,14 @@ both ways); negative corpus +1 (based-level-05).
   B-SHIFT-* + boolean COMPUTE (§2023:8.8.2 :9323–9420) — GRAMMAR; approval GRANTED 2026-07-05 (blanket grammar
   grant) — queued as track (a) increment 2 (own recon/design); no lexer tokens ⇒ parse error today. (2) ~~**NATIONAL-EDITED** pictures (§2023:13.18.40.4 GR10; §2023:8.5.2.11)~~ — **LANDED 2026-09-12, kb/Work PB492**: the category is `{ Category: National, EditMask: not null }` (data-model design D-N6), rendered by the ONE Table-7 simple-insertion formatter, and the old
   `national-edited-2002` pending row is ACTIVE. (3) **NX"…"/BX"…"** (§2023:8.3.3.5.2/§2023:8.3.3.4.2) — no lexer
-  rules (CobolLexer.g4 comments name it); parse error. (4) **Non-Latin-1 national content** (§2023:8.3.3.5 SR2,
+  rules (CobolLexer.g4 comments name it); parse error. (4) **Non-Latin-1 national content** (§2023:8.3.3.5.3 SR2,
   MOVE GR6 correspondence + EC-DATA-CONVERSION :28919) — 0814 at literal bind. (5) **National collating
   suite**: ALPHABET/CLASS FOR NATIONAL (§2023:12.3.7 — existing `special-names-for-national-2002` gate), SORT/MERGE
   COLLATING FOR NATIONAL, indexed national keys, CODE-SET FOR NATIONAL, national HIGH/LOW-VALUE under a
   declared sequence — parse/0900-gated + the SORT-key 0899. (6) **True bit-packing + §2023:8.5.1.6.3 alignment** —
   permanently optional under D-B1 (R14); revisit only with GROUP-USAGE BIT. (7) **GROUP-USAGE BIT/NATIONAL**
   (§2023:13.18.29) — grammar; parse error. (8) **National-form numerics / national-form boolean** (PIC 9 / PIC 1
-  USAGE NATIONAL, §2023:13.18.60.4 SR12) — direct 0899 in Analyze. (9) **FD/SD national records** (§2023:8.1.2 +
+  USAGE NATIONAL, §2023:13.18.60.3 SR12) — direct 0899 in Analyze. (9) **FD/SD national records** (§2023:8.1.2 +
   Latin-1 codec posture) — 0899 record gate. (10) **REDEFINES / EXTERNAL / ADDRESS-OF / BASED over national**
   (RESIDUE-11) — ⛔ **DISCHARGED** (kb/Work PB231, 2026-09-05), and with it the "USAGE BIT in cells" half
   discharged a day earlier (kb/Work PB203 for the REDEFINES surface, PB231 for the EXTERNAL / ADDRESS-OF /
@@ -1032,7 +1032,7 @@ both ways); negative corpus +1 (based-level-05).
   :29039) — moot until (7). (20) **VALIDATE N/1 format checks** (:20625/:20644) — VALIDATE subsystem. (21)
   **Screen/ACCEPT national items** (USAGE SR17/VALUE SR15) + boolean ACCEPT zero-pad — ACCEPT stores chars
   today; content legs ride the screen-section residue. (22) **Dynamic-length national/boolean** (zero-length
-  semantics §2023:8.5.4) — not modeled. (23) **Zero-length boolean literal `B""`** (§2023:8.3.3.4 GR4 — spec-legal) —
+  semantics §2023:8.5.4) — not modeled. (23) **Zero-length boolean literal `B""`** (§2023:8.3.3.4.4 GR4 — spec-legal) —
   the lexer's `BOOLLIT : 'B' '"' [01]+ '"'` requires ≥1 position, so `B""` lexes as `B` + `""`, not an empty
   boolean literal (adversarial-review, DEVLOG 620); relaxing to `[01]*` risks `B`-identifier-then-string
   ambiguity, deferred. (`N""` already lexes — NATLIT's body is `…*`.)
@@ -1054,7 +1054,7 @@ both ways); negative corpus +1 (based-level-05).
 #### M2-DATA-3/4 — AS BUILT (2026-07-05, same day; deviations + notes)
 
 - Implemented exactly per the design with these adjudications: (1) **Call.cs:68/:183 are NOT decode arms** —
-  CALL/CANCEL literal targets must be alphanumeric (§2023:14.9.4.3 SR2 / §2023:14.9.5.2 SR1); the existing loud
+  CALL/CANCEL literal targets must be alphanumeric (§2023:14.9.4.3 SR2 / §2023:14.9.5.3 SR1); the existing loud
   BoundUnsupported is the correct posture (the design's funnel list marked them decode — refuted at
   implementation). (2) **A THIRD DecodeCobolString twin** existed at StatementBinder.cs (the design's decode
   plan named two) — all three per-layer twins now strip the N/B prefix; found via the boolean golden probing
@@ -1083,13 +1083,13 @@ self-adjudicated-real fixed SAME change set; the rest refuted or staged:**
    (0819) preceding the Table-16 arms. Corpus-safe (the family is 2002+). Negative: `move-binary-to-national`.
 3. **Figurative MOVE into a ref-mod slice filled only position 1** (silent-wrong-value) — `MOVE ZERO TO N5(2:3)`
    gave `A0␠␠E`; new `RefModPlace.WriteFill` (empty slice + fill-char pad) fills EVERY position (§2023:8.3.3.6.4 GR2 /
-   §2023:8.4.3.3 GR5), category-aware fill. Now `A000E`.
+   §2023:8.4.3.3.4 GR5), category-aware fill. Now `A000E`.
 4. **Boolean figurative relation dropped the boolean-zero pad** (silent-wrong-value) — `IF B(1:2) = ZERO`
    space-extended and compared unequal; `RenderFigurativeRelational` now threads `pad: '0'` for a boolean
    anchor (§2023:8.8.4.2.8), mirroring the direct + 88 legs.
 5. **Level-88 VALUE category unchecked both directions** (spec-violation) — `88 X VALUE B"01"` under PIC X (and
    the reverse) silently accepted; `BindCondition` routes every 88 VALUE operand (singleton + THRU bounds)
-   through the ONE `ValidateValueCategory` (0898, §2023:13.18.63 SR4/SR5/SR24→SR10). Negatives:
+   through the ONE `ValidateValueCategory` (0898, §2023:13.18.63.3 SR4/SR5/SR24→SR10). Negatives:
    `level88-boolean-value-alnum`, `level88-alnum-value-boolean`.
 6. **Class conditions on boolean operands accepted silently** (spec-violation) — `IF bit-item IS NUMERIC`
    answered a tautology; `IS ALPHABETIC` too. New `CheckClassConditionOperand` at BOTH BoundClassCondition
@@ -1115,7 +1115,7 @@ self-adjudicated-real fixed SAME change set; the rest refuted or staged:**
   (the FigFill fix covers stores/fills; the comparison leg already exempts the PCS via the D-N3 collate
   omission); `national_data` "asserted by no runner" — REFUTED (CorpusRunnerTests compiles+runs+byte-compares
   every enabled program). **NEW named residue: zero-length `B""`** — the lexer's BOOLLIT is `[01]+`, so `B""`
-  (spec-legal per §2023:8.3.3.4 GR4) lexes as `B` + `""` rather than an empty boolean literal; deferred (the
+  (spec-legal per §2023:8.3.3.4.4 GR4) lexes as `B` + `""` rather than an empty boolean literal; deferred (the
   ambiguity risk of `[01]*` outweighs the rare zero-length case). `N""` already lexes (NATLIT is `…*`).
 - Battery (post-review): conformance **1776** · unit **159** · legacy ConformanceTests **55** ·
   FULL legacy guard on the subToken .g4 change.
@@ -1288,7 +1288,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
   `BoundRelational` + renderer branch — feedback_singular_pattern); **`BoundBooleanCondition(BoundBoolExpr Expr)
   : BoundCondition`** (§2023:8.8.4.3 — negation composes via the existing `BoundNot`); **`BoundComputeBoolean(
   BoundBoolExpr Rhs, IReadOnlyList<Place> Targets, int Gr3Width) : BoundStatement`** (Gr3Width computed at BIND =
-  max static boolean positions over items referenced, §2023:14.9.8 GR3; all-literal expressions use the root
+  max static boolean positions over items referenced, §2023:14.9.8.4 GR3; all-literal expressions use the root
   operation's rule-10 width — GR3 is silent, documented implementor reading; a DYNAMIC-length ref-mod operand
   stages 0898 loud this increment).
 - **Binder** (new partial `Bound\StatementBinder.Boolean.cs` + touch points):
@@ -1309,7 +1309,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
   `BoundBoolOperand(BoundBoolLiteral)` (zero-extension semantics, NOT `BoundStringLiteral` — space-padding is
   wrong; coordinate with the data increment). Bare-operand simple boolean condition: in `BindComparison`'s
   `operands.Length == 1` branch (:1343–1364), AFTER the 88-name and switch-status resolutions (NC211A order),
-  a sole boolean expression / boolean-category ref / BOOLLIT binds `BoundBooleanCondition` with the §2023:8.8.4.3 SR1
+  a sole boolean expression / boolean-category ref / BOOLLIT binds `BoundBooleanCondition` with the §2023:8.8.4.3.3 SR1
   bind check (every referenced item AND literal length 1, else 0898). EVALUATE
   (`StatementBinder.Evaluate.cs`): `SubjectCondition`/`BindWhenItem` gain the boolean-subject leg —
   `subject.booleanExpression()` binds as a value subject `BoundBoolOperand`; TRUE/FALSE objects against a
@@ -1442,7 +1442,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
   (8) **The boolean EC-DATA-INCOMPATIBLE bridge** (§2023:14.6.13.2 r1 :24869 — non-0/1 sender via REDEFINES/aliasing;
   unchecked = the "undefined result" license, charwise). (9) **USAGE BIT positions under ref-mod** (GR5a :7083)
   — coordinate with the data increment's BIT residue. (10) **Strongly-typed groups containing boolean in =/<>**
-  (§2023:8.8.4.2 SR4 :9612) — rides the TYPEDEF residue. (11) **Boolean operands in ARITHMETIC contexts** (legacy
+  (§2023:8.8.4.2.3 SR4 :9612) — rides the TYPEDEF residue. (11) **Boolean operands in ARITHMETIC contexts** (legacy
   CBL2601 precedent) — verify the data increment's category checks cover `ADD B1 TO X`; add to ITS residue if not.
 - **ANCHOR LIST.** Grammar: CobolLexer.g4:116–135 (:120 model), :30–62 (:38), :596–598; CobolParserCore.g4:25–98
   (:45–46), :869–871; CobolExpressions.g4:24–27, :55–57 (DFA lesson), :63–109 (:72–74 XOR model), :115–123,
@@ -1460,7 +1460,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
   the legacy compiler project.
 - **CONFLICTS FLAGGED (brief-vs-brief / parallel-change-set).** (C1) **COBOL0898 contention — RESOLVED at the
   increment-1 merge (DEVLOG 619/620): increment 1 CONSUMED 0898** for the VALUE-clause category-mismatch band
-  (§2023:13.18.63 SR5/SR10, both directions). So **increment 2 must pick a DIFFERENT code** for the
+  (§2023:13.18.63.3 SR5/SR10, both directions). So **increment 2 must pick a DIFFERENT code** for the
   boolean-expression/boolean-compute constraint band — 08xx is otherwise dense, so use the **15xx band
   (next-free 1511)** for the boolean-op constraints, OR reuse 0844 (the operand/relation-misuse band increment 1
   established — a good fit for "ordering operator on boolean operands" / "non-boolean operand in a boolean
@@ -1524,11 +1524,11 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
 > lock-bearing verb — the lock identity is polymorphic on `FileConnector` (`LastReadRecordId` /
 > `MutationTargetRecordId` / `LastWrittenRecordId`: RRN / prime key / the sequential record's ORDINAL position),
 > the mutating verbs pre-check the record-operation conflict (`WriteShared`/`RewriteShared`/`DeleteShared` —
-> §2023:14.9.35 GR11+GR12, §2023:14.9.10 GR6+GR7, §2023:14.9.51 GR10+GR11), the sequential READ pre-checks its next ordinal
-> (`ReadShared` — §2023:14.9.30 GR9 with the GR10a FPI-unchanged conflict + GR22 ADVANCING ON LOCK skip-scan), RETRY
+> §2023:14.9.35.4 GR11+GR12, §2023:14.9.10.4 GR6+GR7, §2023:14.9.51.4 GR10+GR11), the sequential READ pre-checks its next ordinal
+> (`ReadShared` — §2023:14.9.30.4 GR9 with the GR10a FPI-unchanged conflict + GR22 ADVANCING ON LOCK skip-scan), RETRY
 > binds+emits on READ/WRITE/REWRITE/DELETE/DELETE FILE (§2023:14.7.9; the general formats give START **no** RETRY or
-> lock phrase — §2023:14.9.41 + §2023:12.4.5.9 GR6 excepts START), and DELETE FILE produces **62** when the physical file
-> is open by another connector (§2023:9.1.13.9 item 2 / §2023:14.9.10 GR15). **(4)** `RetryLoop` never sleeps: §2023:14.7.9.3 GR2
+> lock phrase — §2023:14.9.41 + §2023:12.4.5.9.4 GR6 excepts START), and DELETE FILE produces **62** when the physical file
+> is open by another connector (§2023:9.1.13.9 item 2 / §2023:14.9.10.4 GR15). **(4)** `RetryLoop` never sleeps: §2023:14.7.9.3 GR2
 > clamps the SECONDS period to the A.1 item 166 maximum meaningful value of ZERO, so an exhausted retry
 > lands the CONFLICT'S OWN §2023:9.1.13 status under every form except §2023:14.7.9.3 GR3's FOREVER on a RECORD
 > conflict, which is the §2023:9.1.13.8 item 2 deadlock '52'. **Evidence:** goldens `file_sharing`
@@ -1551,7 +1551,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
   - **REAL (fully enforced — parse + bind + validate + observable runtime, all in one run unit):** the physical-file open-connector registry + Table-19 → **61**; `DELETE FILE` while open by another connector → **62**; record locks with **51** on another-connector conflict; self re-access (GR8 — a connector reads its own locked record as if unlocked); AUTOMATIC (lock-on-READ) vs MANUAL (lock-on-explicit); single (any I-O except START releases prior, GR6) vs MULTIPLE release semantics (READ GR11 / REWRITE GR12 / DELETE GR7); **UNLOCK** (release all this-connector locks); **IGNORING LOCK** (read despite another's lock); **ADVANCING ON LOCK** (skip-scan locked records on NEXT/PREVIOUS); **53/54** lock-count limits (connector max 15 → 54, run-unit max 255 → 53); the **RETRY loop** (n-times evaluates the registry n+1 times).
   - **Named single-run-unit NO-OPS (documented, each with a loud guard — the SAME-RECORD-AREA / EXTERNAL-conformance precedent):**
     1. **Cross-run-unit / cross-OS-process file & record locks** (§2023:9.1.15 "prevents other run units"; §2023:9.1.16 "a different run unit") — no second process exists ⇒ these conflicts never arise; the registry is process-local by construction. Guard: doc comment on `CobolFile.Locks` + the EXTERNAL-one-connector precedent (`CobolFile.cs:39`).
-    2. **RETRY `FOR n SECONDS` / `FOREVER` true wall-clock blocking** (§2023:14.7.9 GR2/GR3) — with no external releaser a single-threaded retry cannot change the outcome; **a FOREVER wait on a record locked by another connector of the executing run unit resolves to status 52 (deadlock — §2023:9.1.13.8 item 2, impl-defined detection)** rather than hang. `n TIMES` loops the registry-check n+1 times then reports the conflict's own 51/61/62; `FOR n SECONDS` makes no further attempt at all, because GR2 clamps its timeout period to the A.1 item 166 maximum meaningful value of ZERO, and reports the same — only FOREVER, and only on a RECORD conflict, reaches **52**. Guard: `RetryLoop` never calls `Thread.Sleep`; comment cites GR4a + the 52 impl-license. Config items #165/#166 (:39679/:39681) are ours to document.
+    2. **RETRY `FOR n SECONDS` / `FOREVER` true wall-clock blocking** (§2023:14.7.9.3 GR2/GR3) — with no external releaser a single-threaded retry cannot change the outcome; **a FOREVER wait on a record locked by another connector of the executing run unit resolves to status 52 (deadlock — §2023:9.1.13.8 item 2, impl-defined detection)** rather than hang. `n TIMES` loops the registry-check n+1 times then reports the conflict's own 51/61/62; `FOR n SECONDS` makes no further attempt at all, because GR2 clamps its timeout period to the A.1 item 166 maximum meaningful value of ZERO, and reports the same — only FOREVER, and only on a RECORD conflict, reaches **52**. Guard: `RetryLoop` never calls `Thread.Sleep`; comment cites GR4a + the 52 impl-license. Config items #165/#166 (:39679/:39681) are ours to document.
     3. **APPLY COMMIT** (§2023:14.9.5) implicit `AUTOMATIC WITH LOCK ON MULTIPLE RECORDS` + the "shall-not-with-APPLY-COMMIT" SRs (LOCK MODE SR1 :15538, OPEN SHARING SR7 :29169, UNLOCK SR2 :32677, READ SR5 :29849) — **APPLY COMMIT is not implemented** (0 grammar hits) ⇒ these exclusion SRs are vacuously satisfied. Guard: a named residue row + a `// residue: APPLY COMMIT unimplemented — SR vacuous` at each SR site so re-wiring is one edit when APPLY COMMIT lands.
     4. **52 deadlock cross-process detection**, OS **advisory-lock** enforcement, device-concurrency model (config #52/#75/#76 :39387/:39445/:39447) — locks are **in-memory only** (§2023:9.1.16, never persisted), documented device model.
     5. Implementor-defined **default sharing mode** (OPEN GR23 :29329) + **default lock mode** (LOCK MODE GR1 :15545): **our documented choice (kb/Work PB322, docs/CONFORMANCE.md DOC-A.1-77 / -131 / -153) = default sharing a function of the open mode: `OPEN INPUT` is `READ ONLY`, `OPEN OUTPUT` / `I-O` / `EXTEND` are `NO OTHER` (exclusive, record locks ignored per GR3), default lock mode = no locking.** This preserves every existing single-connector program byte-for-byte (a lone connector never self-conflicts; the CLOSE…WITH-LOCK/38 path is untouched) and makes record locking observable *only* when the program opts in via `SHARING WITH ALL OTHER`/`READ ONLY` + `LOCK MODE` (which SR8 already couples). Config #153 (:39649).
@@ -1629,7 +1629,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
 
 - **Implementation order (small commits; each green before the next; FULL `scripts/guard.sh` on every grammar-touching commit).** **(1)** Lexer 9 tokens + `_dataNameTokens` + `cobolWord` + `CheckedTokenTypes`(3) + regen → greenfield battery + **FULL legacy guard** (85 surface invariant — the nine words behave as user words end-to-end). **(2)** Grammar (sharingClause/lockModeClause; openClause sharing+retry; retryPhrase/recordLockPhrase; READ advancing/retry/lock; write/rewrite/delete; unlockStatement + dispatch) + `EditionGateHints` + registry/json rows + regen → battery + **FULL legacy guard** + DFA timing check; empirically verify no viable-alt regressions on the untouched READ/WRITE/OPEN no-phrase paths. **(3)** FileModel fields + `BindFileControl` arms + Bound nodes + verb-phrase binding + `COBOL1512` SR checks + EditionValidator visitor rows → battery. **(4)** `FileStatusCode` 51/52/53/54/61/62 + `CobolFile.Locks.cs` registry + Open/Read/Write/Rewrite/Delete/Unlock threading + `RegisterSharing` + emitter arms + `CobolFileLockTests` → battery. **(5)** `file_sharing` golden + `GreenfieldOnly` + the four SR negatives + the four 85-gate negatives + manifest + matrix activation → full battery + **legacy conformance** + **FULL legacy guard**. **(6)** Docs + DEVLOG + resume-prompt + commit/push (feedback_fully_autonomous_push).
 
-- **STAGED RESIDUE (named, loud — each with its § + guard).** (1) **Cross-run-unit / cross-OS-process locks** (§2023:9.1.15/§2023:9.1.16) — process-local registry, no second run unit; doc-comment guard. (2) **RETRY wall-clock `SECONDS`/`FOREVER`** (§2023:14.7.9 GR2/3) — no external releaser, so neither sleeps. GR2's timeout period is clamped to this implementation's maximum meaningful value of ZERO (A.1 item 166) and lands the conflict's OWN §2023:9.1.13 status; only GR3's FOREVER, and only on a RECORD conflict, bails to **52** (§2023:9.1.13.8 item 2, A.1 item 109). Determination and guard on `RetryLoop`. (3) **APPLY COMMIT** (§2023:14.9.5) + its four exclusion SRs — unimplemented ⇒ SRs vacuous; `// residue: APPLY COMMIT` at each SR site. (4) **52 cross-process deadlock detection / OS advisory locks / device concurrency** (config #52/#75/#76) — in-memory-only model. (5) **`START` WITH lock/retry** (not ISO 2023) — grammar forbids; defensive bind guard = residue-flagged. (6) **`WITH KEPT LOCK`** (vendor Micro Focus, not ISO) — not tokenized ⇒ loud parse error; vendor-dialect leniency if ever wanted (CONFLICT-2). (7) **`EXCLUSIVE` lock mode** (vendor, not §2023:12.4.5.9) — not tokenized ⇒ loud parse error (CONFLICT-4). (8) **AUTOMATIC-single implicit release timing edge cases** on mixed keyed/sequential connectors — the single-release hook rides `_prevOpWasSuccessfulRead`; verify per-organization at implementation, else 1512-flag. (9) **CLOSE…WITH LOCK / status 38** — the ≤2014 leg is unchanged (already `close-with-lock-removed-2023`-gated at 2023); 38 retained, reframed.
+- **STAGED RESIDUE (named, loud — each with its § + guard).** (1) **Cross-run-unit / cross-OS-process locks** (§2023:9.1.15/§2023:9.1.16) — process-local registry, no second run unit; doc-comment guard. (2) **RETRY wall-clock `SECONDS`/`FOREVER`** (§2023:14.7.9.3 GR2/3) — no external releaser, so neither sleeps. GR2's timeout period is clamped to this implementation's maximum meaningful value of ZERO (A.1 item 166) and lands the conflict's OWN §2023:9.1.13 status; only GR3's FOREVER, and only on a RECORD conflict, bails to **52** (§2023:9.1.13.8 item 2, A.1 item 109). Determination and guard on `RetryLoop`. (3) **APPLY COMMIT** (§2023:14.9.5) + its four exclusion SRs — unimplemented ⇒ SRs vacuous; `// residue: APPLY COMMIT` at each SR site. (4) **52 cross-process deadlock detection / OS advisory locks / device concurrency** (config #52/#75/#76) — in-memory-only model. (5) **`START` WITH lock/retry** (not ISO 2023) — grammar forbids; defensive bind guard = residue-flagged. (6) **`WITH KEPT LOCK`** (vendor Micro Focus, not ISO) — not tokenized ⇒ loud parse error; vendor-dialect leniency if ever wanted (CONFLICT-2). (7) **`EXCLUSIVE` lock mode** (vendor, not §2023:12.4.5.9) — not tokenized ⇒ loud parse error (CONFLICT-4). (8) **AUTOMATIC-single implicit release timing edge cases** on mixed keyed/sequential connectors — the single-release hook rides `_prevOpWasSuccessfulRead`; verify per-organization at implementation, else 1512-flag. (9) **CLOSE…WITH LOCK / status 38** — the ≤2014 leg is unchanged (already `close-with-lock-removed-2023`-gated at 2023); 38 retained, reframed.
 
 - **ANCHOR LIST.** Grammar: `CobolLexer.g4` keyword band (:284/:439/:442/:507/:516/:544), `_dataNameTokens` :30–65 (:38); `CobolParserCore.g4` `cobolWord` :25–98 (:45–46), `statement` dispatch :657–711 (:669–671), predicates `CobolParserCoreBase.cs` (is2002/is2023); `CobolIO.g4` `fileControlClauses` :46–67 (:63/:66), `openClause` :208, `openFileSpec` :214, `closeOption` :233–237 (untouched), `readStatement` :243–253 (:248/:249), `writeStatement` :290–298 (:293/:294), `rewriteStatement` :330–336 (:332/:333), `deleteStatement` :352–357 (:353/:354), `deleteFileStatement` :369–374. Validation: `EditionValidator.cs` :150–156 (CLOSE-WITH-LOCK gate model), `CheckedTokenTypes` :268–291 (:276); `ReservedWords.Table.cs` :269/:279/:372/:400/:450; `ConstructDialectStatus.cs` :63–69/:98/:112–114; `EditionCodes.cs` :16/:21; `EditionGateHints.cs` :43–56/:82–128/:144–147; `CobolErrorStrategy.cs:116`. Binder: `DataBinder.cs` `BindFileControl` :279–310 (:291–305), `MapOrganization` :512; `FileModel.cs` :7/:10/:33/:36/:127/:159; `Bound/BoundTree.cs` `BoundOpen` :481, `BoundCloseKind` :474. Runtime: `IO/FileSupport.cs` `FileStatusCode` :21–70 (:36); `IO/CobolFile.cs` :13–16/:19–24/:36–43/:50–64/:86/:130 (+ new `CobolFile.Locks.cs`); `IO/SequentialFile.cs` (:39 offset, :162 SetStatus), `IO/RelativeFile.cs` (:97 slots, :107 _lastSlot, :128 SetStatus), `IO/IndexedFile.cs` (:42 _lastReadPrime, :477 KeyOf, :508–509/:651–659 keyed registry/open); `Exceptions/ExceptionCatalog.cs` :113/:120/:277/:278/:288/:294 (NO change). Emit: `CSharpEmitter.cs` :1362/:1417/:1436, `CSharpEmitter.KeyedIo.cs` :31/:43/:52/:117, `CSharpEmitter.Exceptions.cs` :273–312. Tests: `ConformanceTests.cs` :66/:116; `constructs/`; `tests/conformance/2002/manifest.json`. Spec: :11396/:11579/:11621–11652/:11694–11764/:14994/:15011/:15521–15575/:15807–15824/:25199–25242/:29130–29171/:29214–29227/:29325–29331/:29782–30076/:30426–30607/:32657–32688/:33274–33513/:49038. Legacy: the legacy compiler project.
 
@@ -1788,7 +1788,7 @@ units only*, so class FileModels are never registered nor key-qualified).
   Realized as a per-object connector key in an instance field, closed by a finalizer (run-unit `CloseAll` is the
   backstop). *Distinct from method-WS's static-per-class call — a file connector is object-lifetime.*
 - **(b) EXTERNAL object/factory FD → the one run-unit-shared connector.** `IS EXTERNAL` is permitted on any FD
-  (§2023:13.18.22 SR1); §2023:9.1.3/§2023:9.1.5 make it one run-unit connector by name. `CallBindExternalAndGlobal` already
+  (§2023:13.18.22.3 SR1); §2023:9.1.3/§2023:9.1.5 make it one run-unit connector by name. `CallBindExternalAndGlobal` already
   re-bases the record area onto the `ExternalStore` cell (it runs on `cls.Data` via `BindResolve`); the only missing
   half is the emit-side `::EXT::` connector-key rewrite (today program-units only). `CobolFile.Register`'s idempotent
   guard then yields exactly one shared connector — no per-object key for EXTERNAL.

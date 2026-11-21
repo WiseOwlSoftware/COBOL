@@ -501,7 +501,7 @@ public sealed class FlagDirectiveTests
     [Fact]
     public void Compile_ValueFigConLength_NotFlagged_OnGroupItem()
     {
-        // A group's figurative VALUE is filled to the subordinates' length (§2023:13.18.63 SR13) — length is specified.
+        // A group's figurative VALUE is filled to the subordinates' length (§2023:13.18.63.3 SR13) — length is specified.
         var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-FIG-CON-LENGTH ON\n",
             "01 G VALUE SPACE.\n          05 GA PIC X."));
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1621", StringComparison.Ordinal));
@@ -644,7 +644,7 @@ public sealed class FlagDirectiveTests
     [Fact]
     public void Compile_MoveToSameName_NotFlagged_OdoDependingItemOutsideTheGroup()
     {
-        // The DEPENDING item CNT is declared OUTSIDE G (§2023:13.18.38 SR20 permits this), so it is NOT subordinate to
+        // The DEPENDING item CNT is declared OUTSIDE G (§2023:13.18.38.3 SR20 permits this), so it is NOT subordinate to
         // the moved DDE — GR4 d (2) requires the DEPENDING item be subordinate to the DDE.
         var warnings = CompileWarnings(MoveProgram(
             "       01 CNT PIC 9.\n       01 G.\n          05 T OCCURS 1 TO 5 DEPENDING ON CNT PIC X.\n",

@@ -259,7 +259,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
 
     /// <summary>What ONE receiving operand is (§2023:14.9.39.2's receiving braces, in the order that makes each
     /// answer decidable): the CAPACITY register first — it is implicitly defined at the OCCURS entry and is not
-    /// a storage name (§2023:13.18.38 GR15) — then an index-name, which is not a data item at all (§2023:13.18.38.3 SR7),
+    /// a storage name (§2023:13.18.38.4 GR15) — then an index-name, which is not a data item at all (§2023:13.18.38.3 SR7),
     /// then the item's own description.
     /// <para>⛔ PURE. The probe is the R30 non-diagnosing form: a name that identifies nothing answers
     /// <see cref="SetOperandKind.Unclassified"/> and the committing resolution the selected format performs

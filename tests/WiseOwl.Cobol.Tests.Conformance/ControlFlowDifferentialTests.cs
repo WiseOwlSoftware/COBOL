@@ -173,7 +173,7 @@ public sealed class ControlFlowDifferentialTests
     [Fact]
     public void Perform_Thru_Times_RunsRangeNTimes()
     {
-        // §2023:14.9.28 GR9: the range A..B (adds 1 + 10 = 11 per pass) is executed 3 times ⇒ 33, not once (11).
+        // §2023:14.9.28.4 GR9: the range A..B (adds 1 + 10 = 11 per pass) is executed 3 times ⇒ 33, not once (11).
         string src = Program("01 X PIC 9(3) VALUE 0.", """
             MAIN-PARA.
                 PERFORM A THRU B 3 TIMES.
@@ -193,7 +193,7 @@ public sealed class ControlFlowDifferentialTests
     [Fact]
     public void Perform_Thru_Until_RunsRangeUntilCondition()
     {
-        // §2023:14.9.28 GR10 (TEST BEFORE, default): the range A..B (adds 1 + 2 = 3 per pass) runs while X < 9 ⇒
+        // §2023:14.9.28.4 GR10 (TEST BEFORE, default): the range A..B (adds 1 + 2 = 3 per pass) runs while X < 9 ⇒
         // X reaches 3, 6, 9; the pre-pass test then sees X = 9 and stops ⇒ 9, not 3 (a single pass).
         string src = Program("01 X PIC 9(3) VALUE 0.", """
             MAIN-PARA.

@@ -74,6 +74,7 @@ import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4
 import inventory_schema  # noqa: E402  (each edition's catalog path: the schema's `editions.of`, the one home)
 import citation  # noqa: E402  (each edition's regions: the standing lists' sections and headings)
 import element_standing  # noqa: E402  (THE standing of a rule, from the edition's lists; kb/Work PB4993)
+import text_units  # noqa: E402  (THE units of unnumbered text and their dispositions, every edition; kb/Work PB5449)
 #: The manifest's key for the PROSE clauses admitted as one-row-per-paragraph (kb/Work PB284 part 3 / PB479).
 PARAGRAPH_BLOCKS = "paragraph-blocks"
 
@@ -447,49 +448,51 @@ def unharvested_drift(measured: dict[str, dict], declared: dict[str, dict]) -> t
             sorted(s for s in set(measured) & set(declared) if measured[s]["ordinals"] != declared[s]["ordinals"]))
 
 
-#: A line that CONTINUES the paragraph before it instead of opening a new one: a numbered or lettered list item, a
-#: table row, a markup block, or a NOTE (informative; it stays in the rule's text, where `NOTE_MARK` cuts it from
-#: every predicate and the clause's own rows stay the normative paragraphs).
-PARAGRAPH_CONTINUATION = re.compile(r"^(?:\s*\d+\\?[.)]\s|\s*[a-z]\\?\)\s|\s*\||<|NOTE\b|\s*Table\s+\d)")
-#: Where a sentence may legitimately END. A paragraph that stops short of one is cut by a page break (the
-#: running header and licence footer between its halves leave a blank line), and its tail is the same paragraph.
-SENTENCE_END = re.compile(r"[.:;?!]\s*$")
+def iso_units(ed: IsoEdition, lines: list[str], rules: list[dict], declared: dict[str, dict]) -> dict[str, list]:
+    """THE UNITS OF UNNUMBERED TEXT of an ISO edition's normative region (kb/Work PB5449, decision PB5448 point 1), by
+    clause, in the order of the text: every clause of `ed.normative` but a general format's is segmented by
+    text_units.segment, with the edition's page furniture removed.
 
-
-def prose_paragraphs(ed: IsoEdition, lines: list[str], at: int) -> list[str]:
-    """The normative PARAGRAPHS of the clause whose heading is `lines[at]` — the row unit of a PROSE concept clause.
-
-    ⛔ WHY A CLAUSE WITH NO NUMBERED RULES STILL HAS ROWS (kb/Work PB284 part 3, PB479). §2023:9.1.16 (record locking),
-    §2023:9.1.17 (logical unit of work) and §2023:9.1.18 (commit and rollback) state the facility's meaning as running
-    prose: no `N)` marker, no "General rules" heading, so the numbered-rule scan never opened them and the
-    denominator the burn-down is measured against did not hold the clause that SETS EC-FLOW-APPLY. A rule with no
-    row can never be a GAP and can never be closed. The paragraph is the unit the standard's own prose has, so one
-    row per paragraph is that clause's row shape, exactly as one row per numbered rule is a rule block's.
-
-    Admission is DATA (`paragraph-blocks` in the edition's content-keyed manifest), never a code edit: the standard is
-    full of normative prose, and which clauses are rules is an adjudication (PB479), not a pattern.
-    """
-    running, furn = ed.running_header, ed.furniture
-    paragraphs: list[list[str]] = []
-    fresh = True
-    for line in lines[at + 1:]:
-        if ANY_HEADING.match(line) and not running.match(line) and not PAGE.match(line):
-            break
-        if running.match(line) or PAGE.match(line) or furn.match(line):
+    ⛔ WHAT LIES IN A ROW'S TEXT IS NO UNIT. A clause whose numbered scan yields rows contributes only its LEAD-IN, the
+    text before its first column-0 ordinal (the rows' text runs from that ordinal to the clause's end, and a paragraph
+    the page prints at the block's margin after a rule stays in that rule's text until the margin-level measurement
+    separates it, decision PB5448 point 4). A clause whose numbered list a content-keyed `blocks` disposition holds
+    (`not-rules`, or 2002's `pending`) contributes its text but not that list's items. A table a row of the clause names
+    is that row's content (`held-by`), never a unit. `rules` holds the numbered rule rows (`shape` absent); it is read
+    before the general formats' and the implementor-defined list's rows exist, so a general-format clause (its title
+    says so: its FMT row holds its whole text) is skipped by its title, and the list's clause is a numbered one."""
+    numbered = {r["section"] for r in rules if "shape" not in r} | {ed.doc_list}
+    named: dict[str, set[int]] = {}
+    for r in rules:
+        named.setdefault(r["section"], set()).update(text_units.tables_named(r["text"]))
+    out: dict[str, list] = {}
+    for clause, title, start, end in citation.iso_regions(lines):
+        if not ed.normative(clause) or GENERAL_FORMAT_TITLE.fullmatch(title.strip()) or clause in ed.conventions:
             continue
-        if not line.strip():
-            fresh = True
-            continue
-        if fresh and paragraphs and (PARAGRAPH_CONTINUATION.match(line)
-                                     or not SENTENCE_END.search(paragraphs[-1][-1])):
-            fresh = False
-        if fresh:
-            paragraphs.append([line.strip()])
-            fresh = False
-        elif paragraphs:
-            paragraphs[-1].append(line.strip())
-    return [re.sub(r"\s+", " ", " ".join(p)).strip() for p in paragraphs]
+        body: list[tuple[int, str]] = []
+        note = False
+        for i in range(start + 1, end):
+            line = lines[i]
+            if CORRECTION_NOTE.match(line) or (note and line.startswith(">")):
+                note = True
+                continue
+            note = False
+            if (ed.running_header.match(line) or PAGE.match(line) or PAGE_ANCHOR.match(line) or ed.furniture.match(line)
+                    or ANY_HEADING.match(line) or GROUP_LABEL.match(line)):
+                continue
+            if clause in numbered and ORDINAL.match(line):
+                break
+            body.append((i + 1, line))
+        units = [u for u in text_units.segment(body, items=clause not in numbered and clause not in declared)
+                 if not (u.table and u.table in named.get(clause, ()))]
+        if units:
+            out[clause] = units
+    return out
 
+
+def unit_ordinal(u: "text_units.Unit") -> int:
+    """The `ordinal` of a unit's row: its paragraph number, its printed item number, or its table row's position."""
+    return int(re.sub(r"^p|^T\d+\.?", "", u.label) or 0)
 
 def band_formats(label: str) -> list[int]:
     """The FORMAT NUMBERS a printed band names: "FORMAT 2" -> [2], "FORMATS 1, 2 AND 4" -> [1, 2, 4].
@@ -554,6 +557,26 @@ class IsoEdition:
     #: (`2002-SR-14.8.25.2-1`), the rule's `citation` (`§2002:14.8.25.2 SR1`) and its PDF `page`? 2023's rows predate
     #: the form; its ids are the 4,214-row store's file names and the key every reader of it uses.
     edition_rows: bool
+    #: The normative annexes, whose text holds units as the body's clauses do (decision PB5448: 2023's Annexes A to C;
+    #: 2002's A to D, each headed "(normative)"). The body's normative region is clause 6 on: clauses 1 to 3 (2002: 1
+    #: and 2) are front matter and terms, and 4 and 5 (2002: 3 to 5) the frame, which enters by direct citation.
+    normative_annexes: str = ""
+    #: The clause of the intrinsic functions, where a rule is an argument or a returned-value rule (§2023:5.3.1).
+    function_clause: str = "15"
+
+    def normative(self, clause: str) -> bool:
+        """Is `clause` in the normative region whose unnumbered text holds units (decision PB5448)?"""
+        head = clause.split(".", 1)[0]
+        return int(head) >= 6 if head.isdigit() else head in self.normative_annexes
+
+    def unit_kinds(self, clause: str) -> set[str]:
+        """The row kinds a unit of `clause` may take: SR and GR ("Except for intrinsic functions, rules are categorized
+        as syntax rules and general rules", §2023:5.3.1), AR and RV in an intrinsic function's clause, and DOC in the
+        implementor-defined list's annex (its general clauses keep SR and GR: 2023's 15.4.1 is admitted RV, its 15.1 is
+        about every function)."""
+        head = clause.split(".", 1)[0]
+        return {"SR", "GR"} | ({"AR", "RV"} if head == self.function_clause else set()) | (
+            {"DOC"} if head == self.doc_list.split(".", 1)[0] else set())
 
     @property
     def reconciled(self) -> bool:
@@ -665,7 +688,8 @@ ISO: dict[int, IsoEdition] = {
                           "by §2023:5.3.2 so the heading resolves; it contributes no rows. Owner decision 2026-07-30.",
         },
         conventions=frozenset({"5.3.2", "5.3.3", "5.3.4", "5.3.5"}),
-        toc=toc_pattern("linked"), toc_lists="rule blocks", edition_rows=False),
+        toc=toc_pattern("linked"), toc_lists="rule blocks", edition_rows=False,
+        normative_annexes="ABC"),
     2002: IsoEdition(
         year=2002, rule_annexes="A", doc_list="B.1",
         excluded_blocks={
@@ -683,7 +707,8 @@ ISO: dict[int, IsoEdition] = {
                           "Precedence rules, are syntax rules\") so the heading resolves, with no row.",
         },
         conventions=frozenset({"5.2.1", "5.2.2", "5.2.3", "5.2.4"}),
-        toc=toc_pattern("dotted"), toc_lists="clauses", edition_rows=True),
+        toc=toc_pattern("dotted"), toc_lists="clauses", edition_rows=True,
+        normative_annexes="ABCD"),
 }
 
 
@@ -751,15 +776,58 @@ class IsoCatalog:
     report: list[str]
     #: The content-keyed manifest's clauses that await a disposition: their rules are outside the denominator.
     pending: list[str] = dataclasses.field(default_factory=list)
+    #: The units of unnumbered text, by clause (`iso_units`): the manifest's `paragraph-blocks` disposes of each.
+    units: dict[str, list] = dataclasses.field(default_factory=dict)
 
 
 def manifest_of(ed: IsoEdition) -> tuple[dict[str, dict], dict[str, dict]]:
-    """The content-keyed manifest of `ed`: its declared `blocks`, and its PROSE clauses admitted as paragraph rows
-    (`paragraph-blocks`: section ⇒ {kind, kinds?, why}; `_comment` documents the key and is not a clause)."""
+    """The content-keyed manifest of `ed`: its declared `blocks`, and the dispositions of its units of unnumbered text
+    (`paragraph-blocks`: clause ⇒ {title, why?, units: [{unit, digest, order, disposition, ...}]}, kb/Work PB5449;
+    `_comment` documents the key and is not a clause)."""
     if not ed.unharvested.exists():
         return {}, {}
     raw = json.loads(ed.unharvested.read_text(encoding="utf-8"))
     return raw.get("blocks", {}), {s: v for s, v in raw.get(PARAGRAPH_BLOCKS, {}).items() if not s.startswith("_")}
+
+
+#: The manifest's switch that makes a `not-rules` block without an UPHELD refuter record a refusal (text_units.
+#: block_refusals): DATA, set by the step that refutes the edition's blocks (2023 kb/Work PB5450, 1985 PB5452).
+NOT_RULES_REFUTED = "not-rules-refuted"
+
+
+def refute_blocks_of(manifest: pathlib.Path) -> bool:
+    """Whether `manifest` requires every `not-rules` block to name its UPHELD refuter record (`NOT_RULES_REFUTED`)."""
+    return manifest.exists() and bool(json.loads(manifest.read_text(encoding="utf-8")).get(NOT_RULES_REFUTED))
+
+
+@functools.lru_cache(maxsize=None)
+def _refuter_records(path: str) -> tuple[dict, ...] | None:
+    """The refuter records of the JSON-lines file `path` (repository-relative), or None when the tree has none."""
+    file = REPO / path
+    if not path or not file.is_file():
+        return None
+    return tuple(json.loads(ln) for ln in file.read_text(encoding="utf-8").splitlines() if ln.strip())
+
+
+def unit_context(year: int, rules: list[dict]) -> "text_units.Context":
+    """What the dispositions audit of `year`'s units checks a decided disposition against (text_units.Context), read from
+    the edition's catalog rows `rules`: their ids, the openings of their sentences (the shape guard), whether their text
+    names a clause or a table, the edition's verbal forms, its citable locators and the refuter records."""
+    texts = [r["text"] for r in rules if r["kind"] != "FMT"]
+    joined = "\n".join(texts)
+    tables = {t for text in texts for t in text_units.tables_named(text)}
+    universe = citation.universe(year) or frozenset()
+
+    def named(clause: str, u) -> bool:
+        return (u.table in tables if u.table else False) or re.search(rf"(?<![\d.]){re.escape(clause.split(':')[-1])}"
+                                                                      r"(?![\d])", joined) is not None
+
+    def resolves(locator: str) -> bool:
+        return locator.rstrip(".") in universe
+
+    return text_units.Context(row_ids={r["id"] for r in rules}, shapes=text_units.openings(texts),
+                              verbal=text_units.verbal_forms(year), named=named, resolves=resolves,
+                              records=_refuter_records)
 
 
 def measured_peers_of(ed: IsoEdition) -> set[str]:
@@ -770,7 +838,8 @@ def measured_peers_of(ed: IsoEdition) -> set[str]:
 
 
 def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragraph_blocks: dict[str, dict],
-            measured_peers: set[str], standing: pathlib.Path | None = None, cite: bool = True) -> IsoCatalog:
+            measured_peers: set[str], standing: pathlib.Path | None = None, cite: bool = True,
+            refute_blocks: bool = False) -> IsoCatalog:
     """THE ISO EXTRACTION, one for every ISO edition: read `lines` (the transcription of `ed`) into its rule rows, with
     the content-keyed manifest's `declared` blocks and `paragraph_blocks`, the sub-lists `measured_peers` holds at the
     margin and the standing lists at `standing` (the edition's, by default). Pure but for the standing lists' and the
@@ -1040,47 +1109,31 @@ def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragra
             buf.append(line)
     flush()
 
-    # ---- PROSE concept clauses — one row per normative paragraph (kb/Work PB284 part 3) -------------------------
-    # See `prose_paragraphs`. Every admission is checked against the transcription HERE, so a clause that was
-    # renumbered, retitled or turned into a numbered rule block is LOUD (fatal under --check) instead of a row
-    # family quietly pointing at nothing — or at rows the numbered scan already holds, which would count twice.
+    # ---- THE UNITS OF UNNUMBERED TEXT, and the rows a disposition makes of them (kb/Work PB5449, decision PB5448) ---
+    # Every margin paragraph, numbered prose item and table unit of the normative region is segmented ONCE
+    # (`iso_units`, text_units.segment); the content-keyed manifest's `paragraph-blocks` holds each unit's disposition,
+    # keyed by its text's digest (text_units.audit refuses a unit without one and one without its unit). A unit whose
+    # disposition is a row kind is a row of the catalog, as one row per numbered rule is a rule block's (kb/Work PB284
+    # part 3: §2023:9.1.16 to 9.1.18 state record locking as running prose); a pending unit is outside the denominator
+    # and counted (`catalog_document`'s `outside-denominator`).
     paragraph_defects: list[str] = []
-    heading_at = {m.group("num"): i for i, ln in enumerate(lines)
-                  if (m := heading.match(ln)) and not ln.lstrip().startswith("[")}
-    for sec, info in paragraph_blocks.items():
-        kind = info.get("kind")
-        at = heading_at.get(sec)
-        defect = ""
-        if kind not in ("SR", "GR"):
-            defect = (f"{ed.label(sec)}: kind {kind!r} is not SR or GR (§2023:5.3.1: rules are syntax rules and "
-                      "general rules)")
-        elif at is None:
-            defect = f"{ed.label(sec)}: no such numbered heading in the transcription"
-        elif (kind_of(titles[sec]) or sec in admitted) and any(r["section"] == sec for r in rules):
-            # A TYPED block whose rule is printed UNNUMBERED is admitted like any prose clause (kb/Work PB5332):
-            # §2002:8.8.4.1.5.2 'Rules' prints its one rule as a paragraph, where §2023:8.8.4.6.3 numbers it 1). Only a
-            # block whose numbered scan already yields rows would count twice.
-            defect = f"{ed.label(sec)}: already a numbered rule block ({titles[sec]!r}) — its rows would count twice"
-        else:
-            paras = prose_paragraphs(ed, lines, at)
-            overrides = info.get("kinds", {})
-            if not paras:
-                defect = f"{ed.label(sec)}: admitted as prose but carries no paragraph"
-            if unknown := sorted(set(overrides) - {str(i) for i in range(1, len(paras) + 1)}):
-                defect = f"{ed.label(sec)}: per-paragraph kind for paragraph(s) {unknown} the clause does not have"
-            for n, text in enumerate(paras, start=1):
-                k = overrides.get(str(n), kind)
-                row = {"id": ed.rule_id(k, sec, f"p{n}")}
-                if ed.edition_rows:
-                    row["citation"] = ed.citation(sec)
-                row |= {"section": sec, "kind": k, "ordinal": n, "sublist": 1, "subject": subject_for(sec, titles),
-                        "shape": "paragraph", "text": text}
-                if ed.edition_rows:
-                    row["page"] = pages[at]
-                rules.append(row)
-        if defect:
-            paragraph_defects.append(defect)
-            find("paragraph-admission", ed.label(sec), (at + 1) if at is not None else 0, defect)
+    units = iso_units(ed, lines, rules, declared)
+    heading_at = {m.group(1): i for i, ln in enumerate(lines) if (m := citation.ISO_HEADING.match(ln))}
+    decided = {clause: {(e.get("digest"), e.get("order", 0)): e.get("disposition") for e in es}
+               for clause, es in text_units.entries_of(paragraph_blocks).items()}
+    for sec, of_clause in units.items():
+        for u, order in text_units.keyed(of_clause):
+            k = decided.get(sec, {}).get((u.digest, order))
+            if k not in text_units.ROW_KINDS:
+                continue
+            row = {"id": ed.rule_id(k, sec, u.label)}
+            if ed.edition_rows:
+                row["citation"] = ed.citation(sec)
+            row |= {"section": sec, "kind": k, "ordinal": unit_ordinal(u), "sublist": 1,
+                    "subject": subject_for(sec, titles), "shape": u.shape, "text": u.text}
+            if ed.edition_rows:
+                row["page"] = pages[heading_at[sec]]
+            rules.append(row)
 
     # ---- completeness self-check -----------------------------------------------------------------------------
     # The CONVENTIONS clause's sub-clauses (§2023:5.3.2-5.3.5, §2002:5.2.1-5.2.4) are prose DEFINING what a
@@ -1218,6 +1271,14 @@ def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragra
                 buf.append(line)
         else:
             flush_a1()
+
+    # ---- THE DISPOSITIONS AUDIT of the units (kb/Work PB5449): read now that every row exists, since a `restates` may
+    # name a general format's or an implementor-defined item's row and the shape guard reads every row's sentences.
+    ctx = unit_context(ed.year, rules)
+    for defect in text_units.audit(units, paragraph_blocks, ed.label, ed.unit_kinds, ctx) + text_units.block_refusals(
+            {ed.label(k): v for k, v in declared.items()}, ctx, required=refute_blocks):
+        paragraph_defects.append(defect)
+        find("paragraph-admission", defect.split(" ", 1)[0].rstrip(":"), 0, defect)
 
     # ---- integrity critic: the transcription must contain the STANDARD, not a description of it -------------
     # Page 28 was found to hold an AI-generated SUMMARY of the Introduction plus a refusal message ("I can quote
@@ -1414,10 +1475,15 @@ def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragra
         if not unrecognised_general else
         f"\n⛔ {len(unrecognised_general)} heading(s) open with 'General' and name no block this extractor knows "
         "(kb/Work PB284): " + ", ".join(f"{ed.label(n)} '{t}'" for n, t in unrecognised_general))
-    say(f"✓ {len(paragraph_blocks)} prose clause(s) admitted as paragraph rows, each present, unambiguous and "
-        f"non-empty ({sum(1 for r in rules if r.get('shape') == 'paragraph')} rows)" if not paragraph_defects else
-        f"\n⛔ {len(paragraph_defects)} PROSE-CLAUSE ADMISSION(S) the transcription no longer supports:\n      "
-        + "\n      ".join(paragraph_defects))
+    said = Counter(u.shape for us in units.values() for u in us)
+    say(f"✓ {sum(said.values())} units of unnumbered text in {len(units)} clauses ("
+        + ", ".join(f"{n} {shape}" for shape, n in sorted(said.items())) + "), each with its disposition: "
+        f"{text_units.pending(paragraph_blocks)} pending, {sum(1 for r in rules if r.get('shape'))} rows"
+        if not paragraph_defects else
+        f"\n⛔ {len(paragraph_defects)} REFUSAL(S) OF THE DISPOSITIONS OF THE UNITS OF UNNUMBERED TEXT "
+        "(text_units.audit; `extract_rule_catalog.py` without --check enters a new unit pending):\n      "
+        + "\n      ".join(paragraph_defects[:40]) + (f"\n      ... and {len(paragraph_defects) - 40} more"
+                                                      if len(paragraph_defects) > 40 else ""))
     say("")
     for line in element_standing.tally(rules):
         say(line)
@@ -1425,7 +1491,8 @@ def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragra
         f"⛔ {len(standing_findings)} disagreement(s) of the standing lists' data with the text "
         "(element_standing.findings):\n      " + "\n      ".join(standing_findings))
     pending = [s for s, v in declared.items() if v.get("disposition") == "pending"]
-    return IsoCatalog(rules, len(blocks_seen), [{"section": s, "kind": k} for s, k in gaps], findings, say_lines, pending)
+    return IsoCatalog(rules, len(blocks_seen), [{"section": s, "kind": k} for s, k in gaps], findings, say_lines, pending,
+                      units)
 
 
 #: The catalog key that names what its count leaves out (`catalog_document`; read by `inventory_schema.Edition.outside`).
@@ -1451,9 +1518,14 @@ def findings_summary(findings: list[Finding]) -> list[str]:
     return out
 
 
-def catalog_document(ed: IsoEdition, cat: IsoCatalog) -> dict[str, Any]:
+#: The `outside-denominator` key that counts the units of unnumbered text awaiting a disposition (kb/Work PB5449).
+PENDING_UNITS = "pending-units"
+
+
+def catalog_document(ed: IsoEdition, cat: IsoCatalog, units_pending: int = 0) -> dict[str, Any]:
     """The committed catalog of `ed`: its source, its counts, its parse gaps, its findings (an unreconciled edition's;
-    a reconciled one fails `--check` on any, so it records none) and its rows."""
+    a reconciled one fails `--check` on any, so it records none), what its count leaves out, and its rows.
+    `units_pending` is the manifest's count of units awaiting a disposition (text_units.pending)."""
     doc: dict[str, Any] = {"generated_from": ed.spec.relative_to(REPO).as_posix(), "rule_count": len(cat.rules),
                            "blocks": cat.blocks, "parse_gaps": cat.parse_gaps}
     if not ed.reconciled:
@@ -1461,11 +1533,48 @@ def catalog_document(ed: IsoEdition, cat: IsoCatalog) -> dict[str, Any]:
     # WHAT THE COUNT LEAVES OUT (kb/Work PB5256, branch review R1-5): the manifest's clauses awaiting a disposition and the
     # rule-shaped headings no kind types hold rules the denominator does not count yet, so `rule_count` is a lower bound
     # while either is non-empty, and every reader that prints the count prints this beside it (`Edition.outside`).
+    # The units of unnumbered text awaiting a disposition (kb/Work PB5449) are outside it the same way: counted, so the
+    # count is printed as a lower bound until no unit of the edition is pending (`inventory_view.lower_bound`).
     untyped = [f.clause for f in cat.findings if f.kind == "unrecognised-heading"]
-    if cat.pending or untyped:
-        doc[OUTSIDE] = {"pending-clauses": [ed.label(s) for s in cat.pending], "untyped-headings": untyped}
+    if cat.pending or untyped or units_pending:
+        doc[OUTSIDE] = {"pending-clauses": [ed.label(s) for s in cat.pending], "untyped-headings": untyped,
+                        PENDING_UNITS: units_pending}
     doc["rules"] = cat.rules
     return doc
+
+
+#: Where a regeneration writes the MOVE BATCH of the adjudicated rows it renumbered (kb/Work PB5449 item 6): a local
+#: file the operator applies with record_verdicts.py in the same change (the view refuses the moved records until then).
+MOVE_BATCH = REPO / "TestResults" / "rule-moves"
+
+
+def regenerate_dispositions(manifest: pathlib.Path, units: dict[str, list], lines: list[str], year: int, row_id,
+                            title=None) -> dict[str, dict] | None:
+    """Regenerate the `paragraph-blocks` of the content-keyed `manifest` over `units` (text_units.regenerated: a new unit
+    entered pending, a pending entry no unit has dropped, a decided one kept for the audit to refuse) and write it when
+    that changes it; returns the new map, or None when the manifest was already current. `title(clause)` names a new
+    clause (default: its ISO heading's title in `lines`). A decided row whose unit moved (`text_units.moves`, ids spelled
+    by `row_id(kind, clause, label)`) and whose id the `year` store holds a record of is written to the move batch
+    (`MOVE_BATCH`, rule_moves.write_move_batch), and the command that applies it is printed."""
+    import inventory_store  # noqa: PLC0415  (the store a moved id's record is in; only a regeneration reads it)
+    import rule_moves  # noqa: PLC0415
+    raw = json.loads(manifest.read_text(encoding="utf-8")) if manifest.exists() else {"blocks": {}}
+    if title is None:
+        titles = {clause: t for clause, t, _s, _e in citation.iso_regions(lines)}
+        title = titles.get
+    moved = text_units.moves(units, raw.get(PARAGRAPH_BLOCKS, {}), row_id)
+    if moved:
+        stored = set(inventory_store.read_store(inventory_store.inventory_dir(inventory_schema.edition(year))))
+        flag = "" if year == inventory_schema.NEWEST.year else f" --edition {year}"
+        if line := rule_moves.write_move_batch(moved, stored, MOVE_BATCH / f"{year}.json",
+                                               lambda p: f"python scripts/spec/record_verdicts.py{flag} {p}"):
+            print(line)
+    fresh = text_units.regenerated(units, raw.get(PARAGRAPH_BLOCKS, {}), title)
+    if fresh == raw.get(PARAGRAPH_BLOCKS, {}):
+        return None
+    raw[PARAGRAPH_BLOCKS] = fresh
+    manifest.write_text(json.dumps(raw, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    return fresh
 
 
 def main_iso(ed: IsoEdition, args: argparse.Namespace) -> int:
@@ -1476,7 +1585,15 @@ def main_iso(ed: IsoEdition, args: argparse.Namespace) -> int:
         sys.exit(f"spec not found: {ed.spec}\nRun: git submodule update --init --recursive")
     lines = ed.spec.read_text(encoding="utf-8", errors="replace").splitlines()
     declared, paragraph_blocks = manifest_of(ed)
-    cat = extract(ed, lines, declared, paragraph_blocks, measured_peers_of(ed))
+    refute = refute_blocks_of(ed.unharvested)
+    cat = extract(ed, lines, declared, paragraph_blocks, measured_peers_of(ed), refute_blocks=refute)
+    if not args.check and (fresh_blocks := regenerate_dispositions(ed.unharvested, cat.units, lines, ed.year,
+                                                                   ed.rule_id)) is not None:
+        # The manifest entered a new unit pending, or dropped a pending entry no unit has: extract again over it, so
+        # the catalog written is the one the committed manifest yields (`--check` reproduces it).
+        print(f"wrote {ed.unharvested.relative_to(REPO)}  ({text_units.pending(fresh_blocks)} units pending)")
+        declared, paragraph_blocks = manifest_of(ed)
+        cat = extract(ed, lines, declared, paragraph_blocks, measured_peers_of(ed), refute_blocks=refute)
     print("\n".join(cat.report))
     print()
     print("\n".join(findings_summary(cat.findings)))
@@ -1489,7 +1606,7 @@ def main_iso(ed: IsoEdition, args: argparse.Namespace) -> int:
     # (PB1221, PB1374, PB351+PB1146+PB937) corrected general-format text in specs/ISO_COBOL_2023.md without regenerating it, and the
     # catalog carried the old text of FMT-7.3.15.2, FMT-13.18.35.2 and FMT-14.9.38.2 until PB55's rebuild found it.
     # `--check` compared the transcription with the manifests and never with the file it writes.
-    doc = catalog_document(ed, cat)
+    doc = catalog_document(ed, cat, text_units.pending(paragraph_blocks))
     stale: list[str] = []
     if ed.catalog.exists():
         old = json.loads(ed.catalog.read_text(encoding="utf-8"))
@@ -1498,6 +1615,8 @@ def main_iso(ed: IsoEdition, args: argparse.Namespace) -> int:
         stale = sorted(i for i in committed.keys() | fresh.keys() if committed.get(i) != fresh.get(i))
         if old.get("findings") != doc.get("findings"):
             stale.append("(its findings)")
+        if old.get(OUTSIDE) != doc.get(OUTSIDE):
+            stale.append(f"(its {OUTSIDE})")
     if stale:
         print(f"\n⛔ THE COMMITTED CATALOG IS STALE — {len(stale)} rule(s) differ from what the transcription yields now:")
         for rid in stale[:10]:
@@ -1527,19 +1646,43 @@ def main_1985(args: argparse.Namespace) -> int:
     cat = rule_catalog_1985.parse(lines, manifest_blocks(UNHARVESTED_OF[1985]))
     rule_catalog_1985.cite_check(cat)
     cat.standing = element_standing.apply(cat.rules, "locator", lines, citation.regions_1985(lines), STANDING_OF[1985])
+    # THE UNITS OF UNNUMBERED TEXT (kb/Work PB5449): segmented by the ISO arm's one segmentation, disposed in the
+    # manifest's `paragraph-blocks` (a regeneration enters a new unit pending), audited, and counted outside.
+    # A paragraph after a rule is a unit when the margin-level data measures it at the block's margin (kb/Work PB5449
+    # item 3, measure_margin_levels.py), and every such paragraph is held to the data.
+    import measure_margin_levels  # noqa: PLC0415
+    levels = measure_margin_levels.load(1985)
+    after = rule_catalog_1985.block_paragraphs(lines, cat.rules)[1]
+    cat.margin_levels = measure_margin_levels.refusals(after, levels)
+    cat.margin_tally = measure_margin_levels.tally(list(levels.values()))
+    units = rule_catalog_1985.units(lines, cat.rules, cat.declared, measure_margin_levels.at_margin(after, levels))
+    titles = {f"§{1989 if r[0].startswith('A.') else 1985}:{r[0]}": r[1]
+              for r in (*citation.regions_1985(lines), *citation.amendment_regions(lines, 1989))}
+    if not args.check and regenerate_dispositions(UNHARVESTED_OF[1985], units, lines, 1985,
+                                                  rule_catalog_1985.unit_rule_id, titles.get) is not None:
+        print(f"wrote {UNHARVESTED_OF[1985].relative_to(REPO)}")
+    raw = json.loads(UNHARVESTED_OF[1985].read_text(encoding="utf-8"))
+    blocks = raw.get(PARAGRAPH_BLOCKS, {})
+    ctx = unit_context(1985, cat.rules)
+    cat.dispositions = (text_units.audit(units, blocks, str, rule_catalog_1985.unit_kinds, ctx)
+                        + text_units.block_refusals(cat.declared, ctx, required=bool(raw.get(NOT_RULES_REFUTED))))
+    cat.pending_units = text_units.pending(blocks)
     print(f"spec:            {spec.relative_to(REPO)}  ({len(lines):,} lines)")
     for line in rule_catalog_1985.summary(cat):
         print(line)
+    doc = {"generated_from": spec.relative_to(REPO).as_posix(), "rule_count": len(cat.rules), "blocks": len(cat.blocks)}
+    if cat.pending_units:
+        doc[OUTSIDE] = {PENDING_UNITS: cat.pending_units}
+    doc["rules"] = cat.rules
     stale = False
     if out.exists():
-        stale = json.loads(out.read_text(encoding="utf-8"))["rules"] != cat.rules
+        old = json.loads(out.read_text(encoding="utf-8"))
+        stale = old["rules"] != cat.rules or old.get(OUTSIDE) != doc.get(OUTSIDE)
         if stale:
             print(f"⛔ THE COMMITTED 1985 CATALOG IS STALE: {out.relative_to(REPO)} differs from this run; regenerate it")
     if args.check:
         return 1 if cat.findings() or stale else 0
-    out.write_text(json.dumps({"generated_from": spec.relative_to(REPO).as_posix(), "rule_count": len(cat.rules),
-                               "blocks": len(cat.blocks), "rules": cat.rules}, indent=1, ensure_ascii=False) + "\n",
-                   encoding="utf-8", newline="\n")
+    out.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     print(f"\nwrote {out.relative_to(REPO)}")
     return 0
 
@@ -1711,17 +1854,25 @@ def self_test() -> int:
                  + "\n## Page 302\n\n###### 8.8.1.3.1.3 Rounding rules\n\n1\\) When compared.\n\n2\\) When moved.\n\n"
                  "###### 8.8.4.1.5.2 Rules\n\nThe result of the test is true if the switch is set.\n\n"
                  "###### 8.8.4.1.6.2 Rules\n\n1\\) NOT and the next keyword specify one sign condition.\n")
-        got = extract(ed, typed.splitlines(), {}, {"8.8.4.1.5.2": {"kind": "GR", "why": "planted"}}, set(), standing,
-                      cite=False)
+        switch = "The result of the test is true if the switch is set."
+        admitted_unit = {"8.8.4.1.5.2": {"title": "Rules", "why": "planted", "units": [
+            {"unit": "p1", "digest": text_units.digest(switch), "order": 0, "disposition": "GR"}]}}
+        got = extract(ed, typed.splitlines(), {}, admitted_unit, set(), standing, cite=False)
         tids = [r["id"] for r in got.rules if r["section"].startswith(("8.8", "5.2"))]
         ok(tids == ["2002-GR-8.8.1.3.1.3-1", "2002-GR-8.8.1.3.1.3-2", "2002-GR-8.8.4.1.6.2-1", "2002-GR-8.8.4.1.5.2-p1"]
            and not any(f.kind in ("unrecognised-heading", "parse-gap") for f in got.findings),
            f"'Rounding rules' and 'Rules' type as GR, the taxonomy clause 5.2 'Rules' stays out, and an unnumbered rule "
            f"of a typed block is one admitted paragraph row, with no finding ({tids}, {[str(f) for f in got.findings]})")
-        doubled = extract(ed, typed.splitlines(), {}, {"8.8.4.1.6.2": {"kind": "GR", "why": "planted"}}, set(), standing,
-                          cite=False)
-        ok(any(f.kind == "paragraph-admission" and "count twice" in str(f) for f in doubled.findings),
-           "a typed block whose numbered scan yields rows is refused as a paragraph admission (its rows would count twice)")
+        # kb/Work PB5449: the units are the text no row holds. A typed block's LEAD-IN is a unit and its numbered rules
+        # are not; a unit with no disposition entry is refused (fatal under --check) until a regeneration enters it
+        # pending, and a pending unit makes no row.
+        led = typed.replace("###### 8.8.4.1.6.2 Rules\n\n", "###### 8.8.4.1.6.2 Rules\n\nThe sign condition reads:\n\n")
+        bare = extract(ed, led.splitlines(), {}, {}, set(), standing, cite=False)
+        lead = [u.text for u in bare.units.get("8.8.4.1.6.2", [])]
+        ok(lead == ["The sign condition reads:"] and "8.8.4.1.5.2" in bare.units
+           and any(f.kind == "paragraph-admission" and "no disposition entry" in str(f) for f in bare.findings)
+           and not any(r.get("shape") for r in bare.rules),
+           f"a typed block's lead-in is its one unit, an undisposed unit is refused, and it makes no row ({lead})")
     print(f"=== extract_rule_catalog self-test: {'PASS' if not failures else f'FAIL ({len(failures)})'} ===")
     return 1 if failures else 0
 

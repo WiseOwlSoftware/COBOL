@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Binding;
 /// clauses apply through the description-completion passes of <see cref="Passes.BindPipeline"/>, which run once over
 /// the whole forest after the DATA DIVISION is bound: the §2023:13.16.3 SR9 VALUE-implied PICTURE
 /// (<see cref="SynthesizeImpliedPicturesPass.Run"/>), TYPE and SAME AS composition (<see cref="ExpandTypesPass.Run"/>), group USAGE
-/// (§2023:13.18.60.4 GR1, <see cref="UsageInheritancePass.Run"/>) and group SIGN (§2023:13.18.52 GR1, <see cref="InheritSignClausesPass.Run"/>).
+/// (§2023:13.18.60.4 GR1, <see cref="UsageInheritancePass.Run"/>) and group SIGN (§2023:13.18.52.4 GR1, <see cref="InheritSignClausesPass.Run"/>).
 /// A constant entry is bound when the section walk reaches it or when a reference demands its value — both BEFORE the
 /// pipeline — so the operand used to be measured half-described: a COMP-5 group's PIC 9(4) leaf 4 bytes where it
 /// occupies 2, a record holding a TYPE'd member 1 position where it is 6, a VALUE-implied picture 1 where it is 4, a
@@ -60,7 +60,7 @@ public sealed partial class DataBinder
 
     /// <summary>A CLAUSE copy (TYPE, SAME AS) of <paramref name="from"/>'s entry: <see cref="CopyEntryDescription"/>, then
     /// the PICTURE profile as WRITTEN when a constant's length phrase completed <paramref name="from"/> ahead. The
-    /// pipeline expands every clause before the §2023:13.18.60.4 GR1 / §2023:13.18.52 GR1 walks, so a copy reads the entry as
+    /// pipeline expands every clause before the §2023:13.18.60.4 GR1 / §2023:13.18.52.4 GR1 walks, so a copy reads the entry as
     /// it stood before its ancestors' USAGE and SIGN reached it: `01 S SAME AS E.` with E under GROUP-USAGE NATIONAL
     /// stays PIC 9(3) DISPLAY (§2023:13.18.49.4 GR3 transfers a usage only from a group S itself is subordinate to),
     /// whether or not `CONSTANT AS BYTE-LENGTH OF E` measured E first (train 1047 review of kb/Work PB2465).</summary>
@@ -78,7 +78,7 @@ public sealed partial class DataBinder
             : new PictureAsWritten(entry.Pic, entry.PicIsUsageSynthesized, entry.Pending);
 
     /// <summary>Complete <paramref name="item"/>'s description now — the subtree's SR9 implied PICTUREs, TYPE and SAME
-    /// AS expansions, and §2023:13.18.60.4 GR1 / §2023:13.18.52 GR1 inheritance from its ancestors — unless it, or a subtree
+    /// AS expansions, and §2023:13.18.60.4 GR1 / §2023:13.18.52.4 GR1 inheritance from its ancestors — unless it, or a subtree
     /// holding it, is complete already. See the class remarks.</summary>
     internal void CompleteDescriptionAhead(DataItem item)
     {

@@ -351,8 +351,8 @@ public sealed class CobolFileLockTests : IDisposable
         Assert.Equal(FileStatusCode.FileNotOpen, CobolFile.Status("CX"));   // 42 — §2023:9.1.13 (:11579)
     }
 
-    // ── P10 Step 8: the governed mutating verbs (§2023:14.9.35 GR11/GR12 · §2023:14.9.10 GR6/GR7 · §2023:14.9.51 GR10/GR11)
-    //    and the sequential-organization governed READ (§2023:9.1.16 ordinal identity; §2023:14.9.30 GR9/GR22) ──────────
+    // ── P10 Step 8: the governed mutating verbs (§2023:14.9.35.4 GR11/GR12 · §2023:14.9.10.4 GR6/GR7 · §2023:14.9.51.4 GR10/GR11)
+    //    and the sequential-organization governed READ (§2023:9.1.16 ordinal identity; §2023:14.9.30.4 GR9/GR22) ──────────
 
     /// <summary>Two open RELATIVE sharers on one seeded physical file (record 1 = AAAAA).</summary>
     private static void TwoOpenSharers(string a, string b, string host)
@@ -376,14 +376,14 @@ public sealed class CobolFileLockTests : IDisposable
         Assert.Equal(FileStatusCode.Success,
             CobolFile.ReadKeyedShared("MA", -1, "", FileRecordLock.WithLock, false, FileRetryKind.None, 0, out _));   // MA locks record 1
         CobolFile.SetRelativeKey("MB", 1);
-        // §2023:14.9.35 GR11 — the record identified for rewriting is locked by another connector → 51 (not rewritten).
+        // §2023:14.9.35.4 GR11 — the record identified for rewriting is locked by another connector → 51 (not rewritten).
         Assert.Equal(FileStatusCode.RecordLocked,
             CobolFile.RewriteShared("MB", "BBBBB", -1, FileRecordLock.None, FileRetryKind.None, 0));
-        // §2023:14.9.10 GR6 — same for deletion; a bounded RETRY exhausts to 51, FOREVER deadlock-bails to 52 (§2023:14.7.9).
+        // §2023:14.9.10.4 GR6 — same for deletion; a bounded RETRY exhausts to 51, FOREVER deadlock-bails to 52 (§2023:14.7.9).
         Assert.Equal(FileStatusCode.RecordLocked, CobolFile.DeleteShared("MB", "", FileRetryKind.Times, 2));
         Assert.Equal(FileStatusCode.Deadlock,
             CobolFile.RewriteShared("MB", "BBBBB", -1, FileRecordLock.None, FileRetryKind.Forever, 0));
-        CobolFile.Unlock("MA", records: false);   // §2023:14.9.47 GR1
+        CobolFile.Unlock("MA", records: false);   // §2023:14.9.47.4 GR1
         Assert.Equal(FileStatusCode.Success,
             CobolFile.RewriteShared("MB", "BBBBB", -1, FileRecordLock.None, FileRetryKind.None, 0));
     }
@@ -393,11 +393,11 @@ public sealed class CobolFileLockTests : IDisposable
     {
         TwoOpenSharers("WA", "WB", Host("lk-wrlock.dat"));
         CobolFile.SetRelativeKey("WA", 2);
-        // §2023:14.9.51 GR11 — WITH LOCK locks the record written.
+        // §2023:14.9.51.4 GR11 — WITH LOCK locks the record written.
         Assert.Equal(FileStatusCode.Success,
             CobolFile.WriteShared("WA", "BBBBB", -1, FileRecordLock.WithLock, FileRetryKind.None, 0, page: null));
         Assert.True(CobolFile.IsLockedByOther("WB", "2"));
-        // §2023:14.9.51 GR10 / §2023:12.4.5.9.4 GR6 — single locking: the next WRITE releases the prior lock.
+        // §2023:14.9.51.4 GR10 / §2023:12.4.5.9.4 GR6 — single locking: the next WRITE releases the prior lock.
         CobolFile.SetRelativeKey("WA", 3);
         Assert.Equal(FileStatusCode.Success,
             CobolFile.WriteShared("WA", "CCCCC", -1, FileRecordLock.None, FileRetryKind.None, 0, page: null));
@@ -477,11 +477,11 @@ public sealed class CobolFileLockTests : IDisposable
         Assert.Equal(FileStatusCode.Success,
             CobolFile.ReadShared("SA", false, FileRecordLock.WithLock, false, false, FileRetryKind.None, 0, out string img));
         Assert.Equal("AAAAA", img);
-        // SB's READ of ordinal 1 conflicts BEFORE the physical read (§2023:14.9.30 GR9; FPI unchanged, GR10a) → 51.
+        // SB's READ of ordinal 1 conflicts BEFORE the physical read (§2023:14.9.30.4 GR9; FPI unchanged, GR10a) → 51.
         Assert.Equal(FileStatusCode.RecordLocked,
             CobolFile.ReadShared("SB", false, FileRecordLock.None, false, false, FileRetryKind.None, 0, out _));
         Assert.Equal(FileStatusCode.RecordLocked, CobolFile.Status("SB"));
-        // ADVANCING ON LOCK (§2023:14.9.30 GR22) skip-scans the locked record — SB gets ordinal 2, no conflict raised.
+        // ADVANCING ON LOCK (§2023:14.9.30.4 GR22) skip-scans the locked record — SB gets ordinal 2, no conflict raised.
         Assert.Equal(FileStatusCode.Success,
             CobolFile.ReadShared("SB", false, FileRecordLock.None, true, false, FileRetryKind.None, 0, out img));
         Assert.Equal("BBBBB", img);
@@ -615,7 +615,7 @@ public sealed class CobolFileLockTests : IDisposable
         CobolFile.Register("DB", host, 5, false, false);
         CobolFile.OpenOutput("DA", host, assignDynamic: false, page: null);
         CobolFile.Write("DA", "HELLO", -1, page: null);
-        // §2023:9.1.13.9 item 2 / §2023:14.9.10 GR15 — the physical file is open by ANOTHER connector → 62 (not deleted).
+        // §2023:9.1.13.9 item 2 / §2023:14.9.10.4 GR15 — the physical file is open by ANOTHER connector → 62 (not deleted).
         // EVERY retry form exhausts to 62: §2023:14.7.9.3's closing paragraph lands the conflict's own §2023:9.1.13 status
         // and §2023:9.1.13.9 defines no deadlock value for a FILE SHARING conflict (kb/Work PB142).
         Assert.Equal(FileStatusCode.DeleteFileSharing, CobolFile.DeleteFile("DB"));
@@ -794,7 +794,7 @@ public sealed class CobolFileLockTests : IDisposable
         Assert.Equal(FileStatusCode.Success,
             CobolFile.ReadKeyedShared("VA", -1, "", FileRecordLock.None, false, FileRetryKind.None, 0, out _));
 
-        // And the record VA holds is released by UNLOCK (§2023:14.9.47 GR1), after which VB reads it.
+        // And the record VA holds is released by UNLOCK (§2023:14.9.47.4 GR1), after which VB reads it.
         CobolFile.Unlock("VA", false);
         CobolFile.SetRelativeKey("VB", 1);
         Assert.Equal(FileStatusCode.Success,

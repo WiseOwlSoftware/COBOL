@@ -89,7 +89,7 @@
               WHEN OTHER DISPLAY "T18 OTHER"
            END-EVALUATE.
       *> 19-20 — an occurs-depending group (a FIXED-length group per §2023:8.5.1.12 — SR1 admits it): the
-      *> operand is its CURRENT-count part (§2023:13.18.38 GR8, three positions here), so a store past it
+      *> operand is its CURRENT-count part (§2023:13.18.38.4 GR8, three positions here), so a store past it
       *> lands only in the current positions and a slice inside it reads/writes normally.
            MOVE "12345" TO OG(2:5).
            DISPLAY "T19 [" OG "]".

@@ -187,6 +187,7 @@ public static class Constructs
     public const string OrderTable2002 = "order-table-2002";
     public const string PaddingCharacterRemoved2014 = "padding-character-removed-2014";
     public const string PageDirective2002 = "page-directive-2002";
+    public const string PdHeaderByReference2002 = "pd-header-by-reference-2002";
     public const string PdHeaderByValue2002 = "pd-header-by-value-2002";
     public const string PerformExceptionChecking2023 = "perform-exception-checking-2023";
     public const string PerformUntilExit2023 = "perform-until-exit-2023";

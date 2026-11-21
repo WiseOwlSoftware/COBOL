@@ -346,7 +346,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // Format 6's literal-1).
         if (rhs is BoundBoolAll { IsAllLiteral: true })
             ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "a boolean COMPUTE expression shall not consist solely of an ALL "
-                + "literal (ISO §2023:14.9.8.3 Format 2 SR3)");
+                + "literal (ISO §2023:14.9.8.3 SR3, Format 2)");
         return BuildComputeBoolean(compute, rhs);
     }
 
@@ -386,7 +386,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
             if (cat is not PicCategory.Boolean)
                 ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"the receiver '{WrittenSource.Of(store.receivingIdentifier())}' of a boolean "
-                    + "COMPUTE shall be an elementary boolean item (ISO §2023:14.9.8.3 Format 2 SR2)");
+                    + "COMPUTE shall be an elementary boolean item (ISO §2023:14.9.8.3 SR2, Format 2)");
             targets.Add(p);
         }
         return new BoundComputeBoolean(rhs, targets);

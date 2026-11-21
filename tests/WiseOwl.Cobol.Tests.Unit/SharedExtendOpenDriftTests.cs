@@ -106,7 +106,7 @@ public sealed class SharedExtendOpenDriftTests
         /// control that proves the matrix is measuring the difference and not the harness.</summary>
         FixedRecordSequential,
 
-        /// <summary>Record sequential, RECORD IS VARYING — length-prefixed frames (§2023:13.18.43 GR2). PB713's
+        /// <summary>Record sequential, RECORD IS VARYING — length-prefixed frames (§2023:13.18.43.4 GR2). PB713's
         /// confirmed sibling: it crashed through <c>RecordFraming.ReadStore</c> for the identical reason.</summary>
         VaryingRecordSequential,
     }

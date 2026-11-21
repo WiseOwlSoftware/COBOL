@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public sealed class SwitchStore
 {
-    /// <summary>Per-run-unit switch state keyed by implementor switch-name — the §2023:12.3.7 GR4 NOTE 1 run-unit
+    /// <summary>Per-run-unit switch state keyed by implementor switch-name — the §2023:12.3.7.4 GR4 NOTE 1 run-unit
     /// scope (one switch referenced by all runtime elements of the run unit).</summary>
     private readonly Dictionary<string, bool> _states = new(CobolNames.Comparer);
 
@@ -64,6 +64,6 @@ public sealed class SwitchStore
     }
 
     /// <summary>Alter the switch's status (ISO §2023:14.9.39 Format 3 GR5: the switch is modified so that a
-    /// condition-name associated with it evaluates per the ON/OFF phrase; §2023:12.3.7 GR3).</summary>
+    /// condition-name associated with it evaluates per the ON/OFF phrase; §2023:12.3.7.4 GR3).</summary>
     public void Set(string implementorName, bool isOn) => _states[implementorName] = isOn;
 }

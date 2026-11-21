@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The SPARSE national-collation math (P10 Step 4; ISO §2023:12.3.7 GR7 k over the native NATIONAL set — the
+/// The SPARSE national-collation math (P10 Step 4; ISO §2023:12.3.7.4 GR7 k over the native NATIONAL set — the
 /// 65,536 UTF-16 code units, D-N1): specified characters take their tabulated positions; every UNSPECIFIED
 /// code unit takes a DISTINCT ascending position above the highest specified one, in native relative order
 /// (k3), computed arithmetically by <see cref="NationalCollation.Weight"/>; <see cref="NationalCollation.CharAt"/>

@@ -15,7 +15,7 @@ using Core = CobolParserCore;
 //  SORT / MERGE / RELEASE / RETURN (ISO/IEC 1989:2023 §2023:14.9.40 / §2023:14.9.24 / §2023:14.9.32 / §2023:14.9.34) — the sort-merge
 //  subsystem's bound nodes. The sort store is an in-memory, per-SD record-IMAGE buffer (WiseOwl.Cobol.Runtime.IO.CobolSort);
 //  keys are compile-time (offset, length, kind) descriptors into the SD record image, ONE comparison policy for
-//  numeric (algebraic, §2023:14.9.40 GR8 — never collated) and alphanumeric (collated per GR5 precedence) keys
+//  numeric (algebraic, §2023:14.9.40.4 GR8 — never collated) and alphanumeric (collated per GR5 precedence) keys
 //  (DESIGN §8.2 — typed key descriptors over serialized images, offsets computed at compile time).
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
@@ -139,7 +139,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         var (collating, collErr) = SortBindCollating(s.sortCollatingPhrase(), merge: false);
         if (collErr is { } ce) return ce;
 
-        // Release phase source (ISO §2023:14.9.40 GR9a): USING file list or INPUT PROCEDURE pc range.
+        // Release phase source (ISO §2023:14.9.40.4 GR9a): USING file list or INPUT PROCEDURE pc range.
         var usingFiles = new List<FileModel>();
         if (s.sortUsingPhrase() is { } up && !SortMapIoFiles(up.dataReferenceList(), usingFiles, merge: false, giving: false))
             return BoundRejected.Reported(ctx.Edition);   // SortMapIoFiles REPORTED (PB236, PB1171)
@@ -177,7 +177,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             usingFiles, inputProc, givingFiles, outputProc, SortVaryingOf(file), ctx.SourceLine(s));
     }
 
-    /// <summary>Bind the Format-2 in-place TABLE sort (ISO §2023:14.9.40 GR18–GR24) over the typed element array.
+    /// <summary>Bind the Format-2 in-place TABLE sort (ISO §2023:14.9.40.4 GR18–GR24) over the typed element array.
     /// Introduced by ISO/IEC 1989:2002 (the table-SORT format is absent from ANSI X3.23-1985; M2 feature catalog,
     /// docs/ISO2023_CONFORMANCE_PLAN.md) — rejected below <c>--std 2002</c>.</summary>
     private BoundStatement SortBindTable(Core.SortStatementContext s, Core.DataReferenceContext operand, string name)
@@ -642,7 +642,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         file.Records.Count == 1 && !file.SameRecordAreaPeers.Any() && !file.RecordSizeVaries
         && ActivationCrossing.LeafCarried(file.Records[0]) && file.Records[0].TransferImageCapable;
 
-    /// <summary>Bind one ASC/DESC key phrase's data-names into <paramref name="keys"/> (ISO §2023:14.9.40 GR1 — the
+    /// <summary>Bind one ASC/DESC key phrase's data-names into <paramref name="keys"/> (ISO §2023:14.9.40.4 GR1 — the
     /// direction word is transitive across the phrase's data-names; each <c>sortKeyPhrase</c>/<c>mergeKeyPhrase</c>
     /// begins with its own ASCENDING|DESCENDING, so per-phrase application IS GR1 — and GR2: significance is
     /// statement order, which the appended list preserves). Returns false when the phrase was REFUSED and reported.</summary>
@@ -719,7 +719,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // A numeric key carries the LEAF ITSELF, so the runtime decodes its window with the leaf's own
             // profile — the one description of its bytes (zoned digits for DISPLAY, radix-2 / BCD for
             // BINARY / PACKED, the IEEE interchange forms for the float family — kb/Work PB164 wave 2; V59).
-            // §2023:14.9.40 GR8 + §2023:8.8.4.2.4: numeric keys compare by ALGEBRAIC value regardless of how their
+            // §2023:14.9.40.4 GR8 + §2023:8.8.4.2.4: numeric keys compare by ALGEBRAIC value regardless of how their
             // usage is described, so the decode must match the representation exactly — CobolSort's column
             // builder dispatches on the profile's ByteForm (a float key's raw big-endian IEEE bytes would
             // order every negative after every positive, so it takes the algebraic double lane).
@@ -1027,7 +1027,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             Segmentation.CheckProcedures(ctx, range, verb, rule);
     }
 
-    /// <summary>An INPUT/OUTPUT PROCEDURE name pair → the inclusive pc range (ISO §2023:14.9.40 GR10/GR13 — the range
+    /// <summary>An INPUT/OUTPUT PROCEDURE name pair → the inclusive pc range (ISO §2023:14.9.40.4 GR10/GR13 — the range
     /// composes like PERFORM: a single SECTION name is its whole paragraph range, THRU extends through the second
     /// procedure's end). Resolved by the ONE procedure resolver, so section/qualified semantics match PERFORM.</summary>
     private PcRange? SortRange(Core.ProcedureNameContext[] names, string phrase, string formatClause)
@@ -1047,7 +1047,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         return first.Range.Through(thru.Range);   // GR4-style composition, EMPTY-aware (kb/Work PB440)
     }
 
-    /// <summary>The varying-record model of an SD/FD for the sort verbs (§2023:13.18.43 GR13/GR15), with the DEPENDING
+    /// <summary>The varying-record model of an SD/FD for the sort verbs (§2023:13.18.43.4 GR13/GR15), with the DEPENDING
     /// item (when declared) resolved to its place; null when the file's records are fixed-length. Min/max default
     /// per GR9/GR10 (the smallest/largest record described) via the FileModel accessors.</summary>
     private SortVaryingInfo? SortVaryingOf(FileModel file)

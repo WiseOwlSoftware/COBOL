@@ -66,7 +66,7 @@ public sealed partial class SequentialConnector : FileConnector
     // kb/Work PB1053), -1 when it carried none. The table sits immediately before _lastReadBlockStart, so an in-place
     // REWRITE can replace it with the record's new table — or void it — without changing the frame's size.
     private int _lastReadTableCount = -1;
-    // §2023:14.9.30 GR15 / NOTE 3: the unread tail of an over-length LINE-SEQUENTIAL record — the file position indicator
+    // §2023:14.9.30.4 GR15 / NOTE 3: the unread tail of an over-length LINE-SEQUENTIAL record — the file position indicator
     // "next unread character in the record". The next READ returns this (chunked to the record width) before reading a
     // new physical line, so a program using the GR15 multi-read pattern sees the whole logical line, not silent loss.
     private string? _lineRemainder;
@@ -77,11 +77,14 @@ public sealed partial class SequentialConnector : FileConnector
     private long _lineByteOffset;
     private long _lastLineStart = -1;
     private int _lastLineBytes;
+    // The CHARACTER POSITIONS of the last-read line's record, the whole line however much of it the READ delivered: the size
+    // §1985:VII.4.5.4 GR10 compares a REWRITE against on a line-framed file before 2023 (RewriteFramedRecord, kb/Work PB5915).
+    private int _lastLineCharacters;
     private bool _lastReadLinePartial;
 
     // ── Record-lock identity (ISO §2023:9.1.16 on sequential organization) ────────────────────────────────────────
     // A sequential record's lock identity is its 1-based ORDINAL position in the physical file — two connectors
-    // reading the same physical file agree on ordinals, and the successor relationship (§2023:14.9.51 GR17) makes the
+    // reading the same physical file agree on ordinals, and the successor relationship (§2023:14.9.51.4 GR17) makes the
     // ordinal stable. Reads count from OPEN (INPUT/I-O always position at the start).
     // ⛔ WRITES DO NOT COUNT FROM ANYWHERE ON THIS CONNECTOR (kb/Work PB739). The ordinal of a released record
     // is a property of the PHYSICAL FILE — §2023:14.9.51.4 GR19 says the records added by two sharing connectors
@@ -384,7 +387,7 @@ public sealed partial class SequentialConnector : FileConnector
     /// <summary>⛔ THE ONE SPELLING OF THIS CONNECTOR'S READ HANDLE — the INPUT and I-O arms of
     /// <see cref="OpenCore"/> are the same stream, and a second
     /// spelling would be a second answer to its encoding, its access and its <see cref="FileOptions"/>. The I-O
-    /// arm asks for <see cref="FileAccess.ReadWrite"/> because §2023:14.9.35 GR3's REWRITE writes through this
+    /// arm asks for <see cref="FileAccess.ReadWrite"/> because §2023:14.9.35.4 GR3's REWRITE writes through this
     /// reader's <c>BaseStream</c>, and takes NO <see cref="FileOptions.SequentialScan"/> for the same reason: it
     /// seeks, and the sequential-access hint asks the host to evict what a seek comes back for.
     /// It carries <see cref="FileConnector.HostShare"/>, the posture the registry derived immediately before the
@@ -607,11 +610,11 @@ public sealed partial class SequentialConnector : FileConnector
 
     // A varying file's records are length-framed on disk (the ONE RecordFraming 4-byte little-endian length
     // prefix per record — the same framing the keyed connectors' store uses; the physical format is
-    // implementor-defined, §2023:13.18.43 GR2, and only self-consistency matters since producer and consumer run on
+    // implementor-defined, §2023:13.18.43.4 GR2, and only self-consistency matters since producer and consumer run on
     // this connector). WRITE/REWRITE outside the VaryMin/VaryMax bounds is the GR14 '44'; a record-sequential
-    // REWRITE must also match the replaced record's size (§2023:14.9.35 GR16).
+    // REWRITE must also match the replaced record's size (§2023:14.9.35.4 GR16).
 
-    // ── LINAGE logical-page state (ISO §2023:13.18.34 / §2023:14.9.51 GR25 g), GR26–28) ────────────────────────────────
+    // ── LINAGE logical-page state (ISO §2023:13.18.34 / §2023:14.9.51.4 GR25 g), GR26–28) ────────────────────────────────
     // ⛔ THE LINAGE FEATURE IS A PHYSICAL PAGE LAYOUT, NOT ONLY A COUNTER (kb/Work PB523). §2023:13.18.34.4 GR1:
     // "The logical page size is the sum of the values referenced by each phrase except the FOOTING phrase" —
     // so the logical page IS top margin + page body + bottom margin (GR4: integer-3 "specifies the number of
@@ -633,7 +636,7 @@ public sealed partial class SequentialConnector : FileConnector
     // ONE thing every presentation and every advance does first (<see cref="EmitTopMarginIfPending"/>).
     // ⛔ THE OPERAND VALUES ARRIVE WITH THE STATEMENT (a LinagePage?, null = the file has no LINAGE clause), and
     // ONE argument serves both operand forms — a literal operand renders a constant, a data-name operand renders
-    // the EXECUTING element's field read (§2023:13.18.34 GR6a/GR6b). What the connector keeps is the page MODEL most
+    // the EXECUTING element's field read (§2023:13.18.34.4 GR6a/GR6b). What the connector keeps is the page MODEL most
     // recently determined, because GR6 says "the value applies to the next logical page"; it keeps no source, or
     // a shared connector would answer with whichever element/activation installed one last (kb/Work PB673).
     private int _pageBody;      // page size — the writable page-body line count (GR2)
@@ -664,10 +667,10 @@ public sealed partial class SequentialConnector : FileConnector
     private bool _topMarginPending;
 
     /// <summary>The LINAGE-COUNTER register (ISO §2023:8.4.3.14): the line number at which the device is positioned
-    /// within the current page body (§2023:13.18.34 GR7). Only this connector (the I-O control system) modifies it (GR7b).</summary>
+    /// within the current page body (§2023:13.18.34.4 GR7). Only this connector (the I-O control system) modifies it (GR7b).</summary>
     public long LinageCounter { get; private set; }
 
-    /// <summary>The end-of-page condition of the most recent WRITE (ISO §2023:14.9.51 GR26): page overflow (GR26a) or
+    /// <summary>The end-of-page condition of the most recent WRITE (ISO §2023:14.9.51.4 GR26): page overflow (GR26a) or
     /// printing/spacing within the footing area (GR26b). Reset at the start of every counter-advancing write.</summary>
     public bool EndOfPage => _endOfPage is not null;
 
@@ -700,7 +703,7 @@ public sealed partial class SequentialConnector : FileConnector
     /// outcome GR6 b) 2's last clause forbids.</para></summary>
     private bool _linagePageBroken;
 
-    /// <summary>ISO §2023:13.18.34 GR6 b) 1 — establish the logical page model <i>"at the completion of an OPEN
+    /// <summary>ISO §2023:13.18.34.4 GR6 b) 1 — establish the logical page model <i>"at the completion of an OPEN
     /// statement with the OUTPUT phrase"</i>, plus GR7 d)'s counter reset. Called by the registry after a
     /// SUCCESSFUL OPEN OUTPUT, with the page the EXECUTING element's own LINAGE clause evaluates to. Returns the
     /// §2023:9.1.13.11 LINAGE value-rule status when §2023:13.18.34.4 GR6 b)'s value rules are violated at the completion of the open,
@@ -835,14 +838,14 @@ public sealed partial class SequentialConnector : FileConnector
     ///   form-feed arm and it is the NO-LINAGE case.</item>
     /// <item>ADVANCING n travels n lines and adds n (GR7c2/GR25a); a plain WRITE travels 1 and adds 1 (GR7c3 —
     ///   the caller passes 1). n = 0 is GR25 c)'s "no repositioning".</item>
-    /// <item>Counter past the page body ⇒ page overflow (§2023:14.9.51 GR26a): the device is <i>"repositioned to the
+    /// <item>Counter past the page body ⇒ page overflow (§2023:14.9.51.4 GR26a): the device is <i>"repositioned to the
     ///   first line that may be written on the next logical page"</i> — over the rest of THIS page's body, its
     ///   bottom margin and the next page's top margin, all of which are lines of the logical pages GR1 defines
     ///   and GR8 lays contiguously — and counter := 1 (GR7c4 — never a modulo carry), overflow end-of-page.</item>
     /// <item>Else, FOOTING specified and counter at/past the footing start ⇒ footing end-of-page (GR26b).</item>
     /// <item>⚖ <b>counter == page body IS AN ADJUDICATED BOUNDARY — do not "correct" either comparison to match
     ///   GR26's printed words.</b> Arm a) as printed fires at counter ≥ page size and arm b) is clamped to
-    ///   counter &lt; page size; at counter == page size those cannot both hold with §2023:13.18.34 GR2 (all
+    ///   counter &lt; page size; at counter == page size those cannot both hold with §2023:13.18.34.4 GR2 (all
     ///   page-size lines "may be written or spaced"), GR3 (the footing area is [footing, page size]
     ///   INCLUSIVE) or GR26's own lead sentence (the lines "do not fit within the current page body"). Under
     ///   the printed arm a) the line NUMBERED page size could never receive a record — an N-line body would
@@ -854,7 +857,7 @@ public sealed partial class SequentialConnector : FileConnector
     /// <item>GR6b2/3: at the two page transitions — AFTER the overflow decision was made against the OLD page
     ///   body AND after all positioning on the current page (GR6 b) 2's own words: <i>"This occurs before the
     ///   device is positioned and after all positioning on the current page"</i>) — re-evaluate the operand
-    ///   values; they apply to the NEXT logical page (§2023:13.18.34 GR6). <see cref="BeginNextLogicalPage"/> is
+    ///   values; they apply to the NEXT logical page (§2023:13.18.34.4 GR6). <see cref="BeginNextLogicalPage"/> is
     ///   split along exactly that sentence.</item>
     /// </list>
     /// The AT END-OF-PAGE branch observes the POST-advance counter (SQ201M's footing lines print the triggering
@@ -874,7 +877,7 @@ public sealed partial class SequentialConnector : FileConnector
         // n = 0 is GR25 c)'s "no repositioning ... is performed").
         if (lines < 0 || LinageCounter + lines > _pageBody)
         {
-            // Page overflow (§2023:14.9.51 GR26a): the line does not fit in the page body — the device repositions
+            // Page overflow (§2023:14.9.51.4 GR26a): the line does not fit in the page body — the device repositions
             // to the first writable line of the succeeding page and the counter resets to 1 (GR7c4, and GR7c1
             // for ADVANCING PAGE) — never GR25 h)'s form feed, which is the arm for a file with NO LINAGE clause.
             // ⚖ STRICT `>`, NOT `>=` — the adjudicated boundary (docs/CONFORMANCE.md §4, kb/Work PB686). GR26a
@@ -889,11 +892,11 @@ public sealed partial class SequentialConnector : FileConnector
         LinageCounter += lines;
         if (_footing is { } footingStart && LinageCounter >= footingStart)
         {
-            // Footing-area end-of-page (§2023:14.9.51 GR26b): FOOTING is specified and this WRITE prints or spaces
+            // Footing-area end-of-page (§2023:14.9.51.4 GR26b): FOOTING is specified and this WRITE prints or spaces
             // within the footing area (counter at/past the footing start, still within the page body).
             // ⚖ NO UPPER CLAMP — the adjudicated boundary (docs/CONFORMANCE.md §4, kb/Work PB686). GR26b as
             // printed adds "and is less than the page size"; honouring that clamp would exclude the page-size
-            // line, which §2023:13.18.34 GR3 places INSIDE the footing area ("between the footing start and the
+            // line, which §2023:13.18.34.4 GR3 places INSIDE the footing area ("between the footing start and the
             // page size, inclusive"). The overflow arm above already took every counter past the body, so
             // reaching here means counter ≤ page body and the clamp has nothing left to exclude but GR3's own
             // last line. IBM Enterprise COBOL documents the footing condition with no upper clamp likewise.
@@ -920,7 +923,7 @@ public sealed partial class SequentialConnector : FileConnector
     ///   line 1 with the NEW top margin still to be materialized, which is the same state OPEN OUTPUT leaves
     ///   (<see cref="BeginLinagePage"/>). The two page starts are therefore ONE state, not two.</item>
     /// </list>
-    /// The counter is reset here and nowhere else for a transition (§2023:13.18.34 GR7 c) 1 and c) 4).</summary>
+    /// The counter is reset here and nowhere else for a transition (§2023:13.18.34.4 GR7 c) 1 and c) 4).</summary>
     /// <returns><see langword="false"/> when step 2's re-evaluation found values that violate §2023:13.18.34.4 GR6 b)
     /// — step 3 does NOT happen (there is no next logical page to step onto), the counter is 0 rather than 1, and
     /// the caller abandons the rest of the WRITE. Step 1 has already happened, and correctly so: GR6 b) 2/3 place
@@ -987,6 +990,10 @@ public sealed partial class SequentialConnector : FileConnector
     private void Present(string text, LinagePage? page, bool national, bool framed = false, RecordExtents? extents = null)
     {
         if (page is not null && HasLogicalPage) EmitTopMarginIfPending();
+        // ⛔ BEFORE 2023 A LINE-FRAMED RECORD IS PRESENTED AS ITS OWN LINE, AND NOTHING ELSE (kb/Work PB5984): the delimiter
+        // is the record's frame (LineDelimiterOnlyFrames), so the record and its delimiter are written whole, never an
+        // overprint return before it nor an open line a later travel or the CLOSE would end.
+        if (LineDelimiterOnlyFrames) { EmitRecordLine(text, national); return; }
         if (text.Length > 0 || framed)
         {
             if (_device == DeviceLine.Open) _writer!.Write('\r');   // GR25 e)/c): the same vertical position, from column 1
@@ -1043,6 +1050,15 @@ public sealed partial class SequentialConnector : FileConnector
     /// (§1985:VII.2.8.4 GR1, <see cref="DialectBehavior.LineSequentialFileRules"/>). Both line arms ask it.</summary>
     private bool LineSequentialFileRules =>
         _lineSequential && DialectBehaviors.IsActive(DialectBehavior.LineSequentialFileRules, Edition);
+
+    /// <summary>⛔ THE OTHER SIDE OF <see cref="LineSequentialFileRules"/>: a line-framed connector of an edition before
+    /// 2023, whose file is a sequential file the line delimiter only frames (§1985:VII.2.8.4 GR1, "Any method used will not
+    /// be reflected in the record area or the record size used within the program"). Its records keep their size on every
+    /// write arm (kb/Work PB5903, PB5914), its REWRITE is the sequential size rule (§1985:VII.4.5.4 GR10, kb/Work PB5915),
+    /// and the delimiter is the record boundary alone, so the vertical positioning of an ADVANCING phrase or a LINAGE page
+    /// has no image on its medium (kb/Work PB5984; <c>docs/conformance/7/DOC-A.1-150.md</c>): every record the WRITE
+    /// statements release is one line, in WRITE order (§1985:VII.2.6.3 GR2, §1985:VII.4.7.4 GR12).</summary>
+    private bool LineDelimiterOnlyFrames => _lineSequential && !LineSequentialFileRules;
 
     /// <summary>The line end of a RECORD SEQUENTIAL print stream that has neither a LINAGE clause nor a report
     /// description: a record sequential file written with an ADVANCING phrase. A line feed on every host
@@ -1184,6 +1200,7 @@ public sealed partial class SequentialConnector : FileConnector
         _lineByteOffset = 0;
         _lastLineStart = -1;
         _lastLineBytes = 0;
+        _lastLineCharacters = 0;
         _lastReadLinePartial = false;
         _readOrdinal = 0;
         // ⛔ CLEARED BY EVERY OPEN, so a COBOL-85 REVERSED opening cannot outlive itself: the phrase belongs to
@@ -1294,14 +1311,14 @@ public sealed partial class SequentialConnector : FileConnector
                     break;
 
                 case FileOpenMode.IO:
-                    // I-O permits both READ and REWRITE on the one open connector (ISO §2023:14.9.35 GR3 — REWRITE
+                    // I-O permits both READ and REWRITE on the one open connector (ISO §2023:14.9.35.4 GR3 — REWRITE
                     // requires open mode I-O; its format-1 contract replaces the record retrieved by the last
                     // successful READ in place), so the underlying stream must open ReadWrite — Rewrite's
                     // seek-and-write path writes through the reader's BaseStream. An absent non-optional file
                     // is 35; an optional one is created (05).
-                    // §2023:14.9.27 GR17: an ABSENT OPTIONAL file opened I-O is CREATED (as if OPEN OUTPUT then CLOSE),
+                    // §2023:14.9.27.4 GR17: an ABSENT OPTIONAL file opened I-O is CREATED (as if OPEN OUTPUT then CLOSE),
                     // then opened I-O like an existing file — so it always ends with a ReadWrite _reader and the FPI is
-                    // effectively 1 (GR14). A first READ then finds no record → AtEnd '10' (§2023:14.9.30 GR21 rule e + GR24),
+                    // effectively 1 (GR14). A first READ then finds no record → AtEnd '10' (§2023:14.9.30.4 GR21 rule e + GR24),
                     // NOT '47' (which is only for a connector not open in input/I-O, §2023:9.1.13.7 item 7). OPEN still
                     // returns '05'. No OptionalAbsent needed — the file now physically exists (empty).
                     if (!exists && !IsOptional) return FileStatusCode.FileNotFound;
@@ -1315,7 +1332,7 @@ public sealed partial class SequentialConnector : FileConnector
                     if (!exists && IsOptional) return FileStatusCode.OptionalFileNotFound;
                     break;
             }
-            // ISO §2023:13.18.34 GR6 b) 1 reads the operand values "at the COMPLETION of an OPEN statement with the
+            // ISO §2023:13.18.34.4 GR6 b) 1 reads the operand values "at the COMPLETION of an OPEN statement with the
             // OUTPUT phrase", so the page model is established by the registry's OPEN dispatch once this body has
             // succeeded (FileRegistry.SharedOpenAttempt → BeginLinagePage) — with the page the EXECUTING element's
             // LINAGE clause evaluates to, which is why it cannot be read from connector state here (PB673).
@@ -1530,7 +1547,7 @@ public sealed partial class SequentialConnector : FileConnector
 
     /// <summary>Plain <c>WRITE record</c> (ISO §2023:14.9.51): line-sequential writes the trimmed image as a line;
     /// record-sequential writes a fixed-width block; a VARYING file writes a length-framed record of
-    /// <paramref name="length"/> bytes (the DEPENDING item's content, §2023:13.18.43 GR13a) or the image's own length
+    /// <paramref name="length"/> bytes (the DEPENDING item's content, §2023:13.18.43.4 GR13a) or the image's own length
     /// (GR13b/c), failing with '44' outside the declared bounds (GR14). Valid only when open OUTPUT/EXTEND
     /// (else 48).</summary>
     /// <param name="extents">The record's EXTENT TABLE when a variable-length group record is written
@@ -1726,7 +1743,9 @@ public sealed partial class SequentialConnector : FileConnector
         // ⛔ A LINE-FRAMED FILE OF AN EDITION BEFORE 2023 KEEPS THE RECORD AT ITS SIZE ON THIS ARM TOO (kb/Work PB5914):
         // the line delimiter only frames it (§1985:VII.2.8.4 GR1), so the plain arm's rule (WriteRecord, kb/Work PB5903)
         // binds the ADVANCING write of the same file; §2023:14.9.51.4 GR21's strip is the 2023 line sequential rule.
-        bool lineDelimiterOnlyFrames = _lineSequential && !LineSequentialFileRules;
+        // The positioning itself has no image on that file's medium (LineDelimiterOnlyFrames; kb/Work PB5984): Present writes
+        // the record and its delimiter, and Position moves LINAGE-COUNTER and writes nothing.
+        bool lineDelimiterOnlyFrames = LineDelimiterOnlyFrames;
         string record = recordStream || lineDelimiterOnlyFrames || IsVarying ? FitRecord(image, len, national) : image;
         string text = recordStream || lineDelimiterOnlyFrames ? record : TrimRecordEnd(record, national);
         RecordExtents? frameExtents = framed ? Framed(record, image, extents).Extents : null;   // as WriteRecord's frame
@@ -1751,7 +1770,7 @@ public sealed partial class SequentialConnector : FileConnector
         ReleaseRecord();
         // The LINAGE counter advanced with the device, inside Position() above — one decision, not two — so an
         // AT END-OF-PAGE branch reads the POST-advance counter of the triggering write whichever side of the
-        // presentation the advance fell on (§2023:13.18.34 GR7c; SQ201M's footing lines print line 45).
+        // presentation the advance fell on (§2023:13.18.34.4 GR7c; SQ201M's footing lines print line 45).
         return WriteSucceeded();   // §2023:14.9.51.4 GR27 — "the WRITE statement is successful", with GR27 a)'s name
     }
 
@@ -1797,6 +1816,14 @@ public sealed partial class SequentialConnector : FileConnector
     /// PAGE is GR25 g) and goes through <see cref="BeginNextLogicalPage"/>.</summary>
     private void Advance(int lines)
     {
+        // ⛔ THE TRAVEL HAS NO IMAGE ON A LINE-FRAMED FILE BEFORE 2023 (LineDelimiterOnlyFrames; kb/Work PB5984): its delimiter
+        // is the record boundary and nothing else, so a line end, a form feed or an overprint return written for the
+        // positioning would be read back as a record of its own or inside one (§1985:VII.2.6.3 GR2). ADVANCING positions
+        // "on a representation of a printed page" (§1985:VII.4.7.4 GR16), a phrase "dependent upon a device capable of
+        // vertical positioning" (§1985:C.3, its item 19), which this file is not; LINAGE-COUNTER and the end-of-page conditions,
+        // the logical page's (PositionOnLogicalPage), still follow the travel. AdvanceLines asks the same for every margin
+        // and page fill; WriteTravel's overprint return needs no test, since Present never leaves such a file's line open.
+        if (LineDelimiterOnlyFrames) return;
         if (lines < 0) { _writer!.Write('\f'); _device = DeviceLine.Fresh; return; }   // ADVANCING PAGE — GR25 h), the NO-LINAGE arm
         WriteTravel(lines);
     }
@@ -1832,6 +1859,7 @@ public sealed partial class SequentialConnector : FileConnector
     /// line reaches the medium, so a margin line, a page-fill line and an ADVANCING line are the same byte.</summary>
     private void AdvanceLines(int lines)
     {
+        if (LineDelimiterOnlyFrames) return;   // the travel has no image on this medium (see Advance; kb/Work PB5984)
         for (int i = 0; i < lines; i++) _writer!.Write(_lineEnd);
         if (lines > 0) _device = DeviceLine.Fresh;   // the travel ended the line the device stood on
     }
@@ -1898,7 +1926,7 @@ public sealed partial class SequentialConnector : FileConnector
             if (!SeekToOrdinal(target)) return ReadFailed();   // '30'
         }
 
-        // §2023:14.9.30 GR14 (READ) / §2023:9.1.13.2 item 3: a RECORD-sequential physical record whose length is outside the file's
+        // §2023:14.9.30.4 GR14 (READ) / §2023:9.1.13.2 item 3: a RECORD-sequential physical record whose length is outside the file's
         // min/max record size is a SUCCESSFUL read with status '04' (the record is still delivered). A 2023 line
         // sequential file is excluded — its long line is '06', its short one no conflict — and a line-framed file of an
         // earlier edition is not (LineSequentialFileRules, kb/Work PB5903).
@@ -1907,7 +1935,7 @@ public sealed partial class SequentialConnector : FileConnector
         bool lineBadChar = false;
         if (_lineSequential)
         {
-            // §2023:14.9.30 GR15: an over-length line-sequential record is truncated on the right to the record width, the
+            // §2023:14.9.30.4 GR15: an over-length line-sequential record is truncated on the right to the record width, the
             // READ is SUCCESSFUL with I-O status '06', and the file position indicator references the next unread
             // character IN THE RECORD (NOTE 3) — a subsequent READ continues the remainder up to the line delimiter.
             // _lineRemainder models that FPI: service a pending remainder before reading a new physical line.
@@ -1917,7 +1945,7 @@ public sealed partial class SequentialConnector : FileConnector
             {
                 line = _lineRemainder;
                 _lineRemainder = null;
-                _lastReadLinePartial = true;   // a served remainder is only PART of its physical line (§2023:14.9.35 GR17a)
+                _lastReadLinePartial = true;   // a served remainder is only PART of its physical line (§2023:14.9.35.4 GR17a)
             }
             else if (NextFrame(out _, out _) is { } physical) { onMedium = physical; line = InternalRecord(physical); }   // FORMAT: the record area's form (§2023:13.18.24.4 GR9)
             else return ReadUnsuccessful(FileStatusCode.AtEnd);   // GR24 b)
@@ -2053,10 +2081,11 @@ public sealed partial class SequentialConnector : FileConnector
             int bom = frameStart == 0 && MediumEncoding is MediumEncoding.Utf8
                       && line.StartsWith(LineSequentialEncoding.Bom, StringComparison.Ordinal)
                 ? LineSequentialEncoding.Bom.Length : 0;
-            _lastLineStart = frameStart + bom;                    // byte anchor of the record (§2023:14.9.35 GR17 REWRITE)
+            _lastLineStart = frameStart + bom;                    // byte anchor of the record (§2023:14.9.35.4 GR17 REWRITE)
             _lineByteOffset += line.Length + delimBytes;          // the channel is one char per BYTE (past data + delimiter)
             _lastLineBytes = line.Length - bom;                   // the BYTES the record being replaced occupies
             string record = FromMedium(bom == 0 ? line : line[bom..]);
+            _lastLineCharacters = record.Length;                  // the record being replaced, in character positions (GR10 before 2023)
             // An over-length read transfers only part (GR17a) — measured in the record area's units, as the READ's
             // own truncation is (§2023:14.9.30.4 GR15; a UTF-8 line's characters, not its bytes), and against the SAME
             // bound: "the maximum size specified by the record description entries" (MaxRecordSize), which is wider
@@ -2222,7 +2251,35 @@ public sealed partial class SequentialConnector : FileConnector
         // §2023:13.18.43.4 GR14 a) / §2023:9.1.13.7 item 4 a) — a record outside the RECORD IS VARYING bounds, whatever
         // the organization.
         if (IsVarying && (len < VaryMin || len > VaryMax)) return Status = FileStatusCode.RecordSizeViolation;
-        return _lineSequential ? RewriteLine(image, len, national) : RewriteRecordSequential(image, len, extents, national);
+        // ⛔ BEFORE 2023 A LINE-FRAMED FILE IS A SEQUENTIAL FILE (LineDelimiterOnlyFrames, kb/Work PB5915): §2023:14.9.35.4 GR17
+        // is the line sequential file's rule, and the earlier editions' REWRITE has the sequential size rule alone.
+        return !_lineSequential ? RewriteRecordSequential(image, len, extents, national)
+            : LineDelimiterOnlyFrames ? RewriteFramedRecord(image, len, national)
+            : RewriteLine(image, len, national);
+    }
+
+    /// <summary>The REWRITE of a line-framed file of an edition before 2023 (<see cref="LineDelimiterOnlyFrames"/>), whose
+    /// delimiter only frames a sequential file's record (§1985:VII.2.8.4 GR1), so the sequential REWRITE's size rule binds it
+    /// with no exception for the delimiter method: §1985:VII.4.5.4 GR10, <i>"If the number of character positions specified in
+    /// the record referenced by record-name-1 is not equal to the number of character positions in the record being replaced,
+    /// the execution of the REWRITE statement is unsuccessful, the updating operation does not take place"</i>, with the I-O
+    /// status '44' (§1985:VII.1.3.5, a boundary violation: "the record is not the same size as the record being replaced").
+    /// The record being replaced is the WHOLE line the READ took (<see cref="_lastLineCharacters"/>), so the REWRITE after a
+    /// READ that truncated a longer line ('04', §1985:VII.4.4.4 GR13) is '44' by this rule and not by 2023's GR17 a). A
+    /// record of the same character positions whose characters take another number of bytes on the medium
+    /// (<c>docs/conformance/7/DOC-A.1-115.md</c>) cannot replace the line in place either, and is '44' too: on the medium it
+    /// is not the same size. The line character set's refusal stays where the WRITE has it (<see cref="WriteRecord"/>'s
+    /// '71', an implementor-defined unsuccessful status before 2023, <c>docs/conformance/7/DOC-A.1-150.md</c>).</summary>
+    private string RewriteFramedRecord(string image, int len, bool national)
+    {
+        if (_lastLineStart < 0 || _reader is not { BaseStream: { CanSeek: true, CanWrite: true } stream })
+            return NotRewritableInPlace();
+        if (len != _lastLineCharacters) return Status = FileStatusCode.RecordSizeViolation;   // '44' §1985:VII.4.5.4 GR10
+        string record = FitRecord(image, len, national);
+        if (MediumLength(record, national) != _lastLineBytes) return Status = FileStatusCode.RecordSizeViolation;   // '44': not the same size on the medium
+        if (RecordAreaOutsideLineCharacterSet(image, national)) return Status = FileStatusCode.LineRecordInvalidChar;
+        if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
+        return OverwriteInPlace(stream, _lastLineStart, record, national);   // '00': the record replaced, its size and its delimiter unchanged
     }
 
     /// <summary>§2023:14.9.35.4 GR16 — <i>"For a record sequential file, if the number of bytes in the data item
@@ -2295,7 +2352,7 @@ public sealed partial class SequentialConnector : FileConnector
     /// differ in the rules that VALIDATE the replacement (§2023:14.9.35.4 GR16/GR20 versus GR17 a)–d)) and not at
     /// all in what they then do to the physical file, so the release itself is written once (kb/Work PB753;
     /// it used to be two copies and only one of them could have been given the announcement below).
-    /// <para>The write goes through the I-O reader's own base stream (§2023:14.9.35 GR3 — a REWRITE replaces the
+    /// <para>The write goes through the I-O reader's own base stream (§2023:14.9.35.4 GR3 — a REWRITE replaces the
     /// record the last READ retrieved, through the one connector) and is FLUSHED, because §2023:14.9.35.4 GR4 says
     /// <i>"The successful execution of the REWRITE statement releases a logical record to the operating
     /// environment"</i>: the '00' this returns is a promise that the record is IN the physical file, not that
@@ -2393,7 +2450,7 @@ public sealed partial class SequentialConnector : FileConnector
 
     /// <summary>Reposition the reader at <paramref name="byteOffset"/>, which shall be the START of a record,
     /// and reset every piece of derived read state so the next <see cref="Read"/> behaves as if the file had
-    /// been read up to that point: the logical offsets (both framings), the §2023:14.9.30 GR15 unread remainder, the
+    /// been read up to that point: the logical offsets (both framings), the §2023:14.9.30.4 GR15 unread remainder, the
     /// REWRITE byte anchors (a START is not a READ, so §2023:14.9.35's "record being replaced" no longer exists),
     /// the §2023:9.1.16 record ordinal, which becomes <paramref name="ordinalBefore"/> so the next record read is
     /// numbered correctly, and the physical file's release generation the emptied buffer now agrees with
@@ -2411,6 +2468,7 @@ public sealed partial class SequentialConnector : FileConnector
         _lastReadTableCount = -1;
         _lastLineStart = -1;
         _lastLineBytes = 0;
+        _lastLineCharacters = 0;
         _lastReadLinePartial = false;
         _readOrdinal = ordinalBefore;
     }

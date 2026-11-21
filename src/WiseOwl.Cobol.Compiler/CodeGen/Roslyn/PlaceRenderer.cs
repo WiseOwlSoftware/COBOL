@@ -136,7 +136,7 @@ internal static class PlaceRenderer
         // VarGroupCurrentImage through OdoGroupPlace — §2023:13.18.38.4 GR8.)
         RedefViewPlace { Coding: VarGroupWindow g } v => CellVarContiguous(v, g, g.Odo.Max.ToString()),
         RedefViewPlace v => ByteWindowRead(v),
-        // The OCCURS DYNAMIC CAPACITY register (§2023:13.18.38 GR15): a read-only view over the table's current capacity.
+        // The OCCURS DYNAMIC CAPACITY register (§2023:13.18.38.4 GR15): a read-only view over the table's current capacity.
         CapacityRegisterPlace c => $"{RenderPath(c.Table, AccessDir.Sending)}.Capacity",
         // A REPORT SECTION sum counter (§2023:13.18.54.4 GR1/GR4/GR12): RWCS engine state, read at the counter's own
         // scale and landed in the counter's own CLR carrier (kb/Work PB1666). The identity is the ENTRY's
@@ -194,7 +194,7 @@ internal static class PlaceRenderer
     public static string Write(Place p, string rhs) => p switch
     {
         // Splice the new slice back into the inner field, preserving its width. A BOOLEAN receiver pads with
-        // boolean-zero (§2023:14.6.8.6; §2023:8.4.3.3 GR5a); every other category keeps the space fill.
+        // boolean-zero (§2023:14.6.8.6; §2023:8.4.3.3.4 GR5a); every other category keeps the space fill.
         // ⛔ THE PAD READS OperandPic, NOT RAW Pic (kb/Work PB173 — one of the TWO arms of this defect; the other
         // is MoveEmitter.SliceStore's figurative fill, nine files away, which made the identical raw-`Pic` read).
         // `Pic` is NULL for any GROUP, so a BIT-GROUP slice padded with SPACE where §2023:14.6.8.6 requires the value
@@ -255,7 +255,7 @@ internal static class PlaceRenderer
         DynTablePlace d => $"{RenderPath(d.Path, AccessDir.Receiving)} = {rhs};",
         RedefViewPlace v => Received(v, WriteView(v, rhs)),
         // Unreachable: SET Format 14 routes to BoundSetCapacity, and any other store into the CAPACITY register is
-        // rejected COBOL1523 at bind time (§2023:13.18.38 SR30–32). The backstop for a receiver path that forgot the gate.
+        // rejected COBOL1523 at bind time (§2023:13.18.38.3 SR30–32). The backstop for a receiver path that forgot the gate.
         CapacityRegisterPlace => throw new System.InvalidOperationException(
             "the CAPACITY register is set only by SET Format 14 (ISO §2023:13.18.38.3 SR30-32); a direct store must be "
             + "rejected COBOL1523 at bind time and never reach PlaceRenderer.Write"),
@@ -575,7 +575,7 @@ internal static class PlaceRenderer
     };
 
     /// <summary>The FULL-image store into a group place — a STORAGE-BOUNDARY write (a file record area receiving a
-    /// READ, a FILE STATUS group, the CALL formal's copy-in / copy-out), never the §2023:13.18.38 GR8 sending/receiving
+    /// READ, a FILE STATUS group, the CALL formal's copy-in / copy-out), never the §2023:13.18.38.4 GR8 sending/receiving
     /// slice: an occurs-depending wrapper is unwrapped and its inner takes the whole image (kb/Work PB80 — an FD
     /// record holding an ODO table is now an <see cref="OdoGroupPlace"/> over a class-tier window, and a
     /// <c>Read(record).FromImage(…)</c> spelled at the call site was CS1061 on the string).</summary>
@@ -754,7 +754,7 @@ internal static class PlaceRenderer
     /// ⛔ THE ONE STORE OF A CHARACTER IMAGE INTO A GROUP RECEIVER (ISO §2023:14.9.25.4 GR4 — a group receiver is
     /// "filled without consideration for the individual elementary or group items", no conversion): the generated
     /// <c>FromImage</c> distributes the image into the leaves; an occurs-depending group with data-name-1 OUTSIDE
-    /// takes only its CURRENT-count part (§2023:13.18.38 GR8a — the GR8a splice, positions past the count unmodified;
+    /// takes only its CURRENT-count part (§2023:13.18.38.4 GR8a — the GR8a splice, positions past the count unmodified;
     /// data-name-1 INSIDE uses the maximum length, GR8b — the plain FromImage); a Tier-B REDEFINES view's image IS
     /// its character window; a group nested under an OCCURS DYNAMIC level distributes through the RECEIVING accessor
     /// (RefReceiving grows-and-seeds past the current capacity, §2023:8.5.1.9.3 — never RefSending, which drops an
@@ -1159,7 +1159,7 @@ internal static class PlaceRenderer
         : group.Item.GroupUsage is GroupUsage.Bit ? BitsAs(group, AccessDir.Receiving)
         : NatAs(group, AccessDir.Receiving);
 
-    /// <summary>The SENDING character image of an occurs-depending GROUP operand (ISO §2023:13.18.38 GR8 — only the
+    /// <summary>The SENDING character image of an occurs-depending GROUP operand (ISO §2023:13.18.38.4 GR8 — only the
     /// current-count part: the maximum image truncated to the current extent, a prefix by SR22).</summary>
     public static string SendingImage(OdoGroupPlace p, string context = "whole-group image of", bool transfer = false) =>
         $"{GroupImage(p.Inner, context, transfer)}.Substring(0, {CharLengthExpr(p)})";
@@ -1326,7 +1326,7 @@ internal static class PlaceRenderer
 
     /// <summary>A receiving store over an occurs-depending GROUP operand's CURRENT extent (GR8a — depending-outside):
     /// splice the stored prefix over the live image, leaving positions past the count unmodified. A zero current
-    /// extent (OCCURS 0 TO n DEPENDING at count 0, §2023:13.18.38 GR8a) is a no-op store, NOT a reference-modification
+    /// extent (OCCURS 0 TO n DEPENDING at count 0, §2023:13.18.38.4 GR8a) is a no-op store, NOT a reference-modification
     /// violation — this is an image WINDOW the compiler chose (<see cref="RuntimeApi.StrWindowInto"/>), not a user
     /// ref-mod, so it never raises EC-BOUND-REF-MOD (review V48; kb/Work PB1707).</summary>
     public static string ReceiveInto(OdoGroupPlace p, string imageExpr) =>

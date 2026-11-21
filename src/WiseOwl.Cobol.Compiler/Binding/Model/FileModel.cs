@@ -710,8 +710,8 @@ public sealed class FileModel
     public bool SubjectToApplyCommit { get; set; }
 
     /// <summary>The LINAGE clause's logical-page model (ISO §2023:13.18.34), or null when the FD has no LINAGE clause.
-    /// Its presence generates the file's LINAGE-COUNTER register (§2023:8.4.3.14 / §2023:13.18.34 GR7a) and enables the
-    /// WRITE END-OF-PAGE phrases (§2023:14.9.51 SR19). Data-name operands resolve post-build in
+    /// Its presence generates the file's LINAGE-COUNTER register (§2023:8.4.3.14 / §2023:13.18.34.4 GR7a) and enables the
+    /// WRITE END-OF-PAGE phrases (§2023:14.9.51.3 SR19). Data-name operands resolve post-build in
     /// <c>FileControlBinder.ResolveFiles</c> (the <see cref="VaryingDependingItem"/> pattern).</summary>
     public LinageInfo? Linage { get; set; }
 
@@ -1290,7 +1290,7 @@ public readonly record struct RecordClauseFacts(
 /// report at the name they are about (kb/Work PB2034).</summary>
 public sealed record ReportClauseName(string Name, WiseOwl.Cobol.Editions.DiagnosticCursor At);
 
-/// <summary>One LINAGE clause operand (ISO §2023:13.18.34 GR6): a fixed literal value (GR6a) or a data-name whose
+/// <summary>One LINAGE clause operand (ISO §2023:13.18.34.4 GR6): a fixed literal value (GR6a) or a data-name whose
 /// content is read at the GR6b evaluation points (OPEN OUTPUT / WRITE ADVANCING PAGE / page overflow), resolved
 /// post-build to <see cref="Item"/> (SR1/SR2 — an elementary unsigned integer not under OCCURS, so a plain
 /// name lookup suffices).</summary>

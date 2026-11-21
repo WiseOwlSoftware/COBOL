@@ -14,7 +14,7 @@ public static class FileStatusCode
     /// <summary>00 — successful completion.</summary>
     public const string Success = "00";
     /// <summary>04 — a READ was successful but the physical record is shorter or longer than the min/max record
-    /// length for the file's fixed attributes (ISO §2023:9.1.13.2 item 3 / §2023:14.9.30 GR14 — record-sequential only; the
+    /// length for the file's fixed attributes (ISO §2023:9.1.13.2 item 3 / §2023:14.9.30.4 GR14 — record-sequential only; the
     /// record is still delivered). Clarified in COBOL-2023 (Annex E.2 item 15), version-invariant behavior.</summary>
     public const string RecordLengthShortLong = "04";
     /// <summary>06 — a LINE-SEQUENTIAL READ found a record longer than the maximum record size; it is truncated on the
@@ -103,8 +103,8 @@ public static class FileStatusCode
     /// <summary>49 — DELETE/REWRITE on a file not open for I-O.</summary>
     public const string DeleteRewriteNotOpenForIO = "49";
     /// <summary>44 — record-size boundary violation (§2023:9.1.13.7 item 4, a logic error): a WRITE/REWRITE outside the RECORD IS
-    /// VARYING bounds (§2023:13.18.43 GR14 / §2023:14.9.35 GR20), or a record-sequential REWRITE whose size differs from
-    /// the record being replaced (§2023:14.9.35 GR16).</summary>
+    /// VARYING bounds (§2023:13.18.43.4 GR14 / §2023:14.9.35.4 GR20), or a record-sequential REWRITE whose size differs from
+    /// the record being replaced (§2023:14.9.35.4 GR16).</summary>
     public const string RecordSizeViolation = "44";
 
     /// <summary>45 — record identification failure (§2023:9.1.13.7 item 5, a logic error): no record description entry was selected

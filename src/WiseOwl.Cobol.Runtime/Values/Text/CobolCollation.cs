@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
 /// THE ONE collating-sequence carrier (DESIGN-locale-facility §4.4.1; kb/Work PB101): every consumer of a COBOL
-/// collating sequence — relation and condition-name comparisons (ISO §2023:8.8.4.2.7/.9), SORT/MERGE keys (§2023:14.9.40 GR5),
+/// collating sequence — relation and condition-name comparisons (ISO §2023:8.8.4.2.7/.9), SORT/MERGE keys (§2023:14.9.40.4 GR5),
 /// indexed-file keys (§2023:12.4.5.7), MAX/MIN (§2023:15.61/§2023:15.63), ORD/CHAR (§2023:15.70/§2023:15.15) and the HIGH-VALUE/LOW-VALUE
 /// extremes (§2023:8.3.3.6.4 GR6/GR7) — takes one of these, and the compiler emits one per declared sequence
 /// (<c>__COLLATE</c> for the alphanumeric program collating sequence, <c>__COLLATE_NAT</c> for the national one, an

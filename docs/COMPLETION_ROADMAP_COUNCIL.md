@@ -142,7 +142,7 @@ The council **confirms** the SSOT §16 / kickoff-banner backbone (now the plan �
 | CI wiring of the continuity sweep | 1 |
 | Validation/ deep-dive + DOC_INDEX row; measurable G7/G8 exit criteria; validator perf budget | 1 |
 | OO re-scout + deep-dive corrections folded in | 1 (parallel) |
-| W2: MOVE rows, MOVE ALL-digit bug (§2023:14.9.25 SR5 — integer receiver only), VCR flips, adversarial review | 2 |
+| W2: MOVE rows, MOVE ALL-digit bug (§2023:14.9.25.3 SR5 — integer receiver only), VCR flips, adversarial review | 2 |
 | Silent-misbind loud-guard sweep + national/boolean skeleton gates | 2 |
 | Negative-corpus seeds (per Wave-1 gate + reserved-word interval witnesses) | 2 (grows every phase) |
 | W1.5: ~24 intro-gate diagnostic upgrades | 2 |

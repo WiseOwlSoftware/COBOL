@@ -42,7 +42,7 @@ the 1985 page regions (`GroupLimits`) never meet OR PAGE or LAST CONTROL HEADING
 ```
 ReportSectionBinder.cs            ReportWriterBinder.cs                ReportWriterEmitter.cs
 RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine field __RPT_n + per-line
-  geometry (§2023:13.18.39 GR3        BoundInitiate/Generate/Terminate;    compose methods; construction in
+  geometry (§2023:13.18.39.4 GR3        BoundInitiate/Generate/Terminate;    compose methods; construction in
   defaults), CONTROL list,       LINE-/PAGE-COUNTER →                 __Activate beside the file
   groups → lines → fields        BoundReportCounterRef                registration; verbs → engine calls
                 ↘                                ↘                                  ↘
@@ -98,9 +98,15 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
   ⛔ **A LINE NUMBER IS A PAGE LINE NUMBER, AND LINE 1 IS WHERE THE STREAM ALREADY RESTS** (kb/Work PB484):
   §2023:13.18.35.4 GR6 prints the line "on the page at that vertical location" and GR7 makes every unoccupied
   line above it blank, so the travel to line `target` is `target − 1` while the page is still empty
-  (`_physLine == 0`, at INITIATE and after the §2023:14.9.16.4 GR6b form feed) and `target − _physLine` once a
-  line has been printed on it. Reading `_physLine == 0` as a line to advance OFF put every line of every
+  (`_physLine` null, at INITIATE and after the §2023:14.9.16.4 GR6b form feed) and `target − _physLine` once a
+  line has been printed on it. Reading the empty page as a line to advance OFF put every line of every
   report one line too low; the GR3 overlap clamp applies only once a line exists to overlap.
+  ⛔ **LINE 0 IS A LINE, SO THE EMPTY PAGE IS NOT 0** (kb/Work PB5853): in a report not divided into pages a first
+  LINE PLUS 0 computes line 0 (LINE-COUNTER 0 after INITIATE, §1985:XIII.3.10.8 GR4d, §2023:13.18.35.4 GR5c),
+  and LINE-COUNTER takes that 0. The engine does not clamp it to 1. The empty page is `_physLine == null`. Line 0
+  and line 1 both rest on the page's first physical line, and every later line travels by its difference from
+  the line before it, so only LINE-COUNTER changed and the file did not. (In a paged report a computed line 0 is
+  above HEADING and the binder refuses it, COBOL2199.)
 
 ## 2. The engine (`CobolReport`) — spec-keyed behavior table
 

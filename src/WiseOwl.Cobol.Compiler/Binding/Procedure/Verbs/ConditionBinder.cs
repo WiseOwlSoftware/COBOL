@@ -294,7 +294,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The static width of a boolean-result function reference — BOOLEAN-OF-INTEGER's argument-2 (§2023:15.13.4
     /// r1 "a boolean item of length argument-2") when it is a numeric literal; null when the length is a runtime
-    /// value (the §2023:8.8.4.3 SR1 length-1 test and the §2023:14.9.13.3 SR6 test then fail OPEN — no false rejection).</summary>
+    /// value (the §2023:8.8.4.3.3 SR1 length-1 test and the §2023:14.9.13.3 SR6 test then fail OPEN — no false rejection).</summary>
     private static int? StaticBoolCallWidth(BoundBoolCall c) =>
         c.Call.Sig.Name == "BOOLEAN-OF-INTEGER" && c.Call.Args.Count == 2
         && c.Call.Args[1] is BoundNumericLiteral { Text: { } t }
@@ -328,7 +328,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         return new BoundBooleanCondition(expr);
     }
 
-    /// <summary>SR1 check: every ITEM and LITERAL in the boolean expression has length 1 (§2023:8.8.4.3 SR1). ALL
+    /// <summary>SR1 check: every ITEM and LITERAL in the boolean expression has length 1 (§2023:8.8.4.3.3 SR1). ALL
     /// figuratives are positionless (they materialize to length 1 against a length-1 sibling) — they pass.</summary>
     private static bool BoolExprAllLengthOne(BoundBoolExpr e) => e switch
     {
@@ -593,7 +593,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// serves the CLASS shape, which tests CHARACTER CONTENT (§2023:8.8.4.4): a data item is read in place, because
     /// its numeric intermediate would normalize the very content <c>IS NUMERIC</c> exists to find invalid; a
     /// computed subject is read from its one materialization. <paramref name="Node"/> remains only for the
-    /// syntactic facts a bound operand no longer carries (§2023:8.8.4.7.3 Format 2's "bare standard floating-point
+    /// syntactic facts a bound operand no longer carries (§2023:8.8.4.7 Format 2's "bare standard floating-point
     /// data-name") and for the SR1 diagnostic path of a sign test on a non-numeric subject.</para></summary>
     public readonly record struct PartialSubjectOperand(Core.ValueOperandContext? Node, BoundOperand Value, BoundOperand Content);
 
@@ -1505,7 +1505,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// (kb/Work PB400). A caller that must first CLASSIFY the operand and only then BIND it — EVALUATE's
     /// Table-15 screen, whose §2023:14.9.13.3 SR6 decides a boolean operand's kind from the OTHER side of the pair —
     /// would otherwise resolve the same symbol twice, doubling <see cref="ConditionOf"/>'s §2023:8.4.2.2 ambiguity
-    /// diagnostic and binding the boolean operand as a simple boolean condition (with its §2023:8.8.4.3 SR1
+    /// diagnostic and binding the boolean operand as a simple boolean condition (with its §2023:8.8.4.3.3 SR1
     /// length-1 screen) before knowing whether it IS one.
     /// <para>⛔ AND IT IS A SYMBOL-TABLE QUESTION, WHICH IS WHY IT CANNOT LIVE IN THE GRAMMAR. A bare word is
     /// equally a condition-name and an <c>arithmeticExpression</c>, so it always arrives through the
@@ -1932,7 +1932,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     public Condition88? ConditionOf(Core.DataReferenceContext dref)
     {
         if (WrittenQualifiedName.Of(dref) is not { } written) return null;   // a register names no condition-name
-        // §2023:11.7 GR5 — a method-local 88 shadows object data; the overlay-first precedence lives in the ONE
+        // §2023:11.7.4 GR5 — a method-local 88 shadows object data; the overlay-first precedence lives in the ONE
         // scope-aware SymbolTable (P7 Step 10a, the DEVLOG-773 pickup), no longer duplicated inline here.
         // §2023:8.4.2.2 Format 2 (kb/Work R33's sweep — the condition-name sibling of the data-name fix): the
         // reference must identify EXACTLY ONE level-88. The candidate set is SymbolTable.IdentifyConditionName,

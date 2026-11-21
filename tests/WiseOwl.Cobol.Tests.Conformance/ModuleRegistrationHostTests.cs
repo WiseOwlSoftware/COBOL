@@ -337,7 +337,7 @@ public sealed class ModuleRegistrationHostTests
 
     /// <summary>kb/Work PB2920, the EXTERNAL-describer arm: the two modules' classes describe the external item
     /// <c>P2920X</c> as 4 and as 8 bytes. They are two classes (two externalized names), so each is a describer and the
-    /// second activation is §2023:13.18.22 GR6's nonconformance (cite.py OK for §2023:14.8.4.3): EC-EXTERNAL-FORMAT-CONFLICT, the
+    /// second activation is §2023:13.18.22.4 GR6's nonconformance (cite.py OK for §2023:14.8.4.3): EC-EXTERNAL-FORMAT-CONFLICT, the
     /// sibling's method never runs, and the declarative's RESUME continues. With the declared C# name as the describer's
     /// identity the two classes were ONE describer, the comparison skipped it, and the sibling's method ran.</summary>
     [Fact]

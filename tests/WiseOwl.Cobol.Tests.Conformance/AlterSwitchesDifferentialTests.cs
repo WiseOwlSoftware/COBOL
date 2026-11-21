@@ -38,7 +38,7 @@ public sealed class AlterSwitchesDifferentialTests
         {{procedure}}
         """;
 
-    [Fact]   // §2023:12.3.7 GR2 (status interrogated per §2023:8.8.4.6 GR1; no external setting ⇒ OFF) + §2023:14.9.39 F3 GR5.
+    [Fact]   // §2023:12.3.7.4 GR2 (status interrogated per §2023:8.8.4.6.3 GR1; no external setting ⇒ OFF) + §2023:14.9.39 F3 GR5.
     public void Switch_DefaultOff_ThenSetToOn_FlipsBothStatusConditions()
         => AssertMatchesGolden(SwitchProgram("SWTST1", """
                 IF A-IS-OFF DISPLAY "A-OFF-DEFAULT".
@@ -90,7 +90,7 @@ public sealed class AlterSwitchesDifferentialTests
                 STOP RUN.
             """));
 
-    [Fact]   // The implementor external facility (ISO implementor-defined item 191 / §2023:12.3.7 GR4): the initial
+    [Fact]   // The implementor external facility (ISO implementor-defined item 191 / §2023:12.3.7.4 GR4): the initial
              // status comes from COBOL_<SWITCH-NAME> (dashes→underscores), value ON ⇒ on — both engines share
              // the contract (the NIST guard exports COBOL_SWITCH_1=ON on the same basis).
     public void Switch_EnvironmentVariableSuppliesInitialState()

@@ -47,7 +47,7 @@ internal static class TextViews
             new TextWindow(b, a, width));
     }
 
-    /// <summary>The ANY LENGTH view (§2023:13.18.2 GR1): the full string, every store re-fitted to its length. A window and
+    /// <summary>The ANY LENGTH view (§2023:13.18.2.4 GR1): the full string, every store re-fitted to its length. A window and
     /// an ANY LENGTH view already show a fixed-length string and re-fit stores to it, so the view over either is
     /// that carrier itself.</summary>
     public static ManagedPointer<string> AnyLength(ManagedPointer<string> argument) =>

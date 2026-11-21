@@ -625,7 +625,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
         Assert.Equal(3, new HashSet<string>(
             [FixedFileAttributes.Sequential, FixedFileAttributes.Relative, FixedFileAttributes.Indexed]).Count);
 
-        // The RECORD clause half, also assembled once on the base for every organization (§2023:13.18.43 GR9/GR10):
+        // The RECORD clause half, also assembled once on the base for every organization (§2023:13.18.43.4 GR9/GR10):
         // a fixed connector reports its width for both bounds, a varying one its declared bounds.
         var fixedRec = new RelativeConnector("f.dat", 20, KeyedAccess.Sequential, 0).DeclaredAttributes;
         Assert.False(fixedRec.Varying);

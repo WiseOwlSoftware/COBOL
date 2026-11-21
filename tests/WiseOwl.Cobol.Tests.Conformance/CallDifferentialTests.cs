@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// §2023:14.2 parameter passing, §2023:14.6.2.3 program state, §2023:8.4.6.3 program-name scope): spec-derived facts pinned to
 /// the former legacy engine (NIST-IC-green) at COBOL-85, multi-unit sources in the IC-suite shape (concatenated
 /// top-level program units; nested units carry END PROGRAM). The EXIT-PROGRAM-in-main fact is SPEC-PINNED
-/// instead — the legacy deviates from §2023:14.9.14 GR2 there (deep-dive brief, legacy deviation #5; the spec wins).
+/// instead — the legacy deviates from §2023:14.9.14.4 GR2 there (deep-dive brief, legacy deviation #5; the spec wins).
 /// </summary>
 public sealed class CallDifferentialTests
 {
@@ -151,7 +151,7 @@ public sealed class CallDifferentialTests
                 EXIT PROGRAM.
             """);
 
-    /// <summary>§2023:14.9.5 GR3: after CANCEL, the next CALL finds the program in its INITIAL state (VALUE clauses
+    /// <summary>§2023:14.9.5.4 GR3: after CANCEL, the next CALL finds the program in its INITIAL state (VALUE clauses
     /// re-applied); before that, last-used persists.</summary>
     [Fact]
     public void Cancel_NextCallFindsInitialState()
@@ -294,7 +294,7 @@ public sealed class CallDifferentialTests
             END PROGRAM CDNST1.
             """);
 
-    /// <summary>§2023:14.9.14 GR2 — SPEC-PINNED: "If the EXIT PROGRAM statement is executed in a program that is not
+    /// <summary>§2023:14.9.14.4 GR2 — SPEC-PINNED: "If the EXIT PROGRAM statement is executed in a program that is not
     /// under the control of a calling runtime element, the EXIT PROGRAM statement is treated as if it were a
     /// CONTINUE statement." The former legacy engine deviates (it terminates the main program — brief, legacy
     /// deviation #5), so this fact asserts the ISO-derived output directly.</summary>

@@ -647,7 +647,7 @@ public sealed class OoSpineTests
     // ── Slice 2 (deep-dive D3/D6 — method LINKAGE/LOCAL-STORAGE/WS + INVOKE USING/RETURNING) ───────────────
 
     /// <summary>Trap #6 — sibling-method LINKAGE cross-wiring: two methods each declare <c>LK-V</c> with
-    /// DIFFERENT descriptions; each resolves its OWN (per-method data scopes, §2023:11.7 GR5) — the legacy
+    /// DIFFERENT descriptions; each resolves its OWN (per-method data scopes, §2023:11.7.4 GR5) — the legacy
     /// static-<c>_linkage_</c> field bug is structurally impossible.</summary>
     [Fact]
     public void Trap6_SiblingMethodLinkage_NoCrossWiring()
@@ -986,7 +986,7 @@ public sealed class OoSpineTests
     // ── Slice 3a/3b (INHERITS + SELF/SUPER — deep-dive D5/D7, §2023:8.4.3.8, §2023:9.3.6/§2023:9.3.8.2) ───────────────────
 
     /// <summary>A three-level SUPER chain (trap #10's chain case): C : B : A, each override calls SUPER then
-    /// speaks — the non-virtual restricted search (§2023:8.4.3.8 GR3) runs A, B, C in order and cannot recurse;
+    /// speaks — the non-virtual restricted search (§2023:8.4.3.8.4 GR3) runs A, B, C in order and cannot recurse;
     /// the same instance through a ROOT-typed reference still dispatches virtually to C's override (GR2).</summary>
     [Fact]
     public void ThreeLevelSuperChain_RunsBaseFirst_NoRecursion()
@@ -1631,7 +1631,7 @@ public sealed class OoSpineTests
         Assert.Contains("'TAB2' is not a table", shadow, StringComparison.Ordinal);
         Assert.Contains("§2023:14.9.37.3 SR2", shadow, StringComparison.Ordinal);
         // level-66 RENAMES in method LOCAL-STORAGE now compiles and runs — the alias reads the record span
-        // (§2023:13.18.45 GR2), resolved structurally over the method's own record (M2-OO-1h step 1).
+        // (§2023:13.18.45.4 GR2), resolved structurally over the method's own record (M2-OO-1h step 1).
         var (ok66, out66, detail66) = CompileAndRun(DriverAndClass("OOSP35", "OSPC35", """
                 INVOKE OSPC35 "NEW" RETURNING T.
                 INVOKE T "M".
@@ -1910,9 +1910,9 @@ public sealed class OoSpineTests
         EditionHarness.AssertHasDiagnostic(errors02, "COBOL0901");
     }
 
-    // ── The OVERRIDE/FINAL attribute wave (§2023:11.7 SR3/SR4a/GR3, §2023:11.3 GR3 — DEVLOG 605) ─────────────────────
+    // ── The OVERRIDE/FINAL attribute wave (§2023:11.7.3 SR3/SR4a/GR3, §2023:11.3.4 GR3 — DEVLOG 605) ─────────────────────
 
-    /// <summary>§2023:11.7 SR4a — redefining an inherited method WITHOUT the OVERRIDE attribute is 0837 STRICT
+    /// <summary>§2023:11.7.3 SR4a — redefining an inherited method WITHOUT the OVERRIDE attribute is 0837 STRICT
     /// (the pre-wave name-match inference is retired as the default); under <c>--permissive</c> it is a
     /// WARNING and the inference stands (the documented migration leniency), so the pre-wave program still
     /// runs with virtual dispatch.</summary>
@@ -2496,7 +2496,7 @@ public sealed class OoSpineTests
             + string.Join("\n", errors));
     }
 
-    // ── The UNIVERSAL wave (D10, §2023:13.18.60.4 / §2023:14.9.23 GR7c / §2023:14.9.39 F5 / §2023:8.8.4.2 F3 — DEVLOG 608) ──────
+    // ── The UNIVERSAL wave (D10, §2023:13.18.60.4 / §2023:14.9.23.4 GR7c / §2023:14.9.39 F5 / §2023:8.8.4.2 F3 — DEVLOG 608) ──────
 
     /// <summary>One driver + two classes whose same-named method takes DIFFERENT PIC formals — THE
     /// polymorphic hazard: a wrong-shaped crossing through universal must NOT bind (§2023:9.3.6 match rule 3 —
@@ -2722,7 +2722,7 @@ public sealed class OoSpineTests
             END CLASS CUV17.
             """), "COBOL0867");
 
-    // ── The EC-OO wave (§2023:14.9.29 / §2023:14.9.18 SR4 / §2023:14.9.49 F4 / §2023:8.4.3.6 — DEVLOG 609) ─────────────────────
+    // ── The EC-OO wave (§2023:14.9.29 / §2023:14.9.18.3 SR4 / §2023:14.9.49 F4 / §2023:8.4.3.6 — DEVLOG 609) ─────────────────────
 
     private static string EcOoDriver(string pid, string decls, string statements) => $$"""
         IDENTIFICATION DIVISION.
@@ -2921,7 +2921,7 @@ public sealed class OoSpineTests
     }
 
     /// <summary>The 0848 band: RAISE NULL (SR2), RAISE of a non-object item (SR2), and EXCEPTION-OBJECT as
-    /// a receiving operand (§2023:8.4.3.6 SR1).</summary>
+    /// a receiving operand (§2023:8.4.3.6.3 SR1).</summary>
     [Theory]
     [InlineData("    RAISE NULL.", "COBOL0848")]
     [InlineData("    RAISE N4.", "COBOL0848")]

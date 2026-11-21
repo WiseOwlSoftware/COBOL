@@ -171,7 +171,7 @@ public sealed class DataItem
     /// a group item: a group-level SIGN applies to every subordinate signed numeric DISPLAY item, nearest enclosing
     /// clause winning (GR1–3, applied by the binder's post-build inheritance pass). Settable (not init-only) for
     /// ONE additional writer: the <c>ExpandTypes</c> description copy (a TYPE / SAME AS subject assumes the
-    /// template's / data-name-1's description, §2023:13.18.58.4 GR3 / §2023:13.18.49 GR1+GR5).</summary>
+    /// template's / data-name-1's description, §2023:13.18.58.4 GR3 / §2023:13.18.49.4 GR1+GR5).</summary>
     [DescriptionCopy(DescriptionCopyKind.Clause,
         "SIGN (ISO §2023:13.18.52) — in neither GR-1 exclusion list")]
     public SignSpec? OwnSign { get; set; }
@@ -180,7 +180,7 @@ public sealed class DataItem
     /// on a group item: a group-level USAGE applies to every elementary item subordinate to it (GR1; NC107A's
     /// <c>01 U9 USAGE COMPUTATIONAL</c> makes the PICTURE-only U10 binary). Applied by the binder's post-build
     /// <c>InheritUsageClauses</c> pass. Settable for the <c>ExpandTypes</c> description copy (§2023:13.18.58.4 GR3 /
-    /// §2023:13.18.49 GR1+GR3).</summary>
+    /// §2023:13.18.49.4 GR1+GR3).</summary>
     [DescriptionCopy(DescriptionCopyKind.Clause,
         "USAGE (ISO §2023:13.18.60) — in neither GR-1 exclusion list")]
     public Usage? OwnUsage { get; set; }
@@ -239,7 +239,7 @@ public sealed class DataItem
 
     /// <summary>The raw VALUE operand text (e.g. <c>"ABC"</c> or <c>-12.5</c>), or <see langword="null"/> if none.
     /// Settable for the <c>ExpandTypes</c> description copy (a subject's OWN VALUE wins, §2023:13.18.57.4 GR3;
-    /// otherwise the copied description's VALUE applies, §2023:13.18.49 GR1 — VALUE is not in the exclusion list).</summary>
+    /// otherwise the copied description's VALUE applies, §2023:13.18.49.4 GR1 — VALUE is not in the exclusion list).</summary>
     [DescriptionCopy(DescriptionCopyKind.EntryOnly,
         "VALUE format 1 (ISO §2023:13.18.63) — in neither GR-1 exclusion list; §2023:13.18.57.4 GR3 gives the SUBJECT's own VALUE precedence, hence the ??=; a compiler temporary is stored before it is read, so it takes none (kb/Work PB888)")]
     public string? RawValue { get; set; }
@@ -290,7 +290,7 @@ public sealed class DataItem
     /// <summary>The entry this entry's VALUE clause (<see cref="RawValue"/> or <see cref="TableValues"/>) was
     /// TRANSPLANTED from, or null when the entry wrote its own or has none — a TYPE template's VALUE assumed by its
     /// reference site (ISO §2023:13.18.57.4 GR1; GR3 gives the subject's OWN VALUE precedence, hence <c>??=</c>), a
-    /// SAME AS target's assumed by its subject (§2023:13.18.49 GR1), or a cloned template subtree's member VALUE.
+    /// SAME AS target's assumed by its subject (§2023:13.18.49.4 GR1), or a cloned template subtree's member VALUE.
     /// Non-null IS "this entry's VALUE is copied".
     ///
     /// <para>⛔ THE PROVENANCE THE SYNTAX-RULE SCREENS NEED. A rule whose subject is "an entry that specifies a
@@ -385,7 +385,7 @@ public sealed class DataItem
     /// the copy is a fact of the PLACEMENT, and the site reports it.</summary>
     public bool IsCopiedUnder(DataItem site) => !ReferenceEquals(this, site) && ReferenceEquals(ReferenceSite, site);
 
-    /// <summary>True when this TYPEDEF entry also carries the EXTERNAL clause (ISO §2023:13.18.22 SR1 — a level-1
+    /// <summary>True when this TYPEDEF entry also carries the EXTERNAL clause (ISO §2023:13.18.22.3 SR1 — a level-1
     /// type declaration may be external; §2023:13.18.58.3 SR3). The type declaration itself has no storage
     /// (§2023:13.18.58.4 GR2); the effect is on its REFERENCES: any record description containing that type is itself
     /// EXTERNAL (§2023:13.18.22.4 GR3) and must be level-1 (GR2) — <c>ExpandType</c> marks the subject
@@ -399,7 +399,7 @@ public sealed class DataItem
     /// ADMITTED (<c>DataBinder.ScreenClausePlacement</c> — §2023:13.16.3 SR5/SR7, §2023:13.18.22.3 SR1). ⛔ It is the ONE
     /// input of the run-unit re-basing (<c>CallBindExternalAndGlobal</c> reads it, never the parse tree — kb/Work
     /// PB519: the parse-tree scan re-based an EXTERNAL REDEFINES entry's anchor onto the external cell), and it
-    /// also backs the §2023:13.18.22 SR5 strong-external pairing check and the double-registration guard for
+    /// also backs the §2023:13.18.22.3 SR5 strong-external pairing check and the double-registration guard for
     /// <see cref="ExternalFromType"/>. A refused clause leaves it false, so an already-reported entry binds as
     /// ordinary storage.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
@@ -685,14 +685,14 @@ public sealed class DataItem
 
     /// <summary>JUSTIFIED [RIGHT] (ISO §2023:13.18.32): alphanumeric/alphabetic receives right-justify — space-fill on
     /// the LEFT when the sender is shorter, truncate from the LEFT when longer (§2023:14.9.25.4 GR6c). Settable for
-    /// the <c>ExpandTypes</c> description copy (§2023:13.18.58.4 GR3 / §2023:13.18.49 GR1).</summary>
+    /// the <c>ExpandTypes</c> description copy (§2023:13.18.58.4 GR3 / §2023:13.18.49.4 GR1).</summary>
     [DescriptionCopy(DescriptionCopyKind.Clause,
         "JUSTIFIED (ISO §2023:13.18.32) — in neither GR-1 exclusion list")]
     public bool Justified { get; set; }
 
     /// <summary>BLANK [WHEN] ZERO (ISO §2023:13.18.8): storing a ZERO value fills the item with spaces — applied at
     /// every numeric-edited store (MOVE editing and arithmetic resultants alike). Settable for the
-    /// <c>ExpandTypes</c> description copy (§2023:13.18.58.4 GR3 / §2023:13.18.49 GR1).</summary>
+    /// <c>ExpandTypes</c> description copy (§2023:13.18.58.4 GR3 / §2023:13.18.49.4 GR1).</summary>
     [DescriptionCopy(DescriptionCopyKind.Clause,
         "BLANK WHEN ZERO (ISO §2023:13.18.8) — in neither GR-1 exclusion list")]
     public bool BlankWhenZero { get; set; }
@@ -706,7 +706,7 @@ public sealed class DataItem
     /// group's clause "is treated as though it had instead been separately specified for each of the subordinate
     /// elementary items for which this clause is permitted" (§2023:13.18.55.4 GR1; <c>DataBinder.InheritSynchronized</c>,
     /// kb/Work PB539). A group carries only the clause its own entry wrote, which the edition gate reads.</para>
-    /// Settable for the <c>ExpandTypes</c> description copy (§2023:13.18.49 GR1 — SYNCHRONIZED is not in the exclusion
+    /// Settable for the <c>ExpandTypes</c> description copy (§2023:13.18.49.4 GR1 — SYNCHRONIZED is not in the exclusion
     /// list).</summary>
     [DescriptionCopy(DescriptionCopyKind.Alignment,
         "SYNCHRONIZED (ISO §2023:13.18.55) IS 'alignment': §2023:13.18.57.4 GR1 excludes it from a TYPE subject (GR2d re-aligns that subject 'as though it were a level 1 item'); §2023:13.18.49.4 GR1 does not exclude it")]
@@ -1515,18 +1515,18 @@ public sealed class DataItem
     /// against it.</para>
     /// <para>It mirrors <see cref="ImageWidth"/> exactly — the same non-redefining children (§2023:13.18.44: a
     /// redefining child occupies no new storage), the same per-child occurrence multiplier — except that the
-    /// multiplier is the MINIMUM occurrence count: integer-1 of an <c>OCCURS … DEPENDING</c> (§2023:13.18.38 SR16
+    /// multiplier is the MINIMUM occurrence count: integer-1 of an <c>OCCURS … DEPENDING</c> (§2023:13.18.38.3 SR16
     /// allows 0) and zero for a DYNAMIC-capacity table (§2023:8.5.1.9 — its current capacity starts at zero).</para></summary>
     public bool MinimumLengthIsZero =>
         // §2023:8.5.4 items 3 and 4 — an ANY LENGTH or DYNAMIC LENGTH item has no minimum length of its own
-        // (§2023:8.5.1.10; §2023:13.18.2 GR1 makes an ANY LENGTH item the activating argument's length).
+        // (§2023:8.5.1.10; §2023:13.18.2.4 GR1 makes an ANY LENGTH item the activating argument's length).
         IsDynamicLength || IsAnyLength
         || (IsElementary ? ElementaryImageWidth == 0
             : Children.Where(c => c.RedefinesTargetName is null)
                       .All(c => c.MinimumOccurrences == 0 || c.MinimumLengthIsZero));
 
     /// <summary>⛔ THE ONE "fewest occurrences this entry can have at run time" — integer-1 of a Format-2
-    /// <c>OCCURS … DEPENDING ON</c> (ISO §2023:13.18.38 SR16 permits zero), the MINIMUM CAPACITY of a Format-4
+    /// <c>OCCURS … DEPENDING ON</c> (ISO §2023:13.18.38.3 SR16 permits zero), the MINIMUM CAPACITY of a Format-4
     /// DYNAMIC-capacity table (§2023:13.18.38.4 GR16: "Integer-4 is the minimum capacity of the table. If integer-4
     /// is absent, a value of zero is assumed for it" — the binder stores it as <see cref="OccursSpec.Min"/>), and
     /// the fixed count otherwise. Read by <see cref="MinimumLengthIsZero"/> and by the §2023:13.18.43.4 GR8 a)
@@ -1607,7 +1607,7 @@ public sealed class DataItem
     /// <summary>The item's size in BYTES — the FUNCTION BYTE-LENGTH (§2023:15.14) authority (the D7 byte-vs-position
     /// distinction). A group sums each non-redefining child's byte contribution × its own fixed-OCCURS count
     /// (mirroring <see cref="ImageWidth"/>; a REDEFINING child overlays its target and adds no storage,
-    /// §2023:13.18.44). Per-usage byte widths are IMPLEMENTOR-DEFINED (§2023:13.18.60 GR4/6/7/8/11/12; §2023:8.1.2 even makes
+    /// §2023:13.18.44). Per-usage byte widths are IMPLEMENTOR-DEFINED (§2023:13.18.60.4 GR4/6/7/8/11/12; §2023:8.1.2 even makes
     /// bits-per-byte implementor-specified) — these are WiseOwl COBOL's PINNED, DOCUMENTED widths
     /// (INTRINSICS_DESIGN §BYTE-LENGTH): DISPLAY = 1 byte per character position; a boolean item of
     /// usage DISPLAY (implied by §2023:13.18.60.3 SR13(b) when no USAGE clause is written) = 1 byte per boolean

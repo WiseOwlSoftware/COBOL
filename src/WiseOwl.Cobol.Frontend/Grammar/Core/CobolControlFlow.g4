@@ -305,7 +305,7 @@ evaluateWhenOther
 // error). `FUNCTION PI > 1` always worked precisely because it has no argument parenthesis to peel.
 // ⛔ THE FIX IS THE ARITY, NOT THE ALTERNATIVE ORDER. Putting `condition` before `valueOperand` would also retarget
 // `EVALUATE X / WHEN Y` where Y is a level-88 condition-name — a value comparison silently becoming a condition test —
-// and §2023:14.9.13.4 Table 15 makes the object's legality depend on the SUBJECT, which no context-free ordering can
+// and §2023:14.9.13.3 Table 15 makes the object's legality depend on the SUBJECT, which no context-free ordering can
 // express. With one item the peel is simply not a parse of this rule, and the alternative order is left untouched.
 // Pinned by EvaluateSelectionObjectArityDriftTests.
 evaluateWhenPhrase

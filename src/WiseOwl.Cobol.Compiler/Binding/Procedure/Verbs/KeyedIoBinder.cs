@@ -88,7 +88,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                        || ConditionalPhrases.HasFamily(r.conditionalPhrases(), ConditionalPhraseFamily.AtEnd)
                     ? ReadKind.Next
                     : ReadKind.Random,
-            // §2023:14.9.30 SR8 — sequential access: NEXT implied.
+            // §2023:14.9.30.3 SR8 — sequential access: NEXT implied.
             _ => previous ? ReadKind.Previous : ReadKind.Next,
         };
 
@@ -210,7 +210,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         { Lock = lock_, Retry = retry };
     }
 
-    /// <summary>Bind a REWRITE on a RELATIVE/INDEXED file. §2023:14.9.35 SR2: the INVALID KEY phrases shall not be
+    /// <summary>Bind a REWRITE on a RELATIVE/INDEXED file. §2023:14.9.35.3 SR2: the INVALID KEY phrases shall not be
     /// specified for a relative-organization file in SEQUENTIAL access mode (its rewrite has no key condition —
     /// only '43'/'49' logic errors, which route to exception processing).</summary>
     public BoundStatement BindRewrite(Core.RewriteStatementContext rw, FileModel file, Place record,
@@ -253,8 +253,17 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             return BoundRejected.Reported(ctx.Edition);   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
         if (file.IsSequential)
         {
+            // COBOL-85 has no rule that says "not on a sequential file" because its sequential I-O module has no DELETE
+            // statement at all: DELETE is a statement of the relative and indexed I-O modules only. That is the 1985 ground
+            // the message cites at --std 85 (kb/Work PB5933), the convention of the WRITE ADVANCING refusal above.
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.DeleteRecordOnSequentialFile, $"DELETE RECORD shall not be specified for sequential-organization "
-                + $"file '{name}' (ISO §2023:14.9.10.3 SR1)");
+                + $"file '{name}' ("
+                + ctx.Edition.Edition.Cite(
+                    "the sequential I-O module has no DELETE statement: \"the Sequential I-O level 2 provides full capabilities for the "
+                    + "CLOSE, OPEN, READ, REWRITE, USE, and WRITE statements\" (ISO §1985:VII.1.2); \"DELETE file-name-1 RECORD\" is a "
+                    + "statement of the relative and indexed I-O modules (§1985:VIII.4.3.2, §1985:IX.4.3.2)",
+                    "ISO §2023:14.9.10.3 SR1")
+                + ")");
         }
         // §2023:14.9.10.3 SR2 — the INVALID KEY / NOT INVALID KEY phrases shall not be specified for a DELETE RECORD
         // that references a file in SEQUENTIAL ACCESS MODE. Gated through the ONE severity seam (kb/Work PB144):
@@ -272,7 +281,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         }
         ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Delete, del.conditionalPhrases());   // COBOL-85's mandatory INVALID KEY (PB5076)
         return new BoundKeyedDelete(file, invalid)
-        { Retry = fileLock.BindVerbRetry(del.retryPhrase()) };   // §2023:14.7.9 / §2023:14.9.10 GR6
+        { Retry = fileLock.BindVerbRetry(del.retryPhrase()) };   // §2023:14.7.9 / §2023:14.9.10.4 GR6
     }
 
     /// <summary>Bind <c>DELETE FILE file</c> (ISO §2023:14.9.10 Format 2 — COBOL-2023). The construct parses at every
@@ -301,7 +310,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             var (on, notOn) = PhraseBlocks.Bind(df.conditionalPhrases(), ConditionalPhraseFamily.Exception, b => host.BindBlocks([b]));
             steps.Add(new BoundKeyedDeleteFile(file, on, notOn)
             {
-                Retry = fileLock.BindVerbRetry(df.retryPhrase()),   // §2023:14.7.9 / §2023:14.9.10 GR15 — the '62' re-attempt
+                Retry = fileLock.BindVerbRetry(df.retryPhrase()),   // §2023:14.7.9 / §2023:14.9.10.4 GR15 — the '62' re-attempt
                 Override = overridden,                              // §2023:14.9.10.4 GR18 — suppress the attribute match
             });
         }
@@ -366,7 +375,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 + "'IS NOT EQUAL TO' (ISO §2023:14.9.41.3 SR3)");
             op = "==";
         }
-        // WITH LENGTH (§2023:14.9.41 GR13–GR14 partial-key count) is a COBOL-2002 introduction; the edition gate fires
+        // WITH LENGTH (§2023:14.9.41.4 GR13–GR14 partial-key count) is a COBOL-2002 introduction; the edition gate fires
         // on RECOGNITION in the VersionConformancePass parse arm (VisitStartWithLength). SR8 tests
         // the PHRASE against the ORGANIZATION and needs no operand, so it is screened before the operand resolves.
         BoundExpr? length = kp?.startWithLength()?.arithmeticExpression() is { } le ? host.Expr.BindExpr(le) : null;
