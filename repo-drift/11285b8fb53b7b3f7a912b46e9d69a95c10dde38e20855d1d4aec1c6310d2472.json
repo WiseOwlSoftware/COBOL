@@ -1,0 +1,21 @@
+{
+ "assembly": "RepoDrift",
+ "counts": {
+  "carried": 0,
+  "discovered": 177,
+  "ran": 177,
+  "skipped": 0
+ },
+ "facets": {
+  "configuration": "Debug",
+  "platform": "windows",
+  "toolchain": "dotnet-sdk 10.0.404, python 3.15.2, jdk 27.0.1, pwsh 7.7.0, git-windows 2.56.0, gh 2.104.0, jq 1.8.2"
+ },
+ "head": "b65b9333e5e2915cbca72292a913bf324b371031",
+ "key": "11285b8fb53b7b3f7a912b46e9d69a95c10dde38e20855d1d4aec1c6310d2472",
+ "result": "pass",
+ "run": "000001-20261115T015435Z",
+ "target": "repo-drift",
+ "tree": "793fdacc3d1d6954d0168fa526f057441a0341bb",
+ "when": "2026-11-15T02:03:45Z"
+}

@@ -1,0 +1,21 @@
+{
+ "assembly": "Unit",
+ "counts": {
+  "carried": 0,
+  "discovered": 40765,
+  "ran": 40765,
+  "skipped": 0
+ },
+ "facets": {
+  "configuration": "Debug",
+  "platform": "windows",
+  "toolchain": "dotnet-sdk 10.0.404, python 3.15.2, jdk 27.0.1, pwsh 7.7.0, git-windows 2.56.0, gh 2.103.3, jq 1.8.2"
+ },
+ "head": "18246f5b0d4dc6411b26f703043814f7df7da7d9",
+ "key": "1bf5b7813aff2a27096d44f799073fb4e43dd592461bd52de6b6e11390befbb8",
+ "result": "pass",
+ "run": "000005-20261111T200433Z",
+ "target": "unit",
+ "tree": "b1664233b2f29cb67e04c655c2a21493b30ba87e",
+ "when": "2026-11-11T20:12:09Z"
+}
