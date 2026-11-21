@@ -423,7 +423,9 @@
    "sublist": 1,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 121,
    "folio": "III-1",
@@ -1041,7 +1043,9 @@
    "sublist": 1,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 127,
    "folio": "III-7",
@@ -1542,7 +1546,9 @@
    "sublist": 1,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23b-1993"
+   ],
    "status": "normal",
    "page": 130,
    "folio": "III-10",
@@ -1638,7 +1644,9 @@
    "sublist": 1,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 130,
    "folio": "III-10",
@@ -1924,7 +1932,9 @@
    "sublist": 1,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 132,
    "folio": "III-12",
@@ -1948,7 +1958,9 @@
    "sublist": 2,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 132,
    "folio": "III-12",
@@ -1995,7 +2007,9 @@
    "sublist": 1,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23b-1993"
+   ],
    "status": "normal",
    "page": 132,
    "folio": "III-12",
@@ -2687,7 +2701,9 @@
    "sublist": 1,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 135,
    "folio": "III-15",
@@ -4521,7 +4537,9 @@
    "sublist": 4,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23b-1993"
+   ],
    "status": "normal",
    "page": 145,
    "folio": "III-25",
