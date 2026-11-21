@@ -38,8 +38,11 @@ store, applied by `record_verdicts.py` as batch records. A move (`{"rule-id": ne
 only when its `rule-digest` is the text the new id holds now, so a chain of renumbered paragraphs moves each record once;
 a split checks that the parent's old text is its text now plus the carved paragraphs in order, writes no record for a
 carved row, and keeps the parent's record only through an UPHELD recheck of the remaining text (its digest re-stamped,
-its notes marked), withdrawing it otherwise. Both re-point the older editions' change records that name the ids, and a
-change record whose `reason` quotes eight consecutive words of carved text is left STALE for adjudication. A
+its notes marked), withdrawing it otherwise. Both re-point the older editions' change records that name the ids; a split
+re-stamps one only when it was decided against the parent's old text, and one already stale, or whose `reason` quotes
+eight consecutive words of carved text, is left STALE for adjudication (the branch review's R1-1 found the first guard
+missing: an already stale record would have been made fresh unread). The split is a batch record type, as a withdrawal
+is, not the separate command the design first named. A
 regeneration that relabels a decided row writes the move batch itself (`text_units.moves`). Each refusal fires on
 planted data in `scripts/selftests/spec/rule_moves/test_rule_moves.py` (7 cases, 33 expectations).
 

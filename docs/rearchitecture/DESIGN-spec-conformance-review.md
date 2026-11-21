@@ -434,7 +434,8 @@ they close nothing.
 7. **Existing ids and chains do not move; a carved row inherits nothing.** The 18 PB284 rows are reproduced byte for
    byte (their clauses have no dash list, no table and no ".)" ending; a drift test holds it). A numbered row from
    which a margin paragraph is carved keeps its id and loses the carved text: the carve is ONE mechanical operation of
-   `record_verdicts.py` (`split`), which checks that the old text is the new text plus the carved paragraphs in order.
+   `record_verdicts.py`, the `split` record of a batch (`{"rule-id": <parent>, "split": {...}}`, its rules in
+   `scripts/spec/rule_moves.py`), which checks that the old text is the new text plus the carved paragraphs in order.
    - **The carved row is minted OPEN**, with no record. Its record was decided against text that held the paragraph,
      but not FOR it: `GR-14.7.5-L3.5`'s text holds the NOT SIZE ERROR paragraph while its notes and tests are about
      ROUNDED-mode truncation, and `GR-8.8.4.2.1-13`'s carved alphabetic and national-group comparison sentences are
@@ -480,7 +481,7 @@ stratified sample of the tables by kind:
 
 | step | note | what | effect on the denominator |
 |---|---|---|---|
-| 1 | PB5449 | the mechanism: segmentation, ids, the dispositions schema and its refuter records, level data for 2023, the audit's checks, the move batch, `split` and the recheck, `cite.py` designators and the pending answer, the lower bound | none: every unit `pending`; every catalog's `rules` array byte-identical, only its `outside-denominator` block gaining the pending units; 2023 reads "4,214 rules (a lower bound: N units pending)" |
+| 1 | PB5449 | the mechanism: segmentation, ids, the dispositions schema and its refuter records, level data for 2023, the audit's checks, the move batch, the `split` batch record and the recheck, `cite.py` designators and the pending answer, the lower bound | none: every unit `pending`; every catalog's `rules` array byte-identical, only its `outside-denominator` block gaining the pending units; 2023 reads "4,214 rules (a lower bound: N units pending)" |
 | 2 | PB5450 | the 2023 dispositions, each `restates` and `not-a-rule` refuted, by clause; the table sample first | none (a branch) |
 | 3 | PB5451 | the 2023 mint: dispositions + regeneration + carve + parent rechecks + citation re-pointing + PB5319, ONE landing | the 2023 correction, every new row open |
 | 4 | PB5454 | record the fourteen held 1985 records (records-85p's batch, `to` filled) and re-check the round-2 records against their prose carriers | none (1985 records) |
@@ -508,13 +509,17 @@ count; `cite.py` answers `(unnumbered prose, pending)` for prose in no row and r
 5).
 
 **Step 1, its second landing (kb/Work PB5449 items 6 and 3 for 1985).** The MOVE and the SPLIT are `scripts/spec/rule_moves.py`'s
-rules, applied by the one writer as records of a batch (`record_verdicts.py`): a move (`{"rule-id", "move-from"}`)
+rules, applied by the one writer as records of a batch (`record_verdicts.py`). This DEPARTS from the earlier wording of
+point 7 and of the step table, which named a command `record_verdicts.py split`: a split is a batch record type, as a
+withdrawal is, so every store change passes one writer and one all-or-nothing validation, and a regeneration's move
+batch and a split can be applied in one run. A move (`{"rule-id", "move-from"}`)
 carries a record to the id its unchanged text now has and is refused when the digest differs; a split (`{"rule-id",
 "split": {old-text, carved, rows, recheck}}`) checks the old text against the parent's text now plus the carved
 paragraphs in order, refuses a carved row with a record, and keeps the parent's record only through an UPHELD recheck
 of the remaining text (re-stamped, its notes marked `split-recheck:`), withdrawing it otherwise; both re-point the older
 held editions' change records (`next.to` and `next.digests` renamed for a move, a parent's digest re-stamped for a
-split, a record whose `reason` quotes eight consecutive words of carved text left STALE for adjudication). A
+split, but only for a record decided against the parent's old text: one already stale, or whose `reason` quotes eight
+consecutive words of carved text, is left STALE for adjudication). A
 regeneration that relabels a decided row unit writes the move batch itself (`text_units.moves`,
 `TestResults/rule-moves/<year>.json`) and prints the command; until it is applied the view refuses the moved records.
 The margin levels of point 4 are `scripts/spec/measure_margin_levels.py`, one mechanism for every edition: the

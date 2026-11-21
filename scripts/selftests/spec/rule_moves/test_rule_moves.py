@@ -166,6 +166,20 @@ def case_05_the_older_change_records_follow(expect):
            and M.quotes("so: a short rule.", "A short rule."))
 
 
+def case_05b_an_already_stale_older_record_is_never_re_stamped(expect):
+    # Review R1-1 (round 1, kb/Work PB5449): a change record whose digest names an EARLIER text of the parent than the
+    # split's old text was stale before the split; re-stamping it would make it fresh without anyone reading it again.
+    store = _store()
+    ops = [_split()]
+    applied = M.apply(ops, _rows(store), store, FIELDS, BLANK)
+    older = {"1985-GR-IX.1-5": {"rule-id": "1985-GR-IX.1-5", "next": {
+        "kind": "KEPT", "to": ["GR-9.9.4-2"], "reason": "the open mode rule",
+        "digests": {"GR-9.9.4-2": D("The file is opened in a mode.")}}}}
+    fresh, changed, sent = M.older_restamps(older, ops, TEXTS, applied)
+    expect.equal("its digest is left as it was, and it goes to adjudication",
+                 (fresh["1985-GR-IX.1-5"], changed, sent), (older["1985-GR-IX.1-5"], [], ["1985-GR-IX.1-5"]))
+
+
 def case_06_the_move_batch_names_only_recorded_ids(expect):
     batch = M.move_batch([("GR-9.9.4-p6", "GR-9.9.4-p7"), ("GR-9.9.4-p2", "GR-9.9.4-p3")], {"GR-9.9.4-p6"})
     expect.equal("one move record, for the id the store holds", batch, [{"rule-id": "GR-9.9.4-p7", "move-from": "GR-9.9.4-p6"}])

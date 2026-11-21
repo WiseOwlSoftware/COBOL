@@ -23,9 +23,9 @@ operation here, applied by the one writer of a store (`record_verdicts.py`) as a
 
 THE CHAINS FOLLOW THE TEXT (point 7). An older edition's change record names its next edition's rules in `next.to`,
 with the digest of each (`next.digests`, kb/Work PB5256). A move renames the id there and keeps its digest (the text is
-the same); a split re-stamps the parent's digest, unless the record's `reason` QUOTES a carved paragraph
-(`QUOTE_WORDS` consecutive words), which leaves the digest as it was so the record reads STALE and goes to adjudication
-(`older_restamps`).
+the same); a split re-stamps the parent's digest only for a record decided against the parent's old text (its digest
+is `old-text`'s), and not when the record's `reason` QUOTES a carved paragraph (`QUOTE_WORDS` consecutive words): any
+other record keeps its digest, reads STALE and goes to adjudication (`older_restamps`).
 
     Its cases: scripts/selftests/spec/rule_moves/test_rule_moves.py (python scripts/self_tests.py --only <it>).
 """
@@ -216,11 +216,14 @@ def older_restamps(older: dict[str, Record], records: list[Record], texts: dict[
                    applied: Applied) -> tuple[dict[str, Record], list[str], list[str]]:
     """The OLDER edition's store `older` (records naming this edition's rules in `next.to`) after the batch: a moved id
     renamed in `next.to` and `next.digests` (its digest kept: the text is the same); an upheld or opened parent's digest
-    re-stamped to its text now (`texts`), unless the record's `reason` quotes a carved paragraph, which leaves it for
-    adjudication (it reads STALE). Returns the new store, the ids re-pointed or re-stamped, and the ids sent to
+    re-stamped to its text now (`texts`) only when its digest is the split's `old-text`'s; a record already stale (its
+    digest names another text) or whose `reason` quotes a carved paragraph is left for adjudication (it reads STALE). Returns the new store, the ids re-pointed or re-stamped, and the ids sent to
     adjudication."""
     moved = dict(applied.moved)
     carved = {r["rule-id"]: r[SPLIT]["carved"] for r in records if is_split(r)}
+    # A record is re-stamped only when it was decided against the parent's OLD text, as the split itself is held to the
+    # stored digest: a record already STALE (its digest names an earlier text) stays so, and goes to adjudication.
+    before = {r["rule-id"]: rule_digest(r[SPLIT]["old-text"]) for r in records if is_split(r)}
     out, changed, sent = {}, [], []
     for rid, rec in older.items():
         nxt = rec.get("next")
@@ -232,7 +235,7 @@ def older_restamps(older: dict[str, Record], records: list[Record], texts: dict[
         digests = {moved.get(k, k): v for k, v in (nxt.get("digests") or {}).items()}
         touched = to != nxt["to"]
         for t in (t for t in nxt["to"] if t in carved):
-            if any(quotes(nxt.get("reason", ""), c) for c in carved[t]):
+            if digests.get(t) != before[t] or any(quotes(nxt.get("reason", ""), c) for c in carved[t]):
                 sent.append(rid)
             elif digests.get(t) != (now := rule_digest(texts[t])):
                 digests[t] = now
