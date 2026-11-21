@@ -124,8 +124,8 @@ leads, the records and the ledger.
    finisher knows it (`landing_measure.py record --pr <n> --bounces <k> --bounce-causes
    cluster-defect|load-timing|conflict|infrastructure`).
 7. Render the ledger in the same turn: `python scripts/spec/gen_ledger.py --out '{COORD}\ledger.html'` (every figure on it
-   is computed; its trend series, `{COORD}\ledger-trend.json`, gains a point when GAP or the register's series moved, and
-   the checkout stays clean: kb/Work PB2426). You cannot PUBLISH it (a headless
+   is computed, per edition, from `edition_status.py`: kb/Work PB5994; the render writes only the page, so the checkout
+   stays clean). You cannot PUBLISH it (a headless
    session has no Artifact tool): the supervisor announces the owed publish after you end, and the attended session
    publishes `{COORD}\ledger.html` to the owner's artifact. Do not look for a way around that.
 8. Write the handoff (`landed`; the branches still pending, an ENQUEUED one with its PR number; `next_unit` null unless

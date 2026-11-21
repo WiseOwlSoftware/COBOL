@@ -176,7 +176,6 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'local gate seconds are the sum of every verdict.json in the worktree',
         'complete reads the merge time, counts only failed merge-group runs as bounces and takes the CI wall of the successful run',
         'summary sets the after column beside the before column, names unattributed bounces and says UNMEASURED for a figure it never saw',
-        "the headline is the merge queue's rate from two landings and the retired trains' rate before that, each saying what its minutes measure",
         'freeze waits for a landing, refuses to rewrite the frozen copy, and the evidence figures are in the evidence file',
         "complete counts the pull request's own failed runs before the queue on its head branch (pre_queue_reds), and a branch with no pull-request run stays UNMEASURED, never 0",
         'a queue stall is recorded once per read with its cause and what the watch did, never as a bounce (complete re-reads the bounces and keeps the stalls), a malformed stall is refused, and summary counts the stalls',
