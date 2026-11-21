@@ -2119,7 +2119,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // `OBJECT-COMPUTER. GLOBAL.` and `SOURCE-COMPUTER. MERGE.` are refused here, before any error production can take the
         // word, so the parse layer asks the one reading of the slot and says what ClosedFormatPass says of a literal there
         // (COBOL7654), not that the word is a stray clause or paragraph.
-        if (run is null && ClosedFormats.ComputerNameSlotAt(recognizer.Context, at.Token) is { } paragraph)
+        // A user word there is not asked: the paragraph's own computerName would have taken it, so the parse refused it for what
+        // follows it (`OBJECT-COMPUTER. FOO IS 12.`, a clause shape with no clause word), which is the clause list's refusal.
+        if (run is null && at.Token.Type != CobolLexer.IDENTIFIER
+            && ClosedFormats.ComputerNameSlotAt(recognizer.Context, at.Token) is { } paragraph)
             return new(new Diagnostics.DiagnosticDescriptor(WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ComputerNameNotASystemName.Code,Diagnostics.DiagnosticSeverity.Error, "{0}"),
                 ClosedFormats.ComputerNameRefusal(WrittenResidueItem(recognizer, at.Token), paragraph, EditionOf(recognizer),
                     reserved: true) + ".", 0, null, LeavesNoTail: true);
