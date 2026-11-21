@@ -258,6 +258,9 @@ public static class SeparatorRule
         {
             var op = word.Symbol;
             if (op.StartIndex < 0) return;   // a missing token of an error-recovered parse has no characters
+            // A token error recovery consumed (an IErrorNode, which the callers skip) is not the operator: the parse that
+            // refused it already reported the cause, and judging it as an operator cascaded a spurious COBOL7672 onto
+            // the next word, e.g. END-IF after a refused NOT NOT (kb/Work PB5453 lead).
             if (OperatorSpacingMessage(text, op, name, clause, parenthesisBefore: parenBefore, parenthesisAfter: false) is { } message)
                 (found ??= []).Add(new(op, DiagnosticCatalog.SeparatorConditionOperatorSpacing, message));
         }
@@ -272,13 +275,14 @@ public static class SeparatorRule
             {
                 case Core.ComparisonOperatorContext relational:
                     for (int i = 0; i < relational.ChildCount; i++)
-                        if (relational.GetChild(i) is ITerminalNode word) Judge(word, "relational operator", "§1985:VI.6.3.1.1");
+                        if (relational.GetChild(i) is ITerminalNode word and not IErrorNode) Judge(word, "relational operator", "§1985:VI.6.3.1.1");
                     break;
                 case Core.LogicalOrExpressionContext or Core.LogicalAndExpressionContext or Core.SucceedingAndExpressionContext
                         or Core.PartialExpressionContext or Core.PartialAndExpressionContext or Core.UnaryLogicalExpressionContext
                         or Core.NegatedAbbreviatedRelationContext:
                     for (int i = 0; i < node.ChildCount; i++)
-                        if (node.GetChild(i) is ITerminalNode { Symbol.Type: CobolLexer.AND or CobolLexer.OR or CobolLexer.NOT } connective)
+                        if (node.GetChild(i) is ITerminalNode { Symbol.Type: CobolLexer.AND or CobolLexer.OR or CobolLexer.NOT } connective
+                            and not IErrorNode)
                             Judge(connective, "logical operator", "§1985:VI.6.3.2", parenBefore: connective.Symbol.Type == CobolLexer.NOT);
                     break;
             }

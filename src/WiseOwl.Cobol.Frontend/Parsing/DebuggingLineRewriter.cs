@@ -175,8 +175,9 @@ public static class DebuggingLineRewriter
 
     /// <summary>The tokens a debugging line owns: its marker at <see cref="Start"/> and every following token on the
     /// marker's line, to <see cref="End"/> exclusive. A region line (<see cref="Region"/>) owns the marker alone — its
-    /// text was skipped, not lexed.</summary>
-    private readonly record struct Extent(int Start, int End, bool Region);
+    /// text was skipped, not lexed. <see cref="Blank"/>: the line holds nothing but spaces from margin A to margin R, so
+    /// §1985:VI.7.3 makes it "the same as a blank line" — one that may stand anywhere (kb/Work PB5453 lead, COBOL7060).</summary>
+    private readonly record struct Extent(int Start, int End, bool Region, bool Blank = false);
 
     /// <summary>A stretch of a DECLARATIVES portion that is comment text: the tokens <see cref="First"/> to <see cref="Last"/>
     /// (hidden-channel text between them included) and the last line of the text it covers, which also holds what the lexer
@@ -194,7 +195,9 @@ public static class DebuggingLineRewriter
             if (tokens[i].Type != CobolLexer.DEBUG_LINE) continue;
             int line = tokens[i].Line, end = i + 1;
             while (end < tokens.Count && tokens[end].Type != TokenConstants.EOF && tokens[end].Line == line) end++;
-            lines.Add(new Extent(i, end, Region: false));
+            bool blank = true;
+            for (int t = i + 1; t < end && blank; t++) blank = CobolSpace.IsBlank(tokens[t].Text);
+            lines.Add(new Extent(i, end, Region: false, Blank: blank));
             i = end - 1;
         }
         return lines;
@@ -306,9 +309,10 @@ public static class DebuggingLineRewriter
             }
         // §1985:VI.7.3: "A debugging line is only permitted in the separately compiled program after the OBJECT-COMPUTER
         // paragraph." Mode or no mode, a line that begins before that paragraph's end is misplaced; the caller diagnoses it
-        // where the edition has the rule.
+        // where the edition has the rule. A line of spaces from margin A to margin R "is considered the same as a blank line"
+        // (the same clause), and a blank line may stand anywhere (§1985:IV.7.2.3), so it is never misplaced.
         foreach (var line in unit.Lines)
-            if (line.Start <= unit.PermittedFrom || unit.PermittedFrom < 0) misplacedLines.Add(line.Start);
+            if (!line.Blank && (line.Start <= unit.PermittedFrom || unit.PermittedFrom < 0)) misplacedLines.Add(line.Start);
         if (unit.Mode)                                  // the unit (or a container) declared the mode: its lines are source
         {
             foreach (var line in unit.Lines)

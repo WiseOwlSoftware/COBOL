@@ -413,8 +413,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
         // The '85 debug facility's compile-time switch (X3.23-1985 SOURCE-COMPUTER … WITH DEBUGGING MODE; the
         // clause itself is 0902-gated ≥2002 by the version-conformance pass): its presence decides whether a USE FOR
-        // DEBUGGING declarative section is COMPILED (switch present — the object-time switch is permanently off
-        // here, so it never triggers) or treated as comment lines (switch absent — the '85 rule). It
+        // DEBUGGING declarative section is COMPILED (switch present — it then runs when the object-time switch,
+        // RunUnit.DebugMode, is on: on by default, turned by WISEOWL_COBOL_DEBUG; kb/Work PB4997) or treated as comment
+        // lines (switch absent — the '85 rule). It
         // reads the MODELLED clause (kb/Work PB830 — it used to be a token-text scan of the computerAttributes sink; VCR
         // Table 7 rows 7.9/7.17).
         // ⛔ OR-ed into the value ConfigurationStep copied, never assigned over it: §2023:12.3.5.4 GR1 "All clauses of

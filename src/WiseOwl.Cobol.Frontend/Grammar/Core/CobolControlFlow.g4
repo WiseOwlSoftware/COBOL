@@ -508,8 +508,9 @@ useStatement
     // X3.23-1985 debug-module format (obsolete '85 element DELETED by ISO 2002 — the whole facility,
     // DEBUG-* registers included, is absent from the 2023 text): USE FOR DEBUGGING ON {cd-name-1 |
     // [ALL REFERENCES OF] identifier-1 | file-name-1 | procedure-name-1 | ALL PROCEDURES}… .
-    // Accepted-inert at 85 (the section is compiled as if comment lines — the conforming posture when
-    // WITH DEBUGGING MODE is absent, and our permanently-off object-time switch when present); the
+    // At 85 the section is compiled as if comment lines when WITH DEBUGGING MODE is absent, and compiled
+    // when it is present, running under the object-time switch (RunUnit.DebugMode: on by default,
+    // turned by WISEOWL_COBOL_DEBUG; kb/Work PB4997); the
     // EditionValidator flags it COBOL0902 ≥2002 (`use-for-debugging-removed-2002`, VCR Table 7
     // row 7.17). The printed format (§1985:XV.3.2.2, page XV-5) underlines only USE and DEBUGGING: FOR and ON are
     // optional words, so `USE DEBUGGING ALL PROCEDURES` is the same statement (kb/Work PB4919).
