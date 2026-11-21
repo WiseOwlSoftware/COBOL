@@ -337,6 +337,17 @@ def case_12_a_1985_folio_pointer_is_a_cross_reference(expect):
                  (True, False, False, False))
 
 
+def case_13_a_sentence_broken_inside_a_parenthesis_joins(expect):
+    # kb/Work PB5998: §1985:VI.4.5.4 rule (3) breaks across pages 246 and 247 inside its parenthesis.
+    u = _seg("the status of that switch may be altered by a SET statement (see page VI-127,\n\nThe SET Statement). The "
+             "implementor defines which external switches can be referenced.\n\nA new paragraph.")
+    expect.equal("an unclosed parenthesis joins the next candidate, whatever it opens with", [x.label for x in u],
+                 ["p1", "p2"])
+    expect("the join keeps both halves", "page VI-127, The SET Statement). The implementor" in u[0].text, _shown(u))
+    u = _seg("Hangul: 1100-11FF, FFA0-FFBE,\n\nHanifi_Rohingya: 10D00-10D23")
+    expect.equal("a trailing comma alone joins nothing (2023 Annex B.3's data lines)", [x.label for x in u], ["p1", "p2"])
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

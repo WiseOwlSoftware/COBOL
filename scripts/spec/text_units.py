@@ -128,9 +128,19 @@ def ends_sentence(text: str) -> bool:
     return bool(SENTENCE_END.search(text))
 
 
+def open_at_end(text: str) -> bool:
+    """Does `text` stop where no paragraph can, inside a parenthesis it opened and did not close? The 1985 text breaks a
+    sentence there across a page ("... (see page VI-127," / page 247: "The SET Statement). The implementor defines ...";
+    kb/Work PB5998). A trailing comma alone is no such stop: Annex B.3's data lines of 2023 end in one at every wrap."""
+    return text.count("(") > text.count(")")
+
+
 def continues(prev: str, line: str) -> bool:
-    """Does a candidate opening with `line` continue a unit whose text is `prev` (design point 1)?"""
-    return not ends_sentence(prev) and not LEADS.search(prev) and bool(CONTINUES.match(line.strip()))
+    """Does a candidate opening with `line` continue a unit whose text is `prev` (design point 1)? It does when `prev`
+    ends no sentence and leads no list, and the candidate opens in lowercase or with a continuation word, or `prev`
+    stops where no paragraph can (`open_at_end`), whatever the candidate opens with."""
+    return (not ends_sentence(prev) and not LEADS.search(prev)
+            and (bool(CONTINUES.match(line.strip())) or open_at_end(prev)))
 
 
 def _cells(line: str) -> list[str]:
