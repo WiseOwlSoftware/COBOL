@@ -34,7 +34,7 @@ public sealed class InterProgramFileDifferentialTests
     // ── Fix C: BY REFERENCE ODO group — the FULL allocation crosses the boundary (§2023:14.2.3 GR8) ────────────
 
     /// <summary>§2023:14.2.3 GR8: BY REFERENCE — the formal "occupies the same storage area as the argument". The
-    /// STORAGE is the maximum allocation: an occurs-depending group's current-extent window (§2023:13.18.38 GR8) is a
+    /// STORAGE is the maximum allocation: an occurs-depending group's current-extent window (§2023:13.18.38.4 GR8) is a
     /// sending-OPERAND rule for MOVE/compare, never a storage-aliasing rule. The callee (fixed OCCURS 5 formal)
     /// must see positions past the caller's current extent (EEE), and its store into position 4 must reach the
     /// caller's storage (IC207A's CONTENTS-OF-TABLE check).</summary>
@@ -370,7 +370,7 @@ public sealed class InterProgramFileDifferentialTests
         END FUNCTION SQUARER.
         """;
 
-    /// <summary>ISO §2023:12.3.8 GR11(c) / §2023:8.4.3.2.4 GR6b — the caller declares only a FUNCTION-ID … IS PROTOTYPE for
+    /// <summary>ISO §2023:12.3.8.4 GR11(c) / §2023:8.4.3.2.4 GR6b — the caller declares only a FUNCTION-ID … IS PROTOTYPE for
     /// SQUARER (its signature) and invokes FUNCTION SQUARER(x); the separately-compiled DEFINITION lives in a
     /// sibling assembly SQUARER.dll. The prototype registers NO runtime module, so the UDF-lowered call falls
     /// through to the registry's sibling probe (the same §2023:14.9.4.4 GR3b path as cross-assembly CALL), loads

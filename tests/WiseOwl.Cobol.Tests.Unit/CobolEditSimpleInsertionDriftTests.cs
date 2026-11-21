@@ -120,7 +120,7 @@ public class CobolEditSimpleInsertionDriftTests
         // A DECLARED PICTURE EDITING character-1 is a member at both GR7 and GR10 — the leg the two hand-written
         // literal lists left out, which refused `PIC NNTNN EDITING T IS N":"` as an invalid PICTURE.
         Assert.True(CobolEdit.IsEditedCategorySymbol('T', new HashSet<char> { 'T' }));
-        Assert.True(CobolEdit.IsEditedCategorySymbol('t', new HashSet<char> { 'T' }));   // §2023:8.1.3 GR3 case equivalence
+        Assert.True(CobolEdit.IsEditedCategorySymbol('t', new HashSet<char> { 'T' }));   // §2023:8.1.3.2 GR3 case equivalence
         Assert.False(CobolEdit.IsEditedCategorySymbol('T'));
     }
 
@@ -138,7 +138,7 @@ public class CobolEditSimpleInsertionDriftTests
     [Fact]
     public void TheSeparatorPairFollowsWhicheverCharacterIsTheGroupingSeparator()
     {
-        // §2023:13.18.40.2 SR13: "The rules for the symbol period apply to the symbol comma, and the rules for the
+        // §2023:13.18.40.3 SR13: "The rules for the symbol period apply to the symbol comma, and the rules for the
         // symbol comma apply to the symbol period." Whichever character is the GROUPING separator is the simple
         // insertion symbol; the other is the decimal point, whose editing is special insertion (rule 4).
         Assert.True(CobolEdit.IsSimpleInsertionSymbol(',', grouping: ','));

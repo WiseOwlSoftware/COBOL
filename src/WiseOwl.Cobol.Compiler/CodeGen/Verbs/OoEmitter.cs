@@ -131,7 +131,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     {
         foreach (var ext in data.Linkage.ExternalBackings)
         {
-            // §2023:13.18.63 GR4a: a PLAIN external item's VALUE takes effect only during INITIALIZE, so its cell seeds
+            // §2023:13.18.63.4 GR4a: a PLAIN external item's VALUE takes effect only during INITIALIZE, so its cell seeds
             // with the category-DEFAULT initial image. §2023:11.9.10.4 GR7: a CONSTANT RECORD is the ONE external item
             // initialized at initial state — its cell seeds with the VALUE-composed image. ⛔ ONE SEEDER, ONE FLAG
             // (GroupImageCodec.ImageInitOf — what RecordStructEmitter/ProgramEmitter use for every other string
@@ -249,7 +249,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     }
 
     /// <summary>Emit the <c>DescribeExternals()</c> ABI method — one <c>ExternalStore.Describe</c> per external
-    /// record (§2023:14.8.4.3 / §2023:13.18.22 GR6 facts: byte count, record-name VALUE clause spec, strong TYPE name,
+    /// record (§2023:14.8.4.3 / §2023:13.18.22.4 GR6 facts: byte count, record-name VALUE clause spec, strong TYPE name,
     /// CONSTANT RECORD presence) and per external file connector (§2023:14.8.4.2 file-referencing control-item
     /// identities + the §2023:12.4.5.3 GR1 a–m entry fingerprint), each carrying the unit's before-Environment-
     /// division mask (§2023:14.8.4.1). It is an <see cref="ICobolProgram"/> member, not a private callee-body step:
@@ -274,7 +274,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         {
             foreach (var ext in data.Linkage.ExternalBackings)
             {
-                // §2023:13.18.22 GR6: the VALUE identity is the RECORD NAME's own VALUE clause specification ("the
+                // §2023:13.18.22.4 GR6: the VALUE identity is the RECORD NAME's own VALUE clause specification ("the
                 // VALUE clause specification, if any, for each record name ... shall be identical") — the
                 // record-level clause text, not the subordinate items' clauses.
                 string valueSpec = ext.Record.RawValue is { } rv ? CsLiteral(ValueSpecificationKey(rv)) : "null";
@@ -325,7 +325,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             U.SeqIo.EmitFileRegistration(w);   // each file registers under FileKeyExpr(f): a factory literal, or this.__fkey_X
             // ⛔ Nothing else installs here. Dynamic file assignment (ISO §2023:12.4.5.3 GR3 b / §2023:9.1.21 — Annex
             // D.19.9.2's own worked example is an instance file, "SELECT EMPLOYEE-FILE ASSIGN USING FILE-REF")
-            // and the LINAGE operand values (§2023:13.18.34 GR6 b) now travel with the OPEN/WRITE statements that read
+            // and the LINAGE operand values (§2023:13.18.34.4 GR6 b) now travel with the OPEN/WRITE statements that read
             // them, so this ctor and DispatchEmitter.__Activate cannot drift apart on them: the LINAGE half used
             // to be installed ONLY on the program path, leaving a class's LINAGE FD with no page model at all
             // (kb/Work PB673 — the second arm of this registration dispatch).
@@ -865,7 +865,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     public void EmitNullInvoke(BoundInvokeNull n) =>
         Ctx.Writer.Line($"{RuntimeApi.ObjRequireNonNull("(CobolObject?)null")};   // INVOKE NULL → EC-OO-NULL (§2023:14.9.23.4 GR5)");
 
-    /// <summary>SET Format 5 (D-U7; §2023:14.9.39 GR9/GR10): copy the ONE sender reference into each target in
+    /// <summary>SET Format 5 (D-U7; §2023:14.9.39.4 GR9/GR10): copy the ONE sender reference into each target in
     /// order. The cast renders total: conformance was bind-checked (0867), and C# reference conversions
     /// cover the widening directions (typed→universal, subclass→base, null, this).</summary>
     public void EmitSetObjectRef(BoundSetObjectRef s)
@@ -1025,7 +1025,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         if (m.PropertySubject is { } subject)
         {
             // A PROPERTY-clause-synthesized accessor (D-P1): a DIRECT field body — identical descriptions
-            // make the spec's implicit MOVE a straight copy (§2023:13.18.42 GR1/GR2 :21214-21229).
+            // make the spec's implicit MOVE a straight copy (§2023:13.18.42.4 GR1/GR2 :21214-21229).
             string pmod = m.OverrideOf is not null
                 ? (m.IsFinal && !m.Owner.IsFinal ? "sealed override" : "override")
                 : (m.IsFinal || m.Owner.IsFinal) ? "" : "virtual";
@@ -1843,7 +1843,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 Decl("string", a.Source is { } sp
                     ? OoStringReadOf(sp, a, qualProfile)
                     : a.StringLiteral is { } slit
-                    // An ANY LENGTH formal sees the literal AT ITS OWN length (§2023:13.18.2 GR1) — no width-fit.
+                    // An ANY LENGTH formal sees the literal AT ITS OWN length (§2023:13.18.2.4 GR1) — no width-fit.
                     ? a.Formal.IsAnyLength ? CsLiteral(slit.Value)
                         // §2023:14.2.3 GR9's MOVE into a non-numeric formal's record (kb/Work PB2587's sweep): a JUSTIFIED formal
                         // right-justifies the literal and an edited one edits it (§2023:14.9.25.4 GR6), as the CALL lane does.
@@ -2005,7 +2005,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // whose runtime member returns CobolObject (ISO §2023:16.2). The narrowing is therefore total.
                 w.Line(PlaceRenderer.Write(recv, $"({orp.ClrType}){tmp}"));
             else if (retString == ActivationCrossing.StringCarried(recv.Item))
-                // ANY LENGTH at the delivery boundary (ISO §2023:14.8.3.3 rules 4/5; §2023:13.18.2 GR1): a varying-length
+                // ANY LENGTH at the delivery boundary (ISO §2023:14.8.3.3 rules 4/5; §2023:13.18.2.4 GR1): a varying-length
                 // SENDER delivers width-fitted into a fixed receiver (rule 5 — its length "considered to match");
                 // a varying-length RECEIVER stores at its own current length (its n is fixed by ITS activation).
                 w.Line(PlaceRenderer.Write(recv,
@@ -2144,7 +2144,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         string read = sp is RefModPlace ? PlaceRenderer.Read(sp)
             : ActivationCrossing.StringCarried(sp.Item) ? PlaceRenderer.Read(sp)
             : PlaceRenderer.Read(new NumericImagePlace(sp));
-        // An ANY LENGTH formal takes the argument's characters AT the argument's length (ISO §2023:13.18.2 GR1 —
+        // An ANY LENGTH formal takes the argument's characters AT the argument's length (ISO §2023:13.18.2.4 GR1 —
         // n = the length of the corresponding argument), so the CONTENT copy must NOT width-normalize to the
         // formal's Pic.Length (1); the raw read IS the width-correct crossing.
         if (!a.ByContent || a.Formal.IsAnyLength || a.Formal.Pic is not { } fp) return read;

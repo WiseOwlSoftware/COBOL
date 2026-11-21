@@ -21,7 +21,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         foreach (var root in ctx.Data.Forest.Roots) EmitProfiles(root, w);
         // An OCCURS DYNAMIC CAPACITY register is an implicit VIEW over the table's Capacity — it has NO storage
         // field, but DISPLAY / MOVE-to-alphanumeric of the register formats through its own NumProfile (ISO
-        // §2023:13.18.38 GR15 / §2023:8.5.1.9.1; data-model D9), so emit those profiles (not fields) too.
+        // §2023:13.18.38.4 GR15 / §2023:8.5.1.9.1; data-model D9), so emit those profiles (not fields) too.
         foreach (var tbl in ctx.Data.DeclaredCapacityRegisterTables)
             if (tbl.OccursSpec?.CapacityRegister is { } reg) EmitProfiles(reg, w);
         // Programs are instantiable classes (interprogram design D3): root + index fields are INSTANCE fields —
@@ -33,7 +33,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         // (it has no field: its storage is the caller's, reached through its carrier, ISO §2023:13.7.1 /
         // DataItem.ResidentCarrier). An inherited GLOBAL table's index cell
         // is never among the unit's OWN declarations — the container emits it and a ref-bridge reaches it
-        // (§2023:13.18.27 GR2; kb/Work PB919).
+        // (§2023:13.18.27.4 GR2; kb/Work PB919).
         foreach (var idx in ctx.Data.Forest.OwnIndexes)
             if (!ctx.Data.Linkage.SuppressedRootFields.Contains(idx.Cell))
                 // A RECURSIVE unit's WS table cell rides its table's static storage (RouteStaticUnitStorage —
@@ -61,9 +61,9 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
     /// identical to first-load), every static WS index cell to 1, and <c>__filesRegistered</c> to false so
     /// the next activation re-registers fresh connectors in no open mode (action 3; kb/Work PB168). Invoked
     /// by the runtime at run-unit start (§2023:14.6.2.3.2 case 1 — robust to a re-run of the same loaded module),
-    /// after CANCEL (case 3 / §2023:14.9.5 GR3), and via an INITIAL container's implicit cancel cascade (case 2).
+    /// after CANCEL (case 3 / §2023:14.9.5.4 GR3), and via an INITIAL container's implicit cancel cascade (case 2).
     /// EXTERNAL records never enter the static channel (they are run-unit ExternalStore cells, untouched per
-    /// §2023:14.9.5 GR8). Emission and hook registration read THE ONE shared condition
+    /// §2023:14.9.5.4 GR8). Emission and hook registration read THE ONE shared condition
     /// (<c>DataBindResult.EmitsStaticReset</c> — the caller's gate and ProgramEmitter's), so the pair cannot
     /// diverge into a CS0103 in generated code.</summary>
     private void EmitStaticReset(CodeWriter w)

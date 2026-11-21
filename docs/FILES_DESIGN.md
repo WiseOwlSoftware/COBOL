@@ -587,7 +587,7 @@ and at run time, where it travels beside the fingerprint as `ExternalDescriptor.
 **§2023:9.1.6's own last-sentence obligation** — "The implementor shall specify whether the ability to share a
 physical file is a fixed file attribute" — is answered **NO**: a sharing mode is established per FILE CONNECTOR
 by the SHARING clause or the OPEN's SHARING phrase (§2023:14.9.27.4 GR21–GR23) and arbitrated live against the
-connectors currently open (§2023:9.1.15 Table 19), so it is not a property the physical file carries between run
+connectors currently open (§2023:14.9.27.4 Table 19), so it is not a property the physical file carries between run
 units.
 
 **Where each half lives, each in ONE place.** `FileConnector.Open` performs GR10's comparison — before
@@ -1346,7 +1346,7 @@ FIRST KEYED VERB naming the file — and a program whose procedure division only
 such verb. Measured on the pre-fix tree: an entry with `RECORD KEY IS IX-KEY` and `ALTERNATE RECORD KEY IS
 IX-ALT` both under `OCCURS` compiled with **zero diagnostics**, and adding one `READ … NEXT` grew two
 COBOL0863s. Two citations were wrong in the same site — the required-clause rule was filed under §2023:12.4.5.13,
-a clause that has no syntax rules at all, and SR2/SR3 were cited as "§2023:12.4.5.13 SR2/SR3" — and one rule was
+a clause that has no syntax rules at all, and SR2/SR3 were cited as "§2023:12.4.5.13 SR2/SR3" — and one rule was (citation-audit: example)
 missing entirely in a way the resolution path hid: an ALTERNATE RECORD KEY whose data-name-1 resolved to nothing
 was *dropped silently* from `FileModel.AlternateKeys`, leaving the file with fewer access paths than the entry
 declared and every index-aligned list downstream out of step with the written clauses.
@@ -2775,7 +2775,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   to every attached connector, so close order cannot resurrect a deleted record or drop another connector's write; the
   LAST detach drops the entry so a later OPEN opens the file again; OPEN OUTPUT creates a new, empty store
   (`StoreTable.AttachCreated`, kb/Work PB754). Position/key state (FPI, key of
-  reference, the §2023:14.9.51 GR29a sequential-WRITE slot, the GR38 high-key) stays per-CONNECTOR. The store is
+  reference, the §2023:14.9.51.4 GR29a sequential-WRITE slot, the GR38 high-key) stays per-CONNECTOR. The store is
   unconditional — two SELECTs to one ASSIGN target reach it with no SHARING clause — and sequential connectors
   are out of its scope (their OS-backed streams are already the shared store). A connector constructed outside a
   registry (a focused unit test) keeps a private store.
@@ -2821,7 +2821,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   sequential one: GR21 opens "For a sequential READ statement" so a random READ never yields '46', and item 3 b)
   has no "first time" qualifier so every random READ on an absent optional file is '23' — but the failed random
   READ still arms the poison, because §2023:9.1.13.7 item 6 b) ("The preceding READ statement …") is not restricted to
-  sequential reads. START's own absent-optional rule (§2023:14.9.41 GR5) is a different statement's rule and lives in
+  sequential reads. START's own absent-optional rule (§2023:14.9.41.4 GR5) is a different statement's rule and lives in
   each connector's own START body.
 - **START's preconditions live in the same base, for the same reason** (kb/Work PB352). `FileConnector` owns
   `StartOpenModeGuard` — 14.9.41.4 GR1's "input or I-O" test, whose unsuccessful value is 9.1.13.7 item 7's

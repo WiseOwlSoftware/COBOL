@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// §2023:12.3.7.3 SR14 differ only in which literal class each operand shall be).
 /// <para>The compiler emits one instance per program as <c>__COLLATE_NAT</c> (the national twin of the
 /// alphanumeric <c>__COLLATE</c> weights); it drives national relation/condition-name comparisons
-/// (§2023:12.3.6 GR11 / §2023:8.8.4.2.9), CHAR-NATIONAL (§2023:15.16.4), and ORD over a national argument (§2023:15.70.4 r2).</para>
+/// (§2023:12.3.6.4 GR11 / §2023:8.8.4.2.9), CHAR-NATIONAL (§2023:15.16.4), and ORD over a national argument (§2023:15.70.4 r2).</para>
 /// </summary>
 public sealed class NationalCollation : LiteralPhraseCollation
 {

@@ -57,7 +57,7 @@ public sealed class ExceptionConditionConformanceTests
 
     // ── RAISE + TURN scoping (§2023:14.9.29 / §2023:7.3.25 / §2023:14.6.13.1.1) ─────────────────────────────────────────────
 
-    [Fact]   // §2023:14.9.29 GR1 + §2023:14.6.13.1.4: enabled nonfatal RAISE sets the last exception status and the F3
+    [Fact]   // §2023:14.9.29.4 GR1 + §2023:14.6.13.1.4: enabled nonfatal RAISE sets the last exception status and the F3
              // declarative handles it; RESUME AT NEXT STATEMENT continues past; the status persists after.
     public void Raise_Enabled_DeclarativeHandles_ResumeNextStatement_StatusPersists()
         => AssertSpec(Prog("ECT001", ">>TURN EC-USER-DEMO CHECKING ON", "", "", """
@@ -495,9 +495,9 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "PHRASE\nS: EC-SIZE-TRUNCATION");
 
-    // ── The EC-OVERFLOW bridge (STRING §2023:14.9.43 GR8b / UNSTRING §2023:14.9.48 GR16b) ──────────────────────────────
+    // ── The EC-OVERFLOW bridge (STRING §2023:14.9.43.4 GR8b / UNSTRING §2023:14.9.48.4 GR16b) ──────────────────────────────
 
-    [Fact]   // §2023:14.9.43 GR8b: a STRING overflow without the ON OVERFLOW phrase raises EC-OVERFLOW-STRING
+    [Fact]   // §2023:14.9.43.4 GR8b: a STRING overflow without the ON OVERFLOW phrase raises EC-OVERFLOW-STRING
              // (nonfatal — execution continues either way, §2023:14.6.13.1.4 #3/#4); the receiver holds the
              // transferred prefix.
     public void StringOverflow_NoPhrase_RaisesEcOverflowString()
@@ -1485,7 +1485,7 @@ public sealed class ExceptionConditionConformanceTests
                 DISPLAY "NEVER".
             """, "IN-DECL\nAFTER-CALL");
 
-    [Fact]   // §2023:14.9.14 GR2: EXIT PROGRAM in a program NOT under the control of a calling runtime element is
+    [Fact]   // §2023:14.9.14.4 GR2: EXIT PROGRAM in a program NOT under the control of a calling runtime element is
              // CONTINUE — "no exception condition is raised even if the RAISING phrase is specified".
     public void ExitProgramRaising_InMainProgram_IsContinue()
         => AssertSpec("""
@@ -1499,7 +1499,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "FELL-THROUGH");
 
-    [Fact]   // §2023:14.9.14 GR3 (the GOBACK rules): EXIT PROGRAM RAISING in a CALLED program stages the condition
+    [Fact]   // §2023:14.9.14.4 GR3 (the GOBACK rules): EXIT PROGRAM RAISING in a CALLED program stages the condition
              // for the activator exactly as GOBACK RAISING does.
     public void ExitProgramRaising_InCalledProgram_Propagates()
         => AssertSpec("""

@@ -466,7 +466,7 @@ basedClause
 // CONSTANT RECORD clause (COBOL-2014 §2023:13.18.15) — identifies a STRUCTURED CONSTANT: the record's content is
 // its normal initial content (§2023:13.18.15.4 GR1 — as though INITIALIZE … WITH FILLER ALL TO VALUE THEN TO
 // DEFAULT), and neither the record nor any subordinate may be a receiving operand (SR2 → COBOL1548 at
-// bind). Structural SRs (§2023:13.18.15 SR1 WS/LS-only; §2023:13.16.3 SR3/SR6/SR13) bind-check in DataBinder.
+// bind). Structural SRs (§2023:13.18.15.3 SR1 WS/LS-only; §2023:13.16.3 SR3/SR6/SR13) bind-check in DataBinder.
 constantRecordClause
     : CONSTANT RECORD   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitConstantRecordClause
     ;
@@ -531,7 +531,7 @@ typedefClause
 // EXTERNAL/GLOBAL/REDEFINES/SELECT WHEN; subordinate levels renumber). §2023:13.16.3 SR12 composes it only with
 // CONSTANT RECORD / entry-name / EXTERNAL / GLOBAL / level-number / OCCURS — enforced at bind (COBOL1555).
 // The target may be QUALIFIED (OF/IN — data-name-1 is an ordinary data-name reference) but never subscripted
-// (§2023:13.18.49 SR1 — data-name-1 shall not be subject to any OCCURS clause). LL-disjoint from every other
+// (§2023:13.18.49.3 SR1 — data-name-1 shall not be subject to any OCCURS clause). LL-disjoint from every other
 // dataDescriptionClause (unique leading token SAME; the I-O-CONTROL sameArea rule is a different context).
 // Expansion rides the ONE TYPEDEF clone machinery (DataBinder.ExpandSameAs → CloneItem; data-model D17).
 sameAsClause
@@ -696,8 +696,8 @@ usageKeyword
     | NATIONAL
     | BIT
     | dataPointerUsage       // USAGE POINTER [[TO] type-name] (§2023:13.18.60.2; the operand makes a RESTRICTED data-pointer, GR23; TO is optional, kb/Work PB848)
-    | programPointerUsage    // USAGE PROGRAM-POINTER [[TO] prototype] (§2023:13.18.60 GR24/GR25, 2002) — introduction-gated post-bind (VersionConformancePass UsageConstructId)
-    | functionPointerUsage   // USAGE FUNCTION-POINTER [TO] prototype (§2023:13.18.60 GR26, 2014) — the operand is MANDATORY, screened in DataBinder (COBOL1958)
+    | programPointerUsage    // USAGE PROGRAM-POINTER [[TO] prototype] (§2023:13.18.60.4 GR24/GR25, 2002) — introduction-gated post-bind (VersionConformancePass UsageConstructId)
+    | functionPointerUsage   // USAGE FUNCTION-POINTER [TO] prototype (§2023:13.18.60.4 GR26, 2014) — the operand is MANDATORY, screened in DataBinder (COBOL1958)
     | objectReferenceUsage   // USAGE OBJECT REFERENCE [class] (OO/2002) — introduction-gated at BIND time (PicInfo.ParseUsage → ConstructRegistry.Check), like NATIONAL/BIT/POINTER above
     ;
 
@@ -809,7 +809,7 @@ occursStepPhrase
     ;
 
 occursDynamicPhrase
-    : CAPACITY IN? defDataReference1=dataReference   // CAPACITY IN data-name-3 (the current-capacity register, §2023:13.18.38 GR15)
+    : CAPACITY IN? defDataReference1=dataReference   // CAPACITY IN data-name-3 (the current-capacity register, §2023:13.18.38.4 GR15)
     | FROM refIntegerOperand1=integerOperand         // integer-4 — the minimum / initial capacity (GR16)
     | TO refIntegerOperand2=integerOperand           // integer-5 — the expected capacity (GR17)
     | INITIALIZED                 // seed new occurrences per §2023:8.5.1.9.5

@@ -374,7 +374,7 @@ public sealed record BoundPower(BoundExpr Base, BoundExpr Exp, bool NegativeBase
 public sealed record BoundIndexRef(string IndexField) : BoundExpr;
 
 /// <summary>The LINAGE-COUNTER special register of <paramref name="File"/> (ISO §2023:8.4.3.14): a READ-ONLY unsigned
-/// integer the I-O control system alone modifies (§2023:13.18.34 GR7b) — the current line within the page body. It is
+/// integer the I-O control system alone modifies (§2023:13.18.34.4 GR7b) — the current line within the page body. It is
 /// runtime-sourced (the connector's counter, DESIGN's register-attaches-to-its-subsystem rule), never a
 /// synthesized storage item; SR2 bars it from receiving positions (receiving resolution already fails loud).</summary>
 public sealed record BoundLinageCounterRef(FileModel File) : BoundExpr;
@@ -400,7 +400,7 @@ public sealed record BoundReportCounterRef(ReportModel Report, bool IsPage, int 
 /// SR2).</summary>
 public sealed record BoundReportVaryingRef(MethodLocal Counter) : BoundExpr;
 
-/// <summary>An OCCURS DEPENDING table's CURRENT extent (ISO §2023:13.18.38 GR8 — "the rules of the OCCURS clause for a
+/// <summary>An OCCURS DEPENDING table's CURRENT extent (ISO §2023:13.18.38.4 GR8 — "the rules of the OCCURS clause for a
 /// sending data item", which §2023:15.50.4 r4b / §2023:15.14.4 r2b invoke; kb/Work PB61): <paramref name="FixedWidth"/> plus
 /// data-name-1's value × <paramref name="ElemWidth"/>, the value clamped to [<paramref name="MinOccurs"/>,
 /// <paramref name="MaxOccurs"/>] with EC-BOUND-ODO set outside them (§2023:13.18.38.4 GR7). A scale-0 integer,
@@ -853,7 +853,7 @@ public sealed record BoundPredefinedNull : BoundOperand
     private BoundPredefinedNull() { }
 }
 
-/// <summary>The figurative <c>ALL "literal"</c> (ISO §2023:8.3.3.6.4 Format 6): the multi-character <paramref name="Literal"/>
+/// <summary>The figurative <c>ALL "literal"</c> (ISO §2023:8.3.3.6 Format 6): the multi-character <paramref name="Literal"/>
 /// repeated to the associated width (the receiver in a MOVE, the other operand in a comparison — GR2) or used once in a
 /// length-unspecified context such as DISPLAY (GR3c).</summary>
 public sealed record BoundAllLiteral(string Literal) : BoundOperand
@@ -1079,7 +1079,7 @@ public sealed record BoundRangeMembership(BoundOperand Left, BoundOperand Lo, Bo
     RangeCollationId? Collation = null) : BoundCondition;
 
 /// <summary>A sign condition: <paramref name="Expr"/> IS [NOT] {POSITIVE | NEGATIVE | ZERO}. <paramref
-/// name="Format2Float"/> marks the ISO §2023:8.8.4.7.3 Format 2 form — a bare (unparenthesized) standard
+/// name="Format2Float"/> marks the ISO §2023:8.8.4.7 Format 2 form — a bare (unparenthesized) standard
 /// floating-point data-name — which tests the IEEE sign BIT (§2023:8.8.4.7.4 GR2: +0.0 IS POSITIVE, −0.0 IS
 /// NEGATIVE) rather than the Format-1 algebraic value.</summary>
 public sealed record BoundSignCondition(BoundExpr Expr, char Kind, bool Negated, bool Format2Float = false) : BoundCondition;   // Kind: P/N/Z
@@ -1116,8 +1116,8 @@ public sealed record BoundConditionError(string Feature) : BoundCondition;
 /// <summary>A condition carrying the user-defined-function <paramref name="Activations"/> its
 /// <paramref name="Inner"/> predicate consumes, for a CONDITIONALLY or REPEATEDLY evaluated window: each
 /// activation runs ONCE PER EVALUATION of this condition — a function-identifier "references a temporary data
-/// item whose value is determined when the function is referenced at runtime" and its arguments are evaluated
-/// "at the beginning of the evaluation of the function-identifier" (ISO §2023:8.4.3.2.4 GR1 :6963 / GR6a :6995), and
+/// item whose value is determined when the function is referenced at runtime" (ISO §2023:8.4.3.2.4 GR1, spec :6963) and its
+/// arguments are evaluated "at the beginning of the evaluation of the function-identifier" (§2023:8.4.3.2.4 GR6a, spec :6995), and
 /// functions in conditions are evaluated "if and when the conditions containing them are evaluated"
 /// (§2023:8.8.4.13 r2). The binder attaches the statement-pending activations here instead of the once-per-statement
 /// hoist at every such window: a PERFORM UNTIL / VARYING UNTIL condition (re-evaluated per iteration, §2023:14.9.28),
@@ -1895,12 +1895,12 @@ public sealed record BoundSetPointer(
     IReadOnlyList<BoundPointerReceiver> Receivers, Place? Source, bool ToNull,
     BoundAddressOf? Address = null) : BoundStatement;
 
-/// <summary><c>ADDRESS OF identifier</c> as a pointer VALUE (ISO §2023:8.4.3.11 GR1; Phase-4b increment 2): for a
+/// <summary><c>ADDRESS OF identifier</c> as a pointer VALUE (ISO §2023:8.4.3.11.4 GR1; Phase-4b increment 2): for a
 /// BASED item the value IS its implicit data-address pointer (§2023:8.6.5 :8791); for a cell-backed record the
 /// emitter renders <c>ManagedPointer.At(cell, classOffset)</c> over the item's forced/EXTERNAL storage cell.
 /// <paramref name="OccursDisplacement"/> carries a SUBSCRIPTED operand's occurrence displacement — the typed
 /// <c>(idx − 1) × width</c> terms (<see cref="OffsetTerm"/>) of character positions added to the item's class offset
-/// (the occurrences lie end-to-end in the ONE cell image, §2023:8.4.3.11 GR1 — the address OF THE OCCURRENCE); null for an
+/// (the occurrences lie end-to-end in the ONE cell image, §2023:8.4.3.11.4 GR1 — the address OF THE OCCURRENCE); null for an
 /// unsubscripted operand.
 /// <paramref name="RefMod"/> carries a REFERENCE-MODIFIED operand's leftmost position (kb/Work PB1407; null when none
 /// is written): the address is then the one of the unique data item reference modification creates, which §2023:8.4.3.3.4
@@ -2026,7 +2026,7 @@ public sealed record BoundFree(IReadOnlyList<Place> Operands) : BoundStatement;
 public abstract record BoundSetTarget;
 /// <summary>An INDEXED BY index-name receiver — its C# <c>long</c> occurrence-number field.</summary>
 public sealed record SetIndexTarget(string IndexField) : BoundSetTarget;
-/// <summary>A data-item receiver: an index data item (USAGE INDEX — receives the value unchanged, §2023:14.9.39 GR2b)
+/// <summary>A data-item receiver: an index data item (USAGE INDEX — receives the value unchanged, §2023:14.9.39.4 GR2b)
 /// or an integer data item (receives the occurrence number via its own PICTURE store, GR2c).</summary>
 public sealed record SetPlaceTarget(Place Place) : BoundSetTarget;
 
@@ -2038,7 +2038,7 @@ public sealed record BoundSetTo(IReadOnlyList<BoundSetTarget> Targets, BoundExpr
 /// (GR3), then each index is incremented/decremented by it (GR4).</summary>
 public sealed record BoundSetUpDown(IReadOnlyList<BoundSetTarget> Targets, BoundExpr Amount, bool Down) : BoundStatement;
 
-/// <summary>How SET Format 14 changes a dynamic table's current capacity (ISO §2023:13.18.38 Format 4 / §2023:14.9.39 GR29;
+/// <summary>How SET Format 14 changes a dynamic table's current capacity (ISO §2023:13.18.38 Format 4 / §2023:14.9.39.4 GR29;
 /// data-model D9).</summary>
 public enum SetCapacityKind { To, UpBy, DownBy }
 
@@ -2272,7 +2272,7 @@ public sealed record BoundAdvancing(bool Before, bool Page, BoundOperand? Lines)
 /// (§2023:14.9.51.3 SR6), null when no FROM phrase is written. <paramref name="Advancing"/> null = a
 /// plain (data) WRITE. <paramref name="Unsupported"/> set (loud) when the owning file's organization is unsupported.
 /// <paramref name="AtEop"/>/<paramref name="NotAtEop"/> are the END-OF-PAGE / NOT END-OF-PAGE imperatives (ISO
-/// §2023:14.9.51 GR27b/GR28 — run after the SUCCESSFUL write, branching on the end-of-page condition; SR19 requires
+/// §2023:14.9.51.4 GR27b/GR28 — run after the SUCCESSFUL write, branching on the end-of-page condition; SR19 requires
 /// the file to have a LINAGE clause).</summary>
 public sealed record BoundWrite(FileModel File, Place Record, BoundMove? FromMove, BoundAdvancing? Advancing,
     string? Unsupported, IReadOnlyList<BoundStatement>? AtEop = null, IReadOnlyList<BoundStatement>? NotAtEop = null) : BoundStatement
@@ -2284,7 +2284,7 @@ public sealed record BoundWrite(FileModel File, Place Record, BoundMove? FromMov
     /// <summary>Whether the statement is the <c>FILE file-name-1</c> alternative (Annex A.4.13): its record is the FROM operand's, not a record
     /// description entry of the file, and a SELECT WHEN clause selects the entry it is formatted by (§2023:13.18.51.4 GR2).</summary>
     public bool FilePhrase { get; init; }
-    /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.51 GR16), or null.</summary>
+    /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.51.4 GR16), or null.</summary>
     public RetrySpec? Retry { get; init; }
     // ⛔ `AfterAdvancing` LIVED HERE AND IS GONE (kb/Work PB712). It held the SECOND ADVANCING phrase of a
     // `WRITE … BEFORE ADVANCING n AFTER ADVANCING m`, a spelling §2023:14.9.51.2 Format 1 never prints: the printed
@@ -2335,11 +2335,11 @@ public sealed record BoundRead(
     /// lock rules are ALL-FORMATS rules, so they bind on the sequential organization too. None = LOCK MODE
     /// governs.</summary>
     public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
-    /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.30 GR9) — bracket 1 of §2023:14.9.30.2, or null.</summary>
+    /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.30.4 GR9) — bracket 1 of §2023:14.9.30.2, or null.</summary>
     public RetrySpec? Retry { get; init; }
-    /// <summary>ADVANCING ON LOCK (§2023:14.9.30 GR22) — bracket 1: skip-scan records locked by another connector.</summary>
+    /// <summary>ADVANCING ON LOCK (§2023:14.9.30.4 GR22) — bracket 1: skip-scan records locked by another connector.</summary>
     public bool AdvancingOnLock { get; init; }
-    /// <summary>IGNORING LOCK (§2023:14.9.30 GR12) — bracket 1: "the requested record is made available, even if it
+    /// <summary>IGNORING LOCK (§2023:14.9.30.4 GR12) — bracket 1: "the requested record is made available, even if it
     /// is locked". INDEPENDENT of <see cref="Lock"/> (§2023:5.2.6.1), so `IGNORING LOCK WITH NO LOCK` sets both.</summary>
     public bool IgnoringLock { get; init; }
 }
@@ -2354,7 +2354,7 @@ public sealed record BoundRewrite(FileModel File, Place Record, BoundMove? FromM
     public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
     /// <summary>Whether the statement is the <c>FILE file-name-1</c> alternative (Annex A.4.13), as <see cref="BoundWrite.FilePhrase"/>.</summary>
     public bool FilePhrase { get; init; }
-    /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.35 GR11), or null.</summary>
+    /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.35.4 GR11), or null.</summary>
     public RetrySpec? Retry { get; init; }
     /// <summary>The <c>INVALID KEY</c> / <c>NOT INVALID KEY</c> pair, which ISO §2023:14.9.35.3 SR2's FIRST arm
     /// forbids on a sequential-organization REWRITE — so it is non-null ONLY under <c>--permissive</c>, where

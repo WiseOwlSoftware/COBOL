@@ -143,7 +143,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                         + $"occurs-depending table (ISO {binder.Edition.Edition.Cite("§1985:VI.5.11.3 SR6", "§2023:13.18.45.3 SR8")})");
                     continue;
                 }
-                // The no-THRU alias inherits the renamed item's description (§2023:13.18.45 GR1) — the resolver
+                // The no-THRU alias inherits the renamed item's description (§2023:13.18.45.4 GR1) — the resolver
                 // forwards to the FROM item's place; no span, no synthetic alphanumeric picture.
                 if (info.Thru is null) { ren.Pic = info.From.Pic; continue; }
 

@@ -158,7 +158,7 @@ public sealed class LoudGuardTests
     }
 
     /// <summary>PIC N classifies category NATIONAL with the SR13a IMPLIED usage NATIONAL (no USAGE clause;
-    /// ISO §2023:13.18.60.4 SR13a / §2023:13.18.40.4 GR9) — silent at 2002+, one character position per N.</summary>
+    /// ISO §2023:13.18.60.3 SR13a / §2023:13.18.40.4 GR9) — silent at 2002+, one character position per N.</summary>
     [Fact]
     public void Analyze_PicN_ClassifiesNational_UsageImplied()
     {
@@ -289,7 +289,7 @@ public sealed class LoudGuardTests
         Assert.Equal(PicCategory.NumericEdited, pic.Category);
     }
 
-    /// <summary>A custom currency PICTURE symbol (ISO §2023:12.3.7 GR13 — NC107A's <c>W</c>, NC108M's <c>&lt;</c>)
+    /// <summary>A custom currency PICTURE symbol (ISO §2023:12.3.7.4 GR13 — NC107A's <c>W</c>, NC108M's <c>&lt;</c>)
     /// stays legal and classifies NUMERIC-EDITED exactly as before the whitelist landed (§2023:13.18.40.4).</summary>
     [Theory]
     [InlineData("WWWW9", 'W')]

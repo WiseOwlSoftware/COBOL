@@ -7,7 +7,7 @@
   supplies the sender** — i.e. where the item qualified through GR5c3 (the DEFAULT phrase) or GR5c4 (neither
   REPLACING nor VALUE specified). Four reasons, none of them a preference:
   **(i)** the standard states the SAME action at the other occasion WITH the carve-out spelled out —
-  §2023:14.6.2.3.2 GR7, *"The length of each dynamic-length elementary item that is specified without a VALUE clause
+  §2023:14.6.2.3.2 GRL2.7, *"The length of each dynamic-length elementary item that is specified without a VALUE clause
   is set to zero"*; **(ii)** §2023:8.6.4 makes a dynamic-length item's initial-state length the VALUE clause's
   length, and §2023:14.9.20.4 GR6a3 demands a sender that *"produces the same result as the initial value of the
   data item as produced by the application of the VALUE clause"* — under the unconditional reading **no sender

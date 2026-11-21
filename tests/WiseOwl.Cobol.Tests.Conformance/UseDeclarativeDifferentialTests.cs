@@ -16,7 +16,7 @@ public sealed class UseDeclarativeDifferentialTests
 {
     private static void AssertMatchesGolden(string source) => DifferentialGolden.Assert(source);
 
-    /// <summary>§2023:14.9.30 GR24d + §2023:9.1.13.1: READ at end WITHOUT an AT END phrase invokes the file-scoped
+    /// <summary>§2023:14.9.30.4 GR24d + §2023:9.1.13.1: READ at end WITHOUT an AT END phrase invokes the file-scoped
     /// declarative — and the FILE STATUS item already holds "10" inside it (the status stores FIRST, GR6).</summary>
     [Fact]
     public void ReadAtEnd_NoPhrase_FileScopedDeclarativeRuns()
@@ -55,7 +55,7 @@ public sealed class UseDeclarativeDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§2023:9.1.13.1 / §2023:14.9.30 GR24c: a READ at end WITH the AT END phrase does NOT invoke the
+    /// <summary>§2023:9.1.13.1 / §2023:14.9.30.4 GR24c: a READ at end WITH the AT END phrase does NOT invoke the
     /// declarative — the imperative runs instead.</summary>
     [Fact]
     public void ReadAtEnd_WithPhrase_DeclarativeSuppressed()
@@ -223,7 +223,7 @@ public sealed class UseDeclarativeDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§2023:14.9.49 SR4: a declarative paragraph may be PERFORMed from the nondeclarative body as a plain
+    /// <summary>§2023:14.9.49.3 SR4: a declarative paragraph may be PERFORMed from the nondeclarative body as a plain
     /// procedure (declaratives share the one pc space).</summary>
     [Fact]
     public void PerformIntoDeclarative_RunsAsPlainProcedure()

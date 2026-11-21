@@ -81,12 +81,12 @@ public sealed record OoMethodSymbol
     /// <see cref="OoClassSymbol.FactoryClrName"/>.</summary>
     public bool IsFactory { get; init; }
 
-    /// <summary>METHOD-ID … OVERRIDE (§2023:11.7 SR3/SR4a — the OVERRIDE/FINAL wave, DEVLOG 605): an explicit
+    /// <summary>METHOD-ID … OVERRIDE (§2023:11.7.3 SR3/SR4a — the OVERRIDE/FINAL wave, DEVLOG 605): an explicit
     /// override declaration. Redefinition WITHOUT it is the SR4a 0837 (error strict; warning + the pre-wave
     /// name-match inference under <c>--permissive</c> — the documented migration leniency).</summary>
     public bool HasOverride { get; init; }
 
-    /// <summary>METHOD-ID … [IS] FINAL (§2023:11.7 GR3 — shall not be overridden; 0839 on the attempt). Emits
+    /// <summary>METHOD-ID … [IS] FINAL (§2023:11.7.4 GR3 — shall not be overridden; 0839 on the attempt). Emits
     /// C# <c>sealed override</c> (or a non-virtual fresh slot at a root).</summary>
     public bool IsFinal { get; init; }
 
@@ -131,7 +131,7 @@ public sealed record OoMethodSymbol
     public List<RaisingTarget> Raising { get; } = [];
 
     /// <summary>For a PROPERTY-clause-synthesized accessor: the SUBJECT data item (the emitter renders a
-    /// direct field read/write — observably identical to the spec's implicit MOVE method, §2023:13.18.42 GR1/GR2
+    /// direct field read/write — observably identical to the spec's implicit MOVE method, §2023:13.18.42.4 GR1/GR2
     /// :21214-21229, because the cloned descriptions are identical by construction). Null for explicit
     /// GET/SET PROPERTY methods (they carry real bodies).</summary>
     public DataItem? PropertySubject { get; set; }
@@ -148,7 +148,7 @@ public sealed record OoMethodSymbol
     /// intended type-level ordering guard (never a silent -1 sentinel).</summary>
     public OoMethodBinding? Binding { get; internal set; }
 
-    /// <summary>The method's own name scope (§2023:11.7 GR5 shadowing; sibling invisibility — trap #6).</summary>
+    /// <summary>The method's own name scope (§2023:11.7.4 GR5 shadowing; sibling invisibility — trap #6).</summary>
     public OoMethodDataScope DataScope { get; } = new();
 
     /// <summary>The base-chain method this method OVERRIDES (slice 3a — §2023:9.3.6 dispatch is on the runtime

@@ -619,7 +619,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
                     $"SET '{WrittenSource.Of(t)}': the receiving operand of a program-pointer SET shall be USAGE "
-                    + "PROGRAM-POINTER (ISO §2023:14.9.39.3 Format 9 SR21)");
+                    + "PROGRAM-POINTER (ISO §2023:14.9.39.3 SR21, Format 9)");
             }
             targets.Add(tp);
         }
@@ -647,7 +647,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     + $"'{sender.Text}': a program-pointer sender shall be NULL, another "
                     + "USAGE PROGRAM-POINTER item, a function-identifier or inline method invocation of category "
                     + "program-pointer, or an ENTRY program-address-identifier "
-                    + "(ISO §2023:14.9.39.3 Format 9 SR21 / §2023:8.4.3.13)");
+                    + "(ISO §2023:14.9.39.3 SR21, Format 9 / §2023:8.4.3.13)");
             }
             source = sp;
             // §2023:14.9.39.3 SR22 — "If identifier-7 references a RESTRICTED program-pointer, identifier-8 shall be
@@ -1687,7 +1687,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetSizeTargetNotDynamicLength,
                 $"SET SIZE OF '{p.Item.CobolName}': data-name-3 shall be a dynamic-length elementary item "
-                + "(ISO §2023:14.9.39.3 Format 16 SR33)");
+                + "(ISO §2023:14.9.39.3 SR33, Format 16)");
         }
         // §2023:14.9.39.3 SR34 over the LITERAL alternative — "Integer-2 shall be non-negative, and shall be equal to
         // or less than the maximum size of data-name-3, as specified in 8.5.1.10" — the maximum §2023:8.5.1.10.1

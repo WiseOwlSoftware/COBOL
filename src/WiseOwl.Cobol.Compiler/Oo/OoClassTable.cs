@@ -557,7 +557,7 @@ public sealed class OoClassTable
         }
 
         // PROTOTYPES (§2023:10.6.2 SR4): a header + optional LINKAGE-only data division, NO procedure body,
-        // NO OVERRIDE/FINAL attributes (§2023:11.7 SR2/SR8 — the OVERRIDE/FINAL wave's forward obligation).
+        // NO OVERRIDE/FINAL attributes (§2023:11.7.3 SR2/SR8 — the OVERRIDE/FINAL wave's forward obligation).
         void AddPrototypes(OoInterfaceSymbol isym)
         {
             var ictx = sources.Of(isym);

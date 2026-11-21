@@ -15,7 +15,7 @@
       *> terminating: the SET is simply not executed. CAP is displayed afterwards to prove exactly that — the
       *> capacity is unchanged whether or not the condition was raised. The check is on the VALUE, not on a
       *> DISPLAY of the register: an implicitly-defined CAPACITY register's picture is implementor-defined
-      *> (§2023:13.18.38 SR30), so its rendering width is not a spec-derived expectation and must not be asserted.
+      *> (§2023:13.18.38.3 SR30), so its rendering width is not a spec-derived expectation and must not be asserted.
       >>TURN EC-FLOW-SEARCH CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. ECFLOWS.

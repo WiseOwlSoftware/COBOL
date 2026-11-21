@@ -3,7 +3,7 @@
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The program-pointer carrier (ISO §2023:13.18.60 GR24 / §2023:8.5.2.15; P10 Step 7): "may contain the address of a
+/// The program-pointer carrier (ISO §2023:13.18.60.4 GR24 / §2023:8.5.2.15; P10 Step 7): "may contain the address of a
 /// program … For a COBOL program, the address is for an outermost program." GR24 leaves alignment, size, and
 /// representation implementor-defined — this implementation's representation is the OUTERMOST program's
 /// externalized identity (its per-run-unit-unique PROGRAM-ID name, §2023:8.4.6.3 rule 4), resolved and activated
@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public readonly record struct ProgramPointer(string? Name)
 {
-    /// <summary>The NULL program address (ISO §2023:8.4.3.10 GR3).</summary>
+    /// <summary>The NULL program address (ISO §2023:8.4.3.10.4 GR3).</summary>
     public static readonly ProgramPointer Null = default;
 
     /// <summary>True when this pointer holds the NULL program address.</summary>

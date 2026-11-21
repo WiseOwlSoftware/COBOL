@@ -202,7 +202,7 @@ public sealed class DataSkeletonEditionTests
     }
 
     /// <summary>NATIONAL data went LIVE at Phase 4a M2-DATA-3 (ISO §2023:8.5.2.10 / §2023:13.18.40.4 GR9 /
-    /// §2023:13.18.60.4 SR13a): a PIC N item (usage implied NATIONAL) compiles at every 2002+ edition — one UTF-16
+    /// §2023:13.18.60.3 SR13a): a PIC N item (usage implied NATIONAL) compiles at every 2002+ edition — one UTF-16
     /// char per national position (D-N1) — and stays introduction-gated at 85 (COBOL0900 naming COBOL-2002).
     /// The former 0899 not-implemented posture is retired.</summary>
     [Theory]
@@ -222,7 +222,7 @@ public sealed class DataSkeletonEditionTests
     }
 
     /// <summary>BOOLEAN data went LIVE at Phase 4a M2-DATA-4 (ISO §2023:8.5.2.5 / §2023:13.18.40.4 GR8/GR14 R14 /
-    /// §2023:13.18.60.4 SR5): a PIC 1 item (display- or bit-form — the same one-'0'/'1'-character-per-position
+    /// §2023:13.18.60.3 SR5): a PIC 1 item (display- or bit-form — the same one-'0'/'1'-character-per-position
     /// representation, D-B1) compiles at every 2002+ edition and stays introduction-gated at 85. The former
     /// 0899 not-implemented posture is retired.</summary>
     [Theory]

@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// Sections as procedure-name targets + qualified procedure-names (ISO §2023:14.4.3 structure; §2023:14.9.17 GO TO;
 /// §2023:14.9.28 PERFORM section / THRU incl. the legal INVERTED range; §2023:8.4.2.2 <c>para OF section</c> qualification
 /// and same-section implicit resolution of duplicated paragraph names), and the PERFORM … TIMES once-evaluated
-/// count (§2023:14.9.28 GR7 — body modifications of the count item must not change the iteration count; zero/negative
+/// count (§2023:14.9.28.4 GR7 — body modifications of the count item must not change the iteration count; zero/negative
 /// counts run zero times). Pinned to the committed golden (NIST-85 green across the whole PERFORM/GO TO series).
 /// Every program that has a section opens with one too (MAIN-SECT): ISO §2023:14.4.1 — "If one paragraph is in a
 /// section, all paragraphs shall be in sections" (kb/Work PB1146, COBOL2797).

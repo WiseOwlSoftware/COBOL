@@ -7,11 +7,11 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// NATIONAL (ISO §2023:8.5.2.10, PIC N / USAGE NATIONAL) and BOOLEAN (§2023:8.5.2.5, PIC 1 / USAGE BIT) declaration and
 /// clause facts — Phase 4a M2-DATA-3/4. The declaration band: COBOL0881 for the illegal USAGE×PICTURE shapes
-/// (§2023:13.18.60.4 SR5 :22722 / SR12 :22744 / SR20 :22764 and the picture-less elementary forms), COBOL0898 for
-/// VALUE category mismatches (§2023:13.18.63 SR5 :23232 / SR10 :23254) and boolean THROUGH (SR29 :23327),
+/// (§2023:13.18.60.3 SR5 :22722 / SR12 :22744 / SR20 :22764 and the picture-less elementary forms), COBOL0898 for
+/// VALUE category mismatches (§2023:13.18.63.3 SR5 :23232 / SR10 :23254) and boolean THROUGH (SR29 :23327),
 /// COBOL0899 for the NAMED staged legs (national-edited pictures, national-form numerics/boolean, FD national
 /// records) and the loud byte-addressed guards (D-N2: REDEFINES / EXTERNAL cells refuse a 2-byte national leaf).
-/// The positive half locks JUSTIFIED (§2023:13.18.32 SR3/GR1-2 :19264–19273), level-88 boolean conditions, national
+/// The positive half locks JUSTIFIED (§2023:13.18.32.3 SR3/GR1-2 :19264–19273), level-88 boolean conditions, national
 /// relation ordering (§2023:8.8.4.2.9/10 :9692–9715), and the group character image (a national/boolean leaf is
 /// string-stored, so groups containing them MOVE/DISPLAY in char space).
 /// </summary>
@@ -37,7 +37,7 @@ public sealed class NationalBooleanDataTests
         { "NBDAT01", "01 WS-A PIC N(4) USAGE DISPLAY.", "PIC N with explicit USAGE DISPLAY (SR20)" },
         // SR5 (:22722): USAGE BIT ⇒ the PICTURE shall be a boolean picture.
         { "NBDAT02", "01 WS-B PIC X(4) USAGE BIT.", "USAGE BIT with an alphanumeric PICTURE (SR5)" },
-        // A picture-less ELEMENTARY USAGE NATIONAL/BIT entry has no legal shape (§2023:13.18.40 GR9/GR8 — the
+        // A picture-less ELEMENTARY USAGE NATIONAL/BIT entry has no legal shape (§2023:13.18.40.4 GR9/GR8 — the
         // category needs its picture; unlike BINARY-CHAR there is no picture-less factory).
         { "NBDAT03", "01 WS-C USAGE NATIONAL.", "picture-less elementary USAGE NATIONAL" },
         { "NBDAT04", "01 WS-D USAGE BIT.", "picture-less elementary USAGE BIT" },
@@ -55,7 +55,7 @@ public sealed class NationalBooleanDataTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0881");
     }
 
-    // ── COBOL0898 — VALUE clause category mismatches (ISO §2023:13.18.63 SR5/SR10, both directions) ──────────
+    // ── COBOL0898 — VALUE clause category mismatches (ISO §2023:13.18.63.3 SR5/SR10, both directions) ──────────
 
     public static TheoryData<string, string, string, string> IllegalValueShapes() => new()
     {
@@ -321,7 +321,7 @@ public sealed class NationalBooleanDataTests
         Assert.Equal("NJ=CDE!\nBJ=001\nBB=001\nAJ=CDE!", stdout);
     }
 
-    /// <summary>A level-88 condition with a boolean-literal VALUE (ISO §2023:13.18.63 SR10 + §2023:8.8.4.5): the
+    /// <summary>A level-88 condition with a boolean-literal VALUE (ISO §2023:13.18.63.3 SR10 + §2023:8.8.4.5): the
     /// condition holds exactly when the parent equals the boolean value — the boolean equality relation
     /// (§2023:8.8.4.2.8, by VALUE regardless of usage).</summary>
     [Fact]

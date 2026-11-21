@@ -67,7 +67,7 @@ public static class PictureAnalyzer
     /// <summary>
     /// Analyze a PICTURE string (already stripped of the <c>PIC</c> keyword) plus an optional usage keyword and the
     /// entry's own SIGN clause (<see langword="null"/> when the entry has none — a group-level SIGN may still apply,
-    /// via the binder's post-build inheritance pass, ISO §2023:13.18.52 GR1–3). <paramref name="currencies"/> is the
+    /// via the binder's post-build inheritance pass, ISO §2023:13.18.52.4 GR1–3). <paramref name="currencies"/> is the
     /// unit's CURRENCY SIGN SET (ISO §2023:12.3.7 — symbol → currency string; <c>SpecialNamesBinder.CurrencySigns</c>, the
     /// r25-implied <c>'$' → "$"</c> included), of which a PICTURE uses at most ONE symbol (§2023:13.18.40.3 r24/r28):
     /// a non-default symbol (e.g. NC107A's <c>W</c>, NC108M's <c>&lt;</c>) classifies exactly like <c>$</c> — its
@@ -210,7 +210,7 @@ public static class PictureAnalyzer
 
         // ── The §2023:13.18.40.3 SR2 symbol whitelist (the W2 loud guard). The legal ISO 2023 Format-1 symbols are
         // A B E N P S V X Z 0 1 9 / , . + - * CR DB and the program's currency symbol (§2023:13.18.40.4 GR14;
-        // ExpandRepeats has already uppercased, so the §2023:8.1.3 GR3 case equivalence is folded). 'N' (national,
+        // ExpandRepeats has already uppercased, so the §2023:8.1.3.2 GR3 case equivalence is folded). 'N' (national,
         // §2023:8.5.2.10), '1' (boolean, §2023:8.5.2.5) and 'E' (external float, §2023:13.18.40.4 GR13b) are LEGAL 2002+
         // symbols with no implementation yet: each fires its ConstructRegistry introduction gate (0900 below
         // 2002) plus the not-implemented error at 2002+. Anything else is an invalid PICTURE. ──
@@ -220,7 +220,7 @@ public static class PictureAnalyzer
         {
             char c = expanded[i];
             if (char1Declared.Contains(c)) continue;   // a declared PICTURE EDITING character-1 (ISO §2023:13.18.40.3 SR8) — not an invalid symbol
-            // The program's currency symbol (ISO §2023:12.3.7 GR13), asked BEFORE the picture letters: no edition's
+            // The program's currency symbol (ISO §2023:12.3.7.4 GR13), asked BEFORE the picture letters: no edition's
             // exclusion list admits a letter that is a picture symbol of that edition, but E and N are symbols only from
             // COBOL-2002, so at COBOL-85 `CURRENCY SIGN IS "E"` makes E the currency symbol (§1985:VI.4.5.4 GR11; kb/Work
             // PB5173) and the float and national arms below must not see it.
@@ -408,7 +408,7 @@ public static class PictureAnalyzer
         bool anyAlpha = expanded.Any(c => c is 'X' or 'A');
         // CR / DB are fixed-insertion editing symbols too (ISO §2023:13.18.40.4) — `PIC 9(5)CR` is NUMERIC-EDITED
         // (NC104A MOVE-TEST-F1-14), not pure numeric with stray letters. The program's currency symbol (ISO
-        // §2023:12.3.7 GR13) is an editing symbol exactly like '$' — without it a `PIC WWWWW` would fall through to
+        // §2023:12.3.7.4 GR13) is an editing symbol exactly like '$' — without it a `PIC WWWWW` would fall through to
         // "pure numeric, zero digits".
         bool anyEdit = expanded.Any(c => c is 'Z' or '*' or '+' or '-' or ',' or '.' or '$' or 'B' or '0' or '/' || c == cs)
             || expanded.Contains("CR", StringComparison.Ordinal) || expanded.Contains("DB", StringComparison.Ordinal)
@@ -533,7 +533,7 @@ public static class PictureAnalyzer
     ///
     /// <para><paramref name="category"/> is what the PICTURE CHARACTER-STRING DESCRIBES (§2023:13.18.40.6 Table 10 /
     /// §2023:8.5.2 Table 2), which is what all four rules key on — not the item's final category, which a BLANK WHEN
-    /// ZERO clause can move (§2023:13.18.8 GR2) without changing the string.</para>
+    /// ZERO clause can move (§2023:13.18.8.4 GR2) without changing the string.</para>
     ///
     /// <para>Returns the usage the item BINDS with: the screened one, or <see cref="Usage.Display"/> where a
     /// violation has been reported — the recovery discipline, since the compile has already failed and the value

@@ -62,7 +62,7 @@ public static class CobolFile
         => _reg.AddAlternateKey(name, key, duplicates, collation, suppress);
 
     // ⛔ EVERY OPEN ENTRY CARRIES THE EXECUTING ELEMENT'S OWN ASSIGN SPECIFICATION AND LINAGE PAGE, and none of
-    // the three parameters has a default: ISO §2023:12.4.5.3 GR3 a)/b) and §2023:13.18.34 GR6 b) both name the runtime
+    // the three parameters has a default: ISO §2023:12.4.5.3 GR3 a)/b) and §2023:13.18.34.4 GR6 b) both name the runtime
     // element that EXECUTES the statement, and one file connector can be described by several of them (an
     // EXTERNAL file connector is ONE object per run unit, §2023:13.18.22.4 GR4 a; a RECURSIVE unit's is unit-scoped
     // across activations, §2023:8.6.4). Requiring the arguments makes an emitter path that forgets them a COMPILE
@@ -117,12 +117,12 @@ public static class CobolFile
     public static void CloseNoRewind(string name) => _reg.CloseNoRewind(name);
 
     // ⛔ AND EVERY WRITE ENTRY CARRIES THE EXECUTING ELEMENT'S LINAGE PAGE, for the same reason and with the same
-    // no-default discipline: §2023:13.18.34 GR6 b) 2 and 3 read the operand values DURING a WRITE statement — the
+    // no-default discipline: §2023:13.18.34.4 GR6 b) 2 and 3 read the operand values DURING a WRITE statement — the
     // ADVANCING PAGE one and the one that causes a page overflow — so the values belong to the element executing
     // that WRITE. `null` says the FD referenced by this statement has no LINAGE clause at all (kb/Work PB673).
 
     /// <summary>Plain <c>WRITE record</c> (ISO §2023:14.9.51); <paramref name="length"/> is the varying-record length
-    /// (ISO §2023:13.18.43 GR13a), -1 = the record's own size.</summary>
+    /// (ISO §2023:13.18.43.4 GR13a), -1 = the record's own size.</summary>
     public static void Write(string name, string image, int length, LinagePage? page)
         => _reg.Write(name, image, length, page);
 
@@ -148,13 +148,13 @@ public static class CobolFile
     // those governed entries. `Write` and `WriteAdvancing`
     // survive as the physical layer the runtime's own report writer and the unit tests drive directly.
 
-    /// <summary>The file's LINAGE-COUNTER register (ISO §2023:8.4.3.14 / §2023:13.18.34 GR7).</summary>
+    /// <summary>The file's LINAGE-COUNTER register (ISO §2023:8.4.3.14 / §2023:13.18.34.4 GR7).</summary>
     public static long LinageCounter(string name) => _reg.LinageCounter(name);
 
-    /// <summary>The end-of-page condition of the file's most recent WRITE (ISO §2023:14.9.51 GR26a/b).</summary>
+    /// <summary>The end-of-page condition of the file's most recent WRITE (ISO §2023:14.9.51.4 GR26a/b).</summary>
     public static bool EndOfPage(string name) => _reg.EndOfPage(name);
 
-    /// <summary>The length of the most recently read record (ISO §2023:13.18.43 GR15).</summary>
+    /// <summary>The length of the most recently read record (ISO §2023:13.18.43.4 GR15).</summary>
     public static int LastReadLength(string name) => _reg.LastReadLength(name);
 
     /// <summary>The record the most recent successful READ made available, at its own length — what an
@@ -232,22 +232,22 @@ public static class CobolFile
     /// <summary>Stage the RELATIVE KEY item's value for the next keyed verb.</summary>
     public static void SetRelativeKey(string name, long rrn) => _reg.SetRelativeKey(name, rrn);
 
-    /// <summary>The RRN last made available/released (§2023:14.9.30 GR25 / §2023:14.9.51 GR29a).</summary>
+    /// <summary>The RRN last made available/released (§2023:14.9.30.4 GR25 / §2023:14.9.51.4 GR29a).</summary>
     public static long RelativeSlot(string name) => _reg.RelativeSlot(name);
 
     /// <summary>Keyed WRITE (§2023:14.9.51) — returns the I-O status.</summary>
     public static string WriteKeyed(string name, string image, int length = -1) => _reg.WriteKeyed(name, image, length);
 
-    /// <summary>START on a relative file (§2023:14.9.41 GR8–GR12).</summary>
+    /// <summary>START on a relative file (§2023:14.9.41.4 GR8–GR12).</summary>
     public static string StartRelative(string name, string op, long rrn) => _reg.StartRelative(name, op, rrn);
 
-    /// <summary>START on an indexed file (§2023:14.9.41 GR13–GR17); <paramref name="keyedRecordImage"/> is the RECORD
+    /// <summary>START on an indexed file (§2023:14.9.41.4 GR13–GR17); <paramref name="keyedRecordImage"/> is the RECORD
     /// AREA, which GR17 a) makes the source of the search key (kb/Work PB355).</summary>
     public static string StartIndexed(string name, int keyIndex, string op, string keyedRecordImage, StartKeyLength length,
         RecordExtents? areaExtents = null)
         => _reg.StartIndexed(name, keyIndex, op, keyedRecordImage, length, areaExtents);
 
-    /// <summary>START FIRST/LAST (COBOL-2002+; §2023:14.9.41 GR11/GR12), either keyed organization.</summary>
+    /// <summary>START FIRST/LAST (COBOL-2002+; §2023:14.9.41.4 GR11/GR12), either keyed organization.</summary>
     public static string StartFirstLast(string name, bool last) => _reg.StartFirstLast(name, last);
 
     /// <summary>DELETE FILE (§2023:14.9.10 Format 2, COBOL-2023); <paramref name="overridden"/> is the GR18 OVERRIDE
@@ -358,7 +358,7 @@ public static class CobolFile
         => _reg.ReadShared(name, previous, phrase, advancingOnLock, ignoringLock, retryKind, retryAmount, out image);
 
     /// <summary>⛔ THE ONE WRITE ENTRY THE EMITTER RENDERS, every organization and every print-control shape
-    /// (§2023:14.9.51 GR10/GR11). <paramref name="advance"/> carries the statement's ADVANCING phrases as DATA —
+    /// (§2023:14.9.51.4 GR10/GR11). <paramref name="advance"/> carries the statement's ADVANCING phrases as DATA —
     /// see <see cref="WriteAdvanceKind"/> for why a WRITE's presentation shape may not pick its own entry
     /// (kb/Work PB683). <paramref name="nationalRecord"/> is the category of the record the statement sends
     /// (§2023:14.9.51.4 GR21 / GR22: record-name-1 "implicitly or explicitly as national"), which only a LINE SEQUENTIAL
@@ -369,24 +369,24 @@ public static class CobolFile
         RecordExtents? areaExtents = null, bool nationalRecord = false, int namedEntry = RecordFormat.BySelectWhen)
         => _reg.WriteShared(name, image, length, phrase, retryKind, retryAmount, page, advance, areaExtents, nationalRecord, namedEntry);
 
-    /// <summary>Governed REWRITE for a sharing-active connector, any organization (§2023:14.9.35 GR11/GR12).
+    /// <summary>Governed REWRITE for a sharing-active connector, any organization (§2023:14.9.35.4 GR11/GR12).
     /// <paramref name="nationalRecord"/> is the category of the record the statement sends, as for
     /// <see cref="WriteShared"/> (§2023:14.9.35.4 GR17 c)'s space fill, kb/Work PB1191).</summary>
     public static string RewriteShared(string name, string image, int length, FileRecordLock phrase,
         FileRetryKind retryKind, long retryAmount, RecordExtents? areaExtents = null, bool nationalRecord = false, int namedEntry = RecordFormat.BySelectWhen)
         => _reg.RewriteShared(name, image, length, phrase, retryKind, retryAmount, areaExtents, nationalRecord, namedEntry);
 
-    /// <summary>Governed DELETE RECORD for a sharing-active connector (§2023:14.9.10 GR6/GR7).</summary>
+    /// <summary>Governed DELETE RECORD for a sharing-active connector (§2023:14.9.10.4 GR6/GR7).</summary>
     public static string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, long retryAmount,
         RecordExtents? areaExtents = null)
         => _reg.DeleteShared(name, keyedRecordImage, retryKind, retryAmount, areaExtents);
 
-    /// <summary>DELETE FILE with a RETRY phrase (§2023:14.9.10 GR15 — the '62' file-sharing conflict re-attempt) and
+    /// <summary>DELETE FILE with a RETRY phrase (§2023:14.9.10.4 GR15 — the '62' file-sharing conflict re-attempt) and
     /// the GR18 OVERRIDE flag.</summary>
     public static string DeleteFile(string name, FileRetryKind retryKind, long retryAmount, bool overridden = false)
         => _reg.DeleteFile(name, retryKind, retryAmount, overridden);
 
-    /// <summary>UNLOCK file [RECORD[S]] (§2023:14.9.47 GR1).</summary>
+    /// <summary>UNLOCK file [RECORD[S]] (§2023:14.9.47.4 GR1).</summary>
     public static void Unlock(string name, bool records) => _reg.Unlock(name, records);
 
     /// <summary>Acquire a record lock (§2023:12.4.5.9.4 GR7 ceilings enforced; the CobolFileLockTests surface).</summary>

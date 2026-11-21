@@ -366,7 +366,7 @@ public sealed class RelativeEngineTests
     }
 
     /// <summary>A relative file round-trips through CLOSE and OPEN with gaps (a record in the billions is one leaf entry),
-    /// RECORD VARYING frames at their exact lengths (§2023:13.18.43 GR13/GR15), an extent table (D-FRA (v), kb/Work PB1053), and
+    /// RECORD VARYING frames at their exact lengths (§2023:13.18.43.4 GR13/GR15), an extent table (D-FRA (v), kb/Work PB1053), and
     /// a CODE-SET (§2023:13.18.13.4 GR6: the payload in the file's character set on the medium, the native one in the record
     /// area; the framing never converted, 2.2.1.5).</summary>
     [Fact]

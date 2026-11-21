@@ -180,7 +180,7 @@ public sealed record InitializeSetNull(Place Target) : InitializeAction;
 /// among them — and it is reachable now.</para>
 /// <para>The emitter renders exactly what the EXPLICIT SET statement renders for the same operand pair —
 /// <c>SetEmitter.EmitSetPointer</c>'s straight handle copy for the pointer family, <c>OoEmitter</c>'s Format-5
-/// cast-and-copy (§2023:14.9.39 GR9, "reference copy") for an object-reference receiver — because §2023:14.9.20.4 GR4 does
+/// cast-and-copy (§2023:14.9.39.4 GR9, "reference copy") for an object-reference receiver — because §2023:14.9.20.4 GR4 does
 /// not describe a similar statement, it names THE SET statement.</para></summary>
 public sealed record InitializeSetFrom(Place Target, Place Source) : InitializeAction;
 

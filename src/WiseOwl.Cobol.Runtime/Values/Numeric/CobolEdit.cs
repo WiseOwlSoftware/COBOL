@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// the physical one — the ONE place a symbol wider than one character position is written out, shared with the
 /// PICTURE EDITING literal of §2023:13.18.40.4 GR14 'es' (kb/Work PB491) — so neither multi-character string touches
 /// an editing rule; <c>commaMode</c> is DECIMAL-POINT IS COMMA (GR14 — the decimal and grouping
-/// separators EXCHANGE functionality; §2023:13.18.40.2 SR13: "the rules for the symbol period apply to the symbol
+/// separators EXCHANGE functionality; §2023:13.18.40.3 SR13: "the rules for the symbol period apply to the symbol
 /// comma, and the rules for the symbol comma apply to the symbol period", and §2023:13.18.40.6: "the precedence rules
 /// … are interchanged"). The public entries CANONICALIZE: under comma-mode the mask's <c>.</c>/<c>,</c> are
 /// swapped so the core logic always sees dot-as-decimal, and the rendered output swaps back — which realizes
@@ -89,7 +89,7 @@ public static partial class CobolEdit
     /// <summary>Is <paramref name="maskChar"/> one of the picture's SIMPLE INSERTION editing symbols
     /// (§2023:13.18.40.5 rule 3)? <paramref name="grouping"/> is the character playing the GROUPING separator's part —
     /// ',' in the dot-canonical core, and the caller's own choice on a RAW picture, because DECIMAL-POINT IS
-    /// COMMA exchanges the two (§2023:13.18.40.2 SR13: "the rules for the symbol period apply to the symbol comma, and
+    /// COMMA exchanges the two (§2023:13.18.40.3 SR13: "the rules for the symbol period apply to the symbol comma, and
     /// the rules for the symbol comma apply to the symbol period"). Whichever of the pair is NOT the grouping
     /// separator is the decimal point, whose editing is SPECIAL insertion (rule 4), never simple.</summary>
     public static bool IsSimpleInsertionSymbol(char maskChar, char grouping = ',')
@@ -155,7 +155,7 @@ public static partial class CobolEdit
         return null;
     }
 
-    /// <summary>Swap <c>.</c>↔<c>,</c> — the §2023:13.18.40.2 SR13 role exchange, applied to a mask entering the
+    /// <summary>Swap <c>.</c>↔<c>,</c> — the §2023:13.18.40.3 SR13 role exchange, applied to a mask entering the
     /// dot-canonical core and to the rendered output leaving it (the swap is its own inverse).</summary>
     private static string SwapSeparators(string s)
     {
@@ -175,7 +175,7 @@ public static partial class CobolEdit
         // back (GR14b). ⛔ The swap is applied to the LOGICAL image and only at the positions whose SYMBOL is a
         // separator, never to the physical one: a currency string or an editing literal may itself hold a '.'
         // or a ',' (§2023:12.3.7.3 r23 lets literal-7 be any length; SR9 lets a literal be 50 characters), and
-        // §2023:13.18.40.2 SR13 exchanges the roles of the two SYMBOLS, not the characters of a literal.
+        // §2023:13.18.40.3 SR13 exchanges the roles of the two SYMBOLS, not the characters of a literal.
         string mask = commaMode ? SwapSeparators(picture) : picture;
         // The output pattern: V marks the implied point but holds no character position (ISO §2023:13.18.40.3).
         string pattern = mask.Replace("V", "").Replace("P", "");   // V and P hold no output position (§2023:13.18.40.3)
@@ -214,7 +214,7 @@ public static partial class CobolEdit
 
         // Pre-scan (on the full picture): fixed vs floating sign/currency — ONE occurrence is a fixed-insertion
         // character; TWO OR MORE form a floating string whose members are also digit positions (§2023:13.18.40.4).
-        // The currency symbol is the program's CURRENCY SIGN PICTURE SYMBOL (ISO §2023:12.3.7 GR13; '$' per SR25).
+        // The currency symbol is the program's CURRENCY SIGN PICTURE SYMBOL (ISO §2023:12.3.7.4 GR13; '$' per SR25).
         // ⛔ The digit-position count is MaskFacts' — the ONE derivation Format, TryFormat, MaskCapacity,
         // MaskScale and DeEdit all read (kb/Work PB2639) — never a loop of this method's own.
         // ⛔ §2023:13.18.40.5 rule 6, first sentence: "The currency symbol, the extended editing sign control
@@ -520,7 +520,7 @@ public static partial class CobolEdit
     {
         string physical = image;
         string rawPicture = picture;
-        if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§2023:13.18.40.2 SR13) — digit POSITIONS are unchanged
+        if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§2023:13.18.40.3 SR13) — digit POSITIONS are unchanged
         string pattern = picture.Replace("V", "").Replace("P", "");   // V and P hold no output position (§2023:13.18.40.3)
         var facts = MaskFacts.Of(pattern, edits, currency);
         char currencyChar = facts.CurrencyChar;
@@ -814,7 +814,7 @@ public static partial class CobolEdit
     public static (int Capacity, int FracDigits) MaskCapacity(string picture, EditRule[]? edits, char currency = '$',
         bool commaMode = false)
     {
-        if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§2023:13.18.40.2 SR13)
+        if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§2023:13.18.40.3 SR13)
         var facts = MaskFacts.Of(picture, edits, currency);
         return (facts.Capacity, facts.FractionDigits(picture));
     }
@@ -825,7 +825,7 @@ public static partial class CobolEdit
     /// required for the reason <see cref="MaskCapacity"/>'s is (kb/Work PB2639).</summary>
     public static int MaskScale(string picture, EditRule[]? edits, char currency = '$', bool commaMode = false)
     {
-        if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§2023:13.18.40.2 SR13) — the comma IS the decimal position
+        if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§2023:13.18.40.3 SR13) — the comma IS the decimal position
         return MaskFacts.Of(picture, edits, currency).FractionDigits(picture);
     }
 

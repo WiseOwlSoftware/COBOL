@@ -137,7 +137,7 @@ no byte `ProgramState`; byte images are transient at file/CODE-SET boundaries on
 
 - **Related source files:** `src/WiseOwl.Cobol.Runtime/Values/*` (`CobolNum`, `CobolString`, `CobolDynTable`), `Verbs/*` (`CobolInspect`, `CobolStringOps`), `IO/*` (`CobolFile`, connectors, `CobolSort`), `Intrinsics/*` (`CobolIntrinsics`, `CobolDate`), `Control/*` (`ManagedPointer`, `RunUnit`, signals), `Exceptions/*` (`ExceptionCatalog`, `ExceptionState`).
 - **Related notes:** [[kb/Runtime/Execution Model]] · [[kb/Spec/Lookup/Runtime Mapping]]
-- **ISO constructs handled:** runtime behavior of numerics (§2023:8.8.1), strings (§2023:14.9.21/.38/.42), files (§2023:14.9 I-O, §2023:9.1.13 status), intrinsics (§15), interprogram (§2023:14.9.4), OO INVOKE (§2023:14.9.23), EC engine (§2023:14.6.12 Table 13), Report Writer (§2023:13.18).
+- **ISO constructs handled:** runtime behavior of numerics (§2023:8.8.1), strings (§2023:14.9.21/.38/.42), files (§2023:14.9 I-O, §2023:9.1.13 status), intrinsics (§15), interprogram (§2023:14.9.4), OO INVOKE (§2023:14.9.23), EC engine (§2023:14.6.13.1.6 Table 13), Report Writer (§2023:13.18).
 - **ISO rules enforced:** ROUNDED (§2023:14.7.4) + ON SIZE ERROR (§2023:14.6.6) via the `TryStore` funnel; FILE STATUS state machines (§2023:9.1.13); condition evaluation & short-circuit (§2023:8.8.4); EC hierarchy/fatality (§2023:14.6.12).
 - **Constraints applied:** typed-native only (no byte substrate); deterministic clock for golden output; EC checking off by default.
 - **IR / semantic links:** every runtime call traces back to a bound node — see [[kb/Spec/Lookup/Runtime Mapping]] and [[kb/Spec/Lookup/IR Mapping]].

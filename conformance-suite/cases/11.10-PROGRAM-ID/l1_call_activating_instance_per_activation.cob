@@ -18,7 +18,7 @@
       *>       (LOCAL-STORAGE, §2023:13.6.4 GR1 / §2023:14.6.2.3.2 — allocated per activation) is intact;
       *>   (c) anything that reaches the activating element answers PER ACTIVATION — including the
       *>       container handle through which a CONTAINED callee reads a GLOBAL item of its container
-      *>       (§2023:13.18.27 GR2). §2023:13.18.27.3 SR1b permits IS GLOBAL on a level-1 entry of the LOCAL-STORAGE
+      *>       (§2023:13.18.27.4 GR2). §2023:13.18.27.3 SR1b permits IS GLOBAL on a level-1 entry of the LOCAL-STORAGE
       *>       section, which is the ONE composition that makes (c) observable: the item is per-activation
       *>       AND visible to the containee.
       *>

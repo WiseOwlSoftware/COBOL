@@ -93,7 +93,7 @@ screenLineClause
     ;
 
 // {COLUMN | COL | COLUMNS | COLS} NUMBER IS [PLUS | + | MINUS | -] {identifier-2 | integer-2}
-// (ISO §2023:13.17.2; §2023:13.18.14 SR1 admits the plural spellings).
+// (ISO §2023:13.17.2; §2023:13.18.14.3 SR1 admits the plural spellings).
 screenColumnClause
     : (COLUMN | COL | COLUMNS | COLS) NUMBER? IS? (IDENTIFIER | PLUS | PLUSWORD | MINUS)? (refDataReference1=dataReference | integerLiteral)
     ;

@@ -31,9 +31,9 @@ public sealed class CobolDynTable<T>
 
     /// <param name="seed">Produces one occurrence as the initial state has it (§2023:14.6.2.3.2 — the element's VALUE
     /// clauses over the background): the occurrences the table OPENS with.</param>
-    /// <param name="min">FROM integer-4 — the minimum / initial current capacity (§2023:13.18.38 GR16); the table opens
+    /// <param name="min">FROM integer-4 — the minimum / initial current capacity (§2023:13.18.38.4 GR16); the table opens
     /// at this capacity, seeded.</param>
-    /// <param name="expected">TO integer-5 — the expected capacity (§2023:13.18.38 GR17), or null if unbounded.</param>
+    /// <param name="expected">TO integer-5 — the expected capacity (§2023:13.18.38.4 GR17), or null if unbounded.</param>
     /// <param name="initializedSeed">The INITIALIZED phrase's seed (§2023:8.5.1.9.5 — the element "as though … the
     /// subject of a statement of the form INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT") for every
     /// occurrence a STATEMENT creates later, or null exactly when INITIALIZED is absent: those contents are then
@@ -211,7 +211,7 @@ public sealed class CobolDynTable<T>
         return grown;
     }
 
-    /// <summary>SET Format 14 <c>… TO n</c> (§2023:14.9.39 GR29): set the current capacity to n (raise OR lower), clamped
+    /// <summary>SET Format 14 <c>… TO n</c> (§2023:14.9.39.4 GR29): set the current capacity to n (raise OR lower), clamped
     /// to ≥ the minimum. Lowering frees the highest occurrences. Illegal during a SEARCH of this same table
     /// (EC-FLOW-SEARCH, GR31). Growth beyond the implementor max raises EC-BOUND-TABLE-LIMIT (capacity unchanged).</summary>
     public void SetCapacity(Int128 n)
@@ -409,7 +409,7 @@ public sealed class CobolDynTable<T>
     }
 
     /// <summary>Mark the start of a SEARCH of this table (a SET Format 14 on it while active raises EC-FLOW-SEARCH,
-    /// §2023:14.9.39 GR31). Nestable (re-entrant SEARCH).</summary>
+    /// §2023:14.9.39.4 GR31). Nestable (re-entrant SEARCH).</summary>
     public void EnterSearch() => _searching++;
 
     /// <inheritdoc cref="EnterSearch"/>

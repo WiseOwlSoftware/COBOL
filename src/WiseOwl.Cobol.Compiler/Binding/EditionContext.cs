@@ -489,7 +489,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <see cref="Permissive"/>. Every removed/reserved-word emit site routes its severity decision through
     /// here — never a local strictness test.</summary>
     // NOTE (the OVERRIDE/FINAL wave, DEVLOG 605): this seam now also carries DOCUMENTED-DIALECT-LENIENCY
-    // gating (e.g. §2023:11.7 SR4a redefinition-without-OVERRIDE, 0837 — error strict, warning + the pre-wave
+    // gating (e.g. §2023:11.7.3 SR4a redefinition-without-OVERRIDE, 0837 — error strict, warning + the pre-wave
     // name-match inference under --permissive), not only removed-construct gating: ONE policy seam, never a
     // parallel Lenient() method or a local Permissive test (feedback_one_mechanism_per_job).
     public void Removed(string code, string message)
