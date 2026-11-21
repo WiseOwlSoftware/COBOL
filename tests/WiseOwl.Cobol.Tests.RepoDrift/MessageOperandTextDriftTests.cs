@@ -7,13 +7,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Tests.RepoDrift;
 
 /// <summary>
 /// ⛔ A MESSAGE NAMES A WRITTEN OPERAND AS THE PROGRAMMER WROTE IT (kb/Work PB5979). <c>ParserRuleContext.GetText()</c> joins a
 /// node's tokens with no separators, so <c>X OF Q</c> printed as <c>XOFQ</c> and <c>KY OF IREC</c> as <c>KYOFIREC</c>: a name the
-/// program does not contain. A diagnostic's text takes <c>WrittenSource.Of</c> (<c>DataBinder.WrittenText</c>), the one reader of
+/// program does not contain. A diagnostic's text takes <c>WrittenSource.Of</c> (<c>WrittenSource.Of</c>), the one reader of
 /// a node's source extent. The sweep reads the compiler's sources and refuses a <c>GetText()</c> of a multi-token parse context
 /// that reaches a message by one of three shapes: it sits in an interpolation hole; it is an operand of a <c>+</c> that also holds
 /// a string literal; or it initializes a local that the same member then uses in one of those two places. A <c>GetText()</c> used
@@ -40,7 +41,7 @@ public sealed class MessageOperandTextDriftTests
         var offences = Offences(files);
         Assert.True(offences.Count == 0,
             "A diagnostic names an operand with ParserRuleContext.GetText(), which runs its tokens together ('X OF Q' prints "
-            + "'XOFQ'); use DataBinder.WrittenText (WrittenSource.Of) for the text a message quotes (kb/Work PB5979):\n"
+            + "'XOFQ'); use WrittenSource.Of (WrittenSource.Of) for the text a message quotes (kb/Work PB5979):\n"
             + string.Join("\n", offences));
     }
 

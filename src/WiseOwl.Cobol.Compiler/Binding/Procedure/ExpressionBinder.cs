@@ -451,7 +451,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         return host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? IntrinsicBinder.OperandOf(kof, functionValue: true)   // §2023:8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
         : dref.LINAGE_COUNTER() is not null
             ? ctx.Refs.Counters.LinageFileOf(dref) is { } lcf ? new BoundComputedOperand(new BoundLinageCounterRef(lcf))
-                : BoundOperandError.Refused(ctx.Edition, $"LINAGE-COUNTER reference '{DataBinder.WrittenText(dref)}' (ISO §2023:8.4.3.14)")
+                : BoundOperandError.Refused(ctx.Edition, $"LINAGE-COUNTER reference '{WrittenSource.Of(dref)}' (ISO §2023:8.4.3.14)")
         // LINE-COUNTER / PAGE-COUNTER (ISO §2023:8.4.3.15) — RWCS registers, intercepted ahead of name resolution
         // (the LINAGE-COUNTER idiom); a BoundExprError inside the computed wrapper stays loud (§1.4).
         : host.Rw.CounterExpr(dref) is { } rcx ? new BoundComputedOperand(rcx)
@@ -533,14 +533,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// VALUE argument and INVOKE had neither half, or only the constant half, and refused conforming source.
     /// <c>LiteralAliasResolutionDriftTests</c> fails when a procedure binder reads either table itself.</summary>
     internal LiteralAlias? LiteralAliasOf(Core.DataReferenceContext dref) =>
-        ctx.Data.ConstantOfIdentifierPosition(dref) is { } k ? new(DataBinder.WrittenText(dref), k, null)
+        ctx.Data.ConstantOfIdentifierPosition(dref) is { } k ? new(WrittenSource.Of(dref), k, null)
         // A symbolic-character a CONTAINING element declares yields to the referring element's own item of the same
         // spelling: "a source element's reference to such a name, even when it is a different type of user-defined
         // word, is to the item which that source element describes" (§2023:8.4.6.1, kb/Work PB3153). Asked BEFORE the
         // resolution, which records the word as used as a symbolic-character (§2023:8.3.2.2). In one element the two
         // cannot coexist (COBOL2692 at the second declaration), so the own-item test changes no own-element answer.
         : ctx.Data.SpecialNames.NamesSymbolic(dref) && !ctx.Refs.DescribesOwnItem(dref)
-          && ctx.Data.SpecialNames.SymbolicOf(dref) is { } s ? new(DataBinder.WrittenText(dref), null, s)
+          && ctx.Data.SpecialNames.SymbolicOf(dref) is { } s ? new(WrittenSource.Of(dref), null, s)
         : null;
 
     /// <summary>The literal-alias a BARE WORD spells where the grammar writes <c>literal | cobolWord</c> — a position no
@@ -589,7 +589,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         return host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? ScreenIdentifierOperand(kof, dref, context)
         : dref.LINAGE_COUNTER() is not null
             ? ctx.Refs.Counters.LinageFileOf(dref) is { } lcf ? new BoundLinageCounterRef(lcf)
-                : BoundExprError.Refused(ctx.Edition, $"LINAGE-COUNTER reference '{DataBinder.WrittenText(dref)}' (ISO §2023:8.4.3.14)")
+                : BoundExprError.Refused(ctx.Edition, $"LINAGE-COUNTER reference '{WrittenSource.Of(dref)}' (ISO §2023:8.4.3.14)")
         // LINE-COUNTER / PAGE-COUNTER (ISO §2023:8.4.3.15): in the PROCEDURE DIVISION the registers may appear
         // wherever an integer item may (SR1) — read from the report's engine instance, never storage.
         : host.Rw.CounterExpr(dref) is { } rcx ? rcx
@@ -632,7 +632,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         {
             if (ctx.Edition.Permissive)
                 ctx.Edition.Warning(DiagnosticCatalog.IndexNameContext,
-                    $"the index-name '{DataBinder.WrittenText(dref)}' is used as an arithmetic operand; {ctx.Edition.Edition.Contexts()} "
+                    $"the index-name '{WrittenSource.Of(dref)}' is used as an arithmetic operand; {ctx.Edition.Edition.Contexts()} "
                     + "admits an index-name only in a subscript, PERFORM/SEARCH VARYING, SET, or as an operand OF a "
                     + "relation condition, never inside an arithmetic expression"
                     + ctx.Edition.Edition.Cite("", " (§2023:8.8.4.2.13)") + " — accepted under "
@@ -640,13 +640,13 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             else
             {
                 ctx.Edition.Error(DiagnosticCatalog.IndexNameContext,
-                    $"the index-name '{DataBinder.WrittenText(dref)}' is not an arithmetic operand (ISO {ctx.Edition.Edition.NotArithmetic()} "
+                    $"the index-name '{WrittenSource.Of(dref)}' is not an arithmetic operand (ISO {ctx.Edition.Edition.NotArithmetic()} "
                     + "admits an index-name only in a subscript, PERFORM/SEARCH "
                     + "VARYING, SET, or as an operand OF a relation condition, never inside an arithmetic "
                     + "expression" + ctx.Edition.Edition.Cite("", ", §2023:8.8.4.2.13") + "). SET a data item to the index first "
-                    + $"(SET data-item TO {DataBinder.WrittenText(dref)}) — or --permissive accepts it as the occurrence "
+                    + $"(SET data-item TO {WrittenSource.Of(dref)}) — or --permissive accepts it as the occurrence "
                     + "number");
-                return BoundExprError.Refused(ctx.Edition, $"index-name '{DataBinder.WrittenText(dref)}' in an arithmetic expression");
+                return BoundExprError.Refused(ctx.Edition, $"index-name '{WrittenSource.Of(dref)}' in an arithmetic expression");
             }
         }
         return new BoundIndexRef(ix);
@@ -858,8 +858,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// reported the qualification rule, so it is a refusal, never a deferral).</para>
     public RefResolution ResolveSending(Core.DataReferenceContext dref) =>
         dref.PAGE_COUNTER() is null ? ctx.Refs.Resolve(dref)
-        : host.Rw.CounterPlace(dref) is { } counter ? RefResolution.Resolved(counter, DataBinder.WrittenText(dref))
-        : RefResolution.Refused(DataBinder.WrittenText(dref));
+        : host.Rw.CounterPlace(dref) is { } counter ? RefResolution.Resolved(counter, WrittenSource.Of(dref))
+        : RefResolution.Refused(WrittenSource.Of(dref));
 
     /// <summary>Resolve a RECEIVING data reference to its <see cref="Place"/> — the ONE receiving-side
     /// chokepoint (MOVE targets, arithmetic resultants, SET receivers). A report counter here is rejected at
@@ -904,14 +904,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             // ⛔ THE RESOLVER'S ANSWER, NOT A GUESS (kb/Work PB1030): only a DEFERRED shape is reported here.
             if (answer.Outcome == RefOutcome.Deferred)
                 ctx.Edition.Error(DiagnosticCatalog.ReceivingReferenceNotImplemented,
-                    $"receiving operand '{DataBinder.WrittenText(dref)}' names a declared item in a reference shape WiseOwl COBOL does "
+                    $"receiving operand '{WrittenSource.Of(dref)}' names a declared item in a reference shape WiseOwl COBOL does "
                     + "not yet implement as a receiver (DESIGN §1.4 — rejected rather than dropped)");
             // ⛔ A REPORTED REFUSAL IS A CLAIM THE REFUSAL LEDGER CHECKS (kb/Work PB1407). The sending arm builds a
             // refusal NODE through a factory that records itself, so a resolver that said "reported" and did not is
             // caught per statement (COBOL2362). This receiving arm builds no node — the caller simply drops the
             // receiver — so the claim was never checked, and `MOVE "A" TO X (:2)` compiled CLEAN with the whole MOVE
             // missing. Recording the refusal here puts the receiving arm under the same per-statement check.
-            else ctx.Edition.NoteRefusal(DiagnosticCatalog.UnreportedRefusal, $"receiving operand '{DataBinder.WrittenText(dref)}'");
+            else ctx.Edition.NoteRefusal(DiagnosticCatalog.UnreportedRefusal, $"receiving operand '{WrittenSource.Of(dref)}'");
             return null;
         }
         if (ReceivingPlaceBar(dref, place) is { } placeBar) return Refuse(placeBar);
@@ -1019,7 +1019,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     private ReceivingBar Bar(NonReceivableForm form, Antlr4.Runtime.ParserRuleContext written)
     {
         var rule = ReceivingOperandForms.Rules[form];
-        return new(rule.Descriptor.Code, rule.Message(DataBinder.WrittenText(written), ctx.Edition.Edition));
+        return new(rule.Descriptor.Code, rule.Message(WrittenSource.Of(written), ctx.Edition.Edition));
     }
 
     /// <summary>Whether <paramref name="dref"/>, already resolved (as a SENDING operand) to <paramref name="place"/>,
@@ -1087,11 +1087,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // of the same clause says "subordinate to" when it means it), and the RETURNING item is no formal parameter.
         if (ctx.Data.Linkage.IsFunctionFormal(place.Item))
             return new(DiagnosticCatalog.FunctionFormalReceiving.Code,
-                $"'{DataBinder.WrittenText(dref)}' is a formal parameter of this function and shall not be used as a "
+                $"'{WrittenSource.Of(dref)}' is a formal parameter of this function and shall not be used as a "
                 + "receiving operand (ISO §2023:13.7.3 SR5); store into the RETURNING item or a WORKING-STORAGE copy");
         // A CONSTANT RECORD's content cannot be modified — neither the record nor any subordinate may be a
         // receiving operand (ISO §2023:13.18.15.3 SR2 → COBOL1548; DataBinder.ConstantStoreProhibition).
-        return ctx.Data.ConstantStoreProhibition(place, $"receiving operand '{DataBinder.WrittenText(dref)}'")
+        return ctx.Data.ConstantStoreProhibition(place, $"receiving operand '{WrittenSource.Of(dref)}'")
             is { } constant ? new(DiagnosticCatalog.ConstantAsReceiver.Code, constant) : null;
     }
 
@@ -1118,7 +1118,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     internal Place? ScreenResultant(Place p, Antlr4.Runtime.ParserRuleContext written, bool editedOk, EditionRule clause)
     {
         using var _ = ctx.Edition.At(written);   // kb/Work PB4406 — the resultant's own position, not the statement's
-        string refText = DataBinder.WrittenText(written);
+        string refText = WrittenSource.Of(written);
         var pic = p.Item.Pic;
         // ⛔ THE IDENTITY QUESTION, ASKED ONCE (kb/Work PB602). It used to be `p is not RefModPlace` — PB128's
         // route AROUND the fact that a decorated place reported the item underneath — and §2023:8.4.3.3.4 GR5's
@@ -1543,12 +1543,12 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             : id switch
             {
                 Core.InlineMethodInvocationContext =>
-                    $"the inline method invocation '{DataBinder.WrittenText(id)}' ({article} {cls} result, ISO §2023:8.4.3.4.4 GR1)",
+                    $"the inline method invocation '{WrittenSource.Of(id)}' ({article} {cls} result, ISO §2023:8.4.3.4.4 GR1)",
                 Core.ObjectViewContext =>
-                    $"the object-view '{DataBinder.WrittenText(id)}' (an object reference, ISO §2023:8.4.3.5.4 GR1)",
+                    $"the object-view '{WrittenSource.Of(id)}' (an object reference, ISO §2023:8.4.3.5.4 GR1)",
                 Core.SelfAndSuperContext =>
-                    $"'{DataBinder.WrittenText(id)}' (an object reference, ISO §2023:8.4.3.8.3 SR7)",
-                _ => $"the function-identifier '{DataBinder.WrittenText(id)}' ({article} {cls} result, ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.3", "§2023:15.2")})",
+                    $"'{WrittenSource.Of(id)}' (an object reference, ISO §2023:8.4.3.8.3 SR7)",
+                _ => $"the function-identifier '{WrittenSource.Of(id)}' ({article} {cls} result, ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.3", "§2023:15.2")})",
             };
         bool decodable = IntrinsicArgumentRules.IsDigitDecodable(operand);
         if (ctx.Edition.Permissive && decodable)
@@ -1611,7 +1611,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     private BoundExpr NotNumericIdentifier(Antlr4.Runtime.ParserRuleContext written)
     {
         using var _ = ctx.Edition.At(written);   // kb/Work PB4406 — the refusal stands at the operand
-        string what = $"'{DataBinder.WrittenText(written)}'";
+        string what = $"'{WrittenSource.Of(written)}'";
         ctx.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand: ISO {ctx.Edition.Edition.ArithmeticCitation()} "
             + $"{ctx.Edition.Edition.Admits()} in an arithmetic "
             + "expression, and it is an object reference, the predefined NULL or an address.");

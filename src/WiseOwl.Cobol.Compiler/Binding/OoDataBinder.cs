@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Binding.Model;
 
 using WiseOwl.Cobol.Compiler.Oo;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -245,7 +246,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         DiagnosticDescriptor interfacePhrase, string interfaceRule)
     {
         string name = written.GetText();
-        string nameWritten = DataBinder.WrittenText(written);
+        string nameWritten = WrittenSource.Of(written);
         // A TYPED reference (spine part 2 — LIVE): the declared name must resolve — its emitted C# field type
         // IS the named class's or interface's emitted type (PicInfo.ClrType), so an unresolved name would
         // surface as a Roslyn CS0246 on user source (a loud-failure violation). §2023:13.18.60.2: the operand is
@@ -401,7 +402,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
                 optional = rb.OPTIONAL() is not null;
             }
             else { dref = prm.dataReference(); optional = prm.OPTIONAL() is not null; }
-            string pname = DataBinder.WrittenText(dref);
+            string pname = WrittenSource.Of(dref);
             var item = data.Symbols.IdentifyHeaderOperand(m.Binding!.LinkageRoots, dref);
             if (item is null)
                 Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
@@ -430,10 +431,10 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             using var returningAt = Edition.At(rref);   // the RETURNING item's own position, as each USING parameter's (kb/Work PB2034)
             m.Binding!.Returning = data.Symbols.IdentifyHeaderOperand(m.Binding!.LinkageRoots, rref);
             if (m.Binding!.Returning is null)
-                Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION RETURNING item '{DataBinder.WrittenText(rref)}' "
+                Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION RETURNING item '{WrittenSource.Of(rref)}' "
                     + "is not a level-01/77 LINKAGE SECTION item of the method (ISO §2023:14.2.2 SR1)");
             else
-                header.CheckReturning(DataBinder.WrittenText(rref), m.Binding!.Returning);   // SR5 / SR6 — SR6 was mis-cited "SR4" here
+                header.CheckReturning(WrittenSource.Of(rref), m.Binding!.Returning);   // SR5 / SR6 — SR6 was mis-cited "SR4" here
         }
         ScreenPropertyMethodHeader(m, definition, pd?.usingClause()?.usingParameter().Length ?? 0,
             m.Owner is { } owner ? $"class '{owner.Name}'{(m.IsFactory ? " (FACTORY)" : "")}: " : "");

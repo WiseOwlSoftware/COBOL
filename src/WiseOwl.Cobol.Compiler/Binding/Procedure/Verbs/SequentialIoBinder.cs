@@ -181,10 +181,10 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // The call sits BEFORE the `file.IsSequential` reroute, so the RELATIVE and INDEXED arms are under
         // the rule too and not just this file's sequential one (feedback_two_arm_dispatch).
         if (w.recordName()?.dataReference() is not { } rn)
-            return new BoundUnsupported($"WRITE record '{DataBinder.WrittenTextOr(w.recordName(), "")}' not resolvable to a file");
+            return new BoundUnsupported($"WRITE record '{WrittenSource.Of(w.recordName(), "")}' not resolvable to a file");
         if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } resolved)
             return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
-        if (!ctx.Validation.ResolveRecordName(resolved, DataBinder.WrittenText(rn), "WRITE",
+        if (!ctx.Validation.ResolveRecordName(resolved, WrittenSource.Of(rn), "WRITE",
                 "record-name-1 \"is the name of a logical record in the file section of the data division and "
                 + "may be qualified\" (ISO "
                 + ctx.Edition.Edition.Cite("§1985:VII.4.7.3 SR2, §1985:VIII.4.9.3 SR2, §1985:IX.4.9.3 SR2", "§2023:14.9.51.3 SR5") + ")",
@@ -367,10 +367,10 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // the message (kb/Work PB347). Placed, like WRITE's, BEFORE the `file.IsSequential` reroute, so the
         // relative and indexed arms are under the rule too (feedback_two_arm_dispatch).
         if (rw.recordName()?.dataReference() is not { } rn)
-            return new BoundUnsupported($"REWRITE record '{DataBinder.WrittenTextOr(rw.recordName(), "")}' not resolvable to a file");
+            return new BoundUnsupported($"REWRITE record '{WrittenSource.Of(rw.recordName(), "")}' not resolvable to a file");
         if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } resolved)
             return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
-        if (!ctx.Validation.ResolveRecordName(resolved, DataBinder.WrittenText(rn), "REWRITE",
+        if (!ctx.Validation.ResolveRecordName(resolved, WrittenSource.Of(rn), "REWRITE",
                 "record-name-1 \"is the name of a logical record in the file section of the data division and "
                 + "may be qualified\" (ISO "
                 + ctx.Edition.Edition.Cite("§1985:VII.4.5.3 SR2, §1985:VIII.4.6.3 SR2, §1985:IX.4.6.3 SR2", "§2023:14.9.35.3 SR1") + ")",
@@ -492,7 +492,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             // PAGE twin is a parse error because PAGE is a keyword. The word used to be dropped in silence.
             if ((wba.LINE() ?? wba.LINES()) is { } word)
                 ctx.Edition.Error(DiagnosticCatalog.StatementFormatShape,
-                    $"WRITE ADVANCING {DataBinder.WrittenText(m)} {word.GetText()}: '{name}' "
+                    $"WRITE ADVANCING {WrittenSource.Of(m)} {word.GetText()}: '{name}' "
                     + "is a mnemonic-name, and ISO " + ctx.Edition.Edition.Cite("§1985:VII.4.7.2", "§2023:14.9.51.2 Format 1")
                     + " writes LINE or LINES only after the count "
                     + "alternative { identifier-2 | integer-1 } — the other alternative is { mnemonic-name-1 | PAGE } "
@@ -534,7 +534,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             // operand-class screen classes each.
             case BoundFieldOperand or BoundComputedOperand or BoundNumericLiteral { FunctionValue: true }:
                 OperandClassScreen.Screen(ctx.Edition, OperandPositions.WriteAdvancingIdentifier, lines,
-                    DataBinder.WrittenText((Antlr4.Runtime.ParserRuleContext?)wba.functionCall()
+                    WrittenSource.Of((Antlr4.Runtime.ParserRuleContext?)wba.functionCall()
                         ?? (Antlr4.Runtime.ParserRuleContext?)wba.inlineMethodInvocation() ?? wba.dataReference()!));
                 return;
             // integer-1 is UNSIGNED (kb/Work PB5805): the integer of a general format "must be neither signed nor zero
@@ -548,9 +548,9 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             case BoundFigurative { Kind: 'Z' }:   // ZERO read numerically is the integer 0 (§2023:8.3.3.6.4 GR4)
                 return;
             default:
-                string text = wba.dataReference() is { } dr ? DataBinder.WrittenText(dr)
-                    : wba.literal() is { } l ? DataBinder.WrittenText(l)
-                    : DataBinder.WrittenText(wba.integerLiteral());
+                string text = wba.dataReference() is { } dr ? WrittenSource.Of(dr)
+                    : wba.literal() is { } l ? WrittenSource.Of(l)
+                    : WrittenSource.Of(wba.integerLiteral());
                 ctx.Edition.Error(DiagnosticCatalog.WriteAdvancingOperand,
                     $"WRITE ADVANCING integer-1 '{text}' shall be an unsigned integer literal, positive or zero ("
                     + ctx.Edition.Edition.Cite(

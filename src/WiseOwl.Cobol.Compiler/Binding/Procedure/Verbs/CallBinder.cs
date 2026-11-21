@@ -83,7 +83,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                          && !ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.CallFunctionIdentifierArgument2002))
                 {
                     ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.CallFunctionIdentifierArgument2002,
-                        $"CALL USING {DataBinder.WrittenText(fnArg)}");
+                        $"CALL USING {WrittenSource.Of(fnArg)}");
                     refusedUpFront.Add(a);
                 }
                 carried = CarriedModeAfter(a, carried);
@@ -216,7 +216,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             else
             {
                 dynamicName = new BoundFieldOperand(place);
-                if (Identifier1Screen(dynamicName, DataBinder.WrittenText(dref), prototype, out isPointerTarget) is { } refused)
+                if (Identifier1Screen(dynamicName, WrittenSource.Of(dref), prototype, out isPointerTarget) is { } refused)
                     return refused;
             }
         }
@@ -226,7 +226,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // barred only from a receiving operand (§2023:8.4.3.2.3 SR1, §2023:8.4.3.4.3 SR1; §1985:IV.4.3.8.3.3 SR3), whose
             // value names the program, or whose returning item is the program-pointer the CALL activates through.
             dynamicName = host.Move.SendingOperand(target, "CALL target");
-            if (Identifier1Screen(dynamicName, DataBinder.WrittenText(target), prototype, out isPointerTarget) is { } refused)
+            if (Identifier1Screen(dynamicName, WrittenSource.Of(target), prototype, out isPointerTarget) is { } refused)
                 return refused;
         }
         else if (prototype is null)
@@ -409,7 +409,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 else if (cBool is { } cbx)
                     args.Add(BooleanContentArg(cbx));
                 else
-                    return new BoundUnsupported($"CALL USING BY CONTENT argument '{DataBinder.WrittenText(byContent)}'");
+                    return new BoundUnsupported($"CALL USING BY CONTENT argument '{WrittenSource.Of(byContent)}'");
             }
             else if (a.callByValue() is { } byValue)
             {
@@ -472,7 +472,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     // §2023:14.9.4.3 SR22 over the RESOLVED item — the same screen the keyword-less BY VALUE
                     // argument runs. It no longer has to unwrap a BoundComputedOperand to recover the
                     // identifier-ness GR8 says was never lost.
-                    ValueClassScreen(new BoundFieldOperand(vp), DataBinder.WrittenText(vdref));
+                    ValueClassScreen(new BoundFieldOperand(vp), WrittenSource.Of(vdref));
                     args.Add(new BoundCallArg(CobolPassMode.Value, vp, null));
                 }
                 else if (vArith is { } vsole && IsSoleIdentifierExpression(vsole))
@@ -481,7 +481,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     // PB1930): a SENDING temporary of ITS OWN class, which SR22 screens as it screens any identifier-4
                     // (a function returning an object reference or a pointer crosses BY VALUE).
                     var soleOperand = ExpressionOperand(vsole);
-                    ValueClassScreen(soleOperand, DataBinder.WrittenText(vsole));
+                    ValueClassScreen(soleOperand, WrittenSource.Of(vsole));
                     args.Add(OperandArg(soleOperand, CobolPassMode.Value));
                 }
                 else if (vArith is { } vomit && ConditionBinder.SoleDataReference(vomit) is { } vomitRef
@@ -489,7 +489,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 {
                     // the same identifier with the word FUNCTION omitted (§2023:8.4.3.2.3 SR2) -- it parses as a data reference
                     var omittedOperand = IntrinsicBinder.OperandOf(vomitFn, functionValue: true);
-                    ValueClassScreen(omittedOperand, DataBinder.WrittenText(vomit));
+                    ValueClassScreen(omittedOperand, WrittenSource.Of(vomit));
                     args.Add(OperandArg(omittedOperand, CobolPassMode.Value));
                 }
                 else if (vArith is { } vax)
@@ -501,11 +501,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     // arithmetic expressions and a "digit-decoding extension" — the right verdict quoting the
                     // wrong rule.
                     var byValueOperand = new BoundComputedOperand(host.Expr.BindByValueExpr(vax));
-                    ValueClassScreen(byValueOperand, DataBinder.WrittenText(vax));
+                    ValueClassScreen(byValueOperand, WrittenSource.Of(vax));
                     args.Add(new BoundCallArg(CobolPassMode.Value, null, byValueOperand));
                 }
                 else
-                    return new BoundUnsupported($"CALL USING BY VALUE argument '{DataBinder.WrittenText(byValue)}'");
+                    return new BoundUnsupported($"CALL USING BY VALUE argument '{WrittenSource.Of(byValue)}'");
             }
             else if (a.addressIdentifier() is { } bareAddr)
             {
@@ -526,7 +526,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // temporary's arm, never the data item's (kb/Work PB1930).
                 if (host.Intrinsic.KeywordOmittedFunction(bare) is { } omittedFn)
                 {
-                    if (AddBareTemporaryArg(IntrinsicBinder.OperandOf(omittedFn, functionValue: true), DataBinder.WrittenText(bare)) is { } omittedRefusal)
+                    if (AddBareTemporaryArg(IntrinsicBinder.OperandOf(omittedFn, functionValue: true), WrittenSource.Of(bare)) is { } omittedRefusal)
                         return omittedRefusal;
                     continue;
                 }
@@ -592,7 +592,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // PARAMETER is specified with a BY VALUE phrase" — the formal-derived Value mode (GR9 b))
                 // must meet the same class screen the explicit BY VALUE arm runs.
                 if (bareMode is CobolPassMode.Value)
-                    ValueClassScreen(new BoundFieldOperand(bp), DataBinder.WrittenText(bare));
+                    ValueClassScreen(new BoundFieldOperand(bp), WrittenSource.Of(bare));
                 args.Add(new BoundCallArg(bareMode, bp, null));
             }
             // §2023:14.9.4.2 Format 2's keyword-less non-identifier arguments (kb/Work PB130): literal-2,
@@ -627,7 +627,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             else if (bareArg.NonNumericLiteral is { } nbl)
             {
                 if (host.Expr.NullAdmittingOperand(nbl) is not { } nblOp)
-                    return new BoundUnsupported($"CALL USING argument '{DataBinder.WrittenText(nbl)}'");
+                    return new BoundUnsupported($"CALL USING argument '{WrittenSource.Of(nbl)}'");
                 var nblMode = Gr9NonIdentifierMode(calleeFormals, args.Count);
                 if (nblMode is CobolPassMode.Value) Sr23LiteralIsNumeric(nbl, "a BY VALUE formal parameter");
                 args.Add(new BoundCallArg(nblMode, null, nblOp));
@@ -653,20 +653,20 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                         return BoundRejected.Reported(ctx.Edition);
                     }
                     // A function-identifier is identifier-2 (§2023:14.9.4.4 GR8), not an expression: Format 1 admits it.
-                    if (AddBareTemporaryArg(ExpressionOperand(bArith), DataBinder.WrittenText(bArith)) is { } refusal) return refusal;
+                    if (AddBareTemporaryArg(ExpressionOperand(bArith), WrittenSource.Of(bArith)) is { } refusal) return refusal;
                     continue;
                 }
-                AddBareExpressionArg(ExpressionOperand(bArith), DataBinder.WrittenText(bArith));
+                AddBareExpressionArg(ExpressionOperand(bArith), WrittenSource.Of(bArith));
             }
             // `(3)` or `(N)` an operator-free boolean node held inside its grouping parentheses: arithmetic-expression-1,
             // never the literal or identifier it encloses (§2023:14.9.4.4 GR8, §2023:8.8.1.1; kb/Work PB3760 review R1-1). Bound as
             // the expression it is, it takes GR9 a)2's BY CONTENT, so a callee's store never reaches N.
             else if (bareArg.Grouped is { } bGrouped)
             {
-                AddBareExpressionArg(host.Cond.CompoundOperand(bGrouped), DataBinder.WrittenText(a));
+                AddBareExpressionArg(host.Cond.CompoundOperand(bGrouped), WrittenSource.Of(a));
             }
             else
-                return new BoundUnsupported($"CALL USING argument '{DataBinder.WrittenText(a)}'");
+                return new BoundUnsupported($"CALL USING argument '{WrittenSource.Of(a)}'");
         }
         // An argument the up-front judgement refused was skipped above, so the rest bound and reported their own faults;
         // the statement itself is refused (kb/Work PB4503 review R1-1).
@@ -1000,8 +1000,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     {
         const string Shared = " belongs to the program-prototype CALL (ISO §2023:14.9.4.2 Format 2), which the AS phrase selects";
         if (a.callByValue() is { } byValue)
-            return new($"CALL USING {DataBinder.WrittenText(byValue)}",
-                $"CALL USING {DataBinder.WrittenText(byValue)}{Shared} — Format 1’s USING admits BY REFERENCE and BY CONTENT only", true,
+            return new($"CALL USING {WrittenSource.Of(byValue)}",
+                $"CALL USING {WrittenSource.Of(byValue)}{Shared} — Format 1’s USING admits BY REFERENCE and BY CONTENT only", true,
                 Constructs.CallByValue2002);
         if (a.callByReference() is { } byRef)
             return byRef.OMITTED() is not null ? OmittedSpelling("BY REFERENCE OMITTED", vendorLane: true) : null;
@@ -1014,8 +1014,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 || (cDref is not null && host.Expr.LiteralAliasOf(cDref) is not null)
                 || (cArith is not null && cDref is null && !IsSoleIdentifierExpression(cArith));
             return expressionOperand
-                ? new($"CALL USING {DataBinder.WrittenText(byContent)}",
-                      $"CALL USING {DataBinder.WrittenText(byContent)}: an expression operand{Shared}. "
+                ? new($"CALL USING {WrittenSource.Of(byContent)}",
+                      $"CALL USING {WrittenSource.Of(byContent)}: an expression operand{Shared}. "
                       + "Format 1's BY CONTENT admits `{ identifier-2 } …` only", true, Constructs.CallLiteralExpressionArgument2002)
                 : null;
         }
@@ -1030,8 +1030,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             || bare.SoleNumericLiteral is not null || bare.Grouped is not null
             || (bare.Arith is { } arith && !IsSoleIdentifierExpression(arith));
         return bareNonIdentifier
-            ? new($"CALL USING {DataBinder.WrittenText(a)}",
-                  $"CALL USING {DataBinder.WrittenText(a)}: a keyword-less literal or expression argument{Shared} — Format 1's "
+            ? new($"CALL USING {WrittenSource.Of(a)}",
+                  $"CALL USING {WrittenSource.Of(a)}: a keyword-less literal or expression argument{Shared} — Format 1's "
                   + "bare argument is identifier-2 only", true, Constructs.CallLiteralExpressionArgument2002)
             : null;
 
@@ -1223,7 +1223,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     {
         if (ctx.Symbols.Identify(word, NameClass.ProgramPrototype, report: true)?.Symbol is ProgramPrototype proto) return proto;
         string name = word.GetText();
-        string nameWritten = DataBinder.WrittenText(word);
+        string nameWritten = WrittenSource.Of(word);
         if (ctx.Symbols.IsRefusedProgramReference(name, ctx.Edition)) return null;   // reported at the specifier (kb/Work PB4936)
         ctx.Edition.Error(DiagnosticCatalog.ProgramPrototypeUndeclared,
             $"{verb} {nameWritten}: '{nameWritten}' is not a program prototype — {ctx.Symbols.WhyNoPrototype(name)}{alsoNot}");
@@ -1332,7 +1332,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     if (NameTargetRefusal(p) is { } targetFace)
                     {
                         ctx.Edition.Error(DiagnosticCatalog.CancelTargetCategory,
-                            $"CANCEL target '{DataBinder.WrittenText(dref)}' is {targetFace}; "
+                            $"CANCEL target '{WrittenSource.Of(dref)}' is {targetFace}; "
                             + "ISO " + ctx.Edition.Edition.Cite("§1985:X.5.3.3 SR2", "§2023:14.9.5.3 SR1")
                             + ctx.Edition.Edition.Cite(" admits an alphanumeric data item", " admits an alphanumeric or national data item"));
                         continue;
@@ -1350,7 +1350,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 {
                     using (ctx.Edition.At(t))
                         ctx.Edition.Error(DiagnosticCatalog.CancelTargetCategory,
-                            $"CANCEL target '{DataBinder.WrittenText(t)}' is {computedFace}; "
+                            $"CANCEL target '{WrittenSource.Of(t)}' is {computedFace}; "
                             + "ISO " + ctx.Edition.Edition.Cite("§1985:X.5.3.3 SR2", "§2023:14.9.5.3 SR1")
                             + ctx.Edition.Edition.Cite(" admits an alphanumeric data item", " admits an alphanumeric or national data item"));
                     continue;
@@ -1568,7 +1568,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     {
         if (dref.cobolWord() is { } screenWord && ctx.Data.Symbols.DeclaresScreenName(screenWord.GetText()))
         {
-            string text = DataBinder.WrittenText(dref);
+            string text = WrittenSource.Of(dref);
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallOperandSection,
                 $"CALL {role} '{text}' names a SCREEN SECTION entry; ISO §2023:14.9.4.3 "
                 + (role.StartsWith("RETURNING") ? "SR7" : "SR3")

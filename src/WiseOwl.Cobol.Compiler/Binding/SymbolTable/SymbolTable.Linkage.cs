@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -17,7 +18,7 @@ public sealed partial class SymbolTable
     /// null when none does, which the header reports. The header is the reference itself, so its occurrence is recorded.</summary>
     internal DataItem? IdentifyHeaderOperand(IEnumerable<DataItem> linkageRoots, Core.DataReferenceContext written)
     {
-        var key = Key(DataBinder.WrittenText(written));
+        var key = Key(WrittenSource.Of(written));
         var item = linkageRoots.FirstOrDefault(r => r.CobolName is { } n && Key(n) == key);
         if (item is not null) RecordData(item, written, report: true);
         return item;

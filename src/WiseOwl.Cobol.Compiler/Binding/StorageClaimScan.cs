@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -170,7 +171,7 @@ internal sealed class StorageClaimScan
         /// the OUTERMOST data reference under it, when its text is the whole operand's.</summary>
         private static WrittenQualifiedName? OperandIdentifier(IParseTree operand) =>
             ParseTreeWalk.SelfAndDescendants(operand).OfType<Core.DataReferenceContext>().FirstOrDefault() is { } dref
-            && DataBinder.WrittenText(dref) == operand.GetText()
+            && WrittenSource.Of(dref) == operand.GetText()
                 ? WrittenQualifiedName.Of(dref)
                 : null;
     }

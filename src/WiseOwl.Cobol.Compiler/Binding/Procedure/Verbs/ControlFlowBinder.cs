@@ -86,7 +86,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         if (broken is null) return;
         using var _ = ctx.Edition.At(slit);
         ctx.Edition.Error(DiagnosticCatalog.StopLiteralOperand,
-            $"STOP {DataBinder.WrittenText(slit)}: the literal breaks §1985:VI.6.24.3 {broken}");
+            $"STOP {WrittenSource.Of(slit)}: the literal breaks §1985:VI.6.24.3 {broken}");
     }
 
     /// <summary>Decode a shared <c>statusPhrase</c> (<c>WITH? (ERROR|NORMAL) (STATUS (dataReference|literal)?)?</c>,
@@ -185,9 +185,9 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // §2023:13.18.38.3 r7 — the STATUS phrase is NOT one of the five contexts that may reference an
             // index-name (a subscript, PERFORM/SEARCH VARYING, SET, a relation condition). The R16 screen for
             // exactly this already existed and simply was not applied at this site.
-            if (host.Expr.ScreenIndexNameOperand(op, DataBinder.WrittenText(d), "the STOP RUN / GOBACK status operand"))
-                return BoundOperandError.Refused(ctx.Edition, $"index-name '{DataBinder.WrittenText(d)}' in a termination-status phrase");
-            return ScreenStatusOperand(op, DataBinder.WrittenText(d));
+            if (host.Expr.ScreenIndexNameOperand(op, WrittenSource.Of(d), "the STOP RUN / GOBACK status operand"))
+                return BoundOperandError.Refused(ctx.Edition, $"index-name '{WrittenSource.Of(d)}' in a termination-status phrase");
+            return ScreenStatusOperand(op, WrittenSource.Of(d));
         }
         return null;   // WITH ERROR / NORMAL, no STATUS value — GR2/GR3's implementor indication
     }
@@ -351,7 +351,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
                     : g.inlineMethodInvocation() is { } imi ? (host.Oo.OoInlineInvocationOperand(imi), imi)
                     : (host.Expr.FieldOperand(g.dataReference()), g.dataReference());
                 bool admitted = OperandClassScreen.Screen(ctx.Edition, OperandPositions.GoToDependingSelector,
-                    selector, DataBinder.WrittenText(written));
+                    selector, WrittenSource.Of(written));
                 return resolved && admitted
                     ? new BoundGoToDepending(selector, targets, ctx.SourceLine(g))
                     : BoundRejected.Reported(ctx.Edition);
@@ -687,7 +687,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             : BoundOperandError.Refused(ctx.Edition, "PERFORM TIMES count shape (ISO §2023:14.9.28.2 Format 2)");
         if (op is not BoundOperandError && !IntrinsicResultType.IsIntegerOperand(op))
             ctx.Edition.Error(DiagnosticCatalog.PerformTimesCountNotInteger,
-                $"PERFORM TIMES count '{DataBinder.WrittenTextOr(t.functionCall() ?? (Antlr4.Runtime.ParserRuleContext?)t.dataReference(), "")}' "
+                $"PERFORM TIMES count '{WrittenSource.Of(t.functionCall() ?? (Antlr4.Runtime.ParserRuleContext?)t.dataReference(), "")}' "
                 + $"shall be an integer (ISO {ctx.Edition.Edition.Cite("§1985:VI.6.21.3 SR4", "§2023:14.9.28.3 SR2")}) — an integer data item, an integer literal, or an "
                 + "integer-type function-identifier (§2023:15.2 type 5)");
         return op;

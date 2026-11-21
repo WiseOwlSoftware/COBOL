@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -652,7 +653,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         string reg = isPage ? "PAGE-COUNTER" : "LINE-COUNTER";
         return ctx.Refs.Counters.ReportOf(dref) is { } report
             ? new BoundReportCounterRef(report, isPage, ctx.Data.State.Reports.Depth(report))
-            : BoundExprError.Refused(ctx.Edition, $"{reg} reference '{DataBinder.WrittenText(dref)}'");
+            : BoundExprError.Refused(ctx.Edition, $"{reg} reference '{WrittenSource.Of(dref)}'");
     }
 
     /// <summary>The <see cref="ReportPageCounterPlace"/> for a PAGE-COUNTER RECEIVING reference (ISO §2023:8.4.3.15.3

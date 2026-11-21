@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -63,14 +64,14 @@ internal static class AssignTargetRule
         using (edition.At(targets[1]))
             file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignTargetListNotAllowed, edition.Cursor,
                 $"SELECT {file.CobolName}: the ASSIGN clause's TO phrase lists {targets.Length} operands ("
-                + string.Join(" ", targets.Select(t => DataBinder.WrittenText(t))) + $"); ISO {edition.Edition.Cite("§1985:VII.2.3.3 SR3", "§2023:12.4.5.2 SR5")} leaves the "
+                + string.Join(" ", targets.Select(t => WrittenSource.Of(t))) + $"); ISO {edition.Edition.Cite("§1985:VII.2.3.3 SR3", "§2023:12.4.5.2 SR5")} leaves the "
                 + "allowable specification of device-name-1 and literal-1 to the implementor, and this "
                 + "implementation allows ONE operand naming the file, or a device class ("
                 + string.Join(" or ", DeviceClasses.Order(StringComparer.Ordinal)) + ") followed by ONE operand "
                 + "naming the file (docs/CONFORMANCE.md §7 DOC-A.1-71)"
                 + (targets.Length == 2 ? (first.cobolWord() is null
                     ? " — here the first operand is a literal, not a device class"
-                    : $" — here '{DataBinder.WrittenText(first)}' is not a device class this implementation provides") : "")));
+                    : $" — here '{WrittenSource.Of(first)}' is not a device class this implementation provides") : "")));
         return Text(edition, env, targets[^1], file);
     }
 
@@ -87,7 +88,7 @@ internal static class AssignTargetRule
             // entry's FORMAT: §1985:XI.2.3.3 has no rule making literal-1 nonnumeric, so Screen decides (kb/Work PB5587).
             using (edition.At(num))
                 file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignLiteralShape, edition.Cursor,
-                    $"ASSIGN TO {DataBinder.WrittenText(num)}: literal-1 shall be an alphanumeric literal (ISO {Sr4(edition)})"));
+                    $"ASSIGN TO {WrittenSource.Of(num)}: literal-1 shall be an alphanumeric literal (ISO {Sr4(edition)})"));
             return "";
         }
         if (t.nonNumericLiteral() is not { } nn) return WordText(edition, env, t.cobolWord(), t.cobolWord().GetText());
@@ -99,7 +100,7 @@ internal static class AssignTargetRule
         if (nn.predefinedNull() is not null && UnreservedKeywordReference.IsFreeAt("NULL", edition))
             return WordText(edition, env, nn, nn.GetText());
         void Refuse(string why, bool zeroLength = false) =>
-            Report(edition, nn, $"ASSIGN TO {DataBinder.WrittenText(nn)}: literal-1 {why} (ISO "
+            Report(edition, nn, $"ASSIGN TO {WrittenSource.Of(nn)}: literal-1 {why} (ISO "
                 + (zeroLength ? edition.Edition.Cite("§1985:IV.4.2.2.2.1", "§2023:12.4.5.2 SR4") : Sr4(edition)) + ")");
         string value;
         if (nn.concatenationExpression() is { } ce)
@@ -122,7 +123,7 @@ internal static class AssignTargetRule
             // carries none (§1985:XI.2.3.3): the file's kind is not known until its SD is read, so Screen decides.
             using (edition.At(nn))
                 file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignLiteralShape, edition.Cursor,
-                    $"ASSIGN TO {DataBinder.WrittenText(nn)}: literal-1 shall not be a figurative constant (ISO {Sr4(edition)})"));
+                    $"ASSIGN TO {WrittenSource.Of(nn)}: literal-1 shall not be a figurative constant (ISO {Sr4(edition)})"));
             return "";
         }
         else

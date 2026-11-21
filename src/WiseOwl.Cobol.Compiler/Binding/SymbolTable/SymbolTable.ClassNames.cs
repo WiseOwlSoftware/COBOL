@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -193,7 +194,7 @@ public sealed partial class SymbolTable
             var found = Lookup(site, written, want);
             if (found.Ok || found.IsFormal) return found;
             string name = written.GetText();
-            string nameWritten = DataBinder.WrittenText(written);
+            string nameWritten = WrittenSource.Of(written);
 
             // A PARAMETERIZED definition is a skeleton, not a class or interface, so it is never in the table and a reference to
             // it can never resolve (kb/Work PB759). Say which rule, rather than "not defined": the definition IS in the source.

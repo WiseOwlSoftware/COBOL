@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -859,7 +860,7 @@ public sealed record ReportDetailRef
     {
         (var head, null) => head,
         (var head, var qualifier) => $"{head} OF {qualifier}",
-        null => DataBinder.WrittenText(Ctx),
+        null => WrittenSource.Of(Ctx),
     };
 }
 

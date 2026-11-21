@@ -81,7 +81,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (count is not BoundExprError && ArithmeticFormationRules.ShiftCountNotSoleOperand(suf) is null
             && !IntrinsicResultType.IsIntegerOperand(count))
             ctx.Edition.Error(DiagnosticCatalog.BooleanShiftCountNotInteger, $"the second operand of a boolean shift operation shall be an integer "
-                + $"operand (ISO §2023:8.8.2 rule 5) — '{DataBinder.WrittenText(suf.arithmeticExpression())}' is not: an integer operand "
+                + $"operand (ISO §2023:8.8.2 rule 5) — '{WrittenSource.Of(suf.arithmeticExpression())}' is not: an integer operand "
                 + "is an integer literal (no decimal point, §2023:8.3.3.3.2), an integer data item, or an integer-type "
                 + "function (ISO §2023:5.5 2); a numeric function is not one even when its value is integral, "
                 + "§2023:8.4.3.2.3 SR11)");
@@ -137,10 +137,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // A sole data reference or sole function reference — through the enclosing parentheses, as the routing
         // predicate IsBooleanValueOperand reads it (§2023:8.8.2; kb/Work PB1464).
         if (BindSoleBooleanOperand(vo.arithmeticExpression()) is { } sole) return sole;
-        ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"'{DataBinder.WrittenText(vo)}' is not a valid boolean operand — a boolean "
+        ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"'{WrittenSource.Of(vo)}' is not a valid boolean operand — a boolean "
             + "expression admits boolean items, boolean literals, and the figurative ZERO / ALL B\"…\" only "
             + "(ISO §2023:8.8.2)");
-        return BoundBoolError.Refused(ctx.Edition, $"boolean operand '{DataBinder.WrittenText(vo)}'");
+        return BoundBoolError.Refused(ctx.Edition, $"boolean operand '{WrittenSource.Of(vo)}'");
     }
 
     /// <summary>The ONE binding of a boolean operand that is a SOLE identifier — a data reference to a
@@ -177,11 +177,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
                 if (cat is PicCategory.Boolean) return new BoundBoolRef(p);
             }
-            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"operand '{DataBinder.WrittenText(dref)}' in a boolean expression is "
+            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"operand '{WrittenSource.Of(dref)}' in a boolean expression is "
                 + (alias is null ? "not a boolean data item" : $"{alias.Described}, not a boolean literal")
                 + " (ISO §2023:8.8.2 — boolean operands only)");
-            return BoundBoolError.Refused(ctx.Edition, alias is null ? $"non-boolean operand '{DataBinder.WrittenText(dref)}'"
-                : $"non-boolean literal alias '{DataBinder.WrittenText(dref)}'");
+            return BoundBoolError.Refused(ctx.Edition, alias is null ? $"non-boolean operand '{WrittenSource.Of(dref)}'"
+                : $"non-boolean literal alias '{WrittenSource.Of(dref)}'");
         }
         // A sole FUNCTION reference whose result is class boolean — §2023:8.8.2's "an identifier referencing a boolean
         // data item": a function-identifier IS an identifier (§2023:8.4.3.1.2) referencing a temporary data item
@@ -197,9 +197,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (bound is BoundNumRef { Place: var resultTemp } && resultTemp.Item.OperandPic?.Category is PicCategory.Boolean)
                 return new BoundBoolRef(resultTemp);
             if (bound is BoundExprError err) return BoundBoolError.Carry(err.Feature, err.IsUnbuilt);   // already loud
-            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"operand '{DataBinder.WrittenText(fc)}' in a boolean expression is not a "
+            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"operand '{WrittenSource.Of(fc)}' in a boolean expression is not a "
                 + "boolean function — its result is not class boolean (ISO §2023:8.8.2 — boolean operands only)");
-            return BoundBoolError.Refused(ctx.Edition, $"non-boolean function operand '{DataBinder.WrittenText(fc)}'");
+            return BoundBoolError.Refused(ctx.Edition, $"non-boolean function operand '{WrittenSource.Of(fc)}'");
         }
         return null;
     }
@@ -651,7 +651,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 return;
             case Core.AbbreviatedRelationContext ar:
                 if (ins.BooleanRelation)
-                    _ = RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(ar), () => ComparisonOperand(ar.comparisonOperand()));
+                    _ = RefuseAbbreviationAfterBooleanRelation(WrittenSource.Of(ar), () => ComparisonOperand(ar.comparisonOperand()));
                 else
                 {
                     if (!ins.Active) ReportAbbreviatedRelationWithoutSubject(ar);
@@ -709,7 +709,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             switch (role)
             {
                 case BareObjectRole.AbbreviationAfterBooleanRelation:
-                    _ = RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(address), () => ComparisonOperand(operand));
+                    _ = RefuseAbbreviationAfterBooleanRelation(WrittenSource.Of(address), () => ComparisonOperand(operand));
                     break;
                 case BareObjectRole.ObjectOfRelation:
                     _ = ComparisonOperand(operand);
@@ -734,7 +734,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 switch (role)
                 {
                     case BareObjectRole.AbbreviationAfterBooleanRelation:
-                        _ = RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(vo!), () => ComparisonOperandOf(vo));
+                        _ = RefuseAbbreviationAfterBooleanRelation(WrittenSource.Of(vo!), () => ComparisonOperandOf(vo));
                         break;
                     case BareObjectRole.ObjectOfRelation:
                         _ = ComparisonOperandOf(vo);
@@ -956,7 +956,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     {
         statedObject = null;
         if (carry.BooleanRelation)
-            return RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(ar), () => ComparisonOperand(ar.comparisonOperand()));
+            return RefuseAbbreviationAfterBooleanRelation(WrittenSource.Of(ar), () => ComparisonOperand(ar.comparisonOperand()));
         if (carry.Subject is not { } subject)
         {
             _ = ComparisonOperand(ar.comparisonOperand());   // its object's own faults are not hidden by the missing subject
@@ -975,7 +975,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// (kb/Work PB4627).</summary>
     private void ReportAbbreviatedRelationWithoutSubject(Core.AbbreviatedRelationContext ar) =>
         ctx.Edition.Error(DiagnosticCatalog.AbbreviatedRelationWithoutSubject,
-            $"'{DataBinder.WrittenText(ar)}' omits the subject of its relation, but no subject precedes it to insert: the "
+            $"'{WrittenSource.Of(ar)}' omits the subject of its relation, but no subject precedes it to insert: the "
             + "insertion of an omitted subject terminates at a complete simple condition that is not a relation, and "
             + "does not cross a parenthesis (ISO "
             + ctx.Edition.Edition.Cite("§1985:VI.6.3.3", "§2023:8.8.4.12.1; §2023:8.8.4.12.4 GR1") + ")");
@@ -1187,7 +1187,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         System.Func<BoundOperand> operand)
     {
         string word = written.GetText();
-        string wordWritten = DataBinder.WrittenText(written);
+        string wordWritten = WrittenSource.Of(written);
         // §2023:8.8.4.4.3 SR2 — "Alphabet-name-1 shall not reference an alphabet associated with a locale": a LOCALE
         // alphabet is a collating sequence, not a coded character set (Table 6), so it names no character set a
         // class condition could test membership of (kb/Work PB64 T5; the same rule family as §2023:12.3.7.3 SR16g/SR17d
@@ -1286,7 +1286,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             // be true in the invoked method"), so its own formals are the ones searched, never the containing
             // unit's; elsewhere the program/function formals are. Either way the test renders the formal's ONE
             // presence fact (OmittedProbe): spelled, trailing and GR1c-transitive omission all arrive there.
-            string fname = operands.Length >= 1 ? DataBinder.WrittenText(operands[0]).Trim() : "";
+            string fname = operands.Length >= 1 ? WrittenSource.Of(operands[0]).Trim() : "";
             OmittedProbe? formal = operands.Length >= 1 ? ctx.Symbols.FormalSpelled(operands[0], ctx.CurrentMethodScope?.Formals) : null;
             if (formal is null)
             {
@@ -1306,11 +1306,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             {
                 carry.Reset();
                 ctx.Edition.Error(DiagnosticCatalog.OperandIsNotACondition,
-                    $"'{DataBinder.WrittenText(signAddr)}' is an address-identifier — a data item of class pointer "
+                    $"'{WrittenSource.Of(signAddr)}' is an address-identifier — a data item of class pointer "
                     + "(ISO §2023:8.4.3.11.4 GR1 / §2023:8.4.3.13.4 GR1) — and a sign condition's operand shall be \"any single "
                     + "numeric data item described with a usage other than a standard floating-point usage, or any "
                     + "form of arithmetic expression\" (ISO §2023:8.8.4.7.3 SR1)");
-                return Refused($"sign condition over '{DataBinder.WrittenText(signAddr)}'");
+                return Refused($"sign condition over '{WrittenSource.Of(signAddr)}'");
             }
             var written = BindSignConditionOn(cmp.POSITIVE() is not null ? 'P' : cmp.NEGATIVE() is not null ? 'N' : 'Z',
                 not, operands[0].valueOperand(), carry);
@@ -1356,24 +1356,24 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 switch (BareObjectRoleOf(carry))
                 {
                     case BareObjectRole.AbbreviationAfterBooleanRelation:
-                        return RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(bareAddr), () => ComparisonOperand(operands[0]));
+                        return RefuseAbbreviationAfterBooleanRelation(WrittenSource.Of(bareAddr), () => ComparisonOperand(operands[0]));
                     case BareObjectRole.NotACondition:
                         carry.Reset();
                         ReportAddressIdentifierAsCondition(bareAddr);
-                        return Refused($"condition '{DataBinder.WrittenText(bareAddr)}'");
+                        return Refused($"condition '{WrittenSource.Of(bareAddr)}'");
                 }
             }
             return BindSoleOperandCondition(operands[0].valueOperand(), () => ComparisonOperand(operands[0]), carry);
         }
 
-        return Refused($"condition '{DataBinder.WrittenText(cmp)}'");
+        return Refused($"condition '{WrittenSource.Of(cmp)}'");
     }
 
     /// <summary>The ONE report of a bare address-identifier written where a condition is (COBOL2318, kb/Work PB1021):
     /// <see cref="BindComparison"/>'s, and the standalone walk of a refused or surplus EVALUATE object's
     /// (kb/Work PB4627).</summary>
     private void ReportAddressIdentifierAsCondition(Core.AddressIdentifierContext address) =>
-        ReportNotACondition(DataBinder.WrittenText(address), "an address-identifier — a data item of class "
+        ReportNotACondition(WrittenSource.Of(address), "an address-identifier — a data item of class "
             + "pointer (ISO §2023:8.4.3.11.4 GR1 / §2023:8.4.3.13.4 GR1)");
 
     /// <summary>A bare single operand is either a level-88 condition-name (a complete simple condition —
@@ -1401,7 +1401,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         return BareObjectRoleOf(carry) switch
         {
             BareObjectRole.AbbreviationAfterBooleanRelation =>
-                RefuseAbbreviationAfterBooleanRelation(vo is null ? "operand" : DataBinder.WrittenText(vo), bindOperand),
+                RefuseAbbreviationAfterBooleanRelation(vo is null ? "operand" : WrittenSource.Of(vo), bindOperand),
             BareObjectRole.ObjectOfRelation => WrittenRelational(carry.Subject!, carry.Op!, bindOperand()),
             _ => RefuseNonCondition(vo),
         };
@@ -1421,7 +1421,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// IS, because "not a condition" alone does not tell a programmer which condition they meant to write.</summary>
     private BoundConditionError RefuseNonCondition(Core.ValueOperandContext? vo)
     {
-        string text = vo is null ? "operand" : DataBinder.WrittenText(vo);
+        string text = vo is null ? "operand" : WrittenSource.Of(vo);
         var dref = ConditionOperandExpression(vo) is { } expr ? SoleDataRef(expr) : null;   // `(X)` names X (kb/Work PB1464)
         string? what = null;
         // A constant-name is the literal it substitutes (§2023:13.10.4 GR1), and a symbolic-character a figurative constant
@@ -1434,7 +1434,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // run unit, where the numeric data item `IF W` is refused. The register arm comes FIRST: its cobolWord() is the
         // QUALIFIER (`LINAGE-COUNTER OF F` gives F), which the alias, class-name and mnemonic tests below must not read.
         if (dref is { } reg && new DataReferenceCst(reg).Register != SpecialRegister.None)
-            what = $"the special register {DataBinder.WrittenText(reg)}, an unsigned integer data item of class and category numeric";
+            what = $"the special register {WrittenSource.Of(reg)}, an unsigned integer data item of class and category numeric";
         else if (dref is { } ad && ad.dataReferenceSuffix().Length == 0 && host.Expr.LiteralAliasOf(ad) is { } alias)
             what = $"{alias.Described}, which is none of the conditions";
         else if (BareClassWord(vo)?.GetText() is { } classWord)
@@ -1545,7 +1545,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (inner is { } mqx && SoleDataRef(mqx) is { } mqr && ctx.Refs.Probe(mqr) is null
             && !NamesHidingDataItem(mqr) && HidingClassPhrase(mqr) is null && ReportMisqualifiedCondition(mqr))
             return BareOperandAnalysis.OfCondition(BareOperandForm.ConditionName,
-                Refused($"condition-name '{DataBinder.WrittenText(mqr)}'"));
+                Refused($"condition-name '{WrittenSource.Of(mqr)}'"));
         // A class-name-1 / alphabet-name-1 (§2023:8.8.4.4.2) written bare — a word, never qualified, subscripted or
         // reference-modified (neither name is a data-name, so neither takes a qualifier or a subscript). §2023:8.3.2.2
         // makes the name classes disjoint ("a given user-defined word may be used as only one type of user-defined
@@ -1968,7 +1968,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         {
             using var _ = ctx.Edition.At(dref);
             ctx.Edition.Error(DiagnosticCatalog.ConditionNameReferenceModified,
-                $"the condition-name '{DataBinder.WrittenText(dref)}' is written with a reference modifier; a "
+                $"the condition-name '{WrittenSource.Of(dref)}' is written with a reference modifier; a "
                 + "condition-name reference is condition-name-1, qualified and subscripted, with no reference "
                 + "modifier (ISO "
                 + ctx.Edition.Edition.Cite("§1985:IV.4.3.8.6", "§2023:8.4.4.2; §2023:8.8.4.5.2")
@@ -1999,12 +1999,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 + (dataRivals == 0 ? "" : $" and {dataRivals} data item{(dataRivals == 1 ? "" : "s")} (§1985:IV.4.2.2.1.1: one disjoint set)");
             if (ctx.Edition.Permissive)
                 ctx.Edition.Warning(DiagnosticCatalog.UndefinedReference,
-                    $"the condition-name '{DataBinder.WrittenText(dref)}' matches {matches.Count} level-88 declarations{others} "
+                    $"the condition-name '{WrittenSource.Of(dref)}' matches {matches.Count} level-88 declarations{others} "
                     + $"(ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.1 SRL2.1", "§2023:8.4.2.2")} — qualification shall establish uniqueness); --permissive resolves to "
                     + "the first declaration");
             else
                 ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
-                    $"the condition-name '{DataBinder.WrittenText(dref)}' does not uniquely identify a level-88 — "
+                    $"the condition-name '{WrittenSource.Of(dref)}' does not uniquely identify a level-88 — "
                     + $"{candidates} declarations match{(switchCompetes ? " (the level-88 and a SPECIAL-NAMES switch condition-name, which takes no qualifier, ISO §2023:8.8.4.6.2)" : "")}"
                     + (dataRivals == 0 ? "" : $" ({matches.Count} level-88 and {dataRivals} data item{(dataRivals == 1 ? "" : "s")}: condition-names, data-names and record-names are one disjoint set, ISO §1985:IV.4.2.2.1.1)")
                     + $" (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.1 SRL2.1", "§2023:8.4.2.2 Format 2")} — qualification shall establish uniqueness). Qualify by the conditional "
@@ -2013,7 +2013,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // §2023:13.7.3 SR4 e): a condition-name of a linkage item is referenceable exactly when its conditional variable
         // is — the same decision the data-name arm asks (NameResolution.ScreenLinkageReference), once per reference.
         if (ctx.Data.Linkage.UnreferenceableLinkageRecord(matches[0].Parent) is { } record && _linkageCondDiagnosed.Add(dref))
-            ctx.Refs.Names.ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
+            ctx.Refs.Names.ReportUnreferenceableLinkage(WrittenSource.Of(dref), record);
         return matches[0];
     }
 
@@ -2030,7 +2030,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (!_condDiagnosed.Add(dref)) return true;
         string name = written.Name;
         var qualifiers = written.QualifierWords;
-        string text = DataBinder.WrittenText(dref);
+        string text = WrittenSource.Of(dref);
         // A data item of a NEARER source element than the condition-name is the referenced item (ISO §2023:8.4.6.2.1 3) a),
         // kb/Work PB4219 review R1-1: the condition lookup leaves the container's GLOBAL condition-name no survivor), so
         // the reference names that data item where this position admits only a condition-name.

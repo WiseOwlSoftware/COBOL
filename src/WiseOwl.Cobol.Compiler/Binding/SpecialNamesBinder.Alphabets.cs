@@ -8,6 +8,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime.Collation;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -100,7 +101,7 @@ public sealed partial class SpecialNamesBinder
         string where)
     {
         string alphabetName = written.GetText();
-        string alphabetNameWritten = DataBinder.WrittenText(written);
+        string alphabetNameWritten = WrittenSource.Of(written);
         // The TYPE first: a word that names no alphabet at all is not alphabet-name-1, whatever the range's class —
         // and since IN is an optional word (kb/Work PB983), a stray trailing word after a THROUGH range reaches here
         // too, so it must be told it names nothing rather than that the range's class forbids a phrase it never was.
@@ -192,7 +193,7 @@ public sealed partial class SpecialNamesBinder
     /// records the use (kb/Work PB3153).</summary>
     internal CodedCharacterSet? CodedCharacterSetOf(Antlr4.Runtime.ParserRuleContext written, string site, string rule)
     {
-        string alphabetName = DataBinder.WrittenText(written);
+        string alphabetName = WrittenSource.Of(written);
         var a = _host.Symbols.Identify(written, NameClass.Alphabet, report: true)?.Symbol as AlphabetDef;
         var n = a is null ? _host.Symbols.Identify(written, NameClass.NationalAlphabet, report: true)?.Symbol as NationalAlphabetDef : null;
         if (a is null && n is null)

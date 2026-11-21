@@ -10,6 +10,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Binding.Model;
 
 using WiseOwl.Cobol.Compiler.Oo;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -1011,7 +1012,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <c>ReportSectionBinder.ControlOperandRef</c>, which keeps the whole written reference.</para></summary>
     internal static WrittenDataName KeyReference(Core.DataReferenceContext dref)
     {
-        string baseWord = dref.cobolWord()?.GetText() ?? DataBinder.WrittenText(dref);
+        string baseWord = dref.cobolWord()?.GetText() ?? WrittenSource.Of(dref);
         var quals = new List<string>();
         foreach (var s in dref.dataReferenceSuffix())
             if (s.qualification()?.cobolWord() is { } q)
@@ -1062,23 +1063,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // "references no data item" verdict would be its consequence, not a second fault (cascade control, the
         // ReportUnidentified precedent). A written reference always contains a space or a parenthesis where a
         // data-name cannot, so the key can never collide with a real one.
-        string written = WrittenText(dref);
+        string written = WrittenSource.Of(dref);
         State.Clauses.RecordRefusedClauseOperand(written);
         return new WrittenDataName(written);
     }
-
-    /// <summary>A reference AS THE PROGRAMMER WROTE IT. <c>GetText()</c> concatenates tokens with no separators
-    /// (<c>LINAGE-COUNTEROFLPF</c>), which is unreadable in a diagnostic about the spelling itself.
-    /// <para>⛔ ONE DEFINITION for every binder that quotes source back at the programmer — the EVALUATE
-    /// selection-object screens quote a WHEN phrase and a range-expression, and <c>WHEN1ALSO2</c> /
-    /// <c>"A"THRU5</c> are not what anybody wrote (kb/Work PB399), and neither is the qualified reference
-    /// <c>WS-CINNOGRP</c> that COBOL1639 used to echo for <c>WS-C IN NOGRP</c> (kb/Work PB983).</para>
-    /// <para>The body is the frontend's <see cref="WiseOwl.Cobol.Frontend.Parsing.WrittenSource.Of"/>, which a frontend
-    /// formation rule quotes source through as well (kb/Work PB1413) — one definition, two layers.</para></summary>
-    internal static string WrittenText(Antlr4.Runtime.ParserRuleContext ctx) => WiseOwl.Cobol.Frontend.Parsing.WrittenSource.Of(ctx);
-
-    /// <summary><see cref="WrittenText(Antlr4.Runtime.ParserRuleContext)"/> of an optional node: <paramref name="absent"/> when the program wrote none.</summary>
-    internal static string WrittenTextOr(Antlr4.Runtime.ParserRuleContext? ctx, string absent) => ctx is null ? absent : WrittenText(ctx);
 
     /// <summary>⛔ THE SHAPES A <i>data-name-n</i> OPERAND MAY NOT BE WRITTEN IN (kb/Work PB489). Where a general
     /// format prints <c>data-name-n</c>, the reference is a QUALIFIED-DATA-NAME — ISO §2023:8.4.2.2.2 Format 1,
@@ -1140,7 +1128,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             // ⛔ EVERY ARM OF THIS SCREEN NAMES THE RULE OF THE EDITION IT REFUSES AT (kb/Work PB5883 review R1-2).
             edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
-                $"{clauseFace} '{WrittenText(dref)}': the clause's general format prints data-name-n"
+                $"{clauseFace} '{WrittenSource.Of(dref)}': the clause's general format prints data-name-n"
                 + edition.Edition.Cite("", ", which is a qualified-data-name (ISO §2023:8.4.2.2.2 Format 1)", y2002: "")
                 + $"; {register} is a special register"
                 + edition.Edition.Cite("", $" — an identifier of §2023:8.4.3.1 Format {(register == "LINAGE-COUNTER" ? "10" : "11")}", y2002: "")
@@ -1186,7 +1174,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             if (sfx.Subscript.NonLiteral)
                 edition.Error(DiagnosticCatalog.ClauseOperandSubscriptNotLiteral,
-                    $"{clauseFace} '{WrittenText(dref)}': the subscript is not an integer literal; the clause identifies one data "
+                    $"{clauseFace} '{WrittenSource.Of(dref)}': the subscript is not an integer literal; the clause identifies one data "
                     + "item, fixed when the program is compiled (ISO §2002:5.1.3: at COBOL-2002 the clause's data-name-n may be "
                     + "subscripted, and each subscript shall be an integer literal)");
             if (refModified) ReportReferenceModified(dref, clauseFace, edition);
@@ -1194,7 +1182,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         }
         if (subscripted)
             edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
-                $"{clauseFace} '{WrittenText(dref)}' is written with a subscript; the clause's general format prints data-name-n"
+                $"{clauseFace} '{WrittenSource.Of(dref)}' is written with a subscript; the clause's general format prints data-name-n"
                 + edition.Edition.Cite(
                     ", not identifier, which alone is \"a syntactically correct combination of a data-name, with its qualifiers, "
                         + "subscripts, and reference modifiers\" (ISO §1985:III.2, Identifier), and ",
@@ -1276,7 +1264,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // The rule of the edition refused at (kb/Work PB5883 review R1-2): the older texts say where reference modification IS
         // allowed, an identifier, and the general format prints data-name-n, which is none.
         edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
-            $"{clauseFace} '{WrittenText(dref)}' is reference-modified; "
+            $"{clauseFace} '{WrittenSource.Of(dref)}' is reference-modified; "
             + edition.Edition.Cite(
                 "the general format prints data-name-n, and \"reference modification is allowed anywhere an identifier referencing a "
                     + "data item of the class alphanumeric is permitted\" (ISO §1985:IV.4.3.8.4.3 SR3)",
@@ -3184,7 +3172,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // because with IN omitted the parser has handed the word in AS the last operand.
                     var (alphaWord, alphaOperand) = RangeAlphabetPhraseOf(value);
                     string? alphaName = alphaWord?.GetText();
-                    string alphaNameWritten = DataBinder.WrittenTextOr(alphaWord, "");
+                    string alphaNameWritten = WrittenSource.Of(alphaWord, "");
                     foreach (var vi in value.valueItem())
                     {
                         // Numeric operands normalize to dot-decimal form (DECIMAL-POINT IS COMMA, ISO §2023:12.3.7 GR14a).
@@ -3373,7 +3361,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // container's alphabet-names, and "a source element's reference to such a name, even when it is a
         // different type of user-defined word, is to the item which that source element describes" (§2023:8.4.6.1;
         // kb/Work PB3153), so the element's own constant-name of the spelling keeps its literal-2 reading.
-        return DataBinder.WrittenText(dref) is var word && SpecialNames.IsAlphabetName(word) && Constants.ConstantOf(dref) is null
+        return WrittenSource.Of(dref) is var word && SpecialNames.IsAlphabetName(word) && Constants.ConstantOf(dref) is null
             ? (dref, last) : (null, null);
     }
 
@@ -4963,7 +4951,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             && WiseOwl.Cobol.Frontend.Expressions.ArithmeticFormationRules.SignedLiteralViolation(signedShape) is { } why)
         {
             Edition.Error(DiagnosticCatalog.SignedLiteralSignNotAdjacent, $"{where}: {position.Operand} "
-                + $"'{WrittenText(op)}' is not a literal — {why}: "
+                + $"'{WrittenSource.Of(op)}' is not a literal — {why}: "
                 + WiseOwl.Cobol.Frontend.Expressions.ArithmeticFormationRules.SignRuleQuote(Edition.Edition)
                 + $"; and {position.Format(Edition.Edition)}, which admits no arithmetic expression.");
             return;
@@ -4987,7 +4975,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return;
         }
         Edition.Error(DiagnosticCatalog.ValueOperandNotALiteral, $"{where}: {position.Operand} "
-            + $"'{WrittenText(op)}' is not a literal — {position.Format(Edition.Edition)}. A figurative constant (ISO §2023:8.3.3.6.3 SR1), a constant-name (ISO §2023:13.10.3 SR2) "
+            + $"'{WrittenSource.Of(op)}' is not a literal — {position.Format(Edition.Edition)}. A figurative constant (ISO §2023:8.3.3.6.3 SR1), a constant-name (ISO §2023:13.10.3 SR2) "
             + "and a symbolic-character (ISO §2023:8.3.3.6.2 Format 7) stand where a literal stands, each written "
             + "as a BARE word; an arithmetic expression, a function-identifier and a qualified, subscripted or "
             + "reference-modified reference do not.");
@@ -5027,7 +5015,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 var quoted = ph.literal();
                 char1 = quoted is null ? "" : CobolLiteral.Decode(quoted.GetText());
                 Edition.Error(DiagnosticCatalog.PictureEditingChar1NotALiteral, $"{where}: the PICTURE EDITING "
-                    + $"phrase's character-1 is written as a quoted literal ({WrittenTextOr(quoted, "\"\"")}) "
+                    + $"phrase's character-1 is written as a quoted literal ({WrittenSource.Of(quoted, "\"\"")}) "
                     + "— the general format writes it BARE, as a picture symbol: `EDITING character-1 { IS "
                     + "literal-1 | FOR … }` (ISO §2023:13.18.40.2 Format 1; §2023:13.18.40.3 SR8 types character-1 as a basic "
                     + $"letter, and SR9 types only literal-1/-2/-3 as literals). Write EDITING {char1.ToUpperInvariant()} instead");
@@ -5710,7 +5698,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             using var _ = Edition.At(dref);
             Edition.Error(DiagnosticCatalog.RedefinesDataName2Qualified,
-                $"{face} '{WrittenText(dref)}': "
+                $"{face} '{WrittenSource.Of(dref)}': "
                 + Edition.Edition.Cite(
                     "\"Data-name-2 must not be qualified even if it is not unique since no ambiguity of reference exists in this "
                     + "case because of the required placement of the REDEFINES clause\" (ISO §1985:VI.5.10.3 SR7)",

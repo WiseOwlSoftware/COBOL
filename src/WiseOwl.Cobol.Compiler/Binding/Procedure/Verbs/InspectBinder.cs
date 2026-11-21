@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -73,7 +74,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         if (ins.inlineMethodInvocation() is { } imiTarget)
             return BindFunctionTarget(host.Oo.OoInlineInvocationOperand(imiTarget), imiTarget.GetText());
         if (host.Intrinsic.KeywordOmittedFunction(ins.dataReference()) is { } kof)
-            return BindFunctionTarget(IntrinsicBinder.OperandOf(kof, functionValue: true), DataBinder.WrittenText(ins.dataReference()));
+            return BindFunctionTarget(IntrinsicBinder.OperandOf(kof, functionValue: true), WrittenSource.Of(ins.dataReference()));
         // An INDEX-NAME as identifier-1 (kb/Work R16): INSPECT is none of §2023:13.18.38.3 r7's five index-name
         // contexts — a compile diagnostic, not the unresolvable-item runtime stage below.
         // ⛔ Both lanes, deliberately: identifier-1 is an IDENTIFIER SLOT, so there is no occurrence-number
@@ -82,7 +83,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         if (host.Expr.IndexFieldOf(ins.dataReference()) is not null)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IndexNameContext,
-                $"INSPECT identifier-1 is the index-name '{DataBinder.WrittenText(ins.dataReference())}', which is not an "
+                $"INSPECT identifier-1 is the index-name '{WrittenSource.Of(ins.dataReference())}', which is not an "
                 + $"identifier (ISO {ctx.Edition.Edition.NotAnIdentifier()}); {ctx.Edition.Edition.Contexts()} admits an index-name only as a subscript, in "
                 + "PERFORM/SEARCH VARYING, in SET, or in a relation condition");
         }
@@ -174,7 +175,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 foreach (var governing in (ReadOnlySpan<CobolClass>)[CobolClass.Boolean, CobolClass.National])
                     if (AllOrNothingClass.Violated(governing, all, triggers))
                     {
-                        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CharacterOperandClassMix, $"INSPECT '{DataBinder.WrittenTextOr(ins.dataReference(), "identifier-1")}' "
+                        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CharacterOperandClassMix, $"INSPECT '{WrittenSource.Of(ins.dataReference(), "identifier-1")}' "
                             + AllOrNothingClass.Offence(governing, "ISO §2023:14.9.22.3 SR4") + " (ISO §2023:14.9.22.3 SR4)");
                     }
             }
@@ -344,9 +345,9 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // and the ALL-literal literal-5 included, is a syntax error, not a character the runtime then guesses at.
         if (_identifier1IsBoolean && bound.Figurative && bound.Op is not BoundFigurative { Kind: 'Z' })
             return (BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
-                $"INSPECT operand '{DataBinder.WrittenText(c)}' is a figurative constant other than ZERO, but identifier-1 is of "
+                $"INSPECT operand '{WrittenSource.Of(c)}' is a figurative constant other than ZERO, but identifier-1 is of "
                 + "class boolean, and only the figurative constant ZERO may be specified there (ISO §2023:14.9.22.3 SR3)",
-                $"INSPECT operand '{DataBinder.WrittenText(c)}' (ISO §2023:14.9.22.3 SR3)"), false);
+                $"INSPECT operand '{WrittenSource.Of(c)}' (ISO §2023:14.9.22.3 SR3)"), false);
         // SR4's operand record (kb/Work PB980). A FIGURATIVE operand (and a bare symbolic character, which IS one)
         // takes identifier-1's class by SR3 — "When identifier-1 is of class national, the class of the figurative
         // constant is national; when identifier-1 is of class boolean, the figurative constant is of class
@@ -384,11 +385,11 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
     private BoundOperand ScreenZeroLength(BoundOperand literal, Core.SendingOperandContext c) =>
         literal is BoundStringLiteral { Value.Length: 0 }
             ? BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
-                $"INSPECT operand '{DataBinder.WrittenText(c)}' is a zero-length literal, which "
+                $"INSPECT operand '{WrittenSource.Of(c)}' is a zero-length literal, which "
                 + ctx.Edition.Edition.Cite(
                     "a nonnumeric literal is not: it is 1 through 160 characters in length (ISO §1985:IV.4.2.2.2.1)",
                     "literal-1 through literal-5 shall not be (ISO §2023:14.9.22.3 SR3)"),
-                $"INSPECT operand '{DataBinder.WrittenText(c)}' (ISO {InspectLiteralRule})")
+                $"INSPECT operand '{WrittenSource.Of(c)}' (ISO {InspectLiteralRule})")
             : literal;
 
     /// <summary>The syntax rule that bars a numeric literal and a figurative constant beginning with ALL from an INSPECT literal position, in
@@ -438,7 +439,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         if (c.functionCall() is { } fc)
         {
             var function = host.Intrinsic.IntrinsicOperand(fc);
-            ctx.Validation.CheckInspectFunctionUsage(function, DataBinder.WrittenText(c));   // SR2 — pure check
+            ctx.Validation.CheckInspectFunctionUsage(function, WrittenSource.Of(c));   // SR2 — pure check
             return (function, false);
         }
         if (c.inlineMethodInvocation() is { } imi)   // §2023:8.4.3.1.2 Format 4; kb/Work PB428
@@ -464,9 +465,9 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.LiteralAliasOf(dref) is { } alias)
                 return alias.IsNumeric
                     ? (BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
-                        $"INSPECT operand '{DataBinder.WrittenText(dref)}' is a numeric constant-name; each INSPECT literal shall be an "
+                        $"INSPECT operand '{WrittenSource.Of(dref)}' is a numeric constant-name; each INSPECT literal shall be an "
                         + "alphanumeric, boolean, or national literal (ISO §2023:14.9.22.3 SR3, §2023:13.10.3 SR2)",
-                        $"INSPECT operand '{DataBinder.WrittenText(dref)}' (ISO §2023:14.9.22.3 SR3)"), false)
+                        $"INSPECT operand '{WrittenSource.Of(dref)}' (ISO §2023:14.9.22.3 SR3)"), false)
                     : alias.Constant is not null
                         ? (ScreenZeroLength(host.Expr.AliasOperand(alias), c), false)
                         : (host.Expr.AliasOperand(alias), true);
@@ -477,19 +478,19 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             if (host.Intrinsic.KeywordOmittedFunction(dref) is { } kof)
             {
                 var omitted = IntrinsicBinder.OperandOf(kof, functionValue: true);
-                ctx.Validation.CheckInspectFunctionUsage(omitted, DataBinder.WrittenText(dref));   // SR2 — pure check
+                ctx.Validation.CheckInspectFunctionUsage(omitted, WrittenSource.Of(dref));   // SR2 — pure check
                 return (omitted, false);
             }
             if (host.Expr.ResolveSending(dref) is var pr && pr.Place is not { } p)
                 return (pr.OperandError(ctx.Edition), false);   // the resolver's answer (kb/Work PB1030)
-            ctx.Validation.CheckInspectOperandUsage(p, DataBinder.WrittenText(dref));   // SR2 — pure check
+            ctx.Validation.CheckInspectOperandUsage(p, WrittenSource.Of(dref));   // SR2 — pure check
             return (new BoundFieldOperand(p), false);
         }
         // The grammar admits a numeric literal here; SR3 does not (alphanumeric/boolean/national literals only).
         return (BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
-            $"INSPECT operand '{DataBinder.WrittenText(c)}' is a numeric literal; each INSPECT literal "
+            $"INSPECT operand '{WrittenSource.Of(c)}' is a numeric literal; each INSPECT literal "
             + ctx.Edition.Edition.Cite("must be a nonnumeric literal", "shall be an alphanumeric, boolean, or national literal")
             + $" (ISO {InspectLiteralRule})",
-            $"INSPECT operand '{DataBinder.WrittenText(c)}' (ISO {InspectLiteralRule})"), false);
+            $"INSPECT operand '{WrittenSource.Of(c)}' (ISO {InspectLiteralRule})"), false);
     }
 }

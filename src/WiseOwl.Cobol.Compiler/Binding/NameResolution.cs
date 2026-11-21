@@ -8,6 +8,7 @@ using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 
 namespace WiseOwl.Cobol.Binding;
@@ -58,7 +59,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// register, whose glued text the wording then quotes).</summary>
     internal void ReportUnidentified(Core.DataReferenceContext dref, WrittenQualifiedName? written)
     {
-        string name = written?.Name ?? DataBinder.WrittenText(dref);
+        string name = written?.Name ?? WrittenSource.Of(dref);
         IReadOnlyList<string> qualifiers = written?.QualifierWords ?? [];
         // ⛔ A NAME DECLARED AS SOMETHING OTHER THAN A DATA ITEM IS NOT UNDEFINED (kb/Work PB1906): the one query of
         // what it IS. "Not defined" would send the user hunting a declaration that is right there.
@@ -80,7 +81,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
             return;
         }
         if (!refs.Diagnosed.Add(dref)) return;
-        string text = DataBinder.WrittenText(dref);
+        string text = WrittenSource.Of(dref);
         // ⛔ A DECLARED INDEX-NAME (kb/Work PB1266 — the resolver-level twin of SetBinder's PB388 screen): `ADD 1 TO IX`
         // and `CALL "P" USING IX` put an index-name in an identifier position. §2023:13.18.38.3 SR7 closes the list of
         // contexts an index-name may appear in, and this position is not one, so the reference is refused for the
@@ -213,7 +214,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     internal void ScreenLinkageReference(Core.DataReferenceContext dref, DataItem item)
     {
         if (data.Linkage.UnreferenceableLinkageRecord(item) is not { } record || !refs.Diagnosed.Add(dref)) return;
-        ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
+        ReportUnreferenceableLinkage(WrittenSource.Of(dref), record);
     }
 
     /// <summary>⛔ THE SAME RULE FOR AN IMPLICIT REFERENCE (kb/Work PB5876). A reference is explicit or implicit, and "Such an
@@ -249,7 +250,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         {
             if (data.Linkage.UnreferenceableLinkageRecord(depending.Item) is not { } record || !refs.Diagnosed.Add(dref)) continue;
             data.Edition.Error(DiagnosticCatalog.LinkageItemNotReferenceable,
-                $"'{DataBinder.WrittenText(dref)}' implicitly references '{depending.Item.CobolName}', its OCCURS DEPENDING ON "
+                $"'{WrittenSource.Of(dref)}' implicitly references '{depending.Item.CobolName}', its OCCURS DEPENDING ON "
                 + $"object (which fixes its length or its number of occurrences), and '{depending.Item.CobolName}' belongs to LINKAGE SECTION record '{record.CobolName}': the "
                 + "procedure division may not reference it ("
                 + data.Edition.Edition.Cite(
@@ -294,7 +295,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
                                           string declared = "a data item")
     {
         if (refs.Probing || !refs.Diagnosed.Add(dref)) return;   // R30 purity; one report per written reference
-        string text = DataBinder.WrittenText(dref);
+        string text = WrittenSource.Of(dref);
         data.Edition.Error(DiagnosticCatalog.ReferenceToRefusedDeclaration,
             (text == name ? $"'{text}' names {declared}" : $"'{text}' names '{name}'") + ", whose declaration was refused"
             + (why is null ? "" : $" ({why})") + "; see the error at the declaration. The reference cannot be bound.");

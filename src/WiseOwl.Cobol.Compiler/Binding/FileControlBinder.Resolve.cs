@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -303,7 +304,7 @@ public sealed partial class FileControlBinder
         using var _ = Edition.At(op);
         if (_host.RawValueOperandText(op, $"ALTERNATE RECORD KEY '{clause.Operand.Name}'", DataBinder.LiteralPosition.SuppressWhen) is not { } raw)
             return null;
-        string written = DataBinder.WrittenText(op);
+        string written = WrittenSource.Of(op);
         var form = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(raw, includeNull: false);
         if (form.Kind is { } kind)
             return new(written, SuppressWhenForm.Figurative, null, "", kind);

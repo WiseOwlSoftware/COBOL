@@ -303,7 +303,7 @@ internal static class OoExpansion
             string name = DeclaredName(e)!;
             var targetWord = ph.expandsTarget();
             string target = targetWord.GetText();
-            string targetWritten = DataBinder.WrittenText(targetWord);
+            string targetWritten = WrittenSource.Of(targetWord);
             var actuals = ph.expandsActual().Select(a => a.GetText()).ToList();
             string where = $"REPOSITORY {kind} '{name}' EXPANDS {targetWritten}";
 
@@ -401,7 +401,7 @@ internal static class OoExpansion
             if (definition is null)
             {
                 edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
-                    $"REPOSITORY {(isInterface ? "INTERFACE" : "CLASS")} '{DataBinder.WrittenText(targetWord)}': the parameterized {(isInterface ? "interface" : "class")} '{identity}' that "
+                    $"REPOSITORY {(isInterface ? "INTERFACE" : "CLASS")} '{WrittenSource.Of(targetWord)}': the parameterized {(isInterface ? "interface" : "class")} '{identity}' that "
                     + $"'{found.From.AssemblyFile}' publishes does not parse from the source it recorded, so it cannot be expanded: recompile that "
                     + "assembly (ISO §2023:12.3.8.4 GR5/GR8)");
                 return null;

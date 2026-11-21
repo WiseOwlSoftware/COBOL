@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -361,7 +362,7 @@ internal static class ConcatFolder
     private static string LeftDescribed(Core.ConcatOperandContext[] ops, Term[] terms, int i, PicCategory cls,
         bool allFigurative) =>
         i == 1 ? terms[0].Described
-        : $"the concatenation expression '{string.Join(" & ", ops.Take(i).Select(o => DataBinder.WrittenText(o)))}' of class "
+        : $"the concatenation expression '{string.Join(" & ", ops.Take(i).Select(o => WrittenSource.Of(o)))}' of class "
           + Name(cls) + (allFigurative ? " (both of its operands are figurative constants — ISO §2023:8.8.3.3 GR1b)" : "");
 
     private static string Name(PicCategory cat) => cat switch

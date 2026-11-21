@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Compiler.Oo;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -273,7 +274,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (computedReceiver is null && atom?.dataReference() is { } cref && ctx.Refs.Probe(cref) is null
                 && host.OoClasses?.Names.Lookup(cref, cref, OoNameWant.Class) is { Class: not null } or { IsFormal: true })
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeUniversalReferenceRule,
-                    $"INVOKE {DataBinder.WrittenText(cref)} {DataBinder.WrittenText(mref)}: when object-class-name-1 is specified, literal-1 "
+                    $"INVOKE {WrittenSource.Of(cref)} {WrittenSource.Of(mref)}: when object-class-name-1 is specified, literal-1 "
                     + "shall be specified (ISO §2023:14.9.23.3 SR3) — identifier-2 may be specified only when identifier-1 "
                     + "is a universal object reference (SR7)");
             // kb/Work PB1030: a reference that did not resolve is the resolver's diagnostic, never SR7's.
@@ -301,7 +302,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (!ItemCategory.IsAlphanumericOrNational(msrc, ctx.Edition.Edition))
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeUniversalReferenceRule,
-                    $"INVOKE: identifier-2 ('{DataBinder.WrittenText(mref)}') shall reference an alphanumeric or national data "
+                    $"INVOKE: identifier-2 ('{WrittenSource.Of(mref)}') shall reference an alphanumeric or national data "
                     + "item (ISO §2023:14.9.23.3 SR8)");
             }
             return OoBindUniversalInvoke(site, urecv!, methodLiteral: null, methodSource: msrc);
@@ -323,7 +324,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // inline method invocation IS one of the four INVOKE statements it lists, so `O :: "M"` and
         // `INVOKE O "M"` shall not be able to resolve a receiver, a roster or a method differently.
         return computedReceiver is { } temp
-            ? OoBindInstanceInvoke(site, temp, methodName, DataBinder.WrittenText(target))
+            ? OoBindInstanceInvoke(site, temp, methodName, WrittenSource.Of(target))
             : OoBindByReceiver(site, atom!, methodName);
     }
 
@@ -363,7 +364,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         if (bound is BoundExprError) return null;
         if (IntrinsicBinder.TemporaryItemOf(bound) is { Item.Pic.Category: PicCategory.ObjectReference } temp)
             return temp;
-        ctx.Edition.Error(code, $"'{DataBinder.WrittenText(written)}': {rule}");
+        ctx.Edition.Error(code, $"'{WrittenSource.Of(written)}': {rule}");
         return null;
     }
 
@@ -393,7 +394,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (OoPredefinedSearchRoot(isSuper, word, superQualifier, "INVOKE") is not { } root)
                 return BoundRejected.Reported(ctx.Edition);
             var (cur, searchRoot) = root;
-            string predefined = superQualifier is not null ? $"{DataBinder.WrittenText(superQualifier)} OF SUPER" : isSuper ? "SUPER" : "SELF";
+            string predefined = superQualifier is not null ? $"{WrittenSource.Of(superQualifier)} OF SUPER" : isSuper ? "SUPER" : "SELF";
             // SUPER over a formal superclass: the search starts in the actual (§2023:8.4.3.8.4 GR3; kb/Work PB2937).
             if (searchRoot is null) return OoBindDeferredInvoke(site, $"INVOKE {predefined} \"{methodName}\"");
             // Roster selection by CONTEXT (§2023:14.9.23.3 SR4f/g/h/i): a factory method's SELF/SUPER resolve
@@ -465,9 +466,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // A parameter-name declared CLASS, as class-name-1 (§2023:11.3.4 GR6): the factory interface SR3 searches is the
         // actual's, so the method is selected in each expansion (§2023:9.3.8.2.4; kb/Work PB2937).
         if (named.IsFormal)
-            return OoBindDeferredInvoke(site, $"INVOKE {DataBinder.WrittenText(dref)} \"{methodName}\"");
+            return OoBindDeferredInvoke(site, $"INVOKE {WrittenSource.Of(dref)} \"{methodName}\"");
         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeMethodNameInvalid,
-            $"INVOKE: '{DataBinder.WrittenText(dref)}' is neither a resolvable data item nor a class this source element "
+            $"INVOKE: '{WrittenSource.Of(dref)}' is neither a resolvable data item nor a class this source element "
             + "may reference (ISO §2023:14.9.23.2 — identifier-1 or class-name-1; §2023:8.4.6.4)");
     }
 
@@ -552,7 +553,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (place is null) return false;   // reported by the resolver or the receiving chokepoint
             if (explicitReference && ctx.Data.Oo.IsObjectData(place.Item))
             {
-                ReportObjectDataByReference(subject, DataBinder.WrittenText(dref), "pass it BY CONTENT");
+                ReportObjectDataByReference(subject, WrittenSource.Of(dref), "pass it BY CONTENT");
                 return false;
             }
             if (byReference)
@@ -564,7 +565,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     host.Params.ScreenBitAlignment(place, DiagnosticCatalog.InvokeBitAlignment, subject, BitAlignmentStatement.Invoke);
             }
             return ActiveClassSubordinateAdmitted(place, subject)
-                && (!arg.ByValueWritten || ByValueClassAdmitted(new BoundFieldOperand(place), DataBinder.WrittenText(dref), subject));
+                && (!arg.ByValueWritten || ByValueClassAdmitted(new BoundFieldOperand(place), WrittenSource.Of(dref), subject));
         }
         // An inline invocation or an object-view is an identifier referencing a temporary (§2023:8.4.3.4.4 GR1 c),
         // §2023:8.4.3.5.4 GR1) — identifier-5, never SR9's section item; bound by the OO identifier door, which reports.
@@ -650,7 +651,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     internal (OoClassSymbol Current, OoClassSymbol? SearchRoot)? OoPredefinedSearchRoot(bool isSuper, Antlr4.Runtime.IToken word,
         Core.CobolWordContext? qualifier, string position, bool report = true)
     {
-        string written = qualifier is not null ? $"{DataBinder.WrittenText(qualifier)} OF SUPER" : isSuper ? "SUPER" : "SELF";
+        string written = qualifier is not null ? $"{WrittenSource.Of(qualifier)} OF SUPER" : isSuper ? "SUPER" : "SELF";
         if (RefuseUnreservedPredefinedObject(word, isSuper, report)) return null;   // kb/Work PB4153, PB4444
         using var at = ctx.Edition.At(word);   // every refusal below is about the SELF / SUPER word too (kb/Work PB4444)
         if (!host.InMethod || host.OoCurrentClass is not { } cur)
@@ -672,7 +673,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             {
                 if (report)
                     ctx.Edition.Error(DiagnosticCatalog.SuperQualifierNotInherited,
-                    $"{position} {written}: '{DataBinder.WrittenText(qualifier)}' is "
+                    $"{position} {written}: '{WrittenSource.Of(qualifier)}' is "
                     + (named is null ? "not a class this source element may reference"
                         : cur.Base is null ? $"not inherited — class '{cur.Name}' has no INHERITS clause"
                         : $"not the class the INHERITS clause of '{cur.Name}' names ('{cur.Base.Name}')")
@@ -725,7 +726,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// (null: the edition reserves the word, and the caller reads it as the predefined object reference).</summary>
     internal BoundExprError? UnreservedPredefinedObjectRefusal(Core.SelfAndSuperContext s) =>
         RefuseUnreservedPredefinedObject(s.Start, s.SUPER() is not null)
-            ? BoundExprError.Refused(ctx.Edition, $"{DataBinder.WrittenText(s)}, a word §2023:8.9 does not reserve at this edition")
+            ? BoundExprError.Refused(ctx.Edition, $"{WrittenSource.Of(s)}, a word §2023:8.9 does not reserve at this edition")
             : null;
 
     /// <summary><c>INVOKE class-name-1 "m" …</c>: §2023:14.9.23.3 SR3 — "The value of literal-1 shall be the name of a
@@ -814,13 +815,13 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
             if (rp.Item.Pic is not { Category: PicCategory.ObjectReference })
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeBaseClassMethodRule,
-                    $"{verb} RETURNING '{DataBinder.WrittenText(retRef)}': the receiving item shall be a USAGE OBJECT REFERENCE data "
+                    $"{verb} RETURNING '{WrittenSource.Of(retRef)}': the receiving item shall be a USAGE OBJECT REFERENCE data "
                     + "item (ISO §2023:14.9.23.4 GR8 / §2023:14.8.3.3)");
             ret = rp;
             if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, PicInfo.ObjectReferenceItem(result), rp.Item.Pic)
                 is { } err)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeBaseClassMethodRule,
-                    $"{verb} RETURNING '{DataBinder.WrittenText(retRef)}': {err} (ISO §2023:14.8.3.3 rule 1)");
+                    $"{verb} RETURNING '{WrittenSource.Of(retRef)}': {err} (ISO §2023:14.8.3.3 rule 1)");
         }
         return m.Standard switch
         {
@@ -1054,7 +1055,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(retRef) is not { } rp)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeArgumentNotConforming,
-                    $"INVOKE \"{m.Name}\" RETURNING '{DataBinder.WrittenText(retRef)}': the receiving identifier is not "
+                    $"INVOKE \"{m.Name}\" RETURNING '{WrittenSource.Of(retRef)}': the receiving identifier is not "
                     + "resolvable to storage");
             }
             if (!OoScreenReturning(rp, retRef, m.Name)) return BoundRejected.Reported(ctx.Edition);
@@ -1066,7 +1067,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (rerr is not null)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeArgumentNotConforming,
-                    $"INVOKE \"{m.Name}\" RETURNING '{DataBinder.WrittenText(retRef)}': {rerr} (ISO §2023:14.8.3.3 "
+                    $"INVOKE \"{m.Name}\" RETURNING '{WrittenSource.Of(retRef)}': {rerr} (ISO §2023:14.8.3.3 "
                     + "returning-item conformance)");
             }
             retPlace = rp;
@@ -1201,7 +1202,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (host.Ptr.BindAddressIdentifier(addrCtx, verb + " USING") is not { } ao) return null;
             if (host.Ptr.AddressConformanceReason(formal, ao.Data, ao.Program) is { } awhy)
             {
-                Err($"USING argument '{DataBinder.WrittenText(addrCtx)}' (an address-identifier) does not conform to "
+                Err($"USING argument '{WrittenSource.Of(addrCtx)}' (an address-identifier) does not conform to "
                     + $"formal parameter '{formal.CobolName}': {awhy}");
                 return null;
             }
@@ -1319,7 +1320,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 return null;
             }
             literal2 = host.Expr.AliasOperand(alias);
-            constantName = DataBinder.WrittenText(dref);
+            constantName = WrittenSource.Of(dref);
             dref = null;
             arithCtx = null;
         }
@@ -1389,14 +1390,14 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             else if (host.SendingValue.Materialize(fnOperand, "invokearg", use: SendingValueTemp.ValueUse.Text) is { } fnTemp) inlinePlace = fnTemp;
             else
             {
-                Err($"BY CONTENT function-identifier argument '{DataBinder.WrittenText(soleFn)}' for formal "
+                Err($"BY CONTENT function-identifier argument '{WrittenSource.Of(soleFn)}' for formal "
                     + $"'{formal.CobolName}': its returned value has no intermediate item to cross by");
                 return null;
             }
         }
         if (dref is not null || inlinePlace is not null)
         {
-            string argText = DataBinder.WrittenText(dref ?? (Antlr4.Runtime.ParserRuleContext)arithCtx!);   // as written — `FUNCTION NUMVAL("3.7")`, never run together
+            string argText = WrittenSource.Of(dref ?? (Antlr4.Runtime.ParserRuleContext)arithCtx!);   // as written — `FUNCTION NUMVAL("3.7")`, never run together
             // ⛔ THE MODE IS DECIDED BEFORE THE OPERAND IS RESOLVED, BECAUSE THE MODE DECIDES ITS ROLE (kb/Work PB881,
             // PB1137). An explicit BY REFERENCE argument is identifier-3, "a receiving operand" (§2023:14.9.23.3 SR20); an
             // explicit BY CONTENT one is identifier-5, "a sending operand" (SR21). A KEYWORD-LESS identifier is either,
@@ -1501,7 +1502,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             var bound = host.Cond.BindBoolExpr(bx);
             if (host.Params.ContentConformanceReason(formal, LiteralArg(null) with { ContentBool = bound }) is { } bErr)
             {
-                Err($"BY CONTENT boolean-expression argument '{DataBinder.WrittenText(bx)}' for formal "
+                Err($"BY CONTENT boolean-expression argument '{WrittenSource.Of(bx)}' for formal "
                     + $"'{formal.CobolName}': {bErr}");
                 return null;
             }
@@ -1520,7 +1521,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             bool functionValue = arithCtx is not null && ConditionBinder.SoleFunctionCall(arithCtx) is not null;
             if (host.Params.ContentConformanceReason(formal, LiteralArg(new BoundComputedOperand(expr) { FunctionValue = functionValue })) is { } aErr)
             {
-                Err($"BY CONTENT arithmetic-expression argument '{(arg.Bool is { } argBool ? DataBinder.WrittenText(argBool) : DataBinder.WrittenText(ax))}' for formal "
+                Err($"BY CONTENT arithmetic-expression argument '{(arg.Bool is { } argBool ? WrittenSource.Of(argBool) : WrittenSource.Of(ax))}' for formal "
                     + $"'{formal.CobolName}': {aErr}");
                 return null;
             }
@@ -1547,7 +1548,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // it among a COMPUTE's operands — so it takes the numeric-literal lane (its verdict and its carrier split), and
         // only a character-carried formal takes the fill below (kb/Work PB1617).
         literal2 = ParameterConformance.ArgumentForFormal(literal2, formal);
-        string literalText = constantName ?? (nonNumCtx is null ? null : DataBinder.WrittenText(nonNumCtx)) ?? writtenLit?.Image ?? foldedAlnum ?? "";
+        string literalText = constantName ?? (nonNumCtx is null ? null : WrittenSource.Of(nonNumCtx)) ?? writtenLit?.Image ?? foldedAlnum ?? "";
         switch (literal2)
         {
             case BoundStringLiteral { Value.Length: 0 } empty:
@@ -1726,7 +1727,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (!ActiveClassSubordinateAdmitted(p, "INVOKE USING argument")) return BoundRejected.Reported(ctx.Edition);
             if (ctx.Data.Oo.IsObjectData(p.Item))
             {
-                ReportObjectDataByReference("INVOKE through a universal object reference", DataBinder.WrittenText(dref),
+                ReportObjectDataByReference("INVOKE through a universal object reference", WrittenSource.Of(dref),
                     "the universal path has no BY CONTENT fallback (SR6)");
                 return BoundRejected.Reported(ctx.Edition);
             }
@@ -1748,7 +1749,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(retRef) is not { } rp)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeUniversalReferenceRule,
-                    $"INVOKE RETURNING '{DataBinder.WrittenText(retRef)}': the receiving identifier is not resolvable "
+                    $"INVOKE RETURNING '{WrittenSource.Of(retRef)}': the receiving identifier is not resolvable "
                     + "to storage");
             }
             if (!OoScreenReturning(rp, retRef, methodName: null)) return BoundRejected.Reported(ctx.Edition);
@@ -1895,7 +1896,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (indexName || probe!.Value.Item.Pic is not { Category: PicCategory.ObjectReference })
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ObjectReferenceAssignmentNotConforming,
-                    $"SET '{DataBinder.WrittenText(t)}': the receiving operand of an object-reference SET shall be a "
+                    $"SET '{WrittenSource.Of(t)}': the receiving operand of an object-reference SET shall be a "
                     + "USAGE OBJECT REFERENCE data item (ISO §2023:14.9.39.3 SR8)");
             }
             if (host.Expr.ResolveReceiving(t) is not { } tp) return new BoundUnsupported("SET object-reference receiving operand");   // reported by the resolver
@@ -2101,7 +2102,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             }
             for (int i = 0; i < cur.ChildCount; i++) stack.Push(cur.GetChild(i));
         }
-        return only is not null && DataBinder.WrittenText(only) == e.GetText() ? only : null;
+        return only is not null && WrittenSource.Of(only) == e.GetText() ? only : null;
     }
 
     /// <summary>The VALUE of literal-1, the method name — for the INVOKE statement (§2023:14.9.23.3 SR2: "Literal-1 shall

@@ -138,8 +138,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 {
                     if (use is RecordKeyNameUse.Refused) return BoundRejected.Reported(ctx.Edition);
                     if (use is RecordKeyNameUse.OtherFile)
-                        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {DataBinder.WrittenText(keyRef)} on "
-                            + $"'{file.CobolName}': '{DataBinder.WrittenText(keyRef)}' is a record-key-name of another file; "
+                        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {WrittenSource.Of(keyRef)} on "
+                            + $"'{file.CobolName}': '{WrittenSource.Of(keyRef)}' is a record-key-name of another file; "
                             + "record-key-name-1 shall be specified in the RECORD KEY clause or an ALTERNATE RECORD KEY "
                             + $"clause associated with file-name-1 (ISO {ctx.Edition.Edition.Cite("§1985:IX.4.5.3 SR2", "§2023:14.9.30.3 SR11")})");
                     keyIndex = rki;
@@ -155,7 +155,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                     || keyPlace.ConstantOccurrence() is not { } keyOccurrence
                     || Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem, keyOccurrence) is not { } ki)
                 {
-                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {DataBinder.WrittenText(keyRef)} on '{file.CobolName}': the "
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {WrittenSource.Of(keyRef)} on '{file.CobolName}': the "
                         + $"operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO {ctx.Edition.Edition.Cite("§1985:IX.4.5.3 SR2", "§2023:14.9.30.3 SR11")})");
                 }
                 else keyIndex = ki;
@@ -391,7 +391,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             if (use is RecordKeyNameUse.Refused) return BoundRejected.Reported(ctx.Edition);
             if (use is RecordKeyNameUse.OtherFile)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': "
-                    + $"'{DataBinder.WrittenText(rkRef)}' is a record-key-name of another file; record-key-name-1 shall be specified "
+                    + $"'{WrittenSource.Of(rkRef)}' is a record-key-name of another file; record-key-name-1 shall be specified "
                     + "with the SOURCE phrase in the RECORD KEY clause or in the ALTERNATE RECORD KEY clause in the "
                     + "file control entry for file-name-1 (ISO §2023:14.9.41.3 SR7)");
             namedKeyIndex = rkIndex;
@@ -482,7 +482,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 || (Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem, keyOccurrence)
                     ?? Model.RecordLayout.GenericKeyIndex(file, keyItem, keyOccurrence)) is not { } ki)
             {
-                string written = DataBinder.WrittenTextOr(kp?.dataReference(), operand.Item.CobolName ?? "data-name-1");
+                string written = WrittenSource.Of(kp?.dataReference(), operand.Item.CobolName ?? "data-name-1");
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': '{written}' is neither a "
                     + "record key of the file nor an item that begins at the leftmost character position of one "
                     + "within a record of that file, has the same class, category and usage as that key, and is "
