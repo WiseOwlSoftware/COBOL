@@ -32,7 +32,12 @@ fires inside subagents and Workflow agents too. Each rule below was written in a
                             MANDATORY-PRACTICES P17). A probe runs through `scripts/orchestrator/run_probe.py` in a new
                             directory, so nothing needs deleting; a file that must go is removed by its literal path.
 
-  WSL lifecycle commands    `wsl --terminate/--shutdown/--update/--export/--import/--unregister/--install` (owner
+  a kill by process name    `Stop-Process -Name`, `Get-Process <name> | Stop-Process`, `taskkill /IM`, `pkill`, `killall`:
+                            a name matches every process of that image on the host, and one agent's cleanup killed
+                            another agent's gate compiles (kb/Work PB6034, MANDATORY-PRACTICES P18). Stop only what you
+                            started, by its pid.
+
+  WSL lifecycle commands   `wsl --terminate/--shutdown/--update/--export/--import/--unregister/--install` (owner
                             2026-10-04): they can end the owner's open session or burn tens of GB, so only the owner runs
                             them. Commands inside a distro (`wsl -d Ubuntu -e ...`) stay allowed. This is the guard that
                             matters most under an unattended `bypassPermissions` run, where prompts no longer protect.
@@ -397,5 +402,61 @@ for _st in STEPS:   # every simple command, in the shell that runs it (`Step.she
               "`python scripts/orchestrator/run_probe.py --root <your scratch directory, written literally> ...`, "
               "which gives each run a NEW directory, so nothing needs deleting; a file that must go is removed by "
               "its one literal path.")
+
+# 8. a KILL BY PROCESS NAME (owner-controller 2026-11-21, kb/Work PB6034, MANDATORY-PRACTICES P18): a name matches EVERY
+# process of that image on the host, other agents' included. `Get-Process dotnet-stack,cobol | Stop-Process -Force`, run
+# by one implementer to clean up its own sampling, killed the cobol.exe compiles of another agent's gate (exit 4294967295,
+# empty streams), and that gate read them as failed cases. Refused: PowerShell `Stop-Process` (`spps`, `kill`) with
+# `-Name` / `-ProcessName` (any prefix), a `Stop-Process` fed by a `Get-Process` (`gps`, `ps`) stage that selects by name
+# or selects everything (no `-Id`), `taskkill` with `/IM` (any shell), and Bash `pkill` / `killall`. Allowed: a kill of a
+# pid the agent started (`Stop-Process -Id $p.Id`, `$p.Kill()`, Bash `kill $pid`, `taskkill /PID n`).
+_PS_STOP = {"stop-process", "spps", "kill"}
+_PS_STOP_SWITCHES = {"force", "passthru", "whatif", "confirm", "verbose", "debug"}
+_PS_GET_PROCESS = {"get-process", "gps", "ps"}
+_PS_BY_NAME = re.compile(r"^-(?:n(?:a(?:m(?:e)?)?)?|processname)(?::.*)?$", re.I)
+_PS_BY_ID = re.compile(r"^-(?:id|pid|inputobject|i(?:n(?:p(?:u(?:t(?:o(?:b(?:j(?:e(?:c(?:t)?)?)?)?)?)?)?)?)?)?)(?::.*)?$", re.I)
+
+
+def _kill_by_name(st, previous) -> bool:
+    """Whether the step kills processes by their image name (`previous`: the step piped into it, or None)."""
+    w = st.words
+    k = _command_word(w)
+    if k is None:
+        return False
+    name, args = shell_location.program(w[k]), w[k + 1:]
+    if name == "taskkill":
+        return any(a.lower() in ("/im", "//im", "-im") for a in args)    # `//IM`: Git Bash's spelling
+    if st.shell == shell_location.BASH and name in ("pkill", "killall"):
+        return True
+    if st.shell == shell_location.POWERSHELL and name in _PS_STOP:
+        if any(_PS_BY_NAME.match(a) for a in args):
+            return True
+        positional, i = False, 0
+        while i < len(args):                               # a parameter's value (`-ErrorAction SilentlyContinue`) is
+            a = args[i]                                    # no positional id; the switches take none
+            if a.startswith("-"):
+                if ":" not in a and a.lower().lstrip("-") not in _PS_STOP_SWITCHES:
+                    i += 1
+            else:
+                positional = True
+            i += 1
+        if any(_PS_BY_ID.match(a) for a in args) or positional:
+            return False                                   # an id, an input object, or a positional id
+        if previous is None:
+            return False
+        pw = previous.words
+        pk = _command_word(pw)
+        return (pk is not None and shell_location.program(pw[pk]) in _PS_GET_PROCESS
+                and not any(_PS_BY_ID.match(a) for a in pw[pk + 1:]))
+    return False
+
+
+for _i, _st in enumerate(STEPS):
+    _prev = STEPS[_i - 1] if _i > 0 and STEPS[_i - 1].sep == "|" else None
+    if _kill_by_name(_st, _prev):
+        block(f"a kill by process NAME (`{_st.text[:60]}`): a name matches every process of that image on the host, "
+              "including other agents' gates and builds (kb/Work PB6034: a `Get-Process cobol | Stop-Process` killed "
+              "another gate's compiles, MANDATORY-PRACTICES P18). Stop only what you started, by its pid: keep the "
+              "object `Start-Process -PassThru` returns and run `Stop-Process -Id $p.Id` (Bash: `kill $pid`).")
 
 sys.exit(0)

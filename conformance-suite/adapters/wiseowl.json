@@ -8,7 +8,9 @@
     "code any of the compiler's (CBL<n> from COPY, COBOL<n> from the rest: the parser's below 0400; a drift test,",
     "ConformanceSuiteAdapterDriftTests, holds this pattern to every code the compiler can report).",
     "An ASSIGN name is a file of the working directory. Crash codes: 0xE0434352 (an unhandled .NET exception on",
-    "Windows), 0xC0000005 (access violation) and 0xC00000FD (stack overflow); on Linux a crash is a signal.",
+    "Windows), 0xC0000005 (access violation), 0xC00000FD (stack overflow) and 0xFFFFFFFF (TerminateProcess(-1): the compiler killed",
+    "from outside, as Stop-Process does; Python reads a Windows exit code unsigned, so the harness's returncode < 0 never sees it,",
+    "kb/Work PB6034: it is NO VERDICT, never FAIL); on Linux a crash is a signal.",
     "A program's default USER and SYSTEM locales are its environment's (docs/CONFORMANCE.md DOC-A.1-118), so the",
     "adapter pins both to the root locale, as WiseOwl's own runner does (CutRunner.LocalePin): a host's regional",
     "setting never reaches a verdict. The asynchronous messaging facility's MCS directory (WISEOWL_COBOL_MCS, DESIGN-message-control.md §7.1)",
@@ -25,6 +27,6 @@
   "flag": ["{cobol}", "{source}", "--std", "{std}", "--source-format", "{source-format}", "--flag-extensions",
            "-o", "{program}.dll"],
   "diagnostic": "^\\s*(?P<file>[^\\s(][^(]*)\\((?P<line>[0-9]+),[0-9]+\\): (?P<severity>[a-z]+) (?P<code>[A-Z]+[0-9]+):",
-  "crash-exit-codes": [3762504530, 3221225477, 3221225725],
+  "crash-exit-codes": [3762504530, 3221225477, 3221225725, 4294967295],
   "environment": {"COBOL_USER_LOCALE": "INVARIANT", "COBOL_SYSTEM_LOCALE": "INVARIANT", "WISEOWL_COBOL_MCS": "{work}"}
 }

@@ -266,6 +266,14 @@ CASES = [
     ('git rm -r "$d"', False),                                            # git's own removal, one commit from recovery
     ('cmd /c "rmdir /q %D%"', False),                                     # not recursive
     ('cmd /c "rmdir /s /q E:' + BS + 'x"', False),                        # literal
+    # 8. a kill by process name in Bash (kb/Work PB6034)
+    ("pkill -f cobol", True),
+    ("killall dotnet", True),
+    ("taskkill //IM cobol.exe //F", True),                                # Git Bash's spelling of /IM
+    ("taskkill /IM cobol.exe /F", True),
+    ("kill 1234", False),                                                 # a pid
+    ('kill "$pid"', False),
+    ("taskkill /PID 1234 /F", False),
 ]
 
 
@@ -321,6 +329,28 @@ PS_CASES = [
     ("Remove-Item -Recurse:$false $d", False),
     ("Remove-Item -Recurse E:/x -Filter $pat", False),                   # the variable is a filter, not the target
     ('Write-Output "rm -r $d"', False),
+    # 8. a kill by process name (kb/Work PB6034, MANDATORY-PRACTICES P18): the command that killed another gate's
+    # compiles, each spelling of a name selection, and the kills of an agent's own pid that stay allowed
+    ('Get-Process dotnet-stack,cobol -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; "ok"',
+     True),
+    ("Stop-Process -Name cobol -Force", True),
+    ("Stop-Process -n cobol", True),
+    ("spps -ProcessName dotnet", True),
+    ("kill -Name cobol", True),
+    ("gps cobol | spps", True),
+    ("Get-Process | Stop-Process", True),                                # every process
+    ("Get-Process -Name cobol | Stop-Process -Force", True),
+    ("taskkill /IM cobol.exe /F", True),
+    ('cmd /c "taskkill /f /im dotnet.exe"', True),
+    ("Stop-Process -Id 1234", False),                                    # one pid
+    ("Stop-Process -Id $p.Id -Force", False),
+    ("Stop-Process 1234 -Force", False),                                 # a positional id
+    ("$p | Stop-Process", False),                                        # the agent's own process object
+    ("Get-Process -Id $p.Id | Stop-Process", False),
+    ("$p.Kill()", False),
+    ("taskkill /PID 1234 /T /F", False),
+    ("Get-Process cobol", False),                                        # listing kills nothing
+    ("Write-Output 'Stop-Process -Name cobol'", False),
 ]
 
 
