@@ -4,7 +4,7 @@ nothing (kb/Work PB5764; MANDATORY-PRACTICES P17).
 
     python scripts/orchestrator/run_probe.py --root <absolute run root> --std <85|2002|2014|2023>
         (--exe <cobol.exe> | --tree <checkout> [--configuration Debug|Release])
-        [--with <file> ...] [--expect <file.out>] [--compile-only] [--timeout 120] <program.cob> [-- <compiler args>]
+        [--with [<place>=]<file> ...] [--expect <file.out>] [--compile-only] [--timeout 120] <program.cob> [-- <compiler args>]
 
 --root          an absolute directory OUTSIDE every git working tree (created when absent), written LITERALLY by the
                 caller (your own scratch directory, MANDATORY-PRACTICES P16). The run happens in
@@ -13,7 +13,11 @@ nothing (kb/Work PB5764; MANDATORY-PRACTICES P17).
 --exe / --tree  the compiler: its path, or the checkout whose `src/WiseOwl.Cobol.Cli/bin/<configuration>/<tfm>/`
                 holds it (the configuration Debug unless named). Exactly one is required; a compiler that does not
                 exist is refused, never replaced by another.
---with          a file the program needs beside it (a library text it copies, a data file it reads): copied in.
+--with          a file the program needs (a library text it copies, a data file it reads): copied in beside the
+                program by its own name, or, written `<place>=<file>`, at `<place>`, a relative path under the run
+                directory (`LIB-19/TXT-20=E:/x/TXT-20.cpy` for `COPY TXT-20 OF LIB-19`, §1985:XII.2.3 SR1; kb/Work
+                PB6016). A place that is absolute or climbs out with `..` is refused, and so are two inputs at one
+                place.
 --expect        compare the program's standard output with this file by the suite runner's own rule
                 (conformance-suite/harness/run.py `normalize`: CR LF is LF, each line's trailing spaces and the trailing
                 newlines dropped): `EXPECT: MATCH`, or `EXPECT: DIFFERS` and the differing lines with exit 1.
@@ -149,9 +153,19 @@ def refusals(a: argparse.Namespace) -> tuple[list[str], dict]:
     program = pathlib.Path(a.program).resolve()
     if not program.is_file():
         problems.append(f"no such program: {program}")
-    beside = [pathlib.Path(b).resolve() for b in a.beside]
-    problems += [f"no such file for --with: {b}" for b in beside if not b.is_file()]
-    names = [program.name] + [b.name for b in beside]
+    beside: list[tuple[pathlib.PurePosixPath, pathlib.Path]] = []
+    for b in a.beside:
+        place, sep, source = b.partition("=") if "=" in b else ("", "", b)
+        f = pathlib.Path(source).resolve()
+        if not f.is_file():
+            problems.append(f"no such file for --with: {f}")
+        at = pathlib.PurePosixPath(place.replace("\\", "/")) if sep else pathlib.PurePosixPath(f.name)
+        if sep and (not place.strip() or at.is_absolute() or pathlib.PureWindowsPath(place).drive
+                    or ".." in at.parts):
+            problems.append(f"the --with place {place!r} is not a relative path under the run directory")
+            continue
+        beside.append((at, f))
+    names = [program.name] + [str(at) for at, _ in beside]
     problems += [f"two inputs share the name {n!r}: one would overwrite the other in the run directory"
                  for n in sorted({n for n in names if names.count(n) > 1})]
     expect = pathlib.Path(a.expect).resolve() if a.expect else None
@@ -168,8 +182,10 @@ def main(argv: list[str]) -> int:
         return EXIT_REFUSED
     program: pathlib.Path = got["program"]
     run = fresh_directory(got["root"].resolve(), program.stem)
-    for f in (program, *got["beside"]):
-        shutil.copy2(f, run / f.name)
+    shutil.copy2(program, run / program.name)
+    for at, f in got["beside"]:
+        (run / at).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(f, run / at)
     cmd = [str(got["exe"]), program.name, "--std", a.std, *([] if a.compile_only else ["--run"]), *extra]
     out_file, err_file = run / "stdout.txt", run / "stderr.txt"
     # files, never pipes, for the tree's output: a pipe an orphaned grandchild still holds blocks its reader (process_job)

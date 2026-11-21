@@ -131,6 +131,33 @@ def case_030_with_files_compile_only_and_extra_arguments(expect):
                  next(l for l in printed.splitlines() if l.startswith("files ")), "files lib.cpy prog.cob")
 
 
+def case_035_a_with_place_stages_a_library_directory(expect):
+    """kb/Work PB6016: `--with <place>=<file>` puts the file at that relative place under the run directory, so a probe
+    of `COPY text-name OF library-name` can supply its library; a place outside the run directory is refused."""
+    d = scratch_dir("run-probe-place-")
+    prog = _plant(d, "prog.cob", COUNTER)
+    lib = _plant(d, "TXT-20.cpy", "copied\n")
+    data = _plant(d, "rec.dat", "data\n")
+    status, printed, _ = _run("--root", str(d / "runs"), "--std", "85", "--exe", EXE, "--with", f"LIB-19/TXT-20={lib}",
+                              "--with", str(data), str(prog))
+    run = _run_directory(printed)
+    expect.equal("exit 0", status, 0)
+    expect.equal("the library text is at its place, its file name the place's, the plain --with file beside the program",
+                 ((run / "LIB-19" / "TXT-20").read_text(), (run / "rec.dat").is_file(),
+                  (run / "TXT-20.cpy").exists()), ("copied\n", True, False))
+    root = d / "refused"
+    for label, place in {"a place that climbs out": "../TXT-20", "an absolute place": "/x/TXT-20",
+                         "a place with a drive": "C:/x/TXT-20", "an empty place": ""}.items():
+        status, printed, said = _run("--root", str(root), "--std", "85", "--exe", EXE, "--with", f"{place}={lib}",
+                                     str(prog))
+        expect(f"{label} is refused (exit 2), nothing ran",
+               status == 2 and "not a relative path under the run directory" in said and not root.exists(),
+               f"got {(status, said.strip()[:160])}")
+    status, _, said = _run("--root", str(root), "--std", "85", "--exe", EXE, "--with", f"L/T={lib}", "--with",
+                           f"L/T={data}", str(prog))
+    expect("two inputs at one place are refused (exit 2)", status == 2 and "share the name 'L/T'" in said, said)
+
+
 def case_040_expect_match_and_differs(expect):
     d = scratch_dir("run-probe-expect-")
     prog = _plant(d, "hello.cob", HELLO)

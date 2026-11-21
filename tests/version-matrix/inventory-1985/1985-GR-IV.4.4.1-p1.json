@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.4.1-p1",
+ "rule-digest": "6b52bb83c66d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#DataItemNamed; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#DeclarationOf",
+ "test-ref": "conformance:cases/IV.4.4@1985-EXPLICIT-AND-IMPLICIT-SPECIFICATIONS/1985-GR-IV_4_4_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-05.json: the reader showed the compiler correct at 85 with its probe (s05_refs.cob), placed as the row's own test with the library texts the reader staged (S05REF.cpy; run_probe.py could not stage them before kb/Work PB6016, so the import left the row GAP); its expected output is the reader's judged run, equal on this build. The library text is the reader's cpy-ok text (X OF G1): the copied explicit reference is qualified and accepted, and the group MOVE and the PERFORM VARYING reference their items implicitly; the reader's refusal of the unqualified copied X (cpy-bad) is reported in the library text, not at a line of the program, so it is no placeable refused test. The read: Flagged definitional, but the definition decides what \"explicitly referenced\" (IV.4.3.8.1) reaches, which a program shows. The candidates are about transfers of control. Code location located after the read: cites 1985:IV.4.4.1; resolves explicit data references"
+}

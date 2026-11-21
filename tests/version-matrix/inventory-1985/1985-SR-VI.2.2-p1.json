@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.2.2-p1",
+ "rule-digest": "d46785bc9b50",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#compilationUnit",
+ "test-ref": "conformance:cases/VI.2@1985-A-COBOL-SOURCE-PROGRAM/1985-GR-VI_2_2-p2",
+ "notes": "Own witness from the read lineage-reads-1985/s-08.json: the reader showed the compiler correct at 85 with its probe (t-division-order-85.cob), placed as the row's own test with the library texts the reader staged (ORDCPY; run_probe.py could not stage them before kb/Work PB6016, so the import left the row GAP); its expected output is the reader's judged run, equal on this build.  The read: \"With the exception of COPY and REPLACE statements and the end program header, the statements, entries, paragraphs, and sections of a COBOL source program are grouped into four divisions which are sequenced in the following order:\" (Identification, Environment, Data, Procedure). No candidate states division order. Code location located after the read: programUnit sequences identification, environment, data, procedure divisions"
+}

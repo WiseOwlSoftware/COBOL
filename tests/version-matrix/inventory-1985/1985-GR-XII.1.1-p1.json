@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XII.1.1-p1",
+ "rule-digest": "b158406291bc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ExpandCopiesOneLevel; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+ "test-ref": "conformance:cases/XII.1@1985-INTRODUCTION-TO-THE-SOURCE-TEXT-MANIPULATION/1985-GR-XII_1_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-17.json: the reader showed the compiler correct at 85 with its probe (copy_replace_85.cob), placed as the row's own test with the library texts the reader staged (S17PAR.cpy, S17TXT.cpy; run_probe.py could not stage them before kb/Work PB6016, so the import left the row GAP); its expected output is the reader's judged run, equal on this build.  The read: 'Each of these statements can function either independent of the other or in conjunction with the other'. No 2023 candidate states the module's composition (GR-7.2.4.4-1, SR-7.2.4.3-1, GR-7.2.4.4-9 have no 85 case and state other rules). The probe shows both statements alone and REPLACE applied to copied text at 85. Code location located after the read: COPY and REPLACE processed in CopyProcessor (cites 1985:XII.2.3 and XII.3.3)"
+}

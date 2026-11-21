@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.2.2-p2",
+ "rule-digest": "3f0d09b7c3ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#EndMarkerPass",
+ "test-ref": "conformance:cases/VI.2@1985-A-COBOL-SOURCE-PROGRAM/1985-GR-VI_2_2-p2",
+ "notes": "Own witness from the read lineage-reads-1985/s-08.json: the reader showed the compiler correct at 85 with its probe (t-division-order-85.cob), placed as the row's own test with the library texts the reader staged (ORDCPY; run_probe.py could not stage them before kb/Work PB6016, so the import left the row GAP); its expected output is the reader's judged run, equal on this build.  The read: \"The end of a COBOL source program is indicated by either the end program header, if specified, or by the absence of additional source program lines.\" Candidates are CALL and nested-name rules (wording-only). Code location located after the read: programUnit grammar ends at end program header or EOF; EndMarkerPass checks end markers"
+}
