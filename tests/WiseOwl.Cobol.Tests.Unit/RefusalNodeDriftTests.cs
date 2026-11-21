@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -124,7 +125,7 @@ public sealed class RefusalNodeDriftTests
     {
         const string reportThenNop = """
                     {
-                        ctx.Edition.Error("COBOL1637", $"ACCEPT receiver '{DataBinder.WrittenText(dref)}' is an index-name — an "
+                        ctx.Edition.Error("COBOL1637", $"ACCEPT receiver '{WrittenSource.Of(dref)}' is an index-name — an "
                             + "index-name is not an identifier (ISO §2023:8.4.3.1.2)");
                         return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
                     }

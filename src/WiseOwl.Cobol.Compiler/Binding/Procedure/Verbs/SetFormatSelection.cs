@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -397,7 +398,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     /// statement nobody wrote. With one helper the naming is what a new arm reaches for, which is what makes
     /// the next SET diagnostic name its receivers without anyone remembering to.</para></summary>
     public static string Written(IReadOnlyList<Core.DataReferenceContext> receivers) =>
-        string.Join(' ', receivers.Select(r => $"'{DataBinder.WrittenText(r)}'"));
+        string.Join(' ', receivers.Select(r => $"'{WrittenSource.Of(r)}'"));
 
     /// <summary>COBOL2112 — the residual arm §2023:14.9.39.2 needs and did not have: NO printed general format's
     /// receiving brace admits these operands, so the statement is refused rather than executed as Format 1/2
@@ -409,7 +410,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     {
         string written = Written(receivers);
         string what = string.Join("; ", receivers
-            .Select((r, i) => $"'{DataBinder.WrittenText(r)}' is {Describe(kinds[i])}")
+            .Select((r, i) => $"'{WrittenSource.Of(r)}' is {Describe(kinds[i])}")
             .Distinct());
         // Only the formats the compiled edition prints are named (kb/Work PB4954): a row introduced later is absent.
         string braces = string.Join("; ", Formats
@@ -433,7 +434,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         {
             if (kinds[i] == SetOperandKind.Unclassified || row.Admits.Contains(kinds[i])) continue;
             ctx.Edition.Error(DiagnosticCatalog.SetNoFormatAdmitsReceiver,
-                $"SET '{DataBinder.WrittenText(receivers[i])}': {BraceOf(row)}, and '{DataBinder.WrittenText(receivers[i])}' is "
+                $"SET '{WrittenSource.Of(receivers[i])}': {BraceOf(row)}, and '{WrittenSource.Of(receivers[i])}' is "
                 + $"{Describe(kinds[i])} ({RuleOf(row)})");
             return true;
         }

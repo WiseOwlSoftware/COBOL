@@ -276,7 +276,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// it cannot bind.</summary>
     private RefResolution ItemFailure(Core.DataReferenceContext dref, PlaceGap gap)
     {
-        string written = DataBinder.WrittenText(dref);
+        string written = WrittenSource.Of(dref);
         if (gap.Deferred is { } shape) return RefResolution.Deferred(shape, written);
         Names.ReportRefusedDeclaration(dref, gap.Refused.CobolName ?? gap.Refused.ClrName, gap.Refused.Class?.RejectReason);
         return RefResolution.Refused(written);
@@ -331,7 +331,7 @@ public sealed class ReferenceResolver(DataBinder data)
             inner = freeze(inner, preOpMark, dref.Start.Line);
         return RefMods.RefModView(described, inner, spec) is { } view
             ? RefResolution.Resolved(view, "")
-            : RefResolution.Deferred(DeferredShape.NumericRefModSubstrate, DataBinder.WrittenText(dref));
+            : RefResolution.Deferred(DeferredShape.NumericRefModSubstrate, WrittenSource.Of(dref));
     }
 
     /// <summary>⛔ THE ONE IDENTIFICATION STEP OF A WRITTEN DATA REFERENCE (kb/Work PB3287) — every entry that
@@ -355,8 +355,8 @@ public sealed class ReferenceResolver(DataBinder data)
     {
         DataReferenceCst r = dref;
         // The three answers (kb/Work PB1030). The written text is built only on a failure path.
-        RefResolution Refused() => RefResolution.Refused(DataBinder.WrittenText(dref));
-        RefResolution Deferred(DeferredShape shape) => RefResolution.Deferred(shape, DataBinder.WrittenText(dref));
+        RefResolution Refused() => RefResolution.Refused(WrittenSource.Of(dref));
+        RefResolution Deferred(DeferredShape shape) => RefResolution.Deferred(shape, WrittenSource.Of(dref));
         static RefResolution Resolved(Place place) => RefResolution.Resolved(place, "");
         static Identified Ends(RefResolution answer) => new(answer, null, default, null);
         // A special register — LINAGE-COUNTER (I-O control system, ISO §2023:8.4.3.14), LINE-/PAGE-COUNTER (Report
@@ -874,7 +874,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // reported or not (the index-name sibling of wave 1073 review R1-1).
         bool report = !Probing && Diagnosed.Add(dref);
         if (!report && cap.Fault is not CapacityRefFault.Ambiguous) return null;
-        string text = DataBinder.WrittenText(dref);
+        string text = WrittenSource.Of(dref);
         string subject = cap.Register.CobolName ?? cap.Register.ClrName;
         string table = cap.Table.CobolName ?? cap.Table.ClrName;
         void ReportUnderATable() =>

@@ -81,7 +81,7 @@ public static class ConditionalPhrases
             if (head.GetChild(i) is ITerminalNode t && FamilyOfHeadToken(t.Symbol.Type) is { } family)
                 return new(family, phrase.NOT() is not null);
         throw new InvalidOperationException(
-            $"conditionalPhraseHead '{head.GetText()}' holds no phrase keyword — the rule changed shape and "
+            $"conditionalPhraseHead '{WrittenSource.Of(head)}' holds no phrase keyword — the rule changed shape and "
             + nameof(FamilyOfHeadToken) + " must follow it");
     }
 

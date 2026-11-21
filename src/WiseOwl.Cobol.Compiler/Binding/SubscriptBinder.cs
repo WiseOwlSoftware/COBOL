@@ -107,14 +107,14 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         if (subCtx is null)
             return (subject is TableSubject.Sort ? ScreenTableSubjectArity(dref, item, 0)   // §2023:8.4.2.3.3 SR5 — none written (kb/Work PB681)
                     : subject is TableSubject.None && ScreenSubscriptArity(dref, item, 0))
-                ? RefResolution.Refused(DataBinder.WrittenText(dref)) : null;
+                ? RefResolution.Refused(WrittenSource.Of(dref)) : null;
         if (ScreenEmptyParentheses(dref, subCtx))   // §2023:8.4.2.3.2 / §2023:8.4.3.3.2 (kb/Work PB969)
-            return RefResolution.Refused(DataBinder.WrittenText(dref));
+            return RefResolution.Refused(WrittenSource.Of(dref));
         List<IndexUse> ixNames = [];
         int preOpMark = data.Procedure.PendingPreOps.Mark();   // the subscripts' own pre-ops (D18 temp stores, activations) start here
         int propertyMark = data.Procedure.PropertyOps.Mark();   // ... and their object-property references (the other pending list)
         var e = InterpretSubscripts(subCtx, ixNames, subject is TableSubject.Sort, out bool rightmostAllWritten);
-        if (e is null) return refs.SegmentFailure(DataBinder.WrittenText(dref));   // a segment the materializer refused or deferred
+        if (e is null) return refs.SegmentFailure(WrittenSource.Of(dref));   // a segment the materializer refused or deferred
         ScreenIndexNameAssociation(item, ixNames);   // §2023:8.4.2.3.3 SR4 (kb/Work PB459)
         if (!refs.Probing) ScreenCobol85SubscriptDataNames(subCtx);   // §1985:IV.4.3.8.2.3 SR5 (kb/Work PB5074)
         if (subject switch
@@ -123,9 +123,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
                 TableSubject.Search => false,
                 _ => ScreenSubscriptArity(dref, item, e.Count),   // §2023:8.4.2.3.3 SR2/SR3 (kb/Work PB877)
             })
-            return RefResolution.Refused(DataBinder.WrittenText(dref));
+            return RefResolution.Refused(WrittenSource.Of(dref));
         if (subject is TableSubject.Sort && !rightmostAllWritten && ScreenTableSubjectRightmostAll(dref, item))
-            return RefResolution.Refused(DataBinder.WrittenText(dref));
+            return RefResolution.Refused(WrittenSource.Of(dref));
         indexExprs = e;
         if (!refs.Probing) _enclosingCapture?.Offer(item, e, data.Procedure.PendingPreOps.Since(preOpMark), data.Procedure.PropertyOps.Since(propertyMark));
         return null;
@@ -150,7 +150,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
                 || refs.ProbeDeclaration(name) is not { Pic.Scale: > 0 }) continue;
             using var _ = data.Edition.At(name);
             ConstructRegistry.Check(data.Edition.Edition, data.Edition.Sink, Constructs.SubscriptArithmeticExpression2002,
-                $"the subscript {DataBinder.WrittenText(written)}, whose data-name {DataBinder.WrittenText(name)} is not an integer");
+                $"the subscript {WrittenSource.Of(written)}, whose data-name {WrittenSource.Of(name)} is not an integer");
         }
     }
 
@@ -225,7 +225,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         if (!refs.Diagnosed.Add(dref)) return true;
         string subject = table.CobolName ?? table.ClrName;
         data.Edition.Error(DiagnosticCatalog.SubscriptCountMismatch,
-            $"'{DataBinder.WrittenText(dref)}': the table '{subject}' sits inside {enclosing} enclosing OCCURS "
+            $"'{WrittenSource.Of(dref)}': the table '{subject}' sits inside {enclosing} enclosing OCCURS "
             + $"clause{(enclosing == 1 ? "" : "s")}, so the SORT subject writes {enclosing} subscript"
             + $"{(enclosing == 1 ? "" : "s")}, outermost first, and none for '{subject}' itself — the level the "
             + $"statement sorts; ALL may stand as the rightmost one; {written} written (ISO §2023:8.4.2.3.3 SR3, SR5 e), "
@@ -244,7 +244,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         if (refs.Probing) return true;   // R30 purity: a probe never diagnoses (kb/Work PB157)
         if (!refs.Diagnosed.Add(dref)) return true;
         data.Edition.Error(DiagnosticCatalog.TableSortSubjectRightmostAll,
-            $"'{DataBinder.WrittenText(dref)}': the table '{table.CobolName ?? table.ClrName}' is subject to {table.SubscriptArity} "
+            $"'{WrittenSource.Of(dref)}': the table '{table.CobolName ?? table.ClrName}' is subject to {table.SubscriptArity} "
             + "levels of OCCURS clauses, and at COBOL-2002 the SORT subject writes a subscript for every level with the word ALL "
             + "as the rightmost (ISO §2002:14.8.36.2 SR13); write ALL where the sorted level's subscript goes.");
         return true;
@@ -292,7 +292,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         if (refs.Probing) return true;
         if (!refs.Diagnosed.Add(dref)) return true;
         data.Edition.Error(DiagnosticCatalog.EmptyParenthesesOnDataReference,
-            $"'{DataBinder.WrittenText(dref)}': " + EmptyParenthesesMessage(data.Edition.Edition));
+            $"'{WrittenSource.Of(dref)}': " + EmptyParenthesesMessage(data.Edition.Edition));
         return true;
     }
 
@@ -332,7 +332,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written reference (Diagnosed).
         if (refs.Probing) return true;
         if (!refs.Diagnosed.Add(dref)) return true;
-        string text = DataBinder.WrittenText(dref);
+        string text = WrittenSource.Of(dref);
         string subject = item.CobolName ?? item.ClrName;
         if (written == 0)
             data.Edition.Error(DiagnosticCatalog.TableElementNotSubscripted,
