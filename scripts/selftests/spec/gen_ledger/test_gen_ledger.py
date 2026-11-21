@@ -81,7 +81,8 @@ def case_05_the_landings_filed_and_closed(expect):
 
 
 def case_06_the_stamp_reads_every_part_s_inputs(expect):
-    for path in ("kb/Work", "specs/ANSI_COBOL_1985.md", "tests/version-matrix/inventory-1985",
+    transcription = C.spec_pdf.markdown(1985, C.REPO).relative_to(C.REPO).as_posix()
+    for path in ("kb/Work", transcription, "tests/version-matrix/inventory-1985",
                  "tests/version-matrix/code-reads-1985", "docs/rearchitecture/spec-rule-catalog-1985.json"):
         expect(f"{path} stamps the page", path in C.STAMP_PATHS)
 

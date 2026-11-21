@@ -86,8 +86,9 @@ run("mark-published")
 check("a later mark keeps the recorded url", (run("owed")["state"], run("owed")["url"]), ("current", URL1))
 
 # the 1985 transcription is an input of the page's text in no catalog row (kb/Work PB5994): changing it is owed ...
-(REPO / "specs").mkdir(exist_ok=True)
-(REPO / "specs" / "ANSI_COBOL_1985.md").write_text("# SECTION I: X\n", encoding="utf-8", newline="\n")
+transcription = gen_ledger.spec_pdf.markdown(1985, REPO)
+transcription.parent.mkdir(exist_ok=True)
+transcription.write_text("# SECTION I: X\n", encoding="utf-8", newline="\n")
 land("the 1985 transcription")
 check("a commit to the 1985 transcription makes it owed", run("owed")["state"], "owed")
 run("mark-published")
