@@ -832,14 +832,9 @@ internal sealed class BinderDriver
     private static BoundUnit? ProgramVisibleFrom(BoundUnit caller, ExternalizedProgramName name, IReadOnlyList<BoundUnit> group)
     {
         bool Named(BoundUnit u) => !u.IsFunction && !u.IsPrototype && new ExternalizedProgramName(u.ExternalizedName).Equals(name);
-        foreach (var child in caller.Children)
-            if (Named(child)) return child;
-        if (Named(caller) && caller.Recursive) return caller;
-        for (var anc = caller.Parent; anc is not null; anc = anc.Parent)
-            foreach (var sibling in anc.Children)
-                if (sibling.Common && Named(sibling) && WiseOwl.Cobol.Runtime.ProgramNameScope.CommonProgramReferable(sibling, sibling.Recursive, caller, u => u.Parent))
-                    return sibling;
-        return group.FirstOrDefault(u => u.Parent is null && Named(u));
+        return WiseOwl.Cobol.Runtime.ProgramNameScope.FirstVisible(caller, (u, _) => Named(u), u => u.Children, u => u.Parent,
+                u => u.Recursive, u => u.Common)
+            ?? group.FirstOrDefault(u => u.Parent is null && Named(u));   // arm 4: an outermost program of the compilation group
     }
 
     /// <summary>Classify a bound unit as one of ISO §2023:14.2.2 SR10's source elements (kb/Work PB403). The two unit
@@ -871,13 +866,14 @@ internal sealed class BinderDriver
     /// it was written.</para></summary>
     private static Dictionary<ExternalizedProgramName, CalleeSignature> NestedCallablesOf(BoundUnit unit, ElementBinders binders)
     {
+        // Arms 1 and 3 of the one scope rule, every candidate in its order (the first of a name wins); AS NESTED does not reach the
+        // caller itself (arm 2).
         var map = new Dictionary<ExternalizedProgramName, CalleeSignature>();
-        foreach (var c in unit.Children)
-            map.TryAdd(new(c.Name), binders.SignatureOf(c));
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-            foreach (var c in anc.Children)
-                if (c.Common && WiseOwl.Cobol.Runtime.ProgramNameScope.CommonProgramReferable(c, c.Recursive, unit, u => u.Parent))
-                    map.TryAdd(new(c.Name), binders.SignatureOf(c));
+        WiseOwl.Cobol.Runtime.ProgramNameScope.FirstVisible(unit, (c, arm) =>
+        {
+            if (arm is not WiseOwl.Cobol.Runtime.ProgramNameArm.RecursiveSelf) map.TryAdd(new(c.Name), binders.SignatureOf(c));
+            return false;
+        }, u => u.Children, u => u.Parent, u => u.Recursive, u => u.Common);
         return map;
     }
 

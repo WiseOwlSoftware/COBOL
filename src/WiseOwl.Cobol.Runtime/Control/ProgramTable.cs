@@ -1061,20 +1061,13 @@ public sealed class ProgramTable
         if (target.Length == 0) return null;
         Node? caller = callerPath is not null && _byPath.TryGetValue(callerPath, out var c) ? c : null;
 
-        if (caller is not null)
-        {
-            foreach (var child in caller.Children)                                   // rule 1
-                if (child.IsFunction == wantFunction && ExternalizedNames.Same(child.CallName, target)) return child;
-            if (caller.IsFunction == wantFunction && ExternalizedNames.Same(caller.CallName, target) && caller.Recursive)
-                return caller;                                                       // rule 2
-            for (var anc = ParentOf(caller); anc is not null; anc = ParentOf(anc))   // rule 3 — nearest container first
-                foreach (var sib in anc.Children)
-                {
-                    if (sib.IsFunction != wantFunction || !sib.Common || !ExternalizedNames.Same(sib.CallName, target)) continue;
-                    // §2023:8.4.6.3 2)'s exception — written ONCE, shared with the bind-time AS NESTED table (kb/Work PB1460).
-                    if (ProgramNameScope.CommonProgramReferable(sib, sib.Recursive, caller, ParentOf)) return sib;
-                }
-        }
+        // Rules 1 to 3, in their order and with the COMMON exception, are ProgramNameScope's, shared with the bind-time scope the
+        // listing and AS NESTED read (kb/Work PB1460, PB5965).
+        if (caller is not null
+            && ProgramNameScope.FirstVisible(caller,
+                (n, _) => n.IsFunction == wantFunction && ExternalizedNames.Same(n.CallName, target),
+                n => n.Children, ParentOf, n => n.Recursive, n => n.Common) is { } scoped)
+            return scoped;
         if (Outermost(target, wantFunction) is { } outermost) return outermost;     // rule 4 — outermost programs
 
         // Rule-4 fallthrough: the run unit may be composed of SEPARATELY COMPILED modules ("a run unit contains
