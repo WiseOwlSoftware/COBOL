@@ -54,6 +54,13 @@ public sealed partial class SymbolTable
     /// one (§2023:8.4.6.2). <see cref="ReportScope.Visible"/> keeps the same reports in order.</summary>
     private readonly Dictionary<CobolName, ReportModel> _visibleReports = [];
 
+    /// <summary>The inherited report-names a declaration of the spelling in a NEARER source element hides, whatever its class
+    /// (§1985:X.1.3.8: a reference is "to the object which that program describes" "even when it is a different type of user-defined
+    /// word"; §1985:X.1.3.8.2 GR3a; §2023:8.4.6.2.1 3) a); kb/Work PB5973): a reference to the report-name itself names the nearer
+    /// declaration. The report stays in <see cref="_visibleReports"/>: its report-name still QUALIFIES (GR1 applies qualification
+    /// over the whole set before GR3 ranks it), and its groups and sum counters are global names of their own.</summary>
+    private readonly HashSet<CobolName> _hiddenReportNames = [];
+
     /// <summary>REPORT SECTION <b>sum counter</b> names → every SUM ENTRY that carries the name, with its owning report (ISO
     /// §2023:13.18.54.4 GR5 — "If a data-name immediately follows the level number in the entry containing the SUM clause, the
     /// data-name is the name of the sum counter, not the name of the associated printable item"). The counter is IMPLICITLY
@@ -83,22 +90,44 @@ public sealed partial class SymbolTable
 
     /// <summary>Make a container's GLOBAL report visible here (ISO §2023:13.18.27.4 GR1/GR2): its report-name, its report groups
     /// (reached through the report) and its sum counters (GR1 — "All data-names subordinate to a global name are global names").
-    /// Called nearest container first, so a name this element declares — or a nearer container already supplied — hides the
-    /// farther one (§2023:8.4.6.2). False when the report-name is hidden.</summary>
+    /// Called nearest container first, so a report this element declares — or a nearer container already supplied — hides the
+    /// farther one (§2023:8.4.6.2). False when the report-name is hidden that way; a nearer declaration of ANOTHER class hides it
+    /// once every tier is in place (<see cref="HideShadowedReports"/>).
+    /// <para>⛔ EVERY SUM COUNTER JOINS, whatever this element declares (kb/Work PB5973). The set a reference is resolved over is
+    /// "all names which are defined in program B and all global names" of its containers, and "the normal rules for qualification
+    /// ... are applied until one or more objects is identified" (§1985:X.1.3.8.2 GR1) BEFORE the nearer one is chosen (GR3a). A
+    /// counter used to be left out when this element declared a data-name of its spelling, so `TOT OF CFG`, which only the
+    /// container's counter answers (GR2), was refused; the nearer data-name now wins at the reference, where the qualifiers are
+    /// known (<c>CounterResolver.SumCounterFamilyFor</c>).</para></summary>
     internal bool InheritReport(ReportModel report, int depth)
     {
         if (!_visibleReports.TryAdd(Key(report.Name), report)) return false;
         _data.State.Reports.Inherit(report, depth);
         foreach (var family in report.SumFamilies)
-        {
-            // A sum counter is a data-name subordinate to the report (GR1). A LOCAL declaration of the same name hides it; a
-            // same-named counter of this element's own reports is a homonym the report-name qualifier resolves, exactly as
-            // between two reports of one program (kb/Work PB882).
-            if (family.Name is not { } sn || _dataNames.ContainsKey(Key(sn))) continue;
-            DeclareSumCounter(sn, report, family);
-        }
+            if (family.Name is { } sn) DeclareSumCounter(sn, report, family);
         return true;
     }
+
+    /// <summary>Hides each inherited report-name that a declaration of its spelling in a NEARER source element hides, whatever that
+    /// declaration's class (§1985:X.1.3.8.2 GR3a; §2023:8.4.6.2.1 3) a); kb/Work PB5973): a contained program's own `01 R1` is what
+    /// `INITIATE R1` names there, never its container's GLOBAL report R1. Run once every tier is in place
+    /// (<c>InheritStep.DropShadowed</c>), as the inherited file-names are (<see cref="HideShadowedFiles"/>).</summary>
+    internal void HideShadowedReports(Func<string, int, bool> declaredNearerThan)
+    {
+        foreach (var (name, report) in _visibleReports)
+            if (_data.State.Reports.Depth(report) is > 0 and var depth && declaredNearerThan(name.Word, depth))
+                _hiddenReportNames.Add(name);
+    }
+
+    /// <summary>The depth of the report a reference to the report-name <paramref name="name"/> names here (0 for this element's own,
+    /// n for a container's GLOBAL one), or null when no report-name of the spelling is visible or a nearer declaration hides it.</summary>
+    private int? ReportNameDepth(CobolName name) =>
+        !_hiddenReportNames.Contains(name) && _visibleReports.TryGetValue(name, out var report) ? _data.State.Reports.Depth(report) : null;
+
+    /// <summary>Whether a report-name of <paramref name="name"/> is declared at some depth below <paramref name="depth"/>, hidden or not:
+    /// the report-name tier of <see cref="Declarations.DeclaredNearerThan"/>.</summary>
+    private bool ReportNameDeclaredNearerThan(string name, int depth) =>
+        _visibleReports.TryGetValue(Key(name), out var report) && _data.State.Reports.Depth(report) < depth;
 
     /// <summary>Record <paramref name="family"/>'s sum counter under <paramref name="name"/>: a list per name, a duplicated name
     /// being legal to declare (kb/Work PB882).</summary>
@@ -144,8 +173,7 @@ public sealed partial class SymbolTable
     /// <summary>The symbol of a report-section class the written context names here, or null.</summary>
     private (object? Symbol, SymbolId Id) ReportSymbolNamed(ParserRuleContext written, NameClass wanted, NameReach reach, ReportSite site) => wanted switch
     {
-        NameClass.Report => WordOf(written) is { } key
-            ? Entered((reach == NameReach.Own ? _ownReports : _visibleReports).GetValueOrDefault(key)) : default,
+        NameClass.Report => WordOf(written) is { } key ? Entered(ReportNamed(key, reach)) : default,
         NameClass.ReportGroup => (ReportGroupsNamed(written, reach), default),
         NameClass.SumCounter => written is Core.DataReferenceContext dref ? (SumCountersReached(dref, site.Report), default) : default,
         NameClass.ReportVarying => WordOf(written) is { } key && site.Varyings is { } varyings
@@ -153,6 +181,16 @@ public sealed partial class SymbolTable
         NameClass.ReportEntry => written is Core.DataReferenceContext dref ? (ReportEntriesWritten(dref), default) : default,
         NameClass.ReportSumOperand => written is Core.DataReferenceContext dref ? (RolledEntriesNamed(dref), default) : default,
         _ => throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "not a report-section class"),
+    };
+
+    /// <summary>The report a report-name denotes here: this element's own (<see cref="NameReach.Own"/>), else every visible one
+    /// unless a nearer declaration of the spelling hides it, which a qualifier position (<see cref="NameReach.Qualifier"/>, the
+    /// report-name of LINE-COUNTER OF and PAGE-COUNTER OF) reaches all the same (§1985:X.1.3.8.2 GR1; kb/Work PB5973 review R1-1).</summary>
+    private ReportModel? ReportNamed(CobolName key, NameReach reach) => reach switch
+    {
+        NameReach.Own => _ownReports.GetValueOrDefault(key),
+        NameReach.Visible when _hiddenReportNames.Contains(key) => null,
+        _ => _visibleReports.GetValueOrDefault(key),
     };
 
     /// <summary>The candidates <paramref name="hits"/>, each with the entry of the written entry it is a view of.</summary>

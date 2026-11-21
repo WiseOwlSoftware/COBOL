@@ -2,69 +2,58 @@
  "rule-id": "1985-SR-VI.5.11.3-1",
  "rule-digest": "54b70b3b15d5",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-156",
+  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
+  "slice": "1985-m02",
   "sources": {
-   "reader": "d3a192e5a182c984e33a437bb5370e7bcfa14ed5e1c29d8e97b6e85eeb749287",
-   "refuter": "2735327ab3b3e8268bd5a8aeeb8e43c4a1272a1c9ffca8b5f267655dd18cd4b8"
+   "reader": "efbf4963ccaa70131f8f8bd96cc5574940d470d98b4586024b70a14899215724",
+   "refuter": "9628720596d1587ba881cafe02b94091f98cef25959c1b296af5e372e4c3d705"
   },
   "imported": {
-   "reader": "327baef4ccf9cecfbe8b1d189bf5b4dc597c28761dadecfbd497e22d04fb6b4f",
-   "refuter": "d80119f91a4faaf3da90f53257a58470a9b545bad2ee09fb6b4d265dfce0bd43"
+   "reader": "cfde03343782ce4311d1fb10264ff246c8e38324545d5ed90717dfe16e41a8a6",
+   "refuter": "8801799c0aa53be713804d2d86fb873f8aff8e900c5acfa403eda9a03f06d511"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VI.5.11.3-1",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 any number of level-66 RENAMES entries may follow one logical record (in the File, Working-Storage or Linkage Section), each an independent alias, overlapping or not, with or without THRU, and several records may each carry their own RENAMES entries; none may be refused for being one more entry.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegionClauseCandidates",
+  "requirement": "At 1985 the compiler must accept any number of level-66 RENAMES entries following a logical record (in any section that holds record description entries, each record of an FD separately), each binding its own alias, overlapping or not.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RenamesOwners; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RenamesEntry.cs#ScreenRenamesPlacement; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseOperandsTakeImplicitQualifiers",
-    "switches": "Edition.DialectLevel >= 2002: whether a RENAMES operand is looked up in the record's subtree (2002+) or scope-wide with explicit qualification required (1985); not a count limit",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#ClauseOperandsTakeImplicitQualifiers",
+    "switches": "operand candidate set: record subtree from 2002, whole scope below 2002 (then IsWithinRegion); not the count of entries",
     "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RenamesEntry.cs#ScreenRenamesPlacement",
+    "switches": "Edition.Cite chooses the 1985 or 2023 citation text in the message only",
+    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "Read BindRenames (owner.Renames66.Add, no count check) and the ResolveRedefinesPass loop over every Renames66 entry; grepped both and VersionConformancePass/Editions for renames with Edition/DialectLevel/Year: no edition test limits how many entries a record takes; the one edition consultation on the path is the operand-lookup arm.",
+  "edition-search": "grep DialectLevel|CobolVersion|ConstructRegistry|Edition.Is in DataBinder.RenamesEntry.cs and ResolveRedefinesPass.cs; grep -i renames in Validation/*.cs and WiseOwl.Cobol.Editions: no gate on the number of 66 entries; BindRenames appends every alias to owner.Renames66 (a list) at every edition",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witness has two RENAMES entries for one Working-Storage record; seven entries, overlapping ranges, several records each with entries, File Section records and an ODO record are not exercised",
+  "witnesses-cover": "part: the witness has two 66 entries on one WS record; not exercised are FD records with several aliases each, a second record's aliases, overlapping aliases and aliases used as receiving items",
   "probes": [
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/w_thru.cob",
-    "printed": "EXPECT: MATCH (two entries for WS-G)",
-    "expected": "R1=[ABCD] R2=[ABCD] R1=[WXYZ] C=[EF]"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/sr1_many.cob",
+    "printed": "R1=AB R2=ABCD R3=CD12 / R4=CD12EF R5=ABCD12EF R6=12 / C=13 / S1=PQRS S2=RS / W2=PQZZ / FAB=1122 FBC=2233 / FY=YYY FXY=XXXYYY (exit 0)",
+    "expected": "six aliases on W1, two on W2, two on each of two FD records all accepted; each alias reads and writes its own range (GR1/GR2)"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p3_many.cob",
-    "printed": "R1=ABCD R2=CDEF R3=EFGH / R4=ABCDEFGH123 R5=123 R6=EFGH R7=ABCDEFGH / Q1=XYZUVW Q2=UVW / E=124 / FR1=WXYZ FR2=YZ12 FR3=12 / READ FR2=YZ12",
-    "expected": "seven overlapping entries on G, two on H, three on a sequential FD record, each alias over its own range (GR1, GR2); ADD through R5 changes E; after WRITE and READ FR2 reads the record area"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/runs/p3_odo-002/p3_odo.cob",
-    "printed": "R1=ABCD R2=CD2 R3=AB",
-    "expected": "three entries on a record that ends in an OCCURS DEPENDING ON table, none ranging over it"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/runs/p3_odo-001/p3_odo.cob",
-    "printed": "error COBOL2740: 'R4' RENAMES: data-name-3 'T' is subject to an OCCURS clause",
-    "expected": "a fourth entry that ranges over the variable table is refused by SR3/SR6, the others not"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/sr1_many.cob",
+    "printed": "FAB=1122 FBC=2233 FY=YYY FXY=XXXYYY",
+    "expected": "aliases of both records of one sequential FD bind to their own record"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VI.5.11.3 SR1",
     "check": "OK  §1985:VI.5.11.3 SR1  (║5.11.3 Syntax Rules║)  the text is in SR1"
-   },
-   {
-    "cite": "§1985:VI.5.11.4 GR1",
-    "check": "OK  §1985:VI.5.11.4 GR1  (║5.11.4 General Rules║)  the text is in GR1"
    }
   ],
-  "notes": "The binder appends every level-66 entry to its record's Renames66 list without a limit and the resolve pass binds each independently, so any number of entries, overlapping, across sections, works at 85. The rule is permissive, so its refusal half is empty; the ODO refusal shown belongs to SR3/SR6.",
+  "notes": "SR1 is permissive; the binder keeps a list of aliases per record and the probe binds ten aliases over four records (two FD, two WS), overlapping, elementary, group and numeric-elementary, and reads and writes through them correctly at --std 85.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -77,8 +66,8 @@
  "refuter": {
   "rule-id": "1985-SR-VI.5.11.3-1",
   "refutation": "UPHELD",
-  "classes": "a,c,e",
-  "evidence": "Probes at --std 85 over the logical-record kinds the reader did not reach: c3_link (Linkage Section record of a contained program, four entries, overlapping, THRU/THROUGH/no-THRU, a MOVE through R4 back to the caller): printed 'R1=ABCD R2=CDEF R3=EFGH R4=GH / W=ABCDEFXY'; c3_sd2 (SD records, two records each with its own entries, through SORT INPUT/OUTPUT PROCEDURE): printed 'SR1=AAYY SR2=YY SR3=AAYY / SR1=BBXX SR2=XX SR3=BBXX'; c3_fd2rec (one FD, two 01 records, each followed by its own two entries): printed 'QA=ABCD QB=CD QC=ABC QD=D'; c3_dupname (two records each carrying 66 R and 66 S, referenced R OF G1, R IN G2: data-name-1 qualified by its 01 per SR3): printed 'R1=ABCD R2=WXYZ S1=CD S2=WX'. Control: c3_sd's RENAMES of an 01 refused COBOL2740 (SR4), not for the count. Cite: OK §1985:VI.5.11.3 SR1; OK §1985:VI.5.11.3 SR3 'can only be qualified by the names of the associated level 01, FD, CD, or SD entries'. A CD record was not probed (communication record set-up); the binder path is section-blind (owner.Renames66 list), so nothing points at a CD-specific arm.",
+  "classes": "b,d,e",
+  "evidence": "Probed the record kinds the reader did not: a LINKAGE record with four 66 entries (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/rn_link.cob, runs/rn_link-001: LR1=ABCD LR2=CDEF LR3=EF LR4=ABCDEF, MOVE through LR3 reaches the caller: BACK ABCDZZ); two SD records each with two 66 entries, one qualified by record and SD file-name (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/rn_sd.cob, runs/rn_sd-002: GOT 01AAA V=AAA K2=01 Q=AAA / GOT 02BBB ...); a CD FOR INPUT record with three 66 entries, one qualified by record and cd-name (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/rn_cd.cob, runs/rn_cd-001: Q=QUEUE1 ... SSS). The refusal half: a 66 after a level-77 is refused by SR2 and SR4 (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/rn_nonrec.cob: COBOL2740 x2). cite.py: 'OK  §1985:VI.5.11.3 SR1  (5.11.3 Syntax Rules)  the text is in SR1'. Every logical-record kind of 1985 (FD, SD, CD, WS, LINKAGE) takes any number of RENAMES entries.",
   "edition-sites-missed": [],
   "corrected": ""
  }

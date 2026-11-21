@@ -2,47 +2,59 @@
  "rule-id": "1985-SR-IV.4.3.8.5.3-1",
  "rule-digest": "c4be5f50238b",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-045",
+  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
+  "slice": "1985-m01",
   "sources": {
-   "reader": "64185b6687708af943fba5f30e64b60f05d36f988767769df6d282dd193f3f0b",
-   "refuter": "cf98d565304185b2edc20b1abf82e0c5328352b506579f52932359c35a054354"
+   "reader": "7dca8738df1eef999039af91f9e658b8f88eab2f9cb9b139e01adbdc4f6035f3",
+   "refuter": "0afe07775dfc140e2155ea435ec895ea8284ad18ecc3a53a279bb67c78e15ef2"
   },
   "imported": {
-   "reader": "7a08727b8967150909b52d45335f71118986ae80360255a4c44288675bf73c2a",
-   "refuter": "4da92e868a78ca9925ebf8c797aa3289d833bdec147ed0b3edfa8f5ec65b474b"
+   "reader": "92855f5da6e4c3c7df58f74bcd153ff1a2adc694b63429199c3cb2b71e009a4a",
+   "refuter": "d083672463cd2f6da3e8a5a4f98ec77df34c16ca4fd215924b8f5588a5bd8690"
   }
  },
  "reader": {
   "rule-id": "1985-SR-IV.4.3.8.5.3-1",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85, wherever an identifier is qualified (by data-name, file-name, report-name or cd-name, and for the special registers LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER), IN and OF are interchangeable, alone or mixed in one qualifier chain, with the same resolution.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#qualification; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ResolveQualified",
+  "requirement": "In an identifier (format 2: a data-name qualified by data-names and a cd-, file- or report-name), IN and OF are equivalent.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#qualification; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#procedureName; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference",
   "edition-consulted": [],
-  "edition-search": "The grammar spells every qualifier as (OF | IN) (qualification, dataReference's LINAGE/LINE/PAGE-COUNTER arms, reportGroupReference); grep '.IN()' / 'Core.IN' / 'Core.OF' over the compiler finds IN singled out only for the VALUE/EVALUATE 'IN alphabet-name' phrase (DataBinder.RangeAlphabetPhraseOf, EvaluateBinder.BindRangeHigh) and CLASS ... IN, none an identifier qualifier; NameResolution.ResolveQualified and ExpressionFormationPass's qualifier-order check consult no edition.",
+  "edition-search": "grep for DialectLevel, Edition.Year, EditionContext, CobolVersion, Permissive and ConstructRegistry in NameResolution.cs, SymbolTable.DataNameCandidates.cs, SymbolTable.IndexNames.cs, SymbolTable.Procedures.cs, SymbolTable.ConditionNames.cs, QualifiedNameClasses.cs, OccursKeyResolvePass.cs, OdoResolvePass.cs, StatementValidation.cs, DataBinder.cs#UniqueOrReportAmbiguous; the grammar rules qualification, dataReference, procedureName and reportGroupReference carry no version predicate; each grammar alternative is (OF | IN) with no predicate",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: witnesses cover data-name and condition-name qualification; not exercised there are file-name qualifiers, report-name qualifiers of LINE-COUNTER/PAGE-COUNTER, LINAGE-COUNTER IN file-name, mixed IN/OF chains and qualified subscripted references",
+  "witnesses-cover": "part: data-name and condition-name qualification; cd-name, file-name and report-name qualifiers are not exercised",
   "probes": [
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-045/io1.cob",
-    "printed": "11222 / 78 / B-ONE / D-NOT / AAABAABAA / P3",
-    "expected": "C OF B = C IN B = 1; C IN D OF A, C OF D IN A, C IN D IN A = 2; C IN TE (1), C OF TE OF T (2), C OF TE IN T (2); condition-name C-ONE IN C OF B; K IN F1 vs K OF R2 (file-name and record qualifiers), ref-mod K IN R2 (2:2); paragraph P2 IN S1, P3 OF S1"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/qpos.cob",
+    "printed": "exit 0: AAAA BBBB / CCCC DDDD / OK-R1-A OK-R1-B OK-R2-C OK-R2-D / 78 / 123 / CCCC / UNIQ / ZZZZZ / FFF12GGG34",
+    "expected": "every reference made unique by its qualifiers resolves to its own item: full and gapped chains, IN and OF mixed, record-name as data-name-1 and as qualifier, file-name qualifier, condition-names qualified by their conditional variable and its groups, subscripted qualified items, an unqualified unique name"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-045/io2.cob",
-    "printed": "03 / 02 / 02 / 01 / 01 / 01",
-    "expected": "LINAGE-COUNTER IN F1 (two writes) differs from LINAGE-COUNTER OF F2 (one write); LINE-COUNTER IN RP1 = 2 vs OF RP2 = 1; PAGE-COUNTER IN/OF = 1"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/cdq.cob",
+    "printed": "exit 0: 00010002",
+    "expected": "DEST-COUNT OF CDA and DEST-COUNT IN OREC2 IN CDB resolve through format 1's cd-name qualifier"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/kpos.cob",
+    "printed": "exit 0: 00 DATA1 / INV2 23 / 00 R03RDATA / RINV4 23",
+    "expected": "qualified RECORD KEY, ALTERNATE RECORD KEY, RELATIVE KEY, FILE STATUS and READ KEY IS resolve; indexed dynamic and relative random; a failed READ gives 23"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/rwq.cob",
+    "printed": "exit 0: 0000000001 0000000001 0000000001 0000000002; with PAGE-COUNTER unqualified: COBOL2729 (SRL2.10)",
+    "expected": "PAGE-COUNTER/LINE-COUNTER OF/IN report-name resolve (format 5, IN and OF equivalent)"
    }
   ],
   "citations": [
    {
     "cite": "§1985:IV.4.3.8.5.3 SR1",
-    "check": "OK  §1985:IV.4.3.8.5.3 SR1  (4.3.8.5.3 Syntax Rules)  the text is in SR1"
+    "check": "OK  §1985:IV.4.3.8.5.3 SR1  the text is in SR1 (quoted: The words IN and OF are equivalent)"
    }
   ],
-  "notes": "IN and OF are one grammar alternative in every qualifier position, and resolution never looks at which word was written. No cd-name probe: the communication module was not exercised; the grammar's qualification rule is the same (OF | IN) for any qualifier word.",
+  "notes": "Same mechanism as SRL2.3: the qualification rule is (OF | IN) and only the word after it is read; probes mixing IN and OF through data-, file- and cd-name qualifiers resolve the same items.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -55,8 +67,8 @@
  "refuter": {
   "rule-id": "1985-SR-IV.4.3.8.5.3-1",
   "refutation": "UPHELD",
-  "classes": "c,d,e",
-  "evidence": "Qualifier positions the reader did not reach, at 85. q1.cob: RECORD KEY IS K IN RI, ALTERNATE RECORD KEY IS AK OF RI, FILE STATUS IS ST IN G / ST OF G2, RECORD VARYING ... DEPENDING ON N IN G, LINAGE IS L IN G, OCCURS ... DEPENDING ON M IN G: compiled, ran, statuses 00 00 00, SEARCH VARYING 'FOUND 1'. q2.cob: CONTROLS ARE FINAL C IN G, CONTROL FOOTING C OF G, SUM AMT OF G UPON D1 IN RP1, SOURCE SC IN RP1, GENERATE D1 IN RP1 / D1 OF RP1: printed 05 05 010 010 05 015 015, the right totals. q3.cob, the cd-name qualifier the reader left out: SQ IN CI, SQ OF CJREC IN CJ, MC OF CI, SQ IN CJREC OF CJ, MC IN CIREC under two 87-character CD records printed 'QA          |QB          |000007'. cite.py: OK  §1985:IV.4.3.8.5.3 SR1  (4.3.8.5.3 Syntax Rules)  the text is in SR1.",
+  "classes": "d,e",
+  "evidence": "Identifier qualification through a file-name (recq, ok2), a sort file (sdq), a report-name (rw6) and RENAMES operands (ren1), IN and OF mixed, resolves the same items. cite: OK  §1985:IV.4.3.8.5.3 SR1  the text is in SR1 (The words IN and OF are equivalent).",
   "edition-sites-missed": [],
   "corrected": ""
  }

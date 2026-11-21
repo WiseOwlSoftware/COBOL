@@ -165,7 +165,11 @@ public sealed partial class SymbolTable
         // WITH the items and resolves to none, and only beside one: a name the report section alone declares is the report-item
         // refusal's (ReportSectionBinder.ReportEntryReferenceRefused).
         int reportEntries = tier.Count == 0 ? 0 : _data.ReportSection.ReportEntriesInTierOf(new NameCandidates<DataItem>(tier), name, quals);
-        return new NameCandidates<DataItem>(tier, reportEntries);
+        // ⛔ AT COBOL-85 A CONDITION-NAME OF THE SAME SPELLING AND SOURCE ELEMENT IS ANOTHER NAME OF THE SAME DISJOINT SET (kb/Work
+        // PB5972, §1985:IV.4.2.2.1.1): counted with the items as the report entries are, so `DISPLAY X` over a data item X and a
+        // level-88 X is nonunique (SRL2.1); `X OF R2` that reaches the data item alone is not.
+        int conditionNames = tier.Count == 0 ? 0 : ConditionNamesRivalingData(name, quals, scope, _data.State.Forest.DeclaringDepth(tier[0]));
+        return new NameCandidates<DataItem>(tier, reportEntries, conditionNames);
     }
 
     /// <summary>The §2023:8.4.2.2 candidate set of <paramref name="name"/> WITHIN one record: every entry of <paramref name="root"/>'s

@@ -70,6 +70,17 @@ public static class UserWordKinds
         UserWordKind.RecordName,
     };
 
+    /// <summary>⛔ THE ONE SHARED DISJOINT SET OF COBOL-85, AS DATA (kb/Work PB5972): §1985:IV.4.2.2.1.1 groups the user-defined
+    /// words of a source program into fifteen disjoint sets, each type its own set but the fourth, "<i>condition-names, data-names,
+    /// and record-names</i>", and "<i>all user-defined words within a given disjoint set must be unique, except as specified in the
+    /// rules for uniqueness of reference</i>": a level-88 <c>X</c> and a data item <c>X</c> are legal at COBOL-85, told apart by
+    /// qualification (§1985:IV.4.3.8.1 SRL2.1). From COBOL-2002 a condition-name is a type of its own (exception 3 of §2002:8.3.1.1.1
+    /// names no condition-name; <see cref="MayShareOneName"/>). The drift test parses the fourth set from the 1985 text.</summary>
+    public static IReadOnlySet<UserWordKind> OneDisjointSet85 { get; } = new HashSet<UserWordKind>
+    {
+        UserWordKind.ConditionName, UserWordKind.DataName, UserWordKind.RecordName,
+    };
+
     /// <summary>§2023:8.3.2.2 EXCEPTION 2 AS DATA: "<i>a level-number may be the same as a paragraph-name or a
     /// section-name</i>".</summary>
     public static IReadOnlySet<UserWordKind> MayShareWithALevelNumber { get; } = new HashSet<UserWordKind>
@@ -105,16 +116,22 @@ public static class UserWordKinds
     };
 
     /// <summary>⛔ THE ONE ANSWER to "may one word be used as BOTH of these types of user-defined word in a source
-    /// element?" (ISO §2023:8.3.2.2: "<i>a given user-defined word may be used as only one type of user-defined word</i>"
-    /// with three exceptions): the same type (a word declared twice as one type is a uniqueness question,
-    /// §2023:8.4.2, asked elsewhere), exception 1 (a compilation-variable-name may be the same as ANY other type),
-    /// exception 2 (<see cref="MayShareWithALevelNumber"/>) and exception 3 (<see cref="MayShareOneName"/>).</summary>
-    public static bool MayBeOneWord(UserWordKind a, UserWordKind b) =>
+    /// element?", by the edition's own text. From COBOL-2002 (ISO §2023:8.3.2.2: "<i>a given user-defined word may be used as only
+    /// one type of user-defined word</i>" with three exceptions; §2002 and §2014 say the same): the same type (a word declared twice
+    /// as one type is a uniqueness question, §2023:8.4.2, asked elsewhere), exception 1 (a compilation-variable-name may be the same
+    /// as ANY other type), exception 2 (<see cref="MayShareWithALevelNumber"/>) and exception 3 (<see cref="MayShareOneName"/>). At
+    /// COBOL-85 (§1985:IV.4.2.2.1.1, "<i>All user-defined words, except segment-numbers and level-numbers, can belong to one and only
+    /// one of these disjoint sets</i>"): the same type, a level-number with any type (it belongs to no set), and two types of
+    /// <see cref="OneDisjointSet85"/> (kb/Work PB5972).</summary>
+    public static bool MayBeOneWord(UserWordKind a, UserWordKind b, Editions.EditionInfo edition) =>
         a == b
-        || a == UserWordKind.CompilationVariableName || b == UserWordKind.CompilationVariableName
-        || (a == UserWordKind.LevelNumber && MayShareWithALevelNumber.Contains(b))
-        || (b == UserWordKind.LevelNumber && MayShareWithALevelNumber.Contains(a))
-        || (MayShareOneName.Contains(a) && MayShareOneName.Contains(b));
+        || (edition.ConditionNamesShareTheDataNameSet
+            ? a == UserWordKind.LevelNumber || b == UserWordKind.LevelNumber
+              || (OneDisjointSet85.Contains(a) && OneDisjointSet85.Contains(b))
+            : a == UserWordKind.CompilationVariableName || b == UserWordKind.CompilationVariableName
+              || (a == UserWordKind.LevelNumber && MayShareWithALevelNumber.Contains(b))
+              || (b == UserWordKind.LevelNumber && MayShareWithALevelNumber.Contains(a))
+              || (MayShareOneName.Contains(a) && MayShareOneName.Contains(b)));
 
     /// <summary>Whether <paramref name="kind"/> is a COPY statement's text-name or library-name — the two types that are user-defined
     /// words below COBOL-2002 only (<see cref="Editions.EditionInfo.CopyNamesAreUserDefinedWords"/>; kb/Work PB5482).</summary>

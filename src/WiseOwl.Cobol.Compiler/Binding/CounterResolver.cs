@@ -133,9 +133,12 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         }
         // §2023:8.4.6.2.1 3) b) ACROSS NAME CLASSES (kb/Work PB3154 review R3-1): a counter of a container's GLOBAL report
         // is a global name of THAT container (§2023:13.18.27.4 GR1), so a same-spelled name a NEARER source element
-        // declares — a nearer container's GLOBAL data item, condition-name or index-name — is the referenced item, and
-        // ordinary resolution takes it. (This element's own declarations never reach here: SymbolTable.InheritReport keeps
-        // a counter its own data hides out of the table's sum counters.) Every candidate left shares one report depth.
+        // declares — this element's own or a nearer container's GLOBAL data item, condition-name, index-name, file-name or
+        // report-name — is the referenced item, and ordinary resolution takes it. A qualified reference is hidden only by a
+        // nearer data item its qualifiers reach: qualification is applied over the whole set first (§1985:X.1.3.8.2 GR1, GR2),
+        // so `TOT OF CFG` in a program that declares its own TOT names the container's counter (kb/Work PB5973, which made
+        // SymbolTable.InheritReport keep every counter and this the one place a nearer declaration hides one). Every candidate
+        // left shares one report depth.
         int counterDepth = data.State.Reports.Depth(matches[0].Report);
         if (counterDepth > 0
             && (qualifiers.Count == 0
@@ -198,7 +201,8 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         {
             // Two causes, two messages (kb/Work PB5906): a qualifier this program cannot see is a question of the name's
             // scope, never of a LINAGE clause the file may well have.
-            if (data.Symbols.Identify(q, NameClass.File, report: true) is not { Symbol: FileModel named })
+            // The file-name is a QUALIFIER here: a nearer declaration of its spelling does not hide it (§1985:X.1.3.8.2 GR1, NameReach.Qualifier).
+            if (data.Symbols.Identify(q, NameClass.File, report: true, NameReach.Qualifier) is not { Symbol: FileModel named })
                 data.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"LINAGE-COUNTER OF '{q.GetText()}': '{q.GetText()}' "
                     + "names no file this program can reference — a file-name declared in another program is referenced here "
                     + "only when it is global, its file description entry specifying the GLOBAL clause (ISO "
@@ -263,7 +267,8 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         string reg = dref.PAGE_COUNTER() is not null ? "PAGE-COUNTER" : "LINE-COUNTER";
         if (dref.cobolWord() is { } q)   // qualified: COUNTER OF/IN report-name
         {
-            if (data.Symbols.Identify(q, NameClass.Report, report: true)?.Symbol is ReportModel named) return named;
+            // The report-name is a QUALIFIER here: a nearer declaration of its spelling does not hide it (§1985:X.1.3.8.2 GR1, NameReach.Qualifier).
+            if (data.Symbols.Identify(q, NameClass.Report, report: true, NameReach.Qualifier)?.Symbol is ReportModel named) return named;
             data.Edition.Error(DiagnosticCatalog.ReportCounterQualification, $"{reg} OF '{q.GetText()}': the qualifier shall name a report "
                 + $"description entry — a counter of a DIFFERENT report is referenced \"qualified explicitly by the report-name "
                 + $"associated with the different report\" (ISO {CounterQualificationRule(reg)}"

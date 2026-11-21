@@ -27,9 +27,9 @@ public sealed class SymbolTableDeclarationsTests
     public void Census_FoldsCase_AndReportsAConflictOnce()
     {
         var census = new SymbolTable.UserWordCensus();
-        Assert.Null(census.Record("Total-A", UserWordKind.ParagraphName));
-        Assert.Equal(UserWordKind.ParagraphName, census.Record("TOTAL-A", UserWordKind.DataName));
-        Assert.Null(census.Record("total-a", UserWordKind.DataName));
+        Assert.Null(census.Record("Total-A", UserWordKind.ParagraphName, Editions.EditionInfo.Latest));
+        Assert.Equal(UserWordKind.ParagraphName, census.Record("TOTAL-A", UserWordKind.DataName, Editions.EditionInfo.Latest));
+        Assert.Null(census.Record("total-a", UserWordKind.DataName, Editions.EditionInfo.Latest));
         Assert.True(census.IsDeclaredAs("TOTAL-a", UserWordKind.ParagraphName));
         Assert.False(census.IsDeclaredAs("OTHER", UserWordKind.ParagraphName));
     }

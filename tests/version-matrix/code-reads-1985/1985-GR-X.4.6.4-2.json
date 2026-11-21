@@ -2,51 +2,76 @@
  "rule-id": "1985-GR-X.4.6.4-2",
  "rule-digest": "5d1c8aec1f32",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-032",
+  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
+  "slice": "1985-m03",
   "sources": {
-   "reader": "0741a30d6c8dce394214e0128a80d0a2654d02fccc0ac1e76ea71c08aa785306",
-   "refuter": "fda5287409efc2a8402ec89359889f9a251930817caddc5e6d453480d939aa2e"
+   "reader": "50301e8c2c28f44e33bbedb50d51e6fb23077f024502d63116148dae1b74f56e",
+   "refuter": "85756383dc96cad17f5ef5a81cd1be1d0e43ad5574f8ba91649d778bd3bb79c3"
   },
   "imported": {
-   "reader": "9db576837ff23241dfc3aeeb0d098bc5398193fba39c3c717b96953b30509fc8",
-   "refuter": "59df1cf91bd6437ed58d28d7c944994caa4d10cac2259df5352f553a8d492680"
+   "reader": "52efb8e0d4336783b0270ecea7b6cc8524e6a5a8fc9e27134f70ff469b62c9b5",
+   "refuter": "38151dfd566337f3f1b6cb898b3bdfa9cf35ca1c7e9c132d07e5691ff8bc7966"
   }
  },
  "reader": {
   "rule-id": "1985-GR-X.4.6.4-2",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85, any statement in a program directly or indirectly contained in the program that declares a global name (data-name, its subordinates and condition-names, file-name, report-name, index-name) must reference that name without redescribing it, resolving to the container's object by the X.1.3.8.2 rules (own name first, then the nearest container's global), while a containing program, or a separately compiled program, gets no access to it.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritContainerGlobalData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritGlobalSubtree; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#NearestDeclaring; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#GlobalBridgesOf; src/WiseOwl.Cobol.Compiler/Binding/InheritedGlobals.cs#AddContainerFiles",
-  "edition-consulted": [],
-  "edition-search": "read SymbolTable.NearestDeclaring, DataBinder.InheritContainerGlobalData/InheritGlobalSubtree and InheritedGlobals.AddContainerFiles; grep of Edition/DialectLevel/CobolVersion/Edition.Has over SymbolTable.cs, LinkageBinder.cs, InheritStep.cs and InheritedGlobals.cs found none. The edition-dependent arms near this path belong to other rules (LINAGE-COUNTER's qualification count, LINKAGE GLOBAL).",
+  "requirement": "A statement in a program directly or indirectly contained in the program that declares a global data-name, file-name or report-name may reference it without describing it again, under the X.1.3.8 scope rules.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#Seed; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritGlobalSubtree; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#InheritContainerReports; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#NearestDeclaring",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData",
+    "switches": "hands session.Edition to the unit's DataBinder (EditionContext): diagnostics wording and edition-gated clause checks; the inheritance seed (InheritStep.Seed) and InheritContainerGlobalData take no edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#ClauseOperandsTakeImplicitQualifiers",
+    "switches": "below 2002 a data-description clause operand (ODO, KEY, RENAMES) takes no implicit qualifiers; not on the procedure-division reference path these rules govern",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -n 'Edition|CobolVersion|Cobol1985|Cobol85|IsAtLeast|DialectBehavior' over InheritStep.cs, SymbolTable/SymbolTable.cs, SymbolTable.Reports.cs, SymbolTable.DataNameCandidates.cs, SymbolTable.Declarations.cs, SymbolTable.Files.cs, SymbolTable.IndexNames.cs, SymbolTable.ConditionNames.cs, ReportScope.cs and DataBinder.cs: TryResolve, TryResolveUnqualified, NearestDeclaring, NearestDeclaringData, NearestDeclaringConditions, NearerConditionNameHides, InheritGlobalSubtree and InheritReport consult no edition; the only hits are message citations (Edition.Edition.Cite), SumCounterOperand85 and ClauseOperandsTakeImplicitQualifiers",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witness covers name resolution (local first, nearest container's global, qualification through a nearer global group, index-name hidden by a local data-name) in a two-level nest; not exercised: a variable-length GLOBAL record with a global ODO object the containee changes, reference modification at its bounds, a PERFORM loop whose global subscript the statement changes, I-O statements on GLOBAL files from an indirect containee (a failed OPEN with a global FILE STATUS, then WRITE), and the refusal for a container referencing a containee's GLOBAL name and for a separately compiled program. All probed here.",
+  "witnesses-cover": "part: pb1047 covers data items; the probes add a global FD and its record, a global report, an ODO record, two-level indirect containment and the refusals",
   "probes": [
    {
-    "class": "a,e,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-032/gr2a.cob",
-    "printed": "D GV=4W1W2W3W4 LEN-OK / D REFMOD=CDEF END=J / D OPEN MISSING 35 / D WRITE 00 / M GN=4 GV=4W1W2W3W4 GA=02345 GSUB=5 / M READ 00 REC-01",
-    "expected": "the indirect containee sets the global ODO object to 4 and the group is 9 characters in both programs; GTXT(3:4)=CDEF, (10:1)=J; the loop's global subscript runs 2..5 and fills GA(2..5); OPEN INPUT of the missing global file sets the global status to 35; OPEN OUTPUT/WRITE on the global GF give 00 and the container reads REC-01 back"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scope1.cob",
+    "printed": "I X=MID / I Y=INY / I YG=OUY / I XG=OUX / I Z=OUZ / I C=FALSE / I CCV=TRUE / J X=MID Z=OUZ / J C=FALSE / 3 X=OUX / 3 C=TRUE / O REC=IREC1 / O Y=NEW N=4 V=4AB**",
+    "expected": "B's own Y (GR3a); unqualified X and C in SCOPEI/SCOPEJ the middle program's (GR3b1), in SCOPE3 the outer's; Y OF G, X OF G, C OF CV and Z the one object qualification identifies (GR1, GR2); the global FD and its record written from the contained program; the ODO record and reference modification of a global group altered from the contained program"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-032/gr2b.cob",
-    "printed": "COBOL1639 'CX' is not defined (the container's reference to its containee's GLOBAL CX); COBOL1639 'GX' is not defined (the separately compiled GR2BS)",
-    "expected": "§1985:X.1.3.8.2: a program cannot reference a name declared in a program it contains, and a global name reaches only the declaring program and its containees: both refused"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scoperef.cob",
+    "printed": "COBOL1639 at 12 'IG' not defined (outer naming a contained program's GLOBAL item); 22 'NG' not defined (non-global item of the container); 23 'X' does not uniquely identify (two GLOBAL X in the container); 30 'IG' not defined (sibling's GLOBAL item)",
+    "expected": "all four refused: the set is B's names plus the containers' GLOBAL names only (GR1); two objects in A with none in B is not unique (GR3b1); a program cannot reference names declared in a program it contains (X.1.3.8.2)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/rpt1.cob",
+    "printed": "O T1=03 / O T2=01 / O LC1=03 / O LC2=01 / I LC=04 / I PC=01 / I T1=07 / I T2=03 / O LC1B=04 / O PC1B=09 / O T1B=50",
+    "expected": "contained program reads unqualified LINE-COUNTER and PAGE-COUNTER OF R1 of the container's GLOBAL report (its only visible report), alters PAGE-COUNTER and sum counter T OF LN1, and the container sees the same registers"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/globalarm.cob",
+    "printed": "COBOL2404 on 77 W77 GLOBAL and 05 SUBG GLOBAL (cites §1985:X.4.3.3 SR4); COBOL0900 on LINKAGE 01 LK GLOBAL: 'requires COBOL-2002 (targeting COBOL-85)'",
+    "expected": "§1985:X.4.6.3 SR1: GLOBAL only on 01 entries of the File or Working-Storage Section, FDs and RDs; the later editions' LINKAGE GLOBAL refused at 85"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scope3.cob",
+    "printed": "I TOT=55 / I TOTCFG=04",
+    "expected": "middle program's GLOBAL TOT is nearer for unqualified TOT (GR3b1); TOT OF CFG OF R1 the outer's sum counter (GR1/GR2)"
    }
   ],
   "citations": [
    {
     "cite": "§1985:X.4.6.4 GR2",
-    "check": "OK  §1985:X.4.6.4 GR2  (║4.6.4 General Rules║)  the text is in GR2"
-   },
-   {
-    "cite": "§1985:X.1.3.8.2",
-    "check": "OK  §1985:X.1.3.8.2  (1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names)  the text is in the clause"
+    "check": "OK  §1985:X.4.6.4 GR2  (python scripts/spec/cite.py --check \"§1985:X.4.6.4 GR2\" \"may reference that name without describing it again\")"
    }
   ],
-  "notes": "Container GLOBAL subtrees are inherited into each containee's name set with their declaring depth, and NearestDeclaring narrows a plural candidate set to the nearest declaring element, which is X.1.3.8.2 rule 3. The cells stay the container's and are reached through the GLOBAL bridge, so writes are seen by the container. No edition is consulted on this path.",
+  "notes": "Directly (SCOPE3, RPTI) and indirectly (SCOPEI, SCOPEJ, SC3I) contained programs reference, write and read the container's GLOBAL items, FD record and report without describing them; a non-global item, a contained program's global item and a sibling's global item are refused. At 85 GLOBAL on 77, on a subordinate entry and in LINKAGE is refused. The qualified-sum-counter gap is recorded on 1985-GR-X.1.3.8.2-1.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -59,8 +84,8 @@
  "refuter": {
   "rule-id": "1985-GR-X.4.6.4-2",
   "refutation": "UPHELD",
-  "classes": "b,d,e",
-  "evidence": "gn1.cob (run gn1-002, --std 85; gn1-001 was refused for my missing AT END, COBOL6826, a correct 1985 refusal): A declares GLOBAL X, GLOBAL group G with Y and 88 Y-IS-AY, and GLOBAL FD XF. Its containee B declares a LOCAL X, Y, 88 Y-IS-AY and a local FD XF of the same names. D, inside B, references them all without describing them. Printed 'D X=OUTER Y=AY / D Y-IS-AY TRUE / D WRITE 00 / B X=MIDDL Y=BY / A X=DSET Y=DY / A READ 00 ARC1', and only GN1AX.DAT was written. D's name set holds its own names and the containers' GLOBAL names only (X.1.3.8.2 GR1), so B's local homonyms are not candidates: the data-names, the condition-name and the file-name all resolve to A's objects. D's MOVEs and WRITE land in A's cells and file, and B keeps its own. cite.py: 'OK  §1985:X.4.6.4 GR2 ... the text is in GR2'; 'OK  §1985:X.1.3.8.2 ... it lies in GR1'.",
+  "classes": "b,c,d,e",
+  "evidence": "Attacked the 1985 operand classes of 'global name' the reader did not try. glb1.cob (container: non-GLOBAL FD F with 01 FR GLOBAL. 05 FR1; WORKING-STORAGE 01 A2 and 01 B2 REDEFINES A2 GLOBAL with subordinates B21, B22 and level-88 B22-ZZ; contained GB1I moves 'QQQ' TO FR1, 'ZZ' TO B22, tests B22-ZZ, displays B2): --std 85 EXIT 0, 'I ZZ / I B2=AAZZ / O A2=AAZZ' and gb1.dat 'QQQ': a GLOBAL 01 record of a non-GLOBAL FD (§1985:X.4.6.3 SR1 admits GLOBAL on a File Section 01 entry), the subject of a GLOBAL REDEFINES entry, its subordinate data-names and its condition-name are all referenced from the contained program without being described again. glb2.cob (container: 01 A1 GLOBAL with 01 B1 REDEFINES A1 not GLOBAL; 01 A2 not GLOBAL with 01 B2 REDEFINES A2 GLOBAL; contained program references B1 and A2): EXIT 65, COBOL1639 at (17,28) 'B1' and (18,28) 'A2' not defined: neither is a global name (§1985:X.4.6.4 GR3: only the subject of the REDEFINES has the attribute), so neither is admitted. The cross-class hiding failure found on 1985-GR-X.1.3.8.2-3 (an own data-name or report-name not hiding the container's GLOBAL report-name or data-name) is the scope rule that GR2's '(See page X-4, Scope of Names.)' defers to, booked there. No probe overturned. Citations: OK §1985:X.4.6.4 GR2 ('may reference that name without describing it again'); OK §1985:X.4.6.4 GR3 ('it is only the subject of that REDEFINES clause which possesses the global attribute'); OK §1985:X.4.6.3 SR1 ('data description entries whose level-number is 01 in the File Section or the Working-Storage Section').",
   "edition-sites-missed": [],
   "corrected": ""
  }

@@ -86,9 +86,42 @@ public sealed class UserWordDeclarationDriftTests
                     || (a == UserWordKind.LevelNumber && withLevelNumber.Contains(b))
                     || (b == UserWordKind.LevelNumber && withLevelNumber.Contains(a))
                     || (oneName.Contains(a) && oneName.Contains(b));
-                Assert.True(expected == UserWordKinds.MayBeOneWord(a, b),
+                Assert.True(expected == UserWordKinds.MayBeOneWord(a, b, Editions.EditionInfo.Latest),
                     $"§2023:8.3.2.2 says a {a.Spelling()} and a {b.Spelling()} {(expected ? "MAY" : "may NOT")} share a word; "
                     + $"UserWordKinds.MayBeOneWord says the opposite");
+            }
+    }
+
+    /// <summary>⛔ THE COBOL-85 RELATION IS THE 1985 TEXT'S (kb/Work PB5972): §1985:IV.4.2.2.1.1 lists the disjoint sets of
+    /// user-defined words, one type per set but the fourth, "condition-names, data-names, and record-names", and puts
+    /// segment-numbers and level-numbers in no set. The multi-type set is parsed from <c>specs/ANSI_COBOL_1985.md</c> and the
+    /// whole relation rebuilt at <c>--std 85</c>; before this the 2023 exceptions were asked at every edition, and a level-88
+    /// spelled like a data item of another record was refused COBOL2692.</summary>
+    [Fact]
+    public void TheSharingRelation85_IsRebuiltFromThe1985DisjointSets()
+    {
+        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ANSI_COBOL_1985.md"));
+        int start = spec.IndexOf("the user-defined words are grouped into the following disjoint sets:", StringComparison.Ordinal);
+        Assert.True(start >= 0, "§1985:IV.4.2.2.1.1's disjoint-set list moved in specs/ANSI_COBOL_1985.md — re-derive this guard");
+        int end = spec.IndexOf("can belong to one and only one of these disjoint sets", start, StringComparison.Ordinal);
+        Assert.True(end > start, "§1985:IV.4.2.2.1.1's disjoint-set list end moved — re-derive this guard");
+        var sets = Regex.Matches(spec[start..end], @"^\d+\. (.+?)\s*$", RegexOptions.Multiline).Select(m => m.Groups[1].Value).ToList();
+        Assert.Equal(15, sets.Count);
+        var shared = Assert.Single(sets, set => set.Contains(','));
+        var oneSet = Regex.Matches(shared, @"([a-z-]+-name)s").Select(m => KindOfSpelling(m.Groups[1].Value)).ToHashSet();
+        Assert.True(oneSet.SetEquals(UserWordKinds.OneDisjointSet85),
+            $"§1985:IV.4.2.2.1.1 puts {string.Join(", ", oneSet.Select(k => k.Spelling()))} in one set; UserWordKinds.OneDisjointSet85 "
+            + $"holds {string.Join(", ", UserWordKinds.OneDisjointSet85.Select(k => k.Spelling()))}");
+
+        var cobol85 = Editions.EditionInfo.Of(85);
+        foreach (var a in Enum.GetValues<UserWordKind>())
+            foreach (var b in Enum.GetValues<UserWordKind>())
+            {
+                bool expected = a == b || a == UserWordKind.LevelNumber || b == UserWordKind.LevelNumber
+                    || (oneSet.Contains(a) && oneSet.Contains(b));
+                Assert.True(expected == UserWordKinds.MayBeOneWord(a, b, cobol85),
+                    $"§1985:IV.4.2.2.1.1 says a {a.Spelling()} and a {b.Spelling()} {(expected ? "MAY" : "may NOT")} share a word; "
+                    + $"UserWordKinds.MayBeOneWord says the opposite at --std 85");
             }
     }
 

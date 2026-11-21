@@ -2,68 +2,68 @@
  "rule-id": "1985-GR-VI.6.21.4-13",
  "rule-digest": "1e24fad40719",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-017",
+  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
+  "slice": "1985-m02",
   "sources": {
-   "reader": "dcfa501a8d9e23682a253699446f0667fcf40e93f91e44956b8b3ed15dfa9cac",
-   "refuter": "00822282c49cf16a5507b1a2fc5c8b46f547a3ffbbb9acf8f0cab6159066940a"
+   "reader": "efbf4963ccaa70131f8f8bd96cc5574940d470d98b4586024b70a14899215724",
+   "refuter": "9628720596d1587ba881cafe02b94091f98cef25959c1b296af5e372e4c3d705"
   },
   "imported": {
-   "reader": "25c0a80aeb3f607047e98b320df09f8fc73506e59e51b4f56ec74c32a7bf6a90",
-   "refuter": "305ded1e8391de7d171ffbd58a8fc2a68cdd7e5d90badbf7fb4e95d49a61a6fb"
+   "reader": "4e1ac694feae78ddfe16bcba191bcdbb9af77891d96efe1f94622bd5492bb98d",
+   "refuter": "3a13e61ca4384f4f9251a1ed85743f771f2fec4302b3aff6159536b154dde908"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VI.6.21.4-13",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 a PERFORM's procedure-name-1 and procedure-name-2 must resolve only to sections or paragraphs of the program that contains the PERFORM (never of a containing, contained or separately written program in the run unit), and statements of another program may be reached from a PERFORM range only through CALL / EXIT PROGRAM in that range.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/BinderContext.cs#Table; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectProcedureName",
+  "requirement": "At 1985 a PERFORM's procedure-name-1 and procedure-name-2 must name only paragraphs or sections of its own program (a reference into a containing, contained, sibling or separately compiled program is refused), and another program's statements run within a PERFORM range only through CALL and EXIT PROGRAM.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#PerformNameRule; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectProcedureName",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures",
-    "switches": "the 1985 segmentation restriction on the PERFORM range (ConstructRegistry SegmentNumbersRemoved2002); not part of GR13, which is decided by the per-unit procedure table",
-    "same-arm-as-latest": false
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#PerformNameRule",
+    "switches": "Edition.Cite: the message quotes §1985:VI.6.21.4 GR13 at 85, §2023:14.9.28.3 SR12/SR13 later; the resolution is one code",
+    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "Grepped ControlFlowBinder.cs and ProcedureTableBuilder.cs for CobolVersion|IsAtLeast|DialectBehavior|ConstructRegistry|Edition.Version: the only hit in ControlFlowBinder is the STOP literal gate (not on this path); ProcedureTableBuilder has none. The name scope is structural: BinderContext.Table is one ProcedureTableBuilder per unit, so another program's procedure-names are not in the maps at any edition.",
+  "edition-search": "the procedure table is built per bound unit (ProcedureTableBuilder), so another program's paragraphs are never candidates at any edition; grep DialectLevel|CobolVersion in ControlFlowBinder.cs and ProcedureTableBuilder.cs found only the citation choice",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witnesses exercise a single program; no witness PERFORMs into a contained, containing or sibling program or performs a range that CALLs another program",
+  "witnesses-cover": "part: the witnesses cover an unknown procedure-name and GO TO DEPENDING; not exercised are PERFORM into a contained, containing, sibling or separately compiled program, a same-named paragraph in another program, and a range that reaches another program through CALL",
   "probes": [
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g13a.cbl",
-    "printed": "error COBOL1639: PERFORM 'IN-PARA' names no procedure ... (outer program performs a paragraph of its contained program)",
-    "expected": "refused: must not name paragraphs in any other program"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/gr13_up.cob",
+    "printed": "error COBOL1639: PERFORM 'OUTPARA' names no procedure ... (ISO §1985:VI.6.21.4 GR13)",
+    "expected": "contained program performing a containing program's paragraph: refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g13b.cbl",
-    "printed": "error COBOL1639: PERFORM 'O-PARA' names no procedure (contained program performs its container's paragraph)",
-    "expected": "refused, irrespective of containment"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/gr13_down.cob",
+    "printed": "error COBOL1639: PERFORM 'I1' names no procedure ...",
+    "expected": "containing program performing a contained program's paragraphs: refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g13d.cbl",
-    "printed": "error COBOL1639: PERFORM 'S-PARA' names no procedure (sibling separately-written program)",
-    "expected": "refused"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/gr13_thru.cob",
+    "printed": "error COBOL1639: PERFORM THRU 'I2' names no procedure ...",
+    "expected": "procedure-name-2 a section of a contained program: refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g13e.cbl",
-    "printed": "error COBOL1639: PERFORM 'IN-SEC' names no procedure (a section of the contained program)",
-    "expected": "refused: sections too"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/gr13_sib.cob",
+    "printed": "error COBOL1639: PERFORM 'B1' names no procedure ...",
+    "expected": "sibling contained program: refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g13f.cbl",
-    "printed": "error COBOL1639: PERFORM THRU 'IN-P' names no procedure ... SR13 (procedure-name-2 in the contained program)",
-    "expected": "refused for procedure-name-2"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/gr13_sep.cob",
+    "printed": "error COBOL1639: PERFORM 'BPARA' names no procedure ...",
+    "expected": "separately compiled program in the same source: refused"
    },
    {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g13c.cbl",
-    "printed": "OUTER BEFORE CALL 1 / INNER SAME-NAME / OUTER AFTER CALL 1 / OUTER BEFORE CALL 2 / INNER SAME-NAME / OUTER AFTER CALL 2 / OUTER SAME-NAME / BACK IN OUTER",
-    "expected": "a PERFORM THRU range 2 TIMES whose range CALLs the contained program (EXIT PROGRAM back) obeys the other program's statements; each program's same-named paragraph resolves to its own"
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/gr13_run.cob",
+    "printed": "T=OIo",
+    "expected": "PERFORM DOIT THRU DOIT-X whose range CALLs a contained program that performs its own DOIT and EXIT PROGRAMs: O, I (the inner program's own DOIT, not the outer's), o"
    }
   ],
   "citations": [
@@ -72,15 +72,15 @@
     "check": "OK  §1985:VI.6.21.4 GR13  (6.21.4 General Rules)  the text is in GR13"
    },
    {
-    "cite": "§1985:VI.6.21.4 GR11",
-    "check": "OK  §1985:VI.6.21.4 GR11  (6.21.4 General Rules)  the text is in GR11"
+    "cite": "§1985:IV.4.3.8.1 SRL2.6",
+    "check": "OK  §1985:IV.4.3.8.1 SRL2.6  (4.3.8.1 Qualification)  the text is in SRL2.6"
    }
   ],
-  "notes": "Conforms structurally: the procedure table is per unit, so a cross-program procedure-name finds nothing and ResolveProcedureOperand reports COBOL1639 at both operands, in every containment direction and for a sibling program. Same output at --std 2023. Cosmetic only: the message at --std 85 cites ISO §2023:14.9.28.3 SR12/SR13 and §2023:8.4.6.1 rather than the 1985 rule.",
+  "notes": "Procedure-name resolution consults only the current unit's procedure table, so every cross-program reference is refused with COBOL1639 quoting GR13, and a same-named paragraph resolves to the program's own; the CALL/EXIT PROGRAM path runs the other program's statements and returns into the range.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "g13a: same COBOL1639; g13c: same output (plus the COBOL0903 EXIT PROGRAM archaic warning)",
+  "at-2023": "",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -89,8 +89,8 @@
  "refuter": {
   "rule-id": "1985-GR-VI.6.21.4-13",
   "refutation": "UPHELD",
-  "classes": "b,c,e",
-  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-017/g1.cbl: a contained program CB PERFORMs CA-P, a paragraph of its COMMON sibling CA: error COBOL1639 'names no procedure' at --std 85. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-017/g2.cbl: outer PERFORM PA THRU PB 2 TIMES whose range CALLs a separately written program SIB (which also has a paragraph PB) that ends by EXIT PROGRAM: prints OUTR PA/SIB/OUTR PB twice then OUTR DONE, and SIB's PB is never reached. That matches GR13's second sentence and shows the name resolves only within the program. Grep of ProcedureTableBuilder.cs and ControlFlowBinder*.cs for EditionContext|CobolVersion|ConstructRegistry|DialectBehavior finds no edition switch on name resolution. cite.py: 'OK  §1985:VI.6.21.4 GR13  (6.21.4 General Rules)  the text is in GR13'.",
+  "classes": "b,e",
+  "evidence": "At --std 85: a contained program's 'PERFORM P1 OF S1', where S1 is a section of the containing program and the contained program has its own P1 in another section, is refused (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/g13_qual.cob: COBOL1639 'PERFORM P1 OF S1 names no procedure ... §1985:IV.4.3.8.1 SRL2.6'), so a qualifier cannot reach into another program; a contained program's PERFORM of the containing program's USE GLOBAL declarative section is refused (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/g13_decl.cob: COBOL1639 PERFORM 'DGF'). The run-time half: a contained program's PERFORM K1 THRU K2 whose range does a failing OPEN on the container's GLOBAL file runs the container's USE GLOBAL declarative and then returns into the range (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/g13_declrun.cob, runs/g13_declrun-001: K1 / DECL FS=35 / K2 / K DONE / BACK). That declarative is another program's statement obeyed within the range without CALL, but it is selected by the USE precedence rule §1985:X.5.5.4 GR1b (cite.py: 'OK  §1985:X.5.5.4 GR1b ... the text is in GR1b'), the more specific rule, and reached by the implicit declarative transfer of §1985:IV.4.4.2, not by the PERFORM; read that way it is no breach of GR13. cite.py: 'OK  §1985:VI.6.21.4 GR13', 'OK  §1985:IV.4.3.8.1 SRL2.6'.",
   "edition-sites-missed": [],
   "corrected": ""
  }

@@ -123,7 +123,16 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         // misqualified-condition text. Every other kind — an alphabet-name (kb/Work R38: GnuCOBOL's INSPECT CONVERTING
         // alphabet is an extension no edition admits), a constant-name (kb/Work PB3287: `ADDRESS OF C`), a type-name or
         // a type declaration's member (kb/Work PB1906, §2023:13.18.58.4 GR1/GR2) — identifies no data item (§2023:8.4.2.1).
-        if (nonData is { Kind: DeclarationKind.ConditionName })
+        // ⛔ BUT AT COBOL-85 A CONDITION-NAME THE QUALIFIERS ALSO REACH BESIDE A DATA ITEM IS THE AMBIGUITY ITSELF (kb/Work PB5972):
+        // condition-names, data-names and record-names are one disjoint set (§1985:IV.4.2.2.1.1), so the reference names neither.
+        if (dataItems.ConditionNameCount > 0)
+            msg = $"'{text}' does not uniquely identify a data item — {dataItems.ItemCount + reportEntries} data "
+                + $"declaration{(dataItems.ItemCount + reportEntries == 1 ? "" : "s")} and {dataItems.ConditionNameCount} "
+                + $"condition-name{(dataItems.ConditionNameCount == 1 ? "" : "s")} of '{name}' match"
+                + (qualifiers.Count == 0 ? "" : " the written qualifiers")
+                + " (ISO §1985:IV.4.2.2.1.1: condition-names, data-names and record-names are one disjoint set, and "
+                + $"{rule} — qualification shall establish uniqueness; qualify the reference to single one out).";
+        else if (nonData is { Kind: DeclarationKind.ConditionName })
             msg = MisqualifiedConditionText(text, name, qualifiers, data.Edition.Edition);
         else if (nonData is { } declared)
             msg = $"'{text}' {declared.DeclaredAs(text, name)}, so this reference identifies no data item ({data.Edition.Edition.Quoted()}).";

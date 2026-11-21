@@ -2075,7 +2075,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// kb/Work PB3132), so a declaration after such a use is reported here too.</summary>
     private void CheckOneTypePerWord(string word, UserWordKind kind)
     {
-        if (WordCensus.Record(word, kind) is not { } first) return;
+        if (WordCensus.Record(word, kind, Edition.Edition) is not { } first) return;
         Edition.Error(DiagnosticCatalog.UserWordTypeConflict, SymbolTable.UserWordCensus.ConflictMessage(word, first, kind, Edition.Edition));
     }
 

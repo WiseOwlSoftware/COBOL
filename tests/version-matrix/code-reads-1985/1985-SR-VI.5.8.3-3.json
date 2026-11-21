@@ -2,84 +2,76 @@
  "rule-id": "1985-SR-VI.5.8.3-3",
  "rule-digest": "2d67e577d0b5",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-054",
+  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
+  "slice": "1985-m01",
   "sources": {
-   "reader": "0f0ae4c03aa58b621b5ba4321f4c1751bd86b6ba3c382a01f776663c6c243b74",
-   "refuter": "458332e030bfb7769667b22dd56a463858831b45feac7ce98112aee7bce55989"
+   "reader": "7dca8738df1eef999039af91f9e658b8f88eab2f9cb9b139e01adbdc4f6035f3",
+   "refuter": "0afe07775dfc140e2155ea435ec895ea8284ad18ecc3a53a279bb67c78e15ef2"
   },
   "imported": {
-   "reader": "bff93f66919cdb7227e7c5320ebda00e863b4af05144d24b2f75830f1470cd50",
-   "refuter": "025b928cad0b3747eb3fb84fde5c214ed0cce30f0f4bb20f9b01b3cb0f33d73c"
+   "reader": "a537c81e3889dba379847e73212ad2011490001d81d551f8e6c1a246eb14f3b3",
+   "refuter": "4320f8ba3a6da4cfab24caea43fe2eab9d304e5bdb7dae4da7ea1f79e4c60141"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VI.5.8.3-3",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 the first KEY IS data-name-2 (qualified or not, in either OCCURS format) must resolve, under the 1985 qualification rule (a non-unique name must be qualified to uniqueness, with no implicit qualification by the subject's groups), to the entry containing the OCCURS clause or one subordinate to it, and every subsequent data-name-2 to an entry strictly subordinate to it; anything else is refused.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OccursKeyResolvePass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegionClauseCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsWithinRegion; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous",
+  "requirement": "The first KEY data-name-2 must name the OCCURS entry itself or an entry subordinate to it; each later data-name-2 must be subordinate to it (not the entry itself).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OccursKeyResolvePass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#IdentifyRegionOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsWithinRegion",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegionClauseCandidates",
-    "switches": "ClauseOperandsTakeImplicitQualifiers (Edition.DialectLevel >= 2002): from 2002 the table subtree is the candidate set; at 85 the whole scope's candidates narrowed by the written qualifiers, counted for ambiguity, then OccursKeyResolvePass.Run asks IsWithinRegion of the survivor",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#ClauseOperandsTakeImplicitQualifiers",
+    "switches": "DialectLevel >= 2002: from 2002 a data description entry clause operand (ODO data-name-1, SAME AS, OCCURS KEY, RENAMES) takes the groups above its subject as implicit qualifiers; below 2002 the whole scope's candidates are counted, so a name declared beside the subject and in another record must be qualified",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OccursKeyResolvePass.cs#OccursKeyItemFault",
-    "switches": "dialectLevel < 2002 SR12 walk (reached only after SR3 has placed the key)",
-    "same-arm-as-latest": false
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OccursKeyResolvePass.cs#Run",
+    "switches": "Edition.Cite: only the SR3 message text of COBOL2353 (the candidate set's edition step is IdentifyRegionOperand's, via ClauseOperandsTakeImplicitQualifiers); OccursKeyItemFault's Year<2002 arm is SR12's, not these rules'",
+    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "",
-  "behaviour-differs-by-edition": "yes: an unqualified key name that is also declared outside the table is ambiguous (COBOL1639) at 85, where §1985:IV.4.3.8.1 requires qualification, and resolves to the table's own item at 2023 by implicit qualification",
-  "witnesses-cover": "part: pb1018_occurs_key_qualified covers a qualified key; the outside-the-table refusal, the subsequent-key-names-the-subject refusal, a qualifier pointing outside the table and the 85 ambiguity arm are exercised only by the probes",
+  "edition-search": "grep for DialectLevel, Edition.Year, EditionContext, CobolVersion, Permissive and ConstructRegistry in NameResolution.cs, SymbolTable.DataNameCandidates.cs, SymbolTable.IndexNames.cs, SymbolTable.Procedures.cs, SymbolTable.ConditionNames.cs, QualifiedNameClasses.cs, OccursKeyResolvePass.cs, OdoResolvePass.cs, StatementValidation.cs, DataBinder.cs#UniqueOrReportAmbiguous; the grammar rules qualification, dataReference, procedureName and reportGroupReference carry no version predicate",
+  "behaviour-differs-by-edition": "yes: at 85 the candidate set is the whole scope's and the survivor is then asked to lie in the table; from 2002 the table's subtree is the set (an unqualified key also declared outside the table is ambiguous at 85, accepted at 2002)",
+  "witnesses-cover": "part: pb1018 covers a qualified key; the subject as first key, the subject as a later key and a key outside the table are not exercised",
   "probes": [
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/key2.cob",
-    "printed": "COBOL2353 for KEY IS OUTSIDE (another record), KEY IS H3 (a sibling of the subject), KEY IS T4 (the subject's superordinate); COBOL2353 'only the FIRST key data-name may name the table entry itself' for KEY IS K2 E2",
-    "expected": "each refused by SR3"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/key5.cob",
-    "printed": "COBOL2353 for KEY IS K OF OTHER-REC and KEY IS K2 OF E1 (qualifier selecting an item outside the table)",
-    "expected": "refused: the named item is not the subject or subordinate to it"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/key3b.cob",
-    "printed": "85: COBOL1639 'K' does not uniquely identify a data item (K also in OTHER-REC); 2023: compiles and runs, AT 3",
-    "expected": "85: qualification required for a non-unique name (§1985:IV.4.3.8.1 SR3)"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/key4b.cob",
-    "printed": "85: KEY IS K OF E1 compiles and SEARCH ALL prints AT 3",
-    "expected": "qualified key admitted (§1985:VI.5.8.3 SR2)"
-   },
-   {
     "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/key1b.cob",
-    "printed": "AT 4 / E2 OK / E3 OK (first key = subject; DESCENDING K2 OF E2 then ASCENDING K3 subordinate; key = subject of an OCCURS 1 TO 5 DEPENDING ON table)",
-    "expected": "admitted and ordered by the keys"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/opos.cob",
+    "printed": "exit 0: FOUND BBB / NOT FOUND 30 / ENT FOUND",
+    "expected": "ODO counter CNT OF GC OF CTLS (value 3, then 2) bounds the SEARCH ALL; KEY IS K OF ROW, K2 IN KG OF ROW and KEY IS ENT (the subject) resolve"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/ONEG3.cob",
+    "printed": "exit 65: COBOL2353 ... 'OUTK' ... no data item so named is 'T' itself or subordinate to it (1985 VI.5.8.3 SR3)",
+    "expected": "a key outside the table is refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/ONEG4.cob",
+    "printed": "exit 65: COBOL2353 ... only the FIRST key data-name may name the table entry itself (1985 VI.5.8.3 SR3)",
+    "expected": "a subsequent key naming the subject is refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/ONEG5.cob",
+    "printed": "exit 65: COBOL2353 'K OF R1 OF T' ... no data item so named under the written qualifiers",
+    "expected": "a key with qualifiers out of hierarchy order names nothing"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/ONEG2.cob",
+    "printed": "85: exit 65 COBOL1639 OCCURS ASCENDING KEY IS data-name-2 of 'T' 'K' ... 2 declarations; --std 2002: exit 0",
+    "expected": "an unqualified key also declared in another record must be qualified at 85"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VI.5.8.3 SR3",
-    "check": "OK  §1985:VI.5.8.3 SR3  (5.8.3 Syntax Rules)  the text is in SR3"
-   },
-   {
-    "cite": "§1985:VI.5.8.3 SR2",
-    "check": "OK  §1985:VI.5.8.3 SR2  (5.8.3 Syntax Rules)  the text is in SR2"
-   },
-   {
-    "cite": "§1985:IV.4.3.8.1 SR3",
-    "check": "OK  §1985:IV.4.3.8.1 SR3  (4.3.8.1 Qualification)  the text is in SR3"
+    "check": "OK  §1985:VI.5.8.3 SR3  the text is in SR3 (quoted: Subsequent specification of data-name-2 must be subordinate)"
    }
   ],
-  "notes": "The placement test (IsWithinRegion plus the subsequent-key-is-the-subject check) is shared by every edition; what 85 changes is the candidate set, and the 85 arm correctly demands qualification of a name declared elsewhere (PB5165 landed this arm). The diagnostic text cites §2023:13.18.38.3 SR3, whose words match the 1985 rule.",
+  "notes": "OccursKeyResolvePass refuses a key outside the table and a non-first key naming the subject with COBOL2353 citing 1985 VI.5.8.3 SR3, and accepts KEY IS ENT on ENT itself (SEARCH ALL then finds the element).",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -92,8 +84,8 @@
  "refuter": {
   "rule-id": "1985-SR-VI.5.8.3-3",
   "refutation": "UPHELD",
-  "classes": "a,b,c,d",
-  "evidence": "rk1.cob (--std 85): COBOL2353 for KEY IS C1 (an 88 condition-name under the subject: not a data item subordinate to the entry), KEY IS R2 (a 66 RENAMES name), KEY IS X3 (the table's own index-name), and DESCENDING KEY IS E4 OF T4 as a subsequent key naming the subject ('only the FIRST key data-name may name the table entry itself'); the first key K4 OF E4 OF T4 (fully qualified through the subject) admitted. rk2.cob: first key E5 OF T5 (subject, qualified) then K5 OF E5; KEY IS K6 K6; KEY IS KR7 (a REDEFINES entry subordinate to the subject) compiled and ran, printing OK. cite.py: OK  §1985:VI.5.8.3 SR3  (5.8.3 Syntax Rules)  the text is in SR3.",
+  "classes": "a,b",
+  "evidence": "ok1.cob: ASCENDING KEY IS K DESCENDING KEY IS T (the subject in a later KEY phrase) -> COBOL2353 only the FIRST key data-name may name the table entry itself. ok3.cob: KEY IS C88 (a level-88 under the entry) and KEY IS K OF R1 (a key in another record) -> COBOL2353. ok2.cob: a first KEY naming the subject, qualified (U OF R1), accepted and SEARCH ALL finds it. cite: OK  §1985:VI.5.8.3 SR3  the text is in SR3.",
   "edition-sites-missed": [],
   "corrected": ""
  }

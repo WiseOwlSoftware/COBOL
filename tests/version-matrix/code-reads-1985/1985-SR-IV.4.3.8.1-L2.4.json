@@ -2,65 +2,65 @@
  "rule-id": "1985-SR-IV.4.3.8.1-L2.4",
  "rule-digest": "3c8175ef8314",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-044",
+  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
+  "slice": "1985-m01",
   "sources": {
-   "reader": "9735a152d696acce46a8d78dcde413582093c750e9fd8371e69ca236057fce49",
-   "refuter": "9b073a18b4097e884b2394934b4f4cbf8063a47e6be7e3bca9a610af9bd16c35"
+   "reader": "7dca8738df1eef999039af91f9e658b8f88eab2f9cb9b139e01adbdc4f6035f3",
+   "refuter": "0afe07775dfc140e2155ea435ec895ea8284ad18ecc3a53a279bb67c78e15ef2"
   },
   "imported": {
-   "reader": "9b54a1af6d2dd65467034b51376f7c3e1e4e7588c47d181f85ca222aef5db89d",
-   "refuter": "dad2b369459d4a064ae8a03643ca10cb140faac9d57696e0c4bd769fbb071708"
+   "reader": "fd666a6ecc1293472e558b52c1c0a7bb04c688d3eb96bb280bb9c6cc0ee0213a",
+   "refuter": "dd0670f8d272f4c838bfb7ff1829a0038a37d3ff815ce351a2787973bcaa13cc"
   }
  },
  "reader": {
   "rule-id": "1985-SR-IV.4.3.8.1-L2.4",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 each Format 1 qualifier of a data-name must be a group superordinate to it or (outermost) the file-name/cd-name of its FD/SD/CD, each qualifier of a condition-name must be its conditional variable or a group/file over it, and the qualifiers must be written innermost first; any other qualifier, order or a file-name not outermost must be refused.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierChainMatches; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierChainMatchesFrom; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ConditionQualifierChainMatches; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifiedConditionCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifiedCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#EntryClauseCandidates",
-  "edition-consulted": [
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseOperandsTakeImplicitQualifiers",
-    "switches": "DialectLevel >= 2002: a data-description-clause operand (OCCURS DEPENDING ON, KEY, RENAMES) takes the groups above its subject as implicit qualifiers; below 2002 the whole scope's candidates are counted, so only explicit qualification makes the operand unique (read by EntryClauseCandidates / RegionClauseCandidates)",
-    "same-arm-as-latest": false
-   }
-  ],
-  "edition-search": "grep of DataBinder.cs, NameResolution.cs, ReferenceResolver.cs, SymbolTable.cs, ConditionBinder.cs for CobolVersion|EditionContext|ConstructRegistry|DialectBehavior|Edition.(DialectLevel|Edition|Year|Removed): the procedure-division qualified lookup (QualifiedCandidates -> QualifierChainMatchesFrom -> QualifierWalk, ConditionQualifierChainMatches) has no edition test; only Edition.At (cursor) and Edition.Permissive (SR1's --permissive disposition). The per-edition reserved-word gate (Frontend/Parsing/ReservationGateRewriter) decides what is a user-defined word on every path; it is not specific to qualification and no gated word was used.",
-  "behaviour-differs-by-edition": "no for the qualifier hierarchy and order; the clause-operand arm (implicit qualifiers from 2002) only changes which candidates an unqualified clause operand sees",
-  "witnesses-cover": "part: witnesses exercise legal ordered chains of data-names and condition-names, a file qualifier for a condition-name, and report-group qualification; not exercised: refusal of out-of-order chains, non-superordinate or sibling qualifiers, a file-name not outermost, a cd-name qualifier",
+  "requirement": "In format 1 a qualifier must be a file-name/cd-name (level indicator), a group to which the item is subordinate, or a condition-name's conditional variable (and its groups), written innermost first; any other qualifier or order identifies nothing.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#QualifierWalk; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#QualifierChainMatchesFrom; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#ConditionQualifierChainMatches; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionOf; src/WiseOwl.Cobol.Compiler/Validation/ExpressionFormationPass.cs#VisitDataReference",
+  "edition-consulted": [],
+  "edition-search": "grep for DialectLevel, Edition.Year, EditionContext, CobolVersion, Permissive and ConstructRegistry in NameResolution.cs, SymbolTable.DataNameCandidates.cs, SymbolTable.IndexNames.cs, SymbolTable.Procedures.cs, SymbolTable.ConditionNames.cs, QualifiedNameClasses.cs, OccursKeyResolvePass.cs, OdoResolvePass.cs, StatementValidation.cs, DataBinder.cs#UniqueOrReportAmbiguous; the grammar rules qualification, dataReference, procedureName and reportGroupReference carry no version predicate",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: condition-name and data-name chains and a report group; wrong order, sibling qualifiers, a wrong file and cd-name qualifiers are not exercised",
   "probes": [
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85neg.cob",
-    "printed": "COBOL1639 at lines 22 (X OF R1 OF G), 24 (X OF Y), 26 (X OF F1 OF R1), 28 (U OF R1), 30 (X-BIG OF Y: none is subordinate to the given qualifier), 32 (X OF X), 34 (G OF X)",
-    "expected": "each refused: qualifiers must be superordinate, in successively more inclusive order, file-name outermost; a condition-name qualifier must be its conditional variable or above"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/qpos.cob",
+    "printed": "exit 0: AAAA BBBB / CCCC DDDD / OK-R1-A OK-R1-B OK-R2-C OK-R2-D / 78 / 123 / CCCC / UNIQ / ZZZZZ / FFF12GGG34",
+    "expected": "every reference made unique by its qualifiers resolves to its own item: full and gapped chains, IN and OF mixed, record-name as data-name-1 and as qualifier, file-name qualifier, condition-names qualified by their conditional variable and its groups, subscripted qualified items, an unqualified unique name"
    },
    {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85pos.cob",
-    "printed": "X-BIG OF X OF G OF R1B IN F2 -> C1 T; X-BIG IN R1 -> C2 F; X-BIG OF F1 -> C3 F; X-BIG IN G OF F2 -> C5 T",
-    "expected": "condition-name qualified by conditional variable, gapped groups, record and file; R1's X = 7 (false), R1B's X = 600 (true)"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/qneg.cob",
+    "printed": "exit 65, ten COBOL1639: X (2 match), X OF G (2 match), X OF R1 OF G (order), X OF T OF R1 (sibling not superordinate), UNIQ OF UNIQ, OK OF N OF R1 (not its conditional variable), OK (2 level-88s), FX OF GREC OF F1 (wrong file), FX (2), X OF R3 (no such qualifier)",
+    "expected": "each nonunique or misqualified reference refused (1985 IV.4.3.8.1 SRL2.1, SRL2.4)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/qord.cob",
+    "printed": "exit 65: COBOL2776 'OF T' follows a subscript ... write the qualifiers first (line 40); line 41 E OF T OF R1 (1) accepted",
+    "expected": "qualifiers precede subscripts (1985 IV.4.3.8.5.2 format 2)"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85cd.cob",
-    "printed": "CDQ2 CDQ2 WSQ SSSS FFFF SSSS",
-    "expected": "cd-name and sort-file (SD) as the level-indicator qualifier"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/cdq.cob",
+    "printed": "exit 0: 00010002",
+    "expected": "DEST-COUNT OF CDA and DEST-COUNT IN OREC2 IN CDB resolve through format 1's cd-name qualifier"
    },
    {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85odo.cob",
-    "printed": "[ABC] [WXYZ] AC YZ ACXYZ [12345]5",
-    "expected": "qualified ODO object and subscripted qualified table elements resolve"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/ONEG5.cob",
+    "printed": "exit 65: COBOL2353 'K OF R1 OF T' ... no data item so named under the written qualifiers",
+    "expected": "a key with qualifiers out of hierarchy order names nothing"
    }
   ],
   "citations": [
    {
     "cite": "§1985:IV.4.3.8.1 SRL2.4",
-    "check": "OK  §1985:IV.4.3.8.1 SRL2.4  (4.3.8.1 Qualification)  the text is in SRL2.4"
+    "check": "OK  §1985:IV.4.3.8.1 SRL2.4  the text is in SRL2.4 (quoted: Qualifiers are specified in the order of successively more inclusive levels)"
    }
   ],
-  "notes": "QualifierWalk consumes qualifiers inner to outer over the item's ancestors (the conditional variable first for a condition-name) and lets only the outermost leftover be the FD/SD file or CD; every refusal probe drew COBOL1639 and every legal chain resolved. No edition test on this path apart from the clause-operand implicit-qualifier arm.",
+  "notes": "The walk starts at the item's parent (AT the conditional variable for a level-88) and lets only the outermost qualifier be the owning file or cd-name; probes refuse wrong order, a sibling group, the item itself, a non-associated variable and another file's record, and COBOL2776 refuses a qualifier written after a subscript.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -73,8 +73,8 @@
  "refuter": {
   "rule-id": "1985-SR-IV.4.3.8.1-L2.4",
   "refutation": "UPHELD",
-  "classes": "b,c,e",
-  "evidence": "I sent the refusals the reader did not try to r4neg at 85. Each drew COBOL1639: A OF RN, where RN is a 66 RENAMES item and so no group superordinate to A (line 31); A OF F1, a file-name qualifying a WORKING-STORAGE item (33); Y OF F2, the wrong file (35); A OF RP, a report-name qualifying a non-report item (37); X OF RP OF R1, a report-name that is not outermost (41). GENERATE DT OF F1 drew COBOL1757. In r12recneg, X OF F1 with X in both records of F1 was refused as ambiguous (2 declarations), and RA OF RA and X OF RB OF RA were refused. Class c: r13cdc shows a condition-name under a CD qualified by its cd-name, a Format 1 form only 85 has (the 2023 qualified-condition-name allows only a file-name outermost). The compiler accepts it and evaluates it correctly: 'C1 F C2 F C3 T C4 T C5 T'. cite.py: 'OK  §1985:IV.4.3.8.1 SRL2.4 ... the text is in SRL2.4'.",
+  "classes": "b,d,e",
+  "evidence": "ord2.cob: K OF F1 OF FR (file not outermost), K OF W OF F1 (WS record under a file), Z OF F1 (77 under a file), K OF FR OF F1 OF F1 -> four COBOL1639. redq.cob: a REDEFINES sibling and a 66 RENAMES name as qualifier -> COBOL1639. sdq.cob: an SD file-name as level-indicator qualifier accepted; rw6.cob a report-name accepted. cite: OK  §1985:IV.4.3.8.1 SRL2.4  the text is in SRL2.4.",
   "edition-sites-missed": [],
   "corrected": ""
  }

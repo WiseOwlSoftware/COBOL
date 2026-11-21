@@ -2,67 +2,106 @@
  "rule-id": "1985-SR-VI.5.11.3-4",
  "rule-digest": "957122158ce4",
  "read": {
-  "pin": "1712645b4772cda5433a5a24f9b7d597298915e6",
-  "slice": "1985-230",
+  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
+  "slice": "1985-m02",
   "sources": {
-   "reader": "cb3be01a78846309688098d11baa3d09e17121eaadae4196bf7c132343a631e8",
-   "refuter": "025c5d214ae191eb324d267335fc86df1d6e8dd720161061dd4841a11927f046"
+   "reader": "efbf4963ccaa70131f8f8bd96cc5574940d470d98b4586024b70a14899215724",
+   "refuter": "9628720596d1587ba881cafe02b94091f98cef25959c1b296af5e372e4c3d705"
   },
   "imported": {
-   "reader": "29471fb9467490150ef14d67b79c5a5a3d389c201795cfd771678f29dc540f0d",
-   "refuter": "d78aa7ba3b453129a987310ffd861c74e11a68265daf493f310ad03d0dc4c3a4"
+   "reader": "802a1fc5702961f771db03ca9645b0c56109aacc5b5e388f867995c8ca4d73fb",
+   "refuter": "08563263975dccbab341e40762fb892faf477814f40e43e3773c7f83c3f9fc65"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VI.5.11.3-4",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 the compiler must accept a level-66 RENAMES whose data-name-2 and data-name-3 are elementary or group items of the same logical record (the one the 66 entries follow), and refuse one whose operands lie in another record, name the same data-name twice, or name a 66, 77, 88 or 01 entry.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesOperand; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesWindowOrder; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegionClauseCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsWithinRegion",
+  "requirement": "At 1985 data-name-2 and data-name-3 must name elementary items or groups in the same logical record as the 66 entry and must not be the same item; an operand that is a 66, 77, 88 or 01 entry, or an item of another record (another WS record or another record of the same FD), must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesOperand; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesWindowOrder; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#IdentifyRegionOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsWithinRegion",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseOperandsTakeImplicitQualifiers",
-    "switches": "below 2002 RegionClauseCandidates counts the whole scope's candidates (no implicit qualification by the record) and the caller then requires IsWithinRegion; from 2002 only the record's own subtree is searched",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#ClauseOperandsTakeImplicitQualifiers",
+    "switches": "below 2002 the operand candidates are the whole scope's (so a 66 alias of the record is reachable), then ResolveRedefinesPass drops one outside the record via IsWithinRegion; from 2002 the record subtree",
     "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesOperand",
+    "switches": "Edition.Cite: 1985 SR4 vs 2023 SR5 citation in the COBOL2740 text; the level test (1, 66, 77) is one code at every edition",
+    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "read RegionClauseCandidates/EntryClauseCandidates and ScreenRenamesOperand; grep Edition|DialectLevel in ResolveRedefinesPass.cs and DataBinder.cs around the RENAMES path; ScreenRenamesOperand and ScreenRenamesWindowOrder have no edition arm",
-  "behaviour-differs-by-edition": "yes: at 85 an unqualified operand name that also occurs in another record is ambiguous (COBOL1639, §1985:IV.4.3.8.1 SR3) where 2023 resolves it within the record; at 85 a 66 operand is found and refused by its level, at 2023 it is not in the record's subtree and is refused as no item of the record",
-  "witnesses-cover": "part: the witnesses cover legal ranges and an undefined operand; not exercised: same data-name twice, 66/77/88/01 operands, an operand in another record",
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: the operand candidate set (whole scope at 1985, record subtree at 2002+), which changes whether an unqualified name also declared in another record is ambiguous; the refusals themselves are the same code",
+  "witnesses-cover": "part: legal operands, an undefined operand and the same word naming two items; not exercised are 66/77/88/01 operands, an operand of another WS record or another record of the same FD, and A THRU A",
   "probes": [
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-230/c4bad.cob",
-    "printed": "COBOL2740 R-SAME A THRU A (end of data-name-3 does not follow data-name-2); COBOL2740 R-66 'R1' level 66; COBOL1655 R-77 'W77' not an item of the record; COBOL1655 R-88 'A-ON' not an item of the record; COBOL2740 R-01 'REC' level 1; COBOL1655 R-OTHER 'O2' and R-OTHER2 'O1' not items of the record",
-    "expected": "each item of SR4 violated in turn is refused"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/sr4_66of66.cob",
+    "printed": "error COBOL2740: 'R2' RENAMES: data-name-2 'R1' refers to an entry described with level-number 66 (ISO §1985:VI.5.11.3 SR4 ...)",
+    "expected": "refused: cannot rename another 66 level entry"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/sr4_77.cob",
+    "printed": "error COBOL1655: 'R1' RENAMES K: 'K' does not name an item of the record (ISO §1985:VI.5.11.3 SR4; §1985:IV.4.3.8)",
+    "expected": "refused: cannot rename a 77 level entry"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/sr4_88.cob",
+    "printed": "error COBOL1655: 'R1' RENAMES A-OK: 'A-OK' does not name an item of the record",
+    "expected": "refused: cannot rename an 88 level entry"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/sr4_01.cob",
+    "printed": "error COBOL2740: data-name-2 'W' refers to an entry described with level-number 1",
+    "expected": "refused: cannot rename an 01 level entry"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/sr4_thru01.cob",
+    "printed": "error COBOL2740: data-name-3 'W' refers to an entry described with level-number 1",
+    "expected": "refused (01 as data-name-3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/sr4_otherrec.cob",
+    "printed": "error COBOL1655: 'R1' RENAMES X: 'X' does not name an item of the record",
+    "expected": "refused: not in the same logical record"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/sr4_thru_otherrec.cob",
+    "printed": "error COBOL1655: 'R1' RENAMES A THRU X: 'X' does not name an item of the record",
+    "expected": "refused: data-name-3 in another record"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/sr4_fd_otherrec.cob",
+    "printed": "error COBOL1655: 'FR2-A' RENAMES FA: 'FA' does not name an item of the record",
+    "expected": "refused: FA belongs to FR1, another logical record of the same FD"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/sr4_same.cob",
+    "printed": "error COBOL2740: 'R1' RENAMES A THRU A: the end of data-name-3 does not follow the end of data-name-2 ... (§1985:VI.5.11.3 SR8)",
+    "expected": "refused: data-name-2 and data-name-3 cannot be the same data-name"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-230/c4ok.cob",
-    "printed": "GRP=AB01K / ELEM=-012 / B=-010 / GT=AB01}CDE / QUAL=XYZZ / REC2=PQRS / FR=12YY",
-    "expected": "group, elementary (inherits signed numeric attributes), group THRU elementary, qualified operand, and a FILE SECTION record are accepted and alias the right storage"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-230/c4amb.cob",
-    "printed": "--std 85: error COBOL1639 'R-QUAL' RENAMES 'A' does not uniquely identify a data item; --std 2023: runs, QUAL=XYZZ",
-    "expected": "1985 requires qualification of a non-unique operand; 2002+ implicit qualification resolves it in the record"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/sr1_many.cob",
+    "printed": "R3=CD12 (group operand), R5=ABCD12EF (elementary THRU elementary over a group)",
+    "expected": "elementary items and groups are legal operands"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VI.5.11.3 SR4",
     "check": "OK  §1985:VI.5.11.3 SR4  (║5.11.3 Syntax Rules║)  the text is in SR4"
-   },
-   {
-    "cite": "§1985:VI.5.11.3 SR5",
-    "check": "OK  §1985:VI.5.11.3 SR5  (║5.11.3 Syntax Rules║)  the text is in SR5"
-   },
-   {
-    "cite": "§1985:VI.5.11.3 SR8",
-    "check": "OK  §1985:VI.5.11.3 SR8  (║5.11.3 Syntax Rules║)  the text is in SR8"
    }
   ],
-  "notes": "Every item of SR4 is refused at 85: other-record, 77 and 88 operands by the record-confinement check (COBOL1655), 66 and 01 operands by ScreenRenamesOperand's level test (COBOL2740), and the same data-name twice by the SR8 window-order check. The diagnostics cite the 2023 clause numbers at --std 85, which names the right rule in another edition but is not wrong-answer.",
+  "notes": "Every lettered prohibition is refused at --std 85 with a diagnostic; 77 and 88 operands are refused as not items of the record (COBOL1655), which is the same verdict SR4 gives (77 and 88 are not elementary items or groups of the record). A THRU A is refused through the SR8 window screen, the same-item reading the conformance determination D-85-RENAMES-SAME-NAME records.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -75,14 +114,14 @@
  "refuter": {
   "rule-id": "1985-SR-VI.5.11.3-4",
   "refutation": "DOUBTFUL",
-  "classes": "b,c",
-  "evidence": "refute-1985-230/r4a.cob at --std 85: RENAMES of an item of the other 01 record under the same FD (R-XREC RENAMES FA1 after REC-B; R-XREC2 RENAMES FB1 THRU FA2) refused COBOL1655; THRU an 88 refused COBOL1655 - all as SR4 requires. BUT r4c.cob: '66 R-QQ RENAMES A OF G1 THRU A OF G2.' (two distinct items spelled with the same data-name A, qualified per SR5) compiles and runs at --std 85, printing 'QQ=ABCDEF'. SR4 says data-name-2 and data-name-3 'cannot be the same data-name', and the 1985 glossary defines 'data-name' in a general format as 'a word' (the user-defined word), so the literal reading refuses A OF G1 THRU A OF G2; the reader's requirement reads it as 'the same data item', which SR8 already forbids (the reader's only probe of this clause, A THRU A, is refused by the SR8 window-order check COBOL2740, not by any SR4 check). cite.py: OK  §1985:VI.5.11.3 SR4 ... the text is in SR4 ('and cannot be the same data-name'); OK  §1985:VI.5.11.3 SR5 ('Data-name-2 and data-name-3 may be qualified'); OK  §1985:VI.5.11.3 SR8; OK  §1985:III.2  (2. DEFINITIONS) the text is in the clause ('represents a word which must not be reference-modified').",
+  "classes": "b,d",
+  "evidence": "Every refusal holds at --std 85: data-name-3 a 66 entry (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/rn_d3is66.cob: COBOL2740 'data-name-3 R1 refers to an entry described with level-number 66'), an index-name operand (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/rn_idx.cob: COBOL1655), a 77 (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/rn_nonrec.cob: COBOL2740), plus the reader's 66/77/88/01/other-record probes. But 'RENAMES X OF G1 THRU X OF G2' (two items written with the same word X) compiles and runs (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/rn_sameword.cob, runs/rn_sameword-001: R1=AABBCC). SR4 says data-name-2 and data-name-3 'cannot be the same data-name' (cite.py: 'OK  §1985:VI.5.11.3 SR4 ... the text is in SR4'), and §1985:III.2 defines a data-name as 'A user-defined word that names a data item' and says that in the general formats 'data-name' represents a word (cite.py: 'OK  §1985:III.2 (2. DEFINITIONS) the text is in the clause'). Under that reading SR4 forbids the same WORD, qualified or not, and the program must be refused. The same-ITEM reading also leaves SR4's clause redundant: SR8 already refuses one item as both operands (cite.py: 'OK  §1985:VI.5.11.3 SR8'). The compiler follows the other reading, recorded as docs/conformance/3/D-85-RENAMES-SAME-NAME.md (same item, chosen by GnuCOBOL precedence because it treats the text as leaving a choice). The verdict rests on that reading, which the 1985 definition of data-name puts in doubt; the reader's notes call the A THRU A refusal the SR4 refusal without testing the two-item, one-word form.",
   "edition-sites-missed": [],
-  "corrected": "Reading-dependent: under the word reading (glossary §1985:III.2 'Data-Name') the verdict is UNDER-REJECTS (A OF G1 THRU A OF G2 accepted, ScreenRenamesOperand/ScreenRenamesWindowOrder have no same-word check); under the same-item reading it CONFORMS. The text does not settle which."
+  "corrected": "CONFORMS only under the same-item reading of D-85-RENAMES-SAME-NAME; under the §1985:III.2 reading (a data-name is a word) 'RENAMES X OF G1 THRU X OF G2' must be refused and is accepted (under-rejects). The determination should be re-ruled on the 1985 definition before the row is closed."
  },
  "adjudication": {
   "verdict": "CONFORMS",
-  "reason": "RENAMES A OF G1 THRU A OF G2, two different items that share a word, is accepted: where the 1985 text does not say whether the same data-name is the word or the item, GnuCOBOL compares the resolved items, and so does this compiler.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-15.md"
+  "reason": "Refuter DOUBTFUL (the same-word reading of 'cannot be the same data-name'); the row conforms under the recorded determination D-85-RENAMES-SAME-NAME (same item), which stands until re-ruled",
+  "ref": "docs/conformance/3/D-85-RENAMES-SAME-NAME.md"
  }
 }

@@ -10,11 +10,17 @@ using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
 /// <summary>How far a file-name lookup reaches: <see cref="Visible"/>, the element's own file-names and its containers'
 /// GLOBAL ones (§2023:13.18.27.4 GR1); <see cref="Own"/>, the element's own alone, for a position that names an entry of
 /// this element's own FILE-CONTROL (an FD or SD's file-name, §2023:13.4.5.3 SR1, §2023:13.4.6.3 SR1; the I-O-CONTROL
-/// clauses and APPLY COMMIT's file-names).</summary>
+/// clauses and APPLY COMMIT's file-names); <see cref="Qualifier"/>, Visible's names HIDDEN OR NOT, for a position where the name
+/// is a qualifier of another reference (LINAGE-COUNTER OF file-name, LINE-COUNTER and PAGE-COUNTER OF report-name): "the normal
+/// rules for qualification ... are applied until one or more objects is identified" over the whole set of names (§1985:X.1.3.8.2
+/// GR1) before a nearer declaration of another class is preferred (GR3a), so a contained program's own data-name R1 hides its
+/// container's GLOBAL report R1 as a reference to the report but not as the qualifier of that report's counters (kb/Work PB5973
+/// review R1-1).</summary>
 internal enum NameReach
 {
     Visible,
     Own,
+    Qualifier,
 }
 
 public sealed partial class SymbolTable
@@ -31,8 +37,12 @@ public sealed partial class SymbolTable
     /// the chain <see cref="FilesOfContainingChain"/> reads.</summary>
     private readonly List<FileModel> _containerFiles = [];
 
-    /// <summary>The inherited file-names a data-name, condition-name or index-name of the spelling declared in a nearer source
-    /// element hides (§2023:8.4.6.2.1 3) a); §1985:X.1.3.8.2 GR3a; kb/Work PB5786).</summary>
+    /// <summary>Every container's GLOBAL file, nearest container first, a farther one of a nearer one's spelling included: the files
+    /// a file-name qualifier is applied over (<see cref="FileQualifies"/>, §1985:X.1.3.8.2 GR1).</summary>
+    private readonly List<FileModel> _inheritedGlobalFiles = [];
+
+    /// <summary>The inherited file-names a declaration of the spelling in a nearer source element hides, whatever its class
+    /// (§2023:8.4.6.2.1 3) a); §1985:X.1.3.8.2 GR3a; kb/Work PB5786, PB5973).</summary>
     private readonly HashSet<CobolName> _hiddenFileNames = [];
 
     /// <summary>The files this element's OWN file control entries select, by file-name: the subjects of §2023:12.4.5.2 SR2 (one
@@ -52,11 +62,20 @@ public sealed partial class SymbolTable
     }
 
     /// <summary>The file a file-name denotes here: the element's own, which hides a container's of the same spelling
-    /// (§2023:8.4.6.2.1 3) a)), else the nearest container's GLOBAL file unless a nearer declaration hides it.</summary>
+    /// (§2023:8.4.6.2.1 3) a)), else the nearest container's GLOBAL file unless a nearer declaration hides it (a qualifier
+    /// position, <see cref="NameReach.Qualifier"/>, reaches it hidden or not).</summary>
     private FileModel? FileNamed(CobolName name, NameReach reach) =>
         _ownFiles.TryGetValue(name, out var own) ? own
-        : reach == NameReach.Visible && !_hiddenFileNames.Contains(name) && _inheritedFiles.TryGetValue(name, out var inherited) ? inherited
+        : reach != NameReach.Own && (reach == NameReach.Qualifier || !_hiddenFileNames.Contains(name))
+            && _inheritedFiles.TryGetValue(name, out var inherited) ? inherited
         : null;
+
+    /// <summary>Whether a file-name of <paramref name="name"/> is declared at some depth below <paramref name="depth"/>, hidden or not:
+    /// this element's own (depth 0) or the nearest container's GLOBAL one. The file-name tier of
+    /// <see cref="Declarations.DeclaredNearerThan"/> (kb/Work PB5973).</summary>
+    private bool FileNameDeclaredNearerThan(string name, int depth) =>
+        _ownFiles.ContainsKey(Key(name)) ? depth > 0
+        : _inheritedFiles.TryGetValue(Key(name), out var inherited) && _data.State.Inherited.FileDepth(inherited) < depth;
 
     /// <summary>Every file visible in this element: its own, then each inherited one whose spelling it does not declare itself.</summary>
     internal IEnumerable<FileModel> VisibleFiles
@@ -151,10 +170,20 @@ public sealed partial class SymbolTable
         return null;
     }
 
-    /// <summary>Whether <paramref name="qualifier"/>, the outermost qualifier of a data reference, is a visible file-name whose
-    /// file holds the record <paramref name="root"/> (the file-report-qualifier, §2023:8.4.2.2.2 Format 1).</summary>
-    internal bool FileQualifies(string qualifier, DataItem root) =>
-        FileNamed(Key(qualifier), NameReach.Visible) is { } file && file.Records.Contains(root);
+    /// <summary>Whether <paramref name="qualifier"/>, the outermost qualifier of a data reference, is the file-name of the file that
+    /// holds the record <paramref name="root"/> (the file-report-qualifier, §2023:8.4.2.2.2 Format 1): this element's own file of the
+    /// spelling, or any container's GLOBAL one, HIDDEN OR NOT (kb/Work PB5973). Qualification is applied over the whole set of
+    /// names "until one or more objects is identified" (§1985:X.1.3.8.2 GR1) before the nearer one is chosen (GR3a), so a contained
+    /// program's own FD FA hides its container's GLOBAL FA as a reference to the file but not as the qualifier of that file's record:
+    /// `FX OF FREC OF FA`, which only the container's FX answers, names it (GR2).</summary>
+    internal bool FileQualifies(string qualifier, DataItem root)
+    {
+        var key = Key(qualifier);
+        if (_ownFiles.TryGetValue(key, out var own) && own.Records.Contains(root)) return true;
+        foreach (var file in _inheritedGlobalFiles)
+            if (Key(file.CobolName) == key && file.Records.Contains(root)) return true;
+        return false;
+    }
 
     /// <summary>The containers' GLOBAL file-names join the table (§2023:13.18.27.4 GR1), the nearest first; their depths, record
     /// areas and non-GLOBAL files are the inheritance slice's (<see cref="InheritedGlobals.AddContainerFiles"/>).</summary>
@@ -162,11 +191,15 @@ public sealed partial class SymbolTable
     {
         _containerFiles.AddRange(files);
         foreach (var file in _data.State.Inherited.AddContainerFiles(files, globalRoots, depth))
+        {
+            _inheritedGlobalFiles.Add(file);
             if (_inheritedFiles.TryAdd(Key(file.CobolName), file))
                 _data.State.Inherited.SetFileDepth(file, depth);
+        }
     }
 
-    /// <summary>Hides each inherited file-name that a nearer declaration of its spelling hides (§2023:8.4.6.2.1 3) a)).</summary>
+    /// <summary>Hides each inherited file-name that a nearer declaration of its spelling hides, whatever its class (§2023:8.4.6.2.1 3) a);
+    /// §1985:X.1.3.8.2 GR3a). The file stays a qualifier of its records (<see cref="FileQualifies"/>).</summary>
     internal void HideShadowedFiles(Func<string, int, bool> declaredNearerThan)
     {
         foreach (var (name, file) in _inheritedFiles)

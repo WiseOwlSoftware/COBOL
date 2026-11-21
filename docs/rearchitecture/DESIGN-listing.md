@@ -1493,7 +1493,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     - *The progress table's first row is several classes (correction).* It moved the data, condition, index, capacity, type and
       debug-register names "as one unit, because they resolve together". §2023:8.3.2.2 lists data-name, condition-name, index-name and
       type-name as separate user-defined words, and the two registers are names the standard or SR30 defines implicitly; what ties
-      them is §2023:8.4.6.2.1 3)'s ranking ACROSS the classes, and those questions (`NearerDataOrConditionNameHides`,
+      them is §2023:8.4.6.2.1 3)'s ranking ACROSS the classes, and those questions (`NearerNameOfAnotherClassHides`,
       `Declarations.DeclaredNearerThan`, `NonConditionDeclarationsOf`) were already the table's members reading each class through
       a question. So each class moved alone, the oracle IDENTICAL after each. The data-names and the condition-names stay one unit
       (each ranks the other both ways, and one qualifier walk serves both) and are the lane's next slice.

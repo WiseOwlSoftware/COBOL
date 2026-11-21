@@ -2,53 +2,47 @@
  "rule-id": "1985-SR-IV.4.3.8.1-L2.5",
  "rule-digest": "b880947a4328",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-044",
+  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
+  "slice": "1985-m01",
   "sources": {
-   "reader": "9735a152d696acce46a8d78dcde413582093c750e9fd8371e69ca236057fce49",
-   "refuter": "9b073a18b4097e884b2394934b4f4cbf8063a47e6be7e3bca9a610af9bd16c35"
+   "reader": "7dca8738df1eef999039af91f9e658b8f88eab2f9cb9b139e01adbdc4f6035f3",
+   "refuter": "0afe07775dfc140e2155ea435ec895ea8284ad18ecc3a53a279bb67c78e15ef2"
   },
   "imported": {
-   "reader": "e4140d5036a211c4eebc5122b696bef583bb3560fe9c934a1e5da99253a87ae7",
-   "refuter": "28572e8100edf3fff6b31eb7392d4b62517a26249546d01b73f6efcc1299f052"
+   "reader": "865d26e8c1972c356b2db133c595ed9a45b5c95851cdcf4c3d78cdf1d6066f44",
+   "refuter": "d9cabee9a8556cd551408e1c8888626b30e0845cc9c4b89e60e9a08ca67deab5"
   }
  },
  "reader": {
   "rule-id": "1985-SR-IV.4.3.8.1-L2.5",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 a record-name (an 01 under an FD, SD or CD) must be accepted both as the qualified data-name-1 (R1 IN F1) and as a data-name-2 qualifier (X OF R1), alone or within a longer chain.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierChainMatchesFrom; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifiedCandidates; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ResolveQualified",
+  "requirement": "In format 1 a record-name may be the referenced data-name-1 and may be a data-name-2 qualifier.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#QualifierChainMatchesFrom; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#QualifierWalk; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#DataNameCandidates",
   "edition-consulted": [],
-  "edition-search": "grep of DataBinder.cs, NameResolution.cs, ReferenceResolver.cs, SymbolTable.cs, ConditionBinder.cs for CobolVersion|EditionContext|ConstructRegistry|DialectBehavior|Edition.(DialectLevel|Edition|Year|Removed): the procedure-division qualified lookup (QualifiedCandidates -> QualifierChainMatchesFrom -> QualifierWalk, ConditionQualifierChainMatches) has no edition test; only Edition.At (cursor) and Edition.Permissive (SR1's --permissive disposition). The per-edition reserved-word gate (Frontend/Parsing/ReservationGateRewriter) decides what is a user-defined word on every path; it is not specific to qualification and no gated word was used. Record-names are ordinary DataItem roots in the same ancestor walk, with no edition or level test.",
+  "edition-search": "grep for DialectLevel, Edition.Year, EditionContext, CobolVersion, Permissive and ConstructRegistry in NameResolution.cs, SymbolTable.DataNameCandidates.cs, SymbolTable.IndexNames.cs, SymbolTable.Procedures.cs, SymbolTable.ConditionNames.cs, QualifiedNameClasses.cs, OccursKeyResolvePass.cs, OdoResolvePass.cs, StatementValidation.cs, DataBinder.cs#UniqueOrReportAmbiguous; the grammar rules qualification, dataReference, procedureName and reportGroupReference carry no version predicate",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: witnesses use a record-name as a qualifier of a condition-name (FR) and of WORKING-STORAGE 01 groups; not exercised: a record-name as data-name-1 qualified by its file, a record of an SD or CD",
+  "witnesses-cover": "part: a record-name as qualifier of working-storage items; a file record-name as data-name-1 qualified by its file is not exercised",
   "probes": [
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85pos.cob",
-    "printed": "X OF R1 -> 007; [R1 IN F1] -> [007 Q ]; [R1B OF F2] -> [600   ]; MOVE SPACES TO R1 OF F1 accepted; E OF R1 (2) -> Q",
-    "expected": "record-name as data-name-1 (qualified by file-name) and as data-name-2"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/qpos.cob",
+    "printed": "exit 0: AAAA BBBB / CCCC DDDD / OK-R1-A OK-R1-B OK-R2-C OK-R2-D / 78 / 123 / CCCC / UNIQ / ZZZZZ / FFF12GGG34",
+    "expected": "every reference made unique by its qualifiers resolves to its own item: full and gapped chains, IN and OF mixed, record-name as data-name-1 and as qualifier, file-name qualifier, condition-names qualified by their conditional variable and its groups, subscripted qualified items, an unqualified unique name"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85cd.cob",
-    "printed": "QN OF CIREC OF CI -> CDQ2; SR OF S1 -> SSSS; KEYF OF F9-REC -> FFFF",
-    "expected": "CD record, SD record and FD record as data-name-1 or data-name-2"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85neg.cob",
-    "printed": "COBOL1639 'U OF R1' and 'X OF F1 OF R1'",
-    "expected": "a record-name qualifies only items subordinate to it, and is inside the file-name"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/kpos.cob",
+    "printed": "exit 0: 00 DATA1 / INV2 23 / 00 R03RDATA / RINV4 23",
+    "expected": "qualified RECORD KEY, ALTERNATE RECORD KEY, RELATIVE KEY, FILE STATUS and READ KEY IS resolve; indexed dynamic and relative random; a failed READ gives 23"
    }
   ],
   "citations": [
    {
     "cite": "§1985:IV.4.3.8.1 SRL2.5",
-    "check": "OK  §1985:IV.4.3.8.1 SRL2.5  (4.3.8.1 Qualification)  the text is in SRL2.5"
+    "check": "OK  §1985:IV.4.3.8.1 SRL2.5  the text is in SRL2.5 (quoted: data-name-1 or data-name-2 may be a record-name)"
    }
   ],
-  "notes": "A record-name is the root DataItem of the ancestor chain QualifierWalk reads, so it serves as a qualifier and, as the referenced name, takes the file/cd-name as its only outer qualifier. Probed for FD, SD and CD records.",
+  "notes": "The ancestor names include the level-01 record, so X OF R1, FX OF GREC OF F2 and FN IN GREC resolve; MOVE R1 TO R2 references records directly.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -61,8 +55,8 @@
  "refuter": {
   "rule-id": "1985-SR-IV.4.3.8.1-L2.5",
   "refutation": "UPHELD",
-  "classes": "b,d,e",
-  "evidence": "r11rec at 85 covers an FD with two records, RA and RB, each holding an X (implicit redefinition). RA OF F1 was a receiver, X OF RA OF F1 printed AB, X IN RB printed CD, RB IN F1 printed ABCD, and after MOVE 'QQ' TO X OF RB the program printed 'ABQQ QQ', which is the shared area. r12recneg: 'X OF F1' was refused (2 declarations of 'X' match), as were 'RA OF RA' and 'X OF RB OF RA' (a sibling record as qualifier). The reader's q85cd covers the SD and CD records. cite.py: 'OK  §1985:IV.4.3.8.1 SRL2.5 ... the text is in SRL2.5'.",
+  "classes": "d,e",
+  "evidence": "recq.cob: file record-name R as data-name-1 qualified by its file (MOVE TO R OF F1, WRITE R IN F2, DISPLAY R OF F2) and as data-name-2 (AOK OF R OF F1) -> C1 C2 AAA BBB; sdq.cob RELEASE SREC OF SF. cite: OK  §1985:IV.4.3.8.1 SRL2.5  the text is in SRL2.5.",
   "edition-sites-missed": [],
   "corrected": ""
  }

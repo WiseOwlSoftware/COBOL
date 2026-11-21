@@ -57,15 +57,15 @@ public sealed partial class SymbolTable
         /// METHOD-ID or a paragraph-name spelled like that class-name is two types in the referring source element
         /// (kb/Work PB3132), while the same word in an element that never references the class-name is legal (§2023:8.4.6.1;
         /// kb/Work PB2921). Returns the type the word was FIRST recorded as when this record is a §2023:8.3.2.2 conflict not
-        /// yet reported; null for a first record, a pair <see cref="UserWordKinds.MayBeOneWord"/> admits (the same type
+        /// yet reported; null for a first record, a pair <see cref="UserWordKinds.MayBeOneWord"/> admits at <paramref name="edition"/> (the same type
         /// twice included: a TYPE expansion re-registers a clone of its template's words, and a class-name is referenced
         /// as often as it is written), or a word already reported, so a third record does not repeat the refusal.</summary>
-        public UserWordKind? Record(string word, UserWordKind kind)
+        public UserWordKind? Record(string word, UserWordKind kind, EditionInfo edition)
         {
             var key = Key(word);
             if (_firstType.TryAdd(key, kind)) return null;
             var first = _firstType[key];
-            return UserWordKinds.MayBeOneWord(first, kind) || !_conflictReported.Add(key) ? null : first;
+            return UserWordKinds.MayBeOneWord(first, kind, edition) || !_conflictReported.Add(key) ? null : first;
         }
 
         /// <summary>THE one wording of a §2023:8.3.2.2 conflict (COBOL2692), for the declaration funnel and the method
@@ -75,7 +75,8 @@ public sealed partial class SymbolTable
             + $"{second.Spelling()}) — a given user-defined word may be used as only one type of user-defined word "
             + edition.Cite(
                 "(ISO §1985:IV.4.2.2.1.1: \"All user-defined words, except segment-numbers and level-numbers, can belong to one and only "
-                + "one of these disjoint sets\"); the exceptions are the segment-numbers and the level-numbers",
+                + "one of these disjoint sets\"); the exceptions are the segment-numbers and the level-numbers, and the one set of "
+                + "condition-names, data-names and record-names",
                 "(ISO §2023:8.3.2.2); the exceptions are a compilation-variable-name, a level-number that matches a paragraph-name or "
                 + "section-name, and the constant-name / data-name / property-name / record-key-name / record-name group")
             + (UserWordKinds.IsCopyName(first) || UserWordKinds.IsCopyName(second)

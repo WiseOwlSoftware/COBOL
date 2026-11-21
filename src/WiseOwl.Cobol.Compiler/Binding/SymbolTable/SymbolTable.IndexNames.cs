@@ -117,7 +117,7 @@ public sealed partial class SymbolTable
         // item — a contained program's `01 IX` or its `88 IX` hides its container's GLOBAL table's `INDEXED BY IX`,
         // exactly as its `01 X` hides the container's global `X` (kb/Work PB4432). At EQUAL depth the index-name keeps
         // the reference, as before.
-        if (indexes.Count > 0 && NearerDataOrConditionNameHides(name, qualifiers, indexDepth)) return null;
+        if (indexes.Count > 0 && NearerNameOfAnotherClassHides(name, qualifiers, indexDepth)) return null;
         return WithLapsedTypeIndexes(key, indexes, d => IndexQualifierChainMatches(d, qualifiers), null);
     }
 
