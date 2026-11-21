@@ -801,9 +801,10 @@ def refute_blocks_of(manifest: pathlib.Path) -> bool:
 
 
 @functools.lru_cache(maxsize=None)
-def _refuter_records(path: str) -> tuple[dict, ...] | None:
-    """The refuter records of the JSON-lines file `path` (repository-relative), or None when the tree has none."""
-    file = REPO / path
+def refuter_records(path: str, root: pathlib.Path = REPO) -> tuple[dict, ...] | None:
+    """The refuter records of the JSON-lines file `path` (relative to the tree at `root`), or None when the tree has
+    none: the one reader of a disposition's records (the dispositions audit, catalog_prose_holes)."""
+    file = root / path
     if not path or not file.is_file():
         return None
     return tuple(json.loads(ln) for ln in file.read_text(encoding="utf-8").splitlines() if ln.strip())
@@ -833,7 +834,7 @@ def unit_context(year: int, rules: list[dict]) -> "text_units.Context":
 
     return text_units.Context(row_ids={r["id"] for r in rules}, shapes=text_units.openings(texts),
                               verbal=text_units.verbal_forms(year), named=named, resolves=resolves,
-                              records=_refuter_records)
+                              records=refuter_records)
 
 
 def measured_peers_of(ed: IsoEdition) -> set[str]:
@@ -1639,19 +1640,19 @@ def main_iso(ed: IsoEdition, args: argparse.Namespace) -> int:
     return 0
 
 
-def units_1985(lines: list[str]):
+def units_1985(lines: list[str], root: pathlib.Path = REPO):
     """THE 1985 READER'S UNITS OF UNNUMBERED TEXT (kb/Work PB5449), the one reading `main_1985` and the dispositions'
     importer (import_dispositions.py) make: the catalog as the transcription gives it (its rules hold every paragraph
     printed after them), the units by clause (rule_catalog_1985.units), every paragraph after a rule
     (`block_paragraphs`) and those the margin-level data measures at the block's margin, each a unit."""
     import measure_margin_levels  # noqa: PLC0415
     import rule_catalog_1985  # noqa: PLC0415
-    cat = rule_catalog_1985.parse(lines, manifest_blocks(UNHARVESTED_OF[1985]))
+    cat = rule_catalog_1985.parse(lines, manifest_blocks(root / UNHARVESTED_OF[1985].relative_to(REPO)))
     # THE UNITS OF UNNUMBERED TEXT (kb/Work PB5449): segmented by the ISO arm's one segmentation, disposed in the
     # manifest's `paragraph-blocks` (a regeneration enters a new unit pending), audited, and counted outside.
     # A paragraph after a rule is a unit when the margin-level data measures it at the block's margin (kb/Work PB5449
     # item 3, measure_margin_levels.py), and every such paragraph is held to the data.
-    levels = measure_margin_levels.load(1985)
+    levels = measure_margin_levels.load(1985, root)
     after = rule_catalog_1985.block_paragraphs(lines, cat.rules)[1]
     cat.margin_levels = measure_margin_levels.refusals(after, levels)
     cat.margin_tally = measure_margin_levels.tally(list(levels.values()))

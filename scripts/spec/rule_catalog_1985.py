@@ -188,14 +188,15 @@ class Paragraph:
     """One paragraph of the transcription as `parse` walks it: its locator (`<section or appendix>.<number>`, or the bare
     section or appendix for the text between its heading and its first paragraph), its title, the kind its title types
     (`kind_of`; None for prose), and every body line the walk reads under it, skips applied (a repeated page, an editorial
-    note, a folio, a running header), each as (text, PDF page, printed folio). THE ONE WALK of the 1985 transcription:
+    note, a folio, a running header), each as (text, PDF page, printed folio, 1-based line: where a unit holds it,
+    `text_units.Unit.lines`). THE ONE WALK of the 1985 transcription:
     `catalog_prose_holes.py` reads these, never a copy of the walk (kb/Work PB5924 review R1-3)."""
     locator: str
     title: str
     kind: str | None
     section: str                     # the Roman section, or "A" (Amendment 1's Section A)
     appendix: str | None             # the appendix of Section XVII, whose letter leads the locator (`C.2`), else None
-    lines: list[tuple[str, int, str]] = dataclasses.field(default_factory=list)
+    lines: list[tuple[str, int, str, int]] = dataclasses.field(default_factory=list)
 
 
 @dataclasses.dataclass
@@ -509,7 +510,7 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None, carved: fro
                 cat.unrecognised.append((loc, title))
             continue
         if para is not None:
-            para.lines.append((line.strip(), page, recon_folio[at] or folio_below[at]))
+            para.lines.append((line.strip(), page, recon_folio[at] or folio_below[at], at + 1))
         if scan is not None:
             if ANY_HEADING.match(line) and GROUP_LABEL.match(line) is None:
                 close_scan()

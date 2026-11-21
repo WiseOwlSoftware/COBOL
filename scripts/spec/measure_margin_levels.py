@@ -113,9 +113,10 @@ def _1985():
 READERS = {1985: _1985}
 
 
-def load(year: int) -> dict[tuple[str, str, int], dict]:
-    """The recorded measurement of `year` by key (clause, digest, order); empty when the edition records none."""
-    path = data_path(year)
+def load(year: int, root: pathlib.Path = REPO) -> dict[tuple[str, str, int], dict]:
+    """The recorded measurement of `year` in the tree at `root` by key (clause, digest, order); empty when the edition
+    records none."""
+    path = root / data_path(year).relative_to(REPO)
     if not path.is_file():
         return {}
     return {(e["clause"], e["digest"], e["order"]): e
