@@ -2027,6 +2027,16 @@ joined the table the same way, which is the table doing its job: a tenth format 
   its COBOL0313 sentence (`ExtensionReservationSentence`, shared with the JSON/XML hint). The word after a name or a
   clause is a clause position alone and keeps COBOL1941. Pinned by `ClosedFormatReservedWordTests`
   (`ReservedWordAtTheEntryNameSlot_NamesTheReservation`) and the `pb4604-*` conformance cases.
+  **A reserved word that BEGINS a clause, written as the name (kb/Work PB382).** The slot is optional, so a word that begins a
+  clause is read as that clause, and the fault falls after it: `01 CLASS PIC X.` parsed as the 2023 CLASS clause and died at
+  PIC, where a class-name was due (COBOL5506), and at 85, which has no CLASS clause, the word was never named. The question
+  is asked after the fact, as `ReservedProcedureName` asks it of a procedure-name: `CobolParserCoreBase.ReservedEntryName`
+  takes the entry that wrote no name around the error, the keyword after its level-number (any keyword reserved at the
+  edition), and re-reads the entry to its period with that word retyped `IDENTIFIER`; where the entry then reads whole, the
+  report is the word's COBOL0901 at the word, and the rest of the entry is the misreading's orphaned tail. A genuine fault
+  elsewhere fails the re-read and keeps its own report; a word whose clause reading parses the entry whole is the clause of
+  an unnamed entry (`01 DISPLAY PIC X.` accepted, `01 BINARY PIC X.` the binder's COBOL0881), the conforming reading.
+  `ReservedEntryNameDriftTests` sweeps the generated reserved-word table at all four editions.
   Two more readings of the slot (kb/Work PB4645, PB4646). A dangling level-number whose next line begins what
   follows the entry (`01` then `LINKAGE SECTION.`) is the entry's missing period, not a reserved word written as its
   name: `OffendingPosition.EntryNameIsDue` is false when a period, the word and the one after it read on from the slot

@@ -142,6 +142,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             // the first sentence in source order names it, and the others are recovered silently, as the funnel's are accepted.
             repeatedProcedureWord = !(_procedureWordsNamed ??= []).Add(violation);
         }
+        // A reserved word written as the name of an entry whose clause reading took it (kb/Work PB382): `01 CLASS PIC X.` dies at
+        // PIC inside the CLASS clause; the entry reads whole with CLASS as its name, so the report names the word, and the rest
+        // of the entry is the misreading's orphaned tail.
+        else if (violation is null && recognizer is CobolParserCoreBase entryParser
+                 && entryParser.ReservedEntryName(at.Token) is { } entryWord)
+        {
+            (named, violation) = (entryWord.Word, entryWord.Message);
+            _lastReported = (_lastReported.From, Math.Max(_lastReported.Through, entryWord.Through));
+            _orphansItsTail = true;
+        }
         // The recovery consumes the named token as the operand it stood for only when it is the offending token itself.
         _reportedReservedWordUse = violation is not null && named == at.Token;
         // A refusal about an earlier token stands at that token (DiagnosticHint.Subject, kb/Work PB4301).
