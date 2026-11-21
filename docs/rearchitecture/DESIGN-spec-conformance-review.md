@@ -1561,7 +1561,12 @@ construct the standard states only in its diagram, with no SR or GR of its own (
 DIVISION header, USE without PROCEDURE: 12 windows at this slice), has no edge the lineage proves, and is held open in
 `edition_gates.FORMAT_ONLY` until the catalog numbers each format's alternatives; a new window resting on a general format
 alone is refused. An SR or GR has no direction in the lineage (a NEW rule adds a construct or a restriction), so an
-inverted window citing one is the version matrix's to catch, not this audit's. A gate whose cited rules are all KEPT contradicts its chain, and the audit refuses it until the gate or the record is
+inverted window citing one is the version matrix's to catch, not this audit's. **An empty window** (`introducedIn` equal to
+`removedIn`, `remarks-removed-85` [1985, 1985): the construct is in NO edition) has no edge a pair spans, and is held to the
+held editions' text instead (kb/Work PB5036, `edition_gates.empty_window`): its citations name at least one held edition's
+rule (the text it says the construct is absent from, §1985:VI.3.2.1.1's general format for REMARKS), and no rule they name
+holds a word of the construct (its `display`'s capitals); a cited rule holding the word, a citation of no held rule, or a
+display naming no word is refused. A gate whose cited rules are all KEPT contradicts its chain, and the audit refuses it until the gate or the record is
 corrected (two records were, by this slice: 1985-GR-VII.2.6.3-2 KEPT into line sequential organization, and the 1985
 FILLER rules KEPT into 2023's wider entry-name clause); so is a gate citing nothing of either edition, one whose every
 citation mixes changing rules with KEPT ones, or one resting on an unclassified rule. Three
