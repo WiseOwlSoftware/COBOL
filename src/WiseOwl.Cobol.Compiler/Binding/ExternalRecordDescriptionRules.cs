@@ -40,21 +40,20 @@ internal static class ExternalRecordDescriptionRules
     {
         if (edition.DialectLevel >= 2023) return;   // the run time's EC-EXTERNAL-FORMAT-CONFLICT (§2023:14.8.4.3), above
         // Each external record of every element, by its externalized name, in the run-unit store's own comparison.
-        Dictionary<string, (string Describer, ExternalRecordDescription Description)>? first = null;
+        Dictionary<string, (string Describer, CallExternalBacking Backing)>? first = null;
         foreach (var e in elements)
             foreach (var backing in e.Data.Linkage.ExternalBackings)
             {
                 bool fileArea = backing.ExternalName.StartsWith("FD::", StringComparison.Ordinal);
                 if (fileArea && edition.DialectLevel < 2002) continue;   // §1985:VII.3.8.4 GR2's, above
-                var mine = ExternalRecordDescription.Of(backing);
                 string describer = e.Unit is { } u ? $"program '{u.Name}'" : "a class";
-                first ??= new Dictionary<string, (string, ExternalRecordDescription)>(ExternalizedNames.Comparer);
+                first ??= new Dictionary<string, (string, CallExternalBacking)>(ExternalizedNames.Comparer);
                 if (!first.TryGetValue(backing.ExternalName, out var earlier))
                 {
-                    first[backing.ExternalName] = (describer, mine);
+                    first[backing.ExternalName] = (describer, backing);
                     continue;
                 }
-                string? differs = Difference(earlier.Description, mine, edition);
+                string? differs = Difference(earlier.Backing, backing, edition);
                 if (differs is null) continue;
                 using var _ = edition.At(backing.Record.DeclaredAt);
                 edition.Error(DiagnosticCatalog.ExternalRecordDescriptionDisagreement,
@@ -74,15 +73,16 @@ internal static class ExternalRecordDescriptionRules
 
     /// <summary>What the edition's rule compares and <paramref name="b"/> does not share with <paramref name="a"/>, or null when
     /// they agree. COBOL-85 compares the size alone: its EXTERNAL record writes no VALUE clause (§1985:X.4.5.3 SR3). The size of a
-    /// variable-length record is not its description's (<see cref="ExternalRecordDescription.VariableLength"/>), so it is not
+    /// variable-length record is not its description's (<see cref="ExternalRecordDescription.DefinesItsSize"/>), so it is not
     /// compared: a description of its dynamic-capacity table that disagrees is EC-DATA-INCOMPATIBLE at run time (§2014:14.6.12.2
     /// rule 6, the suite's pb1042_dyn_table_agreement).</summary>
-    private static string? Difference(ExternalRecordDescription a, ExternalRecordDescription b, EditionContext edition)
+    private static string? Difference(CallExternalBacking first, CallExternalBacking backing, EditionContext edition)
     {
-        if (!a.VariableLength && !b.VariableLength && a.ByteCount != b.ByteCount)   // a variable-length record's size is the run time's
+        ExternalDescriptor a = ExternalRecordDescription.Of(first), b = ExternalRecordDescription.Of(backing);
+        if (ExternalRecordDescription.DefinesItsSize(first) && ExternalRecordDescription.DefinesItsSize(backing) && a.ByteCount != b.ByteCount)
             return $"their size ({b.ByteCount} {edition.Edition.Cite("character positions", "bytes")} against {a.ByteCount})";   // each text's own unit
-        if (edition.DialectLevel >= 2002 && !string.Equals(a.ValueSpecification, b.ValueSpecification, StringComparison.Ordinal))
-            return $"the VALUE clause of the record name ({Shown(b.ValueSpecification)} against {Shown(a.ValueSpecification)})";
+        if (edition.DialectLevel >= 2002 && !string.Equals(a.ValueImage, b.ValueImage, StringComparison.Ordinal))
+            return $"the VALUE clause of the record name ({Shown(b.ValueImage)} against {Shown(a.ValueImage)})";
         return null;
         static string Shown(string? v) => v is null ? "none" : "VALUE " + v;
     }

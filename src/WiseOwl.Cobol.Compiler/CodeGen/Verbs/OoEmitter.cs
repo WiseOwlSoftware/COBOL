@@ -261,10 +261,10 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             foreach (var ext in data.Linkage.ExternalBackings)
             {
                 // §2023:13.18.22.4 GR6: the ONE description of the record, the one the compile-time agreement compares too
-                // (ExternalRecordDescription, kb/Work PB5996); its VALUE identity is the RECORD NAME's own VALUE clause
+                // (CallExternalBacking.Descriptor, kb/Work PB5996); its VALUE identity is the RECORD NAME's own VALUE clause
                 // specification, not the subordinate items' clauses.
-                var d = ExternalRecordDescription.Of(ext);
-                string valueSpec = d.ValueSpecification is { } vs ? CsLiteral(vs) : "null";
+                var d = ext.Descriptor;
+                string valueSpec = d.ValueImage is { } vs ? CsLiteral(vs) : "null";
                 string strongKey = d.StrongTypeKey is { } tn ? CsLiteral(tn) : "null";
                 w.Line($"ExternalStore.Describe({CsLiteral(unitPath)}, {CsLiteral(ext.ExternalName)}, "
                     + $"new ExternalDescriptor(\"record\", ByteCount: {d.ByteCount}, ValueImage: {valueSpec}, "
