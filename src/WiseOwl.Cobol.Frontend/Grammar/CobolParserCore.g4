@@ -702,13 +702,18 @@ computerName
 
 procedureDivision
     : PROCEDURE DIVISION usingClause? (returningClause)? (raisingClause)? DOT   // returningClause + raisingClause introduction-gated post-bind by VersionConformancePass ParseArm.VisitReturning/RaisingClause (rearch 14g.4, InMethodDefinition-guarded — program-unit PDs only; this rule is SHARED with method PDs)
-      declarativePart*
-      sentence*          // §2023:14.4.3: the paragraph-name-OMITTED paragraph — "one or more successive sentences
+      (declarativePart | sentence)*   // §2023:14.3: the DECLARATIVES portion begins the division; one written after a sentence parses
+                         // here too, and ProcedureFormatPass refuses it by name (kb/Work PB5987)
+                         // sentence: §2023:14.4.3: the paragraph-name-OMITTED paragraph — "one or more successive sentences
                          // following the procedure division header or a section header". Legal COBOL with no
                          // paragraph at all; NIST/CCVS never exercises it (it always writes paragraph names),
                          // which is why the GnuCOBOL external corpus was what surfaced it (DEVLOG 931).
-      paragraphDefinition*   // §2023:14.2.1 Format 2's paragraphs (without sections)
-      (sectionDefinition | declarativePart)*   // §2023:14.2.1 Format 1's sections, each holding the paragraphs that follow its header; a DECLARATIVES portion among them (or after Format 2's paragraphs) parses so ProcedureFormatPass refuses it by name (§2023:14.3 "grouped at the beginning", kb/Work PB5987)
+      ( paragraphDefinition+ (sectionDefinition | declarativePart)*   // §2023:14.2.1 Format 2's paragraphs (without sections)
+      | sectionDefinition (sectionDefinition | declarativePart)*      // §2023:14.2.1 Format 1's sections, each holding the paragraphs that follow its header
+      )?
+      // ⛔ A DECLARATIVES portion is a member of the leading loop OR of a trailing one, never of both for the same source
+      // position: the trailing loops are reached only after a paragraph or a section, so a decision at DECLARATIVES is
+      // never ambiguous and looks one token (ProcedureDivisionShapeDriftTests, kb/Work PB5987).
     ;
 // ⛔ THE SECTION OWNS ITS PARAGRAPHS IN THE SHAPE, NOT BY A PREDICTION CHOICE (kb/Work PB4230). §2023:14.4.2: "A section
 // consists of a section header followed by zero, one, or more successive paragraphs. A section ends immediately before

@@ -31,7 +31,7 @@ using Core = CobolParserCore;
 /// screened unless its parent is the IF statement — a NEW phrase rule is screened automatically, which a list of
 /// phrase rules could never be. The classification is <see cref="ConditionalStatements.IsConditional"/>.</item>
 /// <item><b>Format 1 (with sections) and Format 2 (without sections) are distinct</b> (kb/Work PB1146; §2023:14.2.1, §2023:14.4.1).
-/// The grammar parses <c>declarativePart* sentence* paragraphDefinition* (sectionDefinition | declarativePart)*</c>, the union of the two
+/// The grammar parses <c>(declarativePart | sentence)* (paragraphDefinition+ … | sectionDefinition …)?</c> with a trailing <c>(sectionDefinition | declarativePart)*</c>, the union of the two
 /// formats (every paragraph after a section header is that section's, §2023:14.4.2, so a paragraph outside every section is
 /// one written before the first section header; kb/Work PB4230). Format 1 prints
 /// nothing between the procedure division header (or END DECLARATIVES) and the first section header, prints ONE
