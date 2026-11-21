@@ -142,7 +142,7 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
                 Assert.True(zl != rule.Clause,
                     $"{name} cites the same clause ({zl}) for its zero-length rule as for its class rule — one of "
                     + "them is pointing at the wrong ordinal");
-                Assert.Matches(@"^§2023:15\.\d+\.3 r\d+$", zl);
+                Assert.Matches(@"^§2023:15\.\d+\.3 AR\d+$", zl);
             }
         }
     }

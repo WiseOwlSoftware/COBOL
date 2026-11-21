@@ -915,7 +915,7 @@ internal static partial class IntrinsicArgumentRules
             // only the class half of it, with r2 ("zero or a positive integer") the value half (kb/Work PB1420: the
             // row said 'n', so `FUNCTION RANDOM(FUNCTION SQRT(4))` compiled although §2023:8.4.3.2.3 SR11 bars a numeric
             // function from an integer operand position). The Table 21 drift test holds every Int position to 'i'.
-            [new("RANDOM")] = Uniform('i', "§2023:15.75.3 r1/r2"),
+            [new("RANDOM")] = Uniform('i', "§2023:15.75.3 AR1/AR2"),
             [new("RANGE")] = Uniform('n', "§2023:15.76.3 AR1"),                         // shall be of class numeric
             [new("REM")] = Uniform('n', "§2023:15.77.3 AR1"),                           // argument-1 and argument-2 class numeric
             // §2023:15.78.3 r1 — class alphabetic/alphanumeric/national AND "at least one character position in
@@ -924,7 +924,7 @@ internal static partial class IntrinsicArgumentRules
             // §2023:15.79.3 r1/r3 — argument-1 is a national or alphanumeric LITERAL (its literal-ness is enforced by
             // the existing COBOL1517 arm); argument-2 "shall have the same type as argument-1" — the class
             // reading of "type", the cross-argument agreement (PB58; MatchArgument1 was already the shape).
-            [new("SECONDS-FROM-FORMATTED-TIME")] = Schema("§2023:15.79.3 r1/r3", ['a', 'a'],
+            [new("SECONDS-FROM-FORMATTED-TIME")] = Schema("§2023:15.79.3 AR1/AR3", ['a', 'a'],
                 cross: CrossArgRule.MatchArgument1, crossClause: "§2023:15.79.3 AR3"),
             // PI takes no arguments (§2023:15.73.2) — present so the drift test can hold this table and the Phase-B
             // batch's function list in agreement rather than silently tolerating a gap.
@@ -951,7 +951,7 @@ internal static partial class IntrinsicArgumentRules
             [new("SIGN")] = Uniform('n', "§2023:15.81.3 AR1"),                          // shall be of class numeric
             // §2023:15.9.3 r1 — argument-1 class numeric; r3 — "Argument-2 shall be a positive integer": a per-position
             // schema (PB58 — the Uniform 'n' row let ANNUITY(0.05, 12.50) through, a non-integer period count).
-            [new("ANNUITY")] = Schema("§2023:15.9.3 r1/r3", ['n', 'i']),
+            [new("ANNUITY")] = Schema("§2023:15.9.3 AR1/AR3", ['n', 'i']),
             [new("CHAR")] = Uniform('i', "§2023:15.15.3 AR1"),                          // shall be an integer
             [new("CHAR-NATIONAL")] = Uniform('i', "§2023:15.16.3 AR1"),                 // shall be an integer
             // §2023:15.12.3 r1 — TWO sentences, two axes. Argument-1 "shall be a usage display or national data item or
@@ -969,12 +969,12 @@ internal static partial class IntrinsicArgumentRules
                 .WithPredicate(0, ArgPredicate.DataItemOrLiteralOnly("§2023:15.12.3 AR1"))
                 .WithPredicate(1, ArgPredicate.DataItemOrLiteralOnly("§2023:15.12.3 AR1"))
                 .WithPredicate(2, ArgPredicate.DataItemOrLiteralOnly("§2023:15.12.3 AR1")),
-            [new("BOOLEAN-OF-INTEGER")] = Uniform('i', "§2023:15.13.3 r1/r2"),         // both arguments positive integers
+            [new("BOOLEAN-OF-INTEGER")] = Uniform('i', "§2023:15.13.3 AR1/AR2"),         // both arguments positive integers
             // §2023:15.17.3 r1/r2 — argument-1 "in integer date form", argument-2 "in standard numeric time form".
             // Table 21 types them Int1 and Num2 (§2023:15.3 type 6 and type 10): an integer date, and a time that may
             // carry fractional seconds (§2023:15.3.3), so position 1 is 'i' and position 2 'n' (kb/Work PB1420 — the
             // row was Uniform 'n', which let a numeric function stand where the integer date form is required).
-            [new("COMBINED-DATETIME")] = Schema("§2023:15.17.3 r1/r2", ['i', 'n']),
+            [new("COMBINED-DATETIME")] = Schema("§2023:15.17.3 AR1/AR2", ['i', 'n']),
 
             // ── §2023:15.32–15.44, the review's fourth batch (fix-queue PB12) ────────────────────────────────────
             // Each row is the function's OWN §15.x.3 argument rule, read and mechanically cited. Six of the
@@ -1029,7 +1029,7 @@ internal static partial class IntrinsicArgumentRules
             // argument-1"), and its "shall be a DATA ITEM" half the DataItemOnly predicate (PB4507: it was an arm in
             // BindIntrinsicCore that admitted a field operand ONLY, so it refused the function-identifier that
             // §2023:8.4.3.2.4 GR1 makes a temporary data item).
-            [new("INTEGER-OF-FORMATTED-DATE")] = Schema("§2023:15.48.3 r1/r3", ['a', 'a'],
+            [new("INTEGER-OF-FORMATTED-DATE")] = Schema("§2023:15.48.3 AR1/AR3", ['a', 'a'],
                 cross: CrossArgRule.MatchArgument1, crossClause: "§2023:15.48.3 AR3")
                 .WithPredicate(1, ArgPredicate.DataItemOnly("§2023:15.48.3 AR3")),
             // ⛔ THE ONE THAT NEEDED PB20 FIRST. §2023:15.45.3 r1 is "Argument-1 shall be of class BOOLEAN" — the only
@@ -1070,7 +1070,7 @@ internal static partial class IntrinsicArgumentRules
             // the subject is alphanumeric. ⚠ The screen runs BEFORE the §2023:15.68.3 r3 default-currency injection,
             // deliberately: that operand is compiler-supplied, not written by the user, and screening it would
             // report a class disagreement on source that contains no argument-2 at all.
-            [new("NUMVAL-C")] = Schema("§2023:15.68.3 r1/r2", ['a', 'a'], cross: CrossArgRule.MatchArgument1,
+            [new("NUMVAL-C")] = Schema("§2023:15.68.3 AR1/AR2", ['a', 'a'], cross: CrossArgRule.MatchArgument1,
                 crossClause: "§2023:15.68.3 AR2")
                 .WithPredicate(0, ArgPredicate.CharacterCategory("§2023:15.68.3 AR1")),
             // §2023:15.37.3 — r1: argument-1 of class alphabetic, alphanumeric, or national; r2: argument-2 in the
@@ -1080,7 +1080,7 @@ internal static partial class IntrinsicArgumentRules
             // …r3 is NARROWER than §2023:15.3 type 6 — "an integer DATA ITEM or integer LITERAL" — so argument-3 also
             // carries the operand-shape predicate: an arithmetic expression is barred outright (PB58); a nested
             // integer function-identifier is a data item (§2023:8.4.3.2.4 GR1) and is admitted (PB4507).
-            [new("FIND-STRING")] = Schema("§2023:15.37.3 r1/r2/r3", ['s', 's', 'i'],
+            [new("FIND-STRING")] = Schema("§2023:15.37.3 AR1/AR2/AR3", ['s', 's', 'i'],
                 cross: CrossArgRule.MatchArgument1, crossClause: "§2023:15.37.3 AR2")
                 .WithPredicate(2, ArgPredicate.DataItemOrLiteralOnly("§2023:15.37.3 AR3")),
             // §2023:15.85.3 — STANDARD-COMPARE (kb/Work PB101 T7). r1/r2: argument-1 and argument-2 "shall be of class
@@ -1092,7 +1092,7 @@ internal static partial class IntrinsicArgumentRules
             // ⚠ THE POSITIONS ARE OPERAND POSITIONS, NOT WRITTEN ONES — the same convention FIND-STRING's row
             // uses. §2023:15.85.2's ordering-name-1 sits between argument-2 and argument-4 as WRITTEN, but it is a NAME
             // (§2023:15.3 argument type 12); BindStandardCompare consumes it and screens the operand list that remains.
-            [new("STANDARD-COMPARE")] = Schema("§2023:15.85.3 r1/r2/r6", ['s', 's', 'i'])
+            [new("STANDARD-COMPARE")] = Schema("§2023:15.85.3 AR1/AR2/AR6", ['s', 's', 'i'])
                 .WithNoZeroLength("§2023:15.85.3 AR4", 0, 1),
             // The LOCALE functions (kb/Work PB64 T4): the trailing locale-name-1 is a NAME ('l' — NonOperandArgumentKinds)
             // that IntrinsicBinder.BindLocaleFunction consumes; the schemas screen the operands that remain.
@@ -1100,7 +1100,7 @@ internal static partial class IntrinsicArgumentRules
             // §2023:15.52.3 r1 "class alphanumeric or national and shall be 8 character positions in length";
             // §2023:15.53.3 r1 "… 6 character positions in length"; §2023:15.54.3 r1 "a numeric value in standard numeric time
             // form" — 'n', not 'i' (a fractional seconds value is legal; its RANGE is the runtime's screen).
-            [new("LOCALE-COMPARE")] = Schema("§2023:15.51.3 r1/r2", ['s', 's']),
+            [new("LOCALE-COMPARE")] = Schema("§2023:15.51.3 AR1/AR2", ['s', 's']),
             [new("LOCALE-DATE")] = Schema("§2023:15.52.3 AR1", ['a']).WithPredicate(0, ArgPredicate.ExactWidth(8, "§2023:15.52.3 AR1")),
             [new("LOCALE-TIME")] = Schema("§2023:15.53.3 AR1", ['a']).WithPredicate(0, ArgPredicate.ExactWidth(6, "§2023:15.53.3 AR1")),
             [new("LOCALE-TIME-FROM-SECONDS")] = Schema("§2023:15.54.3 AR1", ['n']),
@@ -1111,9 +1111,9 @@ internal static partial class IntrinsicArgumentRules
             // ⚠ Standard numeric time form is 'n', not 'i': §2023:15.3.3 admits a fractional-seconds representation,
             // so screening it as an integer would reject a legal fractional time.
             [new("FORMATTED-CURRENT-DATE")] = Schema("§2023:15.38.3 AR1", ['a']),
-            [new("FORMATTED-DATE")] = Schema("§2023:15.39.3 r1/r3", ['a', 'i']),
-            [new("FORMATTED-DATETIME")] = Schema("§2023:15.40.3 r1/r3/r4/r5", ['a', 'i', 'n', 'i']),
-            [new("FORMATTED-TIME")] = Schema("§2023:15.41.3 r1/r3/r4", ['a', 'n', 'i']),
+            [new("FORMATTED-DATE")] = Schema("§2023:15.39.3 AR1/AR3", ['a', 'i']),
+            [new("FORMATTED-DATETIME")] = Schema("§2023:15.40.3 AR1/AR3/AR4/AR5", ['a', 'i', 'n', 'i']),
+            [new("FORMATTED-TIME")] = Schema("§2023:15.41.3 AR1/AR3/AR4", ['a', 'n', 'i']),
 
             // ── kb/Work PB58 · the ABSENT rows. Every catalogued function now has a row here or a reason in
             //    DeliberatelyUnscreened, and IntrinsicArgumentClassDriftTests.EveryCataloguedFunction_HasARow
@@ -1122,9 +1122,9 @@ internal static partial class IntrinsicArgumentRules
             // The date family — §2023:15.6 Table 21 types every argument Int (§2023:15.3 type 6):
             [new("DATE-OF-INTEGER")] = Uniform('i', "§2023:15.22.3 AR1"),               // a value in integer date form
             [new("DAY-OF-INTEGER")] = Uniform('i', "§2023:15.24.3 AR1"),                // a value in integer date form
-            [new("DATE-TO-YYYYMMDD")] = Schema("§2023:15.23.3 r1/r2/r4", ['i', 'i', 'i']),   // positive integer < 1000000; integer; integer 1600<x<10000
-            [new("DAY-TO-YYYYDDD")] = Schema("§2023:15.25.3 r1/r2/r4", ['i', 'i', 'i']),     // positive integer < 100000; integer; integer 1600<x<10000
-            [new("YEAR-TO-YYYY")] = Schema("§2023:15.100.3 r1/r2/r4", ['i', 'i', 'i']),      // nonnegative integer < 100; integer; integer 1600<x<10000
+            [new("DATE-TO-YYYYMMDD")] = Schema("§2023:15.23.3 AR1/AR2/AR4", ['i', 'i', 'i']),   // positive integer < 1000000; integer; integer 1600<x<10000
+            [new("DAY-TO-YYYYDDD")] = Schema("§2023:15.25.3 AR1/AR2/AR4", ['i', 'i', 'i']),     // positive integer < 100000; integer; integer 1600<x<10000
+            [new("YEAR-TO-YYYY")] = Schema("§2023:15.100.3 AR1/AR2/AR4", ['i', 'i', 'i']),      // nonnegative integer < 100; integer; integer 1600<x<10000
             [new("TEST-DATE-YYYYMMDD")] = Uniform('i', "§2023:15.90.3 AR1"),            // shall be an integer
             [new("TEST-DAY-YYYYDDD")] = Uniform('i', "§2023:15.91.3 AR1"),              // shall be an integer
             // The NUMVAL family — argument-1 "an alphanumeric or national literal or … data item":
@@ -1140,9 +1140,9 @@ internal static partial class IntrinsicArgumentRules
             [new("TEST-NUMVAL")] = Uniform('a', "§2023:15.93.3 AR1"),
             [new("TEST-NUMVAL-F")] = Uniform('a', "§2023:15.95.3 AR1"),
             // §2023:15.94.3 r1 imports §2023:15.68's argument rules whole — the NUMVAL-C row's shape, verbatim.
-            [new("TEST-NUMVAL-C")] = Schema("§2023:15.94.3 r1 → §2023:15.68.3 r1/r2", ['a', 'a'], cross: CrossArgRule.MatchArgument1,
-                crossClause: "§2023:15.68.3 r2 (via §2023:15.94.3 r1)")
-                .WithPredicate(0, ArgPredicate.CharacterCategory("§2023:15.94.3 r1 → §2023:15.68.3 r1")),
+            [new("TEST-NUMVAL-C")] = Schema("§2023:15.94.3 AR1 → §2023:15.68.3 AR1/AR2", ['a', 'a'], cross: CrossArgRule.MatchArgument1,
+                crossClause: "§2023:15.68.3 AR2 (via §2023:15.94.3 AR1)")
+                .WithPredicate(0, ArgPredicate.CharacterCategory("§2023:15.94.3 AR1 → §2023:15.68.3 AR1")),
             // The statistical trio — "Argument-1 shall be of class numeric" (variadic tail form):
             [new("STANDARD-DEVIATION")] = Uniform('n', "§2023:15.86.3 AR1"),
             [new("SUM")] = Uniform('n', "§2023:15.88.3 AR1"),
@@ -1156,7 +1156,7 @@ internal static partial class IntrinsicArgumentRules
             // cross-unscreened, and the runtime silently kept 'B'. r2 governs EVERY argument-2 identically —
             // it is one sentence about "argument-2", not about the first one — so the tail carries the same
             // kind, the same ExactWidth(1) and (through MatchedPositions' PB118 tail arm) the same cross rule.
-            [new("TRIM")] = Schema("§2023:15.96.3 r1/r2", ['s', 's'], tail: 's',
+            [new("TRIM")] = Schema("§2023:15.96.3 AR1/AR2", ['s', 's'], tail: 's',
                 cross: CrossArgRule.MatchArgument1, crossClause: "§2023:15.96.3 AR2")
                 .WithPredicate(1, ArgPredicate.ExactWidth(1, "§2023:15.96.3 AR2"))
                 .WithTailPredicate(ArgPredicate.ExactWidth(1, "§2023:15.96.3 AR2")),
@@ -1165,12 +1165,12 @@ internal static partial class IntrinsicArgumentRules
             // argument-1 nor argument-2 of zero LENGTH: argument-1's half is the MinWidth predicate here, and
             // EVERY pair's argument-2 (the odd tail positions, which one tail kind cannot single out) is
             // BindSubstitute's own walk.
-            [new("SUBSTITUTE")] = Schema("§2023:15.87.3 r1/r2", ['s', 's', 's'], tail: 's',
+            [new("SUBSTITUTE")] = Schema("§2023:15.87.3 AR1/AR2", ['s', 's', 's'], tail: 's',
                 cross: CrossArgRule.MatchArgument1, crossClause: "§2023:15.87.3 AR2")
                 .WithPredicate(0, ArgPredicate.MinWidth(1, "§2023:15.87.3 AR3")),
             // §2023:15.92.3 r1/r2 — a format LITERAL (the COBOL1517 arm) and argument-2 "of the same type as
             // argument-1" (the class reading, MatchArgument1).
-            [new("TEST-FORMATTED-DATETIME")] = Schema("§2023:15.92.3 r1/r2", ['a', 'a'], cross: CrossArgRule.MatchArgument1,
+            [new("TEST-FORMATTED-DATETIME")] = Schema("§2023:15.92.3 AR1/AR2", ['a', 'a'], cross: CrossArgRule.MatchArgument1,
                 crossClause: "§2023:15.92.3 AR2"),
             // §2023:15.18.3 r1 — CONCAT admits "class alphabetic, alphanumeric, boolean, numeric or national" (the
             // 'c' kind: everything but index/object/pointer); r2's usage agreement and r3's usage-display +

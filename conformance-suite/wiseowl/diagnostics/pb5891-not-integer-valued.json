@@ -1,1 +1,1 @@
-{"refuse-at": ["85", "2014", "2023"], "expect": "whose quotient (N * (N + 1)) / 3 has a value with more than the 14 fraction digits a nested quotient is certain to keep, or no finite decimal value (at N = 1 it is 2/3)"}
+{"refuse-at": ["85", "2014", "2023"], "expect": "is an arithmetic expression whose value is not an integer for every value of its terms: at N = 1 it is 2/3"}

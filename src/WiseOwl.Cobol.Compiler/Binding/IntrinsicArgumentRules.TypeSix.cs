@@ -39,37 +39,176 @@ internal static partial class IntrinsicArgumentRules
     /// <para>PROOF (<see cref="Build"/> as the arithmetic computes it): the expression's value as a <see cref="Polynomial"/> in its atoms,
     /// every intermediate shown exact on the way (<see cref="Intermediate"/>), no real atom left and the polynomial integer-valued
     /// (<see cref="Polynomial.FractionDigits"/> is 0): <c>N * (N + 1) / 2</c> and <c>FUNCTION SQRT (N) - FUNCTION SQRT (N) + 5</c>.</para>
-    /// <para>REFUTATION (<see cref="Build"/> in its ALGEBRAIC mode, the exact value whatever the arithmetic keeps): the polynomial has no real
-    /// atom and is not an integer at a point every one of whose atoms is a data item free to hold that value
-    /// (<see cref="TypeSixContext.IsRealizable"/>), or it is a constant that is not an integer: <c>N / 2</c> at N = 1, <c>N * (N + 1) / 3</c>
-    /// at N = 1. A point that gives a FUNCTION or a register a value proves nothing (its range is the function's), so
-    /// <c>FUNCTION ORD (A) / 2</c> is undecided, as are <c>S2 - FUNCTION MAX (S2)</c> (a real atom left), a quotient by an item, and
-    /// <c>WN / 3 * 3</c> (proof fails on the inexact quotient, and its algebraic value is WN). The verdict is the same at every edition (the
-    /// requirement is the same in both texts); the ARITHMETIC in force decides which intermediates are exact.</para></summary>
+    /// <para>REFUTATION (<see cref="Refutation"/>): the expression's exact value at a value of its operands, every operand a data item free
+    /// to hold it, is not an integer: <c>N / 2</c> at N = 1, <c>N * (N + 1) / 3</c> at N = 1, <c>N ** -1</c> at N = 2, <c>N / M</c> at N = 1,
+    /// M = 2. A value of a FUNCTION or a register is no value of the operands (its range is the function's), so
+    /// <c>FUNCTION ORD (A) / 2</c> and <c>S2 - FUNCTION MAX (S2)</c> are undecided, as is <c>WN / 3 * 3</c> (the proof fails on the inexact
+    /// quotient, and the exact value is WN). The verdict is the same at every edition (the requirement is the same in both texts); the
+    /// ARITHMETIC in force decides which intermediates are exact.</para></summary>
     private static TypeSixVerdict ClassifyTypeSix(BoundExpr expr, ArithmeticMode arithmetic)
     {
         // ARITHMETIC IS STANDARD-BINARY is declined at bind (COBOL0806, ArithmeticModes): no expression is evaluated under it, so nothing
         // more is said of an argument; asking its intermediate precision crashed the compiler (kb/Work PB5891 review R4-2).
         if (arithmetic is ArithmeticMode.StandardBinary) return new(TypeSixOutcome.Proven, null);
-        var proof = new TypeSixContext(arithmetic, algebraic: false);
+        var proof = new TypeSixContext(arithmetic);
         if (Build(expr, proof) is { } proved && proved.FirstRealAtom(proof.IsReal) is null && proved.FractionDigits(out _) == 0)
             return new(TypeSixOutcome.Proven, null);
         return Refutation(expr, arithmetic) is { } why ? new(TypeSixOutcome.Refuted, why) : new(TypeSixOutcome.Undecided, null);
     }
 
-    /// <summary>The counterexample of <see cref="ClassifyTypeSix"/>'s REFUTED outcome, as the diagnostic states it, or null.</summary>
+    /// <summary>⛔ THE COUNTEREXAMPLE OF THE REFUTED OUTCOME (kb/Work PB5889): a value of the operands at which the expression's EXACT value
+    /// is not an integer, as the diagnostic states it, or null when none is found. The OPERANDS are the expression's data items
+    /// (<see cref="CollectOperands"/>). Its other leaves may be INTEGER terms (an integer function, a counter register, an index-name, a
+    /// report VARYING counter, an OCCURS DEPENDING extent), whose range the screen does not know (<c>FUNCTION FACTORIAL (N + 2) / 2</c>
+    /// is never odd): at a value of the operands the expression is a polynomial in them (<see cref="ValueAt"/>), and it is refuted there
+    /// only when that polynomial is a non-integer constant plus a part that is an integer for EVERY integer value of those terms
+    /// (<c>I2 + 0.5 + FUNCTION INTEGER (S2)</c>, <c>LINAGE-COUNTER + 0.5</c>), so no value they could take makes it an integer. A leaf
+    /// that is a numeric function leaves no counterexample (<c>S2 - FUNCTION MAX (S2)</c>); a floating-point item is an operand whose value
+    /// steps by 0.5 (<c>F + 1</c> at F = 0.5).
+    /// Two or more operands must hold storage of their own, and two references to one item must be distinct constant elements of it
+    /// (<see cref="AreIndependent"/>): <c>T (1) - T (2) + 1</c> is refuted, <c>T (I) - T (J) + 5</c> is not. The points tried are every
+    /// combination of k + 1 consecutive values of each operand's least unit (0, 1, ... unsigned; 0, 1, -1, ... signed; k fits the
+    /// description, and at most <see cref="MaxRefutationPoints"/> points), in increasing order, so the first found is the simplest: for
+    /// a polynomial of degree at most k in each operand that grid holds a point where it is not an integer whenever one exists (the
+    /// type-6 intake's rule 3). The value is the algebraic one: an expression whose exact value is not an integer does not "always
+    /// result in an integer value", whatever digits the arithmetic keeps.</summary>
     private static string? Refutation(BoundExpr expr, ArithmeticMode arithmetic)
     {
-        var ctx = new TypeSixContext(arithmetic, algebraic: true);
-        if (Build(expr, ctx) is not { } value || value.FirstRealAtom(ctx.IsReal) is not null) return null;
-        if (value.FractionDigits(out var witness) == 0 || witness is null) return null;
-        if (witness.Count == 0)
-            return $"is an arithmetic expression whose literal terms sum to {value.Evaluate(witness)} and whose every other term cancels or "
-                + "is an integer, so its value is never an integer";
-        return ctx.IsRealizable(witness)
-            ? $"is an arithmetic expression whose value is not an integer for every value of its terms: at {ctx.PointText(witness)} it is "
-                + $"{value.Evaluate(witness)}"
-            : null;
+        var operands = new List<BoundNumRef>();
+        if (!CollectOperands(expr, operands) || !AreIndependent(operands)) return null;
+        int top = 0;
+        while (top < MaxRefutationValue && BigInteger.Pow(top + 2, operands.Count) <= MaxRefutationPoints) top++;
+        // The k-th value of an operand's least unit: 0, 1, 2, ... for an unsigned item, 0, 1, -1, 2, -2, ... for a signed one (k + 1
+        // consecutive integers either way, which is what the grid argument needs), within its description's digits. A floating-point
+        // item's unit is 0.5, which binary64 holds exactly (§2023:14.6.8.3: its value set holds non-integers).
+        var pics = operands.Select(o => o.Place.DescribedItem!.Pic!).ToList();
+        int[] limit = [.. pics.Select(p => p.IsFloat ? top : (int)BigInteger.Min(top, (BigInteger.Pow(10, p.Digits) - 1) * (p.Signed ? 2 : 1)))];
+        var values = new ExactRational[operands.Count];
+        int[] x = new int[operands.Count];
+        var terms = new TypeSixContext(arithmetic);
+        while (true)
+        {
+            for (int i = 0; i < x.Length; i++)
+            {
+                bool signed = pics[i].Signed || pics[i].IsFloat;
+                int unit = signed && x[i] % 2 == 0 ? -x[i] / 2 : signed ? (x[i] + 1) / 2 : x[i];
+                values[i] = pics[i].IsFloat ? ExactRational.Of(unit) / ExactRational.Of(2) : ExactRational.FromScaled(unit, -pics[i].Scale);
+            }
+            if (ValueAt(expr, operands, values, terms) is { } value && value.ConstantTerm is { IsInteger: false } c
+                && value.Add(Polynomial.Constant(c), -ExactRational.One) is var rest && (rest.IsZero || rest.FractionDigits(out _) == 0))
+            {
+                string plus = rest.IsZero ? "" : " plus an integer";
+                return operands.Count == 0
+                    ? $"is an arithmetic expression whose literal terms sum to {c} and whose every other term cancels or is an integer, so "
+                        + "its value is never an integer"
+                    : "is an arithmetic expression whose value is not an integer for every value of its terms: at "
+                        + string.Join(", ", operands.Select((o, i) => $"{ExprText(o)} = {values[i]}")) + $" it is {c}{plus}";
+            }
+            int j = 0;
+            while (j < x.Length && x[j] == limit[j]) x[j++] = 0;
+            if (j == x.Length) return null;
+            x[j]++;
+        }
+    }
+
+    /// <summary>The most points <see cref="Refutation"/> evaluates, and the largest value of an operand's least unit it tries: 0..12 for
+    /// up to three operands, as the proof's grid test (<see cref="Polynomial.MaxGridDegree"/>, <see cref="Polynomial.MaxGridPoints"/>).</summary>
+    private const int MaxRefutationPoints = Polynomial.MaxGridPoints, MaxRefutationValue = Polynomial.MaxGridDegree;
+
+    /// <summary>Can the operands hold any values at once? One always can. Two or more each hold storage of their own
+    /// (<see cref="HoldsIndependentStorage"/>), and two references to one item are distinct elements of it at CONSTANT subscripts
+    /// (<c>T (1)</c>, <c>T (2)</c>); <c>T (I)</c> and <c>T (J)</c> are one element when I = J.</summary>
+    private static bool AreIndependent(List<BoundNumRef> operands) =>
+        operands.Count <= 1
+        || (operands.All(o => HoldsIndependentStorage(o.Place.DescribedItem!))
+            && operands.GroupBy(o => o.Place.DescribedItem).All(g => g.Count() == 1 || g.All(o => IsConstantElement(o.Place))));
+
+    /// <summary>Is the place an element of a table at constant subscripts only (every segment a root, a member, or a fixed table
+    /// segment whose index is a constant)?</summary>
+    private static bool IsConstantElement(Place place) =>
+        place is MemberPlace { Path.Segments: var segments }
+        && segments.Any(s => s is FixedTableSegment)
+        && segments.All(s => s is RootSegment or MemberSegment or FixedTableSegment { OneBasedIndex: PositionConstant, Odo: null });
+
+    /// <summary>The data items of the expression, each place once (<see cref="SamePlace"/>), fixed-point or floating-point, or false when a
+    /// leaf may hold a value that is not an integer and is no data item (a numeric function) or is none the walk reads: every concrete
+    /// <see cref="BoundExpr"/> kind is named (<c>TypeSixWalkCoverageDriftTests</c>).</summary>
+    private static bool CollectOperands(BoundExpr e, List<BoundNumRef> operands)
+    {
+        if (ExactValue(e) is not null) return true;
+        switch (e)
+        {
+            case BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } p } } item
+                when p.IsFloat || (p.Usage is not Usage.Index && p.Digits > 0):
+                if (!operands.Any(o => SamePlace(o.Place, item.Place))) operands.Add(item);
+                return true;
+            case BoundBinary b:
+                return CollectOperands(b.Left, operands) && CollectOperands(b.Right, operands);
+            case BoundNegate n:
+                return CollectOperands(n.Operand, operands);
+            case BoundPower pw:
+                return CollectOperands(pw.Base, operands) && CollectOperands(pw.Exp, operands);
+            // An integer term: no operand, a term of the value's polynomial (ValueAt).
+            case BoundIntrinsicCall { ResultType: IntrinsicType.Integer }:
+            case BoundIndexRef or BoundReportVaryingRef or BoundOdoExtent:
+                return true;
+            case BoundLinageCounterRef or BoundReportCounterRef:
+                return AlgebraicRanges.IsCounterRegister(e);
+            case BoundUdfEvaluatedExpr:
+            case BoundNumRef or BoundNumLiteral or BoundIntrinsicCall or BoundExprError:
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>The EXACT value of the expression when its operands (<see cref="CollectOperands"/>) hold <paramref name="values"/>, as a
+    /// polynomial in its integer terms (<paramref name="terms"/>' atoms), or null where it has none the walk can state (a division by
+    /// zero or by a term, a power whose exponent is no integer constant or is past <see cref="MaxFoldedExponent"/>): every concrete
+    /// <see cref="BoundExpr"/> kind is named (<c>TypeSixWalkCoverageDriftTests</c>).</summary>
+    private static Polynomial? ValueAt(BoundExpr e, List<BoundNumRef> operands, ExactRational[] values, TypeSixContext terms)
+    {
+        if (ExactValue(e) is { } constant) return Polynomial.Constant(constant);
+        switch (e)
+        {
+            case BoundNumRef item:
+                return operands.FindIndex(o => SamePlace(o.Place, item.Place)) is int at and >= 0 ? Polynomial.Constant(values[at]) : null;
+            case BoundBinary { Op: '+' or '-' } b
+                when ValueAt(b.Left, operands, values, terms) is { } l && ValueAt(b.Right, operands, values, terms) is { } r:
+                return l.Add(r, b.Op == '-' ? -ExactRational.One : ExactRational.One);
+            case BoundBinary { Op: '*' } b
+                when ValueAt(b.Left, operands, values, terms) is { } l && ValueAt(b.Right, operands, values, terms) is { } r:
+                return l.Multiply(r);
+            case BoundBinary { Op: '/' } b when ValueAt(b.Right, operands, values, terms) is { } r && r.Terms.All(t => t.Factors.Length == 0)
+                && r.ConstantTerm.Sign != 0:
+                return ValueAt(b.Left, operands, values, terms)?.Scale(ExactRational.One / r.ConstantTerm);
+            case BoundNegate n:
+                return ValueAt(n.Operand, operands, values, terms)?.Scale(-ExactRational.One);
+            case BoundPower pw when ValueAt(pw.Exp, operands, values, terms) is { } exp && exp.Terms.All(t => t.Factors.Length == 0)
+                && exp.ConstantTerm is { IsInteger: true } ev && BigInteger.Abs(ev.Numerator) <= MaxFoldedExponent
+                && ValueAt(pw.Base, operands, values, terms) is { } bv:
+                if (bv.Terms.All(t => t.Factors.Length == 0))
+                    return bv.ConstantTerm.Sign != 0 || ev.Sign > 0 ? Polynomial.Constant(bv.ConstantTerm.Pow((int)ev.Numerator)) : null;
+                return ev.Sign >= 0 ? bv.Power((int)ev.Numerator) : null;
+            case BoundIntrinsicCall { ResultType: IntrinsicType.Integer }:
+            case BoundIndexRef or BoundReportVaryingRef or BoundOdoExtent:
+            case BoundLinageCounterRef or BoundReportCounterRef when AlgebraicRanges.IsCounterRegister(e):
+                return Polynomial.OfAtom(terms.AtomOf(e, integer: true, digits: null, scale: 0), ExactRational.One);
+            case BoundBinary or BoundPower:
+            case BoundNumLiteral or BoundIntrinsicCall or BoundLinageCounterRef or BoundReportCounterRef or BoundExprError
+                or BoundUdfEvaluatedExpr:
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>Is the item's storage its own: in WORKING-STORAGE or LOCAL-STORAGE, and nothing on its path to its record redefines,
+    /// renames or bases it (a LINKAGE item may be passed another's storage, and a FILE SECTION record shares its file's area)?</summary>
+    private static bool HoldsIndependentStorage(DataItem item)
+    {
+        if (item.Section is not (EntrySection.WorkingStorage or EntrySection.LocalStorage)) return false;
+        for (DataItem? i = item; i is not null; i = i.Parent)
+            if (i.RedefinesTarget is not null || i.Renames is not null || i.IsBased) return false;
+        return true;
     }
 
     /// <summary>The three outcomes of the type 6 screen of an arithmetic expression (<see cref="ClassifyTypeSix"/>).</summary>
@@ -79,14 +218,10 @@ internal static partial class IntrinsicArgumentRules
     private readonly record struct TypeSixVerdict(TypeSixOutcome Outcome, string? Refutation);
 
     /// <summary>The atoms of one classification and the arithmetic in force: whether it is a decimal engine (every operation on the
-    /// SDIDI) and its significant-digit cap (null for native arithmetic, whose lanes say their own, <see cref="NumericLanes"/>).
-    /// <paramref name="algebraic"/> builds the EXACT value instead, whatever the arithmetic keeps (the refutation's mode).</summary>
-    private sealed class TypeSixContext(ArithmeticMode arithmetic, bool algebraic)
+    /// SDIDI) and its significant-digit cap (null for native arithmetic, whose lanes say their own, <see cref="NumericLanes"/>).</summary>
+    private sealed class TypeSixContext(ArithmeticMode arithmetic)
     {
         public readonly List<PolynomialAtom> Atoms = [];
-
-        /// <summary>Does this build read the exact algebraic value, skipping every exactness test of the arithmetic?</summary>
-        public readonly bool Algebraic = algebraic;
         public readonly int? Cap = ArithmeticModes.IntermediateSignificantDigits(arithmetic);
         public readonly bool DecimalEngine = ArithmeticModes.IsDecimalEngine(arithmetic);
 
@@ -115,61 +250,16 @@ internal static partial class IntrinsicArgumentRules
             Atoms.Add(new PolynomialAtom(term, Integer: true, Digits: null, Scale: 0));
             return Atoms.Count - 1;
         }
-
-        /// <summary>A valuation as a diagnostic names it: each atom's term and value (an item's value at its scale). Two atoms that
-        /// print alike (T (I) and T (J) both print T) are told apart by their order of reference.</summary>
-        public string PointText(IReadOnlyDictionary<int, BigInteger> point)
-        {
-            var texts = point.Keys.Select(k => ExprText(Atoms[k].Term)).ToList();
-            var seen = new Dictionary<string, int>(StringComparer.Ordinal);
-            return string.Join(", ", point.Select((kv, i) =>
-            {
-                string text = texts[i];
-                if (texts.Count(t => t == text) > 1) text += $" (reference {seen[text] = seen.GetValueOrDefault(text) + 1})";
-                return $"{text} = {ExactRational.FromScaled(kv.Value, -Atoms[kv.Key].Scale)}";
-            }));
-        }
-
-        /// <summary>⛔ IS THIS POINT A VALUE OF THE OPERANDS (kb/Work PB5889)? A refutation names a point where the expression is not an
-        /// integer, and it is a COUNTEREXAMPLE only when the program can hold it: every atom is a fixed-point data item whose description
-        /// admits the value (below 10^digits), and two or more atoms are distinct items no storage of one is shared with another (each
-        /// in WORKING-STORAGE or LOCAL-STORAGE, under no REDEFINES, RENAMES or BASED clause on its path to its record). A function, an
-        /// index-name, a register, an extent or a power is an atom whose range the polynomial does not know (<c>FUNCTION FACTORIAL (N +
-        /// 2) / 2</c> is never odd), and two references to one item (<c>T (I)</c>, <c>T (J)</c>) or to overlapping storage need not
-        /// differ; such a point is no counterexample, and the argument is undecided.</summary>
-        public bool IsRealizable(IReadOnlyDictionary<int, BigInteger> point)
-        {
-            var items = new List<DataItem>();
-            foreach (var (atom, x) in point)
-            {
-                if (Atoms[atom] is not { Term: BoundNumRef { Place.DescribedItem: { } item }, Integer: true, Digits: { } digits }
-                    || BigInteger.Abs(x) >= BigInteger.Pow(10, digits))
-                    return false;
-                items.Add(item);
-            }
-            return items.Count == 1 || (items.Distinct().Count() == items.Count && items.All(HoldsIndependentStorage));
-        }
-
-        /// <summary>Is the item's storage its own: in WORKING-STORAGE or LOCAL-STORAGE, and nothing on its path to its record redefines,
-        /// renames or bases it (a LINKAGE item may be passed another's storage, and a FILE SECTION record shares its file's area)?</summary>
-        private static bool HoldsIndependentStorage(DataItem item)
-        {
-            if (item.Section is not (EntrySection.WorkingStorage or EntrySection.LocalStorage)) return false;
-            for (DataItem? i = item; i is not null; i = i.Parent)
-                if (i.RedefinesTarget is not null || i.Renames is not null || i.IsBased) return false;
-            return true;
-        }
     }
 
     /// <summary>⛔ THE POLYNOMIAL OF A NODE (docs/INTRINSICS_DESIGN.md, the type-6 intake, rules 1 and 2), or null when it is not shown:
-    /// every concrete <see cref="BoundExpr"/> kind is named, and the default is null (<c>TypeSixWalkCoverageDriftTests</c>). In the
-    /// ALGEBRAIC mode (<see cref="TypeSixContext.Algebraic"/>) it is the exact value, every exactness test of the arithmetic skipped.</summary>
+    /// every concrete <see cref="BoundExpr"/> kind is named, and the default is null (<c>TypeSixWalkCoverageDriftTests</c>).</summary>
     private static Polynomial? Build(BoundExpr e, TypeSixContext ctx)
     {
         // A LITERAL-ONLY SUBTREE is a constant at its exact fold, trusted as the computed value only when the arithmetic stores every
         // quotient in it exactly (kb/Work PB4758: `1 / 3 * 3` folds to 1 and the arithmetic stores 0.9999).
         if (ExactValue(e) is { } constant)
-            return ctx.Algebraic || QuotientsAreExact(e) ? Polynomial.Constant(constant) : null;
+            return QuotientsAreExact(e) ? Polynomial.Constant(constant) : null;
         switch (e)
         {
             case BoundBinary { Op: '+' or '-' } b:
@@ -186,7 +276,7 @@ internal static partial class IntrinsicArgumentRules
             // ⛔ A QUOTIENT BY A NONZERO LITERAL c IS THE PRODUCT BY 1/c, exact when its own value keeps within the guard digits a nested
             // quotient keeps (Intermediate): `WN / 2 * 2` and `N * (N + 1) / 2` are proven, `WN / 3 * 3` is not.
             case BoundBinary { Op: '/', Left: var dividend, Right: var divisor } when ExactValue(divisor) is { Sign: not 0 } c
-                && (ctx.Algebraic || QuotientsAreExact(divisor)):
+                && QuotientsAreExact(divisor):
                 return Build(dividend, ctx) is { } d ? Intermediate(e, d.Scale(ExactRational.One / c), quotient: true, ctx) : null;
             // ⛔ ANY OTHER QUOTIENT IS NO POLYNOMIAL (kb/Work PB5886): a divisor that is an item, a function or an expression moves with
             // the valuation (A / A is a size error at A = 0).
@@ -196,7 +286,7 @@ internal static partial class IntrinsicArgumentRules
             case BoundNegate n:
                 return Build(n.Operand, ctx)?.Scale(-ExactRational.One);
             // A power to a non-negative integer literal is the product of that many bases.
-            case BoundPower pw when ExactValue(pw.Exp) is { IsInteger: true, Sign: >= 0 } n && (ctx.Algebraic || QuotientsAreExact(pw.Exp))
+            case BoundPower pw when ExactValue(pw.Exp) is { IsInteger: true, Sign: >= 0 } n && QuotientsAreExact(pw.Exp)
                 && n.Numerator <= MaxFoldedExponent:
             {
                 if (Build(pw.Base, ctx) is not { } b) return null;
@@ -211,7 +301,7 @@ internal static partial class IntrinsicArgumentRules
                 // ⛔ THE POWER'S LANE IS THE NODE'S (kb/Work PB5891 review R3-1): NumericLanes.LaneOf of the power node, the function the
                 // renderer asserts its carrier against. A power the renderer may evaluate as a binary64 approximation (an exponent integer
                 // by its polynomial but not by its carrier, `N ** (U / 2 * 2)`, or a wide one, `1 ** (X * X)`) is no integer atom.
-                bool approximate = !ctx.Algebraic && ctx.LanesOf(e).Any(NumericLanes.IsBinary64);
+                bool approximate = ctx.LanesOf(e).Any(NumericLanes.IsBinary64);
                 return IsIntegerPower(pw.Base, pw.Exp, exponentIntegral) && !approximate
                     ? Polynomial.OfAtom(ctx.AtomOf(e, integer: true, digits: null, scale: 0), ExactRational.One)
                     : null;
@@ -257,11 +347,9 @@ internal static partial class IntrinsicArgumentRules
     /// engine; natively, an operation beside a floating-point literal, a numeric function's value or another SDIDI value) a value with
     /// fraction digits fits the lane's significant digits (<see cref="NumericLanes.SignificantDigits"/>), and an integer that does not
     /// is rounded to an integer. An integer the arithmetic rounds is a fresh integer atom from here up: its value is SOME integer, no
-    /// longer the polynomial. The integer-valued test runs only where (b), (c) or (d) reads it (review R1-2), once per polynomial.
-    /// In the ALGEBRAIC mode the intermediate is its exact value, a real monomial included (it may cancel above).</summary>
+    /// longer the polynomial. The integer-valued test runs only where (b), (c) or (d) reads it (review R1-2), once per polynomial.</summary>
     private static Polynomial? Intermediate(BoundExpr e, Polynomial value, bool quotient, TypeSixContext ctx)
     {
-        if (ctx.Algebraic) return value;
         if (value.FirstRealAtom(ctx.IsReal) is not null) return null;
         var lanes = ctx.LanesOf(e);
         bool binary64 = lanes.Any(NumericLanes.IsBinary64);
@@ -290,7 +378,7 @@ internal static partial class IntrinsicArgumentRules
     /// <summary>A product or power past <see cref="Polynomial.MaxMonomials"/>: an integer atom when its structure alone shows it an
     /// integer term (<see cref="ProvablyIntegral"/>), otherwise not shown.</summary>
     private static Polynomial? Unexpanded(BoundExpr e, TypeSixContext ctx) =>
-        ProvablyIntegral(e) && (ctx.Algebraic || !ctx.LanesOf(e).Any(NumericLanes.IsBinary64))
+        ProvablyIntegral(e) && !ctx.LanesOf(e).Any(NumericLanes.IsBinary64)
             ? Polynomial.OfAtom(ctx.AtomOf(e, integer: true, digits: null, scale: 0), ExactRational.One)
             : null;
 

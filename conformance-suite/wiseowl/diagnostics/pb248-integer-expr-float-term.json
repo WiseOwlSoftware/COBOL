@@ -1,1 +1,1 @@
-{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "FUNCTION CHAR argument-1 is an arithmetic expression whose intermediate WS-F + 1 holds the term data item 'WS-F', a floating-point numeric data item, which does not cancel there, so neither the intermediate's exact value nor an integer value is shown"}
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "FUNCTION CHAR argument-1 is an arithmetic expression whose value is not an integer for every value of its terms: at WS-F = 0.5 it is 1.5"}

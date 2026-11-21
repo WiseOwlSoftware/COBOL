@@ -21,13 +21,16 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class TypeSixWalkCoverageDriftTests
 {
     /// <summary>The proof walks of the type 6 classifier, by the text that opens each one's declaration in the two files of
-    /// <c>IntrinsicArgumentRules</c> (kb/Work PB5891: the polynomial builder and the term comparer joined the walks).</summary>
+    /// <c>IntrinsicArgumentRules</c> (kb/Work PB5891: the polynomial builder and the term comparer joined the walks; kb/Work PB5889: the refutation's).</summary>
     private static readonly string[] Walks =
     [
-        "private static Built Build(",
+        "private static Polynomial? Build(",
         "internal static bool SameTerm(",
         "internal static bool ProvablyIntegral(",
         "private static ExactRational? ExactValue(",
+        // kb/Work PB5889: the refutation's two walks, which find a value of the operands at which the expression is not an integer.
+        "private static bool CollectOperands(",
+        "private static Polynomial? ValueAt(",
     ];
 
     [Fact]
