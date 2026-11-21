@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
@@ -39,6 +40,13 @@ internal enum DeclarationKind
     /// <summary>A report-name: a report description entry of this source element, or the GLOBAL report of a containing one
     /// (§2023:13.18.27.4 GR1; kb/Work PB5973).</summary>
     ReportName,
+    /// <summary>An ordinary data item: a data description entry's data-name. Never an answer of
+    /// <see cref="SymbolTable.Declarations.OtherThanData"/>; it is the class of a nearer declaration that hides another one
+    /// (§1985:X.1.3.8.2 GR3a; <c>SymbolTable.NearestInNameSet</c>, kb/Work PB5975).</summary>
+    DataItem,
+    /// <summary>The named CAPACITY register of an OCCURS DYNAMIC table (ISO §2023:13.18.38.3 SR30). Like <see cref="DataItem"/>, the
+    /// class of a hiding declaration only: the register has its own one lookup (<c>ReferenceResolver.CapacityRegisterFor</c>).</summary>
+    CapacityRegister,
 }
 
 /// <summary>A declaration that gives a name although it declares no data item: its kind, for a type declaration's
@@ -49,22 +57,25 @@ internal enum DeclarationKind
 /// measure), the tier ISO §2023:8.4.6.2.1 3) ranks it in against the other declarations of the spelling (kb/Work PB4219).
 /// <paramref name="Spelling"/> is the declaration's own spelling where a message quotes it (an inherited GLOBAL file-name, a report
 /// entry's data-name), and <paramref name="Report"/> the report-name of the report description a report entry belongs to.
+/// <paramref name="Line"/> is the source line of the declaring entry where a message names it (0 when none is known): a
+/// declaration of §1985:X.1.3.8.2 GR1's set that HIDES another of its spelling (<see cref="DeclarationKind.DataItem"/> among them)
+/// is a fact too, so a refusal can say what the reference names instead (kb/Work PB5975, PB5976).
 /// The fact names no symbol: it answers a declaration question (<see cref="SymbolTable.Declarations"/>), never a reference
 /// (docs/rearchitecture/DESIGN-listing.md section 6.7.1).</summary>
 internal readonly record struct DeclarationFact(
     DeclarationKind Kind, string? TypeName = null, bool DeclarationRefused = false, int Depth = 0, string? Spelling = null,
-    string? Report = null)
+    string? Report = null, int Line = 0)
 {
     /// <summary>⛔ THE ONE WORDING of what <paramref name="name"/> IS (kb/Work PB1906), completing a sentence whose subject
     /// is the reference as <paramref name="written"/>: "'T' is declared as a type-name …". Every site that refuses a
     /// reference for naming no data item says this rather than "not defined", which would send the user hunting a
-    /// declaration that is right there.</summary>
-    public string DeclaredAs(string written, string name) => Kind switch
+    /// declaration that is right there. Its citations are <paramref name="edition"/>'s own (<see cref="ClassPhrase"/>).</summary>
+    public string DeclaredAs(string written, string name, EditionInfo edition) => Kind switch
     {
         DeclarationKind.ScreenEntry => "is declared as a SCREEN SECTION entry, not as a data item",
         DeclarationKind.AlphabetName => "is declared as an alphabet-name in the SPECIAL-NAMES paragraph, not as a data item",
         DeclarationKind.ConstantName or DeclarationKind.IndexName or DeclarationKind.ConditionName
-            or DeclarationKind.FileName or DeclarationKind.CdName or DeclarationKind.ReportName => $"is declared as {ClassPhrase}, not as a data item",
+            or DeclarationKind.FileName or DeclarationKind.CdName or DeclarationKind.ReportName => $"is declared as {ClassPhrase(edition)}, not as a data item",
         DeclarationKind.TypeName => "is declared as a type-name (a TYPEDEF entry), not as a data item: a type "
             + "declaration has no storage associated with it (ISO §2023:13.18.58.4 GR2)",
         DeclarationKind.TypeDeclarationMember =>
@@ -80,18 +91,35 @@ internal readonly record struct DeclarationFact(
         _ => throw new System.Diagnostics.UnreachableException(Kind.ToString()),
     };
 
-    /// <summary>What the three name classes that a position can meet BESIDE a level-88 are, as a noun phrase: the one
-    /// wording of <see cref="DeclaredAs"/> ("is declared as …, not as a data item") and of the condition-only position's
-    /// refusal of a condition-name a nearer declaration of the class hides (<c>NameResolution.HiddenConditionText</c>,
-    /// ISO §2023:8.4.6.2.1 3) a)).</summary>
-    public string ClassPhrase => Kind switch
+    /// <summary>What a declaration of a class of §1985:X.1.3.8.2 GR1's name set is, as a noun phrase: the one wording of
+    /// <see cref="DeclaredAs"/> ("is declared as …, not as a data item"), of the condition-only position's refusal of a
+    /// condition-name a nearer declaration of the class hides (<c>NameResolution.HiddenConditionText</c>, ISO §2023:8.4.6.2.1 GR3a)
+    /// and of a report verb's refusal of a report-name one hides (<see cref="Placed"/>, kb/Work PB5976). ⛔ The clause it names is the one of the edition the program is compiled at (<see cref="EditionInfo.Cite"/>, kb/Work
+    /// PB5978): COBOL-85 has its own index-name, file control, communication description and report description clauses, and no
+    /// constant entry at all (ISO/IEC 1989:2002 introduced it).</summary>
+    public string ClassPhrase(EditionInfo edition) => Kind switch
     {
-        DeclarationKind.ConstantName => "a constant-name (a CONSTANT entry, ISO §2023:13.10)",
-        DeclarationKind.IndexName => "an index-name (an INDEXED BY phrase, ISO §2023:13.18.38)",
+        DeclarationKind.ConstantName => edition.Cite("a constant-name (a CONSTANT entry, which COBOL-85 does not define)",
+            "a constant-name (a CONSTANT entry, ISO §2023:13.10)"),
+        DeclarationKind.IndexName => "an index-name (an INDEXED BY phrase, ISO " + edition.Cite("§1985:VI.5.8", "§2023:13.18.38") + ")",
         DeclarationKind.ConditionName => "a condition-name (a level-88 entry)",
-        DeclarationKind.FileName => "a file-name (a file control entry, ISO §2023:12.4.5)",
-        DeclarationKind.CdName => "a cd-name (a communication description entry, ISO/IEC 1989:2002 A.1.2)",
-        DeclarationKind.ReportName => "a report-name (a report description entry, ISO §2023:13.14)",
+        DeclarationKind.FileName => "a file-name (a file control entry, ISO " + edition.Cite("§1985:VII.2.3", "§2023:12.4.5") + ")",
+        DeclarationKind.CdName => "a cd-name (a communication description entry, "
+            + edition.Cite("ISO §1985:XIV.2.2", "ISO/IEC 1989:2002 A.1.2") + ")",
+        DeclarationKind.ReportName => "a report-name (a report description entry, ISO " + edition.Cite("§1985:XIII.3.5", "§2023:13.14") + ")",
+        DeclarationKind.ReportEntry => "the data-name of a report group description entry (ISO "
+            + edition.Cite("§1985:XIII.3.9", "§2023:13.15") + ")",
+        DeclarationKind.ReportSumCounter => "a sum counter (the data-name of a SUM entry, ISO "
+            + edition.Cite("§1985:XIII.3.19", "§2023:13.18.54.4 GR5") + ")",
+        DeclarationKind.DataItem => "a data item",
+        DeclarationKind.CapacityRegister =>
+            "the CAPACITY register of an OCCURS DYNAMIC table (a CAPACITY IN phrase, ISO §2023:13.18.38.3 SR30)",
         _ => throw new System.Diagnostics.UnreachableException(Kind.ToString()),
     };
+
+    /// <summary>The declaration as the subject of a hiding (kb/Work PB5976): <see cref="ClassPhrase"/>, the line of its entry when
+    /// known, and the program that declares it, "this program" (depth 0) or a containing one.</summary>
+    public string Placed(EditionInfo edition) =>
+        ClassPhrase(edition) + (Line > 0 ? $" declared at line {Line}" : " declared")
+        + (Depth == 0 ? " in this program" : " in a containing program");
 }

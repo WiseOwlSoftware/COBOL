@@ -84,12 +84,20 @@ public sealed partial class SymbolTable
         return _capacityRegisters.TryGetValue(key, out var registers) ? RegistersOf(registers) : null;
     }
 
+    /// <summary>The table whose named CAPACITY register of <paramref name="name"/>, minted so far, is declared in the nearest source
+    /// element, or null when none is: the register arm of §1985:X.1.3.8.2's one resolver (<see cref="NearestInNameSet"/>, kb/Work
+    /// PB5975), asked here because only this file reads a name in the register tables (<c>CapacityRegisterReferenceDriftTests</c>).
+    /// A METHOD's own register is never in this table: it lives in the method's <c>MethodNames</c> (kb/Work PB3165).</summary>
+    private DataItem? NearestCapacityRegisterTable(string name)
+    {
+        if (!_capacityRegisters.TryGetValue(Key(name), out var tables)) return null;
+        DataItem? nearest = null;
+        foreach (var table in tables)
+            if (nearest is null || _data.State.Forest.DeclaringDepth(table) < _data.State.Forest.DeclaringDepth(nearest)) nearest = table;
+        return nearest;
+    }
+
     /// <summary>The registers of <paramref name="tables"/>, each with its entry.</summary>
     private CapacityRegisterCandidates RegistersOf(List<DataItem> tables) =>
         new(tables, [.. tables.Select(t => _entries.IdOf(t.OccursSpec!.CapacityRegister!))]);
-
-    /// <summary>Whether a CAPACITY register of <paramref name="name"/>, minted so far, is declared in a source element nearer than
-    /// <paramref name="depth"/> (<see cref="Declarations.DeclaredNearerThan"/>, which runs while they are still being minted).</summary>
-    private bool CapacityRegisterDeclaredNearerThan(string name, int depth) =>
-        _capacityRegisters.TryGetValue(Key(name), out var tables) && tables.Any(t => _data.State.Forest.DeclaringDepth(t) < depth);
 }

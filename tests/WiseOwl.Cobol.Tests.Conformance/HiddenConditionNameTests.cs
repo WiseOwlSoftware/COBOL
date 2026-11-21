@@ -46,7 +46,7 @@ public sealed class HiddenConditionNameTests
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1639");
         EditionHarness.AssertHasDiagnostic(errors, $"{written} names a data item, not a condition-name");
-        EditionHarness.AssertHasDiagnostic(errors, "§2023:8.4.6.2.1 3) a)");
+        EditionHarness.AssertHasDiagnostic(errors, "§2023:8.4.6.2.1 GR3a");
         EditionHarness.AssertNoDiagnostic(errors, "is a condition-name (a level-88 entry)");
         EditionHarness.AssertNoDiagnostic(errors, "is not a condition-name: no level-88 entry");
     }

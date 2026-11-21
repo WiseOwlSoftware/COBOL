@@ -145,11 +145,12 @@ internal sealed class OdoResolvePass : IBindPass
                 if (nonData is { DeclarationRefused: true }) continue;
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectUndefined, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}': data-name-1 "
                     + (nonData is { } declared
-                        ? $"'{writtenDep}' {declared.DeclaredAs(writtenDep, depName)} ({binder.Edition.Edition.Quoted()})"
+                        ? $"'{writtenDep}' {declared.DeclaredAs(writtenDep, depName, binder.Edition.Edition)} ({binder.Edition.Edition.Quoted()})"
                         : dependingOperand.Qualifiers.Count > 0
-                        ? "is not defined under the given qualifiers (ISO §2023:8.4.2.2.1: uniqueness shall be established "
-                          + "through qualification)"
-                        : "is not defined (ISO §2023:13.18.38 Format 2)") + via);
+                        ? "is not defined under the given qualifiers (ISO "
+                          + binder.Edition.Edition.Cite("§1985:IV.4.3.8.1 SR3", "§2023:8.4.2.2.1")
+                          + ": uniqueness shall be established through qualification)"
+                        : $"is not defined (ISO {binder.Edition.Edition.Cite("§1985:VI.5.8", "§2023:13.18.38")} Format 2)") + via);
                 continue;
             }
             // The ambiguity (§2023:8.4.2.2.3 SR1) is a fact of the declaration too when every candidate lies inside the copy that

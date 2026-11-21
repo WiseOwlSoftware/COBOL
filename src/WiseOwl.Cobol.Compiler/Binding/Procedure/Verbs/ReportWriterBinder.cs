@@ -385,7 +385,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             if (ctx.Data.Symbols.Identify(rn, NameClass.Report, report: true)?.Symbol is not ReportModel r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"INITIATE '{rn.GetText()}': report-name-1 shall be defined by a report "
-                    + $"description entry in the report section (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.4.3 SR1", "§2023:14.9.21.3 SR1")})");
+                    + $"description entry in the report section (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.4.3 SR1", "§2023:14.9.21.3 SR1")})"
+                    + HidingOfReportName(rn.GetText()));
             if (RejectContainedReportFile(r, $"INITIATE {r.Name}", "ISO §2023:14.9.21.3 SR2") is { } notGlobal) return notGlobal;
             members.Add(new BoundInitiate([r]));
         }
@@ -441,8 +442,19 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         // Match.None is UNDIAGNOSED by contract ("leaves the 'this is not a report group' diagnostic to the
         // caller") — so this is the report, never a deferral (kb/Work PB909).
         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"{where}: '{name}' names neither a detail report group (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.3.3 SR1", "§2023:14.9.16.3 SR1")}) "
-            + "nor a report description entry (SR2)");
+            + "nor a report description entry (SR2)" + (qualifier is null ? HidingOfReportName(name) : ""));
     }
+
+    /// <summary>⛔ §1985:X.1.3.8.2 GR3a IN A REPORT VERB'S REFUSAL (kb/Work PB5976): when the word a report-name position names is a
+    /// containing program's GLOBAL report-name that a nearer declaration of the spelling hides
+    /// (<see cref="SymbolTable.Declarations.ReportNameHiddenBy"/>), the refusal says what the word names here, with its line, so a
+    /// programmer looking at the container's RD does not read it as wrong; empty otherwise. One wording for INITIATE, GENERATE and
+    /// TERMINATE, whose report-name positions are resolved by the one report-name lookup.</summary>
+    private string HidingOfReportName(string written) =>
+        ctx.Data.Symbols.Declared.ReportNameHiddenBy(written) is { } hider
+            ? $"; '{written}' here names {hider.Placed(ctx.Edition.Edition)}, which hides the GLOBAL report-name "
+              + $"'{written}' of a containing program ({NameResolution.NearerDeclarationRule(ctx.Edition.Edition)})"
+            : "";
 
     /// <summary><c>TERMINATE report-name…</c> (ISO §2023:14.9.46 SR1; §2023:14.9.46.4 GR4) — one <see cref="BoundTerminate"/> per
     /// report-name inside a <see cref="BoundImplicitSeries"/>, GR4's "as though a separate TERMINATE statement had
@@ -455,7 +467,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             if (ctx.Data.Symbols.Identify(rn, NameClass.Report, report: true)?.Symbol is not ReportModel r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"TERMINATE '{rn.GetText()}': report-name-1 shall be defined by a report "
-                    + $"description entry in the report section (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.7.3 SR1", "§2023:14.9.46.3 SR1")})");
+                    + $"description entry in the report section (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.7.3 SR1", "§2023:14.9.46.3 SR1")})"
+                    + HidingOfReportName(rn.GetText()));
             if (RejectContainedReportFile(r, $"TERMINATE {r.Name}", "ISO §2023:14.9.46.3 SR2") is { } notGlobal) return notGlobal;
             members.Add(Presenting(new BoundTerminate([r])));
         }

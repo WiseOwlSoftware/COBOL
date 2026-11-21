@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "'R1' here names a condition-name (a level-88 entry) declared at line 47 in this program, which hides the GLOBAL report-name 'R1' of a containing program"}

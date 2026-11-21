@@ -1342,8 +1342,8 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       RECORD KEY, OCCURS DEPENDING ON, ASSIGN USING, APPLY COMMIT) and its data-name lookups reach the report entries with the name
       as TEXT, because the data-name class still holds its operands so. What they ask of a report entry is a declaration fact (is
       the name a report entry's, nearer than the data items, a sum counter, of which report), so `Declarations.ReportEntriesNamed`
-      answers `DeclarationFact`s (`DeclarationKind.ReportEntry` and `ReportSumCounter`, with the report-name) and `NearerEntryHides`
-      a `bool`. The one exception answers a symbol: at COBOL-85 a sum counter IS such an operand (§1985:XIII.3.9.3 SR10d), so
+      answers `DeclarationFact`s (`DeclarationKind.ReportEntry` and `ReportSumCounter`, with the report-name) and the one name-set resolver (`SymbolTable.NearestInNameSet`, kb/Work PB5975)
+      a fact or a `bool`. The one exception answers a symbol: at COBOL-85 a sum counter IS such an operand (§1985:XIII.3.9.3 SR10d), so
       `SymbolTable.SumCounterOperand85` returns its register; it moved into the table with the counters it reads, and its baseline
       entry moved with it, to leave the baseline when the data-name class carries the written word.
     - *A declaration agreement stays a comparison, in `Declarations` (correction, slice 5).* An FD's REPORT clause names a report

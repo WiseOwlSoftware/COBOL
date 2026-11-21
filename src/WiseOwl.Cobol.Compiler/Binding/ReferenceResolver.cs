@@ -776,7 +776,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// and rule 1 applies "the normal rules for qualification" over that whole set before rule 3 picks the nearest
     /// declaring element: the first register the written qualifiers reach is the candidate (the nearest one when
     /// none does, so the qualifier fault is stated about it), and an ordinary data-name of the spelling in a NEARER
-    /// element takes the reference instead (<see cref="SymbolTable.NearerDataNameHides"/> — the rule the
+    /// element, or any other declaration of the spelling there (kb/Work PB5975), takes the reference instead (<see cref="SymbolTable.NearerNameOfAnotherClassHides"/> — the rule the
     /// index-name class already obeys), handing it back to the ordinary lookup.</para></summary>
     internal CapacityRef? CapacityRegisterFor(Core.DataReferenceContext dref, bool report)
     {
@@ -795,7 +795,7 @@ public sealed class ReferenceResolver(DataBinder data)
         int depth = data.State.Forest.DeclaringDepth(table);
         reached.RemoveAll(t => data.State.Forest.DeclaringDepth(t) != depth);
         if (table.OccursSpec?.CapacityRegister is not { } reg
-            || data.Symbols.NearerNameOfAnotherClassHides(name, written.Qualifiers, depth)) return null;
+            || data.Symbols.NearerNameOfAnotherClassHides(name, written.Qualifiers, depth, NameSetClass.CapacityRegister)) return null;
         var place = CapacityRegisterPlaceOf(table);
         var fault =
               written.SubscriptGroup is not null                     ? CapacityRefFault.Subscripted

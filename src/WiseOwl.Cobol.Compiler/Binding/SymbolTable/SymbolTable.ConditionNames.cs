@@ -12,8 +12,9 @@ public sealed partial class SymbolTable
     /// (<c>ConditionBinder.ConditionOf</c> reports it; a pass that only reads which condition a bare operand names,
     /// <c>FlagConformancePass</c>, ignores it, kb/Work PB3288). Every level-88 of the spelling visible in the active scope (the
     /// method's own first, §2023:11.7.4 GR5) whose conditional-variable chain carries each written qualifier (§2023:8.4.2.2.3 SR4
-    /// and SR5), narrowed to the nearest declaring source element (§2023:8.4.6.2.1 3), kb/Work PB1047), and none when a data-name,
-    /// report entry, constant-name, index-name or file-name of the spelling is declared nearer (kb/Work PB4196, PB4219, PB4432),
+    /// and SR5), narrowed to the nearest declaring source element (§2023:8.4.6.2.1 3), kb/Work PB1047), and none when a declaration of
+    /// the spelling in another class of the name set is declared nearer (<see cref="NearestInNameSet"/>, kb/Work PB4196, PB4219,
+    /// PB4432, PB5975),
     /// or when every survivor is a lapsed type-declaration condition (§2023:8.4.2.2.1 SR4: alone it names nothing to test).
     /// <para>A qualifiable name's identification IS its candidate set, typed and unboxed, as the index-name's is
     /// (<see cref="IdentifyIndexName"/>): the data-names' twin is <see cref="IdentifyDataName"/>. <paramref name="report"/> is
@@ -24,7 +25,7 @@ public sealed partial class SymbolTable
     {
         var scope = _data.ActiveScope;
         var matches = NearestDeclaringConditions(ConditionsUnderQualifiers(written.Name, written.QualifierWords, scope), written.Name,
-            written.QualifierWords, scope);   // kb/Work PB4196, PB4219, PB4432
+            written.QualifierWords);   // kb/Work PB4196, PB4219, PB4432, PB5975
         if (matches.TrueForAll(DataBinder.IsTypeDeclarationCondition)) return [];
         if (report && matches is [var one]) RecordData(one, written, report);
         return matches;

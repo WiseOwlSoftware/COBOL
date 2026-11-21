@@ -2034,7 +2034,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // kb/Work PB4219 review R1-1: the condition lookup leaves the container's GLOBAL condition-name no survivor), so
         // the reference names that data item where this position admits only a condition-name.
         if (NamesHidingDataItem(dref))
-            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, NameResolution.HiddenConditionText(text, name, "a data item", ctx.Edition.Edition));
+            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, NameResolution.HiddenConditionText(text, name, new DeclarationFact(DeclarationKind.DataItem).ClassPhrase(ctx.Edition.Edition), ctx.Edition.Edition));
         // ... and so is a constant-name, index-name, CAPACITY register or file-name of a nearer one (kb/Work PB4432 review
         // R1-1): this position names THAT, not the container's level-88.
         else if (HidingClassPhrase(dref) is { } hider)
@@ -2063,9 +2063,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     {
         if (WrittenQualifiedName.Of(dref) is not { } written) return null;
         if (ctx.Data.Symbols.Declared.ConditionNameHiddenByNearerNonDataName(written.Name, written.QualifierWords, ctx.ActiveScope) is { } hider)
-            return hider.ClassPhrase;
+            return hider.ClassPhrase(ctx.Edition.Edition);
         return CapacityRegisterHides(dref, ctx.Symbols.ConditionTier(written))
-            ? NameResolution.CapacityRegisterClassPhrase
+            ? new DeclarationFact(DeclarationKind.CapacityRegister).ClassPhrase(ctx.Edition.Edition)
             : null;
     }
 

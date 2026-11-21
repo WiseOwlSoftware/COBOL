@@ -112,12 +112,12 @@ public sealed partial class SymbolTable
         }
         if (!_indexNames.Declares(key)) return null;
         var indexes = _indexNames.Candidates(key, d => IndexQualifierChainMatches(d, qualifiers), out int indexDepth);
-        // §2023:8.4.6.2.1 3) across the name classes (kb/Work PB1047): a DATA-name or a CONDITION-name of the spelling that the
+        // §2023:8.4.6.2.1 3) across the name classes (kb/Work PB1047, PB5975): a declaration of the spelling in ANY other class that the
         // written qualifiers reach, declared in a NEARER source element than every such index-name, is the referenced
         // item — a contained program's `01 IX` or its `88 IX` hides its container's GLOBAL table's `INDEXED BY IX`,
         // exactly as its `01 X` hides the container's global `X` (kb/Work PB4432). At EQUAL depth the index-name keeps
         // the reference, as before.
-        if (indexes.Count > 0 && NearerNameOfAnotherClassHides(name, qualifiers, indexDepth)) return null;
+        if (indexes.Count > 0 && NearerNameOfAnotherClassHides(name, qualifiers, indexDepth, NameSetClass.IndexName)) return null;
         return WithLapsedTypeIndexes(key, indexes, d => IndexQualifierChainMatches(d, qualifiers), null);
     }
 
@@ -131,14 +131,4 @@ public sealed partial class SymbolTable
         _entries.IdOf(candidate) is { IsSet: true } id ? id
         : throw new InvalidOperationException($"SymbolTable identified the index-name '{candidate.Name}', whose declaration entered no "
             + "entry: a lapsed type member is never a set of one (DESIGN-listing.md section 6.7.1, \"Step 6b, the entry ids\")");
-
-    /// <summary>Whether an index-name of <paramref name="name"/> visible to this element is declared in a source element nearer than
-    /// <paramref name="depth"/> (<see cref="Declarations.DeclaredNearerThan"/>).</summary>
-    private bool IndexNameDeclaredNearerThan(string name, int depth)
-    {
-        var key = Key(name);
-        if (!_indexNames.Declares(key)) return false;
-        _indexNames.Candidates(key, static _ => true, out int indexDepth);   // int.MaxValue when none survives
-        return indexDepth < depth;
-    }
 }

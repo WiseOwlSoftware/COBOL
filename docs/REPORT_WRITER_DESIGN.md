@@ -162,7 +162,7 @@ off-by-one through every later counter check.
   (`ReportEntryReferenceRefused`, §2023:13.8.6.2.3). The facts it produces are `ReportScope` (`Binding/ReportScope.cs`,
   `DataBindState.Reports`): the reports a unit `Declared`, the `Visible` ones (its own, then its containers' GLOBAL ones),
   each report's `Depth`, the sum counters, the refused PRESENT WHEN conditions, and the name lookups over them
-  (`EntriesNamed`, `NearerEntryHides`, `NearestInScope`). The report model types (`ReportModel` and what it holds) are
+  (`EntriesNamed`, `NearestInScope`; the report entry arm of the one name-set resolver, `SymbolTable.NearestInNameSet`, kb/Work PB5975, reads `EntriesNamed`). The report model types (`ReportModel` and what it holds) are
   `Binding/ReportModel.cs`. The binder is the only writer of the scope; every later phase reads the scope.
 - `BindReportSection` runs in `DataBinder.Bind` right after `BindFileSection`; `ResolveReports` runs
   post-build after `ResolveFiles` (the FILE STATUS capture-then-resolve pattern — ONE resolution point).
@@ -505,10 +505,10 @@ off-by-one through every later counter check.
   §2023:8.4.2.2.3 SR1 whether or not a report entry spells the same. **A report entry takes part in §2023:8.4.6.2.1 3) with the
   data items, in the lookup itself** (kb/Work PB4196): `SymbolTable.NearestDeclaringData` and
   `NearestDeclaringConditions`, the narrowings of a qualified data-name or condition-name set (asked by
-  `SymbolTable.DataNameCandidates`, both arms of a data-name, and `SymbolTable.IdentifyConditionName`; `NearerDataNameHides` and
-  `DeclaredNearerThan` ask it for the index-name, capacity register and constant classes, and each narrowing asks the
-  other class's nearer declaration too, kb/Work PB4219), keep the survivors of the nearest declaring source element and leave NONE when
-  `SymbolTable.NearerEntryHides` finds a report entry of a nearer one that the written qualifiers reach — "if the name
+  `SymbolTable.DataNameCandidates`, both arms of a data-name, and `SymbolTable.IdentifyConditionName`; `NearerNameOfAnotherClassHides` and
+  `DeclaredNearerThan` ask the same for the index-name, capacity register and constant classes, kb/Work PB4219), keep the survivors of the
+  nearest declaring source element and leave NONE when the one resolver of §1985:X.1.3.8.2 GR1's set, `SymbolTable.NearestInNameSet`
+  (kb/Work PB5975), finds a report entry of a nearer one that the written qualifiers reach — "if the name
   is declared in source element B, the item in source element B is the referenced item" (3) a)), however many farther
   GLOBAL data items spell the same, and whether there is one of them (`FILE STATUS IS PV`, `MOVE PV TO W`) or several.
   The callers then meet an unidentified reference, and `ReportEntryReferenceRefused` names the entry (COBOL5092). The

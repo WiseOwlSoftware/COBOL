@@ -70,13 +70,6 @@ public sealed partial class SymbolTable
             && _inheritedFiles.TryGetValue(name, out var inherited) ? inherited
         : null;
 
-    /// <summary>Whether a file-name of <paramref name="name"/> is declared at some depth below <paramref name="depth"/>, hidden or not:
-    /// this element's own (depth 0) or the nearest container's GLOBAL one. The file-name tier of
-    /// <see cref="Declarations.DeclaredNearerThan"/> (kb/Work PB5973).</summary>
-    private bool FileNameDeclaredNearerThan(string name, int depth) =>
-        _ownFiles.ContainsKey(Key(name)) ? depth > 0
-        : _inheritedFiles.TryGetValue(Key(name), out var inherited) && _data.State.Inherited.FileDepth(inherited) < depth;
-
     /// <summary>Every file visible in this element: its own, then each inherited one whose spelling it does not declare itself.</summary>
     internal IEnumerable<FileModel> VisibleFiles
     {

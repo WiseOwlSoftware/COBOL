@@ -124,10 +124,11 @@ public sealed partial class SymbolTable
     private int? ReportNameDepth(CobolName name) =>
         !_hiddenReportNames.Contains(name) && _visibleReports.TryGetValue(name, out var report) ? _data.State.Reports.Depth(report) : null;
 
-    /// <summary>Whether a report-name of <paramref name="name"/> is declared at some depth below <paramref name="depth"/>, hidden or not:
-    /// the report-name tier of <see cref="Declarations.DeclaredNearerThan"/>.</summary>
-    private bool ReportNameDeclaredNearerThan(string name, int depth) =>
-        _visibleReports.TryGetValue(Key(name), out var report) && _data.State.Reports.Depth(report) < depth;
+    /// <summary>The depth of the containing program's GLOBAL report <paramref name="name"/> names when a nearer declaration of the spelling
+    /// hides its report-name here (<see cref="HideShadowedReports"/>), or null when no such report is hidden: the question
+    /// <see cref="Declarations.ReportNameHiddenBy"/> asks before it names the hiding declaration (kb/Work PB5976).</summary>
+    private int? HiddenReportDepth(string name) =>
+        _hiddenReportNames.Contains(Key(name)) && _visibleReports.TryGetValue(Key(name), out var report) ? _data.State.Reports.Depth(report) : null;
 
     /// <summary>Record <paramref name="family"/>'s sum counter under <paramref name="name"/>: a list per name, a duplicated name
     /// being legal to declare (kb/Work PB882).</summary>
@@ -346,7 +347,7 @@ public sealed partial class SymbolTable
     /// reach through the ONE §2023:8.4.2.2.3 SR4 qualifier walk (<see cref="QualifierWalk"/>, the report-name last,
     /// §2023:8.4.2.2.2 Format 1's file-report-qualifier), narrowed to the nearest declaring source element (§2023:8.4.6.2.1 rule 3).
     /// The data division's lookups ask it with the written text they hold; its answers leave the table as facts
-    /// (<see cref="Declarations.ReportEntriesNamed"/>, <see cref="NearerEntryHides"/>), never as entries.</summary>
+    /// (<see cref="Declarations.ReportEntriesNamed"/>, <see cref="NearestInNameSet"/>), never as entries.</summary>
     private List<(ReportModel Report, ReportNamedEntry Entry)> EntriesNamed(string name, IReadOnlyList<string> qualifiers)
     {
         var hits = new List<(ReportModel Report, ReportNamedEntry Entry)>();
@@ -357,20 +358,6 @@ public sealed partial class SymbolTable
                     hits.Add((report, entry));
         return _data.State.Reports.NearestInScope(hits, h => h.Report);
     }
-
-    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a)-b) FOR A REPORT ENTRY AGAINST THE DATA ITEMS OF A FARTHER SOURCE ELEMENT (kb/Work PB4196):
-    /// true when the written reference reaches a report entry declared in a source element NEARER than
-    /// <paramref name="declaringDepth"/>, the depth (<see cref="ForestSlice.DeclaringDepth"/>) of the data items it also reaches. "If
-    /// the name is declared in source element B, the item in source element B is the referenced item" (a), otherwise "the item in
-    /// the containing source element" (b): the report entry is the referenced item and the container's GLOBAL data item of the
-    /// spelling is not. A report entry is a data-name of the source element whose REPORT SECTION declares it (§2023:8.4.2.2.3 SR1
-    /// counts it with the ordinary ones, kb/Work PB3232), so the data-name lookup <see cref="NearestDeclaringData"/> asks this at the
-    /// tier it narrowed to and leaves the set EMPTY, and the callers' own report-item refusal
-    /// (<see cref="ReportSectionBinder.ReportEntryReferenceRefused"/>, §2023:13.8.6.2.3) names the entry. Free for a unit that inherits
-    /// no global data or has no report.</summary>
-    internal bool NearerEntryHides(string name, IReadOnlyList<string> qualifiers, int declaringDepth) =>
-        declaringDepth > 0 && _data.State.Reports.Visible.Count != 0
-        && EntriesNamed(name, qualifiers) is [var (report, _), ..] && _data.State.Reports.Depth(report) < declaringDepth;
 
     /// <summary>The report-section-exclusive names of one report: the data-name of EVERY report group description entry it writes
     /// (the group's own, an intermediate group entry's, a printable entry's, a sum counter's, an unprintable SOURCE entry's), each

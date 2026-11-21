@@ -146,48 +146,87 @@ public sealed class GlobalNameClassDriftTests
                 $"SymbolTable.InheritGlobalItem no longer reaches the name index '{index}' (expected '{reach}').");
     }
 
-    /// <summary>Inherited name index → the text <c>DataBinder.DeclaredNearerThan</c> asks it by.</summary>
+    /// <summary>Inherited name index → the text the ONE resolver of §1985:X.1.3.8.2 GR1's set, <c>SymbolTable.NearestInNameSet</c>,
+    /// reads it by (kb/Work PB5975).</summary>
     private static readonly Dictionary<string, string> AskedByShadowing = new()
     {
-        ["SymbolTable._dataNames"] = "_table._dataNames.TryGetValue(",
-        ["SymbolTable._conditionNames"] = "_table._conditionNames.TryGetValue(",
-        ["SymbolTable._indexNames"] = "_table.IndexNameDeclaredNearerThan(",
-        ["SymbolTable._capacityRegisters"] = "_table.CapacityRegisterDeclaredNearerThan(",
+        ["SymbolTable._dataNames"] = "_dataNames.TryGetValue(",
+        ["SymbolTable._conditionNames"] = "_conditionNames.TryGetValue(",
+        ["SymbolTable._indexNames"] = "_indexNames.Candidates(",
+        ["SymbolTable._capacityRegisters"] = "NearestCapacityRegisterTable(",   // the register tables are read only in SymbolTable.CapacityRegisters.cs
     };
 
-    /// <summary>⛔ THE SAME LIST DECIDES SHADOWING (kb/Work PB3154 review R2-1). An inherited constant-name or
-    /// symbolic-character is hidden by a NEARER declaration of its spelling in ANY name class (ISO §2023:8.4.6.1 — "even
-    /// when it is a different type of user-defined word, is to the item which that source element describes"), and
-    /// <c>DeclaredNearerThan</c> is the one predicate that asks. It asked <c>ByName</c>, <c>Conditions</c> and
-    /// <c>IndexNames</c> but not the CAPACITY register index, so a contained program's register spelled like its
-    /// container's symbolic-character read the figurative. Every name index a contained program inherits is a name
-    /// class a nearer element can declare, so the predicate must ask each one.</summary>
+    /// <summary>The body of <c>SymbolTable.NearestInNameSet</c>, the one resolver every cross-class question asks.</summary>
+    private static string NameSetResolver()
+    {
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.NameSet.cs"));
+        var m = Regex.Match(text, @"private DeclarationFact\? NearestInNameSet\(.*?\n    \}", RegexOptions.Singleline);
+        Assert.True(m.Success, "SymbolTable.NearestInNameSet not found in SymbolTable.NameSet.cs");
+        return m.Value;
+    }
+
+    /// <summary>⛔ THE SAME LIST DECIDES SHADOWING (kb/Work PB3154 review R2-1, PB5975). An inherited constant-name,
+    /// symbolic-character, file-name, report-name or sum counter is hidden by a NEARER declaration of its spelling in ANY name class
+    /// (§1985:X.1.3.8: a reference "even when it is a different type of user-defined word, is to the object which that program
+    /// describes"), and <c>DeclaredNearerThan</c> asks the one resolver over every class. The shadowing once asked <c>ByName</c>,
+    /// <c>Conditions</c> and <c>IndexNames</c> but not the CAPACITY register index, so a contained program's register spelled like
+    /// its container's symbolic-character read the figurative. Every name index a contained program inherits is a name class a
+    /// nearer element can declare, so the resolver must read each one.</summary>
     [Fact]
     public void DeclaredNearerThan_AsksEveryInheritedNameIndex()
     {
         Assert.Equal(Inherited.Keys.Order(StringComparer.Ordinal), AskedByShadowing.Keys.Order(StringComparer.Ordinal));
-        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.Declarations.cs"));
-        var m = Regex.Match(text, @"public bool DeclaredNearerThan\(string name, int depth\)\s*\{(?<body>.*?)\n" + Nested + @"\}",
-            RegexOptions.Singleline);
-        Assert.True(m.Success, "DeclaredNearerThan not found in SymbolTable.Declarations.cs");
+        string resolver = NameSetResolver();
         foreach (var (index, ask) in AskedByShadowing)
-            Assert.True(m.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
-                $"DeclaredNearerThan no longer asks the name index '{index}' (expected '{ask}').");
+            Assert.True(resolver.Contains(ask, StringComparison.Ordinal),
+                $"SymbolTable.NearestInNameSet no longer reads the name index '{index}' (expected '{ask}').");
         // The REPORT SECTION sum counters are a name index too, kept off ByName, and they hold a container's GLOBAL
         // report's counters beside this element's own: asked by spelling alone, a FARTHER container's counter hid a
-        // NEARER container's constant (kb/Work PB3154 review R3-1). The ask places each counter by its report.
-        Assert.True(m.Groups["body"].Value.Contains("State.Reports.Depth(c.Report) < depth", StringComparison.Ordinal),
-            "DeclaredNearerThan no longer places a sum counter by its report's depth (ReportScope.Depth).");
+        // NEARER container's constant (kb/Work PB3154 review R3-1). The resolver places each counter by its report.
+        Assert.True(resolver.Contains("_sumCounters.TryGetValue(", StringComparison.Ordinal)
+                    && resolver.Contains("State.Reports.Depth(counterReport)", StringComparison.Ordinal),
+            "SymbolTable.NearestInNameSet no longer places a sum counter by its report's depth (ReportScope.Depth).");
         // The file-names and the report-names are classes of §1985:X.1.3.8.2's set too, held off the name indexes in the table's
-        // own file and report tables (kb/Work PB5973): a contained program's own SELECT or RD hides a container's GLOBAL name of
-        // any class, and the inherited report-names are hidden by the same predicate (InheritStep.DropShadowed).
-        foreach (var ask in new[] { "_table.FileNameDeclaredNearerThan(", "_table.ReportNameDeclaredNearerThan(" })
-            Assert.True(m.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
-                $"DeclaredNearerThan no longer asks the file-name or report-name tier (expected '{ask}').");
+        // own file and report tables (kb/Work PB5973).
+        foreach (var ask in new[] { "_ownFiles.TryGetValue(", "_inheritedFiles.TryGetValue(", "_visibleReports.TryGetValue(", "EntriesNamed(" })
+            Assert.True(resolver.Contains(ask, StringComparison.Ordinal),
+                $"SymbolTable.NearestInNameSet no longer reads the file-name, report-name or report entry tier (expected '{ask}').");
+        string declarations = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.Declarations.cs"));
+        var m = Regex.Match(declarations, @"public bool DeclaredNearerThan\(string name, int depth\) =>(?<body>.*?);", RegexOptions.Singleline);
+        Assert.True(m.Success && m.Groups["body"].Value.Contains("DeclaredNearerInNameSet(name, [], depth, NameSetClass.All)", StringComparison.Ordinal),
+            "DeclaredNearerThan no longer asks the one resolver over every class (DeclaredNearerInNameSet ... NameSetClass.All).");
         string inherit = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "InheritStep.cs"));
         foreach (var hide in new[] { "HideShadowedFiles(data.Symbols.Declared.DeclaredNearerThan)", "HideShadowedReports(data.Symbols.Declared.DeclaredNearerThan)" })
             Assert.True(inherit.Contains(hide, StringComparison.Ordinal),
                 $"InheritStep.DropShadowed no longer hides the inherited names by DeclaredNearerThan (expected '{hide}').");
+    }
+
+    /// <summary>The <see cref="DeclarationKind"/>s that are no class of §1985:X.1.3.8.2's set of a contained program: a screen entry
+    /// (the section is refused), an alphabet-name of SPECIAL-NAMES, and the type declarations, whose names are inherited before Bind
+    /// and resolved by their own lookups.</summary>
+    private static readonly string[] NotInNameSet =
+        ["ScreenEntry", "AlphabetName", "TypeName", "TypeDeclarationMember", "TypeDeclarationCondition"];
+
+    /// <summary>⛔ ONE RESOLVER, AND EVERY CLASS IN IT (kb/Work PB5975). §1985:X.1.3.8.2 GR1-GR3 are one algorithm over one set of
+    /// names; PB5973 implemented them as per-class paths that each asked some other classes' "declared nearer" predicates, so every
+    /// class pair had to be remembered by hand (an own index-name did not hide a container's GLOBAL data item in an OCCURS
+    /// DEPENDING ON operand: the program ran on the container's item). The classes are <c>NameSetClass</c>, each named after the
+    /// <see cref="DeclarationKind"/> it answers as; this holds the two lists to each other and the resolver to an arm per class, so a
+    /// class added to either is ranked against every other class at once.</summary>
+    [Fact]
+    public void TheNameSetResolver_HasAnArmForEveryClass()
+    {
+        var classes = Enum.GetNames<NameSetClass>().Where(n => n is not ("None" or "All")).ToList();
+        var kinds = Enum.GetNames<DeclarationKind>().Except(NotInNameSet).ToList();
+        Assert.Equal(kinds.Order(StringComparer.Ordinal), classes.Order(StringComparer.Ordinal));
+        string resolver = NameSetResolver();
+        foreach (string c in classes)
+        {
+            Assert.True(resolver.Contains($"NameSetClass.{c}) != 0", StringComparison.Ordinal),
+                $"SymbolTable.NearestInNameSet has no arm for NameSetClass.{c}");
+            Assert.True(resolver.Contains($"DeclarationKind.{c}", StringComparison.Ordinal),
+                $"SymbolTable.NearestInNameSet never answers DeclarationKind.{c}");
+        }
     }
 
     /// <summary>A METHOD's name table the SYMBOL TABLE holds (<c>SymbolTable.MethodNames</c>, listing step 6b, kb/Work PB5932) → the
@@ -275,10 +314,10 @@ public sealed class GlobalNameClassDriftTests
     /// items: a contained program's report entry <c>PV</c> hides its container's GLOBAL <c>PV</c>. The lookup took a lone
     /// GLOBAL data item without asking, so <c>MOVE PV TO W</c> and <c>FILE STATUS IS PV</c> used another program's data.
     /// <c>SymbolTable.NearestDeclaringData</c> and <c>NearestDeclaringConditions</c> are the narrowings every data-name and
-    /// condition-name set goes through (each asks <c>SymbolTable.NearerEntryHides</c>, the condition one through
-    /// <c>NearerDataNameHides</c>, and each asks the OTHER class's nearer declaration, kb/Work PB4219), so no lookup outside <c>SymbolTable</c> may call the bare
-    /// <c>NearestDeclaring</c> (it would skip the entries), and the other-class predicates (<c>NearerNameOfAnotherClassHides</c>, over <c>NearerDataNameHides</c>,
-    /// for index-names and capacity registers, <c>DeclaredNearerThan</c> for constants) must ask the entries too. The behavioural
+    /// condition-name set goes through (each asks the one resolver of every OTHER class's nearer declaration,
+    /// <c>SymbolTable.NearestInNameSet</c>, kb/Work PB4219, PB5975), so no lookup outside <c>SymbolTable</c> may call the bare
+    /// <c>NearestDeclaring</c> (it would skip the entries), and the other-class predicates (<c>NearerNameOfAnotherClassHides</c>
+    /// for index-names and capacity registers, <c>DeclaredNearerThan</c> for constants) ask the same resolver. The behavioural
     /// half is the <c>pb4196-*</c> cases of <c>conformance-suite/cases/13.8.6.2.3-Report-Items</c>.</summary>
     [Fact]
     public void ADataNameNarrowing_RanksTheReportEntriesToo()
@@ -296,40 +335,30 @@ public sealed class GlobalNameClassDriftTests
             + $"declares (use NearestDeclaringData / NearestDeclaringConditions, ISO §2023:8.4.6.2.1 3) a)): "
             + string.Join(", ", bare.Select(Path.GetFileName)));
 
+        // Every narrowing asks the ONE resolver (kb/Work PB5975), whose ReportEntry arm reads the report entries
+        // (TheNameSetResolver_HasAnArmForEveryClass): the data-name and condition-name tiers, the classes resolved before them
+        // (index-names, CAPACITY registers) and the inherited names a nearer declaration hides.
         string table = File.ReadAllText(symbolTable);
-        AssertBodyAsks(table, @"private List<DataItem> NearestDeclaringData\(", "NearerEntryHides(");
-        AssertBodyAsks(table, @"private List<DataItem> NearestDeclaringData\(", "NearerConditionNameHides(");
-        AssertBodyAsks(table, @"private List<Condition88> NearestDeclaringConditions\(", "NearerDataNameHides(");
-        AssertBodyAsks(table, @"public bool NearerDataNameHides\(", "NearerEntryHides(");
-        string declarations = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.Declarations.cs"));
-        AssertBodyAsks(declarations, @"public bool DeclaredNearerThan\(", "NearerEntryHides(", Nested);
-
-        // The classes resolved BEFORE the data-name lookup ask the data-name, the condition-name (kb/Work PB4432) and the file-name and
-        // report-name (kb/Work PB5973): a contained program's own level-88 or RD hides a container's GLOBAL index-name or capacity
-        // register as its own data item does.
-        var either = Regex.Match(table, @"public bool NearerNameOfAnotherClassHides\(.*?;", RegexOptions.Singleline);
-        Assert.True(either.Success && either.Value.Contains("NearerDataNameHides(", StringComparison.Ordinal)
-                    && either.Value.Contains("NearerConditionNameHides(", StringComparison.Ordinal)
-                    && either.Value.Contains("NearerFileOrReportNameHides(", StringComparison.Ordinal),
-            "NearerNameOfAnotherClassHides no longer asks NearerDataNameHides, NearerConditionNameHides and NearerFileOrReportNameHides.");
+        AssertBodyAsks(table, @"private List<DataItem> NearestDeclaringData\(", "DeclaredNearerInNameSet(");
+        AssertBodyAsks(table, @"private List<DataItem> NearestDeclaringData\(", "NameSetClass.All & ~NameSetClass.DataItem");
+        AssertBodyAsks(table, @"private List<Condition88> NearestDeclaringConditions\(", "DeclaredNearerInNameSet(");
+        var either = Regex.Match(table, @"internal bool NearerNameOfAnotherClassHides\(.*?;", RegexOptions.Singleline);
+        Assert.True(either.Success && either.Value.Contains("DeclaredNearerInNameSet(name, qualifiers, depth, NameSetClass.All & ~own)", StringComparison.Ordinal),
+            "NearerNameOfAnotherClassHides no longer asks the one resolver over every class but the asking one.");
         string indexNames = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.IndexNames.cs"));
         AssertBodyAsks(indexNames, @"private NameCandidates<IndexDeclaration>\? IndexCandidates\(", "NearerNameOfAnotherClassHides(");
         string resolver = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "ReferenceResolver.cs"));
         AssertBodyAsks(resolver, @"internal CapacityRef\? CapacityRegisterFor\(", "NearerNameOfAnotherClassHides(");
         // ... and the non-data declarations of one spelling are RANKED by depth (SymbolTable.Declarations.OtherThanData), never returned from
         // the first class asked: a farther constant-name, index-name or file-name would beat a nearer condition-name.
-        string nonData = declarations;
-        var ranked = Regex.Match(nonData, @"public DeclarationFact\? OtherThanData\(.*?\n        \}", RegexOptions.Singleline).Value;
+        string declarations = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.Declarations.cs"));
+        var ranked = Regex.Match(declarations, @"public DeclarationFact\? OtherThanData\(.*?\n        \}", RegexOptions.Singleline).Value;
         Assert.Contains("Offer(", ranked);
         Assert.DoesNotMatch(@"return new\(DeclarationKind\.(ConstantName|IndexName|FileName|ConditionName)", ranked);
-        // ... and the REVERSE arm (kb/Work PB4432 review R1-1): the condition-name narrowing asks the same list of the other
-        // name classes, so a contained program's own index-name, constant-name or file-name hides a container's GLOBAL
-        // level-88 as its own data item does. One list (NonConditionDeclarationsOf) serves both directions, so a class
-        // added to it ranks in both. The CAPACITY register has its own one lookup (CapacityRegisterReferenceDriftTests), so
-        // the condition lookup asks CapacityRegisterFor of it.
-        AssertBodyAsks(table, @"private List<Condition88> NearestDeclaringConditions\(", "NonConditionDeclarationHides(");
-        AssertBodyAsks(nonData, @"private DeclarationFact\? NonConditionDeclarationNearerThan\(", "NonConditionDeclarationsOf(", Nested);
         Assert.Contains("NonConditionDeclarationsOf(", ranked);
+        // ... and the REVERSE arm (kb/Work PB4432 review R1-1) names the hider from the same resolver. The CAPACITY register has its
+        // own one lookup (CapacityRegisterReferenceDriftTests), so the condition lookup asks CapacityRegisterFor of it.
+        AssertBodyAsks(declarations, @"public DeclarationFact\? ConditionNameHiddenByNearerNonDataName\(", "NearestInNameSet(", Nested);
         string conditionBinder = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "ConditionBinder.cs"));
         AssertBodyAsks(conditionBinder, @"public Condition88\? ConditionOf\(", "CapacityRegisterHides(");
 
@@ -338,7 +367,7 @@ public sealed class GlobalNameClassDriftTests
             var m = Regex.Match(text, signature + @".*?\n" + indent + @"\}", RegexOptions.Singleline);
             Assert.True(m.Success, $"{signature} not found");
             Assert.True(m.Value.Contains(ask, StringComparison.Ordinal),
-                $"{signature} no longer asks {ask}: a report entry of a nearer source element would stop hiding the farther name.");
+                $"{signature} no longer asks {ask}: a nearer declaration of another name class would stop hiding the farther name.");
         }
     }
 }
