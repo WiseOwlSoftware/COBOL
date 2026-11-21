@@ -298,7 +298,10 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         string text = WrittenSource.Of(dref);
         data.Edition.Error(DiagnosticCatalog.ReferenceToRefusedDeclaration,
             (text == name ? $"'{text}' names {declared}" : $"'{text}' names '{name}'") + ", whose declaration was refused"
-            + (why is null ? "" : $" ({why})") + "; see the error at the declaration. The reference cannot be bound.");
+            + (why is null ? "" : $" ({why})") + "; see the error at the declaration. The reference cannot be bound"
+            + data.Edition.Edition.Cite(
+                " (§1985:IV.4.3.8: \"a statement in a COBOL program must contain a reference which uniquely identifies that resource\")",
+                "") + ".");
     }
 
     /// <summary>⛔ THE ONE VERDICT OVER A WRITTEN DATA-NAME'S CANDIDATE SET (ISO §2023:8.4.2.2): the <see cref="DataItem"/>

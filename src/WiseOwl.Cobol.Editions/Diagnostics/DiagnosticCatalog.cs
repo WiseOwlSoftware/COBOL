@@ -2705,7 +2705,7 @@ public static class DiagnosticCatalog
         + "numeric argument however numeric it looks. An operand whose class is not statically decidable is "
         + "never rejected. --permissive downgrades this to a warning and proceeds with the existing coercion.",
         "ISO §2023:15.3 / §2023:8.5.2.1 Table 2 / §2023:4.2.2 para 3 (which leaves the determination to the implementor)",
-        Rule1985: "§1989:A.2.2 / §1989:A.2.19.3 AR1 / §1985:X.5.2.3 SR1 / §1985:X.5.3.3 SR1");
+        Rule1985: "§1989:A.2 / §1985:X.5.2.3 SR1 / §1985:X.5.3.3 SR1");
     // 1628 — CALL … USING BY VALUE operand class (ISO §2023:14.9.4.3 SR22). Surfaced by the pre-merge GnuCOBOL
     // differential: two AGREE_ACCEPT→WE_REJECT flips traced to DA6's §2023:8.8.1.1 arithmetic screen firing on a BY
     // VALUE operand, because the grammar production is named arithmeticExpression and the binder took that at
@@ -4456,7 +4456,7 @@ public static class DiagnosticCatalog
         "COBOL0869", "pointer-operand-shape", EditionSeverity.Error,
         "A pointer, address, object-reference or message-tag OPERAND is not of a shape its statement admits — the SET statement's pointer formats (ISO §2023:14.9.39), the ADDRESS OF / LENGTH OF special registers (§2023:8.4.3.11, §2023:8.4.3.13), the pointer and message-tag relation conditions (§2023:8.8.4.2.16, §2023:8.8.4.2.14), the ALLOCATE statement's RETURNING operand (§2023:14.9.3), or the target-type restriction a RESTRICTED data-pointer (Annex D.9.2.2) puts on all of them. The site names the rule it caught.",
         "ISO §2023:14.9.39 / §2023:8.4.3.11 / §2023:8.4.3.13 / §2023:8.8.4.2.16 / §2023:8.8.4.2.14 / §2023:14.9.3 / Annex D.9.2.2",
-        No1985Rule: No1985Pointer);
+        Rule1985: "§1985:VI.6.23.2 / §1985:VI.6.23.3 SR2");
     /// <summary>COBOL0868 — the OBJECT-REFERENCE RELATION band: the fourth bare-string code of the kb/Work
     /// PB175 sweep above, missed because its only site was inside <c>ConditionBinder</c>'s relation arm rather
     /// than a verb binder (kb/Work PB399 moved that site to the ONE relation checkpoint and found it). It is
