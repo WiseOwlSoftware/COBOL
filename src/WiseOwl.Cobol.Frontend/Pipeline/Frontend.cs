@@ -562,6 +562,7 @@ public sealed class Frontend
         var sourceDebuggingLines = new List<IToken>();
         var misplacedDebuggingLines = new List<IToken>();   // the final stream's own (§1985:VI.7.3)
         var commentLines = new HashSet<int>();   // the text lines the final stream makes comment (kb/Work PB5588)
+        var hiddenDebuggingSections = new List<IToken>();   // the final stream's USE FOR DEBUGGING sections made comment (kb/Work PB5986)
         LexerErrorListener lexErrors;
         // Where the final lexer met each inline comment, for the source listing only (kb/Work PB5949).
         List<(int Line, int Column)>? commentStarts;
@@ -575,9 +576,10 @@ public sealed class Frontend
             var streamSourceLines = new List<IToken>();
             misplacedDebuggingLines.Clear();
             commentLines.Clear();
+            hiddenDebuggingSections.Clear();
             if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines, misplacedDebuggingLines,
                     debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002),
-                    commentLines: commentLines) is not { } sourceRegionLine)
+                    commentLines: commentLines, hiddenSections: hiddenDebuggingSections) is not { } sourceRegionLine)
             {
                 sourceDebuggingLines.AddRange(streamSourceLines);
                 break;
@@ -585,6 +587,10 @@ public sealed class Frontend
             sourceDebuggingLines.Add(sourceRegionLine);
             text = DebuggingLineRewriter.WithCarrierBlanked(text, sourceRegionLine);
         }
+        // A USE FOR DEBUGGING section the mode makes comment is still a use of the obsolete Debug module (§1985:C.1 item 18): no
+        // parse or bind sees it, so the one place that knows of it says so (kb/Work PB5986).
+        if (hiddenDebuggingSections.Count > 0 && LineMap.Origin(hiddenDebuggingSections[0].Line) is { } hiddenAt)
+            gates.OnHiddenDebuggingSection(hiddenAt.File, hiddenAt.Line, hiddenDebuggingSections[0].Column + 1);
         // The COBOL-85 `*>` gate reports after this stage (Parse), yet its error keeps the binder from running like any prior
         // error, so the word-character screen below must know of it now (kb/Work PB5588, review R1-1).
         priorErrors |= gates.HasProgramTextFloatingComment(commentLines);

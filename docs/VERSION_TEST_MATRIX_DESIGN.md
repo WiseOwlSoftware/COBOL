@@ -421,13 +421,21 @@ entry. `tests/version-matrix/constructs/` stays THE canonical catalogue (§10 #5
 `expectDiagnostic` field); a unit drift test asserts registry↔json metadata equality both directions, and the
 ReservedWords drift test does the same one level up.
 
+**The 1985 obsolete elements (kb/Work PB5986).** `ObsoleteIn` is the first edition that flags the construct, and for the 18 items of
+§1985:C.1 that edition is 85: §1985:I.1.5.2.3 requires an implementation to support them (so an obsolete construct is IN FORCE,
+`ConstructDialectStatus.IsInForceAt`, which every site that branches on the edition fact asks, never `StatusAt == Available`),
+to document them (the table of `docs/manual/user-guide/editions.md`) and to provide a warning for their use (COBOL0903, the one
+obsolete verdict). `ObsoleteElementsDocDriftTests` holds the document and the registry to each other, so a row marked obsolete
+at 85 without a line in the document fails the gate. ENTER is the one item with no row: the implementor-defined statement is
+refused at every edition (COBOL7240).
+
 ### P2.6 Wave-1 construct checklist (validator overrides + binder migrations)
 
 85→2002 removals — `Removed` ≥2002 (VCR Table 7 grows a row per item): LABEL RECORDS (FD,
 Core/CobolData.g4:106; 0902) · VALUE OF (:118; 0902) · DATA RECORDS FD+SD (:111; **0873** — the DataBinder.cs:322
 SD gate MIGRATES into the validator, one enforcement site; Table 7 row 7.1's recorded follow-up) · MEMORY SIZE,
 SEGMENT-LIMIT (the modelled `memorySizeClause` / `segmentLimitClause`, CobolParserCore.g4 — kb/Work PB830; 0902) ·
-WITH DEBUGGING MODE (the modelled `debuggingModeClause`; NOT a 2002 removal — obsolete 2002 with 0903, removed 2014,
+WITH DEBUGGING MODE (the modelled `debuggingModeClause`; NOT a 2002 removal — obsolete from 85 with 0903 (§1985:C.1 item 18 names the Debug module an obsolete element; kb/Work PB5986), removed 2014,
 owner decision kb/Work R61, row `debugging-mode-removed-2014`) · MULTIPLE FILE [TAPE] (CobolIO.g4:170; 0902) · the five identification comment
 paragraphs AUTHOR/INSTALLATION/DATE-WRITTEN/DATE-COMPILED/SECURITY (0902) · REMARKS (0902 at EVERY
 edition, row `remarks-removed-85`: §1985:VI.3.2.1.1 prints no REMARKS paragraph; kb/Work PB5026) · STOP literal (CobolControlFlow.g4:222;
