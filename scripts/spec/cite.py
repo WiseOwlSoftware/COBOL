@@ -608,10 +608,12 @@ def _anchor(lines: list[str], ids: list[int], pos: int, row: dict, ordinal: re.P
     for j in range(pos, len(ids)):
         m = ordinal.match(lines[ids[j]])
         if m and int(m["n"]) == row["ordinal"]:
-            words = norm(m["text"]).split()
-            k = min(len(words), len(head))
-            if words[:k] == head[:k]:
-                return j
+            # A row's text opens after its number (a numbered rule) or with it (a unit row of a `(n)` list item, minted
+            # from its unit's whole text, kb/Work PB5452): either reading of the line anchors it.
+            for words, least in ((norm(m["text"]).split(), 0), (norm(lines[ids[j]]).split(), min(3, len(head)))):
+                k = min(len(words), len(head))
+                if k >= least and words[:k] == head[:k]:
+                    return j
     for j in range(pos, len(ids)):
         line = lines[ids[j]]
         words = norm(line).split()
@@ -1207,8 +1209,11 @@ def self_test() -> int:
         ("prose in no row answers pending and names no rule",
          (got := v("§2023:8.4.2.1", "The same name shall not be used both as the name of an external record")).ok
          and PENDING_MARK in got.message and "lies in" not in got.message),
-        # (a unit kb/Work PB5452 leaves pending: the list it leads is no unit yet)
-        ("the same in 1985", PENDING_MARK in v("§1985:IV.4.2.2.1.3 p3", "There are three types of reserved words").message),
+        # 1985 has no pending unit since kb/Work PB5452's 85w mint: the lead-in it disposed answers in its clause, its
+        # designator resolving, with no pending mark (before the mint the same citation answered pending).
+        ("a disposed 1985 unit answers in its clause, never pending",
+         (got := v("§1985:IV.4.2.2.1.3 p3", "There are three types of reserved words")).ok
+         and PENDING_MARK not in got.message and "in the clause" in got.message),
         ("a paragraph row is cited p<n>", v("§2023:9.1.16 p6", "the LOCK clause and the UNLOCK statement shall not be "
                                                              "specified").message.endswith("the text is in p6")),
         ("a pending unit and a pending table row are cited by their designators",
