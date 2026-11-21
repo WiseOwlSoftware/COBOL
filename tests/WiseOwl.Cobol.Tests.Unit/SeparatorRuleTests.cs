@@ -148,9 +148,10 @@ public sealed class SeparatorRuleTests
              // side at COBOL-85; the exception is a 2002 addition (§2002:8.7.1), so 2002 and later accept the same text
     [InlineData("-(A)", 1, "-")]
     [InlineData("- (A)", 0, "")]
-    [InlineData("(- A)", 1, "-")]
+    [InlineData("(- A)", 0, "")]                // the NIST-validated 1985 corpus writes a unary operator directly after a left parenthesis
     [InlineData("( - A )", 0, "")]
     [InlineData("A * -(B)", 1, "-")]
+    [InlineData("(-(A))", 1, "-")]
     public void UnaryOperatorTouchingAParenthesis_IsRefusedAt85Only(string expression, int reportedAt85, string op)
     {
         var tree = DirectiveExpressionFragment.ParseOperand(expression);

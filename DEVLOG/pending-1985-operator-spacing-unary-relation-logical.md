@@ -14,11 +14,16 @@ parse tree at the editions where `EditionInfo.ConditionOperatorsNeedSeparatorSpa
 `comparisonOperator` and every AND, OR and NOT that is a direct child of a condition tier through the same `OperatorSpacingMessage`
 verdict, with no parenthesis standing in for the space. The tree is needed because the OR of `GREATER THAN OR EQUAL TO` is a word of
 the operator while the OR of `A = 1 OR B = 2` is a connective. The new code is COBOL7672 (`separator-condition-operator-spacing`).
+The first gate ran the whole population and showed the strict reading refuses the NIST-validated 1985 programs `IF123A`
+(`(- B)`) and `NC211A` (`(NOT (...)`) and some 380 generated sweep programs, all with a left parenthesis directly BEFORE a unary operator or
+NOT. A parenthesis is itself a separator (§1985:IV.4.2.1 SR4) and the corpus is the evidence of the validated reading, so that
+placement stays accepted at 85 (a determination, noted here and in the design doc); the left-parenthesis-AFTER case, AND, OR, NOT followed by a parenthesis and the
+relational operators are refused. One suite program (`pb2017_arithmetic_operator_spacing`, `-(A + B)`) was accepted at 85 only; it is now accepted from 2002.
 No later edition states the relational or logical sentence (grepped §2002, §2014, §2023), so they accept the same text; a golden
 pins that.
 
-Goldens: 12 programs in `conformance-suite/cases/_unassigned/` (`rules: []`, because the catalog has no rows for unnumbered prose,
-PB5924), 8 refusals at 85 with their `wiseowl/diagnostics` files (unary after and before a parenthesis, relation character,
+Goldens: 11 programs in `conformance-suite/cases/_unassigned/` (`rules: []`, because the catalog has no rows for unnumbered prose,
+PB5924), 7 refusals at 85 with their `wiseowl/diagnostics` files (unary followed by a parenthesis, relation character,
 relational word before a parenthesis, last word of a multi-word operator, AND, OR, NOT) and 3 spaced programs accepted at every edition, plus one
 program accepted at 2002 and later in the shapes the 85 refusals pin. Unit tests in `SeparatorRuleTests` cover the unary arm at all four editions.
 No inventory row was open or closed. The design doc DESIGN-frontend-grammar.md carries the 1985 paragraph.

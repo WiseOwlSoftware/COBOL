@@ -2575,13 +2575,13 @@ already a SUBSCRIPT-mode token of the main lex.
 
 **COBOL-85's own operator spacing (kb/Work PB5989).** The §2023:8.7.1 exception for a unary operator beside a left parenthesis
 is a 2002 addition: §1985:VI.6.2.2 says its operators "must be preceded by a space and followed by a space", so at COBOL-85
-`ArithmeticOperatorViolations` admits no parenthesis for the unary arm (`EditionInfo.UnaryOperatorMayTouchParenthesis`). The same
+`ArithmeticOperatorViolations` admits a parenthesis AFTER a unary operator only from 2002 (`EditionInfo.UnaryOperatorMayTouchParenthesis`). A left parenthesis BEFORE a unary operator or a logical NOT stays accepted at 85: the NIST-validated programs (`IF123A`, `NC211A`) write `(- B)` and `(NOT (X = 1))`, and a parenthesis is itself a separator (§1985:IV.4.2.1 SR4); this is the one place the compiler reads "a space" as "a separator" (a determination, owner-visible in the DEVLOG). The same
 edition states two more spacing sentences no later one carries: §1985:VI.6.3.1.1 "A space must precede and follow each reserved word
 comprising the relational operator" and §1985:VI.6.3.2 "The logical operators must be preceded by a space and followed by a space".
 `SeparatorRule.ConditionOperatorViolations` asks them over the same parse tree (`EditionInfo.ConditionOperatorsNeedSeparatorSpaces`,
 COBOL-85 only; COBOL7672): every token of a `comparisonOperator` (a relation character is a special character word, a reserved word,
 §1985:IV.4.2.2.1.3.1) and every AND, OR and NOT that is a direct child of a condition tier, through the one `OperatorSpacingMessage`
-verdict with no parenthesis standing in for the space. The tree is what separates the OR of `GREATER THAN OR EQUAL TO` (a word of the
+verdict with no parenthesis standing in for the space after, and one only before a NOT. The tree is what separates the OR of `GREATER THAN OR EQUAL TO` (a word of the
 operator) from the OR connective.
 
 **A prefixed literal is delimited whatever its content (kb/Work PB1441).** `X"`, `N"`, `B"`, `NX"` and `BX"` are

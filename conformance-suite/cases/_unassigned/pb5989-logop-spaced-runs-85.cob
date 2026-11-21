@@ -19,4 +19,5 @@
            IF (A = 1) AND (B = 2) DISPLAY "BOTH".
            IF A = 1 AND NOT (B = 3) DISPLAY "NOT-B3".
            IF (A = 2) OR (B = 2) DISPLAY "EITHER".
+           IF A = 1 AND (NOT (B = 3)) DISPLAY "PAREN-NOT".
            STOP RUN.

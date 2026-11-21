@@ -141,23 +141,25 @@ public static class SeparatorRule
         var (name, clause) = op.Type == CobolLexer.COLONCOLON
             ? ("invocation operator", "§2023:8.7.4")
             : ("concatenation operator", "§2023:8.7.3");
-        return OperatorSpacingMessage(text, op, name, clause, parenthesisAdmitted: false);
+        return OperatorSpacingMessage(text, op, name, clause, parenthesisBefore: false, parenthesisAfter: false);
     }
 
     /// <summary>The ONE spacing verdict of the operator clauses (§2023:8.7.1, §2023:8.7.3, §2023:8.7.4): null when a separator space
     /// immediately precedes AND follows <paramref name="op"/>, otherwise the message naming the side (or sides) that
-    /// touch. <paramref name="parenthesisAdmitted"/> is §2023:8.7.1's one exception — a UNARY arithmetic operator needs no
-    /// space against a left parenthesis, on either side — so a '(' stands in for the space there. A comma or semicolon
+    /// touch. <paramref name="parenthesisBefore"/> and <paramref name="parenthesisAfter"/> name the sides on which a left
+    /// parenthesis stands in for the space: §2023:8.7.1's one exception — a UNARY arithmetic operator needs no space against a
+    /// left parenthesis, on either side — and, at COBOL-85, the left parenthesis before a unary operator or a logical NOT that the
+    /// NIST-validated corpus writes (kb/Work PB5989). A comma or semicolon
     /// immediately followed by a space is "a separator that may be used anywhere the separator space is used"
     /// (§2023:8.3.5 2)), so <c>1 *, 1</c> follows its operator with one — while <c>1 *,1</c> does not: that comma is the
     /// literal's decimal point (<see cref="IsDecimalComma"/>), no separator.</summary>
     private static string? OperatorSpacingMessage(string text, IToken op, string name, string clause,
-        bool parenthesisAdmitted)
+        bool parenthesisBefore, bool parenthesisAfter)
     {
         bool before = IsSeparatorSpace(CharAt(text, op.StartIndex - 1))
-            || (parenthesisAdmitted && CharAt(text, op.StartIndex - 1) == '(');
+            || (parenthesisBefore && CharAt(text, op.StartIndex - 1) == '(');
         int next = CharAt(text, op.StopIndex + 1);
-        bool after = IsSeparatorSpace(next) || (parenthesisAdmitted && next == '(')
+        bool after = IsSeparatorSpace(next) || (parenthesisAfter && next == '(')
             || (next is ',' or ';' && IsSeparatorSpace(CharAt(text, op.StopIndex + 2)));   // §2023:8.3.5 2): usable anywhere the space is
         if (before && after) return null;
         var (missing, fix) = (before, after) switch
@@ -166,7 +168,13 @@ public static class SeparatorRule
             (false, true) => ("preceded", "before it"),
             _ => ("followed", "after it"),
         };
-        string what = parenthesisAdmitted ? "a separator space or a left parenthesis" : "a separator space";
+        const string spaceOrParenthesis = "a separator space or a left parenthesis";
+        string what = (before, after) switch
+        {
+            (false, false) => parenthesisBefore && parenthesisAfter ? spaceOrParenthesis : "a separator space",
+            (false, true) => parenthesisBefore ? spaceOrParenthesis : "a separator space",
+            _ => parenthesisAfter ? spaceOrParenthesis : "a separator space",
+        };
         return $"the {name} '{op.Text}' is not immediately {missing} by {what} — ISO {clause} requires it to be "
             + $"immediately preceded and followed by {what}; write a space {fix}";
     }
@@ -198,7 +206,7 @@ public static class SeparatorRule
         {
             if (op is null || op.StartIndex < 0) return;   // a missing token of an error-recovered parse has no characters
             if (OperatorSpacingMessage(text, op, name, edition.Cite("§1985:VI.6.2.2", "§2023:8.7.1"),
-                    parenthesisAdmitted: unary && edition.UnaryOperatorMayTouchParenthesis) is { } message)
+                    parenthesisBefore: unary, parenthesisAfter: unary && edition.UnaryOperatorMayTouchParenthesis) is { } message)
                 (found ??= []).Add(new(op, DiagnosticCatalog.SeparatorOperatorSpacing, message));
         }
 
@@ -245,11 +253,11 @@ public static class SeparatorRule
     {
         if (!edition.ConditionOperatorsNeedSeparatorSpaces) return [];
         List<Violation>? found = null;
-        void Judge(ITerminalNode word, string name, string clause)
+        void Judge(ITerminalNode word, string name, string clause, bool parenBefore = false)
         {
             var op = word.Symbol;
             if (op.StartIndex < 0) return;   // a missing token of an error-recovered parse has no characters
-            if (OperatorSpacingMessage(text, op, name, clause, parenthesisAdmitted: false) is { } message)
+            if (OperatorSpacingMessage(text, op, name, clause, parenthesisBefore: parenBefore, parenthesisAfter: false) is { } message)
                 (found ??= []).Add(new(op, DiagnosticCatalog.SeparatorConditionOperatorSpacing, message));
         }
 
@@ -270,7 +278,7 @@ public static class SeparatorRule
                         or Core.NegatedAbbreviatedRelationContext:
                     for (int i = 0; i < node.ChildCount; i++)
                         if (node.GetChild(i) is ITerminalNode { Symbol.Type: CobolLexer.AND or CobolLexer.OR or CobolLexer.NOT } connective)
-                            Judge(connective, "logical operator", "§1985:VI.6.3.2");
+                            Judge(connective, "logical operator", "§1985:VI.6.3.2", parenBefore: connective.Symbol.Type == CobolLexer.NOT);
                     break;
             }
             for (int i = node.ChildCount - 1; i >= 0; i--) pending.Push(node.GetChild(i));
