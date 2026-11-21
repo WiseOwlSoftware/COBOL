@@ -278,7 +278,7 @@ public abstract class VersionMatrixTestsBase<TSlot>
 
     /// <summary>The archaic/obsolete flag contract (P2.6, ISO §2023:4.2.12/§2023:4.2.13): an <c>obsoleteIn</c> row
     /// COMPILES throughout its availability window (the element remains conforming) and carries the FIXED
-    /// 0903 band WARNING exactly at editions ≥ obsoleteIn — never below (no NIST-85 noise). A DUAL row
+    /// 0903 band WARNING exactly at editions ≥ obsoleteIn — never below (a 1985 obsolete element's obsoleteIn is 85, §1985:C.1). A DUAL row
     /// (obsolete then later REMOVED — QUOTE→numeric: obsolete 2014 per Annex E.2 item 21, removed 2023) is
     /// bounded below its <c>removedIn</c>; the removal edge is the ValidAt/RemovedMatrix theories' job and
     /// carries the row's <c>expectDiagnostic</c> (0902), while the obsolete verdict's code is ALWAYS 0903

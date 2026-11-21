@@ -3,9 +3,10 @@
  "description": "Section-header segment-number (the '85 Segmentation module: section-name SECTION [0-99].; 50-99 = independent segments) - at 85 all segments are resident, the flow restrictions of the module are checked (COBOL6877) and an independent segment's ALTERed GO TOs return to their initial state on re-entry (kb/Work PB5084; CONTROL_FLOW_DESIGN D4); deleted by ISO 2002. Companion of segment-limit-removed-2002.",
  "display": "a section-header segment-number",
  "diagnosticCode": "COBOL0902",
- "citation": "the '85 Segmentation module's section priority number, deleted by ISO 2002 ('segment' is absent from the 2023 text; §2023:8.9 absence); at 85 all segments are resident, the §1985:XVI.3.3 flow restrictions are COBOL6877 and an independent segment's ALTERed GO TOs return to their initial state on re-entry (§1985:XVI.1.4.3); companion of segment-limit-removed-2002; VCR Table 7 row 7.18",
+ "citation": "the '85 Segmentation module's section priority number, deleted by ISO 2002 ('segment' is absent from the 2023 text; §2023:8.9 absence); at 85 all segments are resident, the §1985:XVI.3.3 flow restrictions are COBOL6877 and an independent segment's ALTERed GO TOs return to their initial state on re-entry (§1985:XVI.1.4.3); companion of segment-limit-removed-2002; VCR Table 7 row 7.18; obsolete element (§1985:C.1 item 17)",
  "introducedIn": 85,
  "removedIn": 2002,
+ "obsoleteIn": 85,
  "expectDiagnostic": "COBOL0902",
  "vcr": "VCR Table 7 row 7.18; the W3 notInGrammar 85-acceptance batch (DEVLOG 599)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSG1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9 VALUE 5.\nPROCEDURE DIVISION.\nFIRST-PART SECTION 10.\nP1.\n    DISPLAY W.\nSECOND-HALF SECTION 50.\nP2.\n    STOP RUN.\n"
