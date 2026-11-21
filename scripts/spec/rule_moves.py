@@ -54,6 +54,11 @@ QUOTE_WORDS = 8
 #: The mark an upheld recheck leaves in the parent's notes: the record's history, after its prose.
 RECHECK_MARK = "split-recheck:"
 
+#: Where an edition's applied split batches are kept, tracked: a split is an operation on the store whose batch file is
+#: otherwise gone once applied, and the WITNESS LOSS audit reads it here to tell a parent whose record a split withdrew
+#: (kb/Work PB5452) from a hand edit.
+SPLIT_DIR = "docs/rearchitecture/spec-splits-{year}"
+
 Record = dict[str, Any]
 
 
@@ -63,6 +68,17 @@ def is_move(rec: Record) -> bool:
 
 def is_split(rec: Record) -> bool:
     return SPLIT in rec
+
+
+def split_parents(records: list[Record]) -> dict[str, Record]:
+    """{parent id: its split} for every split among `records`."""
+    return {r["rule-id"]: r[SPLIT] for r in records if is_split(r)}
+
+
+def explains(split: Record, was: str | None, now: str | None) -> bool:
+    """Does `split` account for a parent whose `rule-digest` went from `was` to `now`? It was decided against the split's
+    `old-text` and the recheck read the remaining text it holds now (the two digests `errors` holds a split to)."""
+    return rule_digest(split["old-text"]) == was and split["recheck"]["digest"] == now
 
 
 def structural(rec: Record) -> bool:

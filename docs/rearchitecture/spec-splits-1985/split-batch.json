@@ -1,0 +1,587 @@
+{
+ "batch": "pb5452-1985-mint-split",
+ "records": [
+  {
+   "rule-id": "1985-SR-IV.4.2.1-9",
+   "split": {
+    "old-text": "The separator space may optionally immediately follow any separator except the opening quotation mark. In this case, a following space is considered as part of the nonnumeric literal and not as a separator.\nAny punctuation character which appears as part of the specification of a PICTURE character-string or numeric literal is not considered as a punctuation character, but rather as a symbol used in the specification of that PICTURE character-string or numeric literal. PICTURE character-strings are delimited only by the separators space, comma, semicolon, or period.\nThe rules established for the formation of separators do not apply to the characters which comprise the contents of nonnumeric literals, comment-entries, or comment lines.",
+    "carved": [
+     "Any punctuation character which appears as part of the specification of a PICTURE character-string or numeric literal is not considered as a punctuation character, but rather as a symbol used in the specification of that PICTURE character-string or numeric literal. PICTURE character-strings are delimited only by the separators space, comma, semicolon, or period.",
+     "The rules established for the formation of separators do not apply to the characters which comprise the contents of nonnumeric literals, comment-entries, or comment lines."
+    ],
+    "rows": [
+     "1985-SR-IV.4.2.1-p2",
+     "1985-SR-IV.4.2.1-p3"
+    ],
+    "recheck": {
+     "outcome": "OVERTURNED",
+     "refuter": "cobol-refuter pb5452 recheck",
+     "attempt": "Checked whether next.to and the reason still describe the remaining sentence alone (space after a separator other than the opening quotation mark, part of the literal).",
+     "date": "2026-11-21",
+     "digest": "12501d527e42"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-IV.4.2.2.2.3-7",
+   "split": {
+    "old-text": "[ALL] symbolic-character Represents one or more of the character specified as the value of this symbolic-character in the SYMBOLIC CHARACTERS clause of the SPECIAL-NAMES paragraph. (See page VI-13, The SPECIAL-NAMES Paragraph.)\nWhen a figurative constant represents a string of one or more characters, the length of the string is determined by the compiler from context according to the following rules:",
+    "carved": [
+     "When a figurative constant represents a string of one or more characters, the length of the string is determined by the compiler from context according to the following rules:"
+    ],
+    "rows": [],
+    "recheck": {
+     "outcome": "UPHELD",
+     "refuter": "cobol-refuter pb5452 recheck",
+     "attempt": "Tried to show the KEPT mapping or the symbolic-character witness depended on the carved lead-in about string length from context.",
+     "date": "2026-11-21",
+     "digest": "0e85c7fe4eb4"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-IV.4.2.2.2.3-L2.3",
+   "split": {
+    "old-text": "When the figurative constant ALL literal is not associated with another data item, the length of the string is the length of the literal.\nA figurative constant may be used whenever 'literal' appears in a format with the following exceptions:",
+    "carved": [
+     "A figurative constant may be used whenever 'literal' appears in a format with the following exceptions:"
+    ],
+    "rows": [
+     "1985-SR-IV.4.2.2.2.3-p4"
+    ],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "818d8bbe2b4a"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-SR-IV.4.2.2.2.3-L3.3",
+   "split": {
+    "old-text": "When a figurative constant other than ALL literal is used, the word ALL is redundant and is used for readability only.\nExcept in the SPECIAL-NAMES paragraph, when the figurative constants HIGH-VALUES(S) or LOW-VALUE(S) are used in the source program, the actual characters associated with each figurative constant depend upon the program collating sequence specified. (See page VI-11, The OBJECT-COMPUTER Paragraph, and page VI-13, The SPECIAL-NAMES Paragraph.)\nEach reserved word which is used to reference a figurative constant value is a distinct character-string with the exception of the constructs using the word ALL, such as ALL literal, ALL SPACES, etc., which are composed of two distinct character-strings.",
+    "carved": [
+     "Except in the SPECIAL-NAMES paragraph, when the figurative constants HIGH-VALUES(S) or LOW-VALUE(S) are used in the source program, the actual characters associated with each figurative constant depend upon the program collating sequence specified. (See page VI-11, The OBJECT-COMPUTER Paragraph, and page VI-13, The SPECIAL-NAMES Paragraph.)",
+     "Each reserved word which is used to reference a figurative constant value is a distinct character-string with the exception of the constructs using the word ALL, such as ALL literal, ALL SPACES, etc., which are composed of two distinct character-strings."
+    ],
+    "rows": [
+     "1985-SR-IV.4.2.2.2.3-p6"
+    ],
+    "recheck": {
+     "outcome": "OVERTURNED",
+     "refuter": "cobol-refuter pb5452 recheck",
+     "attempt": "Checked whether the CHANGED mapping, code-location and notes rest on the carved HIGH/LOW-VALUE collating paragraph (p5) and the two-character-string paragraph (p6).",
+     "date": "2026-11-21",
+     "digest": "1a6af2d7a993"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-IV.4.3.2.1-3",
+   "split": {
+    "old-text": "Entries that specify condition-names.\nEntries describing items by means of RENAMES clauses for the purpose of re-grouping data items have been assigned the special level-number 66.\nEntries that specify noncontiguous data items, which are not subdivisions of other items, and are not themselves subdivided, have been assigned the special level-number 77.\nEntries that specify condition-names, to be associated with particular values of a conditional variable, have been assigned the special level-number 88.",
+    "carved": [
+     "Entries describing items by means of RENAMES clauses for the purpose of re-grouping data items have been assigned the special level-number 66.",
+     "Entries that specify noncontiguous data items, which are not subdivisions of other items, and are not themselves subdivided, have been assigned the special level-number 77.",
+     "Entries that specify condition-names, to be associated with particular values of a conditional variable, have been assigned the special level-number 88."
+    ],
+    "rows": [
+     "1985-GR-IV.4.3.2.1-p5"
+    ],
+    "recheck": {
+     "outcome": "UPHELD",
+     "refuter": "cobol-refuter pb5452 recheck",
+     "attempt": "Tried to show the KEPT mapping to GR-8.5.1.3.2-3 relied on the carved level-number 66/77/88 sentences.",
+     "date": "2026-11-21",
+     "digest": "337335cf772d"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-IV.4.3.6-3",
+   "split": {
+    "old-text": "If the receiving data item is alphanumeric (other than a numeric edited data item), alphanumeric edited, or alphabetic, the sending data is moved to the receiving character positions and aligned at the leftmost character position in the data item with space fill or truncation to the right, as required.\nIf the JUSTIFIED clause is specified for the receiving item, these standard rules are modified. (See page VI-24, The JUSTIFIED Clause.)",
+    "carved": [
+     "If the JUSTIFIED clause is specified for the receiving item, these standard rules are modified. (See page VI-24, The JUSTIFIED Clause.)"
+    ],
+    "rows": [],
+    "recheck": {
+     "outcome": "OVERTURNED",
+     "refuter": "cobol-refuter pb5452 recheck",
+     "attempt": "Checked whether next.to states the remaining rule (left alignment, space fill or right truncation) or only the carved JUSTIFIED modification.",
+     "date": "2026-11-21",
+     "digest": "b98be94e83a6"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-IV.4.3.7-2",
+   "split": {
+    "old-text": "By recognizing the appropriate natural boundaries and organizing the data suitably without the use of the SYNCHRONIZED clause.\nEach implementor who provides for special types of alignment will specify the precise interpretations which are to be made. The use of such items within a group may affect the results of statements in which the group is used as an operand. Each implementor who provides for these special types of alignment will describe the effect of the implicit FILLER and the semantics of any statement referencing these groups.",
+    "carved": [
+     "Each implementor who provides for special types of alignment will specify the precise interpretations which are to be made. The use of such items within a group may affect the results of statements in which the group is used as an operand. Each implementor who provides for these special types of alignment will describe the effect of the implicit FILLER and the semantics of any statement referencing these groups."
+    ],
+    "rows": [
+     "1985-GR-IV.4.3.7-p5"
+    ],
+    "recheck": {
+     "outcome": "UPHELD",
+     "refuter": "cobol-refuter pb5452 recheck",
+     "attempt": "Tried to show the KEPT mapping depended on the carved implementor special-alignment paragraph.",
+     "date": "2026-11-21",
+     "digest": "140069ec3441"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-SR-IV.4.3.8.1-4",
+   "split": {
+    "old-text": "A program is contained within a program or contains another program. (See page X-4, Scope of Names.)\nRegardless of the above, the same data-name must not be used as the name of an external record and as the name of any other external data item described in any program contained within or containing the program which describes that external data record. The same data-name must not be used as the name of an item possessing the global attribute and as the name of any other data item described in the program which describes that global data item.\nThe general formats for qualification are:\n<u>Format 1</u>:\n<pre style=\"line-height:1\">\n╭ ╭ ╭ <u>IN</u> ╮ data-name-2 ╮ … ┌ ╭ <u>IN</u> ╮ ╭ file-name-1 ╮ ┐ ╮\n│ ┤ ┤ ├ ├ │ ┤ ├ ┤ ├ │ │\n╭ data-name-1 ╮ ┤ ╰ ╰ <u>OF</u> ╯ ╯ └ ╰ <u>OF</u> ╯ ╰ cd-name-1 ╯ ┘ ├\n┤ ├ │ │\n╰ condition-name-1 ╯ │ ╭ <u>IN</u> ╮ ╭file-name-1 ╮ │\n│ ┤ ├ ┤ ├ │\n╰ ╰ <u>OF</u> ╯ ╰cd-name-1 ╯ ╯\n</pre>\n<u>Format 2</u>:\n<pre style=\"line-height:1\">\n╭ <u>IN</u> ╮\n┤ ├\nparagraph-name-1 ╰ <u>OF</u> ╯ section-name-1\n</pre>\n<u>Format 3</u>:\n<pre style=\"line-height:1\">\n╭ <u>IN</u> ╮\ntext-name-1 ┤ ├ library-name-1\n╰ <u>OF</u> ╯\n</pre>\n<u>Format 4</u>:\n<pre style=\"line-height:1\">\n╭ <u>IN</u> ╮\n<u>LINAGE-COUNTER</u> ┤ ├ file-name-2\n╰ <u>OF</u> ╯\n</pre>\n<u>Format 5</u>:\n<pre style=\"line-height:1\">\n╭ <u>PAGE-COUNTER</u> ╮ ╭ <u>IN</u> ╮\n┤ ├ ┤ ├ report-name-1\n╰ <u>LINE-COUNTER</u> ╯ ╰ <u>OF</u> ╯\n</pre>\n<u>Format 6</u>:\n<pre style=\"line-height:1\">\n╭ ╭ <u>IN</u> ╮ ┌ ╭ <u>IN</u> ╮ ┐ ╮\n│ ┤ ├ data-name-4 │ ┤ ├ report-name-2 │ │\n│ ╰ <u>OF</u> ╯ └ ╰ <u>OF</u> ╯ ┘ │\ndata-name-3 ┤ ├\n│ ╭ <u>IN</u> ╮ │\n│ ┤ ├ report-name-2 │\n╰ ╰ <u>OF</u> ╯ ╯\n</pre>\nThe rules for qualification are as follows:",
+    "carved": [
+     "Regardless of the above, the same data-name must not be used as the name of an external record and as the name of any other external data item described in any program contained within or containing the program which describes that external data record. The same data-name must not be used as the name of an item possessing the global attribute and as the name of any other data item described in the program which describes that global data item.",
+     "The general formats for qualification are:",
+     "The rules for qualification are as follows:"
+    ],
+    "rows": [
+     "1985-SR-IV.4.3.8.1-p2",
+     "1985-SR-IV.4.3.8.1-p3"
+    ],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "52dde0f9cbdb"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-IV.4.4.2-3",
+   "split": {
+    "old-text": "When any COBOL statement is executed which results in the execution of a declarative section, an implicit transfer of control to the declarative section occurs. Note that another implicit transfer of control occurs after execution of the declarative section, as described in paragraph 1 above.\nAn explicit transfer of control consists of an alteration of the implicit control transfer mechanism by the execution of a procedure branching or conditional statement. An explicit transfer of control can be caused only by the execution of a procedure branching or conditional statement. The execution of the procedure branching statement ALTER does not in itself constitute an explicit transfer of control, but affects the explicit transfer of control that occurs when the associated GO TO statement is executed. The procedure branching statement EXIT PROGRAM causes an explicit transfer of control only when the statement is executed in a called program.\nIn this document, the term 'next executable statement' is used to refer to the next COBOL statement to which control is transferred according to the rules above and the rules associated with each language element.\nThere is no next executable statement when the program contains no Procedure Division or following:",
+    "carved": [
+     "An explicit transfer of control consists of an alteration of the implicit control transfer mechanism by the execution of a procedure branching or conditional statement. An explicit transfer of control can be caused only by the execution of a procedure branching or conditional statement. The execution of the procedure branching statement ALTER does not in itself constitute an explicit transfer of control, but affects the explicit transfer of control that occurs when the associated GO TO statement is executed. The procedure branching statement EXIT PROGRAM causes an explicit transfer of control only when the statement is executed in a called program.",
+     "In this document, the term 'next executable statement' is used to refer to the next COBOL statement to which control is transferred according to the rules above and the rules associated with each language element.",
+     "There is no next executable statement when the program contains no Procedure Division or following:"
+    ],
+    "rows": [
+     "1985-GR-IV.4.4.2-p4",
+     "1985-GR-IV.4.4.2-p5",
+     "1985-GR-IV.4.4.2-p6"
+    ],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "b05f45f45437"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-IV.4.4.2-L2.5",
+   "split": {
+    "old-text": "The end program header.\nWhen there is no next executable statement and control is not transferred outside the COBOL program, the program flow of control is undefined unless the program execution is in the nondeclarative procedures portion of a program under control of a CALL statement, in which case an implicit EXIT PROGRAM statement is executed.",
+    "carved": [
+     "When there is no next executable statement and control is not transferred outside the COBOL program, the program flow of control is undefined unless the program execution is in the nondeclarative procedures portion of a program under control of a CALL statement, in which case an implicit EXIT PROGRAM statement is executed."
+    ],
+    "rows": [
+     "1985-GR-IV.4.4.2-p7"
+    ],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "7b7e76353524"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-SR-VI.6.3.1.1.2-3",
+   "split": {
+    "old-text": "A noninteger numeric operand cannot be compared to a nonnumeric operand.\nThe size of an operand is the total number of standard data format characters in the operand. Numeric and nonnumeric operands may be compared only when their usage is the same.\nThere are two cases to consider: operands of equal size and operands of unequal size.",
+    "carved": [
+     "The size of an operand is the total number of standard data format characters in the operand. Numeric and nonnumeric operands may be compared only when their usage is the same.",
+     "There are two cases to consider: operands of equal size and operands of unequal size."
+    ],
+    "rows": [
+     "1985-GR-VI.6.3.1.1.2-p2"
+    ],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "9b9e211f26e4"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-VI.6.3.1.2-5",
+   "split": {
+    "old-text": "An operand is in conformance to class-name-1, if it consists entirely of the characters listed in the definition of class-name-1 in the SPECIAL-NAMES paragraph.\nThe general format of the class condition is:\n<pre style=\"line-height:1\">\n╭ <u>NUMERIC</u> ╮\n┤ ├\n│ <u>ALPHABETIC</u> │\nidentifier-1 IS [<u>NOT</u>] ┤ <u>ALPHABETIC-LOWER</u> ├\n│ <u>ALPHABETIC-UPPER</u> │\n┤ ├\n╰ class-name-1 ╯\n</pre>\nIdentifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function. When the class condition does not include the word NOT and identifier-1 is a zero-length group item, the result of the class test is always false.\nWhen used, NOT and the next key word specify one class condition that defines the class test to be executed for truth value; e.g. NOT NUMERIC is a truth test for determining that an operand is nonnumeric. When the class condition includes the word NOT and identifier-1 is a zero-length group item, the result of the class test is always true.\nThe NUMERIC test cannot be used with an item whose data description describes the item as alphabetic or as a group item composed of elementary items whose data description indicates the presence of operational sign(s). If the data description of the item being tested does not indicate the presence of an operational sign, the item being tested is determined to be numeric only if the content is numeric and an operational sign is not present. If the data description of the item does indicate the presence of an operational sign, the item being tested is determined to be numeric only if the content is numeric and a valid operational sign is present. Valid operational signs for data items described with the SIGN IS SEPARATE clause are the standard data format characters + and -; the implementor defines what constitutes valid sign(s) for data items not described with the SIGN IS SEPARATE clause.\nThe ALPHABETIC test cannot be used with an item whose data description describes the item as numeric. The result of the test is true if the content of the data item referenced by identifier-1 consists entirely of alphabetic characters.\nThe ALPHABETIC-LOWER test cannot be used with an item whose data description describes the item as numeric. The result of the test is true if the content of the data item referenced by identifier-1 consists entirely of the lowercase alphabetic characters a through z and space.\nThe ALPHABETIC-UPPER test cannot be used with an item whose data description describes the item as numeric. The result of the test is true if the content of the data item referenced by identifier-1 consists entirely of the uppercase alphabetic characters A through Z and space.\nThe class-name-1 test must not be used with an item whose data description describes the item as numeric.",
+    "carved": [
+     "The general format of the class condition is:",
+     "Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function. When the class condition does not include the word NOT and identifier-1 is a zero-length group item, the result of the class test is always false.",
+     "When used, NOT and the next key word specify one class condition that defines the class test to be executed for truth value; e.g. NOT NUMERIC is a truth test for determining that an operand is nonnumeric. When the class condition includes the word NOT and identifier-1 is a zero-length group item, the result of the class test is always true.",
+     "The NUMERIC test cannot be used with an item whose data description describes the item as alphabetic or as a group item composed of elementary items whose data description indicates the presence of operational sign(s). If the data description of the item being tested does not indicate the presence of an operational sign, the item being tested is determined to be numeric only if the content is numeric and an operational sign is not present. If the data description of the item does indicate the presence of an operational sign, the item being tested is determined to be numeric only if the content is numeric and a valid operational sign is present. Valid operational signs for data items described with the SIGN IS SEPARATE clause are the standard data format characters + and -; the implementor defines what constitutes valid sign(s) for data items not described with the SIGN IS SEPARATE clause.",
+     "The ALPHABETIC test cannot be used with an item whose data description describes the item as numeric. The result of the test is true if the content of the data item referenced by identifier-1 consists entirely of alphabetic characters.",
+     "The ALPHABETIC-LOWER test cannot be used with an item whose data description describes the item as numeric. The result of the test is true if the content of the data item referenced by identifier-1 consists entirely of the lowercase alphabetic characters a through z and space.",
+     "The ALPHABETIC-UPPER test cannot be used with an item whose data description describes the item as numeric. The result of the test is true if the content of the data item referenced by identifier-1 consists entirely of the uppercase alphabetic characters A through Z and space.",
+     "The class-name-1 test must not be used with an item whose data description describes the item as numeric."
+    ],
+    "rows": [
+     "1985-SR-VI.6.3.1.2-p3",
+     "1985-GR-VI.6.3.1.2-p4",
+     "1985-GR-VI.6.3.1.2-p5",
+     "1985-GR-VI.6.3.1.2-p6",
+     "1985-GR-VI.6.3.1.2-p7",
+     "1985-GR-VI.6.3.1.2-p8",
+     "1985-SR-VI.6.3.1.2-p9"
+    ],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "ebfd196f391e"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-SR-VI.6.3.3-2",
+   "split": {
+    "old-text": "║The omission of the subject and relational operator of the relation condition.║\n║The format for an abbreviated combined relation condition is:║\n<pre style=\"line-height:1\">\n╔ ╭ ╭ <u>AND</u> ╮ ╮ ╗\n║relation-condition ┤ ┤ ├ [<u>NOT</u>] [relational-operator] object ├ … ║\n╚ ╰ ╰ <u>OR</u> ╯ ╯ ╝\n</pre>\n║Within a sequence of relation conditions both of the above forms of abbreviation may be used. The effect of using such abbreviations is as if the last preceding stated subject were inserted in place of the omitted subject, and the last stated relational operator were inserted in place of the omitted relational operator. The result of such implied insertion must comply with the rules of table 1 on page VI-60. This insertion of an omitted subject and/or relational operator terminates once a complete simple condition is encountered within a complex condition.║\n║The interpretation applied to the use of the word NOT in an abbreviated combined relation condition is as follows:║",
+    "carved": [
+     "║The format for an abbreviated combined relation condition is:║",
+     "║Within a sequence of relation conditions both of the above forms of abbreviation may be used. The effect of using such abbreviations is as if the last preceding stated subject were inserted in place of the omitted subject, and the last stated relational operator were inserted in place of the omitted relational operator. The result of such implied insertion must comply with the rules of table 1 on page VI-60. This insertion of an omitted subject and/or relational operator terminates once a complete simple condition is encountered within a complex condition.║",
+     "║The interpretation applied to the use of the word NOT in an abbreviated combined relation condition is as follows:║"
+    ],
+    "rows": [
+     "1985-GR-VI.6.3.3-p3"
+    ],
+    "recheck": {
+     "outcome": "OVERTURNED",
+     "refuter": "cobol-refuter pb5452 recheck",
+     "attempt": "Checked whether the KEPT mapping states the remaining rule (omission of subject and operator plus the format '[NOT] [relational-operator] object').",
+     "date": "2026-11-21",
+     "digest": "af91c3ef6643"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-VI.6.3.3-L2.2",
+   "split": {
+    "old-text": "║The NOT is interpreted as a logical operator and, therefore, the implied insertion of subject or relational operator results in a negated relation condition.║\n║Some examples of abbreviated combined and negated combined relation conditions and expanded equivalents follow.║\n| ║Abbreviated Combined Relation Condition | Expanded Equivalent║ |\n|---|---|\n| ║a &gt; b AND NOT &lt; c OR d | ((a &gt; b) AND (a NOT &lt; c)) OR (a NOT &lt; d)║ |\n| ║a NOT EQUAL b OR c | (a NOT EQUAL b) OR (a NOT EQUAL c)║ |\n| ║NOT a = b OR c | (NOT (a = b)) OR (a = c)║ |\n| ║NOT (a GREATER b OR &lt; c) | NOT ((a GREATER b) OR (a &lt; c))║ |\n| ║NOT (a NOT &gt; b AND c AND NOT d) | NOT ((((a NOT &gt; b) AND (a NOT &gt; c))<br>AND (NOT (a NOT &gt; d))))║ |",
+    "carved": [
+     "║Some examples of abbreviated combined and negated combined relation conditions and expanded equivalents follow.║"
+    ],
+    "rows": [
+     "1985-GR-VI.6.3.3-p5"
+    ],
+    "recheck": {
+     "outcome": "UPHELD",
+     "refuter": "cobol-refuter pb5452 recheck",
+     "attempt": "Tried to show the CHANGED record or its witnesses depended on the carved sentence introducing the example table.",
+     "date": "2026-11-21",
+     "digest": "66d33861be75"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-VI.6.3.4-2",
+   "split": {
+    "old-text": "║Values are established for arithmetic expressions and functions if and when the conditions containing them are evaluated. Similarly, negated conditions are evaluated if and when it is necessary to evaluate the complex condition that they represent. (See page VI-52, Formation and Evaluation Rules.)║\n║Application of the above rules is shown in figures 1 through 4 located on the following pages. These figures are not intended to dictate implementation.║\n<pre style=\"line-height:1\">\n┌─────────────┐\n│ Evaluate │\n│ condition-1 │\n└──────┬──────┘\n│\n╭──────┴──────╮\n( condition-1 )──────────── yes ────────────┐\n( false ) │\n╰──────┬──────╯ │\n│ no │\n┌──────┴──────┐ │\n│ Evaluate │ │\n│ condition-2 │ │\n└──────┬──────┘ │\n│ │\n╭──────┴──────╮ │\n( condition-2 )──────────── yes ────────────┤\n( false ) │\n╰──────┬──────╯ │\n¦ no │\n¦ │\n┌──────┴──────┐ │\n│ Evaluate │ │\n│ condition-n │ │\n└──────┬──────┘ │\n│ │\n╭──────┴──────╮ │\n( condition-n )──────────── yes ────────────┤\n( false ) │\n╰──────┬──────╯ │\n│ no │\n│ │\n│ │\n▼ ▼\ntruth value truth value\nis <u>true</u> is <u>false</u>\n</pre>\nFigure 1: Evaluation of the hierarchical level\ncondition-1 AND condition-2 AND ... condition-n\n```mermaid\nflowchart TD\nE1[\"Evaluate<br>condition-1\"] --> C1([\"condition-1<br>true\"])\nC1 -- no --> E2[\"Evaluate<br>condition-2\"]\nE2 --> C2([\"condition-2<br>true\"])\nC2 -. no .-> En[\"Evaluate<br>condition-n\"]\nEn --> Cn([\"condition-n<br>true\"])\nCn -- no --> F[\"truth value<br>is <u>false</u>\"]\nC1 -- yes --> T[\"truth value<br>is <u>true</u>\"]\nC2 -- yes --> T\nCn -- yes --> T\n```\nFigure 2: Evaluation of the hierarchical level\ncondition-1 OR condition-2 OR ... condition-n\n<pre style=\"line-height:1\">\n┌──────────────┐\n│ Evaluate │\n│ condition-1 │\n└──────┬───────┘\n│\n╭──────┴───────╮\n│ condition-1 │ yes\n│ true ├──────────────────────────┐\n╰──────┬───────╯ │\n│ no │\n┌──────┴───────┐ │\n│ Evaluate │ │\n│ condition-2 │ │\n└──────┬───────┘ │\n│ │\nyes ╭──────┴───────╮ │\n┌─────────────┤ condition-2 │ │\n│ │ false │ │\n│ ╰──────┬───────╯ │\n│ │ no │\n│ ┌──────┴───────┐ │\n│ │ Evaluate │ │\n│ │ condition-3 │ │\n│ └──────┬───────┘ │\n│ │ │\n│ yes ╭──────┴───────╮ no │\n│◄────────────┤ condition-3 ├──────────────────────────┤\n│ │ false │ │\n│ ╰──────────────╯ │\n▼ ▼\ntruth value truth value\nis <u>false</u> is <u>true</u>\n</pre>\nFigure 3: Evaluation of condition-1 OR condition-2 AND condition-3\n<pre style=\"line-height:1\">\n┌──────────────┐\n│ Evaluate │\n│ condition-1 │\n└──────┬───────┘\n│\n( condition-1 ) yes\n( true )──────────────────────────────┐\n│ no │\n┌──────┴───────┐ │\n│ Evaluate │ │\n│NOT condition-2│ │\n└──────┬───────┘ │\n│ │\n(NOT condition-2) yes │\n( true )──────────────────────────────┤\n│ no │\n│ ┌───────┴──────┐\n│ │ Evaluate │\n│ │ condition-3 │\n│ └───────┬──────┘\n│ │\n│ yes ( condition-3 )\n│&lt;──────────────────────────────( false )\n│ │ no\n│ ┌───────┴──────┐\n│ │ Evaluate │\n│ │ condition-4 │\n│ └───────┬──────┘\n│ │\n│ yes ( condition-4 )\n│&lt;──────────────────────────────( false )\n│ │ no\n▼ ▼\ntruth value truth value\nis <u>false</u> is <u>true</u>\n</pre>\nFigure 4: Evaluation of (condition-1 OR NOT condition-2) AND condition-3 AND condition-4",
+    "carved": [
+     "║Application of the above rules is shown in figures 1 through 4 located on the following pages. These figures are not intended to dictate implementation.║",
+     "Figure 1:  Evaluation of the hierarchical level"
+    ],
+    "rows": [
+     "1985-GR-VI.6.3.4-p2"
+    ],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "6a1f553ed38a"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-VI.6.4.2-3",
+   "split": {
+    "old-text": "If, after radix point alignment, the absolute value of a result exceeds the largest value that can be contained in the associated resultant identifier, a size error condition exists. In the case where the USAGE IS BINARY clause is specified for the resultant identifier, the largest value that can be contained in the resultant identifier is the maximum value implied by the associated decimal PICTURE character-string. If the ROUNDED phrase is specified, rounding takes place before checking for size error.\nIf the ON SIZE ERROR phrase is specified and a size error condition exists after the execution of the arithmetic operations specified by an arithmetic statement, the values of the affected resultant identifiers remain unchanged from the values they had before execution of the arithmetic statement. The values of resultant identifiers for which no size error condition exists are the same as they would have been if the size error condition had not resulted for any of the resultant identifiers. After completion of the arithmetic operations, control is transferred to the imperative-statement specified in the ON SIZE ERROR phrase and execution continues according to the rules for each statement specified in that imperative-statement. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of the imperative-statement specified in the ON SIZE ERROR phrase, control is transferred to the end of the arithmetic statement and the NOT ON SIZE ERROR phrase, if specified, is ignored.\nIf the ON SIZE ERROR phrase is not specified and a size error condition exists after the execution of the arithmetic operations specified by an arithmetic statement, the values of the affected resultant identifiers are undefined. The values of resultant identifiers for which no size error condition exists are the same as they would have been if the size error condition had not resulted for any of the resultant identifiers. After completion of the arithmetic operations, control is transferred to the end of the arithmetic statement and the NOT ON SIZE ERROR phrase, if specified, is ignored.\nIf the size error condition does not exist after the execution of the arithmetic operations specified by an arithmetic statement, the ON SIZE ERROR phrase, if specified, is ignored and control is transferred to the end of the arithmetic statement or to the imperative-statement specified in the NOT ON SIZE ERROR phrase if it is specified. In the latter case, execution continues according to the rules for each statement specified in that imperative-statement. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of the imperative-statement specified in the NOT ON SIZE ERROR phrase, control is transferred to the end of the arithmetic statement.\n║For the ADD statement with the CORRESPONDING phrase and the SUBTRACT statement with the CORRESPONDING phrase, if any of the individual operations produces a size error condition, imperative-statement-1 in the ON SIZE ERROR phrase is not executed until all of the individual additions or subtractions are completed.║",
+    "carved": [
+     "If the ON SIZE ERROR phrase is specified and a size error condition exists after the execution of the arithmetic operations specified by an arithmetic statement, the values of the affected resultant identifiers remain unchanged from the values they had before execution of the arithmetic statement. The values of resultant identifiers for which no size error condition exists are the same as they would have been if the size error condition had not resulted for any of the resultant identifiers. After completion of the arithmetic operations, control is transferred to the imperative-statement specified in the ON SIZE ERROR phrase and execution continues according to the rules for each statement specified in that imperative-statement. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of the imperative-statement specified in the ON SIZE ERROR phrase, control is transferred to the end of the arithmetic statement and the NOT ON SIZE ERROR phrase, if specified, is ignored.",
+     "If the ON SIZE ERROR phrase is not specified and a size error condition exists after the execution of the arithmetic operations specified by an arithmetic statement, the values of the affected resultant identifiers are undefined. The values of resultant identifiers for which no size error condition exists are the same as they would have been if the size error condition had not resulted for any of the resultant identifiers. After completion of the arithmetic operations, control is transferred to the end of the arithmetic statement and the NOT ON SIZE ERROR phrase, if specified, is ignored.",
+     "If the size error condition does not exist after the execution of the arithmetic operations specified by an arithmetic statement, the ON SIZE ERROR phrase, if specified, is ignored and control is transferred to the end of the arithmetic statement or to the imperative-statement specified in the NOT ON SIZE ERROR phrase if it is specified. In the latter case, execution continues according to the rules for each statement specified in that imperative-statement. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of the imperative-statement specified in the NOT ON SIZE ERROR phrase, control is transferred to the end of the arithmetic statement.",
+     "║For the ADD statement with the CORRESPONDING phrase and the SUBTRACT statement with the CORRESPONDING phrase, if any of the individual operations produces a size error condition, imperative-statement-1 in the ON SIZE ERROR phrase is not executed until all of the individual additions or subtractions are completed.║"
+    ],
+    "rows": [
+     "1985-GR-VI.6.4.2-p2",
+     "1985-GR-VI.6.4.2-p3",
+     "1985-GR-VI.6.4.2-p4",
+     "1985-GR-VI.6.4.2-p5"
+    ],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "9578aa473dc9"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-VI.6.4.6-2",
+   "split": {
+    "old-text": "A sequence of statements whose execution transfers or combines the value in this temporary location with each single resulting data item. These statements are considered to be written in the same left-to-right sequence that the multiple results are specified.\nThe result of the statement\n```\nADD a, b, c, TO c, d (c), e\n```\nis equivalent to\n```\nADD a, b, c GIVING temp\nADD temp TO c\nADD temp TO d (c)\nADD temp TO e\n```\nand the result of the statement\n```\nMULTIPLY a (i) BY i, a (i)\n```\nis equivalent to\n```\nMOVE a (i) TO temp\nMULTIPLY temp BY i\nMULTIPLY temp BY a (i)\n```\nin both cases, 'temp' is an intermediate result item provided by the implementor.",
+    "carved": [
+     "The result of the statement",
+     "is equivalent to",
+     "and the result of the statement",
+     "is equivalent to",
+     "in both cases, 'temp' is an intermediate result item provided by the implementor."
+    ],
+    "rows": [],
+    "recheck": {
+     "outcome": "UPHELD",
+     "refuter": "cobol-refuter pb5452 recheck",
+     "attempt": "Tried to show the KEPT reason ('implementor-defined intermediate') rested on the carved 'temp is provided by the implementor' sentence.",
+     "date": "2026-11-21",
+     "digest": "07661fe010b2"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-VII.1.3.5-5",
+   "split": {
+    "old-text": "Implementor Defined. The input-output statement was unsuccessfully executed as a result of a condition that is specified by the implementor.\nThe following is a list of the values placed in the I-O status for the previously named conditions resulting from the execution of an input-output operation on a sequential file. If more than one value applies, the implementor determines which of the applicable values to place in the I-O status.",
+    "carved": [
+     "The following is a list of the values placed in the I-O status for the previously named conditions resulting from the execution of an input-output operation on a sequential file. If more than one value applies, the implementor determines which of the applicable values to place in the I-O status."
+    ],
+    "rows": [
+     "1985-GR-VII.1.3.5-p5"
+    ],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "c4854cf12e42"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-VIII.1.3.4-6",
+   "split": {
+    "old-text": "Implementor Defined. The input-output statement was unsuccessfully executed as the result of a condition that is specified by the implementor.\nThe following is a list of the values placed in the I-O status for the previously named conditions resulting from the execution of an input-output operation on a relative file. If more than one value applies, the implementor determines which of the applicable values to place in the I-O status.",
+    "carved": [
+     "The following is a list of the values placed in the I-O status for the previously named conditions resulting from the execution of an input-output operation on a relative file. If more than one value applies, the implementor determines which of the applicable values to place in the I-O status."
+    ],
+    "rows": [
+     "1985-GR-VIII.1.3.4-p5"
+    ],
+    "recheck": {
+     "outcome": "UPHELD",
+     "refuter": "cobol-refuter pb5452 recheck",
+     "attempt": "Tried to show the CHANGED reason or the CONFORMS verdict rested on the carved 'implementor determines which of the applicable values' sentence.",
+     "date": "2026-11-21",
+     "digest": "d0d068196434"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-VIII.1.3.5-3",
+   "split": {
+    "old-text": "If the INVALID KEY phrase is not specified in the input-output statement, a USE AFTER EXCEPTION procedure must be associated with the file connector and that procedure is executed and control is transferred according to the rules of the USE statement. The NOT INVALID KEY phrase is ignored, if specified. (See page VIII-35, The USE Statement.)\nIf the invalid key condition does not exist after the execution of the input-output operation specified by an input-output statement, the INVALID KEY phrase is ignored, if specified. The I-O status of the file connector associated with the statement is updated and the following actions occur:",
+    "carved": [
+     "If the invalid key condition does not exist after the execution of the input-output operation specified by an input-output statement, the INVALID KEY phrase is ignored, if specified. The I-O status of the file connector associated with the statement is updated and the following actions occur:"
+    ],
+    "rows": [
+     "1985-GR-VIII.1.3.5-p3"
+    ],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "84f23f644458"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-IX.1.3.4-6",
+   "split": {
+    "old-text": "Implementor Defined. The input-output statement was unsuccessfully executed as the result of a condition that is specified by the implementor.\nThe following is a list of the values placed in the I-O status for the previously named conditions resulting from the execution of an input-output operation on an indexed file. If more than one value applies, the implementor determines which of the applicable values to place in the I-O status.",
+    "carved": [
+     "The following is a list of the values placed in the I-O status for the previously named conditions resulting from the execution of an input-output operation on an indexed file. If more than one value applies, the implementor determines which of the applicable values to place in the I-O status."
+    ],
+    "rows": [
+     "1985-GR-IX.1.3.4-p5"
+    ],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "d0d068196434"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-IX.1.3.5-3",
+   "split": {
+    "old-text": "If the INVALID KEY phrase is not specified in the input-output statement, a USE AFTER EXCEPTION procedure must be associated with the file connector and that procedure is executed and control is transferred according to the rules of the USE statement. The NOT INVALID KEY phrase is ignored, if specified. (See page IX-39, The USE Statement.)\nIf the invalid key condition does not exist after the execution of the input-output operation specified by an input-output statement, the INVALID KEY phrase is ignored, if specified. The I-O status of the file connector associated with the statement is updated and the following actions occur:",
+    "carved": [
+     "If the invalid key condition does not exist after the execution of the input-output operation specified by an input-output statement, the INVALID KEY phrase is ignored, if specified. The I-O status of the file connector associated with the statement is updated and the following actions occur:"
+    ],
+    "rows": [
+     "1985-GR-IX.1.3.5-p3"
+    ],
+    "recheck": {
+     "outcome": "UPHELD",
+     "refuter": "cobol-refuter pb5452 recheck",
+     "attempt": "Tried to show the CHANGED mapping or witness rested on the carved 'no invalid key condition' paragraph.",
+     "date": "2026-11-21",
+     "digest": "facc872eef28"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-X.5.1-4",
+   "split": {
+    "old-text": "Data items defined in the Linkage Section of the called program may be referenced within the Procedure Division of that program if, and only if, they satisfy one of the following conditions:\na. They are operands of the USING phrase of the Procedure Division header.\nb. They are subordinate to operands of the USING phrase of the Procedure Division header.\nc. They are defined with a REDEFINES or RENAMES clause, the object of which satisfies the above conditions.\nd. They are items subordinate to any item which satisfies the condition in rule 4c.\ne. They are condition-names or index-names associated with data items that satisfy any of the above four conditions.\nIn level 1 at least five data-names must be permitted in the USING phrase of the Procedure Division header and in the USING phrase of the CALL statement.",
+    "carved": [
+     "In level 1 at least five data-names must be permitted in the USING phrase of the Procedure Division header and in the USING phrase of the CALL statement."
+    ],
+    "rows": [
+     "1985-SR-X.5.1-p6"
+    ],
+    "recheck": {
+     "outcome": "OVERTURNED",
+     "refuter": "cobol-refuter pb5452 recheck",
+     "attempt": "Checked whether next.to and the reason still describe items a-e alone after the five-USING-names minimum was carved.",
+     "date": "2026-11-21",
+     "digest": "990482496376"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-XVI.1.4.3-3",
+   "split": {
+    "old-text": "Control is transferred explicitly to that segment from a segment with a different segment-number (with the exception noted in paragraph 2 below).\nOn subsequent transfer of control to the segment, an independent segment is in its last-used state when:",
+    "carved": [
+     "On subsequent transfer of control to the segment, an independent segment is in its last-used state when:"
+    ],
+    "rows": [],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "d3a4bf2d459b"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-GR-XVI.1.4.3-L2.2",
+   "split": {
+    "old-text": "Control is transferred explicitly to that segment as the result of the execution of an EXIT PROGRAM statement.\nSee paragraph 4.4.2, Explicit and Implicit Transfers of Control, page IV-25.",
+    "carved": [
+     "See paragraph 4.4.2, Explicit and Implicit Transfers of Control, page IV-25."
+    ],
+    "rows": [],
+    "recheck": {
+     "outcome": "UPHELD",
+     "refuter": "cobol-refuter pb5452 recheck",
+     "attempt": "Tried to show the REMOVED record depended on the carved cross-reference to 4.4.2.",
+     "date": "2026-11-21",
+     "digest": "a456e007e561"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-SR-XVI.3.3.2-2",
+   "split": {
+    "old-text": "Sections and/or paragraphs wholly contained in a single independent segment.\nA PERFORM statement that appears in an independent segment can have within its range, in addition to any declarative sections whose execution is caused within that range, only one of the following:",
+    "carved": [
+     "A PERFORM statement that appears in an independent segment can have within its range, in addition to any declarative sections whose execution is caused within that range, only one of the following:"
+    ],
+    "rows": [
+     "1985-SR-XVI.3.3.2-p2"
+    ],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "473804598774"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-SR-XVI.3.3.3-2",
+   "split": {
+    "old-text": "Wholly contained in a single independent segment.\nIf a MERGE statement appears in an independent segment, then any output procedure referenced by that MERGE statement must be contained:",
+    "carved": [
+     "If a MERGE statement appears in an independent segment, then any output procedure referenced by that MERGE statement must be contained:"
+    ],
+    "rows": [
+     "1985-SR-XVI.3.3.3-p2"
+    ],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "4ee94643065d"
+    }
+   }
+  },
+  {
+   "rule-id": "1985-SR-XVI.3.3.4-2",
+   "split": {
+    "old-text": "Wholly contained in a single independent segment.\nIf a SORT statement appears in an independent segment, then any input procedures or output procedures referenced by that SORT statement must be contained:",
+    "carved": [
+     "If a SORT statement appears in an independent segment, then any input procedures or output procedures referenced by that SORT statement must be contained:"
+    ],
+    "rows": [],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "4ee94643065d"
+    }
+   }
+  },
+  {
+   "rule-id": "1989-AR-A.2.2-4",
+   "split": {
+    "old-text": "Integer. An arithmetic expression which will always result in an integer value must be specified. The value of the arithmetic expression, including operational sign, is used in determining the value of the function.\nThe rules for a function may place constraints on the permissible values for arguments in order to permit meaningful determination of the function's value. If, at the time a function is referenced, the arguments specified for that reference do not have values within the permissible range, then the result of such a reference is undefined.\nWhen the definition of a function permits an argument to be repeated a variable number of times, a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL.\nWhen ALL is specified as a subscript, the effect is as if each table element associated with that subscript position were specified. The order of the implicit specification of each occurrence is from left to right, with the first (or leftmost) specification being the identifier with each subscript specified by the word ALL replaced by one, the next specification being the same identifier with the rightmost subscript specified by the word ALL incremented by one. This process continues with the rightmost ALL subscript being incremented by one for each implicit specification until the rightmost ALL subscript has been incremented through its range of values. If there are any additional ALL subscripts, the ALL subscript immediately to the left of the rightmost ALL subscript is incremented by one, the rightmost ALL subscript is reset to one and the process of varying the rightmost ALL subscript is repeated. The ALL subscript to the left of the rightmost ALL subscript is incremented by one through its range of values. For each additional ALL subscript, this process is repeated in turn until the leftmost ALL subscript has been incremented by one through its range of values. If\nthe ALL subscript is associated with an OCCURS DEPENDING ON clause, the range of values is determined by the object of the OCCURS DEPENDING ON clause. The evaluation of an ALL subscript must result in at least one argument, otherwise the result of the reference to the function-identifier is undefined.",
+    "carved": [
+     "The rules for a function may place constraints on the permissible values for arguments in order to permit meaningful determination of the function's value. If, at the time a function is referenced, the arguments specified for that reference do not have values within the permissible range, then the result of such a reference is undefined.",
+     "When the definition of a function permits an argument to be repeated a variable number of times, a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL.",
+     "When ALL is specified as a subscript, the effect is as if each table element associated with that subscript position were specified. The order of the implicit specification of each occurrence is from left to right, with the first (or leftmost) specification being the identifier with each subscript specified by the word ALL replaced by one, the next specification being the same identifier with the rightmost subscript specified by the word ALL incremented by one. This process continues with the rightmost ALL subscript being incremented by one for each implicit specification until the rightmost ALL subscript has been incremented through its range of values. If there are any additional ALL subscripts, the ALL subscript immediately to the left of the rightmost ALL subscript is incremented by one, the rightmost ALL subscript is reset to one and the process of varying the rightmost ALL subscript is repeated. The ALL subscript to the left of the rightmost ALL subscript is incremented by one through its range of values. For each additional ALL subscript, this process is repeated in turn until the leftmost ALL subscript has been incremented by one through its range of values. If the ALL subscript is associated with an OCCURS DEPENDING ON clause, the range of values is determined by the object of the OCCURS DEPENDING ON clause. The evaluation of an ALL subscript must result in at least one argument, otherwise the result of the reference to the function-identifier is undefined."
+    ],
+    "rows": [
+     "1989-AR-A.2.2-p3",
+     "1989-AR-A.2.2-p4",
+     "1989-AR-A.2.2-p5"
+    ],
+    "recheck": {
+     "outcome": "QUOTES-CARVED",
+     "refuter": "rule_moves.quotes (mechanical, kb/Work PB5452)",
+     "attempt": "its change record's next.reason quotes the carved words: listed for re-adjudication, not rechecked",
+     "date": "2026-11-21",
+     "digest": "47d015dc6144"
+    }
+   }
+  }
+ ]
+}
