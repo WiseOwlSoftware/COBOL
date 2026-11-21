@@ -1,1 +1,1 @@
-{"refuse-at": ["85"], "expect": "DECLARATIVES must be grouped at the beginning of the Procedure Division"}
+{"refuse-at": ["85"], "expect": "COBOL2797"}
