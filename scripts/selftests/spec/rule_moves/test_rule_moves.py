@@ -5,9 +5,11 @@ and the carved paragraphs, writes no record for a carved row, and keeps the pare
 recheck; the older edition's change records follow (a move renames, a split re-stamps, a quoting reason goes STALE);
 and every refusal fires on its planted failure."""
 import copy
+import json
 import sys
 
 import selftest_cases
+from scratch_repo import scratch_dir
 from standard_streams import ensure_utf8
 
 M = selftest_cases.subject(__file__)   # scripts/spec/rule_moves.py
@@ -183,6 +185,38 @@ def case_05b_an_already_stale_older_record_is_never_re_stamped(expect):
 def case_06_the_move_batch_names_only_recorded_ids(expect):
     batch = M.move_batch([("GR-9.9.4-p6", "GR-9.9.4-p7"), ("GR-9.9.4-p2", "GR-9.9.4-p3")], {"GR-9.9.4-p6"})
     expect.equal("one move record, for the id the store holds", batch, [{"rule-id": "GR-9.9.4-p7", "move-from": "GR-9.9.4-p6"}])
+
+
+def case_07_an_applied_split_batch_leaves_its_tracked_copy(expect):
+    """kb/Work PB6002: the writer copies each applied batch that holds a split to SPLIT_DIR in the same operation (until
+    2026-11-21 the copy the WITNESS LOSS audit reads existed only by a hand copy); a batch with no split leaves none, a
+    batch applied from its own tracked file is its copy, and another batch's file of the same name is refused."""
+    repo = scratch_dir("rule-moves-split-copy")
+    split = {"rule-id": "GR-9.9.4-2", "split": {"old-text": OLD_PARENT, "carved": [], "rows": ["GR-9.9.4-p9"],
+                                               "recheck": {}}}
+    move = {"rule-id": "GR-9.9.4-p7", "move-from": "GR-9.9.4-p6"}
+    scratch = repo / "scratch"
+    scratch.mkdir()
+    applied = scratch / "mint-splits.json"
+    applied.write_text(json.dumps({"batch": "the mint", "records": [move, split, {"rule-id": "GR-1", "verdict": "x"}]}),
+                       encoding="utf-8", newline="\n")
+    moves_only = scratch / "moves.json"
+    moves_only.write_text(json.dumps([move]), encoding="utf-8", newline="\n")
+    files, errs = M.split_copies([(applied, [move, split]), (moves_only, [move])], 1985, repo)
+    dest = repo / M.SPLIT_DIR.format(year=1985) / "mint-splits.json"
+    expect.equal("the copy is the batch's splits alone, under its label, at SPLIT_DIR/<the batch's name>; a batch of "
+                 "moves alone leaves none", (list(files), errs), ([dest], []))
+    expect.equal("its text is the record the audit reads", json.loads(files[dest]),
+                 {"batch": "the mint", "records": [split]})
+    dest.parent.mkdir(parents=True)
+    dest.write_text(files[dest], encoding="utf-8", newline="\n")
+    expect.equal("a batch applied again whose copy is there, byte for byte, writes it again unchanged",
+                 M.split_copies([(applied, [split])], 1985, repo)[1], [])
+    expect.equal("a batch applied from its own tracked file is its copy already",
+                 M.split_copies([(dest, [split])], 1985, repo), ({}, []))
+    dest.write_text(json.dumps({"batch": "another", "records": []}), encoding="utf-8", newline="\n")
+    expect("another batch's tracked file of the same name refuses the apply, never overwritten",
+           "already holds another split batch" in " ".join(M.split_copies([(applied, [split])], 1985, repo)[1]))
 
 
 if __name__ == "__main__":

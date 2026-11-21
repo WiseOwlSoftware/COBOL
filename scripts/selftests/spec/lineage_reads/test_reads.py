@@ -21,8 +21,13 @@ ED = R.edition(2002)
 SCHEMA = R.inventory_schema.load_schema()
 
 
+def _normal_read(slice_name, case):
+    """A planted 2002 read case, normalized at its record's edition."""
+    return R.normal_read(slice_name, case, ED.year)
+
+
 def case_00_the_one_normalization_reads_every_shape_and_refuses_what_it_cannot(expect):
-    r = R.normal_read("q-01", F.read("2002-GR-1.1.3-1", citations="§2002:1.1 GR1",
+    r = _normal_read("q-01", F.read("2002-GR-1.1.3-1", citations="§2002:1.1 GR1",
                                      **{"flags-answered": ["cross-reference 8.8.4: read in 2002, the same",
                                                            "changed-definition-term 'procedure': the division, not the term",
                                                            "changed-definition-term (class): the same sense"],
@@ -34,13 +39,13 @@ def case_00_the_one_normalization_reads_every_shape_and_refuses_what_it_cannot(e
     expect("a string citation, the compiler's judgment and the licence are read",
            r.compiler == R.Judgment("correct", "correct (probe p.cob)") and r.licence == "§2002:B.3 item 1")
     expect("a licence is kept as written; the brief's `none` is no licence (licence_problem)",
-           R.licence_problem(ED, R.normal_read("q-01", F.read("2002-GR-1.1.3-1", **{"licence-2002": "none"})).licence))
-    m = R.normal_read("q-01", F.read("2002-GR-1.1.3-1", **{"flags-answered": {"normalized: a b": "x", "ambiguous": "y"}}))
+           R.licence_problem(ED, _normal_read("q-01", F.read("2002-GR-1.1.3-1", **{"licence-2002": "none"})).licence))
+    m = _normal_read("q-01", F.read("2002-GR-1.1.3-1", **{"flags-answered": {"normalized: a b": "x", "ambiguous": "y"}}))
     expect.equal("a map of flags-answered: its key's detail, or none", m.answers,
                  {"normalized": [("a b", "x")], "ambiguous": [(None, "y")]})
-    expect("R1-4: an empty `to` (a rule with no pointer) is read", R.normal_read("t-annexA", {**F.read("2002-GR-A.1-1"),
+    expect("R1-4: an empty `to` (a rule with no pointer) is read", _normal_read("t-annexA", {**F.read("2002-GR-A.1-1"),
                                                                                               "to": []}).to == ())
-    odd = R.normal_read("q-01", F.read("2002-GR-1.1.3-1", **{"compiler-at-2002": "outcome correct but on another ground"}))
+    odd = _normal_read("q-01", F.read("2002-GR-1.1.3-1", **{"compiler-at-2002": "outcome correct but on another ground"}))
     expect("a judgment naming none of correct, wrong, not probed is kept as written, its kind None",
            odd.compiler.kind is None)
     for label, case, needle in (
@@ -52,7 +57,7 @@ def case_00_the_one_normalization_reads_every_shape_and_refuses_what_it_cannot(e
             ("one trigger and detail answered twice", F.read("2002-GR-1.1.3-1", **{"flags-answered": ["a: x", "a: y"]}),
              "twice")):
         expect(f"MALFORMED, refused loudly by slice and rule: {label}",
-               F.raises(lambda: R.normal_read("q-07", case), "q-07", "2002-GR-1.1.3-1", needle))
+               F.raises(lambda: _normal_read("q-07", case), "q-07", "2002-GR-1.1.3-1", needle))
     expect("a refute of a rule the reader did not decide SAME is refused",
            F.raises(lambda: R.normal_slice("p-02", F.record("p-02", [F.read("2002-GR-1.1.3-1", "DIFFERENT")],
                                                             [F.refute("2002-GR-1.1.3-1")])), "p-02", "did not decide SAME"))
@@ -821,6 +826,144 @@ def case_13_a_witness_at_an_edition_is_text_in_a_format_it_defines(expect):
     finally:
         R.SUITE = real
 
+
+def case_14_a_read_speaks_of_its_own_edition_and_no_other(expect):
+    """kb/Work PB5453: `compiler-at-<year>` and `licence-<year>` are read at the record's OWN edition. Until 2026-11-21 only
+    `compiler-at-2002` was read, so a 1985 read's `compiler-at-1985` was dropped and a row proven correct imported
+    `undecided`; a key that names another edition, or none, is refused by slice and rule."""
+    ed85 = R.edition(1985)
+    rid = "1985-GR-IV.4.1-p2"
+    s = R.normal_slice("s-01", F.record("s-01", [
+        {**F.read(rid, "DIFFERENT", citations="§1985:IV.4.1 p2"), "to": [],
+         "compiler-at-1985": "correct: E:/probes/s-01/p.cob", "licence-1985": "§1985:I.1.5.2.5 item 1"}],
+        edition=1985))
+    r = s.reads[rid]
+    expect("a 1985 read's compiler-at-1985 and licence-1985 are read",
+           r.compiler == R.Judgment("correct", "correct: E:/probes/s-01/p.cob") and r.licence == "§1985:I.1.5.2.5 item 1")
+    d = R.decide(ed85, [s], None, None, F.lineage([rid]))[0]
+    expect.equal("so the row it proved correct is the work item needs-own-witness, never undecided", d.work,
+                 R.NEEDS_OWN_WITNESS)
+    for label, key, year in (("another edition's judgment", "compiler-at-2002", 1985),
+                             ("another edition's licence", "licence-1985", 2002),
+                             ("a judgment naming no edition", "compiler-at", 1985),
+                             ("a two-digit edition", "compiler-at-85", 1985),
+                             ("another edition's scope", "scope-2002", 1985)):
+        case = {**F.read("1985-GR-IV.4.1-p3", "DIFFERENT"), key: "correct: p.cob"}
+        expect(f"REFUSED loudly by slice and rule: {label} (`{key}` in a {year} read)",
+               F.raises(lambda: R.normal_read("s-02", case, year), "s-02", "1985-GR-IV.4.1-p3", f"`{key}`"))
+    expect("a refuter's case is held to the same edition",
+           F.raises(lambda: R.normal_slice("s-03", F.record("s-03", [F.read("1985-GR-IV.4.1-p4")],
+                                                            [F.refute("1985-GR-IV.4.1-p4", **{"compiler-at-2002": "wrong"})],
+                                                            edition=1985)), "s-03", "compiler-at-2002"))
+    kept = R.normal_read("q-01", F.read("2002-GR-1.1.3-1", **{"compiler-at-2002-probe": "p.cob",
+                                                               "answer-evidence-2002": "x", "pointer-1985": "y"}), 2002)
+    expect("a suffix after the record's own year, and a key of no edition-keyed family, are the record's own",
+           kept.rule_id == "2002-GR-1.1.3-1")
+    expect("a record with no edition year is refused: its cases' fields are keyed by it",
+           F.raises(lambda: R.normal_slice("s-04", {**F.record("s-04", [F.read("1985-GR-IV.4.1-p5")]), "edition": "85"}),
+                    "s-04", "edition"))
+
+
+def case_15_a_derivation_a_read_proposes_has_a_route(expect):
+    """kb/Work PB5453: a DIFFERENT read that proposes a derivation (section 1.1) becomes the work item `derivation` once its
+    derivation refuter UPHELD it (a mechanical arm needs none), and `derivation_record` gives its store record and its
+    section 8 register row; until 2026-11-21 it landed `undecided` and nothing wrote the row."""
+    ed85 = R.edition(1985)
+    cite = "§1985:IV.2.1.1 p1"
+    ids = {k: f"1985-SR-IV.2.1.{n}-p1" for n, k in enumerate(("upheld", "unrefuted", "mechanical", "overturned",
+                                                               "doubtful", "shapeless"), start=1)}
+
+    def proposal(rid, arm="definitional", names="defines the kinds of element a general format of the user's program "
+                                                "is made of", **kw):
+        return {**F.read(rid, "DIFFERENT", citations=cite), "to": [], "class": "definitional",
+                "compiler-at-1985": "not probed: no program can show it", "derivation": {"arm": arm, "names": names, **kw}}
+
+    reads = [proposal(ids["upheld"], **{"code-location": "src/WiseOwl.Cobol.Compiler/A.cs#M"}),
+             proposal(ids["unrefuted"]),
+             proposal(ids["mechanical"], "undefined-in-rule", '"the result is undefined in that case"'),
+             proposal(ids["overturned"]), proposal(ids["doubtful"]),
+             proposal(ids["shapeless"], names="defines it")]
+    drefs = [F.refute(ids["upheld"], citations=cite), F.refute(ids["shapeless"]),
+             F.refute(ids["overturned"], "OVERTURNED", probe="w.cob", **{"compiler-at-1985": "correct: w.cob"}),
+             F.refute(ids["doubtful"], "DOUBTFUL")]
+    s = R.normal_slice("s-05", F.record("s-05", reads, edition=1985, derivation_refutes=drefs))
+    got = {d.rule_id: d for d in R.decide(ed85, [s], None, None, F.lineage(ids.values()))}
+    expect("an upheld definitional derivation is the work item `derivation`, blocked by nothing",
+           got[ids["upheld"]].work == R.DERIVATION and not got[ids["upheld"]].refused)
+    expect("an argued arm no refuter attacked waits for its refuter (`no refuter record`)",
+           got[ids["unrefuted"]].work == R.DERIVATION and got[ids["unrefuted"]].refused[0][0] == R.NO_REFUTER)
+    expect("a mechanical arm needs no refuter: its checker is its reader",
+           got[ids["mechanical"]].work == R.DERIVATION and not got[ids["mechanical"]].refused)
+    expect.equal("an OVERTURNED derivation (a program can show the rule) is the refuter's work item",
+                 got[ids["overturned"]].work, R.NEEDS_OWN_WITNESS)
+    expect.equal("a DOUBTFUL refuter leaves it undecided", got[ids["doubtful"]].work, R.UNDECIDED)
+    expect("a Names cell out of its arm's shape blocks it, with the shape",
+           [r for r, _ in got[ids["shapeless"]].refused] == [R.NAMES_SHAPE])
+    schema = SCHEMA
+    record, cells, problems = R.derivation_record(ed85, s.reads[ids["upheld"]], s.derivation_refutes[ids["upheld"]],
+                                                  {}, "claude: 2026-11-16", schema)
+    anchor = schema.derivation.anchor_for({"rule-id": ids["upheld"]})
+    expect("an unrecorded row takes CONFORMS, the read's code location and the COMPUTED anchor, its notes naming the read",
+           not problems and record["verdict"] == R.DERIVED_VERDICT and record["derivation"] == anchor
+           and record["code-location"] == "src/WiseOwl.Cobol.Compiler/A.cs#M"
+           and record["notes"].startswith(f"{R.DERIVATION_LEAD} lineage-reads-1985/s-05.json"))
+    expect("its register row: the key, the arm, the Names, the argument naming the read and the refutation, the signature "
+           "and the refuter record file",
+           cells[:3] == [f"DRV-{ids['upheld']}", "definitional", reads[0]["derivation"]["names"]]
+           and "lineage-reads-1985/s-05.json" in cells[3] and "UPHELD" in cells[3] and cells[4] == "claude: 2026-11-16"
+           and cells[5] == "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-05.jsonl")
+    _r, _c, missing = R.derivation_record(ed85, s.reads[ids["unrefuted"]], None, {}, "claude: 2026-11-16", schema)
+    expect.equal("an unrecorded row whose read names no code location is refused (CONFORMS requires one)",
+                 [r for r, _ in missing], [R.NO_CODE_LOCATION])
+    chained, _c, ok = R.derivation_record(ed85, s.reads[ids["unrefuted"]], None,
+                                          {"rule-id": ids["unrefuted"], "next": {"kind": "KEPT"}}, "claude: 2026-11-16",
+                                          schema)
+    expect("a chained KEPT row gains the derivation alone: it stands in for the row's own witness",
+           not ok and chained == {"rule-id": ids["unrefuted"], "derivation": schema.derivation.anchor_for(
+               {"rule-id": ids["unrefuted"]})})
+    _r, _c, tested = R.derivation_record(ed85, s.reads[ids["upheld"]], None,
+                                         {"rule-id": ids["upheld"], "verdict": "CONFORMS",
+                                          "test-ref": "conformance:cases/X/a"}, "claude: 2026-11-16", schema)
+    expect.equal("a row with a spec-derived test is refused (section 1.1 refusal 1)", [r for r, _ in tested], [R.HAS_TEST])
+    lines = R.refutation_lines(1985, s).splitlines()
+    expect("the slice's refuter records are one JSON line per derivation refute, in the form the Refuted cell's checker reads",
+           len(lines) == 4 and json.loads(lines[0]) == {"rule-id": ids["upheld"], "outcome": "UPHELD", "citation": cite,
+                                                        "reason": "planted UPHELD", "source": "lineage-reads-1985/s-05.json"})
+    for label, case, needle in (
+            ("a definitional class with no derivation", {**F.read("1985-SR-IV.2.1.9-p1", "DIFFERENT"),
+                                                         "class": "definitional"}, "no `derivation`"),
+            ("a derivation on a SAME read", {**F.read("1985-SR-IV.2.1.9-p1"), "derivation": {"arm": "definitional",
+                                                                                            "names": "defines x"}},
+             "DIFFERENT"),
+            ("an arm the schema does not have", {**F.read("1985-SR-IV.2.1.9-p1", "DIFFERENT"),
+                                                 "derivation": {"arm": "obvious", "names": "x"}}, "arm")):
+        expect(f"REFUSED loudly: {label}", F.raises(lambda: R.normal_read("s-06", case, 1985), "s-06", needle))
+    expect("a derivation refute of a read that proposes none is refused",
+           F.raises(lambda: R.normal_slice("s-07", F.record("s-07", [F.read("1985-SR-IV.2.1.9-p1", "DIFFERENT")],
+                                                            edition=1985,
+                                                            derivation_refutes=[F.refute("1985-SR-IV.2.1.9-p1")])),
+                    "s-07", "proposes no derivation"))
+    d = scratch_dir("lineage-reads-derivation")
+    src, out = d / "out", d / "records"
+    src.mkdir()
+    (src / "s-05-read.json").write_text(json.dumps({"slice": "s-05", "cases": reads}), encoding="utf-8", newline="\n")
+    (src / "s-05-derivation-refute.json").write_text(json.dumps({"slice": "s-05", "cases": drefs}), encoding="utf-8",
+                                                     newline="\n")
+    expect.equal("the import takes the derivation refuter's file as a part of its slice, not an orphan refuter",
+                 R.import_records(1985, src, None, out), ["s-05"])
+    doc = json.loads((out / "s-05.json").read_text(encoding="utf-8"))
+    expect("the part is held verbatim with its digest, and load reads it back",
+           doc["imported"]["derivation-refute"] == R.digest(doc["derivation-refute"])
+           and set(R.load(1985, out)[0].derivation_refutes) == {ids["upheld"], ids["shapeless"], ids["overturned"],
+                                                                 ids["doubtful"]})
+    repo = d / "repo"
+    jsonl = repo / R.refutations_file(1985, "s-05")
+    jsonl.parent.mkdir(parents=True)
+    jsonl.write_text(R.refutation_lines(1985, s), encoding="utf-8", newline="\n")
+    expect.equal("the audit holds a generated refuter record file to its read record", R.refutation_errors(1985, [s], repo), [])
+    jsonl.write_text(R.refutation_lines(1985, s).replace("UPHELD", "OVERTURNED"), encoding="utf-8", newline="\n")
+    expect("and a hand edit of it is red, naming the file and the read record",
+           any("lineage-reads-1985/s-05.json" in e for e in R.refutation_errors(1985, [s], repo)))
 
 if __name__ == "__main__":
     ensure_utf8()

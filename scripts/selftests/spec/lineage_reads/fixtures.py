@@ -25,11 +25,13 @@ def refute(rid, verdict="UPHELD", **kw):
             "probe": None, **kw}
 
 
-def record(name="p-01", reads=(), refutes=None, asked=None):
-    doc = {"slice": name, "edition": 2002, "asked": {"ids": [], "flags": asked or {}},
+def record(name="p-01", reads=(), refutes=None, asked=None, edition=2002, derivation_refutes=None):
+    doc = {"slice": name, "edition": edition, "asked": {"ids": [], "flags": asked or {}},
            "read": {"slice": name, "cases": list(reads)},
            "refute": None if refutes is None else {"slice": name, "cases": list(refutes), "disputed-different": []}}
-    doc["imported"] = {k: R.digest(doc[k]) for k in ("read", "refute", "asked") if doc[k] is not None}
+    if derivation_refutes is not None:
+        doc["derivation-refute"] = {"slice": name, "cases": list(derivation_refutes)}
+    doc["imported"] = {k: R.digest(doc[k]) for k in (*R.PARTS, "asked") if doc.get(k) is not None}
     return doc
 
 

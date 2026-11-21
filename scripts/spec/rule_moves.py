@@ -81,6 +81,36 @@ def explains(split: Record, was: str | None, now: str | None) -> bool:
     return rule_digest(split["old-text"]) == was and split["recheck"]["digest"] == now
 
 
+def split_copies(batches: list[tuple[pathlib.Path, list[Record]]], year: int, repo: pathlib.Path
+                 ) -> tuple[dict[pathlib.Path, str], list[str]]:
+    """The TRACKED COPY of each applied batch that holds a split (kb/Work PB6002): `SPLIT_DIR/<the batch file's name>`,
+    holding the batch's splits (`{"batch", "records"}`), which the WITNESS LOSS audit reads to tell a parent a split
+    withdrew from a hand edit (`audit_witness_loss.recorded_splits`). The writer (`record_verdicts.py`) writes it in the
+    same operation as the apply, so no split reaches the store without its tracked batch. Returns the files to write
+    and the refusals, both before anything is written: a copy whose file already holds other text (a different batch of
+    the same name) is refused, never overwritten. A batch applied from its own tracked file is its copy already."""
+    out: dict[pathlib.Path, str] = {}
+    errs: list[str] = []
+    folder = repo / SPLIT_DIR.format(year=year)
+    for path, records in batches:
+        splits = [r for r in records if is_split(r)]
+        if not splits:
+            continue
+        dest = folder / path.name
+        if dest.exists() and dest.resolve() == path.resolve():
+            continue
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        label = raw.get("batch") if isinstance(raw, dict) and isinstance(raw.get("batch"), str) else path.stem
+        text = json.dumps({"batch": label, "records": splits}, indent=1, ensure_ascii=False) + "\n"
+        if dest.exists() and dest.read_text(encoding="utf-8") != text:
+            errs.append(f"{dest.relative_to(repo).as_posix()} already holds another split batch: name {path} apart")
+        elif dest in out and out[dest] != text:
+            errs.append(f"two batches of this run copy to {dest.relative_to(repo).as_posix()}: name them apart")
+        else:
+            out[dest] = text
+    return out, errs
+
+
 def structural(rec: Record) -> bool:
     """Is `rec` a move or a split (an operation on records, never an adjudication of its own)?"""
     return is_move(rec) or is_split(rec)
