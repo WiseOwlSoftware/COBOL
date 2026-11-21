@@ -9927,6 +9927,23 @@ public static class DiagnosticCatalog
         + "no statement references is refused too.",
         "ISO §2023:8.4.2.1; ISO §1985:IV.4.3.8.1 SR4");
 
+    /// <summary>COBOL7735 — two source elements of one compilation group describe one external record differently (kb/Work PB5996).
+    /// §1985:X.4.5.4 GR2: "the records must define the same number of standard data format characters"; §2002:13.16.20.3 GR4 and
+    /// §2014:13.18.22.3 GR4 add the identical VALUE clause of the record name. At COBOL-2023 the rule is the run time's
+    /// EC-EXTERNAL-FORMAT-CONFLICT (§2023:14.8.4.3), so this is not reported there.</summary>
+    public static readonly DiagnosticDescriptor ExternalRecordDescriptionDisagreement = new(
+        "COBOL7735", "external-record-description-disagreement", EditionSeverity.Error,
+        "Two source elements of the compilation group describe the same external data record, and the descriptions differ in "
+        + "size or, from COBOL-2002, in the record name's VALUE clause. §1985:X.4.5.4 GR2: \"Within a run unit, if two or more "
+        + "programs describe the same external data record, each record-name of the associated record description entries must be "
+        + "the same and the records must define the same number of standard data format characters.\" §2002:13.16.20.3 GR4 and "
+        + "§2014:13.18.22.3 GR4 add that \"the VALUE clause specification, if any, for each record name of the associated record "
+        + "description entries shall be identical\", and from COBOL-2002 the records of an external file description are one such "
+        + "record, whose externalized name is the file's (§2002:13.16.20.3 GR2b, GR3); at COBOL-85 their size is the file "
+        + "description entry's rule, COBOL6847 (§1985:VII.3.8.4 GR2). A complete REDEFINES of the record need not agree. At COBOL-2023 the same rule "
+        + "(§2023:13.18.22.4 GR6) is checked at run time, EC-EXTERNAL-FORMAT-CONFLICT (§2023:14.8.4.3), and is not reported here.",
+        "ISO §1985:X.4.5.4 GR2; ISO §2002:13.16.20.3 GR4; ISO §2014:13.18.22.3 GR4");
+
     /// <summary>COBOL7354 — a subscript written on a data-name-n clause operand is not one integer literal (kb/Work PB5602).
     /// COBOL-2002 reads a clause's data-name-n as "a user-defined word, including qualification and subscription if needed"
     /// (§2002:5.1.3), so <c>RECORD KEY IS K(2)</c> and <c>CONTROL IS T-C(1)</c> are legal there; the clause then names ONE data

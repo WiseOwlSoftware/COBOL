@@ -1,0 +1,49 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Runtime;
+
+namespace WiseOwl.Cobol.Binding;
+
+/// <summary>
+/// ⛔ THE ONE DEFINITION OF WHAT A SOURCE ELEMENT SAYS OF AN EXTERNAL RECORD, as the run unit compares it (kb/Work PB5996). Two
+/// checks read it and nothing else composes it: the compile-time agreement of the descriptions in one compilation group
+/// (<see cref="ExternalRecordDescriptionRules"/>, COBOL7735) and the run-time registration each describer makes at its
+/// activation entry (<c>OoEmitter.EmitExternalDescribes</c> → <c>ExternalTable.Describe</c>, EC-EXTERNAL-FORMAT-CONFLICT), so
+/// "the same description" means one thing at compile time and at run time.
+/// <para>The facts are the rule's: the records "must define the same number of standard data format characters"
+/// (§1985:X.4.5.4 GR2), "the VALUE clause specification, if any, for each record name of the associated record description
+/// entries shall be identical; and the records shall define the same number of bytes" (§2002:13.16.20.3 GR4,
+/// §2014:13.18.22.3 GR4, §2023:13.18.22.4 GR6), and for a strongly typed record "the same corresponding external strong type
+/// declarations and the same presence or absence of the CONSTANT RECORD clause" (§2023:14.8.4.3). The record-name half of
+/// each rule is the key the descriptions are grouped by, the externalized name (§2023:13.18.22.4 GR5). A complete
+/// REDEFINES of the record contributes nothing: each text exempts it ("this complete redefinition need not occur
+/// identically"), so the description is built from the base record only.</para>
+/// </summary>
+/// <param name="ByteCount">The record's size, in the characters (bytes) of its one shared image.</param>
+/// <param name="ValueSpecification">The record name's OWN VALUE clause specification as a canonical key
+/// (<see cref="ValueSpecificationKey"/>), null when the record name writes none.</param>
+/// <param name="StrongTypeKey">The external strong TYPE name, upper-folded, null when the record is not strongly typed.</param>
+/// <param name="ConstantRecord">Whether the record writes the CONSTANT RECORD clause.</param>
+internal readonly record struct ExternalRecordDescription(int ByteCount, string? ValueSpecification, string? StrongTypeKey, bool ConstantRecord)
+{
+    /// <summary>The description <paramref name="backing"/>'s source element gives of its external record.</summary>
+    public static ExternalRecordDescription Of(CallExternalBacking backing) => new(
+        backing.Width,
+        backing.Record.RawValue is { } rv ? ValueSpecificationKey(rv) : null,
+        backing.Record.StrongType && backing.Record.TypeName is { } tn ? CobolNames.UpperFold(tn) : null,
+        backing.Record.IsConstantRecord);
+
+    /// <summary>⛔ THE VALUE-IDENTITY KEY OF A RECORD NAME'S VALUE CLAUSE (kb/Work PB1236). §2023:13.18.22.4 GR6 compares the
+    /// specification, and a literal's CHARACTERS are its content: "ABCD" and "abcd" are two different VALUE clauses. Only the
+    /// WORDS of the clause are case-insensitive — a figurative constant's keyword (SPACE / space, ALL, the N / B / X literal
+    /// prefix) and a hexadecimal literal's digits (X"4a" is X"4A") — so those are folded and a quoted literal's text is kept
+    /// exactly.</summary>
+    internal static string ValueSpecificationKey(string raw)
+    {
+        int q = raw.IndexOfAny(['"', (char)39]);
+        if (q < 0) return raw.ToUpperInvariant();                    // no literal text at all: keywords and numbers
+        string head = raw[..q].ToUpperInvariant();
+        string body = raw[q..];
+        return head.TrimEnd().EndsWith('X') ? head + body.ToUpperInvariant() : head + body;   // X"…" hex digits: any case
+    }
+}
