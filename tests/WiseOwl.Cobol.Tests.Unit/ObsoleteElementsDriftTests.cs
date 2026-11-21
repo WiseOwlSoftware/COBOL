@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -43,8 +44,7 @@ public sealed class ObsoleteElementsDriftTests
             "           USE FOR DEBUGGING ON ALL PROCEDURES.", "       DBG-PARA.", "           DISPLAY \"DBG\".",
             "       END DECLARATIVES.", "       MAIN SECTION.", "       M1.", "           DISPLAY \"IN\".",
             "           EXIT PROGRAM.", "       END PROGRAM INNR.", "       END PROGRAM OUTR.") + "\n";
-        string dir = Path.Combine(Path.GetTempPath(), "obs85-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("obs85");
         try
         {
             string src = Path.Combine(dir, "hidden.cob");
@@ -54,7 +54,7 @@ public sealed class ObsoleteElementsDriftTests
             string warning = Assert.Single(r.Warnings, w => w.Contains("COBOL0903", StringComparison.Ordinal));
             Assert.Contains("hidden.cob(11,8)", warning, StringComparison.Ordinal);
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
