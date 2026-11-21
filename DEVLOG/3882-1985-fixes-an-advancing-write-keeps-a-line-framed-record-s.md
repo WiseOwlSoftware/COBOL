@@ -1,4 +1,4 @@
-## 1985 fixes: an ADVANCING write keeps a line-framed record's size, a literal computer-name is refused as one, a failed compilation lists into a new directory, and a SEARCH ALL lead is retired
+## Entry 3882 — 2026-11-20 20:41 PST — 1985 fixes: an ADVANCING write keeps a line-framed record's size, a literal computer-name is refused as one, a failed compilation lists into a new directory, and a SEARCH ALL lead is retired
 
 Wave 20262114, group A (kb/Work PB5917, PB5920, PB5940); the group's source files were four unrelated sites, so each note was fixed at its own root and one commit holds them.
 
@@ -30,3 +30,4 @@ text form is unchanged.
 **Golden.** `conformance:cases/VII.4.7@1985-WRITE-STATEMENT/pb5914_line_delimited_advancing_keeps_size_85` (AFTER, plain
 and BEFORE writes read back as 10-character records, spaces kept). No refusal golden: the rule is a runtime form, not a
 diagnostic. No row closed; `docs/FILES_DESIGN.md` (the RECORD DELIMITER paragraph) names the print arm.
+
