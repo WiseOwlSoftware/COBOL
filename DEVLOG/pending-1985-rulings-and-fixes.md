@@ -81,3 +81,7 @@ Goldens: `pb5982-external-linage-not-external` and `pb5982-external-linage-two-p
 The 2002 and 2014 texts carry the rule too (§2002:13.3.4.3 GR2c2, §2014:13.4.4.3 GR2c2); neither is screened (2002 frozen, 2014 waits),
 recorded in the PB5982 addendum. Sibling sweep: the externality arms of `Check` are RELATIVE KEY (every edition), PADDING (85 and 2002)
 and FILE STATUS (2023, a clause 1985 does not carry); LINAGE was the one arm missing at 85. No inventory row was claimed.
+
+### PB5902 decided
+
+The implementer held the refusal of `WRITE ... ADVANCING ZERO` at 85 because CCVS-85 program SQ101M exercises it on purpose. The text admits two readings (a figurative constant where the format prints `literal`, against `integer` defined as a numeric literal that SR5 lets be zero), so CLAUDE.md rule 1 sends it to GnuCOBOL, which accepts it: the acceptance stays, recorded as D-85-ADVANCING-ZERO, and PB5902 is retired. The adjudicator and its refuter had read the rule narrowly without the CCVS evidence.
