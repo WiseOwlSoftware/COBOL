@@ -516,7 +516,7 @@ def main() -> int:
              "reason": "planted, proven correct", "citations": [{"cite": bare85[2]["citation"], "check": "OK"}],
              "probe": "p.cob", "compiler-at-1985": "correct: p.cob"}]}), encoding="utf-8", newline="\n")
         (drv_reads / "s-01-derivation-refute.json").write_text(json.dumps({"slice": "s-01", "cases": [
-            {"rule-id": bare85[0]["id"], "verdict": "UPHELD", "reason": "no program can show it",
+            {"rule-id": bare85[0]["id"], "verdict": "UPHELD", "attempt": "w.cob, refused", "reason": "no program can show it",
              "citations": [bare85[0]["citation"]], "probe": None}]}), encoding="utf-8", newline="\n")
         drv_state = root / "drv-imported"
         code, out = run(["import-reads", "--edition", "1985", "--reads", str(drv_reads), "--record",
