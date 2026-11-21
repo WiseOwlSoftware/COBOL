@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime.Collation;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -126,7 +127,7 @@ public sealed partial class DataBinder
             .Where(d => State.Forest.DeclaringDepth(d) == constantTier).Count;
         if (dataItems > 0 && _sharedSpellingReported.Add(dref))
         {
-            string msg = $"'{WrittenText(dref)}' does not uniquely identify its item — it is the name of a constant-name "
+            string msg = $"'{WrittenSource.Of(dref)}' does not uniquely identify its item — it is the name of a constant-name "
                 + $"(ISO §2023:13.10.3 SR2) and of {(dataItems == 1 ? "a data item" : $"{dataItems} data items")} "
                 + "(§2023:8.3.2.2 exception 3 lets them share a spelling), and a constant-name cannot be qualified: \"For each non unique "
                 + "user-defined name that is explicitly referenced, uniqueness shall be established through a sequence of qualifiers "

@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "READ names file-name-1 in its general format, and 'F' here names a data item declared at line 35 in this program, which hides the GLOBAL file-name 'F' of a containing program"}

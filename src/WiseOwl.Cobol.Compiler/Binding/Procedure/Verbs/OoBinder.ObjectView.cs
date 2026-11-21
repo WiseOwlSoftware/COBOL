@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -36,7 +37,7 @@ internal sealed partial class OoBinder
     {
         // The INTRODUCTION gate fires on RECOGNITION in the VersionConformancePass parse arm (VisitObjectView).
         var term = ov.objectReferenceTerm();
-        string written = DataBinder.WrittenText(term);
+        string written = WrittenSource.Of(term);
         if (term.selfAndSuper() is { } viewSelf && UnreservedPredefinedObjectRefusal(viewSelf) is { } unreserved)   // kb/Work PB4153
             return unreserved;
 
@@ -56,7 +57,7 @@ internal sealed partial class OoBinder
             {
                 // The shared §2023:8.4.3.8.3 SR1 refusal reports, at the SELF word; the expression channel carries it on.
                 using var atWord = ctx.Edition.At(term);   // kb/Work PB4652
-                _ = RefusePredefinedObjectOutsideMethod($"the object-view '{DataBinder.WrittenText(ov)}': SELF");
+                _ = RefusePredefinedObjectOutsideMethod($"the object-view '{WrittenSource.Of(ov)}': SELF");
                 return BoundExprError.Refused(ctx.Edition, "object-view of SELF outside a method");
             }
         }
@@ -88,7 +89,7 @@ internal sealed partial class OoBinder
     {
         foreach (var phrase in ov.objectViewPhrase())
         {
-            string phraseText = DataBinder.WrittenText(phrase);
+            string phraseText = WrittenSource.Of(phrase);
             ObjectRefDescriptor view = phrase.UNIVERSAL() is not null
                 ? ObjectRefDescriptor.Universal   // GR7
                 : ctx.Data.Oo.DescribeNamedReference(phrase, phrase.className(),

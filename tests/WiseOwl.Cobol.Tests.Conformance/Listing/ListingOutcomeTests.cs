@@ -122,6 +122,26 @@ public sealed class ListingOutcomeTests : IDisposable
         Assert.True(File.Exists(Path.Combine(_dir, "outcome.dll")));
     }
 
+    /// <summary>kb/Work PB5940: the DEFAULT place of a listing is beside the output assembly, in a directory the backend makes when
+    /// the compilation reaches it. A compilation that fails before the backend (a bind error here) still lists its source, so
+    /// the compilation makes that directory; the listing is the output such a compilation is read for, and the user named no
+    /// place a missing directory could refuse.</summary>
+    [Fact]
+    public void AFailedCompilation_ListsBesideAnAssemblyInADirectoryItNeverMade()
+    {
+        string source = Source(Program.Replace("DISPLAY \"OUTCOME\".", "DISPLAY \"OUTCOME\" FOO BAR BAZ.", StringComparison.Ordinal));
+        string dll = Path.Combine(_dir, "new-directory", "outcome.dll");
+        var result = Compile(new CompilerDriver.Options(source, dll, DialectLevel: 85, Listing: new ListingRequest()));
+        Assert.Equal(CompilerDriver.Outcome.BindError, result.Status);
+        Assert.DoesNotContain(result.Errors, e => e.StartsWith("cannot write the listing", StringComparison.Ordinal));
+        var listing = Assert.IsType<ListingDocument>(result.Listing);
+        Assert.Equal(ListingOutcome.BindError, listing.Header.Outcome);
+        string lst = Path.GetFullPath(Path.Combine(_dir, "new-directory", "outcome" + ListingOutput.Extension(ListingFormats.Text)));
+        Assert.Contains(lst, result.OutputFiles);
+        Assert.Contains("FOO BAR BAZ", File.ReadAllText(lst), StringComparison.Ordinal);
+        Assert.False(File.Exists(dll));
+    }
+
     /// <summary>
     /// The listed pass of a failed parse (DESIGN-listing.md section 4.4; kb/Work PB1066's shape): a <c>&gt;&gt;SOURCE FORMAT IS
     /// FREE</c> in an exception-checking PERFORM's WHEN phrase and a syntax error after END-PERFORM. The first pass reads the

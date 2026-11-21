@@ -1963,6 +1963,13 @@ joined the table the same way, which is the table doing its job: a tenth format 
   refusal used to live in `DataBinder.BindEntry`, which the level-66 and level-88 paths return before, so
   `88 CN WIBBLE VALUE 1.` dropped the word in silence — measured on the pre-change build, where only
   COBOL1747 fired. Four of the other formats bind nothing at all by construction.
+- **THE COMPUTER-NAME SLOT (kb/Work PB5920).** A run that opens right after the header of a SOURCE-COMPUTER or
+  OBJECT-COMPUTER paragraph that wrote no name is the computer-name written as something that is none (a literal or a number: a
+  computer-name is a system-name, a COBOL word, §1985:VI.4.3.3 SR1, §1985:VI.4.4.3 SR1, §2023:8.3.2.3.1). The grammar meets it as the
+  next configuration paragraph after SOURCE-COMPUTER (COBOL1971's row) and as the first clause of OBJECT-COMPUTER (COBOL1970's),
+  so neither row's sentence is true of what the user wrote. `ClosedFormats.ComputerNameSlotOf` is the ONE reading of the slot and
+  `ClosedFormatPass.Refuse` reports COBOL7654 instead, at every edition. A RESERVED word in the slot (`OBJECT-COMPUTER. GLOBAL.`) is
+  met by the parse layer's own site and keeps the row's wording.
 - **ONE drift guard.** `ClosedFormatDriftTests` reads the generated parser's ATN (the word run's pieces are called
   only by the two forms; each list writes the form its follow set calls for — the data form exactly where INTEGERLIT
   may begin what follows the list's period, derived from the ATN, not listed; `numericLiteralCore`'s shapes are
@@ -3154,8 +3161,14 @@ regression bisects to one step.
   `ZERO_ARITH` the same way — so `AdmittedKinds.Refusal` names "the figurative constant ZERO" wherever the parse expects
   `ZERO_ARITH`, with no neighbour test of its own. ⚠ The
   `ZERO_ARITH` token's text stays "0" (several readers parse the text of an arithmetic operand), so a diagnostic that
-  quotes an operand node spells it with `WrittenSource.Of` (`DataBinder.WrittenText`), never `GetText()` (kb/Work
-  PB3961: `PERFORM VARYING X FROM 1 BY ZERO + 1` printed `'0+1'`).
+  quotes an operand node spells it with `WrittenSource.Of`, never `GetText()` (kb/Work
+  PB3961: `PERFORM VARYING X FROM 1 BY ZERO + 1` printed `'0+1'`). ⛔ `RepoDrift`'s `MessageOperandTextDriftTests` holds
+  this for the whole compiler (kb/Work PB5979: `X OF Q` printed `XOFQ`, `KY OF IREC` printed `KYOFIREC`): a `GetText()` of a
+  multi-token parse context (a one-token word, read from the grammar, and a terminal node are exempt) is refused in an
+  interpolation hole, in a `+` that holds a string literal, or in a local that feeds either. ⚠ A `GetText()` of a qualified
+  name that is a KEY or a compared VALUE stays (the glued text is the whitespace-insensitive identity two sites agree on: `StorageClaimScan`,
+  the linkage-root and report-counter keys), so the rule has no "anywhere" form; a text handed to a message through a method parameter
+  (`ExpressionBinder.ScreenIndexNameOperand`) is the caller's to spell with `WrittenSource.Of`.
 - **The five preprocessor stages and their order** — correct per the TURN-anchoring hazard analysis; only
   namespaces + the injected severity policy change.
 - **SUBSCRIPT lexer mode existence** — the `x(i)`/`(a+b)` disambiguation genuinely needs it; we dedup its
