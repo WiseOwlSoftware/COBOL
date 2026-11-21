@@ -762,7 +762,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         }
     }
 
-    // ── The EC-OVERFLOW family (STRING/UNSTRING, §2023:14.9.43 GR8b / §2023:14.9.48 GR16b) ─────────────────────────────
+    // ── The EC-OVERFLOW family (STRING/UNSTRING, §2023:14.9.43.4 GR8b / §2023:14.9.48.4 GR16b) ─────────────────────────────
 
     /// <summary>Is <paramref name="ecName"/> enabled at the statement currently being emitted (§2023:7.3.25.4 GR6, as
     /// folded at bind time into the <see cref="BoundEcChecked"/> wrapper)? The ONE question every

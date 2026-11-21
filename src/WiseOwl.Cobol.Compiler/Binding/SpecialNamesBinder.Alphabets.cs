@@ -213,7 +213,7 @@ public sealed partial class SpecialNamesBinder
         return set;
     }
 
-    /// <summary>Build one <c>ALPHABET name IS …</c> clause (ISO §2023:12.3.7 GR7): NATIVE / STANDARD-1 / STANDARD-2 are
+    /// <summary>Build one <c>ALPHABET name IS …</c> clause (ISO §2023:12.3.7.4 GR7): NATIVE / STANDARD-1 / STANDARD-2 are
     /// the native (ISO/IEC 646) order — no table; a literal phrase assigns successive ascending positions per
     /// k)1–k)6 — a numeric literal is the 1-based NATIVE ordinal (k1a), a multi-character literal positions each
     /// character leftmost-first (k1b), THRU expands the native run in EITHER direction (k5), ALSO members share
@@ -509,7 +509,7 @@ public sealed partial class SpecialNamesBinder
         if (CodeSetNameOf(def, _host.CobolWords) is { } cs)
         {
             // UCS-4 references BOTH a coded set and a collating sequence; UTF-8/UTF-16 a coded set ONLY
-            // (§2023:12.3.7 GR7 f/g/h + Table 6). All three collapse to the identity on this substrate — the
+            // (§2023:12.3.7.4 GR7 f/g/h + Table 6). All three collapse to the identity on this substrate — the
             // difference is only WHERE the name may legally be referenced.
             _host.Symbols.Declare(word, new NationalAlphabetDef(null, HasCollatingSequence: cs == "UCS-4", cs));
             return;

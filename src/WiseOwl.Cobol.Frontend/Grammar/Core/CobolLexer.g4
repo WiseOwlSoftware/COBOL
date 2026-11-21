@@ -50,7 +50,7 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
 
     // Track the types of the last TWO non-WS tokens emitted: one for the reference-paren decision, two for the
     // FUNCTION-argument suppression (P7 Step 12 — '(' after "FUNCTION name" opens an ARGUMENT list, ISO
-    // §2023:8.4.3.2 SR6, lexed in DEFAULT mode so arguments parse as real arithmeticExpressions).
+    // §2023:8.4.3.2.3 SR6, lexed in DEFAULT mode so arguments parse as real arithmeticExpressions).
     private int _lastNonWsTokenType = -1;
     private int _prevNonWsTokenType = -1;
 
@@ -165,7 +165,7 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
     }
 
     // THE LIST REGIONS (P7 Step 12; kb/Work PB2113). '(' after "FUNCTION functionName" is the function's argument-list
-    // paren (ISO §2023:8.4.3.2 SR6); '(' after a word that can name a data item is that reference's parenthesized tail —
+    // paren (ISO §2023:8.4.3.2.3 SR6); '(' after a word that can name a data item is that reference's parenthesized tail —
     // its subscripts (§2023:8.4.2.3.2), its reference modifier (§2023:8.4.3.3.2) or, for the keyword-omitted form name(args)
     // (§2023:8.4.3.2.3 SR2, D2), its arguments. Both are LIST regions: the §2023:8.3.5 2) comma/semicolon separator survives
     // as FNARG_SEPARATOR and a sign touching its digits after a separator is a signed literal (SignedLiteralCanStart),
@@ -840,9 +840,9 @@ CLASS       : 'CLASS' ;
 CODE        : 'CODE' ;
 CODE_SET    : 'CODE-SET' ;
 COL         : 'COL' ;
-COLS        : 'COLS' ;      // COBOL-2002 COLUMN-clause spelling (ISO §2023:13.18.14 SR1); usable as a user word via cobolWord (§2023:8.9 funnel gates ≥2002)
+COLS        : 'COLS' ;      // COBOL-2002 COLUMN-clause spelling (ISO §2023:13.18.14.3 SR1); usable as a user word via cobolWord (§2023:8.9 funnel gates ≥2002)
 COLUMN      : 'COLUMN' ;
-COLUMNS     : 'COLUMNS' ;   // COBOL-2002 COLUMN-clause spelling (ISO §2023:13.18.14 SR1); usable as a user word via cobolWord (§2023:8.9 funnel gates ≥2002)
+COLUMNS     : 'COLUMNS' ;   // COBOL-2002 COLUMN-clause spelling (ISO §2023:13.18.14.3 SR1); usable as a user word via cobolWord (§2023:8.9 funnel gates ≥2002)
 COLLATING   : 'COLLATING' ;
 COMMIT      : 'COMMIT' ;       // commit/rollback facility (A.3 items 6-7) - recognized-not-supported
 COMMON      : 'COMMON' ;

@@ -23,7 +23,7 @@ public readonly record struct OccursKey(WrittenDataName Operand, bool Descending
 /// The structured OCCURS description (ISO/IEC 1989:2023 §2023:13.18.38) attached to a table's <see cref="DataItem"/>:
 /// the Format-2 occurrence bounds (<c>OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1</c>), the
 /// DEPENDING ON data-name and its post-build-resolved item, and the ASCENDING/DESCENDING KEY data-names (Formats
-/// 1 and 2 alike — §2023:13.18.38 GR3, consumed by SEARCH ALL and the table SORT). The ARRAY itself is always
+/// 1 and 2 alike — §2023:13.18.38.4 GR3, consumed by SEARCH ALL and the table SORT). The ARRAY itself is always
 /// allocated at <see cref="Max"/> occurrences — §2023:8.5.1.8: for an occurs-depending table "the physical capacity is
 /// fixed at compile time; the logical capacity may vary" — so only the GR7 current-count machinery (group-operand
 /// extents per GR8, the SEARCH bound per §2023:14.9.37.4 GR4) consults this object; layout, width, and VALUE
@@ -31,7 +31,7 @@ public readonly record struct OccursKey(WrittenDataName Operand, bool Descending
 /// </summary>
 public sealed class OccursSpec
 {
-    /// <summary>integer-1 — the minimum occurrence count (<c>0 ≤ Min &lt; Max</c>, §2023:13.18.38 SR16). Equals
+    /// <summary>integer-1 — the minimum occurrence count (<c>0 ≤ Min &lt; Max</c>, §2023:13.18.38.3 SR16). Equals
     /// <see cref="Max"/> for a fixed (Format 1) table.</summary>
     public required int Min { get; init; }
 
@@ -57,7 +57,7 @@ public sealed class OccursSpec
     public WrittenDataName? DependingOperand { get; init; }
 
     /// <summary>The resolved data-name-1 item — set by the post-build <c>OdoResolvePass</c> pass
-    /// (data-name-1 may legally be declared anywhere outside the span the table starts, §2023:13.18.38 SR20, so
+    /// (data-name-1 may legally be declared anywhere outside the span the table starts, §2023:13.18.38.3 SR20, so
     /// resolution must wait for the complete forest).
     /// <para>⛔ ONLY AN ADMITTED data-name-1 IS RECORDED (kb/Work PB3510): an integer (§2023:13.18.38.3 SR17), so an
     /// ELEMENTARY item, not subscripted (SR2) and outside the table's range (SR20); a data-name-1 any of them refuses
@@ -89,7 +89,7 @@ public sealed class OccursSpec
     /// exclusive with the Format-2 DEPENDING form. A dynamic table has no fixed <see cref="DataItem.Occurs"/>.</summary>
     public bool IsDynamic { get; init; }
 
-    /// <summary><c>CAPACITY IN data-name-3</c> — the current-capacity register name (§2023:13.18.38 GR15), or null.</summary>
+    /// <summary><c>CAPACITY IN data-name-3</c> — the current-capacity register name (§2023:13.18.38.4 GR15), or null.</summary>
     public string? CapacityName { get; init; }
 
     /// <summary>The synthetic CAPACITY register item — a view over the table's Capacity, minted for EVERY dynamic
@@ -97,10 +97,10 @@ public sealed class OccursSpec
     /// <c>DynamicResolvePass</c> pass (data-name-3 is implicitly defined at the OCCURS entry, SR30).</summary>
     public DataItem? CapacityRegister { get; set; }
 
-    /// <summary><c>FROM integer-4</c> — the minimum / initial current capacity (§2023:13.18.38 GR16); null ⇒ 0.</summary>
+    /// <summary><c>FROM integer-4</c> — the minimum / initial current capacity (§2023:13.18.38.4 GR16); null ⇒ 0.</summary>
     public int? InitialCap { get; init; }
 
-    /// <summary><c>TO integer-5</c> — the expected capacity (§2023:13.18.38 GR17); null ⇒ unlimited.</summary>
+    /// <summary><c>TO integer-5</c> — the expected capacity (§2023:13.18.38.4 GR17); null ⇒ unlimited.</summary>
     public int? ExpectedMax { get; init; }
 
     /// <summary>The INITIALIZED phrase — seed each new/intermediate occurrence per §2023:8.5.1.9.5.</summary>
@@ -150,7 +150,7 @@ public static class OdoModel
         item.SubscriptLevels().IndexOf(table);   // outermost first — SR3's order, from the ONE walk (kb/Work PB877)
 
     /// <summary>The occurs-depending table among <paramref name="group"/>'s STRICT descendants, or
-    /// <see langword="null"/>. At most one exists in a legal program: §2023:13.18.38 SR22 makes it the unique trailing
+    /// <see langword="null"/>. At most one exists in a legal program: §2023:13.18.38.3 SR22 makes it the unique trailing
     /// variable part of its record, and SR1(b)/SR10 forbid nesting it under another OCCURS — both validated by
     /// <c>OdoResolvePass</c>, so a first-match scan is exact.</summary>
     public static DataItem? TableUnder(DataItem group)
@@ -173,7 +173,7 @@ public static class OdoModel
     }
 
     /// <summary>Wrap a resolved GROUP place whose subtree contains the occurs-depending <paramref name="table"/>
-    /// (ISO §2023:13.18.38 GR8). The fixed prefix is everything before the table in the group's emitted image — exact
+    /// (ISO §2023:13.18.38.4 GR8). The fixed prefix is everything before the table in the group's emitted image — exact
     /// because the table is the record's trailing storage (SR22, enforced at bind).
     /// <para>⛔ <b>THE EXTENT IS COUNTED IN THE GROUP'S OWN POSITION UNIT, WHICH IS BITS WHEN THE SUBTREE HOLDS A
     /// USAGE BIT LEAF</b> (kb/Work PB173). <c>fixed + occ × elem</c> is only an identity in a unit where each
@@ -270,7 +270,7 @@ public static class OdoModel
     }
 
     /// <summary>The SEARCH / SEARCH ALL depending item for an OCCURS DEPENDING table (ISO §2023:14.9.37.4 GR4/GR9 →
-    /// §2023:13.18.38 GR7): the <see cref="Place"/> of data-name-1, whose CURRENT count bounds the scan (the backend
+    /// §2023:13.18.38.4 GR7): the <see cref="Place"/> of data-name-1, whose CURRENT count bounds the scan (the backend
     /// renders <c>CobolTable.Occ(place)</c>, storage-form agnostic). <see langword="null"/> for a fixed table (the
     /// caller uses the compile-time maximum) or a DYNAMIC table (a runtime <c>Capacity</c>, rendered from the table
     /// path — mutually exclusive with the Format-2 DEPENDING form). data-name-1 is resolved post-build (SR20).</summary>

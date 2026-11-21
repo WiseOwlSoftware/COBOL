@@ -117,7 +117,7 @@ public static class FileLockPosture
     internal static FileShare ForSettling => FileShare.ReadWrite;
 
     /// <summary>The access an open mode needs OF THE PHYSICAL FILE (ISO §2023:9.1.4 open modes): INPUT reads, OUTPUT
-    /// and EXTEND write, I-O does both (§2023:14.9.35 GR3 — REWRITE replaces the record a READ retrieved, through the
+    /// and EXTEND write, I-O does both (§2023:14.9.35.4 GR3 — REWRITE replaces the record a READ retrieved, through the
     /// one connector).
     /// <para>⛔ THIS IS THE OPEN MODE'S FLOOR, NOT NECESSARILY A CONNECTOR'S ANSWER, and the distinction is
     /// load-bearing (kb/Work PB771). An organization whose physical format is rewritten WHOLE has to read the

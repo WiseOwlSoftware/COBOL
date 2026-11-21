@@ -496,7 +496,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
     (POINTER 8-byte handle + NULL + SET p TO NULL + SET p TO q + `= NULL`/`= q` equality) is standalone; Phase-2
     dereference (ADDRESS OF/BASED) uses **managed .NET references** (`ManagedPointer`) in the data-model Stage 4 — the
     `PointerRegistry` design is REJECTED (settled, NOT gated; DEVLOG 428). NULL = handle 0 = 8 zero bytes. **Spec corrections to the slice above:** (a) **`VALUE NULL` is PROHIBITED on
-    pointer items** (§2023:13.18.26 SR9) — do NOT implement it; instead REJECT a VALUE clause on a pointer (mirror the
+    pointer items** (§2023:13.18.63.3 SR9: the USAGE FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE and PROGRAM-POINTER phrases) — do NOT implement it; instead REJECT a VALUE clause on a pointer (mirror the
     boolean VALUE check). (b) Comparison is **equality only** (= / NOT =), operands same category or NULL.
     **Lean approach — reuse existing machinery, minimal new code:** model pointer as `CobolCategory.Pointer`
     (8 bytes); **SET p TO NULL / SET p TO q → lower as a MOVE** in `BindSetToValue` when the target is a pointer
@@ -564,7 +564,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   condition register, and runtime guards on checked operations. **Backbone for RAISE/RESUME/USE and
   exception-checking PERFORM.** §2023:14.6, §2023:14.9.
 - ☑ **M2-PROC-5 — `ALLOCATE` / `FREE` (based storage).** *Medium.* **Depends on M2-DATA-5 (pointers).** §2023:14.9.
-  **LANDED greenfield (DEVLOG 617; the §2023:14.9.3 GR7 based-INITIALIZED lowering completed P10 Step-6 slice,
+  **LANDED greenfield (DEVLOG 617; the §2023:14.9.3.4 GR7 based-INITIALIZED lowering completed P10 Step-6 slice,
   2026-07-16, DEVLOG 858):** both formats + FREE on `ManagedPointer`/`StorageCell`; INITIALIZED = GR6
   binary-zero fill (CHARACTERS) / the GR7 `INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT` expansion
   (based form, the ONE InitializeBinder mechanism); goldens `2002/pointer_alloc` + `2002/allocate_initialized`.
@@ -592,7 +592,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
     copybook pass through as text → stray `>` parse error. Spec **§2023:7.2** order is: COPY *inclusion* (Step 1) →
     DEFINE/IF/EVALUATE (Step 2a) → COPY REPLACING (2d) → REPLACE (Step 3), i.e. **COPY-inclusion-then-CC**. Fix =
     swap so COPY runs before CC (low NIST risk — CC is a no-op on directive-free source). **CAUTION: the current
-    order is a DELIBERATE decision** (its comment cites §2023:7.3.16 GR1 to let `>>IF` gate a COPY); reconcile
+    order is a DELIBERATE decision** (its comment cites §2023:7.3.16.4 GR1 to let `>>IF` gate a COPY); reconcile
     §2023:7.3.16 vs §2023:7.2 first — gating still works COPY-first (the expanded text falls in the IF false path, §2023:7.2
     line 3314 "may be omitted"). Verify the `conditional_compilation` conformance test + add a copybook-CC test.
   - **(c) unknown/`>>`-directive handling — ALREADY CORRECT (no fix needed).** Known-ignored directives are
@@ -647,7 +647,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   `typedef_weak_elem`/`typedef_weak_group`/`typedef_strong_ok`/`typedef_88`/`typedef_indexed`). **`SAME AS` DONE**
   (P10 Step 16 — §2023:13.18.49 on the ONE `CloneItem`/`ExpandSameAs` machinery; the `AS` token landed with the CONSTANT
   wave; golden `typedef_same_as`, matrix row `same-as-clause-2002` ACTIVE, SR bands 1555/1556/1557). **EXTERNAL type
-  declarations DONE** (P10 Step 16 — §2023:13.18.22 GR2/GR3/SR5 = 1558; the 1534 stage lifted; golden `typedef_external`).
+  declarations DONE** (P10 Step 16 — §2023:13.18.22.4 GR2/GR3/SR5 = 1558; the 1534 stage lifted; golden `typedef_external`).
   The RESTRICTED data-pointer `USAGE POINTER TO type-name` (ISO §2023:13.18.60.2 general format / Annex D.9.2.2) is LIVE
   (kb/Work PB153) and a COBOL-2002 construct (plain `TYPE TO` is the TYPE clause's OPTIONAL word, §2023:13.18.57.2 Format 1
   `TYPE [TO] type-name`); it has no matrix row, since the TYPEDEF, TYPE and BASED rows already gate it below 2002
@@ -808,7 +808,7 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
   "preprocessor crashes on valid source" claim (nothing crashes); the two real-but-rare defects + a spec caution
   are documented, item dropped to ◐. **M2-DATA-4 Boolean data CORE COMPLETE** (385 recipe, 386 implementation):
   `PIC 1`/`USAGE BIT`, `B"…"`, MOVE/VALUE/INITIALIZE/ZERO/DISPLAY/compare/JUSTIFIED; conformance `boolean_data`.
-  A 2-agent adversarial review caught + fixed VALUE corruption (§2023:13.18.63 GR10), a boolean-in-COMPUTE
+  A 2-agent adversarial review caught + fixed VALUE corruption (§2023:13.18.63.4 GR10), a boolean-in-COMPUTE
   silent-numeric read, and JUSTIFIED wrongly rejected on boolean/national (the last also un-deadened national
   JUSTIFIED). Guard 1047/476/364. Next: M2-DATA-5 Pointers (needs the PointerRegistry design decision).
 - **2026-06-05 (session DEVLOG 387)** — **M2-PROC-6 `GOBACK RETURNING`** (ISO §2023:14.9.16, dialect-gated 2002+):

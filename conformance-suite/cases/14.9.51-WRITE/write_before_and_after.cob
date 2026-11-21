@@ -16,7 +16,7 @@
       *>
       *> EXPECTED VALUES, DERIVED BEFORE THEY WERE MEASURED:
       *>  • §2023:14.9.51.4 GR25 a) advances the page "the number of lines equal to that value" — ONE advance, of
-      *>    the ONE printed operand, however many of the two words precede it. §2023:13.18.34 GR7 c) then increments
+      *>    the ONE printed operand, however many of the two words precede it. §2023:13.18.34.4 GR7 c) then increments
       *>    LINAGE-COUNTER by that amount and GR7 d) sets it to 1 at OPEN OUTPUT. So on a 20-line body:
       *>    OPEN 001; BEFORE AFTER ADVANCING 3 -> 004; AFTER BEFORE ADVANCING 2 -> 006; and the CONTROL
       *>    write, a lone BEFORE ADVANCING 3, -> 009. A two-advance reading would read 007 / 011 / 014.
@@ -25,7 +25,7 @@
       *>    page is advanced … after the line was presented as specified in General rule 25e" — puts the PAIR
       *>    on e)'s side. So the pair presents FIRST, exactly as a lone BEFORE does, and a lone AFTER does not.
       *>    Read back off the medium: the record is on line 001 for the pair, on line 003 for AFTER ADVANCING 2.
-      *>  • §2023:14.9.51.4 GR26 a) + §2023:13.18.34 GR7 c) 4: on a 4-line body from counter 1, the pair's advance of 4
+      *>  • §2023:14.9.51.4 GR26 a) + §2023:13.18.34.4 GR7 c) 4: on a 4-line body from counter 1, the pair's advance of 4
       *>    leaves the counter past the page body, so the end-of-page condition occurs (GR27 b) transfers to
       *>    the AT END-OF-PAGE imperative) and the device is repositioned — EOP, then LINAGE-COUNTER 001.
        IDENTIFICATION DIVISION.

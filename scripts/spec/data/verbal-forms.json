@@ -1,0 +1,29 @@
+{
+ "_comment": [
+  "THE VERBAL FORMS of each edition (kb/Work PB5449, decision PB5448 point 3): a unit of unnumbered text disposed",
+  "`not-a-rule` (a cross-reference or data) is refused when any of its sentences holds one of these, since a form that",
+  "states a requirement, a permission or a defined result is the shape of a rule (text_units.guard_refusal). Each is a",
+  "case-insensitive regular expression over one sentence. 2023 defines its verbal forms in its Introduction ('shall' a",
+  "requirement, 'may' a permission; front matter, which cite.py has no locator for) and 2002 alike; 1985 defines none, its",
+  "syntax rules being those that 'define or clarify how the statement must be written' (§1985:IV.3.1), so 'must' is",
+  "1985's. The list is widened by the",
+  "misses kb/Work PB479's design review found: the function-type sentences (76 in the 2023 text, none in a row when",
+  "measured), 'is undefined', 'is unpredictable', 'implementor-defined', 'is treated as', 'is equivalent to'.",
+  "A lead-in is not guarded: its words are carried by its list's rows."
+ ],
+ "every edition": [
+  "\\bshall\\b",
+  "\\bmay\\b",
+  "\\b(?:is|are)(?: not)? (?:permitted|allowed|required)\\b",
+  "\\bthe type of this function is\\b",
+  "\\bthe function type is\\b",
+  "\\bis undefined\\b",
+  "\\bis unpredictable\\b",
+  "\\bimplementor-defined\\b",
+  "\\bis treated as\\b",
+  "\\bis equivalent to\\b"
+ ],
+ "1985": [
+  "\\bmust\\b"
+ ]
+}

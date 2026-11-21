@@ -109,7 +109,7 @@ internal static class ConfigurationStep
         foreach (var (k, v) in from.DeclaredCurrencySigns) into.DeclaredCurrencySigns.TryAdd(k, v);
         into.ExplicitCurrencyStrings.UnionWith(from.ExplicitCurrencyStrings);
         into.DollarSpecified = from.DollarSpecified;
-        // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE (§2023:12.3.6 GR9–GR11) and CHARACTER CLASSIFICATION (GR1 — every
+        // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE (§2023:12.3.6.4 GR9–GR11) and CHARACTER CLASSIFICATION (GR1 — every
         // OBJECT-COMPUTER clause applies to the contained units)
         into.Collating = from.Collating;
         into.Classification = from.Classification;

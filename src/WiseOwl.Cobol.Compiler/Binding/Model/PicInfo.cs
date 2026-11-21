@@ -36,17 +36,17 @@ public enum PicCategory
     /// the Phase-3 OO spine: a PICTURE-less elementary item holding a .NET object reference (typed → the class's
     /// C# type, universal → <c>object?</c>; <see cref="PicInfo.ObjectRef"/>). Occupies NO character
     /// positions — it never participates in a group's character image (its size is implementor-defined storage,
-    /// not part of the §2023:13.18.60 GR4 image rules; a whole-group image over one is rejected loud).</summary>
+    /// not part of the §2023:13.18.60.4 GR4 image rules; a whole-group image over one is rejected loud).</summary>
     ObjectReference,
     /// <summary>Data pointer (USAGE POINTER, ISO §2023:8.5.2.6 / §2023:13.18.60) — LIVE as of Phase-4b increment 1: a
     /// PICTURE-less elementary item holding a data address, carried by the runtime <c>ManagedPointer</c>
     /// (feedback_one_mechanism_per_job — the ONE managed-ref carrier; never an 8-byte handle). Increment 1 holds
     /// only NULL (SET TO NULL / pointer, equality); ADDRESS OF / BASED / ALLOCATE are increment 2+.</summary>
     Pointer,
-    /// <summary>Program pointer (USAGE PROGRAM-POINTER, ISO §2023:8.5.2.15 / §2023:13.18.60 GR24) — LIVE (P10 Step 7): a
+    /// <summary>Program pointer (USAGE PROGRAM-POINTER, ISO §2023:8.5.2.15 / §2023:13.18.60.4 GR24) — LIVE (P10 Step 7): a
     /// PICTURE-less elementary item that may contain the address of a program — for a COBOL program, an
     /// OUTERMOST program's externalized identity — carried by the runtime <c>ProgramPointer</c> and resolved
-    /// through the ONE run-unit <c>ProgramTable</c> (SET … TO ENTRY §2023:8.4.3.13; CALL §2023:14.9.4 SR1; relations
+    /// through the ONE run-unit <c>ProgramTable</c> (SET … TO ENTRY §2023:8.4.3.13; CALL §2023:14.9.4.3 SR1; relations
     /// §2023:8.8.4.2.16). Occupies NO character positions (the Pointer/ObjectReference image posture).</summary>
     ProgramPointer,
     /// <summary>Function pointer (USAGE FUNCTION-POINTER TO function-prototype-name-1, ISO §2023:8.5.2.7 /
@@ -68,7 +68,7 @@ public enum PicCategory
 
 /// <summary>A SIGN clause's content (ISO §2023:13.18.52): position (LEADING/TRAILING) and SEPARATE CHARACTER mode.
 /// Captured per data-description entry — including on a GROUP item, whose clause applies to every subordinate
-/// signed numeric item with the NEAREST enclosing clause taking precedence (§2023:13.18.52 GR1–3).</summary>
+/// signed numeric item with the NEAREST enclosing clause taking precedence (§2023:13.18.52.4 GR1–3).</summary>
 public sealed record SignSpec(bool Leading, bool Separate);
 
 /// <summary>The GROUP-USAGE clause (ISO §2023:13.18.29; data-model design D20; kb/Work PB79): None for an ordinary
@@ -103,7 +103,7 @@ public enum Usage
     Double,
     /// <summary>USAGE INDEX — an index data item (class index, ISO §2023:13.18.60): holds an occurrence number, which in
     /// the typed-native model IS the index representation (a <c>long</c>, DESIGN §3.5). Only SET, SEARCH,
-    /// and relation conditions may reference it; SET copies it UNCHANGED (no PICTURE store, §2023:14.9.39 GR2b).</summary>
+    /// and relation conditions may reference it; SET copies it UNCHANGED (no PICTURE store, §2023:14.9.39.4 GR2b).</summary>
     Index,
     /// <summary>USAGE OBJECT REFERENCE (ISO §2023:13.18.60.4 / §2023:8.5.2.14) — LIVE (the Phase-3 OO spine): a .NET
     /// reference field (typed or universal — <see cref="PicInfo.ObjectRef"/>); zero character positions.</summary>
@@ -129,7 +129,7 @@ public enum Usage
     /// <summary>USAGE POINTER (ISO §2023:13.18.60 / §2023:8.5.2.6 data-pointer) — LIVE (Phase-4b increment 1): the
     /// ManagedPointer carrier (<see cref="PicCategory.Pointer"/>).</summary>
     Pointer,
-    /// <summary>USAGE PROGRAM-POINTER (ISO §2023:13.18.60 GR24 / §2023:8.5.2.15) — LIVE (P10 Step 7): the ProgramPointer
+    /// <summary>USAGE PROGRAM-POINTER (ISO §2023:13.18.60.4 GR24 / §2023:8.5.2.15) — LIVE (P10 Step 7): the ProgramPointer
     /// carrier (<see cref="PicCategory.ProgramPointer"/>); the restricted TO-prototype form (GR25) stages loud.</summary>
     ProgramPointer,
     /// <summary>USAGE FUNCTION-POINTER (ISO §2023:13.18.60) — recognized, STAGED LOUD (P10 Step 7): function
@@ -806,7 +806,7 @@ public sealed record PicInfo(
         { ObjectRef = desc };
 
     /// <summary>A USAGE POINTER item's representation (Phase-4b; PICTURE-less per §2023:13.18.60 — the IndexItem
-    /// synthesis pattern). Occupies NO character positions (never part of a group's §2023:13.18.60 GR4 image).
+    /// synthesis pattern). Occupies NO character positions (never part of a group's §2023:13.18.60.4 GR4 image).
     /// <para><paramref name="restrictedTypeName"/> is the <c>TO type-name-1</c> of the RESTRICTED data-pointer
     /// form (§2023:13.18.60.2 general format; §2023:13.18.60.4 GR23 — "If type-name-1 is specified, this data item is a
     /// restricted data-pointer. A restricted data-pointer shall contain only the predefined address NULL or the
@@ -819,7 +819,7 @@ public sealed record PicInfo(
         { RestrictedTypeName = restrictedTypeName };
 
     /// <summary>A USAGE PROGRAM-POINTER item's representation (P10 Step 7; PICTURE-less per §2023:13.16.3 SR8 —
-    /// the PointerItem synthesis pattern). Occupies NO character positions (§2023:13.18.60 GR24 leaves alignment/
+    /// the PointerItem synthesis pattern). Occupies NO character positions (§2023:13.18.60.4 GR24 leaves alignment/
     /// size/representation implementor-defined — this implementation's representation is the managed
     /// <c>ProgramPointer</c> identity carrier, never storage bytes).</summary>
     public static PicInfo ProgramPointerItem(string? restrictedPrototypeName = null) =>
@@ -925,7 +925,7 @@ public sealed record PicInfo(
         // A data pointer is the runtime ManagedPointer carrier; its COBOL initial state is NULL (the Null
         // singleton), so the field is non-nullable and always at least Null.
         PicCategory.Pointer => "ManagedPointer",
-        // A program pointer is the runtime ProgramPointer carrier (§2023:13.18.60 GR24 — the address of an
+        // A program pointer is the runtime ProgramPointer carrier (§2023:13.18.60.4 GR24 — the address of an
         // outermost program; a readonly identity struct whose default IS the NULL program address).
         PicCategory.ProgramPointer => "ProgramPointer",
         // A function pointer is the runtime FunctionPointer carrier (§2023:13.18.60.4 GR26 — the address of a
@@ -982,7 +982,7 @@ public sealed record PicInfo(
         // .NET reference-default null matches exactly, no init needed beyond the explicit form.
         PicCategory.ObjectReference => "null",
         PicCategory.Pointer => "ManagedPointer.Null",   // the predefined NULL data pointer (§2023:8.4.3.10)
-        PicCategory.ProgramPointer => "ProgramPointer.Null",   // the NULL program address (§2023:8.4.3.10 GR3)
+        PicCategory.ProgramPointer => "ProgramPointer.Null",   // the NULL program address (§2023:8.4.3.10.4 GR3)
         PicCategory.FunctionPointer => "FunctionPointer.Null",   // the NULL function address (§2023:8.4.3.10.4 GR2)
         PicCategory.MessageTag => "MessageTag.Null",   // the null content (§2023:8.4.3.10.4 GR4; §2023:13.18.63.4 GR4)
         // Alphanumeric AND national default to spaces (the national space is U+0020 under the D-N4 Latin-1
@@ -1174,7 +1174,7 @@ public sealed record PicInfo(
 
     /// <summary>The runtime <c>NumericSign</c> member name for a numeric item (DESIGN §6.4): binary/packed
     /// usages use a leading minus; the CHARACTER-FORM usages use over-punch (trailing by default, leading under
-    /// SIGN LEADING) or a separate <c>+</c>/<c>-</c> character under SIGN SEPARATE (ISO §2023:13.18.52 GR5/GR6). The ONE
+    /// SIGN LEADING) or a separate <c>+</c>/<c>-</c> character under SIGN SEPARATE (ISO §2023:13.18.52.4 GR5/GR6). The ONE
     /// computation of SignKind — also called by the binder's group-SIGN inheritance pass with the nearest-ancestor
     /// clause.
     /// <para>⛔ BOTH CHARACTER-FORM USAGES, not display alone (kb/Work PB646). §2023:13.18.52.3 SR2 names exactly the
@@ -1212,7 +1212,7 @@ public sealed record PicInfo(
 
     /// <summary>The synthesized profile of a PICTURE-less <c>USAGE INDEX</c> data item (ISO §2023:13.18.60): an
     /// elementary <c>long</c> holding an occurrence number. Digits/Scale are irrelevant — SET copies an index value
-    /// UNCHANGED (§2023:14.9.39 GR2b), never through a PICTURE store. Its IMAGE is the R40 pin — the occurrence
+    /// UNCHANGED (§2023:14.9.39.4 GR2b), never through a PICTURE store. Its IMAGE is the R40 pin — the occurrence
     /// number as 8 big-endian TWO'S-COMPLEMENT bytes (<see cref="ByteForm"/> Binary, <see cref="StorageWidth"/>
     /// 8) — so an INDEX-leaf group crosses images/CALL/MOVE/DISPLAY; §2023:13.18.60.3 SR10 still restricts what may
     /// REFERENCE the item. ⛔ <c>Signed: true</c> IS the two's-complement pin (the R40 review fleet): the

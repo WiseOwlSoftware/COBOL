@@ -82,7 +82,7 @@ public sealed class StorageTierSlice
     public IReadOnlyList<(string Backing, string CellField, DataItem Canonical, int Width)> AddressableBackings => _addressableBackings;
 
     /// <summary>The BASED bridges the emitter renders: the implicit data-address pointer field
-    /// (<c>private ManagedPointer {AddrField} = ManagedPointer.Null;</c> — initially NULL, §2023:13.18.5 GR2) + the deref bridge
+    /// (<c>private ManagedPointer {AddrField} = ManagedPointer.Null;</c> — initially NULL, §2023:13.18.5.4 GR2) + the deref bridge
     /// (<c>private ref string {Backing} =&gt; ref CobolPtr.Deref({AddrField}, {Width}).Ref;</c> — GR3/GR4 loud at every
     /// reference).</summary>
     public IReadOnlyList<(string Backing, string CellProp, string AddrField, int Width)> BasedBridges => _basedBridges;

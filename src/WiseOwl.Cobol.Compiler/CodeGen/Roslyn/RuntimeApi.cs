@@ -1312,7 +1312,7 @@ internal static class RuntimeApi
         $"{nameof(CobolFloat)}.{nameof(CobolFloat.Sending)}({value})";
 
     /// <summary>A float value's DISPLAY image — <c>CobolFloat.Display(value)</c> (invariant-culture shortest
-    /// round-trip, §2023:14.9.11 GR1 implementor-defined).</summary>
+    /// round-trip, §2023:14.9.11.4 GR1 implementor-defined).</summary>
     public static string FloatDisplay(string value) =>
         $"{nameof(CobolFloat)}.{nameof(CobolFloat.Display)}({value})";
 
@@ -1704,7 +1704,7 @@ internal static class RuntimeApi
     public static string TableAtOdo(string path, string oneBasedIndex, string count, int minOccurs, int maxOccurs) =>
         $"{nameof(CobolTable)}.{nameof(CobolTable.At)}({path}, {oneBasedIndex}, {count}, {minOccurs}, {maxOccurs})";
 
-    /// <summary>The current POSITION extent of an occurs-depending GROUP operand (ISO §2023:13.18.38 GR8) — the fixed
+    /// <summary>The current POSITION extent of an occurs-depending GROUP operand (ISO §2023:13.18.38.4 GR8) — the fixed
     /// prefix plus data-name-1's clamped value × the element width — <c>CobolTable.OdoExtent</c>. The unit is the
     /// group's own (bit positions for a subtree holding USAGE BIT leaves, character positions otherwise; kb/Work
     /// PB173) — the CHARACTER channel uses <see cref="TableOdoExtentChars"/>.</summary>
@@ -1757,7 +1757,7 @@ internal static class RuntimeApi
     // ── Keyed file I/O (CobolFile; ISO §2023:14.9.10/.30/.35/.41/.51) ──
 
     /// <summary>Register a RELATIVE connector — <c>CobolFile.RegisterRelative</c>. <paramref name="varyArgs"/> is
-    /// the optional trailing ", min, max" record-bounds fragment (§2023:13.18.43 GR9/GR10), possibly empty;
+    /// the optional trailing ", min, max" record-bounds fragment (§2023:13.18.43.4 GR9/GR10), possibly empty;
     /// <paramref name="edition"/> is the compiling program's <c>--std</c> (see <see cref="EditionArg"/>).</summary>
     public static string FileRegisterRelative(string name, string assign, int width, string optional, int access, int keyDigits, string varyArgs, int edition, string? selectName = null) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRelative)}({name}, {assign}, {width}, {optional}, {access}, {keyDigits}{varyArgs}{SelectNameArg(selectName)}{EditionArg(edition)})";
@@ -1917,9 +1917,9 @@ internal static class RuntimeApi
         string ignoringLock, string retryKind, string retryAmount, string imgVar) =>
         $"{IoStatusClass.Successful(FileReadShared(name, previous, lockRef, advancingOnLock, ignoringLock, retryKind, retryAmount, imgVar))}";
 
-    /// <summary>⛔ THE ONE WRITE, any organization and any print-control shape (§2023:14.9.51 GR10/GR11) —
+    /// <summary>⛔ THE ONE WRITE, any organization and any print-control shape (§2023:14.9.51.4 GR10/GR11) —
     /// <c>CobolFile.WriteShared</c>. <paramref name="pageArg"/> is the executing element's LINAGE page
-    /// (§2023:13.18.34 GR6 b) — see <see cref="LinagePageExpr"/>; <paramref name="advance"/> is the statement's
+    /// (§2023:13.18.34.4 GR6 b) — see <see cref="LinagePageExpr"/>; <paramref name="advance"/> is the statement's
     /// ADVANCING phrases as a <c>WriteAdvance</c> descriptor (omitted = none), never a separate entry
     /// (kb/Work PB683). <paramref name="nationalRecord"/> — record-name-1's category (§2023:14.9.51.4 GR21 / GR22) — is
     /// rendered only when true, so every alphanumeric WRITE renders as it always did (kb/Work PB1191).</summary>
@@ -1927,17 +1927,17 @@ internal static class RuntimeApi
         string retryAmount, string pageArg, string? advance = null, string? areaExtents = null, bool nationalRecord = false, string? namedEntry = null) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.WriteShared)}({name}, {image}, {lenArg}, {lockRef}, {retryKind}, {retryAmount}, {pageArg}{(advance is null ? "" : $", {advance}")}{AreaExtentsArg(areaExtents)}{NationalRecordArg(nationalRecord)}{NamedEntryArg(namedEntry)})";
 
-    /// <summary>Governed REWRITE for a sharing-active file, any organization (§2023:14.9.35 GR11/GR12) — <c>CobolFile.RewriteShared</c>.</summary>
+    /// <summary>Governed REWRITE for a sharing-active file, any organization (§2023:14.9.35.4 GR11/GR12) — <c>CobolFile.RewriteShared</c>.</summary>
     public static string FileRewriteShared(string name, string image, string lenArg, string lockRef, string retryKind, string retryAmount,
         string? areaExtents = null, bool nationalRecord = false, string? namedEntry = null) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RewriteShared)}({name}, {image}, {lenArg}, {lockRef}, {retryKind}, {retryAmount}{AreaExtentsArg(areaExtents)}{NationalRecordArg(nationalRecord)}{NamedEntryArg(namedEntry)})";
 
-    /// <summary>Governed DELETE RECORD for a sharing-active file (§2023:14.9.10 GR6/GR7) — <c>CobolFile.DeleteShared</c>.</summary>
+    /// <summary>Governed DELETE RECORD for a sharing-active file (§2023:14.9.10.4 GR6/GR7) — <c>CobolFile.DeleteShared</c>.</summary>
     public static string FileDeleteShared(string name, string areaImage, string retryKind, string retryAmount,
         string? areaExtents = null) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteShared)}({name}, {areaImage}, {retryKind}, {retryAmount}{AreaExtentsArg(areaExtents)})";
 
-    /// <summary>DELETE FILE with a RETRY phrase (§2023:14.9.10 GR15 — the '62' re-attempt) — <c>CobolFile.DeleteFile</c>.</summary>
+    /// <summary>DELETE FILE with a RETRY phrase (§2023:14.9.10.4 GR15 — the '62' re-attempt) — <c>CobolFile.DeleteFile</c>.</summary>
     public static string FileDeleteFileRetry(string name, string retryKind, string retryAmount, string overridden) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteFile)}({name}, {retryKind}, {retryAmount}, {overridden})";
 
@@ -1953,11 +1953,11 @@ internal static class RuntimeApi
     public static string FileStartFirstLast(string name, string last) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.StartFirstLast)}({name}, {last})";
 
-    /// <summary>START on a relative file (§2023:14.9.41 GR9/GR10 — numeric RRN comparison) — <c>CobolFile.StartRelative</c>.</summary>
+    /// <summary>START on a relative file (§2023:14.9.41.4 GR9/GR10 — numeric RRN comparison) — <c>CobolFile.StartRelative</c>.</summary>
     public static string FileStartRelative(string name, string opLiteral, string rrn) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.StartRelative)}({name}, {opLiteral}, {rrn})";
 
-    /// <summary>START on an indexed file (§2023:14.9.41 GR17 — leftmost-LENGTH key comparison) — <c>CobolFile.StartIndexed</c>.</summary>
+    /// <summary>START on an indexed file (§2023:14.9.41.4 GR17 — leftmost-LENGTH key comparison) — <c>CobolFile.StartIndexed</c>.</summary>
     /// <param name="recordAreaImage">The FD's RECORD AREA image — §2023:14.9.41.4 GR17 a) sets the search key up "by
     /// moving the relevant parts of the record area into a temporary data area", so the connector slices the key
     /// of reference out of the area exactly as the random READ and DELETE do (kb/Work PB355). NOT data-name-1's
@@ -2017,13 +2017,13 @@ internal static class RuntimeApi
     /// <summary>⛔ THE PER-STATEMENT OPERANDS OF THE RUNTIME ELEMENT EXECUTING A FILE STATEMENT — the
     /// <c>assign, assignDynamic, page</c> argument triple every OPEN entry takes (kb/Work PB673). ISO
     /// §2023:12.4.5.3 GR3 a)/b) associate the connector using the specification "in the source unit that specifies" /
-    /// "in the runtime element that executes" the OPEN, SORT or MERGE, and §2023:13.18.34 GR6 b) 1 reads the LINAGE
+    /// "in the runtime element that executes" the OPEN, SORT or MERGE, and §2023:13.18.34.4 GR6 b) 1 reads the LINAGE
     /// operands at the completion of an OPEN OUTPUT — so these are the STATEMENT'S arguments, never state
     /// installed on a connector that a whole run unit may share (§2023:13.18.22.4 GR4 a).</summary>
     public static string ExecutingElementArgs(string assign, bool assignDynamic, string pageArg) =>
         $"{assign}, {(assignDynamic ? "true" : "false")}, {pageArg}";
 
-    /// <summary>The executing element's LINAGE operand values as a <c>LinagePage</c> (§2023:13.18.34 GR6: page size,
+    /// <summary>The executing element's LINAGE operand values as a <c>LinagePage</c> (§2023:13.18.34.4 GR6: page size,
     /// footing start, top margin, bottom margin — a literal operand renders a constant per GR6 a), a data-name
     /// operand the element's own field read per GR6 b)). <c>null</c> when the FD carries no LINAGE clause; a
     /// <c>null</c> <paramref name="footing"/> is §2023:13.18.34.4 GR1's ABSENT FOOTING phrase, which is not the value
@@ -2371,7 +2371,7 @@ internal static class RuntimeApi
     public static string SortReturn(string sd, string imgVar) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.Return)}({sd}, out var {imgVar})";
 
-    /// <summary>The just-returned record's length (§2023:13.18.43 GR15) — <c>CobolSort.LastReturnedLength</c>.</summary>
+    /// <summary>The just-returned record's length (§2023:13.18.43.4 GR15) — <c>CobolSort.LastReturnedLength</c>.</summary>
     public static string SortLastReturnedLength(string sd) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.LastReturnedLength)}({sd})";
 

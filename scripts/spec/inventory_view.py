@@ -303,13 +303,17 @@ def edition_views(schema: Schema | None = None) -> dict[int, list[Row]]:
 
 
 def pending(ed: Edition, tree: Tree = WORKING_TREE) -> dict[str, int]:
-    """What keeps `ed`'s rule count a LOWER BOUND (kb/Work PB5256, branch review R1-5): the clauses its content-keyed
-    manifest holds pending and the rule-shaped headings no kind types (`Edition.outside`), whose rules are not counted
-    yet, each by its count; {} when the count is the whole denominator. THE one reading of the bound: `lower_bound`
+    """What keeps `ed`'s rule count a LOWER BOUND (kb/Work PB5256, branch review R1-5), each by its count, all in
+    `Edition.outside`, whose rules are not counted yet: the clauses its content-keyed manifest holds pending, the
+    rule-shaped headings no kind types and the units of unnumbered text awaiting a disposition (kb/Work PB5449,
+    `pending-units`, a count); {} when the count is the whole denominator. THE one reading of the bound: `lower_bound`
     prints it and `edition_status.inventory_part` counts it (kb/Work PB5994 review R1-1)."""
     out = ed.outside(tree)
-    return {what: len(v) for v, what in ((out.get("pending-clauses", []), "clauses pending adjudication"),
-                                         (out.get("untyped-headings", []), "rule-shaped headings untyped")) if v}
+    counts = {what: len(v) for v, what in ((out.get("pending-clauses", []), "clauses pending adjudication"),
+                                           (out.get("untyped-headings", []), "rule-shaped headings untyped")) if v}
+    if units := out.get("pending-units", 0):
+        counts["units of unnumbered text pending"] = units
+    return counts
 
 
 def lower_bound(ed: Edition, tree: Tree = WORKING_TREE) -> str:

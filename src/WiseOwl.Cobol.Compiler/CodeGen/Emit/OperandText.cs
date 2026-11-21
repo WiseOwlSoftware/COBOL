@@ -539,7 +539,7 @@ internal static class OperandText
         // (§2023:13.18.44.4 GR1 — one storage area, so the view's raw storage IS that window, never a second
         // encoding), so the capability guard this arm already had was the WRONG AXIS and
         // `CobolStr.RefMod(...).AsImage()` was a backend CS1061. `SendingGroupImage` owns all four arms —
-        // the RedefViewPlace window, the OdoGroupPlace §2023:13.18.38 GR8 current-extent slice (the arm this site
+        // the RedefViewPlace window, the OdoGroupPlace §2023:13.18.38.4 GR8 current-extent slice (the arm this site
         // used to spell itself, one line above), the capability guard, and the plain struct image.
         // ⛔ A VARIABLE-LENGTH group a ONE-WAY consumer reads is its CURRENT-extent image - the one DISPLAY shows (A.1 item
         // 57) - through the ONE reader PlaceRenderer.VarGroupOperandImage (kb/Work PB3424): CONVERT's ANY source
@@ -778,7 +778,7 @@ internal static class OperandText
         // group operates as an elementary NATIONAL item of PICTURE N(m) (§2023:13.18.29.4 GR2b), so its operand value
         // is its m national CHARACTER positions — never AsImage()'s 2m UTF-16BE bytes, which is what AsImage()
         // became when a national leaf was admitted to the byte-addressed record codec.
-        // An occurs-depending GROUP operand SENDS only the current-count part (ISO §2023:13.18.38 GR8 — "that part of the
+        // An occurs-depending GROUP operand SENDS only the current-count part (ISO §2023:13.18.38.4 GR8 — "that part of the
         // table area specified by data-name-1 at the start of the operation"); a zero count with no fixed prefix is
         // the zero-length item of §2023:8.5.4. This is the read side of every quadrant (MOVE/compare/INSPECT/STRING/
         // UNSTRING source); the receiving direction split lives at the store sites.
@@ -815,7 +815,7 @@ internal static class OperandText
                 ? PExpand($"CobolNum.FormatUnsignedDisplay({PlaceRenderer.Read(p)}, {pic.Digits})", pic)
                 : NumericText(PlaceRenderer.Read(p), p.Item.ProfileName, deviceComma),
             // A float item (COMP-1/2/FLOAT-*, D16): DISPLAY renders the algebraic value via CobolFloat.Display
-            // (invariant-culture shortest round-trip, §2023:14.9.11 GR1 implementor-defined) — never a bare .ToString().
+            // (invariant-culture shortest round-trip, §2023:14.9.11.4 GR1 implementor-defined) — never a bare .ToString().
             // The sending read is wrapped in CobolFloat.Sending (raises EC-DATA-NOT-FINITE for NaN/±Inf under checking,
             // §2023:14.6.13.2 item 3) UNLESS this is an exempt context — SendingRef.FloatChecked() false.
             { Category: PicCategory.Numeric } => sending.FloatChecked(p.Item.Pic!)

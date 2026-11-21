@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// The <see cref="CobolString"/> PAD-CHARACTER overloads (Phase 4a M2-DATA-3/4): a BOOLEAN receiver fills and
 /// extends with boolean ZEROS — <c>Store</c>/<c>SpliceInto</c> right/left fill '0' (ISO §2023:14.6.8.6 :24304–24308;
-/// JUSTIFIED left fill §2023:13.18.32 GR2 :19264–19273) and <c>Compare</c> right-extends the shorter operand with
+/// JUSTIFIED left fill §2023:13.18.32.4 GR2 :19264–19273) and <c>Compare</c> right-extends the shorter operand with
 /// '0' (§2023:8.8.4.2.8 :9683–9689 — the boolean equality relation, by VALUE regardless of usage). A NATIONAL
 /// receiver keeps the space pad — under D-N4's Latin-1 subset the national space IS ' ' (§2023:14.6.8.5). The
 /// default-<c>' '</c> paths must stay BYTE-IDENTICAL to the pre-Phase-4a behavior: every existing call site
@@ -27,13 +27,13 @@ public sealed class CobolStringPadTests
     public void Store_PadZero_FillsRight(string? value, int width, string expected)
         => Assert.Equal(expected, CobolString.Store(value, width, pad: '0'));
 
-    /// <summary>JUSTIFIED RIGHT fills the LEFT with the pad char (§2023:13.18.32 GR2 — bit zeros).</summary>
+    /// <summary>JUSTIFIED RIGHT fills the LEFT with the pad char (§2023:13.18.32.4 GR2 — bit zeros).</summary>
     [Fact]
     public void Store_PadZero_JustifiedRight_FillsLeft()
         => Assert.Equal("0011", CobolString.Store("11", 4, justifiedRight: true, pad: '0'));
 
     /// <summary>Truncation ignores the pad char entirely: left-justified truncates on the RIGHT, justified
-    /// truncates on the LEFT (§2023:14.6.8.6 / §2023:13.18.32 GR1).</summary>
+    /// truncates on the LEFT (§2023:14.6.8.6 / §2023:13.18.32.4 GR1).</summary>
     [Theory]
     [InlineData(false, "1100")]
     [InlineData(true, "0011")]

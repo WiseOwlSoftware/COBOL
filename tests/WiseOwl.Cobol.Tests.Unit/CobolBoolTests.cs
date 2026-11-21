@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>B-OR = 1101</c>, <c>B-XOR = 1001</c>, <c>B-NOT 1100 = 0011</c>. The length rules are §2023:8.8.2 rule 9 (shorter
 /// operand right-zero-extended, no error) / rule 10 (result length = the larger operand); equality is
 /// §2023:8.8.4.2.8 (zero-extension, two empty operands EQUAL); a simple boolean condition is §2023:8.8.4.3.4 GR1
-/// (true iff value 1); the COMPUTE F2 store resize is §2023:14.9.8 GR3 / §2023:14.6.8.6.
+/// (true iff value 1); the COMPUTE F2 store resize is §2023:14.9.8.4 GR3 / §2023:14.6.8.6.
 /// </summary>
 public sealed class CobolBoolTests
 {
@@ -80,7 +80,7 @@ public sealed class CobolBoolTests
     [InlineData("", false)]
     public void IsTrue_TrueIffValueOne(string a, bool t) => Assert.Equal(t, CobolBool.IsTrue(a));
 
-    // ── COMPUTE F2 receiver resize (§2023:14.9.8 GR3 / §2023:14.6.8.6) ────────────────────────────────────────────────
+    // ── COMPUTE F2 receiver resize (§2023:14.9.8.4 GR3 / §2023:14.6.8.6) ────────────────────────────────────────────────
 
     [Theory]
     [InlineData("101", 5, "10100")]   // right zero-fill

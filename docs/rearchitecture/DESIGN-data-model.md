@@ -344,7 +344,7 @@ build; there was a predicate that stopped short.
 - `RedefinesClass.Tier`/`.Width` become **init-only**, set once by `RedefinesClassifier` (§2.5) — no set-then-overwrite.
 - **Tier-C decision — AS BUILT (Step D, LANDED):** there is no Tier C. A genuine mixed-USAGE REDEFINES pun is
   ADMITTED as Tier B, and `ComputeTier`'s remaining reason arms carry only the boundaries that survive — the
-  2-byte national overlay (D-N1/D-N2) and the dynamic-table reject (§2023:13.18.44 SR5). `RedefinesTier.ByteCanonical`
+  2-byte national overlay (D-N1/D-N2) and the dynamic-table reject (§2023:13.18.44.3 SR5). `RedefinesTier.ByteCanonical`
   and `StorageForm.TierCWindow` are deleted outright rather than left quarantined, since a name nothing can
   return is a name the next reader has to re-derive. There is **no** `RedefinesClassifier` type; classification
   lives in `ClassifyRedefinesClassesPass` + `ComputeTier`, applied through the ONE
@@ -770,7 +770,7 @@ usage — its own clause, else the nearest enclosing one (a `GROUP-USAGE` clause
    profile DOWN to each picture-less leaf and clears it from the header. **Derived from the fact, never from a
    list of shapes** — the previous shed tested four reference-identity/category patterns and the leaf application
    a disjoint three-member usage set, and every usage in neither fell through in SILENCE.
-2. **the leaf's representation** — `ApplyEffectiveUsage`, which is also the ONE site the §2023:13.18.49.3 GR3 SAME-AS
+2. **the leaf's representation** — `ApplyEffectiveUsage`, which is also the ONE site the §2023:13.18.49.4 GR3 SAME-AS
    ancestor transform calls (it carried its own copy of the same three-member list).
 3. **the screens** — `PictureAnalyzer.ScreenUsageAgainstPicture` (§2023:13.18.60.3 SR3 / SR5 / SR12 / SR20), extracted
    from `Analyze` so the written-clause path and the inherited path run the SAME code, plus §2023:13.16.3 SR8's

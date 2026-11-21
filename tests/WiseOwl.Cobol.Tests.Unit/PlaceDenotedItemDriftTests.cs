@@ -40,7 +40,7 @@ public sealed class PlaceDenotedItemDriftTests
         ["RenamesPlace"] = "The THROUGH form of a level-66 alias: §2023:13.18.45.4 GR2 makes data-name-1 an "
             + "alphanumeric group item of its own, and AliasItem IS it — the identity never forwarded here, "
             + "which is why the THROUGH form was already refused by START's SR5 when the non-THROUGH form was not.",
-        ["CapacityRegisterPlace"] = "The OCCURS DYNAMIC CAPACITY register (§2023:13.18.38 GR15) — implicitly defined, "
+        ["CapacityRegisterPlace"] = "The OCCURS DYNAMIC CAPACITY register (§2023:13.18.38.4 GR15) — implicitly defined, "
             + "but a data item the source names, and RegisterItem is it.",
         ["ReportSumCounterPlace"] = "A REPORT SECTION sum counter (§2023:13.18.54.4 GR1) — the same: implicitly "
             + "defined, named by the source, carried as RegisterItem.",

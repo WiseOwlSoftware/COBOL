@@ -220,7 +220,7 @@ public sealed class DescriptionCopyCompletenessDriftTests
     /// it for TWO OR MORE clause fields from the same source expression is a copier, whatever its name. Outside
     /// <c>DataBinder.CopyEntryDescription</c> there must be none. A single borrowed clause is a different rule and
     /// is not flagged: §2023:13.16.4 GR1/GR2's implied GROUP-USAGE of a subordinate group, the §2023:13.18.60.2 WITH NO SIGN
-    /// inheritance, and §2023:13.18.45 GR1's RENAMES alias taking data-name-2's PICTURE each read ONE clause.</summary>
+    /// inheritance, and §2023:13.18.45.4 GR1's RENAMES alias taking data-name-2's PICTURE each read ONE clause.</summary>
     [Fact]
     public void NoCodeOutsideTheOneCopy_HandCopiesTwoDescriptionClauses()
     {

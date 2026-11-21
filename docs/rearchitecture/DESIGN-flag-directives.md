@@ -215,7 +215,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     §2023:13.18.27.4 GR1; a method's element is its FACTORY or OBJECT half, kb/Work PB5932), and each TERMINATE report-name
     to a report among `ReportScope.Visible`; `Run` builds no lookup.
   * **1b (DONE for j)** j VALUE-EDITING — a numeric-edited VALUE that is a LITERAL (not figurative) with no
-    editing symbols (§2023:13.18.63 SR6/SR11 + E.2 item 29: numeric literals get editing auto-supplied, alphanumeric/
+    editing symbols (§2023:13.18.63.3 SR6/SR11 + E.2 item 29: numeric literals get editing auto-supplied, alphanumeric/
     national literals now require it). The literal is read as its VALUE (`CobolLiteral.Decode`, the one literal
     decoder: a doubled delimiter is one character, `X"2E"` is `.`; kb/Work PB3234). "Editing symbols" scanned via the unambiguous insertion set
     `{space / , . + - $ *}` + trailing CR/DB; `0`/`B` insertions are a documented rare false-negative.
@@ -226,7 +226,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     float/binary families imply one — CLI-verified that `USAGE DISPLAY VALUE SPACE` IS flagged and `USAGE COMP-2
     VALUE ZERO` is NOT), and **not a group** (`HasSubordinates` — the immediately-following sibling entry is a real
     subordinate, level 2–49; a group's figurative VALUE is filled to the subordinates' length so its length IS
-    specified, §2023:13.18.63 SR13). Restricted to real data levels (1–49, 77) — a level-88 condition-name reaches
+    specified, §2023:13.18.63.3 SR13). Restricted to real data levels (1–49, 77) — a level-88 condition-name reaches
     `VisitDataDescriptionEntry` via `valueClause` and is excluded (`IsRealDataLevel`). k reaches ANY item (not just
     numeric-edited); g/l/j remain numeric-edited-gated.
 * **Incr 2 (DONE)** the frontend-inline options b COMPILE-TIME-ARITHMETIC-EXPRESSIONS + c EVALUATE, emitted in
