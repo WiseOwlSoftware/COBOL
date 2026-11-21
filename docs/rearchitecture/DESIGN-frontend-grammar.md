@@ -1413,8 +1413,27 @@ reference formats, and the only place source comments are recognized. Its model:
   area-A opening as what follows the period). The predicate does not decide legality (every source it changes is refused
   by COBOL3735 or the missing period either way); it decides which refusal is reported. From COBOL-2002 on there are no
   areas (§2023:6.3.1) and free form never had them (§2023:6.4.1): the set is empty, the parse is the earlier one, and the
-  same source keeps the operand reading and its cascades, which no layout fact can settle there. The procedure division's
-  twin (a paragraph header after a sentence without its period, read as one more operand) is kb/Work PB6018.
+  same source keeps the operand reading and its cascades, which no layout fact can settle there.
+  **The procedure division's twin** (kb/Work PB6018): "The paragraph header or paragraph-name starts in area A"
+  (§1985:IV.7.3.3), "the section header must start in area A" (§1985:IV.7.3.2), and a sentence is continued "by starting
+  subsequent line(s) in area B" (§1985:IV.7.2.2), so inside a SENTENCE a token that begins its line in area A and writes a
+  header (the separator period or SECTION follows it) is the next paragraph's or section's name. `nextEntryOpensHere` is
+  the ONE predicate of both divisions: its arm is chosen by the enclosing rule (`sentence`: the header test; `dataDivision`:
+  an integer), so a header's own name (`paragraphName`, `sectionName`, outside every sentence) is never refused, in
+  prediction or in the parse. Every word operand reaches the generated `cobolWord`, and `scripts/gen-cobol-words.ps1` puts
+  the guard on every alternative of it; `procedureName` (its integer and gated arms), `enterOperand` and `routineName`'s
+  gated arm carry it by hand; `AreaAOpeningDriftTests` scrapes every alternative that begins with an operand token
+  (INTEGERLIT, an IDENTIFIER no text predicate leads, `reservedGatedWord`) and holds the reviewed set, the definition slots
+  and the text-recognized keyword rules exempt with their reasons. So `MOVE "B" TO A` then `P1.` ends the MOVE at P1, and
+  the recovery reads the same fact (`OffendingPosition.OpensTheNextEntry`): hint 14 reports the period missing at the
+  header whatever state the statement was left in (`GO TO P2` then `P1.` fails inside GO TO's Format 2, whose walk takes
+  no period), and the kind-refusal (0i) and the ended-statement diagnosis yield to it. Where the guard stands alone in a
+  rule entered for a required operand (`PERFORM` then `P1.`), ANTLR asserts it on entry and throws a
+  FailedPredicateException; `CobolErrorStrategy.ReportFailedPredicate` reports that guard's refusal as the token's
+  mismatch, never the raw COBOL0001. The decision for an operand the source wrote in area A followed by a period (`MOVE "B"
+  TO` then `A.`): the reference format's reading wins, the word is a header and the report is the missing period at it
+  (COBOL3735 "begins in area A" stays the report for every area-A operand that writes no header). From COBOL-2002 on the
+  set is empty and the parse and its diagnostics are unchanged.
   **The one half the pass cannot ask is the CONTINUATION line** (kb/Work PB3168): X3.23-1985 also requires "Area A of a
   continuation line must be blank" (IBM Enterprise COBOL states it outright; VCR row 7.35), the same
   `fixed-form-text-in-area-a-2002` row. A continued literal's tail is no token's start, and a resultant position has no
