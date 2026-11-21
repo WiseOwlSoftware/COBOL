@@ -483,9 +483,14 @@ public sealed class CopyProcessor(
     /// on <c>Q&gt;1</c>), which is asked of the TEXT: the text-word scanner skips a comment, so no word ever starts with
     /// its indicator. A blank line cannot arrive at all: an empty line inside a written pseudo-text-2 (NIST SM208A) is
     /// the line-count-preserving trace of a discarded blank line, not a blank line of the resultant text.</summary>
+    /// <remarks>⛔ The comment and SOURCE FORMAT arms are the 2002 rule's: COBOL-85 names only the COPY (and, for REPLACE, the REPLACE)
+    /// statement (§1985:XII.2.4 GR12, §1985:XII.3.4 GR5) and has neither an in-line comment nor a compiler directive, so at
+    /// COBOL-85 a "*&gt;" or "&gt;&gt;SOURCE" in replacement text is ordinary text and no rule of the edition is broken
+    /// (kb/Work PB6028).</remarks>
     private static string? ForbiddenIn(string produced, ResultRule rule, EditionInfo edition)
     {
-        if (TextWordScanner.HoldsComment(produced, edition.HasCompilerDirectives)) return "a comment";
+        bool laterArms = edition.HasCompilerDirectives;   // the 2002 rule's comment and directive arms
+        if (laterArms && TextWordScanner.HoldsComment(produced, edition.HasCompilerDirectives)) return "a comment";
         int pos = 0;
         bool directiveNext = false;
         while (TextWordScanner.TryNext(produced, ref pos, out var w, edition.HasCompilerDirectives))
@@ -493,8 +498,8 @@ public sealed class CopyProcessor(
             if (w.IsWord("COPY")) return "a COPY statement";
             if (rule.ForbidsReplaceStatement && w.IsWord("REPLACE")) return "a REPLACE statement";
             var span = w.Span;
-            if (directiveNext && CobolKeywords.StartsWith(span, "SOURCE")
-                || span.StartsWith(">>") && CobolKeywords.StartsWith(span[2..].TrimStart(CobolSpace.Separators), "SOURCE"))
+            if (laterArms && (directiveNext && CobolKeywords.StartsWith(span, "SOURCE")
+                || span.StartsWith(">>") && CobolKeywords.StartsWith(span[2..].TrimStart(CobolSpace.Separators), "SOURCE")))
                 return "a SOURCE FORMAT directive";
             directiveNext = span.SequenceEqual(">>");
         }
@@ -733,7 +738,9 @@ public sealed class CopyProcessor(
         // §2023:7.2.3.4 GR12: "If the REPLACING phrase is not specified, the library text may contain a COPY statement that
         // does not include a REPLACING phrase" — so a COPY met INSIDE library text shall not have one (kb/Work PB1356;
         // GR10, the outer-REPLACING arm of the same rule, is checked below once the library text is read).
-        if (inLibraryText && statement.ReplacingSpecified)
+        // Not at COBOL-85, where no COPY statement may stand in library text at all (§1985:XII.2.4 GR12): the outer statement's
+        // edition gate (CopyNestedLibraryText2002, below) is that refusal, and a second one would cite a 2023 rule (kb/Work PB6028).
+        if (inLibraryText && statement.ReplacingSpecified && EditionInfo.Of(dialectLevel, permissive).Has(2002))
             _diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.CopyReplacingNestedCopy.Code,
                 $"COPY {libraryName} REPLACING is written inside library text — ISO §2023:7.2.3.4 GR12: \"If the REPLACING "
                 + "phrase is not specified, the library text may contain a COPY statement that does not include a "

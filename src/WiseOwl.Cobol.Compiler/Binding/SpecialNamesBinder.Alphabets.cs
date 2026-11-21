@@ -272,6 +272,10 @@ public sealed partial class SpecialNamesBinder
         // intercept them rather than mis-binding their letters as literal characters.
         if (CodeSetNameOf(def, _host.CobolWords) is { } wrongBranch)
         {
+            // An edition without the national coded character sets has refused the name at its gate (the version pass's
+            // AlphabetNational2002 check), and the branch rule below is that later edition's (kb/Work PB6028).
+            if (ConstructRegistry.VerdictAt(Edition.Edition, Constructs.AlphabetNational2002) is { Availability: ConstructAvailability.NotYetIntroduced })
+                return;
             Edition.Error(DiagnosticCatalog.AlphabetCodeSetBranch, $"ALPHABET {name} IS {wrongBranch}: the {wrongBranch} coded character "
                 + "set may be referenced only in the FOR NATIONAL branch of the ALPHABET clause "
                 + "(ISO §2023:12.3.7.2 general format)");

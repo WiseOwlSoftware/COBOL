@@ -60,7 +60,7 @@ public static partial class CobolIntrinsics
             // returned length is fixed by the FUNCTION at one character position (§2023:15.15.4), not by the rejected
             // argument, so the row's zero-length class does not reach here (kb/Work PB383, PB470).
             return Exceptions.ExceptionState.ArgumentErrorSpaces(
-                $"CHAR argument {n} outside the collating sequence (§2023:15.15.3 AR1)", CharPositions);
+                $"CHAR argument {n} outside the collating sequence ({Exceptions.ExceptionState.EditionRule("§1989:A.2.9.3 AR2", "§2023:15.15.3 AR1")})", CharPositions);
         }
         return ((char)c).ToString();
     }
@@ -85,7 +85,7 @@ public static partial class CobolIntrinsics
         {
             return Exceptions.ExceptionState.ArgumentErrorSpaces(     // row DOC-A.1-90's general clause — §2023:15.15.4 fixes the length at 1
                 $"CHAR argument {n} outside the collating sequence of "
-                + $"{collation.PositionCount} positions (§2023:15.15.3 AR2)", CharPositions);
+                + $"{collation.PositionCount} positions ({Exceptions.ExceptionState.EditionRule("§1989:A.2.9.3 AR2", "§2023:15.15.3 AR2")})", CharPositions);
         }
         return ((char)c).ToString();
     }
@@ -131,7 +131,7 @@ public static partial class CobolIntrinsics
     /// the <see cref="NationalCollation"/> overload below, and the binder never routes a national argument to
     /// the alphanumeric-weights overload (its 256-entry domain would alias national characters).</summary>
     public static long Ord(string s) => s.Length == 0
-        ? Exceptions.ExceptionState.ArgumentError("ORD argument is empty (§2023:15.70.3 — a one-character argument is required)")
+        ? Exceptions.ExceptionState.ArgumentError($"ORD argument is empty ({Exceptions.ExceptionState.EditionRule("§1989:A.2.31.3 AR1", "§2023:15.70.3")} — a one-character argument is required)")
         : s[0] + 1;
 
     /// <summary>ORD under a NON-identity collating sequence — the ONE <see cref="CobolCollation"/> carrier
@@ -141,24 +141,24 @@ public static partial class CobolIntrinsics
     /// §2023:12.3.7.4 GR7 1.3 (the PB3 arithmetic, living in the ONE <see cref="AlphanumericCollation.Weight"/> reader
     /// beside its exact inverse <see cref="AlphanumericCollation.CharAt"/> — fix-queue PB59).</summary>
     public static long Ord(string s, CobolCollation collation) => s.Length == 0
-        ? Exceptions.ExceptionState.ArgumentError("ORD argument is empty (§2023:15.70.3 — a one-character argument is required)")
+        ? Exceptions.ExceptionState.ArgumentError($"ORD argument is empty ({Exceptions.ExceptionState.EditionRule("§1989:A.2.31.3 AR1", "§2023:15.70.3")} — a one-character argument is required)")
         : collation.Weight(s[0]) + 1L;
 
     /// <summary>UPPER-CASE (§2023:15.97.4): every lowercase letter replaced by its uppercase correspondent; result
     /// length = argument length (the fixed-width field image in carries the width out). A zero-length argument
     /// (an OCCURS DEPENDING ON group at zero occurrences, a zero-length reference modification) violates
     /// §2023:15.97.3 AR1 and sets EC-ARGUMENT-FUNCTION (§2023:15.3 AR14 / §2002:15.2 AR13).</summary>
-    public static string UpperCase(string s) => s.Length == 0 ? CaseArgumentZeroLength("UPPER-CASE", "15.97.3") : s.ToUpperInvariant();
+    public static string UpperCase(string s) => s.Length == 0 ? CaseArgumentZeroLength("UPPER-CASE", "§1989:A.2.44.3 AR1", "§2023:15.97.3 AR1") : s.ToUpperInvariant();
 
     /// <summary>LOWER-CASE (§2023:15.57.4): every uppercase letter replaced by its lowercase correspondent. A zero-length
     /// argument violates §2023:15.57.3 AR1 (<see cref="UpperCase(string)"/>).</summary>
-    public static string LowerCase(string s) => s.Length == 0 ? CaseArgumentZeroLength("LOWER-CASE", "15.57.3") : s.ToLowerInvariant();
+    public static string LowerCase(string s) => s.Length == 0 ? CaseArgumentZeroLength("LOWER-CASE", "§1989:A.2.22.3 AR1", "§2023:15.57.3 AR1") : s.ToLowerInvariant();
 
     /// <summary>REVERSE (§2023:15.78.4): the argument's characters in reverse order; same length. A zero-length
     /// argument violates §2023:15.78.3 AR1 (<see cref="UpperCase(string)"/>).</summary>
     public static string Reverse(string s)
     {
-        if (s.Length == 0) return CaseArgumentZeroLength("REVERSE", "15.78.3");
+        if (s.Length == 0) return CaseArgumentZeroLength("REVERSE", "§1989:A.2.38.3 AR1", "§2023:15.78.3 AR1");
         char[] a = s.ToCharArray();
         Array.Reverse(a);
         return new string(a);
@@ -169,11 +169,13 @@ public static partial class CobolIntrinsics
     /// §2002:15.78.2 / §2002:15.65.2 AR1 say the same): the static screen (IntrinsicArgumentRules MinWidth) sees only a
     /// width known at bind time, so an argument that is empty at run time arrives here. The returned value's length IS the
     /// argument's, so the checking-off answer is the zero-length class of row DOC-A.1-90 (<see
-    /// cref="Exceptions.ExceptionState.ArgumentErrorZeroLength"/>). <paramref name="rule"/> is the function's
-    /// §2023 argument-rule clause. The locale-bearing forms (<see cref="CobolLocale"/>) call it too, so every carrier agrees.</summary>
-    internal static string CaseArgumentZeroLength(string function, string rule) =>
+    /// cref="Exceptions.ExceptionState.ArgumentErrorZeroLength"/>). <paramref name="rule1985"/> and <paramref name="rule"/> are the function's
+    /// argument rule in the 1989 amendment and in COBOL-2023, the message citing the activation's edition's
+    /// (<see cref="Exceptions.ExceptionEngine.EditionRule"/>, kb/Work PB6023). The locale-bearing forms (<see cref="CobolLocale"/>)
+    /// call it too, so every carrier agrees.</summary>
+    internal static string CaseArgumentZeroLength(string function, string rule1985, string rule) =>
         Exceptions.ExceptionState.ArgumentErrorZeroLength(
-            $"{function} argument-1 is of zero length (§2023:{rule} AR1 — at least one character position)");
+            $"{function} argument-1 is of zero length ({Exceptions.ExceptionState.EditionRule(rule1985, rule)} — at least one character position)");
 
     /// <summary>LENGTH (§2023:15.50.4) — the RUNTIME residue of the bind-time fold (deep-dive D7): the length in
     /// character positions of a value only the backend rendered (a nested string-function result, whose padded

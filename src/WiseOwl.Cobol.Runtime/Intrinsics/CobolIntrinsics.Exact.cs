@@ -58,7 +58,7 @@ public static partial class CobolIntrinsics
     public static Int128 Factorial(long n)
     {
         if (n < 0)                                           // EC-ARGUMENT-FUNCTION raise point / §2023:15.3 default 0
-            return Exceptions.ExceptionState.ArgumentError($"FACTORIAL argument {n} violates §2023:15.36.3 AR1 (shall be an integer greater than or equal to zero)");
+            return Exceptions.ExceptionState.ArgumentError($"FACTORIAL argument {n} violates {Exceptions.ExceptionState.EditionRule("§1989:A.2.14.3 AR1", "§2023:15.36.3 AR1")} (shall be an integer greater than or equal to zero)");
         if (n > 33)
             throw new CobolSizeError($"FACTORIAL({n}) exceeds the native Int128 intermediate (33! is the "
                 + "largest representable factorial; ISO §2023:15.36.4 r1c evaluated per §2023:8.8.1.3)", "EC-SIZE-OVERFLOW");
@@ -146,12 +146,12 @@ public static partial class CobolIntrinsics
     /// agree on it.</para>
     /// </remarks>
     internal static long ModZeroDivisor() =>
-        Exceptions.ExceptionState.ArgumentError("MOD with a zero divisor (ISO §2023:15.64.3 AR2)");
+        Exceptions.ExceptionState.ArgumentError($"MOD with a zero divisor ({Exceptions.ExceptionState.EditionRule("§1989:A.2.28.3 AR2", "ISO §2023:15.64.3 AR2")})");
 
     /// <summary>The §2023:15.77.3 r2 zero-divisor rule — one raise site for REM, whichever carrier evaluates it
     /// (see <see cref="ModZeroDivisor"/> for why this is not written per body).</summary>
     internal static long RemZeroDivisor() =>
-        Exceptions.ExceptionState.ArgumentError("REM with a zero divisor (ISO §2023:15.77.3 AR2)");
+        Exceptions.ExceptionState.ArgumentError($"REM with a zero divisor ({Exceptions.ExceptionState.EditionRule("§1989:A.2.37.3 AR2", "ISO §2023:15.77.3 AR2")})");
 
     /// <summary>MOD (§2023:15.64.4): <c>a − b × FUNCTION INTEGER(a / b)</c> — the floored modulus (the spec NOTE's sign
     /// table: −11 MOD 5 = 4, 11 MOD −5 = −4). Operands aligned to one scale, result at that scale (0 for the §2023:15.64.3
@@ -411,10 +411,10 @@ public static partial class CobolIntrinsics
     /// implementor-defined default (0) with checking off.</summary>
     private static Int128 NumvalReject(NvParse p, string text, int digitCap) =>
         p.CapHit
-            ? DigitCapExceeded("NUMVAL", digitCap + 1, digitCap, "ISO §2023:15.67.3 rules 3-4")
+            ? DigitCapExceeded("NUMVAL", digitCap + 1, digitCap, Exceptions.ExceptionState.EditionRule("§1989:A.2.29.3 AR2", "ISO §2023:15.67.3 rules 3-4"))
             : Exceptions.ExceptionState.ArgumentError(
-                $"NUMVAL argument-1 \"{text}\" does not conform to the §2023:15.67.3 formats (first character "
-                + $"in error at position {p.ErrPos}; §2023:15.93 TEST-NUMVAL reports the same position)");
+                $"NUMVAL argument-1 \"{text}\" does not conform to the {Exceptions.ExceptionState.EditionRule("§1989:A.2.29.3 AR1", "§2023:15.67.3")} formats (first character "
+                + $"in error at position {p.ErrPos}{Exceptions.ExceptionState.EditionRule("", "; §2023:15.93 TEST-NUMVAL reports the same position")})");
 
     // ── The SDIDI projections of the same scans (fix-queue PB60, RV-15.67.4-1a; kb/Work PB251) ────────────────
     // §2023:15.4.1: under a standard arithmetic mode "the returned value for numeric and integer functions is
@@ -557,10 +557,10 @@ public static partial class CobolIntrinsics
     /// <summary>The §2023:15.68 reject projection of <see cref="NumvalCDec"/> (see <see cref="NumvalReject"/>).</summary>
     private static Int128 NumvalCReject(NvParse p, string text, int digitCap) =>
         p.CapHit
-            ? DigitCapExceeded("NUMVAL-C", digitCap + 1, digitCap, "ISO §2023:15.68.3 rules 6-7")
+            ? DigitCapExceeded("NUMVAL-C", digitCap + 1, digitCap, Exceptions.ExceptionState.EditionRule("§1989:A.2.30.3 AR3", "ISO §2023:15.68.3 rules 6-7"))
             : Exceptions.ExceptionState.ArgumentError(
-                $"NUMVAL-C argument-1 \"{text}\" does not conform to either §2023:15.68.3 r4a format "
-                + $"(first character in error at position {p.ErrPos}; §2023:15.94 TEST-NUMVAL-C reports the same position)");
+                $"NUMVAL-C argument-1 \"{text}\" does not conform to either {Exceptions.ExceptionState.EditionRule("§1989:A.2.30.3 AR1", "§2023:15.68.3 r4a")} format "
+                + $"(first character in error at position {p.ErrPos}{Exceptions.ExceptionState.EditionRule("", "; §2023:15.94 TEST-NUMVAL-C reports the same position")})");
 
     /// <summary>§2023:15.68.3 r2's content bans on the currency string (after the rule's own edge-space trim):
     /// empty/all-space, any digit 0-9, any of <c>* + - , .</c> (the characters are named outright — the

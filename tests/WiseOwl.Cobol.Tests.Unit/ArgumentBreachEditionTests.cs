@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para><b>What went wrong.</b> kb/Work PB5889 made an undecided integer argument that is not an integer terminate at 85, through
 /// a flag the emitter compiled into each check, while every other value check (a negative FACTORIAL argument, a zero MOD divisor,
 /// a date out of range) still returned 0 at 85 and the run went on: one rule, two answers. The edition is now the activation's
-/// (<c>ICobolProgram.ArgumentBreachTerminates</c>, installed by <c>ProgramTable</c>), read only by the raise site, so no check
+/// (<c>ICobolProgram.IsCobol85</c>, installed by <c>ProgramTable</c>), read only by the raise site, so no check
 /// can carry an answer of its own; the structural test below fails a raise of EC-ARGUMENT-FUNCTION or a termination that
 /// bypasses it.</para>
 /// </summary>
@@ -29,7 +29,7 @@ public sealed class ArgumentBreachEditionTests
     [Fact]
     public void AtCobol85_EveryBreachTerminatesTheRunUnit_WithItsMessage()
     {
-        var e = new ExceptionEngine { ArgumentBreachTerminates = true };
+        var e = new ExceptionEngine { IsCobol85 = true };
         Action[] breaches =
         [
             () => e.ArgumentError("FACTORIAL argument -4"),
@@ -51,7 +51,7 @@ public sealed class ArgumentBreachEditionTests
     public void From2002_AnUncheckedBreachReturnsTheDocumentedDefault()
     {
         var e = new ExceptionEngine();
-        Assert.False(e.ArgumentBreachTerminates);
+        Assert.False(e.IsCobol85);
         Assert.Equal(0, e.ArgumentError("FACTORIAL argument -4"));
         Assert.Equal(ArgumentSubstitute.ZeroLength, e.ArgumentErrorZeroLength("REVERSE argument"));
         Assert.Equal(ArgumentSubstitute.Spaces(1), e.ArgumentErrorSpaces("CHAR argument 0", 1));

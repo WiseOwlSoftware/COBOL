@@ -221,8 +221,7 @@ WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowRollback -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.SizeOverflow -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.SizeTruncation -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.SizeUnderflow -> bool
-WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.ArgumentBreachTerminates.get -> bool
-WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.ArgumentBreachTerminates.set -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.EditionRule(string! rule1985, string! later) -> string!
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowApplyCommitChecking.get -> bool
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowApplyCommitChecking.set -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowApplyCommitError(string! detail) -> void
@@ -232,6 +231,8 @@ WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowCommitError(string! detail)
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowRollbackChecking.get -> bool
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowRollbackChecking.set -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowRollbackError(string! detail) -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.IsCobol85.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.IsCobol85.set -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeChecksEnabled.get -> WiseOwl.Cobol.Runtime.SizeChecks
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeOverflowChecking.get -> bool
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeOverflowChecking.set -> void
@@ -261,7 +262,7 @@ WiseOwl.Cobol.Runtime.FunctionValueField.DeviceText(bool commaMode) -> string!
 WiseOwl.Cobol.Runtime.FunctionValueField.FunctionValueField() -> void
 WiseOwl.Cobol.Runtime.FunctionValueField.Length.get -> long
 WiseOwl.Cobol.Runtime.HostLanding
-WiseOwl.Cobol.Runtime.ICobolProgram.ArgumentBreachTerminates.get -> bool
+WiseOwl.Cobol.Runtime.ICobolProgram.IsCobol85.get -> bool
 WiseOwl.Cobol.Runtime.IO.CobolReport.AddRolled(WiseOwl.Cobol.Runtime.IO.ReportGroup! source, int sumId, int presentSlot, System.Func<System.Int128, System.Int128>! apply, bool crossFoot) -> void
 WiseOwl.Cobol.Runtime.IO.CobolReport.Edition.get -> int
 WiseOwl.Cobol.Runtime.IO.CobolReport.Edition.init -> void
@@ -1204,13 +1205,14 @@ static WiseOwl.Cobol.Runtime.DebugItem.GroupWidthFor(int contentsWidth) -> int
 static WiseOwl.Cobol.Runtime.DecArithmetic.Sdidi(WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.DecArithmetic
 static WiseOwl.Cobol.Runtime.DecArithmetic.Standard(WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.DecArithmetic
 static WiseOwl.Cobol.Runtime.Exceptions.DispatchResult.CompletedNotNormally(int result) -> bool
-static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ArgumentBreachTerminates.get -> bool
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.EditionRule(string! rule1985, string! later) -> string!
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking.set -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowCommitChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowCommitChecking.set -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowRollbackChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowRollbackChecking.set -> void
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.IsCobol85.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeChecksEnabled.get -> WiseOwl.Cobol.Runtime.SizeChecks
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeOverflowChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeOverflowChecking.set -> void

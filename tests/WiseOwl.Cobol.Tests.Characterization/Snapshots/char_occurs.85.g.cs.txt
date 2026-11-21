@@ -41,7 +41,7 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
     public void CloseFiles()
     {
     }
-    bool ICobolProgram.ArgumentBreachTerminates => true;   // §1989:A.2.2 p3 / §1985:p.B-46 (kb/Work PB6019)
+    bool ICobolProgram.IsCobol85 => true;   // §1989:A.2.2 p3 / §1985:p.B-46 (kb/Work PB6019)
 
 
     private const int __N = 1;   // paragraph count

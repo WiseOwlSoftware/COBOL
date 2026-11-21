@@ -1186,10 +1186,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         var (name, fault) = literal1.Form(ctx.Edition.Edition.Year);
         string rule = ctx.Edition.Edition.Cite(clause1985, clause);
         if (fault == ProgramNameFault.ZeroLength)
-            ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass,
+            ctx.Edition.Error(DiagnosticCatalog.CallProgramNameLiteral,
                 $"{verb} with a zero-length literal program name ({EditionInfo.Designated(rule)})");
         else if (fault == ProgramNameFault.NotAlphanumericOrNational)
-            ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass,
+            ctx.Edition.Error(DiagnosticCatalog.CallProgramNameLiteral,
                 $"{verb} '{literal1.Spelling}': the literal program name "
                 + ctx.Edition.Edition.Cite("must be a nonnumeric literal", "shall be an alphanumeric or national literal")
                 + $" ({EditionInfo.Designated(rule)})");

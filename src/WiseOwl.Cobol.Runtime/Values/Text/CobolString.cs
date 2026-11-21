@@ -98,7 +98,7 @@ public static class CobolString
     private static void RefModViolation(Occurrence leftmost, Occurrence length, bool omitted, int size, string what) =>
         ExceptionState.RefModViolation(
             $"reference modification ({leftmost}:{(omitted ? "" : length.ToString())}) out of range for a "
-            + $"{size}-position {what} (ISO §2023:8.4.3.3.4 item 5c)");
+            + $"{size}-position {what} ({ExceptionState.EditionRule("§1985:IV.4.3.8.4.4 GR4", "ISO §2023:8.4.3.3.4 item 5c")})");
 
     /// <summary>A NUMERIC data item as a reference-modifier leftmost-position or length, decoded through the
     /// item's own profile (ISO §2023:8.4.3.3.4 GR5)c); fix-queue PB41): "If the evaluation of leftmost-position or
@@ -154,7 +154,7 @@ public static class CobolString
 
     private static void NotAnInteger(string shown) =>
         ExceptionState.RefModViolation(
-            $"reference-modification position {shown} is not an integer (ISO §2023:8.4.3.3.4 item 5c)");
+            $"reference-modification position {shown} is not an integer ({ExceptionState.EditionRule("§1985:IV.4.3.8.4.4 GR4", "ISO §2023:8.4.3.3.4 item 5c")})");
 
     /// <summary>A reference-modifier leftmost-position or length that is an arithmetic EXPRESSION (or a
     /// floating-point item), as the position it denotes — the statement pre-operation's intake, the exact twin of

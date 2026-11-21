@@ -1023,6 +1023,16 @@ public static class DiagnosticCatalog
         + "and category are its type-name, a bit or variable-length group) is not a program name carrier.",
         "ISO §2023:14.9.4.3 SR1",
         Rule1985: "§1985:X.5.2.3 SR2");
+    /// <summary>COBOL7736 — the program-name LITERAL of a CALL or CANCEL statement (kb/Work PB6029: it was reported under
+    /// the intrinsic functions' argument-class code, whose name and rule said nothing of CALL).</summary>
+    public static readonly DiagnosticDescriptor CallProgramNameLiteral = new(
+        "COBOL7736", "call-program-name-literal", EditionSeverity.Error,
+        "The literal that names the program of a CALL or CANCEL statement is not a literal that can name one. ISO §2023:14.9.4.3 "
+        + "SR2 and §2023:14.9.5.3 SR2: literal-1 \"shall be an alphanumeric or national literal\" whose length is not zero; "
+        + "COBOL-85 asks a nonnumeric literal (§1985:X.5.2.3 SR1, §1985:X.5.3.3 SR1). A numeric, boolean or figurative "
+        + "literal, or a zero-length one, names no program.",
+        "ISO §2023:14.9.4.3 SR2 / §2023:14.9.5.3 SR2",
+        Rule1985: "§1985:X.5.2.3 SR1 / §1985:X.5.3.3 SR1");
     public static readonly DiagnosticDescriptor CallAsNestedContext = new(
         "COBOL1682", "call-as-nested-context", EditionSeverity.Error,
         "ISO §2023:14.9.4.3 syntax rule 13 (Format 2): \"The NESTED phrase may be specified only in a program "
@@ -2650,10 +2660,11 @@ public static class DiagnosticCatalog
         Rule1985: "§1985:VIII.2.4.4 GR8");
     public static readonly DiagnosticDescriptor ExternalFileItemNotExternal = new(
         "COBOL1624", "external-file-item-not-external", EditionSeverity.Error,
-        "At COBOL-2023, for an external file connector the FILE STATUS, RELATIVE KEY and LINAGE data items shall "
-        + "themselves be external data items (ISO §2023:14.8.4.2; Annex E.2 item 9) — a file/relative-key/linage clause "
-        + "naming a non-external item is rejected. Enforced per connector regardless of describer count. Below 2023 "
-        + "the requirement did not exist.",
+        "A data item a clause of an external file connector's entry names is not itself an external data item. The RELATIVE KEY, "
+        + "PADDING CHARACTER and LINAGE items have had to be external since COBOL-85 (§1985:VIII.2.4.4 GR8, §1985:VII.2.7.4 GR6, "
+        + "§1985:VII.3.7.4 GR11c; ISO §2023:12.4.5.3 GR1h for the relative key); the FILE STATUS item from COBOL-2023, which "
+        + "restates the LINAGE rule beside it (ISO §2023:14.8.4.2; Annex E.2 item 9). Enforced per connector regardless of "
+        + "describer count.",
         "ISO §2023:14.8.4.2 / Annex E.2 item 9",
         Rule1985: "§1985:VIII.2.4.4 GR8 / §1985:VII.2.7.4 GR6 / §1985:VII.3.7.4 GR11c");
     // 1625 — the fixed-point-numeric VALUE range/sign syntax rules (§2023:13.18.63.3 SR2/SR3; the 08xx value/picture band
@@ -2705,7 +2716,7 @@ public static class DiagnosticCatalog
         + "numeric argument however numeric it looks. An operand whose class is not statically decidable is "
         + "never rejected. --permissive downgrades this to a warning and proceeds with the existing coercion.",
         "ISO §2023:15.3 / §2023:8.5.2.1 Table 2 / §2023:4.2.2 para 3 (which leaves the determination to the implementor)",
-        Rule1985: "§1989:A.2 / §1985:X.5.2.3 SR1 / §1985:X.5.3.3 SR1");
+        Rule1985: "§1989:A.2");
     // 1628 — CALL … USING BY VALUE operand class (ISO §2023:14.9.4.3 SR22). Surfaced by the pre-merge GnuCOBOL
     // differential: two AGREE_ACCEPT→WE_REJECT flips traced to DA6's §2023:8.8.1.1 arithmetic screen firing on a BY
     // VALUE operand, because the grammar production is named arithmeticExpression and the binder took that at
@@ -9984,11 +9995,12 @@ public static class DiagnosticCatalog
     /// <summary>COBOL1516 — intrinsic argument data item rule (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor IntrinsicArgumentDataItemRule = new(
         "COBOL1516", "intrinsic-argument-data-item-rule", EditionSeverity.Error,
-        "The argument of an intrinsic function that takes a data item is not one: a FUNCTION RESULT, a literal, an "
-        + "arithmetic expression, a group item or a reference-modified item, or a floating-point usage the current "
-        + "ARITHMETIC mode excludes. §2023:15.14.3: \"Argument-1 shall be an alphanumeric or national literal, a based entry, a "
-        + "type-name, or a data item of any class or category.\"",
-        "ISO §2023:15.14.3; §2023:15.50.3",
+        "The argument of HIGHEST-ALGEBRAIC, LOWEST-ALGEBRAIC or SMALLEST-ALGEBRAIC is not the data item its argument rule 1 "
+        + "requires — a data item of category numeric (and, for HIGHEST and LOWEST, numeric-edited) that \"shall not be an integer "
+        + "function or numeric function\" (ISO §2023:15.43.3 AR1, §2023:15.58.3 AR1, §2023:15.83.3 AR1): a FUNCTION RESULT, a "
+        + "literal, an arithmetic expression, a group item, a reference-modified item or an index — or it specifies a "
+        + "floating-point usage the ARITHMETIC mode in effect excludes (rules 2 and 3).",
+        "ISO §2023:15.43.3; §2023:15.58.3; §2023:15.83.3",
         No1985Rule: "Every site is in the HIGHEST-ALGEBRAIC / LOWEST-ALGEBRAIC / SMALLEST-ALGEBRAIC binder, functions that are not in the 1989 intrinsic function module (its list of functions, §1989:A.2.4, which \"summarizes the functions that are available\", has none of them), so the COBOL1502 function-introduction gate refuses them at 85 first.");
 
     /// <summary>COBOL1517 — formatted date format not literal (kb/Work PB4463).</summary>

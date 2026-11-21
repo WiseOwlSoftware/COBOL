@@ -1675,7 +1675,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             //    category from the cross-category arm below is what keeps a CONFORMING `PIC ZZ9 USAGE NATIONAL
             //    VALUE N"  1"` from being refused here as "a national literal may seed only its own category".
             case not (PicCategory.National or PicCategory.Boolean)
-                    when isBoolLit || isNatLit && pic.Category is not PicCategory.NumericEdited:
+                    when (isBoolLit || isNatLit && pic.Category is not PicCategory.NumericEdited)
+                         && LiteralScreen.EditionHasFormat(raw, Edition.Edition):   // else the literal's gate is the one report (kb/Work PB6028)
                 Edition.Error(isNatLit ? DiagnosticCatalog.ValueNationalLiteralRule : DiagnosticCatalog.ValueBooleanLiteralRule,
                     $"{where}: a {(isNatLit ? "national (N\"…\")" : "boolean (B\"…\")")} "
                     + "literal may seed only a data item of its own category (ISO §2023:13.18.63.3 SR5/SR10)");

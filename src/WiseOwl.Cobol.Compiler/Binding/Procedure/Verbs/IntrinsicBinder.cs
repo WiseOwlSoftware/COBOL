@@ -1216,16 +1216,20 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     {
         string rule = sig.Name == "UPPER-CASE" ? "ISO §2023:15.97.2 / §2023:15.97.4 r2 — LOCALE locale-name-1, a locale-name of the SPECIAL-NAMES LOCALE clause"
             : "ISO §2023:15.57.2 / §2023:15.57.4 r2 — LOCALE locale-name-1, a locale-name of the SPECIAL-NAMES LOCALE clause";
+        // The phrase is a 2014 introduction (kb/Work PB4311; the function is 1985; the printed 2002 formats are
+        // `( argument-1 )`): the construct gate, like EXCEPTION-FILE's argument. It speaks FIRST, and an edition without the
+        // phrase hears nothing after it: the form below is the 2014 phrase's, so a malformed phrase at COBOL-85 is not a second
+        // report citing a 2023 rule the program's edition does not have (kb/Work PB6028).
+        ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.CaseFunctionLocalePhrase2014,
+            $"the LOCALE phrase of FUNCTION {sig.Name}");
+        if (ConstructRegistry.VerdictAt(ctx.Edition.Edition, Constructs.CaseFunctionLocalePhrase2014) is { Availability: ConstructAvailability.NotYetIntroduced })
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
         if (argCtxs.Count != 3 || KeywordWordOf(argCtxs[1]) != "LOCALE")
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name} takes argument-1 optionally followed by LOCALE locale-name-1 "
                 + $"({rule}); {argCtxs.Count} argument(s) given");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
         }
-        // The phrase is a 2014 introduction (kb/Work PB4311; the function is 1985; the printed 2002 formats are
-        // `( argument-1 )`): the construct gate, like EXCEPTION-FILE's argument.
-        ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.CaseFunctionLocalePhrase2014,
-            $"the LOCALE phrase of FUNCTION {sig.Name}");
         var operand = BindArgOperand(argCtxs[0]);
         LocaleRef locale;
         if (KeywordWordOf(argCtxs[2]) is { } word)
@@ -2040,9 +2044,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // illegal (kb/Work PB60 / AR-15.68.3-3 — the former scalar injected whichever clause bound last, so
             // NUMVAL-C("#1,234.56") silently returned 0 in a '#'-then-'@' unit). Under LOCALE nothing is
             // injected — the currency strings are the locale's (r5b.3; PB64 T6).
+            // ⛔ r3 is not COBOL-85's rule (kb/Work PB6028; the descriptor's No1985Rule): SPECIAL-NAMES admits one CURRENCY SIGN
+            // clause there (§1985:VI.4.5.4 GR11), so a unit with two strings has had its second clause refused (COBOL2423), and a
+            // second report of the same source would cite a 2023 rule the edition does not have.
             if (ctx.Data.State.Configuration.SoleCurrencyString is { } sole)
                 operands.Add(new BoundStringLiteral(sole));
-            else
+            else if (ctx.Edition.DialectLevel >= 2002)
                 ctx.Edition.Error(DiagnosticCatalog.NumvalCAmbiguousCurrency, $"FUNCTION {sig.Name} without "
                     + $"argument-2: the compilation unit specifies {ctx.Data.State.Configuration.ExplicitCurrencyStringCount} distinct "
                     + "currency strings in its SPECIAL-NAMES paragraph; when neither argument-2 nor LOCALE is "
@@ -2928,10 +2935,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // HERE, not in OperandOf: every other verb legitimately needs the temp→operand mapping.
         if (f.Place.Item.IsCompilerTemp)
         {
-            string fsec = sig.Name == "SMALLEST-ALGEBRAIC" ? "15.83.3"
-                : sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3";
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentDataItemRule, $"FUNCTION {sig.Name}: argument-1 is a FUNCTION RESULT, and "
-                + $"ISO §2023:{fsec} rule 1 admits a data item and \"shall not be an integer function or numeric "
+                + $"ISO §2023:{AlgebraicArgumentRules(sig)} rule 1 admits a data item and \"shall not be an integer function or numeric "
                 + "function\" — name the data item whose description defines the range instead");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} function argument");
         }
@@ -2954,8 +2959,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A.1 item 180's documented restriction is now "none beyond rules 2 and 3", CONFORMANCE.md).
         if (pic.IsFloat)
         {
-            string fsec3 = sig.Name == "SMALLEST-ALGEBRAIC" ? "15.83.3"
-                : sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3";
+            string fsec3 = AlgebraicArgumentRules(sig);
             // The two families through the ONE place they are written down (UsageFamilies, PicInfo.cs) — §2023:3.166
             // and §2023:3.167 name them as terms and several rules key on those exact sets, so a second spelling here
             // is a set that can silently disagree when a member is added (kb/Work PB174).
@@ -3086,12 +3090,20 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     private BoundExpr AlgebraicArgError(IntrinsicSig sig)
     {
         string cat = sig.Name == "SMALLEST-ALGEBRAIC" ? "category numeric" : "category numeric or numeric-edited";
-        string sec = sig.Name == "SMALLEST-ALGEBRAIC" ? "15.83.3" : sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3";
         ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentDataItemRule, $"FUNCTION {sig.Name} argument-1 shall be a {cat} DATA ITEM — not a "
             + "literal, an arithmetic expression, a group item, a reference-modified item, an index, or another "
-            + $"function (ISO §2023:{sec} rule 1)");
+            + $"function (ISO §2023:{AlgebraicArgumentRules(sig)} rule 1)");
         return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} argument");
     }
+
+    /// <summary>The argument-rules subclause of HIGHEST-ALGEBRAIC (§2023:15.43.3), LOWEST-ALGEBRAIC (§2023:15.58.3) or
+    /// SMALLEST-ALGEBRAIC (§2023:15.83.3): the one spelling of the three (COBOL1516's sites wrote it three times).</summary>
+    private static string AlgebraicArgumentRules(IntrinsicSig sig) => sig.Name switch
+    {
+        "SMALLEST-ALGEBRAIC" => "15.83.3",
+        "HIGHEST-ALGEBRAIC" => "15.43.3",
+        _ => "15.58.3",
+    };
 
     // ── Argument-list binding: split → ALL expansion → per-segment parse ───────────────────────────────────
 

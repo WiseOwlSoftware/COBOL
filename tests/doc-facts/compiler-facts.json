@@ -160,11 +160,6 @@
       "changedIn": 2014
     },
     {
-      "id": "report-page-width",
-      "vcrRow": "7.89",
-      "changedIn": 2002
-    },
-    {
       "id": "saved-next-group-forces-page-advance",
       "vcrRow": "7.82",
       "changedIn": 2002
@@ -182,11 +177,6 @@
     {
       "id": "sum-additions-in-dependency-order",
       "vcrRow": "7.87",
-      "changedIn": 2002
-    },
-    {
-      "id": "sum-data-name-rules",
-      "vcrRow": "7.89",
       "changedIn": 2002
     },
     {
@@ -1056,7 +1046,7 @@
     "COBOL7641",
     "COBOL7654",
     "COBOL7672",
-    "COBOL7735"
+    "COBOL7736"
   ],
   "cliOptions": [
     "--copy",
