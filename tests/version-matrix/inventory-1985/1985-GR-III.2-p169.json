@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p169",
+ "rule-digest": "64096fd13375",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecordSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteFramedRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#SeekToOrdinal",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p169",
+ "notes": "Derivation from the read lineage-reads-1985/g-98.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p169); the code location is where the compiler meets the rule's subject. The read: \"A collection of records that is assigned to a mass storage medium\" names a kind of file; the candidates' rules (DELETE, READ PREVIOUS, RECORD sizes) are the rows that use it. The code location was located after the read (locations-p169.json): The runtime holds every file on a host path (a positionable medium, mass storage), and these members check it where the 1985 rules require a mass storage file: the two REWRITE arms (record sequential; the 85 line-framed one) replace the record in place only on a stream that can seek and write, else '30' (§1985:VII.4.5.4 GR1, 'must be a mass storage file'), and SeekToOrdinal positions a READ only on a seekable stream."
+}

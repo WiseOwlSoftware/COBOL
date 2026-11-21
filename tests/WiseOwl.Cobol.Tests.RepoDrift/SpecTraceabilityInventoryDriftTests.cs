@@ -1657,13 +1657,13 @@ public sealed class SpecTraceabilityInventoryDriftTests
             "1985-GR-III.2-p252", "1985-GR-III.2-p256", "1985-GR-III.2-p284", "1985-GR-III.2-p301",
             "1985-GR-III.2-p304", "1985-GR-III.2-p305", "1985-GR-III.2-p313", "1985-GR-III.2-p315",
             "1985-GR-III.2-p324", "1985-GR-III.2-p325", "1985-GR-III.2-p326",
-            // ⚙ Seventeen more, added deliberately (kb/Work PB5453, decision PB6003, signature `claude: 2026-11-21`): the 85w
+            // ⚙ Eighteen more, added deliberately (kb/Work PB5453, decision PB6003, signature `claude: 2026-11-21`): the 85w
             // derivations the import left with no code location, each now given the member where the compiler gives the defined
             // term its meaning (the controller's ruling of wave 20262131, group x); the three B.2.1 list introductions on the
-            // informative arm (kb/Work PB6012).
+            // informative arm (kb/Work PB6012); p169 on the second read g-98, whose derivation refuter the controller ran.
             "1985-GR-III.2-p28", "1985-GR-III.2-p40", "1985-GR-III.2-p61", "1985-GR-III.2-p71", "1985-GR-III.2-p85",
             "1985-GR-III.2-p87", "1985-GR-III.2-p88", "1985-GR-III.2-p89", "1985-GR-III.2-p113", "1985-GR-III.2-p166",
-            "1985-GR-III.2-p178", "1985-GR-III.2-p197", "1985-GR-III.2-p218", "1985-GR-III.2-p248",
+            "1985-GR-III.2-p169", "1985-GR-III.2-p178", "1985-GR-III.2-p197", "1985-GR-III.2-p218", "1985-GR-III.2-p248",
             "1985-GR-B.2.1-p1", "1985-GR-B.2.1-p2", "1985-GR-B.2.1-p3",
         ];
 

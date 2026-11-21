@@ -1289,6 +1289,13 @@
    "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-03.jsonl"
   },
   {
+   "key": "DRV-1985-GR-III.2-p169",
+   "arm": "definitional",
+   "names": "defines a mass storage file of a program as a collection of records assigned to a mass storage medium",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-98.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-III.2-p178",
    "arm": "indistinguishable-consequent",
    "names": "1985-GR-III.2-p168",
