@@ -1,4 +1,4 @@
-## The 1985 debugging line in a unit without the mode is read as source too (PB5990)
+## Entry 3895 — 2026-11-21 03:09 PST — The 1985 debugging line in a unit without the mode is read as source too (PB5990)
 
 §1985:VI.7.3 requires a debugging line to leave a syntactically correct program "with or without" the lines taken as comment
 lines. PB5212 checked only the direction where the mode is on (COBOL7061). A unit without WITH DEBUGGING MODE hides its D lines
@@ -23,3 +23,4 @@ without the mode drew COBOL7060 and COBOL7675 for one cause; it is now COBOL7060
 The arithmetic-operator separator screen needs the parse tree and is not part of the as-source reading.
 
 Second review: the as-source reading also runs the parse-tree arithmetic-operator screen (COBOL2993, `Frontend.ReportArithmeticOperatorScreen`, one implementation called by the main parse and the as-source reading; `ParseCopyOf` now returns its tree), so the earlier stated gap is closed (golden pb5990-debugging-line-arithmetic-operator-as-source). A valid D line is no longer blamed for an error on a plain line: only errors on a hidden line count (golden pb5990-valid-debugging-line-not-blamed-for-a-plain-line-error, COBOL2633 alone).
+
