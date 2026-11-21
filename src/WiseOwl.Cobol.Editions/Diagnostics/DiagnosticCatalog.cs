@@ -3450,7 +3450,10 @@ public static class DiagnosticCatalog
         "COBOL2691", "directive-after-program-text", EditionSeverity.Error,
         "A compiler directive is written after program text on its line. ISO §2023:7.3.3 SR2: \"A compiler directive "
         + "shall be preceded only by zero, one, or more space characters.\" Write the directive on a line of its own.",
-        "ISO §2023:7.3.3 SR2");
+        "ISO §2023:7.3.3 SR2",
+        No1985Rule: "ANSI X3.23-1985 has no compiler directive written with the >> indicator: its compiler directing verbs are "
+            + "COPY, ENTER, REPLACE and USE (§1985:IV.6.4.2.2.1), and it states no rule about where a >> line may stand, so there "
+            + "is no 1985 rule to cite; the directive facility begins in COBOL-2002 (kb/Work PB5993).");
 
     /// <summary>COBOL2692 — one user-defined word used as two TYPES of user-defined word within a source element
     /// (kb/Work PB990). §2023:8.3.2.2: "Within a source element, a given user-defined word may be used as only one type

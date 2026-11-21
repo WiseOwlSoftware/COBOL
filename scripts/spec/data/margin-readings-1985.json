@@ -1,0 +1,440 @@
+{
+ "$comment": [
+  "The 1985 paragraphs after a rule that the PDF measurement cannot place (measure_margin_levels.py: not found or ambiguous), each read on the rendered page (scripts/render-spec-page.py <page>) and recorded here by hand with its page and the evidence read there (kb/Work PB5998; decision PB5448 point 4: 'a paragraph the measurement cannot find is read on the rendered page and recorded with the page').",
+  "Keyed as the margin-level data is (clause, digest, order). 'read' is 'level 0' (a margin paragraph of the clause, a unit) or 'continues the rule' (printed at the rule's indent or deeper, or not printed as a paragraph of its own). measure_margin_levels.py --write records each in margin-levels-1985.json, and refuses a reading whose paragraph is gone or is measured."
+ ],
+ "readings": [
+  {
+   "clause": "§1985:VI.5.9.4",
+   "follows": "(8)",
+   "digest": "5bf5c5707a3f",
+   "order": 0,
+   "page": 263,
+   "read": "continues the rule",
+   "evidence": "p263 symbol 'P' at +48.2 with its text at +72.2, as the sibling symbol paragraphs A, B, S (measured level 2); OCR split the line"
+  },
+  {
+   "clause": "§1985:VI.5.9.4",
+   "follows": "(8)",
+   "digest": "fc053f14f9b2",
+   "order": 0,
+   "page": 264,
+   "read": "continues the rule",
+   "evidence": "p264 symbol '.' at +49.4, as the sibling symbol paragraphs V, X, Z, 9 (level 2); OCR split the line"
+  },
+  {
+   "clause": "§1985:VI.6.2.3",
+   "follows": "(1)",
+   "digest": "b9fb618062e5",
+   "order": 0,
+   "page": 284,
+   "read": "continues the rule",
+   "evidence": "p284 the hierarchy list '1st - Unary plus and minus' .. '4th' printed at +69 under rule (1)'s 'following hierarchical order of execution is implied:'; a display inside rule (1)"
+  },
+  {
+   "clause": "§1985:VI.6.3.1.1.2",
+   "follows": "(3)",
+   "digest": "503e687ab417",
+   "order": 0,
+   "page": 288,
+   "read": "level 0",
+   "evidence": "p288 'There are two cases to consider:' first line at +17.9, beside 'The size of an operand' (+17.7, measured level 0); OCR split 'operands of' out of the line"
+  },
+  {
+   "clause": "§1985:VI.6.3.1.2",
+   "follows": "(5)",
+   "digest": "8e0d7031687e",
+   "order": 0,
+   "page": 289,
+   "read": "level 0",
+   "evidence": "p289 printed 'The usage of the operand being tested must be described as DISPLAY.' at +17.2 among level-0 siblings (+16.9..+18.4); transcription text is the Errata C126 correction, so the opening did not match"
+  },
+  {
+   "clause": "§1985:VI.6.16.4",
+   "follows": "(3)",
+   "digest": "2a16576a3da0",
+   "order": 0,
+   "page": 323,
+   "read": "continues the rule",
+   "evidence": "p323 printed 'IF statements within IF statements may be considered as paired ...' at +48.6 after rule (3) (+18.6); transcription text is the Errata C223 correction"
+  },
+  {
+   "clause": "§1985:VI.6.19.4",
+   "follows": "(2)",
+   "digest": "97f87f0427b7",
+   "order": 0,
+   "page": 335,
+   "read": "continues the rule",
+   "evidence": "p335 printed 'Any subscripting associated with identifier-1 is evaluated only once' at +47.3 after rule (2) (+18.8); transcription text is the Errata C130 correction"
+  },
+  {
+   "clause": "§1985:VI.6.19.4",
+   "follows": "(2)",
+   "digest": "49248ced6f9c",
+   "order": 0,
+   "page": 336,
+   "read": "continues the rule",
+   "evidence": "p336 'where 'temp' is ...' at -0.6, the margin with no paragraph indent: it ends the sentence 'The result of the statement ... is equivalent to:' (+48.4) after its MOVE display (left of the indent)"
+  },
+  {
+   "clause": "§1985:VI.6.22.4",
+   "follows": "(1)",
+   "digest": "9dea68b23835",
+   "order": 0,
+   "page": 355,
+   "read": "continues the rule",
+   "evidence": "p355 '(See page IV-40, Scope of Statements.)' flush at +2.0, no paragraph indent, closing rule (1) after its items a.-c. (left of the indent)"
+  },
+  {
+   "clause": "§1985:VII.3.8.4",
+   "follows": "(10)",
+   "digest": "d7cf2805dc23",
+   "order": 0,
+   "page": 406,
+   "read": "continues the rule",
+   "evidence": "not printed on p406 (Errata C250: the 1985 rule 10 ends with item c); Amendment 2 B-12 adds it 'to general rule 10 ... as a new last paragraph': part of rule (10)"
+  },
+  {
+   "clause": "§1985:VII.4.2.4",
+   "follows": "(3)",
+   "digest": "56c3ef5fd62c",
+   "order": 0,
+   "page": 410,
+   "read": "continues the rule",
+   "evidence": "p410 'C. Close File' at +48.0, with A. (+47.5) and B. (+48.0), the symbol definitions under rule (3)'s 'The definitions of the symbols in the table are given below.' (+48.0)"
+  },
+  {
+   "clause": "§1985:VII.4.2.4",
+   "follows": "(3)",
+   "digest": "2a92b3c0924e",
+   "order": 0,
+   "page": 411,
+   "read": "continues the rule",
+   "evidence": "p411 'D. Reel/Unit Removal' at the 48-pt indent on the rendered page (inside a box; OCR read '/D.' at the box edge)"
+  },
+  {
+   "clause": "§1985:VII.4.2.4",
+   "follows": "(3)",
+   "digest": "db63de1fb19e",
+   "order": 0,
+   "page": 411,
+   "read": "continues the rule",
+   "evidence": "p411 'E. File Lock' at the 48-pt indent on the rendered page (inside a box; OCR garbled the line)"
+  },
+  {
+   "clause": "§1985:VII.4.2.4",
+   "follows": "(3)",
+   "digest": "567f12ac054d",
+   "order": 0,
+   "page": 411,
+   "read": "continues the rule",
+   "evidence": "p411 'F. Close Reel/Unit' at +48.9, sibling of A.-E."
+  },
+  {
+   "clause": "§1985:VII.4.2.4",
+   "follows": "(3)",
+   "digest": "7f87a7c3be70",
+   "order": 0,
+   "page": 412,
+   "read": "continues the rule",
+   "evidence": "p412 printed 'Output Files (Non-Reel/Unit Media):' sub-heading at +70.5 under item F.; transcription text is the Errata C253 correction"
+  },
+  {
+   "clause": "§1985:VII.4.2.4",
+   "follows": "(3)",
+   "digest": "8a6f1df681b3",
+   "order": 0,
+   "page": 412,
+   "read": "continues the rule",
+   "evidence": "p412 'G. Rewind' at +46.7, sibling of A.-F."
+  },
+  {
+   "clause": "§1985:VII.4.7.4",
+   "follows": "(18)",
+   "digest": "bd0c5e6e2c8f",
+   "order": 0,
+   "page": 429,
+   "read": "continues the rule",
+   "evidence": "p429 'This occurs when a WRITE statement' at +47.5 after rule (17) (+12.4), sibling 'An automatic page overflow' +47.2"
+  },
+  {
+   "clause": "§1985:VIII.4.2.4",
+   "follows": "(2)",
+   "digest": "80c1460dce21",
+   "order": 0,
+   "page": 447,
+   "read": "continues the rule",
+   "evidence": "p447 'A. Close File' (OCR dropped 'A.'; its text at +72.4) at the 48-pt symbol indent under rule (2)'s 'The definitions of the symbols' (+48.4)"
+  },
+  {
+   "clause": "§1985:VIII.4.2.4",
+   "follows": "(2)",
+   "digest": "6a0906732f44",
+   "order": 0,
+   "page": 448,
+   "read": "continues the rule",
+   "evidence": "p448 'B. File Lock' at +47.6"
+  },
+  {
+   "clause": "§1985:IX.1.3.4",
+   "follows": "(6)",
+   "digest": "7e10c5494e18",
+   "order": 0,
+   "page": 473,
+   "read": "level 0",
+   "evidence": "p473 'The following is a list of the values placed in the I-O status' at +17.8 after the conditions (1)-(6) (+18.5); OCR split the line"
+  },
+  {
+   "clause": "§1985:IX.4.2.4",
+   "follows": "(2)",
+   "digest": "80c1460dce21",
+   "order": 0,
+   "page": 489,
+   "read": "continues the rule",
+   "evidence": "p489 'A. Close File' at +48.3"
+  },
+  {
+   "clause": "§1985:IX.4.2.4",
+   "follows": "(2)",
+   "digest": "6a0906732f44",
+   "order": 0,
+   "page": 490,
+   "read": "continues the rule",
+   "evidence": "p490 'B. File Lock' at +48.2"
+  },
+  {
+   "clause": "§1985:XI.4.1.4",
+   "follows": "(7)",
+   "digest": "86ba11d12a8d",
+   "order": 0,
+   "page": 563,
+   "read": "continues the rule",
+   "evidence": "not printed on p563 (Errata C294); Amendment 2 B-21 adds it 'as a new last paragraph for general rule 7': part of rule (7)"
+  },
+  {
+   "clause": "§1985:XI.4.1.4",
+   "follows": "(11)",
+   "digest": "78fc7a885506",
+   "order": 0,
+   "page": 563,
+   "read": "continues the rule",
+   "evidence": "p563 'For a relative file, the relative key data item' at +73.4, a paragraph of item b. (+49.1) of rule (11)"
+  },
+  {
+   "clause": "§1985:XI.4.1.4",
+   "follows": "(11)",
+   "digest": "aa48bd272c4f",
+   "order": 0,
+   "page": 564,
+   "read": "continues the rule",
+   "evidence": "not printed on p564 (Errata C296 region); Amendment 2 B-22 adds it 'as a new last paragraph for general rule 11': part of rule (11)"
+  },
+  {
+   "clause": "§1985:XI.4.4.4",
+   "follows": "(9)",
+   "digest": "b37b133cb5d5",
+   "order": 0,
+   "page": 571,
+   "read": "continues the rule",
+   "evidence": "not printed on p571 (Errata C299); Amendment 2 B-22 replaces 'beginning of general rule 9b to the end of general rule 9', this its last paragraph: part of rule (9)"
+  },
+  {
+   "clause": "§1985:XI.4.4.4",
+   "follows": "(12)",
+   "digest": "523eb6bbae36",
+   "order": 0,
+   "page": 572,
+   "read": "continues the rule",
+   "evidence": "not printed on p572 (Errata C302); Amendment 2 B-23 replaces rule 12's last sentence with 'that sentence and a new paragraph': part of rule (12)"
+  },
+  {
+   "clause": "§1985:XIII.3.10.6",
+   "follows": "(4)",
+   "digest": "2c30c2c676a5",
+   "order": 0,
+   "page": 610,
+   "read": "continues the rule",
+   "evidence": "p610 (a landscape table page) '* See page XIII-25 ...' is a footnote of Table 1, printed under the table at the note indent; the margin method does not apply to the rotated page; its sibling footnotes (**, ***, +) are measured deeper, so it stays in rule (4)'s text with the table"
+  },
+  {
+   "clause": "§1985:XIII.3.10.6",
+   "follows": "(4)",
+   "digest": "cd54ef1e9864",
+   "order": 0,
+   "page": 610,
+   "read": "continues the rule",
+   "evidence": "p610 '++ See page XIII-48' footnote of Table 1, as entry 42"
+  },
+  {
+   "clause": "§1985:XIII.3.10.7",
+   "follows": "(1)",
+   "digest": "e2b9511131a8",
+   "order": 0,
+   "page": 612,
+   "read": "continues the rule",
+   "evidence": "folio absent from our scan (transcription SOURCE note): read on the GovInfo scan p608 (folio XIII-30): at +48.5 under '(1) Upper limit rule:' (+18.7)"
+  },
+  {
+   "clause": "§1985:XIII.3.10.7",
+   "follows": "(1)",
+   "digest": "bcd8261d9858",
+   "order": 0,
+   "page": 612,
+   "read": "continues the rule",
+   "evidence": "folio absent from our scan (transcription SOURCE note): read on the GovInfo scan p608: 'Otherwise the first line number' at +48.1"
+  },
+  {
+   "clause": "§1985:XIII.3.10.7",
+   "follows": "(2)",
+   "digest": "65331753d134",
+   "order": 0,
+   "page": 612,
+   "read": "continues the rule",
+   "evidence": "folio absent from our scan (transcription SOURCE note): read on the GovInfo scan p609: 'The last line number' at +47.6 under '(2) Lower limit rule:' (+18.8)"
+  },
+  {
+   "clause": "§1985:XIII.3.10.7",
+   "follows": "(3)",
+   "digest": "3ca2fac69891",
+   "order": 0,
+   "page": 612,
+   "read": "continues the rule",
+   "evidence": "folio absent from our scan (transcription SOURCE note): read on the GovInfo scan p609: 'Otherwise the sum of the integer' at +71.7, a paragraph of item b. (+47.4) of rule (3)"
+  },
+  {
+   "clause": "§1985:XIII.3.10.8",
+   "follows": "(3)",
+   "digest": "fd24230791aa",
+   "order": 0,
+   "page": 614,
+   "read": "continues the rule",
+   "evidence": "p614 'If saved next group integer was so set' at +72.0, a paragraph of item a. of rule (3)"
+  },
+  {
+   "clause": "§1985:XIII.3.19.4",
+   "follows": "(9)",
+   "digest": "dd517e6cc8ab",
+   "order": 0,
+   "page": 634,
+   "read": "continues the rule",
+   "evidence": "folio absent from our scan (transcription SOURCE note): read on the GovInfo scan p632 (folio XIII-54): 'Crossfooting is performed' at +71.1, a paragraph of item a. of rule (9)"
+  },
+  {
+   "clause": "§1985:XIII.3.19.4",
+   "follows": "(9)",
+   "digest": "a56ce7875da1",
+   "order": 0,
+   "page": 634,
+   "read": "continues the rule",
+   "evidence": "folio absent from our scan (transcription SOURCE note): read on the GovInfo scan p632: 'When one of the addends is the sum counter' at +70.7, as entry 53"
+  },
+  {
+   "clause": "§1985:XIII.3.19.4",
+   "follows": "(12)",
+   "digest": "b25bc40c73ff",
+   "order": 0,
+   "page": 634,
+   "read": "continues the rule",
+   "evidence": "folio absent from our scan (transcription SOURCE note): read on the GovInfo scan p632: 'Sum counters are initially set to zero' at +48.7 after rule (12) (+12.9)"
+  },
+  {
+   "clause": "§1985:XIII.3.20.3",
+   "follows": "(1)",
+   "digest": "290a1939a13c",
+   "order": 0,
+   "page": 634,
+   "read": "continues the rule",
+   "evidence": "folio absent from our scan (transcription SOURCE note): read on the GovInfo scan p633: 'PH is an abbreviation for PAGE HEADING.' is the second line of rule (1)'s column (+47.3, under 'RH is an abbreviation ...'); printed with no paragraph break"
+  },
+  {
+   "clause": "§1985:XIII.3.20.3",
+   "follows": "(1)",
+   "digest": "89997fdff406",
+   "order": 0,
+   "page": 634,
+   "read": "continues the rule",
+   "evidence": "folio absent from our scan (transcription SOURCE note): read on the GovInfo scan p633: 'CH ...' line of rule (1)'s column, as entry 57"
+  },
+  {
+   "clause": "§1985:XIII.3.20.3",
+   "follows": "(1)",
+   "digest": "4e1e7487b113",
+   "order": 0,
+   "page": 634,
+   "read": "continues the rule",
+   "evidence": "folio absent from our scan (transcription SOURCE note): read on the GovInfo scan p633: 'DE ...' line of rule (1)'s column, as entry 57"
+  },
+  {
+   "clause": "§1985:XIII.3.20.3",
+   "follows": "(1)",
+   "digest": "5790dd127ff8",
+   "order": 0,
+   "page": 634,
+   "read": "continues the rule",
+   "evidence": "folio absent from our scan (transcription SOURCE note): read on the GovInfo scan p633: 'CF ...' line of rule (1)'s column, as entry 57"
+  },
+  {
+   "clause": "§1985:XIII.3.20.3",
+   "follows": "(1)",
+   "digest": "76e97155c41f",
+   "order": 0,
+   "page": 634,
+   "read": "continues the rule",
+   "evidence": "folio absent from our scan (transcription SOURCE note): read on the GovInfo scan p633: 'PF ...' line of rule (1)'s column, as entry 57"
+  },
+  {
+   "clause": "§1985:XIII.3.20.3",
+   "follows": "(1)",
+   "digest": "93fa96dc5a7b",
+   "order": 0,
+   "page": 634,
+   "read": "continues the rule",
+   "evidence": "folio absent from our scan (transcription SOURCE note): read on the GovInfo scan p633: 'RF ...' line of rule (1)'s column, as entry 57"
+  },
+  {
+   "clause": "§1985:XIII.3.20.4",
+   "follows": "(7)",
+   "digest": "cee128754c4d",
+   "order": 1,
+   "page": 635,
+   "read": "continues the rule",
+   "evidence": "p635 '(See page XIII-24, Presentation Rules Tables.)' at +49.9 closing rule (7)'s items (sibling on p634 measured level 2, +48.8); OCR split the line"
+  },
+  {
+   "clause": "§1985:XIII.4.2.4",
+   "follows": "(3)",
+   "digest": "2a92b3c0924e",
+   "order": 0,
+   "page": 642,
+   "read": "continues the rule",
+   "evidence": "p642 'D. Reel/Unit Removal' at +47.8, sibling of A.-C. (+47.5..+48.5)"
+  },
+  {
+   "clause": "§1985:XIII.4.2.4",
+   "follows": "(3)",
+   "digest": "db63de1fb19e",
+   "order": 0,
+   "page": 643,
+   "read": "continues the rule",
+   "evidence": "p643 'E. File Lock' at +49.2"
+  },
+  {
+   "clause": "§1985:XIII.4.2.4",
+   "follows": "(3)",
+   "digest": "567f12ac054d",
+   "order": 0,
+   "page": 643,
+   "read": "continues the rule",
+   "evidence": "p643 'F. Close Reel/Unit' at +49.6"
+  },
+  {
+   "clause": "§1985:XIII.4.2.4",
+   "follows": "(3)",
+   "digest": "8a6f1df681b3",
+   "order": 0,
+   "page": 643,
+   "read": "continues the rule",
+   "evidence": "p643 'G. Rewind' at +48.2"
+  }
+ ]
+}

@@ -490,9 +490,6 @@ def iso_units(ed: IsoEdition, lines: list[str], rules: list[dict], declared: dic
     return out
 
 
-def unit_ordinal(u: "text_units.Unit") -> int:
-    """The `ordinal` of a unit's row: its paragraph number, its printed item number, or its table row's position."""
-    return int(re.sub(r"^p|^T\d+\.?", "", u.label) or 0)
 
 def band_formats(label: str) -> list[int]:
     """The FORMAT NUMBERS a printed band names: "FORMAT 2" -> [2], "FORMATS 1, 2 AND 4" -> [1, 2, 4].
@@ -812,17 +809,23 @@ def _refuter_records(path: str) -> tuple[dict, ...] | None:
 def unit_context(year: int, rules: list[dict]) -> "text_units.Context":
     """What the dispositions audit of `year`'s units checks a decided disposition against (text_units.Context), read from
     the edition's catalog rows `rules`: their ids, the openings of their sentences (the shape guard), whether their text
-    names a clause or a table, the edition's verbal forms, its citable locators and the refuter records."""
+    names a clause or a table, the edition's verbal forms, its citable locators and printed pages (`citation.page_texts`),
+    and the refuter records."""
     texts = [r["text"] for r in rules if r["kind"] != "FMT"]
     joined = "\n".join(texts)
     tables = {t for text in texts for t in text_units.tables_named(text)}
     universe = citation.universe(year) or frozenset()
+    pages = {loc: [text_units.norm(t) for t in texts] for loc, texts in citation.page_texts(year).items()}
 
     def named(clause: str, u) -> bool:
         return (u.table in tables if u.table else False) or re.search(rf"(?<![\d.]){re.escape(clause.split(':')[-1])}"
                                                                       r"(?![\d])", joined) is not None
 
-    def resolves(locator: str) -> bool:
+    def resolves(locator: str, title: str) -> bool:
+        # A printed page (1985's "See page VI-13, The SPECIAL-NAMES Paragraph.") resolves only when its text prints the
+        # title the pointer gives, so the pointer names something on that page (kb/Work PB5998); a clause by its locator.
+        if locator in pages:
+            return bool(title) and any(text_units.norm(title) in text for text in pages[locator])
         return locator.rstrip(".") in universe
 
     return text_units.Context(row_ids={r["id"] for r in rules}, shapes=text_units.openings(texts),
@@ -1129,7 +1132,7 @@ def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragra
             row = {"id": ed.rule_id(k, sec, u.label)}
             if ed.edition_rows:
                 row["citation"] = ed.citation(sec)
-            row |= {"section": sec, "kind": k, "ordinal": unit_ordinal(u), "sublist": 1,
+            row |= {"section": sec, "kind": k, "ordinal": u.ordinal, "sublist": u.sublist,
                     "subject": subject_for(sec, titles), "shape": u.shape, "text": u.text}
             if ed.edition_rows:
                 row["page"] = pages[heading_at[sec]]

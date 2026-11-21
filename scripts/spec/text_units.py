@@ -18,10 +18,16 @@ THE SEGMENTATION (design point 1):
   - A dash or lettered list item belongs to the unit before it (a unit ending in a colon owns its list); a candidate
     after the list that continues by the rule above is that unit's closing tail (§2023:14.7.5).
   - A numbered item of a prose clause is a unit of its own, keyed by its printed number; its lettered items and indented
-    lines are its text. A tail after a numbered list joins the colon unit that leads the list, never the last item.
+    lines are its text. An item starts at its own marker, after a blank line or on the line after the item before it
+    when its number is the list's next (the 1985 PDF prints a list one item per line, page 152; kb/Work PB5998). A
+    clause's first list labels its items by number; its m-th list by `L<m>.<n>`, the form a rule block's later list
+    has. A tail after a numbered list joins the colon unit that leads the list, never the last item.
   - A NOTE or an EXAMPLE stays inside the unit it follows; a general format and code (`<pre>`, a fence) are no unit.
   - A table is never paragraph text. Its kind is proposed by `table_kind` (entries, matrix, data): an entries table or a
-    matrix has one unit per body row (`T<t>.<r>`), a data table is one unit (`T<t>`).
+    matrix has one unit per body row (`T<t>.<r>`), a data table is one unit (`T<t>`). A table printed across pages
+    (each page's part under its header again, its caption above or below) is ONE table: a part with the number and
+    the header of a table already read continues it, its rows numbered on (§1989:A.2.4's Table 1; kb/Work PB5998).
+  - No two units of a clause share a label (their row ids would collide): `segment` refuses such a clause.
 
 THE KEY (design point 3): a unit's disposition is keyed by its clause, the digest of the `cite.norm` form of its WHOLE
 text (`digest`) and, among units of one clause whose digests are equal, their order. A repair anywhere in the text
@@ -90,6 +96,17 @@ class Unit:
     def digest(self) -> str:
         return digest(self.text)
 
+    @property
+    def ordinal(self) -> int:
+        """The `ordinal` of the unit's row: its paragraph number, its item's printed number, its table row's position,
+        0 for a whole table."""
+        return int(re.sub(r"^(?:p|T\d+\.?|L\d+\.)", "", self.label) or 0)
+
+    @property
+    def sublist(self) -> int:
+        """The `sublist` of the unit's row: an item's list (`L<m>.<n>` is list m), 1 for every other unit."""
+        return int(m[1]) if (m := re.match(r"L(\d+)\.", self.label)) else 1
+
 
 def digest(text: str) -> str:
     """The key of a unit's text: the digest of its `cite.norm` form, so typography and spacing never move it and any
@@ -111,9 +128,19 @@ def ends_sentence(text: str) -> bool:
     return bool(SENTENCE_END.search(text))
 
 
+def open_at_end(text: str) -> bool:
+    """Does `text` stop where no paragraph can, inside a parenthesis it opened and did not close? The 1985 text breaks a
+    sentence there across a page ("... (see page VI-127," / page 247: "The SET Statement). The implementor defines ...";
+    kb/Work PB5998). A trailing comma alone is no such stop: Annex B.3's data lines of 2023 end in one at every wrap."""
+    return text.count("(") > text.count(")")
+
+
 def continues(prev: str, line: str) -> bool:
-    """Does a candidate opening with `line` continue a unit whose text is `prev` (design point 1)?"""
-    return not ends_sentence(prev) and not LEADS.search(prev) and bool(CONTINUES.match(line.strip()))
+    """Does a candidate opening with `line` continue a unit whose text is `prev` (design point 1)? It does when `prev`
+    ends no sentence and leads no list, and the candidate opens in lowercase or with a continuation word, or `prev`
+    stops where no paragraph can (`open_at_end`), whatever the candidate opens with."""
+    return (not ends_sentence(prev) and not LEADS.search(prev)
+            and (bool(CONTINUES.match(line.strip())) or open_at_end(prev)))
 
 
 def _cells(line: str) -> list[str]:
@@ -147,6 +174,8 @@ def segment(lines: list[tuple[int, str]], items: bool = True) -> list[Unit]:
     lead: int | None = None        # the paragraph that leads the open numbered list
     in_item = False                # inside a numbered item (its lettered items and indented lines are its text)
     held = False                   # inside a numbered item that is no unit (`items` False)
+    number = 0                     # the printed number of the last numbered item
+    lists = 0                      # the clause's numbered lists so far (an item of the m-th is `L<m>.<n>`, m > 1)
     fresh = True
     table: list[tuple[int, str]] = []
     caption: tuple[int, int] | None = None   # (table number, line) of the caption naming the next table
@@ -156,9 +185,14 @@ def segment(lines: list[tuple[int, str]], items: bool = True) -> list[Unit]:
     def close_table() -> None:
         nonlocal table, caption, tables
         if table:
-            tables += 1
-            t = caption[0] if caption else tables
-            paras.append(["table", table[0][0], table, t])
+            t = caption[0] if caption else tables + 1
+            # A part with the number and header of a table already read is that table printed on: its rows follow.
+            if (whole := next((p for p in paras if p[0] == "table" and p[3] == t), None)) is not None \
+                    and _header(whole[2]) == _header(table):
+                whole[2].extend(_rows(table)[1:])
+            else:
+                tables += 1
+                paras.append(["table", table[0][0], table, t])
             table, caption = [], None
 
     for no, line in lines:
@@ -190,13 +224,18 @@ def segment(lines: list[tuple[int, str]], items: bool = True) -> list[Unit]:
             fresh = True
             continue
         n = NUMBERED_ITEM.match(line)
-        if fresh and n:
-            in_item, fresh = True, False
+        at = int(n.group("p") or n.group("n")) if n else 0
+        if n and (fresh or (in_item and at == number + 1)):
+            # An item starts at its own marker: after a blank line, or on the next line when its number is the open
+            # list's next (the 1985 PDF prints a list one item per line, page 152; kb/Work PB5998).
+            if not lists or at != number + 1:
+                lists += 1
+            in_item, fresh, number = True, False, at
             if paras and paras[-1][0] == "paragraph" and lead is None and LEADS.search(" ".join(paras[-1][2])):
                 lead = len(paras) - 1
             held = not items
             if not held:
-                paras.append(["item", no, [s], n.group("p") or n.group("n")])
+                paras.append(["item", no, [s], str(at) if lists == 1 else f"L{lists}.{at}"])
             continue
         if fresh:
             prev = paras[-1] if paras else None
@@ -246,6 +285,10 @@ def segment(lines: list[tuple[int, str]], items: bool = True) -> list[Unit]:
             units.append(Unit(extra, "item", _text(body), no))
         else:
             units += table_units(extra, body)
+    if twice := sorted(lab for lab, k in Counter(u.label for u in units).items() if k > 1):
+        # Two units of one label would mint one row id twice (kb/Work PB5998): an unresolvable segmentation fails.
+        raise ValueError(f"units of one clause share the labels {', '.join(twice)} (text from line {lines[0][0]}): "
+                         "two tables of one number with different headers, or a list the segmentation cannot number")
     return units
 
 
@@ -264,10 +307,21 @@ def _text(body: list[str]) -> str:
     return re.sub(r"\s+", " ", " ".join(body)).strip()
 
 
+def _rows(table: list[tuple[int, str]]) -> list[tuple[int, str]]:
+    """A table's `|` lines but the rule line under its header: the header first, then the body rows."""
+    return [(no, ln) for no, ln in table if not TABLE_RULE.match(ln)]
+
+
+def _header(table: list[tuple[int, str]]) -> list[str]:
+    """A table's header cells (normalized, so a page's reprint of the header compares equal)."""
+    rows = _rows(table)
+    return [norm(c) for c in _cells(rows[0][1])] if rows else []
+
+
 def table_units(t: int, rows: list[tuple[int, str]]) -> list[Unit]:
     """The units of table `t` (its `|` lines): one per body row of an entries table or a matrix, one for a data table.
     The header is the first row, and the rule line under it is no row."""
-    body_lines = [(no, ln) for no, ln in rows if not TABLE_RULE.match(ln)]
+    body_lines = _rows(rows)
     if not body_lines:
         return []
     header, body = _cells(body_lines[0][1]), body_lines[1:]
@@ -308,10 +362,17 @@ def entries_of(blocks: dict[str, dict]) -> dict[str, list[dict]]:
 #: The outcome a refuter record must carry for a disposition to stand (kb/Work PB5374's form: the refuter tried to state
 #: the obligation the unit imposes that the named rules, or nothing, do not, and failed).
 UPHELD = "UPHELD"
-#: The closed pointer grammar of a `cross-reference` unit: every sentence is "See <locator>[, <title>]." or "<subject>
-#: is/are specified/described/defined in <locator>[, <title>]." (decision PB5448 point 3).
-POINTER = re.compile(r"^(?:\(?See (?P<see>[A-Z0-9][\w.]*)(?:,[^.]*)?\.\)?"
-                     r"|[^.]*? (?:is|are) (?:specified|described|defined) in (?P<in>[A-Z0-9][\w.]*)(?:,[^.]*)?\.)$")
+#: The closed pointer grammar of a `cross-reference` unit: every sentence is "See <target>." or "<subject> is/are
+#: specified/described/defined in <target>." (decision PB5448 point 3). A target is an ISO locator with an optional title
+#: ("8.4.6, Scope of names"), or, as the 1985 text points, one or more printed pages each with the title of what it
+#: names ("page VI-11, The OBJECT-COMPUTER Paragraph, and page VI-13, The SPECIAL-NAMES Paragraph"; kb/Work PB5998).
+FOLIO = r"(?:[IVX]+|[A-F])-\d+"
+_PAGE_TARGET = rf"page {FOLIO}(?:, [^.;()]+?)?"
+_TARGETS = rf"(?:{_PAGE_TARGET}(?:(?:,? and |; ){_PAGE_TARGET})*|[A-Z0-9][\w.]*(?:,[^.]*?)?)"
+POINTER = re.compile(rf"^(?:\(?[Ss]ee (?P<see>{_TARGETS})\)?\.\)?"
+                     rf"|[^.]*? (?:is|are) (?:specified|described|defined) (?:in|on) (?P<in>{_TARGETS})\.)$")
+#: One page target of a pointer: its folio and the title it gives.
+PAGE_TARGET = re.compile(rf"page (?P<folio>{FOLIO})(?:, (?P<title>[^.;()]+?))?(?=(?:,? and |; )page |$)")
 #: Where one sentence of a unit ends and the next begins.
 SENTENCE_BREAK = re.compile(r"(?<=[.?!])[)\]\"'’”]*\s+(?=[A-Z(])")
 #: How many normalized words of a sentence's opening the SHAPE guard compares (decision PB5448 point 3).
@@ -337,13 +398,14 @@ class Context:
     """What the audit reads besides the units and their entries, each from the edition it audits (decision PB5448 point
     3): the catalog's row ids (a `restates` names existing rules); the shape set (`openings` of every row's text); the
     edition's verbal forms (`verbal_forms`); whether a catalog row's text names a unit's clause or table (a `data` unit is
-    a row's input only when one does); whether a cross-reference's locator resolves; and the refuter records a file holds
-    (`records(path)`, JSON lines, None when the tree has no such file)."""
+    a row's input only when one does); whether a cross-reference's target resolves (a locator; a printed page only when
+    it prints the title the pointer gives, kb/Work PB5998); and the refuter records a file holds (`records(path)`, JSON
+    lines, None when the tree has no such file)."""
     row_ids: set[str]
     shapes: set[str]
     verbal: list[re.Pattern[str]]
     named: object        # (clause, Unit) -> bool
-    resolves: object     # (locator) -> bool
+    resolves: object     # (locator, title) -> bool
     records: object      # (path) -> list[dict] | None
 
 
@@ -358,6 +420,20 @@ def verbal_forms(edition: int) -> list[re.Pattern[str]]:
     return [re.compile(p, re.I) for p in data["every edition"] + data.get(str(edition), [])]
 
 
+def pointer_targets(sentence: str) -> list[tuple[str, str]] | None:
+    """The targets of a sentence of the pointer grammar (`POINTER`), each (locator, title) in order, or None when the
+    sentence is no pointer. A page target's locator is the page's citable locator (`p.VI-13`, `§1985:p.VI-13`); a title
+    is "" when the pointer gives none."""
+    m = POINTER.match(sentence.strip())
+    if m is None:
+        return None
+    target = m["see"] or m["in"]
+    if target.startswith("page "):
+        return [(f"p.{t['folio']}", (t["title"] or "").strip()) for t in PAGE_TARGET.finditer(target)]
+    locator, _, title = target.partition(",")
+    return [(locator.rstrip("."), title.strip())]
+
+
 def class_refusal(cls: str, u: Unit, clause: str, ctx: Context) -> str | None:
     """Why unit `u` fails the mechanical test of the `not-a-rule` class `cls` (decision PB5448 point 3), or None."""
     words = norm(u.text).split()
@@ -367,11 +443,12 @@ def class_refusal(cls: str, u: Unit, clause: str, ctx: Context) -> str | None:
         return "a lead-in ends in a colon, or is a label of at most ten words with no sentence stop"
     if cls == "cross-reference":
         for s in sentences(u.text):
-            m = POINTER.match(s)
-            if m is None:
-                return f"the sentence {s[:60]!r} is no pointer (\"See <locator>.\", \"<subject> is specified in <locator>.\")"
-            if not ctx.resolves(m["see"] or m["in"]):
-                return f"its locator {m['see'] or m['in']} resolves to no clause"
+            if (targets := pointer_targets(s)) is None:
+                return (f"the sentence {s[:60]!r} is no pointer (\"See <locator>.\", \"See page <folio>, <title>.\", "
+                        "\"<subject> is specified in <locator>.\")")
+            for locator, title in targets:
+                if not ctx.resolves(locator, title):
+                    return f"its locator {locator}{f', {title},' if title else ''} resolves to no clause"
         return None
     if cls == "data":
         if u.shape != "table" and any(ends_sentence(s) for s in sentences(u.text)):
