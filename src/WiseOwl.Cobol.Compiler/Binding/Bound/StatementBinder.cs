@@ -247,6 +247,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // §2023:14.9.28.3 SR8's out-of-line "under" (kb/Work PB434) — asked once the whole pc space, handler paragraphs
         // included, is bound, because a range anywhere in it may reach any UNTIL EXIT statement.
         Ctx.UntilExit.Report(bound, Ctx.Edition);
+        // §1985:XVI.3.3.2-4 (kb/Work PB6007): a range's executed procedures are walked over the whole bound pc space, for the same reason.
+        Segmentation.ReportProcedures(Ctx, bound);
         return new BoundProgram(bound, table.EntryPc, table.Declaratives, Ctx.EcState.BuildFeatures(),
             DebugSubjects: table.DebugSubjects.Count > 0 ? table.DebugSubjects : null,
             DebugTargets: table.DebugTargets.Count > 0 ? table.DebugTargets : null,
@@ -369,6 +371,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         int handlerBase = bound.Count;
         bound.AddRange(table.F3Handlers);
         Ctx.UntilExit.Report(bound, Ctx.Edition);   // §2023:14.9.28.3 SR8 out-of-line "under" — as in Bind (kb/Work PB434)
+        Segmentation.ReportProcedures(Ctx, bound);   // §1985:XVI.3.3.2-4 — as in Bind (kb/Work PB6007)
         StampMethodHandlerSlices(handlerBase, table.F3HandlerMethods, scopeToMethod, roster);
         return new BoundProgram(bound, 0, null, Ctx.EcState.BuildFeatures(), methods,
             F3HandlerBasePc: table.F3Handlers.Count > 0 ? handlerBase : null,
