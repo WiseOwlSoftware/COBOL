@@ -2573,6 +2573,17 @@ guessed at rule 5 on a parse error (COBOL0301/0302) are gone: the rule has one h
 compilation-group lex; the D2 keyword-omitted re-parse needs no second screen because every one of its tokens was
 already a SUBSCRIPT-mode token of the main lex.
 
+**COBOL-85's own operator spacing (kb/Work PB5989).** The §2023:8.7.1 exception for a unary operator beside a left parenthesis
+is a 2002 addition: §1985:VI.6.2.2 says its operators "must be preceded by a space and followed by a space", so at COBOL-85
+`ArithmeticOperatorViolations` admits no parenthesis for the unary arm (`EditionInfo.UnaryOperatorMayTouchParenthesis`). The same
+edition states two more spacing sentences no later one carries: §1985:VI.6.3.1.1 "A space must precede and follow each reserved word
+comprising the relational operator" and §1985:VI.6.3.2 "The logical operators must be preceded by a space and followed by a space".
+`SeparatorRule.ConditionOperatorViolations` asks them over the same parse tree (`EditionInfo.ConditionOperatorsNeedSeparatorSpaces`,
+COBOL-85 only; COBOL7672): every token of a `comparisonOperator` (a relation character is a special character word, a reserved word,
+§1985:IV.4.2.2.1.3.1) and every AND, OR and NOT that is a direct child of a condition tier, through the one `OperatorSpacingMessage`
+verdict with no parenthesis standing in for the space. The tree is what separates the OR of `GREATER THAN OR EQUAL TO` (a word of the
+operator) from the OR connective.
+
 **A prefixed literal is delimited whatever its content (kb/Work PB1441).** `X"`, `N"`, `B"`, `NX"` and `BX"` are
 opening delimiters (§2023:8.3.5 5)), so every prefixed body fragment is `<prefix> STR_BODY`; the §2023:8.3.3 content
 repertoires (hexadecimal digits for X / NX / BX, '0'/'1' for B) are `LiteralScreen`'s COBOL2630, never the

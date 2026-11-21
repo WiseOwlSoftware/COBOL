@@ -7461,6 +7461,19 @@ public static class DiagnosticCatalog
         + "left parenthesis).",
         "ISO §2023:8.7.1 · §2023:8.7.3 · §2023:8.7.4");
 
+    /// <summary>COBOL7672 — a relational operator or a logical connective of a condition not immediately preceded and followed by a
+    /// separator space, at COBOL-85 (kb/Work PB5989). §1985:VI.6.3.1.1: "A space must precede and follow each reserved word
+    /// comprising the relational operator" (a relation character is a special character word, so a reserved word,
+    /// §1985:IV.4.2.2.1.3.1); §1985:VI.6.3.2: "The logical operators must be preceded by a space and followed by a space". No later
+    /// edition states either rule. The lexer skips the separator space, so <c>IF (A = 1)AND(B = 2)</c> and <c>IF N=M</c> are one
+    /// token run with their spaced spellings; decided by <c>SeparatorRule</c> over the parse tree, which alone says which AND, OR or
+    /// NOT is a logical operator and which words make up a relational operator.</summary>
+    public static readonly DiagnosticDescriptor SeparatorConditionOperatorSpacing = new(
+        "COBOL7672", "separator-condition-operator-spacing", EditionSeverity.Error,
+        "A relational operator (each of its words and relation characters) or a logical operator (AND, OR, NOT) of a "
+        + "condition is not immediately preceded and followed by a separator space (COBOL-85).",
+        "ISO §1985:VI.6.3.1.1 · §1985:VI.6.3.2");
+
     /// <summary>COBOL2994 — an inline method invocation written with an empty parenthesis pair, <c>O :: "M" ( )</c>
     /// (kb/Work PB1430). §2023:8.4.3.4.2 brackets the whole parenthesised group (so it may be omitted) but encloses the five
     /// argument forms in braces repeated by the ellipsis INSIDE the one pair, and §2023:5.2.6.3 requires one alternative

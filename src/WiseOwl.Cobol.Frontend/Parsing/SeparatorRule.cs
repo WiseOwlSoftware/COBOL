@@ -34,7 +34,12 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// <c>1*2</c>, <c>(A)+(B)</c> and <c>-Y</c> (<c>COBOL2993</c>; kb/Work PB1430, PB2017). §2023:8.7.3 and §2023:8.7.4 are asked
 /// by <see cref="Violations"/> over the token stream; §2023:8.7.1 by <see cref="ArithmeticOperatorViolations"/> over the
 /// parse tree, because only the tree says whether a <c>+</c> or <c>-</c> is a binary operator, a unary operator or
-/// no operator at all (a numeric literal's own sign, a <c>LINE PLUS</c> screen clause).</item>
+/// no operator at all (a numeric literal's own sign, a <c>LINE PLUS</c> screen clause). At COBOL-85 the exception is
+/// not there: §1985:VI.6.2.2 asks every arithmetic operator, unary ones included, for a space on both sides
+/// (<see cref="EditionInfo.UnaryOperatorMayTouchParenthesis"/>);</item>
+/// <item>at COBOL-85 only, the two condition operator clauses — §1985:VI.6.3.1.1 "A space must precede and follow each reserved
+/// word comprising the relational operator" and §1985:VI.6.3.2 "The logical operators must be preceded by a space and followed
+/// by a space" (<c>COBOL7672</c>; kb/Work PB5989), asked by <see cref="ConditionOperatorViolations"/> over the parse tree.</item>
 /// </list>
 /// </summary>
 /// <remarks>
@@ -192,7 +197,8 @@ public static class SeparatorRule
         void Judge(IToken? op, string name, bool unary)
         {
             if (op is null || op.StartIndex < 0) return;   // a missing token of an error-recovered parse has no characters
-            if (OperatorSpacingMessage(text, op, name, edition.Cite("§1985:VI.6.2.2", "§2023:8.7.1"), parenthesisAdmitted: unary) is { } message)
+            if (OperatorSpacingMessage(text, op, name, edition.Cite("§1985:VI.6.2.2", "§2023:8.7.1"),
+                    parenthesisAdmitted: unary && edition.UnaryOperatorMayTouchParenthesis) is { } message)
                 (found ??= []).Add(new(op, DiagnosticCatalog.SeparatorOperatorSpacing, message));
         }
 
@@ -216,6 +222,55 @@ public static class SeparatorRule
                 case Core.UnaryExpressionContext u when u.addOp() is { } sign && !InLiteralSlot(u)
                         && !ArithmeticFormationRules.SignIsPartOfLiteral(sign.Start, u.unaryExpression()):
                     Judge(sign.Start, "unary arithmetic operator", unary: true);
+                    break;
+            }
+            for (int i = node.ChildCount - 1; i >= 0; i--) pending.Push(node.GetChild(i));
+        }
+        if (found is null) return [];
+        found.Sort(static (a, b) => a.Token.StartIndex.CompareTo(b.Token.StartIndex));
+        return found;
+    }
+
+    /// <summary>⭐ §1985:VI.6.3.1.1 and §1985:VI.6.3.2 — "A space must precede and follow each reserved word comprising the
+    /// relational operator" and "The logical operators must be preceded by a space and followed by a space" — decided over the
+    /// PARSE TREE of <paramref name="tree"/>, lexed from <paramref name="text"/>, at the editions that state them (kb/Work PB5989;
+    /// <see cref="EditionInfo.ConditionOperatorsNeedSeparatorSpaces"/>: COBOL-85 only — no later edition carries either sentence).
+    /// <para>The sibling of <see cref="ArithmeticOperatorViolations"/> for the other two operator kinds, and for the same reason
+    /// it reads the tree: the lexer skips the separator space, so <c>IF (A = 1)AND(B = 2)</c> and <c>IF N=M</c> are the token
+    /// runs of their spaced spellings, and only the tree says which AND, OR or NOT is a logical connective and which tokens make
+    /// up a relational operator (<c>GREATER THAN OR EQUAL TO</c> holds an OR that is no connective). A relation character is a
+    /// special character word, so a reserved word (§1985:IV.4.2.2.1.3.1), and each of its tokens is judged like a word's. A left
+    /// parenthesis does not stand in for the space here: §1985 has no such exception for these operators.</para></summary>
+    public static IReadOnlyList<Violation> ConditionOperatorViolations(string text, IParseTree tree, EditionInfo edition)
+    {
+        if (!edition.ConditionOperatorsNeedSeparatorSpaces) return [];
+        List<Violation>? found = null;
+        void Judge(ITerminalNode word, string name, string clause)
+        {
+            var op = word.Symbol;
+            if (op.StartIndex < 0) return;   // a missing token of an error-recovered parse has no characters
+            if (OperatorSpacingMessage(text, op, name, clause, parenthesisAdmitted: false) is { } message)
+                (found ??= []).Add(new(op, DiagnosticCatalog.SeparatorConditionOperatorSpacing, message));
+        }
+
+        var pending = new Stack<IParseTree>();
+        pending.Push(tree);
+        while (pending.Count > 0)
+        {
+            var node = pending.Pop();
+            if (node is ITerminalNode) continue;
+            switch (node)
+            {
+                case Core.ComparisonOperatorContext relational:
+                    for (int i = 0; i < relational.ChildCount; i++)
+                        if (relational.GetChild(i) is ITerminalNode word) Judge(word, "relational operator", "§1985:VI.6.3.1.1");
+                    break;
+                case Core.LogicalOrExpressionContext or Core.LogicalAndExpressionContext or Core.SucceedingAndExpressionContext
+                        or Core.PartialExpressionContext or Core.PartialAndExpressionContext or Core.UnaryLogicalExpressionContext
+                        or Core.NegatedAbbreviatedRelationContext:
+                    for (int i = 0; i < node.ChildCount; i++)
+                        if (node.GetChild(i) is ITerminalNode { Symbol.Type: CobolLexer.AND or CobolLexer.OR or CobolLexer.NOT } connective)
+                            Judge(connective, "logical operator", "§1985:VI.6.3.2");
                     break;
             }
             for (int i = node.ChildCount - 1; i >= 0; i--) pending.Push(node.GetChild(i));
