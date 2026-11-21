@@ -161,8 +161,8 @@ public sealed partial class SymbolTable
                 : null;
 
         /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) FOR A DATA-NAME AGAINST A NEARER FILE-NAME OR REPORT-NAME (kb/Work PB5786, PB5973;
-        /// §1985:X.1.3.8.2 GR3a): a reference is "to the object which that program describes" even when the name there is "a different
-        /// type of user-defined word" (§1985:X.1.3.8), so a contained program's own file-name FX or report-name FX is what `FX` names
+        /// §1985:X.1.3.8.2 GR3a). By §1985:X.1.3.8 a reference is "to the object which that program describes" even when the name there
+        /// is "a different type of user-defined word", so a contained program's own file-name FX or report-name FX is what `FX` names
         /// there, never its container's GLOBAL data item FX. True when an unqualified spelling names a file-name (this element's own
         /// SELECT, or a containing element's GLOBAL file) or a report-name (its own RD, or a containing element's GLOBAL report) declared
         /// in a source element NEARER than <paramref name="depth"/>; neither takes a qualifier, so a qualified reference is never hidden
