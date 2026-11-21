@@ -1,4 +1,4 @@
-## The 1985 prose requirements probed, and the first of their defects fixed: obsolete elements flagged, a misplaced DECLARATIVES named, the PICTURE precedence cited
+## Entry 3896 — 2026-11-21 03:36 PST — The 1985 prose requirements probed, and the first of their defects fixed: obsolete elements flagged, a misplaced DECLARATIVES named, the PICTURE precedence cited
 
 The 1985 rule catalog takes only numbered rules, so normative prose was never checked against the compiler (kb/Work PB5924). A
 mechanical scan measured 198 such sentences in 134 paragraphs (Appendix C excluded: it restates the body). At the owner's word
@@ -83,3 +83,4 @@ PB5991 claimed that a section header at column 11 is in area B and compiles at `
 column 11 is area A and the program is legal: the Mythos session's "reproduction" (`bsec.cob`, exit 0) ran a legal program and
 read its acceptance as a defect. The implementer of wave 20262117 group D found it: a section header that does begin in area B
 (column 12) is refused COBOL3734 by AreaPlacementPass (PB3147, PB5313), with negatives in the suite. Retired, no change.
+
