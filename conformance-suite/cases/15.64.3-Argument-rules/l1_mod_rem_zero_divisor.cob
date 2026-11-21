@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.64.3 rule 2 (MOD) and §2023:15.77.3 rule 2 (REM) — "The value of argument-2 shall not be zero."
+      *> ISO §2023:15.64.3 AR2 (MOD) and §2023:15.77.3 AR2 (REM) — "The value of argument-2 shall not be zero."
       *>
       *> WHAT THE RULE MAKES OBSERVABLE. §2023:15.3: "The rules for a function may place constraints on the
       *> permissible values for arguments … If the evaluation of an argument results in an incorrect value

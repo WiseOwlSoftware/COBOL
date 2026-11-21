@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:14.9.30.4 GR24 a) — "The I-O status of the file connector
+      *> ISO §2023:14.9.30.4 GR24a — "The I-O status of the file connector
       *> associated with file-name-1 is set to '10' to indicate the at
       *> end condition, and, if enabled, the EC-I-O-AT-END exception
       *> condition is set to exist."

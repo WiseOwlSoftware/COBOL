@@ -41,7 +41,7 @@
       *   RH LINE 2 NEXT GROUP 4 -> line 2, LC 4; PH LINE PLUS 1 -> 4 +
       *   1 = 5; DE -> FD 8; at TERMINATE PF LINE 22 NEXT GROUP 24 ->
       *   line 22, LC 24; RF LINE PLUS 2 -> 24 + 2 = 26
-      *   (§1985:XIII.3.10.10 GR3 b).
+      *   (§1985:XIII.3.10.10 GR3b.
       *  FAILS IF a lower-level footing's NEXT GROUP is honoured, or a
       *  heading's or page footing's NEXT GROUP does not move the group
       *  that follows it.

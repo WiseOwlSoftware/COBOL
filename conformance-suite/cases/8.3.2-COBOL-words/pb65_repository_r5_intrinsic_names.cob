@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB65 (FMT-15.43.2 / FMT-15.58.2). ISO §2023:8.3.2.1 rule 5:
+      *> kb/Work PB65 (FMT-15.43.2 / FMT-15.58.2). ISO §2023:8.3.2.1 SR5:
       *> "Intrinsic-function-names may be used as user-defined words and
       *> system-names, except for … intrinsic function names identified in a
       *> function-specifier in the REPOSITORY paragraph." So a source unit with

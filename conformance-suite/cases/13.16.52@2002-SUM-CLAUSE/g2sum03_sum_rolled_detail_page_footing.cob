@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> §2002:13.16.52.2 SR3 f) - the two "may" grants no other 2002
+      *> §2002:13.16.52.2 SR3f - the two "may" grants no other 2002
       *> accepted case shows: "The current report group may be a detail
       *> and data-name-1 may be defined in a different detail" (T2 in D2
       *> sums X1 of D1) and "The current report group may be a page
@@ -15,11 +15,11 @@
       *> DERIVATION (2002 text only).  GENERATE D1 with WS-A = 3, then 4,
       *> GENERATE D2, GENERATE D1 with WS-A = 5, TERMINATE.
       *>  D1 lines print X1                              => 03, 04, 05
-      *>  §2002:13.16.52.3 GR7 a): "adding takes place when the report
+      *>  §2002:13.16.52.3 GR7a: "adding takes place when the report
       *>  group description containing data-name-1 is processed", so
       *>  each GENERATE D1 adds X1 into both counters.
       *>  D2 (after two D1): T2 = 3 + 4                  => 007
-      *>  Page footing: §2002:13.16.55.3 GR6 f) prints it "as the last
+      *>  Page footing: §2002:13.16.55.3 GR6f prints it "as the last
       *>  report group on each page", here at TERMINATE; TP = 3 + 4 + 5
       *>  (printing D2 resets T2 only, GR1 independent counters) => 012
       *> Blank lines of the page are not displayed.

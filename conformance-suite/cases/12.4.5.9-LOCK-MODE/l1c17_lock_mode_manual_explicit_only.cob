@@ -11,17 +11,17 @@
       *>  explicitly specified on an I-O statement."
       *> cite.py --check 12.4.5.9.4 "Records locks are obtained only
       *>   when the LOCK phrase is explicitly specified on an I-O
-      *>   statement." -> OK §2023:12.4.5.9.4 5)
+      *>   statement." -> OK §2023:12.4.5.9.4 GR5
       *> cite.py --check 14.9.51.4 "If record locks have an effect for
       *>   the write file connector and the WITH LOCK phrase is
       *>   specified or implied, the record lock associated with the
       *>   record written is set when the execution of the WRITE
-      *>   statement is successful." -> OK §2023:14.9.51.4 11)
+      *>   statement is successful." -> OK §2023:14.9.51.4 GR11
       *> cite.py --check 9.1.16 "While locked by a given file
       *>   connector, a record is not accessible to another file
       *>   connector" -> OK §2023:9.1.16
       *> A and B share one relative file, both SHARING WITH ALL OTHER
-      *> ("Record locks are in effect", §2023:9.1.15 3)) and both LOCK MODE
+      *> ("Record locks are in effect", §2023:9.1.15 GR3) and both LOCK MODE
       *> IS MANUAL.  B performs each I-O statement twice: once without
       *> and once with the LOCK phrase.  A then reads the record B
       *> just touched; a lock held by B makes that READ fail '51'

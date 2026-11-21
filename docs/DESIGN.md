@@ -335,7 +335,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   **Each INDEXED BY DECLARATION owns its cell** — an `IndexDeclaration(name, table, cell)` minted when the table is
   registered (`DataBinder.RegisterIndexes`; cell `_IX_<table uid>[_k]`), held by the scope's index-name table in the symbol table (`SymbolTable.IndexNames.cs`)
   (the unit, a method's §2023:11.7.4 GR5 overlay, and — by §2023:8.4.6.2.3 — a containing program's GLOBAL tables, tagged
-  with their nesting depth for §2023:8.4.6.2.1 3)). A WRITTEN index-name, bare or qualified through its table
+  with their nesting depth for §2023:8.4.6.2.1 GR3). A WRITTEN index-name, bare or qualified through its table
   (§2023:8.4.2.2.2 Format 3; §2023:8.4.2.2.3 SR6 — `IX OF T`), resolves through ONE resolution
   (`NameResolution.ResolveIndexName` over `SymbolTable.Identify(WrittenQualifiedName, NameClass.Index, report)`) whose candidate count meets the same
   §2023:8.4.2.2.3 SR1 verdict as a data-name (`DataBinder.UniqueOrReportAmbiguous<T>` over `NameCandidates<T>`,
@@ -722,7 +722,7 @@ keep long-only — silently wrong; `decimal`/`BigInteger` intermediates — owne
   ONCE to the receiver scale per the ROUNDED mode.
 - EXPONENTIATION integer powers expand to repeated multiply (§2023:8.8.1.5.4).
 - **Statement arithmetic** (ADD/SUB/MUL/DIV with GIVING) enforces the 31-digit composite-of-operands limit at COMPILE
-  time (guaranteed to fit `Int128`); **COMPUTE expressions have NO composite limit** (§2023:8.8.1.2 rule 7) — `Int128` is
+  time (guaranteed to fit `Int128`); **COMPUTE expressions have NO composite limit** (§2023:8.8.1.2 GR7) — `Int128` is
   the cap, EC-SIZE-OVERFLOW past ~38 digits.
 - **v1 arithmetic mode = NATIVE** (§2023:8.8.1.3, implementor-defined = `Int128` fixed-point) — the corpus default.
   STANDARD-DECIMAL (decimal128) and STANDARD-BINARY (spec-obsolete) are owner-gated/deferred (§15).
@@ -792,7 +792,7 @@ battle-tested 364-NIST oracle; .NET format strings — can't express floating in
 ### 6.6 Hard problems / edge cases
 
 - MOVE rescale is value-preserving with TRUNCATION rounding (never ROUNDED); a scaled→integer MOVE drops the
-  fraction; an unsigned receiver stores the magnitude (§2023:14.9.25.4 GR6 d) 2. b.; watch `long.MinValue`).
+  fraction; an unsigned receiver stores the magnitude (§2023:14.9.25.4 GR6d.2 b.; watch `long.MinValue`).
 - Comparisons align scales then compare the `Int128` unscaled values; `+0 == −0`.
 - IS NUMERIC on a typed numeric field folds to `true` (it can't hold non-digits) UNLESS the field aliases external
   bytes (REDEFINES/file/ACCEPT) — then validate the char image (`CobolNum.IsNumericClass(image, profile)`).
@@ -919,9 +919,9 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   memory), deserialized to the typed record only on hand-back. *(This is owner-flagged — §15 Q-file-2.)*
 - **The indexed duplicate order is per KEY OF REFERENCE, and the file position indicator is a KEY VALUE.** ISO
   §2023:14.9.30.4 GR26 scopes the release order to "an alternate record key that is the key of reference" and
-  §2023:14.9.35.4 GR24 a) freezes an untouched key's order across a REWRITE, so the release ordinal is a VECTOR — one
+  §2023:14.9.35.4 GR24a freezes an untouched key's order across a REWRITE, so the release ordinal is a VECTOR — one
   slot per key, slot 0 the prime (assigned at release, never re-stamped, so it doubles as the record's physical
-  release order). §2023:14.9.41.4 GR17 e) 1. puts only a KEY VALUE in the file position indicator, so a START-seeded
+  release order). §2023:14.9.41.4 GR17e.1 puts only a KEY VALUE in the file position indicator, so a START-seeded
   walk enters a duplicate set at the end GR26 names for its direction; the duplicate-set position of a prior READ
   is separate connector state, which is what §2023:14.9.30.4 GR21 rules e)/f) name instead of the FPI. The store
   PERSISTS each record's ordinal vector with the record, and the release mint in its header (store format 4), so a
@@ -959,7 +959,7 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   over `FileModel.RecordSizeRange` (§2023:14.9.40.3 SR5 / SR11, §2023:14.9.24.3 SR3 / SR12: a variable-length file bounds both ends
   of the other's records, a fixed-length file only the upper one; USING bounded by the SD, the SD bounded by GIVING;
   kb/Work PB995). **A fixed-length SD's record is the largest record description's** (the implied Format 1,
-  §2023:13.18.43.4 GR5 a)), so a RELEASE of a shorter record description sends the record area's image like WRITE does
+  §2023:13.18.43.4 GR5a), so a RELEASE of a shorter record description sends the record area's image like WRITE does
   (D-WRT1; `SequentialIoEmitter.SentRecordImage`, kb/Work PB322 F). **WHICH items may be a key is ONE predicate** — `SortKeyAdmission.Violation(key, rules)`
   (kb/Work PB1173, PB1052), asked of the data description by all three key-naming statements (SORT Format 1 §2023:14.9.40.3
   SR6, Format 2 SR14, MERGE §2023:14.9.24.3 SR4): a key subject to OCCURS (file verbs; Format 2's own is SR14 e) over the walk
@@ -1002,17 +1002,17 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   (docs/CONFORMANCE.md §3 D-SMA). EC-SORT-MERGE-FILE-OPEN is `FileNotOpen`, emitted per file where the rule places it
   — SORT at the start of phase a) for USING and of phase c) for GIVING (§2023:14.9.40.4 GR9), MERGE at statement start for
   both (§2023:14.9.24.4 GR7/GR12) — and only when the name is enabled there. EC-SORT-MERGE-RELEASE is the record-range
-  test of `ReleaseStatement` (§2023:13.18.43.4 GR14 b)/GR19 b), which also slices the DEPENDING ON size itself so no
+  test of `ReleaseStatement` (§2023:13.18.43.4 GR14b/GR19 b), which also slices the DEPENDING ON size itself so no
   reference modification can raise EC-BOUND-REF-MOD first; with the name not enabled the record is released, except at
   COBOL-85, whose RELEASE is unsuccessful outside the range with no checking at all, §1985:VII.3.8.4 GR10 — the binder's
-  `BoundRelease.RangeFailsStatement`, read by the runtime, kb/Work PB5124) and of the implicit `Release` (§2023:14.9.40.4 GR12 b),
-  §2023:14.9.24.4 GR7 b) — the READ size against the SD's range, min 0 for a fixed SD). EC-SORT-MERGE-SEQUENCE is a
+  `BoundRelease.RangeFailsStatement`, read by the runtime, kb/Work PB5124) and of the implicit `Release` (§2023:14.9.40.4 GR12b,
+  §2023:14.9.24.4 GR7b — the READ size against the SD's range, min 0 for a fixed SD). EC-SORT-MERGE-SEQUENCE is a
   per-stream scan in `Merge` over the SAME key columns the merge compares with, run only while enabled
   (§2023:14.9.24.4 GR6). The statement's body after `Init` is a `try … finally { Close }`, so every way out — including
   a raise the guard disposes of after the unwind — releases the store. `EcBinder.NodeKindRaises`' SORT/MERGE rows ask
   these names AND the EC-I-O family per USING/GIVING file, which is what arms the implicit transfers'
   `__IoCheckEc` hooks. The disposition is `EcEmitter.VerbDisposes`: a condition the SORT/MERGE statement itself
-  raised is disposed of by the verb (§2023:14.6.13.1.3 2) — declarative, then the statement ends, the run unit
+  raised is disposed of by the verb (§2023:14.6.13.1.3 GR2 — declarative, then the statement ends, the run unit
   continues). "Itself" is MARKED by the store: `Init`, `FileNotOpen`, the implicit `Release`, `Sort` and `Merge` run
   under an exception filter that sets `CobolFatalException.RaisedBySortMerge` (an EC-LOCALE-* from a locale-collated
   key included), and the SORT/MERGE guard re-throws only unmarked conditions — a RELEASE or RETURN statement's raise
@@ -1040,7 +1040,7 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   releases every one: `SortWork` registers each file in ONE owner set before its first record is written and a merge
   closes its inputs only after its output is complete, so a failure at any point leaves every open file in the set. The incremental sequencing runs under the statement's own mark, so a condition it raises while
   a RELEASE or RETURN statement executes (an EC-LOCALE-* from a locale-collated key) is still the SORT's or MERGE's
-  (§2023:14.6.13.1.3 2)). `SortWorkBoundDriftTests` refuses a record collection anywhere in the store but the bounded chunk.
+  (§2023:14.6.13.1.3 GR2). `SortWorkBoundDriftTests` refuses a record collection anywhere in the store but the bounded chunk.
 - **The SD/FD record codec IS the generated `AsImage()`/`FromImage()` pair (Phase 1E):** for every image-capable
   record — including mixed-usage records with fixed-point BINARY/PACKED leaves, which serialize each such leaf as
   its TRUE BYTES (§14.4: radix-2 two's complement or BCD, width = `PicInfo.StorageWidth`; ISO §2023:13.18.60.4 GR4/GR11
@@ -1074,7 +1074,7 @@ operand rule, shared by WRITE §2023:14.9.51.3 SR5, REWRITE §2023:14.9.35.3 SR1
 successor to `SequentialIoBinder.FileOfRecord`, which tested CONTAINMENT where the rule says IDENTITY
 (`FILES_DESIGN.md` §"The `record-name-1` operand") — resolves a contained WRITE/REWRITE of the owner's
 record through the merge, and the I-O status routes to the owner's local status item (§2023:12.4.5.8.4 GR1 NOTE 1). The owner's FILE STATUS, RELATIVE KEY, ASSIGN USING, RECORD VARYING DEPENDING ON and LINAGE items are the FILE's operands, not names the contained program writes (§2023:8.4.5: an implicit reference resolves in the element that holds the clause; §2023:13.18.27.4 GR2 lets a contained program name only the global names): `FileModel.ClauseOperandItems` is the one list, and the roots on it (`DataBinder.GlobalFileOperandRoots`) are bridged and placed in the contained unit like a global root and offered as no name (`InheritStep.ContainerBridgedRootsOf`; kb/Work PB4454; `FileClauseOperandDriftTests`).
-A record may be GLOBAL when its FD is not (§2023:13.18.27.3 SR1 b)): the record-name is visible in a contained program
+A record may be GLOBAL when its FD is not (§2023:13.18.27.3 SR1b): the record-name is visible in a contained program
 and its FILE is not, so the container's non-global FileModels are kept in `InheritedGlobals.ContainerLocalFiles` for ONE
 question — `ResolveRecordName` refuses a contained WRITE / REWRITE of such a record by WRITE §2023:14.9.51.3 SR21 /
 REWRITE §2023:14.9.35.3 SR3 (COBOL1757; kb/Work PB1193), never by the false "not a logical record" arm;
@@ -1332,7 +1332,7 @@ result does not feed it — decision 20.
   `InitializeCategories.Table16Receiver`, which is the category-name's Table-16 receiving position; the rule needs
   no receiver walk because its receiving operand is the CATEGORY.
   **A THIRD STATEMENT ASKS THE SAME QUESTION OVER TWO DATA ITEMS, so the home has a composite item-keyed entry**
-  (kb/Work PB391): §2023:14.7.6 rule 2 — "In a MOVE statement, at least one of the data items is an elementary data
+  (kb/Work PB391): §2023:14.7.6 GR2 — "In a MOVE statement, at least one of the data items is an elementary data
   item and the resulting move is valid according to the rules for the MOVE statement" — makes MOVE / ADD /
   SUBTRACT CORRESPONDING's pairing decision the MOVE statement's own validity, with no bound operand in hand (none
   exists for a pair until after the decision) and, crucially, NO DIAGNOSTIC: a pair whose move would be invalid
@@ -1582,7 +1582,7 @@ round trip (the locked NC107A shape: `MOVE U5 TO U9`, `IF U22 > U12`). Non-align
   **⛔ THE PAIR HANDED TO `__RunUse` IS THE DECLARATIVE SECTION'S OWN `PcRange`, AND NOTHING SHORTENS IT**
   (`BoundDeclarative.Range`, rendered at the ONE site `DispatchState.RunUseCall`). §2023:14.9.49.3 SR1 makes the use
   procedure "the remainder of the section", §2023:14.4.2 ends that section only at the next section header or END
-  DECLARATIVES, §2023:14.6.3 rule 1 puts the implied transfer back to the controlling USE at the last statement of the
+  DECLARATIVES, §2023:14.6.3 GR1 puts the implied transfer back to the controlling USE at the last statement of the
   last procedure IN THE RANGE, and §2023:14.9.14.4 GR7's NOTE places the USE return mechanism after the section's last
   paragraph. There WAS a "CCVS termination-tail accommodation" here — a trivial EXIT/CONTINUE paragraph followed
   anywhere later in the section by a STOP RUN / EXIT PROGRAM / GOBACK paragraph capped the handler end at the
@@ -2205,7 +2205,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     serves all four: `Binding/CodedCharacterSet.cs` — `CodedCharacterSet.Of(AlphabetDef)` / `Of(NationalAlphabetDef)`
     (null for a LOCALE alphabet, and the ONE refusal `SpecialNamesBinder.CodedCharacterSetOf(name, site, rule)` → COBOL1669
     at every site — §2023:8.8.4.4.3 SR2, §2023:12.3.7.3 SR16g / SR17d, §2023:13.18.13.3 SR1/SR2), with `CharAt(ordinal)` (the
-    character at an ORDINAL POSITION — GR11 b/c, GR12 a), `Contains(rune)` (the class test, §2023:8.8.4.4.4 GR3 a) and
+    character at an ORDINAL POSITION — GR11 b/c, GR12 a), `Contains(rune)` (the class test, §2023:8.8.4.4.4 GR3a and
     `Medium` + `MediumCorrespondence` (the medium codec, §2023:13.18.13.4 GR2/GR6 — the ONE classifier that says whether
     a set crosses the storage boundary as the identity, through a conversion, or not at all: `CodeSetMedium`
     `Identity` / `Translated` / `NotProvided`, the last being the documented A.3 item 27 non-support. A `Translated`

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:14.9.30.4 GR11 a) — "If single record locking is specified
+      *> ISO §2023:14.9.30.4 GR11a — "If single record locking is specified
       *> for the file connector associated with file-name-1, any prior
       *> record lock associated with that file connector is released BY
       *> THE EXECUTION OF THE READ STATEMENT."  §2023:12.4.5.9.4 GR6 states

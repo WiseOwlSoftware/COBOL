@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB1216 - pointer lifetime for a METHOD: a method is a
       *> runtime element, so its LOCAL-STORAGE ends with the activation
-      *> (§2023:8.6.4, §2023:8.6.5, §2023:13.18.5.4 4) as in pb1216_ls_and_cancel_
+      *> (§2023:8.6.4, §2023:8.6.5, §2023:13.18.5.4 GR4 as in pb1216_ls_and_cancel_
       *> pointer_lifetime) while the OBJECT's WORKING-STORAGE (instance
       *> data; a method has none, §2023:13.5.3 SR1) persists with the object
       *> (§2023:8.6.4 static item; §2023:11.7).  The object-data leg allocates

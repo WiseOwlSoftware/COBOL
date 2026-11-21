@@ -9,17 +9,17 @@
       *>   documented compile-time arithmetic mode and rounding
       *> Rules: §2023:7.3.6.3 GR2 "The implementor shall define and document
       *>   which mode of arithmetic is to be used when evaluating
-      *>   compile-time arithmetic." -> OK  §2023:7.3.6.3 2)
+      *>   compile-time arithmetic." -> OK  §2023:7.3.6.3 GR2
       *>   §2023:7.3.6.2 SR2 "The implementor shall define and document any
       *>   rules restricting the precision and/or magnitude and/or range
       *>   of permissible values for the intermediate results ... They
       *>   shall also document which intermediate rounding method is
-      *>   used" -> OK  §2023:7.3.6.2 2)
+      *>   used" -> OK  §2023:7.3.6.2 SR2
       *>   §2023:7.3.6.3 GR3 "The final result of the arithmetic expression
       *>   shall be truncated to the integer part of the value as
-      *>   specified in 15.49, INTEGER-PART function" -> OK  §2023:7.3.6.3 3)
+      *>   specified in 15.49, INTEGER-PART function" -> OK  §2023:7.3.6.3 GR3
       *>   §2023:13.10.4 GR4 "If arithmetic-expression-1 is specified, it is
-      *>   evaluated in accordance with 7.3.6" -> OK  §2023:13.10.4 4)
+      *>   evaluated in accordance with 7.3.6" -> OK  §2023:13.10.4 GR4
       *>   §2023:A.1 29) "Compile-Time Arithmetic (Mode of arithmetic used
       *>   and rules for intermediate data handling). This item is
       *>   required." -> OK  §2023:A.1 29)

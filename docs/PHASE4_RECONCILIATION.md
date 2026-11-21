@@ -680,7 +680,7 @@ both ways); negative corpus +1 (based-level-05).
   Everything else audited conforming: A2N (Table 16 AN→National Yes + GR6a conversion), NUM=042
   (Numeric-int→National Yes), boolean JR=0011 (§2023:13.18.32.4 GR2 bit-zero left fill), MOVE ZERO/INITIALIZE fills
   (GR4 :6375 / GR6c), equality-only boolean relations, `<` national ordering under the default national PCS,
-  `MOVE B-NAME TO B-FLAG` display-form→bit-form (§2023:8.8.4.2.8's usage-independence, value moved per §2023:14.9.25.4 GR6 a)).
+  `MOVE B-NAME TO B-FLAG` display-form→bit-form (§2023:8.8.4.2.8's usage-independence, value moved per §2023:14.9.25.4 GR6a).
 
 - **STORAGE DECISIONS (the documented implementor choices — record in DESIGN with the WHY).**
   **D-N1 National representation**: an elementary national item is a plain C# `string` of `Length` characters
@@ -1315,7 +1315,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
   `subject.booleanExpression()` binds as a value subject `BoundBoolOperand`; TRUE/FALSE objects against a
   length-1 boolean subject reclassify per SR6a/b to `BoundBooleanCondition`(±`BoundNot`); operand objects pair as
   `BoundRelational(subj, "==", obj)`; `valueRange` objects with a boolean side ⇒ 0898 (SR4 :27206). **UDF guard:**
-  NO `BindFlatSequence` change — B-ops are expression-channel, and §2023:8.8.2 rule 7 has no short-circuit, so the
+  NO `BindFlatSequence` change — B-ops are expression-channel, and §2023:8.8.2 GR7 has no short-circuit, so the
   hoisted-activation model is inherently safe INSIDE a boolean expression; a boolean expression sitting in a
   non-first AND/OR condition operand already trips the existing COBOL1509 guard via `_udfPendingCalls`
   (Udf.cs:220–222) — document at the guard.

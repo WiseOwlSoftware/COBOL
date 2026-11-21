@@ -8,7 +8,7 @@
       *> the REPOSITORY paragraph of the inheriting interface.
       *> Rule: "Interface-name-2 shall be the name of an interface
       *> specified in the REPOSITORY paragraph of this source element."
-      *> cite.py: OK  §2023:11.6.3 2)  (Syntax rules)
+      *> cite.py: OK  §2023:11.6.3 SR2  (Syntax rules)
       *> L1C15PA is a real interface of the compilation group, but
       *> L1C15PB's REPOSITORY does not specify it (it specifies only
       *> L1C15PC), so the INHERITS FROM L1C15PA violates SR2. Nothing

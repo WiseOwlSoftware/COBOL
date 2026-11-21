@@ -33,7 +33,7 @@ The traceability inventory at **zero unresolved GAP** = P14 DONE (D13). This sup
 
 ⛔ **This is the ONE widening of §1 an agent did not make, and the bounds are the owner's, not a paraphrase.**
 Some normative rules impose no obligation a conforming program can observe: the standard declares the result
-*undefined* (§2023:4.4 2): *"Situations in which the results of executing a statement are explicitly undefined or
+*undefined* (§2023:4.4 GR2: *"Situations in which the results of executing a statement are explicitly undefined or
 unpredictable are identified in A.2, Undefined language element list. A COBOL run unit that allows these
 situations to happen is a conforming run unit"* — `cite.py --check 4.4` OK); or the rule's antecedent cannot be
 populated in this implementation; or its consequent cannot be told apart from another rule's. For such a rule

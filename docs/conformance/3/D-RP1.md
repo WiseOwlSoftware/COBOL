@@ -7,14 +7,14 @@
   and §2023:14.8.3.3 compare "the same … USAGE clauses", and the TO phrase is compared by the prototype (or type) it NAMES —
   the prototype's externalized name, folded — never by its signature: the standard lists the clause texts that match on
   meaning (currency strings, DECIMAL-POINT IS COMMA, the LOCALE phrase) and none for the TO phrase, and a prototype
-  whose details the external repository supplies (§2023:12.3.8.4 GR10 c)) is as much a name as one whose details the group
+  whose details the external repository supplies (§2023:12.3.8.4 GR10c) is as much a name as one whose details the group
   does. The signature relation (§2023:8.13;
   §2023:13.18.60.4 GR25 / GR26: what a restricted pointer may CONTAIN) governs only SET (§2023:14.9.39.3 SR19 / SR20 / SR22),
   CALL SR14 and the rules that send to SET (§2023:14.8.2.3.3; §2023:9.3.6 4 c), 5 c), 6). So two pointers restricted to two prototypes
   of one signature, or alike under two type-names, are admitted by a SET or a BY CONTENT pass and refused BY REFERENCE
   (a compile-time COBOL1688 / COBOL0828 when the formal is known, else EC-PROGRAM-ARG-MISMATCH or EC-OO-UNIVERSAL at the
   activation), and a returning pair of two names is refused by §2023:14.8.3.3 — as an object reference of a subclass is
-  admitted by SET and refused BY REFERENCE (§2023:14.9.39.3 SR12 a) 2. against §2023:14.8.2.3.2 rule 3). One reading the text
+  admitted by SET and refused BY REFERENCE (§2023:14.9.39.3 SR12a.2 against §2023:14.8.2.3.2 rule 3). One reading the text
   leaves to the implementor: §2023:8.5.3.1 defines "the same type" for TYPED items only, and two restricted pointers are not
   always typed — an entry `USAGE FUNCTION-POINTER TO` needs no TYPEDEF, and the unique item an address-identifier creates
   (§2023:8.4.3.11.4 GR2, "restricted to the type of identifier-1"), which INVOKE passes BY REFERENCE (§2023:14.9.23.3 SR9), has no
@@ -24,9 +24,9 @@
   their type declarations as well. §2023:8.5.3.1's equivalence of two type declarations compares a member pointer's USAGE
   clause the same way, by the prototype it names (`StrongTypeModel.SameAnalyzedProfile` and its key,
   `EssentialCharacteristicsKey`): one declaration `TB TYPEDEF USAGE PROGRAM-POINTER TO P` is one type in a compilation
-  that holds P's signature and in one that only names P (§2023:12.3.8.4 GR10 c)), and a strongly-typed group whose pointer
+  that holds P's signature and in one that only names P (§2023:12.3.8.4 GR10c), and a strongly-typed group whose pointer
   member is `TO QA` is not of the type of one whose member is `TO QB`, whatever the signatures — so two prototypes whose
-  strong-group formals differ so have two signatures (§2023:9.3.8.2.3 rule 7; branch review R1-1 of kb/Work PB4107).
+  strong-group formals differ so have two signatures (§2023:9.3.8.2.3 GR7; branch review R1-1 of kb/Work PB4107).
   The pair-mode conformance of §2023:9.3.8.2.3 asks the same identity of an ELEMENTARY pointer (kb/Work PB4442): rule 3 (a
   formal) and rule 6 (a returning item) require "the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH,
   JUSTIFIED, PICTURE, SIGN, and USAGE clauses" — the very words §2023:9.3.6 3 e) and §2023:14.8.3.3 use — and a restricted
@@ -45,7 +45,7 @@
   type-name"), so a prototype `USING TYPE T1` and a definition `USING TYPE T9`, both `TO Q1`, are refused too, as are an
   untyped `FUNCTION-POINTER TO F1` formal and a typed one (`PrototypeSignatures.SameDescription` over
   `ActivationDescription.PointerType`; branch review R1-1 of kb/Work PB4491) — the pair-mode relation does not ask it,
-  since §2023:9.3.8.2.3 rules 3 / 6 list only the clauses. Two prototypes whose formals name each other are two signatures,
+  since §2023:9.3.8.2.3 GR3 / 6 list only the clauses. Two prototypes whose formals name each other are two signatures,
   so §2023:14.9.39.3 SR22 refuses a SET between their pointers (COBOL1959): the signature is compared as TEXT and has no fixed
   point to find. What a pointer may CONTAIN is still its prototype's signature (§2023:13.18.60.4 GR25 / GR26), spelled
   `PrototypeSignatures.Identity`, a hash of that signature's key.

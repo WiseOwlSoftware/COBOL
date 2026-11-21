@@ -59,7 +59,7 @@
       *> the a = -0.5 and a = -0.25 lines.
       *>
       *> THE RENDERING IS ITSELF ASSERTED: each result is MOVEd to a numeric-edited receiver whose leftmost
-      *> symbol is the FIXED INSERTION '+', which by §2023:13.18.40.5 rule 5, Table 8 prints '+' for a positive OR
+      *> symbol is the FIXED INSERTION '+', which by §2023:13.18.40.5 GR5, Table 8 prints '+' for a positive OR
       *> ZERO value and '-' for a negative one — so the SIGN of every line is pinned, not just its digits.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1INTFAM01.

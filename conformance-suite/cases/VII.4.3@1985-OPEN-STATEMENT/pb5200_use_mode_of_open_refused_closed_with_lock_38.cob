@@ -7,10 +7,10 @@
       *>---
       *> kb/Work PB5200 -- an OPEN of a file closed WITH LOCK is unsuccessful with I-O status 38 (§1985:VII.1.3.5
       *> "I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously
-      *> closed with lock"), and the OPEN's USE procedures then run (§1985:VII.4.3.4 GR26 b): "Any applicable USE
+      *> closed with lock"), and the OPEN's USE procedures then run (§1985:VII.4.3.4 GR26b: "Any applicable USE
       *> AFTER EXCEPTION procedure is executed"). §1985:VII.4.6.4 GR5 c) and b) make the OUTPUT and INPUT procedures
       *> applicable to a file "in the process of being opened" in that mode, so each refused OPEN runs the procedure
-      *> of ITS mode, after the status is set (§1985:VII.4.3.4 GR26 a).
+      *> of ITS mode, after the status is set (§1985:VII.4.3.4 GR26a.
       *> DERIVATION -- every expected line follows from the rules, nothing from the compiler:
       *>  - OPEN OUTPUT of an absent file creates it (status 00); WRITE 00; CLOSE WITH LOCK 00.
       *>  - OPEN OUTPUT: status 38, then the OUTPUT procedure: "USE OUTPUT 38", "OPEN OUTPUT 38".

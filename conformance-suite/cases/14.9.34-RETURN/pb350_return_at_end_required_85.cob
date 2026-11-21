@@ -17,7 +17,7 @@
       *> screen misfired and never that the reversed order is being adjudicated at the same time.
       *>
       *> DERIVATION — every expected line follows from the rule text, nothing from the compiler.
-      *>  · §2023:14.9.40.4 GR8 a): the ASCENDING key returns "the record containing the key data item with the
+      *>  · §2023:14.9.40.4 GR8a: the ASCENDING key returns "the record containing the key data item with the
       *>    lower value … first" — released 3/CCC, 1/AAA, 2/BBB, so the drain returns AAA, BBB, CCC.
       *>  · §2023:14.9.34.4 GR4: each successful return transfers control to imperative-statement-2 "if specified"
       *>    — it is, so A=AAA / A=BBB / A=CCC print from the NOT AT END arm.

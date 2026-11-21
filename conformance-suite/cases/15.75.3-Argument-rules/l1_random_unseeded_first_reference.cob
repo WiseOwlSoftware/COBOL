@@ -13,7 +13,7 @@
       *>   cite.py --check 15.75.3 "If the first reference to this
       *>   function in the run unit does not specify argument-1, the
       *>   seed value is defined by the implementor."
-      *>     -> OK  §2023:15.75.3 4)  (Argument rules)
+      *>     -> OK  §2023:15.75.3 AR4  (Argument rules)
       *>
       *> ⛔ WHY A NEW GOLDEN. 2023/pb1_intrinsic_formats seeds its FIRST
       *> reference (COMPUTE A = FUNCTION RANDOM(7)), so r4's antecedent
@@ -32,7 +32,7 @@
       *>    greater than or equal to zero and less than one."
       *>      cite.py --check 15.75.4 "The returned value is greater
       *>      than or equal to zero and less than one."
-      *>        -> OK  §2023:15.75.4 1)  (Returned value rules)
+      *>        -> OK  §2023:15.75.4 RV1  (Returned value rules)
       *>  R4-NEXT=IN-RANGE   §2023:15.75.3 r5: "In each case, subsequent
       *>    references without specifying argument-1 return the next
       *>    number in the current sequence" — the sequence r4's own seed

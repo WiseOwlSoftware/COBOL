@@ -10,7 +10,7 @@
       *> of the others, subjecting the same data locations to more than one set of checks." Here F is two characters and FN redefines
       *> them as PIC 99, so "AB" passes F (any content) and fails FN's PICTURE; BT is PIC 1, a boolean item whose content shall be
       *> 0 or 1 (the class BOOLEAN, §2023:8.8.4.4.4 GR3; and the format validation stage of §2023:14.9.50.4 GR6 checks "compatibility with the PICTURE").
-      *>   cite.py: OK  §2002:13.16.42.3 3)  (General rules)
+      *>   cite.py: OK  §2002:13.16.42.3 GR3  (General rules)
       *> WHY EACH LEG CAN FAIL: a walk that skipped the REDEFINES entry would print no line for "AB1"; one that skipped the boolean
       *> item would print none for "122"; one that stopped at the first invalid element would print two lines for "AB2".
        IDENTIFICATION DIVISION.

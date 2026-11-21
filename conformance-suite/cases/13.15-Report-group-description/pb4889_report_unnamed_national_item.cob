@@ -12,22 +12,22 @@
       *>   cite.py: OK  §2023:13.15.2  (General format) "entry-name-clause"
       *> §2023:13.15.3 SR2: "If the entry-name clause is specified, the data-name format or filler format shall be
       *> specified. The entry-name clause shall immediately follow the level-number."
-      *>   cite.py: OK  §2023:13.15.3 2)  (Syntax rules)
-      *> §2023:8.9 reserves NATIONAL from 2002, and §2023:8.3.2.1 1) bars a reserved word from a user-defined word, so
+      *>   cite.py: OK  §2023:13.15.3 SR2  (Syntax rules)
+      *> §2023:8.9 reserves NATIONAL from 2002, and §2023:8.3.2.1 SR1 bars a reserved word from a user-defined word, so
       *> the word cannot be the entry's name: the clause reading is the only one. The name slot admits a
       *> reservation-gated word, and the parser took NATIONAL as the name and refused it (COBOL0901) — legal
       *> source refused. The data description entry's entry-name predicate (kb/Work PB845) now guards this
       *> entry's name slot too.
       *> §2023:13.18.60.3 SR7: "Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated
       *> with a report group item."
-      *>   cite.py: OK  §2023:13.18.60.3 7)  (Syntax rules)
+      *>   cite.py: OK  §2023:13.18.60.3 SR7  (Syntax rules)
       *>
       *> DERIVATION (one detail group, three relative lines):
       *>   LINE 1 - an elementary item whose first clause is NATIONAL, then COLUMN, PIC and VALUE: "ABC" at column 1,
       *>     and a DISPLAY item "D" at column 5 (§2023:13.18.14.4 GR3, the printable-size is the columns its
       *>     characters take, one each here as conformance:cases/13.18.14-COLUMN/pb541_report_national_item
       *>     pins) -> "ABC D".
-      *>   cite.py: OK  §2023:13.18.14.4 3)  (General rules)
+      *>   cite.py: OK  §2023:13.18.14.4 GR3  (General rules)
       *>   LINE 2 - a GROUP entry whose first clause is NATIONAL; its subordinate item has no USAGE clause and is
       *>     national by §2023:13.18.60.4 GR1 (a group's usage applies to each elementary item): SOURCE WN = "PQ".
       *>   LINE 3 - USAGE IS NATIONAL written in full after no name, the same item spelt the long way: "MN".

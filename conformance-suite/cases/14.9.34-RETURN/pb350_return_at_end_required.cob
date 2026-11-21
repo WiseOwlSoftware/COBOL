@@ -17,7 +17,7 @@
       *> because the screen keys on the AT END phrase being ABSENT, never on the order it is written in.
       *>
       *> DERIVATION — every expected line follows from the rule text, nothing from the compiler.
-      *>  · §2023:14.9.40.4 GR8 a): "If the contents of the corresponding key data items are not equal and the key
+      *>  · §2023:14.9.40.4 GR8a: "If the contents of the corresponding key data items are not equal and the key
       *>    is associated with the ASCENDING phrase, the record containing the key data item with the lower
       *>    value is returned first" — released 3/CCC, 1/AAA, 2/BBB, so every drain returns AAA, BBB, CCC.
       *>  · §2023:14.9.34.4 GR4: with no at end condition "control is transferred to imperative-statement-2, if

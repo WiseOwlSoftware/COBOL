@@ -13,11 +13,11 @@
       *>   python scripts/spec/cite.py --check 8.8.1.3 "The implementor shall specify techniques used for native
       *>   arithmetic."  ->  OK  §2023:8.8.1.3
       *>   python scripts/spec/cite.py --check 14.7.7 "Otherwise, an implementor-defined intermediate data item
-      *>   is used."  ->  OK  §2023:14.7.7 4) a)
+      *>   is used."  ->  OK  §2023:14.7.7 GR4a
       *> No OPTIONS paragraph is written, so §2023:11.9.5.2 GR4 puts native arithmetic in effect — the mode every
       *> other program in the corpus compiles under:
       *>   python scripts/spec/cite.py --check 11.9.5.2 "it is as if the ARITHMETIC clause were specified with
-      *>   the NATIVE phrase"  ->  OK  §2023:11.9.5.2 4)
+      *>   the NATIVE phrase"  ->  OK  §2023:11.9.5.2 GR4
       *>
       *> ── HALF ONE: THE FLOAT LANE. Row 123: "Any expression with a floating-point operand evaluates ENTIRELY
       *> in IEEE binary64 instead." That is a lane switch, not a widening, and 2**53 is where the two lanes part
@@ -36,10 +36,10 @@
       *> ── HALF TWO: ONE ROUNDING, AT THE FINAL TRANSFER. Row 123: "a nested quotient carries up to 14 guard
       *> fraction digits and rounds once, at the final transfer". The standard's own words for the second half:
       *>   python scripts/spec/cite.py --check 14.7.7 "The ROUNDED phrase applies only to this transfer of data."
-      *>   ->  OK  §2023:14.7.7 3)   (NOTE 1 to rule 3)
+      *>   ->  OK  §2023:14.7.7 GR3   (NOTE 1 to rule 3)
       *> and the mode a bare ROUNDED carries:
       *>   python scripts/spec/cite.py --check 11.9.6.3 "If the DEFAULT ROUNDED clause is not specified, DEFAULT
-      *>   ROUNDED MODE IS NEAREST-AWAY-FROM-ZERO is implied."  ->  OK  §2023:11.9.6.3 2)
+      *>   ROUNDED MODE IS NEAREST-AWAY-FROM-ZERO is implied."  ->  OK  §2023:11.9.6.3 GR2
       *> ONE / THR is NESTED (the multiplication consumes it), so it is not the transfer and it must NOT round:
       *> it truncates at the receiver's scale plus guard digits, and the receiver's ROUNDED then applies ONCE to
       *> the whole expression's value.

@@ -8,7 +8,7 @@
       *> ISO §2023:14.9.40.3 SR7 — THROUGH and THRU name the same SORT procedure range
       *> Rule (§2023:14.9.40.3 SR7): "The words THROUGH and THRU are equivalent."
       *> cite.py --check 14.9.40.3 "The words THROUGH and THRU are equivalent"
-      *>   -> OK  §2023:14.9.40.3 7)  (Syntax rules)
+      *>   -> OK  §2023:14.9.40.3 SR7  (Syntax rules)
       *> Format 1 (§2023:14.9.40.2) prints { THROUGH | THRU } in BOTH the INPUT
       *> PROCEDURE and the OUTPUT PROCEDURE phrase. Two SORTs over the same
       *> three-paragraph ranges: SORT 1 writes INPUT ... THROUGH and OUTPUT

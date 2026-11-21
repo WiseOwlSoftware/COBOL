@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:14.9.37.4 GR3 c) 2 — "If index-name-1 is not one of the
+      *> ISO §2023:14.9.37.4 GR3c 2 — "If index-name-1 is not one of the
       *> indexes specified in the INDEXED phrase in the OCCURS clause
       *> associated with identifier-1, the search index is the same as
       *> in General rule 3a. The index referenced by index-name-1 is

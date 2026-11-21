@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB5200 -- the implicit OPEN of a SORT or MERGE USING file is an OPEN INPUT of that file, so when it
       *> fails the open-mode procedure of the INPUT mode runs: the file is "in the process of being opened in the
-      *> input mode" (§2023:14.9.49.4 GR6 b); §1985:VII.4.6.4 GR5 b)), and once the statement ends the file is in
+      *> input mode" (§2023:14.9.49.4 GR6b; §1985:VII.4.6.4 GR5b), and once the statement ends the file is in
       *> no mode, so a later READ of it is refused and applies no procedure.
       *> DERIVATION -- every expected line follows from the rules, nothing from the compiler:
       *>  - FJ is created empty (OPEN OUTPUT of an absent file succeeds, status 00, no procedure; CLOSE 00).

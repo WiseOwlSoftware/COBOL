@@ -5,17 +5,17 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:9.1.13.8 3) — I-O status 53: the run unit's record-lock
+      *> ISO §2023:9.1.13.8 GR3 — I-O status 53: the run unit's record-lock
       *> maximum (255, CONFORMANCE.md DOC-A.1-154) is reached.
       *> "I-O status = 53. The input-output statement is unsuccessful
       *> because the statement requested a record lock, but this run
       *> unit holds the maximum number of locks allowed by this
       *> implementation."
-      *>   cite.py: OK  §2023:9.1.13.8 3)  (Record operation conflict
+      *>   cite.py: OK  §2023:9.1.13.8 GR3  (Record operation conflict
       *>   condition with unsuccessful completion)
       *> §2023:12.4.5.9.4 GR7 obliges the implementor to specify both the
       *> per-connector and the per-run-unit maximum:
-      *>   cite.py: OK  §2023:12.4.5.9.4 7)  (General rules)
+      *>   cite.py: OK  §2023:12.4.5.9.4 GR7  (General rules)
       *> The documented choice (docs/CONFORMANCE.md DOC-A.1-154) is 255
       *> locks per run unit, counted over every file connector; the
       *> per-connector maximum (DOC-A.1-155) is 15.

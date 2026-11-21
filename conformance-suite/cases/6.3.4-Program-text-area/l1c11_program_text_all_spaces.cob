@@ -5,10 +5,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:6.3.4 3) — a program-text area of all spaces
+      *> ISO §2023:6.3.4 SR3 — a program-text area of all spaces
       *> Rule: "The program-text area may contain: ... 3) All spaces."
       *>   cite.py --check 6.3.4 "All spaces"
-      *>   -> OK  §2023:6.3.4 3)  (Program-text area)
+      *>   -> OK  §2023:6.3.4 SR3  (Program-text area)
       *>   cite.py --check 6.3.6 "A blank line is one that contains only
       *>   space characters between margin C and margin R. A blank line
       *>   may be written as any line of a compilation group."

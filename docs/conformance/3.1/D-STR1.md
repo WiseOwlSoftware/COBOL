@@ -5,8 +5,8 @@
   --check 14.9.43.4 "or if identifier-3 and identifier-4 occupy the same storage area, the result of the execution of
   this statement is undefined, even if they are defined by the same data description entry"` → OK, 10)) — and Annex A.2
   item 60 (`cite.py --check A.2 "If the STRING identifier, or DELIMITED BY identifier, occupies the same storage area
-  as the INTO identifier"` → OK, 60)) leave the case open; §2023:4.4 2) makes a run unit that allows it conforming, and GR10
-  widens §2023:14.6.10 rule 2 so the overlap is undefined even for one data description entry. **WiseOwl COBOL moves the
+  as the INTO identifier"` → OK, 60)) leave the case open; §2023:4.4 GR2 makes a run unit that allows it conforming, and GR10
+  widens §2023:14.6.10 GR2 so the overlap is undefined even for one data description entry. **WiseOwl COBOL moves the
   characters into identifier-3 as the statement runs and reads each sending operand when its own transfer begins:**
   the image the earlier transfers built is stored into identifier-3 first, so a sender that shares storage with
   identifier-3 (the same record, a REDEFINES view, a level-66 alias, a table element, a group that contains it, a LINKAGE

@@ -14,7 +14,7 @@
       *> one receiver R18, 18 digits, although all operands superimpose
       *> to 36. The compiler counted every operand at every edition and
       *> refused these statements (COBOL0805). S3 BY R18 is the shape of
-      *> CCVS-85 NC101A. ADD uses every operand (§1985:VI.6.6.3 SR3 a):
+      *> CCVS-85 NC101A. ADD uses every operand (§1985:VI.6.6.3 SR3a:
       *> A9 (PIC 9(9)) and G9 (PIC 9(9)V9(9)) superimpose to 18, the
       *> boundary.
       *> Expected: R18 = 2 * .5 = 1; 1 / .5 = 2; 2 * 1.5 = 3; 3 + 1 = 4;

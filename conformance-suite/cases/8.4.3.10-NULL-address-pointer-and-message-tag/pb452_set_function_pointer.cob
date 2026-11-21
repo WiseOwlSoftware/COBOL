@@ -14,7 +14,7 @@
       *> §2023:13.18.60.4 GR26 — "A data description entry that specifies the USAGE FUNCTION-POINTER clause
       *> specifies a function-pointer data item … that may contain the address of a function"; the TO phrase is
       *> unbracketed in the printed general format (folio 503), so FP1/FP2 are restricted to PBF8DBL.
-      *> §2023:8.4.3.12.4 GR1 b) / GR2 — ADDRESS OF FUNCTION function-prototype-name-1 yields the address of the
+      *> §2023:8.4.3.12.4 GR1b / GR2 — ADDRESS OF FUNCTION function-prototype-name-1 yields the address of the
       *> function identified by the externalized function-name in its FUNCTION-ID paragraph.
       *> §2023:14.9.39.4 GR14 — "The address identified by identifier-13 is stored in each data item referenced by
       *> identifier-12 in the order specified."

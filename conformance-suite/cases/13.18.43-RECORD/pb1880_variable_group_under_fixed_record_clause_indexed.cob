@@ -17,7 +17,7 @@
       *> member at the position it has at its maximum size - KY at byte 10 of 20 in every record - so the key window is
       *> the same in all of them, and a record is found, ordered and replaced by the key the program wrote.
       *>   W1 W2 W3  KB1, KA2, KC3 written in that order: '00' each (A holds 3, 1 and 0 characters).
-      *>   W4        KA2 again: the prime record key is unique (§2023:14.9.51.4 GR42 b); §2023:9.1.7.4: "shall be unique"), the invalid key condition
+      *>   W4        KA2 again: the prime record key is unique (§2023:14.9.51.4 GR42b; §2023:9.1.7.4: "shall be unique"), the invalid key condition
       *>             '22', INVALID KEY runs.
       *>   RK1 RK3   random READ of KB1 and KC3 with junk in the members: every member comes back.
       *>   ST N1-N3  START KEY EQUAL KA2 then READ NEXT three times: the records come back in ASCENDING KEY order

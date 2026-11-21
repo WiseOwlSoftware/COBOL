@@ -20,9 +20,9 @@
       *>   NOTE 2 A space is assumed at the end of a source line."
       *>   cite.py --check 7.2.4.4 "additional spaces may be introduced
       *>   only between text-words where there already exists a space"
-      *>     -> OK §2023:7.2.4.4 10)
+      *>     -> OK §2023:7.2.4.4 GR10
       *>   cite.py --check 7.2.4.4 "A space is assumed at the end of a
-      *>   source line." -> OK §2023:7.2.4.4 10) (NOTE 2)
+      *>   source line." -> OK §2023:7.2.4.4 GR10 (NOTE 2)
       *> EXPECTED OUTPUT, DERIVED:
       *>   Line 1: LW (2 chars) becomes a 40-char literal on a
       *>     fixed-form

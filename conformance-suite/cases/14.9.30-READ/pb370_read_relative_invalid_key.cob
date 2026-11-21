@@ -18,7 +18,7 @@
       *> imperative statement and no exception procedure runs; 3): with
       *> no INVALID KEY phrase, "any applicable exception processing
       *> statements are executed" - here the file's USE procedure.
-      *> '23' is the §2023:9.1.13.5 3) a) value: "an attempt is made to
+      *> '23' is the §2023:9.1.13.5 GR3a value: "an attempt is made to
       *> randomly access a record that does not exist in the physical
       *> file". FR holds relative record numbers 2, 4 and 5.
       *>   R4   random READ of RRN 4: found, NOT INVALID KEY, REC-4.

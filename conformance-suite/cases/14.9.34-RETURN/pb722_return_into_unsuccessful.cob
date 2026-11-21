@@ -6,7 +6,7 @@
       *> portable: unverified
       *>---
       *> kb/Work PB722 (campaign PB3353: the abnormal path of RETURN ... INTO).
-      *> ISO §2023:14.9.34.4 GR5 b): "The implied MOVE statement does not occur
+      *> ISO §2023:14.9.34.4 GR5b: "The implied MOVE statement does not occur
       *> if the execution of the RETURN statement was unsuccessful. Item
       *> identification of the data item referenced by identifier-1 is
       *> done after the record has been read and immediately before it is
@@ -36,7 +36,7 @@
       *> successful RETURN: identification is done "after the record has
       *> been read and immediately before it is moved", so the declarative
       *> MUST run - the positive control proving it is armed.  Its RESUME
-      *> is a not-normal completion (§2023:14.6.13.1.2 1)), so the SORT whose
+      *> is a not-normal completion (§2023:14.6.13.1.2 GR1), so the SORT whose
       *> output procedure raised it is terminated (§2023:14.9.40.4 GR17: "If a
       *> USE procedure invoked while a format 1 SORT statement is active
       *> does not complete normally, the SORT statement is terminated"):

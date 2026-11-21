@@ -9,13 +9,13 @@
       *> "Comment-text-1 may contain any character in the compile-time
       *> computer's coded character set except for control characters
       *> as specified in Clause 6, Reference format, rule 3b."
-      *>   cite.py --check 7.3.19.3 -> OK  §2023:7.3.19.3 1)  (Syntax rules)
+      *>   cite.py --check 7.3.19.3 -> OK  §2023:7.3.19.3 SR1  (Syntax rules)
       *> Companion rules the program leans on (context, not the row):
       *>   §2023:7.3.19.3 SR2 "Comment-text-1 is not checked syntactically."
-      *>   cite.py --check 7.3.19.3 -> OK  §2023:7.3.19.3 2)  (Syntax rules)
+      *>   cite.py --check 7.3.19.3 -> OK  §2023:7.3.19.3 SR2  (Syntax rules)
       *>   §2023:7.3.19.4 GR3 "If a source listing is not being produced, a
       *>   PAGE directive shall have no effect."
-      *>   cite.py --check 7.3.19.4 -> OK  §2023:7.3.19.4 3)  (General rules)
+      *>   cite.py --check 7.3.19.4 -> OK  §2023:7.3.19.4 GR3  (General rules)
       *>   §2023:6.1 3b) (the excluded characters are the implementor's
       *>   line-TERMINATING control characters)
       *>   cite.py --check 6.1 -> OK  §2023:6.1 b)  (General)

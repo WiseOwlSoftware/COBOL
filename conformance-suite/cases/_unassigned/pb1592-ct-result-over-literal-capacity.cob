@@ -7,7 +7,7 @@
       *> kb/Work PB1592 - a compile-time arithmetic RESULT that no
       *>   literal of the edition can spell is refused, never stored.
       *> Rules: §2023:7.3.6.3 GR3 "the resultant value shall be considered
-      *>   to be an integer numeric literal" (-> OK §2023:7.3.6.3 3)), and
+      *>   to be an integer numeric literal" (-> OK §2023:7.3.6.3 GR3), and
       *>   "The implementor shall allow for fixed-point numeric
       *>   literals of 1 through 31 digits in length" (-> OK
       *>   §2023:8.3.3.3.2) - WiseOwl COBOL's limit is 31 (COBOL0801).

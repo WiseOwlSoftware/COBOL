@@ -22,7 +22,7 @@
       *>   the REWRITE without FROM, whose record is record-name-1.
       *>   The file content shows the MOVE's result:
       *>   M1 R-A X(5) FROM W-2 X(2) "AB": alphanumeric receiver, left
-      *>      aligned, space filled (§2002:14.8.24.3 GR4 a): [AB   ].
+      *>      aligned, space filled (§2002:14.8.24.3 GR4a: [AB   ].
       *>   M2 R-N 9(5) FROM W-NE PIC 9,999 holding "1,234": a numeric-
       *>      edited sender to a numeric receiver is de-edited
       *>      (§2002:14.8.24.3 GR3), so the record is [01234], not the

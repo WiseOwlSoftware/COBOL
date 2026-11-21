@@ -10,14 +10,14 @@
       *> ISO §2023:8.4.3.3.4 GR6 makes the slice an elementary item:
       *>   cite.py --check 8.4.3.3.4 "The unique data item is considered
       *>   to be an elementary data item without the JUSTIFIED clause."
-      *>   -> OK  §2023:8.4.3.3.4 6)  (General rules)
-      *> so the move is §2023:14.9.25.4 GR6 a)'s elementary move:
+      *>   -> OK  §2023:8.4.3.3.4 GR6  (General rules)
+      *> so the move is §2023:14.9.25.4 GR6a's elementary move:
       *>   cite.py --check 14.9.25.4 "If the sending operand is described
       *>   as being signed numeric, the operational sign is not moved; if
       *>   the operational sign occupies a separate character position,
       *>   that character is not moved and the size of the sending operand
       *>   is considered to be one less than its actual size."
-      *>   -> OK  §2023:14.9.25.4 6)  (General rules)
+      *>   -> OK  §2023:14.9.25.4 GR6  (General rules)
       *> and the receiving alignment is §2023:14.6.8's: left-justified, space
       *> filled, truncated on the right. Before the fix every slice took
       *> one arm before the sender's category was asked and received the

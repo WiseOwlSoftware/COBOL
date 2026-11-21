@@ -8,12 +8,12 @@
       *>---
       *> ISO §2023:14.9.13.3 SR10 Table 15 marks subject=Condition × object=TRUE-or-FALSE
       *> permissible (and its transpose, subject=TRUE-or-FALSE × object=Condition),
-      *> §2023:14.9.13.4 GR3 e) assigns "any selection subject specified by condition-1 …
+      *> §2023:14.9.13.4 GR3e assigns "any selection subject specified by condition-1 …
       *> a truth value according to the rules for evaluating conditional expressions",
       *> and GR4 a) 4. selects the WHEN whose TRUE/FALSE matches that truth value.
       *>
       *> THREE spellings are condition-1, and all three shall behave identically in
-      *> both positions: a level-88 condition-name (§2023:8.8.4.2.7 rule 2 — "the bare
+      *> both positions: a level-88 condition-name (§2023:8.8.4.2.7 GR2 — "the bare
       *> condition-name … is a complete condition"), a SWITCH-STATUS condition-name
       *> (§2023:8.8.4.6), and the subject's own class test.  The switch spelling is the one
       *> the compiler used to refuse as "an identifier" on the SUBJECT side alone while

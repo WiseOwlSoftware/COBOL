@@ -18,7 +18,7 @@
 *> of the LINE clause, except that the multiple LINE clause allows the report lines to be defined at unequal
 *> vertical intervals." The equivalence is of FUNCTION (the report lines it defines), not of syntax: the OCCURS
 *> clause's own syntax rules do not carry over (SR25 would demand a STEP phrase of every absolute multiple LINE
-*> clause, and none exists), so §2023:13.18.38.3 SR1 a)'s bar on an OCCURS clause at level 01 is not a bar on this
+*> clause, and none exists), so §2023:13.18.38.3 SR1a's bar on an OCCURS clause at level 01 is not a bar on this
 *> clause, and the entry is a repeating entry (§2023:13.15.4 GR3) whose subtree supplies each report line's content.
 *>
 *> DERIVATION OF THE EXPECTED OUTPUT. The report has no heading groups; D-ABS is the chronologically first body

@@ -12,7 +12,7 @@
       *> exist." Every failing leg below fails on BOTH sides, so the
       *> declarative that runs names the side evaluated first. The
       *> sending side's reference modifier has INTEGER-LITERAL
-      *> positions, and still fails at run time: ISO §2023:8.4.3.3.4 5) c),
+      *> positions, and still fails at run time: ISO §2023:8.4.3.3.4 GR5c,
       *> "The sum of leftmost-position and length minus the value one
       *> shall be less than or equal to the number of positions in the
       *> data item referenced by identifier-1", and
@@ -26,9 +26,9 @@
       *>     evaluated only once, immediately before data is moved to
       *>     the first of the receiving operands" (D1, D4, F1), and
       *>     the sender T(I) before the receiver DL(1:5) (R1).
-      *>   STRING: §2023:14.6.4 7) - "the identifiers within a statement are
+      *>   STRING: §2023:14.6.4 GR7 - "the identifiers within a statement are
       *>     evaluated in left to right order" (D2).
-      *>   Arithmetic: §2023:14.7.7 4) - the initial evaluation first, then
+      *>   Arithmetic: §2023:14.7.7 GR4 - the initial evaluation first, then
       *>     "Item identification for the receiving data items is done
       *>     as each data item is accessed" (D3).
       *> The V legs run the same shapes in range and check the values.

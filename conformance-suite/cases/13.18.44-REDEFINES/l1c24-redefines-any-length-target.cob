@@ -9,7 +9,7 @@
       *> clause."
       *>   cite.py --check 13.18.44.3 "Data-name-2 shall not be
       *>   described with the ANY LENGTH clause."
-      *>     -> OK §2023:13.18.44.3 16) (Syntax rules)
+      *>     -> OK §2023:13.18.44.3 SR16 (Syntax rules)
       *> L1C24B is a contained program; L is a level-1 elementary
       *> linkage item PIC X ANY LENGTH named BY REFERENCE in its
       *> procedure division header (§2023:13.18.2.3 SR1-SR3 satisfied).

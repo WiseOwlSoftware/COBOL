@@ -13,7 +13,7 @@
       *>   conditionally-processed
       *>   compilation group."
       *>   cite.py --check 7.2.4.4 "'source text' refers to the
-      *>   conditionally-processed compilation group" -> OK §2023:7.2.4.4 1)
+      *>   conditionally-processed compilation group" -> OK §2023:7.2.4.4 GR1
       *> What that group is (§2023:7.2.1): Step 1 incorporates library text;
       *> false-path lines of an IF directive may be omitted; Step 2
       *> processes IF directives and "the replacing actions of COPY
@@ -27,7 +27,7 @@
       *>   the ALSO phrase cancels the active REPLACE statement"
       *>     -> OK §2023:7.2.4.4 (7) b); the tool labels the line 7) a) 2.)
       *>   cite.py --check 7.3.8.4.4 "A defined condition using the IS
-      *>   DEFINED" -> OK §2023:7.3.8.4.4 1)
+      *>   DEFINED" -> OK §2023:7.3.8.4.4 GR1
       *> Support file: l1c24ca.cpy = one line "DISPLAY CPWORD."
       *> EXPECTED OUTPUT, DERIVED:
       *>   BASE-REPLACE-KEPT  L1C24NONE is never defined, so the >>IF is

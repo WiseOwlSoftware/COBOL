@@ -10,7 +10,7 @@
       *> implicit MOVE is THE CURRENT RECORD, not the padded record area.
       *> The 2002 leg.
       *>
-      *> ISO §2023:14.9.30.4 GR4 b) (and its RETURN twin §2023:14.9.34.4 GR5 b), word
+      *> ISO §2023:14.9.30.4 GR4b (and its RETURN twin §2023:14.9.34.4 GR5b, word
       *> for word bar one preposition): "The current record is moved from the
       *> record area to the area specified by identifier-1 according to the
       *> rules for the MOVE statement without the CORRESPONDING phrase.  The
@@ -36,7 +36,7 @@
       *>
       *> EXPECTED VALUES, each derived before it was run:
       *>  A  F holds the 5-byte record "ABCDE" (WS-LEN = 5 at the WRITE, so
-      *>     §2023:13.18.43.4 GR13 a) wrote five bytes).  GR15 restores WS-LEN = 5,
+      *>     §2023:13.18.43.4 GR13a wrote five bytes).  GR15 restores WS-LEN = 5,
       *>     GR16 a) makes the sender those five bytes.  Receiver X(10)
       *>     JUSTIFIED: §2023:13.18.32.4 GR2 — "the data is aligned at the rightmost
       *>     character position … with … space fill for the leftmost character
@@ -59,9 +59,9 @@
       *>  E  Receiver X(3) plain: §2023:14.6.8.5 right truncation => "ABC".
       *>  F  GR16 b), the arm with no DEPENDING ON phrase: G has two record
       *>     descriptions and WRITE G-SHORT wrote its own five bytes
-      *>     (§2023:13.18.43.4 GR13 b).  The sender is still five bytes, so the
+      *>     (§2023:13.18.43.4 GR13b.  The sender is still five bytes, so the
       *>     X(10) JUSTIFIED receiver gets "     ABCDE".
-      *>  G  RETURN … INTO, §2023:14.9.34.4 GR5 b) + §2023:13.18.43.4 GR16 a): the SD
+      *>  G  RETURN … INTO, §2023:14.9.34.4 GR5b + §2023:13.18.43.4 GR16a: the SD
       *>     released eight bytes "K01PQRST"; receiver X(12) JUSTIFIED =>
       *>     "    K01PQRST".
        IDENTIFICATION DIVISION.

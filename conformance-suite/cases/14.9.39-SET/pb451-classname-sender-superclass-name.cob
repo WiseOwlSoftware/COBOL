@@ -9,7 +9,7 @@
       *> "otherwise, object-class-name-1 shall reference the same class or a subclass of the
       *> class specified in the description of the data item referenced by identifier-3."
       *> The receiver here is described FACTORY OF …D and the sender names …C, its SUPERCLASS
-      *> — the direction §2023:13.18.60.4 GR22 d)1.a. forbids ("the factory object of the specified
+      *> — the direction §2023:13.18.60.4 GR22d1.a. forbids ("the factory object of the specified
       *> class OR OF A SUBCLASS" widens downward only).  The legal direction, the same
       *> statement with the names swapped, is the `SET F1 F2 TO PB451D` line of
       *> conformance:cases/13.18.60-USAGE/pb451_set_format5_class_name_sender, which prints FTAG-D — so the

@@ -9,7 +9,7 @@
       *> row and r1 does not name it, so a bit item is refused.
       *>   python scripts/spec/cite.py --check 15.87.3 "Argument-1 shall be an identifier that references a data
       *>   item or identifier that is class alphabetic, alphanumeric, or national, or an alphanumeric or national
-      *>   literal."  ->  OK  §2023:15.87.3 1)  (Argument rules)
+      *>   literal."  ->  OK  §2023:15.87.3 AR1  (Argument rules)
       *>
       *> A SEPARATE ARM FROM THE NUMERIC SIBLING, which is why it is a separate witness: the class model reaches
       *> a bit item through its own PICTURE, not through the category table that keys the numeric case.

@@ -1,4 +1,4 @@
-- **D-FLOAT-STRING-INSERTION — A floating string's landed text on a simple insertion symbol embedded in it (§2023:13.18.40.5 6), 6 a); §2023:13.18.40.4 14);
+- **D-FLOAT-STRING-INSERTION — A floating string's landed text on a simple insertion symbol embedded in it (§2023:13.18.40.5 GR6, 6 a); §2023:13.18.40.4 GR14;
   kb/Work PB4703).** Rule 6 makes "the simple insertion editing symbols embedded in this string" part of a floating
   string, and rule 6 a) lands the replacement character(s) immediately before the first nonzero digit, so the landing
   can be an embedded `B`, `,`, `0`, `/` or an IS-form PICTURE EDITING character-1. What lands there is the FLOATING

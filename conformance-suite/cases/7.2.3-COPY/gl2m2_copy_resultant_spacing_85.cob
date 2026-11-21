@@ -17,13 +17,13 @@
       *>   or at the end of a source line."
       *>   cite.py --check 7.2.3.4 "The resultant text after
       *>     replacement shall be in logical free-form reference
-      *>     format. ..." -> OK  §2023:7.2.3.4 11)  (General rules)
+      *>     format. ..." -> OK  §2023:7.2.3.4 GR11  (General rules)
       *> Supporting rules (each run through cite.py --check):
-      *>   §2023:7.2.2.5 1) the left and right parenthesis "are treated as
+      *>   §2023:7.2.2.5 GR1 the left and right parenthesis "are treated as
       *>     separators" during text manipulation -> OK: in the
       *>     library text X(L1G2N) the word L1G2N is its own
       *>     text-word, so ==L1G2N== matches it (§2023:7.2.3.4 GR9).
-      *>   §2023:8.3.5 1) "The COBOL character space is a separator." -> OK;
+      *>   §2023:8.3.5 SR1 "The COBOL character space is a separator." -> OK;
       *>   §2023:8.3.1 "A character-string is delimited by separators."
       *>     -> OK.
       *> WHY IT CAN FAIL: the library text gl2m2sp.cpy (a byte copy of

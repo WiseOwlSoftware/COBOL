@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §2023:15.62.3 rule 1 (MIDRANGE): "Argument-1 shall be of class numeric." It is
+*> ISO §2023:15.62.3 AR1 (MIDRANGE): "Argument-1 shall be of class numeric." It is
 *> the ONLY argument rule §2023:15.62.3 has, so any argument diagnostic this program
 *> draws is that rule and no other.
 *>

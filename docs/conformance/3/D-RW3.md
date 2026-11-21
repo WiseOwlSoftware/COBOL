@@ -7,7 +7,7 @@
   facts only), less ONE set at 2014 read from the 2009 committee draft (`tests/version-matrix/words-2009-cd.json`, its
   §2023:8.9 and §2023:8.10 lists): a word the draft knows (a 1985 reserved word, or a word of either list) that neither its §2023:8.9
   nor 2023's §2023:8.9 reserves was not reserved by the 2014 standard between them. GnuCOBOL's lists also reserve
-  implementor words (§2023:4.2.10 3) allows "additional reserved words as nonstandard extensions" only as documented
+  implementor words (§2023:4.2.10 GR3 allows "additional reserved words as nonstandard extensions" only as documented
   extensions), and the compiler refused nineteen of them at 2002 and twelve at 2014 as data-names with COBOL0901 citing
   §2023:8.9 (POSITION, PROCEED, WORDS, COBOL, the DEBUG-n registers, SEGMENT-LIMIT, COMMUNICATION at 2014, the draft's
   context-sensitive NEGATIVE-INFINITY and POSITIVE-INFINITY). A word the 2014 final added after the draft (PHYSICAL,
@@ -27,7 +27,7 @@
   "any syntax requiring the use of the COBOL word that is the content of literal-3 shall not be available"` → OK) and the generator refuses
   such a determination on a word reserved at every edition. A word's reservation and its construct's availability are TWO
   facts: SEGMENT-LIMIT and COBOL leave the 2002 list with their constructs (VCR row 7.8), so each is a data-name from
-  2002 on, and COBOL a compiler-directive word as well at 2023 (§2023:8.3.2.1 2), §2023:8.12). GnuCOBOL's 3.2 dialect files date
+  2002 on, and COBOL a compiler-directive word as well at 2023 (§2023:8.3.2.1 SR2, §2023:8.12). GnuCOBOL's 3.2 dialect files date
   the PADDING CHARACTER clause: obsolete 2002 (COBOL0903), removed 2014 (VCR row 7.20). ⚠ DETERMINATION (owner may
   overturn; a 1985 or 2014 text overturns any flag in one generator run): pinned by the version-matrix rows
   `receive-as-user-word`, `end-receive-as-user-word`, `segment-limit-removed-2002`, `padding-character-removed-2014`,

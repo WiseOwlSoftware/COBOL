@@ -6,7 +6,7 @@
       *> portable: unverified
       *>---
       *> kb/Work PB5198 - the integer-1 RECORDS form of the X3.23-1985
-      *> RERUN clause (§1985:VII.2.12.4 GR2 d), the one form WiseOwl
+      *> RERUN clause (§1985:VII.2.12.4 GR2d, the one form WiseOwl
       *> COBOL provides (GR2: "The implementor must provide at least
       *> one of the specified forms"): "the rerun information is
       *> written on the device specified by implementor-name-1 ...

@@ -20,7 +20,7 @@
       *>      numeric-edited PIC 9.9(14).
       *>   I  MOVE FUNCTION NUMVAL (25 digits) TO B1 B2: each receiver
       *>      holds the 25-digit value NUMVAL returns, "the numeric
-      *>      value represented by argument-1" (§2023:15.67.4 1), as the
+      *>      value represented by argument-1" (§2023:15.67.4 RV1, as the
       *>      single receiver B3 does.
       *>   O  MOVE FUNCTION PI TO S (I) S (3) with EC-BOUND checking
       *>      enabled: two subscripted receivers store the same twelve
@@ -41,7 +41,7 @@
       *>      the same edited image their twin DQ takes, +2.688117141E+43.
       *>   Z  MOVE FUNCTION NUMVAL ("1.2345678901234567890123") TO W (I)
       *>      W (3), PIC +9.9(20)E+99: an exact-valued function into a 21-digit
-      *>      edited significand, truncated there (§2023:14.6.8.4 2) to
+      *>      edited significand, truncated there (§2023:14.6.8.4 GR2 to
       *>      +1.23456789012345678901E+00 as its twin WQ is - more digits
       *>      than a binary64 intermediate carries.
       *>   K  The same value TO WQ WS, a 21-digit and a 6-digit edited

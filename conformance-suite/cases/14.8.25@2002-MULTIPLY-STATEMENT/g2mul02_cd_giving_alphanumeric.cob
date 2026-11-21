@@ -7,7 +7,7 @@
       *> §2002:14.8.25.2 SR2 - "Identifier-3 shall reference a data
       *>   item of category numeric or numeric-edited." SQ, an input
       *>   CD's SYMBOLIC QUEUE, is an elementary alphanumeric item of
-      *>   12 characters (§2002:A.1.2.3 GR2 a), so GIVING SQ is
+      *>   12 characters (§2002:A.1.2.3 GR2a, so GIVING SQ is
       *>   refused at the MULTIPLY line. Fails if the CD field's
       *>   implicit category is not screened.
        IDENTIFICATION DIVISION.

@@ -13,7 +13,7 @@
       *> "If the last data item in the logical record does not end at a byte boundary, the record size includes the
       *> entire byte in which that data item ends"). The record below is the two-byte count N plus a table of 1 TO 20
       *> bits, so its size at a count N is 2 + ceil(N / 8) bytes and the file description IMPLIES the largest
-      *> description, 2 + ceil(20 / 8) = 5 bytes (§2023:13.18.43.4 GR5 a)). The record is unsuccessful exactly when
+      *> description, 2 + ceil(20 / 8) = 5 bytes (§2023:13.18.43.4 GR5a). The record is unsuccessful exactly when
       *> 2 + ceil(N / 8) exceeds 5, i.e. when N exceeds 24:
       *>   N = 20  - 5 bytes                 -> '00'
       *>   N = 24  - 5 bytes (3 whole bytes of bits; more than the table's 20, still no more than 5 BYTES) -> '00'

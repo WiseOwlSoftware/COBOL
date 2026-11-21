@@ -17,16 +17,16 @@
       *> DERIVATION:
       *>  GENERATE D1: first body group since INITIATE, no page fit
       *>   test (§2002:13.16.33.3 GR4); absolute LINE 3 -> line 3
-      *>   (§2002:13.16.33.3 GR5 a). NEXT GROUP PLUS 2 is relative and
+      *>   (§2002:13.16.33.3 GR5a. NEXT GROUP PLUS 2 is relative and
       *>   3 + 2 is less than FOOTING 18, so "integer-2 is added to
-      *>   LINE-COUNTER" (§2002:13.16.35.3 GR4 b) -> "LC 05" (03 without
+      *>   LINE-COUNTER" (§2002:13.16.35.3 GR4b -> "LC 05" (03 without
       *>   the clause).
       *>  GENERATE D2: relative LINE PLUS 1, trial sum 5 + 1 = 6 is not
       *>   above LAST DETAIL 15, page fit successful (§2002:13.16.33.3
       *>   GR4); not the first body group on the page, so line
       *>   5 + 1 = 6 (GR5 b 3.). NEXT GROUP 9 is absolute and 6 is less
       *>   than 9, so "LINE-COUNTER is set equal to integer-1"
-      *>   (§2002:13.16.35.3 GR4 a) -> "LC 09".
+      *>   (§2002:13.16.35.3 GR4a -> "LC 09".
       *>  GENERATE D3 (no NEXT GROUP): trial sum 9 + 1 = 10, line 10
       *>   -> "LC 10" (07 without D2's NEXT GROUP).
       *> Fails if NEXT GROUP is refused in a level 1 entry, or if it

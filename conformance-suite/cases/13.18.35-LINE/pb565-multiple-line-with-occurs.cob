@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> ⛔ A MULTIPLE LINE CLAUSE AND AN OCCURS CLAUSE MAY NOT SHARE AN ENTRY (kb/Work PB565). ISO/IEC 1989:2023
-*> §2023:13.18.35.3 SR10 d): "An OCCURS clause shall not also be present in the same entry." The rule is what keeps
+*> §2023:13.18.35.3 SR10d: "An OCCURS clause shall not also be present in the same entry." The rule is what keeps
 *> §2023:13.15.4 GR3's repetition count single-valued: §2023:13.18.35.4 GR9 already reads the multiple LINE clause AS "a
 *> simple OCCURS clause whose integer is equal to the number of operands of the LINE clause", so an entry
 *> carrying both would name two different repetition counts for one entry and §2023:13.18.63.3 SR35's operand-count

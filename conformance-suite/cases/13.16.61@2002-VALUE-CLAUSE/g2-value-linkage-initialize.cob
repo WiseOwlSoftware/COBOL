@@ -15,7 +15,7 @@
       *> the caller's
       *> argument [...999...], not the VALUEs (the "only" half);
       *> INITIALIZE ... ALL
-      *> TO VALUE (§2002:14.8.19.3 GR5 c) 1. b. and GR6 a) 3.) gives
+      *> TO VALUE (§2002:14.8.19.3 GR5c.1.b and GR6 a) 3.) gives
       *> ABC, 123 and the
       *> table X Y X ("X" "Y" reused to TO (3), §2002:13.16.61.3 GR12,
       *> GR13):

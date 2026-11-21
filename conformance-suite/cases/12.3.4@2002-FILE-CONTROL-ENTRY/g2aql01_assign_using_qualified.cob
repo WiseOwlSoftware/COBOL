@@ -7,7 +7,7 @@
       *>---
       *> §2002:12.3.4.2 SR8 - "Data-name-1 may be qualified."
       *>   cite.py --check "§2002:12.3.4.2 SR8" -> OK
-      *> §2002:12.3.4.3 GR3 b): with USING the connector "is associated
+      *> §2002:12.3.4.3 GR3b: with USING the connector "is associated
       *> with a physical file identified by the content of the data item
       *> referenced by data-name-1"  -> cite.py OK §2002:12.3.4.3 GR3
       *> Two items share the name FNAME (FNAME OF G1, FNAME OF G2), so

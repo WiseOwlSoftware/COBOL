@@ -9,7 +9,7 @@
       *> record holding a dynamic-capacity table, a dynamic-length item in each occurrence of a
       *> fixed table of an EXTERNAL record, and a dynamic-capacity table nested in another's element.
       *> ISO/IEC 1989:2023 §2023:8.4.3.11.4 GR1: ADDRESS OF DT "contains the address of identifier-1",
-      *> and §2023:8.5.1.9.1 3) lets DT hold the table ("may be nested in any combination to the same
+      *> and §2023:8.5.1.9.1 SR3 lets DT hold the table ("may be nested in any combination to the same
       *> number of levels as a fixed-capacity table"). §2023:8.5.1.9.5: an occurrence a statement
       *> creates is INITIALIZEd TO VALUE (the INITIALIZED phrase). §2023:8.5.1.12.1: every occurrence
       *> of E holds its own dynamic-length item, truncated at its LIMIT (§2023:8.5.1.10.4), and

@@ -9,7 +9,7 @@
       *> quotation symbol to bound a literal."
       *> cite.py --check 8.3.3.6.4 "The word QUOTE or QUOTES shall
       *>   not be used in place of a quotation symbol to bound a
-      *>   literal" -> OK  §2023:8.3.3.6.4 8)  (General rules)
+      *>   literal" -> OK  §2023:8.3.3.6.4 GR8  (General rules)
       *> VALUE QUOTE ABC QUOTE would be the literal "ABC" only if
       *> QUOTE could bound a literal. It cannot, so ABC is a bare
       *> word in the literal-1 position of the VALUE clause

@@ -25,7 +25,7 @@
       *> 3. TA (UPON DE-A) = 2 + 3 = 5; TB IN L2 (no UPON, every
       *> GENERATE) = 10; TB IN L3 (UPON DE-B) = 5. MAIN TA=005 is read
       *> before TERMINATE; the USE BEFORE REPORTING CF-1 procedure runs
-      *> before CF-1 is presented (§1985:XIII.3.20.4 GR10 c). Printed:
+      *> before CF-1 is presented (§1985:XIII.3.20.4 GR10c. Printed:
       *> 2, "B 5", 3, "05 05" (TA and SOURCE TA), 10, 05. Fails to
       *> translate if an unnamed entry is refused or a named reference
       *> does not resolve; fails with other sums if an UPON name or a

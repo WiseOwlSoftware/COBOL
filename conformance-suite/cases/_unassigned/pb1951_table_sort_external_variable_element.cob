@@ -10,7 +10,7 @@
       *>
       *> THE RULES, --check validated:
       *>   cite.py --check 14.9.40.4 "The sorted table elements of the table referenced by data-name-2 are placed in
-      *>     the table referenced by data-name-2." -> OK §2023:14.9.40.4 24)
+      *>     the table referenced by data-name-2." -> OK §2023:14.9.40.4 GR24
       *>   cite.py --check 8.5.1.11.2 "behaves in all respects as though it were in fact contiguous with its
       *>     neighbors" -> OK §2023:8.5.1.11.2
       *> A table element is the whole of its description, and GR24 places the sorted ELEMENTS: each element's
@@ -38,8 +38,8 @@
       *> 1+5+1+0 = 7, so the line would read LEN 7 6 7 (an image move that ignored the components would keep the
       *> positions' own lengths, 9 6 5):
       *>   cite.py --check 15.50.4 "the returned value is an integer equal to the length of argument-1 in
-      *>     alphanumeric character positions" -> OK §2023:15.50.4 3)
-      *>   cite.py --check 13.18.38.3 "Data-name-3 shall not be subscripted." -> OK §2023:13.18.38.3 31)
+      *>     alphanumeric character positions" -> OK §2023:15.50.4 RV3
+      *>   cite.py --check 13.18.38.3 "Data-name-3 shall not be subscripted." -> OK §2023:13.18.38.3 SR31
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1951EV.
        DATA DIVISION.

@@ -8,7 +8,7 @@
       *> object-class-name and identifier-4 "an object reference described with an ACTIVE-CLASS
       *> phrase", "the class containing the data item referenced by identifier-4 shall be the
       *> same class or a subclass of the class specified in the description of the data item
-      *> referenced by identifier-3."  §2023:13.18.60.4 GR22 e) is why: an ACTIVE-CLASS reference
+      *> referenced by identifier-3."  §2023:13.18.60.4 GR22e is why: an ACTIVE-CLASS reference
       *> holds an object of the class that INVOKED the method, which is the containing class
       *> or a subclass of it — so if the containing class is not the receiver's class or a
       *> subclass, no invocation can make the contents conform.

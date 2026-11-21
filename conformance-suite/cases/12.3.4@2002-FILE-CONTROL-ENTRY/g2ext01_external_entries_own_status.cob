@@ -12,7 +12,7 @@
       *> is specified, it shall reference an external data item."
       *>   cite.py --check "§2002:12.3.4.3 GR1" -> OK (both quotes)
       *> The 2002 list has NO FILE STATUS item: each entry may name its
-      *> own, non-external status item. §2002:13.16.20.3 GR2 a): the FD
+      *> own, non-external status item. §2002:13.16.20.3 GR2a: the FD
       *> with EXTERNAL gives "an external file connector" (cite.py OK),
       *> so both programs' entries reference ONE connector.
       *> G2EXT08 and G2EXT10 write identical entries for XF (OPTIONAL,

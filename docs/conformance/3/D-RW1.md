@@ -26,7 +26,7 @@
   and `NonstandardExtensionRegisterDriftTests` fails when it and the `ReservedWords` of the §3.2 register's rows disagree
   (each word is reserved on the account of one extension row).
   **The `>>COBOL-WORDS` directive treats these words as reserved words (owner decision 2026-10-31, kb/Work PB4239).**
-  §2023:8.3.2.1 1) makes a §2023:4.2.10 addition a reserved word of this implementation, §2023:7.3.10.1 and D.12.1 give the directive so a
+  §2023:8.3.2.1 SR1 makes a §2023:4.2.10 addition a reserved word of this implementation, §2023:7.3.10.1 and D.12.1 give the directive so a
   program may change which words are reserved (D.12.1: "to conform to previously existing implementor extensions"), and D.12.3
   names this collision ("a change of compiler that includes new reserved words that conflict with existing code")
   (`cite.py --check D.12.3 "This can be useful when a change of compiler that includes new reserved words that conflict with

@@ -27,7 +27,7 @@
       *> a connector like B or C to an UNGOVERNED runtime entry, which
       *> answered '00' and handed over a record another connector had locked.
       *> Leg C is the discriminator that made the defect unmistakable: RETRY
-      *> 0 TIMES is a behavioural NO-OP by §2023:14.7.9.3 GR4 a) — "If the RETRY
+      *> 0 TIMES is a behavioural NO-OP by §2023:14.7.9.3 GR4a — "If the RETRY
       *> phrase is not specified or the result of the evaluation of
       *> arithmetic-expression-1 or arithmetic-expression-2 is negative or
       *> zero, the statement is unsuccessful" — yet writing it changed the

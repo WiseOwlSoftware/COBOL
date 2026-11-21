@@ -1,4 +1,4 @@
-- **D-RETURN-TO-NON-COBOL — Return to a NON-COBOL activating runtime element (§2023:14.9.18.4 GR1 a) — "If the activating runtime element is a
+- **D-RETURN-TO-NON-COBOL — Return to a NON-COBOL activating runtime element (§2023:14.9.18.4 GR1a — "If the activating runtime element is a
   non-COBOL element, execution continues in the activating element in an implementor-defined fashion"; the
   §2023:14.9.14.4 GR3 EXIT PROGRAM twin reads through to the same rule)**: **an ordinary managed return, and no
   exception condition is raised in the activator.** WiseOwl COBOL defines no §2023:7.3.9 call-convention-name (only `>>CALL-CONVENTION COBOL`), so a

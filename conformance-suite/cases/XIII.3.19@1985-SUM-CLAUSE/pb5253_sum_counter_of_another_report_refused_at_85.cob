@@ -11,7 +11,7 @@
       *> this report". ATOT is a counter of RPT, named by RPT2's SUM
       *> clause, so it is in neither, and the program is refused at 85
       *> (COBOL2731, line 39). COBOL-2002 removed the restriction for a
-      *> different report description (§2002:13.16.52.2 SR3 g)); its
+      *> different report description (§2002:13.16.52.2 SR3g); its
       *> acceptance is cases/13.18.54-SUM/pb5253_sum_counter_of_another_report.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5253B.

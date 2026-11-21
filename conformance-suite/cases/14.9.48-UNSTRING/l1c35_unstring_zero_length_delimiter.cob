@@ -16,27 +16,27 @@
       *> DELIMITED phrase were not specified."  (sentences 3-4;
       *>   sentences
       *> 1-2 are pinned by 85/l1c35_unstring_multichar_delimiter)
-      *> OK  §2023:14.9.48.4 9)  (General rules)
+      *> OK  §2023:14.9.48.4 GR9  (General rules)
       *> Edition: a zero-length item needs a DYNAMIC LENGTH elementary
       *>   item
       *> (constructs.json dynamic-length-item-2014, introducedIn 2014).
       *> OK  §2023:8.6.4 "If no VALUE clause is specified, the length of that
       *>   item
       *>     in its initial state is zero."  (Z and Z2 below)
-      *> OK  §2023:14.9.48.4 8) "When any examination encounters two
+      *> OK  §2023:14.9.48.4 GR8 "When any examination encounters two
       *>   contiguous
       *>     delimiters, the current receiving area shall be
       *>       space-filled"
-      *> OK  §2023:14.9.48.4 11) b) "If the DELIMITED BY phrase is not
+      *> OK  §2023:14.9.48.4 GR11b "If the DELIMITED BY phrase is not
       *>   specified,
       *>     the number of characters examined is equal to the size of
       *>       the
       *>     current receiving area"
-      *> OK  §2023:14.9.48.4 15) b) overflow: "all receiving areas have been
+      *> OK  §2023:14.9.48.4 GR15b overflow: "all receiving areas have been
       *>   acted
       *>     upon, and the data item referenced by identifier-1 contains
       *>     characters that have not been examined"
-      *> OK  §2023:14.9.48.4 16) e) "The NOT ON OVERFLOW phrase, if
+      *> OK  §2023:14.9.48.4 GR16e "The NOT ON OVERFLOW phrase, if
       *>   specified, is
       *>     ignored."
       *> Derivation. S = "AB,,CD;EF" (9 chars); A1..A3 PIC X(4) preset

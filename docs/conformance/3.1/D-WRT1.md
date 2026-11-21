@@ -4,7 +4,7 @@
   record-name-1 are undefined"* (`cite.py --check 14.9.51.4 "the content of the bytes that extend outside the end of
   record-name-1 are undefined"` → OK 13)); §2023:14.9.35.4 GR15 says the same of REWRITE (`cite.py --check 14.9.35.4
   "the content of the bytes that extend outside the end of record-name-1 are undefined"` → OK 15)). **The NUMBER of
-  bytes is not latitude, and WiseOwl COBOL writes exactly the standard's count:** §2023:13.18.43.4 GR13 a) takes it from
+  bytes is not latitude, and WiseOwl COBOL writes exactly the standard's count:** §2023:13.18.43.4 GR13a takes it from
   the DEPENDING ON item (`--check 13.18.43.4 "If data-name-1 is specified, by the content of the data item referenced
   by data-name-1"` → OK 13) a)), GR6 makes every record of a Format 1 file integer-1 bytes (`--check 13.18.43.4
   "Integer-1 specifies the number of bytes contained in each record in the file"` → OK 6)), and the status stays
@@ -14,7 +14,7 @@
   storage every level-1 entry under the FD implicitly redefines (§2023:13.18.33.4 GR3, `--check 13.18.33.4 "Multiple
   level 1 entries subordinate to a FD or SD entry represent implicit redefinitions of the same area"` → OK 3)), so a
   program that fills the long record and then writes a shorter one writes the shorter one followed by the rest of
-  the long one. WRITE FROM and REWRITE FROM are the same case: GR5 a) / §2023:14.9.35.4 GR7 a) MOVE into record-name-1
+  the long one. WRITE FROM and REWRITE FROM are the same case: GR5 a) / §2023:14.9.35.4 GR7a MOVE into record-name-1
   and then run the statement without FROM (`--check 14.9.51.4 "The result of the execution of a WRITE statement
   specifying record-name-1 and the FROM phrase is equivalent"` → OK 5)). One rule serves WRITE and REWRITE, fixed and
   variable-length records, record sequential, relative and indexed files; a REWRITE needs no second determination
@@ -29,7 +29,7 @@
   `--check 14.9.51.4 "any spaces to the right of the rightmost non-space character are not transferred to
   file-name-1"` → OK 21)) or, with DEPENDING ON, fills with spaces (GR22, `--check 14.9.51.4 "the record area is,
   if necessary, filled to the right of the rightmost non-space character with one or more space characters"` → OK
-  22)), and a REWRITE appends spaces (§2023:14.9.35.4 GR17 c), `--check 14.9.35.4 "then a sufficient number of the space
+  22)), and a REWRITE appends spaces (§2023:14.9.35.4 GR17c, `--check 14.9.35.4 "then a sufficient number of the space
   character is appended"` → OK 17) c)); (3) a record sequential REWRITE whose record-name-1 is shorter than the
   record it replaces is unsuccessful, `'44'` (§2023:14.9.35.4 GR16, PB1168), so no byte is sent; (4) an out-of-line
   record-name-1 (D-FRA: a variable-length group, a dynamic-length or pointer-class record) has no window over the
@@ -38,7 +38,7 @@
   sequential and the keyed WRITE and REWRITE emitters; the runtime's `FileConnector.Stored` cuts the image to the
   transferred length or pads it, unchanged. **The area is read WHOLE** (`SequentialIoEmitter.RecordAreaSendImage`,
   kb/Work PB5217): when the widest record holds an OCCURS DEPENDING ON table, that table's DEPENDING item sizes that
-  record (§2023:13.18.43.4 GR13 c)), never the area or another record, so a shorter record-name-1 is followed by the
+  record (§2023:13.18.43.4 GR13c), never the area or another record, so a shorter record-name-1 is followed by the
   area's positions up to the transferred length, and an OCCURS DEPENDING record-name-1 below its maximum transfers
   past its own end too (its current size is the fixed portion and the occurrences at the time of execution), its
   tail again the area's (witness `conformance:cases/14.9.51-WRITE/pb5217_write_beside_odo_record`). The keyed READ,
@@ -47,7 +47,7 @@
   **Survey (CLAUDE.md rule 1).** GnuCOBOL 3.2 writes from the file's record area, but `cob_write` clamps the
   DEPENDING ON length to record-name-1's size, and a RECORD CONTAINS file with a shorter 01 becomes variable-length
   (`libcob/fileio.c` `cob_write`, `cobc/tree.c` `finalize_file`; measured with a 3.2.0 build: the variable records
-  are 5 bytes, the fixed records carry the area content). That departs from §2023:13.18.43.4 GR13 a)/GR6, which control
+  are 5 bytes, the fixed records carry the area content). That departs from §2023:13.18.43.4 GR13a/GR6, which control
   the length, so the length is NOT adopted from GnuCOBOL (owner decision 2026-10-01); its use of the shared area
   for the content agrees with this rule. IBM Enterprise COBOL 6.4 documents the length as ISO does and is silent on
   the content. Micro Focus Visual COBOL 7.0, WRITE statement, Format 1 general rules: *"When the file contains
@@ -66,7 +66,7 @@
   number of bytes to be released to the sort operation is greater than the number of bytes in record-name-1, the
   content of the bytes that extend beyond the end of record-name-1 are undefined."` → OK 6). The sort-merge file with no
   RECORD clause is the implied Format 1 of D-FRA, whose integer-1 is the largest record description entry's size
-  (§2023:13.18.43.4 GR5 a)), so `RELEASE A` of a 4-byte description A beside a 10-byte B releases 10 bytes — A's four
+  (§2023:13.18.43.4 GR5a), so `RELEASE A` of a 4-byte description A beside a 10-byte B releases 10 bytes — A's four
   followed by the area's last six, which are B's — through the same helper (`SequentialIoEmitter.SentRecordImage`) and the
   same predicate (`FileModel.TransfersPastRecord`); an SD with a DEPENDING ON item releases that many bytes of the same
   image. Before PB322 F a RELEASE sent record-name-1's own size, so ONE SD held records of two sizes and a GIVING file

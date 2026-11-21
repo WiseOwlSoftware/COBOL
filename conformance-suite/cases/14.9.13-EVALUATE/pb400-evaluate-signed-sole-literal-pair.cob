@@ -6,7 +6,7 @@
 *>---
       *> ISO §2023:14.9.13.4 GR1: "If an operand of the EVALUATE statement consists of a
       *> single literal, that operand is treated as a literal, not as an expression",
-      *> and §2023:8.3.3.3.2 rule 2 puts an ADJACENT sign inside the literal ("If a sign is
+      *> and §2023:8.3.3.3.2 SR2 puts an ADJACENT sign inside the literal ("If a sign is
       *> used, it shall appear as the leftmost character of the literal").  So `-5` is a
       *> LITERAL selection subject, `6` is a literal selection object, and §2023:14.9.13.3
       *> SR10 Table 15 leaves the literal × literal cell BLANK — "a space indicates an

@@ -208,6 +208,8 @@ FAILURE_KINDS = {
     "edition-not-held": "the edition's transcription is not in the tree: nothing can be checked",
     "no-clause": "the locator names no region of the edition's transcription",
     "designator-not-understood": "the rule designator is in no form the checker reads (DESIGNATOR)",
+    "designator-not-canonical": "a designator in no form the citation parser reads follows the citation, unread "
+                                "(`GR1 b)`, `rule 2`, `item 1`, `1)`; citation.loose_designator, kb/Work PB4976)",
     "no-rule-list": "the clause has no rule list of the cited kind",
     "no-ordinal": "the cited list has no rule with that ordinal",
     "no-sub-item": "the rule has no sub-item with that path",
@@ -298,7 +300,7 @@ def label_path(lines, at, start, styles: LabelStyles = ISO_LABELS) -> list[tuple
     Two lines are not what their position suggests, and each used to report a sub-item it is not in (PB308):
       · an editorial note on a correction belongs to the line above it, so it takes that line's path;
       · in an indented transcription, an UNLETTERED paragraph at the sub-items' own indentation (or shallower) is a
-        trailing paragraph of the PARENT rule — §2023:14.7.7 rule 2's "The composite of operands is a hypothetical data
+        trailing paragraph of the PARENT rule — §2023:14.7.7 SR2's "The composite of operands is a hypothetical data
         item…" follows its sub-items a) and b) at their indent and is neither — so it reports the bare rule.
     A paragraph INSIDE a sub-item sits deeper than its label, which is how the two are told apart.
 
@@ -307,7 +309,7 @@ def label_path(lines, at, start, styles: LabelStyles = ISO_LABELS) -> list[tuple
     c) 1.–6. sits at the indent of a)–f)), so the nearest `N.` above `d)` belongs to the EARLIER letter `c)`, and
     taking it reported the impossible `9) 6. d)`. A label's depth is its STYLE LEVEL (`styles.levels` order: ISO `N)`
     `x)` `N.` `x.`, 1985 `(N)` `x.` `N)`), never its indentation (kb/Work PB5317): the transcription flattens some
-    nested lists onto column 0 (§2023:14.9.39.4 rule 2's `a.` items under `1.`, §2023:14.9.23.4 rule 7's `a)` to `d)`),
+    nested lists onto column 0 (§2023:14.9.39.4 GR2's `a.` items under `1.`, §2023:14.9.23.4 GR7's `a)` to `d)`),
     and an indentation-first depth read a flattened `a.` as shallower than the `1.` it belongs to. Walking back, a
     label whose level is not strictly below the last one accepted is a sibling or a sibling's descendant, never an
     ancestor, and is skipped. Indentation decides only who owns an UNLABELLED line (above); a flattened label (column 0,
@@ -775,6 +777,21 @@ def _lists(rules: list[Rule]) -> str:
     return ", ".join(out)
 
 
+def designator_of(edition: int, locator: str, ordinal: int, repo: pathlib.Path = spec_pdf.REPO) -> str | None:
+    """The designator of the numbered rule `ordinal` of `locator`'s first list, when the catalog gives the clause exactly
+    one such rule (`§2023:14.9.35.4` rule 20 is GR20, `§2023:14.7.7` rule 2 is SR2), else None: a clause with no numbered
+    rules (a prose clause's list item), with a list that restarts, or with two rules of that number of different kinds is
+    the standard's to say. It
+    turns a rule named in words or by its printed label (`rule 2`, `2)`; citation.loose_designator) into its canonical
+    designator (kb/Work PB4976), which `resolve` then checks like any other."""
+    book = rule_book(edition, repo)
+    numbered = [r for r in book.rules.get(locator, ()) if cited_by_number(r)]
+    if any(r.sublist != 1 for r in numbered):
+        return None   # a block whose list restarts: "rule 1" may be GRL2.1's (§2023:8.3.2.2, §2023:15.4.1)
+    hits = [r for r in numbered if r.ordinal == ordinal]
+    return hits[0].designator if len(hits) == 1 else None
+
+
 def cited_by_number(rule: Rule) -> bool:
     """Is `rule` cited by a rule designator (`GR2`, `GRL2.1`)? A numbered rule is, and so is the row of a prose clause's
     numbered item (its id is a numbered rule's, kb/Work PB5452); a paragraph or table row is cited by its unit's
@@ -1234,18 +1251,18 @@ def self_test() -> int:
         ("fires EMPTY-NEEDLE (check)", fails("§2023:7.1", "| + | + | - |", "quote-too-short", EMPTY_NEEDLE)),
         ("fires EMPTY-NEEDLE (find)", find(lines, cls, "| + | - |", 2023)[0] == 1),
         ("fires on a table row of two real words", fails("§2023:15.43.4", "| S999 | +999 |", "quote-too-short")),
-        ("pins 14.9.8.4 1) b)", find(lines, cls, q23, 2023)[1][0].startswith("§2023:14.9.8.4 1) b)  (")),
+        ("pins 14.9.8.4 1) b)", find(lines, cls, q23, 2023)[1][0].startswith("§2023:14.9.8.4 1) b)  (")),  # citation-audit: example
         ("pins 14.7.7 2) bare (trailing paragraph)",
-         find(lines, cls, "The composite of operands is a hypothetical data item", 2023)[1][0].startswith("§2023:14.7.7 2)  (")),
+         find(lines, cls, "The composite of operands is a hypothetical data item", 2023)[1][0].startswith("§2023:14.7.7 2)  (")),  # citation-audit: example
         # PB55 review R1-1: a letter AFTER a nested `N.` list at its own indent is the list's sibling, not inside it
         ("pins 7.2.3.4 9) d) (letter after a nested list)",
-         find(lines, cls, "If no match occurs, the comparison is repeated with each", 2023)[1][0].startswith("§2023:7.2.3.4 9) d)  (")),
+         find(lines, cls, "If no match occurs, the comparison is repeated with each", 2023)[1][0].startswith("§2023:7.2.3.4 9) d)  (")),  # citation-audit: example
         ("pins 12.3.7.3 17) d) (letter after a nested list)",
          find(lines, cls, "Alphabet-name-4 shall not reference an alphabet specified with the LOCALE phrase", 2023)[1][0]
-         .startswith("§2023:12.3.7.3 17) d)  (")),
+         .startswith("§2023:12.3.7.3 17) d)  (")),  # citation-audit: example
         ("pins 7.2.3.4 9) c) 2. (the nested item keeps its letter)",
          find(lines, cls, "Each operand and operator of a concatenation expression is a separate text-word", 2023)[1][0]
-         .startswith("§2023:7.2.3.4 9) c) 2.  (")),
+         .startswith("§2023:7.2.3.4 9) c) 2.  (")),  # citation-audit: example
         ("accepts the CORRECTED form (C6), in its clause and its rule",
          v("§2023:14.9.10.4", "The value '62' is placed into the I-O status").ok
          and v("§2023:14.9.10.4 GR15", "The value '62' is placed into the I-O status").ok),

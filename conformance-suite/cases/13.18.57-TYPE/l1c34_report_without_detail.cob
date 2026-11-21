@@ -14,7 +14,7 @@
       *>   statements are
       *>   specified in the procedure division, the report description
       *>     need not
-      *>   contain a DETAIL" -> OK §2023:13.18.57.3 16) (Syntax rules)
+      *>   contain a DETAIL" -> OK §2023:13.18.57.3 SR16 (Syntax rules)
       *> R-ND has one body group (§2023:13.18.57.3 SR15), a CONTROL
       *>   FOOTING, and no
       *> DETAIL; the procedure division has only GENERATE report-name
@@ -25,12 +25,12 @@
       *>   it.
       *> cite.py --check 13.18.57.3 "Each report description shall
       *>   include at
-      *>   least one body group" -> OK §2023:13.18.57.3 15) (Syntax rules)
+      *>   least one body group" -> OK §2023:13.18.57.3 SR15 (Syntax rules)
       *> cite.py --check 13.18.57.4 "when the TERMINATE statement is
       *>   executed
       *>   for the report, provided that at least one GENERATE
       *>     statement has
-      *>   been executed" -> OK §2023:13.18.57.4 6) e) 2.
+      *>   been executed" -> OK §2023:13.18.57.4 GR6e 2.
       *> DERIVATION: a USE BEFORE REPORTING procedure DISPLAYs "CF" at
       *>   each
       *> presentation of the footing.

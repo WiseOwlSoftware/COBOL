@@ -16,7 +16,7 @@
       *>   BASED
       *>   clause specified in the description of type-name-1 is
       *>     ignored for
-      *>   this entry" -> OK §2023:13.18.57.4 4) (General rules)
+      *>   this entry" -> OK §2023:13.18.57.4 GR4 (General rules)
       *> T and TG are NOT based; V and VG write BASED beside TYPE.
       *>   Under GR4 the
       *> subject's BASED applies, so V and VG are based items with no

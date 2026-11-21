@@ -16,11 +16,11 @@
       *> sending item, and in the order given, to be recognized as a
       *> delimiter."  (sentences 1-2; the zero-length sentences 3-4 are
       *> pinned by 2014/l1c35_unstring_zero_length_delimiter)
-      *> OK  §2023:14.9.48.4 9)  (General rules)
-      *> OK  §2023:14.9.48.4 11) d) delimiter moved to identifier-5 by MOVE;
+      *> OK  §2023:14.9.48.4 GR9  (General rules)
+      *> OK  §2023:14.9.48.4 GR11d delimiter moved to identifier-5 by MOVE;
       *>   at the
       *>     end of identifier-1, identifier-5 is space filled.
-      *> OK  §2023:14.9.48.4 11) e) COUNT = characters examined, excluding
+      *> OK  §2023:14.9.48.4 GR11e COUNT = characters examined, excluding
       *>   the
       *>     delimiter.
       *> Derivation. S = "XBAYABZA-B" (10 chars), R1..R3 PIC X(5) preset

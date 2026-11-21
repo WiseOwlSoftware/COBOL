@@ -11,7 +11,7 @@
       *> GR5 b.). The report footing's absolute LINE 18 lies above the
       *> upper limit 20 and is refused at 85 (COBOL2199, line 30). From
       *> COBOL-2002 the limit is the line after the page footing's last
-      *> line (§2002:13.16.55.3 GR7 g)), 18, and the program is legal.
+      *> line (§2002:13.16.55.3 GR7g), 18, and the program is legal.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5244B.
        ENVIRONMENT DIVISION.

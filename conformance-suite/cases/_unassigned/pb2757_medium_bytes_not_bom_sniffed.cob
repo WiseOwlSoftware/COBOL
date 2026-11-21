@@ -8,7 +8,7 @@
       *> kb/Work PB2757 -- a sequential file's medium is read as BYTES,
       *> never sniffed for a Unicode byte-order mark.
       *>   python scripts/spec/cite.py --check 14.9.30.4 "is made
-      *>   available in the record area"   -> OK  §2023:14.9.30.4 13) c)
+      *>   available in the record area"   -> OK  §2023:14.9.30.4 GR13c
       *>   python scripts/spec/cite.py --check 9.1.7.2 "In record
       *>   sequential files the length of each record is determined by
       *>   any information the implementor may add to the record on the

@@ -8,7 +8,7 @@
       *> item is neither: §2023:8.5.2.1's Table 2 carries "| Numeric | Numeric |" as its own row, distinct from the
       *> Alphabetic and Alphanumeric rows r1 names.
       *>   python scripts/spec/cite.py --check 15.66.3 "Argument-1 shall be of class alphabetic or class
-      *>   alphanumeric."  ->  OK  §2023:15.66.3 1)  (Argument rules)
+      *>   alphanumeric."  ->  OK  §2023:15.66.3 AR1  (Argument rules)
       *>
       *> ⛔ THE ONE NATIONAL-OF REJECTION IN THE CORPUS WAS THE ONE CLASS THE PAIR ITSELF NAMES.
       *> negative/national-of-wrong-category feeds a class-NATIONAL argument, which is exactly what the INVERSE

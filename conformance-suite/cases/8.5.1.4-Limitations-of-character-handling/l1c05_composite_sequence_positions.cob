@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:8.5.1.4 rule 1 — a base character and its combining
+      *> ISO §2023:8.5.1.4 GR1 — a base character and its combining
       *>   character are each one character position
       *> Rule: "The non-combining character and the following combining
       *>   characters of a composite sequence defined in ISO/IEC 10646
@@ -13,7 +13,7 @@
       *> cite.py --check 8.5.1.4 "The non-combining character and the
       *>   following combining characters of a composite sequence
       *>   defined in ISO/IEC 10646 are each treated as a single
-      *>   character position." -> OK  §2023:8.5.1.4 1)  (Limitations of
+      *>   character position." -> OK  §2023:8.5.1.4 GR1  (Limitations of
       *>   character handling)
       *> cite.py --check 8.5.1.4 "The following processing limitations
       *>   shall apply when ISO/IEC 10646 is chosen as a computer's

@@ -18,7 +18,7 @@
       *>   statement had been written for each identifier-1 in the same order as specified".
       *>   GR7 b) "each occurrence of the data item [is] processed independently of the other occurrences"; c) an
       *>   OCCURS DEPENDING ON item's value "establishes ... the number of occurrences of the data item to be processed".
-      *>   cite.py: OK  §2023:14.9.50.4 6)  (General rules)
+      *>   cite.py: OK  §2023:14.9.50.4 GR6  (General rules)
       *> The records are filled with a group MOVE, which stores the characters as written (the numeric items then hold
       *> their character image, §2023:14.6.9.1 group move), so a numeric item can hold a non-digit. WHY EACH LEG CAN FAIL:
       *> the expected lines name a declarative run (EC) only where a GR6 a) check fails; a validator that ignored the

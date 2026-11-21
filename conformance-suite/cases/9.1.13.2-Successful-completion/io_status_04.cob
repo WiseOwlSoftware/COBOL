@@ -26,7 +26,7 @@
       *> and the 5-byte partial record '04' -- never one truncated '04' record.
       *>   python scripts/spec/cite.py --check 14.9.30.4 "the portion of the record
       *>   area that is to the right of the last valid character read is undefined"
-      *>                                          -> OK  §2023:14.9.30.4 14)
+      *>                                          -> OK  §2023:14.9.30.4 GR14
        IDENTIFICATION DIVISION.
        PROGRAM-ID. IOSTAT-04.
        ENVIRONMENT DIVISION.

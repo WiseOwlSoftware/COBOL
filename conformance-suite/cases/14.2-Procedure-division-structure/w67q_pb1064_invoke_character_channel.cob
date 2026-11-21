@@ -9,7 +9,7 @@
       *> ISO §2023:14.2.3 GR8: "If the argument is passed by reference, the
       *> activated runtime element operates as if the formal parameter
       *> occupies the same storage area as the argument." A method is an
-      *> activated runtime element (§2023:14.9.23.4 GR7 e) -> §2023:14.2.3), so the
+      *> activated runtime element (§2023:14.9.23.4 GR7e -> §2023:14.2.3), so the
       *> CHARACTERS a method leaves in a BY REFERENCE formal are the
       *> argument's characters. §2023:14.9.25.4 GR4: a group moved to an
       *> elementary item "is treated exactly as if it were an alphanumeric

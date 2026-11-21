@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB252 — under ARITHMETIC IS STANDARD-DECIMAL §2023:15.4.1 rule 1 leaves NO latitude: "the
       *> returned value shall equal the value of the equivalent arithmetic expression", and
-      *> §2023:8.8.1.5.2 rule 1 converts each argument to the SDIDI INDIVIDUALLY, so no common scale is
+      *> §2023:8.8.1.5.2 GR1 converts each argument to the SDIDI INDIVIDUALLY, so no common scale is
       *> ever formed. The native arms align first, on the Int128 carrier, and alignment multiplies —
       *> a 31-digit integer beside a scale-18 operand needs 49 digits. MOD and REM were still routed
       *> there, so this program terminated the run unit with EC-SIZE-OVERFLOW where the rule fixes an
@@ -17,14 +17,14 @@
       *>   cite.py --check 15.4.1 "the returned value shall equal the value of the equivalent
       *>     arithmetic expression" -> OK §2023:15.4.1 1)
       *>   cite.py --check 15.77.3 "Argument-1 and argument-2 shall be of class numeric" -> OK
-      *>     §2023:15.77.3 1)  — so REM's scale-18 argument-2 below is CONFORMING source.
-      *>   cite.py --check 15.64.3 "Argument-1 and argument-2 shall be integers" -> OK §2023:15.64.3 1)
+      *>     §2023:15.77.3 AR1  — so REM's scale-18 argument-2 below is CONFORMING source.
+      *>   cite.py --check 15.64.3 "Argument-1 and argument-2 shall be integers" -> OK §2023:15.64.3 AR1
       *>     — so MOD's arguments are integers, the common scale is always 0, and MOD is here to pin
       *>     that its SDIDI routing did not change the value, not to carry a wide witness.
-      *>   cite.py --check 15.49.4 "The equivalent arithmetic expression is" -> OK §2023:15.49.4 1)
+      *>   cite.py --check 15.49.4 "The equivalent arithmetic expression is" -> OK §2023:15.49.4 RV1
       *>     (INTEGER-PART, which §2023:15.77.4 r1's expression invokes)
       *>   cite.py --check 8.8.1.5.2 "Any operand of an arithmetic expression that is not already in
-      *>     SDIDI form is converted into this form" -> OK §2023:8.8.1.5.2 1)   -- per OPERAND, so the
+      *>     SDIDI form is converted into this form" -> OK §2023:8.8.1.5.2 GR1   -- per OPERAND, so the
       *>     standard mode never forms the common scale the native arm aligns to.
       *>
       *> HAND-DERIVED, from §2023:15.77.4 r1's expression a - (b * FUNCTION INTEGER-PART (a / b)):

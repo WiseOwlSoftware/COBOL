@@ -12,7 +12,7 @@
       *> (conformance:cases/14.9.2-ADD/optional_on_size_error for the SIZE ERROR leg); THIS golden is the §2023:14.6.13.2 leg, which
       *> had no covering case for any verb.
       *>
-      *> §2023:14.6.13.2 rule 2: "When the content of a numeric sending item that is not described with a standard
+      *> §2023:14.6.13.2 GR2: "When the content of a numeric sending item that is not described with a standard
       *> floating-point usage is referenced during the execution of a statement and the content of that sending
       *> operand would evaluate to false in a numeric class condition, the result of the reference is undefined
       *> and an EC-DATA-INCOMPATIBLE exception condition is set to exist" — the rule hangs on the SENDING-OPERAND

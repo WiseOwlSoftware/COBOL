@@ -20,28 +20,28 @@
       *>   to be written before the execution of any RELEASE,
       *>   REWRITE, or WRITE statement referencing that record
       *>   description entry."
-      *>   OK  §2023:13.18.38.4 9)  (General rules)
-      *> §2023:13.18.43.4 GR13 c): with no data-name-1 and a
+      *>   OK  §2023:13.18.38.4 GR9  (General rules)
+      *> §2023:13.18.43.4 GR13c: with no data-name-1 and a
       *>   variable-occurrence item, the size is "the sum of the fixed
       *>   portion and that portion of the table described by the
       *>   number of occurrences at the time of execution of the
       *>   output statement".
-      *>   OK  §2023:13.18.43.4 13) c)  (General rules)
+      *>   OK  §2023:13.18.43.4 GR13c  (General rules)
       *> §2023:13.18.43.4 GR15: with data-name-1, after a READ "the
       *>   contents of the data item referenced by data-name-1 will
       *>   indicate the number of bytes in the record just read".
-      *>   OK  §2023:13.18.43.4 15)  (General rules)
+      *>   OK  §2023:13.18.43.4 GR15  (General rules)
       *> §2023:14.9.35.4 GR16 (record sequential): if the record's size "is
       *>   not equal to the number of bytes in the record being
       *>   replaced, the execution of the REWRITE statement is
       *>   unsuccessful and the I-O status in the rewrite file
       *>   connector is set to '44'".
-      *>   OK  §2023:14.9.35.4 16)  (General rules)
-      *> §2023:14.9.40.4 GR15 b): with GIVING, "the size of any record
+      *>   OK  §2023:14.9.35.4 GR16  (General rules)
+      *> §2023:14.9.40.4 GR15b: with GIVING, "the size of any record
       *>   written to file-name-3 is the size of that record when it
       *>   was read from file-name-1" (the sort file, here fed by
       *>   RELEASE).
-      *>   OK  §2023:14.9.40.4 15)  (General rules)
+      *>   OK  §2023:14.9.40.4 GR15  (General rules)
       *>
       *> DERIVATION (size = 1 byte of FN/SN + 1 byte per occurrence).
       *> WRITE FN=1 "A" -> 2 bytes; FN=3 "BBB" -> 4; FN=6 "CCCCCC" -> 7.

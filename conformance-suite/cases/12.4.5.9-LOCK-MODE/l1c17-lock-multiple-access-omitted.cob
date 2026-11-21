@@ -10,10 +10,10 @@
       *>  mode."
       *> cite.py --check 12.4.5.9.3 "The MULTIPLE phrase shall not be
       *>   specified for a file described with sequential organization
-      *>   or sequential access mode." -> OK §2023:12.4.5.9.3 2)
+      *>   or sequential access mode." -> OK §2023:12.4.5.9.3 SR2
       *> cite.py --check 12.4.5.5.3 "If the ACCESS MODE clause is not
       *>   specified, sequential access is assumed."
-      *>   -> OK §2023:12.4.5.5.3 1)
+      *>   -> OK §2023:12.4.5.5.3 GR1
       *> No ACCESS MODE clause is written, so the access mode is
       *> sequential by default and SR2 applies.
       *> The file is INDEXED (not sequential organization), so the

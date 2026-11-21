@@ -14,8 +14,8 @@
       *>   to the matching and replacing rules of the COPY statement and
       *>   the REPLACE statement."
       *> cite.py:
-      *>   OK  §2023:7.3.13.4 1)  (General rules)
-      *>  OK  §2023:7.3.13.4 4) b)  (General rules)  [GR4 tail]
+      *>   OK  §2023:7.3.13.4 GR1  (General rules)
+      *>  OK  §2023:7.3.13.4 GR4b  (General rules)  [GR4 tail]
       *> Support file: l1c07cb.cpy = one line "DISPLAY ZZTAG."
       *> EXPECTED OUTPUT, DERIVED:
       *>   GR1-REPLACE-OK  subject 1 matches >>WHEN 1, so its text-1 is

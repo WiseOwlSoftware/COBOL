@@ -9,7 +9,7 @@
       *> specified, the behavior is the same as if KEY IS EQUAL TO
       *> data-name-1 or record-key-name-1 had been specified, with
       *> data-name-1 or record-key-name-1 being the prime record key
-      *> for the file." (cite.py --check 14.9.41.4 → OK, §2023:14.9.41.4 15)
+      *> for the file." (cite.py --check 14.9.41.4 → OK, §2023:14.9.41.4 GR15
       *>
       *> THE RULE NAMES TWO SPELLINGS OF THE PRIME KEY.
       *> record-key-name-1 is declared by the SOURCE phrase of the
@@ -27,7 +27,7 @@
       *> key a value BETWEEN two records ("AB99", strictly after AB02
       *> and strictly before CD03, §2023:8.8.4.2.7 alphanumeric comparison
       *> over the native sequence). Under the implied EQUAL no record
-      *> satisfies the comparison, so §2023:14.9.41.4 GR17 e) 2 — "If the
+      *> satisfies the comparison, so §2023:14.9.41.4 GR17e 2 — "If the
       *> comparison is not satisfied by any record in the file, the
       *> invalid key condition exists and the execution of the START
       *> statement is unsuccessful" — applies and the INVALID KEY

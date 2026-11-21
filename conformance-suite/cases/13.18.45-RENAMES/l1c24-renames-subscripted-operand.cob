@@ -8,7 +8,7 @@
       *> "Data-name-2 and data-name-3 shall not be subscripted."
       *>   cite.py --check 13.18.45.3 "Data-name-2 and data-name-3
       *>   shall not be subscripted."
-      *>     -> OK §2023:13.18.45.3 7) (Syntax rules)
+      *>     -> OK §2023:13.18.45.3 SR7 (Syntax rules)
       *> R-A(1) is a well-formed subscripted reference to a table
       *> element of record R. SR7 forbids the subscript as such; the
       *> RENAMES operand position admits only a (qualified) data-name.

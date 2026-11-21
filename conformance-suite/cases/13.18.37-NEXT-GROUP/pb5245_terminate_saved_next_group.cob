@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5245 - a saved absolute NEXT GROUP integer and the control footings TERMINATE produces. §2023:13.18.37.4 GR4 a) (cite.py: OK;
+      *> kb/Work PB5245 - a saved absolute NEXT GROUP integer and the control footings TERMINATE produces. §2023:13.18.37.4 GR4a (cite.py: OK;
       *> the 2002 text, 13.16.35.3 GR4 a), the same): the integer placed in the save location "will have no effect at all if a TERMINATE is next
       *> executed for the report". §1985:XIII.3.10.8 GR3 (cite.py: OK): after a page advance the report writer control system "moves the saved
       *> next group integer into LINE-COUNTER, resets saved next group integer to zero, and reapplies fit test rule 3a", and §1985:XIII.4.7.4

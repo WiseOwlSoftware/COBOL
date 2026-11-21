@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5301, review R1-1. §2023:8.4.6.2.1 rule 3 a) (the nearest
+      *> kb/Work PB5301, review R1-1. §2023:8.4.6.2.1 GR3a (the nearest
       *> declaring source element): the contained program INNERP declares the
       *> constant KK itself, so its reference to KK is to the item INNERP
       *> describes; the container's GLOBAL data item KK is declared farther out

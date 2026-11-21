@@ -6,7 +6,7 @@
 *>---
       *> ISO §2023:8.4.3.4.1 makes an inline method invocation a REFERENCE to "a
       *> temporary data item returned from invocation of a method", and
-      *> §2023:8.4.3.4.4 GR1 b) describes that temporary entirely in terms of "the
+      *> §2023:8.4.3.4.4 GR1b describes that temporary entirely in terms of "the
       *> RETURNING parameter in the specification of the method identified by
       *> literal-1".  §2023:14.8.3.1 states the same obligation from the other
       *> side: "A returning item is implicitly specified in the activating

@@ -11,7 +11,7 @@
       *> §2023:13.18.5.4 GR4: "If the subject of the entry is referenced while
       *>   its address is not NULL and not a valid address of storage,
       *>   the EC-BOUND-PTR exception condition is set to exist."
-      *>   OK  §2023:13.18.5.4 4)  (General rules)
+      *>   OK  §2023:13.18.5.4 GR4  (General rules)
       *> §2023:8.6.5: "The association may cease to exist because the actual
       *>   data no longer exists, as specified 8.6.4"  OK  §2023:8.6.5
       *> §2023:8.6.4: LOCAL-STORAGE "persists while that instance of the

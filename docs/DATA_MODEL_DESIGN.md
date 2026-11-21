@@ -43,7 +43,7 @@ OCCURS dimensions are collected by walking item→ancestors (legacy LocationReso
   • INDEX-NAMEs (INDEXED BY): an index-name is a DISTINCT entity, NOT a data item (ISO §2023:8.4.2.3 / §2023:13.18.38). DECISION: an index-name → a C# `long` field holding a 1-BASED OCCURRENCE NUMBER (not a byte displacement; the legacy byte-displacement model is rejected as it leaks layout). SET idx TO n → `idx = n`; SET idx UP/DOWN BY k → `idx ±= k`; using idx as a subscript → `[idx - 1]`. (Rationale: occurrence-number semantics are layout-free and make SEARCH/SEARCH ALL emit as plain integer loops; the only observable difference — idx surviving a redefine of the table element width — is implementor-defined and not in the conformance corpus.) Index-name lives in the same static/instance scope as its table.
 
 == 5. REFERENCE MODIFICATION x(s:l), ISO §2023:8.4.3.3 (general rules §2023:8.4.3.3.4; spec lines 6952-7020) ==
-A typed substring over the item's CHARACTER image. DECISION: ref-mod always operates on the STRING image of the item (ISO §2023:8.4.3.3.4 rule 2: a non-alphanumeric DISPLAY item is treated as if redefined alphanumeric of the same size; rule 3: NATIONAL likewise). So:
+A typed substring over the item's CHARACTER image. DECISION: ref-mod always operates on the STRING image of the item (ISO §2023:8.4.3.3.4 GR2: a non-alphanumeric DISPLAY item is treated as if redefined alphanumeric of the same size; rule 3: NATIONAL likewise). So:
   • Read: `CobolString.RefMod(<charImage>, s, l)` → `charImage.Substring(s-1, lengthOrRest)`; l omitted → to end (ISO §2023:8.4.3.3.4 rule 5c: default length = remaining). `<charImage>` is the item's display image (string field directly; a numeric item via `CobolNum.FormatDisplay` first — but a numeric ref-mod is rare and the spec says treat-as-alphanumeric-redefinition, so we render the raw digit/zoned image).
   • Write (ref-mod as a RECEIVER, the genuinely hard case): cannot reassign a substring in place on an immutable C# string. Runtime helper `CobolString.SpliceInto(ref string field, int start1, int len, string value)` rebuilds the string: `field = field[..(s-1)] + value-fitted-to-len + field[(s-1+len)..]`. The Place's WriteStmt for a ref-mod emits this. For ref-mod over a numeric/COMP item used as a receiver, route through the byte-image fallback (G6, deferred) — flag loud meanwhile. s and l are arbitrary arithmetic expressions (evaluated once into temps to avoid double-eval; ISO requires single evaluation of subscripts/positions).
   • REF-MOD OVER A **VALUE** THAT HAS NO PLACE (ISO §2023:8.4.3.3.3 SR2 — the result of a function-identifier; fix-queue PB8). `RefModPlace` decorates a `Place`, and a function result is not storage, so the value form attaches instead as `RefModSpec` on `BoundIntrinsicCall.RefMod` and renders through the SAME `CobolString.RefMod` — one slicer, so the §2023:8.4.3.3.4 item-5c bounds check and EC-BOUND-REF-MOD are shared rather than re-implemented. It is READ-ONLY by construction (§2023:8.4.3.2.3 SR1 makes a function-identifier a non-receiving operand), so there is no `SpliceInto` counterpart to write. A USER-DEFINED function's result is different and needs nothing new: it is already a real `Place` (the §2023:8.4.3.2.4 GR1 caller temp cloned from the RETURNING item), so it goes through `RefModPlace` exactly as a data item does. **A RIDER ON THE CALL NODE, NOT A WRAPPER AROUND IT** — the alphanumeric string channel is selected by pattern-matching `BoundComputedOperand { Expr: BoundIntrinsicCall }` at several sites (`OperandText.AsString`, the nested-argument visitor, `IntrinsicArgumentRules`, `EcBinder`), and a wrapper node would have silently stopped matching at every one, whose failure mode is a DROPPED ref-mod rather than a compile error. §2023:8.4.3.3.4 GR6 preserves class and category for the three categories SR2 admits, so the rider leaves `ResultCategory` correct with no extra rule.
@@ -101,7 +101,7 @@ while staying coherent, and confines bytes to genuine mixed-USAGE puns only.
 == 9. CLAUSES: SYNCHRONIZED / JUSTIFIED / BLANK WHEN ZERO ==
   • SYNCHRONIZED: alignment is a BYTE-LAYOUT concept. In a typed-native model there are no byte boundaries to align to (a `long` field is naturally aligned by the CLR). DECISION: SYNC is a NO-OP for in-memory typed data; it only matters at the file/byte serialization boundary (G6), where the record-image builder honors it. Capture IsSynchronized for that future use. (Rationale: the only observable effect of SYNC absent byte access is on REDEFINES-overlay size, which is already the G6 byte path.)
   • JUSTIFIED RIGHT: already threaded — CobolString.Store(value,width,justifiedRight) pads/truncates on the left. `DataItem.Justified` carries the flag; the Place's WriteStmt for an alphanumeric receiver passes it.
-  • BLANK WHEN ZERO: a STORE-time rule (ISO §2023:13.18.8.4 GR1) — "the content of the data item is set to all spaces when the item is a receiving operand and THE VALUE BEING STORED is zero". DECISION: a property of the item's rendering, applied in the ONE numeric-edited formatter (`CobolEdit.Render`, and `CobolLocaleEdit.Format` for PICTURE format 2), and applied to THE STORED VALUE — the aligned, truncated digit positions, NOT the sending value. §2023:14.9.25.4 GR6 d) sends the store to §2023:14.6.8 and §2023:14.6.8.2 5) gives a numeric-edited receiver "further alignment, zero fill or truncation", so `MOVE 0.4 TO PIC 9(3) BLANK WHEN ZERO` and `MOVE 100 TO PIC 99 BLANK WHEN ZERO` both store zero and both blank. ⛔ The guard therefore sits AFTER the mask rescale, never before it: a guard on the raw sending pair blanks for the arithmetic arms (whose emitters hand the formatter a value already at the resultant's scale) and not for MOVE, on identical items (kb/Work PB566). GR3 is the same rule read backwards — an all-spaces BLANK WHEN ZERO item that is a SENDER has the value zero whenever the object of the operation is a numeric or numeric-edited data item, which reaches the de-editing MOVE and the relation condition alike (kb/Work PB509). Capture BlankWhenZero on PicInfo.
+  • BLANK WHEN ZERO: a STORE-time rule (ISO §2023:13.18.8.4 GR1) — "the content of the data item is set to all spaces when the item is a receiving operand and THE VALUE BEING STORED is zero". DECISION: a property of the item's rendering, applied in the ONE numeric-edited formatter (`CobolEdit.Render`, and `CobolLocaleEdit.Format` for PICTURE format 2), and applied to THE STORED VALUE — the aligned, truncated digit positions, NOT the sending value. §2023:14.9.25.4 GR6d sends the store to §2023:14.6.8 and §2023:14.6.8.2 GR5 gives a numeric-edited receiver "further alignment, zero fill or truncation", so `MOVE 0.4 TO PIC 9(3) BLANK WHEN ZERO` and `MOVE 100 TO PIC 99 BLANK WHEN ZERO` both store zero and both blank. ⛔ The guard therefore sits AFTER the mask rescale, never before it: a guard on the raw sending pair blanks for the arithmetic arms (whose emitters hand the formatter a value already at the resultant's scale) and not for MOVE, on identical items (kb/Work PB566). GR3 is the same rule read backwards — an all-spaces BLANK WHEN ZERO item that is a SENDER has the value zero whenever the object of the operation is a numeric or numeric-edited data item, which reaches the de-editing MOVE and the relation condition alike (kb/Work PB509). Capture BlankWhenZero on PicInfo.
 
 == 10. VALUE INITIALIZATION incl. TABLES, ISO §2023:13.18.63 / §2023:14.9.4 ==
 Default (no VALUE): alphanumeric→spaces, numeric→0 (unscaled), index→1, pointer→null. Already implemented for flat items. Extensions needed:
@@ -180,13 +180,13 @@ determination: the range is the full signed 64-bit interval, written down as `do
 `DOC-A.1-128` and as `CobolIndex.MinIndex`/`MaxIndex`. GR2 also names the three statements that may create a
 value for an index — PERFORM VARYING, SEARCH, SET — and makes a value outside the range EC-RANGE-INDEX. All
 three funnel through `WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs`, which is the ONLY place the guard is
-written: `TryAmount`/`TryAmountReal` land a SET-family AMOUNT (§2023:14.9.39.4 GR2 a) 1., GR3, GR29 — the integrality
+written: `TryAmount`/`TryAmountReal` land a SET-family AMOUNT (§2023:14.9.39.4 GR2a 1., GR3, GR29 — the integrality
 and sign tests, which must run BEFORE the value reaches the `long`), and `Augment` forms a SET / PERFORM VARYING
 augment in `Int128` (GR4 a) — so the 64-bit boundary is a value the runtime can see rather than a wrap it cannot.
 A SEARCH's own scan cannot reach the boundary: §2023:14.9.37.4 GR4's initial-index guard bounds it by the table's
 occurrence count.
 
-⛔ **The range is NOT the table's bounds.** §2023:14.9.39.4 GR2 a) 1. c and GR4 b) each end "even if that occurrence
+⛔ **The range is NOT the table's bounds.** §2023:14.9.39.4 GR2a.1 c and GR4 b) each end "even if that occurrence
 is not a valid occurrence within this table", so an index legitimately points outside its own table and a
 table-bounds test here would reject conforming programs. `SetIndexAmountLandingDriftTests` keeps both halves
 true: every SET-family amount site lands, and no emitter narrows an amount with a bare `(long)` cast first.
@@ -286,7 +286,7 @@ source described later than the demand is bound on demand like a length operand 
 an item's size joins `CompleteDescriptionAhead` in the same change, or a constant measures the item without it.
 
 **⛔ EVERY `integer-n` POSITION IS A LITERAL POSITION A CONSTANT-NAME STANDS IN, AND THE GRAMMAR SAYS SO ONCE** (kb/Work
-PB1947 report writer, PB1948 the rest). §2023:5.5 1) calls each `integer-n` "a fixed-point integer literal" and §2023:13.10.3 SR2
+PB1947 report writer, PB1948 the rest). §2023:5.5 SR1 calls each `integer-n` "a fixed-point integer literal" and §2023:13.10.3 SR2
 lets a constant-name stand "anywhere that a format specifies a literal of the class and category of constant-name-1",
 so a clause that prints an `integer-n` writes `integerOperand : integerLiteral | cobolWord` (`CobolExpressions.g4`),
 never the bare `integerLiteral`. `IntegerOperandRules.LiteralOnlySlots` is the short list of rules that may still
@@ -295,7 +295,7 @@ extension; the declined SCREEN SECTION; a "data-name-1 or integer-1" format whos
 arm), and `IntegerOperandSlotDriftTests` derives the rules that DO spell it from the generated parser and holds them to
 that list both ways, so the clause added next is either an `integerOperand` or argued. `ConstantEntryBinder.IntegerOperandValue`
 is the one reader (`IntegerOperandText` for the full-width DYNAMIC LENGTH LIMIT, which has no host limit): the literal as
-written, or the constant's integer asked what the written literal is asked — §2023:5.5 1)'s unsigned and nonzero default with
+written, or the constant's integer asked what the written literal is asked — §2023:5.5 SR1's unsigned and nonzero default with
 the owning clause's zero permission (`IntegerOperandRules.Slots`, by OWNER, never by the carrier rule), the host limit
 (COBOL2427) and, for a constant that is not an integer, COBOL1547. Two positions need more than the grammar rule:
 LINAGE prints "data-name-1 or integer-1", so a constant-name parses as the data-name and `BindLinageClause` asks
@@ -446,7 +446,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   the only place: every national-unit call in the compiler is guarded by a usage test or reached through the reader,
   never by the category alone. The alphanumeric-group reading itself (a national position is two alphanumeric
   positions in LENGTH, reference modification, a group MOVE, a BY REFERENCE group formal and DISPLAY) is spec-derived —
-  §2023:15.50.4 r3, §2023:8.4.3.3.4 GR1/GR5 a), §2023:14.9.25.4 GR4, §2023:14.8.2.2 rule 1, §2023:14.9.11.4 GR1 under GR8 — and GnuCOBOL 3.2
+  §2023:15.50.4 r3, §2023:8.4.3.3.4 GR1/GR5 a), §2023:14.9.25.4 GR4, §2023:14.8.2.2 SR1, §2023:14.9.11.4 GR1 under GR8 — and GnuCOBOL 3.2
   measures the same unit; PB3099 records it, so DOC-A.1-57 is a derivation, not an owner determination.
 - **D-N8 a group sender into a national DYNAMIC LENGTH receiver** (kb/Work PB546; PB3099). §2023:14.9.25.4 GR4 makes the
   move a byte copy and §2023:8.5.1.10.4 sets the receiver's new length to the content's; an odd byte count cannot be
@@ -487,8 +487,8 @@ content-validation half is separately answered by the declined A.4.14 facility (
   `IsAlphanumericOrNational`, `IsAlphanumericGroup`, `Face` — the narrative is in
   `docs/FILES_DESIGN.md`, where the first three askers live). It now also owns the one rule worded in
   CLASSES that more than one subsystem asks: **class index, message-tag, object or pointer**, which THREE rules
-  name with word-for-word identical text — §2023:13.16.3 SR24 e) (not a conditional variable), §2023:13.18.60.3 SR11 (the
-  same prohibition the other way round) and §2023:14.7.6 rule 4 (*"Neither data item contains an OCCURS, REDEFINES,
+  name with word-for-word identical text — §2023:13.16.3 SR24e (not a conditional variable), §2023:13.18.60.3 SR11 (the
+  same prohibition the other way round) and §2023:14.7.6 GR4 (*"Neither data item contains an OCCURS, REDEFINES,
   or RENAMES clause or is of class index, message-tag, object, or pointer"*, the CORRESPONDING exclusion).
   `ItemCategory.IsIndexMessageTagObjectOrPointer` is that one predicate and `Sr14PhraseOf` / `Sr4PhraseOf` — the
   §2023:13.18.60.3 phrase readers that STATE the population, moved here from `DataBinder.UsageDeclaration` — are how
@@ -506,7 +506,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   strongly-typed group items"*; MOVE §2023:14.9.25.3 SR12 admits every kind ("group data items", and NOTE 5 under
   §2023:14.9.25.4 GR11 confirms it for bit and national groups). Asked as the boolean `DataItem.IsGroup`, such a rule admits the kinds it names AND
   the ones it does not: a `GROUP-USAGE BIT` group passed SR6 and the statement then ran as a silent no-op,
-  because §2023:14.7.6 rule 3 requires both items of an implied ADD/SUBTRACT pair to be numeric and every child of a
+  because §2023:14.7.6 GR3 requires both items of an implied ADD/SUBTRACT pair to be numeric and every child of a
   bit group is category boolean. **`GroupKinds` is `[Flags]`, not a scalar classification**: §2023:13.18.29.3 SR1
   (*"The GROUP-USAGE clause may be specified only if the subject of the entry is a group item that is not
   strongly typed and not a variable-length group"*) keeps bit and national disjoint from the other two and §2023:3.11
@@ -581,7 +581,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   UTF-16BE pairs through `CobolBits.NatReadWindow`/`NatWriteWindow` — the same serialization `NatBytes` already
   gave CONVERT's raw-storage channel. The §2023:13.18.44.3 SR8 size screen and the Tier-A alias arm read `ByteWidth`
   for the same reason. **A NATIONAL GROUP's own window is a `NationalWindow` too** (kb/Work PB1653,
-  `NationalWindow.WindowPositionsOf` — §2023:13.18.29.4 GR2 b): its VALUE is its m national positions over the 2m bytes
+  `NationalWindow.WindowPositionsOf` — §2023:13.18.29.4 GR2b: its VALUE is its m national positions over the 2m bytes
   of its window, exactly as a bit group's window is a `BitWindow`, so every value reader/writer (`Read`/`Write`,
   `WriteGroupValue`, ACCEPT, the CALL crossing) takes the window's own coding; its STORAGE image — what a file
   record, a group MOVE or a status group deposits — is the byte window (`PlaceRenderer.ByteWindowRead/Write`,
@@ -646,7 +646,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   (§2023:14.6.9.4; `CellGroupShape.DynLayout`). Before this, such a leaf was a ZERO-WIDTH byte window: `01 G EXTERNAL.
   05 A PIC X(3). 05 D PIC X DYNAMIC LENGTH.` displayed only A, silently.
 - **D-SLOT, the CELL COMPONENTS (kb/Work PB1042, 2026-10-05).** The dynamic-length half generalized: a cell-backed
-  area's VARIABLE-LENGTH COMPONENTS are its dynamic-length items AND its dynamic-capacity tables (§2023:8.5.1.9.1 3): a
+  area's VARIABLE-LENGTH COMPONENTS are its dynamic-length items AND its dynamic-capacity tables (§2023:8.5.1.9.1 SR3: a
   table "may be defined in any place, other than the file section, in which a fixed-capacity table may be defined",
   and an EXTERNAL or ADDRESS-OF-taken record is such a place). `Place.CellComponents` is THE ONE model: components
   are numbered in storage order with ONE ORDINAL PER OCCURRENCE of every enclosing fixed table
@@ -669,7 +669,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   component of its own carries that table NESTED, each element cell read and stored by the element's own shape
   (`CellGroupShape`, with its components' maximum sizes `DynMax` — read from `DataItem.VariableComponentMax`, the ONE
   reader every layout asks: a dynamic-length item's `LIMIT`, a dynamic-capacity table's `OccursSpec.MaxCapacity`, the
-  implementor's maximum of §2023:8.5.1.9.1 2) "unlimited capacity", never `TO` (only the expected capacity, §2023:13.18.38.4 GR17)
+  implementor's maximum of §2023:8.5.1.9.1 GR2 "unlimited capacity", never `TO` (only the expected capacity, §2023:13.18.38.4 GR17)
   and never `OccursSpec.Max`, which is zero for such a table; kb/Work PB2833; `StorageCell.VarGroupAt` / `StoreVarGroupAt`'s
   `elems`; kb/Work PB2496), exactly as a declared group's carrier does. The OCCURS DEPENDING table of a cell-backed group is
   the window's trailing storage (`VarGroupWindow.Odo`, `OdoTail`; see the variable-length group section).
@@ -803,7 +803,7 @@ or implied "is an **alphanumeric group item**"; §2023:13.16.4 GR1 implies GROUP
 "bit group item" as "a group of bit items" is the same error as misreading GR14, one level up.
 
 ⛔ **EVERY STORE OF CHARACTERS INTO A BOOLEAN ITEM CONVERTS THEM, SO THE CARRIER HOLDS ONLY `'0'` AND `'1'` UNLESS ANOTHER DESCRIPTION OF
-THE SAME STORAGE PUT SOMETHING ELSE THERE (kb/Work PB3666, PB3697, determination D-B5 in `CONFORMANCE.md` §3).** Every STORE into a boolean item converts its characters. That includes a GR4 group move (the decoded characters of a national or display receiver; a USAGE BIT receiver's bits are all valid) and a READ or RETURN into an elementary record area that no other description shares. A boolean item can still hold a character other than 0 or 1 only through another description of the same storage, which no store into the item reaches: a group receiver (GR4 moves the group's bytes), a REDEFINES view, a record area shared with another record of its file or with a SAME RECORD AREA peer (a READ or RETURN fills the area's bytes), an APPLY COMMIT restore (ROLLBACK returns the saved image), or storage shared through a BY REFERENCE argument, EXTERNAL, BASED or ADDRESS OF. That content is undefined (§2023:14.6.13.2 1)), and the boolean operators read such a position as zero.
+THE SAME STORAGE PUT SOMETHING ELSE THERE (kb/Work PB3666, PB3697, determination D-B5 in `CONFORMANCE.md` §3).** Every STORE into a boolean item converts its characters. That includes a GR4 group move (the decoded characters of a national or display receiver; a USAGE BIT receiver's bits are all valid) and a READ or RETURN into an elementary record area that no other description shares. A boolean item can still hold a character other than 0 or 1 only through another description of the same storage, which no store into the item reaches: a group receiver (GR4 moves the group's bytes), a REDEFINES view, a record area shared with another record of its file or with a SAME RECORD AREA peer (a READ or RETURN fills the area's bytes), an APPLY COMMIT restore (ROLLBACK returns the saved image), or storage shared through a BY REFERENCE argument, EXTERNAL, BASED or ADDRESS OF. That content is undefined (§2023:14.6.13.2 GR1), and the boolean operators read such a position as zero.
 A MOVE of an alphanumeric or national operand to a boolean item is Table 16 "Yes", and §2023:14.6.8.6
 transfers "after any necessary conversion", but the standard names no conversion of a character that is not a boolean one.
 The one fitting store, `CobolBool.Store` (emitted only by `RuntimeApi.StrStoreBoolean`), converts each character (`'1'` to one, every other
@@ -906,7 +906,7 @@ GROUP shapes did not even reach a rounded offset — they failed BACKEND compila
 **The standard settles the direction, so there was never a rejection to design.** §2023:13.18.44.4 GR1 states the
 association in BITS — "Storage association for the subject of the entry starts at the first bit of the data item
 referenced by data-name-2 and continues over an area sufficient to contain the number of bits required by the data
-item referenced by the subject of the entry" — §2023:13.18.29.4 GR1 c) sends a bit group's members through §2023:8.5.1.6.3,
+item referenced by the subject of the entry" — §2023:13.18.29.4 GR1c sends a bit group's members through §2023:8.5.1.6.3,
 and §2023:14.6.8.6's NOTE says it outright: "When an item is of usage bit, the item is not necessarily aligned on a
 byte boundary and the item need not occupy an integral number of bytes."
 
@@ -954,7 +954,7 @@ marks every DESCENDANT of a redefines class `IsCanonical = false`, so that walk 
 of a Tier-B canonical — the exact group the seed exists for. What the two composers share is the LAW, not the
 field list, which is why the extraction is a run MAP and not a common walk.
 
-⛔ A run CONTINUES only where `BitLayout.SharesByteWith` — the placement predicate the extent walk (`ExtentBits`), the offset walk (`StartBitWithin`) and the REDEFINES class walk (`AssignClassOffsets`) read — says the member shares its predecessor's byte. A run packs its members' carriers back to back, so a member those walks start on a fresh byte must LEAD a new run: an ALIGNED member (§2023:13.18.1.4 GR1), and a group-typed TYPE subject, which §2023:13.18.57.4 GR2 d) aligns "as though it were a level 1 item" and §2023:8.5.1.6.3 therefore puts at the first bit of a byte (`DataItem.AlignedAsLevelOne`, set by `ExpandType`; carried by a SAME AS copy of such a subject, since §2023:13.18.49.4 GR1 re-states data-name-1's description, TYPE clause included). A run scan that tested only "same level" packed `05 F PIC 1 USAGE BIT. 05 G PIC 1 USAGE BIT ALIGNED.` into ONE byte while `FUNCTION BYTE-LENGTH` counted two (kb/Work PB1569).
+⛔ A run CONTINUES only where `BitLayout.SharesByteWith` — the placement predicate the extent walk (`ExtentBits`), the offset walk (`StartBitWithin`) and the REDEFINES class walk (`AssignClassOffsets`) read — says the member shares its predecessor's byte. A run packs its members' carriers back to back, so a member those walks start on a fresh byte must LEAD a new run: an ALIGNED member (§2023:13.18.1.4 GR1), and a group-typed TYPE subject, which §2023:13.18.57.4 GR2d aligns "as though it were a level 1 item" and §2023:8.5.1.6.3 therefore puts at the first bit of a byte (`DataItem.AlignedAsLevelOne`, set by `ExpandType`; carried by a SAME AS copy of such a subject, since §2023:13.18.49.4 GR1 re-states data-name-1's description, TYPE clause included). A run scan that tested only "same level" packed `05 F PIC 1 USAGE BIT. 05 G PIC 1 USAGE BIT ALIGNED.` into ONE byte while `FUNCTION BYTE-LENGTH` counted two (kb/Work PB1569).
 
 ⛔ A REDEFINING ENTRY IS TRANSPARENT TO A RUN, AND A TIER-B CANONICAL STAYS IN IT (kb/Work PB3166). §2023:13.18.44.1 gives a redefining entry no storage of its own, so "immediately following" (§2023:8.5.1.6.3) is asked of the next entry that OCCUPIES storage: `BitLayout.RunsOf` scans the non-redefining siblings only, exactly as the placement walk keeps its predecessor across a redefiner (a scan that broke the run AT the redefiner imaged `05 B PIC 1(6). 05 B2 REDEFINES B PIC 1(2). 05 C PIC 1(2) VALUE B"11".` with C as the leader of a run of its own, a byte past the byte the walk and `FUNCTION LENGTH` put it in). And a bit item that is the CANONICAL of a Tier-B class has no field of its own name — only the class's one string backing, which holds the canonical's own bits from its first bit (§2023:13.18.44.4 GR1) — so it joins its run through that backing: `PhysicalModel.BuildPhysicals` yields the backing as the run member's field (the leader's slice, or width 0 for a continuation), and `GroupImageCodec.BitCarrierOf` / `EmitRunMemberFromBits` (one `BackingOf` test) read the member's bits out of it and write them back with `CobolBits.WriteWindow`. The same two sites serve a bit GROUP's `AsBits()` / `FromBits()` and the record `AsImage()` / `FromImage()` run packer.
 
@@ -1038,7 +1038,7 @@ comparisons, INSPECT/STRING/UNSTRING legality, LENGTH, ref-mod). Therefore:
   face), `PackedRunOf` / `EmitMemberFromImage` (the record image) and `BitCarrierOf` / `EmitRunMemberFromBits` (a
   strided table, through `CobolBits.Strided` / `StridePads`) compose and distribute, so a group MOVE, READ or MOVE of
   m positions is read back whole. Each entry is also the elementary boolean item §2023:8.5.1.6.3 describes
-  (`BitFiller.Item`, in no `Children` list), which is how `INITIALIZE ... WITH FILLER` reaches it (§2023:14.9.20.4 5) a) 2.:
+  (`BitFiller.Item`, in no `Children` list), which is how `INITIALIZE ... WITH FILLER` reaches it (§2023:14.9.20.4 GR5a 2.:
   the ordinary place cursor and implicit MOVE, ZEROES by default; a bare INITIALIZE leaves it). A REDEFINES class, an
   EXTERNAL / BASED record and a LINKAGE area need no field: their shared string holds the bits, so the list holds none
   of the positions of an owner such a class holds (WHERE a position is stored is the OWNER's fact: an owner outside a
@@ -1059,7 +1059,7 @@ comparisons, INSPECT/STRING/UNSTRING legality, LENGTH, ref-mod). Therefore:
   the unused occurrences' bits and takes the filler past the maximum from the sender; GR9 a) moves every character position, as no
   OCCURS DEPENDING table is a corresponding table, §2023:8.5.1.12.2). At a smaller count the bits that end the
   current extent's last character are the first unused occurrence's, not filler (§2023:8.5.1.6.3 puts the filler after the last
-  data item at its maximum), their content undefined (§2023:13.18.38.4 7)), so the two stores' difference there is implementor
+  data item at its maximum), their content undefined (§2023:13.18.38.4 GR7), so the two stores' difference there is implementor
   latitude, not a rule path, and conforms; and
   INITIALIZE ... WITH FILLER has no in-range filler to reset. The padding of an element of a dynamic-capacity bit table is
   not a filler item and is not stored (a determination, docs/CONFORMANCE.md USAGE BIT; kb/Work PB3598). Concatenating the subordinate bit strings — and taking their SUM as the width — is right
@@ -1099,7 +1099,7 @@ list named only the classifier (`RefModPlace.Category`) that made the units disa
 
 ⛔ **And the CONDITION-NAME path — five more sites the list omitted, the origin of [[PB728]] + [[PB575]]
 (LANDED).** The list named "`ConditionBinder`'s comparison class" and stopped there, so the level-88 path kept
-raw `Pic` in both phases and in both directions. ISO §2023:8.8.4.5.3 2) routes a condition-name test through the
+raw `Pic` in both phases and in both directions. ISO §2023:8.8.4.5.3 GR2 routes a condition-name test through the
 relation-condition rules, and §2023:8.8.4.2.1's group sentence — "A national group item or a bit group item shall be
 treated as an elementary national data item or an elementary bit data item, respectively" — is what those rules
 then say, so the SUBJECT'S CLASS selects §2023:8.8.4.2.9 / §2023:8.8.4.2.8 / §2023:8.8.4.2.7 for a group exactly as for an
@@ -1121,7 +1121,7 @@ elementary item. The five:
   `wiseowl-cobol-condition-category-from-raw-picture` to every file that renders a `__CLASSIFY` argument.
 - `DataBinder.BindCondition` — all four Format-3 guards (the §2023:13.18.63.3 SR29 boolean THROUGH ban, the national
   THROUGH stage, and both category funnels). [[PB575]]: the group leg slipped every one of them.
-- `SetEmitter.EmitSet` — the WRITE side, §2023:14.9.39.4 6), which names the population outright: "when the conditional
+- `SetEmitter.EmitSet` — the WRITE side, §2023:14.9.39.4 GR6, which names the population outright: "when the conditional
   variable is an alphanumeric group item, bit group item, or national group item …". All three fell to the loud
   default; the ordinary-group arm emitted a bare struct assignment from a string and did not even compile.
   ⚠ **That site no longer reads a picture at all** ([[PB560]]): GR6 places its literal "according to the rules
@@ -1193,7 +1193,7 @@ back only the phrases the usage admits (kb/Work PB3517: the SIGNED / UNSIGNED ar
 inventory and the clause's phrase rules out of the `.g4`, checks the table against its transcription of the
 printed figure for every usage word, and pins the table as the only reader of the four refusals.
 
-### D21. Floating-point numeric-edited data (the PICTURE symbol E — §2023:13.18.40.4 GR13 b): a numeric-EDITED item whose value channel is EXACT DECIMAL (`CobolDec`), stored as its character image; the form dispatch lives in the four existing edited-store / edited-read choke points. (kb/Work PB66; adopts `docs/rearchitecture/pb66-extfloat-design-draft-2026-08-09.md`, re-derived 2026-08-18.)
+### D21. Floating-point numeric-edited data (the PICTURE symbol E — §2023:13.18.40.4 GR13b: a numeric-EDITED item whose value channel is EXACT DECIMAL (`CobolDec`), stored as its character image; the form dispatch lives in the four existing edited-store / edited-read choke points. (kb/Work PB66; adopts `docs/rearchitecture/pb66-extfloat-design-draft-2026-08-09.md`, re-derived 2026-08-18.)
 
 *Load-bearing spec anchors: §2023:13.18.40.4 GR13 b (two parts separated by `E`; the significand a numeric or fixed
 numeric-edited string with no floating insertion and no zero suppression with replacement; the exponent `+9`,
@@ -1205,7 +1205,7 @@ and fixed insertion for the significand, none for the exponent) and rule 8 (zero
 signs positive); §2023:14.6.8.4 (normalize so the significand's most significant digit is nonzero; then §2023:13.18.40's
 alignment / zero fill / truncation); §2023:14.9.25.4 GR6 item 4 (MOVE: farther than permitted → EC-DATA-OVERFLOW,
 content undefined; nearer to zero than permitted → treated as zero) vs §2023:14.7.5 cases 3/4 (arithmetic: both are the
-size error condition); §2023:14.9.25.4 GR5 + §2023:14.6.13.2 rule 4 (de-editing; incompatible content → EC-DATA-INCOMPATIBLE);
+size error condition); §2023:14.9.25.4 GR5 + §2023:14.6.13.2 GR4 (de-editing; incompatible content → EC-DATA-INCOMPATIBLE);
 §2023:8.5.2.13 (category numeric-edited) + §2023:8.5.2.1 Table 2 (class alphanumeric); §2023:13.18.63.3 SR6 (VALUE: a
 floating-point literal, or ZERO / the zero forms); §2023:15.43.4 r1 / §2023:15.58.4 r1 + §2023:8.8.4.4.4 GR3 l
 (HIGHEST/LOWEST-ALGEBRAIC's well-formedness on the entry, keyed on the arithmetic mode's intermediate); Annex A.3
@@ -1231,13 +1231,13 @@ carries — no per-item static field; the parse is a few dozen characters and th
 entry points `FormatFloatStore(value, picture, mode, …)` (an Int128+scale, a `CobolDec` or a `double` sender — the
 UNCHECKED store; the caller names the landing: a MOVE passes TRUNCATION, the no-phrase arithmetic store the
 receiver's own §2023:14.7.4.3 mode), `TryFormatFloat(…, out image, mode)` (the CHECKED arithmetic store — false on either
-divergence and on a PROHIBITED-inexact significand, §2023:14.7.4.3 rule 7),
+divergence and on a PROHIBITED-inexact significand, §2023:14.7.4.3 GR7),
 `DeEditFloat(image, picture, …, blankWhenZero) → CobolDec` (an all-spaces image of a BLANK WHEN ZERO item is zero,
 §2023:13.18.8.4 GR3; under EC-DATA-INCOMPATIBLE checking the de-edited value is re-rendered through `FormatFloatCore` with the
 item's BLANK WHEN ZERO and must reproduce the image — the fixed-point `DeEdit`'s round trip, so an un-normalized
 significand, a zero with an exponent and any misplaced character are one mismatch; kb/Work PB2643). (7) store = normalize EXACTLY (integer arithmetic to the
 mask's integer-digit count), round the dropped digits through the ONE `CobolNum.RoundDiv` kernel by the landing's
-mode (TRUNCATION for a MOVE, §2023:14.6.8.4 rule 2; the receiver's ROUNDED [MODE] for an arithmetic store, §2023:14.7.4.3 rules
+mode (TRUNCATION for a MOVE, §2023:14.6.8.4 GR2; the receiver's ROUNDED [MODE] for an arithmetic store, §2023:14.7.4.3 rules
 3-10 — a carry out of the last digit renormalizes and the exponent is tested AFTER it, §2023:14.7.5 case 3 "after … any
 applicable rounding specifications"; kb/Work PB2638), then render — no float on the store path (a binary64 sender enters
 through `CobolDec.FromBinary64ToOdd`, its exact value). (8) the MOVE overflow "undefined" content is PINNED to the saturated extreme image
@@ -1250,7 +1250,7 @@ for an unsigned mask, as the standard's fixed-point NOTE table shows).
 
 **Clause interactions:** SIGN on the entry is an SR1 violation (no `S`); DECIMAL-POINT IS COMMA swaps `.`/`,` in
 the significand exactly as the fixed-point path (`SwapSeparators`); CURRENCY is structurally inapplicable;
-BLANK WHEN ZERO wins over rule 8 (spaces — the fixed-point precedent, and §2023:13.18.40.5 rule 10's stated
+BLANK WHEN ZERO wins over rule 8 (spaces — the fixed-point precedent, and §2023:13.18.40.5 GR10's stated
 precedence for its sibling); VALUE admits a floating-point literal or the zero forms (a nonzero fixed-point
 literal is an SR6 violation) and initializes through `FormatFloat`; the 2023 EDITING phrase is banned for the form.
 
@@ -1436,7 +1436,7 @@ when its ELEMENTS are variable-length groups: `NestedTable` at a count that is a
 occurrences' carriers at a statement, all of them at a boundary - with the maximum's fixed width and component
 count, so every earlier component keeps its position; the receiving `FromVarImage` loops to the maximum and a
 slice the carrier did not carry is the §2023:14.9.25.4 GR9b excess part; `Atoms` unrolls it at the maximum). A
-statement's RECEIVING operand uses the table only to the count §2023:13.18.38.4 GR8 a) names (`FromVarImage`'s `__odo`,
+statement's RECEIVING operand uses the table only to the count §2023:13.18.38.4 GR8a names (`FromVarImage`'s `__odo`,
 supplied by `PlaceRenderer.WriteVarGroupImage(receivingOperand: true)` through the same `UsesCurrentExtent` law the
 fixed-length receiver asks; `OdoFixed` splices the member's current image over the unused occurrences, `OdoTable` loops
 to the count, and a cell-backed window leaves them and their components alone - `StorageCell.StoreVarGroupAt`); the
@@ -1625,7 +1625,7 @@ whole-dynamic-table-operations pass); today both are LOUD, never silently wrong.
 **Hardening (current invariants).** A whole-GROUP receiving MOVE into a group nested BELOW the dynamic level routes
 through `ReceivingPath` (`RefReceiving`) via a `DynTablePlace` arm in `EmitGroupMove`, so it grows rather than
 silently losing an out-of-capacity write. `CorrEligible` gates on `!IsTable` (not `Occurs is null`) so CORRESPONDING
-never emits member access on a `CobolDynTable<T>` field (§2023:14.7.6 rule 4). SEARCH and SEARCH ALL of a dynamic table
+never emits member access on a `CobolDynTable<T>` field (§2023:14.7.6 GR4). SEARCH and SEARCH ALL of a dynamic table
 nested under other tables are bounded by ONE enclosing occurrence's current capacity (§2023:8.5.1.9.1, §2023:8.5.1.9.2; kb/Work
 PB3365). The occurrence is the one identifier-1 names when it writes every enclosing subscript (§2023:14.9.37.3 SR2 bans only the
 searched level's), read by `SearchBinder.Identifier1` through `SubscriptBinder.ReadTableSubjectSubscripts`
@@ -1665,11 +1665,11 @@ refused both. Golden `conformance-suite/cases/13.18.38-OCCURS/pb500_format1_valu
 mixed entry where a Format 1 and a Format 2 VALUE sit over one dynamic table and only the latter moves the capacity.
 
 `CobolDynTable` wires **EC-BOUND-OVERFLOW** since P13 through ONE raise, `RaiseImplicitOverflow`, for every
-IMPLICIT capacity change (§2023:8.5.1.9.6 1) — the receiving-subscript grow and, since kb/Work PB1144, the §2023:14.6.9.2
+IMPLICIT capacity change (§2023:8.5.1.9.6 GR1 — the receiving-subscript grow and, since kb/Work PB1144, the §2023:14.6.9.2
 recreation `FromCurrentImage` performs for a variable-length group MOVE / boundary transfer, which is its own
 primitive and never `SetCapacity`: it builds a new array of the sender's occurrences raised to the FROM minimum with
 space-filled elements) through the ambient `BoundOverflowChecking` gate, first crossing only, and a declarative's
-RESUME AT NEXT STATEMENT lets the change proceed (§2023:8.5.1.9.6 1); kb/Work PB1269). Growth that the runtime cannot
+RESUME AT NEXT STATEMENT lets the change proceed (§2023:8.5.1.9.6 GR1; kb/Work PB1269). Growth that the runtime cannot
 allocate is EC-BOUND-TABLE-LIMIT with the table unchanged (kb/Work PB1410). New occurrences a statement creates
 take the INITIALIZED phrase's §2023:8.5.1.9.5 seed (`SeedRecipe.Initialize`, a second constructor seed; kb/Work
 PB1267). **EC-BOUND-SET** (kb/Work
@@ -1691,7 +1691,7 @@ antecedent the emitter's transfer asks too) and per corresponding table pair (`V
 places at a loop-local occurrence number (`MoveBinder.ReachElement`: from each group's resolved place through `PlaceCursor`, and for a table leaf in the span of a level-66 THROUGH alias — a group item with no subordinates, §2023:13.18.45.4 GR2 — as the record's table at the outer occurrences its `RenamesSpanPart` names, kb/Work PB1938), so its
 §2023:14.9.25.3 legality is asked of the element pair (a refusal is a diagnostic at the MOVE), plus the two §2023:14.6.9.1
 current counts (`OccurrenceCounts.Current`, shared with INITIALIZE). `MoveEmitter` renders, after the group transfer
-into that receiver, a loop to the smaller count: §2023:14.6.9.2 rule 1's superfluous sending elements are not moved, and
+into that receiver, a loop to the smaller count: §2023:14.6.9.2 GR1's superfluous sending elements are not moved, and
 rule 2's remaining receiving elements stay space filled. Golden `conformance-suite/cases/14.6.9.2-Moving-a-table/pb1144_dyn_move_elements`;
 negative `pb1144-dyn-element-move-illegal`.
 Resolved open questions: the VALUE-derived capacity is §2023:13.18.63.4 GR16's, implemented over the whole FORMAT 2
@@ -2001,7 +2001,7 @@ sees it. The change removed members from the shipped runtime surface, so the run
 PB2938).** `EC-BOUND-REF-MOD`'s detail printed `reference modification (2147483647:1)` for `X(A:1)` with `A PIC 9(21)` holding
 10^20 + 1: the ref-mod API took `int`, so `RuntimeApi.RefModStart` narrowed every position through `HostInt32` at the call
 site and the one place that raises had only the `int` clamp to print. The ref-mod position is an ordinal position of the same
-kind as a subscript (§2023:8.4.3.3.4 5) and §2023:8.4.2.3.4 GR2 are the same out-of-range rule), so it reuses the SAME carrier rather
+kind as a subscript (§2023:8.4.3.3.4 GR5 and §2023:8.4.2.3.4 GR2 are the same out-of-range rule), so it reuses the SAME carrier rather
 than a second copy of it: `CobolString.RefModPosition` returns an `Occurrence` (through `Occurrence.Of`, the one factory),
 `CobolString.RefMod` / `SpliceInto` / `RefModStartOffset` take `Occurrence` leftmost and length, and `RefModOutOfRange` tests
 the saturated `long` (the `size - leftmost + 1` form cannot overflow once `leftmost` is within 1..size), so there is no
@@ -2139,7 +2139,7 @@ TYPEDEF template's implied PICTURE is part of the description a TYPE subject rec
 PB1300 — and before `UsageInheritancePass`) builds that character-string — the arm from `CobolLiteral.ClassOf`, the length from
 `CobolLiteral.Decode(…).Length`, a figurative constant's from §2023:8.3.3.6.4 GR3 b/c with GR1/GR4 choosing its
 category from the context — and hands it to the SAME `PictureAnalyzer.Analyze` call a WRITTEN clause takes, so
-the item is thereafter indistinguishable from one whose source wrote the clause (§2023:13.18.60.3 SR13 a) and SR20 are
+the item is thereafter indistinguishable from one whose source wrote the clause (§2023:13.18.60.3 SR13a and SR20 are
 written over the "explicit or IMPLICIT picture character-string", which is the standard licensing exactly that).
 The entry is then no longer picture-less, so the SR8 closing guard never sees it and carries NO carve-out. The
 standard states this rule once per entry kind: §2023:13.15.3 SR14 is the report group entry's copy and shares this
@@ -2186,7 +2186,7 @@ the sole producer of a background seed; a unit drift test pins that it has exact
 
 **Numeric items take the fill too** (owner decision kb/Work R53, overturning this section's former "a
 native-numeric carrier takes its zero"; kb/Work PB1134; recorded in `CONFORMANCE.md`). Action 1 names "the storage
-allocated for the implied or associated sections" with no numeric exception, and §2023:13.18.63.4 GR4 c)'s "undefined"
+allocated for the implied or associated sections" with no numeric exception, and §2023:13.18.63.4 GR4c's "undefined"
 is §2023:11.9.10.4 GR6's NO-clause baseline, not a license over a clause the program wrote. A typed-native carrier holds a
 decoded value, so the storage decision moves to BIND time: `StorageFormPass` gives every VALUE-less fixed-point
 numeric item of a governed section (`OptionsInitialize.Governs` — the one section predicate the seed also asks) its
@@ -2215,7 +2215,7 @@ floating-string detector that was a bare occurrence count), so every composition
 unenforced at once: SR2's second half, SR12 a) and b), SR16, SR17, SR18, SR19, SR20, SR21, SR22, SR23 and SR24.
 The harm was not only a missing check — several illegal strings RAN and produced an image no rule defines
 (`PIC 99.99.99` turned 123456 into `56.00.00`; `PIC ZZ**9` rendered 7 as `  **7`, two replacement characters in
-one item where §2023:13.18.40.5 rule 7 defines exactly one), and `PIC +999+` / `PIC $999$` were silently
+one item where §2023:13.18.40.5 GR7 defines exactly one), and `PIC +999+` / `PIC $999$` were silently
 REINTERPRETED as floating strings, the compiler answering a question the source never asked.
 
 **The shape, and why it is not eleven `if`s.** Table 10 is 24 symbol ROLES against 24, and eight symbols occupy
@@ -2253,7 +2253,7 @@ plays which part. This is not optional polish: without it `PIC 9.999.999,99` (NI
 `PIC ZZ.ZZZ.ZZZ,99` (SM103A) are rejected as legal source, and SR13's second sentence — which was VACUOUS while
 the period rules it transfers did not exist — regresses the moment the rules land.
 
-**ONE floating-string definition.** §2023:13.18.40.5 rule 6 makes floating insertion an ADJACENCY property ("a string
+**ONE floating-string definition.** §2023:13.18.40.5 GR6 makes floating insertion an ADJACENCY property ("a string
 of at least two identical floating insertion editing symbols", with the simple insertion symbols and, by rule
 6 b, the decimal point embedded), never a count. `PictureComposition.FloatingString` is that definition and both
 readers use it — the composition rules and `PictureAnalyzer`'s geometry — so the two can no longer disagree.
@@ -2264,7 +2264,7 @@ is the one composition rule the matrix genuinely cannot carry. Table 10 refuses 
 strings because its right-of-point floating rows have blank '9' columns, but those rows ADMIT the decimal
 separator, so a string with nothing but the point to its left (`PIC .$$`, `PIC V$$`, `PIC .++`, `PIC V--`,
 `PIC B.$$`) passed the walk, bound, and rendered an image no rule derives: `.$$` turned `MOVE 0.5` into `.00`.
-§2023:13.18.40.5 rule 6 is why the rule exists — a) edits "the leading numeric character positions to the LEFT of the
+§2023:13.18.40.5 GR6 is why the rule exists — a) edits "the leading numeric character positions to the LEFT of the
 decimal point position" and b) all of them, whose result "is the same as if the floating insertion editing were
 defined only to the left of the decimal point position" — so a string lying wholly right of the point has no
 defined image at all. The check is one comparison against the point, and the point now has ONE derivation,
@@ -2282,7 +2282,7 @@ seven rejections at all four editions.
 the `cs` role (kb/Work PB528, PB855).** §2023:13.18.40.6 gives a Table-10 precedence to `es` alone — "If the EDITING
 phrase is specified, the precedence of 'es' … has the same precedence as the 'cs' symbol in the column and row of
 non-floating insertion symbols" — and SR12 makes `es` the EXTENDED (FOR-phrase) symbol only, the IS form being a
-*fixed* editing sign control symbol whose editing is simple insertion (§2023:13.18.40.5 rule 3) with no Table-10
+*fixed* editing sign control symbol whose editing is simple insertion (§2023:13.18.40.5 GR3) with no Table-10
 precedence at all: it constrains no neighbour (`PIC LL EDITING "L" IS ":"` is the shape SR12 a) names as
 sufficient). A NON-FLOATING `es` is position-ambiguous exactly like a fixed currency symbol (`CurrencyLeading` /
 `CurrencyTrailing` in `PictureComposition.Precedence`), asked of every other symbol by the matrix: `PIC 99L99`
@@ -2299,7 +2299,7 @@ and the cell is the one the standard overrides for its sibling pairs — the rea
 format — re-rendered from the canonical PDF, printed page 441 — is `EDITING character-1 { IS literal-1 | FOR {
 NEGATIVE IS literal-2 | POSITIVE IS literal-3 } }`: character-1 carries **no quotation marks** and is named
 character-1 exactly as character-string-1 is, while literal-1/-2/-3 are named as literals. §2023:13.18.40.3 SR8 types
-it as a basic letter, §2023:13.18.40.4 GR14 ('es') and §2023:13.18.40.5 rule 3 make it a PICTURE SYMBOL occurring in
+it as a basic letter, §2023:13.18.40.4 GR14 ('es') and §2023:13.18.40.5 GR3 make it a PICTURE SYMBOL occurring in
 character-string-1, and SR9 — the rule that types the phrase's literals — enumerates only literal-1/-2/-3. The
 grammar used to DEMAND the quoted spelling, so every conforming EDITING phrase was a parse error and SR8/SR10/SR11
 were reachable only through a spelling the standard does not define; `editingPhrase` now reads
@@ -2319,7 +2319,7 @@ boolean literal — or NULL — is `NotAlphanumericOrNational` and SR9 refuses i
 constant-name was a parse error and `EDITING T IS SPACE` / `IS "-" & "/"` inserted their SOURCE TEXT.
 
 Two shapes of the phrase used to be STAGED LOUD (COBOL0899) although Annex D.24 demonstrates both, and they
-are now rendered. A literal may be 50 characters (SR9) and §2023:13.18.40.5 rule 6's first sentence lists "the
+are now rendered. A literal may be 50 characters (SR9) and §2023:13.18.40.5 GR6's first sentence lists "the
 extended editing sign control symbols, if specified" among the FLOATING insertion symbols — so a FOR-phrase
 character-1 repeated twice or more is a floating string, exactly as `$$$` is. Two structural consequences:
 
@@ -2549,7 +2549,7 @@ CONCRETE COBOL→C# MAPPINGS:
 
 — Qualified + subscripted + ref-modded together —
   VAL OF ITEMS(I) OF WS-REC (3:2)          →  CobolString.RefMod(WsRec.Items[I - 1].Val_as_image, 3, 2)
-                                              (Val numeric → its display image first per ISO §2023:8.4.3.3.4 rule 2)
+                                              (Val numeric → its display image first per ISO §2023:8.4.3.3.4 GR2)
 
 — CALL BY REFERENCE (Place → C# ref) —
   CALL "SUB" USING CT.                      →  Sub(ref WsRec.Ct);
@@ -2596,14 +2596,14 @@ Model an index-name as a C# `long` holding a 1-BASED OCCURRENCE NUMBER, not a di
 ## Edge cases
 
 - FILLER: no C# member name needed when it carries no VALUE and is never referenced; but a FILLER WITH a VALUE must still initialize its position (matters for whole-group reads and the G6 byte image). Generate a synthetic _fillerN member only when it has a VALUE or affects group serialization.
-- Group item used as an alphanumeric operand (MOVE WS-REC TO X, or IF WS-REC = SPACES): a group has no scalar field — its char image is the left-to-right concatenation of all leaf display images. A generated `string AsImage()`/`FromImage()` per struct concatenates/distributes members; whole-group MOVE/compare uses it (all-string leaves and numeric-DISPLAY leaves alike). **Numeric-DISPLAY leaf refinement:** ISO §2023:14.9.25.4 MOVE GR4 fills a group "without consideration for the individual elementary or group items" with **no conversion**, so a numeric-DISPLAY subordinate can receive non-numeric characters (e.g. spaces). A native `long` cannot hold that, so a numeric-DISPLAY leaf **under a group used as a whole operand** is stored as its CHARACTER IMAGE (a `string`); `DataItem.StoreAsImage` — a read-only projection of the item's computed `Storage` form, settled once by `StorageFormPass` — reports it, making `AsImage`/`FromImage` byte-faithful with NO byte[]. Numeric use of such a leaf decodes via `CobolNum.ParseDisplay` / formats via `FormatDisplay`. **The elementary twin (kb/Work PB992):** the same promotion applies to an ELEMENTARY numeric-DISPLAY item that a CHARACTER CHANNEL writes — the receiver of a GR4 group move (`MoveKind.GroupToElementary`), a CALL argument passed BY REFERENCE and every BY REFERENCE formal parameter (§2023:14.2.3 GR8: the formal "occupies the same storage area as the argument", and §2023:14.8.2.3.2 rule 1 asks a Format-1 pair only for "the same length", so either side may be written as characters), and a CALL RETURNING receiver (§2023:14.6.5: the result "is the content of the data item"); the INVOKE statement has the same three (kb/Work PB1064): a BY REFERENCE INVOKE argument (every argument through a universal receiver, §2023:14.9.23.3 SR6), every elementary METHOD formal (all are BY REFERENCE — the method-side BY VALUE phrase is refused — PROPERTY accessors excepted, whose "formal" is the object's own field), and an INVOKE RETURNING receiver (§2023:14.9.23.4 GR8). `UsageCollectionPass` collects them into `DataBindState.CharacterChannelItems` beside the whole-group set, and `StorageFormPass` promotes them under the ONE eligibility test (`IsImagePromotable`) the whole-group arm uses. The price is deliberate: arithmetic on such an item decodes/encodes its image, where the alternative (a native carrier plus a side image) would have been a second representation of one storage area. A user-defined function's result temporary is exempt — it already mirrors its model's form. A BINARY / COMP-5 / PACKED leaf reached the same way — under a whole-group operand or by a character channel — is promoted by the same test (kb/Work PB1466): its native carrier held a DECODED value, so a packed nibble A–F or a binary value past the PICTURE's range was normalized away on the way in, and the numeric class condition (§2023:8.8.4.4.4 GR3 n) 1. c., "a valid representation for the usage … within the range of values implied by the PICTURE clause") had no content left to test; the image-stored leaf is tested on its bytes (`CobolNum.IsNumericImage`). A USAGE NATIONAL numeric leaf is promoted by the same test (kb/Work PB1466, unblocked by PB1665): its carrier is its character positions, the string the codec serializes as UTF-16BE pairs, and a group's `ImageWidth` is the storage characters of its image (`RecordLayout.ImageWidth`), so a MOVE across it is sized consistently. The promotion has no REDEFINES-class exemption on either arm (kb/Work PB3563): a class member promotes through `Classify`'s class arm exactly as the class member of a whole group does. **A Tier-A alias promotes its canonical (kb/Work PB4089):** the alias owns no storage (§2023:13.18.44.1, "the same computer storage area") and `Classify` forwards it to the canonical's form, so `ComputePromotedSet` ends with a closure that adds the canonical of every promoted alias, whichever arm promoted it. A STRING statement's elementary identifier-3 is a character channel too (§2023:14.9.43.4 GR6/GR7: characters move into the receiver's character positions and only those change), and so are an INSPECT identifier-1 and a group MOVE's receiver; without the closure a channel into the redefining item left the canonical native (a backend compile error for STRING, a compiler crash for INSPECT, zeros for a group MOVE). **A level-66 RENAMES … THROUGH alias is a whole-group operand at every operand position (kb/Work PB3563):** §2023:13.18.45.4 GR2 makes it "an alphanumeric group item", and §2023:14.9.25.4 GR4 makes a group move "an alphanumeric to alphanumeric elementary move, except that there is no conversion", but a 66 has no children, so the structural group test (`DataItem.IsGroup`) dropped it. `UsageCollectionPass` therefore adds each ELEMENTARY item the alias spans (`RenamesPlace.Leaves`) to `CharacterChannelItems`, the leaf-level twin of the whole-group set, and the bind-time `NumericImagePlace` wrap around such a leaf renders as the identity over its image carrier (`CobolNum.FormatImage(string)` / `StoreImage(string, …, string)`); a no-THROUGH alias forwards to the renamed item's own place and is a group exactly when that item is. A leaf never referenced as part of a whole group, and never written by a character channel, stays a native `long` (locked invariant #2). A group with a COMP/COMP-3/COMP-5/float leaf is the genuine mixed-usage byte-island (Tier-C), still deferred/loud.
-- Numeric item under reference modification (ISO §2023:8.4.3.3.4 rule 2): operate as if redefined alphanumeric of the same size — render the raw zoned/digit display image, ref-mod that, and (if receiving) re-parse back. Defer receiving-numeric-refmod to byte fallback, flag loud.
+- Group item used as an alphanumeric operand (MOVE WS-REC TO X, or IF WS-REC = SPACES): a group has no scalar field — its char image is the left-to-right concatenation of all leaf display images. A generated `string AsImage()`/`FromImage()` per struct concatenates/distributes members; whole-group MOVE/compare uses it (all-string leaves and numeric-DISPLAY leaves alike). **Numeric-DISPLAY leaf refinement:** ISO §2023:14.9.25.4 MOVE GR4 fills a group "without consideration for the individual elementary or group items" with **no conversion**, so a numeric-DISPLAY subordinate can receive non-numeric characters (e.g. spaces). A native `long` cannot hold that, so a numeric-DISPLAY leaf **under a group used as a whole operand** is stored as its CHARACTER IMAGE (a `string`); `DataItem.StoreAsImage` — a read-only projection of the item's computed `Storage` form, settled once by `StorageFormPass` — reports it, making `AsImage`/`FromImage` byte-faithful with NO byte[]. Numeric use of such a leaf decodes via `CobolNum.ParseDisplay` / formats via `FormatDisplay`. **The elementary twin (kb/Work PB992):** the same promotion applies to an ELEMENTARY numeric-DISPLAY item that a CHARACTER CHANNEL writes — the receiver of a GR4 group move (`MoveKind.GroupToElementary`), a CALL argument passed BY REFERENCE and every BY REFERENCE formal parameter (§2023:14.2.3 GR8: the formal "occupies the same storage area as the argument", and §2023:14.8.2.3.2 rule 1 asks a Format-1 pair only for "the same length", so either side may be written as characters), and a CALL RETURNING receiver (§2023:14.6.5: the result "is the content of the data item"); the INVOKE statement has the same three (kb/Work PB1064): a BY REFERENCE INVOKE argument (every argument through a universal receiver, §2023:14.9.23.3 SR6), every elementary METHOD formal (all are BY REFERENCE — the method-side BY VALUE phrase is refused — PROPERTY accessors excepted, whose "formal" is the object's own field), and an INVOKE RETURNING receiver (§2023:14.9.23.4 GR8). `UsageCollectionPass` collects them into `DataBindState.CharacterChannelItems` beside the whole-group set, and `StorageFormPass` promotes them under the ONE eligibility test (`IsImagePromotable`) the whole-group arm uses. The price is deliberate: arithmetic on such an item decodes/encodes its image, where the alternative (a native carrier plus a side image) would have been a second representation of one storage area. A user-defined function's result temporary is exempt — it already mirrors its model's form. A BINARY / COMP-5 / PACKED leaf reached the same way — under a whole-group operand or by a character channel — is promoted by the same test (kb/Work PB1466): its native carrier held a DECODED value, so a packed nibble A–F or a binary value past the PICTURE's range was normalized away on the way in, and the numeric class condition (§2023:8.8.4.4.4 GR3n.1 c., "a valid representation for the usage … within the range of values implied by the PICTURE clause") had no content left to test; the image-stored leaf is tested on its bytes (`CobolNum.IsNumericImage`). A USAGE NATIONAL numeric leaf is promoted by the same test (kb/Work PB1466, unblocked by PB1665): its carrier is its character positions, the string the codec serializes as UTF-16BE pairs, and a group's `ImageWidth` is the storage characters of its image (`RecordLayout.ImageWidth`), so a MOVE across it is sized consistently. The promotion has no REDEFINES-class exemption on either arm (kb/Work PB3563): a class member promotes through `Classify`'s class arm exactly as the class member of a whole group does. **A Tier-A alias promotes its canonical (kb/Work PB4089):** the alias owns no storage (§2023:13.18.44.1, "the same computer storage area") and `Classify` forwards it to the canonical's form, so `ComputePromotedSet` ends with a closure that adds the canonical of every promoted alias, whichever arm promoted it. A STRING statement's elementary identifier-3 is a character channel too (§2023:14.9.43.4 GR6/GR7: characters move into the receiver's character positions and only those change), and so are an INSPECT identifier-1 and a group MOVE's receiver; without the closure a channel into the redefining item left the canonical native (a backend compile error for STRING, a compiler crash for INSPECT, zeros for a group MOVE). **A level-66 RENAMES … THROUGH alias is a whole-group operand at every operand position (kb/Work PB3563):** §2023:13.18.45.4 GR2 makes it "an alphanumeric group item", and §2023:14.9.25.4 GR4 makes a group move "an alphanumeric to alphanumeric elementary move, except that there is no conversion", but a 66 has no children, so the structural group test (`DataItem.IsGroup`) dropped it. `UsageCollectionPass` therefore adds each ELEMENTARY item the alias spans (`RenamesPlace.Leaves`) to `CharacterChannelItems`, the leaf-level twin of the whole-group set, and the bind-time `NumericImagePlace` wrap around such a leaf renders as the identity over its image carrier (`CobolNum.FormatImage(string)` / `StoreImage(string, …, string)`); a no-THROUGH alias forwards to the renamed item's own place and is a group exactly when that item is. A leaf never referenced as part of a whole group, and never written by a character channel, stays a native `long` (locked invariant #2). A group with a COMP/COMP-3/COMP-5/float leaf is the genuine mixed-usage byte-island (Tier-C), still deferred/loud.
+- Numeric item under reference modification (ISO §2023:8.4.3.3.4 GR2): operate as if redefined alphanumeric of the same size — render the raw zoned/digit display image, ref-mod that, and (if receiving) re-parse back. Defer receiving-numeric-refmod to byte fallback, flag loud.
 - Subscript/position single-evaluation (ISO): `TBL(F(X)) (G(Y):H(Z))` — F,G,H must each evaluate exactly once. Emit temps for every non-trivial subscript and ref-mod position before composing the Place.
 - Relative subscript `idx - 1` where idx is at occurrence 1 → index 0-1 = -1: a runtime bounds violation (EC-BOUND-SUBSCRIPT). Honor with a checked path when EC enabled; otherwise undefined (matches no-EC corpus behavior).
 - Level-88 VALUE with multiple literals AND THRU ranges mixed (VALUE 0 5 THRU 9 12): the condition is an OR over each literal/range — `St==0 || (St>=5&&St<=9) || St==12`. Capture the full value-item list, not just the first (DataBinder.ExtractValue currently grabs only FirstOrDefault — a bug for 88s and for multi-literal table VALUEs).
 - SET cond-name TO TRUE picks the FIRST value of a THRU range (the low bound) or the first literal (ISO §2023:14.9.39.4 GR6); SET TO FALSE places `Condition88.FalseValue` — literal-4 of the `WHEN SET TO FALSE` phrase (ISO §2023:14.9.39.4 GR7 / §2023:13.18.63.4 GR20) — through the SAME store, selected by `BoundSetConditions.ToTrue`; §2023:14.9.39.3 SR7 refuses the arm when the phrase is absent (COBOL2049).
 - JUSTIFIED RIGHT interacts with ref-mod and with numeric MOVE: JUST only applies to alphanumeric/alphabetic receivers (ISO §2023:13.18.32) — diagnose/ignore on numeric. Already plumbed in CobolString.Store(justifiedRight).
-- COMP-5 / BINARY-* with no PIC: width-bounded native int with TWO'S-COMPLEMENT WRAP on overflow (not digit truncation) — PicInfo.StorageWidth picks the byte width. `CobolNum.Store` WRAPs and `TryStore` range-checks by `NumProfile.StorageLength` (`WrapBinary`/`InBinaryRange`, branching signed vs unsigned; §2023:14.9.25.4 GR6 d) 2. b. magnitude for unsigned). The BINARY-CHAR family synthesizes via `PicInfo.BinaryItem` (PICTURE-less, §2023:13.16.3 SR8 prohibits a picture → COBOL0870).
+- COMP-5 / BINARY-* with no PIC: width-bounded native int with TWO'S-COMPLEMENT WRAP on overflow (not digit truncation) — PicInfo.StorageWidth picks the byte width. `CobolNum.Store` WRAPs and `TryStore` range-checks by `NumProfile.StorageLength` (`WrapBinary`/`InBinaryRange`, branching signed vs unsigned; §2023:14.9.25.4 GR6d.2.b magnitude for unsigned). The BINARY-CHAR family synthesizes via `PicInfo.BinaryItem` (PICTURE-less, §2023:13.16.3 SR8 prohibits a picture → COBOL0870).
 - 19-38 digit pictures overflow `long` (max 18 digits) → Int128. PicInfo.ClrType/DefaultInitializer/ProfileInitializer and the NumX literal renderer must branch on WidePrecision; CobolNum needs Int128 overloads. Pictures >38 (NATIONAL/2014) are out of scope for v1.
 - REDEFINES of a table or by a table; REDEFINES chains (A redefines B redefines C): resolve the ultimate base; the whole chain is ONE redefines class with ONE canonical backing per the 4-tier verdict (A alias / B string canonical / C class-scoped byte canonical / D reject loud — `REDEFINES_DESIGN.md`); never independent stored fields per view.
 - Qualification of an index-name or a LINAGE-COUNTER by file/report name (grammar dataReference alts): index-name qualification is by table name (ISO §2023:8.4.2.2 rule 6) — resolve via the owning table; LINAGE-COUNTER/LINE-COUNTER/PAGE-COUNTER are special registers, not data items — they get dedicated Places.
@@ -2677,7 +2677,7 @@ left a parse error, when the phrases were bound to the positioning phrase), and
 `BACKGROUND-COLOR`, `BELL`, `BLINK`, `EOL`, `EOS`, `ERASE`, `FOREGROUND-COLOR`, `FULL`, `HIGHLIGHT`, `LOWLIGHT`,
 `REQUIRED`, `REVERSE-VIDEO`, `SECURE`, `UNDERLINE` — **context-sensitive** (§2023:8.9 reserves none of them at any
 edition), and §2023:8.9 reserves `COL`, `COLS`, `COLUMNS`, `CRT`, `CURSOR` and `SCREEN` only from 2002, leaving
-`COLUMN` the one screen-surface word reserved at every edition. §2023:8.3.2.1 rule 3 makes each of the other
+`COLUMN` the one screen-surface word reserved at every edition. §2023:8.3.2.1 SR3 makes each of the other
 twenty-one a legal user-defined word wherever §2023:8.9 leaves it free — yet five were lexer tokens that `cobolWord`
 did not admit, so a legal `01 REVERSE-VIDEO PIC X.` was a parse error at every edition and `01 CURSOR PIC X.` at
 COBOL-85. All twenty-two now carry `nameSlot` rows in `tests/version-matrix/cobol-words.json` (the §2023:8.9 seven
@@ -2740,7 +2740,7 @@ editions that have it, rejected-with-the-right-diagnostic below its intro editio
 - §2023:13.18.60.4 GR1 — a group-level USAGE "applies only to each elementary item in the group", which is how a group entry's pointer phrase becomes an SR14 violation at each subordinate's own level
 - §2023:8.5.1.3.2 Level-numbers / §2023:13.11.1 — a level-77 entry has "no true concept of level" and is an ALTERNATIVE spelling of the level-1 single-elementary record; together they settle that 77 satisfies SR14's first arm
 - §2023:14.9.39 SET statement — condition-name SET TO TRUE assigns the first/low value (GR6), SET TO FALSE the WHEN-SET-TO-FALSE literal (GR7); index-name SET semantics
-- §2023:8.8.1 / §2023:14.9.25 arithmetic on the algebraic value regardless of representation; MOVE rules (justify, truncation, §2023:14.9.25.4 GR6 d) 2. b. unsigned magnitude)
+- §2023:8.8.1 / §2023:14.9.25 arithmetic on the algebraic value regardless of representation; MOVE rules (justify, truncation, §2023:14.9.25.4 GR6d.2.b unsigned magnitude)
 - Conditional-flag REF-MOD-ZERO-LENGTH (spec line 4523) — zero-length reference modification permitted, yields empty
 
 ## Open questions (resolved in `DESIGN.md` §18)

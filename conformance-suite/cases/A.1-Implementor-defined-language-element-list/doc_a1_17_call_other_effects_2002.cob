@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:14.9.4.4 GR3 h) 2. (Annex A.1 item 17) - the other effects
+      *> ISO §2023:14.9.4.4 GR3h.2 (Annex A.1 item 17) - the other effects
       *> of a CALL that was not successful, whose condition is handled by
       *> exception processing (checking enabled, no ON EXCEPTION phrase).
       *>   cite.py --check 14.9.4.4 "any applicable exception processing

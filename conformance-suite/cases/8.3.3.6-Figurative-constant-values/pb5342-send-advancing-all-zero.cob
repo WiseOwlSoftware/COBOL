@@ -5,7 +5,7 @@
       *> portable: unverified
       *>---
       *> ALL ZERO AS SEND ... ADVANCING integer-1 (kb/Work PB5342).
-      *> §2023:8.3.3.6.3 SR1 a) (2002: 8.3.1.2.5.2 SR1 a): "If the literal
+      *> §2023:8.3.3.6.3 SR1a (2002: 8.3.1.2.5.2 SR1 a): "If the literal
       *> is restricted to a numeric literal, the only figurative constant
       *> permitted is ZERO (ZEROS, ZEROES) without the ALL phrase."
       *> Integer-1 of ISO/IEC 1989:2002 A.2.6.1 is such a literal, and

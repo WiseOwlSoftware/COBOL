@@ -25,13 +25,13 @@
       *>  ORD 33/49/35 for PIC X and PIC N alike (no PROGRAM
       *>  COLLATING SEQUENCE).
       *> cite.py --check:
-      *>  OK  §2023:8.3.3.6.4 1)  (General rules)
-      *>  OK  §2023:8.3.3.6.4 5)  (General rules)
-      *>  OK  §2023:8.3.3.6.4 8)  (General rules)
-      *>  OK  §2023:8.3.3.2.4 4)  (General rules)   X"hh" bit configuration
-      *>  OK  §2023:8.3.3.5.4 4)  (General rules)   NX"hhhh" bit config.
-      *>  OK  §2023:15.70.4 1)  (Returned value rules)  ORD alphanumeric
-      *>  OK  §2023:15.70.4 2)  (Returned value rules)  ORD national
+      *>  OK  §2023:8.3.3.6.4 GR1  (General rules)
+      *>  OK  §2023:8.3.3.6.4 GR5  (General rules)
+      *>  OK  §2023:8.3.3.6.4 GR8  (General rules)
+      *>  OK  §2023:8.3.3.2.4 GR4  (General rules)   X"hh" bit configuration
+      *>  OK  §2023:8.3.3.5.4 GR4  (General rules)   NX"hhhh" bit config.
+      *>  OK  §2023:15.70.4 RV1  (Returned value rules)  ORD alphanumeric
+      *>  OK  §2023:15.70.4 RV2  (Returned value rules)  ORD national
       *>
       *> Derivation of each expected line (8.3.3.2.4 GR4 / 8.3.3.5.4
       *> GR4 make X"20" etc. exactly the documented bit patterns, so

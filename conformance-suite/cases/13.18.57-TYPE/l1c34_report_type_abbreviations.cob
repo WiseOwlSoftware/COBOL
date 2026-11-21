@@ -18,10 +18,10 @@
       *> REPORT FOOTING."
       *> cite.py --check 13.18.57.3 "RH is an abbreviation for REPORT
       *>   HEADING"
-      *>   -> OK §2023:13.18.57.3 9) (Syntax rules)
+      *>   -> OK §2023:13.18.57.3 SR9 (Syntax rules)
       *> cite.py --check 13.18.57.3 "CF is an abbreviation for CONTROL
       *>   FOOTING"
-      *>   -> OK §2023:13.18.57.3 9) (Syntax rules)
+      *>   -> OK §2023:13.18.57.3 SR9 (Syntax rules)
       *> Every report group below is typed ONLY by its abbreviation,
       *>   so the
       *> program is legal only if each abbreviation is accepted, and
@@ -40,11 +40,11 @@
       *>     6) a)
       *> cite.py --check 13.18.57.4 "in order of controls from the
       *>   lowest up to
-      *>   the level of the control break" -> OK §2023:13.18.57.4 6) e) 1.
+      *>   the level of the control break" -> OK §2023:13.18.57.4 GR6e 1.
       *> cite.py --check 13.18.57.4 "the page footing on the last page
       *>   is
       *>   immediately followed by the report footing" -> OK
-      *>     §2023:13.18.57.4 6) f) 2.
+      *>     §2023:13.18.57.4 GR6f 2.
       *>   (cite.py labels this unnumbered sentence as item f) 2.; it
       *>     is the
       *>   closing sentence of GR6 f) - a known list-item mislabel,

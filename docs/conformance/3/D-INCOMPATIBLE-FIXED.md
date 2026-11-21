@@ -1,4 +1,4 @@
-- **D-INCOMPATIBLE-FIXED — Incompatible data in a fixed-point numeric sending operand (§2023:14.6.13.2 rule 2).** The standard makes the
+- **D-INCOMPATIBLE-FIXED — Incompatible data in a fixed-point numeric sending operand (§2023:14.6.13.2 GR2).** The standard makes the
   RESULT OF THE REFERENCE undefined — "the result of the reference is undefined and an EC-DATA-INCOMPATIBLE
   exception condition is set to exist" — so what happens to the value is an implementor determination.
   WiseOwl COBOL: **under EC-DATA-INCOMPATIBLE checking the exception is fatal at the SENDING READ** (a USE declarative
@@ -9,7 +9,7 @@
   whose storage is a character window (a REDEFINES view, or a leaf under a group used as a whole operand —
   §2023:14.9.25.4 GR4 fills such a group "without consideration for the individual elementary or group items") can hold such
   content at all; a native-carrier leaf can only hold digits, so `IS NUMERIC` on one is the constant true
-  (§2023:8.8.4.4.4 GR3 n)1). The test itself is the standard's own — "would evaluate to false in a numeric class
+  (§2023:8.8.4.4.4 GR3n1). The test itself is the standard's own — "would evaluate to false in a numeric class
   condition" — evaluated over the item's byte representation: n)1.a's digits-plus-declared-sign for DISPLAY,
   n)1.c's "valid representation for the usage" for packed (decimal nibbles, and a sign nibble where the usage
   reserves one), and n)1.c's picture-range half for binary, where a `COMP-5` / `BINARY-*` item's range is its

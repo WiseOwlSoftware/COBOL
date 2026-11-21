@@ -32,7 +32,7 @@
   carrier only for a BY REFERENCE crossing (`CobolVarGroup.Created`, stated by `AsVarImage(__byReference: true)` and
   `StorageCell.VarGroupAt(byReference: true)`): a BY CONTENT formal is a record "allocated by the activating runtime element"
   that does "not occupy the same storage area as the argument" (§2023:14.2.3 GR9), filled as by a MOVE, so past the sending
-  capacity its fixed table holds the MOVE's space fill (§2023:14.6.9.2 2)) and nothing returns. The same law holds one level
+  capacity its fixed table holds the MOVE's space fill (§2023:14.6.9.2 GR2) and nothing returns. The same law holds one level
   down for a dynamic-capacity table nested in an element (a created element is the table's created element, its own inner
   table at its creation, with the formal's element stored over it, whichever of the pair's outer tables is the variable
   one), including a fixed table nested in an occurrence of the formal's OWN dynamic-capacity table, whose stores are

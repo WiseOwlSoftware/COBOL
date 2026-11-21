@@ -17,7 +17,7 @@
 *>     specified in the file description entry associated with the write file." - LPF has one, so each compiles.
 *>   §2002:14.8.47.2 SR19 "The words END-OF-PAGE and EOP are equivalent." - WRITE 1 spells END-OF-PAGE, 2 and 3 EOP.
 *> EXPECTED (§2002:13.16.32.3 GR7 c) and d): LINAGE-COUNTER is one after OPEN OUTPUT and is incremented by the
-*> ADVANCING count, or by one when ADVANCING is not specified; §2002:14.8.47.3 GR22 a): the end-of-page condition
+*> ADVANCING count, or by one when ADVANCING is not specified; §2002:14.8.47.3 GR22a: the end-of-page condition
 *> occurs when the lines written do not fit within the page body, and the record is then presented on the first line
 *> of the next logical page, so LINAGE-COUNTER is one again, GR7 c) 4.):
 *>   WRITE 1, AFTER 1 LINE on a 5-line page body: line 2 fits, so the NOT AT END-OF-PAGE imperative runs

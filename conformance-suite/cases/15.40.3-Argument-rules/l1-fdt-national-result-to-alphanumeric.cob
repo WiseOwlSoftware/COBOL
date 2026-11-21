@@ -7,7 +7,7 @@
       *> ISO §2023:15.40.3 r1 admits "a national or alphanumeric literal" for
       *> argument-1, and §2023:15.40.1's type table makes the FUNCTION's type
       *> follow it: "National | National". So a NATIONAL format literal makes
-      *> FORMATTED-DATETIME a national function, and §2023:14.9.25.3 rule 10's
+      *> FORMATTED-DATETIME a national function, and §2023:14.9.25.3 SR10's
       *> Table 16 gives the National sending row a "No" under an
       *> alphanumeric receiver.
       *>

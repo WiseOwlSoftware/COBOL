@@ -8,7 +8,7 @@
       *> the corpus had never asserted for COS.
       *>
       *> --check validated:
-      *>   cite.py --check 15.20.3 "Argument-1 shall be of class numeric." -> OK §2023:15.20.3 1)
+      *>   cite.py --check 15.20.3 "Argument-1 shall be of class numeric." -> OK §2023:15.20.3 AR1
       *> §2023:8.5.2.1 Table 2 puts an alphanumeric PICTURE item in class ALPHANUMERIC, so PIC X(3) is
       *> not of class numeric and this reference is illegal source; §2023:4.2.2 obliges the indication.
       *> The diagnostic is COBOL1627 ("intrinsic-argument-class", docs/DIAGNOSTICS.md).

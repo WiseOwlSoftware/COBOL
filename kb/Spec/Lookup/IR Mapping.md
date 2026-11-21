@@ -262,7 +262,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `BoundBoolAll` | ALL B"…" positionless boolean | §2023:8.3.3.6.4 GR2 | materializes to other operand's length | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundBoolBinary` | Boolean B-AND / B-OR / B-XOR | §2023:8.8.2 | rule 9 right-zero-extend, rule 10 length | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundBoolNot` | Boolean negation B-NOT | §2023:8.8.2 | rule 10 length preserved | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
-| `BoundBoolShift` | Boolean shift / rotate | §2023:8.8.2 rule 8 | edition gate (2023); result = operand length | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
+| `BoundBoolShift` | Boolean shift / rotate | §2023:8.8.2 GR8 | edition gate (2023); result = operand length | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 
 ## Error nodes
 

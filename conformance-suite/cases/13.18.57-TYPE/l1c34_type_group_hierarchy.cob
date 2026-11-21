@@ -27,18 +27,18 @@
       *>   subordinate elements have the same names, descriptions, and
       *>     hierarchy
       *>   as the subordinate elements of type-name-1" -> OK
-      *>     §2023:13.18.57.4 2) a)
+      *>     §2023:13.18.57.4 GR2a
       *> cite.py --check 13.18.57.4 "the level-numbers of items
       *>   subordinate to
       *>   that group are adjusted, if necessary, to preserve the
       *>     hierarchy of
-      *>   type-name-1" -> OK §2023:13.18.57.4 2) b)
+      *>   type-name-1" -> OK §2023:13.18.57.4 GR2b
       *> cite.py --check 13.18.57.4 "level-numbers in the resulting
       *>   hierarchy
-      *>   may exceed 49" -> OK §2023:13.18.57.4 2) c)
+      *>   may exceed 49" -> OK §2023:13.18.57.4 GR2c
       *> cite.py --check 13.18.57.4 "the subject of the entry is
       *>   aligned as
-      *>   though it were a level 1 item" -> OK §2023:13.18.57.4 2) d)
+      *>   though it were a level 1 item" -> OK §2023:13.18.57.4 GR2d
       *> T's members are written at 05/10. X is a level-49 subject, so
       *>   its
       *> members must sit at levels > 49 (b, c); P is a level-05

@@ -15,7 +15,7 @@
       *>   1 HI        identifier-2 of category NATIONAL (PIC N(5) VALUE N"GREET") through the universal U — SR8's
       *>               national half (it was refused "a later refinement").
       *>   2 HI        identifier-2 a NATIONAL GROUP (GROUP-USAGE NATIONAL is class and category national,
-      *>               §2023:13.18.29.4 GR2 b)) holding "GREET".
+      *>               §2023:13.18.29.4 GR2b) holding "GREET".
       *>   3 HI        literal-1 hexadecimal-NATIONAL: §2023:8.3.3.5.4 GR4 gives one national character per
       *>               hex-character-sequence (four digits here, D-N1), so NX"00470052004500450054" is GREET — the
       *>               method-name decoder read it as alphanumeric hex (" G R E E T") and refused it.

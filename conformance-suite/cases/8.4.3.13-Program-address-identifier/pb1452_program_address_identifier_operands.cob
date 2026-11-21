@@ -16,7 +16,7 @@
       *>      identifier allows another identifier to be specified, that other identifier may be any of the formats for
       *>      an identifier", so a function-identifier of category alphanumeric (§2023:8.4.3.2.1: it references the data item
       *>      that results from the function) is identifier-1 — a parse error before.
-      *> §2023:8.4.3.13.4 GR1 a): the program is the one named by "the content of the data item referenced by identifier-1".
+      *> §2023:8.4.3.13.4 GR1a: the program is the one named by "the content of the data item referenced by identifier-1".
       *> Every spelling below names PB1452SUB, so every activation displays IN-SUB. EXPECTED OUTPUT, line by line:
       *>   1=GROUP   GRP is G1 "PB1" + G2 "452SUB" -> "PB1452SUB"                                           IN-SUB
       *>   2=NATGRP  NG is a GROUP-USAGE NATIONAL group, N(3) "PB1" + N(6) "452SUB" (§2023:13.18.29.4 GR2)        IN-SUB

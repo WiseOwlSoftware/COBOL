@@ -21,7 +21,7 @@
       *>   (NAT7); §2002:8.3.1.2.5.3 GR6 - a context requiring
       *>   national characters uses the national sequence. So an
       *>   alphanumeric LOW-VALUE moves as the unsigned integer 555
-      *>   and a national one as 777 (§2002:14.8.24.3 GR4 b) 3.b),
+      *>   and a national one as 777 (§2002:14.8.24.3 GR4b 3.b),
       *>   with no EC-DATA-INCOMPATIBLE. Receivers are integers only:
       *>   the non-integer receivers are the separate GR4 lead.
       *> Line 1-3: ZERO is numeric to N, NS, NE, NN, NNE: zero, a

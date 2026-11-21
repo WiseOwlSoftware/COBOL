@@ -39,7 +39,7 @@
       *> (2,D1,5). Key group 1: S3 = 1 + 10 + 3 = 14 (A on D1, B on D2,
       *> one counter: GR3); S8 = 1 + 3 = 4 (GR8); S10 = 4 x (1 + 3) = 16
       *> (GR10); S11 = S11B = 1 + 2 + 3 = 6. The 4th GENERATE breaks:
-      *> CF-K's USE (§1985:XIII.3.20.4 GR10 c) shows 014 004 016 006
+      *> CF-K's USE (§1985:XIII.3.20.4 GR10c shows 014 004 016 006
       *> 006, then S3 S8 S10 S11B reset and S11 does not (GR12). Its
       *> subtotalling follows the break (GR7): S3 = 20, S11 = 10, S11B =
       *> 4; the 5th adds A 5 on D1: S3 25, S8 5, S10 20, S11 15, S11B 9.

@@ -10,10 +10,10 @@
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If integer-1
       *>   or the value of the data item referenced by identifier-2 is
       *>   zero, no repositioning of the representation of the printed
-      *>   page is performed"                  -> OK  §2023:14.9.51.4 25) c)
+      *>   page is performed"                  -> OK  §2023:14.9.51.4 GR25c
       *>   python scripts/spec/cite.py --check 14.9.51.4 "the line is
       *>   presented after the representation of the printed page is
-      *>   advanced"                           -> OK  §2023:14.9.51.4 25) f)
+      *>   advanced"                           -> OK  §2023:14.9.51.4 GR25f
       *> DERIVATION. A zero amount repositions nothing, so the line is
       *> presented at the SAME vertical position as the line the device
       *> stands on: an overprint, not a line that continues the open

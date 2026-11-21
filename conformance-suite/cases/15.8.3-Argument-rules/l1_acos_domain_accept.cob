@@ -10,16 +10,16 @@
       *>
       *> THE RULE, --check validated:
       *>   cite.py --check 15.8.3 "The value of argument-1 shall be greater than or equal to"
-      *>     -> OK §2023:15.8.3 2)  "2) The value of argument-1 shall be greater than or equal to -1
+      *>     -> OK §2023:15.8.3 AR2  "2) The value of argument-1 shall be greater than or equal to -1
       *>        and less than or equal to +1."
       *>   (⚠ NOT r1. §2023:15.8.3 r1 is "Argument-1 shall be of class numeric" - a different rule.)
       *>   cite.py --check 15.8.4 "The returned value is the approximation of the arccosine of
       *>     argument-1 and is greater than or equal to zero and less than or equal to"
-      *>     -> OK §2023:15.8.4 1) - the codomain is [0, pi].
+      *>     -> OK §2023:15.8.4 RV1 - the codomain is [0, pi].
       *>   cite.py --check 15.4.1 "When native arithmetic is in effect, the characteristics and
       *>     representation of the returned value are defined by the implementor" -> OK
       *>   cite.py --check 11.9.5.2 "it is as if the ARITHMETIC clause were specified with the
-      *>     NATIVE phrase" -> OK §2023:11.9.5.2 4) - and at COBOL-85 the OPTIONS paragraph does not
+      *>     NATIVE phrase" -> OK §2023:11.9.5.2 GR4 - and at COBOL-85 the OPTIONS paragraph does not
       *>     exist at all, so the approximating mode is the ONLY one reachable here.
       *>
       *> ⛔ WHY ONLY THE ACCEPT ARM AT THIS EDITION. §2023:15.8.3 r2's REJECT arm has its consequence in

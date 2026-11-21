@@ -13,7 +13,7 @@
       *>   insertion, when the currency symbol is used as the floating
       *>   insertion symbol, all occurrences of the currency symbol
       *>   within character-string-1 shall be equivalent characters."
-      *>   -> OK  §2023:13.18.40.3 28)  (Syntax rules)
+      *>   -> OK  §2023:13.18.40.3 SR28  (Syntax rules)
       *>
       *> THE SATISFIED DIRECTION. SR28 is a syntax rule, so it has two
       *> legs: source whose occurrences ARE equivalent is conforming
@@ -36,11 +36,11 @@
       *>   --check 12.3.7.3 "In all other cases, compile-time
       *>     equivalence to that currency symbol is determined as
       *>     specified in 8.1.3, COBOL character repertoire, General
-      *>     rules."   -> OK  §2023:12.3.7.3 20)
+      *>     rules."   -> OK  §2023:12.3.7.3 SR20
       *>   --check 8.1.3.2 "Equivalence of uppercase and lowercase
       *>     basic letters is achieved by folding from uppercase to
       *>     lowercase in accordance with the case mapping described in
-      *>     Annex C."   -> OK  §2023:8.1.3.2 3) b)
+      *>     Annex C."   -> OK  §2023:8.1.3.2 GR3b
       *>
       *> THE EDITED IMAGE, DERIVED. Being equivalent, the three
       *> occurrences form ONE floating insertion string (§2023:13.18.40.5
@@ -62,7 +62,7 @@
       *> characters, which is what equivalence MEANS.
       *>   --check 12.3.7.3 "If the PICTURE SYMBOL phrase is specified,
       *>     literal-7 is the currency string and literal-8 is the
-      *>     associated currency symbol."   -> OK  §2023:12.3.7.3 23)
+      *>     associated currency symbol."   -> OK  §2023:12.3.7.3 SR23
       *>
       *> EDITIONS. CURRENCY SIGN ... WITH PICTURE SYMBOL enters at
       *> COBOL-2002, so 'w'/'W' equivalence is first exercisable there;

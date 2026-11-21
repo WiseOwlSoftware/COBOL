@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:8.4.3.13.3 2) — literal-1 of ADDRESS OF PROGRAM shall not be of zero length
+      *> ISO §2023:8.4.3.13.3 SR2 — literal-1 of ADDRESS OF PROGRAM shall not be of zero length
       *> Rule: "Literal-1 shall be an alphanumeric or national literal whose length is not zero."
-      *>   cite.py: OK  §2023:8.4.3.13.3 2)  (Syntax rules)
+      *>   cite.py: OK  §2023:8.4.3.13.3 SR2  (Syntax rules)
       *> "" is a zero-length alphanumeric literal (§2023:8.3.3.1: "If the opening and closing delimiters are
       *> contiguous, the length of the literal is zero"; cite.py: OK  §2023:8.3.3.1).  It is alphanumeric, so
       *> only the length half of SR2 rejects it.  The category half is the sibling negative

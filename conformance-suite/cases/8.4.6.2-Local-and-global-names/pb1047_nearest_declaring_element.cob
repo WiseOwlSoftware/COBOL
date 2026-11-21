@@ -8,7 +8,7 @@
       *> ISO §2023:8.4.6.2.1 - a name duplicated across nested programs
       *> names the item of the NEAREST source element that declares
       *> it, after qualification (kb/Work PB1047 / PB1243)
-      *> RULE §2023:8.4.6.2.1 1): "The set of names to be used for
+      *> RULE §2023:8.4.6.2.1 GR1: "The set of names to be used for
       *>   determination of a referenced item consists of all names
       *>   that are defined in source element B and all global names
       *>   that are defined in source element A and in any source
@@ -16,15 +16,15 @@
       *>   A. Using this set of names, the normal rules for
       *>   qualification ... are applied until one or more items is
       *>   identified."
-      *> RULE §2023:8.4.6.2.1 3) a): "If the name is declared in source
+      *> RULE §2023:8.4.6.2.1 GR3a: "If the name is declared in source
       *>   element B, the item in source element B is the referenced
       *>   item."  cite.py --check 8.4.6.2.1 "If the name is declared in
       *>   source element B, the item in source element B is the
-      *>   referenced item" -> OK §2023:8.4.6.2.1 3) a)
-      *> RULE §2023:8.4.6.2.1 3) b) 1.: "The item in source element A if the
+      *>   referenced item" -> OK §2023:8.4.6.2.1 GR3a
+      *> RULE §2023:8.4.6.2.1 GR3b 1.: "The item in source element A if the
       *>   name is declared in source element A."  cite.py --check
       *>   8.4.6.2.1 "The item in source element A if the name is
-      *>   declared in source element A" -> OK §2023:8.4.6.2.1 3) b) 1.
+      *>   declared in source element A" -> OK §2023:8.4.6.2.1 GR3b 1.
       *> RULE §2023:8.4.6.2.2: "All data-names and screen-names subordinate
       *>   to a global name are global names ... All condition-names
       *>   associated with a global name are global names."
@@ -38,7 +38,7 @@
       *>   global name may reference that name without describing it
       *>   again."  cite.py --check 13.18.27.4 "A statement in a program
       *>   contained directly or indirectly within a program that
-      *>   describes" -> OK §2023:13.18.27.4 2)
+      *>   describes" -> OK §2023:13.18.27.4 GR2
       *> NESTING: PB1047O (outer) contains PB1047M (middle), which
       *>   contains PB1047I and PB1047J. Outer and middle BOTH declare
       *>   a GLOBAL group G; the outer G alone holds Y and Z, the middle

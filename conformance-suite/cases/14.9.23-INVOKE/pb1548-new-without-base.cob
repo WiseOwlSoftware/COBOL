@@ -6,7 +6,7 @@
 *>---
       *> ISO §2023:14.9.23.3 SR3: "If object-class-name-1 is specified, literal-1 shall be specified. The value of
       *> literal-1 shall be the name of a method defined in the factory interface of object-class-name-1."
-      *>                                                            cite.py: OK §2023:14.9.23.3 3)
+      *>                                                            cite.py: OK §2023:14.9.23.3 SR3
       *> New is not predefined for every class: §2023:16.2 "The interface BaseFactoryInterface specifies the factory
       *> interface of the BASE class" (cite.py: OK §2023:16.2), and a class has BASE's methods only by inheriting it
       *> (§2023:9.3.9). PB1548NC has no INHERITS clause, so its factory interface is empty and "NEW" names no method

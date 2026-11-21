@@ -19,7 +19,7 @@
       *> form - §2023:14.9.51.4 GR23: "the execution of the WRITE statement
       *> is unsuccessful and the I-O status ... is set to '71'".
       *>
-      *> §2023:14.9.35.4 GR17 b) compares BYTES - "If the number of bytes in
+      *> §2023:14.9.35.4 GR17b compares BYTES - "If the number of bytes in
       *> ... the record referenced by record-name-1 is greater than the
       *> number of bytes in the record being replaced, the execution of
       *> the REWRITE statement is unsuccessful" ('44'). A line is

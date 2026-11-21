@@ -6,7 +6,7 @@
       *> portable: unverified
       *>---
       *> kb/Work PB4975: a floating-point edited receiver may carry a
-      *> 1 to 36 digit significand (13.18.40.3 SR15; cite.py OK), and
+      *> 1 to 36 digit significand (§2023:13.18.40.3 SR15; cite.py OK), and
       *> the arithmetic value is rounded ONCE into the resultant
       *> (14.7.4.3 GR2 truncates with no ROUNDED phrase, GR4 rounds
       *> to the nearest value). A quotient reduced to 34 digits first

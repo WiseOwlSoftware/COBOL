@@ -160,6 +160,64 @@ _RULE = re.compile(RULE + r"\Z")
 PATTERN = (r"(?P<cite>§(?:(?P<edition>\d{4}):(?![<{(])(?P<locator>p\.[A-Z]+-\d+|[A-Z0-9]+(?:\.[A-Z0-9]+)*(?![a-z]))?"
            r"|\s?(?P<bare>(?:\d+|[A-Z])(?:\.\d+)+)(?![a-z]|\.[A-Z])))")
 _SCAN = re.compile(PATTERN + r"(?: (?P<rule>" + RULE + r"))?")
+#: ⛔ THE NON-CANONICAL DESIGNATOR SPELLINGS (kb/Work PB4976, PB6000). `scan` reads a citation's rule only in the one
+#: grammar, so a designator written another way stands after the citation UNREAD: `§2023:14.9.8.4 GR1 b)` is read as (citation-audit: example)
+#: GR1 and its sub-item is checked by nothing, `§2023:14.7.8 rule 2` and `§2023:9.1.13.6 item 1` as the bare clause. (citation-audit: example)
+#: `loose_designator` finds them; the citations audit refuses each (RESOLVE's `designator-not-canonical`).
+#: A sub-item path written spaced after a numbered rule, the way the standard PRINTS its labels. The levels ALTERNATE:
+#: a rule's items are lettered (`b)`), theirs numbered (`2.`, the tree also writes `2)`), theirs lettered (`b.`); so a
+#: path opens with a letter, and a label of the same kind as the one before it is a SIBLING (`a) b)`: items a and b),
+#: never a level, as a number right after a rule (`37) 39)`) is another rule.
+SPACED_PATH = re.compile(r" [a-z]\)(?: \d{1,2}(?:\)|\.(?=[\s)]))(?: [a-z](?:\)|\.(?=[\s)])))?)?")
+#: What, right after a spaced path or a bare rule label, makes the spelling a LIST rather than one designator: another
+#: label of the same shape (`a) b)`, `37) 39)`) or a range or conjunction of them (`a)/c)`, `a)-c)`, `3) and 5)`).
+_LISTED = re.compile(r"(?: (?:and|or|to|through) |\s?[/,–-]\s?| )\(?(?:[a-z]|\d{1,2})\)")
+#: A rule or list item named in words, or by a bare printed label, after a citation that names no rule: `rule 2`,
+#: `rules 3`, `<x> phrase rule 1`, `item 1`, `item (1)`, a bare `1)`.
+LOOSE_RULE = re.compile(r" (?:(?P<item>items? \(?\d+\)?)|(?:[A-Za-z-]+ phrase )?rules? (?P<word>\d+)|(?P<label>\d{1,2})\))"
+                        r"(?![\w.])")
+
+
+@dataclasses.dataclass(frozen=True)
+class Loose:
+    """A designator in no form `scan` reads, written after the citation `cited`: the text it spans (`written`, the
+    citation included, ending at `end`), the rule ordinal it names when it names one by number (`rule 2`, a bare `2)`),
+    and the sub-item path it writes spaced (`b) 2)` -> ('b', '2'))."""
+    cited: Citation
+    written: str
+    end: int
+    ordinal: int | None
+    path: tuple[str, ...]
+    #: A list of designators follows (`a) b)`, `a)/c)`, `37) 39)`): one canonical form cannot say it (`_LISTED`).
+    listed: bool = False
+
+    def glued(self, designator: str) -> str:
+        """The canonical citation: `designator` (the citation's own rule, or the one the ordinal names) with the path glued."""
+        tail = ("." if self.path and self.path[0].isdigit() else "") + ".".join(self.path)
+        return render(dataclasses.replace(self.cited, rule=designator + tail))
+
+
+def loose_designator(text: str, c: Citation) -> Loose | None:
+    """The designator in no form `scan` reads that follows the citation `c` found in `text`, else None: a spaced sub-item
+    path after a numbered rule (`GR3 c) 2)`, glued `GR3c.2`), or, after a citation that names no rule, a rule named in
+    words or by its bare printed label (`rule 2`, `2)`, then any spaced path) or a list item (`item 1`, whose designator
+    waits on kb/Work PB5449 item 4). Which kind of rule an ordinal is, is the rule catalog's to say (`cite.designator_of`)."""
+    if c.error or c.bare or c.edition is None:
+        return None
+    if c.rule:
+        if NUMBERED_RULE.match(c.rule) and (m := SPACED_PATH.match(text, c.end)):
+            return Loose(c, text[c.start:m.end()], m.end(), None, tuple(re.findall(r"[a-z]|\d+", m.group(0))),
+                         _LISTED.match(text, m.end()) is not None)
+        return None
+    if (m := LOOSE_RULE.match(text, c.end)) is None:
+        return None
+    end, path = m.end(), ()
+    if m["item"] is None and (p := SPACED_PATH.match(text, end)):
+        end, path = p.end(), tuple(re.findall(r"[a-z]|\d+", p.group(0)))
+    ordinal = None if m["item"] is not None else int(m["word"] or m["label"])
+    return Loose(c, text[c.start:end], end, ordinal, path, _LISTED.match(text, end) is not None)
+
+
 #: A WHOLE citation, as `cite.py --check` takes it.
 _WHOLE = re.compile(r"§(?P<edition>\d{4}):(?P<locator>\S+?)(?: (?P<rule>.+))?")
 #: A clause number written without its edition (`§14.9.8`, `14.9.8 GR1`): `parse` refuses it, naming the edition form.

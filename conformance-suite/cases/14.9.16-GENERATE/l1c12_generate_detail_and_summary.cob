@@ -17,10 +17,10 @@
       *>     -> OK  §2023:14.9.16.2   (General format)
       *>   cite.py --check 14.9.16.3 "Data-name-1 shall name a detail
       *>     report group."
-      *>     -> OK  §2023:14.9.16.3 1)  (Syntax rules)
+      *>     -> OK  §2023:14.9.16.3 SR1  (Syntax rules)
       *>   cite.py --check 14.9.16.3 "Report-name-1 may be used only if
       *>     the referenced report description
-      *>     entry contains a CONTROL clause."  -> OK  §2023:14.9.16.3 2)
+      *>     entry contains a CONTROL clause."  -> OK  §2023:14.9.16.3 SR2
       *>       (Syntax rules)
       *> GR2: "Execution of a GENERATE report-name-1 statement results
       *>   in the same processing as for a
@@ -30,7 +30,7 @@
       *>     report-name-1 statement results in the same
       *>     processing as for a GENERATE data-name statement for the
       *>       same report, except that no detail is
-      *>     printed."  -> OK  §2023:14.9.16.4 2)  (General rules)
+      *>     printed."  -> OK  §2023:14.9.16.4 GR2  (General rules)
       *> GR4 c)/d) (first GENERATE after INITIATE): "each control
       *>   heading is printed, wherever defined, in
       *> order from major to minor" ... "The specified detail is
@@ -39,17 +39,17 @@
       *>   "4) a)")
       *>   cite.py --check 14.9.16.4 "each control heading is printed,
       *>     wherever defined, in order from major
-      *>     to minor"  -> OK  §2023:14.9.16.4 4) a)  (General rules)
+      *>     to minor"  -> OK  §2023:14.9.16.4 GR4a  (General rules)
       *>   cite.py --check 14.9.16.4 "The specified detail is printed,
       *>     unless summary reporting is
-      *>     specified."  -> OK  §2023:14.9.16.4 4) a)  (General rules)
+      *>     specified."  -> OK  §2023:14.9.16.4 GR4a  (General rules)
       *> GR5 a)/b) (subsequent GENERATEs): "each control footing and
       *>   control heading is printed, if defined,
       *> up to the level of the control break" and the detail unless
       *>   summary reporting.
       *>   cite.py --check 14.9.16.4 "each control footing and control
       *>     heading is printed, if defined, up to
-      *>     the level of the control break"  -> OK  §2023:14.9.16.4 5) a)
+      *>     the level of the control break"  -> OK  §2023:14.9.16.4 GR5a
       *>       (General rules)
       *>
       *> The report is not divided into pages (no PAGE clause), so no

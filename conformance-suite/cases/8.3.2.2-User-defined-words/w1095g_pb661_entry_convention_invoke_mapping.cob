@@ -17,7 +17,7 @@
       *>     ignored"  -> OK §2023:8.3.2.2 2)
       *>   cite.py --check 11.9.7.4 "When COBOL is specified, the naming
       *>     convention and mapping of method-names and program-names
-      *>     are as specified in 8.3.2.2"  -> OK §2023:11.9.7.4 2)
+      *>     are as specified in 8.3.2.2"  -> OK §2023:11.9.7.4 GR2
       *> The mapping §2023:8.3.2.2 leaves to the implementor is documented in
       *> docs/CONFORMANCE.md DOC-A.1-68: two externalized names are the
       *> same name when they are equal ignoring case, and a method with
@@ -35,7 +35,7 @@
       *>            externalized name; nothing is resolved and
       *>            EC-OO-METHOD is set (§2023:9.3.6 6)), which the declarative
       *>            selects; the status is 31 characters, left-justified
-      *>            (§2023:15.33.3 rule 1).
+      *>            (§2023:15.33.3 RV1).
       *>   DONE     execution resumes at the next statement.
        >>TURN EC-OO-METHOD CHECKING ON
        IDENTIFICATION DIVISION.

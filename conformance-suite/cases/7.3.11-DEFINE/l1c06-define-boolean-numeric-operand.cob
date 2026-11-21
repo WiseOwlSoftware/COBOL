@@ -11,11 +11,11 @@
       *> boolean expressions."
       *>   cite.py --check 7.3.11.3 "Boolean-expression-1 shall be
       *>     formed in accordance
-      *>   with 7.3.7"  -> OK  §2023:7.3.11.3 4)  (Syntax rules)
+      *>   with 7.3.7"  -> OK  §2023:7.3.11.3 SR4  (Syntax rules)
       *>   cite.py --check 7.3.7.2 "all operands shall be boolean
       *>     literals or boolean
       *>   expressions in which all operands are boolean literals"
-      *>   -> OK  §2023:7.3.7.2 1)  (Syntax rule)
+      *>   -> OK  §2023:7.3.7.2 SR1  (Syntax rule)
       *> B"1" B-AND 1 is a boolean expression whose second operand is
       *>   the NUMERIC literal
       *> 1, not a boolean literal, so the DEFINE violates SR4 via

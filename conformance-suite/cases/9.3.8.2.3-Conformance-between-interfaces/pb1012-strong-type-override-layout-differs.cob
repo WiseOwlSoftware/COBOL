@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:9.3.8.2.3 rule 7 through §2023:11.7.3 SR9 — an OVERRIDE whose
+      *> ISO §2023:9.3.8.2.3 GR7 through §2023:11.7.3 SR9 — an OVERRIDE whose
       *>   strong type has the SAME type-name but a different layout
       *> Rule: "If either of the corresponding formal parameters or
       *>   returning items in interface-1 or interface-2 is a
@@ -12,7 +12,7 @@
       *> cite.py --check 9.3.8.2.3 "If either of the corresponding
       *>   formal parameters or returning items in interface-1 or
       *>   interface-2 is a strongly-typed group item, both are of the
-      *>   same type" -> OK  §2023:9.3.8.2.3 7)  (Conformance between
+      *>   same type" -> OK  §2023:9.3.8.2.3 GR7  (Conformance between
       *>   interfaces)
       *> cite.py --check 8.5.3.1 "starting at the same relative byte or
       *>   bit position and having the same length in bytes or bits"
@@ -20,7 +20,7 @@
       *> cite.py --check 11.7.3 "the parameter declarations, returning
       *>   item, and exceptions that may be raised on the procedure
       *>   division header shall obey the rules of conformance
-      *>   according to 9.3.8.2.3" -> OK  §2023:11.7.3 9)  (Syntax rules)
+      *>   according to 9.3.8.2.3" -> OK  §2023:11.7.3 SR9  (Syntax rules)
       *> PB1012NB's SWAPT overrides PB1012NA's (interface-1 is the
       *>   override's object interface, interface-2 the overridden
       *>   one's). Both formals are TYPE TT, a TYPEDEF STRONG of the

@@ -10,7 +10,7 @@
       *> §2002:13.5.3 GR1 makes them automatic data, and
       *> §2002:14.5.2.1.2.1 places automatic data in the initial state
       *> "every time the function, method, or program in which it is
-      *> described is activated"; §2002:13.16.61.3 GR4 c) applies the
+      *> described is activated"; §2002:13.16.61.3 GR4c applies the
       *> VALUE "when the object or runtime element is placed in initial
       *> state" and initializes class pointer items to null.
       *> Each of the three source elements that may hold the section

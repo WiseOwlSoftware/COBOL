@@ -9,7 +9,7 @@
       *> detail report group description, in an elementary entry that also contains a COLUMN clause and a
       *> SOURCE or VALUE clause."
       *>   cite.py --check 13.18.28.3 "in an elementary entry that also contains a COLUMN clause and a
-      *>     SOURCE or VALUE clause"  -> OK  §2023:13.18.28.3 1)  (Syntax rule)
+      *>     SOURCE or VALUE clause"  -> OK  §2023:13.18.28.3 SR1  (Syntax rule)
       *> The printable item below has a COLUMN clause and a SUM clause, which satisfies §2023:13.15.3 SR10, but
       *> neither a SOURCE nor a VALUE clause, which §2023:13.18.28.3 SR1 requires of an indicated item. It is
       *> the only diagnostic the program draws at every edition.

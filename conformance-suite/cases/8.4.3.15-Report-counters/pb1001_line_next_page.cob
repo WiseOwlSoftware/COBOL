@@ -16,14 +16,14 @@
       *>   of an INITIATE statement" takes a page fit test, and a) "If the first LINE clause has a NEXT PAGE
       *>   phrase, no page fit test takes place and the page fit is declared unsuccessful." "Which LINE clause is
       *>   taken to be the first may depend on the current values of conditions in PRESENT WHEN clauses."
-      *> §2023:13.18.35.4 GR5 a) — an absolute first line is printed at integer-1; "If in addition the NEXT PAGE phrase
+      *> §2023:13.18.35.4 GR5a — an absolute first line is printed at integer-1; "If in addition the NEXT PAGE phrase
       *>   is present and the report group is a report footing, the first line is printed beginning on a new
       *>   page." GR5 b) 3. — the first body group on a page begins at the FIRST DETAIL integer.
-      *> §2023:13.18.37.4 GR4 a) 2. — after an absolute NEXT GROUP filled the save location, a next body group that
+      *> §2023:13.18.37.4 GR4a.2 — after an absolute NEXT GROUP filled the save location, a next body group that
       *>   begins "with an absolute LINE clause with the NEXT PAGE phrase" takes a page advance, the save
       *>   location moves to LINE-COUNTER, and it is then processed "as for an identical report group without
       *>   the NEXT PAGE phrase". ONE advance: the one the save location forces (docs/CONFORMANCE.md).
-      *> §2023:13.18.57.4 GR6 b) — no page heading before "a report footing on a page by itself"; GR6 f) 2. — no page
+      *> §2023:13.18.57.4 GR6b — no page heading before "a report footing on a page by itself"; GR6 f) 2. — no page
       *>   footing "on the last page, if it is occupied only by a report footing group"; GR7 f) — the upper
       *>   limit of such a footing is the HEADING integer (where the bare form, which writes no integer, begins
       *>   — a determination, docs/CONFORMANCE.md).

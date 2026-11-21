@@ -15,12 +15,12 @@
       *>     receiving data item does not include an explicit decimal
       *>     point specification, the data item is treated as if it had
       *>     an assumed decimal point immediately following its
-      *>     rightmost digit" -> OK §2023:14.6.8.2 3)
+      *>     rightmost digit" -> OK §2023:14.6.8.2 GR3
       *>   cite.py --check 14.6.8.2 "If the receiving operand is a
       *>     fixed-point numeric item, the data is aligned by decimal
       *>     point and is transferred to the receiving digits with zero
       *>     fill or truncation on either end as required"
-      *>     -> OK §2023:14.6.8.2 4)
+      *>     -> OK §2023:14.6.8.2 GR4
       *> No receiver below has V, '.', or P, so each is an integer
       *> receiver; r4 then aligns on that point: every fraction digit
       *> is truncated, integer digits are right-aligned and zero

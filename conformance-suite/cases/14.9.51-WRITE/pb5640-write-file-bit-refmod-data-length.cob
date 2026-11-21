@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5640 review R1-1. §2023:14.9.51.3 SR9 a) (and the 2002/2014 forms): a bit identifier-1 with the FILE phrase has subscripting and reference modification of only fixed-point numeric literals, the length included, at every edition, so B8(1:L) with the data-name L is refused. Expected: COBOL7353.
+      *> kb/Work PB5640 review R1-1. §2023:14.9.51.3 SR9a (and the 2002/2014 forms): a bit identifier-1 with the FILE phrase has subscripting and reference modification of only fixed-point numeric literals, the length included, at every edition, so B8(1:L) with the data-name L is refused. Expected: COBOL7353.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P5640W01.
        ENVIRONMENT DIVISION.

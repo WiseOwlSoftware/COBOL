@@ -10,7 +10,7 @@
       *> externalized as "A.B.C"; C is an item of ANOTHER record,
       *> externalized as "A.B". The two RELATIVE KEY items are therefore
       *> two external data items, not "the same corresponding storage"
-      *> (§2023:14.8.4.2), and §2023:12.4.5.3 GR1 h) refuses the run
+      *> (§2023:14.8.4.2), and §2023:12.4.5.3 GR1h refuses the run
       *> unit (COBOL1575). A compiler that spells the record and item as
       *> one dotted name ("A.B.C" either way) accepts it.
        IDENTIFICATION DIVISION.

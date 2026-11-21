@@ -13,15 +13,15 @@
       *>   user documentation."
       *> cite.py --check 8.1.2 "The implementor shall specify one and
       *>   only one national coded character value associated with each
-      *>   of the following COBOL elements" -> OK  §2023:8.1.2 3)
+      *>   of the following COBOL elements" -> OK  §2023:8.1.2 GR3
       *>   (Computer's coded character set)
       *> cite.py --check 8.1.2 "The implementor shall specify one and
-      *>   only one alphanumeric coded character value" -> OK  §2023:8.1.2 3)
+      *>   only one alphanumeric coded character value" -> OK  §2023:8.1.2 GR3
       *>   (Computer's coded character set)
       *> cite.py --check 15.70.4 "If the class of argument-1 is
       *>   national, the returned value is the ordinal position of
       *>   argument-1 in the current national program collating
-      *>   sequence" -> OK  §2023:15.70.4 2)  (Returned value rules)
+      *>   sequence" -> OK  §2023:15.70.4 RV2  (Returned value rules)
       *> The documented choice pinned (docs/CONFORMANCE.md DOC-A.1-32):
       *>   the national values are the SAME code units as the
       *>   alphanumeric ones

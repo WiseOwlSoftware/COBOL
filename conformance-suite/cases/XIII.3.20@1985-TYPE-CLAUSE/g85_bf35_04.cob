@@ -30,7 +30,7 @@
       *> CH K1, CH K2 major to minor, then the detail (§1985:XIII.4.3.4
       *> GR5), with the current values A+1, and the RWCS saves A,+1.
       *> G2: K2 changed, K1 did not, so the break is at the K2 level:
-      *> CF K2 with the prior values A+1 (§1985:XIII.3.20.4 GR13 a),
+      *> CF K2 with the prior values A+1 (§1985:XIII.3.20.4 GR13a,
       *> then CH K2 and the detail with the current A+2 (GR13 c); K1's
       *> groups are not processed (§1985:XIII.4.3.4 GR6 a 2) and 3):
       *> only groups not more major than the highest break level); the
@@ -43,9 +43,9 @@
       *> every control footing, minor first, CF K2, CF K1, CF FINAL,
       *> then the report footing, all with the prior set C+5 as though
       *> a break in the most major control had been sensed
-      *> (§1985:XIII.4.7.4 GR1, §1985:XIII.3.20.4 GR13 b). The file
+      *> (§1985:XIII.4.7.4 GR1, §1985:XIII.3.20.4 GR13b. The file
       *> holds the 22 lines in that order, LINE PLUS 1 each
-      *> (§1985:XIII.3.10.8 GR4 d).
+      *> (§1985:XIII.3.10.8 GR4d.
       *>
       *> Fails if the hierarchy is misordered (a CF K1 at G2, CH groups
       *> minor first, CF groups major first), if a break is sensed at

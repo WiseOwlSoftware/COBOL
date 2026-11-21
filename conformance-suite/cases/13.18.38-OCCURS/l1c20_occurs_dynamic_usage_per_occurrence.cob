@@ -14,7 +14,7 @@
       *>   clause itself, all data description clauses associated
       *>   with an item whose description includes an OCCURS clause
       *>   apply to each occurrence of the item described."
-      *>   OK  §2023:13.18.38.4 1)  (General rules)
+      *>   OK  §2023:13.18.38.4 GR1  (General rules)
       *> §2023:8.5.1.9.2: a dynamic-capacity table element referenced as a
       *>   sending operand gives "the same [result] as for a
       *>   fixed-capacity table whose number of occurrences is the

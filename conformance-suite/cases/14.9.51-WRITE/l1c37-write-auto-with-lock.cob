@@ -11,7 +11,7 @@
       *>   cite.py --check 14.9.51.3 "If automatic locking has been
       *>   specified for the write file, neither the WITH LOCK phrase
       *>   nor the WITH NO LOCK phrase shall be specified"
-      *>   -> OK  §2023:14.9.51.3 22)  (Syntax rules)
+      *>   -> OK  §2023:14.9.51.3 SR22  (Syntax rules)
       *> The file specifies LOCK MODE IS AUTOMATIC and the WRITE carries
       *> WITH LOCK; everything else is valid (format 2 on a relative file,
       *> SR3), so the only reason to reject is SR22. The lock phrases

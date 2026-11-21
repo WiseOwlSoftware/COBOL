@@ -97,7 +97,7 @@ spec/code citation, but confirm at step start).
    master exclusion rule is **§2023:13.16.3 SR18** (only level-number/entry-name/PICTURE/USAGE/**VALUE** permitted), not the
    plan's §2023:13.18.19.3; (b) **VALUE is permitted and sets a NON-ZERO initial length** (§2023:8.6.4) — the plan's "emit a field
    initialized to empty" is wrong for VALUE'd entries; (c) truncation-on-overflow is **§2023:8.5.1.10.4**, not GR2; (d)
-   `FUNCTION LENGTH` on a dynamic-length item returns the current length **in BYTES** (§2023:15.50.4 rule 6) — a PIC N
+   `FUNCTION LENGTH` on a dynamic-length item returns the current length **in BYTES** (§2023:15.50.4 RV6) — a PIC N
    naive character count would be wrong.
 
 8. **VersionMatrixTests method names in the plan are fictional. [VERIFIED]**

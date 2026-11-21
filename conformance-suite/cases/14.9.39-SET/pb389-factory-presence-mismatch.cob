@@ -7,7 +7,7 @@
       *> ISO §2023:14.9.39.3 syntax rule 12 a)3.: "the presence or absence of the FACTORY phrase
       *> shall be the same as in the description of the data item referenced by
       *> identifier-3."  A FACTORY-described reference holds a class's FACTORY object
-      *> (§2023:13.18.60.4 GR22 d)1.a.) and one described without it holds an INSTANCE object
+      *> (§2023:13.18.60.4 GR22d1.a.) and one described without it holds an INSTANCE object
       *> (d)1.b.) — two different objects of two different method interfaces (§2023:9.3.6), so the
       *> axis is INVARIANT in both directions, never widening.  Until kb/Work PB389 the
       *> compiler carried no FACTORY field to compare: the rule was "enforced" only by the

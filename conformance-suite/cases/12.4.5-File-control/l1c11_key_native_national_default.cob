@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:12.4.5.3 GR6 b) — no COLLATING SEQUENCE: national keys
+      *> ISO §2023:12.4.5.3 GR6b — no COLLATING SEQUENCE: national keys
       *>   (prime and alternate) use the native national order
       *> Rule: "If no COLLATING SEQUENCE clause is specified: ... b) the
       *>   collating sequence for national record keys, both primary
@@ -13,7 +13,7 @@
       *>   cite.py --check 12.4.5.3 "the collating sequence for national
       *>   record keys, both primary and alternate, is the native
       *>   national collating sequence"
-      *>   -> OK  §2023:12.4.5.3 6) b)  (General rules)
+      *>   -> OK  §2023:12.4.5.3 GR6b  (General rules)
       *>   cite.py --check 9.1.8.2 "the order of sequential access when
       *>   NEXT is specified or implied on a READ statement is
       *>   ascending based on the value of the key of reference

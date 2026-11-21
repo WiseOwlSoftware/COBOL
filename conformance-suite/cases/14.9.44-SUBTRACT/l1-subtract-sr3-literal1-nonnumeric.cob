@@ -25,7 +25,7 @@
       *> `{identifier-1 | literal-1}` (§2023:14.9.44.2), not
       *> arithmetic-expression-1, so §2023:8.8.1.1 — which says what an
       *> ARITHMETIC EXPRESSION may be built from — does not govern
-      *> it.  The clause that does is §2023:8.3.3.6.3 SR1 a): "If the
+      *> it.  The clause that does is §2023:8.3.3.6.3 SR1a: "If the
       *> literal is restricted to a numeric literal, the only
       *> figurative constant permitted is ZERO (ZEROS, ZEROES)
       *> without the ALL phrase."  SR3 restricts literal-1 to a

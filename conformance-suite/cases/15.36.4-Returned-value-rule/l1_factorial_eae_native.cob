@@ -10,12 +10,12 @@
       *>
       *> --check validated:
       *>   cite.py --check 15.36.4 "The equivalent arithmetic expression is as follows"
-      *>     -> OK §2023:15.36.4 1)   a) 0 or 1 -> (1)   b) 2 -> (2)   c) n -> (n * (n-1) * ... * 1)
+      *>     -> OK §2023:15.36.4 RV1   a) 0 or 1 -> (1)   b) 2 -> (2)   c) n -> (n * (n-1) * ... * 1)
       *>   cite.py --check 15.36.1 "The type of this function is integer." -> OK §2023:15.36.1
       *>   cite.py --check 15.36.3 "Argument-1 shall be an integer greater than or equal to zero."
-      *>     -> OK §2023:15.36.3 1)
+      *>     -> OK §2023:15.36.3 AR1
       *>   cite.py --check 11.9.5.2 "it is as if the ARITHMETIC clause were specified with the
-      *>     NATIVE phrase" -> OK §2023:11.9.5.2 4) - which is what an absent OPTIONS paragraph selects
+      *>     NATIVE phrase" -> OK §2023:11.9.5.2 GR4 - which is what an absent OPTIONS paragraph selects
       *>     and is the ONLY mode reachable at COBOL-85, the OPTIONS paragraph being later.
       *>   §2023:15.2 item 5: "Integer functions. These are of the class and category numeric. An
       *>     integer function has an operational sign and no digits to the right of the decimal

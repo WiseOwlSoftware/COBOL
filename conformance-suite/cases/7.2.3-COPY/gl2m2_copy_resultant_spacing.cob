@@ -15,19 +15,19 @@
       *>   or at the end of a source line."
       *>   cite.py --check 7.2.3.4 "The resultant text after
       *>     replacement shall be in logical free-form reference
-      *>     format. ..." -> OK  §2023:7.2.3.4 11)  (General rules)
+      *>     format. ..." -> OK  §2023:7.2.3.4 GR11  (General rules)
       *> Supporting rules (each run through cite.py --check):
-      *>   §2023:7.2.2.5 1) "the colon, the right parenthesis, and the left
+      *>   §2023:7.2.2.5 GR1 "the colon, the right parenthesis, and the left
       *>     parenthesis characters, in any context except within
       *>     alphanumeric or national literals, are treated as
       *>     separators" -> OK: in the library text X(L1G2N) the word
       *>     L1G2N is its own text-word, so ==L1G2N== matches it.
-      *>   §2023:7.2.3.4 GR9 b) LEADING / TRAILING partial-word matching and
+      *>   §2023:7.2.3.4 GR9b LEADING / TRAILING partial-word matching and
       *>     GR9 f) "the library text-word is placed into the resultant
       *>     text with the matched characters either replaced by
       *>     partial-word-2 ..." -> OK (cite.py labels both "9) a)",
       *>     the known sub-item labelling quirk).
-      *>   §2023:8.3.5 4) "Except when appearing in a picture
+      *>   §2023:8.3.5 SR4 "Except when appearing in a picture
       *>     character-string, the COBOL characters right parenthesis
       *>     and left parenthesis are separators." -> OK; §2023:8.3.1 "A
       *>     character-string is delimited by separators." -> OK; §2023:8.3.5

@@ -421,9 +421,10 @@ def conformance_sections() -> frozenset[str]:
 #: (`#DOC-A.1-<n>`, `#DRV-{rule-id}`), is a pattern a tool fills in, never a citation.
 CONFORMANCE_CITE = re.compile(r"CONFORMANCE\.md,? §([0-9]+(?:\.[0-9]+)*)|CONFORMANCE\.md#([A-Za-z0-9._-]++)(?![<{])")
 
-#: The work register's note bodies are not the arm's population: a note's prose is its owner's history (CLAUDE.md rule
-#: 8: a filed note is edited only by its owner), and what it named then is not a pointer a reader follows now.
-CONFORMANCE_HISTORY = "kb/Work/"
+#: The work register's note bodies are not the CONFORMANCE arm's population, nor RESOLVE's designator-form check's: a note's
+#: prose is its owner's history (CLAUDE.md rule 8: a filed note is edited only by its owner), what it named then is not a
+#: pointer a reader follows now, and a note REPORTS the wrong spellings it is about (kb/Work PB4976 lists them by site).
+REGISTER_HISTORY = "kb/Work/"
 
 
 @functools.lru_cache(maxsize=None)
@@ -436,7 +437,7 @@ def conformance_findings(rel: str, lines: list[str], sections: frozenset[str],
                          keys: frozenset[str]) -> list[tuple[str, str, str, str]]:
     """CONFORMANCE over ONE file's lines: every `CONFORMANCE.md §N` names a section the statement has, and every
     anchor after `CONFORMANCE.md#` one of its keys (kb/Work PB5430). The one implementation the audit and its self-test share."""
-    if rel.startswith(CONFORMANCE_HISTORY):
+    if rel.startswith(REGISTER_HISTORY):
         return []
     out: list[tuple[str, str, str, str]] = []
     for n, line in enumerate(lines, 1):
@@ -551,12 +552,13 @@ def context_of(lines: list[str], at: int) -> str:
     return "" if at == 0 or lines[at].startswith("|") else lines[at - 1]
 
 
-def resolve_line(line: str, prev: str = "") -> list[tuple[citation.Citation, "cite_mod.Verdict"]]:
-    """(citation, refusing verdict) for every edition-form citation on ONE line that `cite.resolve` refuses."""
+def resolve_line(line: str, prev: str = "", form: bool = True) -> list[tuple[citation.Citation, "cite_mod.Verdict"]]:
+    """(citation, refusing verdict) for every edition-form citation on ONE line that `cite.resolve` refuses, and, with
+    `form`, every one a designator in no canonical form follows (`designator-not-canonical`, kb/Work PB4976, PB6000)."""
     import audit_doc_citations  # noqa: PLC0415  (the quotation pairing's one reader; it imports this module's peers)
     quoted = {}
-    for col, paired, quote, form in audit_doc_citations.citations(line):
-        quoted[paired.start] = (quote, col, form)
+    for col, paired, quote, shape in audit_doc_citations.citations(line):
+        quoted[paired.start] = (quote, col, shape)
     out = []
     if NAMED_AS_WRONG.search(line) or NAMED_AS_WRONG.search(prev):
         return out                                   # the line REPORTS a wrong citation (`_reported`'s first arm)
@@ -565,8 +567,16 @@ def resolve_line(line: str, prev: str = "") -> list[tuple[citation.Citation, "ci
             continue                                 # ⛔ not `_reported`: its quoted-spelling arm is PHANTOM's; a
             #                                          citation in backticks or quotes is the commonest form in docs/
             #                                          and kb/Work, and inheriting it left them unchecked (PB5317 R1-3)
-        quote, col, form = quoted.get(c.start, (None, 0, ""))
-        if form == "prefix" and audit_doc_citations.names_another_rule(line[c.end:col]):
+        if form and (loose := citation.loose_designator(line, c)) is not None:
+            canonical = canonical_of(loose)
+            out.append((c, cite_mod.Verdict(
+                "designator-not-canonical",
+                f"{loose.written!r}: the designator after {citation.render(c)} is in no form the citation parser reads, "
+                "so it is unread; " + (f"write {canonical}" if canonical else
+                                       "write SR n, GR n, AR n or RV n, the one `cite.py --check` with the quotation names"),
+                canonical)))
+        quote, col, pairing = quoted.get(c.start, (None, 0, ""))
+        if pairing == "prefix" and audit_doc_citations.names_another_rule(line[c.end:col]):
             quote = None                             # the quote is the rule the prose names next, not this one's
         v = _resolved(c.edition, c.locator, c.rule, quote)
         if v.kind == "text-not-found" or (v.kind == "text-not-in-clause"
@@ -579,6 +589,26 @@ def resolve_line(line: str, prev: str = "") -> list[tuple[citation.Citation, "ci
             if not m.ok and m.kind != "no-clause":
                 out.append((member, m))
     return out
+
+
+def canonical_of(loose: "citation.Loose") -> str | None:
+    """The canonical citation a non-canonical designator spells, when it has exactly one: a spaced sub-item path glued
+    to its rule (`GR3 c) 2)` -> `GR3c.2`), a rule named by number made the designator the catalog gives it (`rule 20`,
+    `20)` -> `GR20`), else None (a list item, a prose clause, an ordinal two kinds share, a list of designators:`n    `a) b)`, `37) 39)`, `a)/c)`)."""
+    c = loose.cited
+    if loose.listed:
+        return None
+    if loose.ordinal is None:
+        return loose.glued(c.rule) if c.rule else None
+    designator = _designator_of(c.edition, c.locator, loose.ordinal)
+    return loose.glued(designator) if designator else None
+
+
+@functools.lru_cache(maxsize=None)
+def _designator_of(edition: int, locator: str, ordinal: int) -> str | None:
+    if citation.transcription(edition) is None:
+        return None
+    return cite_mod.designator_of(edition, locator, ordinal)
 
 
 @functools.lru_cache(maxsize=None)
@@ -601,9 +631,49 @@ def resolve_scan(paths) -> list[Resolved]:
         for i, line in enumerate(lines, 1):
             if "§" not in line or citation.example(line):
                 continue
-            for c, v in resolve_line(line, context_of(lines, i - 1)):
+            for c, v in resolve_line(line, context_of(lines, i - 1), form=not rel.startswith(REGISTER_HISTORY)):
                 out.append(Resolved(rel, i, citation.render(c), v.kind, v.message, v.suggestion, c.edition))
     return out
+
+
+def canonicalize_line(line: str, prev: str = "") -> str:
+    """`line` with every non-canonical designator that has exactly one canonical form (`canonical_of`) rewritten to it,
+    and nothing else changed: the same citations `resolve_line` refuses as `designator-not-canonical`, read the same way
+    (a marked example line and a line that reports a wrong citation stay as written)."""
+    if "§" not in line or citation.example(line) or NAMED_AS_WRONG.search(line) or NAMED_AS_WRONG.search(prev):
+        return line
+    spans = []
+    for c in citation.scan(line):
+        if c.error or c.bare or _repair_record(line, c):
+            continue
+        if (loose := citation.loose_designator(line, c)) is not None and (canonical := canonical_of(loose)):
+            spans.append((c.start, loose.end, canonical))
+    for start, end, canonical in reversed(spans):
+        line = line[:start] + canonical + line[end:]
+    return line
+
+
+def canonicalize(prefixes: list[str]) -> int:
+    """`--canonicalize`: rewrite in place, in every file of the RESOLVE population under one of `prefixes`, each
+    non-canonical designator `canonicalize_line` can rewrite (kb/Work PB4976, PB6000), and print the count per file. The
+    work register's note bodies are never rewritten (their owner's history, `REGISTER_HISTORY`), nor the DEVLOG. A
+    citation it writes is then RESOLVE's to check like any other: a sub-item or ordinal it names that the rule lacks was
+    as wrong before, unread."""
+    total = 0
+    for path in resolve_population():
+        rel = path.relative_to(REPO).as_posix()
+        if not rel.startswith(tuple(prefixes)) or rel.startswith((REGISTER_HISTORY, "DEVLOG/")):
+            continue
+        raw = path.read_bytes().decode("utf-8")
+        lines = raw.split("\n")
+        out = [canonicalize_line(line, lines[i - 1] if i and not line.startswith("|") else "") for i, line in enumerate(lines)]
+        changed = sum(a != b for a, b in zip(lines, out))
+        if changed:
+            path.write_bytes("\n".join(out).encode("utf-8"))
+            print(f"  {rel}: {changed} line(s)")
+            total += changed
+    print(f"canonicalized {total} line(s)")
+    return 0
 
 
 def resolve_population() -> list[pathlib.Path]:
@@ -651,8 +721,10 @@ def write_baseline(found: list[Resolved], path: pathlib.Path = RESOLVE_BASELINE,
     entries = [{"file": r.file, "line": r.line, "citation": r.citation, "kind": r.kind} for r in found]
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({
-        "_comment": ["DEBT (kb/Work PB5317): every citation the one checker (scripts/spec/cite.py resolve) refuses that",
-                     "the repository held when RESOLVE landed, by file, line, citation and failure kind. The CITATIONS",
+        "_comment": ["DEBT (kb/Work PB5317, PB4976): every citation the one checker (scripts/spec/cite.py resolve) refuses,",
+                     "or whose designator is in no form the parser reads (designator-not-canonical: the spaced, `rule N`,",
+                     "`item N` and bare-label spellings left when that arm landed, most of them in C#), that the repository",
+                     "held when its arm landed, by file, line, citation and failure kind. The CITATIONS",
                      "audit allows exactly these and may only SHRINK: a new failure is RED, and so is an entry that no",
                      "longer fails. Repair a citation, then rewrite this file with",
                      "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."],
@@ -715,15 +787,23 @@ def resolve_self_test() -> bool:
         ("no-format", "/// PERFORM VARYING (ISO §2023:14.9.28 Format 4): nested induction loops"),  # citation-audit: example
         (None, "/// PERFORM VARYING (ISO §2023:14.9.28 Format 2): nested induction loops"),
         ("no-sub-item", "/// serial SEARCH with VARYING (ISO §2023:14.9.37.4 GR8b) falls through"),  # citation-audit: example
-        (None, "/// serial SEARCH with VARYING (ISO §2023:14.9.37.4 GR3 c) 2) falls through"),
+        ("designator-not-canonical", "/// serial SEARCH with VARYING (ISO §2023:14.9.37.4 GR3 c) 2) falls through"),  # citation-audit: example
         # the English ARTICLE after a rule number is no sub-item (kb/Work PB388, wave 47)
         (None, "/// ISO basis — §2023:14.9.37.4 GR8 (a serial SEARCH with VARYING falls through)"),
         ("text-not-in-rule", '/// An UNSIGNED receiver stores "the absolute value of the sending value" (ISO §2023:14.9.25.4 GR8) '  # citation-audit: example
                              'mod 2^bits.'),
         (None, '/// An UNSIGNED receiver stores "the absolute value of the sending value" (ISO §2023:14.9.25.4 GR6) '
                'mod 2^bits.'),
-        # the DEPTH tolerance: `GR6 d) 2. b.)` is the same top-level rule as `GR6`
-        (None, '// An UNSIGNED item holds the magnitude (§2023:14.9.25.4 GR6 d) 2. b.) — "the absolute value").'),
+        # a sub-item path written spaced is unread, so it is refused as no canonical form (kb/Work PB6000); glued, it is
+        # read and checked to its depth
+        ("designator-not-canonical",
+         '// An UNSIGNED item holds the magnitude (§2023:14.9.25.4 GR6 d) 2. b.) — "the absolute value").'),  # citation-audit: example
+        (None, '// An UNSIGNED item holds the magnitude (§2023:14.9.25.4 GR6d.2.b) — "the absolute value").'),
+        # a rule or a list item named in words or by its bare label is unread (kb/Work PB4976)
+        ("designator-not-canonical", "// the receiver (§2023:14.9.25.4 rule 6) is stored"),  # citation-audit: example
+        ("designator-not-canonical", "// the receiver (§2023:14.9.25.4 6)) is stored"),  # citation-audit: example
+        ("designator-not-canonical", "// an unlimited capacity (§2023:8.5.1.9.1 item 2)"),  # citation-audit: example
+        ("designator-not-canonical", "the SORT statement (§1985:XI.4.4.4 rule 7) is read"),  # citation-audit: example
         # a rule chain (`GR6/GR99`) is every designator of it, not only the first (`citation.chain`)
         ("no-ordinal", "// the receiver rules (§2023:14.9.25.4 GR6/GR99) apply"),  # citation-audit: example
         ("no-ordinal", "// the receiver rules (§2023:14.9.25.4 GR6, GR8 and GR99) apply"),  # citation-audit: example
@@ -772,6 +852,25 @@ def resolve_self_test() -> bool:
         stale = baseline_drift([a], read_baseline(probe))[1]
         refused = write_baseline([a, b, dataclasses.replace(b, file="docs/y.md")], probe) == 1
         shrinks = write_baseline([a], probe) == 0 and len(read_baseline(probe)) == 1
+    rewrites = [  # canonicalize_line: each non-canonical designator with one canonical form, and what it leaves alone
+        ("(ISO §2023:14.9.37.4 GR3 c) 2) falls", "(ISO §2023:14.9.37.4 GR3c.2 falls"),  # citation-audit: example
+        ("(COBOL2199, §2023:13.18.35.3 SR6 e)) an", "(COBOL2199, §2023:13.18.35.3 SR6e) an"),  # citation-audit: example
+        ("the receiver (§2023:14.9.25.4 rule 6) is", "the receiver (§2023:14.9.25.4 GR6) is"),  # citation-audit: example
+        ("the receiver §2023:14.9.25.4 6) b) is", "the receiver §2023:14.9.25.4 GR6b is"),  # citation-audit: example
+        ("the SORT statement (§1985:XI.4.4.4 rule 7)", "the SORT statement (§1985:XI.4.4.4 GR7)"),  # citation-audit: example
+        ("an unlimited capacity (§2023:8.5.1.9.1 item 2)", None),  # citation-audit: example
+        ("the regions (§2023:14.9.22.4 GR9 a) b)) of", None),  # citation-audit: example
+        ("the keys (§2023:14.9.51.4 37) 39)) of", None),  # citation-audit: example
+        ("the operands (§2023:14.9.18.3 SR4 a)/c)) of", None),  # citation-audit: example
+        ("a phantom's (§2023:14.9.25.4 rule 6)", None),  # citation-audit: example
+    ]
+    rewrote = all(canonicalize_line(a) == (b if b is not None else a) for a, b in rewrites)
+    history = not resolve_line("the receiver (§2023:14.9.25.4 rule 6) is stored", form=False)  # citation-audit: example
+    print(f"  {'ok  ' if history else 'FAIL'} a work-register note's body is not read for the designator form")
+    ok &= history
+    print(f"  {'ok  ' if rewrote else 'FAIL'} --canonicalize glues a spaced path, names a numbered rule by its catalog "
+          "designator, and leaves a list item and a line that reports a wrong citation as written")
+    ok &= rewrote
     rows = ["| a | names a wrong citation: phantom |", "| b | §2023:14.9.8 GR1 |", "a phantom sentence", "wrapped here"]
     context = [context_of(rows, i) for i in range(4)] == ["", "", "| b | §2023:14.9.8 GR1 |", "a phantom sentence"]
     print(f"  {'ok  ' if context else 'FAIL'} a wrapped line reads the line above as its context, and a table row reads none")
@@ -1457,7 +1556,7 @@ def conformance_self_test() -> bool:
         print(f"  {'ok  ' if got == want else 'FAIL'} CONFORMANCE gives {want} on {line[:70]}"
               + ("" if got == want else f"  (got {got})"))
         ok &= got == want
-    held = conformance_findings(CONFORMANCE_HISTORY + "PB1.md", [CONFORMANCE_SELF_TEST[0][0]], sections, keys)
+    held = conformance_findings(REGISTER_HISTORY + "PB1.md", [CONFORMANCE_SELF_TEST[0][0]], sections, keys)
     print(f"  {'ok  ' if not held else 'FAIL'} CONFORMANCE reads no work-register note")
     return ok and not held
 
@@ -1652,9 +1751,14 @@ def main() -> int:
     ap.add_argument("--grow", action="store_true",
                     help="with --write-baseline: let it ADD entries. Only for a change that makes the CHECKER stricter "
                          "(a rule catalog lands, a new arm), which names the growth and its count in its kb/Work note")
+    ap.add_argument("--canonicalize", nargs="+", metavar="PREFIX",
+                    help="rewrite in place every non-canonical designator with exactly one canonical form (RESOLVE's "
+                         "designator-not-canonical) in the population's files under these path prefixes")
     args = ap.parse_args()
     if args.sweep:
         return sweep(args.sweep)
+    if args.canonicalize:
+        return canonicalize(args.canonicalize)
     if args.write_baseline:
         return write_baseline(resolve_scan(resolve_population()), grow=args.grow)
 

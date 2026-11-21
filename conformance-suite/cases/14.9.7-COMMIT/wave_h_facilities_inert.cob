@@ -8,7 +8,7 @@
       *> Wave H — facility statements that change nothing the program can see here. With no APPLY COMMIT clause
       *> active COMMIT and ROLLBACK each have "the same effect as a CONTINUE statement" (§2023:14.9.7.4 GR1,
       *> §2023:14.9.36.4 GR1); VALIDATE of an alphanumeric item has no stage to take part in (PICTURE X accepts any content,
-      *> §2023:14.9.50.4 GR6 a) and no exception checking is on, so it changes nothing (GR5); the messaging statements
+      *> §2023:14.9.50.4 GR6a and no exception checking is on, so it changes nothing (GR5); the messaging statements
       *> are the 2023 facility (kb/Work PB4744). The surrounding statements execute normally.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. WAVEHINERT.

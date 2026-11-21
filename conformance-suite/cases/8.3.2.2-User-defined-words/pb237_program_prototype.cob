@@ -49,7 +49,7 @@
        01 WS-OUT PIC 9(4) VALUE 0.
        PROCEDURE DIVISION.
        MAIN.
-      *> §2023:14.9.4.4 GR3 b) third bullet - no identifier-1 and no literal-1, so the prototype
+      *> §2023:14.9.4.4 GR3b third bullet - no identifier-1 and no literal-1, so the prototype
       *> determines the externalized program-name. §2023:14.6.2.3.2: first activation, initial state.
            CALL PB237ADD USING WS-N
            DISPLAY "CALL-1 =" WS-N

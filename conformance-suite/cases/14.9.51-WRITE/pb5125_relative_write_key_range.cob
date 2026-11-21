@@ -8,10 +8,10 @@
       *> kb/Work PB5125 - a random or dynamic WRITE of a relative file whose key is outside the file's boundaries, from 2014:
       *> I-O status 34, a permanent error, so neither the INVALID KEY nor the NOT INVALID KEY phrase runs.
       *>
-      *> §2023:14.9.51.4 GR29 b) (cite.py --check): "If the relative key data item contains a value that is less than 1 or
+      *> §2023:14.9.51.4 GR29b (cite.py --check): "If the relative key data item contains a value that is less than 1 or
       *> greater than the highest relative record number permitted for the file, the execution of the WRITE statement is
       *> unsuccessful, and the I O status for the write file connector is set to '34'." The 2014 text carries the same
-      *> sentence (§2014:14.9.47.3 GR26 b). The earlier editions answer 24
+      *> sentence (§2014:14.9.47.3 GR26b. The earlier editions answer 24
       *> and the invalid key condition for the same attempt: see pb5125_relative_write_key_range_pre2014.
       *>
       *> The highest permitted number is WiseOwl's 2 147 483 647 (docs/CONFORMANCE.md DOC-A.1-107).  K3 is inside the range:

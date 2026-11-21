@@ -28,7 +28,7 @@
       *> r2's UPPERCASE clause, and the same clause in §2023:15.33.3 r1 ("All
       *> letters in the exception-name are returned as uppercase
       *> letters"), are pinned by the LOWERCASE sentence `raise
-      *> exception ec-user-lo.` - §2023:8.1.3.2 GR3 a): "COBOL basic letters
+      *> exception ec-user-lo.` - §2023:8.1.3.2 GR3a: "COBOL basic letters
       *> appearing elsewhere within the compilation group are treated in
       *> a case-insensitive manner" - and both the statement name and
       *> the exception-name still come back uppercase.
@@ -45,8 +45,8 @@
       *> a subscript "greater than the highest permissible occurrence
       *> number"; NOT GR1 b), which sets the same condition only for a
       *> non-integer arithmetic-expression subscript) is fatal in
-      *> Table 13, so §2023:14.6.13.1.3 5) runs the USE
-      *> declarative and RESUME AT NEXT STATEMENT (§2023:14.9.33.4 2) a) -
+      *> Table 13, so §2023:14.6.13.1.3 GR5 runs the USE
+      *> declarative and RESUME AT NEXT STATEMENT (§2023:14.9.33.4 GR2a -
       *> "control is transferred to an implicit CONTINUE statement"
       *> after the raising statement) keeps the run unit alive past each
       *> raise; the subscript 7 on a 3-occurrence table raises inside

@@ -16,21 +16,21 @@
       *> GR1: "If the LEAP-SECOND directive is not specified, a LEAP-SECOND
       *>   directive with the OFF phrase is implied before the first
       *>   compilation unit in the compilation group."
-      *>   cite.py --check 7.3.17.4 -> OK §2023:7.3.17.4 1)
+      *>   cite.py --check 7.3.17.4 -> OK §2023:7.3.17.4 GR1
       *> GR3: "When OFF is specified or implied, a value greater than 59
       *>   shall not be reported in the seconds position of the value
       *>   returned from: the ACCEPT statement with the TIME phrase, the
       *>   CURRENT-DATE intrinsic function, the FORMATTED-CURRENT-DATE
       *>   intrinsic function, the WHEN-COMPILED intrinsic function."
-      *>   cite.py --check 7.3.17.4 -> OK §2023:7.3.17.4 3)
+      *>   cite.py --check 7.3.17.4 -> OK §2023:7.3.17.4 GR3
       *> Seconds positions, each from its own layout rule:
-      *>   ACCEPT TIME   5-6 of HHMMSShh  (§2023:14.9.1.4 11), moved per MOVE
-      *>                 rules to PIC X(8) by §2023:14.9.1.4 6))
-      *>   CURRENT-DATE  13-14 of 21      (§2023:15.21.3 1))
+      *>   ACCEPT TIME   5-6 of HHMMSShh  (§2023:14.9.1.4 GR11, moved per MOVE
+      *>                 rules to PIC X(8) by §2023:14.9.1.4 GR6)
+      *>   CURRENT-DATE  13-14 of 21      (§2023:15.21.3 RV1)
       *>   FORMATTED-CURRENT-DATE("YYYYMMDDThhmmss") 14-15: a basic
       *>                 combined format, date(8) 'T'(1) hhmmss
-      *>                 (§2023:15.3.3.7, §2023:15.3.3.1, §2023:15.38.4 1))
-      *>   WHEN-COMPILED 13-14 of 21      (§2023:15.99.3 1))
+      *>                 (§2023:15.3.3.7, §2023:15.3.3.1, §2023:15.38.4 RV1)
+      *>   WHEN-COMPILED 13-14 of 21      (§2023:15.99.3 RV1)
       *> The clock is live, so the golden pins SHAPE: each seconds pair is
       *> two digits in 00..59 (=> Y), plus a layout anchor proving the
       *> position arithmetic: position 17 of CURRENT-DATE / WHEN-COMPILED

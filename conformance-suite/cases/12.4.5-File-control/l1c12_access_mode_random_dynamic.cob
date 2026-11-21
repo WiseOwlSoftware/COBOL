@@ -20,22 +20,22 @@
       *> indicates the record to be accessed. b) For an indexed file,
       *>   the value of a record key data item
       *> indicates the record to be accessed."
-      *>   cite.py -> OK  §2023:12.4.5.5.3 3) a)  (General rules)
-      *>   cite.py -> OK  §2023:12.4.5.5.3 3) b)  (General rules)
+      *>   cite.py -> OK  §2023:12.4.5.5.3 GR3a  (General rules)
+      *>   cite.py -> OK  §2023:12.4.5.5.3 GR3b  (General rules)
       *> GR4: "If the access mode is dynamic, records in the file may
       *>   be accessed sequentially, randomly,
       *> or both."
       *>   cite.py --check 12.4.5.5.3 "If the access mode is dynamic,
       *>     records in the file may be accessed
-      *>     sequentially, randomly, or both."  -> OK  §2023:12.4.5.5.3 4)
+      *>     sequentially, randomly, or both."  -> OK  §2023:12.4.5.5.3 GR4
       *>       (General rules)
-      *> §2023:14.9.51.4 GR29 b) (WRITE, relative, random/dynamic): "prior
+      *> §2023:14.9.51.4 GR29b (WRITE, relative, random/dynamic): "prior
       *>   to the execution of the WRITE
       *> statement the value of the relative key data item shall be
       *>   initialized by the runtime element
       *> with the relative record number to be associated with the
-      *>   record"  -> cite.py OK §2023:14.9.51.4 29)
-      *> §2023:9.1.13.5 3) a): I-O status 23 exists because "an attempt is
+      *>   record"  -> cite.py OK §2023:14.9.51.4 GR29
+      *> §2023:9.1.13.5 GR3a: I-O status 23 exists because "an attempt is
       *>   made to randomly access a record
       *> that does not exist in the physical file"  -> cite.py OK
       *>   §2023:9.1.13.5 3) a)
