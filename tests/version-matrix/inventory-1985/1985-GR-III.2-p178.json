@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p178",
+ "rule-digest": "4bea06dde7be",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#FileConnector",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p178",
+ "notes": "Derivation from the read lineage-reads-1985/g-03.json: CONFORMS on a indistinguishable-consequent derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p178); the code location is where the compiler meets the rule's subject. The read: \"Mass storage control system; an input-output control system that directs, or controls, the processing of mass storage files\" is the text of p168 after its abbreviation; whatever shows or derives p168 shows or derives this row. The code location was located after the read (locations-x.json): FileConnector is the input-output control of every host file, each on mass storage: its subclasses (sequential, relative, indexed) direct the processing of the file's records."
+}

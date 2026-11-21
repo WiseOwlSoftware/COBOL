@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p219",
+ "rule-digest": "b89a9ff993c7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Advance",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p219",
+ "notes": "Own witness, self-checking: \"A device dependent concept defined by the implementor\" (§1985:III.2 p219). WiseOwl COBOL defines the physical page of a sequential file by the determination docs/conformance/7/DOC-A.1-130.md: a page boundary is a form feed, and WRITE ... AFTER ADVANCING PAGE presents its record on the next physical page (§1985:VII.4.7.4 GR16h) after one, which Advance writes (the no-LINAGE ADVANCING PAGE arm). The case writes AAA, then BBB AFTER ADVANCING PAGE, reads its file back one byte per record (DOC-A.1-146: a fixed-length record sequential READ takes the next integer-1 bytes) and prints PASS only when exactly one form feed separates AAA from BBB; a mutant writing BBB AFTER ADVANCING 2 LINES prints FAIL FF=00 (E:/COBOL-coord/scratch/w20262131x/p219/runs). Supersedes the second read's probe p219-page2.cob, which printed only WRITTEN."
+}

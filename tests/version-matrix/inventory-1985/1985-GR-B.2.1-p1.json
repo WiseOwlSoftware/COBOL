@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-B.2.1-p1",
+ "rule-digest": "17c99c067428",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/ConstructRegistry.cs#VerdictAt",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-B.2.1-p1",
+ "notes": "Derivation from the read lineage-reads-1985/g-07.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-B.2.1-p1); the code location is where the compiler meets the rule's subject. The read: 'The following is a list of the changes of substance included in third Standard COBOL that are new features not impacting existing programs' only describes the appendix list that follows it. Its subject is the document, and it requires nothing of a program or an implementation. Each change it introduces is a separate item row, and the requirement each item restates belongs to its body clause. The candidate GR-7.3.15.4-1 (a flagging mechanism for incompatibilities) is a wording-only match. The code location was located after the read (locations-x.json): VerdictAt decides, for each construct, whether it is in the targeted edition: the third standard's new features are available at --std 85."
+}

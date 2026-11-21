@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p40",
+ "rule-digest": "aa84bbda88a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CompilerDriver.cs#Compile",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p40",
+ "notes": "Derivation from the read lineage-reads-1985/g-01.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p40); the code location is where the compiler meets the rule's subject. The read: \"The time at which a COBOL source program is translated, by a COBOL compiler, to a COBOL object program\" names a phase; rules that act at compile time are their own rows. The code location was located after the read (locations-x.json): Compile is the translation of a COBOL source program into the object program (the built assembly): every compile-time rule runs inside it."
+}

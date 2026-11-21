@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p61",
+ "rule-digest": "af763e93c2eb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#CounterResolver",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p61",
+ "notes": "Derivation from the read lineage-reads-1985/g-01.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p61); the code location is where the compiler meets the rule's subject. The read: \"A data item used for storing numbers ... in a manner that permits these numbers to be increased or decreased by the value of another number\" names a use of a data item; the arithmetic and SUM rows carry the behaviour. The code location was located after the read (locations-x.json): CounterResolver gives the report writer's counters (the SUM counters, increased by SUM and reset to zero, and the LINE-COUNTER, PAGE-COUNTER and LINAGE-COUNTER registers it routes) their meaning as data items whose number is increased or reset."
+}

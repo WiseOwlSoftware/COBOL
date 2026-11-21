@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p85",
+ "rule-digest": "1e8e177d601c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#procedureDivision",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p85",
+ "notes": "Derivation from the read lineage-reads-1985/g-02.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p85); the code location is where the compiler meets the rule's subject. The read: \"The physical position of a COBOL source program after which no further procedures appear.\" It names a position; what happens when control reaches it is stated elsewhere. GR-14.6.3-3 (exception-procedure transfer) does not state it. The code location was located after the read (locations-x.json): procedureDivision ends the Procedure Division's procedures, and EmitDispatchMethod takes the last paragraph as the end of the procedures: control that runs past it leaves the program (the implicit return past the last paragraph)."
+}

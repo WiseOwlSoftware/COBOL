@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p88",
+ "rule-digest": "9289113aeef1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#environmentDivision; src/WiseOwl.Cobol.Frontend/Cst/ParagraphPeriods.cs#ParagraphPeriods",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p88",
+ "notes": "Derivation from the read lineage-reads-1985/g-02.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p88); the code location is where the compiler meets the rule's subject. The read: \"A clause that appears as part of an Environment Division entry.\" A term only. The code location was located after the read (locations-x.json): environmentDivision parses the division whose entries hold the environment clauses, and ParagraphPeriods holds each SPECIAL-NAMES and I-O-CONTROL clause as part of its paragraph's entry, closed by the paragraph's separator period."
+}
