@@ -425,7 +425,7 @@ ReservedWords drift test does the same one level up.
 §1985:C.1 that edition is 85: §1985:I.1.5.2.3 requires an implementation to support them (so an obsolete construct is IN FORCE,
 `ConstructDialectStatus.IsInForceAt`, which every site that branches on the edition fact asks, never `StatusAt == Available`),
 to document them (the table of `docs/manual/user-guide/editions.md`) and to provide a warning for their use (COBOL0903, the one
-obsolete verdict). `ObsoleteElementsDocDriftTests` holds the document and the registry to each other, so a row marked obsolete
+obsolete verdict). The doc audit `scripts/docchecks/manual.py` holds the document and the registry to each other, so a row marked obsolete
 at 85 without a line in the document fails the gate. ENTER is the one item with no row: the implementor-defined statement is
 refused at every edition (COBOL7240).
 

@@ -14,7 +14,7 @@ import json
 import re
 from pathlib import Path
 
-from . import common
+from . import common, vcr
 from .common import Check, need
 
 MANUAL = "docs/manual"
@@ -22,6 +22,9 @@ PROGRAMS_DIR = "tests/doc-facts/manual-programs"
 EXIT_EXAMPLES = "tests/doc-facts/manual-exit-examples.json"
 RUN_UNITS_PAGE = "user-guide/run-units.md"
 COMMAND_LINE_PAGE = "user-guide/command-line.md"
+EDITIONS_PAGE = "user-guide/editions.md"
+OBSOLETE_85_HEADING = "## The obsolete elements of COBOL-85"
+ROW_ID = re.compile(r"`([a-z0-9]+(?:-[a-z0-9]+)+)`")
 FRONTMATTER = re.compile(r"^---\r?\n(?P<head>.*?)\r?\n---\r?\n", re.DOTALL)
 MARKDOWN_LINK = re.compile(r"\]\((?P<target>[^)\s]+)\)")
 HEADING = re.compile(r"^#{1,6}\s+(?P<title>.+?)\s*$", re.MULTILINE)
@@ -155,6 +158,24 @@ def exit_example_findings(page: str, examples: list[dict]) -> list[str]:
             for e in examples if e["pageSpan"] not in flat] + ([] if examples else ["no exit-status example: the data file is empty"])
 
 
+def obsolete_85_findings(page: str, constructs: dict[str, dict]) -> list[str]:
+    """§1985:I.1.5.2.3 "Documentation associated with an implementation must identify all obsolete language elements in the
+    implementation" (kb/Work PB5986): the table under OBSOLETE_85_HEADING names, in code spans, exactly the construct rows whose
+    `obsoleteIn` is 85 (the warning COBOL0903 at `--std 85`), so a row marked obsolete at 85 without a line (or a line for a row
+    that no longer warns) is a finding, and the next obsolete element of the standard's list is documented the day its row is added."""
+    start = page.find(OBSOLETE_85_HEADING)
+    if start < 0:
+        return [f"{EDITIONS_PAGE} has no '{OBSOLETE_85_HEADING}' section"]
+    end = page.find("\n## ", start + len(OBSOLETE_85_HEADING))
+    documented = set(ROW_ID.findall(page[start:end if end >= 0 else len(page)]))
+    flagged = {cid for cid, row in constructs.items() if row.get("obsoleteIn") == 85}
+    out: list[str] = []
+    need(out, bool(flagged), "no construct row is obsolete at 85: the check judged nothing")
+    out += [f"{EDITIONS_PAGE}'s COBOL-85 obsolete table does not name `{cid}`, which is obsolete at 85" for cid in sorted(flagged - documented)]
+    out += [f"{EDITIONS_PAGE}'s COBOL-85 obsolete table names `{cid}`, which is not obsolete at 85" for cid in sorted(documented - flagged)]
+    return out
+
+
 def _programs_on_disk(root: Path) -> dict[str, str]:
     prefix = PROGRAMS_DIR + "/"
     return {p[len(prefix):]: common.text(root, p) for p in common.tracked(root, PROGRAMS_DIR)}
@@ -184,6 +205,8 @@ CHECKS = (
           lambda r: command_line_findings(pages(r)[COMMAND_LINE_PAGE], common.facts(r)["cliOptions"], common.facts(r)["cliExitStatuses"])),
     Check("MANUAL PROGRAMS the tests compile are the pages' programs",
           lambda r: program_findings(complete_programs(pages(r)), _programs_on_disk(r))),
+    Check("MANUAL COBOL-85 OBSOLETE ELEMENTS are the rows obsolete at 85",
+          lambda r: obsolete_85_findings(pages(r)[EDITIONS_PAGE], vcr.load_constructs(r))),
     Check("MANUAL EXIT-STATUS EXAMPLES are printed on the run-units page",
           lambda r: exit_example_findings(pages(r)[RUN_UNITS_PAGE], json.loads(common.text(r, EXIT_EXAMPLES))["examples"])),
 )
@@ -214,4 +237,11 @@ def self_test() -> list[str]:
         ("a program the page dropped is a finding", len(program_findings({"a.cob": "x"}, {"a.cob": "x", "b.cob": "z"})), 1),
         ("a printed exit example is clean", exit_example_findings("a `STOP RUN`\nb", [{"pageSpan": "`STOP RUN` b"}]), []),
         ("an unprinted exit example is a finding", len(exit_example_findings("a", [{"pageSpan": "gone"}])), 1),
+        ("a documented obsolete-85 row is clean",
+         obsolete_85_findings(OBSOLETE_85_HEADING + "\n| `a-b` |\n## next", {"a-b": {"obsoleteIn": 85}, "c-d": {"obsoleteIn": 2023}}), []),
+        ("an undocumented obsolete-85 row is a finding",
+         len(obsolete_85_findings(OBSOLETE_85_HEADING + "\n", {"a-b": {"obsoleteIn": 85}})), 1),
+        ("a documented row that is not obsolete at 85 is a finding",
+         len(obsolete_85_findings(OBSOLETE_85_HEADING + "\n`c-d` `a-b`\n", {"a-b": {"obsoleteIn": 85}, "c-d": {}})), 1),
+        ("a page without the section is a finding", len(obsolete_85_findings("# x", {"a-b": {"obsoleteIn": 85}})), 1),
     ])

@@ -12,7 +12,7 @@ as item 18 states (the owner decision R61 had followed GnuCOBOL's edge). A USE F
 MODE makes comment never reached a parse, so `DebuggingLineRewriter.Rewrite` now returns the hidden sections' headers and the frontend
 reports the first through the registry's verdict. ENTER stays refused at every edition (COBOL7240) and has no warning row.
 
-`docs/manual/user-guide/editions.md` gains the table of the 18 items; `ObsoleteElementsDocDriftTests` holds it to the registry in both
+`docs/manual/user-guide/editions.md` gains the table of the 18 items; the doc audit `scripts/docchecks/manual.py` holds it to the registry in both
 directions, and the version matrix's obsolete cells now cover each row at 85 (the full Conformance population is the gate's run).
 
 PB5992: the contained program named like its container conforms (§1985:X.1.3.8.1 reads the same as §2023:8.4.6.3); a SEGMENT-LIMIT
