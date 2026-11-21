@@ -69,7 +69,7 @@ prose of §1985:VI.5.9.6 ("At least one of the symbols 'A', 'X', 'Z', '9', or '*
 symbols '+', '-', or 'cs' must be present in a PICTURE character-string"; cite.py OK).
 
 Re-probe on this build (`--std 85`, `PIC $`): the refusal reproduced and now reads "(ISO §1985:VI.5.9.6)". The fix is the
-1985 argument of `Rule("SR12 a", ...)` in `PictureComposition.cs`. The sibling sweep found the other `GR3a` citations
+1985 argument of `Rule("SR12", "§1985:VI.5.9.6")` in `PictureComposition.cs`. The sibling sweep found the other `GR3a` citations
 (`EditionContext.cs`, 18 digit positions) correct: GR3a really says "must range from 1 to 18 inclusive".
 
 Golden: `13.18.40-PICTURE/pb5988-picture-no-digit-position-cites-1985` with `wiseowl/diagnostics/...json` pinning
