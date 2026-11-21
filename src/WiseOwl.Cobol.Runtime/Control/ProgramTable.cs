@@ -416,11 +416,19 @@ public sealed class ProgramTable
         var mainExc = _owner.Exceptions;
         var savedNonfatalDispatcher = mainExc.NonfatalDispatcher;
         mainExc.NonfatalDispatcher = inst;
+        // The activation's edition answer to a broken intrinsic argument rule (kb/Work PB6019): same scope, same boundary.
+        bool savedBreachTerminates = mainExc.ArgumentBreachTerminates;
+        mainExc.ArgumentBreachTerminates = inst.ArgumentBreachTerminates;
         // A GOBACK … RAISING in the MAIN program stages for no activation at all (ModuleStack.ActivatingActivation
         // is −1 for the main frame), so nothing can ever take it — §2023:14.9.18.4 GR3: "A RAISING phrase, if
         // specified, is ignored" (kb/Work PB892 Arm B).
         try { inst.Activate(); }
-        finally { n.Active--; n.MainActive = false; _owner.Modules.Pop(); mainExc.NonfatalDispatcher = savedNonfatalDispatcher; }
+        finally
+        {
+            n.Active--; n.MainActive = false; _owner.Modules.Pop();
+            mainExc.NonfatalDispatcher = savedNonfatalDispatcher;
+            mainExc.ArgumentBreachTerminates = savedBreachTerminates;
+        }
     }
 
     /// <summary>The §2023:14.6.12 abnormal-run-unit-termination indication (§2023:14.6.11 CLOSE is the caller's finally): the
@@ -673,6 +681,10 @@ public sealed class ProgramTable
         // declarative" when it has none — displaces the activator's for the duration of the activation.
         var savedNonfatalDispatcher = exc.NonfatalDispatcher;
         exc.NonfatalDispatcher = inst;
+        // The activated element's edition answers a broken intrinsic argument rule by its own text (kb/Work PB6019): a COBOL-85
+        // callee terminates, a later-edition one raises EC-ARGUMENT-FUNCTION, whoever activated it.
+        bool savedBreachTerminates = exc.ArgumentBreachTerminates;
+        exc.ArgumentBreachTerminates = inst.ArgumentBreachTerminates;
         // The AMBIENT checking flags are per SOURCE TEXT, not per run unit (kb/Work PB841): §2023:7.3.25.4 GR6 enables
         // checking "for the procedure division statements and procedure division headers that follow in the
         // compilation group", so the activated element's statements start from all-off and each sets only what
@@ -727,6 +739,7 @@ public sealed class ProgramTable
             exc.ActivatorExternalMask = savedActivator;
             exc.ActivatorFlowApplyCommit = savedActivatorApplyCommit;
             exc.NonfatalDispatcher = savedNonfatalDispatcher;
+            exc.ArgumentBreachTerminates = savedBreachTerminates;
             exc.RestoreChecking(savedChecking);
             if (freshInstance)
             {

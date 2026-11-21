@@ -1357,8 +1357,12 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentDec(WiseOwl.Cobol.Runtime.CobolDec v, string! function, int argument, bool terminates) -> WiseOwl.Cobol.Runtime.CobolDec
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentExact(WiseOwl.Cobol.Runtime.CobolExact v, string! function, int argument, bool terminates) -> WiseOwl.Cobol.Runtime.CobolExact
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentReal(double v, string! function, int argument, bool terminates) -> double
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentScaled(System.Int128 unscaled, int scale, string! function, int argument, bool terminates) -> System.Int128
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentWide(WiseOwl.Cobol.Runtime.CobolWide v, int scale, string! function, int argument, bool terminates) -> WiseOwl.Cobol.Runtime.CobolWide
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentDec(WiseOwl.Cobol.Runtime.CobolDec v, string! function, int argument) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentExact(WiseOwl.Cobol.Runtime.CobolExact v, string! function, int argument) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentReal(double v, string! function, int argument) -> double
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentScaled(System.Int128 unscaled, int scale, string! function, int argument) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentWide(WiseOwl.Cobol.Runtime.CobolWide v, int scale, string! function, int argument) -> WiseOwl.Cobol.Runtime.CobolWide
+WiseOwl.Cobol.Runtime.ICobolProgram.ArgumentBreachTerminates.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.ArgumentBreachTerminates.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.ArgumentBreachTerminates.set -> void
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ArgumentBreachTerminates.get -> bool
