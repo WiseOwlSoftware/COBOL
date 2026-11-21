@@ -732,8 +732,9 @@ usingClause
 //   { [BY REFERENCE] { [OPTIONAL] data-name-1 }… | BY VALUE { data-name-1 }… }…
 // Parsed FLAT (one parameter per node, the CALL callArgument precedent) — the §2023:14.2.3 GR4 transitivity
 // ("both phrases are transitive across the parameters that follow them") is threaded by the binder
-// (LinkageBinder.CallBindLinkage), never encoded structurally. BY VALUE is a COBOL-2002 introduction —
-// gated post-bind by VersionConformancePass ParseArm.VisitUsingByValue (pd-header-by-value-2002).
+// (LinkageBinder.CallBindLinkage), never encoded structurally. BY VALUE and BY REFERENCE are COBOL-2002
+// introductions (the 1985 header is `USING {data-name-1} ...`, §1985:X.5.1) — gated post-bind by VersionConformancePass
+// ParseArm.VisitUsingByValue (pd-header-by-value-2002) and VisitUsingByReference (pd-header-by-reference-2002, PB5901).
 usingParameter
     : usingByReference
     | usingByValue
