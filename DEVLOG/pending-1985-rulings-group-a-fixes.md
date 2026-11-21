@@ -24,7 +24,8 @@ guard red.
 - **PB5981 (misleading diagnosis, rejects legal source).** At 85 a report heading's lower limit was the 2002+ shape, the
   page heading's first absolute line minus 1, so RH `LINE 4` under a page heading at `LINE 3` was refused with limit 2
   "per §1985:XIII.3.8.3 SR8". SR8a gives FIRST DETAIL minus 1. `GroupLimits` now asks the edition. Goldens: one program
-  accepted at the 1985 limit and one refused past it.
+  accepted at the 1985 limit and one refused past it. The first gate found the 2023 witness
+  `pb1270-report-heading-after-page-heading` still listing 85 among its refusals. It is now refused from 2002 only.
 - **PB5983 (retired).** Two separately compiled programs at 85 that describe one EXTERNAL record and one EXTERNAL file
   record at 10 and 100 characters run to a normal end. The shared storage keeps the first description's length.
   D-85-EXTERNAL-FD-AGREEMENT records this.
