@@ -9,11 +9,10 @@ already on the baseline (`§2023:9.1.13.2 item 6` and the others). They were add
 leave the baseline when this note gives the grammar a list-item designator.
 
 The same pass took the canonicalizer's newly readable citations that named a wrong rule and fixed each at its text,
-without growing the baseline: `§2023:12.3.8.3 SR6b` became SR6 (5 sites), `§2023:14.9.35.4 GR9c` became GR9a,
-`§2023:13.18.57.4 GR6f` became GR6, `§2023:14.9.33.4 GR2a.1`'s NOTE quotation was moved to GR2b, and the quotation of
+without growing the baseline: the sub-item b of §2023:12.3.8.3 SR6 (which has none) became SR6 (5 sites), item c of
+§2023:14.9.35.4 GR9 became GR9a, item f of §2023:13.18.57.4 GR6 became GR6, `§2023:14.9.33.4 GR2a.1`'s NOTE quotation was moved to GR2b, and the quotation of
 `§2023:8.4.6.2.1 GR1` was given its own citation. Two citations are right against the printed page, but the
-transcription joins their sub-items onto one line, so the catalog reads only the first: `§2023:14.5.3.3 GR1c` (3 sites)
-and `§2023:13.18.38.3 SR25d`. They were written as the rule with "its item c" / "its item d". The amendment pages cited
+transcription joins their sub-items onto one line, so the catalog reads only the first: item c of §2023:14.5.3.3 GR1 (3 sites) and item d of §2023:13.18.38.3 SR25. They were written as the rule with "its item c" / "its item d". The amendment pages cited
 as §1985 that group s's PB5059 rule now refuses came in from branches cut before it, at 38 sites: `§1985:p.B-46` became
 `§1993:p.B-46` (cite.py OK) and `§1985:p.A-28` became `§1989:p.A-28` (cite.py OK). The new run-time message text of
 `ExceptionState` and its unit test changed with them.
