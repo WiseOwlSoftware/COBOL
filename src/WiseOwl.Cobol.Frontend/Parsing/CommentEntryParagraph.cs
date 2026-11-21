@@ -22,8 +22,13 @@ public static class CommentEntryParagraph
         or CobolParserCore.RemarksParagraphContext;
 
     /// <summary>The separator period that closes the header of the comment-entry paragraph <paramref name="ctx"/> (the
-    /// <c>.</c> of <c>AUTHOR.</c>), or null when <paramref name="ctx"/> is not one or the parse recovered without it.</summary>
-    public static IToken? HeaderPeriod(ParserRuleContext ctx) =>
-        Is(ctx) && ctx.ChildCount > 1 && ctx.GetChild(1) is ITerminalNode { Symbol: { Type: CobolParserCore.DOT } period }
+    /// <c>.</c> of <c>AUTHOR.</c>), or null when <paramref name="ctx"/> is not one or the parse recovered without it. A context
+    /// that is one only by wrapping one (the identification division's alternative list holds each paragraph in a node of its
+    /// own) answers for the paragraph it wraps.</summary>
+    public static IToken? HeaderPeriod(ParserRuleContext ctx)
+    {
+        while (!Is(ctx) && ctx.ChildCount == 1 && ctx.GetChild(0) is ParserRuleContext only) ctx = only;
+        return Is(ctx) && ctx.ChildCount > 1 && ctx.GetChild(1) is ITerminalNode { Symbol: { Type: CobolParserCore.DOT } period }
             ? period : null;
+    }
 }
