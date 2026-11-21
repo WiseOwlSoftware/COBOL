@@ -3546,8 +3546,13 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>PROCEDURE DIVISION USING … [BY] REFERENCE (ISO §2023:14.2.1 using-phrase) — a COBOL-2002 introduction,
+        /// the twin of <see cref="VisitUsingByValue"/>: the 1985 header is <c>PROCEDURE DIVISION [USING {data-name-1} ...]</c>
+        /// with no BY phrase (§1985:X.5.1, kb/Work PB5901). Fires on recognition of REFERENCE, once per phrase; the
+        /// node exists only when REFERENCE is written, so a plain <c>USING L1</c> never reaches it.</summary>
         public override object? VisitUsingByReference(CobolParserCore.UsingByReferenceContext ctx)
         {
+            _p.Check(Constructs.PdHeaderByReference2002, "the PROCEDURE DIVISION USING BY REFERENCE phrase");
             if (ctx.OPTIONAL() is not null)
                 _p.Check(Constructs.OmittedArguments2002, "the OPTIONAL formal parameter");
             return base.VisitChildren(ctx);
