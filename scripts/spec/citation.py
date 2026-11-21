@@ -442,6 +442,19 @@ def universe(edition: int, repo: pathlib.Path = spec_pdf.REPO) -> frozenset[str]
     return None if loaded is None else frozenset(r[0] for r in loaded[1])
 
 
+@functools.lru_cache(maxsize=None)
+def page_texts(edition: int, repo: pathlib.Path = spec_pdf.REPO) -> dict[str, tuple[str, ...]]:
+    """The text of every printed page `edition`'s transcription keeps as a region (`p.VI-13`: the 1985 folios), by
+    locator, one text per region; empty for an edition cited by clause. The dispositions audit reads it to resolve a
+    1985 pointer ("See page VI-13, The SPECIAL-NAMES Paragraph.") to what that page prints (kb/Work PB5998)."""
+    loaded = _loaded(edition, repo)
+    out: dict[str, list[str]] = {}
+    for locator, _title, start, end in (loaded[1] if loaded else ()):
+        if locator.startswith("p."):
+            out.setdefault(locator, []).append("\n".join(loaded[0][start:end]))
+    return {k: tuple(v) for k, v in out.items()}
+
+
 def validate(c: Citation, repo: pathlib.Path = spec_pdf.REPO) -> str | None:
     """None when `c` names a region of its edition's transcription (or the edition is parsed only), else why not."""
     if c.error:

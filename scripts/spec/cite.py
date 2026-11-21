@@ -382,12 +382,13 @@ class Rule:
 
 def unit_designator(label: str) -> str:
     """The citation designator of a unit of unnumbered text from its label (decision PB5448 point 5): `p3` is `p3`, a
-    table row `T12.2` is `Table 12 row 2`, a whole table `T1` is `Table 1`, a numbered prose item `25` is `item 25`."""
+    table row `T12.2` is `Table 12 row 2`, a whole table `T1` is `Table 1`, a numbered prose item `25` is `item 25` and
+    an item of a clause's second list `L2.3` is `item L2.3` (kb/Work PB5998)."""
     if m := re.fullmatch(r"T(\d+)\.(\d+)", label):
         return f"Table {m[1]} row {m[2]}"
     if m := re.fullmatch(r"T(\d+)", label):
         return f"Table {m[1]}"
-    return f"item {label}" if label.isdigit() else label
+    return f"item {label}" if re.fullmatch(r"\d+|L\d+\.\d+", label) else label
 
 
 def unit_label(designator: str) -> str:
@@ -480,12 +481,13 @@ def _iso_furniture(edition: int) -> tuple[re.Pattern[str], re.Pattern[str]]:
     return erc.furniture(year), erc.running_header(year)
 
 
-_FURNITURE_85: dict[int, tuple[list[str], frozenset[int]]] = {}
+_FURNITURE_85: dict[int, tuple[list[str], list[str | None]]] = {}
 
 
-def _furniture_85(lines: list[str]) -> frozenset[int]:
-    """The 1985 transcription's furniture lines, read once per transcription by THE ONE reader of them,
-    `rule_catalog_1985.furniture` (kb/Work PB5997). The entry keeps `lines` alive, so its id is never reused."""
+def _furniture_85(lines: list[str]) -> list[str | None]:
+    """The 1985 transcription's furniture, read once per transcription by THE ONE reader of it,
+    `rule_catalog_1985.furniture` (kb/Work PB5998, PB5997): per line, the kind of furniture it is, else None. The entry
+    keeps `lines` alive, so its id is never reused."""
     held = _FURNITURE_85.get(id(lines))
     if held is None:
         _erc, rc85 = _extractors()
@@ -496,14 +498,14 @@ def _furniture_85(lines: list[str]) -> frozenset[int]:
 def _furniture(lines: list[str], i: int, edition: int) -> bool:
     """Page-break furniture inside a rule (a page marker, an anchor, a folio, a running header or footer): never text.
     The extractor's shapes (`furniture(year)`, `running_header(year)`, `PAGE`; the arms with no year serve 1985
-    too) and, for 1985, `rule_catalog_1985.furniture`'s, the reader the catalog's own walks use, so a quotation reads the lines the catalog
-    does, across a folio or a reconstruction's boundary as across any page break."""
+    too) and, for 1985, `rule_catalog_1985.furniture`'s, the reader the catalog's own walks use, so a quotation reads
+    the lines the catalog does, across a folio or a reconstruction's boundary as across any page break."""
     erc, _rc85 = _extractors()
     furniture, running_header = _iso_furniture(edition)
     line = lines[i]
     if furniture.match(line) or running_header.match(line) or erc.PAGE.match(line):
         return True
-    return citation.EDITIONS[edition].locator != "clause" and i in _furniture_85(lines)
+    return citation.EDITIONS[edition].locator != "clause" and _furniture_85(lines)[i] is not None
 
 
 def catalog_path(edition: int, repo: pathlib.Path = spec_pdf.REPO) -> pathlib.Path | None:

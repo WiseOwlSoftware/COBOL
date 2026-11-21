@@ -2,7 +2,9 @@
 """The units of unnumbered text on planted text (kb/Work PB5449, decision PB5448 point 1): the segmentation (a ".)"
 ending, a colon unit's dash list and closing tail, numbered prose items and a held list, a NOTE and a general format,
 the lowercase and continuation-word joins, the three table kinds), the key (digest and order), the dispositions'
-regeneration and every refusal of their audit, and the 42 blank-line joins of the 2023 text kept as data."""
+regeneration and every refusal of their audit, and the 42 blank-line joins of the 2023 text kept as data; and the three
+defects kb/Work PB5998 fixed: a numbered list printed one item per line and two lists in one clause, a table continued
+across pages, and 1985's folio pointer ("See page VI-13, <title>.")."""
 import json
 import sys
 
@@ -30,11 +32,16 @@ ROWS = {"GR-9.9.4-1": "The lock is held until the file is closed.",
 RECORDS = "planted/refutations.jsonl"
 
 
+#: The planted pages a folio pointer may name, each with the titles it prints (kb/Work PB5998).
+PAGES = {"p.VI-11": ("The OBJECT-COMPUTER Paragraph",), "p.VI-13": ("The SPECIAL-NAMES Paragraph",)}
+
+
 def _context(records: list | None = None) -> object:
-    """A Context over `ROWS`, the edition-wide verbal forms of 2023, the locators 8.4.6 and 14.5.1, and `records` as the
-    one refuter record file `RECORDS`."""
+    """A Context over `ROWS`, the edition-wide verbal forms of 2023, the locators 8.4.6 and 14.5.1 and the folios of
+    `PAGES` with their titles, and `records` as the one refuter record file `RECORDS`."""
     return U.Context(row_ids=set(ROWS), shapes=U.openings(ROWS.values()), verbal=U.verbal_forms(2023),
-                     named=lambda clause, u: u.table == 4, resolves=lambda loc: loc in ("8.4.6", "14.5.1"),
+                     named=lambda clause, u: u.table == 4,
+                     resolves=lambda loc, title="": loc in ("8.4.6", "14.5.1") or title in PAGES.get(loc, ()),
                      records=lambda path: records if path == RECORDS else None)
 
 
@@ -244,6 +251,101 @@ def case_09_a_restates_names_existing_rules_and_a_block_its_record(expect):
     expect("a block record already given is held to its form before the edition is refuted",
            any("not UPHELD" in f for f in U.block_refusals(recorded, _context(
                [{"unit": "§2023:15.1", "digest": "abc", "outcome": "OVERTURNED"}]), required=False)))
+
+
+def case_10_a_numbered_list_printed_one_item_per_line(expect):
+    # kb/Work PB5998 1: §1985:IV.4.2.2.1.1 prints its two lists one item per line (the 1985 PDF, page 152), with no blank
+    # line between items; each item is a unit, and the clause's second list is told from its first.
+    u = _seg("The types of user-defined words are:\n\n1. alphabet-name\n2. cd-name\n3. class-name\n\n"
+             "The user-defined words are grouped into the following disjoint sets:\n\n1. alphabet-names\n2. cd-names\n\n"
+             "All user-defined words belong to one set.")
+    expect.equal("each item at its own marker; a later list's items are L<m>.<n>", _shown(u),
+                 [("p1", "The types of user-defined words are:"), ("1", "1. alphabet-name"), ("2", "2. cd-name"),
+                  ("3", "3. class-name"), ("p2", "The user-defined words are grouped into the following disjoint sets:"),
+                  ("L2.1", "1. alphabet-names"), ("L2.2", "2. cd-names"), ("p3", "All user-defined words belong to one set.")])
+    expect.equal("an item's ordinal and list, as a numbered rule's",
+                 [(getattr(x, "ordinal", None), getattr(x, "sublist", None)) for x in u[1:7]],
+                 [(1, 1), (2, 1), (3, 1), (2, 1), (1, 2), (2, 2)])
+    u = _seg("The following apply:\n\n(1) the first item\n(2) the second item\n\nA last paragraph.")
+    expect.equal("1985's (n) marker likewise", [x.label for x in u], ["p1", "1", "2", "p2"])
+    u = _seg("The following apply:\n\n1) the first item, which runs on\n1985 was the year of the standard.\n2) the next")
+    expect.equal("a line whose number does not continue the list is the item's text", _shown(u),
+                 [("p1", "The following apply:"), ("1", "1) the first item, which runs on 1985 was the year of the standard."),
+                  ("2", "2) the next")])
+    u = _seg("The following apply:\n\n1. first\n2. second\n\nA paragraph between items.\n\n3. third")
+    expect.equal("a list resumed after a paragraph at its next number is the same list", [x.label for x in u],
+                 ["p1", "1", "2", "p2", "3"])
+    u = _seg("Held:\n\n1. first\n2. second\n\nAfter.", items=False)
+    expect.equal("a held list's items one per line are still no unit", _shown(u), [("p1", "Held:"), ("p2", "After.")])
+
+
+def case_11_a_table_continued_across_pages_numbers_its_rows_on(expect):
+    # kb/Work PB5998 2: §1989:A.2.4's Table 1 prints on three pages, each repeating its header, its caption below it.
+    head = "| FUNCTION-NAME | ARGUMENTS | TYPE |\n|---|---|---|\n"
+    u = _seg("Table 1 summarizes the functions.\n\n" + head + "| ACOS | N1 | N |\n| ASIN | N1 | N |\n\n"
+             "Table 1: Table of Functions\n\n" + head + "| COS | N1 | N |\n| LOG | N1 | N |\n\n"
+             "Table 1: Table of Functions (Continued)\n\n" + head + "| SIN | N1 | N |\n\n"
+             "Table 1: Table of Functions (Continued)")
+    expect.equal("one table, its rows numbered on across the pages", [(x.label, x.text.split()[0]) for x in u],
+                 [("p1", "Table"), ("T1.1", "ACOS"), ("T1.2", "ASIN"), ("T1.3", "COS"), ("T1.4", "LOG"), ("T1.5", "SIN")])
+    expect("the continued table's kind is read over all its rows", {x.table_kind for x in u[1:]} == {"entries"},
+           [x.table_kind for x in u])
+    u = _seg("**Table 13 — Statements**\n\n| Name | Phrase |\n|---|---|\n| ACCEPT | x |\n\n**Table 13 — Statements "
+             "(continued)**\n\n| Name | Phrase |\n|---|---|\n| WRITE | y |")
+    expect.equal("a caption above each page's part (2002's Table 13)", [x.label for x in u], ["T13.1", "T13.2"])
+    try:
+        got = _seg("**Table 4 — One**\n\n| A | B |\n|---|---|\n| x | 1 |\n\n**Table 4 — Other**\n\n| C | D | E |\n"
+                   "|---|---|---|\n| y | 2 | 3 |")
+    except ValueError as e:
+        got = str(e)
+    expect("two tables of one number and different headers are refused, never given one id twice",
+           isinstance(got, str) and "T4.1" in got, got)
+
+
+def case_12_a_1985_folio_pointer_is_a_cross_reference(expect):
+    # kb/Work PB5998 3: the 1985 text points by folio; the pointer resolves when the page prints the title it gives.
+    label, kinds = str, (lambda clause: {"SR", "GR"})
+
+    def refused(text: str) -> list:
+        units = {"9.9": _seg(text)}
+        return U.audit(units, _decided(units, U.NOT_A_RULE, **{"class": "cross-reference", "refuted": RECORDS}), label,
+                       kinds, _context(_upheld(units)))
+
+    expect.equal("(See page VI-13, <title>.) stands", refused("(See page VI-13, The SPECIAL-NAMES Paragraph.)"), [])
+    expect.equal("and its lowercase form with the stop outside", refused("(see page VI-13, The SPECIAL-NAMES Paragraph)."),
+                 [])
+    expect.equal("two folios in one pointer", refused("See page VI-11, The OBJECT-COMPUTER Paragraph, and page VI-13, The "
+                                                      "SPECIAL-NAMES Paragraph."), [])
+    expect.equal("'<subject> is specified on page <folio>, <title>.'",
+                 refused("The figurative constants are specified on page VI-13, The SPECIAL-NAMES Paragraph."), [])
+    expect("a title the page does not print resolves to nothing",
+           any("resolves to no clause" in f for f in refused("See page VI-13, The OCCURS Clause.")))
+    expect("a folio with no title resolves to nothing", any("resolves to no clause" in f for f in refused("See page VI-13.")))
+    targets = getattr(U, "pointer_targets", lambda s: "no pointer_targets")
+    expect.equal("the targets a pointer names, in order", targets(
+        "See page VI-11, The OBJECT-COMPUTER Paragraph, and page VI-13, The SPECIAL-NAMES Paragraph."),
+        [("p.VI-11", "The OBJECT-COMPUTER Paragraph"), ("p.VI-13", "The SPECIAL-NAMES Paragraph")])
+    expect.equal("an ISO pointer's target", targets("(See 8.4.6, Scope of names.)"), [("8.4.6", "Scope of names")])
+    expect.equal("no pointer, no targets", targets("The scope is the run unit."), None)
+    # The extractor's own resolver on the 1985 transcription: the folio is a page region, and the page prints the title.
+    import extract_rule_catalog  # noqa: PLC0415  (scripts/spec, on the path text_units put there)
+    real = extract_rule_catalog.unit_context(1985, []).resolves
+    expect.equal("on the 1985 text, page VI-13 prints The SPECIAL-NAMES Paragraph and not The OCCURS Clause, and a page "
+                 "with no title names nothing", (real("p.VI-13", "The SPECIAL-NAMES Paragraph"),
+                                                 real("p.VI-13", "The OCCURS Clause"), real("p.VI-13", ""),
+                                                 real("p.VI-9999", "The SPECIAL-NAMES Paragraph")),
+                 (True, False, False, False))
+
+
+def case_13_a_sentence_broken_inside_a_parenthesis_joins(expect):
+    # kb/Work PB5998: §1985:VI.4.5.4 rule (3) breaks across pages 246 and 247 inside its parenthesis.
+    u = _seg("the status of that switch may be altered by a SET statement (see page VI-127,\n\nThe SET Statement). The "
+             "implementor defines which external switches can be referenced.\n\nA new paragraph.")
+    expect.equal("an unclosed parenthesis joins the next candidate, whatever it opens with", [x.label for x in u],
+                 ["p1", "p2"])
+    expect("the join keeps both halves", "page VI-127, The SET Statement). The implementor" in u[0].text, _shown(u))
+    u = _seg("Hangul: 1100-11FF, FFA0-FFBE,\n\nHanifi_Rohingya: 10D00-10D23")
+    expect.equal("a trailing comma alone joins nothing (2023 Annex B.3's data lines)", [x.label for x in u], ["p1", "p2"])
 
 
 if __name__ == "__main__":

@@ -10,9 +10,10 @@ files and in the runtime's pinned messages: not swept here). `ReportUnidentified
 text, and the 1985 omitted-ORGANIZATION face (COBOL0863, COBOL1858) reads `ANSI §1985:VII.2.6.3 GR3`, with its golden; pb742's loosened
 expectation is split into a 2002-2023 pin and a new 85 case that pins the 1985 wording.
 
-The page furniture of the 1985 transcription now has one reader, `rule_catalog_1985.furniture`: `parse`, `_bodies` and
-cite.py all read it. `_bodies` had been reading running headers after a page break that stood in a region of its own
-as text, which made five spurious units of unnumbered text (X.3.1.4, XIII.3.10.7 twice, XIII.3.19.4, XIII.3.20.3) whose
-margin-level records are dropped from `margin-levels-1985.json` (381 to 376 records); cite.py now reads a quotation across a
-folio or a reconstruction's closing note as the catalog does (a new self-test). Lead 3 (four unused usings) was already
-fixed on main.
+The 1985 page furniture keeps its one reader, `rule_catalog_1985.furniture` (kb/Work PB5998, landed first): this branch
+had built a second, equivalent one and dropped it in the merge with main, keeping only what main lacked: cite.py now reads
+a 1985 quotation through that reader, so a quotation spans a folio, the running header after it, or a reconstruction's
+closing note as the catalog's walks do (a new self-test). The five spurious units this branch had found (running headers
+at X.3.1.4, XIII.3.10.7 twice, XIII.3.19.4, XIII.3.20.3) are already gone under main's reader: the measurer re-run on the
+merged tree reproduces main's `margin-levels-1985.json` byte for byte (373 records). Lead 3 (four unused usings) was
+already fixed on main.
