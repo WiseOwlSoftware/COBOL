@@ -62,13 +62,17 @@
   with none, before its Data or Procedure Division) and "The content of a debugging line must be such that a syntactically
   correct program is formed with or without the debugging lines being considered as comment lines" (COBOL7061: a program that
   parses with its debugging lines as source is parsed again with them hidden, and reported at the last debugging line before the
-  first syntax error of that parse; the converse direction, a unit without the mode whose debugging lines would not parse as source, is
-  not asked). Both are 1985 rules and bind below COBOL-2002 only: the later editions carry the facility as
+  first syntax error of that parse; and, from kb/Work PB5466, the converse: a program that parses with the lines of a unit
+  WITHOUT the mode as comment lines is parsed again with their text exposed as source, a hidden USE FOR DEBUGGING section with it,
+  and reported the same way. The rule reads "with or without" and refuses neither side's program, so each parse is asked, and
+  the 1985 text gives no reason to refuse one program form and accept the other). Both are 1985 rules and bind below COBOL-2002 only: the later editions carry the facility as
   obsolete or removed (the edition windows above). Witnesses:
   `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5214-debugging-line-copy-no-mode`,
   `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5214-debugging-line-copy-mode`,
   `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5212-debugging-line-before-object-computer`,
-  `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5212-debugging-line-syntax-both-ways`.
+  `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5212-debugging-line-syntax-both-ways`,
+  `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5466-debugging-line-syntax-no-mode` (the converse; its control
+  `pb5466-debugging-line-no-mode-parses-both-ways`).
 
   **The FLOATING spelling `>>D`** (ISO/IEC 1989:2002 clause 6.1.2 "`>>D` debugging indicator — a debugging line when followed by
   at least one space character", clause 6.3.4, clause 6.1.2.1 SR7 and SR8; the 2002 text is not in the repository and is read from the
@@ -88,8 +92,11 @@
   (Annex A.1 item 157), so a bare `>>D` there is followed by spaces and is a debugging line of spaces, a blank line (§2023:6.5 2)).
   (c) SR8: `>>D` as the first character-string of a line whose indicator area holds the fixed `D` or the continuation
   hyphen is refused, COBOL5770, at the indicator; the line is then read as its fixed indicator says. SR8 is a 2002 rule
-  and binds from `--std 2002`: COBOL-85 has no floating debugging indicator, so a `D` line there is a comment line whose
-  text `>>D` is commentary (witness `conformance:cases/_unassigned/pb4298_floating_debugging_text_on_d_line_85`). **Edition window
+  and binds from `--std 2002`: COBOL-85 has no floating debugging indicator, so a `D` line there holds no indicator of its own and SR8 is not asked
+  (no COBOL5770). Its text `>>D` is not source either, and §1985:VI.7.3 requires a debugging line whose program parses with it
+  as source as well as without it, so a `D` line holding `>>D` is COBOL7061 at 85, with or without the mode (kb/Work PB5466;
+  witness `conformance:cases/_unassigned/pb4298_floating_debugging_text_on_d_line_85`, which until PB5466 was an accepted
+  commentary line). **Edition window
   (registry row `floating-debugging-indicator-2002`):** introduced WITH the floating indicators at 2002 (COBOL0900 below,
   an error under `--permissive` too), obsolete from 2002 (COBOL0903), removed from 2014 (COBOL0902, an error under strict,
   a warning under `--permissive`, where the facility keeps working); GnuCOBOL 3.2 agrees at both edges (`-std=cobol2002`

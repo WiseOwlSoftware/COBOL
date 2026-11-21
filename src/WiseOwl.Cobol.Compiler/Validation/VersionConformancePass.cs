@@ -1049,6 +1049,9 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The longest spelling of a segment-number: one or two digits (§1985:III.2, kb/Work PB5379).</summary>
+        private const int MaxSegmentNumberDigits = 2;
+
         /// <summary>⛔ THE SEGMENTATION MODULE'S RANGES (kb/Work PB5084): §1985:XVI.2.3.3 SR1 (SEGMENT-LIMIT, 1 through 49),
         /// §1985:XVI.3.2.3 SR1 (a section's segment-number, 0 through 99) and SR3 (a declarative section's, less than 50).
         /// Asked only where the construct row is available (COBOL-85), and for a section's number where --permissive keeps its
@@ -1056,8 +1059,6 @@ internal sealed class VersionConformancePass
         /// is the whole answer there. The number is an <c>integerLiteral</c>, so it is unsigned and
         /// integral by the grammar; zero is §2023:5.5 1)'s question for SEGMENT-LIMIT (<c>IntegerOperandRules.Slots</c>),
         /// so only the upper bound can be broken there.</summary>
-        private const int MaxSegmentNumberDigits = 2;
-
         private void ScreenSegmentNumber(CobolParserCore.IntegerLiteralContext? number, int min, int max, string construct,
             string where, string rule)
         {

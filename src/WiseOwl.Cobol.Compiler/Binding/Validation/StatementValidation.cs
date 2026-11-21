@@ -1364,9 +1364,10 @@ internal sealed class StatementValidation(DataBinder data)
     /// reading the entry behind it; the alias is a group item, NOT a composed elementary view (kb/Work PB430; the same
     /// reading <c>MoveTable16.OperandItem</c> takes of the alias for SR9, kb/Work PB907). A REFERENCE-MODIFIED receiver
     /// is read through its VIEW's category, the ONE reader <see cref="ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)"/>
-    /// (kb/Work PB5211): §2023:8.4.3.3.4 GR6 and §1985:IV.4.3.8.4.4 GR5 give the unique data item "the same class and
-    /// category as that defined for" identifier-1 and rewrite only the edited and numeric categories to alphanumeric
-    /// (national under a national usage), so <c>READ F INTO WS-NUM(1:4)</c> is admitted while
+    /// (kb/Work PB5211, PB5353): §2023:8.4.3.3.4 GR6 gives the unique data item "the same class, category, and usage as
+    /// that defined for" identifier-1 and §1985:IV.4.3.8.4.4 GR5 "the same class and category as that defined for" it (the
+    /// 1985 rule has no usage to keep: it has no national usage), and each rewrites only the edited and numeric categories
+    /// to alphanumeric (from 2002, national under a national usage; GR6 c), so <c>READ F INTO WS-NUM(1:4)</c> is admitted while
     /// <c>READ F INTO WS-ALPHA(1:4)</c> over a category-alphabetic item draws the refusal its unsliced twin draws.
     /// A blanket "every reference-modified place is alphanumeric" admitted the alphabetic slice.</summary>
     private static bool AdmitsIntoOperand(Place p, EditionInfo edition) =>
@@ -2016,7 +2017,8 @@ internal sealed class StatementValidation(DataBinder data)
                 + $"({FormatOpenIoRule})");
             ok = false;
         }
-        if (mode is BoundOpenMode.Extend && file.AccessMode is not FileAccessMode.Sequential)
+        var extendRefusals = mode is BoundOpenMode.Extend ? file.ExtendRefusals : ExtendRefusal.None;   // the model's ONE rule (kb/Work PB5556)
+        if (extendRefusals.HasFlag(ExtendRefusal.AccessMode))
         {
             data.Edition.Error(DiagnosticCatalog.OpenExtendAccessLinage,
                 $"OPEN EXTEND '{file.CobolName}' — the file's access mode is "
@@ -2024,7 +2026,7 @@ internal sealed class StatementValidation(DataBinder data)
                 + $"(ISO {data.Edition.Edition.Cite(file.Organization is FileOrganization.Indexed ? "§1985:IX.4.4.3 SR1" : "§1985:VIII.4.4.3 SR1", "§2023:14.9.27.3 SR2")})");
             ok = false;
         }
-        if (mode is BoundOpenMode.Extend && file.Linage is not null)
+        if (extendRefusals.HasFlag(ExtendRefusal.Linage))
         {
             data.Edition.Error(DiagnosticCatalog.OpenExtendAccessLinage,
                 $"OPEN EXTEND '{file.CobolName}' — the file description entry specifies a LINAGE clause, which "
@@ -2037,7 +2039,7 @@ internal sealed class StatementValidation(DataBinder data)
         // OUTPUT or EXTEND and does not restate it (§1985:XIII.4.5.3 SR1), so only GR20 d (restated by the Report Writer) reaches it (kb/Work PB5479).
         if (file.MultipleFileReels.Count > 0)
         {
-            if (mode is BoundOpenMode.Extend && !file.IsReportFile)
+            if (extendRefusals.HasFlag(ExtendRefusal.MultipleFileReel))
             {
                 data.Edition.Error(DiagnosticCatalog.OpenExtendMultipleFileReel,
                     $"OPEN EXTEND '{file.CobolName}' — the file is named in a MULTIPLE FILE TAPE clause, so it resides on a "
