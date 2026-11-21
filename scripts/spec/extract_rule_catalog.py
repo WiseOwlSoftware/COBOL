@@ -781,12 +781,53 @@ class IsoCatalog:
 
 
 def manifest_of(ed: IsoEdition) -> tuple[dict[str, dict], dict[str, dict]]:
-    """The content-keyed manifest of `ed`: its declared `blocks`, and its PROSE clauses admitted as paragraph rows
-    (`paragraph-blocks`: section ⇒ {kind, kinds?, why}; `_comment` documents the key and is not a clause)."""
+    """The content-keyed manifest of `ed`: its declared `blocks`, and the dispositions of its units of unnumbered text
+    (`paragraph-blocks`: clause ⇒ {title, why?, units: [{unit, digest, order, disposition, ...}]}, kb/Work PB5449;
+    `_comment` documents the key and is not a clause)."""
     if not ed.unharvested.exists():
         return {}, {}
     raw = json.loads(ed.unharvested.read_text(encoding="utf-8"))
     return raw.get("blocks", {}), {s: v for s, v in raw.get(PARAGRAPH_BLOCKS, {}).items() if not s.startswith("_")}
+
+
+#: The manifest's switch that makes a `not-rules` block without an UPHELD refuter record a refusal (text_units.
+#: block_refusals): DATA, set by the step that refutes the edition's blocks (2023 kb/Work PB5450, 1985 PB5452).
+NOT_RULES_REFUTED = "not-rules-refuted"
+
+
+def refute_blocks_of(manifest: pathlib.Path) -> bool:
+    """Whether `manifest` requires every `not-rules` block to name its UPHELD refuter record (`NOT_RULES_REFUTED`)."""
+    return manifest.exists() and bool(json.loads(manifest.read_text(encoding="utf-8")).get(NOT_RULES_REFUTED))
+
+
+@functools.lru_cache(maxsize=None)
+def _refuter_records(path: str) -> tuple[dict, ...] | None:
+    """The refuter records of the JSON-lines file `path` (repository-relative), or None when the tree has none."""
+    file = REPO / path
+    if not path or not file.is_file():
+        return None
+    return tuple(json.loads(ln) for ln in file.read_text(encoding="utf-8").splitlines() if ln.strip())
+
+
+def unit_context(year: int, rules: list[dict]) -> "text_units.Context":
+    """What the dispositions audit of `year`'s units checks a decided disposition against (text_units.Context), read from
+    the edition's catalog rows `rules`: their ids, the openings of their sentences (the shape guard), whether their text
+    names a clause or a table, the edition's verbal forms, its citable locators and the refuter records."""
+    texts = [r["text"] for r in rules if r["kind"] != "FMT"]
+    joined = "\n".join(texts)
+    tables = {t for text in texts for t in text_units.tables_named(text)}
+    universe = citation.universe(year) or frozenset()
+
+    def named(clause: str, u) -> bool:
+        return (u.table in tables if u.table else False) or re.search(rf"(?<![\d.]){re.escape(clause.split(':')[-1])}"
+                                                                      r"(?![\d])", joined) is not None
+
+    def resolves(locator: str) -> bool:
+        return locator.rstrip(".") in universe
+
+    return text_units.Context(row_ids={r["id"] for r in rules}, shapes=text_units.openings(texts),
+                              verbal=text_units.verbal_forms(year), named=named, resolves=resolves,
+                              records=_refuter_records)
 
 
 def measured_peers_of(ed: IsoEdition) -> set[str]:
@@ -797,7 +838,8 @@ def measured_peers_of(ed: IsoEdition) -> set[str]:
 
 
 def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragraph_blocks: dict[str, dict],
-            measured_peers: set[str], standing: pathlib.Path | None = None, cite: bool = True) -> IsoCatalog:
+            measured_peers: set[str], standing: pathlib.Path | None = None, cite: bool = True,
+            refute_blocks: bool = False) -> IsoCatalog:
     """THE ISO EXTRACTION, one for every ISO edition: read `lines` (the transcription of `ed`) into its rule rows, with
     the content-keyed manifest's `declared` blocks and `paragraph_blocks`, the sub-lists `measured_peers` holds at the
     margin and the standing lists at `standing` (the edition's, by default). Pure but for the standing lists' and the
@@ -1092,9 +1134,6 @@ def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragra
             if ed.edition_rows:
                 row["page"] = pages[heading_at[sec]]
             rules.append(row)
-    for defect in text_units.audit(units, paragraph_blocks, ed.label, ed.unit_kinds):
-        paragraph_defects.append(defect)
-        find("paragraph-admission", defect.split(" ", 1)[0], 0, defect)
 
     # ---- completeness self-check -----------------------------------------------------------------------------
     # The CONVENTIONS clause's sub-clauses (§2023:5.3.2-5.3.5, §2002:5.2.1-5.2.4) are prose DEFINING what a
@@ -1232,6 +1271,14 @@ def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragra
                 buf.append(line)
         else:
             flush_a1()
+
+    # ---- THE DISPOSITIONS AUDIT of the units (kb/Work PB5449): read now that every row exists, since a `restates` may
+    # name a general format's or an implementor-defined item's row and the shape guard reads every row's sentences.
+    ctx = unit_context(ed.year, rules)
+    for defect in text_units.audit(units, paragraph_blocks, ed.label, ed.unit_kinds, ctx) + text_units.block_refusals(
+            {ed.label(k): v for k, v in declared.items()}, ctx, required=refute_blocks):
+        paragraph_defects.append(defect)
+        find("paragraph-admission", defect.split(" ", 1)[0].rstrip(":"), 0, defect)
 
     # ---- integrity critic: the transcription must contain the STANDARD, not a description of it -------------
     # Page 28 was found to hold an AI-generated SUMMARY of the Introduction plus a refusal message ("I can quote
@@ -1522,13 +1569,14 @@ def main_iso(ed: IsoEdition, args: argparse.Namespace) -> int:
         sys.exit(f"spec not found: {ed.spec}\nRun: git submodule update --init --recursive")
     lines = ed.spec.read_text(encoding="utf-8", errors="replace").splitlines()
     declared, paragraph_blocks = manifest_of(ed)
-    cat = extract(ed, lines, declared, paragraph_blocks, measured_peers_of(ed))
+    refute = refute_blocks_of(ed.unharvested)
+    cat = extract(ed, lines, declared, paragraph_blocks, measured_peers_of(ed), refute_blocks=refute)
     if not args.check and (fresh_blocks := regenerate_dispositions(ed.unharvested, cat.units, lines)) is not None:
         # The manifest entered a new unit pending, or dropped a pending entry no unit has: extract again over it, so
         # the catalog written is the one the committed manifest yields (`--check` reproduces it).
         print(f"wrote {ed.unharvested.relative_to(REPO)}  ({text_units.pending(fresh_blocks)} units pending)")
         declared, paragraph_blocks = manifest_of(ed)
-        cat = extract(ed, lines, declared, paragraph_blocks, measured_peers_of(ed))
+        cat = extract(ed, lines, declared, paragraph_blocks, measured_peers_of(ed), refute_blocks=refute)
     print("\n".join(cat.report))
     print()
     print("\n".join(findings_summary(cat.findings)))
@@ -1590,7 +1638,9 @@ def main_1985(args: argparse.Namespace) -> int:
         print(f"wrote {UNHARVESTED_OF[1985].relative_to(REPO)}")
     raw = json.loads(UNHARVESTED_OF[1985].read_text(encoding="utf-8"))
     blocks = raw.get(PARAGRAPH_BLOCKS, {})
-    cat.dispositions = text_units.audit(units, blocks, str, rule_catalog_1985.unit_kinds)
+    ctx = unit_context(1985, cat.rules)
+    cat.dispositions = (text_units.audit(units, blocks, str, rule_catalog_1985.unit_kinds, ctx)
+                        + text_units.block_refusals(cat.declared, ctx, required=bool(raw.get(NOT_RULES_REFUTED))))
     cat.pending_units = text_units.pending(blocks)
     print(f"spec:            {spec.relative_to(REPO)}  ({len(lines):,} lines)")
     for line in rule_catalog_1985.summary(cat):

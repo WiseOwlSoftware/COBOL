@@ -304,11 +304,14 @@ def edition_views(schema: Schema | None = None) -> dict[int, list[Row]]:
 
 def lower_bound(ed: Edition, tree: Tree = WORKING_TREE) -> str:
     """The note every printed rule count of `ed` carries while its count is a lower bound (kb/Work PB5256, branch review
-    R1-5): the clauses its content-keyed manifest holds pending and the rule-shaped headings no kind types
-    (`Edition.outside`), whose rules are not counted yet; "" when the count is the whole denominator."""
+    R1-5): the clauses its content-keyed manifest holds pending, the rule-shaped headings no kind types and the units of
+    unnumbered text awaiting a disposition (kb/Work PB5449, `pending-units`), all in `Edition.outside`, whose rules
+    are not counted yet; "" when the count is the whole denominator."""
     out = ed.outside(tree)
     parts = [f"{len(v)} {what}" for v, what in ((out.get("pending-clauses", []), "clauses pending adjudication"),
                                                 (out.get("untyped-headings", []), "rule-shaped headings untyped")) if v]
+    if units := out.get("pending-units", 0):
+        parts.append(f"{units} units of unnumbered text pending")
     return f" (a lower bound: {', '.join(parts)})" if parts else ""
 
 

@@ -27,7 +27,7 @@ THE KEY (design point 3): a unit's disposition is keyed by its clause, the diges
 text (`digest`) and, among units of one clause whose digests are equal, their order. A repair anywhere in the text
 changes the digest, so an old disposition can never be carried to changed text.
 
-    python scripts/spec/text_units.py --self-test
+    Its cases: scripts/selftests/spec/text_units/test_text_units.py (python scripts/self_tests.py --only <it>).
 """
 from __future__ import annotations
 
@@ -43,9 +43,6 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from cite import norm  # noqa: E402  — ONE notion of "the same words" as the citation checker's
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-#: The 2023 text's sentences broken across a plain blank line (kb/Work PB479's design review, `tails.py`): each pair is
-#: the line that ends no sentence and the line that continues it. The join rule must keep every one in one unit.
-JOINS = REPO / "scripts" / "spec" / "data" / "paragraph-joins-2023.json"
 
 #: Where a sentence ends: a stop, then any closing brackets or quotes (§2023:8.4.2.1 "(See 8.4.6, Scope of names.)").
 SENTENCE_END = re.compile(r"[.?!][)\]\"'’”*]*\s*$")
@@ -297,13 +294,125 @@ def entries_of(blocks: dict[str, dict]) -> dict[str, list[dict]]:
     return {clause: info.get("units", []) for clause, info in blocks.items() if not clause.startswith("_")}
 
 
-def audit(units: dict[str, list[Unit]], blocks: dict[str, dict], label, kinds) -> list[str]:
+#: The outcome a refuter record must carry for a disposition to stand (kb/Work PB5374's form: the refuter tried to state
+#: the obligation the unit imposes that the named rules, or nothing, do not, and failed).
+UPHELD = "UPHELD"
+#: The closed pointer grammar of a `cross-reference` unit: every sentence is "See <locator>[, <title>]." or "<subject>
+#: is/are specified/described/defined in <locator>[, <title>]." (decision PB5448 point 3).
+POINTER = re.compile(r"^(?:\(?See (?P<see>[A-Z0-9][\w.]*)(?:,[^.]*)?\.\)?"
+                     r"|[^.]*? (?:is|are) (?:specified|described|defined) in (?P<in>[A-Z0-9][\w.]*)(?:,[^.]*)?\.)$")
+#: Where one sentence of a unit ends and the next begins.
+SENTENCE_BREAK = re.compile(r"(?<=[.?!])[)\]\"'’”]*\s+(?=[A-Z(])")
+#: How many normalized words of a sentence's opening the SHAPE guard compares (decision PB5448 point 3).
+SHAPE_WORDS = 5
+#: How many words a label-shaped lead-in may hold (a label with no sentence stop: "The following are reserved words").
+LABEL_WORDS = 10
+
+
+def sentences(text: str) -> list[str]:
+    """The sentences of a unit's text, NOTEs included (a NOTE is informative, but the guards read the whole unit)."""
+    return [s.strip() for s in SENTENCE_BREAK.split(text) if s.strip()]
+
+
+def openings(texts) -> set[str]:
+    """THE SHAPE GUARD's set: the first `SHAPE_WORDS` normalized words of every sentence of every text in `texts` (every
+    row's text, numbered and paragraph rows alike), derived at every audit so a row minted today guards tomorrow."""
+    return {" ".join(norm(s).split()[:SHAPE_WORDS]) for t in texts for s in sentences(t)
+            if len(norm(s).split()) >= SHAPE_WORDS}
+
+
+@dataclasses.dataclass
+class Context:
+    """What the audit reads besides the units and their entries, each from the edition it audits (decision PB5448 point
+    3): the catalog's row ids (a `restates` names existing rules); the shape set (`openings` of every row's text); the
+    edition's verbal forms (`verbal_forms`); whether a catalog row's text names a unit's clause or table (a `data` unit is
+    a row's input only when one does); whether a cross-reference's locator resolves; and the refuter records a file holds
+    (`records(path)`, JSON lines, None when the tree has no such file)."""
+    row_ids: set[str]
+    shapes: set[str]
+    verbal: list[re.Pattern[str]]
+    named: object        # (clause, Unit) -> bool
+    resolves: object     # (locator) -> bool
+    records: object      # (path) -> list[dict] | None
+
+
+#: The edition's verbal forms, as data beside the manifests (decision PB5448 point 3): a `not-a-rule` unit holding one
+#: is refused.
+VERBAL_FORMS = REPO / "scripts" / "spec" / "data" / "verbal-forms.json"
+
+
+def verbal_forms(edition: int) -> list[re.Pattern[str]]:
+    """The verbal forms of `edition` (`VERBAL_FORMS`): its own list and the list every edition shares."""
+    data = json.loads(VERBAL_FORMS.read_text(encoding="utf-8"))
+    return [re.compile(p, re.I) for p in data["every edition"] + data.get(str(edition), [])]
+
+
+def class_refusal(cls: str, u: Unit, clause: str, ctx: Context) -> str | None:
+    """Why unit `u` fails the mechanical test of the `not-a-rule` class `cls` (decision PB5448 point 3), or None."""
+    words = norm(u.text).split()
+    if cls == "lead-in":
+        if LEADS.search(u.text) or (len(words) <= LABEL_WORDS and not ends_sentence(u.text)):
+            return None
+        return "a lead-in ends in a colon, or is a label of at most ten words with no sentence stop"
+    if cls == "cross-reference":
+        for s in sentences(u.text):
+            m = POINTER.match(s)
+            if m is None:
+                return f"the sentence {s[:60]!r} is no pointer (\"See <locator>.\", \"<subject> is specified in <locator>.\")"
+            if not ctx.resolves(m["see"] or m["in"]):
+                return f"its locator {m['see'] or m['in']} resolves to no clause"
+        return None
+    if cls == "data":
+        if u.shape != "table" and any(ends_sentence(s) for s in sentences(u.text)):
+            return "a data unit holds no sentence (list or table lines of values)"
+        if not ctx.named(clause, u):
+            return "no row's text names its clause or table: data no row consumes is a row itself (-T<t> or -C)"
+        return None
+    return f"class {cls!r} is not one of {', '.join(NOT_A_RULE_CLASSES)}"
+
+
+def guard_refusal(u: Unit, ctx: Context) -> str | None:
+    """THE TWO GUARDS on a `not-a-rule` whose class test passed (a lead-in excepted, its words carried by its list): a
+    verbal form of the edition, or a sentence opening like a row's (the SHAPE guard)."""
+    for s in sentences(u.text):
+        if form := next((f for f in ctx.verbal if f.search(s)), None):
+            return f"the sentence {s[:60]!r} holds the verbal form /{form.pattern}/"
+        if " ".join(norm(s).split()[:SHAPE_WORDS]) in ctx.shapes:
+            return f"the sentence {s[:60]!r} opens as a row's sentence does (the shape guard)"
+    return None
+
+
+def record_refusal(e: dict, u: Unit | None, ctx: Context) -> str | None:
+    """Why the refuter record a `restates` or `not-a-rule` entry names does not let it stand, or None: the entry names
+    no record file, the file or the record of this unit is missing, its outcome is not UPHELD, or the digest it read is
+    not the unit's."""
+    path = e.get("refuted")
+    if not path:
+        return "it names no refuter record (`refuted`: the JSON-lines file of an independent refuter's pass)"
+    recs = ctx.records(path)
+    if recs is None:
+        return f"its refuter record file {path} is not in the tree"
+    mine = [r for r in recs if r.get("unit") == e.get("unit") and r.get("digest") == e.get("digest")]
+    if not mine:
+        return f"{path} holds no record of this unit at digest {e.get('digest')}"
+    if mine[-1].get("outcome") != UPHELD:
+        return f"its refuter record is {mine[-1].get('outcome')!r}, not {UPHELD}"
+    if u is not None and mine[-1]["digest"] != u.digest:
+        return "its refuter record read other text"
+    return None
+
+
+def audit(units: dict[str, list[Unit]], blocks: dict[str, dict], label, kinds, ctx: Context | None = None) -> list[str]:
     """THE DISPOSITIONS AUDIT of one edition: every refusal of `units` (the segmentation, by clause) against `blocks` (its
     manifest's `paragraph-blocks`). `label(clause)` prints a clause; `kinds(clause)` is the set of row kinds a unit of that
-    clause may take. Refused: a unit with no entry; an entry no unit has (its key, or the label it was entered under, is
-    gone); an entry for a unit whose label moved; a disposition outside the vocabulary; a row kind the clause does not
-    take; and a `restates` or `not-a-rule`, which needs the UPHELD refuter record decision PB5448 requires and this
-    landing does not yet read (kb/Work PB5449 item 4), so none may be recorded until it does."""
+    clause may take; `ctx` is what the decided dispositions are checked against (`Context`; None refuses every
+    `restates` and `not-a-rule`, which have nothing to be checked against). Refused (decision PB5448 points 3 and 4):
+      - a unit with no entry; an entry no unit has (its text changed or left the clause); an entry whose unit's label
+        moved; two entries for one unit;
+      - a disposition outside the vocabulary; a row kind the clause does not take;
+      - a `restates` that names no rule or a rule the catalog lacks; a `not-a-rule` whose class fails its test or, but for
+        a lead-in, whose text holds a verbal form or opens like a row (the two guards);
+      - either, without an UPHELD refuter record of its digest (`record_refusal`)."""
     out: list[str] = []
     entries = entries_of(blocks)
     for clause in sorted(units.keys() | entries.keys()):
@@ -328,13 +437,58 @@ def audit(units: dict[str, list[Unit]], blocks: dict[str, dict], label, kinds) -
                 out.append(f"{where}: kind {d} is not a kind of this clause ({', '.join(sorted(kinds(clause)))}; "
                            "§2023:5.3.1)")
             elif d in (RESTATES, NOT_A_RULE):
-                out.append(f"{where}: {d} needs an UPHELD refuter record of its digest (decision PB5448 point 3), "
-                           "which the audit does not read yet (kb/Work PB5449 item 4)")
+                if ctx is None:
+                    out.append(f"{where}: {d} is checked against the catalog and its refuter record, and none was given")
+                    continue
+                if d == RESTATES:
+                    named = e.get("rules") or []
+                    if not named or (missing := [r for r in named if r not in ctx.row_ids]):
+                        out.append(f"{where}: restates names " + (f"rules the catalog lacks: {', '.join(missing)}"
+                                                                  if named else "no rule"))
+                elif u is not None:
+                    cls = e.get("class", "")
+                    why = class_refusal(cls, u, clause, ctx) or (guard_refusal(u, ctx) if cls != "lead-in" else None)
+                    if why:
+                        out.append(f"{where}: not-a-rule ({cls}) refused: {why}")
+                if why := record_refusal(e, u, ctx):
+                    out.append(f"{where}: {d} refused: {why}")
         out += [f"{label(clause)} {u.label}: a unit with no disposition entry (digest {u.digest}); regenerate the "
                 f"manifest, which enters it pending"
                 for (dg, order), u in have.items() if (dg, order) not in seen]
+    if ctx is not None:
+        out += [f"not-a-rule ({cls}): {n} disposition(s) and {k} UPHELD record(s) keyed to them; the two are equal"
+                for cls, (n, k) in class_counts(blocks, ctx).items() if n != k]
     return out
 
+
+def class_counts(blocks: dict[str, dict], ctx: Context) -> dict[str, tuple[int, int]]:
+    """Per `not-a-rule` class, (dispositions, UPHELD records keyed to them): the audit holds the two equal (decision
+    PB5448 point 3), so a record can never stand for two units nor a unit for none."""
+    out: dict[str, list[int]] = {c: [0, 0] for c in NOT_A_RULE_CLASSES}
+    for es in entries_of(blocks).values():
+        for e in es:
+            if e.get("disposition") == NOT_A_RULE and e.get("class") in out:
+                out[e["class"]][0] += 1
+                recs = ctx.records(e.get("refuted") or "") or []
+                out[e["class"]][1] += any(r.get("unit") == e.get("unit") and r.get("digest") == e.get("digest")
+                                          and r.get("outcome") == UPHELD for r in recs)
+    return {c: (n, k) for c, (n, k) in out.items()}
+
+
+def block_refusals(declared: dict[str, dict], ctx: Context, required: bool) -> list[str]:
+    """The same question one level up (decision PB5448 point 3): a content-keyed `blocks` entry disposed `not-rules` (a
+    whole numbered list kept out of the denominator) names an UPHELD refuter record of its clause (`refuted`, keyed by
+    `unit` = the clause and `digest` = the entry's `digest`). `required` is the manifest's own `not-rules-refuted`:
+    false until the step that refutes the edition's blocks (2023 PB5450, 1985 PB5452) sets it, so a record already
+    given is held to its form and a missing one is refused only from then on."""
+    out = []
+    for clause, info in declared.items():
+        if info.get("disposition") != "not-rules" or (not required and not info.get("refuted")):
+            continue
+        why = record_refusal({"unit": clause, "digest": info.get("digest"), "refuted": info.get("refuted")}, None, ctx)
+        if why:
+            out.append(f"{clause}: not-rules refused: {why}")
+    return out
 
 def regenerated(units: dict[str, list[Unit]], blocks: dict[str, dict], title) -> dict[str, dict]:
     """`blocks` (a `paragraph-blocks` map) after a regeneration over `units`: every unit with no entry is entered
@@ -362,111 +516,3 @@ def regenerated(units: dict[str, list[Unit]], blocks: dict[str, dict], title) ->
 def pending(blocks: dict[str, dict]) -> int:
     """How many units of a `paragraph-blocks` map await a disposition: outside the denominator, counted."""
     return sum(e.get("disposition") == PENDING for es in entries_of(blocks).values() for e in es)
-
-
-# ── self-test ──────────────────────────────────────────────────────────────────────────────────────────────────────
-
-def self_test() -> int:
-    bad: list[str] = []
-
-    def ok(cond: bool, what: str) -> None:
-        if not cond:
-            bad.append(what)
-
-    def seg(text: str, items: bool = True) -> list[Unit]:
-        return segment(list(enumerate(text.split("\n"), start=1)), items)
-
-    # A ".)" ending ends a sentence: §2023:8.4.2.1 reads as three paragraphs, not two.
-    u = seg("First paragraph. (See 8.3.2.2, User-defined words.)\n\nThen certain conventions apply. (See 8.4.6, "
-            "Scope of names.)\n\nThe same name shall not be used both as the name of an external record.")
-    ok([x.label for x in u] == ["p1", "p2", "p3"], f"'.)' ends a sentence: {[x.label for x in u]}")
-    # A dash list belongs to its colon unit, and so does a closing tail that continues it (§2023:14.6.2.2, 14.7.5).
-    u = seg("An instance remains active until the execution of one of the following:\n\n— a STOP statement\n\n"
-            "— a GOBACK statement\n\nand processing proceeds as specified in 14.6.13.1.3.\n\nWhenever an instance is "
-            "activated, the control mechanisms are set to their initial states.")
-    ok(len(u) == 2 and "STOP" in u[0].text and "proceeds" in u[0].text and u[1].label == "p2",
-       f"a dash list and its tail are the colon unit's: {[(x.label, x.text[:30]) for x in u]}")
-    # A numbered prose item is a unit by its printed number; a tail after the list is the lead's, not the last item's.
-    u = seg("The following are implementor-defined:\n\n1) the first item\n\na) its sub-item\n\n2) the second item\n\n"
-            "and these apply to every element.\n\nA new paragraph.")
-    ok([x.label for x in u] == ["p1", "1", "2", "p2"] and "every element" in u[0].text and "sub-item" in u[1].text,
-       f"numbered items and the list's tail: {[(x.label, x.text) for x in u]}")
-    u = seg("The following are implementor-defined:\n\n1) the first item\n\n2) the second item\n\nA new paragraph.",
-            items=False)
-    ok([x.label for x in u] == ["p1", "p2"] and "first" not in u[0].text,
-       f"a held numbered list is no unit: {[(x.label, x.text) for x in u]}")
-    # A NOTE stays inside the unit it follows; a general format is no unit.
-    u = seg("The rule applies.\n\nNOTE This is informative.\n\n<pre style=\"line-height:1\">\nFORMAT LINE\n</pre>\n\n"
-            "Another rule applies.")
-    ok([x.label for x in u] == ["p1", "p2"] and "informative" in u[0].text and "FORMAT" not in u[1].text,
-       f"a NOTE stays, a format goes: {[(x.label, x.text) for x in u]}")
-    # A sentence broken across a blank line, opening in lowercase or with a continuation word, is one unit.
-    u = seg("the item is moved to\n\nwhere length is the length of\n\nor the literal.\n\nA new one.")
-    ok([x.label for x in u] == ["p1", "p2"], f"lowercase and continuation-word joins: {[(x.label, x.text) for x in u]}")
-    u = seg("A sentence that stops short\n\nBut a capital continuation word joins it.\n\nThis one does not join.")
-    ok([x.label for x in u] == ["p1", "p2"], f"a continuation word joins: {[(x.label, x.text) for x in u]}")
-    # Tables, by kind: entries (a row per statement), matrix (a corner cell, few values), data (one unit).
-    entries = ("**Table 12 — Procedural statements**\n\n| **Statement name** | **Conditional phrase** | **Terminator** |\n"
-               "|---|---|---|\n| ACCEPT | [NOT] ON EXCEPTION | END-ACCEPT |\n| ALLOCATE | | |\n"
-               "| ADD | [NOT] ON SIZE ERROR | END-ADD |\n| CALL | [NOT] ON EXCEPTION | END-CALL |\n"
-               "| CANCEL | | |\n| CLOSE | | |\n| COMMIT | | |")
-    u = seg("Statement names are identified in Table 12.\n\n" + entries)
-    ok([x.label for x in u] == ["p1"] + [f"T12.{r}" for r in range(1, 8)] and u[1].table_kind == "entries"
-       and u[2].text.startswith("ALLOCATE"), f"an entries table: {[(x.label, x.table_kind) for x in u]}")
-    u = seg("| | Alphabetic | Numeric | National |\n|---|---|---|---|\n| Alphabetic | Yes | No | Yes |\n"
-            "| Numeric | No | Yes | No |")
-    ok([x.label for x in u] == ["T1.1", "T1.2"] and u[0].table_kind == "matrix", f"a matrix: {[(x.label, x.table_kind) for x in u]}")
-    u = seg("**Table 1 — Character repertoire**\n\n| Code | Character |\n|---|---|\n| 0041 | A |\n| 0041 | A |")
-    ok([x.label for x in u] == ["T1"] and u[0].table_kind == "data", f"a data table: {[(x.label, x.table_kind) for x in u]}")
-    # The key: equal digests are told apart by order; any change of words moves the digest, typography does not.
-    u = seg("The set statement is unsuccessful and\nthe index is unchanged.\n\nThe set statement is unsuccessful and\n"
-            "the index is unchanged.")
-    ok([o for _, o in keyed(u)] == [0, 1] and u[0].digest == u[1].digest, "equal digests are keyed by order")
-    ok(digest("The  “same” words.") == digest("The same words") and digest("The same words") != digest("The same word"),
-       "a digest is of the words")
-    ok(tables_named("Table 16 specifies the validity of the move; see tables 3 and 4") == {16, 3},
-       "tables_named reads a row's table references")
-    # THE DISPOSITIONS: a regeneration enters a new unit pending, drops a pending entry no unit has and keeps a decided
-    # one; the audit refuses an undisposed unit, an orphaned or moved entry, a kind the clause does not take, and a
-    # `not-a-rule` (no refuter record is read yet), and accepts a current manifest.
-    units = {"9.9": seg("The record is locked.\n\nThe lock is released at CLOSE.")}
-    label, kinds = str, (lambda clause: {"SR", "GR"})
-    fresh = regenerated(units, {}, lambda clause: "Planted")
-    ok([e["disposition"] for e in fresh["9.9"]["units"]] == [PENDING, PENDING] and pending(fresh) == 2
-       and not audit(units, fresh, label, kinds), f"a regeneration enters every unit pending: {fresh}")
-    decided = {"9.9": {"title": "Planted", "units": [dict(fresh["9.9"]["units"][0], disposition="GR"),
-                                                    fresh["9.9"]["units"][1]]}}
-    repaired = {"9.9": seg("The record is locked.\n\nThe lock is released at CLOSE or COMMIT.")}
-    ok(any("no disposition entry" in f for f in audit(repaired, decided, label, kinds))
-       and any("an entry no unit has" in f for f in audit(repaired, decided, label, kinds)),
-       "a repair of a unit's words orphans its entry and leaves the new text undisposed, both refused")
-    again = regenerated(repaired, decided, lambda clause: "Planted")
-    ok([e["disposition"] for e in again["9.9"]["units"]] == ["GR", PENDING],
-       f"a regeneration keeps a decided entry and drops a pending one that lost its unit: {again}")
-    moved = {"9.9": seg("A new first paragraph.\n\nThe record is locked.\n\nThe lock is released at CLOSE.")}
-    ok(any("moved to p2" in f for f in audit(moved, decided, label, kinds)), "a decided unit whose label moved is refused")
-    wrong = {"9.9": {"units": [dict(fresh["9.9"]["units"][0], disposition="RV"),
-                               dict(fresh["9.9"]["units"][1], disposition=NOT_A_RULE, **{"class": "lead-in"})]}}
-    found = audit(units, wrong, label, kinds)
-    ok(any("kind RV is not a kind of this clause" in f for f in found) and any("refuter record" in f for f in found),
-       f"a kind the clause does not take and an unrecorded not-a-rule are refused: {found}")
-    # The join population: every sentence the 2023 text breaks across a blank line stays one unit.
-    joins = json.loads(JOINS.read_text(encoding="utf-8"))["joins"]
-    split = [j for j in joins if len(seg(f"{j['tail']}\n\n{j['head']}")) != 1]
-    ok(len(joins) == 42 and not split, f"{len(joins)} joins, {len(split)} split: {split[:3]}")
-
-    for b in bad:
-        print(f"  FAIL  {b}")
-    print(f"text_units self-test: {'FAIL' if bad else 'OK'} ({len(bad)} failure(s))")
-    return 1 if bad else 0
-
-
-def main() -> int:
-    if "--self-test" in sys.argv[1:]:
-        return self_test()
-    print(__doc__)
-    return 2
-
-
-if __name__ == "__main__":
-    sys.exit(main())

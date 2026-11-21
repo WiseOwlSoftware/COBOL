@@ -379,6 +379,10 @@ CLASSIFICATION = Classification(inert={
                                      "run.py and config.py) and the harness self-tests (the "
                                      "names of the harness files)",
        "docs/rearchitecture/spec-rule-catalog.json": "scripts/spec/audit_annex_a1.py, audit_code_citations.py",
+       # Each held edition's content-keyed manifest: its `paragraph-blocks` dispose of the units of unnumbered text, and
+       # cite.py reads which are pending (cite.pending_units, kb/Work PB5449), in its self-test and in the audits.
+       "docs/rearchitecture/spec-unharvested-rule-blocks*.json": "scripts/spec/cite.py --self-test (cite.pending_units), "
+                                                                 "audit_code_citations.py",
        "global.json": "scripts/toolchain_audit.py (the SDK pin global.json's version and rollForward must accept)",
        "specs/ISO_COBOL_2023.md": "scripts/spec/cite.py, audit_code_citations.py, audit_doc_citations.py, "  # spec_pdf: names-the-file
                              "scripts/differential_fuzz.py",

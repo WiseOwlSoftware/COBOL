@@ -166,10 +166,11 @@ class Edition:
         """The adjudicated fields of a rule nobody has adjudicated: each empty (the change record an empty object)."""
         return {f: {} if f == "next" else "" for f in self.adjudicated}
 
-    def outside(self, tree: Tree = WORKING_TREE) -> dict[str, list[str]]:
+    def outside(self, tree: Tree = WORKING_TREE) -> dict[str, Any]:
         """What this edition's rule count leaves out (kb/Work PB5256, branch review R1-5): the catalog's
-        `outside-denominator`, the content-keyed manifest's clauses awaiting a disposition (`pending-clauses`) and the
-        rule-shaped headings no kind types (`untyped-headings`); empty when the count is the whole denominator."""
+        `outside-denominator`, the content-keyed manifest's clauses awaiting a disposition (`pending-clauses`), the
+        rule-shaped headings no kind types (`untyped-headings`) and the number of units of unnumbered text awaiting a
+        disposition (`pending-units`, kb/Work PB5449); empty when the count is the whole denominator."""
         doc = tree.json(self.catalog) or {}
         return doc.get("outside-denominator", {})
 
