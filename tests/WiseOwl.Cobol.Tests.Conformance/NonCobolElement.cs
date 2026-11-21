@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Conformance;
 
@@ -25,7 +26,7 @@ internal static class NonCobolElement
     {
         string src = CompiledProgramCache.StageSource(Path.Combine(dir, name + ".cob"), source);
         var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"),
-            DialectLevel: dialect, SourceFormat: InitialReferenceFormat.Auto));
+            DialectLevel: dialect, SourceFormat: TestSourceFormat.Inline));
         Assert.True(r.Success, $"compile {name}: {string.Join("; ", r.Errors)}");
     }
 

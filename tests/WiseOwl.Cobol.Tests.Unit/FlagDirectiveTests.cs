@@ -202,7 +202,7 @@ public sealed class FlagDirectiveTests
             string src = Path.Combine(dir, "flag.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "flag.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "flag.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, string.Join("\n", r.Errors));
             return r.Warnings;
         }
@@ -595,7 +595,7 @@ public sealed class FlagDirectiveTests
                 "       >>FLAG-02 MOVE-TO-SAME-NAME ON\n", "MOVE X TO X."));
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "flag.dll"), DialectLevel: 2023, CheckOnly: true,
-                SourceFormat: InitialReferenceFormat.Auto, Permissive: true));
+                SourceFormat: TestSourceFormat.Inline, Permissive: true));
             Assert.Equal(2, r.Warnings.Count(w => w.Contains("COBOL1639", StringComparison.Ordinal)));
         }
         finally { ScratchDirectory.Remove(dir); }

@@ -295,7 +295,7 @@ public sealed class OoClassTablePositionTests
         {
             string path = Path.Combine(dir, "PT" + label + ".cob");
             File.WriteAllText(path, source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(path, DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(path, DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             Assert.False(r.Success, $"{label}: expected a rejection");
             string all = string.Join("\n", r.Errors);
             var unpositioned = r.Errors.Where(e => e.Contains("error COBOL", StringComparison.Ordinal)

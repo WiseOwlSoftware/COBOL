@@ -218,7 +218,7 @@ public sealed class ProcedureRangeDeclarativesDriftTests
         try
         {
             var diags = new DiagnosticBag();
-            var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = level }.Parse(path, diags);
+            var tree = new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = level }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var edition = new EditionContext(level);
             new BinderDriver().Bind(tree!, edition);

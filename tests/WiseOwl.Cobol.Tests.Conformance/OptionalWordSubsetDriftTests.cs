@@ -1013,7 +1013,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     {
         string src = CompiledProgramCache.StageSource(Path.Combine(dir, s.Unit + ".cob"), s.Source);
         return CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, s.Unit + ".dll"),
-            DialectLevel: edition, SourceFormat: InitialReferenceFormat.Auto));
+            DialectLevel: edition, SourceFormat: TestSourceFormat.Inline));
     }
 
     /// <summary>Compile and run one spelling in a scratch directory of its own: its normalized output, or why it did

@@ -350,7 +350,7 @@ public sealed class ReportItemReferenceTests
         try
         {
             var diags = new DiagnosticBag();
-            var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2023 }.Parse(path, diags);
+            var tree = new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = 2023 }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var edition = new EditionContext(2023);
             new BinderDriver().Bind(tree!, edition);

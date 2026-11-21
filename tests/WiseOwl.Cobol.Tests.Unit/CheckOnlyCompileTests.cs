@@ -63,7 +63,7 @@ public sealed class CheckOnlyCompileTests
         try
         {
             string src = WriteTemp(dir, "CHKOK", GoodProgram);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, string.Join("\n", r.Errors));
             // No runnable assembly and no generated C# were written (the backend + file writes are skipped).
             Assert.Empty(Directory.GetFiles(dir, "*.dll"));
@@ -82,9 +82,9 @@ public sealed class CheckOnlyCompileTests
         try
         {
             string src = WriteTemp(dir, "CHK23", EditionGated2023);
-            var check = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+            var check = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             var full = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, OutputPath: Path.Combine(dir, "full.dll"), DialectLevel: edition, SourceFormat: InitialReferenceFormat.Auto));
+                src, OutputPath: Path.Combine(dir, "full.dll"), DialectLevel: edition, SourceFormat: TestSourceFormat.Inline));
             Assert.Equal(expectSuccess, check.Success);
             // The edition-gating verdict is identical whether or not the backend runs.
             Assert.Equal(full.Success, check.Success);
@@ -103,7 +103,7 @@ public sealed class CheckOnlyCompileTests
         try
         {
             string src = WriteTemp(dir, "CHK23", EditionGated2023);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 85, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 85, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             Assert.Equal(CompilerDriver.Outcome.BindError, r.Status);
             // The DELETE FILE introduction gate reports through the edition band (COBOL09xx).
             Assert.Contains(r.Errors, e => e.Contains("COBOL09"));
@@ -138,7 +138,7 @@ public sealed class CheckOnlyCompileTests
         try
         {
             string src = WriteTemp(dir, "CHKLOUD", BindsCleanEmitsLoud);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, string.Join("\n", r.Errors));
             // No emit artifacts: the CheckOnly path returns before EmitBound (GeneratedCsPath stays null and no
             // .g.cs/.dll is written) — the observable "EmitBound is not invoked" contract.

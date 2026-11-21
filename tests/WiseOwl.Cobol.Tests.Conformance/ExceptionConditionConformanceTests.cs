@@ -1971,7 +1971,7 @@ public sealed class ExceptionConditionConformanceTests
                     STOP RUN.
                 """);
             var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "prog.dll"), DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "prog.dll"), DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, string.Join("\n", r.Errors));
             string generated = File.ReadAllText(Path.Combine(dir, "prog.g.cs"));
             Assert.DoesNotContain("ExceptionState", generated);

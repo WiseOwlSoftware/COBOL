@@ -24,7 +24,7 @@ public sealed class ActivationResourcesTests
     {
         string src = CompiledProgramCache.StageSource(Path.Combine(dir, name + ".cob"), source);
         var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"),
-            DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Auto));
+            DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
         Assert.True(r.Success, $"compile {name}: {string.Join("; ", r.Errors)}");
     }
 

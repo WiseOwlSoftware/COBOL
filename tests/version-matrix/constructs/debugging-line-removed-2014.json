@@ -9,5 +9,6 @@
  "obsoleteIn": 85,
  "expectDiagnostic": "COBOL0902",
  "vcr": "VCR rows 7.9 and 7.17 (the debug facility); kb/Work R61",
+ "sourceFormat": "fixed",
  "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. PB1494DL.\n000300 PROCEDURE DIVISION.\n000400 MAIN.\n000500     DISPLAY \"A\".\n000600D    DISPLAY \"DEBUG\".\n000700     STOP RUN.\n"
 }

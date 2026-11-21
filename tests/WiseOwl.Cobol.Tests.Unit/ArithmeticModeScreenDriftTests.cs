@@ -189,7 +189,7 @@ public sealed class ArithmeticModeScreenDriftTests : WiseOwlCobolTestBase
     {
         string src = Path.Combine(TempDir, $"{tag}_{dialect}.cob");
         File.WriteAllText(src, source);
-        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: dialect, SourceFormat: InitialReferenceFormat.Auto));
+        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: dialect, SourceFormat: TestSourceFormat.Inline));
         // BOTH channels: 0806/0900 are errors, 0903 is a WARNING, and a test that read only Errors would report
         // "the obsolescence flag is missing" for a compiler that emits it perfectly.
         return [.. r.Errors, .. r.Warnings];

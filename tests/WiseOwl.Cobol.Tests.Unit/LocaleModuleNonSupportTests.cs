@@ -42,7 +42,7 @@ public sealed class LocaleModuleNonSupportTests
                 + "       01 R PIC X(20).\n       01 S PIC 9(8) VALUE 3600.\n"
                 + "       PROCEDURE DIVISION.\n       MAIN.\n" + procedureBody + "           STOP RUN.\n");
             return CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "a49.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto)).Errors;
+                src, Path.Combine(dir, "a49.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline)).Errors;
         }
         finally { ScratchDirectory.Remove(dir); }
     }

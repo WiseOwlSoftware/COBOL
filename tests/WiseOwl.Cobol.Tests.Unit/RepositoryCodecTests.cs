@@ -633,7 +633,7 @@ public sealed class RepositoryCodecTests
     {
         string path = Path.Combine(Path.GetTempPath(), $"repocodec_{Guid.NewGuid():N}.cob");
         File.WriteAllText(path, source);
-        try { return BindFile(path, edition, InitialReferenceFormat.Auto, permissive, repositoryUpdate); }
+        try { return BindFile(path, edition, TestSourceFormat.Inline, permissive, repositoryUpdate); }
         finally { FileHarness.TryDelete(path); }
     }
 

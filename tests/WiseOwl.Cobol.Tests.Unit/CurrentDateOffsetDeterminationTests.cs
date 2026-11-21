@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.IO;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -206,7 +207,7 @@ public sealed class CurrentDateOffsetDeterminationTests : WiseOwlCobolTestBase
         try
         {
             IntrinsicBinder.CompileClock = () => at;
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Auto));
+            var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
             Assert.True(result.Success, string.Join("\n", result.Errors));
             generated = File.ReadAllText(result.GeneratedCsPath!);
         }

@@ -117,7 +117,7 @@ public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
             string dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
 
-            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: InitialReferenceFormat.Auto));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
             if (!result.Success)
                 return (false, "", $"[wiseowl-cobol compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
@@ -146,7 +146,7 @@ public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
             string dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
 
-            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: InitialReferenceFormat.Auto));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
             if (!result.Success)
                 return (false, "", $"[wiseowl-cobol compile] {result.Status}: {string.Join("\n", result.Errors)}", null);
 
@@ -176,7 +176,7 @@ public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
             string src = Path.Combine(dir, "prog.cob");
             string dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
-            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: InitialReferenceFormat.Auto));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
             if (!result.Success)
                 return (false, "", $"[wiseowl-cobol compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
@@ -202,7 +202,7 @@ public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
             string csrc = Path.Combine(dir, name + ".cob");
             csrc = CompiledProgramCache.StageSource(csrc, companion);
             var cr = CompiledProgramCache.Compile(new CompilerDriver.Options(
-                csrc, Path.Combine(dir, name + ".dll"), DialectLevel: dialectLevel, SourceFormat: InitialReferenceFormat.Auto));
+                csrc, Path.Combine(dir, name + ".dll"), DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
             if (!cr.Success)
                 return $"[wiseowl-cobol compile {name}] {cr.Status}: {string.Join("\n", cr.Errors)}";
         }
@@ -223,7 +223,7 @@ public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
             string dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
 
-            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: InitialReferenceFormat.Auto));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
             if (!result.Success)
                 return (-1, "", $"[wiseowl-cobol compile] {result.Status}: {string.Join("\n", result.Errors)}");
 

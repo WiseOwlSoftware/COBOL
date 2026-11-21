@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -125,7 +126,7 @@ public sealed class ZonedSignTableDriftTests
             Digits = 3, FractionDigits = 0, Signed = true,
             Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned,
         }.SignEncoding);
-        Assert.Equal(SignEncoding.Ibm, new WiseOwl.Cobol.CompilerDriver.Options("x.cob", SourceFormat: InitialReferenceFormat.Auto).SignEncoding);
+        Assert.Equal(SignEncoding.Ibm, new WiseOwl.Cobol.CompilerDriver.Options("x.cob", SourceFormat: TestSourceFormat.Inline).SignEncoding);
 
         var pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: 3, Digits: 3, Scale: 0, Signed: true);
         Assert.DoesNotContain("SignEncoding", pic.ProfileInitializer(SignEncoding.Ibm));

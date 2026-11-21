@@ -34,7 +34,7 @@ public sealed class SpecialNamesLocaleEditionTests
         try
         {
             var diags = new DiagnosticBag();
-            new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = edition }.Parse(path, diags);
+            new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = edition }.Parse(path, diags);
             return diags;
         }
         finally { FileHarness.TryDelete(path); }
@@ -95,7 +95,7 @@ public sealed class SpecialNamesLocaleEditionTests
                 + "       01 X PIC X(3) VALUE \"AbC\".\n"
                 + "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY X\n           STOP RUN.\n");
             return CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "snloc.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto)).Errors;
+                src, Path.Combine(dir, "snloc.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline)).Errors;
         }
         finally { ScratchDirectory.Remove(dir); }
     }

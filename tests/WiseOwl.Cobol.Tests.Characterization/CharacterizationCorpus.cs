@@ -76,7 +76,7 @@ public static class CompilerProbe
         {
             string dll = Path.Combine(dir, "p.dll");
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                sourcePath, dll, DialectLevel: edition, CheckOnly: !emit, SourceFormat: InitialReferenceFormat.Auto));
+                sourcePath, dll, DialectLevel: edition, CheckOnly: !emit, SourceFormat: InitialReferenceFormat.Fixed));   // the corpus is fixed form (kb/Work PB1757)
             var diags = r.Errors.Concat(r.Warnings).ToList();   // errors then warnings; the snapshot sorts for stability
             string? cs = emit && r.GeneratedCsPath is { } p && File.Exists(p) ? File.ReadAllText(p) : null;
             return new ProbeResult(r.Success, diags, cs);

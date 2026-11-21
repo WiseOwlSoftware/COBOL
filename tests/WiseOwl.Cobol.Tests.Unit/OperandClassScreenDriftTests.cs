@@ -196,7 +196,7 @@ public sealed class OperandClassScreenDriftTests
             string src = Path.Combine(dir, "ocs.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "ocs.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "ocs.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return r.Errors;
         }
         finally { ScratchDirectory.Remove(dir); }

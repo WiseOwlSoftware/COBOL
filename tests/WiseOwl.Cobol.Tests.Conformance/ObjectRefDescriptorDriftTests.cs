@@ -170,7 +170,7 @@ public sealed class ObjectRefDescriptorDriftTests
             string src = Path.Combine(dir, "prog.cob");
             src = CompiledProgramCache.StageSource(src, source);
             var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.CompilerDriver.Options(
-                src, Path.Combine(dir, "prog.dll"), DialectLevel: 2002, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "prog.dll"), DialectLevel: 2002, SourceFormat: TestSourceFormat.Inline));
             return (r.Success, string.Join("\n", r.Errors));
         }
         finally { ScratchDirectory.Remove(dir); }

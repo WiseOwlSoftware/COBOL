@@ -179,7 +179,7 @@ public sealed class ArithmeticOperandRoleDriftTests
         try
         {
             var diags = new DiagnosticBag();
-            var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2023 }.Parse(path, diags);
+            var tree = new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = 2023 }.Parse(path, diags);
             Assert.NotNull(tree);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics.Select(d => d.ToString())));
             var found = new List<ParserRuleContext>();

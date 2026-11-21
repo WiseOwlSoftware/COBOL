@@ -136,7 +136,7 @@ public sealed class NestedStatementEcRegionDriftTests
         try
         {
             var diags = new DiagnosticBag();
-            var frontend = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2023 };
+            var frontend = new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = 2023 };
             var tree = frontend.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var emitter = new CSharpEmitter();

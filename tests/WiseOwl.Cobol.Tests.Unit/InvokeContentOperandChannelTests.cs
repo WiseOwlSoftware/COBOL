@@ -38,7 +38,7 @@ public sealed class InvokeContentOperandChannelTests
         try
         {
             var diags = new DiagnosticBag();
-            var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = edition }.Parse(path, diags);
+            var tree = new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = edition }.Parse(path, diags);
             return (tree, diags);
         }
         finally { FileHarness.TryDelete(path); }

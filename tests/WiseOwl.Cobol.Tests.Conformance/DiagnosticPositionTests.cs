@@ -28,7 +28,7 @@ public sealed class DiagnosticPositionTests : IDisposable
     /// <c>--copy</c> search path, as a user names theirs: the default COBOL library is the working directory plus the
     /// --copy directories, never the source file's own (docs/CONFORMANCE.md DOC-A.1-40, kb/Work PB1355).</summary>
     private (bool Ok, List<string> Lines) Compile(string mainName, int edition = 2023, bool checkOnly = true,
-        string? nist = null, InitialReferenceFormat format = InitialReferenceFormat.Auto)
+        string? nist = null, InitialReferenceFormat format = TestSourceFormat.Inline)
     {
         var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
             Path.Combine(_dir, mainName), Path.Combine(_dir, "out.dll"), NistTestName: nist, DialectLevel: edition,
@@ -280,7 +280,7 @@ public sealed class DiagnosticPositionTests : IDisposable
             + "       PROCEDURE DIVISION.\n"                                              // line 8
             + "           MOVE UNDEF TO W.\n"                                             // line 9
             + "           STOP RUN.\n");
-        var (ok, lines) = Compile("f.cob");
+        var (ok, lines) = Compile("f.cob", format: InitialReferenceFormat.Fixed);   // a continuation line is a fixed-form rule
         Assert.False(ok);
         AssertPositioned(lines, "f.cob", 9, "error COBOL1639");
     }

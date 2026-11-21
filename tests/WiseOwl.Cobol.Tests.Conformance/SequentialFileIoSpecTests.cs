@@ -32,7 +32,7 @@ public sealed class SequentialFileIoSpecTests
             src = CompiledProgramCache.StageSource(src, source);
             string dll = Path.Combine(dir, "prog.dll");
             var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.CompilerDriver.Options(
-                src, dll, DialectLevel: edition, Permissive: permissive, SourceFormat: InitialReferenceFormat.Auto));
+                src, dll, DialectLevel: edition, Permissive: permissive, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, $"must compile at --std {edition}"
                 + (permissive ? " --permissive: " : " strict: ") + string.Join("\n", r.Errors));
             var (ran, stdout, detail) = CutRunner.Run(dll, dir);

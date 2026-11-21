@@ -124,7 +124,7 @@ public sealed class ConditionNameSubjectClassDriftTests
         {
             string src = Path.Combine(dir, "CNDRIFT.cob");
             File.WriteAllText(src, Program(decls, tests));
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Auto));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, $"{klass}: " + string.Join("\n", r.Errors));
             Assert.NotNull(r.GeneratedCsPath);
 
@@ -220,7 +220,7 @@ public sealed class ConditionNameSubjectClassDriftTests
         {
             string src = Path.Combine(dir, "CNDRIFT.cob");
             File.WriteAllText(src, Program(decls, "            CONTINUE."));
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             var codes = r.Errors
                 .SelectMany(e => e.Split(' ', StringSplitOptions.RemoveEmptyEntries))
                 .Select(w => w.TrimEnd(':'))

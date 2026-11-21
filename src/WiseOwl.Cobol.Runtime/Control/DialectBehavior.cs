@@ -369,6 +369,19 @@ public enum DialectBehavior
     /// and <c>SequentialConnector.RewriteRecord</c>, through <c>SequentialConnector.LineSequentialFileRules</c> and
     /// <c>SequentialConnector.LineDelimiterOnlyFrames</c>.</summary>
     LineSequentialFileRules = 32,
+    /// <summary>§2002:13.16.52.2 SR3 — "Data-name-1 shall be the name of a numeric data item in the report section", screened by
+    /// its sub-rules: SR3b, "If data-name-1 is specified in the same report group description as the subject of the entry,
+    /// data-name-1 shall be a repeating item", and SR3g, "If data-name-1 specifies an entry in a different report description,
+    /// there are no restrictions" (§2023:13.18.54.3 SR4, SR4b, SR4g the same). COBOL-85's SUM clause has one rule for an operand
+    /// of the report section instead, §1985:XIII.3.19.3 SR1: "If identifier-1 is defined in the Report Section, identifier-1
+    /// must reference a sum counter", which "must be defined either in the same report group that contains this SUM clause or
+    /// in a report group which is at a lower level in the control hierarchy of this report", and its crossfoot (§1985:XIII.3.19.4
+    /// GR9a) adds a sum counter of the SUM entry's own group, which has no repetition. So at <c>--std 85</c> a SOURCE or VALUE
+    /// entry as the operand is refused (COBOL6764), a sum counter of another report is refused (COBOL2731), and a
+    /// non-repeating sum counter of the same group is a crossfoot; from 2002 the first two are legal and the third is refused
+    /// (COBOL2730) (kb/Work PB5022, PB5253, PB5048; VCR row 7.89). Both editions are QUOTED. The consumer is
+    /// <c>ReportSectionBinder.ResolveRolledAddend</c> and its <c>RolledRepetitionFault</c>.</summary>
+    SumDataNameRules = 33,
 }
 
 /// <summary>
@@ -548,6 +561,12 @@ public static class DialectBehaviors
             + "only from COBOL-2023; before, its records keep their size, and a READ of a line shorter than the minimum or longer "
             + "than the maximum record size is a record length conflict, '04', the long line truncated with no remainder, a REWRITE "
             + "of another size is '44' with the file unchanged, and an ADVANCING phrase or a LINAGE page writes no line of its own"),
+        new(DialectBehavior.SumDataNameRules, "sum-data-name-rules", 2002,
+            "7.89", "§2002:13.16.52.2 SR3", "§1985:XIII.3.19.3 SR1",
+            "a SUM operand of the report section is screened by the data-name-1 rules only from COBOL-2002: a SOURCE or VALUE "
+            + "entry and another report's sum counter are legal, and a sum counter of the SUM entry's own group must be a repeating "
+            + "item; COBOL-85 asks a sum counter of the same group or of a lower control level of the same report, and adds a "
+            + "non-repeating counter of the same group as a crossfoot"),
     ];
 
     static DialectBehaviors()

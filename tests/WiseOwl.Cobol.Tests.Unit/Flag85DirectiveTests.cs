@@ -150,7 +150,7 @@ public sealed class Flag85DirectiveTests
             string src = Path.Combine(dir, "flag85.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "flag85.dll"), DialectLevel: dialect, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "flag85.dll"), DialectLevel: dialect, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, string.Join("\n", r.Errors));
             return r.Warnings;
         }

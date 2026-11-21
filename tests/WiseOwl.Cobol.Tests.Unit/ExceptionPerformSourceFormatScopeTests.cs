@@ -173,7 +173,7 @@ public sealed class ExceptionPerformSourceFormatScopeTests
         Assert.Contains("\"FIXED-AFTER\"", tree.GetText(), StringComparison.Ordinal);
     }
 
-    /// <summary>The same program under <c>--source-format auto</c>, the mode the corpus runner compiles in: the detector sees
+    /// <summary>The same program under <c>--source-format auto</c>, the detector's own case (no harness compiles in it, kb/Work PB1757): the detector sees
     /// the leading comment indicator, classifies the file FIXED, and the implicit POP restores that detected format (a file
     /// the detector reads as free form restores FREE, which is the format it is in).</summary>
     [Fact]
