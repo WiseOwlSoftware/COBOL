@@ -566,7 +566,14 @@ with its remainder left to the next READ (§2023:14.9.30.4 GR15); before 2023 no
 delimiter only frames a variable-length record, a method that is "not ... reflected in the record area or the record
 size used within the program" (§1985:VII.2.8.4 GR1), so the record is written at its size (by the print-control WRITE arm too, `WriteAdvancingRecord`, kb/Work PB5914) and a line outside the
 minimum and maximum record size is §1985:VII.4.4.4 GR13's record length conflict, '04', a long one truncated with no
-remainder. The syntax rules whose subject is the
+remainder. The other side of the same question is `SequentialConnector.LineDelimiterOnlyFrames`, and two more arms ask it
+(kb/Work PB5984, PB5915): the delimiter being the record boundary and nothing else, the vertical positioning of an
+ADVANCING phrase or a LINAGE page has no image on that medium (`Advance` and `AdvanceLines` write nothing, `Present` writes
+the record and its delimiter), so every WRITE, ADVANCING or not, releases exactly one line and the file reads back as the
+records written in WRITE order (§1985:VII.4.7.4 GR12, §1985:VII.2.6.3 GR2), LINAGE-COUNTER and the end-of-page conditions
+still following the logical page; and the REWRITE is the sequential size rule (`RewriteFramedRecord`), '44' with the file
+unchanged unless the record has the character positions of the whole line the READ took (§1985:VII.4.5.4 GR10,
+§1985:VII.1.3.5), where 2023's GR17 c) pads a shorter record and succeeds. The syntax rules whose subject is the
 WRITTEN phrase — §2023:12.4.5.2 SR12 (RESERVE), §2023:13.4.5.3 SR4 (BLOCK CONTAINS, RECORD CONTAINS) and the format
 marker of §2023:12.4.5.2 SR11 — ask `FileModel.LineSequentialPhraseWritten` instead. The method is applied once the
 whole entry is read (`FileControlBinder.ApplyRecordDelimiter`), because the ORGANIZATION clause may follow the clause;
