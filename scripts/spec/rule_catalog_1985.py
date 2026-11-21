@@ -180,10 +180,27 @@ def running_header(line: str) -> bool:
 
 
 @dataclasses.dataclass
+class Paragraph:
+    """One paragraph of the transcription as `parse` walks it: its locator (`<section or appendix>.<number>`, or the bare
+    section or appendix for the text between its heading and its first paragraph), its title, the kind its title types
+    (`kind_of`; None for prose), and every body line the walk reads under it, skips applied (a repeated page, an editorial
+    note, a folio, a running header), each as (text, PDF page, printed folio). THE ONE WALK of the 1985 transcription:
+    `catalog_prose_holes.py` reads these, never a copy of the walk (kb/Work PB5924 review R1-3)."""
+    locator: str
+    title: str
+    kind: str | None
+    section: str                     # the Roman section, or "A" (Amendment 1's Section A)
+    appendix: str | None             # the appendix of Section XVII, whose letter leads the locator (`C.2`), else None
+    lines: list[tuple[str, int, str]] = dataclasses.field(default_factory=list)
+
+
+@dataclasses.dataclass
 class Catalog:
-    """The rows, and every finding `--check` fails on."""
+    """The rows, every paragraph the walk read, and every finding `--check` fails on."""
     rules: list[dict] = dataclasses.field(default_factory=list)
     blocks: list[tuple[str, str]] = dataclasses.field(default_factory=list)   # (locator, kind) of every block seen
+    #: every paragraph of a section or an appendix, by locator, in reading order (`Paragraph`)
+    paragraphs: dict[str, Paragraph] = dataclasses.field(default_factory=dict)
     empty: list[str] = dataclasses.field(default_factory=list)               # a recognised block with no rule
     unrecognised: list[tuple[str, str]] = dataclasses.field(default_factory=list)  # (locator, title)
     unexplained: list[tuple[str, int, int]] = dataclasses.field(default_factory=list)  # (locator, ordinal, after)
@@ -318,6 +335,7 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
     recon_folio = reconstructed(lines)
     inside = [f is not None for f in recon_folio]
     drawn_from: set[bool] = set()
+    para: Paragraph | None = None   # the paragraph the walk is in (Catalog.paragraphs), None outside every section
     for at, line in enumerate(lines):
         if PAGE_HEADING.match(line):
             page, page_top, repeat = int(line.split()[-1]), True, False
@@ -352,7 +370,7 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             close_block()
             close_scan()
             amendment = AMENDMENT_1 if line.split()[2].rstrip(":") == "1" else AMENDMENT_2
-            section, document, appendix = None, BASE, None
+            section, document, appendix, para = None, BASE, None, None
             continue
         if (head := SECTION_85.match(line) or APPENDIX_85.match(line)) is not None:
             close_block()
@@ -369,6 +387,8 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             else:
                 appendix = name
             titles = {}
+            para = None if section is None else cat.paragraphs.setdefault(
+                appendix or section, Paragraph(appendix or section, "(section preamble)", None, section, appendix))
             continue
         if section is None:
             if amendment is None:
@@ -397,6 +417,8 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             loc = f"{appendix or section}.{num}"
             titles[num] = title
             kind = kind_of(title)
+            para = cat.paragraphs.setdefault(loc, Paragraph(loc, title, kind, section, appendix))
+            para.kind = kind
             if kind is None:
                 # THE CONTENT-KEYED SCAN reads every paragraph a heading does not type, in every section and appendix:
                 # a guard keyed on what a block is CALLED cannot find one called something else (kb/Work PB29).
@@ -424,6 +446,8 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             elif RULE_SHAPED.search(title):
                 cat.unrecognised.append((loc, title))
             continue
+        if para is not None:
+            para.lines.append((line.strip(), page, recon_folio[at] or folio_below[at]))
         if scan is not None:
             if ANY_HEADING.match(line) and GROUP_LABEL.match(line) is None:
                 close_scan()

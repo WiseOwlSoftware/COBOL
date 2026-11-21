@@ -1,0 +1,12 @@
+EOP 1
+W 00 LC 2
+EOP 2
+W 00 LC 1
+W 00 LC 1
+EOP 4
+W 00 LC 1
+00 05 [ALPHA               ]
+00 05 [BRAVO               ]
+00 07 [CHARLIE             ]
+00 05 [DELTA               ]
+N 4

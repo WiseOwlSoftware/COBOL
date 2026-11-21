@@ -77,6 +77,9 @@ public sealed partial class SequentialConnector : FileConnector
     private long _lineByteOffset;
     private long _lastLineStart = -1;
     private int _lastLineBytes;
+    // The CHARACTER POSITIONS of the last-read line's record, the whole line however much of it the READ delivered: the size
+    // §1985:VII.4.5.4 GR10 compares a REWRITE against on a line-framed file before 2023 (RewriteFramedRecord, kb/Work PB5915).
+    private int _lastLineCharacters;
     private bool _lastReadLinePartial;
 
     // ── Record-lock identity (ISO §2023:9.1.16 on sequential organization) ────────────────────────────────────────
@@ -987,6 +990,10 @@ public sealed partial class SequentialConnector : FileConnector
     private void Present(string text, LinagePage? page, bool national, bool framed = false, RecordExtents? extents = null)
     {
         if (page is not null && HasLogicalPage) EmitTopMarginIfPending();
+        // ⛔ BEFORE 2023 A LINE-FRAMED RECORD IS PRESENTED AS ITS OWN LINE, AND NOTHING ELSE (kb/Work PB5984): the delimiter
+        // is the record's frame (LineDelimiterOnlyFrames), so the record and its delimiter are written whole, never an
+        // overprint return before it nor an open line a later travel or the CLOSE would end.
+        if (LineDelimiterOnlyFrames) { EmitRecordLine(text, national); return; }
         if (text.Length > 0 || framed)
         {
             if (_device == DeviceLine.Open) _writer!.Write('\r');   // GR25 e)/c): the same vertical position, from column 1
@@ -1043,6 +1050,15 @@ public sealed partial class SequentialConnector : FileConnector
     /// (§1985:VII.2.8.4 GR1, <see cref="DialectBehavior.LineSequentialFileRules"/>). Both line arms ask it.</summary>
     private bool LineSequentialFileRules =>
         _lineSequential && DialectBehaviors.IsActive(DialectBehavior.LineSequentialFileRules, Edition);
+
+    /// <summary>⛔ THE OTHER SIDE OF <see cref="LineSequentialFileRules"/>: a line-framed connector of an edition before
+    /// 2023, whose file is a sequential file the line delimiter only frames (§1985:VII.2.8.4 GR1, "Any method used will not
+    /// be reflected in the record area or the record size used within the program"). Its records keep their size on every
+    /// write arm (kb/Work PB5903, PB5914), its REWRITE is the sequential size rule (§1985:VII.4.5.4 GR10, kb/Work PB5915),
+    /// and the delimiter is the record boundary alone, so the vertical positioning of an ADVANCING phrase or a LINAGE page
+    /// has no image on its medium (kb/Work PB5984; <c>docs/conformance/7/DOC-A.1-150.md</c>): every record the WRITE
+    /// statements release is one line, in WRITE order (§1985:VII.2.6.3 GR2, §1985:VII.4.7.4 GR12).</summary>
+    private bool LineDelimiterOnlyFrames => _lineSequential && !LineSequentialFileRules;
 
     /// <summary>The line end of a RECORD SEQUENTIAL print stream that has neither a LINAGE clause nor a report
     /// description: a record sequential file written with an ADVANCING phrase. A line feed on every host
@@ -1184,6 +1200,7 @@ public sealed partial class SequentialConnector : FileConnector
         _lineByteOffset = 0;
         _lastLineStart = -1;
         _lastLineBytes = 0;
+        _lastLineCharacters = 0;
         _lastReadLinePartial = false;
         _readOrdinal = 0;
         // ⛔ CLEARED BY EVERY OPEN, so a COBOL-85 REVERSED opening cannot outlive itself: the phrase belongs to
@@ -1726,7 +1743,9 @@ public sealed partial class SequentialConnector : FileConnector
         // ⛔ A LINE-FRAMED FILE OF AN EDITION BEFORE 2023 KEEPS THE RECORD AT ITS SIZE ON THIS ARM TOO (kb/Work PB5914):
         // the line delimiter only frames it (§1985:VII.2.8.4 GR1), so the plain arm's rule (WriteRecord, kb/Work PB5903)
         // binds the ADVANCING write of the same file; §2023:14.9.51.4 GR21's strip is the 2023 line sequential rule.
-        bool lineDelimiterOnlyFrames = _lineSequential && !LineSequentialFileRules;
+        // The positioning itself has no image on that file's medium (LineDelimiterOnlyFrames; kb/Work PB5984): Present writes
+        // the record and its delimiter, and Position moves LINAGE-COUNTER and writes nothing.
+        bool lineDelimiterOnlyFrames = LineDelimiterOnlyFrames;
         string record = recordStream || lineDelimiterOnlyFrames || IsVarying ? FitRecord(image, len, national) : image;
         string text = recordStream || lineDelimiterOnlyFrames ? record : TrimRecordEnd(record, national);
         RecordExtents? frameExtents = framed ? Framed(record, image, extents).Extents : null;   // as WriteRecord's frame
@@ -1797,6 +1816,14 @@ public sealed partial class SequentialConnector : FileConnector
     /// PAGE is GR25 g) and goes through <see cref="BeginNextLogicalPage"/>.</summary>
     private void Advance(int lines)
     {
+        // ⛔ THE TRAVEL HAS NO IMAGE ON A LINE-FRAMED FILE BEFORE 2023 (LineDelimiterOnlyFrames; kb/Work PB5984): its delimiter
+        // is the record boundary and nothing else, so a line end, a form feed or an overprint return written for the
+        // positioning would be read back as a record of its own or inside one (§1985:VII.2.6.3 GR2). ADVANCING positions
+        // "on a representation of a printed page" (§1985:VII.4.7.4 GR16), a phrase "dependent upon a device capable of
+        // vertical positioning" (§1985:C.3, its item 19), which this file is not; LINAGE-COUNTER and the end-of-page conditions,
+        // the logical page's (PositionOnLogicalPage), still follow the travel. AdvanceLines asks the same for every margin
+        // and page fill; WriteTravel's overprint return needs no test, since Present never leaves such a file's line open.
+        if (LineDelimiterOnlyFrames) return;
         if (lines < 0) { _writer!.Write('\f'); _device = DeviceLine.Fresh; return; }   // ADVANCING PAGE — GR25 h), the NO-LINAGE arm
         WriteTravel(lines);
     }
@@ -1832,6 +1859,7 @@ public sealed partial class SequentialConnector : FileConnector
     /// line reaches the medium, so a margin line, a page-fill line and an ADVANCING line are the same byte.</summary>
     private void AdvanceLines(int lines)
     {
+        if (LineDelimiterOnlyFrames) return;   // the travel has no image on this medium (see Advance; kb/Work PB5984)
         for (int i = 0; i < lines; i++) _writer!.Write(_lineEnd);
         if (lines > 0) _device = DeviceLine.Fresh;   // the travel ended the line the device stood on
     }
@@ -2057,6 +2085,7 @@ public sealed partial class SequentialConnector : FileConnector
             _lineByteOffset += line.Length + delimBytes;          // the channel is one char per BYTE (past data + delimiter)
             _lastLineBytes = line.Length - bom;                   // the BYTES the record being replaced occupies
             string record = FromMedium(bom == 0 ? line : line[bom..]);
+            _lastLineCharacters = record.Length;                  // the record being replaced, in character positions (GR10 before 2023)
             // An over-length read transfers only part (GR17a) — measured in the record area's units, as the READ's
             // own truncation is (§2023:14.9.30.4 GR15; a UTF-8 line's characters, not its bytes), and against the SAME
             // bound: "the maximum size specified by the record description entries" (MaxRecordSize), which is wider
@@ -2222,7 +2251,35 @@ public sealed partial class SequentialConnector : FileConnector
         // §2023:13.18.43.4 GR14 a) / §2023:9.1.13.7 item 4 a) — a record outside the RECORD IS VARYING bounds, whatever
         // the organization.
         if (IsVarying && (len < VaryMin || len > VaryMax)) return Status = FileStatusCode.RecordSizeViolation;
-        return _lineSequential ? RewriteLine(image, len, national) : RewriteRecordSequential(image, len, extents, national);
+        // ⛔ BEFORE 2023 A LINE-FRAMED FILE IS A SEQUENTIAL FILE (LineDelimiterOnlyFrames, kb/Work PB5915): §2023:14.9.35.4 GR17
+        // is the line sequential file's rule, and the earlier editions' REWRITE has the sequential size rule alone.
+        return !_lineSequential ? RewriteRecordSequential(image, len, extents, national)
+            : LineDelimiterOnlyFrames ? RewriteFramedRecord(image, len, national)
+            : RewriteLine(image, len, national);
+    }
+
+    /// <summary>The REWRITE of a line-framed file of an edition before 2023 (<see cref="LineDelimiterOnlyFrames"/>), whose
+    /// delimiter only frames a sequential file's record (§1985:VII.2.8.4 GR1), so the sequential REWRITE's size rule binds it
+    /// with no exception for the delimiter method: §1985:VII.4.5.4 GR10, <i>"If the number of character positions specified in
+    /// the record referenced by record-name-1 is not equal to the number of character positions in the record being replaced,
+    /// the execution of the REWRITE statement is unsuccessful, the updating operation does not take place"</i>, with the I-O
+    /// status '44' (§1985:VII.1.3.5, a boundary violation: "the record is not the same size as the record being replaced").
+    /// The record being replaced is the WHOLE line the READ took (<see cref="_lastLineCharacters"/>), so the REWRITE after a
+    /// READ that truncated a longer line ('04', §1985:VII.4.4.4 GR13) is '44' by this rule and not by 2023's GR17 a). A
+    /// record of the same character positions whose characters take another number of bytes on the medium
+    /// (<c>docs/conformance/7/DOC-A.1-115.md</c>) cannot replace the line in place either, and is '44' too: on the medium it
+    /// is not the same size. The line character set's refusal stays where the WRITE has it (<see cref="WriteRecord"/>'s
+    /// '71', an implementor-defined unsuccessful status before 2023, <c>docs/conformance/7/DOC-A.1-150.md</c>).</summary>
+    private string RewriteFramedRecord(string image, int len, bool national)
+    {
+        if (_lastLineStart < 0 || _reader is not { BaseStream: { CanSeek: true, CanWrite: true } stream })
+            return NotRewritableInPlace();
+        if (len != _lastLineCharacters) return Status = FileStatusCode.RecordSizeViolation;   // '44' §1985:VII.4.5.4 GR10
+        string record = FitRecord(image, len, national);
+        if (MediumLength(record, national) != _lastLineBytes) return Status = FileStatusCode.RecordSizeViolation;   // '44': not the same size on the medium
+        if (RecordAreaOutsideLineCharacterSet(image, national)) return Status = FileStatusCode.LineRecordInvalidChar;
+        if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
+        return OverwriteInPlace(stream, _lastLineStart, record, national);   // '00': the record replaced, its size and its delimiter unchanged
     }
 
     /// <summary>§2023:14.9.35.4 GR16 — <i>"For a record sequential file, if the number of bytes in the data item
@@ -2411,6 +2468,7 @@ public sealed partial class SequentialConnector : FileConnector
         _lastReadTableCount = -1;
         _lastLineStart = -1;
         _lastLineBytes = 0;
+        _lastLineCharacters = 0;
         _lastReadLinePartial = false;
         _readOrdinal = ordinalBefore;
     }

@@ -5,8 +5,8 @@ its kind, notes, primary file and claim, letter, successor link, tier), the mode
 belong to (group_requirements, kb/Work PB3359), and its rendering as a groups.json entry and a spec body (as_group_json,
 body_of, sites_text, unpartitioned, title_of), the format make_dispatch_specs.py reads.
 
-Its readers: the wave planner (plan_wave.py), check_practices.py (group_requirements, campaign_requirements) and the
-ledger's estimate (scripts/spec/ledger_plan.py: the cost rule). In the import DAG of section 16.10
+Its readers: the wave planner (plan_wave.py) and check_practices.py (group_requirements, campaign_requirements). In
+the import DAG of section 16.10
 (scripts/script_layering.py) it imports reports, inflight and clusters.
 """
 from __future__ import annotations
