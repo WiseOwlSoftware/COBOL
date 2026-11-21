@@ -86,6 +86,9 @@ _PREDICATE = re.compile(r"\{[^{}]*\bis(\d+)\(\)[^{}]*\}\?")
 #: A citation of a clause's general format (`Format 2`), which names the clause's rule of the catalog kind FMT.
 _FORMAT = re.compile(r"Format\b")
 _FORMAT_KIND = "FMT"
+#: A COBOL word as the construct catalogue's `display` spells one, in capitals ("the REMARKS paragraph", "END-ACCEPT"):
+#: the word an EMPTY WINDOW claims no held edition's text has (`empty_window`).
+_WORD = re.compile(r"(?<![\w-])[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*[A-Z0-9](?![\w-])")
 #: THE FINDINGS A KNOWN DEFECT HOLDS OPEN, each with the work-register note that carries its fix; checked both ways
 #: (`held_open`): an entry whose gate the audit no longer finds anything at is itself a finding. A gate lands here only
 #: when the audit has found a defect, of the compiler or of the data it reads (the catalog, the lineage), whose fix is
@@ -124,11 +127,13 @@ Row = dict[str, Any]
 
 class Gate(NamedTuple):
     """One edition gate: where it is, the first edition it accepts, the first it refuses again (None: it never ends),
-    and the citations that ground it."""
+    the citations that ground it, and the COBOL words its construct is (a construct's `display` names them in
+    capitals: "the REMARKS paragraph"; a grammar predicate names none)."""
     where: str
     start: int
     end: int | None
     cites: tuple[citation.Citation, ...]
+    words: tuple[str, ...] = ()
 
 
 class Pair(NamedTuple):
@@ -152,7 +157,8 @@ def construct_gates(rows: Iterable[Mapping[str, Any]], year_of: Mapping[str, int
             raise SystemExit(f"{CONSTRUCTS_REL}: edition {spelling!r} names no edition of the schema")
         return year_of[str(spelling)]
     return [Gate(f"constructs/{c['id']}", year(c["introducedIn"]), year(c["removedIn"]) if c.get("removedIn") else None,
-                 tuple(x for x in citation.scan(c.get("citation") or "") if x.error is None))
+                 tuple(x for x in citation.scan(c.get("citation") or "") if x.error is None),
+                 tuple(_WORD.findall(c.get("display") or "")))
             for c in rows]
 
 
@@ -271,6 +277,32 @@ def edge_findings(g: Gate, p: Pair, schema: Schema) -> tuple[list[Finding], str 
     return unproven(g.where, f"{edge}, between {lo} and {hi},", named, p, chained), None
 
 
+def empty_window(g: Gate, pairs: Iterable[Pair]) -> tuple[list[Finding], str | None]:
+    """AN EMPTY WINDOW (kb/Work PB5036): `introducedIn` equal to `removedIn` (`remarks-removed-85`, [1985, 1985)) claims
+    the construct is in NO edition, so no pair of held editions spans an edge of it (`edge_findings`) and its claim is
+    proven against the held editions' own text instead: its citations must name at least one rule of a held edition (the
+    text it says the construct is absent from: "absent from the X3.23-1985 Identification Division general format
+    (§1985:VI.3.2.1.1)"), and no rule they name may hold a word of the construct (`Gate.words`), else that edition HAS
+    it and the window is wrong. A construct whose display names no word cannot be held to the text, and is refused."""
+    if not g.words:
+        return [Finding(g.where, f"an empty window [{g.start}, {g.end}) claims the construct is in no edition, and its "
+                                 f"display names no word in capitals whose absence the text could show")], None
+    named: dict[str, str] = {}
+    for ed, rules in {e.year: (e, r) for p in pairs for e, r in ((p.older, p.older_rules), (p.newer, p.newer_rules))}.values():
+        text_of = {r["rule-id"]: r.get("text") or "" for r in rules}
+        for t in cited_rules(g.cites, rules, ed):
+            named[t] = text_of[t]
+    if not named:
+        return [Finding(g.where, f"an empty window [{g.start}, {g.end}) claims the construct is in no edition, and cites "
+                                 f"no rule of a held edition its absence could be read in: name the general format or "
+                                 f"rule that would hold {'/'.join(g.words)} (§<edition>:<locator>)")], None
+    word = re.compile(r"(?<![\w-])(?:" + "|".join(map(re.escape, g.words)) + r")(?![\w-])")
+    if holding := [t for t, text in named.items() if word.search(re.sub(r"</?u>", "", text))]:
+        return [Finding(g.where, f"an empty window [{g.start}, {g.end}) claims the construct is in no edition, yet "
+                                 f"{', '.join(holding[:4])} hold {'/'.join(g.words)}: that edition has it")], None
+    return [], f"in no edition: {', '.join(list(named)[:4])} hold no {'/'.join(g.words)}"
+
+
 def unproven(where: str, edge: str, named: Mapping[str, tuple[list[str], Callable[[str], str | None],
                                                               Callable[[str], str | None]]],
              p: Pair, chained: str) -> list[Finding]:
@@ -334,6 +366,12 @@ def audit(gates: Iterable[Gate], pairs: Iterable[Pair], schema: Schema) -> tuple
     findings: list[Finding] = []
     proven: dict[str, list[str]] = defaultdict(list)
     for g in gates:
+        if g.end is not None and g.end <= g.start:
+            f, how = empty_window(g, pairs)
+            findings += f
+            if how:
+                proven[g.where].append(how)
+            continue
         for p in pairs:
             f, how = edge_findings(g, p, schema)
             findings += f
@@ -353,7 +391,9 @@ def repository_inputs(schema: Schema, root: pathlib.Path = REPO) -> tuple[list[G
     gates = (construct_gates(construct_store.read_rows(root), year_of)
              + grammar_gates(grammar, year_of))
     held = [e for e in schema.all_editions if e.held and e.linked]
-    views = {e.year: inventory_view.inventory(e.year, schema) for e in held}
+    # Each row with its catalog text: an empty window is held to the text of the rules it cites (`empty_window`).
+    views = {e.year: [dict(r, text=t.get(r["rule-id"], "")) for r in inventory_view.inventory(e.year, schema)]
+             for e in held for t in [{c["id"]: c.get("text") or "" for c in e.rules()}]}
     pairs = [pair_of(e, schema.edition(e.next_held), views[e.year], views[e.next_held], schema)
              for e in held if e.next_held is not None]
     return gates, pairs
@@ -527,6 +567,21 @@ def self_test() -> int:
     construct = construct_gates([{"id": "c", "introducedIn": 85, "removedIn": 2002,
                                       "citation": "§2023:14.9.3.4 GR1; §5000:1 malformed"}],  # citation-audit: example
                                 year_of)
+    # kb/Work PB5036: an empty window is held to the text of the held editions' rules it cites.
+    p_text = pair_of(e85, e23, [dict(old[2], text="<u>FORMAT</u> PROGRAM-ID. AUTHOR."), dict(old[3], text="REMARKS here")],
+                     new, schema)
+    empty = lambda cite, words=("REMARKS",): empty_window(Gate("planted", 1985, 1985, tuple(citation.scan(cite)), words),  # noqa: E731
+                                                          [p_text])
+    ok(empty("§1985:VI.6.15.2") == ([], "in no edition: 1985-FMT-VI.6.15.2 hold no REMARKS")
+       and any("hold REMARKS" in f.text for f in empty("§1985:VI.6.9.4")[0])
+       and any("cites no rule of a held edition" in f.text for f in empty("§1985:A.2.5")[0])
+       and any("names no word" in f.text for f in empty("§1985:VI.6.15.2", ())[0]),
+       "an empty window is proven by a cited held rule that lacks the construct's word, refused by one that holds it, by "
+       "citing no held rule, or by a display naming no word (kb/Work PB5036)")
+    ok(audit([Gate("planted", 1985, 1985, tuple(citation.scan("§1985:VI.6.9.4")), ("REMARKS",))], [p_text], schema)[0]
+       != [] and construct_gates([{"id": "r", "introducedIn": 85, "removedIn": 85, "display": "the REMARKS paragraph",
+                                   "citation": ""}], year_of)[0].words == ("REMARKS",),
+       "the audit holds every empty window to the text, and a construct's words are its display's capitals")
     ok(construct == [Gate("constructs/c", 1985, 2002, construct[0].cites)] and len(construct[0].cites) == 1,
        "a construct's window is a gate in years (85 is 1985) citing what its citation names, a malformed citation "
        "dropped (CITATIONS refuses it)")

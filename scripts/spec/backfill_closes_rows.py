@@ -436,7 +436,7 @@ def main() -> int:
         return self_test()
 
     resolving = resolving_verdicts()
-    rows, _ = work_inventory.held_rows(inventory_schema.load_schema())   # every held edition's (kb/Work PB5094)
+    rows = work_inventory.held_rows(inventory_schema.load_schema())   # every held edition's (kb/Work PB5094)
     state_now = {r["rule-id"]: r.get("state") or "" for r in rows}
     items = work.load()
 
