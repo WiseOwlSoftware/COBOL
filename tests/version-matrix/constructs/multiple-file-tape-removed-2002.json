@@ -3,7 +3,7 @@
  "description": "MULTIPLE FILE [TAPE] clause (I-O-CONTROL) — obsolete '85 reel-sharing description, deleted by ISO 2002 (P2.6 gate).",
  "display": "the MULTIPLE FILE [TAPE] clause (I-O-CONTROL)",
  "diagnosticCode": "COBOL0902",
- "citation": "obsolete '85 reel-sharing description, deleted by ISO 2002 (§1985:VII.2.11.2, REMOVED); VCR Table 7; obsolete element (§1985:C.1 item 6)",
+ "citation": "obsolete '85 reel-sharing description, deleted by ISO 2002 (§1985:VII.2.11.2, REMOVED); VCR Table 7; obsolete element (§1985:p.XVII-83 (obsolete list item 6))",
  "introducedIn": 85,
  "removedIn": 2002,
  "obsoleteIn": 85,

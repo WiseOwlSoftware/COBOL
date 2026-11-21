@@ -3,7 +3,7 @@
  "description": "The five identification comment paragraphs (AUTHOR/INSTALLATION/DATE-WRITTEN/DATE-COMPILED/SECURITY) — obsolete '85 elements deleted by ISO 2002; ONE row, the AUTHOR witness (the gate names each paragraph per site).",
  "display": "an identification comment paragraph (AUTHOR/INSTALLATION/DATE-WRITTEN/DATE-COMPILED/SECURITY)",
  "diagnosticCode": "COBOL0902",
- "citation": "the five obsolete '85 comment paragraphs deleted by ISO 2002 (§1985:VI.3.2.1.2 SR1, §1985:VI.3.4.2, REMOVED); one row, paragraph named per site; VCR Table 7; obsolete element (§1985:C.1 item 3)",
+ "citation": "the five obsolete '85 comment paragraphs deleted by ISO 2002 (§1985:VI.3.2.1.2 SR1, §1985:VI.3.4.2, REMOVED); one row, paragraph named per site; VCR Table 7; obsolete element (§1985:p.XVII-82 (obsolete list item 3))",
  "introducedIn": 85,
  "removedIn": 2002,
  "obsoleteIn": 85,

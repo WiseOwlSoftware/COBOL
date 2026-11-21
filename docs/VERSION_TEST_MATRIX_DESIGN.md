@@ -435,7 +435,7 @@ refused at every edition (COBOL7240).
 Core/CobolData.g4:106; 0902) · VALUE OF (:118; 0902) · DATA RECORDS FD+SD (:111; **0873** — the DataBinder.cs:322
 SD gate MIGRATES into the validator, one enforcement site; Table 7 row 7.1's recorded follow-up) · MEMORY SIZE,
 SEGMENT-LIMIT (the modelled `memorySizeClause` / `segmentLimitClause`, CobolParserCore.g4 — kb/Work PB830; 0902) ·
-WITH DEBUGGING MODE (the modelled `debuggingModeClause`; NOT a 2002 removal — obsolete from 85 with 0903 (§1985:C.1 item 18 names the Debug module an obsolete element; kb/Work PB5986), removed 2014,
+WITH DEBUGGING MODE (the modelled `debuggingModeClause`; NOT a 2002 removal — obsolete from 85 with 0903 (§1985:p.XVII-86 (obsolete list item 18) names the Debug module an obsolete element; kb/Work PB5986), removed 2014,
 owner decision kb/Work R61, row `debugging-mode-removed-2014`) · MULTIPLE FILE [TAPE] (CobolIO.g4:170; 0902) · the five identification comment
 paragraphs AUTHOR/INSTALLATION/DATE-WRITTEN/DATE-COMPILED/SECURITY (0902) · REMARKS (0902 at EVERY
 edition, row `remarks-removed-85`: §1985:VI.3.2.1.1 prints no REMARKS paragraph; kb/Work PB5026) · STOP literal (CobolControlFlow.g4:222;

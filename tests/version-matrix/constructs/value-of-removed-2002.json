@@ -3,7 +3,7 @@
  "description": "VALUE OF clause (FD) — obsolete '85 label-field clause, deleted by ISO 2002 (P2.6 gate).",
  "display": "the VALUE OF clause (FD)",
  "diagnosticCode": "COBOL0902",
- "citation": "obsolete '85 label-field clause, deleted by ISO 2002 (§1985:VII.3.9.2, REMOVED); VCR Table 7; obsolete element (§1985:C.1 item 8)",
+ "citation": "obsolete '85 label-field clause, deleted by ISO 2002 (§1985:VII.3.9.2, REMOVED); VCR Table 7; obsolete element (§1985:p.XVII-83 (obsolete list item 8))",
  "introducedIn": 85,
  "removedIn": 2002,
  "obsoleteIn": 85,

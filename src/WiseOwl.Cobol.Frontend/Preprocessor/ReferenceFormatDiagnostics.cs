@@ -108,7 +108,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
 
     /// <summary>A USE FOR DEBUGGING section that the source unit's lack of WITH DEBUGGING MODE makes comment (§1985:XV.2.1.3 GR2:
     /// "compiled as if they were comment lines"): no parse or bind sees it, yet the program holds the obsolete Debug module's declarative
-    /// (§1985:C.1 item 18; row <c>use-for-debugging-removed-2002</c>, kb/Work PB5986). Gated once per compilation, at its first.</summary>
+    /// (§1985:p.XVII-86 (obsolete list item 18); row <c>use-for-debugging-removed-2002</c>, kb/Work PB5986). Gated once per compilation, at its first.</summary>
     public void OnHiddenDebuggingSection(string file, int line, int column)
         => GateOnce(ref _hiddenDebuggingSectionFlagged, Constructs.UseForDebuggingRemoved2002, file, line, column);
 

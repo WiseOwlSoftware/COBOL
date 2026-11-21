@@ -190,7 +190,7 @@ public sealed class LogicalLineBuilderTests
         Assert.Equal(expected, Codes(bag).Count(c => c == "COBOL0900"));
     }
 
-    [Theory] // kb/Work R61, row debugging-line-removed-2014: the D indicator is accepted at 85 and obsolete from 85 (§1985:C.1 item 18; the
+    [Theory] // kb/Work R61, row debugging-line-removed-2014: the D indicator is accepted at 85 and obsolete from 85 (§1985:p.XVII-86 (obsolete list item 18); the
              // obsolete warning, COBOL0903), removed at 2014 (COBOL0902, an error strict, a warning permissive) —
              // once per compilation; the NIST S / Y debugging letters are the CCVS dialect and never gated.
     [InlineData(85, false, "D", false, "COBOL0903", false)]

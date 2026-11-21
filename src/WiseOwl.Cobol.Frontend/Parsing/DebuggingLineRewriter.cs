@@ -64,7 +64,7 @@ public static class DebuggingLineRewriter
     /// <c>*&gt;</c>, <c>SurvivingFloatingComments</c>) asks this set, the one place that decides it.</para>
     /// <para>When <paramref name="hiddenSections"/> is given, the header token of every USE FOR DEBUGGING section this pass makes comment is
     /// added to it, so the caller can still say the program holds one: a comment-treated section is an element the obsolete Debug module
-    /// has (§1985:C.1 item 18), and the warning mechanism of §1985:I.1.5.2.3 indicates its use whether or not the mode compiles it.</para></summary>
+    /// has (§1985:p.XVII-86 (obsolete list item 18)), and the warning mechanism of §1985:I.1.5.2.3 indicates its use whether or not the mode compiles it.</para></summary>
     public static IToken? Rewrite(CommonTokenStream tokenStream, List<IToken>? sourceLines = null, List<IToken>? misplacedLines = null,
         bool debuggingSectionsAreComments = false, HashSet<int>? commentLines = null, List<IToken>? hiddenSections = null)
     {
@@ -163,7 +163,7 @@ public static class DebuggingLineRewriter
     /// (hidden-channel text between them included) and the last line of the text it covers, which also holds what the lexer
     /// skipped (a floating comment) after the last token.</summary>
     /// <param name="IsSection">True for a USE FOR DEBUGGING section itself, false for the DECLARATIVES portion's own header and END DECLARATIVES
-    /// that leave with the last of them: only a section is a use of the obsolete Debug module's declarative (§1985:C.1 item 18).</param>
+    /// that leave with the last of them: only a section is a use of the obsolete Debug module's declarative (§1985:p.XVII-86 (obsolete list item 18)).</param>
     private readonly record struct HiddenSection(int First, int Last, int LastLine, bool IsSection = true);
 
     private static List<Extent> DebugLines(IList<IToken> tokens)

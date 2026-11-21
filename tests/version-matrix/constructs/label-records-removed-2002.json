@@ -3,7 +3,7 @@
  "description": "LABEL RECORDS clause (FD) — obsolete '85 element DELETED by ISO/IEC 1989:2002; the 2023 FD clause set (§2023:13.18) has no LABEL clause. The FIRST removal gate, shipped with the permissive flip (every NIST FD writes this clause).",
  "display": "the LABEL RECORDS clause",
  "diagnosticCode": "COBOL0902",
- "citation": "obsolete '85 FD element DELETED by ISO 2002; the 2023 FD clause set (§2023:13.18) has no LABEL clause; §1985:VII.3.6.2 (REMOVED); VCR Table 7; obsolete element (§1985:C.1 item 7)",
+ "citation": "obsolete '85 FD element DELETED by ISO 2002; the 2023 FD clause set (§2023:13.18) has no LABEL clause; §1985:VII.3.6.2 (REMOVED); VCR Table 7; obsolete element (§1985:p.XVII-83 (obsolete list item 7))",
  "introducedIn": 85,
  "removedIn": 2002,
  "obsoleteIn": 85,

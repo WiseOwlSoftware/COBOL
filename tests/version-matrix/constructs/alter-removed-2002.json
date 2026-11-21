@@ -3,7 +3,7 @@
  "description": "the ALTER statement — an obsolete element of ANSI X3.23-1985, DELETED by ISO/IEC 1989:2002 (§2023:14.9.17; the 2023 standard has no ALTER and GO TO has no altered form). Folded from the inline COBOL0810 binder gate (P2.6b).",
  "display": "the ALTER statement",
  "diagnosticCode": "COBOL0810",
- "citation": "ISO §2023:14.9.17 (no altered GO TO); obsolete ’85 element (§1985:VI.6.7.2, REMOVED) deleted by ISO 2002; obsolete element (§1985:C.1 item 10)",
+ "citation": "ISO §2023:14.9.17 (no altered GO TO); obsolete ’85 element (§1985:VI.6.7.2, REMOVED) deleted by ISO 2002; obsolete element (§1985:p.XVII-84 (obsolete list item 10))",
  "introducedIn": 85,
  "removedIn": 2002,
  "obsoleteIn": 85,

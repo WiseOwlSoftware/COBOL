@@ -225,7 +225,7 @@ public sealed class Listing1985Tests : IDisposable
             string[] rows = page.Split('\n');
             // The first row of the page that is a numbered source row: its listing number names its line.
             string? first = rows.Skip(ListingRequest.TextHeadingLines).FirstOrDefault(r => r.Length > 6 && int.TryParse(r[..6], out _));
-            // A page the DATE-COMPILED paragraph's obsolete-element warning (COBOL0903, §1985:C.1 item 3) fills alone holds no source row.
+            // A page the DATE-COMPILED paragraph's obsolete-element warning (COBOL0903, §1985:p.XVII-82 (obsolete list item 3)) fills alone holds no source row.
             if (first is null) { Assert.Contains("COBOL0903", page, StringComparison.Ordinal); onlyTheFlag++; continue; }
             var line = listing.Lines[int.Parse(first[..6], CultureInfo.InvariantCulture) - 1];
             string program = listing.Programs.Single(p => p.Id == line.Program).Name;

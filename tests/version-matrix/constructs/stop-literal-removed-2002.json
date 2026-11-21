@@ -3,7 +3,7 @@
  "description": "STOP literal (X3.23-1985 Format 2: communicate the literal to the operator, then CONTINUE — implemented via BoundStopLiteral to stderr, fixing the DEVLOG-578 silent bind-as-STOP-RUN); deleted by ISO 2002 (§2023:14.9.42 has no literal form).",
  "display": "the STOP literal statement",
  "diagnosticCode": "COBOL0902",
- "citation": "X3.23-1985 Format 2 (§1985:VI.6.24.4 GR4, REMOVED), deleted by ISO 2002 (§2023:14.9.42 has no literal form); obsolete element (§1985:C.1 item 16)",
+ "citation": "X3.23-1985 Format 2 (§1985:VI.6.24.4 GR4, REMOVED), deleted by ISO 2002 (§2023:14.9.42 has no literal form); obsolete element (§1985:p.XVII-85 (obsolete list item 16))",
  "introducedIn": 85,
  "removedIn": 2002,
  "obsoleteIn": 85,

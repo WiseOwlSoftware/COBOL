@@ -587,7 +587,7 @@ public sealed class Frontend
             sourceDebuggingLines.Add(sourceRegionLine);
             text = DebuggingLineRewriter.WithCarrierBlanked(text, sourceRegionLine);
         }
-        // A USE FOR DEBUGGING section the mode makes comment is still a use of the obsolete Debug module (§1985:C.1 item 18): no
+        // A USE FOR DEBUGGING section the mode makes comment is still a use of the obsolete Debug module (§1985:p.XVII-86 (obsolete list item 18)): no
         // parse or bind sees it, so the one place that knows of it says so (kb/Work PB5986).
         // The header's RESULTANT position goes through the map's one conversion: a fixed-form resultant line has lost the sequence
         // and indicator areas, so its raw column is not the physical one (kb/Work PB5986, review R1-1).
