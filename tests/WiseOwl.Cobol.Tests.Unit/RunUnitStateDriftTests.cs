@@ -95,9 +95,14 @@ public sealed class RunUnitStateDriftTests
             Assert.Equal(hostExitCode, Environment.ExitCode);   // a run unit's status is its own: the HOST's exit code is untouched (kb/Work PB3163)
         });
 
-        var hostBacking = RunUnit.HostConfiguration.Select(p => $"<{p}>k__BackingField").ToHashSet(StringComparer.Ordinal);
-        Assert.Equal(RunUnit.HostConfiguration.Count, hostBacking.Count(n =>
-            typeof(RunUnit).GetField(n, BindingFlags.Instance | BindingFlags.NonPublic) is not null));
+        // A host-configuration member's storage is its auto-property's backing field, or, for a member computed on first
+        // use (DebugMode reads WISEOWL_COBOL_DEBUG then, kb/Work PB4997), the private field `_<camelName>` its accessors
+        // keep. Each member has exactly one of the two.
+        var hostBacking = RunUnit.HostConfiguration
+            .Select(p => new[] { $"<{p}>k__BackingField", $"_{char.ToLowerInvariant(p[0])}{p[1..]}" }
+                .Single(n => typeof(RunUnit).GetField(n, BindingFlags.Instance | BindingFlags.NonPublic) is not null))
+            .ToHashSet(StringComparer.Ordinal);
+        Assert.Equal(RunUnit.HostConfiguration.Count, hostBacking.Count);
         var stale = new List<string>();
         foreach (FieldInfo f in typeof(RunUnit).GetFields(BindingFlags.Instance | BindingFlags.Public
                                                            | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))

@@ -1466,7 +1466,13 @@ classified exactly once and every newer rule is reached or NEW.
 5. the derived bands (`lineage.chain_bands`, which the conformance suite's S5 reads), the `85` token leaving the
    stored `editions` once the stored and the derived 85 agree (the band drift measures how far apart they are, and
    slice 4's adjudication closes it), and the edition-gate drift test (the EDITION GATES audit);
-6. the 1985 conformance statement (kb/Work PB4885).
+6. the 1985 conformance statement (kb/Work PB4885, PB4997): docs/CONFORMANCE.md section 9. Its claim (the high subset
+   with the highest level of all five optional modules) is the one hand-written frame; the module-by-module table, the
+   GAP rows and the obsolete elements of §1985:C.1 with the states of the rules each marks are computed from the 1985
+   view on every render (`scripts/spec/conformance_1985.py`, a generator of `conformance_source.GENERATORS`), and
+   section 9.1, which names each rule the claim does not support with its ground (a rule whose own verdict, or whose
+   KEPT target's, is DOCUMENTED-NON-SUPPORT), is held to that set both ways by `conformance_doc.py --check`. It is a
+   computed part of the existing conformance view, not a new view, so no second rendered file exists to drift.
 
 ### 10.3 The Message Batches arm — `scripts/spec/audit_batch.py`
 

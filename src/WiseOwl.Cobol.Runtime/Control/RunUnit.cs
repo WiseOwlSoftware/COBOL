@@ -109,13 +109,42 @@ public sealed class RunUnit
     public LocaleState Locale { get; } = new();
 
     /// <summary>The X3.23-1985 OBJECT-TIME (run-time) debug switch (the '85 debug module — deleted 2002, absent 2023;
-    /// WiseOwl COBOL models the facility only at <c>--std 85</c>, VCR Table 7 row 7.17). It is implementor-defined; for a
-    /// CCVS run it is ON. Default ON so a program compiled WITH DEBUGGING MODE runs its debugging declaratives (the
-    /// COMPILE-time switch — SOURCE-COMPUTER … WITH DEBUGGING MODE — is what gates whether the debug scaffolding is
-    /// emitted at all; this is the second switch that gates whether emitted triggers actually fire). The emitted
-    /// <c>__RunDebug</c> helper reads it, giving a future CLI <c>--debug-mode off</c> override a single home without
-    /// perturbing generated code. HOST CONFIGURATION like <see cref="Clock"/> (<see cref="HostConfiguration"/>).</summary>
-    public bool DebugMode { get; set; } = true;
+    /// WiseOwl COBOL models the facility only at <c>--std 85</c>, VCR Table 7 row 7.17). §1985:XV.1.3.4: "This switch
+    /// cannot be addressed in the program; it is controlled outside the COBOL environment", and "Recompilation of the
+    /// source program is not required to provide or take away this facility". The COMPILE-time switch (SOURCE-COMPUTER …
+    /// WITH DEBUGGING MODE) gates whether the debug scaffolding is emitted at all; this one gates whether the emitted
+    /// triggers fire, and the emitted <c>__RunDebug</c> helper reads it at each trigger. Unless a host sets it, its value
+    /// is the environment variable <see cref="DebugSwitchVariable"/>, read at its first use in the run unit: <c>OFF</c>
+    /// takes the facility away from a program built WITH DEBUGGING MODE, and <c>ON</c>, empty or unset gives it (the
+    /// CCVS posture), so a user of a built program turns it either way with no recompilation (kb/Work PB4997). A value
+    /// that is neither stops the run (an input the runtime cannot resolve; kb/Work PB5839's rule for the clock pin).
+    /// HOST CONFIGURATION like <see cref="Clock"/> (<see cref="HostConfiguration"/>).</summary>
+    public bool DebugMode
+    {
+        get => _debugMode ??= DebugSwitchFromEnvironment();
+        set => _debugMode = value;
+    }
+
+    /// <summary>The value a host set, or the one <see cref="DebugSwitchVariable"/> gave at first use; null until then, so
+    /// a run unit <see cref="Begin"/> starts carries over the host's choice without reading the environment for a
+    /// program that has no debugging section.</summary>
+    private bool? _debugMode;
+
+    /// <summary>The environment variable that turns the object-time debug switch (<see cref="DebugMode"/>):
+    /// <c>WISEOWL_COBOL_DEBUG</c>. Registered in <see cref="RuntimeConfig"/>.</summary>
+    public const string DebugSwitchVariable = "WISEOWL_COBOL_DEBUG";
+
+    /// <summary>The switch as <see cref="DebugSwitchVariable"/> sets it: OFF is off; ON, empty or unset is on (compared
+    /// without regard to case, surrounding spaces ignored); any other value stops the run, naming the variable.</summary>
+    private static bool DebugSwitchFromEnvironment()
+    {
+        string value = (Environment.GetEnvironmentVariable(DebugSwitchVariable) ?? "").Trim();
+        if (value.Length == 0 || value.Equals("ON", StringComparison.OrdinalIgnoreCase)) return true;   // not a COBOL word: an environment variable value
+        if (value.Equals("OFF", StringComparison.OrdinalIgnoreCase)) return false;   // not a COBOL word: an environment variable value
+        throw new CobolImplementorFatalException(
+            $"{DebugSwitchVariable}='{value}' is neither ON nor OFF (the object-time debug switch, §1985:XV.1.3.4); "
+            + "unset it to leave the switch on");
+    }
 
     /// <summary>The names of the members that are HOST CONFIGURATION rather than run-unit state: set by the host
     /// (or a test) that embeds the runtime, not by any COBOL statement, and carried from the ambient run unit into
@@ -380,7 +409,7 @@ public sealed class RunUnit
         if (prior is not null)
         {
             ru.Clock = prior.Clock;
-            ru.DebugMode = prior.DebugMode;
+            ru._debugMode = prior._debugMode;
             ru.MessagingSettings = prior.MessagingSettings;
         }
         // design 5.5: a run unit that serves a name is reachable from its beginning. The ambient replacement of EndForHost serves nothing: no program runs
