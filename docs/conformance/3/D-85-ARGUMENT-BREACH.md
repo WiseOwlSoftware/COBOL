@@ -13,8 +13,8 @@
   (`ExceptionEngine.ArgumentError` and its two text twins), keyed by the edition of the element executing, so a COBOL-85 program
   CALLed from a later-edition one terminates and a later-edition program CALLed from a COBOL-85 one raises EC-ARGUMENT-FUNCTION.
   From COBOL-2002 the text names the condition ("the EC-ARGUMENT-FUNCTION exception condition is set to exist", `§2002:15.2 AR13`,
-  `§2014:15.3 AR13`, `§2023:15.3 AR14`) and DOC-A.1-90 is the result with checking off; nothing changes there. Before kb/Work
-  PB6019 the 1985 breach returned DOC-A.1-90's 0 or spaces and the run went on, while a non-integer integer argument terminated it:
+  `§2014:15.3 AR13`, `§2023:15.3 AR14`) and A.1 item 90 is the result with checking off; nothing changes there. Before kb/Work
+  PB6019 the 1985 breach returned A.1 item 90's 0 or spaces and the run went on, while a non-integer integer argument terminated it:
   one rule, two answers. Witnesses: `conformance:cases/A.2.14@1985-FACTORIAL-FUNCTION/pb6019_argument_breach_85`,
   `conformance:cases/A.2.9@1985-CHAR-FUNCTION/pb6019_argument_breach_text_85`,
   `unit:ArgumentBreachEditionTests.AtCobol85_EveryBreachTerminatesTheRunUnit_WithItsMessage`,

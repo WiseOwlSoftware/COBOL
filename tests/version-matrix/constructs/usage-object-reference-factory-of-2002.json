@@ -4,7 +4,7 @@
  "description": "USAGE OBJECT REFERENCE FACTORY OF object-class-name-1 (ISO §2023:13.18.60.2; GR22 d)1.a./d)2.a.) — the item holds a class's FACTORY object, not an instance. LIVE since kb/Work PB389 (it was loud-staged COBOL0899 before): the emitted type is the D11 factory singleton class, INVOKE through it resolves the FACTORY method interface (§2023:9.3.6), SET … TO class-name is §2023:14.9.39.3 SR13, and SR12 a)3. makes the FACTORY axis invariant on assignment.",
  "display": "USAGE OBJECT REFERENCE FACTORY OF",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:13.18.60.2 / §2023:13.18.60.4 GR22 d) (OO)",
+ "citation": "ISO §2023:13.18.60.2 / §2023:13.18.60.4 GR22d (OO)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

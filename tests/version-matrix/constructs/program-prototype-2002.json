@@ -1,10 +1,10 @@
 {
  "id": "program-prototype-2002",
  "status": "active",
- "description": "A PROGRAM-ID ... IS PROTOTYPE program prototype definition (ISO §2023:11.10.2 Format 2 / §2023:10.6.1 program-prototype; kb/Work PB894). A signature-only source unit - the §2023:10.6.2 SR4 restrictions (LINKAGE-only data division, header-only procedure division, no I-O section / OBJECT-COMPUTER / ARITHMETIC, restricted SPECIAL-NAMES) are screened by the ONE prototype-body screen shared with the function prototype - that registers no runtime module; a REPOSITORY `PROGRAM name` specifier resolves to it by §2023:12.3.8.4 GR10 b) when no in-group definition shares its externalized name. The grammar tail is the shared `prototypePhrase`; the introduction gate is VersionConformancePass ParseArm.VisitPrototypePhrase, recognition-fired.",
+ "description": "A PROGRAM-ID ... IS PROTOTYPE program prototype definition (ISO §2023:11.10.2 Format 2 / §2023:10.6.1 program-prototype; kb/Work PB894). A signature-only source unit - the §2023:10.6.2 SR4 restrictions (LINKAGE-only data division, header-only procedure division, no I-O section / OBJECT-COMPUTER / ARITHMETIC, restricted SPECIAL-NAMES) are screened by the ONE prototype-body screen shared with the function prototype - that registers no runtime module; a REPOSITORY `PROGRAM name` specifier resolves to it by §2023:12.3.8.4 GR10b when no in-group definition shares its externalized name. The grammar tail is the shared `prototypePhrase`; the introduction gate is VersionConformancePass ParseArm.VisitPrototypePhrase, recognition-fired.",
  "display": "a PROGRAM-ID … IS PROTOTYPE (program prototype definition)",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:11.10.2 Format 2 / §2023:10.6.1 / §2023:10.6.2 / §2023:12.3.8.4 GR10 b)",
+ "citation": "ISO §2023:11.10.2 Format 2 / §2023:10.6.1 / §2023:10.6.2 / §2023:12.3.8.4 GR10b",
  "rule1985": "§1985:X.3.1.2 (the PROGRAM-ID format: COMMON and INITIAL only)",
  "introducedIn": 2002,
  "removedIn": null,

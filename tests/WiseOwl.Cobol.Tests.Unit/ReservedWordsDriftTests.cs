@@ -14,6 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// hand edit to either, or a regeneration that touched only one, fails here. Content-filter rule: this test
 /// never prints word lists — mismatches report counts and at most a few offending words.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class ReservedWordsDriftTests
 {
     private sealed record JsonRow(string word, bool r85, bool r2002, bool r2014, bool r2023, string confidence, string provenance);
