@@ -512,6 +512,34 @@ def self_test() -> int:
        "PB5831: the argued arm under a claude: signature with no refuter record is refused, on either row")
     under("DOC-A.1-197 and the rest")
     ok(codes(own_verdict) == ["names-shape"], "PB5831: a Names cell that is more than one register key is refused")
+
+    # kb/Work PB6012: the seventh arm, `informative`, ends in a quotation of the row's OWN text and either describes the
+    # standard's text or explains another rule of the row's edition; argued, so a `claude:` signature stands only on an
+    # UPHELD refuter record.
+    def informing(names: str, refuter: str = "refute.jsonl") -> None:
+        d._register = {f"DRV-{rid}": inventory_schema.DerivationRow(f"DRV-{rid}", "informative", names, "", signed,
+                                                                    refuter)}
+    for names in ('describes the standard\'s kinds of statement: "on the receiving item is undefined"',
+                  'explains 1985-SR-VI.5.8.3-2: "the statement on the receiving item"'):
+        informing(names)
+        ok(codes(derived(row())) == [] and state_of(derived(row()), ed, ds, targets) == "OK"
+           and codes(own_verdict) == [] and state_of(own_verdict, ed, ds, targets) == "OK",
+           f"PB6012: the informative arm stands on <{names}> with an UPHELD refuter record, on a KEPT row and on an "
+           "own-verdict row")
+    for names, code, why in (
+            ('describes the standard\'s kinds of statement: "after the transfer is undefined"', "quote-not-in-rule",
+             "a quotation true only of the rule it carries into, never of its own text"),
+            ('explains 1985-SR-VI.5.8.3-9: "the statement on the receiving item"', "unknown-rule", "a rule no catalog has"),
+            (f'explains {target_rule}: "the statement on the receiving item"', "unknown-rule", "another edition's rule"),
+            (f'explains {rid}: "the statement on the receiving item"', "explains-itself", "the row itself"),
+            ('describes the standard\'s text: "on the receiving item is undefined"', "names-shape",
+             "a <what> under ten characters")):
+        informing(names)
+        ok(codes(own_verdict) == [code] and state_of(own_verdict, ed, ds, targets) == "GAP",
+           f"PB6012: the informative arm is refused ({code}) for {why}")
+    informing('describes the standard\'s kinds of statement: "on the receiving item is undefined"', "—")
+    ok(codes(derived(row())) == ["no-refuter-record"] and codes(own_verdict) == ["no-refuter-record"],
+       "PB6012: the informative arm is never mechanical: under a claude: signature with no refuter record it is refused")
     ok(new_rules(ed, [row()], targets) == ["SR-13.18.38.3-2", "GR-14.9.21.4-2"],
        "a rule of the next edition no record reaches is NEW")
     ok(spanned(ed, schema) == ["85", "2002", "2014"], "a bridged 1985 chain proves 85 and every edition the bridge spans")

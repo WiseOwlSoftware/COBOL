@@ -2545,5 +2545,41 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Equal(["no-refuter-record"], Codes(DerivationRefusalsAt(derivedKept, older, Under("DOC-A.1-197", "—"), closedChain)));
         Assert.Equal(["no-refuter-record"], Codes(DerivationRefusalsAt(ownVerdict, older, Under("DOC-A.1-197", "—"), closedChain)));
         Assert.Equal(["names-shape"], Codes(DerivationRefusalsAt(ownVerdict, older, Under("DOC-A.1-197 and the rest"), closedChain)));
+
+        // ⛔ THE SEVENTH ARM, `informative` (kb/Work PB6012): the Names cell describes the standard's own text or explains
+        // another rule of the row's edition, ending in a quotation of the row's OWN text; argued, so a refuter-bound
+        // signature stands only on an UPHELD refuter record of the row.
+        Schema Informing(string names, string refuter = "refute.jsonl") => Under("D-NATURAL-BOUNDARY", refuter) with
+        {
+            Derivation = Under("D-NATURAL-BOUNDARY", refuter).Derivation! with
+            {
+                Register = new Dictionary<string, ConformanceRegister.DerivationRow>(StringComparer.Ordinal)
+                {
+                    ["DRV-1985-X-1"] = new("DRV-1985-X-1", "informative", names, "…", deciding, refuter),
+                },
+            },
+            Catalog = new Dictionary<string, (int Year, string Text)>(cs.Catalog, StringComparer.Ordinal)
+            {
+                ["1985-X-2"] = (1985, "An item is aligned on the boundary the implementor specifies."),
+            },
+        };
+        const string Describes = "describes the standard's kinds of overlap: \"the result of the transfer is undefined\"";
+        const string Explains = "explains 1985-X-2: \"If the operands overlap, the result\"";
+        foreach (string names in new[] { Describes, Explains })
+        {
+            Assert.Equal("OK", StateAt(derivedKept, older, Informing(names), closedChain));    // a chained row
+            Assert.Equal("OK", StateAt(ownVerdict, older, Informing(names), closedChain));     // an own-verdict row
+        }
+        Assert.Equal(["quote-not-in-rule"], Codes(DerivationRefusalsAt(ownVerdict, older,
+            Informing("describes the standard's kinds of overlap: \"the content is undefined when\""), closedChain)));
+        Assert.Equal(["unknown-rule"], Codes(DerivationRefusalsAt(ownVerdict, older,
+            Informing("explains 1985-X-9: \"If the operands overlap, the result\""), closedChain)));
+        Assert.Equal(["unknown-rule"], Codes(DerivationRefusalsAt(ownVerdict, older,
+            Informing("explains X-6: \"If the operands overlap, the result\""), closedChain)));       // another edition's
+        Assert.Equal(["explains-itself"], Codes(DerivationRefusalsAt(ownVerdict, older,
+            Informing("explains 1985-X-1: \"If the operands overlap, the result\""), closedChain)));
+        Assert.Equal(["no-refuter-record"], Codes(DerivationRefusalsAt(derivedKept, older, Informing(Describes, "—"), closedChain)));
+        Assert.Equal(["names-shape"], Codes(DerivationRefusalsAt(ownVerdict, older,
+            Informing("describes the standard's text: \"the result of the transfer is undefined\""), closedChain)));
     }
 }

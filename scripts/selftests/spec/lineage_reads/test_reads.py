@@ -871,7 +871,7 @@ def case_15_a_derivation_a_read_proposes_has_a_route(expect):
     ed85 = R.edition(1985)
     cite = "§1985:IV.2.1.1 p1"
     ids = {k: f"1985-SR-IV.2.1.{n}-p1" for n, k in enumerate(("upheld", "unrefuted", "mechanical", "overturned",
-                                                               "doubtful", "shapeless"), start=1)}
+                                                               "doubtful", "shapeless", "informative"), start=1)}
 
     def proposal(rid, arm="definitional", names="defines the kinds of element a general format of the user's program "
                                                 "is made of", **kw):
@@ -882,7 +882,9 @@ def case_15_a_derivation_a_read_proposes_has_a_route(expect):
              proposal(ids["unrefuted"]),
              proposal(ids["mechanical"], "undefined-in-rule", '"the result is undefined in that case"'),
              proposal(ids["overturned"]), proposal(ids["doubtful"]),
-             proposal(ids["shapeless"], names="defines it")]
+             proposal(ids["shapeless"], names="defines it"),
+             proposal(ids["informative"], "informative",
+                      "describes the standard's general formats: \"the kinds of element a general format\"")]
     drefs = [F.refute(ids["upheld"], citations=cite), F.refute(ids["shapeless"]),
              F.refute(ids["overturned"], "OVERTURNED", probe="w.cob", **{"compiler-at-1985": "correct: w.cob"}),
              F.refute(ids["doubtful"], "DOUBTFUL")]
@@ -892,6 +894,10 @@ def case_15_a_derivation_a_read_proposes_has_a_route(expect):
            got[ids["upheld"]].work == R.DERIVATION and not got[ids["upheld"]].refused)
     expect("an argued arm no refuter attacked waits for its refuter (`no refuter record`)",
            got[ids["unrefuted"]].work == R.DERIVATION and got[ids["unrefuted"]].refused[0][0] == R.NO_REFUTER)
+    expect("the informative arm is ARGUED, never mechanical: with no refuter record it waits for its refuter, its shape "
+           "standing (kb/Work PB6012)",
+           got[ids["informative"]].work == R.DERIVATION
+           and [r for r, _ in got[ids["informative"]].refused] == [R.NO_REFUTER])
     expect("a mechanical arm needs no refuter: its checker is its reader",
            got[ids["mechanical"]].work == R.DERIVATION and not got[ids["mechanical"]].refused)
     expect.equal("an OVERTURNED derivation (a program can show the rule) is the refuter's work item",
