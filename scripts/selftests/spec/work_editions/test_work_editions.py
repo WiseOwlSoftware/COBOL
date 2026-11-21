@@ -127,9 +127,17 @@ def case_06_set_editions_records_the_judgment(expect):
     expect.equal("the addendum is a new file", sorted(p.name for p in (d / "PB1").iterdir()), ["2026-11-21-editions.md"])
     expect("it carries the reason", "Only --std 2002 is wrong." in items["PB1"]["_body"])
     expect.equal("so the narrowed note passes the drift rule", C.problems(list(items.values())), [])
+    batch.write_text(json.dumps([{"id": "PB1", "editions": [1985, 2002], "reason": "Both editions are wrong."}]),
+                     encoding="utf-8", newline="\n")
     C.set_editions(d, batch, write=True, day="2026-11-21")
-    expect.equal("a second judgment the same day is a second file", sorted(p.name for p in (d / "PB1").iterdir()),
-                 ["2026-11-21-editions-2.md", "2026-11-21-editions.md"])
+    expect.equal("a second judgment the same day is a second file, named to sort after the first",
+                 sorted(p.name for p in (d / "PB1").iterdir()), ["2026-11-21-editions.md", "2026-11-21-editions02.md"])
+    items = {it["id"]: it for it in _items(d)}
+    expect.equal("the second judgment is the recorded one", C.recorded(items["PB1"]), frozenset({1985, 2002}))
+    expect.equal("so the note it narrowed again passes the drift rule", C.problems(list(items.values())), [])
+    C.set_editions(d, batch, write=True, day="2026-11-21")
+    expect.equal("a third sorts after the second", sorted(p.name for p in (d / "PB1").iterdir())[-1],
+                 "2026-11-21-editions03.md")
 
 
 if __name__ == "__main__":
