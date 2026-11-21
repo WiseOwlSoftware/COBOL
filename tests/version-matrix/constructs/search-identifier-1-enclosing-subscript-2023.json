@@ -4,6 +4,7 @@
  "display": "a subscript on SEARCH identifier-1",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO §2023:14.9.37.3 SR2, SR3; the 2002 text, the 2009 CD 1.2 and the 2014 FCD 1.0 (14.9.34.2 ALL FORMATS rule 1) say \"Identifier-1 shall not be subscripted or reference modified\"",
+ "rule1985": "§1985:VI.6.22.3 SR1 (identifier-1 must not be subscripted)",
  "introducedIn": 2023,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

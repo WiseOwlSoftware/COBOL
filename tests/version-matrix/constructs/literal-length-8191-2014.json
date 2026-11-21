@@ -4,6 +4,7 @@
  "display": "a literal longer than 160 character positions",
  "diagnosticCode": "COBOL0814",
  "citation": "ISO §2023:8.3.3.2.3 SR1 / §2023:8.3.3.4.3 SR1 / §2023:8.3.3.5.3 SR1 / §2023:8.8.3.2 SR2-SR4 (8,191 character positions) - the bound below 2014 is DERIVED (VCR row 7.43)",
+ "rule1985": "§1985:IV.4.2.2.2.1 (nonnumeric literals of 1 through 160 characters)",
  "introducedIn": 2014,
  "removedIn": null,
  "expectDiagnostic": "COBOL0814",

@@ -5,6 +5,7 @@
  "display": "a PROGRAM-ID … IS PROTOTYPE (program prototype definition)",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO §2023:11.10.2 Format 2 / §2023:10.6.1 / §2023:10.6.2 / §2023:12.3.8.4 GR10 b)",
+ "rule1985": "§1985:X.3.1.2 (the PROGRAM-ID format: COMMON and INITIAL only)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
