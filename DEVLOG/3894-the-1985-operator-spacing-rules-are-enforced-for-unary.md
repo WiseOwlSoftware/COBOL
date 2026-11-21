@@ -1,4 +1,4 @@
-## The 1985 operator spacing rules are enforced for unary, relational and logical operators (PB5989)
+## Entry 3894 — 2026-11-21 02:50 PST — The 1985 operator spacing rules are enforced for unary, relational and logical operators (PB5989)
 
 The 1985 prose-requirement campaign (kb/Work PB5924) found three spacing sentences the compiler did not enforce at `--std 85`:
 §1985:VI.6.2.2 (every arithmetic operator "must be preceded by a space and followed by a space", with no exception for a unary
@@ -29,3 +29,4 @@ PB5924), 7 refusals at 85 with their `wiseowl/diagnostics` files (unary followed
 relational word before a parenthesis, last word of a multi-word operator, AND, OR, NOT) and 3 spaced programs accepted at every edition, plus one
 program accepted at 2002 and later in the shapes the 85 refusals pin. Unit tests in `SeparatorRuleTests` cover the unary arm at all four editions.
 No inventory row was open or closed. The design doc DESIGN-frontend-grammar.md carries the 1985 paragraph.
+
