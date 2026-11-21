@@ -31,6 +31,10 @@ def case_00_the_live_statement_renders_with_no_finding(expect):
         expect(f"the module table has a row for {m}", f"| {m} | " in text, m)
     expect("a totals row", "| **All** |" in text, text[-400:])
     expect("the obsolete list's 18 items", all(f"\n| {n} | " in text for n in range(1, 19)), "")
+    # Appendix B's rows (kb/Work PB5452's 85w mint: §1985:B.2.1) have no module: a lettered section orders after the
+    # Roman ones (inventory_view._section_key), where reading "B" as a Roman numeral raised KeyError.
+    expect("the rows of no module name their sections in the standard's order, a lettered one last",
+           "(no module: Sections II, III, IV, B)" in text, [ln for ln in text.splitlines() if "no module" in ln])
 
 
 def case_01_section_91_and_the_rows_must_agree(expect):

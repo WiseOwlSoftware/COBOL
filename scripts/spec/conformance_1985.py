@@ -146,7 +146,7 @@ def render(root: pathlib.Path = REPO) -> tuple[str, tuple[str, ...]]:
         table.append("| " + " | ".join([m, kind, str(max(r["level"] or 1 for r in group))] + tally(group)) + " |")
     loose = [r for r in rows if r["module"] is None]
     if loose:
-        sections = sorted({r["section"].split(".")[0] for r in loose}, key=lambda s: inventory_view._roman(s))
+        sections = sorted({r["section"].split(".")[0] for r in loose}, key=inventory_view._section_key)
         table.append("| " + " | ".join([f"(no module: Sections {', '.join(sections)})", "every subset", "—"] + tally(loose)) + " |")
     table.append("| " + " | ".join(["**All**", "", ""] + [f"**{c}**" for c in tally(rows)]) + " |")
 

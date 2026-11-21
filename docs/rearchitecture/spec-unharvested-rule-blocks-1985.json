@@ -1603,26 +1603,30 @@
      "unit": "p3",
      "digest": "e22edb2930b0",
      "order": 0,
-     "disposition": "pending",
-     "refuted": "docs/rearchitecture/spec-dispositions-1985/85h-01-refute.jsonl"
+     "disposition": "not-a-rule",
+     "class": "lead-in",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-10-refute.jsonl"
     },
     {
      "unit": "L2.1",
      "digest": "7cfd67530a45",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "L2.2",
      "digest": "f15cb15a8d3b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "L2.3",
      "digest": "711d1f881515",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     }
    ]
   },
@@ -8999,7 +9003,9 @@
      "unit": "T2",
      "digest": "6dc7064407bc",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-10-refute.jsonl"
     },
     {
      "unit": "p2",
@@ -9068,7 +9074,9 @@
      "unit": "T4",
      "digest": "359df79c23f5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-10-refute.jsonl"
     },
     {
      "unit": "p2",
@@ -11316,2293 +11324,3424 @@
      "unit": "p1",
      "digest": "f2b94993da6d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.3.3-p1",
+      "1985-SR-VI.6.3.3-1",
+      "1985-SR-VI.6.3.3-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p2",
      "digest": "233670245d7e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p3",
      "digest": "00f2adc1a482",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p4",
      "digest": "cba7f2997c86",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.4.5.4-4",
+      "1985-GR-IV.4.2.2.1.1-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p5",
      "digest": "bcc4845c42ef",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p6",
      "digest": "341ac3acc44b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p7",
      "digest": "6af99dff0e52",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p8",
      "digest": "f470d34a4d45",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p9",
      "digest": "74dd9755ca73",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1989-AR-A.2.2-p1",
+      "1985-SR-IV.4.3.8.3.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p10",
      "digest": "1dcb9dbd5492",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.2.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p11",
      "digest": "1868188d3d38",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p12",
      "digest": "4bd9977125a3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.2.2-p1",
+      "1985-GR-VI.6.2.2-T1.1",
+      "1985-GR-VI.6.2.2-T1.2",
+      "1985-GR-VI.6.2.2-T1.3",
+      "1985-GR-VI.6.2.2-T1.4",
+      "1985-GR-VI.6.2.2-T1.5"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "T1.1",
      "digest": "c3805175370d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.2.2-T1.1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "T1.2",
      "digest": "148d46fb75d9",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.2.2-T1.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "T1.3",
      "digest": "ae7f0c96c891",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.2.2-T1.3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "T1.4",
      "digest": "4fd95a301ae3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.2.2-T1.4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "T1.5",
      "digest": "1d422390c5a3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.2.2-T1.5"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p13",
      "digest": "7e5beeeee989",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.4.4-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p14",
      "digest": "aeee8e7420a2",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.5.8.4-4",
+      "1985-GR-XI.4.4.4-2",
+      "1985-GR-XI.4.1.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p15",
      "digest": "6e44a393dfff",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.5.9.4-8"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p16",
      "digest": "20cebf0be367",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "lead-in",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "1",
      "digest": "26a2f1d41a7e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.4.4.4-10",
+      "1985-GR-VIII.4.5.4-10",
+      "1985-GR-IX.4.5.4-10"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "2",
      "digest": "742222f79b1d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XI.4.3.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "3",
      "digest": "154f6fa2bcdb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.22.4-2",
+      "1985-GR-VI.6.22.4-4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p17",
      "digest": "6415fdbf263a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p18",
      "digest": "58d3139a42e8",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p19",
      "digest": "664bef151748",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p20",
      "digest": "cc1c5beec857",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p21",
      "digest": "12ab9fba7baa",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p22",
      "digest": "d6af86ef43e4",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p23",
      "digest": "83ea2fa8f4bc",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p24",
      "digest": "a527c2497a3b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p25",
      "digest": "1f5440265da9",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p26",
      "digest": "0de990ab8127",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3.1.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p27",
      "digest": "cecf7b3dab44",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.4.5.4-10",
+      "1985-GR-IV.4.2.2.1.1-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p28",
      "digest": "2c5fffc187ed",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p29",
      "digest": "d3dee01e3b84",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "T2",
      "digest": "92384668c6a3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p30",
      "digest": "405394bcd99d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p31",
      "digest": "b87ec3ad6844",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p32",
      "digest": "b50a5ee6b5d5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR"
     },
     {
      "unit": "p33",
      "digest": "f5058869d833",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.3.2.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p34",
      "digest": "dd7e5240ee8c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.4-p1",
+      "1985-SR-VI.3.2.1.2-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p35",
      "digest": "aa95d548bb28",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.7.2.4-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p36",
      "digest": "b95d959de80c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.3.1.4-2",
+      "1985-SR-X.1.3.8.1-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p37",
      "digest": "738812507fb6",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p38",
      "digest": "9a2052ea2ec5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p39",
      "digest": "65d0da51866c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p40",
      "digest": "c6088248ded7",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p41",
      "digest": "4527d2fc7a80",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.6.4.2.2.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p42",
      "digest": "dedf94c33a95",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p43",
      "digest": "11ab42a1c7ae",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.4.3.3-1",
+      "1985-SR-VI.4.4.3-1",
+      "1985-GR-VI.4.3.1-p1",
+      "1985-GR-VI.4.4.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p44",
      "digest": "ed2f91370512",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "SR",
+     "definitional": true
     },
     {
      "unit": "p45",
      "digest": "8e08a2c9cfc8",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "SR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p46",
      "digest": "b61d189aa833",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3.1.3-p1",
+      "1985-GR-VI.6.3.1.3-p2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p47",
      "digest": "b9872313b438",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p48",
      "digest": "9c57f9a44538",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.6.4.2.1.1.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p49",
      "digest": "b53b3df2652e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.6.4.2.1.1-p1",
+      "1985-GR-IV.6.4.2.1.1-1",
+      "1985-GR-IV.6.4.2.1.1-2",
+      "1985-GR-IV.6.4.2.1.1-3",
+      "1985-GR-IV.6.4.2.1.1-4",
+      "1985-GR-IV.6.4.2.1.1-5",
+      "1985-GR-IV.6.4.2.1.1-6",
+      "1985-GR-IV.6.4.2.1.1-7",
+      "1985-GR-IV.6.4.2.1.1-8"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p50",
      "digest": "3989594ca63b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.2.2.1.1.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p51",
      "digest": "1c8b2a377d3d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.6.2.2-p2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p52",
      "digest": "044091eb42ff",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p53",
      "digest": "ddcae94889c2",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIII.3.7.4-2",
+      "1985-GR-XIII.3.7.4-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p54",
      "digest": "d0def3c82827",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIII.3.7.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p55",
      "digest": "f2e0347996e8",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIII.3.7.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p56",
      "digest": "a30a95af7d0e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p57",
      "digest": "61444250acfd",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIII.3.20.4-6"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p58",
      "digest": "b7608a5a9737",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIII.3.4.1-p1",
+      "1985-GR-XIII.3.20.4-4",
+      "1985-GR-XIII.3.20.4-6",
+      "1985-GR-XIII.3.7.4-4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p59",
      "digest": "e4edc8116269",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIII.3.20.4-4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p60",
      "digest": "98aed9a888d0",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIII.3.7.4-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p61",
      "digest": "f8673c5cf6cb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p62",
      "digest": "3145cc86682d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR"
     },
     {
      "unit": "p63",
      "digest": "3a82586853cb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.4.5.4-11",
+      "1985-GR-VI.5.9.4-8"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p64",
      "digest": "d74945b857fe",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p65",
      "digest": "2a5f0b12be32",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.1.3.3-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p66",
      "digest": "7034437576ff",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p67",
      "digest": "968a396751a5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.3.1.3-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p68",
      "digest": "eda0ee1d2626",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p69",
      "digest": "c92f6f5ac245",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "SR"
     },
     {
      "unit": "p70",
      "digest": "33e19aa4a28c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.7.3-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
      "unit": "p71",
      "digest": "ea88fa9bbedc",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p72",
      "digest": "a50a490c0549",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.6.4.2.2.2-p1",
+      "1985-SR-VII.4.6.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p73",
      "digest": "85e31606b5e7",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.6.4.1.1-p1",
+      "1985-SR-VII.4.6.3-1",
+      "1985-SR-VIII.4.8.3-1",
+      "1985-SR-IX.4.8.3-1",
+      "1985-SR-XIII.4.8.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p74",
      "digest": "422246662c4d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p75",
      "digest": "bd3681a05053",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.6.4.2.4-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p76",
      "digest": "8cc5e644a98a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p77",
      "digest": "0108c5ff9328",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XI.4.4.4-2",
+      "1985-GR-XI.4.1.4-3",
+      "1985-GR-VI.5.8.4-4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p78",
      "digest": "609a04a16cf9",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p79",
      "digest": "23d265fb82f3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p80",
      "digest": "8996a0d8b9c5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p81",
      "digest": "a4c13991942d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.2.3.3-1",
+      "1985-GR-X.2.3.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p82",
      "digest": "6b52c448e4dd",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p83",
      "digest": "7707f749ff1b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "T3.1",
      "digest": "320ccef51e21",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "T3.2",
      "digest": "7b348ae865e5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "T3.3",
      "digest": "6a8437dd0009",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "T3.4",
      "digest": "59b6536256b8",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "T3.5",
      "digest": "42a435b578c0",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "T3.6",
      "digest": "d6e461b6b793",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "T3.7",
      "digest": "4dcbc5934b22",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "T3.8",
      "digest": "f6c55422287b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "T3.9",
      "digest": "69e7ebd173dc",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "T3.10",
      "digest": "97a4457c52cb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "T3.11",
      "digest": "238ba0341e4e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "T3.12",
      "digest": "54bb058ea85e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "p84",
      "digest": "9a6aeea8046b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.3.2-p2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p85",
      "digest": "4acb9e5b8b5d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p86",
      "digest": "aa473607e030",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.2.4.4-1",
+      "1985-GR-X.2.5.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p87",
      "digest": "08034f273cb9",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p88",
      "digest": "37837c747ae3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p89",
      "digest": "7346fa64facd",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p90",
      "digest": "bc4fdf6a2a5b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.4.4-p1",
+      "1985-GR-IV.4.4.4-T1.1",
+      "1985-GR-IV.4.4.4-T1.2",
+      "1985-GR-IV.4.4.4-T1.3",
+      "1985-GR-IV.4.4.4-T1.4",
+      "1985-GR-IV.4.4.4-T1.5",
+      "1985-GR-IV.4.4.4-T1.6",
+      "1985-GR-IV.4.4.4-T1.7"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p91",
      "digest": "d1f47baaaae9",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p92",
      "digest": "32c985a90d28",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p93",
      "digest": "f4bd292b18a1",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p94",
      "digest": "d89edcf7cdba",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.1.3.4-p2",
+      "1985-GR-X.1.3.4-p5"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p95",
      "digest": "7f6548a254c3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.1.3.6-1",
+      "1985-GR-X.1.3.4-p2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p96",
      "digest": "cf1cf7d11cbe",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.1.3.7-1",
+      "1985-GR-X.1.3.4-p2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p97",
      "digest": "dcf48ad8d916",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.5-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p98",
      "digest": "bdf33c21c333",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.2.3-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p99",
      "digest": "1cedcd53b2e4",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p100",
      "digest": "7c3f6bb51145",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p101",
      "digest": "386fa9ebe6aa",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p102",
      "digest": "8a10a501044e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.1.3.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p103",
      "digest": "301a40819ab7",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.6.2.2-p3",
+      "1985-GR-VII.2.2.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p104",
      "digest": "400921c82ae5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.2.3.1-p1",
+      "1985-GR-VIII.2.3.1-p1",
+      "1985-GR-IX.2.3.1-p1",
+      "1985-GR-XI.2.3.1-p1",
+      "1985-GR-XIII.2.3.1-p1",
+      "1985-SR-VII.2.3.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p105",
      "digest": "de72e223fbdb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VII.3.1.1-p1",
+      "1985-SR-VII.3.2.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p106",
      "digest": "30545d6baec3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.1.3.3-p1",
+      "1985-GR-IV.4.2.2.1.1-6",
+      "1985-GR-VII.3.2.4-1",
+      "1985-SR-XI.3.1.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p107",
      "digest": "63f9427c8c11",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.2.6.3-1",
+      "1985-GR-VII.2.6.3-2",
+      "1985-GR-VIII.2.5.3-1",
+      "1985-GR-IX.2.6.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p108",
      "digest": "1272c4750946",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p109",
      "digest": "707c120958e6",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.6.3.2.1-p2",
+      "1985-SR-VII.3.1.1-p1",
+      "1985-SR-XI.3.1.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p110",
      "digest": "cd1e38e73ef2",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p111",
      "digest": "43206f345956",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p112",
      "digest": "b27e5cd79af7",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p113",
      "digest": "58c52c45e732",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p114",
      "digest": "fc626241b8df",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1989-GR-A.1.2.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p115",
      "digest": "33e9f1ee5a83",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "SR"
     },
     {
      "unit": "p116",
      "digest": "8fd141247be8",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1989-GR-A.1.2.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p117",
      "digest": "684f638fbdd5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.4.6.4-1",
+      "1985-GR-X.4.6.4-2",
+      "1985-GR-X.1.3.3-p4",
+      "1985-GR-X.4.2.4-1",
+      "1985-GR-X.4.4.4-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p118",
      "digest": "505f6e39ca46",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.3.2-p3",
+      "1985-SR-IV.4.3.2.1-p2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p119",
      "digest": "6bcbff1c0e16",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p120",
      "digest": "1c4487687607",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.2.10.1-p1",
+      "1985-GR-IV.6.2.2-p3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p121",
      "digest": "7a08ce3a23c7",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p122",
      "digest": "1191f5f86fa0",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p123",
      "digest": "a7c10a720301",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.1.3.5-p1",
+      "1985-GR-VIII.1.3.4-p1",
+      "1985-GR-IX.1.3.4-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p124",
      "digest": "f370c9476e27",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p125",
      "digest": "5d3e9a34c2fe",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.6.4.2.3.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p126",
      "digest": "2ba0e08e952c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p127",
      "digest": "156c0f05dcfc",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.4.4-1",
+      "1985-GR-IV.4.4.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p128",
      "digest": "4f5f303efe0d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p129",
      "digest": "b1b700b0de20",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.5.14.4-7"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p130",
      "digest": "da83a397bc65",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.2.2.1.1-7",
+      "1985-GR-VI.6.23.4-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p131",
      "digest": "86e115ce8d08",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p132",
      "digest": "44d76a8bd488",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IX.2.6.3-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p133",
      "digest": "55d64ba41549",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.5.2.4-6",
+      "1985-GR-X.2.4.2-3",
+      "1985-GR-X.3.1.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p134",
      "digest": "ba5c54e5e729",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.2.4.2-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p135",
      "digest": "b29db2e836a1",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p136",
      "digest": "f610ca22af53",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p137",
      "digest": "2d788fb7b990",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p138",
      "digest": "2df780897557",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.6.2.2-p3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
      "unit": "p139",
      "digest": "eb450d37ffe5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p140",
      "digest": "12a3da00a3a0",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XI.4.4.4-7",
+      "1985-GR-XI.4.4.4-8"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p141",
      "digest": "77692ac1e2a6",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "L2.2",
      "digest": "9e2827651328",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "L2.3",
      "digest": "d4f7a8bf6dab",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1989-GR-A.2.3-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p142",
      "digest": "b4f807aa6500",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "SR"
     },
     {
      "unit": "p143",
      "digest": "5bc986a4cecd",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p144",
      "digest": "ce1fb0b9e5d7",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.1.3.4-p5",
+      "1985-GR-X.1.3.4-p6",
+      "1985-GR-X.1.3.4-p8"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p145",
      "digest": "71c738b8106f",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.1.3.4-p3",
+      "1985-GR-X.1.3.4-p4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p146",
      "digest": "6387a62d8551",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.1.3.4-p3",
+      "1985-GR-X.1.3.4-p6"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p147",
      "digest": "197611dc96cf",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p148",
      "digest": "382a970f8699",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p149",
      "digest": "206948c581ee",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p150",
      "digest": "6a78c69bf808",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p151",
      "digest": "619447eff746",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p152",
      "digest": "2e8dead94732",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.12.3-1",
+      "1985-GR-IV.4.2.2.1.2-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p153",
      "digest": "024d1f718d30",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p154",
      "digest": "a14690db617f",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.7.4-p3",
+      "1985-SR-VII.3.2.3-1",
+      "1985-SR-XI.3.2.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p155",
      "digest": "d3b50d8d12e3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.7.4-p6",
+      "1985-GR-VI.5.7.1-p1",
+      "1985-SR-IV.4.3.2.1-p1",
+      "1985-GR-IV.4.2.2.1.1-8"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p156",
      "digest": "5b7205f6f078",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-XII.2.3-1",
+      "1985-GR-IV.4.2.2.1.1-9"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p157",
      "digest": "e4c48775e447",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p158",
      "digest": "e9a26cfe8f3c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.3.7.4-9",
+      "1985-GR-IV.4.2.2.1.3.3.1-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p159",
      "digest": "c0535e14751d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR"
     },
     {
      "unit": "p160",
      "digest": "74680cd039d4",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p161",
      "digest": "280c639f22a2",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.4.1-p1",
+      "1985-GR-X.4.1-p3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p162",
      "digest": "8880d5d7b50c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.2.2.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p163",
      "digest": "eea9f8a039fa",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p164",
      "digest": "60e29a7bcc9a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.3.7.4-1",
+      "1985-GR-VII.3.7.4-2",
+      "1985-GR-VII.3.7.4-4",
+      "1985-GR-VII.3.7.4-5"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p165",
      "digest": "3184884a7942",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.3.2.1-p1",
+      "1985-GR-IV.4.3.2-p2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p166",
      "digest": "2d33a7f75859",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p167",
      "digest": "9823c22cf46d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p168",
      "digest": "96babb32d0a9",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p169",
      "digest": "881bca001109",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p170",
      "digest": "8c18c99c3e97",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-III.2-p173"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p171",
      "digest": "c57b4f38a5c3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR"
     },
     {
      "unit": "p172",
      "digest": "7211c0936c48",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p173",
      "digest": "ee3dbdbe092c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p174",
      "digest": "56840b128693",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIV.3.1.4-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p175",
      "digest": "5d11ce5142de",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR"
     },
     {
      "unit": "p176",
      "digest": "2d8674b80403",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p177",
      "digest": "c92d06abfa49",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.2.2.1.1.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p178",
      "digest": "feb9130e0830",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p179",
      "digest": "cb1f41c260ac",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p180",
      "digest": "0d01396b3b6e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p181",
      "digest": "fd5915c468eb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p182",
      "digest": "c3971d168c22",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p183",
      "digest": "b206b7417b1d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p184",
      "digest": "a3716265827f",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.4.2-p5"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p185",
      "digest": "a7ecf28c5eea",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p186",
      "digest": "22d88deaa548",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.5.2.1-p1",
+      "1985-SR-X.4.1.1-p1",
+      "1985-GR-IV.4.3.2.1-p5"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p187",
      "digest": "e738052df0e8",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p188",
      "digest": "40a0378b7716",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.2.1-p1",
+      "1985-SR-IV.4.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p189",
      "digest": "4e5e62f94531",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p190",
      "digest": "9388f8e21636",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p191",
      "digest": "10f1a818e51d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.5.9.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p192",
      "digest": "3ae80847b67c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.2.2-p1",
+      "1985-SR-IV.4.2.2.2.2-2",
+      "1985-SR-IV.4.2.2.2.2-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p193",
      "digest": "16008825edf3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.4.4.1-p1",
+      "1985-GR-IV.6.2.2-p2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p194",
      "digest": "02d07dcc7fca",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.4.4.1-p1",
+      "1985-FMT-VI.4.4.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p195",
      "digest": "d3b1d2befb52",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p196",
      "digest": "08c8a9f48be5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p197",
      "digest": "8aa0c8c595f1",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p198",
      "digest": "0f21683a6c68",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p199",
      "digest": "a6af20801306",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.4.3.4-1",
+      "1985-GR-VII.4.2.4-7",
+      "1985-GR-VIII.4.4.4-1",
+      "1985-GR-VIII.4.2.4-6",
+      "1985-GR-IX.4.4.4-1",
+      "1985-GR-IX.4.2.4-6"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p200",
      "digest": "f0d515247446",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p201",
      "digest": "eb0efbeaeebc",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.3.5-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p202",
      "digest": "2f702d2dfb22",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.2.3.4-2",
+      "1985-GR-VIII.2.3.4-3",
+      "1985-GR-IX.2.3.4-4",
+      "1985-GR-VII.4.3.4-1",
+      "1985-GR-VII.4.3.4-13"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p203",
      "digest": "bc6e04afe22b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.2.2.1.3.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p204",
      "digest": "b6ae1c625d78",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p205",
      "digest": "796e7701d404",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR"
     },
     {
      "unit": "p206",
      "digest": "ecf99fce093a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XI.4.4.4-11",
+      "1985-GR-XI.4.1.4-9"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p207",
      "digest": "7abff211c3bd",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.2.7.4-1",
+      "1985-SR-VII.2.7.3-1",
+      "1985-SR-VII.2.7.3-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p208",
      "digest": "10b8eb323e68",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p209",
      "digest": "7c8dd8ac2d14",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.3.7.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p210",
      "digest": "643976bf6857",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIII.3.20.4-7"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p211",
      "digest": "7fad61f0ddce",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIII.3.20.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p212",
      "digest": "461429033a12",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "SR"
     },
     {
      "unit": "p213",
      "digest": "660aafa98c08",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "SR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p214",
      "digest": "9dfeb196a0fc",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-IV.6.1.3.1",
+      "1985-FMT-VI.3.2.1.1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p215",
      "digest": "f515c3c208af",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "lead-in",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p216",
      "digest": "0fc0ff48689c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-IV.6.2.3.1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p217",
      "digest": "47f1ad331365",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.1.1.3-p1",
+      "1985-GR-IV.4.2.2.1.1-11",
+      "1985-GR-IV.6.4.1.2-p3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p218",
      "digest": "1e0669b19798",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p219",
      "digest": "21bdf23e4e88",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p220",
      "digest": "22b0ba1f88c9",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p221",
      "digest": "5eb57d673186",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IX.2.7.4-1",
+      "1985-GR-IX.1.3.1-p2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p222",
      "digest": "b7cfe6c892dd",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p223",
      "digest": "2cffba2801b2",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p224",
      "digest": "700eb91fc305",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.6.4.1.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p225",
      "digest": "21ea55d8cf67",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p226",
      "digest": "1c27a0eca1e4",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.6.4.1.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p227",
      "digest": "1ee72a5e8de8",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p228",
      "digest": "03e1fa50cdd2",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.3.3.4-1",
+      "1985-SR-VI.3.3.3-1",
+      "1985-SR-VI.2.4.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p229",
      "digest": "98ee044b903e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p230",
      "digest": "99aba21632e9",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "SR"
     },
     {
      "unit": "p231",
      "digest": "e9cbfb6e1b83",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "T4",
      "digest": "81a6389d1ad2",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "data",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p232",
      "digest": "51e52507dffb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-IV.4.3.8.5.2",
+      "1985-SR-IV.4.3.8.5.1-p2",
+      "1985-SR-IV.4.3.8.1-L2.3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p233",
      "digest": "edf4b568c5b5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.3.8.1-L2.4",
+      "1985-SR-IV.4.3.8.1-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "L3.2",
      "digest": "317b613c9609",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.3.8.1-L2.6"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "L3.3",
      "digest": "3f4513baf52c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-XII.2.3-1",
+      "1985-SR-IV.4.3.8.1-L2.7"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p234",
      "digest": "e68e6e78d914",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "not-a-rule",
+     "class": "cross-reference",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p235",
      "digest": "da1fe68315cf",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p236",
      "digest": "027fe5dc4724",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p237",
      "digest": "584cef1645c4",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VIII.2.4.4-3",
+      "1985-GR-IX.2.4.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p238",
      "digest": "439189a71ba1",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.3.2.1-p1",
+      "1985-GR-IV.4.3.2-p2",
+      "1985-GR-IV.4.3.1.2-p4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p239",
      "digest": "6f44da15a779",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p240",
      "digest": "5c3ec67d7251",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p241",
      "digest": "fadfd6e08f10",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p242",
      "digest": "da38f567294a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IX.2.7.4-1",
+      "1985-GR-IX.2.5.4-1",
+      "1985-GR-IX.1.3.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p243",
      "digest": "f791e3d3fdd9",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p244",
      "digest": "1beb20d20a6d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p245",
      "digest": "092c263fbe08",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p246",
      "digest": "35e67a418604",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.7.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p247",
      "digest": "e5fffb140adb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-IV.4.3.8.4.2",
+      "1985-GR-IV.4.3.8.4.4-4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p248",
      "digest": "b0ee4c21db07",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p249",
      "digest": "8fa16fa217fb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "T5.1",
      "digest": "864de4feab53",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3.1.1-T1.1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "T5.2",
      "digest": "90cf98a57bbb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3.1.1-T1.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "T5.3",
      "digest": "a1e8770fdaf1",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3.1.1-T1.3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p250",
      "digest": "1c090ef8bd2a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.3.1.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p251",
      "digest": "9c89d179d943",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.3.1.1-p4",
+      "1985-GR-VI.6.3.1.1-T1.1",
+      "1985-GR-VI.6.3.1.1-T1.2",
+      "1985-GR-VI.6.3.1.1-T1.3",
+      "1985-GR-VI.6.3.1.1-T1.4",
+      "1985-GR-VI.6.3.1.1-T1.5"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "T6.1",
      "digest": "d782fa2cc2e8",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3.1.1-T1.1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "T6.2",
      "digest": "a9bbac588537",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3.1.1-T1.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "T6.3",
      "digest": "1b9ce9661e8c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3.1.1-T1.3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "T6.4",
      "digest": "4c6793a2c4e4",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3.1.1-T1.4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "T6.5",
      "digest": "856e33af568e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3.1.1-T1.5"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p252",
      "digest": "3694e7f2dc4c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p253",
      "digest": "6a669ced0c72",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p254",
      "digest": "88f57e59e082",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VIII.2.5.3-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p255",
      "digest": "e44ed328b362",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR"
     },
     {
      "unit": "p256",
      "digest": "b83387b4d72d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p257",
      "digest": "6797eefe1603",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-XIII.3.5.2",
+      "1985-SR-XIII.3.5.3-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p258",
      "digest": "7c2e63fd9c46",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p259",
      "digest": "92b604211c1b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIII.3.20.4-8"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p260",
      "digest": "413738c963a3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIII.3.9.4-1",
+      "1985-GR-XIII.3.14.4-1",
+      "1985-SR-XIII.3.9.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p261",
      "digest": "f8b26f68b617",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-XIII.3.9.2",
+      "1985-SR-XIII.3.9.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p262",
      "digest": "93afb8ca0a08",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIII.3.20.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p263",
      "digest": "d066257c93f8",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR"
     },
     {
      "unit": "p264",
      "digest": "3c78016a3939",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.2.2.1.1-14",
+      "1985-GR-XIII.3.4.1-p1",
+      "1985-SR-XIII.3.3.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p265",
      "digest": "36bda45c87cd",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-IV.6.3.2.2.1",
+      "1985-GR-IV.6.3.2.1-p6"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p266",
      "digest": "df2673c9d50f",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p267",
      "digest": "55b973212a7d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p268",
      "digest": "fbd1ada369ac",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.1.3-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p269",
      "digest": "a8b922f0a863",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p270",
      "digest": "9175ce0b8ec0",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p271",
      "digest": "cf99680c9e6f",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.2.2.1.1-15",
+      "1985-GR-VI.6.12.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p272",
      "digest": "cf486be46fc0",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p273",
      "digest": "e2e97d3478eb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-III.2-p266"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-02-refute.jsonl"
     },
     {
      "unit": "p274",
      "digest": "0c8268384bc1",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p275",
      "digest": "40a964e6cac5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "SR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p276",
      "digest": "f6bfaab6c05e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-IV.6.3.2.2.1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p277",
      "digest": "2bff8ad0954d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-XVI.3.2.2",
+      "1985-SR-IV.6.4.1.4.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p278",
      "digest": "f5bb137e4f52",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.1.1.4-p1",
+      "1985-GR-IV.4.2.2.1.1-16"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p279",
      "digest": "07a338190223",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "SR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p280",
      "digest": "a0486ebf2691",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.6.4.1.2-p3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p281",
      "digest": "734ef7f6b9e3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p282",
      "digest": "7c6ba4a7fb39",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.1-p1",
+      "1985-SR-IV.4.2.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p283",
      "digest": "3f2c8edb1ab6",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p284",
      "digest": "27cf029138db",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p285",
      "digest": "e17248afea64",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.2.6.3-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p286",
      "digest": "874a16156c77",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3.1.5-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
      "unit": "p287",
      "digest": "bf8c75dc9fda",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3.1-p1",
+      "1985-GR-VI.6.3-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p288",
      "digest": "5151e082b8c3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3.1-p1",
+      "1985-GR-VI.6.3-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p289",
      "digest": "516e7797bf59",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XI.1.2.1-p1",
+      "1985-SR-XI.3.2.3-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p290",
      "digest": "1834e47cf23a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-XI.3.1.1-p1",
+      "1985-SR-XI.3.2.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p291",
      "digest": "37e1f87cd2e3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p292",
      "digest": "a356962355e3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.6.2.2-p2",
+      "1985-GR-VI.4.3.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p293",
      "digest": "16f0ceb466e6",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.4.3.1-p1",
+      "1985-FMT-VI.4.3.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p294",
      "digest": "e0f1a244fd19",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-XIII.3.18.3-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p295",
      "digest": "00199167c735",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "SR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p296",
      "digest": "ad8951ac1d28",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "T7.1",
      "digest": "b00c3f083c23",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "T7.2",
      "digest": "bc747abc7c21",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "T7.3",
      "digest": "13e70e4768d9",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "T7.4",
      "digest": "54bb058ea85e",
      "order": 1,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "T7.5",
      "digest": "1bcdeaf497ac",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "T7.6",
      "digest": "69e7ebd173dc",
      "order": 1,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "T7.7",
      "digest": "97a4457c52cb",
      "order": 1,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "T7.8",
      "digest": "7b5f5c2b8d3e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "T7.9",
      "digest": "76d5c790bc98",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "T7.10",
      "digest": "39193b69ec15",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "T7.11",
      "digest": "9e93f5239aca",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "T7.12",
      "digest": "04320f7377f5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "T7.13",
      "digest": "e7266fdbf984",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "T7.14",
      "digest": "82d038c7be07",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "T7.15",
      "digest": "551c77789bf6",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p297",
      "digest": "02faa75033f2",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.1.3.1-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p298",
      "digest": "ca857ec1164a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.6.2.2-p2",
+      "1985-GR-VI.4.5.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p299",
      "digest": "ab9ea3cc6d5a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.4.5.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p300",
      "digest": "79f0129422b1",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.1.3.3.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p301",
      "digest": "ca0cc4a93323",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p302",
      "digest": "0ef6fed0c714",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.6.4.1.2-p4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p303",
      "digest": "7f790e852297",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p304",
      "digest": "ccd4f1b648e1",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p305",
      "digest": "38eddc636e37",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-02-refute.jsonl"
     },
     {
      "unit": "p306",
      "digest": "ccaf96ad2736",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-IV.4.3.8.2.2",
+      "1985-GR-IV.4.3.8.2.4-1",
+      "1985-GR-IV.4.3.8.2.4-4",
+      "1985-SR-IV.4.3.8.2.3-7"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p307",
      "digest": "0850aa8311e3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-IV.4.3.8.2.2",
+      "1985-FMT-IV.4.3.8.5.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p308",
      "digest": "2317510f51dd",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIII.3.19.4-1",
+      "1985-GR-XIII.3.19.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p309",
      "digest": "d69cc02b7ab8",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.3.1.4-p1",
+      "1985-GR-VI.6.3.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p310",
      "digest": "b7f2dfabc5ea",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.2.2.1.1-18",
+      "1985-GR-IV.4.2.2.2.3-7"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p311",
      "digest": "fc40e3357fb4",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.1.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "p312",
      "digest": "350c4f16847e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p313",
      "digest": "b7c614437442",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p314",
      "digest": "b988acd586dd",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p315",
      "digest": "b03e7f7e1083",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p316",
      "digest": "5eff6deb0786",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR"
     },
     {
      "unit": "L4.1",
      "digest": "b00147eda2ca",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR"
     },
     {
      "unit": "L4.2",
      "digest": "dd12f9a677a0",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR"
     },
     {
      "unit": "L4.3",
      "digest": "33e6a2d3e6b6",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR"
     },
     {
      "unit": "p317",
      "digest": "8b1f9a16bab9",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p318",
      "digest": "6e26c5db5c4b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.3-p1",
+      "1985-GR-VI.6.3.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-10-refute.jsonl"
     },
     {
      "unit": "p319",
      "digest": "3e3e64d3d1cb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.2.2-p1",
+      "1985-GR-VI.6.2.2-T2.1",
+      "1985-GR-VI.6.2.2-T2.2",
+      "1985-SR-VI.6.2.1-p1",
+      "1985-SR-VI.6.2.3-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-10-refute.jsonl"
     },
     {
      "unit": "p320",
      "digest": "dc2dc29b1e83",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p321",
      "digest": "cee15e32bc4a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR"
     },
     {
      "unit": "p322",
      "digest": "e61251787dbb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.1.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-10-refute.jsonl"
     },
     {
      "unit": "p323",
      "digest": "1fabe46cfaf1",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-10-refute.jsonl"
     },
     {
      "unit": "p324",
      "digest": "de3ee266b5dd",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p325",
      "digest": "4b6105c8a0b8",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p326",
      "digest": "b840b73fb80e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p327",
      "digest": "55880f46554f",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "p328",
      "digest": "62d3375e0f8f",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-10-refute.jsonl"
     },
     {
      "unit": "p329",
      "digest": "a1648b918ad2",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.5.2-p1",
+      "1985-GR-VI.5.2.1-p1",
+      "1985-SR-VI.5.2.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-10-refute.jsonl"
     },
     {
      "unit": "p330",
      "digest": "a6a2e33b7ee4",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.3.2.1-p5",
+      "1985-GR-VI.5.7.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-10-refute.jsonl"
     }
    ]
   },
@@ -13613,703 +14752,1307 @@
      "unit": "p1",
      "digest": "923e62218d6b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true
     },
     {
      "unit": "1",
      "digest": "93e59e7e6e12",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.1-p1",
+      "1985-SR-VI.5.9.3-3",
+      "1985-GR-XII.2.4-5",
+      "1985-GR-XII.3.4-6",
+      "1985-SR-IV.4.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "2",
      "digest": "87de38470963",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.1.3.1-p1",
+      "1985-SR-IV.4.2.1-7",
+      "1985-FMT-IV.4.3.8.4.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "3",
      "digest": "af54214514cf",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.2.1.6-p1",
+      "1985-SR-IV.4.2.1-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "4",
      "digest": "fb59a5c3ed81",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.1-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "5",
      "digest": "c00aecd6cb62",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.2.2.1.1-18",
+      "1985-GR-IV.4.2.2.2.3-7",
+      "1985-GR-VI.4.5.4-8"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "6",
      "digest": "27a7f9eeb08f",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.2.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "7",
      "digest": "0d01fe41ad8a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.2.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "8",
      "digest": "c8b93a025182",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.3.8.1-3",
+      "1985-SR-VI.1.3.2-p1",
+      "1985-SR-IV.4.2.2.1.1-p4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "9",
      "digest": "9e03daa17c4e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.1.3.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "10",
      "digest": "d472e80e3f6b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.1.3.4-p1",
+      "1985-SR-IV.4.3.8.2.3-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "11",
      "digest": "ce23fa8012da",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-IV.4.3.8.2.2",
+      "1985-GR-IV.4.3.8.2.4-4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "12",
      "digest": "23c25a9c62f1",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-IV.4.3.8.2.2",
+      "1985-SR-IV.4.3.8.2.3-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "13",
      "digest": "a51c709f0f66",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.3.8.4.4-4",
+      "1985-FMT-IV.4.3.8.4.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "14",
      "digest": "40a1341493d8",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.7.2.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "15",
      "digest": "7980011cfa54",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.7.4-p4",
+      "1985-SR-IV.7.4-p7"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "16",
      "digest": "99d11b34a4eb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.2.4.4-1",
+      "1985-GR-VI.2.4.4-2",
+      "1985-GR-VI.2.3.3-2",
+      "1985-GR-X.2.5.4-2",
+      "1985-GR-X.2.5.4-4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "17",
      "digest": "6e8d2314ad8a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.2.1-p1",
+      "1985-FMT-X.2.3.1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "18",
      "digest": "fb008ed5c58f",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.3.1.4-3",
+      "1985-GR-X.2.4.2-3",
+      "1985-GR-X.2.4.2-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "19",
      "digest": "6b3e56cf0574",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.3.1.4-2",
+      "1985-SR-X.1.3.8.1-2",
+      "1985-SR-II.6.4.1.2-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "20",
      "digest": "fdee3b0b95a3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.4.1-p1",
+      "1985-FMT-IV.6.2.3.1",
+      "1985-FMT-VI.4.3.2",
+      "1985-FMT-VI.4.4.2",
+      "1985-FMT-VI.4.5.2",
+      "1985-FMT-VII.2.10.2",
+      "1985-GR-VI.4.3.4-3",
+      "1985-GR-VI.4.4.4-4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "21",
      "digest": "1b19fa698348",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-VI.4.5.2",
+      "1985-GR-VI.4.5.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "22",
      "digest": "f58428469582",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-VI.4.5.2",
+      "1985-SR-IV.2.1.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "23",
      "digest": "94b6a9c82b17",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.4.5.4-4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "24",
      "digest": "28efabfb3eec",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VII.2.3.3-3",
+      "1985-SR-VIII.2.3.3-3",
+      "1985-SR-IX.2.3.3-3",
+      "1985-SR-XIII.2.3.3-3",
+      "1985-GR-XI.2.3.4-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "25",
      "digest": "6e009424e6e6",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.2.3.4-2",
+      "1985-GR-VIII.2.3.4-3",
+      "1985-GR-IX.2.3.4-4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "26",
      "digest": "9855e32b73fd",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-VII.2.6.2",
+      "1985-FMT-VIII.2.5.2",
+      "1985-FMT-IX.2.6.2",
+      "1985-SR-IV.2.1.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "27",
      "digest": "7652c202ab2c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.2.7.4-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "28",
      "digest": "c2fa5e352d6a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.2.8.4-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "29",
      "digest": "ae459840c1db",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "SR"
     },
     {
      "unit": "30",
      "digest": "fbfc4f37aadc",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.5.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "31",
      "digest": "06f8fc47b27a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.3.3.3-1",
+      "1985-GR-VIII.3.2.4-2",
+      "1985-GR-IX.3.2.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "32",
      "digest": "12e41d8af4e6",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-VII.3.2.2",
+      "1985-SR-VII.3.4.3-1",
+      "1985-GR-VII.3.4.4-1",
+      "1985-GR-XIII.3.2.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "33",
      "digest": "674a6292092f",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.3.6.3-3",
+      "1985-GR-VII.3.6.3-2",
+      "1985-GR-VIII.3.2.4-4",
+      "1985-GR-IX.3.2.4-4",
+      "1985-GR-XIII.3.2.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "34",
      "digest": "9847cde985bc",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VII.3.7.3-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "35",
      "digest": "8674a1d6329a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.4.5.4-1",
+      "1985-GR-X.4.5.4-4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "36",
      "digest": "7882689a9af8",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.4.6.4-1",
+      "1985-GR-X.4.6.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "37",
      "digest": "fdc8f5e848dd",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.5.5.4-1",
+      "1985-FMT-VI.5.10.2",
+      "1985-GR-VI.5.10.4-1",
+      "1985-GR-VI.5.5.4-2",
+      "1985-FMT-VI.5.3.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "38",
      "digest": "7261186b1837",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.5.8.3-5",
+      "1985-GR-VI.5.8.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "39",
      "digest": "82385572e126",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.7.2.2-p1",
+      "1985-SR-VI.1.3.7-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-11-refute.jsonl"
     },
     {
      "unit": "40",
      "digest": "d2732cad46c4",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.5.9.5-4",
+      "1985-GR-VI.5.9.5-5"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "41",
      "digest": "c15d37cb26c7",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.3.8.4-4",
+      "1985-GR-VII.3.8.4-8",
+      "1985-GR-VII.3.8.4-11"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "42",
      "digest": "08cbc9be1ce4",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.5.10.3-6"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "43",
      "digest": "7a70df33ac98",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.5.12.4-2",
+      "1985-GR-VI.5.12.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "44",
      "digest": "6a6a1247cfc9",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-XIII.3.17.3-3",
+      "1985-SR-XIII.3.9.3-11"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "45",
      "digest": "047dca3108c9",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.5.14.4-3",
+      "1985-GR-VI.5.14.4-9"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "46",
      "digest": "455cee656a05",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.5.15.6-6"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "47",
      "digest": "ba02d56823b1",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-XIV.2.2.3-3",
+      "1985-SR-XIV.2.2.3-7"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "48",
      "digest": "53e11cc61322",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "49",
      "digest": "b2f331941a79",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-XIII.3.15.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "50",
      "digest": "e54c31b54eb4",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "51",
      "digest": "2874d5bb3da6",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.5.1-4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "52",
      "digest": "d2c09e825ec7",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-IV.4.4.4-p1",
+      "1985-GR-IV.4.4.4-T1.1",
+      "1985-GR-IV.4.4.4-T1.2",
+      "1985-GR-IV.4.4.4-T1.3",
+      "1985-GR-IV.4.4.4-T1.4",
+      "1985-GR-IV.4.4.4-T1.5",
+      "1985-GR-IV.4.4.4-T1.6",
+      "1985-GR-IV.4.4.4-T1.7"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "53",
      "digest": "f2106328ab09",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.3.1.1-p4",
+      "1985-GR-VI.6.3.1.1-T1.4",
+      "1985-GR-VI.6.3.1.1-T1.5"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "54",
      "digest": "a7f922cf34df",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.4.5.4-10",
+      "1985-GR-VI.6.3.1.2-5"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "55",
      "digest": "b7d1fd318c9f",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.5.4-10"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "56",
      "digest": "eb0885f918ee",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-VI.6.6.2",
+      "1985-SR-IV.2.1.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "57",
      "digest": "bbbe0143225a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.4.2-p4",
+      "1985-FMT-VI.6.6.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "58",
      "digest": "8952fffff755",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.5.2.4-14",
+      "1985-GR-X.5.2.4-13"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "59",
      "digest": "3040145cc626",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-X.5.2.3-3",
+      "1985-SR-IV.4.3.8.5.1-p2",
+      "1985-FMT-X.5.2.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "60",
      "digest": "d8d1bcb5d505",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-X.5.2.4-3",
+      "1985-GR-X.5.2.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "61",
      "digest": "9ff888aa436f",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.4.2.4-3",
+      "1985-FMT-XIII.4.2.2",
+      "1985-GR-XIII.4.2.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "62",
      "digest": "d32a0198935a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.4.2.4-3",
+      "1985-GR-XIII.4.2.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "63",
      "digest": "6528e58bd796",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.4.2-p4",
+      "1985-FMT-VI.6.8.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "64",
      "digest": "6a2dd4718208",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.9.1-p1",
+      "1985-GR-VI.6.9.4-1",
+      "1985-GR-IV.4.4.2-p1",
+      "1985-GR-IV.4.4.2-p5"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-03-refute.jsonl"
     },
     {
      "unit": "65",
      "digest": "e05b8ab4ad34",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VIII.1.3.5-L2.2",
+      "1985-GR-IX.1.3.5-L2.2",
+      "1985-GR-VIII.4.3.4-8",
+      "1985-GR-IX.4.3.4-8"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "66",
      "digest": "295ecd2bc1d5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-IV.4.2.2.2.3-p4",
+      "1985-GR-IV.4.2.2.2.3-L2.3",
+      "1985-FMT-VI.6.10.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "67",
      "digest": "d574fbe054d8",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.4.2-p4",
+      "1985-FMT-VI.6.11.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "68",
      "digest": "dacbea9cd7db",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.10.4-8",
+      "1985-GR-VI.6.10.4-10"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "69",
      "digest": "022031db7685",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.13.4-1",
+      "1985-GR-VI.6.13.4-2",
+      "1985-GR-VI.6.13.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "70",
      "digest": "18497b529dd3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-X.5.4.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "71",
      "digest": "dd63b2bd1a56",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-VI.6.15.2",
+      "1985-GR-VI.6.15.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "72",
      "digest": "3eff8ccedf14",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-VI.6.16.2",
+      "1985-SR-IV.2.1.2-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "73",
      "digest": "299c0edefd63",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.17.4-2",
+      "1985-GR-VI.6.17.4-5"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "74",
      "digest": "c4da0ac92184",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.18.4-8",
+      "1985-SR-VI.6.18.3-4",
+      "1985-FMT-VI.6.18.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "75",
      "digest": "d61ea2cc5a7b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.18.4-10",
+      "1985-GR-VI.6.18.4-14",
+      "1985-FMT-VI.6.18.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "76",
      "digest": "2d4dcfb6463a",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.18.4-18",
+      "1985-FMT-VI.6.18.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "77",
      "digest": "d3f3c737713b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-XI.4.1.2",
+      "1985-GR-XI.4.1.4-11",
+      "1985-SR-XI.4.1.3-3",
+      "1985-SR-XI.4.1.3-11",
+      "1985-SR-XI.4.1.3-5",
+      "1985-SR-XI.4.1.3-10",
+      "1985-GR-XI.4.1.4-7"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "78",
      "digest": "2c8c4f24a0b3",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.19.4-4",
+      "1985-GR-VI.6.19.4-3",
+      "1985-GR-VI.6.19.4-6"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-01-refute.jsonl"
     },
     {
      "unit": "79",
      "digest": "5bd7d613657c",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.4.2-p4",
+      "1985-FMT-VI.6.20.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-12-refute.jsonl"
     },
     {
      "unit": "80",
      "digest": "549eeca75ac2",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-VIII.4.4.2",
+      "1985-FMT-IX.4.4.2",
+      "1985-GR-VIII.4.4.4-11",
+      "1985-GR-IX.4.4.4-11"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "81",
      "digest": "5fdac6ca9758",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIV.3.4.4-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "82",
      "digest": "2f8a8e87d14f",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.21.3-1",
+      "1985-GR-VI.6.21.4-3",
+      "1985-GR-VI.6.21.4-6"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "83",
      "digest": "b4858de4c434",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.21.4-10",
+      "1985-SR-VI.6.21.3-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "84",
      "digest": "090c4c5bc212",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.21.3-12"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "85",
      "digest": "0913efc9b901",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.4.4.4-8",
+      "1985-GR-VIII.4.5.4-8",
+      "1985-GR-IX.4.5.4-8",
+      "1985-FMT-VII.4.4.2",
+      "1985-GR-VII.4.4.4-2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "86",
      "digest": "8b6c4c2a0888",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.4.4.4-11",
+      "1985-GR-VIII.4.5.4-11",
+      "1985-GR-IX.4.5.4-11"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "87",
      "digest": "aacc45a5e628",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VIII.1.3.5-L2.2",
+      "1985-GR-IX.1.3.5-L2.2",
+      "1985-GR-VIII.4.5.4-11",
+      "1985-GR-IX.4.5.4-11"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "88",
      "digest": "4583010699c2",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XIV.3.5.4-4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "89",
      "digest": "c1c5f3e99461",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XII.3.4-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "90",
      "digest": "065ace0cc97e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XI.4.3.4-6"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "91",
      "digest": "323283004d02",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-XI.4.3.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "92",
      "digest": "a7e597f28578",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VIII.4.6.4-3",
+      "1985-GR-IX.4.6.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "93",
      "digest": "7543d5353c7d",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VIII.4.6.4-10",
+      "1985-GR-IX.4.6.4-10",
+      "1985-GR-VIII.1.3.5-L2.2",
+      "1985-GR-IX.1.3.5-L2.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "94",
      "digest": "fba552ff8d25",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-XIV.3.6.2",
+      "1985-GR-XIV.3.6.4-16"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "95",
      "digest": "2bbee245f9a6",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-VI.6.23.2",
+      "1985-SR-VI.6.23.3-1",
+      "1985-GR-VI.6.23.4-6",
+      "1985-GR-VI.6.23.4-7"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "96",
      "digest": "46ada79f08d2",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-XI.4.4.2",
+      "1985-SR-XI.4.4.3-3",
+      "1985-SR-XI.4.4.3-10",
+      "1985-SR-XI.4.4.3-8",
+      "1985-GR-XI.4.4.4-12",
+      "1985-SR-XI.4.4.3-7",
+      "1985-GR-XI.4.4.4-3"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "97",
      "digest": "ceba652bf877",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "SR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "98",
      "digest": "7692b9430f6b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VIII.4.7.4-7",
+      "1985-GR-IX.4.7.4-7",
+      "1985-GR-VIII.1.3.5-L2.2",
+      "1985-GR-IX.1.3.5-L2.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "99",
      "digest": "68f7aa174004",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "SR",
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "100",
      "digest": "7c6d2edda036",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.25.4-10"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "101",
      "digest": "cd22e3de1910",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.4.2-p4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "102",
      "digest": "3928b05c9639",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.27.4-20"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "103",
      "digest": "a4573eec5fbd",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.4.6.4-4",
+      "1985-GR-VIII.4.8.4-4",
+      "1985-GR-IX.4.8.4-4"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "104",
      "digest": "6e2e9dfc7173",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-X.5.5.2",
+      "1985-GR-X.5.5.4-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "105",
      "digest": "81265763ef18",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-FMT-X.5.6.2",
+      "1985-GR-X.5.6.4-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "106",
      "digest": "4d7ed3f9b928",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VII.4.7.4-9"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "107",
      "digest": "4a16d6eb4ccb",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VIII.4.9.4-9",
+      "1985-GR-IX.4.9.4-9",
+      "1985-GR-VIII.1.3.5-L2.2",
+      "1985-GR-IX.1.3.5-L2.2"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "p2",
      "digest": "aa8f860f0271",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "L2.1",
      "digest": "beac1d8f12d5",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1989-GR-A.1.2.1-p1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "p3",
      "digest": "7daca3bd6936",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "GR",
+     "definitional": true,
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "L3.1",
      "digest": "4dd74f1c1220",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-GR-VI.6.18.4-9"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "L3.2",
      "digest": "17dcf092fdbd",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1985-SR-VI.6.18.3-5",
+      "1985-SR-VI.6.18.3-8"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "L3.3",
      "digest": "c206e8d23ce4",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1989-AR-A.2.23.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "L3.4",
      "digest": "02fd04fffa5e",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1989-AR-A.2.27.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "L3.5",
      "digest": "0c6a649b0c0b",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1989-AR-A.2.32.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
      "unit": "L3.6",
      "digest": "772d77f94cee",
      "order": 0,
-     "disposition": "pending"
+     "disposition": "restates",
+     "rules": [
+      "1989-AR-A.2.33.3-1"
+     ],
+     "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     }
    ]
   }
