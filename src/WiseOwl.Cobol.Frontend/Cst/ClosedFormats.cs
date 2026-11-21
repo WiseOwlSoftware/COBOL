@@ -214,7 +214,7 @@ public static class ClosedFormats
     /// production can take it, so it asks here, of its half-built context, whether the word stands where computer-name-1
     /// does: inside an OBJECT-COMPUTER paragraph that holds no name and no clause yet, or right after a SOURCE-COMPUTER paragraph
     /// that its period closed with nothing written (the shape <see cref="ComputerNameSlotOf"/> reads from the finished tree).</summary>
-    public static string? ComputerNameSlotAt(ParserRuleContext? context)
+    public static string? ComputerNameSlotAt(ParserRuleContext? context, IToken word)
     {
         for (var c = context; c is not null; c = c.Parent as ParserRuleContext)
             if (c is Core.ObjectComputerParagraphContext objectComputer)
@@ -231,8 +231,9 @@ public static class ClosedFormats
         for (int i = section.ChildCount - 1; i >= 0; i--)
         {
             if (section.GetChild(i) is not Core.ConfigurationParagraphContext { ChildCount: > 0 } written) continue;
+            // On the paragraph's own line: a word on a later line begins what follows it (a misplaced FILE-CONTROL. is no name).
             return written.sourceComputerParagraph() is { nnComputerName1: null } source
-                   && source.debuggingModeClause() is null && source.unrecognizedClause() is null
+                   && source.debuggingModeClause() is null && source.unrecognizedClause() is null && source.Stop?.Line == word.Line
                 ? "SOURCE-COMPUTER" : null;
         }
         return null;
