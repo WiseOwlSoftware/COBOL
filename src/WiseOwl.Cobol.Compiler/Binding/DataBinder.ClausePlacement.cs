@@ -123,11 +123,14 @@ internal static class ClausePlacementRules
             "The PICTURE clause may be specified only at the elementary level.",
             DiagnosticCatalog.PictureAtElementaryLevel,
             Rule1985: "§1985:VI.5.9.3 SR1", Sentence1985: "A PICTURE clause can be specified only at the elementary item level."),
-        // §2023:13.16.3 SR11 (restated for JUSTIFIED by §2023:13.18.32.3 SR1) — kb/Work PB512.
+        // §2023:13.16.3 SR11 (restated for JUSTIFIED by §2023:13.18.32.3 SR1) — kb/Work PB512. COBOL-85 states it once for the
+        // two clauses, with SYNCHRONIZED beside them (§1985:VI.5.3.4 GR1; kb/Work PB5993).
         new(DataClauseKind.Justified | DataClauseKind.BlankWhenZero, ClausePlacementKind.ElementaryOnly,
             "§2023:13.16.3 SR11",
             "The PICTURE, JUSTIFIED, and BLANK WHEN ZERO clauses may be specified only for an elementary data item.",
-            DiagnosticCatalog.ClauseElementaryOnly),
+            DiagnosticCatalog.ClauseElementaryOnly,
+            Rule1985: "§1985:VI.5.3.4 GR1",
+            Sentence1985: "The clauses SYNCHRONIZED, PICTURE, JUSTIFIED, and BLANK WHEN ZERO must not be specified except for an elementary data item."),
         // §2023:13.16.3 SR5 — kb/Work PB519. The BASED half used to be a private arm of the BASED block.
         new(DataClauseKind.External, ClausePlacementKind.NotWith, "§2023:13.16.3 SR5",
             "The EXTERNAL clause shall not be specified in the same data description entry as the REDEFINES or "

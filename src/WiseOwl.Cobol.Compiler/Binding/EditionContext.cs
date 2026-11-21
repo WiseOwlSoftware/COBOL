@@ -480,7 +480,8 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
                 + "no binder site may flag it (ISO §2023:4.2.10: the warning mechanism flags only those)");
         if (!FlagExtensions) return;
         Warning(DiagnosticCatalog.NonstandardExtensionUsed.Code, $"{seen} is a nonstandard extension — {row.Display}; "
-            + $"from {row.Origin}. ISO/IEC 1989 does not define it (§2023:4.2.10). Standard form: {row.Standard} "
+            + $"from {row.Origin}. {Edition.Cite("ANSI X3.23-1985", "ISO/IEC 1989")} does not define it "
+            + $"({Edition.Cite("§1985:I.1.5.2.5.2", "§2023:4.2.10")}). Standard form: {row.Standard} "
             + "(docs/CONFORMANCE.md §3.2)", EditionFlag.Of(row, DialectLevel));
     }
 

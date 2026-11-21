@@ -213,7 +213,7 @@ internal sealed class OdoResolvePass : IBindPass
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingTableNested, $"occurs-depending table '{subject}' is subordinate to the "
                     + $"OCCURS item '{enclosing.SubscriptLevels()[^1].CobolName}': tables may be nested only when the "
                     + "DEPENDING phrase is "
-                    + "absent (ISO §2023:13.18.38.3 SR1(b)/SR10)" + via);
+                    + "absent (ISO " + binder.Edition.Edition.Cite("§1985:VI.5.8.3 SR1b", "§2023:13.18.38.3 SR1(b)/SR10") + ")" + via);
 
             // §2023:13.18.44 SR: neither the redefined item nor a redefinition may include an occurs-depending table.
             // (The FD multi-record shared AREA is §2023:9.1.2 record sharing — synthesized with no written REDEFINES

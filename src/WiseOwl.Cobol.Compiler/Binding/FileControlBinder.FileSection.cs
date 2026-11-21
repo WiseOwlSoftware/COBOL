@@ -254,7 +254,7 @@ public sealed partial class FileControlBinder
         {
             Edition.Error(DiagnosticCatalog.FileDescriptionClauseFormat, $"the {row.Name} ({WrittenSource.Of(clause)}) is not "
                 + $"a clause of {FileDescriptionFormats.Caption(Edition.Edition, format, file.Organization)} of the file description entry: file "
-                + $"'{fdName}' is {file.OrganizationFace}"
+                + $"'{fdName}' is {file.OrganizationFace(Edition.Edition)}"
                 + (format == FileDescriptionFormat.Report ? ", and its entry specifies a REPORT clause" : "")
                 + $", and {FileDescriptionFormats.BindingRule(Edition.Edition, format, file.Organization)}. "
                 + $"{FileDescriptionFormats.FormatCitation(Edition.Edition, format, file.Organization)} prints that format with only "

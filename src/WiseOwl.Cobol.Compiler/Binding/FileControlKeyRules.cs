@@ -405,7 +405,7 @@ internal static class FileControlKeyRules
             _ => true,
             (_, op) => op.Name is not null && op.IsClauseHead,
             (f, op) => $"file '{f.CobolName}' has a {op.ClauseFace} clause, which appears only in the indexed file "
-                + $"control entry (ISO §2023:12.4.5.1 Format 1), but this file is {f.OrganizationFace}; Format 1 shall "
+                + $"control entry (ISO §2023:12.4.5.1 Format 1), but this file is {f.OrganizationFace(EditionInfo.Of(2023))}; Format 1 shall "
                 + "be specified only for an indexed file (ISO §2023:12.4.5.2 SR8)"),
 
         // ── Format 1 (indexed) — each ALTERNATE RECORD KEY clause ────────────────────────────────────────────
@@ -524,7 +524,7 @@ internal static class FileControlKeyRules
             _ => true,
             (_, op) => op.IsClauseHead,
             (f, op) => $"file '{f.CobolName}' has an {op.ClauseFace} clause, which appears only in the indexed file "
-                + $"control entry (ISO §2023:12.4.5.1 Format 1), but this file is {f.OrganizationFace}; Format 1 shall "
+                + $"control entry (ISO §2023:12.4.5.1 Format 1), but this file is {f.OrganizationFace(EditionInfo.Of(2023))}; Format 1 shall "
                 + "be specified only for an indexed file (ISO §2023:12.4.5.2 SR8)"),
 
         // ── Format 2 (relative) — the RELATIVE KEY clause ────────────────────────────────────────────────────
@@ -575,7 +575,7 @@ internal static class FileControlKeyRules
             _ => true,
             (_, op) => op.Name is not null,
             (f, op) => $"file '{f.CobolName}' has a {op.ClauseFace} clause, which appears only in the relative file "
-                + $"control entry (ISO §2023:12.4.5.1 Format 2), but this file is {f.OrganizationFace}; Format 2 shall "
+                + $"control entry (ISO §2023:12.4.5.1 Format 2), but this file is {f.OrganizationFace(EditionInfo.Of(2023))}; Format 2 shall "
                 + "be specified only for a relative file (ISO §2023:12.4.5.2 SR9)"),
 
         // ── The ENTRY — §2023:12.4.5.2 SR8 / SR9's SECOND sentence ───────────────────────────────────────────────
@@ -629,7 +629,7 @@ internal static class FileControlKeyRules
             FileKinds.Indexed | FileKinds.Relative, FileKeyRole.Entry,
             f => !f.IsReportFile && SpecifiesSequentialFormat(f),
             (_, _) => true,
-            (f, _) => $"file '{f.CobolName}' is {f.OrganizationFace}, but its file control entry specifies the "
+            (f, _) => $"file '{f.CobolName}' is {f.OrganizationFace(EditionInfo.Of(2023))}, but its file control entry specifies the "
                 + $"sequential format ({SequentialFormatMarker(f)}), which appears only in ISO §2023:12.4.5.1 Format 3; "
                 + "Format 3 shall be specified only for a sequential file or a report file (ISO §2023:12.4.5.2 SR11)",
             DiagnosticCatalog.FileControlFormat3OnKeyedFile),
@@ -953,7 +953,7 @@ internal static class FileControlKeyRules
             _ => true,
             (_, op) => op.Name is not null && op.IsClauseHead,
             (f, op) => $"file '{f.CobolName}' has a {op.ClauseFace} clause, which the general format prints only in the indexed file "
-                + $"control entry (ANSI §1985:IX.2.3.2), but this file is {f.OrganizationFace}")
+                + $"control entry (ANSI §1985:IX.2.3.2), but this file is {f.OrganizationFace(EditionInfo.Of(85))}")
         { Supersedes = "SR-12.4.5.2-8" },
         new("1985-FMT-IX.2.3.2-ALTERNATE-RECORD-KEY", "IX.2.3.2", "ANSI §1985:IX.2.3.2",
             "ALTERNATE RECORD KEY IS data-name-2",
@@ -961,7 +961,7 @@ internal static class FileControlKeyRules
             _ => true,
             (_, op) => op.IsClauseHead,
             (f, op) => $"file '{f.CobolName}' has an {op.ClauseFace} clause, which the general format prints only in the indexed file "
-                + $"control entry (ANSI §1985:IX.2.3.2), but this file is {f.OrganizationFace}")
+                + $"control entry (ANSI §1985:IX.2.3.2), but this file is {f.OrganizationFace(EditionInfo.Of(85))}")
         { Supersedes = "SR-12.4.5.2-8" },
         new("1985-FMT-VIII.2.3.2-RELATIVE-KEY", "VIII.2.3.2", "ANSI §1985:VIII.2.3.2",
             "RELATIVE KEY IS data-name-1",
@@ -969,7 +969,7 @@ internal static class FileControlKeyRules
             _ => true,
             (_, op) => op.Name is not null,
             (f, op) => $"file '{f.CobolName}' has a {op.ClauseFace} clause, which the general format prints only in the relative file "
-                + $"control entry (ANSI §1985:VIII.2.3.2), but this file is {f.OrganizationFace}")
+                + $"control entry (ANSI §1985:VIII.2.3.2), but this file is {f.OrganizationFace(EditionInfo.Of(85))}")
         { Supersedes = "SR-12.4.5.2-9" },
         new("1985-FMT-VIII.2.4.2-RELATIVE-KEY", "VIII.2.4.2", "ANSI §1985:VIII.2.4.2",
             "RELATIVE KEY IS data-name-1",
@@ -989,7 +989,7 @@ internal static class FileControlKeyRules
             FileKinds.Indexed | FileKinds.Relative, FileKeyRole.Entry,
             f => !f.IsReportFile && SpecifiesSequentialFormat(f),
             (_, _) => true,
-            (f, _) => $"file '{f.CobolName}' is {f.OrganizationFace}, but its file control entry has {SequentialFormatMarker(f)}, "
+            (f, _) => $"file '{f.CobolName}' is {f.OrganizationFace(EditionInfo.Of(85))}, but its file control entry has {SequentialFormatMarker(f)}, "
                 + "which the general format prints only in the sequential file control entry (ANSI §1985:VII.2.3.2); the relative "
                 + "and indexed file control entries print no such clause (§1985:VIII.2.3.2, §1985:IX.2.3.2)",
             DiagnosticCatalog.FileControlFormat3OnKeyedFile)
