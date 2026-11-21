@@ -6,8 +6,7 @@ declare_fix_lane), a campaign's clusters on the sites its notes declare (campaig
 the tiers that order them (lift_tiers, kb/Work PB3423), a cluster's claim (cluster_claim, set_claim), and the size of
 a group, the notes whose predicted turns one implementer holds (predicted_turns, turn_budget, notes_cap; kb/Work PB4396).
 
-Its readers: the wave planner (plan_wave.py), the ledger's estimate (scripts/spec/ledger_plan.py: the same
-run_fix_clusters call, kb/Work PB2912), the branch survey's train order (prune_worktrees.note_rank: harm_weights) and
+Its readers: the wave planner (plan_wave.py), the branch survey's train order (prune_worktrees.note_rank: harm_weights) and
 the landing lane's conflict brief (land_lane._note_line: note_of). In the import DAG of section 16.10
 (scripts/script_layering.py) it imports reports and inflight.
 """
@@ -76,8 +75,7 @@ def notes_cap(rules: Mapping[str, Any]) -> int:
     """THE GROUP SIZE (kb/Work PB4396, owner 2026-11-01 "One step per file"): the most notes one implementer holds, the
     largest n whose predicted_turns fit the turn_budget, and never fewer than one (a note is never split). Every reader
     of a group's size asks this: the planner's group formation and overflow (plan_wave.py), the cluster size handed to
-    fix_clusters.py (run_fix_clusters), a campaign's clusters (campaign_clusters) and the ledger's estimate
-    (scripts/spec/ledger_plan.py)."""
+    fix_clusters.py (run_fix_clusters) and a campaign's clusters (campaign_clusters)."""
     w = rules["wave"]
     return max(1, int((turn_budget(rules) - w["turns_per_group"]) // w["turns_per_note"]))
 
@@ -228,8 +226,7 @@ def fold_unsited(raw: Mapping[str, Any], notes: Mapping[str, Note]) -> dict[str,
 def run_fix_clusters(status: str, out: pathlib.Path, rules: dict[str, Any]) -> dict[str, Any]:
     """The fix lane's groups: fix_clusters.py --json over the fix lane's population (work.fixable, kb/Work PB4951) of the
     notes that wait on nothing (ready_notes_view), at the planner's group size (notes_cap), written to `out`, and returned
-    with every unsited note a group of its own (fold_unsited). The ONE call, shared by this planner and the ledger's
-    estimate (scripts/spec/ledger_plan.py, kb/Work PB2912), so both size the lane alike."""
+    with every unsited note a group of its own (fold_unsited). The ONE call of fix_clusters.py."""
     if not FIX_CLUSTERS.exists():
         raise SystemExit(f"⛔ {FIX_CLUSTERS} is missing: run `git submodule update --init tools/claude-skills`")
     view = ready_notes_view(status, out.with_name(f"{out.stem}-notes"))

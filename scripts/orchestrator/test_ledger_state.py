@@ -85,11 +85,16 @@ check("the published stamp is the old one", s["published_stamp"] != s["stamp"], 
 run("mark-published")
 check("a later mark keeps the recorded url", (run("owed")["state"], run("owed")["url"]), ("current", URL1))
 
-# the fix lane's population is an input of the page's WHAT REMAINS block (kb/Work PB2912): changing it is owed
+# the 1985 transcription is an input of the page's text in no catalog row (kb/Work PB5994): changing it is owed ...
+(REPO / "specs").mkdir(exist_ok=True)
+(REPO / "specs" / "ANSI_COBOL_1985.md").write_text("# SECTION I: X\n", encoding="utf-8", newline="\n")
+land("the 1985 transcription")
+check("a commit to the 1985 transcription makes it owed", run("owed")["state"], "owed")
+run("mark-published")
+# ... and the fix lane's population is no longer on the page (the 2023-only WHAT REMAINS block was removed)
 (REPO / ".agent-fleet.json").write_text('{"kind": "defect"}', encoding="utf-8", newline="\n")
 land("the fix lane's population")
-check("a commit to .agent-fleet.json makes it owed", run("owed")["state"], "owed")
-run("mark-published")
+check("a commit to .agent-fleet.json no longer makes it owed", run("owed")["state"], "current")
 # the held architecture review's evidence is no longer on the page: its folders are not inputs
 (REPO / "docs" / "rearchitecture" / "evidence" / "arch-census").mkdir(parents=True)
 (REPO / "docs" / "rearchitecture" / "evidence" / "arch-census" / "x.json").write_text("{}", encoding="utf-8", newline="\n")

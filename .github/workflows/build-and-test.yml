@@ -579,7 +579,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 scripts/rename_retired_names.py --check
       # EVERY script self-test, DISCOVERED (kb/Work PB2563): each test_*.py / test_*.ps1 and each script handling
-      # --self-test under scripts/ — the hook self-tests, cite.py, ledger_plan.py, landing_check.py and the orchestrator's,
+      # --self-test under scripts/ — the hook self-tests, cite.py, landing_check.py and the orchestrator's,
       # which until PB2563 were named here one by one while eleven of them ran nowhere. The same runner is an audit of the
       # local gate (gate_audits.py AUDITS) and a leg of linux-gate.sh. A Windows-only self-test is reported NOT RUN here
       # with its reason and runs in windows-self-tests; one that reads the built assemblies runs in linux-built-self-tests.

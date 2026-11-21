@@ -1,1340 +1,423 @@
 #!/usr/bin/env python3
-"""Render the owner's **WiseOwl COBOL Completion Ledger** artifact from the repo — every figure COMPUTED.
-
-⭐ WHAT THE PAGE IS (kb/Work PB2912, owner 2026-10-10: "update the ledger to contain this info and track it. Remove
-unneeded info from ledger"). What remains to v1.0, measured: at the top the headline (rules closed with GAP; the known
-compiler notes), then WHAT REMAINS, one row per bucket (the known compiler defects and analyses with their harm, the
-GAP rows and the notes that hold them, the rest of v1.0's gates, and the work the owner HELD until zero GAP and zero
-known compiler defects, kb/Work PB2911), each with its notes ready / waiting / blocked and the lane that plans them,
-LOUD flags for a GAP holder outside the GAP campaign, an open compiler note no lane plans and a GAP row nobody claims,
-and an estimate per bucket from named, measured inputs (UNMEASURED where one is missing); then the conformance lane
-(hero, tiles, the GAP burn-down with the register's defect series beside it), the external repository's slices, the
-conformance detail (what is proven green, how the rows stand, burn-down by clause, the §2023:4.2.16 posture), and pacing.
-The plan half is MEASURED in `ledger_plan.py` (buckets, lanes, estimate inputs, its own `--self-test`) and RENDERED
-here. Finished and held work (the legacy retirement, the architecture review's phases, the adjudication and A.1
-documentation veins) is not on the page: the held work is one row of WHAT REMAINS.
-
-⛔ WHY THIS EXISTS. The ledger is the owner's live status page, and it was maintained by HAND: a session read the
-inventory, the work register, the A.1 audit and plan §0, then retyped ~60 numbers into a 460-line HTML file. Two
-failure modes follow from that shape and both had already happened elsewhere in this repo:
-
-  * **A hand-copied number is a remembered number.** `gen_conformance_notes.py`'s docstring records the same
-    lesson from the vault view — §15 claimed 533 GAP where the live number was 481, and the stale view was still
-    read as current. A status page nobody can re-derive is worse than none, because it is believed.
-  * **A hand-maintained page grows into a work list.** CLAUDE.md rule 8 permits exactly one work register
-    (`kb/Work/`). This page is a DERIVED VIEW of that register and of the inventory — never a tracker — and the
-    only way to keep it that way is to make it impossible to author anything here that is not read off a
-    measured artifact. Everything on the rendered page is computed by this file.
-
-So a refresh is now: run this script, then publish `--out` to the artifact's existing URL. No retyping. The URL is the
-running Claude account's (an artifact belongs to the account that published it): `ledger_state.py` keeps one per
-account in the coordination directory, and this script prints it after a render (kb/Work PB2481).
+"""Render the owner's **WiseOwl COBOL Completion Ledger** artifact: each edition's state, in the owner's order, computed.
 
     python scripts/spec/gen_ledger.py                       # write the default --out, <coord>/ledger.html
     python scripts/spec/gen_ledger.py --out ledger.html     # write somewhere else
-    python scripts/spec/gen_ledger.py --check               # non-zero if the page cannot be rendered (mirrors
-                                                            # gen_conformance_notes.py --check); this and a
-                                                            # write both refuse when ledger_plan.problems()
-                                                            # finds the lanes unreadable
+    python scripts/spec/gen_ledger.py --check               # render in memory, write nothing; non-zero if it cannot
 
-⭐ INPUTS, each one an artifact something else already gates:
+⭐ WHAT THE PAGE IS (kb/Work PB5994, owner 2026-11-20: the ledger "must be grossly out of date and likely needs
+replanning, relayout and rewriting"). The mission is four editions, 1985 first (owner 2026-11-15), and the ledger it
+replaces (kb/Work PB2912) measured one goal, 2023 v1.0, by the inventory's GAP, which counts neither the open notes nor
+the normative text with no catalog row. So the page is now, in this order:
 
-    tests/version-matrix/inventory/<rule-id>.json      rows, states, verdicts, kinds, clause buckets
-    kb/Work/*.md frontmatter                           via work.py's own load()/actionable() — IMPORTED, never
-                                                       re-implemented, so the ledger's "actionable" is the same
-                                                       predicate `work.py next` and session-probe print
-    scripts/spec/audit_annex_a1.py --json              the A.1 register: items, scope, discharged, remaining
-    docs/CONFORMANCE.md §2 · §4 · §5                   A.3 dispositions, the documented-non-support facilities,
-                                                       the A.4 optional-module posture
-    docs/REARCHITECTURE_PLAN.md §0            the `⛔ BATTERY REFERENCE — CURRENT` bullet: number, date,
-                                                       tree, and every leg's measured result
-    docs/VERSION_CHANGE_REFERENCE.md                   the anchor dispositions (todo · gated · ref-only · pinned)
-    tests/version-matrix/constructs/                   the matrix registry size
-    conformance-suite/ (its generator's reader)        the conformance suite: tests accepted by edition, refusals
-    kb/Work, through ledger_plan.py                    what remains: the buckets, each note's lane (the fix lane's
-                                                       population `work.fixable`, the campaign and held clusters of the
-                                                       owner's decision PB2911), the external repository's slices
-                                                       and v1.0's gates
-    <coord>/readings.json + model_rules.json          pacing and the estimate: the newest meter reading against the
-    + <coord>/landing-measurements.jsonl               owner's caps, the burn since the week's first reading, the
-    + fix_clusters.py                                  landing rate (landing_measure.py) and the fix lane's own groups;
-                                                       "not available" / UNMEASURED where this machine has no
-                                                       coordination directory or submodule (so a page rendered in CI
-                                                       says so; NOT stamp inputs — a new reading makes --check report
-                                                       the page stale, which it is)
-    git                                                HEAD sha + date, and how far HEAD has drifted from the
-                                                       battery's tree (which is what makes "a battery is owed"
-                                                       a measurement rather than an opinion)
+  1. THE EDITIONS: one line per edition in the owner's order (`ORDER`: 1985, 2002, 2023, 2014), its verdict and the
+     counts that block it, and the verdict line exactly as `edition_status.py --edition N` prints it;
+  2. PER EDITION: its four measured parts, its open notes (HARM first, with titles; then QUESTION, TOOLING, OTHER, by
+     id), the text of its transcription in no catalog row, and the work in flight on it (each branch the survey does not
+     read as landed, with its lifecycle state and evidence);
+  3. the work in flight that names no edition;
+  4. PACING: the running account's quota against its allowance (`budget.current`, the reading `budget.py` prints) and
+     the landings over the last `WINDOW_DAYS` days, measured from origin/main's merges, with the notes of each edition
+     they filed and closed (`landings`). No completion date: no measured rate stands behind one.
 
-⭐ THE TREND IS DATA, NOT MEMORY — `<coord>/ledger-trend.json` (TREND). A burn-down chart is the one thing on the page
-that cannot be recomputed from the current tree alone: yesterday's GAP is gone. So the series is a small file, one point
-per battery or measurement-moving landing (`sha`, `date`, `gap`, `closed`, `dns`, `label`, `battery`, and the register's
-series `ledger_plan.REGISTER_KEYS`: open compiler notes, defects, wrong answers, crashes, GAP-holder notes; kb/Work
-PB2912), and a WRITE run appends the current point when any of them moved. Every field of a point is measured from that
-commit's own tree, so a point missed between runs is measured the same way (`missed_points`; all the missed commits
-through TWO git processes, `measure_commits`, kb/Work PB3315), and `--backfill-register`
-added the register fields to the points recorded before they existed, each from its own sha's `kb/Work` (a point whose
-tree has no frontmatter register carries none).
-⛔ THE SERIES LIVES IN THE COORDINATION DIRECTORY, beside the page it feeds, never in a checkout (kb/Work PB2426): it
-is the publish's state, not the product's. Until 2026-10-20 it was the tracked
-`docs/rearchitecture/evidence/ledger-trend.json`, so every render left the checkout it ran in dirty; in the main
-checkout that sent the orchestrator loop to a `resume` unit whose only finding was that file, and points reached git only
-when some later branch happened to carry them. And because every worktree shares the one file, only a render of MAIN'S
-page (the checkout at origin/main: ledger_state.stale_checkout_line) appends to it; a branch's render would record
-points main never had. `--check` never writes. The file's `program` list (the re-architecture program's counts,
-2026-10-07 to 2026-10-08) is frozen history: the program is held (PB2911) and the page no longer draws it, so nothing
-appends to it.
+⛔ ONE MEASURE, ONE FUNCTION (PB5994 decision 1). Everything the page says about an edition is `edition_status.py`'s:
+`edition_status.status` gives the parts and `edition_status.verdict` the verdict, and this file computes nothing about an
+edition a second way. Which edition a note or a branch belongs to is `edition_status.touches`, the one pattern table. A
+part `edition_status` cannot measure is shown as not measured, and the edition is NOT COMPLETE.
 
-⛔ NOTHING ON THE PAGE IS HAND-WRITTEN. The "In flight right now" narrative it carried until 2026-10-10 went stale in a
-day (PB2912), and a live in-flight view is the operator's (`scripts/prune_worktrees.py --brief`, minutes per run).
+⛔ NO FIGURE WITHOUT ITS INPUT (PB5994 decision 2, 3). The work in flight is `prune_worktrees.live_survey` (the branch
+survey every reader of the lifecycle shares, which reads GitHub's pull requests and merge queue through
+`queue_facts.read`); the quota is `budget.current`; the throughput is `git log` of origin/main. An input this machine
+cannot read (no coordination directory, no telemetry, no network) is UNMEASURED with its reason, never a zero or an
+estimate. `--check` (the gate's rendered-views audit, CI's audits job) renders the page from the repository alone: the
+two live inputs are UNMEASURED there by construction, so the audit is offline and fast.
 
-⚠ WHAT THIS SCRIPT DOES NOT DO: it does not decide anything. Every verdict, disposition and gate result it prints
-was decided by the artifact it read. If a figure here looks wrong, the fix is in that artifact, never here.
+⛔ REMOVED, NOT KEPT BESIDE IT (PB5994 decision 3, CLAUDE.md rule 4): the 2023-only v1.0 buckets and their lanes and
+estimate (`ledger_plan.py`, deleted), the GAP burn-down and its trend series (`<coord>/ledger-trend.json` is no longer
+read or written), the battery, the A.1/A.3/A.4 documentation posture, the suite and anchor counts.
+
+The URL is the running Claude account's (an artifact belongs to the account that published it): `ledger_state.py` keeps
+one per account in the coordination directory, and this script prints it after a render (kb/Work PB2481). The page is
+stamped with the last commit that touched an input it reports (`STAMP_PATHS`), which `ledger_state.py` reads to say
+whether a publish is owed.
 """
 from __future__ import annotations
 
 import argparse
 import collections
+import dataclasses
 import html
-import json
 import pathlib
 import re
 import subprocess
 import sys
-import typing
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "orchestrator"))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-import citation  # noqa: E402  (the one citation format, kb/Work PB4887)
-import construct_store  # noqa: E402  (the construct catalogue, one file per construct, kb/Work PB5110)
+import code_read_store  # noqa: E402  (the code-read stores' paths: an input of edition_status's part 2)
 import coord  # noqa: E402  (names the coordination directory)
-import git_batch  # noqa: E402  (scripts/: one git process for many objects)
-import conformance_source  # noqa: E402  (the one reader of docs/CONFORMANCE.md)
-import inventory_schema  # noqa: E402  (a commit's schema, for its view)
-import inventory_store  # noqa: E402  (the store's paths, for reading a commit's trees)
-import inventory_view  # noqa: E402  (the one view of the inventory: the tree and a commit's own)
-import ledger_plan  # noqa: E402  (the plan's lanes: measured there, rendered here)
+import edition_status  # noqa: E402  (THE measure of an edition, kb/Work PB5924)
+import inventory_schema  # noqa: E402  (the held editions' stores and the view's files)
+import spec_pdf  # noqa: E402  (the 1985 transcription: an input of edition_status's part 4)
+import work  # noqa: E402  (THE reader of the register)
 from standard_streams import ensure_utf8  # noqa: E402
 
-PLAN = REPO / "docs" / "REARCHITECTURE_PLAN.md"
-VCR = REPO / "docs" / "VERSION_CHANGE_REFERENCE.md"
-SUITE_HARNESS = REPO / "conformance-suite" / "harness"
-# The page is the orchestrator's: rendered into the coordination directory beside ledger-published.json, where the
-# units render it and the attended session publishes it (design section 14). Named without creating the directory.
 COORD_DIR = coord.coord_path()
 DEFAULT_OUT = COORD_DIR / "ledger.html"
-# The trend series is the publish's state too, so it lives beside the page, never in a checkout (kb/Work PB2426).
-TREND = COORD_DIR / "ledger-trend.json"
-
 TITLE = "WiseOwl COBOL Completion Ledger"
+CSS_PATH = REPO / "scripts" / "spec" / "data" / "ledger.css"
 
-#: The verdict vocabulary's one home (`verdicts`, each with its `resolves` flag).
-SCHEMA = REPO / "tests/version-matrix/inventory-schema.json"
+#: THE OWNER'S ORDER of the editions (2026-11-15: 1985 first; 2014 after the other three).
+ORDER = (1985, 2002, 2023, 2014)
+#: The window the landings are counted over.
+WINDOW_DAYS = 7
+#: A note id a branch name carries (`pb5449-mechanism`, `fix-PB5917`).
+BRANCH_NOTE = re.compile(r"(?i)(?<![a-z0-9])pb(\d+)")
 
-
-def verdict_classes(schema: pathlib.Path = SCHEMA) -> tuple[tuple[str, ...], tuple[str, ...]]:
-    """(RESOLVING, DEFECTIVE), read from the schema's `resolves` flag — the same derivation
-    `work_inventory.py`'s coverage check makes (`inventory_schema.Schema.defective`).
-
-    ⛔ READ, NOT COPIED (kb/Work PB3338, wave 1154). Until then both tuples were literals "mirroring" the flag, and
-    the first row ever verdicted NEEDS-OWNER-DECISION (a non-resolving verdict the literal lacked) made the hero bands
-    stop partitioning the inventory and the ledger stop rendering. Plain JSON, not the schema loader: this renderer
-    never needs the inventory validator."""
-    verdicts = json.loads(schema.read_text(encoding="utf-8"))["verdicts"]
-    return (tuple(v for v, d in verdicts.items() if d["resolves"]),
-            tuple(v for v, d in verdicts.items() if not d["resolves"]))
-
-
-#: Verdicts that RESOLVE a row — the row still needs a spec-derived witness to close, but no further adjudication.
-#: Verdicts that name a DEFECT (or a question) — the rows `work_inventory.py` requires a live `kb/Work` note to own.
-RESOLVING, DEFECTIVE = verdict_classes()
-NL = chr(10)
-
-#: Display names for the clause buckets — the top-level clause titles of ISO/IEC 1989:2023 exactly as
-#: specs/ISO_COBOL_2023.md prints them (`## N Title`). Presentation only — a clause missing from this map still renders,
-#: with no subtitle. It is deliberately NOT a list of clauses to work. (A static map, not read from the spec at run
-#: time: the spec is a private submodule that CI does not check out, and `--check` must render identically there.)
-CLAUSE_TITLE = {
-    "1": "Scope", "2": "Normative references", "3": "Terms and definitions", "4": "Conformance",
-    "5": "Description techniques", "6": "Reference format", "7": "Compiler directing facility",
-    "8": "Language fundamentals", "9": "I-O, objects, and user-defined functions",
-    "10": "Structured compilation group", "11": "Identification Division", "12": "Environment Division",
-    "13": "Data Division", "14": "Procedure Division", "15": "Intrinsic functions", "16": "Standard classes",
-    "A": "Annex A.1 (impl. docs)",
-}
-
-
-# ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
-# measurement
-# ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-def git(*args: str, stdin: str | None = None) -> str:
-    return subprocess.run(["git", *args], cwd=REPO, capture_output=True, text=True, input=stdin,
-                          encoding="utf-8", errors="replace").stdout.strip()
-
-
-#: The paths whose CONTENT this page reports. The page is stamped with the last commit that touched one of
-#: these — NOT with `git HEAD`.
-#:
-#: ⛔ THIS IS THE DIFFERENCE BETWEEN A GATE AND A PERMANENTLY-RED GATE, and it is worth the extra call. Stamping
-#: HEAD makes every unrelated commit — a DEVLOG paragraph, this generator's own source, the narrative fragment,
-#: a session's WIP checkpoint — render a *correct* page as stale, and a check that is red for reasons nobody
-#: acted on is one people learn to ignore (feedback_green_gates_arent_evidence, in its mirror image). Stamping
-#: the last input-touching commit also gives the reader the sha they actually want: the tree the NUMBERS came
-#: from. Deliberately absent from this set: the rendered page and the trend series — including either would make
-#: regenerating move the stamp, so `--check` would never converge.
-#: Every file the inventory's view reads besides its stores, as the working tree names them: the files the schema names
-#: (`Schema.view_files`: the schema, every held catalog, the registers' extract, the Annex A.2 list) and the refuter record
-#: files the register names (`refuter_files`), the list `inventory_schema.read_view_ahead` reads at a commit. A commit that
-#: touches one moves the view (kb/Work PB5374 branch review R1-1: the refuter records were nowhere in either list below).
-VIEW_INPUTS = tuple(dict.fromkeys([
-    *inventory_schema.load_schema().view_files(),
-    *inventory_schema.refuter_files(inventory_schema.WORKING_TREE.json(inventory_schema.REGISTER_EXTRACT_REL))]))
-
-STAMP_PATHS = (
+#: The paths whose CONTENT the page reports: it is stamped with the last commit that touched one, not with HEAD, so an
+#: unrelated commit cannot make a correct page look stale (ledger_state.py reads the same tuple). The inventory's stores
+#: and the files its view reads (part 1), the code-read stores (part 2), the register (part 3), the 1985 transcription
+#: and catalog (part 4: the catalog is one of the view's files). The view's files are the schema's (`view_files`) and the
+#: refuter records the register names (`refuter_files`), the list `inventory_schema.read_view_ahead` reads (kb/Work PB5374).
+STAMP_PATHS = tuple(dict.fromkeys([
     *(ed.store for ed in inventory_schema.EDITIONS if ed.held),
-    *VIEW_INPUTS,
-    construct_store.STORE_REL,
-    "conformance-suite",
+    *inventory_schema.load_schema().view_files(),
+    *inventory_schema.refuter_files(inventory_schema.WORKING_TREE.json(inventory_schema.REGISTER_EXTRACT_REL)),
+    *(code_read_store.store_dir(ed.year, REPO).relative_to(REPO).as_posix()
+      for ed in inventory_schema.EDITIONS if ed.held and not ed.newest),
     "kb/Work",
-    conformance_source.SOURCE_REL,
-    "docs/REARCHITECTURE_PLAN.md",
-    "docs/VERSION_CHANGE_REFERENCE.md",
-    ".agent-fleet.json",
-)
+    spec_pdf.markdown(1985, REPO).relative_to(REPO).as_posix(),
+]))
+
+
+@dataclasses.dataclass(frozen=True)
+class Unmeasured:
+    """An input this render could not read, and why: the page says UNMEASURED with the reason."""
+    why: str
+
+
+@dataclasses.dataclass(frozen=True)
+class Edition:
+    """One edition as `edition_status` measures it: its parts, and its verdict (`edition_status.verdict`)."""
+    year: int
+    parts: tuple[edition_status.Part, ...]
+    complete: bool
+    line: str
+
+    def part(self, name: str) -> edition_status.Part:
+        return next(p for p in self.parts if p.name == name)
+
+
+@dataclasses.dataclass(frozen=True)
+class Branch:
+    """A branch the survey does not read as landed: its lifecycle state and evidence, the notes it names, its editions."""
+    name: str
+    state: str
+    why: str
+    notes: tuple[str, ...]
+    editions: frozenset[int]
+
+
+@dataclasses.dataclass(frozen=True)
+class Ledger:
+    """Everything the page shows, measured."""
+    head: dict
+    editions: tuple[Edition, ...]
+    titles: dict[str, str]
+    flight: tuple[Branch, ...] | Unmeasured
+    budget: dict | Unmeasured
+    landings: dict | Unmeasured
+
+
+# ── measurement ─────────────────────────────────────────────────────────────────────────────────────────────────
+
+def git(*args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], cwd=REPO, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
 def measure_head() -> dict:
-    """The tree this page describes: the last commit that touched a measured input (see :data:`STAMP_PATHS`)."""
-    line = git("log", "-1", "--format=%h|%cI", "--abbrev=8", "--", *STAMP_PATHS)
+    """The tree this page describes: the last commit that touched a measured input (`STAMP_PATHS`)."""
+    line = git("log", "-1", "--format=%h|%cI", "--abbrev=8", "--", *STAMP_PATHS).stdout.strip()
     if not line:
         raise SystemExit("⛔ no commit touches any measured input — is this a git checkout of the repo?")
     sha, _, iso = line.partition("|")
     return {"sha": sha, "date": iso[:10]}
 
 
-def measure_inventory() -> dict:
-    """The inventory's numbers: the newest edition's (v1.0 is its GAP at zero) in full, and every held edition's rules and
-    GAP side by side as `editions` (kb/Work PB4994; each older edition's state is its chain's)."""
-    schema = inventory_schema.load_schema()
-    views = inventory_view.edition_views(schema)
-    rows = next(iter(views.values()))
-    verdict = collections.Counter(r["verdict"] for r in rows)
-    kind = collections.Counter(r["kind"] for r in rows)
-
-    def cell(v: str, state: str) -> int:
-        return sum(1 for r in rows if r["verdict"] == v and r["state"] == state)
-
-    closed = sum(1 for r in rows if r["state"] == "OK")
-    resolved_owed = sum(cell(v, "GAP") for v in RESOLVING)
-    defective = sum(verdict[v] for v in DEFECTIVE)
-    unadjudicated = verdict[""]
-
-    # ⛔ The four hero bands must PARTITION the inventory. A composition that silently drops a verdict class
-    # would under-report the work and the page would still look tidy, which is the failure this whole file
-    # exists to prevent — so it is asserted rather than trusted.
-    if closed + resolved_owed + defective + unadjudicated != len(rows):
-        raise SystemExit(
-            f"⛔ the hero bands do not partition the inventory ({closed}+{resolved_owed}+{defective}+"
-            f"{unadjudicated} != {len(rows)}) — a verdict exists that this renderer does not classify: "
-            f"{sorted(set(verdict) - set(RESOLVING) - set(DEFECTIVE) - {''})}")
-
-    buckets: dict[str, collections.Counter] = collections.defaultdict(collections.Counter)
-    for r in rows:
-        key = "A" if r["kind"] == "DOC" else (re.match(r"^([A-Za-z]?\d+)", r["section"] or "?") or [None, "?"])[1]
-        b = buckets[key]
-        b["n"] += 1
-        b["adjudicated"] += 1 if r["verdict"] else 0
-        b["gap"] += 1 if r["state"] == "GAP" else 0
-        if r["state"] == "OK":
-            b["closed"] += 1
-        elif r["verdict"]:
-            b["adjopen"] += 1
-        else:
-            b["unadj"] += 1
-
-    return {
-        "rows": len(rows), "closed": closed, "gap": inventory_view.gaps(rows),
-        "editions": [(year, len(view), inventory_view.gaps(view),
-                      inventory_view.lower_bound(inventory_schema.edition(year)),
-                      inventory_view.gap_causes(schema.edition(year), view, schema, views))
-                     for year, view in views.items()],
-        "adjudicated": sum(1 for r in rows if r["verdict"]),
-        "kind": kind, "verdict": verdict,
-        "conforms_closed": cell("CONFORMS", "OK"), "conforms_owed": cell("CONFORMS", "GAP"),
-        "dns_closed": cell("DOCUMENTED-NON-SUPPORT", "OK"), "dns_owed": cell("DOCUMENTED-NON-SUPPORT", "GAP"),
-        "resolved_owed": resolved_owed, "defective": defective, "unadjudicated": unadjudicated,
-        "doc_rows": kind["DOC"],
-        "doc_verdicted": sum(1 for r in rows if r["kind"] == "DOC" and r["verdict"]),
-        "doc_closed": sum(1 for r in rows if r["kind"] == "DOC" and r["state"] == "OK"),
-        "buckets": buckets,
-    }
+def measure_edition(year: int, sources: edition_status.Sources = edition_status.SOURCES) -> Edition:
+    """THE edition's state: `edition_status.status` and `edition_status.verdict`, nothing else."""
+    parts = edition_status.status(year, sources)
+    complete, line = edition_status.verdict(year, parts)
+    return Edition(year, tuple(parts), complete, line)
 
 
-def measure_work() -> dict:
-    """The register's own numbers, through the register's own predicate.
+def note_editions(items: list[dict]) -> dict[str, frozenset[int]]:
+    """Every note's editions, by `edition_status.touches` (the one pattern table)."""
+    return {it["id"]: frozenset(y for y in ORDER if edition_status.touches(it, y)) for it in items}
 
-    ⛔ `actionable()` IS IMPORTED, NOT REIMPLEMENTED. `work.py`'s docstring records what a second copy of that
-    predicate costs: the `Fix next` view and `work.py` both read `wrong_answer or crashes` and both were
-    wrong the same way, hiding nine open items for months. A ledger that computed its own "actionable" would be
-    a third copy — and the one people quote."""
-    import work  # noqa: PLC0415  (deliberately late: this module is a renderer, work.py owns the register)
+
+def branch_of(name: str, state: str, why: str, lead: str | None, editions_of: dict[str, frozenset[int]]) -> Branch:
+    """A survey row as the page shows it: the notes its report's lead and its name carry, and the editions of those
+    notes and of its name (`edition_status.touches` on the name: `group-1985-fixes-2`)."""
+    notes = tuple(dict.fromkeys([*([lead] if lead else []), *(f"PB{n}" for n in BRANCH_NOTE.findall(name))]))
+    eds = {y for y in ORDER if edition_status.touches({"title": name}, y)}
+    for n in notes:
+        eds |= editions_of.get(n, frozenset())
+    return Branch(name, state, why, notes, frozenset(eds))
+
+
+def measure_flight(editions_of: dict[str, frozenset[int]]) -> tuple[Branch, ...] | Unmeasured:
+    """Every branch the survey does not read as LANDED (`prune_worktrees.live_survey`, after the fetch its own main
+    makes), or UNMEASURED with the reason the survey could not run."""
+    import prune_worktrees  # noqa: PLC0415  (the branch survey: git, the reports, GitHub; only a write render reads it)
+    try:
+        prune_worktrees.fetch_origin()
+        rows = prune_worktrees.live_survey()
+    except (OSError, subprocess.SubprocessError, SystemExit, RuntimeError, ValueError) as e:
+        return Unmeasured(f"the branch survey (prune_worktrees.live_survey) failed: {e}")
+    return in_flight(rows, editions_of)
+
+
+def in_flight(rows, editions_of: dict[str, frozenset[int]]) -> tuple[Branch, ...]:
+    """The survey's rows (`prune_worktrees.Row`) whose work is not on main, as the page shows them."""
+    return tuple(branch_of(r.name, r.state, r.why, r.report.lead if r.report else None, editions_of)
+                 for r in rows if r.state != "LANDED")
+
+
+def measure_budget() -> dict | Unmeasured:
+    """The running account's quota reading, exactly as `budget.py --json` prints it, or UNMEASURED."""
+    import budget  # noqa: PLC0415  (the telemetry sink and the readings: only a write render reads them)
+    try:
+        return budget.current()
+    except (OSError, LookupError, ValueError, KeyError, SystemExit) as e:
+        return Unmeasured(f"budget.current() could not read the quota: {e}")
+
+
+#: A note file's diff header in `git log -p` (the note itself: an addendum carries no status).
+NOTE_FILE = re.compile(r"^\+\+\+ b/kb/Work/((?:PB|R)\d+)\.md$")
+#: The line `git log --format` writes before each landing (a diff line never opens with it: a hunk header opens with `@@`).
+LANDING = "LANDING "
+#: A status line a diff adds.
+ADDED_STATUS = re.compile(r"^\+status:\s*(\S+)")
+
+
+def landings(log: str, editions_of: dict[str, frozenset[int]]) -> dict:
+    """What the landings `log` lists did to the register (`git log --first-parent -m --merges -p -U0 --format=LANDING %h --
+    kb/Work`): per edition, the notes FILED (a new note file) and CLOSED (its `status:` set to one of
+    `work.TERMINAL_STATUSES`) by them; {filed: {year: n}, closed: {year: n}}."""
+    filed: collections.Counter[int] = collections.Counter()
+    closed: collections.Counter[int] = collections.Counter()
+    note, new = None, False
+    for line in log.splitlines():
+        if line.startswith(LANDING):
+            note, new = None, False
+        elif line.startswith("--- "):
+            new = line == "--- /dev/null"
+        elif line.startswith("+++ "):
+            note = m.group(1) if (m := NOTE_FILE.match(line)) is not None else None
+            if note and new:
+                filed.update(editions_of.get(note, frozenset()))
+        elif note and (m := ADDED_STATUS.match(line)) is not None and m.group(1) in work.TERMINAL_STATUSES:
+            closed.update(editions_of.get(note, frozenset()))
+    return {"filed": {y: filed[y] for y in ORDER}, "closed": {y: closed[y] for y in ORDER}}
+
+
+def measure_landings(editions_of: dict[str, frozenset[int]], days: int = WINDOW_DAYS) -> dict | Unmeasured:
+    """The landings on origin/main's first-parent line over the last `days` days (each a merge of the merge queue), and
+    the notes of each edition they filed and closed."""
+    since = f"--since={days}.days.ago"
+    count = git("rev-list", "--count", "--first-parent", "--merges", since, "origin/main")
+    log = git("log", "origin/main", "--first-parent", "-m", "--merges", since, "-p", "-U0", f"--format={LANDING}%h",
+              "--", "kb/Work")
+    if count.returncode != 0 or log.returncode != 0:
+        return Unmeasured(f"git log origin/main failed: {(count.stderr or log.stderr).strip()[:200]}")
+    return {**landings(log.stdout, editions_of), "total": int(count.stdout.strip()), "days": days}
+
+
+def measure(live: bool, sources: edition_status.Sources = edition_status.SOURCES) -> Ledger:
+    """The page's inputs. `live` False (`--check`): the branch survey and the quota are not read."""
     items = work.load()
-    return {
-        "items": len(items),
-        "kind": collections.Counter(i.get("kind") for i in items),
-        "status": collections.Counter(i.get("status") for i in items),
-        "actionable": work.actionable(items),
-        "owner_parked": [i for i in items if i.get("status") == "owner"],
-    }
+    editions_of = note_editions(items)
+    offline = Unmeasured("--check renders from the repository alone and reads no live state")
+    return Ledger(head=measure_head(), editions=tuple(measure_edition(y, sources) for y in ORDER),
+                  titles={it["id"]: str(it.get("title", "")) for it in items},
+                  flight=measure_flight(editions_of) if live else offline,
+                  budget=measure_budget() if live else offline,
+                  landings=measure_landings(editions_of))
 
 
-def measure_annex_a1() -> dict:
-    """A.1 coverage, from `audit_annex_a1.py --json`'s one machine-readable line.
-
-    Run as a SUBPROCESS on purpose: that `JSON {...}` line is the contract the audit publishes for exactly this
-    (its own comment names the C# gate that reads it), and importing the module would couple this renderer to
-    the audit's internals and to its stdout."""
-    out = subprocess.run([sys.executable, str(REPO / "scripts" / "spec" / "audit_annex_a1.py"), "--json"],
-                         cwd=REPO, capture_output=True, text=True, encoding="utf-8", errors="replace").stdout
-    line = next((l for l in out.splitlines() if l.startswith("JSON ")), None)
-    if line is None:
-        raise SystemExit("⛔ audit_annex_a1.py --json printed no JSON line — the ledger cannot invent A.1 coverage")
-    d = json.loads(line[5:])
-    return {"items": d["items"], "scope": d["documented_required"], "discharged": d["discharged"],
-            "remaining": d["remaining"], "findings": d["findings"], "unreachable": d["unreachable"]}
-
-
-def _disposition(cell: str) -> str:
-    c = cell.replace("*", "").strip().lower()
-    for k in ("claimed", "partial", "not claimed", "n/a"):
-        if c.startswith(k):
-            return k
-    return "other"
-
-
-def measure_conformance() -> dict:
-    """A.3 / A.4 posture and the documented-non-support facilities, straight off `docs/CONFORMANCE.md`.
-
-    ⚠ `_disposition` anchors on the START of the whole cell, not on a substring search. A `"claimed" in cell`
-    test would score every *Not claimed* row as claimed — the single most flattering way this page could be
-    wrong, and the reason the classifier is one function with one rule rather than a chain of `in` tests."""
-    conformance = conformance_source.load(REPO)
-    conformance.section(conformance_source.A3_SECTION)   # a section the document lost fails here, naming it
-    conformance.section(conformance_source.A4_SECTION)
-    a3 = conformance.a3_dispositions()
-    a4 = conformance.a4_dispositions()
-    return {
-        "a3_rows": len(a3),
-        "a3": collections.Counter(_disposition(r["disposition"]) for r in a3),
-        "a4_rows": len(a4),
-        "a4": collections.Counter(_disposition(r["disposition"]) for r in a4),
-        "a4_by": {d: [r["clause"] for r in a4 if _disposition(r["disposition"]) == d]
-                  for d in ("claimed", "partial", "not claimed")},
-        "facilities": conformance.facility_titles(),
-    }
-
-
-#: The legs of the comprehensive battery, as (label, regex over the §0 bullet, formatter).
-BATTERY_LEGS = (
-    ("Conformance (greenfield, full)", r"Conformance \*\*(\d[\d,]*) / (\d[\d,]*)\*\*", "{0} / {1}"),
-    ("Unit", r"Unit \*\*(\d[\d,]*) / (\d[\d,]*)\*\*", "{0} / {1}"),
-    ("Characterization", r"characterization \*\*(\d[\d,]*) / (\d[\d,]*)\*\*", "{0} / {1}"),
-    ("NIST CCVS", r"NIST \*\*(\d[\d,]*) MATCH / (\d[\d,]*) REGRESSION\*\*", "{0} MATCH / {1} regr."),
-    ("GnuCOBOL differential", r"differential \*\*(\d[\d,]*) cases\*\*.{0,120}?(\d+) PER-CASE FLIP",
-     "{0} cases · {1} flips"),
-)
-
-
-def measure_battery(stamp_sha: str) -> dict:
-    """Parse plan §0's `⛔ BATTERY REFERENCE — CURRENT` bullet — the single-write record of the last
-    comprehensive run — and measure how far HEAD has drifted from the tree it was run on.
-
-    ⛔ THE BULLET IS THE RECORD AND THIS IS ONLY A READER. If a leg's number cannot be found the row says so
-    rather than being dropped: a leg that silently vanishes from a gate table reads as a gate that was not owed
-    (feedback_verdict_evidence_invariant), and that is the one lie a status page must not tell."""
-    text = PLAN.read_text(encoding="utf-8")
-    m = re.search(r"^- \*\*⛔ BATTERY REFERENCE — CURRENT.*?(?=^- \*\*)", text, re.M | re.S)
-    if m is None:
-        raise SystemExit("⛔ plan §0 has no '⛔ BATTERY REFERENCE — CURRENT' bullet — the ledger reads the gate "
-                         "standing from there and will not guess it")
-    blk = m.group(0)
-    n = re.search(r"battery #(\d+)", blk)
-    date = re.search(r"(\d{4}-\d{2}-\d{2})", blk)
-    sha = re.search(r"`([0-9a-f]{7,40})`", blk)
-    if not (n and date and sha):
-        raise SystemExit("⛔ the CURRENT battery bullet does not carry a #number, a date and a `sha` — "
-                         "fix the bullet (it is the single-write record) or this reader")
-    legs = []
-    for label, rx, fmt in BATTERY_LEGS:
-        mm = re.search(rx, blk, re.S)
-        # Re-format the captured digits rather than echoing them: plan §0 writes `5241`, this page writes
-        # `5,241` everywhere else, and a table that groups its thousands in some rows and not others reads as
-        # two tables.
-        legs.append((label, fmt.format(*(f"{int(g.replace(',', '')):,}" for g in mm.groups()))
-                     if mm else "not parsed from plan §0", bool(mm)))
-    unread = [label for label, _, ok in legs if not ok]
-    if unread:
-        # ⛔ A leg the reader cannot find shows as UNREAD on the owner's page, and the page cannot say WHY. The bullet is
-        # hand-written, so say it here, where whoever regenerates the page is looking (2026-10-05: the differential row
-        # read UNREAD for two batteries because the bullet said `GnuCOBOL differential: 1323 cases, 43 per-case flips`).
-        shapes = "; ".join(f"{label}: /{rx}/" for label, rx, _ in BATTERY_LEGS if label in unread)
-        print(f"⛔ battery #{n.group(1)}: the CURRENT bullet in plan §0 does not carry {', '.join(unread)} in the shape "
-              f"this reader parses. Reword the bullet to match: {shapes}", file=sys.stderr)
-    totals = re.search(r"totals unchanged at\s*\n?\s*([\d/]+)", blk)
-    # Measured to the STAMP commit, not to HEAD: "is a battery owed" must not answer differently because a
-    # session happened to have an unrelated WIP commit on top.
-    since = git("rev-list", "--count", f"{sha.group(1)}..{stamp_sha}")
-    since_code = git("rev-list", "--count", f"{sha.group(1)}..{stamp_sha}", "--", "src", "tests")
-    return {"n": n.group(1), "date": date.group(1), "sha": sha.group(1), "legs": legs,
-            "totals": totals.group(1) if totals else "", "since": int(since or 0),
-            "since_code": int(since_code or 0), "owed": int(since_code or 0) > 0}
-
-
-def measure_suite() -> dict:
-    """The conformance suite as its generator reads it (`conformance-suite/harness/generate.py`, the one reader of a
-    test's header): the tests, the tests accepted at each edition (the schema's editions, ascending) and the
-    refusals `wiseowl/diagnostics/` records (one file per refused test); then the version matrix's registry and anchor counts."""
-    sys.path.insert(0, str(SUITE_HARNESS))
-    import generate  # noqa: PLC0415  (the suite's own reader; imported here, so only this measurement pays for it)
-    inputs, _ = generate.repository_inputs()
-    reader = generate.Reader(generate.SUITE, inputs)
-    reader.read_tree()
-    editions = {e: sum(1 for c in reader.cases if e in c.accept) for e in inputs.editions}
-    vcr = VCR.read_text(encoding="utf-8")
-    gate = [g for g in re.findall(r"<!--\s*gate:([A-Za-z0-9_\-]+)\s*-->", vcr)
-            if g not in ("CONSTRUCT-ID", "id")]  # the two are the doc's own worked example, not anchors
-    todo, ref, pin = vcr.count("<!-- todo -->"), vcr.count("<!-- ref-only -->"), vcr.count("<!-- pin-to-spec -->")
-    return {
-        "tests": len(reader.cases), "accepted": sum(1 for c in reader.cases if c.accept),
-        "refusals": len(inputs.diagnostics), "editions": editions,
-        "constructs": len(construct_store.read_rows(REPO)),
-        "vcr_todo": todo, "vcr_gated": len(gate), "vcr_ref": ref, "vcr_pin": pin,
-        "vcr_done": len(gate) + ref + pin, "vcr_total": len(gate) + ref + pin + todo,
-    }
-
-
-# ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
-# the trend series — the ONLY thing on this page the current tree cannot recompute
-# ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-class Committed(typing.NamedTuple):
-    """What a commit's own tree says: the inventory's counts (None when that tree has no readable inventory) and the
-    register's series (`ledger_plan.register_counts`; None when it has no register)."""
-    inventory: dict | None
-    register: dict | None
-
-
-def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[str, Committed]:
-    """{sha: what that commit's tree holds} for every commit, read through TWO git processes whatever their number
-    (`register` False skips the notes: a caller that wants only the inventory's counts reads no `kb/Work` blob).
-
-    ⛔ THE TREND'S COST IS PAID IN PROCESSES, NOT IN BYTES (kb/Work PB3315). `--check` measures every commit since the
-    series' last recorded point (`missed_points`); a process start costs tens of milliseconds on Windows and much more
-    under load, so a read per commit would grow with the commit count and with the contention. The trees of every
-    commit are read in one process (`git_batch.tree_entries`) and the distinct blobs they name in a second
-    (`git_batch.blobs`): a note or an inventory row that two commits share is read and parsed ONCE, so a commit that moved
-    one note, or closed one row, costs one blob. Each blob is reduced to its summary (a row's id, state and verdict, a
-    note's frontmatter) as it arrives and then dropped. A commit's inventory is its `tests/version-matrix/inventory/`
-    directory, or for a commit before kb/Work PB4148 the one legacy file; from kb/Work PB4992 on it is the commit's view,
-    and every file that view reads (`Schema.view_files`: the schema, the catalogs, the registers' extract, the Annex A.2
-    list) is read as that commit has it, in the same two processes (branch review R1-3), and the refuter record files its
-    register names (`inventory_schema.refuter_files`) in two more, only when one names any (kb/Work PB5374 review R1-1). `--self-test` holds the process count constant in the number of commits (a structural bound, never a
-    wall-clock one)."""
-    uniq = list(dict.fromkeys(shas))
-    if not uniq:
-        return {}
-    # A commit's inventory is its per-rule store or, before kb/Work PB4148, the one legacy file; from kb/Work PB4992 on, the
-    # store holds adjudications only and the commit's rows are its VIEW, read under the files that commit holds. Each is
-    # located by the working tree's newest edition (a commit before the editions were the schema's names none).
-    ed = inventory_schema.NEWEST
-    # The files the view reads that the schema names (`Schema.view_files`, the list `read_view_ahead` reads too). A blob is
-    # read once however many commits share it; a file the view reads that no list names is `NotReadAhead`, never absent.
-    viewed = sorted(set(inventory_schema.load_schema().view_files()))
-    dirs = sorted({f.rpartition("/")[0] for f in (*viewed, *((ed.legacy_file,) if ed.legacy_file else ()))})
-    asked = (*(("kb/Work",) if register else ()), ed.store, *dirs)
-    trees = git_batch.tree_entries(REPO, [f"{sha}:{directory}" for sha in uniq for directory in asked])
-    width = len(asked)
-    work_trees = trees[0::width] if register else [None] * len(uniq)
-    first_dir = width - len(dirs)
-    row_trees = trees[first_dir - 1::width]
-    dir_trees = [{d: trees[i + first_dir + k] for k, d in enumerate(dirs)} for i in range(0, len(trees), width)]
-
-    def oid_at(entries: dict[str, typing.Any], rel: str) -> str | None:
-        directory, _, name = rel.rpartition("/")
-        return (entries[directory] or {}).get(name)
-
-    row_ids = [[oid for name, oid in (t or {}).items() if name.endswith(".json")] for t in row_trees]
-    legacy_ids = [None if rows or not ed.legacy_file else oid_at(entries, ed.legacy_file)
-                  for entries, rows in zip(dir_trees, row_ids)]
-    viewed_ids = [{rel: oid for rel in viewed if (oid := oid_at(entries, rel))} for entries in dir_trees]
-    note_ids = [[oid for name, oid in (t or {}).items() if name.endswith(".md")] for t in work_trees]
-    import work  # noqa: PLC0415
-
-    inventory_oids = {o for ids in row_ids for o in ids} | {o for o in legacy_ids if o}
-    joined_oids = {o for ids in viewed_ids for o in ids.values()}
-    records: dict[str, list[dict] | None] = {}   # blob -> its rows (whole, before PB4992) or its record; None: unreadable
-    joined: dict[str, str] = {}   # a blob the view reads (schema, catalog, register, A.2 list) -> its text
-    notes: dict[str, dict | None] = {}   # a file without frontmatter counts as no note: these are HISTORICAL trees, which may hold one a later `work.py check` refuses (PB3654)
-    for oid, data in git_batch.blobs(REPO, [*inventory_oids, *joined_oids, *(o for ids in note_ids for o in ids)]):
-        text = data.decode("utf-8", errors="replace")
-        if oid in joined_oids:
-            joined[oid] = text
-        elif oid not in inventory_oids:
-            notes[oid] = work.parse_frontmatter(text)
-        else:
-            try:
-                parsed = json.loads(text)
-                records[oid] = parsed if isinstance(parsed, list) else [parsed]
-            except ValueError:
-                records[oid] = None
-
-    # Every commit's view inputs, each file's text or None where the commit lacks it (a read-ahead tree's `files`).
-    files_of = [{rel: joined[ids[rel]] if rel in ids else None for rel in viewed} for ids in viewed_ids]
-    # The refuter record files each commit's §8 register names are inputs of its view that its schema does not name
-    # (`inventory_schema.read_view_ahead`'s second stage). Read as that commit has them, in two more processes whatever the
-    # number of commits, and only when some commit's register names one; an extract commits share is parsed once.
-    extract_rel = inventory_schema.REGISTER_EXTRACT_REL
-    named: dict[str, list[str]] = {}   # extract blob -> the refuter record files it names
-    for ids in viewed_ids:
-        if (oid := ids.get(extract_rel)) is not None and oid not in named:
-            named[oid] = inventory_schema.refuter_files(json.loads(joined[oid]))
-    wanted = [named.get(ids.get(extract_rel, ""), []) for ids in viewed_ids]
-    if pairs := sorted({(sha, rel.rpartition("/")[0]) for sha, rels in zip(uniq, wanted) for rel in rels}):
-        listed = dict(zip(pairs, git_batch.tree_entries(REPO, [f"{sha}:{directory}" for sha, directory in pairs])))
-        refuter_ids = [{rel: (listed[sha, rel.rpartition("/")[0]] or {}).get(rel.rpartition("/")[2]) for rel in rels}
-                       for sha, rels in zip(uniq, wanted)]
-        texts = {oid: data.decode("utf-8", errors="replace")
-                 for oid, data in git_batch.blobs(REPO, {o for ids in refuter_ids for o in ids.values() if o})}
-        for files, ids in zip(files_of, refuter_ids):
-            files.update({rel: None if oid is None else texts[oid] for rel, oid in ids.items()})
-
-    def rows_of(sha: str, blobs: list[str], files: dict[str, str | None]) -> list[dict] | None:
-        found = [records[o] for o in blobs]
-        if not blobs or None in found:
-            return None
-        rows = [r for part in found for r in part]
-        if all("state" in r for r in rows):          # a commit before PB4992: its rows as committed
-            return rows
-        if files[inventory_schema.SCHEMA_REL] is None or files[ed.catalog] is None:
-            return None
-        tree = inventory_schema.Tree(REPO, sha, files)
-        schema = inventory_schema.load_schema(tree)
-        newest = schema.newest
-        return inventory_view.join(newest, newest.rules(tree), {r["rule-id"]: r for r in rows}, schema, {}).rows
-
-    out: dict[str, Committed] = {}
-    for sha, ids, legacy_id, files, note_oids in zip(uniq, row_ids, legacy_ids, files_of, note_ids):
-        try:
-            rows = rows_of(sha, [*ids] if ids else [legacy_id] if legacy_id else [], files)
-            rows = None if rows is None else [(r["rule-id"], r["state"], r["verdict"]) for r in rows]
-        except KeyError:
-            rows = None
-        summary = None if rows is None else (
-            {"gap": sum(1 for _, state, _ in rows if state == "GAP"),
-             "closed": sum(1 for _, state, _ in rows if state == "OK"),
-             "dns": sum(1 for *_, verdict in rows if verdict == "DOCUMENTED-NON-SUPPORT")},
-            frozenset(rid for rid, state, _ in rows if state == "GAP"))
-        items = [d for d in (notes[oid] for oid in note_oids) if d is not None]
-        out[sha] = Committed(summary[0] if summary else None,
-                             ledger_plan.register_counts(items, summary[1] if summary else frozenset()))
-    return out
-
-
-def missed_points(pts: list[dict]) -> list[dict]:
-    """The measurement-moving commits that no generator run recorded: on main's first-parent line up to the newest LANDED
-    commit HEAD holds (its merge base with origin/main), and reachable from no recorded point.
-
-    ⛔ A generator run measures ONE tree, so a session that landed three trains between runs recorded one point
-    for three landings (2026-10-04: trains 1011 and 1012 were missing until the owner noticed the page stale).
-    Every commit that touched the inventory file after the last recorded sha is measured from its own tree here,
-    so the series is one point per GAP-moving landing no matter how rarely the generator runs. Each such point
-    carries the register's series too, measured from the same tree (kb/Work PB2912), and a commit that moves only the
-    register (a `kb/Work` landing that leaves the inventory alone) is a point as well: the movement test is
-    MOVING_KEYS, the same one `trend_series` applies to the current point (train 1052 review).
-
-    ⛔ A POINT IS A STATE MAIN HAD (branch review R2-1 of PB4992). The merge queue keeps a branch's commits, so a plain walk
-    reaches a branch's WIP checkpoints, trees main never held (one stored adjudications under a schema the view of that
-    era could not read, and a silent `KeyError` dropped it). The walk is `--first-parent` from the landed head: each step
-    is a landing, and a landed tree whose schema the view cannot read is refused loudly (`load_schema`)."""
-    last = pts[-1] if pts else None
-    # the recorded points' full commit ids: a point's sha may never have reached this clone (None)
-    known = git_batch.resolve(REPO, [p["sha"] for p in pts])
-    if last is None or not known[last["sha"]]:
-        return []
-    recorded = [full for full in known.values() if full]
-    # ⛔ "Since the last point" is "reachable from HEAD and from NO recorded point", not `last..HEAD`: in a merge DAG
-    # `last..HEAD` also lists commits older than `last` that are not its ancestors (a branch merged after the point
-    # was taken), and those were walked when an earlier point was recorded (kb/Work PB3161, review finding R1-2: nine
-    # shas appeared twice in the frozen series).
-    revs = [inventory_store.landed_head(REPO), *(f"^{sha}" for sha in recorded)]
-    # A commit moves the view when it touches the store or any file the view reads with it (kb/Work PB4992, PB5374).
-    newest = inventory_schema.NEWEST
-    log = git("log", "--reverse", "--first-parent", "--format=%h|%cI|%s", "--abbrev=8", "--stdin", "--",
-              *inventory_store.history_pathspecs(newest), *VIEW_INPUTS, "kb/Work", stdin="\n".join(revs) + "\n")
-    walked = [line.split("|", 2) for line in log.splitlines() if line]
-    measured = measure_commits([sha for sha, _, _ in walked])   # two processes however many commits (PB3315)
-    out: list[dict] = []
-    for sha, iso, subject in walked:
-        inventory, register = measured[sha]
-        if inventory is None:
-            continue
-        point = {**inventory, **(register or {})}
-        prev = out[-1] if out else last
-        if all(point.get(k) == prev.get(k) for k in MOVING_KEYS):
-            continue
-        out.append({"sha": sha, "date": iso[:10], **point, "label": subject[:28].rstrip(), "battery": None})
-    return out
-
-
-#: The keys whose movement records a point: the inventory's and the register's (kb/Work PB2912).
-MOVING_KEYS = ("gap", "closed", "dns", *ledger_plan.REGISTER_KEYS)
-
-
-def trend_series(inv: dict, head: dict, battery: dict, register: dict | None) -> tuple[list[dict], bool]:
-    """Return (series to render, whether the current point is new).
-
-    A point is appended only when the MEASUREMENT moved (the inventory's counts or the register's series) — a commit
-    that changes neither adds no point, or the series would become a commit log with a y-axis. `--check` calls this
-    too and simply does not write, so a moved-but-unrecorded measurement renders differently from the file on disk
-    and reports as stale."""
-    doc = coord.read_json(TREND, {"points": []})
-    pts = doc.get("points", [])
-    missed = missed_points(pts)
-    pts = [*pts, *missed]
-    cur = {"sha": head["sha"], "date": head["date"], "gap": inv["gap"], "closed": inv["closed"],
-           "dns": inv["verdict"]["DOCUMENTED-NON-SUPPORT"],
-           "label": git("log", "-1", "--format=%s", head["sha"])[:28].rstrip(),
-           "battery": int(battery["n"]) if head["sha"].startswith(battery["sha"][:8]) else None,
-           **(register or {})}
-    last = pts[-1] if pts else None
-    moved = last is None or any(cur.get(k) != last.get(k) for k in MOVING_KEYS)
-    # ⛔ A BATTERY ALWAYS GETS A POINT, even one that moved nothing. The chart's second job is saying which
-    # point the last comprehensive gate was run on, and a battery that lands on an unchanged inventory (which
-    # is the normal case — a test run closes no rows) would otherwise never appear, leaving the mark on some
-    # earlier commit. That is precisely the "ungated number read as gated" failure the mark exists to prevent.
-    is_battery = cur["battery"] is not None and not any(p.get("battery") == cur["battery"] for p in pts)
-    if not (moved or is_battery) or (last is not None and last.get("sha") == cur["sha"]):
-        return pts, bool(missed)
-    return [*pts, cur], True
-
-
-def backfill_register(pts: list[dict]) -> int:
-    """Add the register's series to every point recorded before it existed, each measured from its own sha's tree
-    (`measure_commits`, two git processes for the lot); a point whose sha is not in this clone, or whose tree has no
-    frontmatter register, is left as it is. Returns how many points gained the fields."""
-    todo = [p for p in pts if "compiler_open" not in p]
-    known = git_batch.resolve(REPO, [p["sha"] for p in todo])
-    measured = measure_commits([full for full in known.values() if full])
-    filled = 0
-    for p in todo:
-        counts = measured[known[p["sha"]]].register if known[p["sha"]] else None
-        if counts:
-            p.update(counts)
-            filled += 1
-    return filled
-
-
-def write_trend(series: list[dict]) -> None:
-    """Write the series to TREND, keeping the file's other keys. A TREND that is not absolute is refused: the default
-    coordination directory is a Windows path, a relative name on Linux, and a write there would plant a private series
-    inside whatever directory the run started in (coord.absolute_problem's rule)."""
-    if not TREND.is_absolute():
-        raise SystemExit(f"⛔ the trend series {TREND} is not an absolute path on this host: set "
-                         f"{coord.ENV} to the coordination directory (kb/Work PB2426)")
-    doc = coord.read_json(TREND, {})
-    doc["points"] = series
-    TREND.parent.mkdir(parents=True, exist_ok=True)
-    coord.write_json(TREND, doc)   # a temp file renamed over it: a killed render never leaves the series torn
-
-
-# ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
-# rendering
-# ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-def n(x) -> str:
-    return f"{x:,}"
-
+# ── the page ────────────────────────────────────────────────────────────────────────────────────────────────────
 
 def e(s) -> str:
-    return html.escape(str(s), quote=True)
+    return html.escape(str(s))
 
 
-def battery_point(pts: list[dict], bat: dict) -> int | None:
-    """Index of the trend point the CURRENT battery ran on, or None when the series never recorded it.
-
-    ⛔ Not "the first point carrying any battery flag": that read the OLDEST flagged point and labelled it with the
-    CURRENT battery's number, so the page printed "-1506 since battery #85" (the delta from an August battery) and
-    put battery #85's mark on an August point."""
-    try:
-        n_ = int(bat["n"])
-    except (TypeError, ValueError):
-        n_ = None
-    sha = str(bat.get("sha", ""))[:8]
-    for i in range(len(pts) - 1, -1, -1):
-        p = pts[i]
-        if (n_ is not None and p.get("battery") == n_) or (sha and str(p.get("sha", "")).startswith(sha)):
-            return i
-    return None
+def unmeasured_html(u: Unmeasured) -> str:
+    return f'<p><span class="pill warn">UNMEASURED</span> {e(u.why)}</p>'
 
 
-def gap_at(sha: str) -> int | None:
-    """GAP of the inventory AS COMMITTED at `sha` — measured from that tree, never from the trend series, which
-    records a point only when the generator happened to run and so can miss whole trains."""
-    counts = measure_commits([sha], register=False)[sha].inventory if sha else None
-    return counts["gap"] if counts else None
+def count_cell(p: edition_status.Part, extra: str = "") -> str:
+    if not p.measured:
+        return '<td class="r"><span class="pill warn">not measured</span></td>'
+    return f'<td class="r num">{p.count:,}{extra}</td>'
 
 
-def trend_svg(pts: list[dict], bat: dict) -> str:
-    battery_n = bat["n"]
-    """A line of GAP-over-landings, drawn to ONE scale with every label naming a value the chart reaches.
-
-    The y labels are the series' own min and max (not round numbers above and below them), so no tick can point
-    at a value the data never took. Room is left in the viewBox for the outermost labels: the left gutter holds
-    the value labels and the bottom band holds the dates."""
-    if len(pts) < 2:
-        return '<p class="note">Not enough recorded points to draw a trend yet.</p>'
-    x0, x1, ytop, ybot, base = 46, 884, 26.0, 78.0, 88
-    lo, hi = min(p["gap"] for p in pts), max(p["gap"] for p in pts)
-    step = (x1 - x0) / (len(pts) - 1)
-    xs = [x0 + step * i for i in range(len(pts))]
-    ys = [(ytop + ybot) / 2 if hi == lo else ytop + (hi - p["gap"]) / (hi - lo) * (ybot - ytop) for p in pts]
-
-    bi = battery_point(pts, bat)
-    parts = [f'<line class="tl-grid" x1="{x0}" y1="{base}" x2="{x1}" y2="{base}"></line>']
-    if bi is not None:
-        parts.append(f'<line class="tl-mark" x1="{xs[bi]:.0f}" y1="18" x2="{xs[bi]:.0f}" y2="{base}"></line>')
-    pl = " ".join(f"{x:.0f},{y:.0f}" for x, y in zip(xs, ys))
-    parts.append(f'<polyline class="tl-line" points="{pl}"></polyline>')
-    for i, (x, y) in enumerate(zip(xs, ys)):
-        cls, r = ("tl-dot-b", 4.5) if i == bi else ("tl-dot", 3.5)
-        parts.append(f'<circle class="{cls}" cx="{x:.0f}" cy="{y:.0f}" r="{r}"></circle>')
-    yhi = ytop if hi != lo else (ytop + ybot) / 2
-    parts.append(f'<text class="tl-lab-e" x="40" y="{yhi + 4:.0f}" text-anchor="end">{n(hi)}</text>')
-    if hi != lo:
-        parts.append(f'<text class="tl-lab-e" x="40" y="{ybot + 4:.0f}" text-anchor="end">{n(lo)}</text>')
-
-    # ⛔ EXACTLY THREE x LABELS, AND NEVER TWO THAT CAN COLLIDE. The battery point gets its own centred label
-    # only when it is at least two positions from either end; nearer than that its date band would overlap an
-    # end label, so the battery is named INSIDE that end label instead. Labels that overlap are not a cosmetic
-    # problem here — the chart's whole job is saying which point the last gate was run on.
-    stamp = [p["date"][5:] for p in pts]
-    at_start = bi is not None and bi <= 1
-    at_end = bi is not None and bi >= len(pts) - 2
-    lab_first = f'{stamp[0]} {pts[0].get("label", "")}'.strip()
-    lab_last = f"{stamp[-1]} now"
-    if at_start:
-        lab_first = f"{stamp[0]} battery #{battery_n}" if bi == 0 else f"{lab_first} · battery #{battery_n}"
-    elif at_end:
-        lab_last = f"{lab_last} · battery #{battery_n}"
-    parts.append(f'<text class="tl-lab" x="{x0}" y="104" text-anchor="start">{e(lab_first)}</text>')
-    if bi is not None and not at_start and not at_end:
-        parts.append(f'<text class="tl-lab" x="{xs[bi]:.0f}" y="104" text-anchor="middle">'
-                     f'{e(stamp[bi])} battery #{e(battery_n)}</text>')
-    parts.append(f'<text class="tl-lab" x="{x1}" y="104" text-anchor="end">{e(lab_last)}</text>')
-
-    # ⛔ THE LABEL SUMMARIZES THE SERIES; IT NEVER LISTS IT (owner 2026-10-10, kb/Work PB2942: "the graph of dots is
-    # fine. But we do not need detail for each dot"). A per-point list grew with every landing (3,458 characters at 191 points)
-    # and every publish re-reads the page; the self-test pins the label's length as independent of the point count.
-    desc = (f"{len(pts)} points from {pts[0]['date']} ({n(pts[0]['gap'])}) to {pts[-1]['date']} ({n(pts[-1]['gap'])}),"
-            f" low {n(lo)}, high {n(hi)}")
-    return (f'<svg viewBox="0 0 900 112" role="img" aria-label="GAP rows remaining per landing: {e(desc)}">'
-            + "".join(parts) + "</svg>")
+def verdict_pill(ed: Edition) -> str:
+    return '<span class="pill good">COMPLETE</span>' if ed.complete else '<span class="pill crit">NOT COMPLETE</span>'
 
 
-def clause_rows(buckets: dict) -> str:
-    biggest = max(b["n"] for b in buckets.values())
+def top_table(eds: tuple[Edition, ...]) -> str:
+    rows = []
+    for ed in eds:
+        notes = ed.part("open work notes")
+        harm = f' <span class="dim">({len(notes.data.get("HARM", []))} harm)</span>' if notes.measured else ""
+        rows.append(f'<tr><td><a href="#e{ed.year}">{ed.year}</a></td><td>{verdict_pill(ed)}</td>'
+                    + count_cell(ed.part("inventory GAP")) + count_cell(ed.part("code reads"))
+                    + count_cell(notes, harm) + count_cell(ed.part("catalog prose holes")) + "</tr>")
+    return ('<div class="tablecard"><table><thead><tr><th>Edition</th><th>Verdict</th><th class="r">Inventory GAP</th>'
+            '<th class="r">Code reads owed</th><th class="r">Open notes</th><th class="r">Text in no row</th></tr></thead>'
+            f'<tbody>{"".join(rows)}</tbody></table></div>')
+
+
+def verdict_html(ed: Edition) -> str:
+    return f'<p class="verdict {"good" if ed.complete else "crit"}">{e(ed.line)}</p>'
+
+
+#: The parts whose detail has a section of its own below the list (`notes_html`, `holes_html`).
+DETAILED = ("open work notes", "catalog prose holes")
+
+
+def parts_html(ed: Edition) -> str:
     out = []
-    for key, b in sorted(buckets.items(), key=lambda kv: (-kv[1]["n"], kv[0])):
-        title = CLAUSE_TITLE.get(key)
-        sub = f' <span class="dim">{e(title)}</span>' if title else ""
-        segs = "".join(f'<span class="{c}" style="flex:{b[k]}"></span>'
-                       for c, k in (("c1", "closed"), ("c2", "adjopen"), ("c3", "unadj")) if b[k])
-        width = 100.0 * b["n"] / biggest
-        # A clause of the 2023 standard, printed in the edition form (kb/Work PB4887, PB4911): `§2023:14`, never `§14`.
-        out.append(
-            f'<tr><td class="mono">{e(citation.render(citation.Citation(2023, key)))}{sub}</td>'
-            f'<td class="r num">{n(b["n"])}</td>'
-            f'<td class="r num">{n(b["adjudicated"])}</td>'
-            f'<td class="r num">{n(b["gap"])}</td>'
-            f'<td class="cbar-track"><div class="cbar" style="width:{width:.1f}%">{segs}</div></td></tr>')
-    return "\n        ".join(out)
+    for i, p in enumerate(ed.parts, 1):
+        head = f"{i}. {p.name}: " + (f"{p.count:,}" if p.measured else f"not measured — {p.why}")
+        lines = () if p.name in DETAILED else p.lines
+        out.append(f"<li>{e(head)}" + "".join(f"<br><span class=\"dim\">{e(x)}</span>" for x in lines) + "</li>")
+    return f'<ul class="parts">{"".join(out)}</ul>'
 
 
-#: A status's pill: finished is good, held on something is critical, everything else is still owed.
-PILL = {"landed": "good", "retired": "good", "blocked": "crit", "owner": "crit", "missing": "crit"}
+def subject(note: str, titles: dict[str, str]) -> str:
+    """A note's title without its leading id (`PB5917 - the ...`)."""
+    return titles.get(note, "").removeprefix(note).lstrip(" -—")
 
 
-def status_pill(s: str) -> str:
-    return f'<span class="pill {PILL.get(s, "warn")}">{e(s)}</span>'
-
-
-#: The register series the trend file carries (ledger_plan.REGISTER_KEYS), as (key, legend label, line class).
-REGISTER_LINES = (("compiler_open", "open compiler notes", "rl-0"), ("defects", "of them defects", "rl-1"),
-                  ("gap_holders", "GAP-holding notes", "rl-4"), ("wrong_answer", "wrong answers", "rl-2"),
-                  ("crashes", "crashes", "rl-3"))
-
-
-def register_svg(pts: list[dict]) -> str:
-    """The register's series over the trend points that carry it, on one scale from zero, beside the GAP line."""
-    rp = [p for p in pts if "compiler_open" in p]
-    if len(rp) < 2:
-        only = rp[0] if rp else None
-        return ('<p class="note">The register series starts at '
-                + (f'{e(only["date"])} ({" · ".join(f"{n(only[k])} {lab}" for k, lab, _ in REGISTER_LINES if only.get(k) is not None)})'
-                   if only else "the next recorded point") + '.</p>')
-    x0, x1, ytop, ybot = 46, 884, 14.0, 88.0
-    hi = max(p[k] for p in rp for k, _, _ in REGISTER_LINES if p.get(k) is not None) or 1
-    step = (x1 - x0) / (len(rp) - 1)
-    parts = [f'<line class="tl-grid" x1="{x0}" y1="{ybot:.0f}" x2="{x1}" y2="{ybot:.0f}"></line>']
-    for key, _, cls in REGISTER_LINES:
-        xy = [(x0 + step * i, ybot - p[key] / hi * (ybot - ytop)) for i, p in enumerate(rp) if p.get(key) is not None]
-        if xy:
-            parts.append(f'<polyline class="{cls}" points="{" ".join(f"{x:.0f},{y:.0f}" for x, y in xy)}"></polyline>')
-    parts.append(f'<text class="tl-lab-e" x="40" y="{ytop + 4:.0f}" text-anchor="end">{n(hi)}</text>')
-    parts.append(f'<text class="tl-lab-e" x="40" y="{ybot + 4:.0f}" text-anchor="end">0</text>')
-    parts.append(f'<text class="tl-lab" x="{x0}" y="104" text-anchor="start">{e(rp[0]["date"][5:])}</text>')
-    parts.append(f'<text class="tl-lab" x="{x1}" y="104" text-anchor="end">{e(rp[-1]["date"][5:])} now</text>')
-    # A summary, never a per-point list: the same rule as trend_svg's label (kb/Work PB2942).
-    desc = (f"{len(rp)} points from {rp[0]['date']} ({rp[0]['compiler_open']} open, {rp[0].get('defects')} defects)"
-            f" to {rp[-1]['date']} ({rp[-1]['compiler_open']} open, {rp[-1].get('defects')} defects)")
-    return (f'<svg viewBox="0 0 900 112" role="img" aria-label="Open compiler notes per recorded point: {e(desc)}">'
-            + "".join(parts) + "</svg>")
-
-
-def register_legend(pts: list[dict]) -> str:
-    last = next((p for p in reversed(pts) if "compiler_open" in p), {})
-    return "".join(f'<span class="key"><span class="sw {cls}"></span>{e(label)} '
-                   f'<span class="num">{n(last[k]) if last.get(k) is not None else "—"}</span></span>'
-                   for k, label, cls in REGISTER_LINES)
-
-
-# ── what remains ────────────────────────────────────────────────────────────────────────────────────────────────
-
-UNMEASURED = '<span class="pill warn">UNMEASURED</span>'
-
-
-def lane_label(lane: str) -> str:
-    names = dict((*ledger_plan.CAMPAIGNS, *ledger_plan.HELD))
-    if lane == ledger_plan.FIX:
-        return "fix lane"
-    if lane == ledger_plan.NO_LANE:
-        return "NO LANE"
-    lead = lane.split(":", 1)[-1]
-    return f'{"held" if lane.startswith("held:") else "campaign"} {lead} ({names.get(lead, "?")})'
-
-
-def lane_text(lanes: collections.Counter) -> str:
-    order = [ledger_plan.FIX, *(lead for lead, _ in ledger_plan.CAMPAIGNS),
-             *(f"held:{lead}" for lead, _ in ledger_plan.HELD), ledger_plan.NO_LANE]
+def notes_html(ed: Edition, titles: dict[str, str]) -> str:
+    p = ed.part("open work notes")
+    if not p.measured:
+        return unmeasured_html(Unmeasured(p.why))
     out = []
-    for lane in order:
-        if lanes.get(lane):
-            word = f'{e(lane_label(lane))} <span class="num">{n(lanes[lane])}</span>'
-            out.append(f'<span class="pill crit">{word}</span>' if lane == ledger_plan.NO_LANE else word)
-    return " · ".join(out) or '<span class="dim">no open note</span>'
+    harm = p.data.get("HARM", [])
+    if harm:
+        out.append('<div class="tablecard"><table><thead><tr><th>Harm</th><th>Note</th></tr></thead><tbody>'
+                   + "".join(f'<tr><td class="mono">{e(i)}</td><td>{e(subject(i, titles))}</td></tr>' for i in harm)
+                   + "</tbody></table></div>")
+    for c in edition_status.CATEGORIES[1:]:
+        ids = p.data.get(c, [])
+        if ids:
+            out.append(f'<p><strong>{c} {len(ids)}</strong> <span class="ids">{e(" ".join(ids))}</span></p>')
+    return "".join(out) or "<p>None open.</p>"
 
 
-def states_text(s: collections.Counter) -> str:
-    return " · ".join(f'<span class="num">{n(s.get(k, 0))}</span> {k}' for k in ("ready", "waiting", "blocked"))
+def holes_html(ed: Edition) -> str:
+    p = ed.part("catalog prose holes")
+    if not p.measured:
+        return unmeasured_html(Unmeasured(p.why))
+    sections = p.data.get("by-section") or {}
+    by = (f'<p class="ids">by section: {e(" · ".join(f"{k} {v}" for k, v in sorted(sections.items())))}</p>'
+          if sections else "")
+    return "".join(f"<p>{e(x)}</p>" for x in p.lines) + by
 
 
-def harm_text(h: collections.Counter) -> str:
-    """One count per harm class: the register's own vocabulary (`work.HARM_LABELS`, in rank order) and the `silent`
-    qualifier, so a harm class added there reaches the ledger with no edit here (kb/Work PB3836: no second table)."""
-    import work  # noqa: PLC0415  (late, as measure_work: work.py owns the register)
-    words = (*work.HARM_LABELS.items(), ("silent", "silent"))
-    return " · ".join(f'<span class="num">{n(h.get(k, 0))}</span> {w}' for k, w in words)
+#: The lifecycle states (prune_worktrees.py) in which a branch waits on a person or a finisher, shown loud.
+STUCK = ("BOUNCED", "STOPPED", "DECISION")
 
 
-def kinds_text(k: collections.Counter) -> str:
-    return " · ".join(f'<span class="num">{n(v)}</span> {e(kind)}' for kind, v in k.most_common())
+def flight_table(branches: list[Branch]) -> str:
+    if not branches:
+        return "<p>No branch in flight.</p>"
+    rows = "".join(f'<tr><td class="mono">{e(b.name)}</td>'
+                   f'<td><span class="pill {"crit" if b.state in STUCK else "warn"}">{e(b.state)}</span></td>'
+                   f'<td class="mono">{e(" ".join(b.notes))}</td><td><span class="dim">{e(b.why[:160])}</span></td></tr>'
+                   for b in sorted(branches, key=lambda b: (b.state, b.name)))
+    return ('<div class="tablecard"><table><thead><tr><th>Branch</th><th>State</th><th>Notes</th><th>Evidence</th></tr>'
+            f'</thead><tbody>{rows}</tbody></table></div>')
 
 
-def alerts(rem: dict) -> str:
-    """The LOUD flags: work no lane plans is the defect that kept GAP flat (kb/Work PB2911)."""
-    c, g = rem["compiler"], rem["gap"]
-    out = []
-    if g["outside_campaign"]:
-        out.append(f'⛔ <strong>{n(len(g["outside_campaign"]))} open note(s) hold GAP rows outside the GAP campaign</strong> '
-                   f'(cluster <span class="mono">{e(ledger_plan.GAP_CAMPAIGN)}</span>), so no campaign wave plans them: '
-                   f'<span class="mono">{e(" ".join(g["outside_campaign"]))}</span>')
-    if c["no_lane"]:
-        out.append(f'⛔ <strong>{n(len(c["no_lane"]))} open compiler note(s) no lane plans</strong> (the fix lane plans '
-                   f'the harmed notes <span class="mono">work.fixable</span> admits; none of these is in a campaign or held '
-                   f'cluster; {kinds_text(c["no_lane_kind"])}): '
-                   f'<span class="mono">{e(" ".join(c["no_lane"]))}</span>')
-    if g["unclaimed"]:
-        out.append(f'⛔ <strong>{n(len(g["unclaimed"]))} GAP row(s) no open note claims</strong>: '
-                   f'<span class="mono">{e(" ".join(g["unclaimed"]))}</span>')
-    idle = [x for x in rem["gates"] if x["unplanned"]]
-    if idle:
-        out.append(f'⛔ <strong>{n(len(idle))} v1.0 gate note(s) only a held cluster or no lane plans</strong>: '
-                   + " · ".join(f'{e(x["label"])} <span class="mono">{e(x["id"])}</span> '
-                                f'({e(", ".join(lane_label(y) for y in x["lanes"]) or "no lane")})' for x in idle))
-    if not out:
-        return ('<p class="alert good">Every open compiler note, every GAP-holding note and every v1.0 gate note is '
-                'planned by a lane, and every GAP row is claimed.</p>')
-    return "\n  ".join(f'<p class="alert crit">{a}</p>' for a in out)
+def flight_html(flight: tuple[Branch, ...] | Unmeasured, year: int | None) -> str:
+    if isinstance(flight, Unmeasured):
+        return unmeasured_html(flight)
+    return flight_table([b for b in flight if (year in b.editions if year is not None else not b.editions)])
 
 
-def fig(x, fmt: str) -> str:
-    return UNMEASURED if x is None else f'<span class="num">{fmt.format(x)}</span>'
-
-
-def estimate_row(label: str, est: dict | None, why: str = "") -> str:
-    if est is None:
-        return (f'<tr><td>{label}</td>' + f'<td class="r">{UNMEASURED}</td>' * 5 + f'<td class="dim">{why}</td></tr>')
-    left = []
-    if est["unplanned"]:
-        left.append(f'{n(est["unplanned"])} note(s) no lane plans')
-    if est["held_out"]:
-        left.append(f'{n(est["held_out"])} held note(s)')
-    return (f'<tr><td>{label}</td><td class="r">{fig(est["groups"], "{:,}")}</td><td class="r">{fig(est["waves"], "{:,}")}</td>'
-            f'<td class="r">{fig(est["points"], "{:.1f}")}</td><td class="r">{fig(est["hours"], "{:.1f} h")}</td>'
-            f'<td class="r">{fig(est["burn_points"], "{:.1f}")}</td>'
-            f'<td class="dim">{e(", ".join(left) + (". " if left else "") + why)}</td></tr>')
-
-
-def inputs_text(inputs: dict) -> str:
-    rules, fg, rate, burn = inputs.get("rules"), inputs.get("fix_groups"), inputs.get("rate"), inputs.get("burn")
-    items = []
-    if fg is not None:
-        groups = fg.get("clusters", [])
-        unsited = sum(1 for c in groups if not c.get("file"))   # fold_unsited's one-note groups (kb/Work PB4566)
-        items.append(f'the fix lane\'s groups: <span class="mono">fix_clusters.py</span> forms '
-                     f'<span class="num">{n(len(groups))}</span> groups, <span class="num">{n(unsited)}</span> of them '
-                     f'an unsited note planned on its own, over '
-                     f'the fix lane\'s population, <span class="mono">work.fixable</span> (a blocked note it skips counts as a group of its own)')
+def pacing_html(budget: dict | Unmeasured, land: dict | Unmeasured) -> str:
+    if isinstance(budget, Unmeasured):
+        quota = unmeasured_html(budget)
     else:
-        items.append(f'the fix lane\'s groups: {UNMEASURED} (the <span class="mono">tools/claude-skills</span> submodule '
-                     f'is not checked out here)')
-    if rules:
-        from clusters import notes_cap, turn_budget  # noqa: PLC0415  (the planner's group size, kb/Work PB4396)
-        w, c, cal = rules["wave"], rules["cost"], rules["calibration"]["tokens_per_point"]
-        m = inputs["implementer_model"]
-        items.append(f'the planner (<span class="mono">model_rules.json</span> <span class="mono">wave</span>): '
-                     f'up to {n(notes_cap(rules))} notes per group, the notes whose predicted turns fit '
-                     f'{n(round(turn_budget(rules)))} turns (kb/Work PB4396; a campaign\'s and a held cluster\'s groups are counted '
-                     f'at this size, a lower bound: a campaign clusters by the sites its notes name), {n(w["max_groups"])} groups '
-                     f'per wave, implementers on {e(m)} unless routed to Opus (the default is <span class="mono">.claude/agents/cobol-implementer.md</span>\'s model)')
-        items.append(f'the cost constants (<span class="mono">cost</span>, <span class="mono">calibration</span>): a group '
-                     f'{n(c["per_group_tokens"][m])} + {n(c["per_note_tokens"][m])} tokens per note at {n(cal[m])} {e(m)} '
-                     f'tokens per weekly point; a landing {n(c["landing_tokens"])} at {n(cal[c["landing_model"]])} '
-                     f'{e(c["landing_model"])} tokens per point, one per group (enqueue.py, kb/Work PB3023)')
-    if rate:
-        # What the minutes measure is the headline's to say (landing_measure.headline): DONE → on main for the merge
-        # queue, a floor (lander start → push) for the retired trains. Never a label of this page's own.
-        per = (f', median <span class="num">{rate["median_min"]:.0f}</span> minutes ({e(rate["median_measures"])})'
-               if rate.get("median_min") is not None else "")
-        items.append(f'the landing rate (<span class="mono">landing_measure.py</span>, {e(rate["source"])}): '
-                     f'<span class="num">{rate["per_h"]:.2f}</span> changes per hour{per}, {n(rate["changes"])} changes in '
-                     f'{rate["window_h"]:.1f} h over {n(rate["landings"])} landings')
+        used, allow = float(budget["weekly_est_pct"]), float(budget["allowance_pct"])
+        quota = (f'<div class="meter-card"><div class="meter-head"><span class="t">Weekly quota, {e(budget["account"])}</span>'
+                 f'<span class="v num">{used:g} % used · allowance {allow:g} % (day {budget["day"]}) · '
+                 f'{e(budget["decision"])}</span></div><div class="meter"><div class="fill" style="width:'
+                 f'{min(100.0, used):.1f}%"></div></div><p class="note">budget.py{e(budget.get("anchor_note") or "")}; '
+                 f'headroom {float(budget["headroom_pct"]):g} points under today\'s allowance.</p></div>')
+    if isinstance(land, Unmeasured):
+        thru = unmeasured_html(land)
     else:
-        items.append(f'the landing rate: {UNMEASURED} (no <span class="mono">landing-measurements.jsonl</span> or '
-                     f'<span class="mono">train-measurements.jsonl</span> on this machine)')
-    if burn:
-        items.append(f'the measured burn (<span class="mono">readings.json</span>, {e(burn["account"])}): '
-                     f'<span class="num">{burn["per_h"]:.1f}</span> weekly points per hour, {burn["from_pct"]:g} % → '
-                     f'{burn["to_pct"]:g} % in {burn["hours"]:.1f} h since the week\'s first reading')
-    else:
-        items.append(f'the measured burn: {UNMEASURED} (fewer than two moving meter readings this week on this machine)')
-    items.append(f'new defects found per wave (the inflow): {UNMEASURED}')
-    return "<br>".join(items)
+        rows = "".join(f'<tr><td>{y}</td><td class="r num">{land["filed"][y]}</td><td class="r num">{land["closed"][y]}</td>'
+                       f'<td class="r num">{land["closed"][y] - land["filed"][y]:+d}</td></tr>' for y in ORDER)
+        thru = (f"<p>Landings on origin/main over the last {land['days']} days: <strong>{land['total']}</strong> "
+                f"({land['total'] / land['days']:.1f} a day). The notes of each edition those landings filed and closed "
+                "(a note counts for every edition it touches):</p>"
+                '<div class="tablecard"><table><thead><tr><th>Edition</th><th class="r">Notes filed</th>'
+                f'<th class="r">Notes closed</th><th class="r">Net</th></tr></thead><tbody>{rows}</tbody></table></div>'
+                "<p>No completion date is estimated: the open notes are no measured unit of work, and an edition that "
+                "gains notes as fast as it closes them has no rate that reaches zero.</p>")
+    return quota + thru
 
 
-def render_remaining(rem: dict, est: dict, cp: dict, inputs: dict) -> str:
-    c, g, h = rem["compiler"], rem["gap"], rem["held"]
-    verdicts = " · ".join(f'<span class="num">{n(v)}</span> {e(k)}' for k, v in g["verdicts"].most_common())
-    biggest = (f'; the largest holder is <span class="mono">{e(g["biggest"][0][1])}</span> '
-               f'({n(g["biggest"][0][0])} rows)' if g["biggest"] else "")
-    gates = rem["gates"]
-    gates_open = [x for x in gates if not ledger_plan.finished(x["status"])]
-    gate_text = " · ".join(
-        f'{e(x["label"])} '
-        + (f'(GAP <span class="num">{n(x["gap"])}</span>) ' if "gap" in x else
-           (f'<span class="mono">{e(x["id"])}</span> ' if x["id"] else ""))
-        + status_pill(x["status"])
-        + (f' <span class="pill crit">{e(", ".join(lane_label(y) for y in x["lanes"]) or "NO LANE")}</span>'
-           if x["unplanned"] else "") for x in gates)
-    held_text = " · ".join(f'<span class="mono">{e(x["lead"])}</span> {e(x["name"])}: <span class="num">{n(x["open"])}</span> '
-                           f'open of {n(x["total"])}' for x in h["clusters"])
-    rows = [
-        (f'<strong>Known compiler defects and analyses</strong><br><span class="dim">open notes that are not '
-         f'<span class="mono">process_only</span>: {kinds_text(c["kind"])}; harm {harm_text(c["harm"])}; of the '
-         f'defects alone {harm_text(c["defect_harm"])}</span>', c),
-        (f'<strong>The GAP rows</strong> (v1.0 is zero GAP, D13)<br><span class="dim"><span class="num">{n(g["rows"])}</span> '
-         f'rows: {verdicts}; {n(g["witness_owed"])} wait only on a witness; held by the open notes counted here '
-         f'({kinds_text(g["kind"])}; {n(g["process_only"])} process-only){biggest}</span>', g),
-    ]
-    trs = [f'<tr><td>{label}</td><td class="r num">{n(b["n"])}</td><td>{states_text(b["states"])}</td>'
-           f'<td>{lane_text(b["lanes"])}</td></tr>' for label, b in rows]
-    trs.append(f'<tr><td><strong>The rest of v1.0</strong><br><span class="dim">its gates: {gate_text}; version-change '
-               f'anchors still <span class="mono">todo</span>: <span class="num">{n(cp["vcr_todo"])}</span> of '
-               f'{n(cp["vcr_total"])}</span></td><td class="r num">{n(len(gates_open))}</td>'
-               f'<td class="dim">gates still open</td>'
-               f'<td>{lane_text(collections.Counter(y for x in gates_open if x["id"] for y in (x["lanes"] or [ledger_plan.NO_LANE])))}</td></tr>')
-    trs.append(f'<tr><td><strong>Held until zero GAP and zero known defects</strong> '
-               f'(owner 2026-10-10, <span class="mono">{e(ledger_plan.DECISION)}</span>)<br><span class="dim">{held_text}'
-               f'</span></td><td class="r num">{n(h["n"])}</td><td>{states_text(h["states"])}</td>'
-               f'<td>{lane_text(h["lanes"])}</td></tr>')
-    tr_html = "\n        ".join(trs)
-    est_rows = "\n        ".join([
-        estimate_row("Known compiler defects and analyses", est["compiler"]),
-        estimate_row("The GAP rows (their holders)", est["gap"]),
-        estimate_row("The rest of v1.0", None, "no planner input sizes these gates until their notes are filed"),
-        estimate_row("Held work, once released", est["held"]),
-    ])
-    return f"""<p>v1.0 is zero GAP (D13), P15 Cut 3 and the §2023:4.2.16 user documentation; the owner put the compiler and zero GAP first (2026-10-10, <span class="mono">{e(ledger_plan.DECISION)}</span>). One row per bucket, counted from the register and the inventory; a note can count in more than one bucket (a defect that holds a GAP row). <em>Planned by</em> is the lane that plans each note: the fix lane (the harmed notes <span class="mono">work.fixable</span> admits), a campaign lane, held, or none.</p>
-  {alerts(rem)}
-  <div class="tablecard">
-    <table>
-      <thead><tr><th>Bucket</th><th class="r">Open</th><th>Ready · waiting · blocked</th><th>Planned by</th></tr></thead>
-      <tbody>
-        {tr_html}
-      </tbody>
-    </table>
-  </div>
-  <h3>Estimate, from measured inputs</h3>
-  <div class="tablecard">
-    <table>
-      <thead><tr><th>Bucket</th><th class="r">Groups</th><th class="r">Waves</th><th class="r">Weekly points (cost constants)</th><th class="r">Loop hours (landing rate)</th><th class="r">Weekly points at the measured burn</th><th>Not estimated</th></tr></thead>
-      <tbody>
-        {est_rows}
-      </tbody>
-    </table>
-  </div>
-  <p class="note">An ESTIMATE, not a measurement of the future: each figure is computed from the inputs below and is UNMEASURED when one of them is missing. Groups are what the planners would form now; waves = groups ÷ groups per wave; weekly points = each group's cost plus a lander per train; loop hours = groups ÷ the landing rate; points at the burn = those hours × the measured burn. The buckets overlap, so their rows do not add. Inputs: {inputs_text(inputs)}.</p>"""
-
-
-def render_external(plan: dict) -> str:
-    rows = "\n        ".join(
-        f'<tr><td class="r num">{num}</td><td class="mono">{e(nid)}</td><td>{e(title.split(": ", 1)[-1])}</td>'
-        f'<td>{status_pill(s)}</td></tr>' for num, nid, s, title in plan["slices"])
-    c = plan["counts"]
-    return (f'<p>The owner-approved §2023:8.13 external-repository design, landed slice by slice (campaign '
-            f'<span class="mono">PB1086</span>). <strong class="num">{n(c["external_landed"])}</strong> of '
-            f'{n(c["external_total"])} slices landed.</p>\n'
-            f'  <div class="tablecard"><table>\n'
-            f'      <thead><tr><th class="r">Slice</th><th>Note</th><th>What it lands</th><th>Status</th></tr></thead>\n'
-            f'      <tbody>\n        {rows}\n      </tbody>\n    </table></div>')
-
-
-def render_pacing(pacing: dict | None, burn: dict | None) -> str:
-    if pacing is None:
-        return ('<p>Not available: the machine that rendered this page has no coordination directory with a meter '
-                'reading of the account that rendered it (<span class="mono">readings.json</span>). The owner\'s caps '
-                'are in <span class="mono">scripts/orchestrator/model_rules.json</span>.</p>')
-    r = pacing["reading"]
-    left = float(pacing["weekly_cap"]) - float(r["weekly_pct"])
-    funds = (f' At the measured burn ({burn["per_h"]:.1f} weekly points per hour) the {left:g} points left under the cap '
-             f'fund about <strong class="num">{left / burn["per_h"]:.0f} h</strong> of loop time.' if burn and left > 0 else "")
-    return f"""<p>The newest meter reading of <span class="mono">{e(pacing["account"])}</span>, the Claude account that rendered this page, noted <span class="mono">{e(pacing["noted_utc"])} UTC</span>, against the caps in <span class="mono">model_rules.json</span>.{funds}</p>
-  <div class="meter-row">
-    <div class="meter-card">
-      <div class="meter-head"><span class="t">Weekly quota used</span><span class="v num">{r["weekly_pct"]:g} % · cap {pacing["weekly_cap"]:g} %</span></div>
-      <div class="meter"><div class="fill" style="width:{min(100.0, float(r["weekly_pct"])):.1f}%"></div></div>
-    </div>
-    <div class="meter-card">
-      <div class="meter-head"><span class="t">Session window used</span><span class="v num">{r["session_pct"]:g} % · soft stop {pacing["soft"]:g} % · hard stop {pacing["hard"]:g} %</span></div>
-      <div class="meter"><div class="fill" style="width:{min(100.0, float(r["session_pct"])):.1f}%"></div></div>
-    </div>
-  </div>"""
-
-
-def defective_rows(verdict: collections.Counter) -> str:
-    """One table row per DEFECTIVE verdict, in the schema's order: a new non-resolving verdict renders with no edit."""
-    out = []
-    for v in DEFECTIVE:
-        if v == "NEEDS-OWNER-DECISION":
-            close, pill = "No — needs the owner's answer", '<span class="pill warn">QUESTION</span>'
-        else:
-            close = "No — needs a fix"
-            pill = f'<span class="pill {"crit" if v == "DIVERGES" else "warn"}">OPEN</span>'
-        out.append(f'        <tr><td>{e(v)}</td><td class="r num">{n(verdict[v])}</td><td>{close}</td><td>{pill}</td></tr>')
-    return NL.join(out)
-
-
-def editions_text(editions: list[tuple[int, int, int, str, dict[str, int]]]) -> str:
-    """Each OLDER held edition's GAP beside the newest's (the tile's own number): an older rule's state is its KEPT chain's
-    and its own witness, evaluated at its own edition (DESIGN-spec-conformance-review.md section 10.2 and 10.6, kb/Work
-    PB4994, PB5675), its GAP by cause (`inventory_view.gap_causes`: the rows inherited without a witness of their own apart
-    from those nobody adjudicated), its rule count with the note that says it is a lower bound while it is one
-    (`inventory_view.lower_bound`, kb/Work PB5256)."""
-    def causes(c: dict[str, int]) -> str:
-        shown = [f"{n(v)} {k}" for k, v in c.items() if v]
-        return f" ({' · '.join(shown)})" if shown else ""
-    older = editions[1:]
-    return ("Older editions: " + " · ".join(f"{year} {n(gap)} GAP{causes(c)} of {n(rules)} rules{note}"
-                                            for year, rules, gap, note, c in older) + ".") if older else ""
-
-
-def render(ctx: dict) -> str:
-    inv, wk, a1, cf, bat, cp = (ctx["inv"], ctx["work"], ctx["a1"], ctx["conf"], ctx["battery"], ctx["suite"])
-    head, pts, plan, pacing, rem = ctx["head"], ctx["trend"], ctx["plan"], ctx["pacing"], ctx["remaining"]
-    pct = 100.0 * inv["closed"] / inv["rows"]
-    kinds = " · ".join(f'{n(v)} {k}' for k, v in inv["kind"].most_common())
-    top = " · ".join(i["id"] for i in wk["actionable"][:3])
-    parked = ", ".join(i["id"] for i in wk["owner_parked"]) or "none"
-    a4 = cf["a4"]
-    a3 = cf["a3"]
-    bat_gap = gap_at(str(bat.get("sha", "")))
-    gap_delta = None if bat_gap is None else inv["gap"] - bat_gap
-    comp = rem["compiler"]
-
+def render(led: Ledger) -> str:
+    per = []
+    for ed in led.editions:
+        per.append(f'<section aria-label="Edition {ed.year}" id="e{ed.year}"><h2>Edition {ed.year}</h2>'
+                   + verdict_html(ed) + parts_html(ed)
+                   + f'<h3>Open notes</h3>{notes_html(ed, led.titles)}'
+                   + f'<h3>Text in no catalog row</h3>{holes_html(ed)}'
+                   + f'<h3>Work in flight</h3>{flight_html(led.flight, ed.year)}</section>')
     return TEMPLATE.format(
-        title=TITLE,
-        css=CSS_PATH.read_text(encoding="utf-8"),
-        head_sha=e(head["sha"]), head_date=e(head["date"]),
-        bat_n=e(bat["n"]), bat_date=e(bat["date"]), bat_sha=e(bat["sha"]),
-        bat_since=n(bat["since"]), bat_since_code=n(bat["since_code"]),
-        bat_state_class="warn" if bat["owed"] else "good",
-        bat_state_value=(f'#{int(bat["n"]) + 1} owed' if bat["owed"] else f'#{bat["n"]} green'),
-        bat_state_note=(f'#{bat["n"]} ALL GREEN on <span class="mono">{e(bat["sha"])}</span>; '
-                        f'{n(bat["since_code"])} <span class="mono">src</span>/<span class="mono">tests</span> '
-                        f'landings since, wave-local-gated only'
-                        if bat["owed"] else
-                        f'#{bat["n"]} ALL GREEN on <span class="mono">{e(bat["sha"])}</span>; HEAD carries no '
-                        f'<span class="mono">src</span>/<span class="mono">tests</span> change since'),
-        bat_legs="\n        ".join(
-            f'<tr><td>{e(label)}</td><td class="r num">{e(value)}</td>'
-            f'<td><span class="pill {"good" if ok else "warn"}">{"GREEN" if ok else "UNREAD"}</span></td></tr>'
-            for label, value, ok in bat["legs"]),
-        bat_totals=(f' Totals {e(bat["totals"])} (WE_REJECT_THEY_ACCEPT / AGREE_ACCEPT / AGREE_REJECT / '
-                    f'WE_ACCEPT_THEY_REJECT).' if bat["totals"] else ""),
-        rows=n(inv["rows"]), closed=n(inv["closed"]), pct=f"{pct:.1f}",
-        gap=n(inv["gap"]), adjudicated=n(inv["adjudicated"]), kinds=kinds,
-        f_closed=inv["closed"], f_resolved=inv["resolved_owed"], f_defective=inv["defective"],
-        f_unadj=inv["unadjudicated"],
-        resolved_owed=n(inv["resolved_owed"]), defective=n(inv["defective"]),
-        unadjudicated=n(inv["unadjudicated"]),
-        pc_resolved=f'{100.0 * inv["resolved_owed"] / inv["rows"]:.1f}',
-        pc_defective=f'{100.0 * inv["defective"] / inv["rows"]:.1f}',
-        pc_unadj=f'{100.0 * inv["unadjudicated"] / inv["rows"]:.1f}',
-        conforms_closed=n(inv["conforms_closed"]), conforms_owed=n(inv["conforms_owed"]),
-        dns_closed=n(inv["dns_closed"]), dns_owed=n(inv["dns_owed"]),
-        defective_rows=defective_rows(inv["verdict"]),
-        doc_rows=n(inv["doc_rows"]), doc_verdicted=n(inv["doc_verdicted"]), doc_closed=n(inv["doc_closed"]),
-        clause_rows=clause_rows(inv["buckets"]),
-        work_items=n(wk["items"]), work_open=n(wk["status"]["open"]),
-        work_actionable=n(len(wk["actionable"])), work_top=e(top), work_parked=e(parked),
-        comp_n=n(comp["n"]), comp_defects=n(comp["kind"]["defect"]), comp_wrong=n(comp["harm"]["wrong_answer"]),
-        comp_crash=n(comp["harm"]["crashes"]), comp_no_lane=n(len(comp["no_lane"])),
-        a1_discharged=n(a1["discharged"]), a1_scope=n(a1["scope"]), a1_remaining=n(a1["remaining"]),
-        a3_rows=n(cf["a3_rows"]), a3_claimed=n(a3["claimed"]), a3_partial=n(a3["partial"]),
-        a3_not=n(a3["not claimed"]), a3_na=n(a3["n/a"]),
-        a4_rows=n(cf["a4_rows"]), a4_claimed=n(a4["claimed"]), a4_partial=n(a4["partial"]),
-        a4_not=n(a4["not claimed"]),
-        a4_claimed_list=e(" · ".join(cf["a4_by"]["claimed"])),
-        a4_partial_list=e(" · ".join(cf["a4_by"]["partial"])),
-        a4_not_list=e(" · ".join(cf["a4_by"]["not claimed"])),
-        a1_state=((f'<span class="pill good">DISCHARGED</span>&ensp;<span class="dim">{n(a1["discharged"])} of '
-                   f'{n(a1["scope"])} obligations in scope' if not a1["remaining"] else
-                   f'<span class="pill warn">{n(a1["remaining"])} REMAIN</span>&ensp;<span class="dim">of '
-                   f'{n(a1["scope"])} in scope')
-                  + (f' ({n(len(a1["unreachable"]))} withdrawn with their declined module); '
-                     f'<span class="mono">audit_annex_a1.py</span> reports '
-                     + ("no findings" if not a1["findings"] else
-                        f'</span><span class="pill crit">{n(len(a1["findings"]))} FINDING(S)</span><span class="dim">')
-                     + '</span>')),
-        facilities=e(" · ".join(cf["facilities"])), facilities_n=n(len(cf["facilities"])),
-        suite_tests=n(cp["tests"]), suite_accepted=n(cp["accepted"]), suite_refusals=n(cp["refusals"]),
-        suite_editions=e(" · ".join(f"{n(v)} ({k})" for k, v in cp["editions"].items())),
-        constructs=n(cp["constructs"]), matrix_cells=n(cp["constructs"] * 4),
-        vcr_todo=n(cp["vcr_todo"]), vcr_done=n(cp["vcr_done"]), vcr_total=n(cp["vcr_total"]),
-        vcr_pct=f'{100.0 * cp["vcr_done"] / cp["vcr_total"]:.1f}',
-        vcr_gated=n(cp["vcr_gated"]), vcr_ref=n(cp["vcr_ref"]), vcr_pin=n(cp["vcr_pin"]),
-        trend_svg=trend_svg(pts, bat),
-        trend_from=n(pts[0]["gap"]) if pts else "—", trend_to=n(pts[-1]["gap"]) if pts else "—",
-        trend_points=n(len(pts)),
-        register_svg=register_svg(pts), register_legend=register_legend(pts),
-        register_points=n(sum(1 for p in pts if "compiler_open" in p)),
-        editions_gap=editions_text(inv["editions"]),
-        gap_delta_word=("not recorded" if gap_delta is None else "unchanged" if gap_delta == 0 else f"{gap_delta:+d}"),
-        remaining=render_remaining(rem, ctx["estimate"], cp, ctx["inputs"]),
-        lane_external=render_external(plan),
-        pacing=render_pacing(pacing, ctx["inputs"].get("burn")),
-    )
-
-
-# ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
-# the page — structure and palette are the published artifact's; only the slots are generated
-# ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-#: The stylesheet lives beside the script as DATA rather than inside this file: it is 200 lines of tokens and
-#: component rules that no Python ever reads, and burying it in a string literal is how a template turns into a
-#: file nobody edits. Both themes are defined there — light on bare `:root`, dark under the guarded
-#: `prefers-color-scheme` block and again under `:root[data-theme="dark"]` — per the artifact conventions.
-CSS_PATH = REPO / "scripts" / "spec" / "data" / "ledger.css"
+        title=TITLE, css=CSS_PATH.read_text(encoding="utf-8"), head_sha=e(led.head["sha"]), head_date=e(led.head["date"]),
+        order=" · ".join(str(y) for y in ORDER), top=top_table(led.editions),
+        verdicts="".join(verdict_html(ed) for ed in led.editions), editions="".join(per),
+        unattributed=flight_html(led.flight, None), pacing=pacing_html(led.budget, led.landings))
 
 
 TEMPLATE = """<title>{title}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 {css}</style>
 
 <div class="wrap">
 
 <header>
-  <p class="eyebrow">What remains to v1.0 · kb/Work PB2911 · ISO/IEC 1989:2023 · Four editions</p>
+  <p class="eyebrow">Four editions · the owner's order {order} · kb/Work PB5994</p>
   <h1>{title}</h1>
-  <p class="asof">As of <b>{head_date}</b> · measured tree <b class="mono">{head_sha}</b> · last comprehensive battery <b>#{bat_n}</b> on <b class="mono">{bat_sha}</b> — <b>{bat_since} commits back</b>, {bat_since_code} of them touching <span class="mono">src/</span> or <span class="mono">tests/</span></p>
-  <p class="mission">v1.0 is <strong>a conforming implementation of the whole of ISO/IEC 1989 in each of its four editions</strong> (85 / 2002 / 2014 / 2023), as §2023:4.2.1 defines conformance, measured by one instrument: every normative rule as a row of the traceability inventory, at <strong>zero GAP</strong>, with P15 Cut 3 and the §2023:4.2.16 user documentation. The owner put the compiler and zero GAP first (2026-10-10, kb/Work PB2911): the known compiler defects and the notes that hold GAP rows run in the loop; the Delete program and the architecture review wait until both reach zero. This page measures what remains from the register, the inventory and the loop's own measurements.</p>
+  <p class="asof">As of <b>{head_date}</b> · measured tree <b class="mono">{head_sha}</b></p>
+  <p class="mission">An edition is COMPLETE only when <span class="mono">edition_status.py</span> measures all four of its parts at zero: the inventory GAP, the code reads owed, the open notes that touch it, and its normative text in no catalog row. A part it cannot measure keeps the edition NOT COMPLETE.</p>
 </header>
 
-<section aria-label="Headline">
-  <div class="meter-row">
-    <div class="meter-card">
-      <div class="meter-head"><span class="t">Conformance: rules closed</span><span class="v num">{closed} of {rows} · GAP {gap}</span></div>
-      <div class="meter"><div class="fill" style="width:{pct}%"></div></div>
-      <p class="note">v1.0's conformance half is GAP at zero.</p>
-    </div>
-    <div class="meter-card">
-      <div class="meter-head"><span class="t">Known compiler defects and analyses</span><span class="v num">{comp_n} open · {comp_defects} defects</span></div>
-      <p class="note">{comp_wrong} wrong answers · {comp_crash} crashes among them; {comp_no_lane} planned by no lane. Zero, with zero GAP, releases the held work (PB2911).</p>
-    </div>
-  </div>
+<section aria-label="The editions">
+  <h2>The editions</h2>
+  {top}
+  <div style="margin-top:12px">{verdicts}</div>
 </section>
 
-<section aria-label="What remains">
-  <h2>What remains to v1.0</h2>
-  {remaining}
-</section>
+{editions}
 
-<section aria-label="Conformance">
-  <h2>Conformance to zero GAP</h2>
-  <div class="hero">
-    <div class="hero-figure">
-      <span class="big num">{closed}</span>
-      <span class="of">of {rows} rules closed</span>
-      <span class="pct">{pct}%</span>
-    </div>
-    <p class="hero-sub">One row per normative rule of the standard ({kinds}). A row closes only when its verdict resolves — CONFORMS, or a documented-non-support determination — <em>and</em> a spec-derived witness covers it. Adjudicating a rule <strong>opens</strong> work; only a witness closes it.</p>
-    <div class="stackbar" role="img" aria-label="Inventory composition: {closed} closed, {resolved_owed} resolved awaiting a witness, {defective} known-defective, {unadjudicated} not yet adjudicated">
-      <div class="seg closed"   style="flex:{f_closed}"  data-tip="Closed — {closed} rules ({pct}%)"></div>
-      <div class="seg testowed" style="flex:{f_resolved}"  data-tip="Resolved, witness owed — {resolved_owed} ({pc_resolved}%)"></div>
-      <div class="seg open"     style="flex:{f_defective}"  data-tip="Known-defective — {defective} ({pc_defective}%)"></div>
-      <div class="seg track"    style="flex:{f_unadj}" data-tip="Not yet adjudicated — {unadjudicated} ({pc_unadj}%)"></div>
-    </div>
-    <div class="legend">
-      <span class="key"><span class="sw" style="background:var(--s-closed)"></span>Closed <span class="num">{closed}</span></span>
-      <span class="key"><span class="sw" style="background:var(--s-testowed)"></span>Resolved, witness owed <span class="num">{resolved_owed}</span></span>
-      <span class="key"><span class="sw" style="background:var(--s-open)"></span>Known-defective <span class="num">{defective}</span></span>
-      <span class="key"><span class="sw" style="background:var(--s-track)"></span>Not yet adjudicated <span class="num">{unadjudicated}</span></span>
-    </div>
-  </div>
-
-  <div class="tiles">
-    <div class="tile">
-      <div class="label">Battery status</div>
-      <div class="value {bat_state_class}">{bat_state_value}</div>
-      <div class="note">{bat_state_note}</div>
-    </div>
-    <div class="tile">
-      <div class="label">Known-defective rules</div>
-      <div class="value num">{defective}</div>
-      <div class="note">every row claimed by a live work note, held there by <span class="mono">work.py check</span></div>
-    </div>
-    <div class="tile">
-      <div class="label">Open register items</div>
-      <div class="value num">{work_open}</div>
-      <div class="note">of {work_items} notes; {work_actionable} actionable, led by {work_top}; owner-parked: {work_parked}</div>
-    </div>
-    <div class="tile">
-      <div class="label">GAP</div>
-      <div class="value num">{gap}</div>
-      <div class="note">{gap_delta_word} since battery #{bat_n}; v1.0 is this number at zero. {editions_gap}</div>
-    </div>
-  </div>
-
-  <div class="trend">
-    <div class="trend-head">
-      <span class="t">GAP burn-down, per recorded point</span>
-      <span class="v num">{trend_from} → {trend_to} · {trend_points} points</span>
-    </div>
-    {trend_svg}
-    <p class="note">Each point is a landing that moved the inventory or the register's series, measured from that commit's own tree. A flat GAP step is real and worth reading: correcting an already-CONFORMS row moves nothing, and a register-only move adds a point with GAP unchanged. Series: <span class="mono">ledger-trend.json</span> in the coordination directory, appended by <span class="mono">gen_ledger.py</span>.</p>
-  </div>
-  <div class="trend">
-    <div class="trend-head">
-      <span class="t">Known compiler notes, beside the GAP line</span>
-      <span class="v num">{register_points} points</span>
-    </div>
-    {register_svg}
-    <div class="legend">{register_legend}</div>
-    <p class="note">The register's series on the same points (kb/Work PB2912): open notes that are not <span class="mono">process_only</span>, of them <span class="mono">kind: defect</span>, the wrong answers and crashes among them, and the open notes holding a GAP row. Each point was measured from its own commit's <span class="mono">kb/Work</span>; a point whose tree had no frontmatter register carries none.</p>
-  </div>
-</section>
-
-<section aria-label="External repository">
-  <h2>The external repository</h2>
-  {lane_external}
-</section>
-
-<section aria-label="Gates">
-  <h2>Conformance detail · what is proven green</h2>
-  <p><strong>Battery #{bat_n} ({bat_date}, tree <span class="mono">{bat_sha}</span>) is the last comprehensive run.</strong> The tree above is {bat_since} commits past it, and <strong>{bat_since_code}</strong> of those touch <span class="mono">src/</span> or <span class="mono">tests/</span> — which is what decides whether another battery is owed, rather than a judgement about how big the changes felt. Everything since was gated <em>wave-locally</em> only.{bat_totals}</p>
-  <div class="tablecard">
-    <table>
-      <thead><tr><th>Leg</th><th class="r">Result at #{bat_n}</th><th>Status</th></tr></thead>
-      <tbody>
-        {bat_legs}
-        <tr><td>Version matrix</td><td class="r num">{constructs} × 4 = {matrix_cells} cells</td><td><span class="pill good">GREEN</span></td></tr>
-      </tbody>
-      <tfoot><tr><td>Conformance suite, measured tree</td><td class="r num">{suite_tests} tests</td><td>{suite_accepted} accepted — {suite_editions} · {suite_refusals} WiseOwl refusals</td></tr></tfoot>
-    </table>
-  </div>
-</section>
-
-<section aria-label="Verdicts">
-  <h2>Conformance detail · how the {rows} rows stand</h2>
-  <div class="tablecard">
-    <table>
-      <thead><tr><th>Verdict</th><th class="r">Rows</th><th>Can it close a row?</th><th>Standing</th></tr></thead>
-      <tbody>
-        <tr><td>CONFORMS — closed</td><td class="r num">{conforms_closed}</td><td>Closed</td><td class="dim">spec-derived witness in place</td></tr>
-        <tr><td>DOCUMENTED-NON-SUPPORT — closed</td><td class="r num">{dns_closed}</td><td>Closed</td><td class="dim">D13's licence: a recorded determination with its witness</td></tr>
-        <tr><td>CONFORMS — witness owed</td><td class="r num">{conforms_owed}</td><td>Yes, once a golden lands</td><td class="dim">no compiler change stands between these and closed</td></tr>
-        <tr><td>DOCUMENTED-NON-SUPPORT — witness owed</td><td class="r num">{dns_owed}</td><td>Yes, once witnessed</td><td class="dim">stamped by the A.4 derived-verdict selectors, one per <em>Not claimed</em> module</td></tr>
-{defective_rows}
-        <tr><td>Not yet adjudicated</td><td class="r num">{unadjudicated}</td><td>—</td><td class="dim">unaudited territory</td></tr>
-      </tbody>
-      <tfoot><tr><td>Total</td><td class="r num">{rows}</td><td colspan="2">{closed} OK · {gap} GAP · {adjudicated} adjudicated · of {doc_rows} Annex A.1 DOC rows, {doc_verdicted} carry a verdict and {doc_closed} have closed</td></tr></tfoot>
-    </table>
-  </div>
-</section>
-
-<section aria-label="Burn-down by clause">
-  <h2>Conformance detail · burn-down by clause</h2>
-  <p>Bar length is the clause's share of the largest clause; fill shows its state — closed, adjudicated-but-open, never looked at.</p>
-  <div class="tablecard">
-    <table>
-      <thead><tr><th>Clause</th><th class="r">Rules</th><th class="r">Adjudicated</th><th class="r">GAP</th><th class="cbar-track">Closed · adjudicated-open · unadjudicated</th></tr></thead>
-      <tbody>
-        {clause_rows}
-      </tbody>
-      <tfoot><tr><td>Total</td><td class="r num">{rows}</td><td class="r num">{adjudicated}</td><td class="r num">{gap}</td><td></td></tr></tfoot>
-    </table>
-  </div>
-</section>
-
-<section aria-label="Documentation posture">
-  <h2>Conformance detail · the §2023:4.2.16 documentation posture</h2>
-  <div class="tablecard">
-    <table>
-      <thead><tr><th>Register</th><th>Standing</th></tr></thead>
-      <tbody>
-        <tr><td>Annex A.3 — processor-dependent ({a3_rows} rows)</td><td class="dim"><span class="num">{a3_claimed}</span> claimed · <span class="num">{a3_partial}</span> partial · <span class="num">{a3_not}</span> not claimed · <span class="num">{a3_na}</span> n/a</td></tr>
-        <tr><td>Annex A.4 — optional modules ({a4_rows})</td><td class="dim"><span class="num">{a4_claimed}</span> claimed — {a4_claimed_list} · <span class="num">{a4_partial}</span> partial — {a4_partial_list} · <span class="num">{a4_not}</span> not claimed — {a4_not_list}</td></tr>
-        <tr><td>Documented non-support ({facilities_n} facilities)</td><td class="dim">{facilities} — each named by a compile-time diagnostic (a warning, or an error where the facility is refused): the mechanism §2023:4.2.6 ¶3 requires for processor-dependent elements (A.3), the posture §2023:4.2.7's user documentation states for optional modules (A.4); D13 permits both</td></tr>
-        <tr><td>Annex A.1 — implementor-defined register</td><td>{a1_state}</td></tr>
-        <tr><td>Version-change ledger anchors</td><td class="dim"><span class="num">{vcr_done}</span> of {vcr_total} dispositioned ({vcr_pct}%): {vcr_gated} gated · {vcr_ref} ref-only · {vcr_pin} pinned-to-spec · <span class="num">{vcr_todo}</span> todo; the matrix registry stands at {constructs} constructs</td></tr>
-      </tbody>
-    </table>
-  </div>
+<section aria-label="Work in flight on no edition">
+  <h2>Work in flight on no edition</h2>
+  {unattributed}
 </section>
 
 <section aria-label="Pacing">
@@ -1342,359 +425,36 @@ TEMPLATE = """<title>{title}</title>
   {pacing}
 </section>
 
-
 <footer>
-  <p><strong>Every number on this page is computed — none is remembered, none is hand-written.</strong> Inventory from <span class="mono">tests/version-matrix/inventory/</span>, work standing from <span class="mono">kb/Work</span> through <span class="mono">work.py</span>'s own predicates, what remains and its lanes through <span class="mono">ledger_plan.py</span> (the fix lane's population from <span class="mono">work.fixable</span>, the campaign and held clusters from the owner's decision PB2911), the estimate from <span class="mono">fix_clusters.py</span>, <span class="mono">model_rules.json</span>, <span class="mono">landing_measure.py</span> and the orchestrator's meter readings, gates from plan §0's battery reference, documentation posture from <span class="mono">docs/CONFORMANCE.md</span> §2/§4/§5 and <span class="mono">audit_annex_a1.py --json</span>, the suite and anchor counts from the trees themselves, the trend series from <span class="mono">ledger-trend.json</span> in the coordination directory. Rendered by <span class="mono">scripts/spec/gen_ledger.py</span>. The work register remains <span class="mono">kb/Work/</span> — this ledger is a derived view, never a tracker.</p>
-  <p class="mono">Snapshot: {head_date} · measured tree {head_sha} — the last commit that touched an input this page reports, so an unrelated commit cannot make a correct page look stale · {rows} rows · {closed} closed · {gap} GAP · {adjudicated} adjudicated · battery #{bat_n} on {bat_sha} · A.1 {a1_discharged}/{a1_scope} · register {work_items} notes, {work_open} open, {work_actionable} actionable · {comp_n} known compiler notes.</p>
+  <p><strong>Every number on this page is computed.</strong> Each edition's state is <span class="mono">scripts/spec/edition_status.py</span>'s (the inventory, the code-read stores, <span class="mono">kb/Work</span> through <span class="mono">work.py</span>, the 1985 transcription and catalog); the work in flight is <span class="mono">prune_worktrees.py</span>'s branch survey, which reads GitHub's pull requests and merge queue; the quota is <span class="mono">budget.py</span>'s; the landings are origin/main's merges. Rendered by <span class="mono">scripts/spec/gen_ledger.py</span>. The work register remains <span class="mono">kb/Work/</span>; this page is a derived view, never a tracker.</p>
+  <p class="mono">Snapshot: {head_date} · measured tree {head_sha}, the last commit that touched an input this page reports.</p>
 </footer>
 
 </div>
 """
 
 
-# ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-def build() -> tuple[str, dict]:
-    """The page, and the trend file's series with whether it gained its current point."""
-    import work  # noqa: PLC0415
-    inv = measure_inventory()
-    head = measure_head()
-    bat = measure_battery(head["sha"])
-    items, rows = work.load(), inventory_view.inventory()
-    rem = ledger_plan.remaining(items, rows, inv["gap"])
-    pts, is_new = trend_series(inv, head, bat, rem["counts"])
-    plan = ledger_plan.measure(items, inv["gap"])
-    inputs = ledger_plan.estimate_inputs()
-    ctx = {"inv": inv, "work": measure_work(), "a1": measure_annex_a1(), "conf": measure_conformance(),
-           "battery": bat, "suite": measure_suite(), "head": head, "trend": pts, "plan": plan,
-           "remaining": rem, "estimate": ledger_plan.bucket_estimates(rem, inputs), "inputs": inputs,
-           "pacing": ledger_plan.measure_pacing()}
-    return render(ctx), {"points": pts, "is_new": is_new}
-
-
-def self_test() -> int:
-    """The page's new parts on planted inputs (kb/Work PB2912): the loud flags, UNMEASURED for a missing input, the
-    trend append carrying the register's series, and the register read from a commit's own tree."""
-    global REPO, TREND  # noqa: PLW0603  (pointed at temporary fixtures, and restored)
-    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-    from scratch_repo import ScratchRepo, remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
-    results: list[tuple[str, bool, str]] = []
-
-    def check(name: str, ok: bool, detail: str = "") -> None:
-        results.append((name, ok, detail))
-
-    def note(nid, kind="analysis", status="open", cluster=(), rows=(), **flags):
-        return {"id": nid, "title": f"{nid} — x", "kind": kind, "status": status, "cluster": list(cluster),
-                "blocked_by": [], "inventory_rows": list(rows), **flags}
-
-    leads = [note(lead, "decision", process_only=True) for lead, _ in (*ledger_plan.CAMPAIGNS, *ledger_plan.HELD)]
-    items = [*leads, note("PB9001", "defect", cluster=[ledger_plan.GAP_CAMPAIGN], rows=["R-1"], wrong_answer=True),
-             note("PB9003", silent=True), note("PB9004", process_only=True, rows=["R-2"])]
-    rows = [{"rule-id": "R-1", "state": "GAP", "verdict": "PARTIAL"}, {"rule-id": "R-2", "state": "GAP", "verdict": "PARTIAL"}]
-    rem = ledger_plan.remaining(items, rows, 2)
-    cp = {"vcr_todo": 1, "vcr_total": 2}
-    none = {"rules": None, "fix_groups": None, "rate": None, "burn": None}
-    page = render_remaining(rem, ledger_plan.bucket_estimates(rem, none), cp, none)
-    flags = re.findall(r'<p class="alert crit">(.*?)</p>', page, re.S)
-    import work  # noqa: PLC0415
-    planted = collections.Counter({flag: 100 + n_ for n_, flag in enumerate((*work.HARM_FLAGS, "silent"))})
-    shown = harm_text(planted)
-    check("the harm line counts every class of work.HARM_LABELS and the silent qualifier (R1-1: no second table)",
-          all(f'<span class="num">{n(count)}</span>' in shown for count in planted.values())
-          and all(label in shown for label in work.HARM_LABELS.values()), shown[:300])
-    two = [(2023, 4214, 0, "", {}), (1985, 2253, 1087, "", {})]
-    check("the page names each older edition's GAP beside the newest's, and nothing when one edition is held",
-          editions_text(two) == "Older editions: 1985 1,087 GAP of 2,253 rules." and editions_text(two[:1]) == ""
-          and editions_text([*two, (2002, 3290, 3290, " (a lower bound: 92 clauses pending adjudication)", {})])
-          .endswith("2002 3,290 GAP of 3,290 rules (a lower bound: 92 clauses pending adjudication)."))
-    check("kb/Work PB5675: an older edition's GAP names its causes, the rows inherited without a witness of their own "
-          "apart from those nobody adjudicated",
-          editions_text([two[0], (1985, 2274, 835, "", {inventory_view.UNWITNESSED: 803, inventory_view.UNADJUDICATED: 32,
-                                                         inventory_view.OPEN: 0})])
-          == "Older editions: 1985 835 GAP (803 inherited, no own-edition witness · 32 never adjudicated) of 2,274 rules.")
-    held = measure_inventory()["editions"]
-    check("the inventory's numbers carry every held edition, newest first, each with its rules and GAP (kb/Work PB4994)",
-          [y for y, *_ in held] == sorted(inventory_schema.HELD, reverse=True)
-          and all(r > 0 and 0 <= g <= r and sum(c.values()) == g for _, r, g, _note, c in held))
-    check("a GAP holder outside the GAP campaign is flagged loudly",
-          any("outside the GAP campaign" in f and "PB9004" in f for f in flags), str(flags)[:300])
-    check("an open compiler note no lane plans is flagged loudly",
-          any("no lane plans" in f and "PB9003" in f and "PB9001" not in f for f in flags), str(flags)[:300])
-    est = page[page.index("Estimate, from measured inputs"):]
-    cells = re.findall(r'<td class="r">(.*?)</td>', est)
-    check("a missing input renders UNMEASURED, never a number",
-          bool(cells) and all(c == UNMEASURED for c in cells), str(cells)[:300])
-    rules = {"wave": {"turns_per_group": 65, "turns_per_note": 20.5, "turn_budget_fraction": 0.75, "max_groups": 8},
-             "cost": {"per_group_tokens": {"sonnet": 400000}, "per_note_tokens": {"sonnet": 240000},
-                      "landing_tokens": 96000, "landing_model": "opus"},
-             "calibration": {"tokens_per_point": {"sonnet": 4000000, "opus": 1600000}}}
-    full = {"rules": rules, "implementer_model": "sonnet", "fix_groups": {"clusters": [{"file": "src/X/A.cs", "notes": [{"id": "PB9001"}]},
-                                                                                {"file": "", "notes": [{"id": "PB9008"}]}]},
-            "rate": {"per_h": 2.0, "changes": 4, "window_h": 2.0, "landings": 1, "median_min": 30.0,
-                     "source": "pull requests through the merge queue", "median_measures": "DONE → on main, per change"},
-            "burn": {"per_h": 3.0, "from_pct": 0.0, "to_pct": 3.0, "hours": 1.0, "account": "t"}}
-    page = render_remaining(rem, ledger_plan.bucket_estimates(rem, full), cp, full)
-    check("the fix lane's groups count each folded unsited note (a group with no primary file, kb/Work PB4566)",
-          '<span class="num">2</span> groups, <span class="num">1</span> of them an unsited note' in inputs_text(full),
-          True)
-    check("the landing rate input names its source, changes per hour and minutes per landing",
-          all(t in inputs_text(full) for t in ("landing_measure.py", "pull requests through the merge queue",
-                                               '<span class="num">2.00</span> changes per hour',
-                                               '<span class="num">30</span> minutes (DONE → on main, per change)')),
-          inputs_text(full)[-300:])
-    floor = {**full, "rate": {**full["rate"], "source": "the retired trains, batched gating",
-                              "median_measures": "lander start → push per landed change: a floor for DONE → on main"}}
-    check("the retired trains' minutes are labelled the floor they are, never DONE to main",
-          "a floor for DONE → on main" in inputs_text(floor) and "DONE to main" not in inputs_text(floor),
-          inputs_text(floor)[-300:])
-    first = re.search(r"Known compiler defects and analyses</td>(.*?)</tr>", page[page.index("Estimate, from"):], re.S)
-    check("measured inputs render numbers: 1 group, 1 wave, 0.5 h, 1.5 points at the burn",
-          bool(first) and all(f'<span class="num">{v}</span>' in first.group(1) for v in ("1", "0.5 h", "1.5")),
-          first.group(1)[:300] if first else "no row")
-
-    def aria(svg: str) -> str:
-        m = re.search(r'aria-label="([^"]*)"', svg)
-        return m.group(1) if m else ""
-
-    def series(count: int) -> list[dict]:
-        return [{"date": f"2026-10-{1 + i % 28:02d}", "gap": 500 - i, "label": "", "compiler_open": 900 - i,
-                 "defects": 300 - i, "wrong_answer": 10, "crashes": 1, "gap_holders": 50} for i in range(count)]
-
-    few, many = series(3), series(400)
-    for name, draw in (("the GAP trend", lambda pts: trend_svg(pts, {"n": "1", "sha": "none"})),
-                       ("the register chart", register_svg)):
-        small, big = aria(draw(few)), aria(draw(many))
-        check(f"{name}'s label summarizes the series and never lists it (kb/Work PB2942)",
-              bool(small) and abs(len(big) - len(small)) <= 8 and big.count("2026-10-") == 2,
-              f"3 points: {len(small)} chars, 400 points: {len(big)} chars: {big[:200]}")
-
-    # kb/Work PB2426: a render never dirties a checkout. The series is the coordination directory's, beside the page,
-    # and a write to a path that is not absolute (the Windows default read on Linux) is refused before it creates one.
-    check("the trend series lives beside the page, outside every checkout",
-          TREND.parent == DEFAULT_OUT.parent and not TREND.resolve().is_relative_to(REPO.resolve()), str(TREND))
-    saved = (REPO, TREND)
-    tmp = scratch_dir("gen-ledger-test-")
-    try:
-        # ⛔ EVERY GIT COMMAND FROM HERE ON RUNS IN THE SCRATCH REPOSITORY (kb/Work PB5227): the trend arm looks its planted
-        # shas up (`git_batch.resolve`, `git log -1 --format=%s <sha>`), and run in the real checkout those lookups keyed
-        # this self-test's PASS on the whole tree's content, so every gate re-ran it (370 s). A repository with no commit
-        # answers them as the real one does: no planted sha is a commit in either.
-        REPO = tmp / "repo"
-        scratch = ScratchRepo.init(REPO)
-        TREND = pathlib.Path("relative-trend.json")
-        try:
-            write_trend([])
-            refused = False
-        except SystemExit:
-            refused = True
-        check("a trend write to a relative path is refused, and creates nothing",
-              refused and not TREND.exists(), str(TREND))
-        TREND = tmp / "trend.json"
-        TREND.write_text(json.dumps({"points": [{"sha": "0000000a", "date": "2026-10-09", "gap": 2, "closed": 1,
-                                                 "dns": 0, "label": "x", "battery": None}]}), encoding="utf-8", newline="\n")
-        inv = {"gap": 2, "closed": 1, "verdict": collections.Counter()}
-        bat = {"n": "1", "sha": "ffffffff"}
-        reg = ledger_plan.register_counts(items, {"R-1", "R-2"})
-        pts, new = trend_series(inv, {"sha": "0000000b", "date": "2026-10-10"}, bat, reg)
-        writes, real_write = [], coord.write_json
-        coord.write_json = lambda path, value: (writes.append(path), real_write(path, value))
-        try:
-            if new:
-                write_trend(pts)
-        finally:
-            coord.write_json = real_write
-        check("the series is written through coord.write_json (a temp file renamed over it, never torn), and leaves "
-              "no temp file", writes == [TREND] and not list(tmp.glob("*.tmp")), str(writes))
-        on_disk = json.loads(TREND.read_text(encoding="utf-8"))["points"][-1]
-        check("the trend append writes the register's series",
-              new and all(on_disk.get(k) == reg[k] for k in ledger_plan.REGISTER_KEYS), str(on_disk))
-        moved = {**reg, "wrong_answer": reg["wrong_answer"] + 1}
-        pts2, new2 = trend_series(inv, {"sha": "0000000c", "date": "2026-10-10"}, bat, moved)
-        _, new3 = trend_series(inv, {"sha": "0000000d", "date": "2026-10-10"}, bat, reg)
-        check("a register-only move records a point; an unmoved register does not",
-              new2 and pts2[-1]["wrong_answer"] == moved["wrong_answer"] and not new3, f"{new2} {new3}")
-
-        (REPO / "kb" / "Work").mkdir(parents=True)
-        legacy = REPO / inventory_schema.NEWEST.legacy_file   # a commit before kb/Work PB4148 holds the inventory as ONE file
-        legacy.parent.mkdir(parents=True)
-        legacy.write_text(json.dumps(rows), encoding="utf-8", newline="\n")
-        fm = ("---\ntitle: \"{i} — x\"\nid: {i}\nkind: defect\nstatus: {s}\nwrong_answer: true\ncrashes: false\n"
-              "process_only: false\ncluster: []\nblocked_by: []\ninventory_rows: [\"R-1\"]\n---\n\nbody\n")
-        (REPO / "kb" / "Work" / "PB1.md").write_text(fm.format(i="PB1", s="open"), encoding="utf-8", newline="\n")
-        (REPO / "kb" / "Work" / "PB2.md").write_text(fm.format(i="PB2", s="landed"), encoding="utf-8", newline="\n")
-        (REPO / "kb" / "Work" / "README.md").write_text("no frontmatter\n", encoding="utf-8", newline="\n")
-        scratch.commit("fixture")
-        got = measure_commits(["HEAD"])["HEAD"]
-        want = {"compiler_open": 1, "defects": 1, "wrong_answer": 1, "crashes": 0, "gap_holders": 1}
-        check("the register is read from a commit's own tree (git cat-file --batch)", got.register == want, f"{got}")
-        check("the inventory's counts are read from the same commit's tree, and gap_at reads them alone",
-              got.inventory == {"gap": 2, "closed": 0, "dns": 0} and gap_at("HEAD") == 2
-              and measure_commits(["HEAD"], register=False)["HEAD"] == Committed(got.inventory, None),
-              f"{got} gap_at {gap_at('HEAD')}")
-
-        # kb/Work PB4148: the same rows as one file per row give the same counts, from the commit's own directory.
-        legacy.unlink()
-        store = REPO / inventory_schema.NEWEST.store
-        inventory_store.write_store(rows, store)
-        scratch.commit("per-row layout")
-        after = measure_commits(["HEAD", "HEAD~1"], register=False)
-        check("a commit's inventory is read from its per-row directory, and from the legacy file before it",
-              after["HEAD"].inventory == got.inventory == after["HEAD~1"].inventory and gap_at("HEAD") == 2,
-              f"{after}")
-
-        # kb/Work PB4992: a store of adjudications only is joined with the commit's own catalog under its own schema, in
-        # the same two processes; a rule with no store file is a GAP of that commit's view.
-        catalog_rel, schema_rel = inventory_schema.NEWEST.catalog, inventory_schema.SCHEMA_REL
-        rules = [{"id": f"GR-4.4-{i}", "section": "4.4", "kind": "GR", "ordinal": i, "subject": "s", "text": f"Rule {i}."}
-                 for i in (1, 2, 3)]
-        inventory_store.write_store([{"rule-id": "GR-4.4-1", "rule-digest": inventory_view.rule_digest("Rule 1."),
-                                      "verdict": "DOCUMENTED-NON-SUPPORT", "notes": "n"}], store)
-        scratch.commit("the view", {catalog_rel: json.dumps({"rules": rules}),
-                                    schema_rel: inventory_schema.WORKING_TREE.text(schema_rel)})
-        viewed = measure_commits(["HEAD"], register=False)["HEAD"].inventory
-        check("a commit after PB4992 is measured as its view: its catalog joined with its store under its schema",
-              viewed == {"gap": 3, "closed": 0, "dns": 1} and gap_at("HEAD") == 3, f"{viewed}")
-        # kb/Work PB5374 branch review R1-1: the refuter record file a commit's §8 register names is read as that commit
-        # has it, so a claude-signed argued row stands at the commit as it does live (it read as absent: GAP).
-        extract_rel, refute_rel = inventory_schema.REGISTER_EXTRACT_REL, "adjudication/fixture/refute.jsonl"
-        scratch.commit("a refuted derivation", {
-            extract_rel: json.dumps({"annexA1": [], "derivations": [
-                {"key": "DRV-GR-4.4-2", "arm": "unpopulatable-antecedent", "signature": "claude: 2026-11-12",
-                 "names": "the closed set of states this fixture reaches", "refuter": refute_rel}]}),
-            refute_rel: json.dumps({"rule-id": "GR-4.4-2", "outcome": "UPHELD"}) + "\n"})
-        seen, real_join = [], inventory_view.join
-        inventory_view.join = lambda ed_, rules_, records_, schema_, targets_: (
-            seen.append(schema_.derivation.refuter_outcome(refute_rel, "GR-4.4-2")),
-            real_join(ed_, rules_, records_, schema_, targets_))[1]
-        try:
-            measure_commits(["HEAD"], register=False)
-        finally:
-            inventory_view.join = real_join
-        check("a commit's view reads the refuter record its register names, as that commit has it",
-              seen == ["UPHELD"], f"{seen}")
-        scratch.write({catalog_rel: None, schema_rel: None, extract_rel: None, refute_rel: None})
-        scratch.commit("the fixture's old shape again")
-
-        # missed_points in a merge DAG (review finding R1-2): a branch merged AFTER the last point was recorded is
-        # not an ancestor of it, but its commits were recorded earlier; `last..HEAD` listed them again.
-        def commit(gap_rows: int, msg: str) -> str:
-            inventory_store.write_store([{"rule-id": f"R-{i}", "state": "GAP", "verdict": "PARTIAL"}
-                                         for i in range(gap_rows)], store)
-            scratch.commit(msg)
-            return scratch.git("rev-parse", "--short=8", "HEAD")
-
-        base_sha = scratch.git("rev-parse", "--short=8", "HEAD")
-        scratch.git("checkout", "-q", "-b", "side")
-        side = commit(1, "side: closes a row")
-        scratch.git("checkout", "-q", "main")
-        tip = commit(2, "main: moves on")
-        scratch.run("merge", "-q", "--no-ff", "side")   # unchecked: both sides changed the inventory, resolved by hand
-        merged = commit(3, "merge side")
-        recorded = [{"sha": side, "date": "2026-10-01", "gap": 1, "closed": 0, "dns": 0, "label": "", "battery": None},
-                    {"sha": tip, "date": "2026-10-02", "gap": 2, "closed": 0, "dns": 0, "label": "", "battery": None}]
-        shas = [p["sha"] for p in missed_points(recorded)]
-        check("a commit older than the last point that an earlier point recorded is not measured again",
-              shas == [merged] and base_sha not in shas, f"{shas} want {[merged]} (side {side}, tip {tip})")
-
-        # kb/Work PB3315: the process count is constant in the number of commits measured (a structural bound, never a
-        # wall-clock one). The gate's pre-slot audit measured every commit since the series' last point with five git
-        # processes EACH (334 for 81 commits; 20-28 minutes with ten gates running), so its cost was the count.
-        def spawned(measure) -> tuple[int, list[dict]]:
-            started, real = [0], subprocess.run
-
-            def counting(*args, **kwargs):
-                started[0] += 1
-                return real(*args, **kwargs)
-
-            subprocess.run = counting
-            try:
-                return started[0], measure()
-            finally:
-                subprocess.run = real
-
-        anchor = [{"sha": merged, "date": "2026-10-03", "gap": 3, "closed": 0, "dns": 0, "label": "", "battery": None}]
-        for gap_rows in (4, 5, 6):
-            commit(gap_rows, f"moves to {gap_rows}")
-        few_n, few = spawned(lambda: missed_points(anchor))
-        for gap_rows in range(7, 19):
-            commit(gap_rows, f"moves to {gap_rows}")
-        many_n, many = spawned(lambda: missed_points(anchor))
-        check("measuring 15 commits starts no more git processes than measuring 3, and a handful at most (PB3315)",
-              [p["gap"] for p in few] == [4, 5, 6] and [p["gap"] for p in many] == list(range(4, 19))
-              and few_n == many_n <= 6, f"3 commits: {few_n} processes, 15 commits: {many_n}")
-    finally:
-        REPO, TREND = saved
-        remove_tree(tmp)
-
-    for name, ok, detail in results:
-        print(f"  {'PASS' if ok else 'FAIL'}  {name}" + ("" if ok else f"\n        {detail}"))
-    bad = sum(1 for _, ok, _ in results if not ok)
-    print(f"=== gen_ledger SELF-TEST: {'PASS' if not bad else 'FAIL'} ({len(results)} checks) ===")
-    return 1 if bad else 0
-
-
-def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--out", type=pathlib.Path, default=DEFAULT_OUT,
-                    help=f"HTML to write (default {DEFAULT_OUT})")
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--out", type=pathlib.Path, default=DEFAULT_OUT, help=f"HTML to write (default {DEFAULT_OUT})")
     ap.add_argument("--check", action="store_true",
-                    help="render in memory, write nothing; exit non-zero if the page cannot be rendered or the plan "
-                         "does not read cleanly off the register (ledger_plan.problems)")
-    ap.add_argument("--self-test", action="store_true",
-                    help="the loud flags, UNMEASURED, the trend append and the register at a commit, on planted inputs")
-    ap.add_argument("--backfill-register", action="store_true",
-                    help="add the register's series to the trend points recorded before it existed, each measured "
-                         "from its own sha's tree, write the trend file and stop (kb/Work PB2912)")
-    a = ap.parse_args()
-    if a.self_test:
-        return self_test()
-    if a.backfill_register:
-        doc = coord.read_json(TREND, {"points": []})
-        filled = backfill_register(doc["points"])
-        write_trend(doc["points"])
-        print(f"trend  : the register's series added to {filled} of {len(doc['points'])} points ({TREND})")
-        return 0
-
-    bad = ledger_plan.live_problems()
-    if bad:
-        print("⛔ THE PLAN CANNOT BE TRUSTED (scripts/spec/ledger_plan.py --self-test):")
-        for b in bad:
-            print(f"   {b}")
-        return 1
-
-    text, tr = build()
-    pts, is_new = tr["points"], tr["is_new"]
-
+                    help="render in memory from the repository alone (no branch survey, no quota), write nothing")
+    a = ap.parse_args(argv)
+    led = measure(live=not a.check)
+    text = render(led)
     if a.check:
-        # A RENDERED VIEW (kb/Work PB3026; scripts/rendered_views.py) is not compared with a copy on disk: it lives in
-        # the coordination directory, outside the tree, and a landing that moves a row would make every such comparison
-        # red (the very reason it is not committed). What is checked is what can go wrong in the SOURCES: the plan
-        # reads off the register (above), and the whole page renders from the repo as it stands. The trend file is
-        # not checked for a missing point either: a render appends it, and that is the loop's refresh, never a fix PR's.
         print(f"the ledger renders from the repo ({len(text):,} bytes)")
         return 0
-
     import account  # noqa: PLC0415
     import ledger_state  # noqa: PLC0415  (imports this module for STAMP_PATHS; loaded only here, after a render)
-    # The page describes THIS checkout; a checkout behind main (every landing is pushed from a lander's worktree) renders
-    # a page mark-published will refuse (kb/Work PB2987), and its points are not main's, so it appends none to the
-    # series every worktree shares (kb/Work PB2426).
     try:
         stale = ledger_state.stale_checkout_line(REPO, ledger_state.state(REPO, COORD_DIR, account.current().name))
-    except ledger_state.NoMain as e:
-        stale = f"main's stamp not read ({e})"
-    if is_new and stale:
-        print(f"trend  : NOT appended — this checkout does not render main's page ({TREND} left as it was)")
-    elif is_new:
-        write_trend(pts)
-        p = pts[-1]
-        print(f"trend  : appended {p['sha']} — GAP {p['gap']} · closed {p['closed']} · DNS {p['dns']} · "
-              f"{p.get('compiler_open')} compiler notes ({p.get('defects')} defects, {p.get('wrong_answer')} wrong "
-              f"answers, {p.get('crashes')} crashes) · {p.get('gap_holders')} GAP holders   ({TREND}, {len(pts)} points)")
-    else:
-        print(f"trend  : unchanged — {len(pts)} points, last {pts[-1]['sha'] if pts else '—'}")
+    except ledger_state.NoMain as err:
+        stale = f"main's stamp not read ({err})"
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(text, encoding="utf-8", newline="\n")
+    for ed in led.editions:
+        print(ed.line)
     print(f"wrote  : {a.out} ({len(text):,} bytes)")
     print(ledger_state.publish_hint(COORD_DIR, account.current().name))
     if stale:
