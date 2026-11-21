@@ -3,11 +3,7 @@
  "rule_count": 2911,
  "blocks": 671,
  "outside-denominator": {
-  "pending-clauses": [
-   "§1985:III.2",
-   "§1985:B.2.1"
-  ],
-  "pending-units": 3
+  "pending-units": 505
  },
  "rules": [
   {
@@ -49795,8 +49791,8 @@
    "shape": "paragraph"
   },
   {
-   "id": "1985-GR-XIII.3.10.7-p4",
-   "citation": "§1985:XIII.3.10.7 p4",
+   "id": "1985-GR-XIII.3.10.7-p3",
+   "citation": "§1985:XIII.3.10.7 p3",
    "document": "X3.23-1985",
    "section": "XIII",
    "paragraph": "3.10.7",
@@ -49804,7 +49800,7 @@
    "module": "Report Writer",
    "subject": "PRESENTATION RULES TABLES",
    "kind": "GR",
-   "ordinal": 4,
+   "ordinal": 3,
    "sublist": 1,
    "box": "none",
    "level": 1,
@@ -49819,8 +49815,8 @@
    "definitional": true
   },
   {
-   "id": "1985-GR-XIII.3.10.7-p5",
-   "citation": "§1985:XIII.3.10.7 p5",
+   "id": "1985-GR-XIII.3.10.7-p4",
+   "citation": "§1985:XIII.3.10.7 p4",
    "document": "X3.23-1985",
    "section": "XIII",
    "paragraph": "3.10.7",
@@ -49828,7 +49824,7 @@
    "module": "Report Writer",
    "subject": "PRESENTATION RULES TABLES",
    "kind": "GR",
-   "ordinal": 5,
+   "ordinal": 4,
    "sublist": 1,
    "box": "none",
    "level": 1,
@@ -50121,8 +50117,8 @@
    "shape": "paragraph"
   },
   {
-   "id": "1985-GR-XIII.3.10.9-p4",
-   "citation": "§1985:XIII.3.10.9 p4",
+   "id": "1985-GR-XIII.3.10.9-p3",
+   "citation": "§1985:XIII.3.10.9 p3",
    "document": "X3.23-1985",
    "section": "XIII",
    "paragraph": "3.10.9",
@@ -50130,7 +50126,7 @@
    "module": "Report Writer",
    "subject": "PRESENTATION RULES TABLES",
    "kind": "GR",
-   "ordinal": 4,
+   "ordinal": 3,
    "sublist": 1,
    "box": "none",
    "level": 1,
@@ -50145,8 +50141,8 @@
    "definitional": true
   },
   {
-   "id": "1985-GR-XIII.3.10.9-p5",
-   "citation": "§1985:XIII.3.10.9 p5",
+   "id": "1985-GR-XIII.3.10.9-p4",
+   "citation": "§1985:XIII.3.10.9 p4",
    "document": "X3.23-1985",
    "section": "XIII",
    "paragraph": "3.10.9",
@@ -50154,7 +50150,7 @@
    "module": "Report Writer",
    "subject": "PRESENTATION RULES TABLES",
    "kind": "GR",
-   "ordinal": 5,
+   "ordinal": 4,
    "sublist": 1,
    "box": "none",
    "level": 1,
@@ -56051,8 +56047,8 @@
    "definitional": true
   },
   {
-   "id": "1985-GR-XIV.2.2.6-T1",
-   "citation": "§1985:XIV.2.2.6 Table 1",
+   "id": "1985-GR-XIV.2.2.6-T2",
+   "citation": "§1985:XIV.2.2.6 Table 2",
    "document": "X3.23-1985",
    "section": "XIV",
    "paragraph": "2.2.6",

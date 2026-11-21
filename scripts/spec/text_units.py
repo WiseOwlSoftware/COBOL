@@ -567,17 +567,26 @@ def guard_refusal(u: Unit, ctx: Context) -> str | None:
     return None
 
 
-def record_refusal(e: dict, u: Unit | None, ctx: Context) -> str | None:
-    """Why the refuter record a `restates` or `not-a-rule` entry names does not let it stand, or None: the entry names
-    no record file, the file or the record of this unit is missing, its outcome is not UPHELD, or the digest it read is
-    not the unit's."""
+def keyed_to(r: dict, clause: str, e: dict) -> bool:
+    """Is refuter record `r` a record of the entry `e` of `clause`? By THE KEY (design point 3): its clause, its digest and
+    its order (a record that states none read the first unit of its text, order 0), never by the unit's label, which a
+    repair before it in the clause moves (kb/Work PB6001: §1985:XIII.3.10.7's p3 became p2 when its HTML table became a
+    table unit, its words and its record unchanged). A block's record names its clause as its `unit`."""
+    return (r.get("clause", r.get("unit")) == clause and r.get("digest") == e.get("digest")
+            and r.get("order", 0) == e.get("order", 0))
+
+
+def record_refusal(e: dict, u: Unit | None, clause: str, records) -> str | None:
+    """Why the refuter record a `restates` or `not-a-rule` entry `e` of `clause` names does not let it stand, or None: the
+    entry names no record file, the file or the record of this unit (`keyed_to`) is missing, its outcome is not UPHELD,
+    or the digest it read is not the unit's. `records(path)` reads a record file (`Context.records`)."""
     path = e.get("refuted")
     if not path:
         return "it names no refuter record (`refuted`: the JSON-lines file of an independent refuter's pass)"
-    recs = ctx.records(path)
+    recs = records(path)
     if recs is None:
         return f"its refuter record file {path} is not in the tree"
-    mine = [r for r in recs if r.get("unit") == e.get("unit") and r.get("digest") == e.get("digest")]
+    mine = [r for r in recs if keyed_to(r, clause, e)]
     if not mine:
         return f"{path} holds no record of this unit at digest {e.get('digest')}"
     if mine[-1].get("outcome") != UPHELD:
@@ -635,7 +644,7 @@ def audit(units: dict[str, list[Unit]], blocks: dict[str, dict], label, kinds, c
                     why = class_refusal(cls, u, clause, ctx) or (guard_refusal(u, ctx) if cls != "lead-in" else None)
                     if why:
                         out.append(f"{where}: not-a-rule ({cls}) refused: {why}")
-                if why := record_refusal(e, u, ctx):
+                if why := record_refusal(e, u, clause, ctx.records):
                     out.append(f"{where}: {d} refused: {why}")
         out += [f"{label(clause)} {u.label}: a unit with no disposition entry (digest {u.digest}); regenerate the "
                 f"manifest, which enters it pending"
@@ -650,13 +659,12 @@ def class_counts(blocks: dict[str, dict], ctx: Context) -> dict[str, tuple[int, 
     """Per `not-a-rule` class, (dispositions, UPHELD records keyed to them): the audit holds the two equal (decision
     PB5448 point 3), so a record can never stand for two units nor a unit for none."""
     out: dict[str, list[int]] = {c: [0, 0] for c in NOT_A_RULE_CLASSES}
-    for es in entries_of(blocks).values():
+    for clause, es in entries_of(blocks).items():
         for e in es:
             if e.get("disposition") == NOT_A_RULE and e.get("class") in out:
                 out[e["class"]][0] += 1
                 recs = ctx.records(e.get("refuted") or "") or []
-                out[e["class"]][1] += any(r.get("unit") == e.get("unit") and r.get("digest") == e.get("digest")
-                                          and r.get("outcome") == UPHELD for r in recs)
+                out[e["class"]][1] += any(keyed_to(r, clause, e) and r.get("outcome") == UPHELD for r in recs)
     return {c: (n, k) for c, (n, k) in out.items()}
 
 
@@ -673,13 +681,21 @@ def block_refusals(declared: dict[str, dict], ctx: Context, required: bool,
     for clause, info in declared.items():
         if info.get("disposition") != "not-rules" or (not required and not info.get("refuted")):
             continue
-        why = record_refusal({"unit": clause, "digest": info.get("digest"), "refuted": info.get("refuted")}, None, ctx)
-        now = (measured or {}).get(clause, {}).get("digest")
-        if why is None and now is not None and now != info.get("digest"):
-            why = f"its text now digests to {now}, not the {info.get('digest')} its record read: refute it again"
-        if why:
+        if why := block_refusal(clause, info, ctx.records, (measured or {}).get(clause, {}).get("digest")):
             out.append(f"{clause}: not-rules refused: {why}")
     return out
+
+
+def block_refusal(clause: str, info: dict, records, now: str | None) -> str | None:
+    """Why the `not-rules` block `info` of `clause` does not stand on its refuter record, or None: the record is missing or
+    not UPHELD (`record_refusal`, the record keyed by the clause and the block's digest), or the text now digests to
+    `now`, not the digest its record read. THE ONE TEST of a block's record: the dispositions audit (`block_refusals`)
+    and the prose-holes measure (catalog_prose_holes, kb/Work PB6001) both ask it."""
+    why = record_refusal({"unit": clause, "digest": info.get("digest"), "refuted": info.get("refuted")}, None, clause,
+                         records)
+    if why is None and now is not None and now != info.get("digest"):
+        why = f"its text now digests to {now}, not the {info.get('digest')} its record read: refute it again"
+    return why
 
 def regenerated(units: dict[str, list[Unit]], blocks: dict[str, dict], title) -> dict[str, dict]:
     """`blocks` (a `paragraph-blocks` map) after a regeneration over `units`: every unit with no entry is entered
