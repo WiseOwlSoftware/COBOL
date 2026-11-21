@@ -2,76 +2,132 @@
  "rule-id": "1985-GR-X.1.3.8.2-3",
  "rule-digest": "fbd13b0eea17",
  "read": {
-  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
-  "slice": "1985-m03",
+  "pin": "5be31a9ac58733517cba3f34eaea631b1396cf54",
+  "slice": "1985-f01",
   "sources": {
-   "reader": "50301e8c2c28f44e33bbedb50d51e6fb23077f024502d63116148dae1b74f56e",
-   "refuter": "85756383dc96cad17f5ef5a81cd1be1d0e43ad5574f8ba91649d778bd3bb79c3"
+   "reader": "b500843464897e5752f067943f9385ed1f109e039e870794dae28f673f0fa3d8",
+   "refuter": "159dbaa0fb5e65d4090966a8ab6cd1830ed71e8809c1a258c7a5c4a958a8837c"
   },
   "imported": {
-   "reader": "47c7bcd6b7d4c152b36dab26b7341b55cac8128bd270680bf2ec19fade803b78",
-   "refuter": "af7dbbeeb734ee11708fed8dfc1f91da52a53c42da2d0e19fa3a12b09a2cdbe4"
+   "reader": "00687276eac7ab5351a2e877b69c613fd802b8c7701f370d5d9d4af5ed82f088",
+   "refuter": "f741fb9a51771e5676bc8b3f5d888c2d2509295be640d83fd7d9b7d6c8ab58cd"
   }
  },
  "reader": {
   "rule-id": "1985-GR-X.1.3.8.2-3",
   "verdict": "CONFORMS",
-  "requirement": "When qualification leaves several objects, at most one may be local to B; then B's own object wins, else the object of A, else that of the next containing program outward, for data-names, condition-names, file-names, record-names and report-names.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#NearestDeclaring; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#NearestDeclaringData; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#NearestDeclaringConditions; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#NearerConditionNameHides; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Declarations.cs#NearerFileNameHides; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Files.cs#HideShadowedFiles; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Reports.cs#InheritReport; src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#DropShadowed",
+  "requirement": "At --std 85, when several objects are identified: more than one local to B is an ambiguity to refuse; otherwise B's own object wins whatever its class (X.1.3.8), else the nearest container that declares it (A, then A's containers in turn), and several objects in that nearest container remain ambiguous.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.NameSet.cs#NearestInNameSet; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.NameSet.cs#DeclaredNearerInNameSet; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#NearestDeclaringData; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#NearestDeclaringConditions; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#NearerNameOfAnotherClassHides; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Declarations.cs#DeclaredNearerThan; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritGlobalSubtree; src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#DropShadowed; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#NamesHidingDataItem; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ConditionNames.cs#ConditionNameHiddenByNearerDataItem; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Declarations.cs#ReportNameHiddenBy; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#NearerDataItemHidesConditions",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData",
-    "switches": "hands session.Edition to the unit's DataBinder (EditionContext): diagnostics wording and edition-gated clause checks; the inheritance seed (InheritStep.Seed) and InheritContainerGlobalData take no edition",
-    "same-arm-as-latest": true
+    "site": "src/WiseOwl.Cobol.Editions/EditionInfo.cs#ConditionNamesShareTheDataNameSet",
+    "switches": "Year < 2002: condition-names, data-names and record-names are one disjoint set, so a level-88 and a data item of one tier reached by the same reference are counted together (COBOL-85 only)",
+    "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#ClauseOperandsTakeImplicitQualifiers",
-    "switches": "below 2002 a data-description clause operand (ODO, KEY, RENAMES) takes no implicit qualifiers; not on the procedure-division reference path these rules govern",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ConditionDataNameSet.cs#ConditionNamesRivalingData",
+    "switches": "counts the rival condition-names beside data items at 85; returns 0 at 2002+",
     "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ConditionDataNameSet.cs#DataItemsRivalingCondition",
+    "switches": "counts the rival data items beside a level-88 at 85; returns 0 at 2002+",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.NameSet.cs#NearestInNameSet",
+    "switches": "nothing: the name-set resolver is edition-free; the tier rules are the same code at 85 and 2023",
+    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep -n 'Edition|CobolVersion|Cobol1985|Cobol85|IsAtLeast|DialectBehavior' over InheritStep.cs, SymbolTable/SymbolTable.cs, SymbolTable.Reports.cs, SymbolTable.DataNameCandidates.cs, SymbolTable.Declarations.cs, SymbolTable.Files.cs, SymbolTable.IndexNames.cs, SymbolTable.ConditionNames.cs, ReportScope.cs and DataBinder.cs: TryResolve, TryResolveUnqualified, NearestDeclaring, NearestDeclaringData, NearestDeclaringConditions, NearerConditionNameHides, InheritGlobalSubtree and InheritReport consult no edition; the only hits are message citations (Edition.Edition.Cite), SumCounterOperand85 and ClauseOperandsTakeImplicitQualifiers",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witnesses cover data-names, condition-names, index-names and report entries; the probes add the two-local refusal, file-names, a two-level outward walk and global sum counters",
+  "edition-search": "grep for Edition./Year/DialectLevel/1985 in SymbolTable.NameSet.cs, SymbolTable.Declarations.cs, InheritStep.cs, SymbolTable.Files/Configuration/Constants/IndexNames.cs, ReportScope.cs: only comments name 1985; the edition reaches these rules only through the 85 disjoint-set counting",
+  "behaviour-differs-by-edition": "yes, narrowly: at 85 a level-88 and a data item of B's own tier are one disjoint set (counted together); the nearest-tier choice is the same code at 85 and 2023",
+  "witnesses-cover": "part: witnesses cover own report/file/data/condition/index names hiding a global of another class; not exercised there: two locals plus a global (ambiguity), two globals of A (ambiguity), A's non-global skipped for C's global (b2), an own file hiding a global file at run time, a program inside B seeing the outer global index past B's non-global one",
   "probes": [
    {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/g3-two-local.cob",
+    "printed": "COBOL1639 'X' ... 3 declarations share the name",
+    "expected": "refused: two of the objects are local to B (GR3 first sentence)"
+   },
+   {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scope1.cob",
-    "printed": "I X=MID / I Y=INY / I YG=OUY / I XG=OUX / I Z=OUZ / I C=FALSE / I CCV=TRUE / J X=MID Z=OUZ / J C=FALSE / 3 X=OUX / 3 C=TRUE / O REC=IREC1 / O Y=NEW N=4 V=4AB**",
-    "expected": "B's own Y (GR3a); unqualified X and C in SCOPEI/SCOPEJ the middle program's (GR3b1), in SCOPE3 the outer's; Y OF G, X OF G, C OF CV and Z the one object qualification identifies (GR1, GR2); the global FD and its record written from the contained program; the ODO record and reference modification of a global group altered from the contained program"
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/g3-local-and-global-qualified.cob",
+    "printed": "B B / XA FALSE / A / after B: A",
+    "expected": "B's own R.X and XA are referenced (GR3a); A's X untouched"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scopeamb.cob",
-    "printed": "COBOL1639 at 21 only: 'X' does not uniquely identify a data item - 3 declarations; X OF L1 and X OF G1 accepted",
-    "expected": "two objects local to B is refused (GR3: no more than one of them can have a name local to program B); qualified references identify one object"
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/g3-two-globals-in-a.cob",
+    "printed": "COBOL1639 'X' 2 declarations (X OF R2 accepted)",
+    "expected": "refused: two objects of A identified, GR3b1 selects no single one"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scoperef.cob",
-    "printed": "COBOL1639 at 12 'IG' not defined (outer naming a contained program's GLOBAL item); 22 'NG' not defined (non-global item of the container); 23 'X' does not uniquely identify (two GLOBAL X in the container); 30 'IG' not defined (sibling's GLOBAL item)",
-    "expected": "all four refused: the set is B's names plus the containers' GLOBAL names only (GR1); two objects in A with none in B is not unique (GR3b1); a program cannot reference names declared in a program it contains (X.1.3.8.2)"
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/g1-sets.cob",
+    "printed": "X=A W=c V=v / Q=1 Q1=1 Q2=2 / TE=Z DT=PQ| / DT4=PQ  |",
+    "expected": "X is A's (GR3b1), W is C's because A's W is not global (GR3b2), V is C's; Q OF R2 is A's global; A's global index IX and ODO table DT work in B"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/g3-own-index-vs-global-index2.cob",
+    "printed": "B: bbbbQ / KC: y / B after: Q / C IX: y",
+    "expected": "B's own IX is B's; in the program inside B, IX is the outermost global IX (B's IX is not global)"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scope2c.cob",
-    "printed": "I TOT=77 / I TOTCFG=00 / O TOT=04; sc2cout.dat=OUT, sc2cin.dat=INN",
-    "expected": "GR3a: B's own TOT and B's own FD F hide the container's global sum counter and GLOBAL FD F of the same spelling for an unqualified reference"
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/g3-own-data-hides-global-file.cob",
+    "printed": "COBOL1639 'F' is not defined as a file",
+    "expected": "refused: OPEN F in B names B's data item F (1985 X.1.3.8)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/g3-own-file-vs-global-file.cob",
+    "printed": "B wrote g3ninner.dat (III); outer OPEN INPUT F then status 35 (outer file never written)",
+    "expected": "B's own F is B's file; outer F untouched"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scope3.cob",
-    "printed": "I TOT=55 / I TOTCFG=04",
-    "expected": "middle program's GLOBAL TOT is nearer for unqualified TOT (GR3b1); TOT OF CFG OF R1 the outer's sum counter (GR1/GR2)"
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/g3-own-cond-hides-global-data.cob",
+    "printed": "COND",
+    "expected": "B's level-88 K is referenced"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/g3-own-cond-hides-global-data-move.cob",
+    "printed": "COBOL1639 'K' is a condition-name ... identifies no data item",
+    "expected": "refused: K in B names B's condition-name, not A's global data item"
+   },
+   {
+    "class": "c",
+    "file": "conformance-suite X.1.3.8@1985 pb5973/pb5975/pb5976 witnesses, g85_bf32_02, pb1047_nearest_declaring_element at 85",
+    "printed": "every .out case MATCH; every refusal case refused (COBOL1757/COBOL1639/COBOL0851)",
+    "expected": "as the witnesses record"
    }
   ],
   "citations": [
    {
+    "cite": "§1985:X.1.3.8.2 GR1",
+    "check": "OK  §1985:X.1.3.8.2 GR1  (1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:X.1.3.8.2 GR2",
+    "check": "OK  §1985:X.1.3.8.2 GR2  (1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names)  the text is in GR2"
+   },
+   {
     "cite": "§1985:X.1.3.8.2 GR3",
-    "check": "OK  §1985:X.1.3.8.2 GR3  (python scripts/spec/cite.py --check \"§1985:X.1.3.8.2 GR3\" \"If the name is declared in program B, the object in program B is the referenced object\")"
+    "check": "OK  §1985:X.1.3.8.2 GR3  (1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:X.1.3.8",
+    "check": "OK  §1985:X.1.3.8  (1.3.8 Scope of Names)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:X.1.3.8.3",
+    "check": "OK  §1985:X.1.3.8.3  (1.3.8.3 Conventions for Index-Names)  the text is in the clause"
    }
   ],
-  "notes": "3a (I Y=INY, own FD F, own TOT=77), 3b1 (I X=MID, I C=FALSE, I TOT=55 from the middle program), 3b2 (3 X=OUX, J Z=OUZ) and the 'no more than one local' refusal (scopeamb, 3 declarations) all hold. The inheritance-time hiding of a sum counter by B's own data-name gives the right 3a answer for an unqualified reference; its error for a QUALIFIED one is GR1's finding.",
+  "notes": "GR3a, b1 and b2 each picked the right object at run time and both ambiguity forms were refused. Nit: when B's own non-file name hides a global file-name, the OPEN refusal says no SELECT or file description entry in this source element gives the name, without naming the hider (the report verbs now name it); the program is still correctly refused. The same probes at --std 2023 (g1-sets, g1-local-qualifier-elem, g3-local-and-global-qualified, g3-two-globals-in-a, g1-cond-global-qualified-beside-own-data) print the same results.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -83,19 +139,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-X.1.3.8.2-3",
-  "refutation": "OVERTURNED",
+  "refutation": "UPHELD",
   "classes": "b,c,d",
-  "evidence": "The reader probed same-class duplicates (data/data, condition/condition, file/file, sum counter/data) and the B-data vs A-file pair, but not the report-name class against another class. §1985:X.1.3.8 makes the rule cross-class: 'a program's reference to such a name, even when it is a different type of user-defined word, is to the object which that program describes', and GR3a 'If the name is declared in program B, the object in program B is the referenced object'. Probe xrpt1.cob (container: FD RPF GLOBAL REPORT IS R1; RD R1 GLOBAL; contained XR1I: 01 R1 PIC X VALUE 'L'; INITIATE R1 / GENERATE DET / TERMINATE R1): --std 85 EXIT 0, prints 'I R1=L / I DONE' and xr1.rpt holds '5': the INITIATE R1 in XR1I reached the container's report though XR1I's R1 is a data-name (expected: refused, R1 there names XR1I's data item). Probe xrpt2.cob (container 01 XR PIC X GLOBAL; contained XR2I declares its own RD XR; MOVE 'B' TO XR in XR2I): --std 85 EXIT 0, prints 'I XR=B / O XR=B': the MOVE wrote the container's GLOBAL data item though XR in XR2I names XR2I's report (expected: refused). Control xfile1.cob (container GLOBAL FD F, contained 01 F; OPEN OUTPUT F): refused COBOL1639 at 22 and 25, so the data/file pair is right (PB5786 landed) and only the report-name arm is missing. Code: SymbolTable.Reports.cs#InheritReport hides an inherited report only when _visibleReports already holds the spelling (`if (!_visibleReports.TryAdd(Key(report.Name), report)) return false;`), i.e. only an own REPORT of the spelling hides it, never an own data-, condition- or file-name; and SymbolTable.cs#NearestDeclaringData asks NearerEntryHides, NearerConditionNameHides and Declarations.NearerFileNameHides but no nearer report-name. At --std 2023 both probes behave identically (xrpt1-002, xrpt2-002: EXIT 0, same output), cause b. kb/Work: PB5786 (landed, file-name arm) lists 'an own index-name or report-name against a container's GLOBAL data-name or file-name' as an unprobed lead; no note owns it. Citations: OK §1985:X.1.3.8 ('even when it is a different type of user-defined word'); OK §1985:X.1.3.8.2 GR3a ('If the name is declared in program B, the object in program B is the referenced object'); OK §1985:IV.4.2.2.1.1 ('condition-names, data-names, and record-names' and report-names are separate disjoint sets, so only the scope rule decides).",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Reports.cs#InheritReport: no edition switch; hides an inherited report-name only by an own report of the spelling",
-   "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#NearestDeclaringData: no edition switch; has no nearer-report-name arm"
-  ],
-  "corrected": "NOT CONFORMING (under-rejects, wrong-answer): a contained program's own data-name hides the container's GLOBAL report-name of the same word, and its own report-name hides the container's GLOBAL data-name, by §1985:X.1.3.8 and X.1.3.8.2 GR3a; the compiler lets INITIATE/GENERATE/TERMINATE R1 drive the container's report and lets MOVE ... TO XR write the container's item. Cause b (same at --std 2023). Repros E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m03/src/xrpt1.cob and xrpt2.cob."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "Refuter upheld by the Mythos session: by §1985:X.1.3.8 and GR3a a contained program's own R1 data item is the referenced object, yet INITIATE R1 reaches the container's GLOBAL report (xrpt1.cob exit 0) and MOVE to XR writes the container's GLOBAL item (xrpt2.cob) at --std 85: a wrong answer (re-run at 832bc39c61)",
-  "ref": "kb/Work/PB5973.md"
- },
- "work": "PB5973"
+  "evidence": "Tier probes at --std 85 (the same output at --std 2023 where the program is legal there) under E:/COBOL-coord/scratch/reread-1985-fixed/out/refute-1985-f01/src/: g-local-beats-two-globals printed 'b 1 2' (one local plus two of A's globals: B's wins and is not an ambiguity, GR3a); g-local-cond-beats-two-globals printed B-COND (B's level-88 wins over A's two data items); g-b1-beats-two-outer printed 'a 2' (A's one global beats two of the outer program's, GR3b1); g-b1-index printed 'B: c / A: c / O: o' (index-names follow the data-name rules, X.1.3.8.3: B's IX is A's, the outer IX untouched); g-b2-chain printed O1 (A declares X without GLOBAL, the outer O and outermost OO each declare a global X: the nearest valid one wins); g-own-index-hides-global-data refused COBOL1637 (MOVE 7 TO IX in B names B's index-name, not A's global data IX); g-own-data-hides-global-index refused COBOL2112 (SET K UP BY 1 names B's data K, not A's global index K); g-own-data-global-cond-if refused COBOL2318 (IF X names B's data X, not A's global 88 X); g-outer-cond-own-data-unqual printed 'c' then A-COND. Reading stated for g-b2-chain: when A declares the name without GLOBAL, b1 has no object of A among the identified ones, and b2's 'until a single valid name has been found' carries the search outward, so O's X is right. Nit outside this rule: the COBOL2326 text for SET K TO 3 (K an integer data item) quotes VI.6.23.3 SR2 though K satisfies SR2; the refusal itself is right because the 1985 general rules forbid integer-1 when identifier-1 is not an index data item (cite.py: OK §1985:VI.6.23.4 GR3c). cite.py: OK §1985:X.1.3.8.2 GR3 (until a single valid name has been found).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

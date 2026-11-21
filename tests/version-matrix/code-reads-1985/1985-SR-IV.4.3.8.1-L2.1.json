@@ -2,104 +2,203 @@
  "rule-id": "1985-SR-IV.4.3.8.1-L2.1",
  "rule-digest": "eace164249d2",
  "read": {
-  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
-  "slice": "1985-m01",
+  "pin": "5be31a9ac58733517cba3f34eaea631b1396cf54",
+  "slice": "1985-f01",
   "sources": {
-   "reader": "7dca8738df1eef999039af91f9e658b8f88eab2f9cb9b139e01adbdc4f6035f3",
-   "refuter": "0afe07775dfc140e2155ea435ec895ea8284ad18ecc3a53a279bb67c78e15ef2"
+   "reader": "b500843464897e5752f067943f9385ed1f109e039e870794dae28f673f0fa3d8",
+   "refuter": "159dbaa0fb5e65d4090966a8ab6cd1830ed71e8809c1a258c7a5c4a958a8837c"
   },
   "imported": {
-   "reader": "cd207896211f13f50505ec08a0410f123c08c3e289ca5a6db2b1cd8c9b9220a9",
-   "refuter": "e4bf68e42d77fdbb99ce7e3314e4d142478b34a8411e1e48e65d850f7d260d1e"
+   "reader": "7538f87c1a4d98886a2adf4afd0cb6e31cd3004b58786664508cf07509349801",
+   "refuter": "eb0366f7161b473afba0bae43032afafbd9e21dba6fda533f43a21152eb05847"
   }
  },
  "reader": {
   "rule-id": "1985-SR-IV.4.3.8.1-L2.1",
   "verdict": "CONFORMS",
-  "requirement": "Every explicitly referenced nonunique user-defined name (data-name, condition-name, file-control and entry-clause operand, procedure-name, special register) must be made unique by its written qualifiers; a reference whose qualifiers leave zero or several candidates is refused.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#DataNameCandidates; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#QualifierChainMatchesFrom; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#QualifierWalk; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#DataItemNamed; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ReportUnidentified; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ResolveIndexName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionOf; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Procedures.cs#ProcedureNamed; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectAmbiguousProcedureName; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#IdentifyEntryClauseOperand",
+  "requirement": "At --std 85 every explicitly referenced nonunique user-defined name (data-name, record-name, condition-name with data-names, condition-names and record-names counted as one disjoint set, index-name, sum counter, file-qualified record items, clause operands such as OCCURS DEPENDING ON, RECORD KEY, SORT KEY and READ KEY) must be refused unless its qualifiers single out exactly one declaration; a reference whose qualifiers do reach exactly one must bind to it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ResolveIndexName; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ConditionDataNameSet.cs#ConditionNamesRivalingData; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ConditionDataNameSet.cs#DataItemsRivalingCondition; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#QualifierChainMatches; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionOf; src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#Run",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous",
-    "switches": "Edition.Cite: only the citation text of the COBOL1639 ambiguity message (1985 IV.4.3.8.1 vs 2023 8.4.2.2.3 SR1); the verdict (one survivor resolves, several is an error) is the same code",
-    "same-arm-as-latest": true
+    "site": "src/WiseOwl.Cobol.Editions/EditionInfo.cs#ConditionNamesShareTheDataNameSet",
+    "switches": "Year < 2002: condition-names, data-names and record-names are one disjoint set, so a level-88 and a data item of one tier reached by the same reference are counted together (COBOL-85 only)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ConditionDataNameSet.cs#ConditionNamesRivalingData",
+    "switches": "counts the rival condition-names beside data items at 85; returns 0 at 2002+",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ConditionDataNameSet.cs#DataItemsRivalingCondition",
+    "switches": "counts the rival data items beside a level-88 at 85; returns 0 at 2002+",
+    "same-arm-as-latest": false
    },
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#ClauseOperandsTakeImplicitQualifiers",
-    "switches": "DialectLevel >= 2002: from 2002 a data description entry clause operand (ODO data-name-1, SAME AS, OCCURS KEY, RENAMES) takes the groups above its subject as implicit qualifiers; below 2002 the whole scope's candidates are counted, so a name declared beside the subject and in another record must be qualified",
+    "switches": "DialectLevel >= 2002: a data description clause operand (ODO DEPENDING ON, SAME AS, OCCURS KEY, RENAMES) takes the subject's groups as implicit qualifiers; at 85 every candidate of the scope is counted",
     "same-arm-as-latest": false
    },
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ResolveIndexName",
-    "switches": "ConstructRegistry.Check(QualifiedIndexName2002): a qualified index-name is refused at 85 (COBOL0900); 1985's qualification formats 1-6 name no index-name and VI.5.8.3 SR14 makes index-name-1 unique in the program",
+    "switches": "ConstructRegistry qualified-index-name-2002 gate: a qualified index-name is refused at 85 (COBOL0900), as X.1.3.8.3 says index-names cannot be qualified",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectAmbiguousProcedureName",
-    "switches": "Edition.Cite: only the message text of COBOL2121/COBOL2122; the refusal is the same code",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous",
+    "switches": "Edition.Cite chooses the 1985 or 2023 citation text only; the verdict is the same code",
     "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/UserWordKind.cs#MayBeOneWord",
+    "switches": "at 85 a level-88 and a data item may share a spelling (one disjoint set) instead of COBOL2692 at 2002+",
+    "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep for DialectLevel, Edition.Year, EditionContext, CobolVersion, Permissive and ConstructRegistry in NameResolution.cs, SymbolTable.DataNameCandidates.cs, SymbolTable.IndexNames.cs, SymbolTable.Procedures.cs, SymbolTable.ConditionNames.cs, QualifiedNameClasses.cs, OccursKeyResolvePass.cs, OdoResolvePass.cs, StatementValidation.cs, DataBinder.cs#UniqueOrReportAmbiguous; the grammar rules qualification, dataReference, procedureName and reportGroupReference carry no version predicate",
-  "behaviour-differs-by-edition": "yes: at 85 a data description entry clause operand (ODO counter, OCCURS KEY) gets no implicit qualification, so a name also declared in another record must be qualified (refused unqualified at 85, accepted at 2002); qualified index-names are refused at 85",
-  "witnesses-cover": "part: pb919 covers an ambiguous index-name; data-names, condition-names, file-control keys, entry-clause operands and procedure-names are not exercised",
+  "edition-search": "grep for Edition./DialectLevel/ConditionNamesShareTheDataNameSet/ConstructRegistry over Binding/SymbolTable and the seed sites",
+  "behaviour-differs-by-edition": "yes: at 85 a level-88 and a data item reached by one reference are one ambiguity (2023 refuses the declaration pair with COBOL2692); at 85 an ODO operand in the subject's own group is not implicitly qualified (2023 accepts s1-odo-same-group); at 85 an index-name cannot be qualified",
+  "witnesses-cover": "part: witnesses cover the level-88/data-name disjoint set, a switch condition-name and a duplicated index-name; not exercised there: insufficient qualification of a data-name or condition-name, file-name qualifiers, clause operands (ODO, RECORD KEY, SORT KEY, READ KEY), sum counters across reports",
   "probes": [
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/qneg.cob",
-    "printed": "exit 65, ten COBOL1639: X (2 match), X OF G (2 match), X OF R1 OF G (order), X OF T OF R1 (sibling not superordinate), UNIQ OF UNIQ, OK OF N OF R1 (not its conditional variable), OK (2 level-88s), FX OF GREC OF F1 (wrong file), FX (2), X OF R3 (no such qualifier)",
-    "expected": "each nonunique or misqualified reference refused (1985 IV.4.3.8.1 SRL2.1, SRL2.4)"
-   },
-   {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/kneg.cob",
-    "printed": "exit 65: COBOL1639 RECORD KEY 'KY' ... 3 declarations; COBOL1639 FILE STATUS 'FS' ... 2 declarations; cascade COBOL0864 READ KEY IS KYOFIREC",
-    "expected": "nonunique unqualified file-control operands refused (SRL2.1)"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/ONEG1.cob",
-    "printed": "85: exit 65 COBOL1639 OCCURS DEPENDING ON data-name-1 of 'T' 'CNT' ... 2 declarations; --std 2002: exit 0",
-    "expected": "1985 has no implicit qualification of entry-clause operands (IV.4.3.8.1 excepts only redefinition), so CNT must be qualified; 2002 added implicit qualifiers"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/ONEG2.cob",
-    "printed": "85: exit 65 COBOL1639 OCCURS ASCENDING KEY IS data-name-2 of 'T' 'K' ... 2 declarations; --std 2002: exit 0",
-    "expected": "an unqualified key also declared in another record must be qualified at 85"
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-qual-insufficient.cob",
+    "printed": "COBOL1639 'X OF A' does not uniquely identify a data item - 2 declarations",
+    "expected": "refused: X OF A reaches A.B.X and A.C.X"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/pneg1.cob",
-    "printed": "exit 65: COBOL2121 PERFORM 'P1': the reference is not unique ... 2 times (S1, S2)",
-    "expected": "unqualified P1 from a third section is ambiguous (SRL2.1/SRL2.6)"
-   },
-   {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/rwq.cob",
-    "printed": "exit 0: 0000000001 0000000001 0000000001 0000000002; with PAGE-COUNTER unqualified: COBOL2729 (SRL2.10)",
-    "expected": "PAGE-COUNTER/LINE-COUNTER OF/IN report-name resolve (format 5, IN and OF equivalent)"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/ineg.cob",
-    "printed": "exit 65: COBOL6863 index-name 'IX' ... must be a unique word (1985 VI.5.8.3 SR14); COBOL1639 index-name reference 'IX' ... 2 declarations; COBOL0900 a qualified index-name requires COBOL-2002",
-    "expected": "a duplicated index-name is refused and cannot be qualified at 85"
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-qual-ok.cob",
+    "printed": "1 2 3 3 / P Q P / 9",
+    "expected": "each qualified reference binds to its one item: 1 2 3 3, P Q P, 9"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/qpos.cob",
-    "printed": "exit 0: AAAA BBBB / CCCC DDDD / OK-R1-A OK-R1-B OK-R2-C OK-R2-D / 78 / 123 / CCCC / UNIQ / ZZZZZ / FFF12GGG34",
-    "expected": "every reference made unique by its qualifiers resolves to its own item: full and gapped chains, IN and OF mixed, record-name as data-name-1 and as qualifier, file-name qualifier, condition-names qualified by their conditional variable and its groups, subscripted qualified items, an unqualified unique name"
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-group-vs-elem.cob",
+    "printed": "COBOL1639 'Y' ... 2 declarations share the name",
+    "expected": "refused: Y names a group and an elementary item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-cond-qual-insufficient.cob",
+    "printed": "COBOL1639 condition-name 'K OF R1' ... 2 declarations match",
+    "expected": "refused: K OF R1 reaches two level-88s"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-cond-qual-ok.cob",
+    "printed": "A b c d 2",
+    "expected": "A b c d and G=2 after SET K OF G TO TRUE"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-odo-ambig.cob",
+    "printed": "COBOL1639 OCCURS DEPENDING ON ... 'N' ... 2 declarations",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-odo-qual.cob",
+    "printed": "ABC| / ABCD|BCD|",
+    "expected": "N OF C governs: ABC| then ABCD|BCD|"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-odo-same-group.cob",
+    "printed": "85: COBOL1639 'N' 2 declarations; 2023: compiles and runs",
+    "expected": "85 refuses: 1985 has no implicit-qualifier exception for data description operands"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-subscript-ambig.cob",
+    "printed": "COBOL1639 'N' ... 2 declarations",
+    "expected": "refused: a subscript N is nonunique"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-file-qual.cob",
+    "printed": "AAABBB",
+    "expected": "X OF FA and X IN RB OF FB bind to the two records: AAABBB"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-file-ambig.cob",
+    "printed": "COBOL1639 'X' 2 declarations",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-reckey-ambig.cob",
+    "printed": "COBOL1639 RECORD KEY 'K' ... 2 declarations",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-reckey-qual2.cob",
+    "printed": "two / INV9",
+    "expected": "K OF RA keyed read finds K02 -> two; K09 -> INVALID KEY"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-readkey-ambig.cob",
+    "printed": "COBOL1639 'K' 2 declarations",
+    "expected": "refused: READ ... KEY IS K"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-sortkey-ambig.cob",
+    "printed": "COBOL1639 'K' 2 declarations",
+    "expected": "refused: SORT KEY K"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-index-ambig-qual.cob",
+    "printed": "COBOL6863 duplicate index-name (VI.5.8.3 SR14); COBOL0900 qualified index-name requires COBOL-2002",
+    "expected": "both refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-index-unique.cob",
+    "printed": "0506 / HIT",
+    "expected": "0506 HIT"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-report-sum.cob",
+    "printed": "+0010 +0005",
+    "expected": "TOT OF R1 = 10, TOT IN R2 = 5"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-fixed/out/work-1985-f01/src/s1-report-sum-ambig.cob",
+    "printed": "COBOL2145 'TOT' ambiguous - 2 entries establish a sum counter",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "conformance-suite IV.4.3.8@1985 pb5972-*-85 at 85 and 2023",
+    "printed": "85: one-set MATCH, unqualified condition/data/switch refused COBOL1639; 2023: all COBOL2692",
+    "expected": "85 counts level-88 and data item as one set"
    }
   ],
   "citations": [
    {
     "cite": "§1985:IV.4.3.8.1 SRL2.1",
-    "check": "OK  §1985:IV.4.3.8.1 SRL2.1  the text is in SRL2.1 (quoted: uniqueness must be established through a sequence of qualifiers)"
+    "check": "OK  §1985:IV.4.3.8.1 SRL2.1  (4.3.8.1 Qualification)  the text is in SRL2.1"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.1 SR3",
+    "check": "OK  §1985:IV.4.3.8.1 SR3  (4.3.8.1 Qualification)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.1.1",
+    "check": "OK  §1985:IV.4.2.2.1.1  (4.2.2.1.1 User-Defined Words)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:X.1.3.8.3",
+    "check": "OK  §1985:X.1.3.8.3  (1.3.8.3 Conventions for Index-Names)  the text is in the clause"
    }
   ],
-  "notes": "One verdict (UniqueOrReportAmbiguous / DataItemNamed) counts the survivors of the qualifier walk; every probed operand class refuses an ambiguous or misqualified reference (COBOL1639; procedure-names COBOL2121; counters COBOL2729). The 85 arm of ClauseOperandsTakeImplicitQualifiers is right for 1985, whose only exception is redefinition. Minor, not a verdict change: after a refused RECORD KEY a cascade COBOL0864 prints the glued text 'KYOFIREC'.",
+  "notes": "Every class of nonunique reference probed is refused with COBOL1639 (COBOL2145 for sum counters) and every sufficiently qualified one binds to the right item at run time. Two citation texts are used for the one requirement (SRL2.1 in most binders, SR3 in UniqueOrReportAmbiguous, OdoResolvePass and RECORD KEY); both pass cite.py, so this is wording, not a defect.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -111,20 +210,10 @@
  },
  "refuter": {
   "rule-id": "1985-SR-IV.4.3.8.1-L2.1",
-  "refutation": "OVERTURNED",
-  "classes": "b,c,d,e",
-  "evidence": "cn4.cob (runs/cn4-001, --std 85): 01 R1. 05 F PIC 9. 88 X VALUE 1. / 01 R2. 05 X PIC 9. Every reference is qualified (IF X OF F, IF X IN R1, DISPLAY X OF R2), so each nonunique name is made unique by qualifiers as SRL2.1 asks. Printed: exit 65, cn4.cob(9,12): error COBOL2692: 'X' names two types of user-defined word in this source element (condition-name and data-name) ... (ISO §1985:IV.4.2.2.1.1 ...). The same refusal at --std 2002 and --std 2023 (runs/cn4-002, cn4-003). At 1985 condition-names, data-names and record-names are ONE disjoint set: OK  §1985:IV.4.2.2.1.1  the text is in the clause (4. condition-names, data-names, and record-names); and identical names are resolved by qualification: OK  §1985:IV.4.3.8.1  the text is in the clause; it lies in SR3 (Identical user-defined names may appear in a source program); OK  §1985:IV.4.3.8.1 SRL2.1  the text is in SRL2.1 (uniqueness must be established through a sequence of qualifiers). Code: DataBinder.cs#CheckOneTypePerWord -> SymbolTable.UserWordCensus#Record -> UserWordKinds.MayBeOneWord, whose shared group MayShareOneName is the 2023 list (constant-name, data-name, property-name, record-key-name, record-name) with no condition-name and no edition arm; only ConflictMessage's citation text varies by edition. The refusal half held: redq.cob (B OF G1 under a REDEFINES sibling, A OF RN through a 66, A OF G2 -> three COBOL1639), ord2.cob (file-name not outermost, a 77 qualified by a file, a repeated file -> four COBOL1639), pn1/pn2/pn3 (ambiguous or misqualified PERFORM, GO TO DEPENDING, ALTER, USE FOR DEBUGGING -> COBOL2121/2122/1639), rw7.cob (GENERATE D with D in two RDs -> COBOL1920), ren1.cob (qualified RENAMES operands accepted: AB A). kb/Work search (COBOL2692 with 1985, 'condition-names, data-names'): no note covers this pair (PB4996, PB5073, PB5482, PB5783, PB5800 concern other matters).",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Binding/UserWordKind.cs#MayBeOneWord: applies the 2023 8.3.2.2 sharing exceptions at every edition; 1985 set 4 also lets a condition-name share a word with a data-name or record-name",
-   "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckOneTypePerWord: the declaration-time COBOL2692 that pre-empts qualification for a condition-name spelled like a data-name",
-   "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.UserWordCensus.cs#ConflictMessage: switches only the citation text by edition, not the verdict"
-  ],
-  "corrected": "PARTIAL (rejects-legal-source, cause a: 1985 needs an arm of its own). A condition-name and a data-name of one spelling are in one disjoint set at 1985 and are legal when every reference is qualified; the compiler refuses the second declaration with COBOL2692, so the qualified references SRL2.1 admits never compile. The fix site is UserWordKinds.MayBeOneWord (an edition-aware sharing set; at 1985 set 4 = condition-name, data-name, record-name). Repro: cn4.cob; same output at --std 2023 (whether 2023's list justifies it there is not judged here). The primary rule is §1985:IV.4.2.2.1.1; this row is overturned because the program it admits is refused."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "Refuter upheld by the Mythos session: §1985:IV.4.2.2.1.1 set 4 puts condition-names, data-names and record-names in one disjoint set made unique by qualification (§1985:IV.4.3.8.1 SRL2.1); cn4.cob is refused COBOL2692 at --std 85 (re-run at 832bc39c61)",
-  "ref": "kb/Work/PB5972.md"
- },
- "work": "PB5972"
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,e",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/reread-1985-fixed/out/refute-1985-f01/src/, each aimed past the reader's set. Refused with COBOL1639, as SRL2.1 requires: r1-01-vs-05 (01 X beside G.X, unqualified X), r1-self-name-ambig (01 D / 05 D, unqualified D), r1-call-using-ambig (CALL USING X), r1-write-rec-ambig (WRITE R, R in two FDs), r1-filestatus-ambig (FILE STATUS S), r1-relkey-ambig (RELATIVE KEY RK), r1-linage-ambig (LINAGE IS LN), r1-varying-ambig (RECORD VARYING DEPENDING ON RL), r1-occkey-ambig (OCCURS ASCENDING KEY K unqualified with K in two tables; class c: 1985 has no implicit qualifier for clause operands, and VI.5.8.3 SR2 'Data-name-1 and data-name-2 may be qualified' gives the remedy), r1-rw-source-ambig / r1-rw-sum-ambig / r1-rw-control-ambig (report SOURCE, SUM addend, CONTROL operand), r1-cond-group-qual (K OF G reaching a level-88 and a data item: one disjoint set at 85). Paragraph-names (format 2): r1-para-dup PERFORM P from a third section refused COBOL2121; r1-para-own printed S1-P/S2-P/S2-P (P unqualified inside its own section, SRL2.6; P OF S2). Accepted and bound right: r1-write-rec-qual2 ABCXYZ (WRITE R OF F1 / R IN F2), r1-occkey-qual 'T1 HIT 3','T2 HIT 6' (KEY K OF E1 / K IN T2 with SEARCH ALL), r1-rw-qual-ok sum 0007 from G2, r1-qualifier-nonunique 1234 (X OF G with G itself nonunique, D OF D), r1-redef-nonunique 'ab' (REDEFINES of a nonunique X, SR3 case (2)), r1-corr '21' (MOVE CORRESPONDING subordinates are not explicitly referenced), r1-cond-group-qual-ok COND/2/COND2. cite.py: OK §1985:IV.4.3.8.1 SRL2.1; OK §1985:IV.4.3.8.1 SRL2.6; OK §1985:VI.5.8.3 SR2. Edition search: grep of Edition./DialectLevel/ConstructRegistry/Permissive over NameResolution.cs, DataBinder.cs and SymbolTable/*.cs found only the sites the reader lists, plus EditionInfo.SubscriptedClauseOperands (subscript on a clause operand, not uniqueness) and Permissive (the --permissive CLI flag, not the edition).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

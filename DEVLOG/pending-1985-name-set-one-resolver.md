@@ -39,3 +39,17 @@ no index-name: a contained program's own `INDEXED BY X` refused `X OF G`, which 
 qualification is applied over GR1's whole set before the index-name class claims the reference; an `X OF Q` that reaches nothing
 keeps the index-name refusal. The method arm keeps its own set (§2023:11.7.4 GR5 replaces, it does not rank). Golden:
 `pb5975-qualified-global-data-beside-own-index-85` (`Y=7`, `E=B`).
+
+### The four rows read again, and what the readers saw beside them
+
+The PB5972 and PB5973 fixes landed after the 1985 code reads that found them, so `code_reads.py plan --edition 1985` owed
+those four rows a re-read (1985-SR-IV.4.3.8.1-L2.1 and 1985-GR-X.1.3.8.2-1, -2, -3). They were read again on a compiler
+built at this branch's head (5be31a9ac5), one reader and one refuter, about 80 probe runs between them: all four CONFORM and the
+refuter upheld each. The reader found `SymbolTable.NearestInNameSet` to be the one edition-free resolver PB5975 asked for.
+The 1985 store now reads 1,355 confirmed, 0 contradicted, 0 owed a read, 0 owed a re-read.
+
+The review's one lead (the GENERATE arm's hider wording had no golden) has one now:
+pb5976-own-data-name-hides-global-report-generate-85. Three misleading messages the agents met are filed, not fixed here:
+PB5979 (a qualified operand printed run together, `XOFQ`), PB5980 (the file verbs do not name the declaration that hides a
+GLOBAL file, PB5976's sibling) and an addendum to PB5978 (COBOL2326 cites §1985:VI.6.23.3 SR2, which the program satisfies,
+where §1985:VI.6.23.4 GR3c is the rule it breaks).
