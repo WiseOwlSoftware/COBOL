@@ -240,7 +240,6 @@ def _write_jsonl(path: pathlib.Path, records: list[dict]) -> None:
 
 
 def main() -> int:
-    ensure_utf8()
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--edition", type=int, required=True, choices=sorted(INTO))
     ap.add_argument("--records", type=pathlib.Path, required=True, help="the campaign's records directory")
@@ -308,4 +307,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
