@@ -417,8 +417,8 @@ public sealed class ProgramTable
         var savedNonfatalDispatcher = mainExc.NonfatalDispatcher;
         mainExc.NonfatalDispatcher = inst;
         // The activation's edition answer to a broken intrinsic argument rule (kb/Work PB6019): same scope, same boundary.
-        bool savedBreachTerminates = mainExc.ArgumentBreachTerminates;
-        mainExc.ArgumentBreachTerminates = inst.ArgumentBreachTerminates;
+        bool savedCobol85 = mainExc.IsCobol85;
+        mainExc.IsCobol85 = inst.IsCobol85;
         // A GOBACK … RAISING in the MAIN program stages for no activation at all (ModuleStack.ActivatingActivation
         // is −1 for the main frame), so nothing can ever take it — §2023:14.9.18.4 GR3: "A RAISING phrase, if
         // specified, is ignored" (kb/Work PB892 Arm B).
@@ -427,7 +427,7 @@ public sealed class ProgramTable
         {
             n.Active--; n.MainActive = false; _owner.Modules.Pop();
             mainExc.NonfatalDispatcher = savedNonfatalDispatcher;
-            mainExc.ArgumentBreachTerminates = savedBreachTerminates;
+            mainExc.IsCobol85 = savedCobol85;
         }
     }
 
@@ -683,8 +683,8 @@ public sealed class ProgramTable
         exc.NonfatalDispatcher = inst;
         // The activated element's edition answers a broken intrinsic argument rule by its own text (kb/Work PB6019): a COBOL-85
         // callee terminates, a later-edition one raises EC-ARGUMENT-FUNCTION, whoever activated it.
-        bool savedBreachTerminates = exc.ArgumentBreachTerminates;
-        exc.ArgumentBreachTerminates = inst.ArgumentBreachTerminates;
+        bool savedCobol85 = exc.IsCobol85;
+        exc.IsCobol85 = inst.IsCobol85;
         // The AMBIENT checking flags are per SOURCE TEXT, not per run unit (kb/Work PB841): §2023:7.3.25.4 GR6 enables
         // checking "for the procedure division statements and procedure division headers that follow in the
         // compilation group", so the activated element's statements start from all-off and each sets only what
@@ -739,7 +739,7 @@ public sealed class ProgramTable
             exc.ActivatorExternalMask = savedActivator;
             exc.ActivatorFlowApplyCommit = savedActivatorApplyCommit;
             exc.NonfatalDispatcher = savedNonfatalDispatcher;
-            exc.ArgumentBreachTerminates = savedBreachTerminates;
+            exc.IsCobol85 = savedCobol85;
             exc.RestoreChecking(savedChecking);
             if (freshInstance)
             {

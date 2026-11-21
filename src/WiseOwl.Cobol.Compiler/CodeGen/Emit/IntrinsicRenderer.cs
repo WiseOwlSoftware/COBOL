@@ -5,6 +5,7 @@ using System.Collections.Frozen;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.CodeGen.Emit;
@@ -661,7 +662,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         NumX dec = x.Dec ? x : new NumX(num.DecOperand(x), 0, Dec: true);
         return ic.Sig.Domain is IntrinsicDomain.None
             ? dec.Expr
-            : RuntimeApi.DomainArgAdmitted(dec, ic.Sig.Domain, ic.Sig.Name, ic.Sig.DomainRule!);
+            : RuntimeApi.DomainArgAdmitted(dec, ic.Sig.Domain, ic.Sig.Name, DomainRuleCited(ic));
     }
 
     /// <summary>⛔ Argument-1 of a <see cref="ExactIntake.Wide"/> member as the EXACT WIDE value (kb/Work PB4075): the argument
@@ -678,7 +679,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         if (!x.Wide) return null;
         string value = ic.Sig.Domain is IntrinsicDomain.None
             ? x.Expr
-            : RuntimeApi.DomainWideAdmitted(x.Expr, x.Scale, ic.Sig.Domain, ic.Sig.Name, ic.Sig.DomainRule!);
+            : RuntimeApi.DomainWideAdmitted(x.Expr, x.Scale, ic.Sig.Domain, ic.Sig.Name, DomainRuleCited(ic));
         return $"{value}, {x.Scale}";
     }
 
@@ -699,10 +700,16 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// no domain takes the plain <see cref="DblOf"/>. ⛔ The screen is the ONLY place such a rule is decided: the
     /// runtime bodies carry no second test on the double (a legal argument rounded onto a bound would trip it).</summary>
     /// <remarks>INTAKE(APPROXIMATED) — binary64 from the RAW carrier, after an EXACT domain test on that carrier.</remarks>
-    private static string DomainArg(BoundIntrinsicCall ic, NumX x) =>
+    private string DomainArg(BoundIntrinsicCall ic, NumX x) =>
         ic.Sig.Domain is IntrinsicDomain.None
             ? NumericRenderer.Real(x)
-            : RuntimeApi.DomainArg(x, ic.Sig.Domain, ic.Sig.Name, ic.Sig.DomainRule!);
+            : RuntimeApi.DomainArg(x, ic.Sig.Domain, ic.Sig.Name, DomainRuleCited(ic));
+
+    /// <summary>The row's domain rule as the run-time screen's message cites it: the compilation's edition's (the 1989 amendment's
+    /// §1989:A.2.x.3 rule at COBOL-85, the COBOL-2023 rule after it), designated by <see cref="EditionInfo.CiteRule"/> (kb/Work
+    /// PB6023), so a COBOL-85 run is never sent to a 2023 clause.</summary>
+    private string DomainRuleCited(BoundIntrinsicCall ic) =>
+        EditionInfo.Of(ctx.Data.DialectLevel).CiteRule(ic.Sig.DomainRule1985!, ic.Sig.DomainRule!);
 
     /// <summary>The §2023:15.4.1 floating-math family: arguments as doubles (through the one scaled→double
     /// conversion), the result landed by <see cref="RenderFloatNative"/> through the ONE FromDouble at the landing

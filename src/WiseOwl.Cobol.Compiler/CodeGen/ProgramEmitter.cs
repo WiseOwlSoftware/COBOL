@@ -508,7 +508,7 @@ internal sealed class ProgramEmitter
             // (§1989:A.2.2 p3: the result is undefined; §1985:p.B-46 allows termination; kb/Work PB6019). The activation
             // boundary installs this for the activation; a later edition emits nothing and raises EC-ARGUMENT-FUNCTION.
             if (data.DialectLevel < 2002)
-                w.Line("bool ICobolProgram.ArgumentBreachTerminates => true;   // §1989:A.2.2 p3 / §1985:p.B-46 (kb/Work PB6019)");
+                w.Line("bool ICobolProgram.IsCobol85 => true;   // §1989:A.2.2 p3 / §1985:p.B-46 (kb/Work PB6019)");
             if (unit.Children.Count > 0 && ChainHasGlobalUse(unit))
                 EmitRunGlobalUse(unit, w);
             // The Format-2 half of §2023:14.9.49.4 GR4 (kb/Work PB369): per visible report, the selector its GENERATE

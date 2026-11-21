@@ -1362,7 +1362,9 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentExact(WiseOwl
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentReal(double v, string! function, int argument) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentScaled(System.Int128 unscaled, int scale, string! function, int argument) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentWide(WiseOwl.Cobol.Runtime.CobolWide v, int scale, string! function, int argument) -> WiseOwl.Cobol.Runtime.CobolWide
-WiseOwl.Cobol.Runtime.ICobolProgram.ArgumentBreachTerminates.get -> bool
-WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.ArgumentBreachTerminates.get -> bool
-WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.ArgumentBreachTerminates.set -> void
-static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ArgumentBreachTerminates.get -> bool
+WiseOwl.Cobol.Runtime.ICobolProgram.IsCobol85.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.IsCobol85.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.IsCobol85.set -> void
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.IsCobol85.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.EditionRule(string! rule1985, string! later) -> string!
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.EditionRule(string! rule1985, string! later) -> string!

@@ -35,7 +35,7 @@ public static partial class CobolIntrinsics
         v >= long.MinValue && v <= long.MaxValue
             ? (long)v
             : Exceptions.ExceptionState.ArgumentError(
-                $"the intrinsic integer argument {v} is outside the range the function can represent (ISO §2023:15.3)");
+                $"the intrinsic integer argument {v} is outside the range the function can represent ({Exceptions.ExceptionState.EditionRule("§1989:A.2.2 p3", "ISO §2023:15.3")})");
 
     // ── THE §2023:15.3 TYPE-6 INTEGRALITY RULE — ONE PREDICATE, ONE RAISE SITE, EVERY CARRIER (kb/Work PB1526) ──────
     // §2023:15.3 type 6: "An arithmetic expression that will always result in an integer value or an integer data item
@@ -60,7 +60,7 @@ public static partial class CobolIntrinsics
     {
         if (fractional)
             Exceptions.ExceptionState.ArgumentError(
-                $"the intrinsic integer argument {shown()} is not an integer (ISO §2023:15.3 type 6 — an integer "
+                $"the intrinsic integer argument {shown()} is not an integer ({Exceptions.ExceptionState.EditionRule("§1989:A.2.2 AR4", "ISO §2023:15.3 type 6")} — an integer "
                 + "argument shall have an integral value; DOC-A.1-124)");
     }
 
@@ -80,7 +80,7 @@ public static partial class CobolIntrinsics
             if (!CobolNum.WideningFits(unscaled, -scale))
             {
                 Exceptions.ExceptionState.ArgumentError(
-                    $"the intrinsic integer argument {unscaled}E{-scale} is outside the range the function can represent (ISO §2023:15.3)");
+                    $"the intrinsic integer argument {unscaled}E{-scale} is outside the range the function can represent ({Exceptions.ExceptionState.EditionRule("§1989:A.2.2 p3", "ISO §2023:15.3")})");
                 return 0;
             }
             return unscaled * Pow10.AsWide(-scale);
@@ -176,7 +176,7 @@ public static partial class CobolIntrinsics
     /// which will always result in an integer value must be specified") at COBOL-85, §2023:15.3 AR6 and AR14 after it.</summary>
     private static void NotAnIntegerArgument(string function, int argument, string value) =>
         Exceptions.ExceptionState.ArgumentError($"FUNCTION {function} argument-{argument} is {value}, which is not an integer"
-            + (Exceptions.ExceptionState.ArgumentBreachTerminates ? " (§1989:A.2.2 AR4)" : " (ISO §2023:15.3 AR6, AR14)"));
+            + $" ({Exceptions.ExceptionState.EditionRule("§1989:A.2.2 AR4", "ISO §2023:15.3 AR6, AR14")})");
 
     /// <summary>The scaled-operand intake for a BOUNDED (<c>long</c>) integer argument — <see cref="IntegerArg(Int128)"/>
     /// behind the §2023:15.3 type-6 integrality test. Scale 0 needs no test and takes <see cref="IntegerArg(Int128)"/> itself.</summary>
@@ -216,7 +216,7 @@ public static partial class CobolIntrinsics
         return double.IsFinite(v) && v > -9.2e18 && v < 9.2e18
             ? (long)Math.Truncate(v)
             : Exceptions.ExceptionState.ArgumentError(
-                $"the intrinsic integer argument {v} is outside the range the function can represent (ISO §2023:15.3)");
+                $"the intrinsic integer argument {v} is outside the range the function can represent ({Exceptions.ExceptionState.EditionRule("§1989:A.2.2 p3", "ISO §2023:15.3")})");
     }
 
     /// <summary>The WIDE floating-point twin of <see cref="IntegerArgReal"/> — the Int128-carrier intake for the
@@ -231,7 +231,7 @@ public static partial class CobolIntrinsics
         return double.IsFinite(v) && v > -1.7e38 && v < 1.7e38
             ? (Int128)Math.Truncate(v)
             : Exceptions.ExceptionState.ArgumentError(
-                $"the intrinsic integer argument {v} is outside the range the function can represent (ISO §2023:15.3)");
+                $"the intrinsic integer argument {v} is outside the range the function can represent ({Exceptions.ExceptionState.EditionRule("§1989:A.2.2 p3", "ISO §2023:15.3")})");
     }
 
     /// <summary>
@@ -258,7 +258,7 @@ public static partial class CobolIntrinsics
         RequireIntegralReal(v);
         if (double.IsNaN(v))
             return Exceptions.ExceptionState.ArgumentError(
-                $"the intrinsic integer argument {v} is not the value of any integer (ISO §2023:15.3)");
+                $"the intrinsic integer argument {v} is not the value of any integer ({Exceptions.ExceptionState.EditionRule("§1989:A.2.2 AR4", "ISO §2023:15.3")})");
         return v >= 1.7e38 ? Int128.MaxValue : v <= -1.7e38 ? Int128.MinValue : (Int128)Math.Truncate(v);
     }
 
@@ -318,7 +318,7 @@ public static partial class CobolIntrinsics
     {
         if (n != 0) return;
         string why = $"FUNCTION {function} was evaluated over an EMPTY argument list — the evaluation of an ALL "
-            + "subscript shall result in at least one argument (ISO §2023:15.3)";
+            + $"subscript shall result in at least one argument ({Exceptions.ExceptionState.EditionRule("§1989:A.2.2 p5", "ISO §2023:15.3")})";
         Exceptions.ExceptionState.ArgumentError(why);   // EC-ARGUMENT-FUNCTION when checking is on (fatal)
         throw new Exceptions.CobolFatalException("EC-ARGUMENT-FUNCTION", why);
     }

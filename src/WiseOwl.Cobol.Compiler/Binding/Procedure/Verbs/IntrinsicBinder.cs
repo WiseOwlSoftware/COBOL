@@ -1216,16 +1216,20 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     {
         string rule = sig.Name == "UPPER-CASE" ? "ISO §2023:15.97.2 / §2023:15.97.4 r2 — LOCALE locale-name-1, a locale-name of the SPECIAL-NAMES LOCALE clause"
             : "ISO §2023:15.57.2 / §2023:15.57.4 r2 — LOCALE locale-name-1, a locale-name of the SPECIAL-NAMES LOCALE clause";
+        // The phrase is a 2014 introduction (kb/Work PB4311; the function is 1985; the printed 2002 formats are
+        // `( argument-1 )`): the construct gate, like EXCEPTION-FILE's argument. It speaks FIRST, and an edition without the
+        // phrase hears nothing after it: the form below is the 2014 phrase's, so a malformed phrase at COBOL-85 is not a second
+        // report citing a 2023 rule the program's edition does not have (kb/Work PB6028).
+        ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.CaseFunctionLocalePhrase2014,
+            $"the LOCALE phrase of FUNCTION {sig.Name}");
+        if (ConstructRegistry.VerdictAt(ctx.Edition.Edition, Constructs.CaseFunctionLocalePhrase2014) is { Availability: ConstructAvailability.NotYetIntroduced })
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
         if (argCtxs.Count != 3 || KeywordWordOf(argCtxs[1]) != "LOCALE")
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name} takes argument-1 optionally followed by LOCALE locale-name-1 "
                 + $"({rule}); {argCtxs.Count} argument(s) given");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
         }
-        // The phrase is a 2014 introduction (kb/Work PB4311; the function is 1985; the printed 2002 formats are
-        // `( argument-1 )`): the construct gate, like EXCEPTION-FILE's argument.
-        ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.CaseFunctionLocalePhrase2014,
-            $"the LOCALE phrase of FUNCTION {sig.Name}");
         var operand = BindArgOperand(argCtxs[0]);
         LocaleRef locale;
         if (KeywordWordOf(argCtxs[2]) is { } word)
@@ -2040,9 +2044,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // illegal (kb/Work PB60 / AR-15.68.3-3 — the former scalar injected whichever clause bound last, so
             // NUMVAL-C("#1,234.56") silently returned 0 in a '#'-then-'@' unit). Under LOCALE nothing is
             // injected — the currency strings are the locale's (r5b.3; PB64 T6).
+            // ⛔ r3 is not COBOL-85's rule (kb/Work PB6028; the descriptor's No1985Rule): SPECIAL-NAMES admits one CURRENCY SIGN
+            // clause there (§1985:VI.4.5.4 GR11), so a unit with two strings has had its second clause refused (COBOL2423), and a
+            // second report of the same source would cite a 2023 rule the edition does not have.
             if (ctx.Data.State.Configuration.SoleCurrencyString is { } sole)
                 operands.Add(new BoundStringLiteral(sole));
-            else
+            else if (ctx.Edition.DialectLevel >= 2002)
                 ctx.Edition.Error(DiagnosticCatalog.NumvalCAmbiguousCurrency, $"FUNCTION {sig.Name} without "
                     + $"argument-2: the compilation unit specifies {ctx.Data.State.Configuration.ExplicitCurrencyStringCount} distinct "
                     + "currency strings in its SPECIAL-NAMES paragraph; when neither argument-2 nor LOCALE is "

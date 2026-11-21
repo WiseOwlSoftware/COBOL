@@ -998,8 +998,8 @@ Golden `pb638_unsigned_wide_item_as_integer_argument`.
 intrinsic (a negative FACTORIAL argument, a zero MOD or REM divisor, a date or day out of range, an ACOS argument past 1, a CHAR
 ordinal outside the collating sequence, a NUMVAL text that is not a number, an integer argument that is not an integer, an ALL subscript
 over no occurrences) calls `ExceptionEngine.ArgumentError` or one of its two text twins, and that one place decides what the breach does.
-It reads `ExceptionEngine.ArgumentBreachTerminates`, which the activation boundary (`ProgramTable.ActivateMain` / `CallProgram`)
-installs from `ICobolProgram.ArgumentBreachTerminates` and restores on return, exactly as it installs the nonfatal selector. A program
+It reads `ExceptionEngine.IsCobol85`, which the activation boundary (`ProgramTable.ActivateMain` / `CallProgram`)
+installs from `ICobolProgram.IsCobol85` and restores on return, exactly as it installs the nonfatal selector. A program
 class compiled for COBOL-85 overrides it to `true` (`ProgramEmitter`): there the result "of such a reference is undefined" (§1989:A.2.2
 p3) and the Correction Amendment's clarification "allows an implementation of amended third Standard COBOL to terminate processing"
 (§1985:p.B-46), so the run unit is terminated with the message (`CobolImplementorFatalException`, no exception condition, COBOL-85 having

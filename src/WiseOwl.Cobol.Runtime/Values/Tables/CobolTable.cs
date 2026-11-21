@@ -344,7 +344,8 @@ public static class CobolTable
     public static void RequireOccurrences(long count)
     {
         if (count != 0) return;
-        const string why = "a table(ALL) intrinsic argument ranged over no occurrences — the ALL subscript shall result in at least one argument (ISO §2023:15.3)";
+        string why = "a table(ALL) intrinsic argument ranged over no occurrences — the ALL subscript shall result in at least one argument ("
+            + ExceptionState.EditionRule("§1989:A.2.2 p5", "ISO §2023:15.3") + ")";
         ExceptionState.ArgumentError(why);                          // EC-ARGUMENT-FUNCTION when checking is on (fatal, USE-dispatchable)
         throw new CobolFatalException("EC-ARGUMENT-FUNCTION", why);  // the undefined case is defined LOUD, checking or not
     }
