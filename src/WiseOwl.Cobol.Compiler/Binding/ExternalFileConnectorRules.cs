@@ -29,7 +29,8 @@ using WiseOwl.Cobol.Runtime;
 /// <item><b>The LINAGE items</b> (COBOL1624, COBOL-85): §1985:VII.3.7.4 GR11c "The same corresponding external data items referenced
 /// by data-name-1, data-name-2, data-name-3, and data-name-4", an error as the PADDING screen's (kb/Work PB5982).</item>
 /// <item><b>The FILE STATUS and LINAGE items</b> (COBOL1624, COBOL1573, COBOL-2023): §2023:14.8.4.2 and §2023:12.4.5.3 GR1
-/// i), the requirement Annex E.2 items 9 and 12 name as new in 2023. Its severity follows the removal policy (an error
+/// i), which Annex E.2 items 9 and 12 name as new in 2023; for LINAGE that is not so: 1985 states it (the item above), and
+/// §2002:13.3.4.3 GR2c2 and §2014:13.4.4.3 GR2c2 carry it unscreened while those editions wait. Its severity follows the removal policy (an error
 /// under strict, a warning under --permissive), the contract the continuity witnesses need: an 85 NIST program that
 /// violates the new rule (IC227A, two differently-named non-external FILE STATUS items) still compiles under permissive.</item>
 /// </list>
