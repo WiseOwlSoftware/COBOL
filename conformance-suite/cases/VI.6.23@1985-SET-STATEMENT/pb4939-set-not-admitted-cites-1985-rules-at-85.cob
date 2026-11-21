@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb4939-set-not-admitted-cites-1985-rules-at-85
-      *> rules: [SR-14.9.39.3-23]
+      *> rules: [1985-FMT-VI.6.23.2]
       *> source-format: fixed
       *> portable: unverified
       *>---
