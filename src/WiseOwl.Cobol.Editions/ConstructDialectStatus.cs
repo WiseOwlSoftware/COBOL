@@ -47,6 +47,15 @@ public sealed record ConstructDialectStatus(
     /// </summary>
     public IReadOnlyList<string> DirectiveWords { get; init; } = [];
 
+    /// <summary>For a row that RELAXES a COBOL-85 restriction (a form the 1985 text has and forbids, freed from 2002 on: the areas
+    /// of the reference format, the GLOBAL clause in the linkage section, the Annex F.2 relaxations), the 1985 rule an 85 program
+    /// writing the construct breaks, in the edition form (<c>§1985:X.4.6.3 SR1</c>). <see cref="ConstructRegistry.Check"/> cites it
+    /// at <c>--std 85</c> in place of <see cref="Citation"/>, so the refusal names the rule of the edition in force (kb/Work
+    /// PB4950, PB6010). Null on a row whose construct the 1985 text does not have at all (an introduction), whose refusal cites
+    /// the edition where it begins. <c>ConstructRegistryDriftTests.EveryRelaxationRow_CitesIts1985RuleAt85</c> refuses a
+    /// relaxation row whose 85 message cites no 1985 rule.</summary>
+    public string? Rule1985 { get; init; }
+
     /// <summary>
     /// The OPERAND syntax of the §2023:7.3 directive this row gates — the column beside <see cref="DirectiveWords"/>
     /// that says which words may FOLLOW the directive word (kb/Work PB794), rendered from the row's

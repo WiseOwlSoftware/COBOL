@@ -4,6 +4,7 @@
  "display": "the GLOBAL clause in the linkage section",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO §2023:13.18.27.3 SR1; ISO/IEC 1989:2002 Annex F.2 item 61",
+ "rule1985": "§1985:X.4.6.3 SR1 (GLOBAL only at level 01 of the File and Working-Storage Sections)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

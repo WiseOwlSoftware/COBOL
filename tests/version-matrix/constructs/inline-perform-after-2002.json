@@ -4,6 +4,7 @@
  "display": "an AFTER phrase in an inline PERFORM",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO §2023:14.9.28.2; ISO/IEC 1989:2002 Annex F.2 item 91",
+ "rule1985": "§1985:VI.6.21.3 SR2 (no AFTER phrase when procedure-name-1 is omitted)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

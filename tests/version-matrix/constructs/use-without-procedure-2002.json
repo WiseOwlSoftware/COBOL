@@ -4,6 +4,7 @@
  "display": "a USE AFTER STANDARD EXCEPTION/ERROR statement without the word PROCEDURE",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO §2023:14.9.49.2; ISO/IEC 1989:2002 Annex F.2 item 141",
+ "rule1985": "§1985:VII.4.6.2 (the USE format underlines PROCEDURE)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
