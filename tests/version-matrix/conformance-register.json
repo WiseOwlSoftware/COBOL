@@ -1044,6 +1044,13 @@
    "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl"
   },
   {
+   "key": "DRV-1985-GR-IV.4.1-p2",
+   "arm": "unpopulatable-antecedent",
+   "names": "the readings SourceTextDecoder.Decode can give a source or library text file: UTF-8, UTF-16LE/BE, UTF-32LE/BE (named by a byte-order mark), unmarked UTF-8, or ISO/IEC 8859-1 (unmarked and not well-formed UTF-8); each represents every one of the 78 characters of the 1985 COBOL character set (glossary, III-3) at its ASCII code point, so the set of COBOL characters 'not graphically represented' is empty in every reading",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-101.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-IV.4.2.2.1.1-15",
    "arm": "unpopulatable-antecedent",
    "names": "the ENTER statement, the one place a routine-name occurs, which this implementation does not include (§1985:I.1.5.2.5.5; docs/conformance/9.1/1985-SR-VI.6.12.3-1.md)",
@@ -1329,6 +1336,13 @@
    "names": "describes the standard's general-format notation: \"Elements which make up a clause or a statement consist of\"",
    "signature": "claude: 2026-11-21",
    "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl"
+  },
+  {
+   "key": "DRV-1985-SR-IV.4.1-p3",
+   "arm": "unpopulatable-antecedent",
+   "names": "the readings SourceTextDecoder.Decode can give a source or library text file: UTF-8, UTF-16LE/BE, UTF-32LE/BE (named by a byte-order mark), unmarked UTF-8, or ISO/IEC 8859-1; each has at least 256 characters and contains all 52 characters of the COBOL character set less the lowercase letters, so no source character set with fewer than 52 characters can arise",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-101.jsonl"
   },
   {
    "key": "DRV-1985-SR-IV.4.2.2.1.1-L2.12",

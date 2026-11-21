@@ -198,10 +198,10 @@ def default_base(repo: pathlib.Path = REPO) -> str:
 
 
 def recorded_splits(base: str, year: int) -> dict[str, dict[str, Any]]:
-    """{parent id: its split} for every split recorded in the edition's tracked split batches (`rule_moves.SPLIT_DIR`) that
+    """{parent id: its split} for every split recorded in the edition's tracked moves and splits (`rule_moves.MOVES_DIR`) that
     changed between `base` and the working tree: a split is read as the writer reads it (`rule_moves.split_parents`), and a
     batch file this change did not touch excuses nothing."""
-    names = _git("diff", "--name-only", "-z", base, "--", rule_moves.SPLIT_DIR.format(year=year)).split(chr(0))
+    names = _git("diff", "--name-only", "-z", base, "--", rule_moves.MOVES_DIR.format(year=year)).split(chr(0))
     found: dict[str, dict[str, Any]] = {}
     for name in filter(None, names):
         if (path := REPO / name).exists():

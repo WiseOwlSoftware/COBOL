@@ -83,6 +83,7 @@ import inventory_schema  # noqa: E402  (the editions, the repository root, the t
 import inventory_view  # noqa: E402  (each edition's rows: the next edition's witnesses, the stored records)
 import lineage  # noqa: E402  (the candidate pairing's file, the form of a suite witness)
 import lineage_screen  # noqa: E402  (the flags a decision answers)
+import rule_moves  # noqa: E402  (the tracked moves a read record follows: kb/Work PB6020)
 from inventory_schema import Edition, edition  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -470,8 +471,32 @@ def record_path(year: int, slice_name: str, directory: pathlib.Path | None = Non
     return (directory or reads_dir(year)) / f"{slice_name}.json"
 
 
-def load(year: int, directory: pathlib.Path | None = None) -> list[Slice]:
-    """Every read record of `year`, normalized, each second read replacing the read it supersedes (`supersede`); a
+def follow_moves(slices: Iterable[Slice], moves: list[list[tuple[str, str, frozenset[str]]]]) -> None:
+    """Each slice a recorded MOVE names (`rule_moves.recorded_moves`: old id, new id, the slices that read the old id
+    when it was applied) reads the moved rule under its NEW id, in place (kb/Work PB6020). The record itself is sealed by
+    its digests and stays as imported; a batch's moves are one simultaneous renaming (p4 to p3 and p5 to p4 at once),
+    and the batches apply in order. A slice the move does not name keeps its ids: it was read after the move."""
+    slices = list(slices)
+    for batch in moves:
+        for s in slices:
+            ren = {old: new for old, new, named in batch if s.name in named}
+            if not ren:
+                continue
+            def key(rid: str) -> str:
+                return ren.get(rid, rid)
+            s.reads = {key(k): dataclasses.replace(v, rule_id=key(k)) for k, v in s.reads.items()}
+            s.refutes = {key(k): dataclasses.replace(v, rule_id=key(k)) for k, v in s.refutes.items()}
+            s.derivation_refutes = {key(k): dataclasses.replace(v, rule_id=key(k))
+                                    for k, v in s.derivation_refutes.items()}
+            s.asked = {key(k): v for k, v in s.asked.items()}
+            s.disputed = {key(k) for k in s.disputed}
+
+
+def load(year: int, directory: pathlib.Path | None = None,
+         moves: list[list[tuple[str, str, frozenset[str]]]] | None = None, superseded: bool = False) -> list[Slice]:
+    """Every read record of `year`, normalized, each read of a moved rule under its new id (`follow_moves`, from the
+    edition's tracked moves unless `moves` is given) and each second read replacing the read it supersedes
+    (`supersede`; with `superseded`, every read stays in its slice: the record's readers, which a move names); a
     SystemExit lists every record that cannot be interpreted, and a rule two slices read with no line of second reads."""
     d = directory or reads_dir(year)
     out, errs = [], []
@@ -489,7 +514,9 @@ def load(year: int, directory: pathlib.Path | None = None) -> list[Slice]:
             errs += bad
             continue
         out.append(s)
-    errs += supersede(out)
+    follow_moves(out, rule_moves.recorded_moves(year, REPO) if moves is None else moves)
+    if not superseded:
+        errs += supersede(out)
     if errs:
         raise SystemExit(f"{TOOL}: {len(errs)} read record(s) cannot be interpreted:\n  " + "\n  ".join(errs))
     return out

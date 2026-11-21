@@ -1,0 +1,138 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-101 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-101",
+ "edition": 1985,
+ "asked": null,
+ "read": {
+  "slice": "s-101",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.4.1-p2",
+    "supersedes": "s-99",
+    "to": [
+     "GR-8.1.3.2-5"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a substitute graphic for a COBOL character that a national or international standard character set does not represent"
+    ],
+    "evidence-1985": {
+     "substitute graphic": "not shown: no program can show it (see compiler-at-1985)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.1 p2",
+      "quote": "a substitute graphic may be specified to replace the character",
+      "check": "OK  §1985:IV.4.1 p2  (4.1 CHARACTER SET)  the text is in p2"
+     },
+     {
+      "cite": "§1985:IV.4.1 p1",
+      "quote": "The character set consists of the characters as defined under COBOL Character Set in the glossary",
+      "check": "OK  §1985:IV.4.1 p1  (4.1 CHARACTER SET)  the text is in p1"
+     },
+     {
+      "cite": "§1985:III",
+      "quote": "The complete COBOL character set consists of the characters listed below",
+      "check": "OK  §1985:III  ()  the text is in the clause"
+     },
+     {
+      "cite": "§1985:III",
+      "quote": "represented as ¤ in the International Reference Version of International Standard ISO 646-1973",
+      "check": "OK  §1985:III  ()  the text is in the clause"
+     },
+     {
+      "cite": "§2023:8.1.3.2 GR5",
+      "quote": "substitute graphics may be specified by the implementor",
+      "check": "OK  §2023:8.1.3.2 GR5  (General rules)  the text is in GR5"
+     }
+    ],
+    "reason": "The antecedent ('Certain of the characters comprising the COBOL character set may not be graphically represented in definitions of national and international standard character sets. In these instances ...') holds only for a source character set that lacks a graphic for a COBOL character. Source bytes become characters in exactly one place, SourceTextDecoder.Decode, and its result is one of a closed set of readings: a mark-named UTF-8/UTF-16/UTF-32 (or Malformed, which yields no text and the error COBOL5434), unmarked UTF-8, or ISO/IEC 8859-1. Every one of them contains the 78 characters of the glossary's COBOL character set (digits, both cases of letters, space and + - * / = $ , ; . \" ( ) > < :) at U+0020-U+007A, so no COBOL character is ever unrepresented and no substitute graphic exists for a program to use or observe; the implementation specifies none. This corrects the s-99 draft's names, which grounded the claim on ISO 646 IRV: the glossary itself notes that the 1973 IRV shows the currency sign as ¤, so IRV is NOT a set that represents every COBOL character; the claim holds because the decoder's readings are UCS and Latin-1, where U+0024 is $. The 2023 sibling DRV-GR-8.1.3.2-5 (docs/conformance/8) closes by the same arm on the same mechanism. Witnessed on the train85b-rows build: E:/COBOL-coord/scratch/w20262131/last2/probes/cset85.cob uses all 78 characters of the 1985 COBOL character set in program text outside literals (lowercase and uppercase words, digits, space, + - * / = in COMPUTE, $ and , . in a PICTURE, ; and , as separators, \" as literal delimiter, ( ) : in a reference modifier, > < in a condition) and runs identically in all three reading families: unmarked UTF-8 (runs/cset85-001), UTF-16LE with mark (probes/cset85u16.cob, runs/cset85u16-001) and ISO/IEC 8859-1 (probes/cset85l1.cob, an 0xA4 byte in a comment line forces the Latin-1 reading and draws COBOL5435; runs/cset85l1-001): each prints ARITH OK +0619, EDIT $1,234.50, REFMOD 2345 and the 52 letters, exit 0.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the source character set represents every COBOL character of §1985:IV.4.1 p1, so no program can exercise a substitute graphic",
+    "class": "other: implementor latitude whose antecedent is unpopulatable on this implementation",
+    "needs": "a signed derivation (unpopulatable-antecedent, kb/Work PB6003)",
+    "derivation": {
+     "arm": "unpopulatable-antecedent",
+     "names": "the readings SourceTextDecoder.Decode can give a source or library text file: UTF-8, UTF-16LE/BE, UTF-32LE/BE (named by a byte-order mark), unmarked UTF-8, or ISO/IEC 8859-1 (unmarked and not well-formed UTF-8); each represents every one of the 78 characters of the 1985 COBOL character set (glossary, III-3) at its ASCII code point, so the set of COBOL characters 'not graphically represented' is empty in every reading",
+     "code-location": "src/WiseOwl.Cobol.Frontend/Pipeline/SourceTextDecoder.cs#SourceTextDecoder.Decode"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.4.1-p3",
+    "supersedes": "s-01",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a character set of fewer than 52 characters uses double characters (obsolete)"
+    ],
+    "evidence-1985": {
+     "(none)": "not shown: the compiler's source character set has every COBOL character"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.1 p3",
+      "quote": "When a character set contains fewer than 52 characters",
+      "check": "OK  §1985:IV.4.1 p3  (4.1 CHARACTER SET)  the text is in p3"
+     },
+     {
+      "cite": "§1985:IV.4.1 p3",
+      "quote": "This double character substitution is an obsolete feature",
+      "check": "OK  §1985:IV.4.1 p3  (4.1 CHARACTER SET)  the text is in p3"
+     },
+     {
+      "cite": "§1985:IV.4.1 p1",
+      "quote": "The character set consists of the characters as defined under COBOL Character Set in the glossary",
+      "check": "OK  §1985:IV.4.1 p1  (4.1 CHARACTER SET)  the text is in p1"
+     },
+     {
+      "cite": "§1985:III",
+      "quote": "The complete COBOL character set consists of the characters listed below",
+      "check": "OK  §1985:III  ()  the text is in the clause"
+     }
+    ],
+    "reason": "The antecedent is 'When a character set contains fewer than 52 characters (all characters of the COBOL character set except the lowercase letters)'; only then 'double characters must be substituted for the single characters' (the obsolete feature, C.1(1)). The character set a program is written in is whatever SourceTextDecoder.Decode reads the file as, and that is a closed set: UCS in UTF-8/16/32 or ISO/IEC 8859-1, never a smaller set (a malformed marked file yields no text at all, error COBOL5434). ISO/IEC 8859-1 has 256 characters and UCS more; each contains the 26 uppercase letters, 10 digits and 16 special characters at their ASCII code points, so the count is never below 52 and no double-character substitution is ever required or recognized. The run-time side does not reopen it: alphanumeric data is held as UTF-16 / ISO/IEC 8859-1 bytes (DRV-GR-8.1.3.2-5, docs/conformance/8), also at least 256 characters. Being obsolete changes nothing here: the high-subset compiler need not provide a feature whose condition cannot occur. Witnessed on the train85b-rows build: E:/COBOL-coord/scratch/w20262131/last2/probes/cset85.cob uses all 78 characters of the 1985 COBOL character set in program text outside literals (lowercase and uppercase words, digits, space, + - * / = in COMPUTE, $ and , . in a PICTURE, ; and , as separators, \" as literal delimiter, ( ) : in a reference modifier, > < in a condition) and runs identically in all three reading families: unmarked UTF-8 (runs/cset85-001), UTF-16LE with mark (probes/cset85u16.cob, runs/cset85u16-001) and ISO/IEC 8859-1 (probes/cset85l1.cob, an 0xA4 byte in a comment line forces the Latin-1 reading and draws COBOL5435; runs/cset85l1-001): each prints ARITH OK +0619, EDIT $1,234.50, REFMOD 2345 and the 52 letters, exit 0.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the antecedent is unreachable",
+    "class": "own-text",
+    "needs": "a signed derivation (unpopulatable-antecedent, kb/Work PB6003)",
+    "derivation": {
+     "arm": "unpopulatable-antecedent",
+     "names": "the readings SourceTextDecoder.Decode can give a source or library text file: UTF-8, UTF-16LE/BE, UTF-32LE/BE (named by a byte-order mark), unmarked UTF-8, or ISO/IEC 8859-1; each has at least 256 characters and contains all 52 characters of the COBOL character set less the lowercase letters, so no source character set with fewer than 52 characters can arise",
+     "code-location": "src/WiseOwl.Cobol.Frontend/Pipeline/SourceTextDecoder.cs#SourceTextDecoder.Decode"
+    },
+    "licence-1985": null
+   }
+  ],
+  "leads": []
+ },
+ "refute": null,
+ "derivation-refute": {
+  "slice": "s-101",
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.4.1-p2",
+    "arm": "unpopulatable-antecedent",
+    "verdict": "UPHELD",
+    "attempt": "Swept every path by which bytes become source characters: SourceTextDecoder.Decode has one caller, CompilationInputs.ReadSourceText (File.ReadAllBytes), called only by Frontend.Parse (main source) and CopyProcessor (COPY library text, after which REPLACING works on the decoded string); no stdin, in-memory or listing read of source exists in src (grep ReadAllBytes/ReadAllText/StreamReader/Console.In: the others are runtime data, CLDR, message store, manifest). Readings are Marked UTF-8/16/32, unmarked UTF-8, Latin-1, or Malformed (no text, COBOL5434); an EBCDIC or ISO 646 national-variant file falls to Latin-1, which still has all 78 COBOL characters at U+0020-U+007A. Checked the cited witness runs/cset85l1-001 (COBOL5435 then ARITH OK +0619, EDIT $1,234.50, REFMOD 2345, 52 letters). Probed for an implementation-specified substitute graphic: refute-runs/subg1-001 (fullwidth U+FF0B for +: COBOL2773 + COBOL2269, exit 65) and subg2-001 (U+00A4 for $ in PICTURE: COBOL0808, exit 65).",
+    "reason": "No reachable reading lacks a graphic for any COBOL character, so the antecedent (a COBOL character not represented in the character set) is false in every state; the permissive consequent (a substitute graphic may be specified) is never triggered, and the probes show none is specified. cite.py OK on §1985:IV.4.1 p2.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-SR-IV.4.1-p3",
+    "arm": "unpopulatable-antecedent",
+    "verdict": "UPHELD",
+    "attempt": "Same sweep of source and COPY library paths (one decoder, one caller, two call sites; no stdin or in-memory source). Looked for any reading or run-time character set smaller than 52 characters: the decoder readings are UCS or Latin-1 (256), alphanumeric run-time data is UTF-16/Latin-1, and console streams are set to Unicode/UTF-8 (StandardStreams.cs). An unmarked file in a 48-character code set (a six-bit or BCD code) would have no defined byte mapping here and still be read as Latin-1, a 256-character set.",
+    "reason": "The antecedent (a character set of fewer than 52 characters) cannot hold for any reading this implementation gives source or library text, so the double-character substitution never applies. Its obsolete status (C.1(1)) does not change this. cite.py OK on §1985:IV.4.1 p3.",
+    "probe": null
+   }
+  ]
+ },
+ "imported": {
+  "derivation-refute": "5ca91c9d7ee876ccf2157cdea07d3a5ebde629a6de479aa766d533414ae79910",
+  "read": "0533f613578c69e48677e270b782c5395ab2b6453a8c63697f1c286c8862c40f"
+ }
+}

@@ -570,10 +570,14 @@ of the remaining text (re-stamped, its notes marked `split-recheck:`), withdrawi
 held editions' change records (`next.to` and `next.digests` renamed for a move, a parent's digest re-stamped for a
 split, but only for a record decided against the parent's old text: one already stale, or whose `reason` quotes eight
 consecutive words of carved text, is left STALE for adjudication). The writer copies each applied batch that holds a
-split to the edition's tracked split batches (`rule_moves.SPLIT_DIR`, `docs/rearchitecture/spec-splits-<year>/<the
-batch file's name>`, its splits alone) in the same operation (`rule_moves.split_copies`, kb/Work PB6002): the WITNESS
-LOSS audit reads that copy to tell a parent a split withdrew from a hand edit (`audit_witness_loss.recorded_splits`), and
-a copy whose file holds another batch's splits is refused before anything is written. A
+move or a split to the edition's tracked moves (`rule_moves.MOVES_DIR`, `docs/rearchitecture/spec-moves-<year>/<the
+batch file's name>`, its moves and splits alone) in the same operation (`rule_moves.tracked_copies`, kb/Work PB6002,
+PB6020): the WITNESS LOSS audit reads a split there to tell a parent a split withdrew from a hand edit
+(`audit_witness_loss.recorded_splits`), and each move names the read records (section 10.6) that read its OLD id when it
+was applied (`reads`). A read record is sealed by its digests, so it is never re-keyed: `lineage_reads.load` reads those
+slices' reads of the old id under the new one (`rule_moves.recorded_moves`, each batch's moves one simultaneous
+renaming), and a slice imported after the move means by the old id whatever rule holds it then. A copy whose file holds
+another batch is refused before anything is written. A
 regeneration that relabels a decided row unit writes the move batch itself (`text_units.moves`,
 `TestResults/rule-moves/<year>.json`) and prints the command; until it is applied the view refuses the moved records.
 The margin levels of point 4 are `scripts/spec/measure_margin_levels.py`, one mechanism for every edition: the

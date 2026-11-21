@@ -1039,6 +1039,32 @@ def case_16_a_second_read_supersedes_the_first_and_the_refuter_brief_shapes_are_
            "A.1 item 71's" in cells[3] and "DOC-A.1-71" not in cells[3])
 
 
+def case_17_a_read_record_follows_a_recorded_move_of_its_rule(expect):
+    """kb/Work PB6020: a regeneration renumbers p4 to p3 and p5 to p4 (one batch, simultaneous) after slice r-01 read
+    both, r-02 re-read the old p4, and a later slice r-03 re-reads the new p4 (r-01's old p5). A read record is sealed
+    by its digests, so `load` reads r-01's and r-02's reads under the new ids through the recorded move, which names
+    them, BEFORE the second reads are resolved; r-03, which the move does not name, keeps its id. Before PB6020 a move left no record the reads could follow, and
+    `audit_batch.py import-reads` refused every later import of the edition ("read rule(s) ... are no rule of the
+    catalog")."""
+    d = scratch_dir("lineage-reads-moves")
+    p4, p5, p3 = "2002-GR-1.1.3-p4", "2002-GR-1.1.3-p5", "2002-GR-1.1.3-p3"
+    docs = {"r-01": F.record("r-01", [F.read(p4), F.read(p5)], [F.refute(p4)]),
+            "r-02": F.record("r-02", [{**F.read(p4, "DIFFERENT"), "to": [], "supersedes": "r-01"}]),
+            "r-03": F.record("r-03", [{**F.read(p4, "DIFFERENT"), "to": [], "supersedes": "r-01"}])}
+    for name, doc in docs.items():
+        (d / f"{name}.json").write_text(json.dumps(doc), encoding="utf-8", newline="\n")
+    moves = [[(p4, p3, frozenset({"r-01", "r-02"})), (p5, p4, frozenset({"r-01"}))]]
+    got = {s.name: s for s in R.load(2002, d, moves)}
+    expect.equal("the named slices read the moved rules under their new ids, once each (no chained rename of p5 to p3): "
+                 "r-02 supersedes r-01's read of p3 and r-03 its read of p4", {n: sorted(s.reads) for n, s in got.items()},
+                 {"r-01": [], "r-02": [p3], "r-03": [p4]})
+    expect("each read carries its new id, and the superseded read's refute left with it",
+           got["r-02"].reads[p3].rule_id == p3 and got["r-03"].reads[p4].rule_id == p4 and not got["r-01"].refutes)
+    expect("the records themselves are unchanged: their digests still verify, and with no move the old ids read",
+           sorted(sorted(s.reads) for s in R.load(2002, d, [], superseded=True)) == [[p4], [p4], [p4, p5]])
+    expect("the readers a move records are the slices that read the old id before any second read takes one out",
+           sorted(s.name for s in R.load(2002, d, [], superseded=True) if p4 in s.reads) == ["r-01", "r-02", "r-03"])
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))
