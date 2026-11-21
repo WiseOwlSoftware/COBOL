@@ -14,7 +14,10 @@ COBOL"). Sections 3.3 to 3.13 and the 1985 rows of §3, §7 and §8 are its dete
 and Intrinsic Function, the fifth optional module since Amendment 1 ("Standard COBOL consists of 12 modules, seven of which
 are required and five of which are optional", §1985:I.1.5). The claim takes the fifth module because PB4885's "every level of
 all four optional modules" was decided on the unamended count, and every rule of the module is in the inventory below (kb/Work
-PB4997). No option selects a lower subset or level, so no level 1 restriction is enforced (§3.9).
+PB4997). No option selects a lower subset or level, so no level 1 restriction is enforced (§3.9). **The claim is not yet
+met in one respect:** §1985:I.1.5.2.3 requires the obsolete elements to be flagged, and no warning is issued for them at
+`--std 85` until kb/Work PB5986 lands; the row for §1985:I.1.5.2.3 below states it, and this sentence is removed in the change
+that lands PB5986.
 
 **The claim is computed, not written.** The table after this paragraph is rendered from every rule of the 1985 catalog
 (`docs/rearchitecture/spec-rule-catalog-1985.json`) and its state in the 1985 inventory each time this document is
