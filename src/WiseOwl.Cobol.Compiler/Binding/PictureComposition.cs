@@ -838,8 +838,10 @@ internal static class PictureComposition
                 || (c == 'D' && r + 1 < runs.Count && runs[r + 1].Symbol == 'B');
             if (c is 'C' or 'D')
             {
-                // Never merged: each 'C' / 'D' is its own symbol, as each CR / DB is.
-                for (int k = 0; k < count - (pair ? 1 : 0); k++) syms.Add(new Sym(c.ToString(), c, ordinal++, 1));
+                // The 'C' / 'D' characters before the last are a run of their own (a declared character-1 or the currency
+                // symbol; the SR2 whitelist admits no other), and CR / DB is one symbol, never merged with its neighbour.
+                int lone = count - (pair ? 1 : 0);
+                if (lone > 0) { syms.Add(new Sym(c.ToString(), c, ordinal, lone)); ordinal += lone; }
                 if (pair) { syms.Add(new Sym(c == 'C' ? "CR" : "DB", c, ordinal++, 1)); taken = 1; }
                 continue;
             }
