@@ -25,18 +25,18 @@
       *>   heading "is printed immediately before, and on the same page
       *>   as, the chronologically first body group" (§2002:13.16.55.3
       *>   GR6 b) -> "PH 1"; CH on the first GENERATE (GR6 c 1.) ->
-      *>   "CH 1"; detail -> "DE 1" at line 3 (§2002:13.16.33.3 GR5 a)
+      *>   "CH 1"; detail -> "DE 1" at line 3 (§2002:13.16.33.3 GR5a
       *>   -> "LC 3".
       *>  GENERATE 2: the detail's USE procedure is performed "Before
       *>   any page fit processing, if the associated report group is a
-      *>   body group" (§2002:14.8.45.3 GR9 c) -> "DE 1". Absolute first
+      *>   body group" (§2002:14.8.45.3 GR9c -> "DE 1". Absolute first
       *>   LINE 3 is not greater than LINE-COUNTER 3, so the page fit is
-      *>   declared unsuccessful (§2002:13.16.33.3 GR4 b): page advance
+      *>   declared unsuccessful (§2002:13.16.33.3 GR4b: page advance
       *>   (§2002:14.8.15.3 GR6): "If a page footing is defined it is
       *>   printed" -> "PF 1"; PAGE-COUNTER becomes 2; PH -> "PH 2";
       *>   "The OR PAGE phrase causes the associated control heading to
       *>   be printed in addition after each page advance"
-      *>   (§2002:13.16.55.3 GR6 c) -> "CH 2"; detail at line 3 -> "LC 3".
+      *>   (§2002:13.16.55.3 GR6c -> "CH 2"; detail at line 3 -> "LC 3".
       *>  TERMINATE: no control footing; the page footing ends the last
       *>   page (GR6 f) -> "PF 2".
       *> Fails if PH, PF or OR PAGE is refused with a page limit

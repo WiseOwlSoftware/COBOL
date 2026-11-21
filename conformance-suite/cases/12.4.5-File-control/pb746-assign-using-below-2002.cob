@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> The USING phrase of the ASSIGN clause (dynamic file assignment, ISO §2023:9.1.21 / §2023:12.4.5.3 GR3 b)) is a
+      *> The USING phrase of the ASSIGN clause (dynamic file assignment, ISO §2023:9.1.21 / §2023:12.4.5.3 GR3b) is a
       *> COBOL-2002 introduction, on BOTH arms of the clause (kb/Work PB746):
       *>   cite.py --check 9.1.21 "Dynamic file assignment allows the user to defer until runtime the association
       *>     between a file connector and a physical file" -> OK §2023:9.1.21

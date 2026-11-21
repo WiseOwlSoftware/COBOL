@@ -10,9 +10,9 @@
       *> pb1545-hex-alphanumeric-literal-below-2002).
       *>   cite.py --check 8.3.3.2.2 "Format 2 (hexadecimal-alphanumeric)" -> OK §2023:8.3.3.2.2
       *>   cite.py --check 8.3.3.2.3 "Each hex-character-sequence-1 shall consist of the number of hexadecimal
-      *>     digits" -> OK §2023:8.3.3.2.3 6)  (two per character here, DOC-A.1-9)
+      *>     digits" -> OK §2023:8.3.3.2.3 SR6  (two per character here, DOC-A.1-9)
       *>   cite.py --check 8.3.3.2.4 "each of which has the bit configuration specified by one occurrence of
-      *>     hex-character-sequence-1" -> OK §2023:8.3.3.2.4 4)
+      *>     hex-character-sequence-1" -> OK §2023:8.3.3.2.4 GR4
       *> The literal is written in every position the format allows a literal: a VALUE clause of an
       *> alphanumeric item (no data-category gate sees it there - the gate is on the TOKEN), a DISPLAY operand,
       *> a relation operand, and an UNSTRING delimiter (the hexadecimal neighbour moved here from the COBOL-85

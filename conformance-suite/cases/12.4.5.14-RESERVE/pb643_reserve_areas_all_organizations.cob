@@ -13,7 +13,7 @@
       *> "If the RESERVE clause is specified, the number of
       *> input-output areas allocated is equal to the value of
       *> integer-1."
-      *>   cite.py: OK  §2023:12.4.5.14.3 1)  (General rule)
+      *>   cite.py: OK  §2023:12.4.5.14.3 GR1  (General rule)
       *> "The RESERVE clause allows the user to specify the number of
       *> input-output areas allocated."
       *>   cite.py: OK  §2023:12.4.5.14.1  (General)

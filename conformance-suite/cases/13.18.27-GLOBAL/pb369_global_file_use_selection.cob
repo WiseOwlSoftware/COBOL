@@ -12,7 +12,7 @@
       *> declarative with the GLOBAL attribute in the next inclusive
       *> directly containing source element, repeated outward (kb/Work
       *> PB369; the Format-2 half is pb369_global_report_use_selection).
-      *> GF is a GLOBAL file (§2023:13.18.27.3 SR1 d)) whose OPEN INPUT fails:
+      *> GF is a GLOBAL file (§2023:13.18.27.3 SR1d) whose OPEN INPUT fails:
       *> the file does not exist and is not OPTIONAL, status 35.
       *>   PB369GFA: USE GLOBAL AFTER ERROR ON GF   -> "OUTER-GLOBAL"
       *>   PB369GFB (in A): its OWN USE AFTER ERROR ON GF (the inherited

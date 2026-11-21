@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO/IEC 1989:2023 §2023:5.5 1) (kb/Work PB859): "When the term 'integer-n' (n = 1, 2, ...) is used in a
+      *> ISO/IEC 1989:2023 §2023:5.5 SR1 (kb/Work PB859): "When the term 'integer-n' (n = 1, 2, ...) is used in a
       *> general format and associated rules, it refers to a fixed-point integer literal that shall be unsigned
       *> and nonzero unless otherwise specified in the associated rules." This is the POSITIVE control: every
       *> position below is one whose associated rule DOES otherwise-specify, so each zero is legal and the new

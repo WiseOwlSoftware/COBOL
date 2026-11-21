@@ -28,7 +28,7 @@
       *>    selected at all.
       *>  * OPEN OUTPUT of an absent, non-optional file is a normal open (§2023:14.9.27.4 GR4's table,
       *>    OUTPUT row); the WRITE and CLOSE complete successfully.
-      *>  * The second READ reaches end of file: §2023:14.9.30.4 GR24 a) - "The I-O status of the file
+      *>  * The second READ reaches end of file: §2023:14.9.30.4 GR24a - "The I-O status of the file
       *>    connector associated with file-name-1 is set to '10' to indicate the at end condition,
       *>    and, if enabled, the EC-I-O-AT-END exception condition is set to exist" (§2023:9.1.13.4
       *>    rule 1 a) gives the same 10).
@@ -42,7 +42,7 @@
       *>    would change even if the DISPLAY order were somehow preserved.
       *>  * RESUME AT NEXT STATEMENT transfers control to an implicit CONTINUE that "immediately
       *>    follows the end of the statement that was executing when control was transferred to
-      *>    the exception processing procedure" (§2023:14.9.33.4 GR2 a)), so AFTER is reached.
+      *>    the exception processing procedure" (§2023:14.9.33.4 GR2a), so AFTER is reached.
       *>  * "H1 S: EC-I-O-AT-END" also names the condition through §2023:15.33.1's EXCEPTION-STATUS,
       *>    so the line proves WHICH exception selected the first section, not only that it ran.
 >>TURN EC-I-O CHECKING ON

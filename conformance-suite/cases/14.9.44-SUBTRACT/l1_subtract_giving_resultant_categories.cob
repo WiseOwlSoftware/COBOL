@@ -23,10 +23,10 @@
       *> referenced by identifier-3", i.e. 19.  §2023:14.7.7 rule 4b: the
       *> one intermediate is stored into each resulting data item in
       *> the left-to-right order written, so BOTH receivers get 19.
-      *>   G  — §2023:14.6.8.2 rule 4: a fixed-point numeric receiver takes
+      *>   G  — §2023:14.6.8.2 GR4: a fixed-point numeric receiver takes
       *>        the value aligned by decimal point "with zero fill or
       *>        truncation on either end as required" -> 0019.
-      *>   NE — §2023:14.6.8.2 rule 5 sends a fixed-point numeric-edited
+      *>   NE — §2023:14.6.8.2 GR5 sends a fixed-point numeric-edited
       *>        receiver to §2023:13.18.40's editing rules; §2023:13.18.40.5
       *>        rule 7 makes 'Z' the zero-suppression-with-replacement
       *>        symbol whose replacement character is the space, and

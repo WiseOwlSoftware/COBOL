@@ -18,7 +18,7 @@
       *> 1. INVOKE PB389B "NEW" RETURNING B-ONLY.  §2023:16.2.1.2 GR1: "The New method allocates
       *>    storage for an object … and returns a reference to the created object" — an
       *>    INSTANCE object of exactly PB389B.  The receiver is described ONLY, and
-      *>    §2023:13.18.60.4 GR22 d)2.b. makes that "an instance object of the specified class";
+      *>    §2023:13.18.60.4 GR22d2.b. makes that "an instance object of the specified class";
       *>    the delivery follows the SET rules (§2023:14.8.3.3 rule 1) and satisfies §2023:14.9.39.3
       *>    SR12 a)1.  INVOKE B-ONLY "WHO" then resolves on the OBJECT (§2023:14.9.23.4 GR2 —
       *>    "identifier-1 identifies an instance object … a method OF THAT OBJECT"), so the
@@ -27,7 +27,7 @@
       *> 2. SET B TO D — SR12 a)2., the subclass leg (neither side carries ONLY or FACTORY,
       *>    so a)1. and a)3. are satisfied by absence).  INVOKE B "MK" runs PB389B's MK on a
       *>    PB389D object.  MK's LOCAL-STORAGE item is described ACTIVE-CLASS, which
-      *>    §2023:13.18.60.4 GR22 e) binds to "the same class as the object that was used to
+      *>    §2023:13.18.60.4 GR22e binds to "the same class as the object that was used to
       *>    invoke the method in which this data description entry is specified" — PB389D.
       *>    SET A TO SELF is SR14 b)1. (no FACTORY phrase, an instance definition), and
       *>    INVOKE A "WHO" again resolves on the object, so the line is  DERIVED.

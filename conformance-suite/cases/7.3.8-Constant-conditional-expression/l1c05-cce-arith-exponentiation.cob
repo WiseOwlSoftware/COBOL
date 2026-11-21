@@ -10,9 +10,9 @@
       *>   Compile-time arithmetic expressions."
       *> cite.py --check 7.3.8.2 "An arithmetic expression in a constant
       *>   conditional expression shall be formed in accordance with
-      *>   7.3.6" -> OK  §2023:7.3.8.2 2)  (Syntax rules)
+      *>   7.3.6" -> OK  §2023:7.3.8.2 SR2  (Syntax rules)
       *> cite.py --check 7.3.6.2 "The exponentiation operator shall not
-      *>   be specified" -> OK  §2023:7.3.6.2 1) a)  (Syntax rules)
+      *>   be specified" -> OK  §2023:7.3.6.2 SR1a  (Syntax rules)
       *> The >>IF below is otherwise a well-formed relation cce; only
       *>   its arithmetic operand breaks §2023:7.3.6, so the only reason to
       *>   reject is SR2 (COBOL1619, the directive-expression

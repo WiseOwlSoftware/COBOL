@@ -15,13 +15,13 @@
       *>   cite.py --check 12.3.8.3 "If the specified function-
       *>   prototype-name-1 is the name of the function definition in
       *>   which this REPOSITORY paragraph is specified" -> OK
-      *>   §2023:12.3.8.3 11)
+      *>   §2023:12.3.8.3 SR11
       *> RULE §2023:12.3.8.4 GR11 NOTE 2: "Literal-5, if specified, is the
       *>   externalized name of the function prototype; otherwise, the
       *>   externalized name is function-prototype-name-1."
       *>   cite.py --check 12.3.8.4 "Literal-5, if specified, is the
       *>   externalized name of the function prototype" -> OK
-      *>   §2023:12.3.8.4 11) a)
+      *>   §2023:12.3.8.4 GR11a
       *> SET-UP: PB1084O takes TWO arguments and returns 1000.
       *>   PB1084F (one argument, factorial) writes FUNCTION PB1084F AS
       *>   "PB1084O" in its own REPOSITORY and calls itself.

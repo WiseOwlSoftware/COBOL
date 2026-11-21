@@ -9,7 +9,7 @@
       *> detail report group description, in an elementary entry that also contains a COLUMN clause and a
       *> SOURCE or VALUE clause."
       *>   cite.py --check 13.18.28.3 "may be specified only within a detail report group description"
-      *>     -> OK  §2023:13.18.28.3 1)  (Syntax rule)
+      *>     -> OK  §2023:13.18.28.3 SR1  (Syntax rule)
       *> The indicated item below is in a CONTROL HEADING group; it compiled and ran exit 0.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1245ND.

@@ -14,20 +14,20 @@
       *>   that contains the current capacity of the associated
       *>   table. Data-name-3 shall not be referenced as a receiving
       *>   operand."
-      *>   OK  §2023:13.18.38.4 15)  (General rules)
+      *>   OK  §2023:13.18.38.4 GR15  (General rules)
       *> §2023:13.18.38.3 SR32: "Data-name-3 shall not be referenced as a
       *>   receiving item, except as the operand of a variable-table
       *>   format SET statement."
-      *>   OK  §2023:13.18.38.3 32)  (Syntax rules)
+      *>   OK  §2023:13.18.38.3 SR32  (Syntax rules)
       *> §2023:14.9.39.3 SR29: SET Format 14 "Data-name-2 shall reference a
       *>   data item defined in the CAPACITY phrase of a
       *>   dynamic-capacity-table format OCCURS clause."
-      *>   OK  §2023:14.9.39.3 29)  (Syntax rules)
-      *> §2023:14.9.39.4 GR30 a) "If TO is specified, the new capacity is
+      *>   OK  §2023:14.9.39.3 SR29  (Syntax rules)
+      *> §2023:14.9.39.4 GR30a "If TO is specified, the new capacity is
       *>   specified by integer-1 or arithmetic-expression-4." b) UP:
       *>   "adding integer-1 or the value of arithmetic-expression-4
       *>   to the current capacity" c) DOWN: "subtracting ..."
-      *>   OK  §2023:14.9.39.4 30)  (General rules)  [a), b), c)]
+      *>   OK  §2023:14.9.39.4 GR30  (General rules)  [a), b), c)]
       *> §2023:8.5.1.9.1: "The current capacity of a dynamic-capacity table
       *>   may be initialized explicitly in the FROM phrase"
       *>   OK  §2023:8.5.1.9.1 (General), the paragraph after item 3)

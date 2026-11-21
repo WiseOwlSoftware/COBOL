@@ -584,7 +584,7 @@ names as they are at the time the test runs):
 
 | # | Layer id | Namespaces (census `types` ids) | ISO anchor |
 |---|---|---|---|
-| 0 | `runtime` | `WiseOwl.Cobol.Runtime`, `.Collation`, `.Collation.Cache`, `.Collation.Cldr`, `.Collation.Locale`, `.Exceptions`, `.Globalization`, `.IO`, `.Unicode`, `.Unicode.Segmentation` | none: the standard defines no run-time library; its general rules assign duties to "the runtime system" (§2023:8.4.3.2.4 GR6 b), "the runtime system attempts to locate the function being activated"), which this layer is part of. It is not a runtime module: "A runtime module results from compiling a compilation unit" (§2023:14.6.1), which is the emitted `Cobol.<S>` assembly |
+| 0 | `runtime` | `WiseOwl.Cobol.Runtime`, `.Collation`, `.Collation.Cache`, `.Collation.Cldr`, `.Collation.Locale`, `.Exceptions`, `.Globalization`, `.IO`, `.Unicode`, `.Unicode.Segmentation` | none: the standard defines no run-time library; its general rules assign duties to "the runtime system" (§2023:8.4.3.2.4 GR6b, "the runtime system attempts to locate the function being activated"), which this layer is part of. It is not a runtime module: "A runtime module results from compiling a compilation unit" (§2023:14.6.1), which is the emitted `Cobol.<S>` assembly |
 | 1 | `editions` | `WiseOwl.Cobol.Editions`, `WiseOwl.Cobol.Editions.Diagnostics` | the editions' word lists (§2023:8.9, Reserved words) and the conformance criteria (§2023:4.2.1: "To conform to this Working Draft International Standard, an implementation of standard COBOL shall provide the required normative elements") |
 | 2 | `frontend.common` | `WiseOwl.Cobol.Frontend.Common`, `WiseOwl.Cobol.Common` (absorbed, R0-0221) | source text, spans, literals, compilation inputs |
 | 3 | `frontend.diagnostics` | `WiseOwl.Cobol.Frontend.Diagnostics` | the front end's diagnostic bag |
@@ -1149,7 +1149,7 @@ Draft 6 re-modelled them from the code after the fifth refuter, G2):
   from the group's `TurnState` at the unit's own lines (`ExternalCheckMask`, `ArgMismatchChecking`, `ExternalDescribe`,
   `OdoReferenceChecking`, `AutomaticPropagation`; `BindUnitData`, `BinderDriver.cs:667-683`, writes them after
   `data.Bind` for the outermost unit too; the class loop writes `ExternalDescribe` and `OdoReferenceChecking` on both
-  halves and three flags on each method, `OoUniversalCheckingHere` (§2023:14.9.23.4 GR7 c)'s method half, folded at the
+  halves and three flags on each method, `OoUniversalCheckingHere` (§2023:14.9.23.4 GR7c's method half, folded at the
   procedure division header), `ExternalCheckMaskHere` and `AutomaticPropagationHere`, `BinderDriver.cs:112-147`; code
   generation reads them, `ProgramEmitter.cs:255,396,747,753` and `OoEmitter.cs:504,539,1212,1322`);
 - for a contained program, the **GLOBAL merge** (§2023:13.18.27.4 GR1: "A constant-name, data-name, file-name, report-name,

@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:8.5.1.11.3 6) — freeing on reduction never alters results
+      *> ISO §2023:8.5.1.11.3 GR6 — freeing on reduction never alters results
       *> A dynamic-capacity table reduced explicitly (SET) and then
       *>     grown
       *> again, explicitly (SET UP) and implicitly (a receiving
@@ -50,7 +50,7 @@
       *>   of the form INITIALIZE ... WITH FILLER ALL TO VALUE THEN TO
       *>   DEFAULT".                                       OK
       *>     §2023:8.5.1.9.5
-      *> §2023:14.9.20.4 GR5 c) 3. (DEFAULT is specified) / GR6 c): TE has
+      *> §2023:14.9.20.4 GR5c.3 (DEFAULT is specified) / GR6 c): TE has
       *>   no VALUE clause, so it does not qualify through the VALUE
       *>   phrase, and its sender is the numeric default, figurative
       *>   ZEROES -> 000.

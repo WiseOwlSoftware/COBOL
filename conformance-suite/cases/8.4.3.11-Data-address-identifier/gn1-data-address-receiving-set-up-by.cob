@@ -9,7 +9,7 @@
       *> SR5: "This identifier format shall not be specified as a
       *>   receiving operand."
       *>   cite.py --check 8.4.3.11.3 "This identifier format shall not
-      *>     be specified as a receiving operand" -> OK §2023:8.4.3.11.3 5)
+      *>     be specified as a receiving operand" -> OK §2023:8.4.3.11.3 SR5
       *> Why SR5 is the ONLY rule broken: ADDRESS OF W is "a unique data
       *> item of class pointer and category data-pointer" (§2023:8.4.3.11.4
       *> GR1, cite.py OK), and SET Format 10's receiving identifier-9

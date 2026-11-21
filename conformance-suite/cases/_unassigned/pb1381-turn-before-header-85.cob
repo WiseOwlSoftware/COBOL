@@ -9,7 +9,7 @@
       *> between the DATA DIVISION and the PROCEDURE DIVISION header,
       *> §2023:7.3.25.4 GR6: "procedure division statements and procedure
       *> division headers that follow in the compilation group" -
-      *> cite.py --check 7.3.25.4 -> OK §2023:7.3.25.4 6)) is refused at
+      *> cite.py --check 7.3.25.4 -> OK §2023:7.3.25.4 GR6) is refused at
       *> COBOL-85 by the edition gate (positive twin:
       *> 2002/pb1381_turn_at_procedure_header).
        IDENTIFICATION DIVISION.

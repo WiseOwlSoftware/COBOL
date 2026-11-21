@@ -15,7 +15,7 @@
       *> phrase's list raises the size error condition "if native arithmetic is in effect and the
       *> implementor defines that the range of values allowed for the intermediate data item is to be
       *> checked" - and the range is the VALUE's (CONFORMANCE.md DOC-A.1-179, kb/Work PB3538). The
-      *> operands satisfy §2023:14.7.7 rule 2's composite of 12 + 14 = 26 digits. The product
+      *> operands satisfy §2023:14.7.7 SR2's composite of 12 + 14 = 26 digits. The product
       *> of 14.9.12.4 rule 7, (subsidiary quotient) x (divisor), is about 10**12, carried at 14 + 14 = 28 fraction digits. Its
       *> UNSCALED form is of the order 10**40, past any 128-bit integer, but its value is not: the
       *> back-multiply is formed exactly on the 256-bit lane, so no size error is raised.

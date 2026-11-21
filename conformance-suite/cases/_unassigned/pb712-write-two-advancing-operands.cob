@@ -12,7 +12,7 @@
 *> not a spelling of this statement in ANY edition, so every edition rejects it.
 *> ⛔ This exact statement COMPILED AND RAN until kb/Work PB712, in a private dialect no other implementation
 *> accepts and §2023:14.9.51.4 GR25 a)–d) cannot interpret (they define ONE advance from ONE operand), and it
-*> silently discarded the end-of-page condition the first advance raised (§2023:14.9.51.4 GR27 b), the kb/Work
+*> silently discarded the end-of-page condition the first advance raised (§2023:14.9.51.4 GR27b, the kb/Work
 *> PB686 observation). The COBOL-2023 edition gate fired correctly on the second phrase the whole time,
 *> which is exactly what kept the over-acceptance invisible: the EDITION was checked, so the SPELLING was not.
        IDENTIFICATION DIVISION.

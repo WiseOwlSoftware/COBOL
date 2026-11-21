@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5579 - §2002:14.8.33.2 SR10 b) "literal-1 shall be an alphanumeric, boolean, or national literal and shall
+      *> kb/Work PB5579 - §2002:14.8.33.2 SR10b "literal-1 shall be an alphanumeric, boolean, or national literal and shall
       *> not be a figurative constant": ALL "AB" and a numeric literal are refused. Expected: COBOL7352.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P5579N06.

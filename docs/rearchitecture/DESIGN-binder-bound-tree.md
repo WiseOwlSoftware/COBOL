@@ -320,7 +320,7 @@ is `Group · GroupToElementary · FigurativeToNumericImage · Convert` — the C
 takes — and a reference-modified receiver is classified like any elementary receiver, because ISO §2023:8.4.3.3.4 GR6
 makes the slice "an elementary data item without the JUSTIFIED clause" (`MoveClassifier.ReceivingCategory` reads
 its category through `RefModPlace.Category`, never numeric). A `RefModSlice` kind answered before the sender was
-asked, so a signed numeric sender moved its operational sign into the slice, against §2023:14.9.25.4 GR6 a). The slice
+asked, so a signed numeric sender moved its operational sign into the slice, against §2023:14.9.25.4 GR6a. The slice
 is only the place the emitter's receiving half writes: `MoveEmitter.SliceStore` (Convert; the run-time-length
 splice and §2023:8.3.3.6.4 GR2's whole-slice figurative fill) over the ONE `SendingCharacters`, and
 `ReceivingStore.SliceStorageArea` (GroupToElementary; GR4's unconverted storage bytes). Pinned by
@@ -499,7 +499,7 @@ to offer, and `dialect_two_axes` constrains the leniencies this compiler impleme
 
 | Entry | Rule that governs | Where | r7 lane |
 |---|---|---|---|
-| ADD/SUBTRACT/MULTIPLY/DIVIDE senders · COMPUTE RHS · CONTINUE AFTER · RETRY · ALLOCATE · START WITH LENGTH · boolean-shift count (bound here, then narrowed to §2023:8.8.2 rule 5's ONE integer operand: Table 4 shape by `ExpressionFormationPass`, integer-ness by `IntrinsicResultType.IsIntegerOperand` — kb/Work PB1413) · CALL BY CONTENT/REFERENCE arithmetic arg | §2023:8.8.1.1 — genuinely `arithmetic-expression-1` | `BindExpr` | arithmetic: warn+coerce |
+| ADD/SUBTRACT/MULTIPLY/DIVIDE senders · COMPUTE RHS · CONTINUE AFTER · RETRY · ALLOCATE · START WITH LENGTH · boolean-shift count (bound here, then narrowed to §2023:8.8.2 SR5's ONE integer operand: Table 4 shape by `ExpressionFormationPass`, integer-ness by `IntrinsicResultType.IsIntegerOperand` — kb/Work PB1413) · CALL BY CONTENT/REFERENCE arithmetic arg | §2023:8.8.1.1 — genuinely `arithmetic-expression-1` | `BindExpr` | arithmetic: warn+coerce |
 | SET TO / UP BY / CAPACITY / SIZE · pointer SET UP BY | §2023:8.8.1.1 + r7 window + SR10 | `BindIndexWindowExpr` | exempt (r7 lists them) |
 | **COMPOUND** relation / EVALUATE operand (an arithmetic expression: `N < (K + 2)`, `IX + 1 = 4`) | §2023:8.8.1.1 — the index-name or index data item is an operand of the EXPRESSION, while r7 and §2023:8.8.4.2.13 name the relation's own operand; R29 had bound it in the SET window (PB2018) | `BindExpr` | arithmetic: warn+coerce |
 | PERFORM VARYING FROM/BY · D18 **subscript** segment | §2023:8.8.1.1 + r7 window; SR10 does NOT list them, so an index **data item** takes axis A (PB215) | `BindIndexNameWindowOperandExpr` / `BindIndexNameWindowExpr` | exempt (r7 lists them) |
@@ -507,7 +507,7 @@ to offer, and `dialect_two_axes` constrains the leniencies this compiler impleme
 | D18 **ref-mod** segment | §2023:8.4.3.3.3 SR4 → §2023:8.8.1.1; **r7 does NOT list a ref-mod position** | `BindExpr` (PB170/PB172) | arithmetic: warn+coerce |
 | simple/compound subscript name · ref-mod bound name (the token renderer's fast path) | §2023:8.4.2.3.2 / §2023:8.4.3.3.3 SR4 → §2023:8.8.1.1 | axis A: `SubscriptBinder.ScreenPositionOperandClass`; axis B: `ResolveSubscriptName`'s index arm → `IndexNameInPositionError` (a SEPARATE site — the table used to leave this row's axis B undeclared) | arithmetic: warn+coerce (PB219) |
 | sign-condition operand | §2023:8.8.4.7.3 SR1 → §2023:8.8.1.1 | `BindOperandExpr` — reached by a **wrapper WALK**, not `BindExprCore` (PB171) | arithmetic: warn+coerce |
-| **SOLE** relation / EVALUATE comparand | §2023:8.8.4.2.1 + §2023:15.2 — **exempt**; the operand is a sending item of its own class | `ConditionBinder.ComparisonOperandOf` short-circuits (PB172) — **one body**: EVALUATE's `BindValueOperand` calls it, since §2023:14.9.13.4 GR4 a) 6. makes each subject/object pair a relation (PB224 aligned two copies by hand; PB1935 made them one). A COMPOUND comparand (an operator, a sign, or enclosing parentheses) is the computed operand of an arithmetic expression (`CompoundOperand`), never the item or literal it encloses (PB1935) | exempt (r7 lists a relation operand) |
+| **SOLE** relation / EVALUATE comparand | §2023:8.8.4.2.1 + §2023:15.2 — **exempt**; the operand is a sending item of its own class | `ConditionBinder.ComparisonOperandOf` short-circuits (PB172) — **one body**: EVALUATE's `BindValueOperand` calls it, since §2023:14.9.13.4 GR4a.6 makes each subject/object pair a relation (PB224 aligned two copies by hand; PB1935 made them one). A COMPOUND comparand (an operator, a sign, or enclosing parentheses) is the computed operand of an arithmetic expression (`CompoundOperand`), never the item or literal it encloses (PB1935) | exempt (r7 lists a relation operand) |
 | CALL … USING BY VALUE | §2023:14.9.4.3 SR22 — **exempt** | `BindByValueExpr` + COBOL1628 | exempt |
 | intrinsic-function argument | the function's §15.x argument rule — **exempt** | `BindFunctionArgumentExpr` + COBOL1627 | arithmetic: warn+coerce |
 | PERFORM … TIMES count | §2023:14.9.28.3 SR2 — **exempt** | `ControlFlowBinder.CountOperand` | n/a |
@@ -527,7 +527,7 @@ to offer, and `dialect_two_axes` constrains the leniencies this compiler impleme
 the rule's own words, the admitted `OperandClasses` set and the diagnostic — and the binder makes one call.
 `OperandClassScreen.ClassesOf` answers the classes an operand is in from the ONE §2023:8.5.2.1 Table-2 classifier
 (`IntrinsicArgumentRules.ClassOfItem`) and the ONE §2023:5.5 integer primitive (`PicInfo.IsIntegerDescription`); a
-reference-modified operand is none of them (§2023:8.4.3.3.4 GR6 c)), and an undecidable (recovery) class fails OPEN.
+reference-modified operand is none of them (§2023:8.4.3.3.4 GR6c), and an undecidable (recovery) class fails OPEN.
 GO TO DEPENDING, SEARCH VARYING and the SET receiver were the SAME absence found three times — a bare
 `FieldOperand` / `Refs.Resolve` and nothing asked — and the sibling sweep found the PERFORM VARYING induction
 variable a fourth. `OperandClassScreenDriftTests` holds every row against every class shape END TO END with the
@@ -557,7 +557,7 @@ preserves the 2026-08-02 numeric-edited owner decision by construction rather th
 
 **⛔ A word that stands for a literal is resolved in ONE place, `ExpressionBinder.LiteralAliasOf` (kb/Work PB1544).**
 A constant-name ("as if literal-1 … were written where constant-name-1 is written", §2023:13.10.4 GR1) and a
-symbolic-character ("defines a figurative constant", §2023:12.3.7.4 GR11 a)) both arrive as a bare data reference. The
+symbolic-character ("defines a figurative constant", §2023:12.3.7.4 GR11a) both arrive as a bare data reference. The
 resolution returns a `LiteralAlias` (the constant's definition or the symbolic character's value), `AliasOperand` binds
 it to the shape the written literal takes (a symbolic-character is the bare `BoundAllLiteral`, `BeginsWithAll = false`:
 fill when the context sizes it, one character when it does not, §2023:8.3.3.6.4 GR2/GR3), and every procedure position asks
@@ -612,7 +612,7 @@ reference-modified, carried by a run-time-length item per §2023:8.5.1.10.4), an
 30-digit `IntegerFunctionValuePic`; for any numeric or integer function a `double` when the value is a binary64, and
 an item of the receivers' own binary format when every receiver is floating-point of ONE format (`SharedFloatFormatPic`:
 a `float` for an all-binary32 set, since a binary64 narrowed into a binary32 rounds an exact value twice, ISO
-§2023:14.6.8.3 rule 2 and kb/Work PB1110, review R2-1; a `double` for an all-binary64 set: an INTEGER of a FLOAT-LONG
+§2023:14.6.8.3 GR2 and kb/Work PB1110, review R2-1; a `double` for an all-binary64 set: an INTEGER of a FLOAT-LONG
 holding 1.5E50 is a 51-digit integer no fixed item holds, review R1-1); any other set of numeric receivers with a floating-point one
 among them (a binary32 beside a binary64, a floating-point item beside a fixed-point one) takes the 36-digit decimal
 floating-point item below, an INTEGER function's value included (`FloatingPointNumericSet`, review round 3 R1-1/R1-2: a
@@ -638,7 +638,7 @@ values (`ValueUse.MovedTo`, `ShapedPic` over `PicInfo.WidestReceiving`: the GR1 
 as the largest receiver), 21 integer + 17 fraction digits for a function value read as
 an operand (an EVALUATE subject, a frozen argument), and the returned-value item's S9(21)V9(9) only for a value read as
 text in a character formal. **An ARITHMETIC EXPRESSION read as an operand is held at the width of its own value**
-(`SendingValueTemp.ValueOperandPicOf`, kb/Work PB3974; §2023:14.9.13.4 GR3 c) assigns the subject "a numeric value according to
+(`SendingValueTemp.ValueOperandPicOf`, kb/Work PB3974; §2023:14.9.13.4 GR3c assigns the subject "a numeric value according to
 the rules for evaluating an arithmetic expression" and GR4 a) 6. compares that value): `ExpressionExtent`, a visitor over the
 generated expression interface, states the integer digits and the scale of an expression of `+`, `-`, `*` and unary minus over
 fixed-point items and literals (a sum below 10^i and 10^j is below 10^(max(i, j)+1), a product below 10^(i+j) with the scales
@@ -659,7 +659,7 @@ unflagged 30-digit description moved as zero-padded digits, `MOVE FUNCTION INTEG
 A literal or figurative constant is NOT materialized: §2023:8.3.3.6.4 GR2 sizes it from the RECEIVER, so it has no
 description of its own. **The identity store is the copy the operand's CLASS has** (`SendingValueTemp.IdentityStore`):
 a MOVE for every item MOVE can store, and the SET that names the copy for the classes it cannot — an index data item
-(§2023:14.9.39.4 GR2 b), kb/Work PB1661), a data-pointer, function-pointer or program-pointer (§2023:14.9.39 Formats 7, 8, 9)
+(§2023:14.9.39.4 GR2b, kb/Work PB1661), a data-pointer, function-pointer or program-pointer (§2023:14.9.39 Formats 7, 8, 9)
 and an object reference (Format 5). A MOVE into a pointer clone stored nothing, so a pointer EVALUATE subject read by two WHEN
 arms compared a null intermediate (kb/Work PB1060's sweep). An address-identifier is never materialized: it is a
 unique item CREATED at the reference (§2023:8.4.3.11.4 GR1), with no storage an earlier store could change.
@@ -667,7 +667,7 @@ unique item CREATED at the reference (§2023:8.4.3.11.4 GR1), with no storage an
 **A group whose length is decided at run time freezes its EXTENT as well as its value.** A cloned DESCRIPTION has
 a compile-time length, so an intermediate cloned from an `OCCURS DEPENDING` group would hold the group's MAXIMUM
 extent rather than its current one, and that is observable: with a 3-of-5 occurs-depending group into a
-`PIC X(5) JUSTIFIED` receiver, §2023:13.18.38.4 GR8 a)'s current extent right-aligns to `"  125"` while a
+`PIC X(5) JUSTIFIED` receiver, §2023:13.18.38.4 GR8a's current extent right-aligns to `"  125"` while a
 maximum-extent intermediate gives `"125  "`. `SendingValueTemp.FreezeOdoExtent` therefore creates a SECOND temp
 holding data-name-1's value, stored as a pre-op ahead of the group store, with the clone's `OccursSpec.Depending`
 pointed at it (inside `CompilerTemps.Create`, because `DataItem.OccursSpec` is init-only). That is GR1's other
@@ -693,9 +693,9 @@ them as the receiver's IDENTIFICATION BRACKET (`ReceiverBracket` keyed `WrittenR
 `ProcedureBindState.ReceiverIdentifications`, wrapped by `BindStatement` into the statement's `BoundReceiverBrackets`),
 which `ReceiverBracketEmitter.Receive` opens immediately before that receiver's store (kb/Work PB5386). Every statement
 whose rules identify a receiver as it is stored resolves it that way: MOVE (§1985:VI.6.19.4 GR2), the arithmetic
-statements (§2023:14.7.7 4) b), DIVIDE's REMAINDER §1985:VI.6.11.4 GR4), SET's identifier-1 (§2023:14.9.39.4 GR2), the PERFORM
+statements (§2023:14.7.7 GR4b, DIVIDE's REMAINDER §1985:VI.6.11.4 GR4), SET's identifier-1 (§2023:14.9.39.4 GR2), the PERFORM
 VARYING induction variable (§2023:14.9.28.4 GR12) and the INTO phrase of READ and RETURN, whose identifier-1 is identified
-"after the record has been read" (§2023:14.9.30.4 GR4 b), §2023:14.9.34.4 GR5 b), §1985:XI.4.3.4 GR6b). Before that, the
+"after the record has been read" (§2023:14.9.30.4 GR4b, §2023:14.9.34.4 GR5b, §1985:XI.4.3.4 GR6b). Before that, the
 pre-ops were hoisted before the statement, so `MOVE 2 TO I, WE (I)` stored into WE (1) and `RETURN SF INTO WE (SEQ)` stored
 each record where the previous one's SEQ pointed. The bracket opens before the store's sending value is evaluated, so
 when a receiver has one and the sender identifies at run time `MoveBinder.BindMoveOf` freezes the sender at N = 1 as
@@ -715,8 +715,8 @@ into): the fixed 30-digit, scale-9 description stored `MOVE FUNCTION PI TO S1 S2
 3.141592653000 where the single-receiver MOVE stores 3.141592653589. PB370 contributed two shapes to it: a set of
 floating-point receivers holding a floating-point numeric-edited one, and an all-fixed-point set whose digits pass the
 38-digit carrier (a `PIC 9(31)` beside a `PIC V9(28)`), both held on the widest floating-point edited item
-`+9.9(35)E+9999` (§2023:13.18.40.3 SR15, §2023:13.18.40.4 GR13 b), a 36-digit decimal every receiver truncates (§2023:14.6.8.4 2,
-§2023:14.6.8.2 4); golden `2002/pb370_move_function_value_digits` pins every shape against its single-receiver twin.
+`+9.9(35)E+9999` (§2023:13.18.40.3 SR15, §2023:13.18.40.4 GR13b, a 36-digit decimal every receiver truncates (§2023:14.6.8.4 2,
+§2023:14.6.8.2 GR4; golden `2002/pb370_move_function_value_digits` pins every shape against its single-receiver twin.
 
 **The intermediate's CAPACITY is counted in §2023:8.4.3.3.4 GR5 positions, not in characters.** GR5 a) fixes the unit —
 "If the usage of identifier-1 is bit, positions used in evaluation are bit positions; otherwise, positions used
@@ -984,7 +984,7 @@ positions arithmetic expressions. The node set is the set of shapes that RENDER 
 arithmetic expression (a function-identifier, `/`, `**`, a decimal literal, a scaled operand inside a compound, a
 floating-point or group operand, the figurative ZERO) is bound by the ONE `ExpressionBinder.BindExpr` into the §2023:15.4
 position temporary (`BoundPositionValue`, kb/Work PB1890) and is then a `PositionItemRead` of that temporary. The
-integrality rule of §2023:8.4.2.3.4 GR1 b) is therefore asked once, of the result.
+integrality rule of §2023:8.4.2.3.4 GR1b is therefore asked once, of the result.
 
 Two structural questions are answered by the node, never by text: `Position.ConstantValue` (the compile-time value of
 a position built only from constants, an offset included — what the §2023:14.9.4.3 SR6 / SR8 bit-alignment proof asks of
@@ -1009,7 +1009,7 @@ one — what the evaluate-once identification asks before it hoists).
   expression, `OMITTED`, an address identifier, a phrase word) and the word ALL outside §2023:8.4.2.3.3 SR6's two contexts
   never reach the hook: the resolver refuses them by name — COBOL2363 (kb/Work PB1030).
 - ⛔ **an expression whose worst case passes the host's `long` routes the WHOLE position to the D18 temporary too**
-  (kb/Work PB2616). `PositionRenderer` renders `+ - *` as C# `long` arithmetic, but §2023:8.4.2.3.4 1) b) takes the
+  (kb/Work PB2616). `PositionRenderer` renders `+ - *` as C# `long` arithmetic, but §2023:8.4.2.3.4 GR1b takes the
   subscript from "the evaluation of arithmetic-expression-1", so a product past 18 digits must not wrap into another
   occurrence. `Position.ExceedsLongArithmetic` decides it at COMPILE TIME from the operands' digit bounds (a literal is
   its own magnitude, an item read is `10^digits − 1` widened by trailing P positions, `+ -` add the bounds, `*`
@@ -1067,11 +1067,11 @@ or, for an operand, any value that is not a literal or figurative constant. `Sen
 store)` renders a store whose verb identifies the receiver after evaluating the sender: when both sides answer true it
 evaluates the value into a block-scoped `__sending` local before the store, because C# evaluates the left operand of
 `<receiver> = <value>` (and a splice's start and length arguments) first. Its callers are every MoveEmitter store arm
-(§2023:14.9.25.4 GR1; INITIALIZE keeps the receiver first, `ImplicitMovePhrase.ReceiverIdentifiedFirst`, §2023:14.6.4 7)) and
+(§2023:14.9.25.4 GR1; INITIALIZE keeps the receiver first, `ImplicitMovePhrase.ReceiverIdentifiedFirst`, §2023:14.6.4 GR7) and
 the pointer-family SET stores (§2023:14.9.39.4 GR12, GR14, GR16). The arithmetic statements materialize their initial
-evaluation (`ArithmeticEmitter.MaterializesInitialEvaluation`, §2023:14.7.7 rule 4) for a receiver that identifies at run
+evaluation (`ArithmeticEmitter.MaterializesInitialEvaluation`, §2023:14.7.7 GR4) for a receiver that identifies at run
 time, as they always did for several receivers, and STRING reads each sending operand and delimiter that identifies at
-run time, in statement order, before identifier-3 and the POINTER item (§2023:14.6.4 7)).
+run time, in statement order, before identifier-3 and the POINTER item (§2023:14.6.4 GR7).
 
 #### 3.9.4 How it landed — one carrier per commit, the oracle after each
 

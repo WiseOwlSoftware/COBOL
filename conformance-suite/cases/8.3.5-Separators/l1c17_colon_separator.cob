@@ -5,14 +5,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:8.3.5 7) — the colon is a separator, required when shown
+      *> ISO §2023:8.3.5 SR7 — the colon is a separator, required when shown
       *> "The COBOL character colon, except as part of the invocation
       *>  operator, is a separator and is required when shown in the
       *>  general formats."
       *> cite.py --check 8.3.5 "The COBOL character colon, except as
       *>   part of the invocation operator, is a separator and is
       *>   required when shown in the general formats."
-      *>   -> OK §2023:8.3.5 7)
+      *>   -> OK §2023:8.3.5 SR7
       *> The general format showing the colon (reference modifier):
       *> cite.py --check 8.4.3.3.2 "identifier-1( leftmost-position :
       *>   [ length ] )" -> OK §2023:8.4.3.3.2

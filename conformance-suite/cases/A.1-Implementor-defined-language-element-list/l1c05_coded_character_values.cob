@@ -12,11 +12,11 @@
       *>   required. This item shall be documented in the implementor's
       *>   user documentation."
       *> cite.py --check 8.1.2 "The implementor shall specify one and
-      *>   only one alphanumeric coded character value" -> OK  §2023:8.1.2 3)
+      *>   only one alphanumeric coded character value" -> OK  §2023:8.1.2 GR3
       *>   (Computer's coded character set)
       *> cite.py --check 15.70.4 "the returned value is the ordinal
       *>   position of argument-1 in the current alphanumeric program
-      *>   collating sequence" -> OK  §2023:15.70.4 1)  (Returned value
+      *>   collating sequence" -> OK  §2023:15.70.4 RV1  (Returned value
       *>   rules)
       *> The documented choice pinned (docs/CONFORMANCE.md DOC-A.1-32):
       *>   SPACE U+0020, QUOTE U+0022, ZERO U+0030, space fill U+0020, B

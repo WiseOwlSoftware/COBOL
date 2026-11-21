@@ -10,10 +10,10 @@
       *> cite.py --check 8.5.3.1 "Period picture symbols match if and
       *>   only if the DECIMAL-POINT IS COMMA clause is in effect for
       *>   both or for neither of these type declarations"
-      *>   -> OK §2023:8.5.3.1 2)
+      *>   -> OK §2023:8.5.3.1 GR2
       *> cite.py --check 14.8.2.2 "If either the formal parameter or the
       *>   corresponding argument is a strongly-typed group item, both
-      *>   shall be of the same type" -> OK §2023:14.8.2.2 2)
+      *>   shall be of the same type" -> OK §2023:14.8.2.2 SR2
       *> Both T1 declarations write F PIC 9.99, but only the callee has
       *> DECIMAL-POINT IS COMMA, where '.' is an insertion character
       *> and 1.50 would read as 150,00. The declarations are therefore

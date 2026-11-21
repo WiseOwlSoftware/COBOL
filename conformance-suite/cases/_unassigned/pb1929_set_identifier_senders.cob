@@ -25,7 +25,7 @@
       *>      its WHO method returns "ACCOUNT" in PIC X(8), so "ACCOUNT " (§2023:14.9.25.4, Table 16: alphanumeric to alphanumeric is left-justified and space-filled)
       *>   2  the keyword-omitted spelling PB1929MK(2) is the same function-identifier (§2023:8.4.3.2.3 SR2)        "ACCOUNT "
       *>   3  SET A4 TO F1 :: "MAKE": an inline method invocation, whose temporary is the invoked method's RETURNING
-      *>      item (§2023:8.4.3.4.4 GR1 b)); MAKE returns a fresh account                                          "ACCOUNT "
+      *>      item (§2023:8.4.3.4.4 GR1b); MAKE returns a fresh account                                          "ACCOUNT "
       *>   4  SET DP TO FUNCTION PB1929PT(1): the function ALLOCATEs and returns the address, so the pointer is not
       *>      NULL (§2023:14.9.3.4 GR1 allocates the bytes; GR2 yields NULL only for a size of 0 or less)                           "SET"
       *>   5  SET PP TO FUNCTION PB1929PG(1): the function returns the program address of PB1929SUB (§2023:8.4.3.13.4

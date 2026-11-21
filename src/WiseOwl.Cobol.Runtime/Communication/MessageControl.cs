@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Runtime.Communication;
 
-/// <summary>The three formats of a communication description entry (ISO/IEC 1989:2002 A.1.2.1).</summary>
+/// <summary>The three formats of a communication description entry (§2002:A.1.2.1).</summary>
 public enum CommunicationFormat
 {
     /// <summary>Format 1, <c>CD cd-name-1 FOR [INITIAL] INPUT</c>: an area of 87 character positions.</summary>
@@ -15,7 +15,7 @@ public enum CommunicationFormat
     InputOutput,
 }
 
-/// <summary>The logical path an ENABLE or DISABLE statement names (ISO/IEC 1989:2002 A.2.2.1, A.2.3.1).</summary>
+/// <summary>The logical path an ENABLE or DISABLE statement names (§2002:A.2.2.1, §2002:A.2.3.1).</summary>
 public enum CommunicationPath
 {
     /// <summary><c>INPUT</c>: the queue structure the input CD designates.</summary>
@@ -48,11 +48,11 @@ public enum SendIndicator
 }
 
 /// <summary>What one RECEIVE statement leaves behind: the CD's area, the receiving item's image, and whether control
-/// passes as if data had been made available (ISO/IEC 1989:2002 A.2.5.3 GR4, GR5 c) or to the NO DATA phrase (GR5 a).</summary>
+/// passes as if data had been made available (§2002:A.2.5.3 GR4, GR5c) or to the NO DATA phrase (GR5a).</summary>
 public readonly record struct CommunicationReceipt(string Area, string Into, bool DataAvailable);
 
 /// <summary>
-/// ⛔ THE STATEMENTS OF THE COMMUNICATION FACILITY AT RUN TIME (ISO/IEC 1989:2002 Annex A.2; COBOL-85's communication module;
+/// ⛔ THE STATEMENTS OF THE COMMUNICATION FACILITY AT RUN TIME (§2002:A.2; COBOL-85's communication module;
 /// docs/rearchitecture/DESIGN-communication-facility.md; kb/Work PB4677). The compiled program hands over the CD's area as its
 /// image and stores back the image each call returns: "The message control system (MCS) always references the record according
 /// to the data description defined in" A.1.2.3 GR2, GR16 and GR24, so the positions are <see cref="CommunicationArea"/>'s, and a

@@ -8,7 +8,7 @@
       *> PB65 / RV-15.64.4-1 — integer-operand ** is receiver-independent and exact to the carrier.
       *> §2023:15.64.4 r1 (MOD's EAE) with argument-1 = A ** 2 (a legal §2023:15.3 type-6 argument): the value is
       *> 999999999999999^2 mod 1000000007 = 13657001 (independent oracle), owed IDENTICALLY in every
-      *> receiver and context — §2023:15.4.1 native arithmetic approximates the EXPRESSION, and §2023:15.2 5) makes
+      *> receiver and context — §2023:15.4.1 native arithmetic approximates the EXPRESSION, and §2023:15.2 GR5 makes
       *> MOD an integer function. The old receiver-bearing arm forced the FloatWorkingScale (≥9) landing
       *> onto the exact power, overflowed Int128 inside PowNativeInt, saturated, and MOD consumed the
       *> sentinel: 320612800 into S9(9)/S9(18)/S9(28) and the right answer into S9(31) — the receiver's

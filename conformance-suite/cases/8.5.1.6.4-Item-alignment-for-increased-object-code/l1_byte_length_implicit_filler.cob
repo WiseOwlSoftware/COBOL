@@ -84,7 +84,7 @@
       *>         leg pins the SHARING rule - the placement r3's count is taken over - not a filler source.
       *> SYNC  - the OTHER implicit-filler law, and it is NOT §2023:8.5.1.6.3's. SYN is a binary NUMERIC item, not a
       *>         bit data item, so §2023:8.5.1.6.3 source (c) does not reach it; the clause that governs it is
-      *>         §2023:13.18.55.4 GR9 b) - "Any necessary generation of implicit FILLER, if the elementary item
+      *>         §2023:13.18.55.4 GR9b - "Any necessary generation of implicit FILLER, if the elementary item
       *>         immediately preceding an item containing the SYNCHRONIZED clause does not terminate at an
       *>         appropriate natural boundary" - under GR9's "The effect of this clause is defined by the
       *>         implementor". That obligation is Annex A.1 item 195, and WiseOwl COBOL's determination is NO

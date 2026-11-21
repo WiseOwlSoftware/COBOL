@@ -12,13 +12,13 @@
       *> THE RULES. §2023:14.6.13.1.1: "Level-2 consists of the exception-
       *>   names EC-ARGUMENT, EC-BOUND, EC-DATA, EC-EXTERNAL, EC-FLOW,
       *>   EC-FUNCTION, EC-I-O, EC-IMP" ...   OK  §2023:14.6.13.1.1
-      *> §2023:7.3.25.3 2): "Exception-name-1 shall be one of the exception
+      *> §2023:7.3.25.3 SR2: "Exception-name-1 shall be one of the exception
       *>   names listed in 14.6.13.1, Exception conditions."
-      *>   OK  §2023:7.3.25.3 2)
-      *> §2023:7.3.25.4 3): "if exception-name-1 is one of the level-2
+      *>   OK  §2023:7.3.25.3 SR2
+      *> §2023:7.3.25.4 GR3: "if exception-name-1 is one of the level-2
       *>   exception-names, the effect is as if that TURN directive were
       *>   specified containing all exception-names that are subordinate
-      *>   to that level-2 exception-name"   OK  §2023:7.3.25.4 3)
+      *>   to that level-2 exception-name"   OK  §2023:7.3.25.4 GR3
       *>
       *> THE DOCUMENTED CHOICE, docs/CONFORMANCE.md DOC-A.1-99: "The
       *>   level-2 name EC-IMP is still valid wherever Table 13 allows a

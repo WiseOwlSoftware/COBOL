@@ -1,11 +1,11 @@
 - **D-SORT-USE-ABNORMAL-EXIT — A USE procedure invoked while a SORT is active that does not complete normally — from the SORT's INPUT or OUTPUT
-  PROCEDURE, or from a program CALLed or a method INVOKEd in their range (§2023:14.6.13.1.2 1); §2023:14.9.33.4 GR2 a), GR3;
+  PROCEDURE, or from a program CALLed or a method INVOKEd in their range (§2023:14.6.13.1.2 GR1; §2023:14.9.33.4 GR2a, GR3;
   §2023:14.9.40.4 GR10, GR13, GR17), spec silent on where control lands**: GR17 — "If a USE procedure invoked while a format
   1 SORT statement is active does not complete normally, the SORT statement is terminated" — names every such USE
   procedure, whichever runtime element declares it: GR10/GR13 put in the procedure's range "all statements that are
   executed as the result of a transfer of control in the range" (so a CALLed program's or INVOKEd method's statements)
   and "all statements in declarative procedures that are executed as a result of the execution of statements in the
-  range" (so their USE procedures, and a containing program's GLOBAL one, §2023:14.9.49.4 GR4 b)). The rejected narrower
+  range" (so their USE procedures, and a containing program's GLOBAL one, §2023:14.9.49.4 GR4b). The rejected narrower
   reading — only the USE procedures of the program instance executing the SORT — has no text behind it. §2023:14.9.33.4
   GR2 a) 1. alone would put a RESUME AT NEXT STATEMENT after the raising statement, inside the procedure (or inside the
   CALLed program). **Pinned choice: the SORT ends where it is terminated, and its whole range with it** — nothing more
@@ -23,7 +23,7 @@
   element's USE procedure is that element's return (§2023:14.9.14.4, §2023:14.9.18.4): it returns to its activator, and the SORT is
   terminated there once the return is complete, so a CALL's or an INVOKE's RETURNING item (§2023:14.9.4.4 GR4, §2023:14.9.23.4
   GR8) holds the result, and a condition the same USE procedure staged with GOBACK … RAISING has been raised in the
-  activator first (§2023:14.9.18.4 GR1 b): "after the result, if any, of the activated element is returned"), so the activator's
+  activator first (§2023:14.9.18.4 GR1b: "after the result, if any, of the activated element is returned"), so the activator's
   own USE procedure for it runs inside the range before the SORT ends (kb/Work PB3246). A USE procedure invoked by another while the SORT is active is itself one GR17 reaches, so its
   own RESUME terminates the SORT there. **MERGE has no such rule** (§2023:14.9.24.4): a statement of a MERGE output
   procedure is its own applicable statement, and its USE procedure's RESUME AT NEXT STATEMENT continues the procedure

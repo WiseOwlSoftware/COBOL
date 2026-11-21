@@ -76,7 +76,7 @@ factoryParagraph
     ;
 ```
    Mirrors objectParagraph (:34-40) exactly — same methodDefinition rule, so OoBindMethodData/OoEmitMethod reuse is verbatim. No `{is2002()}?` gate needed: factoryParagraph is reachable only inside classDefinition, which is already gated at compilationGroup (CobolParserCore.g4:123).
-5. **Core/CobolOO.g4 objectReferenceUsage** (:95-98): add a FIRST alternative `OBJECT REFERENCE FACTORY OF className` (keep the two-explicit-alternatives discipline — never an optional tail, the DEVLOG-438/439 lesson). BINDING stages it loud: in DataBinder.cs:609 (the objectReferenceUsage consumer), when the new alternative is present → COBOL0899 "factory object references (USAGE OBJECT REFERENCE FACTORY OF, §2023:13.18.60 :22681; method resolution via the factory interface, §2023:14.9.23.3 SR4 a)) are recognized but not yet implemented (the universal-reference wave, with §2023:16.2.2 FactoryObject)". Rationale: graceful staged diagnostic beats a bare parse error; the dead sketch CobolParserOO.g4 is reference-only (do NOT revive its invokeOnException/ABSTRACT/generics content — spec-wrong per Spec corrections #3/#4).
+5. **Core/CobolOO.g4 objectReferenceUsage** (:95-98): add a FIRST alternative `OBJECT REFERENCE FACTORY OF className` (keep the two-explicit-alternatives discipline — never an optional tail, the DEVLOG-438/439 lesson). BINDING stages it loud: in DataBinder.cs:609 (the objectReferenceUsage consumer), when the new alternative is present → COBOL0899 "factory object references (USAGE OBJECT REFERENCE FACTORY OF, §2023:13.18.60 :22681; method resolution via the factory interface, §2023:14.9.23.3 SR4a) are recognized but not yet implemented (the universal-reference wave, with §2023:16.2.2 FactoryObject)". Rationale: graceful staged diagnostic beats a bare parse error; the dead sketch CobolParserOO.g4 is reference-only (do NOT revive its invokeOnException/ABSTRACT/generics content — spec-wrong per Spec corrections #3/#4).
 6. Dead-sketch note: CobolParserOO.g4:57-63 imagines `CLASS SECTION`/`OBJECT SECTION` data divisions — NOT ISO; ignore entirely. The ISO shape is the factory-definition block (:12752-12760), which factoryParagraph above matches.
 Process: grammar change → regen both OSes, guard-fast after the grammar commit (feedback_grammar_version_factoring; OO/NIST-expansion grammar work is pre-authorized, log it).
 
@@ -786,7 +786,7 @@ its class known only at run time, so the static discharge cannot reach it. The e
 ONE header-RAISING list of C# types (`EcState.PdRaisingObjectCsTypes`, built from the binder's resolved `RaisingObject`s, kb/Work PB2403: each class entry's own type, a FACTORY OF entry's
 factory type, each interface entry's implementing types; `false` when the header names none). A miss stages the NAMED
 EC-OO-EXCEPTION instead of the object ("as if EXCEPTION EC-OO-EXCEPTION were specified in the RAISING phrase"), which
-the activator raises only when checking for it is enabled there (§2023:14.9.18.4 GR1 b)). The same census serves item 3
+the activator raises only when checking for it is enabled there (§2023:14.9.18.4 GR1b). The same census serves item 3
 (PROPAGATE ON). **Rejected:** a second, narrower list for LAST (two copies of one membership rule).
 
 ### D-EO6. Staging + pickup: the GOBACK/EXIT/MethodReturn side stages, the activating SITE consumes

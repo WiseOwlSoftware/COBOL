@@ -12,7 +12,7 @@
       *>   insertion, when the currency symbol is used as the floating
       *>   insertion symbol, all occurrences of the currency symbol
       *>   within character-string-1 shall be equivalent characters."
-      *>   -> OK  §2023:13.18.40.3 28)  (Syntax rules)
+      *>   -> OK  §2023:13.18.40.3 SR28  (Syntax rules)
       *>
       *> THE VIOLATED LEG. SR28 is a syntax rule, so source that breaks
       *> it is not a conforming source program and the compiler owes a
@@ -32,7 +32,7 @@
       *>   '$' as the currency symbol (either as literal-7 or
       *>   literal-8), the clause CURRENCY SIGN '$' PICTURE SYMBOL '$'
       *>   is implied for that source unit."
-      *>   -> OK  §2023:12.3.7.3 25)  (Syntax rules)
+      *>   -> OK  §2023:12.3.7.3 SR25  (Syntax rules)
       *> So PIC $$W9 is a floating insertion string of THREE currency
       *> symbols, '$', '$' and 'W'. '$' is a basic special character
       *> and 'W' a basic letter, and no case folding relates them

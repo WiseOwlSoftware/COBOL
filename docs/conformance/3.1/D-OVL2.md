@@ -2,7 +2,7 @@
   PB1910; Annex A.2 item 36; `GR-14.6.10-1`). GnuCOBOL's `libcob` differs from the snapshot of D-OVL1 in five
   families, all because the library prepares or writes the receiver while it is still reading the sender, and the
   owner chose to follow it (2026-10-01). **(a) A JUSTIFIED RIGHT receiver with a shorter alphanumeric sender:**
-  §2023:13.18.32.4 2) aligns the data "at the rightmost character position" of a receiver "larger than the sending operand"
+  §2023:13.18.32.4 GR2 aligns the data "at the rightmost character position" of a receiver "larger than the sending operand"
   (`cite.py --check 13.18.32.4 "the receiving data item is described with the JUSTIFIED clause and it is larger than
   the sending operand"` → OK, 2)); WiseOwl COBOL writes the leading pad positions (receiver size minus sender size,
   space-filled) FIRST, then moves the sender, so a sender that overlaps those positions reads spaces: with `J1 PIC
@@ -36,7 +36,7 @@
   one record) and every offset and length is a constant (`StorageExtent`). An operand under OCCURS, a dynamic or
   variable-length item, a NATIONAL or BIT operand and a reference modification with a run-time bound are not provably
   overlapping and keep the snapshot; a MOVE that cannot overlap emits exactly what it always did. A reference-modified
-  RECEIVER is never converted in place (§2023:8.4.3.3.4 6), "the unique data item is considered to be an elementary data item
+  RECEIVER is never converted in place (§2023:8.4.3.3.4 GR6, "the unique data item is considered to be an elementary data item
   without the JUSTIFIED clause", `cite.py --check 8.4.3.3.4 "without the JUSTIFIED clause"` → OK, 6)), and a
   reference-modified numeric item is an alphanumeric one (6) c), `cite.py --check 8.4.3.3.4 "numeric-edited are
   considered class and category national if the usage is national; otherwise they are considered class and category

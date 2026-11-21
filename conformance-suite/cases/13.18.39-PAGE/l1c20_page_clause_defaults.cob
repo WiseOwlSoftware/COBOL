@@ -14,54 +14,54 @@
       *>   following phrases is omitted, a default value for the
       *>   associated integer is supplied as follows:
       *>   a) If HEADING is omitted, integer-3 will be 1.
-      *>   OK  §2023:13.18.39.4 3) a)  (General rules)
+      *>   OK  §2023:13.18.39.4 GR3a  (General rules)
       *>   b) If FIRST DETAIL is omitted, integer-4 will be equal to
       *>   integer-3.
-      *>   OK  §2023:13.18.39.4 3) b)  (General rules)
+      *>   OK  §2023:13.18.39.4 GR3b  (General rules)
       *>   c) If LAST CONTROL HEADING is omitted, integer-5 will be
       *>   equal to integer-6, if LAST DETAIL is specified, or equal
       *>   to integer-7, if FOOTING is specified, or otherwise equal to
       *>   the page limit given by integer-1.
-      *>   OK  §2023:13.18.39.4 3) c)  (General rules)
+      *>   OK  §2023:13.18.39.4 GR3c  (General rules)
       *>   d) If LAST DETAIL is omitted, integer-6 will be equal to
       *>   integer-7, if FOOTING is specified, or otherwise equal to
       *>   the page limit given by integer-1.
-      *>   OK  §2023:13.18.39.4 3) d)  (General rules)
+      *>   OK  §2023:13.18.39.4 GR3d  (General rules)
       *>   e) If FOOTING is omitted, integer-7 will be equal to
       *>   integer-6, if LAST DETAIL is specified, or otherwise equal
       *>   to the page limit given by integer-1."
-      *>   OK  §2023:13.18.39.4 3) d)  (General rules)  [cite.py files the
+      *>   OK  §2023:13.18.39.4 GR3d  (General rules)  [cite.py files the
       *>   flattened e) text under the d) label; the text is e)]
       *> The observation machinery:
-      *> §2023:13.18.35.4 GR4 c): relative page fit - the trial sum is
+      *> §2023:13.18.35.4 GR4c: relative page fit - the trial sum is
       *>   LINE-COUNTER plus each LINE's integer-2; "If the trial sum
       *>   is less than or equal to the lower limit for the report
       *>   group, the page fit is declared successful", otherwise a
       *>   page advance precedes the group.
-      *>   OK  §2023:13.18.35.4 4)  (General rules)
+      *>   OK  §2023:13.18.35.4 GR4  (General rules)
       *> §2023:13.18.57.4 GR8: lower limits d) "for a control heading is the
       *>   line given by the LAST CONTROL HEADING integer" e) "for a
       *>   detail is the line given by the LAST DETAIL integer" f)
       *>   "for a control footing is the line given by the FOOTING
       *>   integer".
-      *>   OK  §2023:13.18.57.4 8) d)  /  8) e)  /  8) f)  (General rules)
-      *> §2023:13.18.35.4 GR5 b) 3.: "if that report group is the first body
+      *>   OK  §2023:13.18.57.4 GR8d  /  8) e)  /  8) f)  (General rules)
+      *> §2023:13.18.35.4 GR5b 3.: "if that report group is the first body
       *>   group to be printed on the current page, the line number is
       *>   given by the FIRST DETAIL integer"; otherwise LINE-COUNTER
       *>   plus integer-2.
-      *>   OK  §2023:13.18.35.4 5) b) 3.  (General rules)
+      *>   OK  §2023:13.18.35.4 GR5b.3  (General rules)
       *> §2023:8.4.3.15.4 GR2: PAGE-COUNTER starts at 1 and "its value is
       *>   updated by 1 during each page advance"; GR4: "The value of
       *>   LINE-COUNTER after the printing of a report group is the
       *>   same as the line number of the last line printed".
-      *>   OK  §2023:8.4.3.15.4 2)  /  4)  (General rules)
-      *> §2023:14.9.16.4 GR4 c): the first GENERATE prints "each control
+      *>   OK  §2023:8.4.3.15.4 GR2  /  4)  (General rules)
+      *> §2023:14.9.16.4 GR4c: the first GENERATE prints "each control
       *>   heading ... in order from major to minor" before the
       *>   detail; GR5 a): at a later control break "each control
       *>   footing and control heading is printed, if defined, up to
       *>   the level of the control break".
-      *>   OK  §2023:14.9.16.4 4) a)  (cite.py label; the text is 4) c))
-      *>   OK  §2023:14.9.16.4 5) a)  (General rules)
+      *>   OK  §2023:14.9.16.4 GR4a  (cite.py label; the text is 4) c))
+      *>   OK  §2023:14.9.16.4 GR5a  (General rules)
       *> Every group here is one LINE PLUS 1 line. Each output line is
       *> "<report> <PAGE-COUNTER>/<LINE-COUNTER>" after one GENERATE.
       *>

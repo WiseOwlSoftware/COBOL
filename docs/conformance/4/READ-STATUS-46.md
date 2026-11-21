@@ -7,7 +7,7 @@ order: 25
 > Read as "all of GR24", the pointer would run the AT END imperative and also overwrite GR21's own '46' with GR24
 > a)'s '10'. **WiseOwl COBOL does not read it that way.** GR24's actions are conditioned on its own first words — "If,
 > during the execution of the READ statement, the at end condition exists" — and '46' is not the at end condition:
-> §2023:9.1.13.7 6) makes it a LOGIC ERROR, which §2023:9.1.13.1 defines as an unsuccessful execution "as a result of an
+> §2023:9.1.13.7 GR6 makes it a LOGIC ERROR, which §2023:9.1.13.1 defines as an unsuccessful execution "as a result of an
 > improper sequence of input-output operations", while the at end condition is §2023:9.1.13.4's '10'/'14'. So the rule
 > that governs is GR13 — "If neither an at end nor an invalid key condition occurs during the execution of a READ
 > statement, the AT END phrase or the INVALID KEY phrase is ignored" — and GR13 b) transfers control through

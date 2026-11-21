@@ -16,10 +16,10 @@
       *> A  literal-1 written as the FIGURATIVE ZERO. §2023:14.9.28.3 SR3 restricts every literal in this phrase to
       *>    NUMERIC, which is exactly the precondition of §2023:8.3.3.6.3 SR1 ("If the literal is restricted to a
       *>    numeric literal, the only figurative constant permitted is ZERO"), so ZERO is admitted and denotes 0
-      *>    (§2023:8.3.3.6.4). §2023:14.9.28.4 GR13 a) initializes I to 0; GR13 e) tests I > 3 before each iteration and augments by
+      *>    (§2023:8.3.3.6.4). §2023:14.9.28.4 GR13a initializes I to 0; GR13 e) tests I > 3 before each iteration and augments by
       *>    1 after it, so the body runs for I = 0,1,2,3 => NA = 4. This spelling used to be a hard PARSE ERROR.
       *> B  the plural spelling ZEROS is the same figurative constant (§2023:8.3.3.6.2 Format 1) => NB = 3 (I = 0,1,2).
-      *> C  a SIGNED literal-2. §2023:8.3.3.3.2 rule 2 makes the sign part of the literal, so -1 is literal-2 and not
+      *> C  a SIGNED literal-2. §2023:8.3.3.3.2 SR2 makes the sign part of the literal, so -1 is literal-2 and not
       *>    an expression; GR12's augment value is then -1 and the induction variable DECREMENTS: I = 5,4,3,2,1
       *>    => NC = 5.
       *> D  index-name-2 in the FROM phrase. GR12: "the occurrence number corresponding to the value of the index

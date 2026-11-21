@@ -10,7 +10,7 @@
       *> "The words THROUGH and THRU are equivalent."
       *>   python scripts/spec/cite.py --check 13.16.3 "The words
       *>   THROUGH and THRU are equivalent."
-      *>   -> OK  §2023:13.16.3 22)  (Syntax rules)
+      *>   -> OK  §2023:13.16.3 SR22  (Syntax rules)
       *>
       *> SCOPE — WHICH FORMAT THE RULE GOVERNS. SR22 stands under the
       *> "FORMAT 2" heading of §2023:13.16.3; the "FORMATS 3 AND 4" heading
@@ -27,7 +27,7 @@
       *>   THROUGH phrase is specified, data-name-1 defines an
       *>   alphanumeric group item that includes all elementary items
       *>   starting with data-name-2"
-      *>   -> OK  §2023:13.18.45.4 2)  (General rules)
+      *>   -> OK  §2023:13.18.45.4 GR2  (General rules)
       *> "...an alphanumeric group item that includes all elementary
       *> items starting with data-name-2 ... and concluding with
       *> data-name-3". WS-A holds AB, WS-B holds CD, WS-C holds EF, so

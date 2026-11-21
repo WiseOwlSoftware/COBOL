@@ -12,15 +12,15 @@
       *> lines, whether or not that succeeding statement is within the
       *> scope of the statement in which the TURN directive is
       *> specified."
-      *>   cite.py: OK  §2023:7.3.25.4 5)  (General rules)
+      *>   cite.py: OK  §2023:7.3.25.4 GR5  (General rules)
       *> Supporting: §2023:14.7.5 4) "if the result of the arithmetic
       *> statement is a value further from zero than permitted for the
       *> associated resultant data item, the EC-SIZE-TRUNCATION
       *> exception condition is set to exist" (cite.py: OK  §2023:14.7.5 4));
       *> §2023:14.6.13.1.1 a raised (checked) exception sets the last
-      *> exception status (cite.py: OK  §2023:14.6.13.1.1); §2023:15.33.3 1)
+      *> exception status (cite.py: OK  §2023:14.6.13.1.1); §2023:15.33.3 RV1
       *> EXCEPTION-STATUS is spaces while no exception has been raised
-      *> (cite.py: OK  §2023:15.33.3 1)).
+      *> (cite.py: OK  §2023:15.33.3 RV1).
       *> DERIVATION. A and B are PIC 9 VALUE 9, so every ADD 1 is a size
       *> error (ON SIZE ERROR runs whether or not checking is on).
       *>   The outer ADD 1 TO A starts BEFORE the >>TURN, which sits

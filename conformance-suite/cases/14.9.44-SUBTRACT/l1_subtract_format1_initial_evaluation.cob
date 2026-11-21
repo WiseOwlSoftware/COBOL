@@ -22,9 +22,9 @@
       *> once; §2023:14.7.7 rule 4b stores the one intermediate into each
       *> receiver left to right.  A = 100.00 - 3.5 = 96.50 and
       *> B = 200.00 - 3.5 = 196.50, displayed through PIC 999.99
-      *> (§2023:14.6.8.2 rule 5 -> §2023:13.18.40.5 rule 4, where '.' is the
+      *> (§2023:14.6.8.2 GR5 -> §2023:13.18.40.5 GR4, where '.' is the
       *> SPECIAL insertion editing symbol — simple insertion is the
-      *> closed set §2023:13.18.40.5 rule 3 names, and '.' is not in it)
+      *> closed set §2023:13.18.40.5 GR3 names, and '.' is not in it)
       *> as 096.50 and 196.50.  Composite of operands
       *> (SR1 a): 3 integer + 2 fraction digits, far inside §2023:14.7.7
       *> rule 2 a)'s 31.

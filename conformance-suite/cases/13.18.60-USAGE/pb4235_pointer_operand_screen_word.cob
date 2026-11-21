@@ -5,13 +5,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §2023:13.18.60.2 with §2023:8.10 and §2023:8.3.2.1 3) — a TO-less pointer operand spelled with a
+      *> ISO/IEC 1989:2023 §2023:13.18.60.2 with §2023:8.10 and §2023:8.3.2.1 SR3 — a TO-less pointer operand spelled with a
       *> SCREEN attribute word is the operand in a data description entry. kb/Work PB4235.
       *>
       *> §2023:13.18.60.2 prints `POINTER [ TO type-name-1 ]` and `PROGRAM-POINTER [ TO program-prototype-name-1 ]`
       *> with TO not underlined (folio 503, rendered), so by §2023:5.2.3 TO is an optional word that "may be written
       *> to add clarity". §2023:8.10 lists AUTO, BELL, SECURE (and ten more) as context-sensitive words whose
-      *> construct is the "screen description entry", and §2023:8.3.2.1 3): "Context-sensitive words may be used as
+      *> construct is the "screen description entry", and §2023:8.3.2.1 SR3: "Context-sensitive words may be used as
       *> user-defined words and system-names in contexts other than the language construct in which they are
       *> defined". In WORKING-STORAGE the words below are therefore type-names and a program-prototype-name, and
       *> each TO-less entry declares EXACTLY the restriction its TO-full twin declares:

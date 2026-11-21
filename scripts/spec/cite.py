@@ -208,6 +208,8 @@ FAILURE_KINDS = {
     "edition-not-held": "the edition's transcription is not in the tree: nothing can be checked",
     "no-clause": "the locator names no region of the edition's transcription",
     "designator-not-understood": "the rule designator is in no form the checker reads (DESIGNATOR)",
+    "designator-not-canonical": "a designator in no form the citation parser reads follows the citation, unread "
+                                "(`GR1 b)`, `rule 2`, `item 1`, `1)`; citation.loose_designator, kb/Work PB4976)",
     "no-rule-list": "the clause has no rule list of the cited kind",
     "no-ordinal": "the cited list has no rule with that ordinal",
     "no-sub-item": "the rule has no sub-item with that path",
@@ -223,9 +225,8 @@ FAILURE_KINDS = {
 #: The rule kinds a designator names, as a reader says them.
 KIND_NAMES = {"SR": "syntax rule", "GR": "general rule", "AR": "argument rule", "RV": "returned-value rule"}
 #: A numbered rule designator: its kind, the restarted list it names (`GRL2.1`) or its ordinal, and its glued sub-item
-#: path (`GR6d.2`: letters and numbers, each optionally after a `.`).
-DESIGNATOR = re.compile(rf"(?P<kind>{'|'.join(citation.RULE_KINDS)})(?:L(?P<list>\d+)\.(?P<lord>\d+)|(?P<n>\d+)"
-                        r"(?P<path>(?:\.?(?:[a-z]|\d+))*))")
+#: path (`GR6d.2`, `GRL2.4d.1`). The parser's own grammar (`citation.NUMBERED_DESIGNATOR`, kb/Work PB5446), never a copy.
+DESIGNATOR = re.compile(citation.NUMBERED_DESIGNATOR)
 FORMAT_DESIGNATOR = re.compile(r"Format (\d+)")
 TABLE_DESIGNATOR = re.compile(r"Table (\d+)")
 #: A unit of unnumbered text (kb/Work PB5449; citation.UNIT_RULE): a margin paragraph, a table's body row, a prose item.
@@ -299,7 +300,7 @@ def label_path(lines, at, start, styles: LabelStyles = ISO_LABELS) -> list[tuple
     Two lines are not what their position suggests, and each used to report a sub-item it is not in (PB308):
       · an editorial note on a correction belongs to the line above it, so it takes that line's path;
       · in an indented transcription, an UNLETTERED paragraph at the sub-items' own indentation (or shallower) is a
-        trailing paragraph of the PARENT rule — §2023:14.7.7 rule 2's "The composite of operands is a hypothetical data
+        trailing paragraph of the PARENT rule — §2023:14.7.7 SR2's "The composite of operands is a hypothetical data
         item…" follows its sub-items a) and b) at their indent and is neither — so it reports the bare rule.
     A paragraph INSIDE a sub-item sits deeper than its label, which is how the two are told apart.
 
@@ -308,7 +309,7 @@ def label_path(lines, at, start, styles: LabelStyles = ISO_LABELS) -> list[tuple
     c) 1.–6. sits at the indent of a)–f)), so the nearest `N.` above `d)` belongs to the EARLIER letter `c)`, and
     taking it reported the impossible `9) 6. d)`. A label's depth is its STYLE LEVEL (`styles.levels` order: ISO `N)`
     `x)` `N.` `x.`, 1985 `(N)` `x.` `N)`), never its indentation (kb/Work PB5317): the transcription flattens some
-    nested lists onto column 0 (§2023:14.9.39.4 rule 2's `a.` items under `1.`, §2023:14.9.23.4 rule 7's `a)` to `d)`),
+    nested lists onto column 0 (§2023:14.9.39.4 GR2's `a.` items under `1.`, §2023:14.9.23.4 GR7's `a)` to `d)`),
     and an indentation-first depth read a flattened `a.` as shallower than the `1.` it belongs to. Walking back, a
     label whose level is not strictly below the last one accepted is a sibling or a sibling's descendant, never an
     ancestor, and is skipped. Indentation decides only who owns an UNLABELLED line (above); a flattened label (column 0,
@@ -778,6 +779,21 @@ def _lists(rules: list[Rule]) -> str:
     return ", ".join(out)
 
 
+def designator_of(edition: int, locator: str, ordinal: int, repo: pathlib.Path = spec_pdf.REPO) -> str | None:
+    """The designator of the numbered rule `ordinal` of `locator`'s first list, when the catalog gives the clause exactly
+    one such rule (`§2023:14.9.35.4` rule 20 is GR20, `§2023:14.7.7` rule 2 is SR2), else None: a clause with no numbered
+    rules (a prose clause's list item), with a list that restarts, or with two rules of that number of different kinds is
+    the standard's to say. It
+    turns a rule named in words or by its printed label (`rule 2`, `2)`; citation.loose_designator) into its canonical
+    designator (kb/Work PB4976), which `resolve` then checks like any other."""
+    book = rule_book(edition, repo)
+    numbered = [r for r in book.rules.get(locator, ()) if cited_by_number(r)]
+    if any(r.sublist != 1 for r in numbered):
+        return None   # a block whose list restarts: "rule 1" may be GRL2.1's (§2023:8.3.2.2, §2023:15.4.1)
+    hits = [r for r in numbered if r.ordinal == ordinal]
+    return hits[0].designator if len(hits) == 1 else None
+
+
 def cited_by_number(rule: Rule) -> bool:
     """Is `rule` cited by a rule designator (`GR2`, `GRL2.1`)? A numbered rule is, and so is the row of a prose clause's
     numbered item (its id is a numbered rule's, kb/Work PB5452); a paragraph or table row is cited by its unit's
@@ -948,24 +964,38 @@ def check(cited: citation.Citation, text: str, repo: pathlib.Path = spec_pdf.REP
     if v.suggestion:
         out.append(f"      the right citation: {v.suggestion}")
     elif v.kind == "text-not-found":
-        out.append("      run --find to locate the text and get the clause it is really in")
+        source = citation.SOURCE_EDITION.get(cited.edition, cited.edition)
+        out.append(f"      run --find --edition {source} to locate the text and get the clause it is really in"
+                   + (" (it searches the amendments printed with it)" if len(citation.printed_with(source)) > 1 else ""))
     return 1, out
 
 
 def find(lines, cls, text, edition: int):
-    """(exit code, output lines) for `--find`: every region line of `edition`'s transcription that contains TEXT."""
+    """(exit code, output lines) for one edition's search: every region line of `edition`'s transcription that contains
+    TEXT. `--find` itself is `find_printed`, over every edition the transcription prints."""
+    return _found(text, [(edition, lines, cls)])
+
+
+def find_printed(text: str, edition: int, repo: pathlib.Path = spec_pdf.REPO):
+    """(exit code, output lines) for `--find`: `edition`'s transcription and every amendment printed in it, each hit cited
+    by its own edition's token (`citation.printed_with`; kb/Work PB5059: `--find --edition 1985` steered an amendment's
+    text to a `§1985:` page that is no page of the standard, and a 1989 or 1993 text could not be searched at all)."""
+    return _found(text, [(e, *load(e, repo)) for e in citation.printed_with(edition)])
+
+
+def _found(text: str, sources) -> tuple[int, list[str]]:
+    """The search both `find` forms share: every region line of each (edition, lines, regions) holding TEXT."""
     needle = norm(text)
     if not needle:
         return 1, [f"REFUSED: {EMPTY_NEEDLE}"]
-    hits = [(n, t, s, e, i) for (n, t, s, e) in cls
+    hits = [(edition, lines, n, t, s, i) for edition, lines, cls in sources for (n, t, s, e) in cls
             for i in range(s, e) if needle in norm(lines[i])]
     if not hits:
         return 1, [f"NO CLAUSE contains {text!r} — the citation names text the standard does not have"]
-    styles = labels_of(edition)
     out = []
-    for n, t, s, _e, i in hits[:12]:
+    for edition, lines, n, t, s, i in hits[:12]:
         mark = f" {RECONSTRUCTED_MARK}" if in_reconstruction(lines, i) else ""
-        out.append(f"§{edition}:{n} {rule_path(lines, i, s, styles)}  ({t}){mark}\n    {lines[i].strip()[:190]}\n")
+        out.append(f"§{edition}:{n} {rule_path(lines, i, s, labels_of(edition))}  ({t}){mark}\n    {lines[i].strip()[:190]}\n")
     out.append(f"{len(hits)} occurrence(s)")
     return 0, out
 
@@ -1011,6 +1041,40 @@ _PLANTED_ROWS = [
 ]
 
 
+def _refused(text: str) -> bool:
+    """Whether the citation parser refuses `text`: a designator outside the one grammar is no citation (kb/Work PB5446)."""
+    try:
+        citation.parse(text)
+    except citation.CitationError:
+        return True
+    return False
+
+
+def _unparsed_suggestions(held) -> list[str]:
+    """Every designator `RuleBook.where` can print (each rule's designator, and with each sub-item path it prints) that
+    the citation parser refuses or the checker reads as no designator form: empty when the writer and the reader share
+    one grammar (kb/Work PB5446). A prose item's unit designator (`item 25`, `item L2.3`) is not read: the parser takes the
+    form only once the tree's loose `item <n>` citations are re-pointed (kb/Work PB5449 item 4; measured 2026-11-21: read
+    as designators, 1,456 of them name no unit), so until then it is that note's, named here and nowhere else."""
+    bad = []
+    for edition, book in held:
+        for locator, rules in book.rules.items():
+            for rule in rules:
+                if rule.unit and rule.designator.startswith("item "):
+                    continue
+                for path in [(), *book.item_paths(rule)]:
+                    text = f"§{edition}:{locator} {rule.designator + render_path(path)}"
+                    try:
+                        cited = citation.parse(text)
+                    except citation.CitationError:
+                        bad.append(text)
+                        continue
+                    if not (rule.unit or DESIGNATOR.fullmatch(cited.rule) or FORMAT_DESIGNATOR.fullmatch(cited.rule)
+                            or TABLE_DESIGNATOR.fullmatch(cited.rule)):
+                        bad.append(text)
+    return bad
+
+
 def self_test() -> int:
     """Each guard is shown to FIRE on its defect and to stay SILENT on its neighbour (kb/Work PB308, PB309, PB5317), in
     every edition the tree holds: 1985, 2002 and 2023 against their catalogs, 2014 in LABEL MODE, and a planted 2002
@@ -1029,6 +1093,8 @@ def self_test() -> int:
 
     q85 = "The input procedure may consist of any procedure needed to select, modify, or copy the records"
     q85b = "The file referenced by file-name-1 is sequenced"
+    q85l = ("An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest "
+            "record allowed by the RECORD IS VARYING clause")
     q23 = "Otherwise, arithmetic-expression-1 is evaluated to produce an algebraic value"
     q02 = "For the purpose of determining its length, identifier-1 is treated as if it were a sending data item"
     q14 = "If LEFT is specified, integer-1 is the leftmost column of the printable item"
@@ -1159,7 +1225,8 @@ def self_test() -> int:
         ("2023: a format the statement prints passes, one it does not fails",
          v("§2023:14.9.39 Format 4").ok and fails("§2023:14.9.39 Format 40", None, "no-format")),  # citation-audit: example
         ("2023: a designator form the checker does not read fails by name, never on the clause alone",
-         fails("§2023:14.9.8.4 GR1..2", q23, "designator-not-understood")),  # citation-audit: example
+         resolve(citation.Citation(2023, "14.9.8.4", "GR1..2"), q23).kind == "designator-not-understood"
+         and _refused("§2023:14.9.8.4 GR1..2")),  # citation-audit: example
         # 2002 against its catalog (kb/Work PB5256): no verdict marked; 2014 has none yet: LABEL MODE, every verdict marked.
         ("2002: GR99 fails", fails("§2002:14.8.21.3 GR99", q02, "no-ordinal")),  # citation-audit: example
         ("2002: the wrong ordinal fails naming GR1; GR1 passes, against the catalog (unmarked)",
@@ -1176,21 +1243,28 @@ def self_test() -> int:
          and v("§2014:14.9.23.2 SR2", "File-name-1 shall be described in a sort-merge file description entry").ok),
         ("every row of every held catalog is anchored in its transcription (the drift test)",
          all(not b.unanchored for _e, b in held) and any(b.catalog for _e, b in held)),
+        ("every designator the suggester can print parses, in every held edition: one grammar (kb/Work PB5446)",
+         not (unparsed := _unparsed_suggestions(held))
+         or print(f"  {len(unparsed)} unparsed, first: {unparsed[:3]}") is not None),
+        ("a sub-item of a restarted list is suggested, parsed and checked at its sub-item (kb/Work PB5446)",
+         (got := v("§1985:VII.1.3.5 GR4", q85l)).kind == "text-not-in-rule" and got.suggestion is not None
+         and (s := got.suggestion.split(" ", 1)[1]).startswith("GRL2.4") and len(s) > len("GRL2.4")
+         and v(got.suggestion, q85l).ok and fails(got.suggestion.split(" ")[0] + " GRL2.4z", q85l, "no-sub-item")),  # citation-audit: example
         ("fires EMPTY-NEEDLE (check)", fails("§2023:7.1", "| + | + | - |", "quote-too-short", EMPTY_NEEDLE)),
         ("fires EMPTY-NEEDLE (find)", find(lines, cls, "| + | - |", 2023)[0] == 1),
         ("fires on a table row of two real words", fails("§2023:15.43.4", "| S999 | +999 |", "quote-too-short")),
-        ("pins 14.9.8.4 1) b)", find(lines, cls, q23, 2023)[1][0].startswith("§2023:14.9.8.4 1) b)  (")),
+        ("pins 14.9.8.4 1) b)", find(lines, cls, q23, 2023)[1][0].startswith("§2023:14.9.8.4 1) b)  (")),  # citation-audit: example
         ("pins 14.7.7 2) bare (trailing paragraph)",
-         find(lines, cls, "The composite of operands is a hypothetical data item", 2023)[1][0].startswith("§2023:14.7.7 2)  (")),
+         find(lines, cls, "The composite of operands is a hypothetical data item", 2023)[1][0].startswith("§2023:14.7.7 2)  (")),  # citation-audit: example
         # PB55 review R1-1: a letter AFTER a nested `N.` list at its own indent is the list's sibling, not inside it
         ("pins 7.2.3.4 9) d) (letter after a nested list)",
-         find(lines, cls, "If no match occurs, the comparison is repeated with each", 2023)[1][0].startswith("§2023:7.2.3.4 9) d)  (")),
+         find(lines, cls, "If no match occurs, the comparison is repeated with each", 2023)[1][0].startswith("§2023:7.2.3.4 9) d)  (")),  # citation-audit: example
         ("pins 12.3.7.3 17) d) (letter after a nested list)",
          find(lines, cls, "Alphabet-name-4 shall not reference an alphabet specified with the LOCALE phrase", 2023)[1][0]
-         .startswith("§2023:12.3.7.3 17) d)  (")),
+         .startswith("§2023:12.3.7.3 17) d)  (")),  # citation-audit: example
         ("pins 7.2.3.4 9) c) 2. (the nested item keeps its letter)",
          find(lines, cls, "Each operand and operator of a concatenation expression is a separate text-word", 2023)[1][0]
-         .startswith("§2023:7.2.3.4 9) c) 2.  (")),
+         .startswith("§2023:7.2.3.4 9) c) 2.  (")),  # citation-audit: example
         ("accepts the CORRECTED form (C6), in its clause and its rule",
          v("§2023:14.9.10.4", "The value '62' is placed into the I-O status").ok
          and v("§2023:14.9.10.4 GR15", "The value '62' is placed into the I-O status").ok),
@@ -1203,6 +1277,10 @@ def self_test() -> int:
         ("--find prints the edition form", find(lines, cls, "equivalent to a literal", 2023)[1][0].startswith("§2023:")),
         ("--find prints the 1985 path in the 1985 style",
          any(o.startswith("§1985:XI.4.4.4 (6) b.  (") for o in find(*load(1985), q85b, 1985)[1])),
+        ("--find --edition 1985 searches the amendments printed with it, citing each hit by its own token, never as a "
+         "§1985 page (kb/Work PB5059)",
+         (got := find_printed("each table element associated with that subscript position were specified", 1985))[0] == 0
+         and any(o.startswith("§1989:") for o in got[1]) and not any(o.startswith("§1985:p.A-") for o in got[1])),  # citation-audit: example
         # kb/Work PB5449: unnumbered text. Prose in no row answers pending and names no rule (kb/Work PB222's repair); a
         # paragraph row is cited `p<n>`, a pending unit by its designator too, and a unit the clause lacks fails; a
         # quotation inside a row's text answers as it did (the glued GR13 stays until the 2023 mint carves it).
@@ -1247,7 +1325,7 @@ def main() -> int:
         ap.print_help()
         return 2
     if args.find:
-        code, out = find(*load(args.edition), args.find, args.edition)
+        code, out = find_printed(args.find, args.edition)
     elif any(a == "--edition" or a.startswith("--edition=") for a in sys.argv[1:]):
         print("FAIL: --check takes the edition from the citation (§1985:VI.5.3.2); --edition is --find's")
         return 2

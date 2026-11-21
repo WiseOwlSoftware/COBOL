@@ -1,13 +1,13 @@
 - **D-SORT-IMPLICIT-TRANSFERS — The SORT/MERGE implicit transfers after an unsuccessful as-if OPEN, READ, WRITE or CLOSE (§2023:14.9.40.4 GR12,
-  GR15, GR17; §2023:14.9.24.4 GR7, GR12; §2023:9.1.13.1; §2023:14.6.13.1.3 2))**: the USE procedure runs first, then the verb's
+  GR15, GR17; §2023:14.9.24.4 GR7, GR12; §2023:9.1.13.1; §2023:14.6.13.1.3 GR2)**: the USE procedure runs first, then the verb's
   rule disposes of the status — **terminate the statement, bypass the file, or continue** — from ONE table
   (`SortEmitter.RuleFor`). Four points the standard leaves to a reading: **(a) a FATAL status the verb's rules do
   not name terminates the statement.** §2023:9.1.13.1: if the implementor continues the run unit (WiseOwl COBOL does, with
   checking off, when the file has a FILE STATUS clause or a USE procedure applies — A.1 item 103 in §7; with neither,
   the as-if statement ends the run unit exactly as the explicit one does, before this table is read, kb/Work PB2700), "control is transferred to the end of the statement that produced the fatal exception condition
   unless the rules for that statement define other behavior" — and the statement is the SORT/MERGE, since the
-  as-if statement is not one the program wrote (§2023:14.9.33.4 GR2 a) 1.). With EC-I-O checking ON the same holds:
-  §2023:14.6.13.1.3 2) ("If the executed statement is a MERGE or SORT statement, then the rules for those statements
+  as-if statement is not one the program wrote (§2023:14.9.33.4 GR2a.1). With EC-I-O checking ON the same holds:
+  §2023:14.6.13.1.3 GR2 ("If the executed statement is a MERGE or SORT statement, then the rules for those statements
   apply") precedes the run-unit termination of 5)/7). So a SORT whose USING file is missing ('35') or whose GIVING
   write fails '48'/'71' ends there, where it used to run every remaining implicit function against a connector that
   was not open. **(b) SORT GR12 b)'s "If a fatal exception condition exists for file-name-1"** reads as the USING

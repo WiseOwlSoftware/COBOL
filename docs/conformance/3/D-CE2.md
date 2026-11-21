@@ -8,7 +8,7 @@
   comment-entry's removal), so the standard is silent on the mixed text. **Determination (CLAUDE.md rule 1: the standard
   is silent, so GnuCOBOL decides):** the paragraph is decided on the COMPILED text. GnuCOBOL 3.2 preprocesses (COPY,
   REPLACE, `>>IF`) and only then scans the identification division's paragraphs; measured, it accepts the
-  `AUTHOR. Pat O'Brien.` that follows a `>>IF` group whose compiled branch is the PROGRAM-ID paragraph, and the `REMARKS.` paragraph that follows `PD.` after `REPLACE ==PD== BY ==PROCEDURE DIVISION==.`. §2023:7.2.4.4 1) agrees
+  `AUTHOR. Pat O'Brien.` that follows a `>>IF` group whose compiled branch is the PROGRAM-ID paragraph, and the `REMARKS.` paragraph that follows `PD.` after `REPLACE ==PD== BY ==PROCEDURE DIVISION==.`. §2023:7.2.4.4 GR1 agrees
   about where replacing looks: the REPLACE statement's "source text" is "the conditionally-processed compilation group"
   (cite-checked). **Mechanism: a three-valued division and a stage after the others.** `DivisionCursor` reports the
   division the text stands in as yes, no or NOT KNOWN. The converter is exact where it can be: a certain IDENTIFICATION
@@ -19,7 +19,7 @@
   condition selects counted when there is no `>>ELSE` or `>>WHEN OTHER`); (2) a `>>COBOL-WORDS` directive that NAMES a
   word the cursor reads (`DIVISION`, `IDENTIFICATION`, `ID`, an identification paragraph: as the word to respell or the
   word to write, or a compilation-variable-name in a literal slot, whose value only conditional compilation knows,
-  §2023:7.3.11.4 1)), which may respell it, from there on, in the text or in a library text it reads (the merged driver, whose
+  §2023:7.3.11.4 GR1), which may respell it, from there on, in the text or in a library text it reads (the merged driver, whose
   blocks end at a directive line and never hold it, tells its cursor of the line itself); a directive that names none,
   `>>COBOL-WORDS EQUATE "DISPLAY" WITH "SHOW"`, changes nothing the cursor reads and leaves the division known, as an
   unrelated REPLACE does; (3) a REPLACE statement or
@@ -63,7 +63,7 @@
   may stand in an IDENTIFICATION DIVISION and the other in a PROCEDURE DIVISION, so the COPY driver numbers each
   inclusion as it normalizes it (the source text is 0, then 1, 2, … in text order; `CommentEntryPin.Inclusion`, carried
   in the carrier), and the numbers up to the earliest undecided candidate are the same in every run. The pinned run
-  converts the candidate as the ordinary lines they are, so every stage sees them; the free-form 255-position gate (§2023:6.1 3) a)) is asked of EVERY physical line once, by
+  converts the candidate as the ordinary lines they are, so every stage sees them; the free-form 255-position gate (§2023:6.1 SR3a) is asked of EVERY physical line once, by
   the converter, a carried candidate's and an omitted branch's included; the resolver never asks it again. The merged driver's COPY cursor reads the text the
   conditional-compilation stage has already cut, so a COPY's library text starts in the division the cut text says, or
   NOT KNOWN. Pinned by

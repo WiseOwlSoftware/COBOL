@@ -1,5 +1,5 @@
 - **D-CORR66 — which data items are "in" a level-66 THROUGH alias for the CORRESPONDING phrase, and how they
-  are qualified (§2023:14.7.6 rule 1 over §2023:13.18.45.4 GR2; kb/Work PB966).** Admission is not the latitude: §2023:14.9.25.3
+  are qualified (§2023:14.7.6 GR1 over §2023:13.18.45.4 GR2; kb/Work PB966).** Admission is not the latitude: §2023:14.9.25.3
   SR12 asks only that the MOVE CORRESPONDING operands "specify group data items" (`cite.py --check 14.9.25.3
   "Identifier-3 and identifier-4 shall specify group data items and shall not be reference-modified."` → OK,
   rule 12), and GR2 makes a THROUGH alias exactly that (`--check 13.18.45.4 "When the THROUGH phrase is

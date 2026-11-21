@@ -6,7 +6,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> §2023:7.2.2.5 3) (cite.py --check: OK; §2014:7.2.1.4 3) alike):
+      *> §2023:7.2.2.5 GR3 (cite.py --check: OK; §2014:7.2.1.4 3) alike):
       *> a text-word is "any other character or sequence of contiguous
       *> characters from the compile-time coded character set, bounded
       *> by separators". Pseudo-text-1 below is X, U+20AC EURO SIGN:

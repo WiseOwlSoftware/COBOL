@@ -107,7 +107,7 @@ operation is applied to a group containing it"* (§2023:8.5.1.11.2).
   by the take step (each dynamic component, left to right,
   takes as many whole units as the record holds beyond the fixed material still to come, up to its maximum; in a
   file record the components are dynamic-length items only, since a dynamic-capacity table "may be defined in any
-  place, other than the file section", §2023:8.5.1.9.1 3), and the rule's element-unit arm serves the generic
+  place, other than the file section", §2023:8.5.1.9.1 SR3, and the rule's element-unit arm serves the generic
   carrier — the
   exact inverse of the composer for one variable-length member, the earlier component taking the excess for
   several when the record carries no extent table); a dynamic-length record takes the record as its content
@@ -165,15 +165,15 @@ operation is applied to a group containing it"* (§2023:8.5.1.11.2).
   variable-length (`FileModel.ImpliesVariableFormat`; `RecordSizeVaries` is the one question every registration
   and `SortBinder.SortVaryingOf` ask). `MaxRecordSize` counts a dynamic-length item at its maximum size (GR8 b) —
   the only variable-length member a record can hold, since COBOL1526 refuses a dynamic-capacity table under any
-  FD / SD record (§2023:8.5.1.9.1 3); kb/Work PB1604); `FileModel.RecordMax` reaches the connector as `RecordMax`, the
+  FD / SD record (§2023:8.5.1.9.1 SR3; kb/Work PB1604); `FileModel.RecordMax` reaches the connector as `RecordMax`, the
   §2023:14.9.30.4 GR14/GR15 truncation bound, separately from the area width the image is padded to — an unlimited
   dynamic-length record must not size every READ's area buffer.
 - **SD records.** `SortBinder.SortRecordOf` admits a variable-length record whose extent composes.
 - **A key that FOLLOWS a variable-length member** (kb/Work PB1025; CONFORMANCE.md §3 D-KWV) — a SORT/MERGE key or an
   indexed RECORD KEY / ALTERNATE RECORD KEY — has no fixed position in the contiguous image, so it is located PER
   RECORD. `RecordLayout.KeyWindowOf` is the ONE bind-time answer: the key's FIXED-run offset and its furthest reach
-  (every preceding member at its maximum), read by `SortBinder.SortAddFileKeys` (§2023:14.9.40.3 SR6 g) /
-  §2023:14.9.24.3 SR4 g), COBOL0874), the `FileControlKeyRules` rows for §2023:12.4.5.12.3 SR4 and §2023:12.4.5.6.3 SR5
+  (every preceding member at its maximum), read by `SortBinder.SortAddFileKeys` (§2023:14.9.40.3 SR6g /
+  §2023:14.9.24.3 SR4g, COBOL0874), the `FileControlKeyRules` rows for §2023:12.4.5.12.3 SR4 and §2023:12.4.5.6.3 SR5
   (COBOL0863) and `KeyedIoEmitter.KeyWindow`. At run time the record type's ONE `CobolContiguousLayout`
   (emitted beside `FromContiguousImage` as the static `__contiguous`, exposed through `__Contiguous`) serves both
   the decomposition and `Position` — the record's extent table, else the same take step
@@ -181,7 +181,7 @@ operation is applied to a group containing it"* (§2023:8.5.1.11.2).
   `IndexedConnector.KeyOf` find a key exactly where a READ / RETURN puts it. An indexed connector with such a key
   (`_layoutKeys`) takes every key from the record AS WRITTEN (`AreaKey`; the WRITE / REWRITE frame), never from an
   image fitted to the area width, because truncation would move the key.
-- **EXTERNAL** (kb/Work PB1026). §2023:13.18.22.4 GR4 b) makes "the data contained in all record description entries"
+- **EXTERNAL** (kb/Work PB1026). §2023:13.18.22.4 GR4b makes "the data contained in all record description entries"
   of an EXTERNAL file external, so BOTH halves of the area are run-unit storage (`CallBindExternalAndGlobal`): the
   character half is ONE cell keyed `FD::<externalized name>`, re-based through `FileModel.CharacterAnchor`, and
   each out-of-line record gets a cell of its OWN, keyed `FD::<name>#<k>` by its ordinal k among the file's
@@ -668,9 +668,9 @@ which is also where REVERSED, the other alternative of the same printed bracket,
 **What it buys.** Categories (b) and (c) are unreachable today, so symbols a, b, d and f — previous units,
 no rewind of the current reel, unit removal, rewind — and symbol e's two unit-media branches are vacuous
 rather than missing, which is what the owner-signed determination in inventory row `GR-14.9.6.4-3`'s notes
-records (§2023:14.9.6.4 GR3 e) 1.; a `docs/CONFORMANCE.md` §8 row until kb/Work PB55 folded the sub-item). Adding a
+records (§2023:14.9.6.4 GR3e 1.; a `docs/CONFORMANCE.md` §8 row until kb/Work PB55 folded the sub-item). Adding a
 unit-structured medium is then a bounded change: give its connector a category, fill the cells
-`CloseByFormat`'s loud arm names, and implement §2023:14.9.27.4 GR12 b) where `NoRewindPhraseEffect` refuses.
+`CloseByFormat`'s loud arm names, and implement §2023:14.9.27.4 GR12b where `NoRewindPhraseEffect` refuses.
 `CloseTable14Tests` is the drift test that keeps that true — it pins the
 16 cells against the printed table, asserts both enums still have exactly four members (the `_` arm C#
 requires for out-of-range casts would otherwise swallow a new one), and fails the moment any connector
@@ -705,7 +705,7 @@ kept the last statement's '10' where '00' is due. `CloseSequenceDriftTests` keep
 source but `EmitCloseStatement` renders `RuntimeApi.FileClose` or `FileBeginClose`. The emitted store into a
 container's GLOBAL item needs the instance's parent chain whole, so `ProgramTable.InstanceForClose` builds a
 transient container instance where a RECURSIVE container has none (`CancelCascadeOrderTests`). The run unit's own
-implicit CLOSE at STOP RUN stays `FileRegistry.CloseAll` (§2023:14.6.11 2): no program's status item is observable
+implicit CLOSE at STOP RUN stays `FileRegistry.CloseAll` (§2023:14.6.11 GR2: no program's status item is observable
 after it. The report-active check of the explicit CLOSE (§2023:14.9.6.4 GR5) is not part of the implicit CLOSE
 yet: which checking state governs a close a CANCEL executes in another program is kb/Work PB5685's question.
 
@@ -739,7 +739,7 @@ the first OPEN that writes the phrase. That is the drift guard the structure CAR
 asserting an array's order. **A third tape phrase is a member on each enum, an arm in the effect switch and a
 named row with an arm in `For`.**
 
-**REVERSED adds NO retrieval code.** §2023:14.9.30.4 GR21 c) already defines retrieval in the decreasing direction
+**REVERSED adds NO retrieval code.** §2023:14.9.30.4 GR21c already defines retrieval in the decreasing direction
 and `SequentialConnector` has implemented it since kb/Work PB334 for `READ … PREVIOUS`. `PositionReversed` sets
 the file position indicator to one past the last record — `ExistingRecordCount`, the same ONE measurement the
 §2023:14.9.51.4 GR19 EXTEND ordinal base uses — and raises a standing `Reversed` flag; `MovesBackward(previous)` is
@@ -872,7 +872,7 @@ SAME `OpenCore` — but **with the SHARING PHRASE their own general rules give t
 emitter and not of this dispatch (**D22**). Being arbitrated is only half of what those four rules require, and
 the sentence that used to stand here — *"those route through `CobolFile.OpenInput`/`OpenOutput` → `Open` →
 `OpenCore` with no arm of their own"* — recorded the half that was true as though it were the whole, which is
-how §2023:14.9.40.4 GR12 a)'s READ ONLY and GR15 a)'s NO OTHER went unrendered for as long as they did
+how §2023:14.9.40.4 GR12a's READ ONLY and GR15 a)'s NO OTHER went unrendered for as long as they did
 (kb/Work PB714). Because every successful OPEN registers in `PhysicalFileTable`, every close
 path releases, and it does so by being the SAME close: `FileRegistry.CloseByFormat`, the Table-14 CLOSE dispatch,
 runs `SharedClose` (the deregistration and the §2023:9.1.16 record-lock release - except the record locks of a file in an APPLY COMMIT
@@ -880,7 +880,7 @@ clause, which its COMMIT or ROLLBACK releases, §2023:14.9.6.4 GR9, kb/Work PB34
 connector's own `Close()`. The explicit CLOSE statement, a program's implicit CLOSE (a CANCEL's and an INITIAL
 program's return: the emitted CLOSE behind `CobolFile.IsOpen`, the ONE CLOSE of the paragraph after GR1 above), an object's `CloseAndDrop`, a
 displaced registration's `CloseDisplaced` (which retires a connector still holding what a CLOSE under commit control kept, for the
-next COMMIT or ROLLBACK, kb/Work PB3484) and run-unit termination's `CloseAll` (§2023:14.6.11 2), which `Reset` also
+next COMMIT or ROLLBACK, kb/Work PB3484) and run-unit termination's `CloseAll` (§2023:14.6.11 GR2, which `Reset` also
 runs for whatever an earlier run unit left open) are all entries over it, and
 `RunUnitImplicitCloseDriftTests` keeps it that way (kb/Work PB603: `CloseAll`, `Reset` and `CloseDisplaced` each
 used to call `Close()` directly, and `Reset` dropped keyed connectors still open). `CloseAll` closes only the files
@@ -895,7 +895,7 @@ request's mode.
 *"I-O or extend"*, but Table 19's existing-side column groups are `extend I-O output` — so a literal reading of
 the five sub-cases answers *Normal open* in four combinations the table marks *Unsuccessful open* (an incoming
 SHARING WITH READ ONLY request, in the EXTEND/I-O or INPUT mode, against a connector open in the OUTPUT mode).
-§2023:9.1.15 rule 2 resolves it in the table's favour in so many words — *"unsuccessful if the physical file is
+§2023:9.1.15 GR2 resolves it in the table's favour in so many words — *"unsuccessful if the physical file is
 associated with another file connector whose open mode is other than input"* and *"subsequent requests to open
 the physical file through other file connectors in a mode other than input … will be unsuccessful"* — and
 OUTPUT is a mode other than input. `OpenTable19Tests` pins both readings: the 35 cells one by one against the
@@ -916,7 +916,7 @@ clause, but `PhysicalFileTable.State.Open`, `Table19.Conflicts` and `FileLockPos
 `FileSharing` everywhere. Two clause-less connectors can therefore be open together only when both are INPUT; a
 clause-less updater or writer has the file to itself. A LOCK MODE clause is not a sharing specification, so a
 LOCK MODE-only SELECT and a RETRY-phrase-only OPEN take the same default (and a connector that is NO OTHER has
-its record locks ignored, §2023:9.1.15 1)). Programs that need two connectors on one file say `SHARING WITH ALL
+its record locks ignored, §2023:9.1.15 GR1). Programs that need two connectors on one file say `SHARING WITH ALL
 OTHER`, which §2023:14.9.27.3 SR8 couples with a LOCK MODE clause.
 
 **What it buys, and what it cost before.** `Conflicts` used to be a four-test predicate chain whose final
@@ -951,12 +951,12 @@ the three host primitives (Linux open-file-description locks, Windows byte range
 `DESIGN-runtime-library.md`.
 
 **⛔ AND THE LOCK IS OWED BY EVERY ORGANIZATION, WHICH IS A SEPARATE FACT FROM THE DERIVATION BEING RIGHT**
-(kb/Work PB771). §2023:9.1.15 3) names none — *"The successful opening of a file establishes a file lock for the
+(kb/Work PB771). §2023:9.1.15 GR3 names none — *"The successful opening of a file establishes a file lock for the
 applicable sharing rules, thereby preventing other run units from opening that file with incompatible sharing
 rules"* — and a host share mode is the only thing a process can say to another run unit, so a connector that
 holds no handle establishes no lock however correct the derivation above is. RELATIVE and INDEXED held none:
 their whole record store was loaded at the OPEN and rewritten at the CLOSE through short-lived
-`HostFile.OpenAuxiliary` handles, so `SHARING WITH NO OTHER` — §2023:9.1.15 1)'s *"exclusive access to a physical
+`HostFile.OpenAuxiliary` handles, so `SHARING WITH NO OTHER` — §2023:9.1.15 GR1's *"exclusive access to a physical
 file"* — protected a keyed file from nothing outside the run unit, and the CLOSE then truncated it and rewrote
 it from the OPEN's snapshot, discarding another run unit's records with '00' reported on both sides. Measured,
 on both organizations, before the fix. `KeyedConnector` now takes and holds the handle for the life of the
@@ -1004,7 +1004,7 @@ a register-time mechanism for TO and an open-time mechanism for USING.
 element that runs the statement — a) *"in the source unit that specifies the OPEN, SORT, or MERGE statement"*, b)
 *"in the runtime element that executes the OPEN, SORT, or MERGE statement"* — and a file connector is neither
 per-element nor per-activation. An EXTERNAL file connector is ONE object per run unit shared by every describing
-element (§2023:13.18.22.4 GR4 a), whose entries §2023:12.4.5.3 GR1 b) requires only to be CONSISTENT — unlike GR1 i), which
+element (§2023:13.18.22.4 GR4a, whose entries §2023:12.4.5.3 GR1b requires only to be CONSISTENT — unlike GR1 i), which
 makes FILE STATUS *the same* external item — so two programs may legally hold separate storage for data-name-1
 (WiseOwl COBOL's GR1 b) consistency rule compares the ASSIGN operand text — device class dropped, a literal by its value,
 case ignored, no host-path mapping — and the USING data-name-1 by spelling: `docs/CONFORMANCE.md` §7, `DOC-A.1-72`). A
@@ -1104,7 +1104,7 @@ WITH LOCK are mutually exclusive" while its body tested only SR4's automatic-loc
 forbidden pair was rejected by the collapse and by nothing else. Splitting the brackets without landing a real
 SR3 check in the same change set would have opened that hole; `CheckIgnoringLock` -> COBOL1818 is the check,
 and `negative/pb331-read-ignoring-with-lock` is its witness, paired with the permitted-pair positive
-`2002/pb331_read_lock_brackets`. ⚠ SR3's "the LOCK phrase" is WITH LOCK and NOT WITH NO LOCK: §2023:14.9.30.4 GR11 b)
+`2002/pb331_read_lock_brackets`. ⚠ SR3's "the LOCK phrase" is WITH LOCK and NOT WITH NO LOCK: §2023:14.9.30.4 GR11b
 names "the NO LOCK phrase" and GR11 d) "the LOCK phrase" as different phrases in the same statement.
 
 **One optional word came with the measurement.** Page 722 underlines ADVANCING and LOCK and NOT ON
@@ -1195,7 +1195,7 @@ place its rule is written:
 | `ConflictOnLockedRecord` | GR9 + §2023:14.7.9's RETRY — also §2023:14.9.35.4 GR11 and §2023:14.9.10.4 GR6, one rule worded three times |
 | `PreflightReadLock` | §2023:12.4.5.9.4 GR7's ceiling, tested before the retrieval |
 | `ApplyPostReadLockActions` | GR11 b)/c)/d), the only lock actions that ARE conditioned on success |
-| `ReleasePriorRecordLocks` | §2023:12.4.5.9.4 GR6 / §2023:14.9.30.4 GR11 a), for all four governed verbs |
+| `ReleasePriorRecordLocks` | §2023:12.4.5.9.4 GR6 / §2023:14.9.30.4 GR11a, for all four governed verbs |
 
 `SequentialIoEmitter` renders it through `RuntimeApi.FileReadSharedOk`, which wraps the call in `[0] == '0'` so
 its bool contract is unchanged; `KeyedIoEmitter` renders `ReadKind.Next`/`Previous` through the same entry.
@@ -1252,10 +1252,10 @@ that no SELECT names is rejected by §2023:13.4.5.3 SR1 / §2023:13.4.6.3 SR1 (C
 - **The size is "the maximum size established by the RECORD clause"** — format 1's integer-1, format 3's
   integer-5, format 2's integer-3. A format-2 clause with no `TO` phrase establishes none (§2023:13.18.43.4 GR10
   defers to "the greatest number of bytes described for a record in that file", and none is described), and
-  neither does an absent clause, which §2023:13.4.5.3 SR3 a) and §2023:13.18.43.3 SR1 forbid outright: **COBOL1836**.
+  neither does an absent clause, which §2023:13.4.5.3 SR3a and §2023:13.18.43.3 SR1 forbid outright: **COBOL1836**.
 - **The two entry kinds that take SR3's permission back are SCREENS, not fallbacks: COBOL1837.** §2023:13.4.5.3 SR7
   (INDEXED) and §2023:13.4.6.3 SR2 (sort-merge) both require record description entries, because both are keyed and a
-  key is located IN a record (§2023:12.4.5.12.3 SR2; §2023:14.9.40.3 SR6 a).
+  key is located IN a record (§2023:12.4.5.12.3 SR2; §2023:14.9.40.3 SR6a.
 - **The permission is COBOL-2002's, so at `--std 85` every record-less FD is COBOL1837** (kb/Work PB5071).
   §1985:VII.3.2.3 SR3, §1985:VIII.3.2.3 SR3 and §1985:IX.3.2.3 SR3 each read "One or more record description entries
   must follow the file description entry." with no exception for a RECORD clause, so `MaterializeImpliedRecord`
@@ -1555,7 +1555,7 @@ and every record verb — both READ emitters, WRITE, REWRITE, DELETE — chose i
 is a compile-time property of the SELECT or of the statement. So a connector made a sharing participant by
 `OPEN INPUT SHARING WITH READ ONLY F` ran every unphrased verb on the UNGOVERNED entry and read a record another
 connector had locked with `'00'`, where §2023:14.9.30.4 GR9/GR10 b) require the record operation conflict status
-`'51'`. Adding `RETRY 0 TIMES` — a behavioural no-op by §2023:14.7.9.3 GR4 a) — changed the answer, because the
+`'51'`. Adding `RETRY 0 TIMES` — a behavioural no-op by §2023:14.7.9.3 GR4a — changed the answer, because the
 predicate could see the RETRY phrase and could not see the OPEN (kb/Work PB683).
 
 **The shape.** There is no compile-time governance predicate and there is no ungoverned renderer. `RuntimeApi`
@@ -1581,7 +1581,7 @@ statement with the IGNORING LOCK phrase."* §2023:12.4.5.9.4 GR1 a) and b) 1. ar
 GR2 is the clause that disables the CHECK, for a processor that does not support record locking at all.
 
 **The shape.** `FileRegistry.ShareOf` is the ONE reader of the opt-in map: a miss yields
-`ImplementorDefaultShare`, the §2023:12.4.5.9.4 GR1 b) 2. posture (`FileLockMode.None` — the *"specify that the
+`ImplementorDefaultShare`, the §2023:12.4.5.9.4 GR1b.2 posture (`FileLockMode.None` — the *"specify that the
 default is no record locking"* option the rule itself offers), and the governed body runs unchanged. Setting is
 still gated on `LocksEffective`, so a clause-less connector acquires nothing even from an explicit LOCK phrase;
 checking is gated on nothing. **Two questions, two gates, one body** — where before one gate answered both.
@@ -1638,7 +1638,7 @@ organizations, with the `RETRY 0 TIMES` discriminator that used to disagree),
 `pb683_write_advancing_governed` (the same WRITE in all three printed shapes, all `'51'`).
 ### D21. The sending operand of a `READ … INTO` / `RETURN … INTO` implicit MOVE is THE CURRENT RECORD, and it is built in ONE place for all three arms.
 
-ISO §2023:14.9.30.4 GR4 b) and §2023:14.9.34.4 GR5 b) are the same sentence twice: *"The current record is moved from the
+ISO §2023:14.9.30.4 GR4b and §2023:14.9.34.4 GR5b are the same sentence twice: *"The current record is moved from the
 record area to the area specified by identifier-1 according to the rules for the MOVE statement without the
 CORRESPONDING phrase. The size of the current record is determined by rules specified in the RECORD clause. If
 the file description entry contains a RECORD IS VARYING clause, the implied move is an alphanumeric group
@@ -1664,7 +1664,7 @@ short-final-record '04' case of §2023:14.9.30.4 GR14 included (there the area r
 `FileModel.RecordClauseExceedsDescriptions`: a Format 1 integer-1, or a Format 2 integer-3, above the largest
 description; §2023:13.18.43.3 SR3 and §1985:VII.3.8.3 SR1 allow the shorter descriptions) the record area holds only the
 description-wide leading part of the record, yet §2023:13.18.43.4 GR6/GR7 give every record the clause's size and
-§2023:14.9.30.4 GR4 b) (§1985:VII.4.4.4 GR8b) moves THE CURRENT RECORD sized by the clause. The sender is then a
+§2023:14.9.30.4 GR4b (§1985:VII.4.4.4 GR8b) moves THE CURRENT RECORD sized by the clause. The sender is then a
 `BoundCurrentRecord` even for a Format 1 file (designated an alphanumeric group move: it is no one data item the
 descriptions define), and `CurrentRecordImage` windows the CONNECTOR's current record (`CobolFile.CurrentRecord`; for
 RETURN, `CobolSort.LastReturnedImage`) instead of the area image. The record is within the file's fixed attributes, so
@@ -1704,11 +1704,11 @@ where the operand model already has a seam that every renderer reads through.
 ### D22. An "as if an OPEN statement …" initiation renders THE WHOLE OPEN IT IS AS-IF OF — the SHARING phrase its own general rule names, and the I-O status store that precedes the USE procedure — through ONE emitter helper serving all four such rules.
 
 **The rule.** The standard writes exactly FOUR implicit opens, and every one of them names a phrase:
-§2023:14.9.40.4 GR12 a) and §2023:14.9.24.4 GR7 a) (SORT / MERGE `USING`) — *"If the file-control entry for the file has a
+§2023:14.9.40.4 GR12a and §2023:14.9.24.4 GR7a (SORT / MERGE `USING`) — *"If the file-control entry for the file has a
 SHARING clause with the ALL phrase, the initiation is performed as if an OPEN statement with the INPUT phrase
 and the SHARING WITH READ ONLY phrase had been executed; otherwise, the initiation is performed as if an OPEN
-statement with the INPUT phrase and without a SHARING phrase is executed"* — and §2023:14.9.40.4 GR15 a) /
-§2023:14.9.24.4 GR12 a) (`GIVING`) — *"The initiation is performed as if an OPEN statement with the OUTPUT and
+statement with the INPUT phrase and without a SHARING phrase is executed"* — and §2023:14.9.40.4 GR15a /
+§2023:14.9.24.4 GR12a (`GIVING`) — *"The initiation is performed as if an OPEN statement with the OUTPUT and
 SHARING WITH NO OTHER phrases had been executed"*. §2023:9.1.15 says what the phrases buy: read only *"restricts
 concurrent access to a physical file through file connectors other than this one, to input mode"*, no other
 *"specifies exclusive access to a physical file"*. Searching the standard for *"as if an OPEN statement"*
@@ -1746,7 +1746,7 @@ that can go stale where a deletion cannot (kb/Work PB714).
 **What is NOT observable, and where it is pinned instead.** `SHARING WITH NO OTHER`'s exclusive half is
 unreachable from a single-threaded COBOL program: no statement of the program's runs between the implicit OPEN
 and the implicit CLOSE, and every Table 19 *Open request* row whose mode is OUTPUT is *Unsuccessful open* in all
-five columns anyway (§2023:9.1.13.9 1) e)), so the override cannot change an INCOMING arbitration either. It is
+five columns anyway (§2023:9.1.13.9 GR1e), so the override cannot change an INCOMING arbitration either. It is
 pinned at the registry, on the exact call the emitter renders — `CobolFileLockTests`
 `SortGivingImplicitOpen_TakesNoOther_AndLocksOutEveryOtherConnector_GR15a`. The USING override IS observable and
 rides three conformance goldens (`pb714_sort_using_sharing_read_only`,
@@ -1779,7 +1779,7 @@ the fatal exception condition", the SORT/MERGE — and the MERGE cells that turn
 completes normally" (GR7 a), GR12 a), GR12 b)) read that fact from the hook itself: `__IoCheck` / `__IoCheckEc`
 answer -1 when a procedure ran and completed normally and -3 when none applied (the EC-free `__IoCheck` answers a
 bool), and the transfer passes `__verbRule` so a fatal status under EC-I-O checking is the verb's to dispose of
-(§2023:14.6.13.1.3 2) precedes 5)/7)). A terminated statement performs none of its remaining implicit functions, so a
+(§2023:14.6.13.1.3 GR2 precedes 5)/7)). A terminated statement performs none of its remaining implicit functions, so a
 GIVING file whose WRITE terminated it is still open afterwards (determination in `docs/CONFORMANCE.md` §3).
 `SortTransferRuleDriftTests` pins every cell and that the hook is reached from ONE place in the emitter. Witness:
 `2002/pb993_sort_merge_transfer_termination` (nine legs, one per cell family).
@@ -1795,7 +1795,7 @@ first, ahead of the table's cell. It sits in the disposition rather than the hoo
 boundary paragraph — "if no such USE procedure is specified, the processing of the file is terminated" — is the one
 rule that continues past a status nothing covers, and its test runs between the hook and the disposition. Under
 EC-I-O checking the `__IoCheckEc` hook's `__verbRule` keeps the enabled-and-unhandled case the verb's
-(§2023:14.6.13.1.3 2)), so the returned condition also requires the raised condition's mask bit to be clear. Before
+(§2023:14.6.13.1.3 GR2), so the returned condition also requires the raised condition's mask bit to be clear. Before
 PB2700 the hook suppressed the question outright for every as-if statement, so `SORT … USING` a missing file
 skipped its output procedure and the program carried on. Witnesses: `DocA1Item103WitnessTests` (SORT USING, MERGE
 USING, SORT GIVING; the checked control) and `85/pb2700_sort_merge_missing_using_covered` (the covered arms).
@@ -1841,8 +1841,8 @@ WRITE §2023:14.9.51, REWRITE §2023:14.9.35 — sequential and keyed alike) and
 RETURN §2023:14.9.34) used to construct its implicit `BoundMove` in the EMITTER —
 `move.Emit(new BoundMove(from, [rl.Record]))` — downstream of every bind-time MOVE screen AND of the storage
 facts the emitter's own output consumes. §2023:14.9.32.4 GR4 makes `RELEASE record-name-1 FROM x` **exactly**
-`MOVE x TO record-name-1` followed by the same RELEASE without FROM (§2023:14.9.51.4 GR5 a) and §2023:14.9.35.4 GR7 a) say
-it for WRITE and REWRITE; §2023:14.9.30.4 GR4 b) and §2023:14.9.34.4 GR5 b) are the same sentence for INTO), so *exactly*
+`MOVE x TO record-name-1` followed by the same RELEASE without FROM (§2023:14.9.51.4 GR5a and §2023:14.9.35.4 GR7a say
+it for WRITE and REWRITE; §2023:14.9.30.4 GR4b and §2023:14.9.34.4 GR5b are the same sentence for INTO), so *exactly*
 has to include the bind. Measured, before the fix: `RELEASE SRT-REC FROM WS-NUM` (a `PIC 9(3)` sender into a
 `PIC A(8)` record) compiled clean where the identical explicit MOVE drew COBOL0819; and
 `RELEASE SRT-NUM FROM QUOTE` **aborted the run** with an unhandled `NotImplementedCobolFeatureException` before
@@ -1856,7 +1856,7 @@ statement's own rules to a sender/receiver pair. The explicit MOVE statement cal
 `BoundRead.IntoMove`, `BoundKeyedWrite.FromMove`, `BoundKeyedRewrite.FromMove`, `BoundKeyedRead.IntoMove`,
 `BoundRelease.FromMove`, `BoundReturn.IntoMove` — and the emitter *renders* it, deciding nothing.
 `BoundMove.ImplicitOf` carries the phrase, so a screen written for the explicit statement reports the statement
-the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC (ISO §2023:14.9.32.4 GR4 a);
+the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC (ISO §2023:14.9.32.4 GR4a;
 §2023:14.9.32.3 SR3)`) without an arm of its own.
 
 - **The per-verb phrase rules are a ROW WITH A SET, not a flag.** Each verb states its own rules for the phrase
@@ -1917,7 +1917,7 @@ the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC
   implicit move is synthesized at emission fails there rather than silently in a program nobody has written yet.
 - **The validity question has ONE entry (kb/Work PB878).** `MoveTable16.Validity` (a bound operand against a
   place, or against a Table-16 position for §2023:14.9.20.3 SR4's "item of the specified category") and
-  `MoveTable16.DataItemRefusal` (§2023:14.7.6 rule 2's two data items) run one chain in SR order — SR2, SR6/SR7/SR8,
+  `MoveTable16.DataItemRefusal` (§2023:14.7.6 GR2's two data items) run one chain in SR order — SR2, SR6/SR7/SR8,
   SR9, SR10 — and return the refusing RULE with its reason; the per-rule readers are private.
   `MoveBinder` frames each rule under its own code (COBOL1533 · COBOL1931 · COBOL0819 with SR10's
   `--permissive` re-reading); INITIALIZE (COBOL2031), INVOKE/CALL BY CONTENT (§2023:14.8.2.3.3 rule 2d,
@@ -1990,7 +1990,7 @@ not two. Diagnostics: COBOL1994 (admissibility), COBOL1995 (the strong-receiver 
 - **The class carries the USAGE half of the same question too — `ItemCategory.UsageOf`** (kb/Work PB411). §2023:8.5.2.1
   states a group's usage in one sentence — *"An alphanumeric group item is treated as though it had a usage of
   display"* — and every rule worded *"a data item with usage display or usage national"* (§2023:14.9.18.3 SR6 /
-  §2023:14.9.42.3 SR2's termination-status operand; §2023:8.4.3.3.4 GR6's unique data item; §2023:14.9.41.3 SR6 b) 2.'s key
+  §2023:14.9.42.3 SR2's termination-status operand; §2023:8.4.3.3.4 GR6's unique data item; §2023:14.9.41.3 SR6b 2.'s key
   comparison) asks it. The reader is `OperandPic?.Usage ?? (IsAlphanumericGroup(item) ? Usage.Display : null)`, so
   it rides the SAME §2023:3.11 definition-by-exclusion as the category half and a strongly-typed or variable-length
   group — for which the standard states no usage at all — answers `null` rather than being given an invented one.
@@ -2029,7 +2029,7 @@ that specified by integer-3"*; **SR5** (Format 2) *"Integer-3 shall be greater t
 **What was wrong.** `FileControlBinder.BindRecordClause` parsed the integers and stored them, and nothing checked any of
 it. `FD F RECORD IS VARYING IN SIZE FROM 20 TO 5 DEPENDING ON L.` — an SR5 violation written in two adjacent
 literals — compiled clean at 85, 2002, 2014 and 2023, and the program learned about it only as an I-O status
-`'44'` on the first WRITE, which is §2023:13.18.43.4 GR14 a)'s runtime CONSEQUENCE and not the clause's diagnosis. An
+`'44'` on the first WRITE, which is §2023:13.18.43.4 GR14a's runtime CONSEQUENCE and not the clause's diagnosis. An
 inverted range makes EVERY write unsuccessful, so the runtime report is also unusably late (kb/Work PB721).
 
 **Where it lives, and why not at the clause.** `src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs`, called from
@@ -2060,7 +2060,7 @@ redefining children (GR8's *"excluding redefinitions and renamings"*), already t
 occurrences, and already lays a bit-bearing subtree out by the §2023:8.5.1.6.3 walk (GR4's *"the entire byte in which
 that data item ends"*). `FileModel.MinRecordSize` is GR8 a): the same `ByteWidth` wherever no table varies beneath
 an item, and otherwise each occurs-depending table at `DataItem.MinimumOccurrences` (its integer-1; a record holds
-no dynamic-capacity table — §2023:8.5.1.9.1 3), COBOL1526), a bit-bearing ODO subtree placed by the bit walk. A
+no dynamic-capacity table — §2023:8.5.1.9.1 SR3, COBOL1526), a bit-bearing ODO subtree placed by the bit walk. A
 parallel leaf re-summation would be the same rule twice — and it was: the one this replaced rounded each bit leaf to
 a byte of its own, so two `PIC 1(3) USAGE BIT` items had minimum 2 over maximum 1.
 
@@ -2092,7 +2092,7 @@ descriptions by integer-4 and integer-5. Inventing one would reject legal source
 `conformance:cases/13.18.43-RECORD/pb721-record-contains-inverted-range` asserts the record draws nothing while the clause is
 reported.
 
-**SR7 and SR8 need no row, and the absence is DERIVED.** §2023:5.5 1) — *"When the term 'integer-n' (n = 1, 2, …) is
+**SR7 and SR8 need no row, and the absence is DERIVED.** §2023:5.5 SR1 — *"When the term 'integer-n' (n = 1, 2, …) is
 used in a general format and associated rules, it refers to a fixed-point integer literal that shall be unsigned
 and nonzero unless otherwise specified in the associated rules"* — makes every `integer-n` unsigned, and the
 general format spells integer-2 and integer-4 with the grammar's unsigned `integerLiteral`, so a negative
@@ -2291,10 +2291,10 @@ answer that every organization's WRITE and REWRITE asks, in the connector, befor
 2. **Does the file hold it?** A relative or indexed file is the keyed store engine's paged store, read and written a
    page at a time (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.9), so its externally-defined boundary
    (§2023:9.1.13.5 item 4; Annex A.1 item 107) is the host file system's maximum file size, capped by the format at
-   `PagedFile.FormatPages` pages: a WRITE or REWRITE whose pages would pass it is answered §2023:14.9.51.4 GR33 b) / GR42 d)'s
+   `PagedFile.FormatPages` pages: a WRITE or REWRITE whose pages would pass it is answered §2023:14.9.51.4 GR33b / GR42 d)'s
    '24' at the statement (`PagedFile.Begin`'s reservation, `StoreStatus.Boundary`), as the host's own refusal to grow
    the file is. An empty relative record number is no entry of the tree, so a record in the billions costs one leaf.
-   GR29 b)'s highest permitted RRN is `RelativeConnector.HighestRelativeRecordNumber`; above it (or below 1) is '34' from 2014 (§2014:14.9.47.3 GR26 b) is the first text with the sentence), and '24' below 2014 (`DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError`, kb/Work PB5125).
+   GR29 b)'s highest permitted RRN is `RelativeConnector.HighestRelativeRecordNumber`; above it (or below 1) is '34' from 2014 (§2014:14.9.47.3 GR26b is the first text with the sentence), and '24' below 2014 (`DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError`, kb/Work PB5125).
 3. **Does the host medium take it?** A sequential file's boundary is the host medium's capacity (§2023:9.1.13.6
    item 3; Annex A.1 item 108). `HostFile.IsMediumBoundary` is the one classification of the host's refusal and
    `FileStatusCode.ForWriteFailure` maps it ('34', else '30'); `SequentialConnector.Write`, `WriteAdvancing` and
@@ -2460,7 +2460,7 @@ standard's observable half (OPEN EXTEND over an earlier report answers '00', a s
 REWRITE, DELETE and START with "The INVALID KEY phrase (or the AT END phrase) must be specified if no applicable USE AFTER
 STANDARD EXCEPTION procedure is specified for file-name-1" (§1985:VII.4.4.3 SR2; §1985:VIII.4.5.3 SR5, §1985:IX.4.5.3 SR7;
 §1985:VIII.4.9.3 SR3, §1985:IX.4.9.3 SR3; §1985:VIII.4.6.3 SR4, §1985:IX.4.6.3 SR3; §1985:VIII.4.3.3 SR2, §1985:IX.4.3.3 SR2;
-§1985:VIII.4.7.3 SR3, §1985:IX.4.7.3 SR3). ISO/IEC 1989:2002 and later print none of them (§2023:14.9.30.4 GR24 d) sends control to
+§1985:VIII.4.7.3 SR3, §1985:IX.4.7.3 SR3). ISO/IEC 1989:2002 and later print none of them (§2023:14.9.30.4 GR24d sends control to
 the end of the statement when neither a phrase nor a declarative takes the exception). **The decision:** `ExceptionPhraseRequirement`
 (`BinderContext.ExceptionPhrases`) is asked once per statement by the five keyed binders and the sequential READ, passing the
 statement's conditional phrases; it is a no-op from `Year >= 2002`. It has two halves, each written once. WHICH statements
@@ -2470,7 +2470,7 @@ WHEN a procedure is "applicable" is the USE statement's scope (§1985:VII.4.6.4 
 open mode (INPUT, OUTPUT, I-O, EXTEND), in this program or, written with the GLOBAL phrase, in a containing one (§1985:X.5.5.4 GR1 b and c:
 outside its own program a statement selects only "The declarative in which the GLOBAL phrase is specified"; the run time's outward
 walk selects the same set). `BinderDriver` hands each contained unit a lazy `ContainerUses` over its containers' bound GLOBAL declaratives. **"Applicable" is implementor latitude, and the compiler takes reading A (kb/Work PB5591):** the 1985 text defines neither "applicable" nor the REWRITE rules' "appropriate", and two final adjudications read the clauses opposite ways (2026-11-12, kb/Work PB5413 amendment 1: reading A; 2026-11-14: reading B, a mode procedure counts only where the statement's at end or invalid key condition can arise, on §1985:VII.4.4.4 GR10c and §1985:IX.1.3.5 GR3). Under reading A an INPUT, OUTPUT or I-O declarative covers every statement, because the file may be in any mode it can be opened in when a statement runs, one the statement does not suit included (a DELETE, REWRITE or START of a file open in the mode raises its exception to that procedure). Reading A is chosen on three grounds: reading B would refuse CCVS-85 SQ148A; GnuCOBOL 3.2 (`cobc -std=cobol85`) enforces none of the mandatory-phrase rules, accepting even a program with no declarative, so it does not decide; and reading A, if wrong, leaves the condition to the no-phrase path at run time where reading B, if wrong, rejects legal source. An EXTEND declarative covers only a file that can be opened EXTEND (`FileModel.CanOpenExtend`: sequential access mode, §1985:VIII.4.4.3 SR1, no LINAGE, §1985:VII.4.3.3 SR3, no multiple file reel, §1985:VII.4.3.3 SR2), because the procedure runs "for any file open in the extend mode" (§1985:VIII.4.8.4 GR5) and a random- or dynamic-access file never is (kb/Work PB5413; the first reading, "any mode", excused a keyed file's invalid key by a procedure that could never run). For the other three modes: a READ of a file open OUTPUT raises status 47, which a USE ON OUTPUT procedure takes
-(§1985:VII.4.6.4 GR5 c), and CCVS-85's SQ148A is written on it. **Rejected readings:** a mode declarative applies only to the verbs the
+(§1985:VII.4.6.4 GR5c, and CCVS-85's SQ148A is written on it. **Rejected readings:** a mode declarative applies only to the verbs the
 mode suits (the first implementation, and reading B above; the latitude choice of kb/Work PB5591 rejects it); reading the requirement at the parse tree in `FlagConformancePass` (a flag pass runs only with a FLAG directive and resolves names a
 second time); a Removed-seam warning under --permissive (the omission is no tolerated dialect: COBOL1850's reasoning for the
 RETURN AT END). Witnesses: `conformance:cases/14.9.30-READ/pb5076_*` (the legal side, run at every edition) and six
@@ -2760,7 +2760,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
     **One page transition, shared** — `BeginNextLogicalPage`, reached from 14.9.51.4 GR25 g)'s ADVANCING PAGE and GR26 a)'s overflow because the standard writes the same destination for both. It is split along 13.18.34.4 GR6 b)'s own sentence ("this occurs before the device is positioned and after all positioning on the current page"): (1) all remaining positioning on the CURRENT page — its unwritten body lines plus its bottom margin, against the OLD page model; (2) the operand re-evaluation, whose values "apply to the next logical page"; (3) exactly ONE line onto the next page, which is what GR8's contiguity makes it. **The travel is derived from the LOGICAL PAGE, never from the WRITE's own line count.** `Advance`'s form feed survives only for 14.9.51.4 GR25 h), the arm for a file with NO LINAGE clause. The page model dies at CLOSE (`EndLinagePage`): GR6 b) 1 and GR7 d) establish it at OPEN OUTPUT and at no other mode.
     An ADVANCING or LINAGE file is forced to line-oriented output, and **a WRITE with no ADVANCING phrase on a file that supports vertical positioning IS an explicit `AFTER ADVANCING 1 LINE`** (kb/Work PB1027; §2023:14.9.51.4 GR25: "automatic advancing shall be provided by the implementor to act as if the user has specified AFTER ADVANCING 1 LINE"): `SequentialConnector.WriteRecord` reroutes it to `WriteAdvancingRecord(lines: 1, before: false)` in EVERY state of the device, for record sequential AND line sequential files, so there is one placement (GR25 f): advance, then present) and one counter step (GR7 c) 3)), with no second arm to disagree with it. This replaced kb/Work PB964's `ImplicitAdvanceIsBefore`, which placed the advance by the device's line state and took BEFORE's record-then-terminator shape when no line was open: that left a plain WRITE after a BEFORE write with no blank line where the spelled-out AFTER has one, put the first record of a LINAGE page one line high, and made a line sequential file travel twice around an AFTER write. **Which files support vertical positioning is the implementor's determination** (`SequentialConnector.SupportsVerticalPositioning`, docs/CONFORMANCE.md §4): a file with a LINAGE clause, a file one of whose WRITE statements names an ADVANCING phrase (decided at compile time: `FileModel.WrittenWithAdvancing`, registered as `SequentialConnector.AdvancingDeclared`, so a plain WRITE before the first ADVANCING one is advanced too, kb/Work PB5201), and a file to which an ADVANCING phrase has been written since its OPEN at run time (`_printControl`, the EXTERNAL file another program positions); any other file is unpositioned and its plain WRITE is the record and its own line end (a line sequential delimiter, a record sequential block). `PlainWriteAdvancingConformanceTests` holds the equivalence over every three-write mix. A BEFORE write after an AFTER write still presents on the open line (GR25 e): no advance precedes it), exactly as AFTER ADVANCING 0 LINES does (GR25 c)).
   - **One statement-supplied operand set for both forms** (13.18.34 GR6): every OPEN and every sequential WRITE entry takes a `LinagePage?` — `SequentialIoEmitter.LinageArg(file)` renders `new LinagePage(body, footing, top, bottom)` from the file model (literals fold to constants, GR6a; data-names render the EXECUTING element's field reads, GR6b) or `null` for an FD with no LINAGE clause. The runtime adopts the values at OPEN OUTPUT (GR6b1, with counter := 1 per GR7d — `FileRegistry.SharedOpenAttempt` → `SequentialConnector.BeginLinagePage`, at the COMPLETION of a successful open as GR6b1 says) and at the two page transitions — the ADVANCING-PAGE reset (GR6b2) and the overflow wrap (GR6b3), AFTER the overflow decision against the OLD body, because "the value applies to the next logical page". Evaluating data-names at these page transitions (not only at OPEN) is required by GR6b2/GR6b3 — evaluating solely at OPEN is a conformance hole (SQ208M/SQ210M). **⛔ The page model is connector state; the operand SOURCE is not** (kb/Work PB673): a connector-held evaluator closure belonged to whichever activation installed it last, which for a RECURSIVE unit with a LOCAL-STORAGE operand is a RETURNED activation's dead storage — and it was installed on the program path only, so a class's LINAGE FD (`OoEmitter`) had no page model at all. `HasLinage` is gone with it: "this FD has a LINAGE clause" is now exactly "the statement supplied a page".
-  - **GR26 operational mapping** (`PositionOnLogicalPage` — the counter arithmetic ported from the legacy `AdvanceLinageCounter` and proven over the SQ goldens, now deciding the DEVICE with it because GR26 a) states both in one sentence): with post-advance counter c, body B, footing F — `c > B` ⇒ overflow end-of-page, counter := 1 (GR26a + GR7c4; the reposition lands on the next page's body line 1 through `BeginNextLogicalPage`, never a modulo carry); else `F > 0 ∧ c ≥ F` ⇒ footing end-of-page (GR26b). ADVANCING PAGE IS THAT OVERFLOW ARM, not one of its own (kb/Work PB578): §2023:13.18.34.4 GR7 c) 1 resets the counter to one and, "during the resetting", implicitly increments it "to exceed the value specified by integer-1" — GR26 a)'s trigger — so the write takes the same transition and counter := 1 AND causes the overflow end-of-page condition, EC-I-O-EOP-OVERFLOW (GR27 a)), which a USE declarative, an exception-checking PERFORM's WHEN and FUNCTION EXCEPTION-STATUS observe and which keeps a NOT END-OF-PAGE imperative from running (GR28); `docs/CONFORMANCE.md` §4 **DETERMINATION — WRITE ADVANCING PAGE on a logical page is a page overflow**. The counter advances in the CONNECTOR as part of EVERY write (EOP phrase or not), with the device and not separately from it, so an AT branch reads the post-advance counter whichever side of the presentation 14.9.51.4 GR25 e)/f) put the advance on.
+  - **GR26 operational mapping** (`PositionOnLogicalPage` — the counter arithmetic ported from the legacy `AdvanceLinageCounter` and proven over the SQ goldens, now deciding the DEVICE with it because GR26 a) states both in one sentence): with post-advance counter c, body B, footing F — `c > B` ⇒ overflow end-of-page, counter := 1 (GR26a + GR7c4; the reposition lands on the next page's body line 1 through `BeginNextLogicalPage`, never a modulo carry); else `F > 0 ∧ c ≥ F` ⇒ footing end-of-page (GR26b). ADVANCING PAGE IS THAT OVERFLOW ARM, not one of its own (kb/Work PB578): §2023:13.18.34.4 GR7c 1 resets the counter to one and, "during the resetting", implicitly increments it "to exceed the value specified by integer-1" — GR26 a)'s trigger — so the write takes the same transition and counter := 1 AND causes the overflow end-of-page condition, EC-I-O-EOP-OVERFLOW (GR27 a)), which a USE declarative, an exception-checking PERFORM's WHEN and FUNCTION EXCEPTION-STATUS observe and which keeps a NOT END-OF-PAGE imperative from running (GR28); `docs/CONFORMANCE.md` §4 **DETERMINATION — WRITE ADVANCING PAGE on a logical page is a page overflow**. The counter advances in the CONNECTOR as part of EVERY write (EOP phrase or not), with the device and not separately from it, so an AT branch reads the post-advance counter whichever side of the presentation 14.9.51.4 GR25 e)/f) put the advance on.
     - ⚖ **`c == B` IS AN ADJUDICATED BOUNDARY, DECIDED AGAINST THE PRINTED ARM TEXT — do not "fix" either comparison to match GR26's words.** GR26 a) as printed fires at `c ≥ B` and GR26 b) is clamped to `c < B`; at `c == B` those two cannot both hold with §2023:13.18.34.4 GR2 (all B lines may be written), GR3 (the footing area is [F, B] INCLUSIVE) and GR26's own lead sentence (the lines "do not fit within the current page body"). The strict `c > B` boundary above is the reading `docs/CONFORMANCE.md` §4 records as **DETERMINATION — the §2023:14.9.51.4 GR26 a)/b) boundary at LINAGE-COUNTER = page size** (kb/Work PB686), with the survey (IBM, Micro Focus, GnuCOBOL-via-NIST) and the NIST SQ201M evidence. It is pinned at the boundary by `conformance-suite/cases/13.18.34-LINAGE/pb686_linage_gr26_boundary.cob` and its `85/` twin — **including the no-FOOTING arm**, because the literal reading would make the last body line unwritable for a file that never mentions FOOTING, and a FOOTING-only fixture cannot see that.
   - **LINAGE-COUNTER register** (8.4.3.14): runtime-sourced (`BoundLinageCounterRef` → `CobolFile.LinageCounter(name)`), never a synthesized storage item (only the IOCS modifies it, GR7b); qualified `OF/IN file-name` resolves via the grammar's dedicated alternative, unqualified requires exactly one LINAGE file (SR3/8.4.2.2, ambiguity is a bind-time diagnostic). `ReferenceResolver.Resolve` returns null for the register early (the qualified form's cobolWord is the FILE-name).
   - **END-OF-PAGE phrases** branch on `CobolFile.EndOfPage(name)` read in the `if` HEADER (a branch body may WRITE the same file — SQ208M); EOP is a SUCCESSFUL write (GR27 — status 00), and GR27 a)'s EC-I-O-EOP / EC-I-O-EOP-OVERFLOW ride that status to the USE hook, which dispatches the exception-checking PERFORM's WHEN or the declarative only when the END-OF-PAGE phrase is absent (GR27 c)/d), kb/Work PB854). Bind-time diagnostics: SR19 (EOP without LINAGE — the old silent-drop), SR18 (ADVANCING PAGE + the AT END-OF-PAGE phrase; a NOT END-OF-PAGE phrase alone is legal beside it, because SR19 and GR28 name the two phrases separately — kb/Work PB578), SR13 (mnemonic ADVANCING on a LINAGE file).
@@ -2806,14 +2806,14 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   mutex and the read of page 2, 2.2.1.7 — also the re-entry after a RETRY wait, `WaitOutsideStatement`) maps a host
   failure (`IOException`, `UnauthorizedAccessException` — one predicate,
   `KeyedConnector.IsHostStoreFailure`) and a page 2 that does not validate under a writer to the permanent error '30'
-  (§2023:9.1.13.6 1)), exactly as OPEN maps the same adoption. The statement is entered all the same, so its depth and mutex
+  (§2023:9.1.13.6 GR1), exactly as OPEN maps the same adoption. The statement is entered all the same, so its depth and mutex
   unwind through the ordinary `Dispose`; the status starts the §2023:9.1.13.1 permanent error, and the verb's own first
   line, `FileConnector.PermanentErrorReplay`, ends the statement before it reads anything. A page 2 torn by another
   run unit is the case `KeyedStoreReloadFailureDriftTests` measures, for every keyed verb on both organizations, with a
   page write or a sync the host refuses at the statement and at the CLOSE; the refusals a real file cannot produce on
   demand are injected under the connector's own handle through `PageMediumObserver`
   (`tests/WiseOwl.Cobol.Tests.Unit/Store/RefusingPageMedium`, `DyingPageMedium`).
-- I-O status discipline (kb/Work PB140): `FileConnector.Status`'s setter is the ONE assignment path — it records `EverAccessed` AND drops the §2023:9.1.13.7 3) '43' gate (READ terminals re-arm through `ReadSucceeded`); openness is the ONE base `_openMode` bit, separate from the `OptionalAbsent` file-position state a CLOSE leaves unchanged (§2023:14.9.6.4 GR6); `FileRegistry` throws on an unregistered or misrouted name (never a fail-open '00' — the SD/organization screens reject at bind time, COBOL1692/1693); `FileConnector.Close` maps OS failures to '30' (§2023:9.1.13.6 item 1) with the sequential streams nulled either way; CLOSE WITH LOCK locks only on a successful close, and locks the file connector from 2002 and the physical file at 1985 (kb/Work PB5210, the Table 14 decision above).
+- I-O status discipline (kb/Work PB140): `FileConnector.Status`'s setter is the ONE assignment path — it records `EverAccessed` AND drops the §2023:9.1.13.7 GR3 '43' gate (READ terminals re-arm through `ReadSucceeded`); openness is the ONE base `_openMode` bit, separate from the `OptionalAbsent` file-position state a CLOSE leaves unchanged (§2023:14.9.6.4 GR6); `FileRegistry` throws on an unregistered or misrouted name (never a fail-open '00' — the SD/organization screens reject at bind time, COBOL1692/1693); `FileConnector.Close` maps OS failures to '30' (§2023:9.1.13.6 item 1) with the sequential streams nulled either way; CLOSE WITH LOCK locks only on a successful close, and locks the file connector from 2002 and the physical file at 1985 (kb/Work PB5210, the Table 14 decision above).
 - Keyed-verb branch discipline (kb/Work PB325): the ACCESS MODE is the SOLE discriminator of a keyed verb's branch, and it lives in ONE place — `KeyedConnector.Access`, the abstract base `RelativeConnector` and `IndexedConnector` share. Every branch the standard draws inside a keyed verb is drawn on it (§2023:14.9.51.4 GR29 a)/b), GR38/GR39; §2023:14.9.35.4 GR5 vs. GR21/GR22/GR23; §2023:14.9.10.4 GR2 vs. GR3/GR4), and the OPEN MODE enters only as the permission test that FOLLOWS — Table 20 (§2023:14.9.27.4 GR8), whose unsuccessful cells §2023:9.1.13.7 items 8 and 9 name. ⛔ An open mode in a branch PREDICATE inverts that dependency: `_access == Sequential || Mode == Extend` made the runtime's answer depend on an unenforced bind-time screen (§2023:14.9.27.3 SR2) and turned Table 20's blank Random/Dynamic × WRITE × Extend cell into a successful append instead of item 8 b)'s '48'. The whole table is walked by conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative + l1_table20_indexed and, for the cell conforming source cannot reach, unit:Table20WriteOpenModeTests.
 - READ preconditions live in the BASE, once, in the standard's own order (kb/Work PB336). `FileConnector` owns
   the three of them and every organization's READ entry delegates: `ReadOpenModeGuard` (§2023:14.9.30.4 GR2 /
@@ -3067,7 +3067,7 @@ is no report file or sort-merge file (SR12 of WRITE, SR11 of REWRITE).
 for any short or long record, and §2002:14.8.47.3 GR12's "undefined" bytes — so no I-O status 44 is raised for a length that differs
 from integer-1, which §2023:13.18.43.4 GR14 states for a RECORD IS VARYING clause only. (2) A RECORD VARYING file's length is the DEPENDING ON item's
 content (GR13 a)) or the image's length, and GR14's bounds are the runtime's: status 44. (3) A file with no record description entries
-(§2023:13.4.5.3 SR3 b)) binds only this form, and READ … INTO is how the program reads its records (SR3 c)).
+(§2023:13.4.5.3 SR3b) binds only this form, and READ … INTO is how the program reads its records (SR3 c)).
 
 **What is NOT withdrawn.** A.4.1 NOTE 1: *"The higher-level constructs or cross-referenced topics are not optional."* The WRITE and REWRITE
 statements, and the optional word `RECORD` of §2023:14.9.35.2, are mandatory surface at every edition that prints them. Witnesses:
@@ -3102,7 +3102,7 @@ false having reported (COBOL1757), in `ResolveFile`'s shape. It enforces two thi
    used in a general format or syntax rule, then reference-modification is not permitted"*). The printed
    RELEASE format writes `record-name-1`, not `identifier-1`. A reference modifier rides on the `RefModPlace`
    DECORATOR and leaves `Place.Item` untouched, which is exactly why a containment test could not see it.
-3. **A visible record whose FILE is not visible.** §2023:13.18.27.3 SR1 b) lets a file-section level-1 entry carry
+3. **A visible record whose FILE is not visible.** §2023:13.18.27.3 SR1b lets a file-section level-1 entry carry
    its OWN GLOBAL clause, so under a non-GLOBAL FD the record-name is a global name in contained programs while
    the file is not. WRITE §2023:14.9.51.3 SR21 and REWRITE §2023:14.9.35.3 SR3 are written for exactly that reference
    (*"the file description entry for the file associated with record-name-1 shall contain a GLOBAL clause"*);
@@ -3226,7 +3226,7 @@ so a constant-name (§2023:13.10.3 SR2) and a symbolic-character (§2023:8.3.3.6
 expression folds (kb/Work PB1072). `FileControlBinder.ReadSuppressWhen` records the operand's SHAPE (`SuppressWhenOperand`),
 which §2023:12.4.5.6.3 SR7's three `FileControlKeyRules` rows screen; `FileControlBinder.KeySuppressionOf` builds the §2023:12.4.5.6.4
 GR6 value in the KEY'S OWN POSITIONS — a figurative in the key's category repeated to its size (§2023:8.3.3.6.4 GR2), ALL
-literal-1 repeated, a short literal space-extended and a long one cut back only over spaces (§2023:8.8.4.2.7 2)) — and
+literal-1 repeated, a short literal space-extended and a long one cut back only over spaces (§2023:8.8.4.2.7 GR2) — and
 the emitter encodes a national value through the one national serializer. The connector then compares two key
 images; sizing the relation's operands is the compiler's job because only it knows the literal's form and the key's
 category.

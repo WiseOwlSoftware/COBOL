@@ -8,7 +8,7 @@
       *> alphabet-name-1 NN is a FOR NATIONAL alphabet.
       *> Rule: "Alphabet-name-1 shall reference an alphabet that
       *> defines an alphanumeric collating sequence."
-      *> cite.py: OK  §2023:14.9.24.3 5)  (Syntax rules)
+      *> cite.py: OK  §2023:14.9.24.3 SR5  (Syntax rules)
       *> NN is declared (ALPHABET NN FOR NATIONAL IS NATIVE, a national
       *> collating sequence), so the name resolves; it is the wrong
       *> class for the alphabet-name-1 position.  A FOR NATIONAL

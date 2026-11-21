@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:12.4.5.9.4 GR1 b) 2. — clause-less connector sets no lock
+      *> ISO §2023:12.4.5.9.4 GR1b.2 — clause-less connector sets no lock
       *> RULE §2023:12.4.5.9.4 GR1 (cite.py --check 12.4.5.9.4 OK, 1) b) 2.):
       *>   "If the LOCK MODE clause is omitted from a file control
       *>   entry, ... b) If there is no SHARING clause in that file
@@ -36,14 +36,14 @@
       *>   SHARING WITH READ ONLY for OPEN INPUT, and a LOCK MODE clause
       *>   alone is not a sharing specification, so FX and FM both open
       *>   in the read only mode, where "Record locks are in effect"
-      *>   (§2023:9.1.15 2)); "The rules are the same for a given standard
+      *>   (§2023:9.1.15 GR2); "The rules are the same for a given standard
       *>   sharing mode regardless of whether the sharing mode is ...
       *>   specified as the default by the implementor" (§2023:9.1.15).
       *> The OBSERVER FE: SHARING WITH READ ONLY + LOCK MODE IS MANUAL,
       *>   so §2023:14.9.30.4 GR9 applies to its READ: a record locked by
       *>   another file connector is a record operation conflict and,
-      *>   with no RETRY phrase, I-O status 51 (§2023:9.1.13.8 1)). Its plain
-      *>   READ sets no lock of its own (§2023:14.9.30.4 GR11 d)).
+      *>   with no RETRY phrase, I-O status 51 (§2023:9.1.13.8 GR1). Its plain
+      *>   READ sets no lock of its own (§2023:14.9.30.4 GR11d).
       *> WITH LOCK is legal on FX and FM: neither specifies automatic
       *>   locking (§2023:14.9.30.3 SR4).
       *> DERIVATION of every output line (records R001, R002 seeded):
@@ -58,7 +58,7 @@
       *>   M1=00 R001  FM's READ WITH LOCK: manual mode, LOCK phrase
       *>               written, locks in effect (read only mode) - the
       *>               lock on record 1 IS set (§2023:12.4.5.9.4 GR5,
-      *>               §2023:14.9.30.4 GR11 d)).
+      *>               §2023:14.9.30.4 GR11d).
       *>   M2=51       FE's READ of record 1, locked by FM: GR9 conflict
       *>               no RETRY - '51'; the record area is not shown.
        IDENTIFICATION DIVISION.

@@ -11,17 +11,17 @@
       *>   added into the sum counter during the processing that
       *>   instance of the report group in which data-name-1 is defined."
       *>   BOTH branches: DP (PRESENT WHEN) and DX (OCCURS DEPENDING).
-      *> §2002:13.16.52.3 GR8 a) - "each occurrence of the addend is added
+      *> §2002:13.16.52.3 GR8a - "each occurrence of the addend is added
       *>   into the corresponding occurrence of the sum counter" (DX and
       *>   TX are each subject to one level of repetition, SR3 c), d)).
-      *> §2002:13.16.39.3 GR2 b) - "If condition-1 is false, the
+      *> §2002:13.16.39.3 GR2b - "If condition-1 is false, the
       *>   corresponding data item is declared to be absent".
       *> §2002:13.16.36.3 GR13 - with data-name-1 in integer-1 to
       *>   (integer-2 - 1) "the OCCURS clause has the same effect as an
       *>   OCCURS clause with no TO or DEPENDING phrases and with an
       *>   integer-2 equal to the current value of data-name-1"; outside
       *>   that range, as though written without TO and DEPENDING.
-      *> §2002:13.16.52.3 GR7 a) - "adding takes place when the report
+      *> §2002:13.16.52.3 GR7a - "adding takes place when the report
       *>   group description containing data-name-1 is processed".
       *>
       *> DERIVATION. Three GENERATE DET, then TERMINATE (FINAL footing):

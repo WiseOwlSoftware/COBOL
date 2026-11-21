@@ -15,7 +15,7 @@
       *> and its lines follow one another (§1985:XIII.3.10.8 GR4 d,
       *> GR6 d). A USE BEFORE REPORTING procedure runs just before its
       *> group is produced (§1985:XIII.4.9.4 GR4) and shows LINE-COUNTER,
-      *> the line the previous group ended on (§1985:XIII.3.10.8 GR6 d);
+      *> the line the previous group ended on (§1985:XIII.3.10.8 GR6d;
       *> each step of one proves the previous group was presented.
       *> Breaks: GENERATE 2 none; GENERATE 3 at CMIN; GENERATE 4 at CMAJ
       *> (CMIN unchanged but treated as changed). A compiler that

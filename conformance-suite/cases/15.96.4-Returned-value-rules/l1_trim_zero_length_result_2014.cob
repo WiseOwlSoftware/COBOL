@@ -10,7 +10,7 @@
       *> argument-2, spaces if argument-2 is not specified, or argument-1 is of length zero, the returned value
       *> is of length zero."
       *>   python scripts/spec/cite.py --check 15.96.4 "the returned value is of length zero"
-      *>   ->  OK  §2023:15.96.4 4)  (Returned value rules)
+      *>   ->  OK  §2023:15.96.4 RV4  (Returned value rules)
       *>
       *> The row's editions are 2014,2023: TRIM is COBOL-2014, and the EXPLICIT argument-2 form is the COBOL-2023
       *> enhancement (Annex E.3.3 item 31 — "FUNCTION TRIM. The TRIM function has been enhanced to truncate

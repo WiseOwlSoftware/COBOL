@@ -7,7 +7,7 @@
       *>---
       *> TYPEDEF IS A USER-DEFINED WORD AT COBOL-85 (kb/Work PB4958). ISO 8.9 reserves it
       *> from COBOL-2002 only, and only a reserved word is refused as a user-defined word
-      *> (§2023:8.3.2.1 1): "Reserved words shall not be used as user-defined words or
+      *> (§2023:8.3.2.1 SR1: "Reserved words shall not be used as user-defined words or
       *> system-names"). The table keys on K and on the item TYPEDEF. In ASCENDING KEY IS
       *> K TYPEDEF the reading of TYPEDEF as the COBOL-2002 TYPEDEF clause (§2023:13.18.58)
       *> parses too, and the reservation gate gives a declared free word its keyword back

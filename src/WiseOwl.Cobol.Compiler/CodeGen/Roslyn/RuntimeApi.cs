@@ -1381,7 +1381,7 @@ internal static class RuntimeApi
     /// (GR4 moves the group's bytes), a REDEFINES view, a record area shared with another record of its file or with a
     /// SAME RECORD AREA peer (a READ or RETURN fills the area's bytes), an APPLY COMMIT restore (ROLLBACK returns the
     /// saved image), or storage shared through a BY REFERENCE argument, EXTERNAL, BASED or ADDRESS OF. That
-    /// content is undefined (§2023:14.6.13.2 1)), and the boolean operators read such a position as zero.</para></summary>
+    /// content is undefined (§2023:14.6.13.2 GR1), and the boolean operators read such a position as zero.</para></summary>
     public static string StrStoreBoolean(string value, string width, bool justifiedRight) =>
         $"{nameof(CobolBool)}.{nameof(CobolBool.Store)}({value}, {width}, justifiedRight: {(justifiedRight ? "true" : "false")})";
 

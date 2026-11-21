@@ -12,13 +12,13 @@
       *>   of multiple lines."
       *>   cite.py --check 7.3.13.3 "Text-1 and text-2 may be any kind
       *>     of source lines, including compiler directives. ..." -> OK
-      *>     §2023:7.3.13.3 8)  (Syntax rules)
+      *>     §2023:7.3.13.3 SR8  (Syntax rules)
       *> Selection rules (each -> OK under cite.py --check):
       *>   §2023:7.3.13.4 GR4 (trailing paragraph; cite.py labels it 4) b))
       *>     "If a WHEN phrase evaluates to TRUE, all lines of text-1
       *>     associated with that WHEN phrase are included in the
       *>     resultant text." - and all other text-1 / text-2 omitted.
-      *>   §2023:7.3.13.4 GR4 b) "If the THROUGH phrase is specified, a TRUE
+      *>   §2023:7.3.13.4 GR4b "If the THROUGH phrase is specified, a TRUE
       *>     result is returned if the selection subject lies in the
       *>     inclusive range ..."
       *>   §2023:7.3.13.4 GR8 "For each WHEN phrase in turn, the

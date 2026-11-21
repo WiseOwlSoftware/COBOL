@@ -25,10 +25,10 @@
       *>   rewrite file connector is set to the invalid key condition
       *>   '23'."
       *> cite.py --check:
-      *>   OK  §2023:14.9.35.4 19)  (General rules)
-      *>   OK  §2023:14.9.35.4 20)  (General rules)
-      *>   OK  §2023:14.9.35.4 21)  (General rules)
-      *>   OK  §2023:14.9.35.4 14)  (General rules)  unsuccessful: "no
+      *>   OK  §2023:14.9.35.4 GR19  (General rules)
+      *>   OK  §2023:14.9.35.4 GR20  (General rules)
+      *>   OK  §2023:14.9.35.4 GR21  (General rules)
+      *>   OK  §2023:14.9.35.4 GR14  (General rules)  unsuccessful: "no
       *>       logical record updating takes place, the content of the
       *>       record area is unaffected"
       *>   OK  §2023:9.1.14 2)  "If the INVALID KEY phrase is specified ...
@@ -49,13 +49,13 @@
       *>       end of the input-output statement or to the
       *>       imperative-statement specified in the NOT INVALID KEY
       *>       phrase if it is specified"
-      *>   OK  §2023:14.9.49.4 6)  format 1 USE procedures "are executed ...
+      *>   OK  §2023:14.9.49.4 GR6  format 1 USE procedures "are executed ...
       *>       upon the unsuccessful execution of an input-output
       *>       operation unless an AT END or INVALID KEY phrase takes
       *>       precedence"
-      *>   OK  §2023:13.18.43.4 13) a)  REWRITE record size = content of
+      *>   OK  §2023:13.18.43.4 GR13a  REWRITE record size = content of
       *>       data-name-1 (the DEPENDING ON item LN)
-      *>   OK  §2023:13.18.43.4 15)  after a successful READ data-name-1
+      *>   OK  §2023:13.18.43.4 GR15  after a successful READ data-name-1
       *>       holds the size of the record just read
       *> Setup: slot 1 = 'AAAAAAAAAA' (10), slot 2 = 'BBBBBBBBBB' (10);
       *> slots 7 and 9 are empty. VARYING 5 TO 20. DECL counts USE runs.

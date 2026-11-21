@@ -23,7 +23,7 @@
       *>   constant-name-1 in other than this entry is as if literal-1
       *>   or the text represented by compilation-variable-name-1 were
       *>   written where constant-name-1 is written"
-      *>   -> OK  §2023:13.10.4 1)  (General rules)
+      *>   -> OK  §2023:13.10.4 GR1  (General rules)
       *>   cite.py --check 13.12 "A type declaration entry has no
       *>   storage associated with it"
       *>   -> OK  §2023:13.12   (Type declaration entry)

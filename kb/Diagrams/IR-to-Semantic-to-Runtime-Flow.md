@@ -106,7 +106,7 @@ BoundSetConditions --[ store 88 first VALUE into parent ]-----------------------
 
 **Spec mapping.** The statement nodes are the ISO arithmetic verbs: ADD §2023:14.9.2, SUBTRACT §2023:14.9.44, MULTIPLY §2023:14.9.26, DIVIDE §2023:14.9.12 (its REMAINDER Formats 4–5 → `BoundDivideRemainder`), and COMPUTE §2023:14.9.8, each split into TO/FROM/BY/INTO vs GIVING forms so the binder distinguishes composite operands from resultants (§2023:14.7.7). `BoundBinary`, `BoundNegate`, `BoundPower` are the arithmetic-expression tree of §2023:8.8.1 (COMPUTE's RHS and any operand). `Receiver` carries the ROUNDED mode (§2023:14.7.4); `SizeErrorPhrase` is ON/NOT ON SIZE ERROR (§2023:14.7.5). See [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Language Features]].
 
-**Semantic rules.** Invariant binder checks (`ArithmeticBinder`): operands numeric, resultants numeric receivers, and the intermediate-result composite computed *excluding* GIVING resultants (§2023:14.7.7 rule 2, guarding COBOL0805); DIVIDE…REMAINDER requires exactly one GIVING receiver (§2023:14.9.12.2 Formats 4–5: identifier-3 carries no ellipsis). These are version-invariant. See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
+**Semantic rules.** Invariant binder checks (`ArithmeticBinder`): operands numeric, resultants numeric receivers, and the intermediate-result composite computed *excluding* GIVING resultants (§2023:14.7.7 SR2, guarding COBOL0805); DIVIDE…REMAINDER requires exactly one GIVING receiver (§2023:14.9.12.2 Formats 4–5: identifier-3 carries no ellipsis). These are version-invariant. See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
 
 **Runtime behavior.** Each resultant store funnels through `CobolNum.TryStore` (Int128-monomorphic), applying the resultant scale under one of eight `CobolRounding` modes; `false` = size error. Zero divisor / PROHIBITED-inexact / overflow raise `CobolSizeError` (`ecName` EC-SIZE-ZERO-DIVIDE / -EXPONENTIATION / -OVERFLOW), caught by the emitted SIZE ERROR wrapper. See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
 
@@ -403,7 +403,7 @@ BoundLinageCounterRef --[ §2023:13.18.34.4 GR7b ]-->  connector LINAGE-COUNTER
 
   BoundBoolBinary  --[ §2023:8.8.2 rule 9/10  (2002 gate) ]-->  CobolBool.And/Or/Xor
   BoundBoolNot     --[ §2023:8.7.2 B-NOT, len preserved    ]-->  CobolBool.Not
-  BoundBoolShift   --[ §2023:8.8.2 rule 8    (2023 gate)   ]-->  CobolBool.Shift{Left,Right,*Circular}
+  BoundBoolShift   --[ §2023:8.8.2 GR8    (2023 gate)   ]-->  CobolBool.Shift{Left,Right,*Circular}
   BoundBoolRef     --[ category-boolean item          ]-->  '0'/'1' string read (PlaceRenderer)
 
   BoundUnsupported ─┐

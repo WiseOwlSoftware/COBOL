@@ -19,9 +19,9 @@
       *> operands onto the statement removes the second arm rather than adding a second install.
       *>
       *> EXPECTED, derived from the rule (LINAGE IS 4 LINES WITH FOOTING AT 2):
-      *>   §2023:13.18.34.4 GR7 d) sets LINAGE-COUNTER to one at the OPEN OUTPUT; each WRITE AFTER ADVANCING 1 LINE
+      *>   §2023:13.18.34.4 GR7d sets LINAGE-COUNTER to one at the OPEN OUTPUT; each WRITE AFTER ADVANCING 1 LINE
       *>   increments it by one (GR7 c) 2.), so the two writes leave it at 2 and 3.
-      *>   EOP1  §2023:14.9.51.4 GR26 b) - "the associated LINAGE-COUNTER is equal to or exceeds the current value of
+      *>   EOP1  §2023:14.9.51.4 GR26b - "the associated LINAGE-COUNTER is equal to or exceeds the current value of
       *>         the footing start and is less than the page size": 2 >= 2 and 2 < 4.
       *>   EOP2  the same: 3 >= 2 and 3 < 4.
       *>   (Neither write reaches the page size, so GR26 a) never applies and this golden does not depend on the

@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> ISO §2023:13.4.5.4 GR2 a)-d) — two programs' agreeing EXTERNAL FDs (BLOCK, CODE-SET, LINAGE, record size) share one connector
-      *> RULE (§2023:13.4.5.4 2), cite.py OK a) b) c) 1. c) 2. d)): "If the
+      *> RULE (§2023:13.4.5.4 GR2, cite.py OK a) b) c) 1. c) 2. d)): "If the
       *> EXTERNAL clause is specified, all file description entries in the
       *> run unit that reference the same file connector as file-name shall
       *> obey the following rules: a) ... BLOCK CONTAINS ... same minimum
@@ -27,10 +27,10 @@
       *> b) is "the same CHARACTER SET", not the same alphabet-name: the
       *> main names STANDARD-1 L1FDX-STD, the sub names it L1FDX-ASC.
       *> DERIVATION:
-      *>  LINAGE-COUNTER is EXTERNAL (§2023:13.4.5.4 3), cite.py OK), set to 1
-      *>  by OPEN OUTPUT and +1 per WRITE without ADVANCING (§2023:13.18.34.4 7)
+      *>  LINAGE-COUNTER is EXTERNAL (§2023:13.4.5.4 GR3, cite.py OK), set to 1
+      *>  by OPEN OUTPUT and +1 per WRITE without ADVANCING (§2023:13.18.34.4 GR7
       *>  d) and c) 3., cite.py OK). Two files have LINAGE, so every
-      *>  reference is qualified (§2023:13.18.34.4 7) b), cite.py OK).
+      *>  reference is qualified (§2023:13.18.34.4 GR7b, cite.py OK).
       *>  XF: main OPEN -> 1; main WRITE -> 2; sub WRITE -> 3:
       *>                                                    SUB LC=0003
       *>  ZF: main OPEN -> 1; main WRITE -> 2; sub WRITE -> 3:

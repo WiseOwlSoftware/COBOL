@@ -13,7 +13,7 @@
       *> "Each entry containing a VARYING clause establishes an
       *> independent temporary integer data item that shall be large
       *> enough to contain the maximum expected value."
-      *>   cite.py: OK  §2023:13.18.64.4 1)  (General rules)
+      *>   cite.py: OK  §2023:13.18.64.4 GR1  (General rules)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1305R.
        ENVIRONMENT DIVISION.

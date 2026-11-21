@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:13.8.3 1) — a REPORT SECTION is legal in a program, a
+      *> ISO §2023:13.8.3 SR1 — a REPORT SECTION is legal in a program, a
       *> function, a factory and an instance definition (positive half)
       *> SR1: "The report section may be specified in a function
       *>   definition or a program definition. Within a class
@@ -13,7 +13,7 @@
       *>   factory definition or an instance definition, but not in a
       *>   method definition. The report section shall not be specified
       *>   within an interface definition."
-      *>   cite.py: OK  §2023:13.8.3 1)  (Syntax rule)
+      *>   cite.py: OK  §2023:13.8.3 SR1  (Syntax rule)
       *> The two prohibitions are the negatives
       *>   conformance:cases/13.8-Report-section/l1m8-report-section-in-method and
       *>   conformance:cases/13.8-Report-section/l1m8-report-section-in-interface.
@@ -23,11 +23,11 @@
       *>   (the factory and object legs: see below). Each detail is the
       *>   chronologically
       *>   first body group of its report, so no page fit test applies
-      *>   (§2023:13.18.35.4 4)), and its first LINE clause is absolute, so
+      *>   (§2023:13.18.35.4 GR4), and its first LINE clause is absolute, so
       *>   "the report group's first line number is given by integer-1"
-      *>   (OK §2023:13.18.35.4 5) a)) and LINE-COUNTER is set equal to it
-      *>   (§2023:13.18.35.4 6)); with one line and no NEXT GROUP that is the
-      *>   final value (OK §2023:8.4.3.15.4 4)). Distinct integers identify
+      *>   (OK §2023:13.18.35.4 GR5a) and LINE-COUNTER is set equal to it
+      *>   (§2023:13.18.35.4 GR6); with one line and no NEXT GROUP that is the
+      *>   final value (OK §2023:8.4.3.15.4 GR4). Distinct integers identify
       *>   the owner: program 2, function 3, factory 4, instance 5.
       *> The class inherits from BASE, so INVOKE ... "NEW" is available
       *>   for the instance leg.
@@ -38,7 +38,7 @@
       *>   type-name declared in an object definition global, but NOT a
       *>   report-name, so INITIATE/TERMINATE R-F (and so any GENERATE)
       *>   is out of reach; §2023:8.4.6.2.5 makes PAGE-COUNTER/LINE-COUNTER
-      *>   local unless the RD says GLOBAL, and §2023:13.18.27.3 4) forbids
+      *>   local unless the RD says GLOBAL, and §2023:13.18.27.3 SR4 forbids
       *>   GLOBAL in a factory or instance definition; §2023:8.4.6.2.1 lets a
       *>   local name be referenced only in its own source element. So
       *>   RUNF/RUNO name none of R-F, R-O, DET-F, DET-O, LINE-COUNTER or

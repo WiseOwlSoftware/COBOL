@@ -25,24 +25,24 @@
       *>
       *> DERIVATION R1. "RH USE" is DISPLAYed between "AFTER INITIATE"
       *> and "AFTER GENERATE 1", once (GR2; its USE procedure runs as
-      *> the group is processed, §1985:XIII.3.20.4 GR9 a). Page 1: RH
-      *> on line 1 (§1985:XIII.3.10.6 GR3 a), final LINE-COUNTER 1 (GR5
+      *> the group is processed, §1985:XIII.3.20.4 GR9a. Page 1: RH
+      *> on line 1 (§1985:XIII.3.10.6 GR3a, final LINE-COUNTER 1 (GR5
       *> d); PH second, on 1 + 1 = line 2 (GR3 b; §1985:XIII.3.10.7 GR3
       *> b, folio XIII-31, kb/Work PB5789); details on
       *> lines 3 to 6 (the first on FIRST DETAIL, §1985:XIII.3.10.8 GR4
       *> b, then LINE-COUNTER + 1, GR4 d). The fifth detail's trial sum
       *> 7 exceeds LAST DETAIL 6, so a page advance (§1985:XIII.3.10.8
-      *> GR3 b): PF last on page 1, line 9 (§1985:XIII.3.10.9 GR3 a).
+      *> GR3 b): PF last on page 1, line 9 (§1985:XIII.3.10.9 GR3a.
       *> Page 2: PH first, line 1 (no report heading on it: 1 + HEADING
       *> 1 - 1); details 5 and 6 on lines 3, 4; at TERMINATE PF on line
       *> 9 is second to last (GR7 b), and RF on 9 + 1 = line 10
-      *> (§1985:XIII.3.10.10 GR3 b).
+      *> (§1985:XIII.3.10.10 GR3b.
       *>
       *> DERIVATION R2. Page 1 holds the report heading alone
-      *> (§1985:XIII.3.10.6 GR4 c): no PH (GR3 a) and no PF (GR7 a) on
+      *> (§1985:XIII.3.10.6 GR4c: no PH (GR3 a) and no PF (GR7 a) on
       *> it. Page 2: PH line 1, the detail on FIRST DETAIL line 3, PF
       *> line 9. Page 3 holds the report footing alone on line 2
-      *> (§1985:XIII.3.10.10 GR3 c): no PH (GR3 a), no PF (GR7 a). PH
+      *> (§1985:XIII.3.10.10 GR3c: no PH (GR3 a), no PF (GR7 a). PH
       *> and PF show PAGE-COUNTER (one per page advance).
       *>
       *> Fails if the report heading is processed at INITIATE or more

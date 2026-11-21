@@ -15,7 +15,7 @@
       *> initial value is
       *> undefined and may not be asserted. INITIALIZE FREC ALL TO
       *> VALUE
-      *> (§2002:14.8.19.3 GR5 c) 1. b., GR6 a) 3.) applies the format 2
+      *> (§2002:14.8.19.3 GR5c.1 b., GR6 a) 3.) applies the format 2
       *> VALUE of T1 and
       *> the format 1 VALUE of E1. T1: "A" "B" FROM (1) with no TO runs
       *> to the

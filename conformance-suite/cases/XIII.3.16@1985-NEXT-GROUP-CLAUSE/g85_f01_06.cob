@@ -12,7 +12,7 @@
       *> Without a PAGE clause the report heading's final LINE-COUNTER is
       *> its last line plus the NEXT GROUP integer (§1985:XIII.3.10.6 GR5
       *> b) and a body group starts on LINE-COUNTER plus its LINE integer
-      *> (§1985:XIII.3.10.8 GR4 d) and leaves its last line plus the NEXT
+      *> (§1985:XIII.3.10.8 GR4d and leaves its last line plus the NEXT
       *> GROUP integer (GR6 f). A USE BEFORE REPORTING procedure runs just
       *> before its group is produced (§1985:XIII.4.9.4 GR4) and shows
       *> LINE-COUNTER. A compiler that refuses the relative NEXT GROUP, or

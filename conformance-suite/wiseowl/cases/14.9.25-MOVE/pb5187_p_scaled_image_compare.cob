@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB5187. §2023:8.8.4.2.5: the integer operand of a comparison with an alphanumeric operand is moved to an
       *> item "of the same length in terms of character positions as the number of digits in the integer", and the move
-      *> counts a P position as a zero (§2023:14.9.25.4 GR6 a), so PIC 99PP holding 1200 compares as "1200". PP and QP are
+      *> counts a P position as a zero (§2023:14.9.25.4 GR6a, so PIC 99PP holding 1200 compares as "1200". PP and QP are
       *> subordinate to groups moved as wholes, so they are image-carried items; the image holds the two stored digits
       *> alone, and the P zeros must be appended as for any other numeric item. A compiler that compares "12" prints
       *> PPN and QPN.

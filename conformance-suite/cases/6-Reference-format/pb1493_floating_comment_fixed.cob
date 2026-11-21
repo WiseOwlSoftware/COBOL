@@ -12,11 +12,11 @@
       *> THE RULES (each run through cite.py --check):
       *>   §2023:6.2.3.1: *> indicates "a comment line when specified as the
       *>     first character-string in the program-text area" -> OK.
-      *>   §2023:6.2.3.2 1) "a space is implied immediately following a
+      *>   §2023:6.2.3.2 SR1 "a space is implied immediately following a
       *>     floating comment indicator" -> OK §2023:6.2.3.2 1).
-      *>   §2023:6.5 3) "If the line contains an inline comment, the inline
+      *>   §2023:6.5 GR3 "If the line contains an inline comment, the inline
       *>     comment is replaced by spaces and processing of that line
-      *>     continues." -> OK §2023:6.5 3) - on EVERY line, a continuation
+      *>     continues." -> OK §2023:6.5 GR3 - on EVERY line, a continuation
       *>     line included.
       *>   §2023:6.3.7.3 "All characters following the floating comment
       *>     indicator up to margin R are comment-text." -> OK.

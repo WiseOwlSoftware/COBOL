@@ -1,5 +1,5 @@
 - **D-SMA — the sort-merge STATEMENT exception conditions (§2023:14.9.40.4 GR9, GR10, GR12 b), GR13; §2023:14.9.24.4 GR6,
-  GR7, GR8, GR12; §2023:13.18.43.4 GR14 b), GR19 b); §2023:14.6.13.1.1; §2023:14.6.13.1.3 2))**: three readings. **(a) Which
+  GR7, GR8, GR12; §2023:13.18.43.4 GR14b, GR19 b); §2023:14.6.13.1.1; §2023:14.6.13.1.3 GR2)**: three readings. **(a) Which
   condition a statement raises when it detects two.** A RETURN inside an executing input procedure fails both
   §2023:14.9.40.4 GR10 (EC-SORT-MERGE-ACTIVE) and §2023:14.9.34.4 GR1 (EC-FLOW-RETURN, "any other time"); a RELEASE inside an
   output procedure fails GR13 / MERGE GR8 and §2023:14.9.32.4 GR1. §2023:14.6.13.1.1: "if more than one exception is detected
@@ -28,7 +28,7 @@
   raised where -ACTIVE is not enabled and EC-SORT-MERGE-RETURN (GR3) unpre-empted. The dispositions with no USE procedure (abnormal termination for a written RETURN/RELEASE, the inner SORT ended and the run unit continuing for a nested SORT) are pinned by `SortMergeActiveUndeclaredDispositionTests`.
   **(b) The disposition when the SORT or MERGE itself raises a condition** (EC-SORT-MERGE-FILE-OPEN,
   -SEQUENCE, -RELEASE of the implicit USING release, -ACTIVE at a nested SORT/MERGE — and any other fatal condition
-  its own execution raises, such as an EC-LOCALE-* from a locale-collated key): §2023:14.6.13.1.3 2) hands it to the verb, and
+  its own execution raises, such as an EC-LOCALE-* from a locale-collated key): §2023:14.6.13.1.3 GR2 hands it to the verb, and
   each verb rule says the statement terminates (MERGE GR6/GR7/GR12, SORT GR12 b)) or its results are undefined (SORT
   GR9, GR10, GR13). The applicable declarative runs, the statement is terminated, and the run unit continues — the
   reading the implicit-transfer determination above applies to I-O statuses. A terminated statement performs none of

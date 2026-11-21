@@ -1,6 +1,6 @@
 - **D-PROP — what `>>PROPAGATE ON` propagates, and from where** (kb/Work PB1119). §2023:7.3.21.4 GR2 says "any exception
   condition raised and not handled … shall be propagated as though a GOBACK RAISING LAST statement were executed",
-  while the two processing orders it feeds name the directive in exactly two places: §2023:14.6.13.1.3 6) for a FATAL
+  while the two processing orders it feeds name the directive in exactly two places: §2023:14.6.13.1.3 GR6 for a FATAL
   condition with checking enabled (not EC-FLOW-GLOBAL-EXIT / -GOBACK), after 5)'s declarative, and §2023:14.6.13.1.5's
   EXIT/GOBACK item 3 for an exception OBJECT in the activating element. §2023:14.6.13.1.4, the order for a NONFATAL
   condition, has no propagation step — its 4) continues the statement. **(a) A nonfatal level-3 condition is not
@@ -13,5 +13,5 @@
   the RAISING phrase of the procedure division header in the activating element" is an `is` test over that header's
   classes (FACTORY OF: the factory type) and interfaces; no match stages EXCEPTION EC-OO-EXCEPTION
   (`conformance:AutomaticPropagationTests.ExceptionObject_ItemThree_ObjectOrEcOoException`). Implemented at the one
-  fatal default, `EcEmitter.EmitSelection` (and the EC-I-O arm of `__IoCheckEc`, which §2023:14.6.13.1.3 3) sends on to
+  fatal default, `EcEmitter.EmitSelection` (and the EC-I-O arm of `__IoCheckEc`, which §2023:14.6.13.1.3 GR3 sends on to
   6)), with the element's ON/OFF folded by `PropagateState`.

@@ -19,22 +19,22 @@
       *> cite.py --check 14.8.2.2 "If either the formal parameter or the
       *>   corresponding argument is a strongly-typed group item, both
       *>     shall be
-      *>   of the same type" -> OK §2023:14.8.2.2 2) (Group items)
+      *>   of the same type" -> OK §2023:14.8.2.2 SR2 (Group items)
       *> cite.py --check 12.3.8.4 "if the externalized name of the
       *>   program
       *>   prototype is the externalized name of a program prototype
       *>     definition
       *>   specified in the same compilation group, the details are
       *>     taken from
-      *>   that program prototype definition" -> OK §2023:12.3.8.4 10) b)
+      *>   that program prototype definition" -> OK §2023:12.3.8.4 GR10b
       *> cite.py --check 10.6.2 "the signatures of these two
       *>   compilation units
-      *>   shall be the same" -> OK §2023:10.6.2 2)
+      *>   shall be the same" -> OK §2023:10.6.2 SR2
       *> Separate source units each declare STRONG type TC with one
       *>   item AMT.
       *> The prototype L1C34HS (first, §2023:10.6.2 SR1; its details govern
       *>   the
-      *> CALL, §2023:12.3.8.4 GR10 b) and its definition write AMT PIC UU9
+      *> CALL, §2023:12.3.8.4 GR10b and its definition write AMT PIC UU9
       *>   under
       *> CURRENCY SIGN "$" WITH PICTURE SYMBOL "U"; the caller L1C34H
       *>   writes

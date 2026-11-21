@@ -15,10 +15,10 @@
       *>                     as that defined for identifier-1" — so GRP(1:7) and NAMES(8:7) are alphanumeric too.
       *>   §2023:8.4.3.1.3 SR1    identifier is defined recursively: identifier-1 "may be any of the formats for an
       *>                     identifier", so a function-identifier of category alphanumeric is identifier-1 as well.
-      *>   §2023:8.4.3.12.4 GR1 a) the function is the one named by "the content of the data item referenced by
+      *>   §2023:8.4.3.12.4 GR1a the function is the one named by "the content of the data item referenced by
       *>                     identifier-1" — for a group, its character image.
       *> A reference to the function named by every spelling must equal the address of the function itself (FPREF, the
-      *> prototype arm of the same identifier, §2023:8.4.3.12.4 GR1 b)), which is what each IF below tests.
+      *> prototype arm of the same identifier, §2023:8.4.3.12.4 GR1b), which is what each IF below tests.
       *> EXPECTED OUTPUT, derived line by line (PB1417F is the function; every name below spells it):
       *>   GROUP-OK    GRP is G1 "PB1" + G2 "417F" = "PB1417F"
       *>   NATGRP-OK   NG is a GROUP-USAGE NATIONAL group, N(3) "PB1" + N(4) "417F" = national "PB1417F" (§2023:13.18.29.4 GR2)

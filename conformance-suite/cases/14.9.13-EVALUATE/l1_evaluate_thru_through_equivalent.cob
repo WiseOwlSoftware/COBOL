@@ -21,7 +21,7 @@
       *> documented latitude, not a spec obligation.  What SR1 mandates
       *> about that line is only that the THRU and THROUGH columns
       *> AGREE.
-      *> The NOT line rests on §2023:14.9.13.4 GR4 a) 5. instead, whose NOT
+      *> The NOT line rests on §2023:14.9.13.4 GR4a.5 instead, whose NOT
       *> form is the explicit conditional  subject < left-part OR
       *> subject > right-part  (and its operands are numeric anyway).
       *> Selection / WHEN OTHER per §2023:14.9.13.4 GR4 b)-d), GR5 a)-b).

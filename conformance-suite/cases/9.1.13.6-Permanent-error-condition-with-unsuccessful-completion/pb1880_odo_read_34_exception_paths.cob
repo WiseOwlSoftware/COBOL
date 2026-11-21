@@ -7,7 +7,7 @@
 *>---
       *> ISO 1989:2023 §2023:9.1.13.6 item 4 b): the '34' of a READ whose OCCURS DEPENDING ON item makes the record too long,
       *> through every way a program can be equipped (or not) to see it. The record is a 2-byte header plus a table of
-      *> 1 TO 10 characters counted by the header's own field; the file description implies 12 bytes (§2023:13.18.43.4 GR5 a)),
+      *> 1 TO 10 characters counted by the header's own field; the file description implies 12 bytes (§2023:13.18.43.4 GR5a),
       *> so the second record on the medium (count 11, 13 bytes) is the one that fails, and the third (count 03) is a
       *> legal record that fails too because the permanent error REMAINS IN EFFECT (§2023:9.1.13.1) until a CLOSE.
       *>   EU  no FILE STATUS clause, a USE procedure for the file: the declarative runs once for each unsuccessful

@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:13.18.60.4 GR22 a) — "The amount of storage allocated for an object reference
+      *> ISO §2023:13.18.60.4 GR22a — "The amount of storage allocated for an object reference
       *> data item is implementor-defined and is not necessarily the same for every object
       *> reference."  Annex A.1 item 214 makes that amount REQUIRED user documentation, and
       *> WiseOwl COBOL's determination is docs/CONFORMANCE.md item DOC-A.1-214: an object
@@ -17,7 +17,7 @@
       *> §2023:15.14.3 argument rule 1 admits the measurement: "Argument-1 shall be an alphanumeric
       *> or national literal, a based entry, a type-name, or a data item of any class or
       *> category" — an object reference is a data item of class object (GR22), so
-      *> FUNCTION BYTE-LENGTH is defined on one, and §2023:15.14.4 rule 1 makes its returned value
+      *> FUNCTION BYTE-LENGTH is defined on one, and §2023:15.14.4 RV1 makes its returned value
       *> "the length of argument-1 in number of bytes": exactly the GR22 a) amount.
       *>
       *> EXPECTED OUTPUT, DERIVED FROM THE DETERMINATION — NOT FROM A RUN:

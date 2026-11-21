@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB3253 - ISO 1989 §2023:13.18.43.3 SR3 ("No record description entry for the file may specify a number of
       *> bytes greater than integer-1") over a record that holds USAGE BIT items BESIDE a DYNAMIC LENGTH item.
-      *> §2023:13.18.43.4 GR8 b) sizes the record description at its MAXIMUM ("The maximum number of table elements
+      *> §2023:13.18.43.4 GR8b sizes the record description at its MAXIMUM ("The maximum number of table elements
       *> described in the record is used in the summation above to determine the maximum number of bytes associated
       *> with the record description"), a dynamic-length item counting at its maximum size, the smallest of its LIMIT,
       *> its prefixed usage's largest integer and the implementor's maximum (§2023:8.5.1.10.1), and GR4 counts a trailing

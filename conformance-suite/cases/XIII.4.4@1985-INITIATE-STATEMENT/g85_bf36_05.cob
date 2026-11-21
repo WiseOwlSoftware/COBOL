@@ -14,7 +14,7 @@
       *    report-name"; GR1 b and c - "LINE-COUNTER is set to zero" and
       *    PAGE-COUNTER to one, for each named report.
       *  R-X and R-Y are unpaged: DE-X LINE PLUS 2 -> 0 + 2 = 2, DE-Y
-      *  LINE PLUS 3 -> 0 + 3 = 3 (§1985:XIII.3.10.8 GR4 d).
+      *  LINE PLUS 3 -> 0 + 3 = 3 (§1985:XIII.3.10.8 GR4d.
       *  FAILS IF the second name is refused, or not initiated (its
       *  counters or its GENERATE).
        IDENTIFICATION DIVISION.

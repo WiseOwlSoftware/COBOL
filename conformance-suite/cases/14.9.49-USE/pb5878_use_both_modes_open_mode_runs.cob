@@ -9,7 +9,7 @@
       *>   "for any file open in the output mode or in the process of being
       *>   opened in the output mode"; GR6b and GR6e say the same of the
       *>   input and extend modes. An OPEN that fails '41' on a file open in
-      *>   another mode (§2023:9.1.13.7 1)) meets two of these sentences, and
+      *>   another mode (§2023:9.1.13.7 GR1) meets two of these sentences, and
       *>   the text orders neither. The order is the implementor's, and
       *>   WiseOwl takes GnuCOBOL's (CLAUDE.md rule 1; docs/conformance entry
       *>   D-USE-OPEN-MODE-BOTH): the procedure of the mode the file IS open

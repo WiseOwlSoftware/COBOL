@@ -11,17 +11,17 @@
       *>   references literal-1."
       *>   cite.py --check 7.3.11.4 "If literal-1 is specified,
       *>     compilation-variable-name-1
-      *>   references literal-1."  -> OK  §2023:7.3.11.4 8)  (General rules)
+      *>   references literal-1."  -> OK  §2023:7.3.11.4 GR8  (General rules)
       *>   cite.py --check 7.3.11.4 "If the operand of the DEFINE
       *>     directive consists of a
       *>   single numeric literal, that operand is treated as a literal,
       *>     not as an
-      *>   arithmetic-expression."  -> OK  §2023:7.3.11.4 5)  (General rules)
+      *>   arithmetic-expression."  -> OK  §2023:7.3.11.4 GR5  (General rules)
       *>   cite.py --check 7.3.11.4 "compilation-variable-name-1 may be
       *>     used in the
       *>   compilation group in any compiler directive where a literal
       *>     of the category
-      *>   associated with the name is permitted"  -> OK  §2023:7.3.11.4 1)
+      *>   associated with the name is permitted"  -> OK  §2023:7.3.11.4 GR1
       *>     (General rules)
       *> The observable is a constant conditional expression, whose
       *>   operands must be of the
@@ -29,7 +29,7 @@
       *>   (in)equality:
       *>   cite.py --check 7.3.8.2 "The operands shall be of the same
       *>     category."
-      *>   -> OK  §2023:7.3.8.2 1) a) 1.  (Syntax rules)
+      *>   -> OK  §2023:7.3.8.2 SR1a.1  (Syntax rules)
       *>   cite.py --check 7.3.8.2 "If literals are specified and they
       *>     are not numeric
       *>   literals, the relational operator shall be"  -> OK  §2023:7.3.8.2

@@ -9,10 +9,10 @@
       *> of a different signature is refused.
       *> GR3: "When program-prototype-name-1 is specified, the program-address-identifier has the
       *>   characteristics of a program-pointer restricted to program-prototype-name-1."
-      *>   cite.py: OK  §2023:8.4.3.13.4 3)  (General rules)
+      *>   cite.py: OK  §2023:8.4.3.13.4 GR3  (General rules)
       *> SR22: "If identifier-7 references a restricted program-pointer, identifier-8 shall be the predefined
       *>   address NULL or shall reference a program-pointer and the program-prototypes associated with
-      *>   identifier-7 and identifier-8 shall have the same signature."   cite.py: OK  §2023:14.9.39.3 22)
+      *>   identifier-7 and identifier-8 shall have the same signature."   cite.py: OK  §2023:14.9.39.3 SR22
       *> RP is restricted to L1M7PNA (one USING formal, PIC X(2)); the sender is restricted to L1M7PNB (two
       *> USING formals), so the two prototypes' signatures differ (§2023:8.13: "This information about a source
       *> unit, excluding the externalized name of the source unit, is called its signature." — cite.py: OK

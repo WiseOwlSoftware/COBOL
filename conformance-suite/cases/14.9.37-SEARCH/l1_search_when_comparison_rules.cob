@@ -14,7 +14,7 @@
       *>     the manner in which their usage is described" and the
       *>     literal's digit count "is not significant": a BINARY
       *>     S9(4) holding 0001 equals the literal 1 (occurrence 2).
-      *> A1  §2023:8.8.4.2.7 2) — unequal-length alphanumeric comparison
+      *> A1  §2023:8.8.4.2.7 GR2 — unequal-length alphanumeric comparison
       *>     extends the shorter operand on the right with spaces, so
       *>     X(5) "ZZ   " equals the 2-character literal (occurrence 2).
       *> K1  the Format-2 WHEN, relation form (occurrence 3).

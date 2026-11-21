@@ -1,5 +1,5 @@
 - **D-INH1 — interface multiple inheritance: what SR5 asks of the inheriting interface, and what "the same interface-name"
-  means in SR6** (kb/Work PB1502; ISO §2023:11.6.3 SR5 and SR6, §2023:11.7.3 SR4 b), §2023:9.3.10; all cite-checked). (1) **SR5.** "If a
+  means in SR6** (kb/Work PB1502; ISO §2023:11.6.3 SR5 and SR6, §2023:11.7.3 SR4b, §2023:9.3.10; all cite-checked). (1) **SR5.** "If a
   given method-name is inherited from more than one interface, the method prototype in each inherited interface shall be
   such that this interface conforms to all inherited interfaces." The inheriting interface has ONE method of that name
   (SR4 b) leaves it no prototype of its own), so the rule holds exactly when ONE inherited prototype conforms to every

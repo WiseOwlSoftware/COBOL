@@ -19,7 +19,7 @@
 *>     though implicit-record-1 were a record description entry subordinate to the file description entry having
 *>     the same class, category, usage, and length as literal-1" (§2023:14.9.51.4 GR8 states the same).
 *> So the record released is the FROM operand under its own description, whatever the FD's record descriptions
-*> are: here the FD has NONE (§2023:13.4.5.3 SR3 b) - "a FILE phrase specifying file-name-1 and the FROM phrase
+*> are: here the FD has NONE (§2023:13.4.5.3 SR3b - "a FILE phrase specifying file-name-1 and the FROM phrase
 *> shall be specified on all WRITE and REWRITE statements associated with the file"), and READ ... INTO (SR3 c))
 *> is how the program sees the records back.
 *> EXPECTED, from GR5: the file holds four 10-byte records - the 10 characters of W1, the group W2 as its

@@ -14,19 +14,19 @@
       *> "a) The contents of any control data items are changed to
       *> their prior values."            (TERMINATE GR3, the bracket)
       *> "c) The report footing is printed, if defined."
-      *>   cite.py: OK  §2023:14.9.46.4 3) c)  (General rules)
+      *>   cite.py: OK  §2023:14.9.46.4 GR3c  (General rules)
       *> "d) The contents of any control data items are restored to the
       *> values they had at the start of execution of the TERMINATE
       *> statement."
-      *>   cite.py: OK  §2023:14.9.46.4 3) d)  (General rules)
+      *>   cite.py: OK  §2023:14.9.46.4 GR3d  (General rules)
       *> "If a report footing is defined and is not on a page by itself,
       *> the page footing on the last page is immediately followed by
       *> the report footing."
-      *>   cite.py: OK  §2023:13.18.57.4 6) f) 2.  (General rules)
+      *>   cite.py: OK  §2023:13.18.57.4 GR6f.2  (General rules)
       *> "When a TERMINATE statement is executed, if any control footing
       *> is defined for the report, the prior controls are stored in the
       *> control data items before each control footing is printed"
-      *>   cite.py: OK  §2023:13.18.16.4 5)  (General rules)
+      *>   cite.py: OK  §2023:13.18.16.4 GR5  (General rules)
       *>
       *> DERIVATION. The one GENERATE runs with WS-A = 1, WS-B = 1, so
       *> both prior controls hold 1. The program then moves 3 and 4 into
@@ -37,13 +37,13 @@
       *> BEFORE d), so under the 2002 and later text all four show 1 1.
       *> d) then restores 3 and 4, which the DISPLAY after TERMINATE shows.
       *> (At COBOL-85 the page footing would see the CURRENT values,
-      *> §1985:XIII.3.20.4 GR13 c), kb/Work PB5128; this program's page
+      *> §1985:XIII.3.20.4 GR13c, kb/Work PB5128; this program's page
       *> footing is illegal there, so
       *> pb5128_terminate_page_footing_control_values carries that edge.)
       *> Fails if d) runs before the page footing / report footing (the
       *> defect: "PF 3 4" / "RF 3 4"), or never runs ("AFTER 1 1").
       *> Placement: FIRST DETAIL 2 (the first body group on the page,
-      *> §2023:13.18.35.4 GR5 b) 3.), then LINE PLUS 1 per group.
+      *> §2023:13.18.35.4 GR5b.3), then LINE PLUS 1 per group.
       *> Only non-blank lines are displayed, with their line number.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1187T.

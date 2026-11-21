@@ -25,14 +25,14 @@
       *> records under a CD implicitly redefine). Compiling and running is the
       *> accepted leg; the refusal of PIC 9 and PIC X subjects is
       *> g2-sign-cd-record-subject.
-      *> §2002:13.16.50.3 GR5 a) "The operational sign is presumed to be
+      *> §2002:13.16.50.3 GR5a "The operational sign is presumed to be
       *> associated with the leading (or, respectively, trailing) digit
       *> position": L1 and T1 are 3 positions (LEN), +12 and -12 leave the
       *> other digit positions "12" / "01" alike (L1-REST, T1-REST) and
       *> differ in the leading / trailing position (L1-SIGNPOS,
       *> T1-SIGNPOS). b) leaves the sign characters to the implementor, so
       *> no sign character of L1 or T1 is pinned.
-      *> §2002:13.16.50.3 GR6 a) the separate sign is a character position
+      *> §2002:13.16.50.3 GR6a the separate sign is a character position
       *> that is not a digit position, so LS1 TS1 G1 NN1 SS are 4 positions
       *> (LEN; FUNCTION LENGTH per §2002:15.39.3 RV2 / RV3); b) the signs
       *> are '+' and '-': SEP [-012][012-][-012], POS [+012][012+].

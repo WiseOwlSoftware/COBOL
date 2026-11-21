@@ -1,4 +1,4 @@
-- **D-VARYING-AFTER-ORDER — PERFORM VARYING … AFTER under TEST BEFORE — the reset/augment ORDER (§2023:14.9.28.4 GR13 e) 2 from 2002; §1985:VI.6.21.4
+- **D-VARYING-AFTER-ORDER — PERFORM VARYING … AFTER under TEST BEFORE — the reset/augment ORDER (§2023:14.9.28.4 GR13e 2 from 2002; §1985:VI.6.21.4
   GR10 d) 1 at 1985 orders it the other way, per edition)**: GR13 e) 2's true branch is ordered "a. the induction variable associated with the
   current condition is set to its initialization value", then "b. the condition to the left of the current condition
   becomes the current condition", then "c. the induction variable associated with the new current condition is
@@ -11,7 +11,7 @@
   SIX** — i.e. the opposite order, augment-then-reset, which is the 1985 text's order.
   **Pinned choice: PER EDITION, each edition's own text (kb/Work PB436, PB5101).** From 2002 (the 2002 transcription
   words GR13 e) 2 as 2023 does) the ISO 2023 text governs: reset-then-augment, **eight** bodies. At `--std 85` the
-  1985 text governs: §1985:VI.6.21.4 GR10 d) 1 says "the content of the data item referenced by identifier-2 is
+  1985 text governs: §1985:VI.6.21.4 GR10d 1 says "the content of the data item referenced by identifier-2 is
   augmented by literal-2 or the content of the data item referenced by identifier-4" and THEN "the content of the data
   item referenced by identifier-5 is set to literal-3 or the current value of the data item referenced by
   identifier-6" (Figure 2 draws the same order), so the outer variable augments first and the same nest runs **six**

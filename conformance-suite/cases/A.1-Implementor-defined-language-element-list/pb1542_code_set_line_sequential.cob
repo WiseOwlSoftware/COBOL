@@ -7,7 +7,7 @@
       *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1542LS.
-      *> ISO/IEC 1989:2023 §2023:13.18.13.4 GR6 b) on a LINE SEQUENTIAL
+      *> ISO/IEC 1989:2023 §2023:13.18.13.4 GR6b on a LINE SEQUENTIAL
       *> file (kb/Work PB1542). The line sequential character set of
       *> Annex A.1 item 115 (docs/CONFORMANCE.md DOC-A.1-115) is every
       *> character from U+0020 that has an image in the FILE'S coded
@@ -25,7 +25,7 @@
       *>    (ORD 196) - outside ISO/IEC 646's 128 characters.
       *> Why each leg can fail:
       *>  S1-E    - the defect wrote X'E9' with '00' (STANDARD-1 is
-      *>            ISO/IEC 646 IRV, 128 characters, §2023:12.3.7.4 GR7 c).
+      *>            ISO/IEC 646 IRV, 128 characters, §2023:12.3.7.4 GR7c.
       *>  EB-EURO - the defect died of an unhandled exception; U+20AC
       *>            has no CCSID 37 code unit.
       *>  EB-E    - U+00E9 has one (X'51'): '00'.

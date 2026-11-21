@@ -98,7 +98,7 @@
            READ MIX.
            DISPLAY "READE=" MIX-REC.
            CLOSE MIX.
-      *> DELETE FILE acts on the association the last OPEN established (§2023:14.9.10.4 GR20 a) - pb324b.dat.
+      *> DELETE FILE acts on the association the last OPEN established (§2023:14.9.10.4 GR20a - pb324b.dat.
            DELETE FILE DYNF.
            DISPLAY "DELB=" WS-ST.
            STOP RUN.

@@ -29,7 +29,7 @@
       *>   -> OK  §2023:14.6.13.1.1   (General)
       *>   cite.py --check 15.33.3 "A 31-character, left-justified,
       *>   alphanumeric character string that is the exception-name"
-      *>   -> OK  §2023:15.33.3 1)  (Returned value rule)
+      *>   -> OK  §2023:15.33.3 RV1  (Returned value rule)
       *> Checking for EC-I-O-INVALID-KEY is enabled by the >>TURN below.
       *> Derivation (the name is 18 characters, padded to 31):
       *>   W1=00                first WRITE of K1 succeeds.

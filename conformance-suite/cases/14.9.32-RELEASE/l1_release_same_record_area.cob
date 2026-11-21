@@ -20,7 +20,7 @@
       *>  · §2023:14.9.32.4 GR3 sentence 2: the same logical record is available as a record of the
       *>    other file referenced in that clause — OUT-REC reads the identical eight bytes
       *>    (R1-OUT / R2-OUT), leftmost-aligned, so OUT-KEY/OUT-TXT overlay SRT-KEY/SRT-TXT.
-      *>  · §2023:14.9.32.4 GR2 + §2023:14.9.40.4 GR8 a) + §2023:14.9.34.4 GR3: the records really were released
+      *>  · §2023:14.9.32.4 GR2 + §2023:14.9.40.4 GR8a + §2023:14.9.34.4 GR3: the records really were released
       *>    to the sort, so the output procedure returns them by ASCENDING SRT-KEY — "the record
       *>    containing the key data item with the lower value is returned first" — AAA then BBB.
       *>    Without this leg a compiler that made RELEASE a no-op would still pass the two

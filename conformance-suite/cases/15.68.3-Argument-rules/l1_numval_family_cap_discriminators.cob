@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.68.3 rule 6 (NUMVAL-C) and §2023:15.69.3 rule 2 (NUMVAL-F) — "If native arithmetic is in
+      *> ISO §2023:15.68.3 AR6 (NUMVAL-C) and §2023:15.69.3 AR2 (NUMVAL-F) — "If native arithmetic is in
       *> effect, the total number of digits in argument-1 [NUMVAL-F: in the significand] shall not
       *> exceed 31." Native arithmetic is in effect here: there is no OPTIONS paragraph, and §2023:11.9.5.2
       *> GR4 says "If the ARITHMETIC clause is not specified in this source element or a containing

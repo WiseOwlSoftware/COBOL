@@ -20,7 +20,7 @@
   `HostInt32`; a CONTINUE AFTER period is saturated inside `CobolTiming.ContinueAfter`, which reads the interval on its own carrier through `CobolNum.PositionOf`, kb/Work PB1529). A wrap maps an out-of-range value back into range; saturation keeps every rule's out-of-range
   answer, because every range those rules test lies strictly inside the carrier: `GO TO … DEPENDING ON` a
   selector of 4,294,967,297 falls through (§2023:14.9.17.4 GR2), a reference-modifier start of 4,294,967,297 raises
-  EC-BOUND-REF-MOD (§2023:8.4.3.3.4 GR5 c), a STRING pointer of 2^64 + 3 overflows and stays unchanged (§2023:14.9.43.4 GR6,
+  EC-BOUND-REF-MOD (§2023:8.4.3.3.4 GR5c, a STRING pointer of 2^64 + 3 overflows and stays unchanged (§2023:14.9.43.4 GR6,
   GR8). A subscript's or OCCURS DEPENDING count's saturated `long` still positions every table, and the diagnostic
   names the value the program holds, not the clamp (`CobolTable.Occ` returns an `Occurrence`, kb/Work PB2695); a reference-modifier
   leftmost position or length is the same carrier (`CobolString.RefModPosition`, kb/Work PB2938), and an integer literal past `long`

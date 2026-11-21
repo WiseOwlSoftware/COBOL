@@ -134,7 +134,7 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// (§2002:8.7.1; §2023:8.7.1). COBOL-85 has no exception: its arithmetic operators, unary ones included, "must be preceded by a
     /// space and followed by a space" (§1985:VI.6.2.2). A left parenthesis directly BEFORE a unary operator (or a logical NOT) is accepted at
     /// every edition: the determination D-85-OPERATOR-SPACING (<c>docs/conformance/3/</c>) rules it from the 1985 text, which itself
-    /// writes <c>(NOT (a = b))</c> (§1985:VI.6.3.3) and <c>(- argument-2)</c> (§1985:p.A-34).</summary>
+    /// writes <c>(NOT (a = b))</c> (§1985:VI.6.3.3) and <c>(- argument-2)</c> (§1989:p.A-34).</summary>
     public bool UnaryOperatorMayTouchParenthesis => Year >= 2002;
 
     /// <summary>Whether the relational operators and the logical connectives of a condition each need a separator space on both sides

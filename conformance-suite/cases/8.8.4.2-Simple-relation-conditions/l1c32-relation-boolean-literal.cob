@@ -8,7 +8,7 @@
       *>
       *> THE RULE. §2023:8.8.4.2.3 FORMAT 1: "3) All literals shall be of class alphanumeric,
       *> national, or numeric."
-      *>   cite.py: OK  §2023:8.8.4.2.3 3)  (Syntax rules)
+      *>   cite.py: OK  §2023:8.8.4.2.3 SR3  (Syntax rules)
       *> X1 is class alphanumeric, so `X1 = B"1"` is not a Format 2 (boolean) relation,
       *> whose operands are boolean-expressions; it can only be Format 1, where the boolean
       *> literal B"1" violates SR3. Nothing else in the program is illegal. Boolean

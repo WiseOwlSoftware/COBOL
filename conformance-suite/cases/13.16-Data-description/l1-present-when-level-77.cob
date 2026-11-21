@@ -10,7 +10,7 @@
       *>   python scripts/spec/cite.py --check 13.16.3 "The PRESENT
       *>   WHEN clause shall not be specified in a data description
       *>   entry that has a level number of 1 or 77."
-      *>   -> OK  §2023:13.16.3 20)  (Syntax rules)
+      *>   -> OK  §2023:13.16.3 SR20  (Syntax rules)
       *>
       *> ⛔ THE LEVEL 77 HALF. SR20 names TWO level numbers and they are
       *> not the same construct: level 1 is a record description entry,

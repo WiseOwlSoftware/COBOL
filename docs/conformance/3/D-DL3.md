@@ -44,7 +44,7 @@
   the minimum (length field + delimiter) of the structured members after it — so with NO table a plain member
   followed by a structured one is read as the take step reads it (D-FRA), and data that holds the delimiter of a
   DELIMITED-only member ends there. A length field larger than the record holds is clamped to what is there (a record
-  that ends inside its own structure gives what is left) and no condition is set: §2023:14.6.13.2 rule 5's
+  that ends inside its own structure gives what is left) and no condition is set: §2023:14.6.13.2 GR5's
   EC-DATA-INCOMPATIBLE speaks of a dynamic-length item's own internal format, which here is a native string and is
   always well formed, and the standard defines no status for a medium record that disagrees with its structure.
   **LINE SEQUENTIAL**: the characters below U+0020 are outside a line sequential

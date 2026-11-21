@@ -8,7 +8,7 @@
       *> class alphabetic, alphanumeric, or national, or an alphanumeric or national literal."
       *>   python scripts/spec/cite.py --check 15.87.3 "Argument-1 shall be an identifier that references a data
       *>   item or identifier that is class alphabetic, alphanumeric, or national, or an alphanumeric or national
-      *>   literal."  ->  OK  §2023:15.87.3 1)  (Argument rules)
+      *>   literal."  ->  OK  §2023:15.87.3 AR1  (Argument rules)
       *>
       *> A class-NUMERIC item is outside that list: §2023:8.5.2.1's Table 2 carries "| Numeric | Numeric |" as its own
       *> row, distinct from the Alphabetic, Alphanumeric and National rows, and r1 ENUMERATES the admitted

@@ -64,7 +64,7 @@ multi-line), resolve, normalize, apply REPLACING — and returns the copybook te
 merged driver recurses so nested COPY *and* nested CC both process). `alreadyIncluded` + `depth` thread through
 for the GR12 circular / depth-20 guards.
 
-### §3.2b A directive never stands inside a COPY or REPLACE statement (kb/Work PB1384, §2023:7.3.3 SR8 b)
+### §3.2b A directive never stands inside a COPY or REPLACE statement (kb/Work PB1384, §2023:7.3.3 SR8b
 
 The driver ends its text block at every directive line, which is also the only place it can SEE the violation: before it
 flushes, `Render` asks `CopyProcessor.OpenStatementAt` whether the text since a COPY or REPLACE keyword has reached its
@@ -73,7 +73,7 @@ statement's text is carried from its keyword across further directive lines, so 
 each (COBOL2697, `DirectiveDiag.WithinStatement`). The directive then takes effect like any other (superset-continue),
 and a truncated COPY still draws its own COBOL2449 after it.
 
-A `>>SOURCE FORMAT` line never reaches `Render` (kb/Work PB1353): logical conversion DISCARDS it (§2023:6.5 1)) and leaves a blank
+A `>>SOURCE FORMAT` line never reaches `Render` (kb/Work PB1353): logical conversion DISCARDS it (§2023:6.5 GR1) and leaves a blank
 line, with its physical line recorded in the text's `ReferenceFormatMap.DirectiveLines`. `Render` therefore asks, of each
 BLANK line, `CopyProcessor.IsDiscardedFormatDirective(origin)` — the map registered under the line's file, which is the
 main source's or the library text's own — and puts the same `OpenStatementAt` question over the pending block WITHOUT
@@ -103,7 +103,7 @@ the edition has compiler directives (`EditionInfo.HasCompilerDirectives`, from 2
   line ends inside COBOL5563, named by the cursor as it consumes the text-word and standing as the statement's one
   error (`LiteralScreen.ReportUnterminated`, the lexer's own question; kb/Work PB4176). Each operand
   pair is screened by ONE `ScreenOperandPair` against its statement's `OperandRules` row — the §2023:7.2.3.3 / §2023:7.2.4.3
-  content rules are word-for-word twins (COBOL2572) — and `ReadOperand` checks the §2023:8.3.5 6) separation of each
+  content rules are word-for-word twins (COBOL2572) — and `ReadOperand` checks the §2023:8.3.5 SR6 separation of each
   `==` (COBOL2573) (kb/Work PB1353). The screen is the EDITION'S (`OperandScreen` holds the `EditionInfo`, kb/Work PB5700,
   PB5608): the longest text-word is `EditionInfo.MaxTextWordLength` (322 at 2002, §2002:7.1.2.2 SR11 / §2002:7.1.3.2 SR9;
   65,535 from 2014; 1985 only "must allow" 322, §1985:XII.2.3 SR8, and takes 65,535), the characters of EVERY operand are
@@ -114,7 +114,7 @@ the edition has compiler directives (`EditionInfo.HasCompilerDirectives`, from 2
   the text-name's), and a literal is judged by none (kb/Work PB5608), and a COPY REPLACING
   identifier operand keeps §2002:7.1.2.2 SR9 / §2014:7.2.2.2 SR9's subscript restriction (`OperandScreen.Identifier` over
   `ReplacingIdentifierSubscripts`), all COBOL2572. A directive line CONSUMED before the operand is read leaves only a blank
-  line, so the operand screen cannot see it; §3.2b's driver check does (§2023:7.3.3 SR8 b), and names §2023:7.2.3.3 SR10 /
+  line, so the operand screen cannot see it; §3.2b's driver check does (§2023:7.3.3 SR8b, and names §2023:7.2.3.3 SR10 /
   §2023:7.2.4.3 SR10 when the open statement stands inside pseudo-text. The LEADING / TRAILING phrases are gated at their
   introducing edition by constructs row `replacing-partial-word-2002` — ONE check, `OperandScreen.PartialWord`, asked
   by `ParseReplacingOperands` for both statements, once per statement (kb/Work PB1670). The statement's OWN phrases
@@ -127,13 +127,13 @@ the edition has compiler directives (`EditionInfo.HasCompilerDirectives`, from 2
   inactive ones; ALSO pushes and activates current-then-pushed operands, LAST OFF pops, a plain format 1 or OFF
   cancels the queue (kb/Work PB1357). ALSO/LAST are gated by constructs row `replace-also-last-2002`.
 - **Matching** — `ApplyReplacements` compares text-words with `TextWord.MatchesForReplacing`, the ONE
-  implementation of §2023:7.2.3.4 9) c) / §2023:7.2.4.4 8) c): character-strings case-insensitively; literals by prefix
+  implementation of §2023:7.2.3.4 GR9c / §2023:7.2.4.4 GR8c: character-strings case-insensitively; literals by prefix
   (case-insensitive), content un-doubled, the quotation symbol not compared, content case-SENSITIVE in `"…"` and
   `N"…"` and insensitive in the hexadecimal and boolean formats. Separator commas/semicolons are dropped (c) 1.).
   What a match PRODUCES is screened in the same pass by the statement's `ResultRule` (`ForbiddenIn`: §2023:7.2.3.4 GR13 /
   §2023:7.2.4.4 GR9 — no COPY statement, REPLACE statement (REPLACE only), SOURCE FORMAT directive or comment, the
   comment asked of the produced TEXT by `TextWordScanner.HoldsComment` (a character-string holding the indicator); a blank
-  line cannot arise, §2023:6.5 2) discarded it; COBOL2574), and a COPY with REPLACING met inside library text is COBOL1640 (GR12) (kb/Work PB1356).
+  line cannot arise, §2023:6.5 GR2 discarded it; COBOL2574), and a COPY with REPLACING met inside library text is COBOL1640 (GR12) (kb/Work PB1356).
 - **Locating library text** — `FindCopybook` over `LibraryPlaces()` (the working directory, then each configured
   search path) and `LocateInLibrary` (as spelled, then — unless the FILE NAME holds a period —
   `.CPY .CBL .COB .cpy .cbl .cob`): the DOC-A.1-40

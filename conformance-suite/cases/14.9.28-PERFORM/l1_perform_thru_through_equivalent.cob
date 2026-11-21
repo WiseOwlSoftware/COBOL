@@ -19,7 +19,7 @@
       *>
       *> The paragraphs add distinct decimal weights (100 / 10 / 1), so
       *> the printed total NAMES the paragraphs that ran:
-      *>   FULL  P1 THRU P3 -> 0111 (all three; §2023:14.9.28.4 GR5 b)
+      *>   FULL  P1 THRU P3 -> 0111 (all three; §2023:14.9.28.4 GR5b
       *>         returns "after the last statement of procedure-name-2")
       *>   PART  P1 THRU P2 -> 0110 (P3 must NOT run — a range that
       *>         ran to the end of the source unit would print 0111)

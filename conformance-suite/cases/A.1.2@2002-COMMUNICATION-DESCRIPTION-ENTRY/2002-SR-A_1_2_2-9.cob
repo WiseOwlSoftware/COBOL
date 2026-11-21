@@ -18,7 +18,7 @@
       *> destination), laid out 9(4) 9(4) X(2) X(1) X(12); each record
       *> below is 23 positions.
       *> VALUE in the first redefinition takes effect when the program
-      *> is placed in its initial state (§2002:13.16.61.3 GR4 c).
+      *> is placed in its initial state (§2002:13.16.61.3 GR4c.
       *> Legs (each fails if the records do not share one area, if a
       *> third redefinition is refused, or if OREC1's VALUEs are not
       *> applied):

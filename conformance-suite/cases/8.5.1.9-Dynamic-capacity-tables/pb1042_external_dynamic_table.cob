@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1042 — a dynamic-capacity table in an EXTERNAL record, shared by two programs.
-      *> ISO/IEC 1989:2023 §2023:8.5.1.9.1 3): a dynamic-capacity table "may be defined in any place,
+      *> ISO/IEC 1989:2023 §2023:8.5.1.9.1 SR3: a dynamic-capacity table "may be defined in any place,
       *> other than the file section, in which a fixed-capacity table may be defined", and an
       *> EXTERNAL record of the working-storage section is such a place. §2023:13.18.22.4 GR1: every
       *> program describing PB1042XR references the ONE run-unit record, so the occurrences one

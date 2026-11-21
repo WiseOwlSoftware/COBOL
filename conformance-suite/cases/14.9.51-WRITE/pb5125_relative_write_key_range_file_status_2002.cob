@@ -9,12 +9,12 @@
       *> written with neither an INVALID KEY phrase nor a USE AFTER EXCEPTION procedure: the FILE STATUS item alone carries
       *> the invalid key condition, and execution continues.
       *>
-      *> §2002:14.8.47.3 GR29 b) (cite.py --check): "When an attempt is made to write beyond the externally defined
+      *> §2002:14.8.47.3 GR29b (cite.py --check): "When an attempt is made to write beyond the externally defined
       *> boundaries of the file, the I-O status associated with the write file connector is set to '24'", the invalid key
       *> condition; §2002:9.1.13 item 4: with no INVALID KEY phrase and no USE AFTER EXCEPTION procedure, "control is
       *> transferred to the end of the input-output statement". COBOL-85 has no such path (§1985:VIII.1.3.5: without the
       *> phrase "a USE AFTER EXCEPTION procedure must be associated with the file connector"), and from 2014 the attempt is
-      *> the permanent error 34 instead (§2014:14.9.47.3 GR26 b), whose witness is pb5125_relative_write_key_range.
+      *> the permanent error 34 instead (§2014:14.9.47.3 GR26b, whose witness is pb5125_relative_write_key_range.
       *>
       *> The boundaries are WiseOwl's (docs/CONFORMANCE.md DOC-A.1-107): relative record numbers 1 through 2 147 483 647.
       *> ZERO and ABOVE answer 24 and the next statement runs; 24 is no permanent error, so K5 is written ('00') and DUP5

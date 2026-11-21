@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.72.3 rule 2 (ORD-MIN): "Argument-1 shall not be a zero-length literal."
+      *> ISO §2023:15.72.3 AR2 (ORD-MIN): "Argument-1 shall not be a zero-length literal."
       *>
       *> THE ORDINAL IS THE FUNCTION'S OWN — §2023:15.72.3 orders its rules as ORD-MAX
       *> does (r1 negative class list, r2 this rule, r3 all-same-class), which is NOT

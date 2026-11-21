@@ -10,7 +10,7 @@
       *> file an SD describes, so the entry below is legal from 2002
       *> (the 1985 entry, SELECT and ASSIGN only, refuses it:
       *> 1985-SR-XI_2_3_3-2). The SORT releases 2 then 1 and the
-      *> ASCENDING key returns 1 first (§2023:14.9.40.4 GR8 a), so the
+      *> ASCENDING key returns 1 first (§2023:14.9.40.4 GR8a, so the
       *> program displays S=1, S=2; a compiler that refuses the entry
       *> fails.
        IDENTIFICATION DIVISION.

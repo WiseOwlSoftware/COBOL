@@ -14,13 +14,13 @@
       *> SR8:  "NOT = is an abbreviation for NOT EQUAL."
       *> SR10: "<= is an abbreviation for LESS THAN OR EQUAL TO."
       *> cite.py --check:
-      *>   OK  §2023:8.7.5.2 1)  (Syntax rules)
-      *>   OK  §2023:8.7.5.2 3)  (Syntax rules)
-      *>   OK  §2023:8.7.5.2 5)  (Syntax rules)
-      *>   OK  §2023:8.7.5.2 7)  (Syntax rules)
-      *>   OK  §2023:8.7.5.2 8)  (Syntax rules)
-      *>   OK  §2023:8.7.5.2 10)  (Syntax rules)
-      *>   OK  §2023:8.8.4.12.4 1)  (General rule)  abbreviated combined
+      *>   OK  §2023:8.7.5.2 SR1  (Syntax rules)
+      *>   OK  §2023:8.7.5.2 SR3  (Syntax rules)
+      *>   OK  §2023:8.7.5.2 SR5  (Syntax rules)
+      *>   OK  §2023:8.7.5.2 SR7  (Syntax rules)
+      *>   OK  §2023:8.7.5.2 SR8  (Syntax rules)
+      *>   OK  §2023:8.7.5.2 SR10  (Syntax rules)
+      *>   OK  §2023:8.8.4.12.4 GR1  (General rule)  abbreviated combined
       *>       relation: "the last stated relational operator were
       *>       inserted in place of the omitted relational operator"
       *> §2023:8.7.5.1 (general format): every operator is "IS <op>" with IS

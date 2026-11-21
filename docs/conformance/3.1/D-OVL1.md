@@ -1,5 +1,5 @@
 - **D-OVL1 — operands that overlap: a MOVE (and an arithmetic statement) reads its sender in full, then writes
-  its receiver** (kb/Work PB1907; Annex A.2 item 36; `GR-14.6.10-1`). §2023:14.6.10 1): "When the data items are not
+  its receiver** (kb/Work PB1907; Annex A.2 item 36; `GR-14.6.10-1`). §2023:14.6.10 GR1: "When the data items are not
   described by the same data description entry, the result of the statement is undefined" (`cite.py --check 14.6.10
   "When the data items are not described by the same data description entry"` → OK, 1)); 2): "When the data items
   are described by the same data description entry, the result of the statement is the same as if the data items

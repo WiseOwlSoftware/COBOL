@@ -19,8 +19,8 @@
       *>   associated with all WHEN phrases are omitted from the
       *>   resultant text."
       *> cite.py:
-      *>   OK  §2023:7.3.13.4 5)  (General rules)
-      *>   OK  §2023:7.3.13.4 6)  (General rules)
+      *>   OK  §2023:7.3.13.4 GR5  (General rules)
+      *>   OK  §2023:7.3.13.4 GR6  (General rules)
       *> EXPECTED OUTPUT, DERIVED:
       *>   A-OTHER-LINE-1   subject 5: not = 1, not in 2 THRU 4, so
       *>   A-OTHER-LINE-2   every line of WHEN OTHER text-2 is included

@@ -22,10 +22,10 @@
       *> 2023 choice indicators, §2023:5.2.6.4, and in the classic order).
       *> Semantics (INDEXED, ACCESS DYNAMIC, keys K1..K4):
       *>   FROM identifier-1 = "MOVE identifier-1 TO record-name-1"
-      *>     then the REWRITE without FROM (OK §2023:14.9.35.4 7)).
-      *>   No record with the prime key -> '23' (OK §2023:14.9.35.4 23)).
+      *>     then the REWRITE without FROM (OK §2023:14.9.35.4 GR7).
+      *>   No record with the prime key -> '23' (OK §2023:14.9.35.4 GR23).
       *>   INVALID KEY / NOT INVALID KEY branches (OK §2023:9.1.14 2)).
-      *>   '00' = successful completion (OK §2023:9.1.13.2 1)).
+      *>   '00' = successful completion (OK §2023:9.1.13.2 GR1).
       *> Legs:
       *>   E1 FROM identifier, INVALID KEY + NOT INVALID KEY,
       *>      END-REWRITE, K1 present                     -> 00 N

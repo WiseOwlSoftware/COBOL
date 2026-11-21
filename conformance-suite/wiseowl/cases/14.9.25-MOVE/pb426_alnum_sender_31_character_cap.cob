@@ -5,24 +5,24 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:14.9.25.4 GR6 d) 3 — THE SIZE OF AN ALPHANUMERIC SENDING OPERAND MOVING TO A NUMERIC
+      *> ISO §2023:14.9.25.4 GR6d 3 — THE SIZE OF AN ALPHANUMERIC SENDING OPERAND MOVING TO A NUMERIC
       *> RECEIVER, at the earliest edition WiseOwl COBOL compiles. The rule is not edition-gated: it reads
       *> identically at 85, 2002, 2014 and 2023, and the 2002 golden pb426_alnum_sender_data_incompatible
       *> carries the legs that need a 19-31 digit receiver or the >>TURN checking model (both 2002+).
       *>
       *> THE RULE, --check validated:
       *>   cite.py --check 14.9.25.4 "in which case the rightmost 31 character positions are used"
-      *>     -> OK §2023:14.9.25.4 6) 3.  "a. If the sending operand is a data item, the number of digits is
+      *>     -> OK §2023:14.9.25.4 GR6 3.  "a. If the sending operand is a data item, the number of digits is
       *>        the number of character positions in the sending data item unless the number of character
       *>        positions is greater than 31, in which case the rightmost 31 character positions are used."
       *>   cite.py --check 14.9.25.4 "only the rightmost 31 characters in the literal are used"
-      *>     -> OK §2023:14.9.25.4 6) 3.  (sub-rule c, the LITERAL twin of the same window)
+      *>     -> OK §2023:14.9.25.4 GR6 3.  (sub-rule c, the LITERAL twin of the same window)
       *>   cite.py --check 14.6.8.2 "aligned by decimal point"
-      *>     -> OK §2023:14.6.8.2 4)  "If the receiving operand is a fixed-point numeric item, the data is
+      *>     -> OK §2023:14.6.8.2 GR4  "If the receiving operand is a fixed-point numeric item, the data is
       *>        aligned by decimal point and is transferred to the receiving digits with zero fill or
       *>        truncation on either end as required."
       *>   cite.py --check 14.9.48.4 "shall be moved into the current receiving area according to the
-      *>     rules for the MOVE statement" -> OK §2023:14.9.48.4 11) c)
+      *>     rules for the MOVE statement" -> OK §2023:14.9.48.4 GR11c
       *>   (⚠ cite.py prints the approximate path "6) 3." for both MOVE sub-rules; the PRINTED rule numbers
       *>    are 6) d) 3) a. and 6) d) 3) c.  The CLAUSE and the TEXT are what the check establishes.)
       *>
@@ -46,11 +46,11 @@
       *>      decode.  The edited image of 234567890 suppresses no zero (its high-order digit is 2).
       *>   6  S40 (1:40) -> PIC 9(9).  A reference-modified result is category alphanumeric (§2023:8.4.3.3.4
       *>      GR6), so it is an alphanumeric SENDING OPERAND and takes the same window -> 000001234.
-      *>   7  UNSTRING ... INTO PIC 9(9).  §2023:14.9.48.4 GR11 c) transfers the examined characters "according
+      *>   7  UNSTRING ... INTO PIC 9(9).  §2023:14.9.48.4 GR11c transfers the examined characters "according
       *>      to the rules for the MOVE statement", so the window applies there too -> 000001234.
       *>
       *> NOTE Legs 3, 6 and 7 send content that is not all digits. At COBOL-85 no checking can be enabled
-      *> (>>TURN is COBOL-2002 — negative/pb844-ec-data-incompatible-turn-below-2002), so §2023:14.9.25.4 GR6 d) 1
+      *> (>>TURN is COBOL-2002 — negative/pb844-ec-data-incompatible-turn-below-2002), so §2023:14.9.25.4 GR6d 1
       *> sets no condition here and the deterministic decode stands; the 2002 golden measures the checked
       *> reading.
        IDENTIFICATION DIVISION.

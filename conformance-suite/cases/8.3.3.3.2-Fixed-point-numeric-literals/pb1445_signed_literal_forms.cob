@@ -7,7 +7,7 @@
       *>---
       *> A SIGN ABUTTING ITS DIGITS IS PART OF THE LITERAL; A SEPARATED SIGN IN AN
       *> EXPRESSION IS A UNARY OPERATOR (kb/Work PB1445).
-      *> ISO/IEC 1989:2023 §2023:8.3.3.3.2 2): "A literal shall not contain more than one sign
+      *> ISO/IEC 1989:2023 §2023:8.3.3.3.2 SR2: "A literal shall not contain more than one sign
       *> character. If a sign is used, it shall appear as the leftmost character of the
       *> literal." So VALUE -5 / VALUE +4 and MOVE -3 / ADD -2 carry one-sign literals and
       *> must stay legal after the separated-sign screen (COBOL2155) was widened to every

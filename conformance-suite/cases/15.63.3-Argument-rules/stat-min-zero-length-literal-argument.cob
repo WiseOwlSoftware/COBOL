@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.63.3 rule 3 (MIN): "Argument-1 shall not be a zero-length literal."
+      *> ISO §2023:15.63.3 AR3 (MIN): "Argument-1 shall not be a zero-length literal."
       *>
       *> §2023:15.63.2's general format is `FUNCTION MIN ( { argument-1 } ... )`, so
       *> "argument-1" NAMES THE WHOLE VARIADIC LIST and the prohibition covers every

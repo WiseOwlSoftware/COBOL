@@ -15,14 +15,14 @@
       *  DE-Y LINE PLUS 2.
       *   INITIATE R-X R-Y: both 00.
       *   GENERATE DE-X: BEFORE PH 00 (first page); DE-X line 3, NEXT
-      *     PAGE -> LC 18 (§1985:XIII.3.10.8 GR6 c).
+      *     PAGE -> LC 18 (§1985:XIII.3.10.8 GR6c.
       *   GENERATE DE-Y: 0 + 2 = 2.
       *   GENERATE DE-X: 18 + 1 > 15 -> page advance: BEFORE PF 18; PF
       *     at 20; the advance zeroes LC, so BEFORE PH shows 00, not 20;
       *     DE-X again -> LC 18.
       *   TERMINATE: the last page's footing (§1985:XIII.3.20.4 GR7):
       *     BEFORE PF 18; PF at 20 has no NEXT GROUP, so LC 20
-      *     (§1985:XIII.3.10.9 GR5 c).
+      *     (§1985:XIII.3.10.9 GR5c.
       *   INITIATE R-X R-Y again (allowed after TERMINATE,
       *     §1985:XIII.4.4.4 GR3): both 00 again, R-X from 20, R-Y from
       *     2.

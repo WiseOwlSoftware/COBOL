@@ -14,12 +14,12 @@
       *>   optional; the braces require one of JUSTIFIED / JUST)
       *>   cite.py: OK  §2023:13.18.32.2   (General format)
       *> SR2 "JUST is an abbreviation for JUSTIFIED."
-      *>   cite.py: OK  §2023:13.18.32.3 2)  (Syntax rules)
+      *>   cite.py: OK  §2023:13.18.32.3 SR2  (Syntax rules)
       *> GR3 "When the JUSTIFIED clause is omitted, the standard rules
       *>   for
       *>   aligning data within an elementary item apply (see 14.6.8,
       *>     ...)"
-      *>   cite.py: OK  §2023:13.18.32.4 3)  (General rules)
+      *>   cite.py: OK  §2023:13.18.32.4 GR3  (General rules)
       *> §2023:14.6.8.5: "aligned at the leftmost character position in the
       *>   data item
       *>   with space fill or truncation to the right"
@@ -27,11 +27,11 @@
       *> GR2 (JUSTIFIED, receiver larger): "aligned at the rightmost
       *>   character
       *>   position ... space fill for the leftmost character positions"
-      *>   cite.py: OK  §2023:13.18.32.4 2)  (General rules)
+      *>   cite.py: OK  §2023:13.18.32.4 GR2  (General rules)
       *> GR1 (JUSTIFIED, sender larger): "the leftmost character
       *>   positions ...
       *>   of the sending operand shall be truncated"
-      *>   cite.py: OK  §2023:13.18.32.4 1)  (General rules)
+      *>   cite.py: OK  §2023:13.18.32.4 GR1  (General rules)
       *> DERIVATION. J1 JUST, J2 JUSTIFIED, J3 JUSTIFIED RIGHT, J4 JUST
       *>   RIGHT
       *> are the four arms of the format; by SR2 all four mean the one

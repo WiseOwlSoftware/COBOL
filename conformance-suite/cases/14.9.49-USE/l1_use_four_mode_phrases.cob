@@ -16,24 +16,24 @@
       *> appear.
       *> DERIVATION — every expected line follows from the rule text, nothing from the compiler.
       *>  · FI, FIO, FE: §2023:14.9.27.4 GR4 Table 18 — for a NON-optional file that is unavailable,
-      *>    "Open is unsuccessful" in the INPUT, I-O and EXTEND rows — and §2023:9.1.13.6 rule 5 gives
+      *>    "Open is unsuccessful" in the INPUT, I-O and EXTEND rows — and §2023:9.1.13.6 GR5 gives
       *>    the value: an OPEN "with the INPUT, I-O, or EXTEND phrase … attempted on a file that
       *>    is not described as optional and the physical file is not present" sets I-O status
       *>    35. The corpus runner runs each program in a fresh empty directory and nothing
       *>    creates these three files, so 35 is deterministic.
       *>  · FO: Table 18's OUTPUT row — an unavailable file is CREATED, a normal open — so the
-      *>    first OPEN OUTPUT is successful, §2023:9.1.13.2 rule 1 "I-O status = 00". The second is
+      *>    first OPEN OUTPUT is successful, §2023:9.1.13.2 GR1 "I-O status = 00". The second is
       *>    §2023:14.9.27.4 GR2, "The file connector referenced by file-name-1 shall not be open. If
       *>    it is open, the execution of the OPEN statement is unsuccessful and the I-O status
-      *>    associated with file-name-1 is set to '41'" (§2023:9.1.13.7 rule 1 names the same value).
-      *>  · Handler selection is §2023:14.9.49.4 GR6 b) INPUT / c) OUTPUT / d) I-O / e) EXTEND: each
+      *>    associated with file-name-1 is set to '41'" (§2023:9.1.13.7 GR1 names the same value).
+      *>  · Handler selection is §2023:14.9.49.4 GR6b INPUT / c) OUTPUT / d) I-O / e) EXTEND: each
       *>    procedure is executed for a file "open in the <mode> mode or in the process of being
       *>    opened in the <mode> mode". No declarative names a file, so GR3 b) reaches them and
       *>    GR5's file-name precedence never applies.
       *>  · FIO is ORGANIZATION INDEXED so that OPEN I-O is unambiguously an operation the
-      *>    organization supports and §2023:9.1.13.6 rule 6 a) 2. (status 37) cannot be the applicable
+      *>    organization supports and §2023:9.1.13.6 GR6a.2 (status 37) cannot be the applicable
       *>    rule instead of rule 5.
-      *>  · Control returns from each handler by §2023:14.9.33.4 GR2 a) (RESUME AT NEXT STATEMENT).
+      *>  · Control returns from each handler by §2023:14.9.33.4 GR2a (RESUME AT NEXT STATEMENT).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1USE7P.
        ENVIRONMENT DIVISION.

@@ -21,14 +21,14 @@
       *> clauses only through GR1. Each unit runs the same three legs.
       *> REL - "A" > "B" under REV: §2002:12.2.6.3 GR7k puts "B" at
       *>   position 1 and "A" at 2 ("in ascending sequence"), every
-      *>   other character after them; §2002:12.2.5.3 GR11 a) uses
+      *>   other character after them; §2002:12.2.5.3 GR11a uses
       *>   the program collating sequence for the relation, so the
       *>   condition is true (native order would make it false).
       *> 88  - C = "B" against 88 VALUE "A" THRU "C": under REV "B"
       *>   (1) is below "A" (2), so outside the range (GR11 b); the
       *>   condition is false (native order makes it true).
       *> UP  - FUNCTION UPPER-CASE("i") under the tr-TR LC_CTYPE
-      *>   (§2002:12.2.5.3 GR7 a) is the dotted capital I, not "I";
+      *>   (§2002:12.2.5.3 GR7a is the dotted capital I, not "I";
       *>   with no classification in effect it would be "I".
       *> Derived output:
       *>   L0-REL=REV L0-88=REV L0-UP=TR  (G2OBJ01, own clauses)

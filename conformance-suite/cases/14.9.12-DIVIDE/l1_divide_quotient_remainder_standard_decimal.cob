@@ -23,7 +23,7 @@
       *>
       *> DERIVED VALUES — IDENTICAL TO THE NATIVE TWIN, AND THAT IS THE POINT. §2023:8.8.1.5's intermediate
       *> carries 34 significant digits, so for these operands the standard-mode expression value and the
-      *> native quotient agree to far beyond the receivers' precision, and §2023:14.7.7 rule 3 then applies the
+      *> native quotient agree to far beyond the receivers' precision, and §2023:14.7.7 GR3 then applies the
       *> SAME truncation or ROUNDED transfer. A difference on any line would mean the mode had changed the
       *> ANSWER, which neither sentence permits:
       *>   A=3333   10 / 3 truncated at three fraction digits.

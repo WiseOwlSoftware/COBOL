@@ -11,11 +11,11 @@
       *> than ALL national literal shall be the alphanumeric
       *> representation of that figurative constant."
       *>   cite.py --check 14.9.11.4 "only a single occurrence of the
-      *>   figurative constant is displayed"  ->  OK  §2023:14.9.11.4 3)
+      *>   figurative constant is displayed"  ->  OK  §2023:14.9.11.4 GR3
       *> Literal-1 "shall be an alphanumeric, boolean, or national
       *> literal, any of which may be a concatenation expression" -> OK
       *> §2023:8.3.3.6.3 2). With no length from context, "The length of the
-      *> string is the length of literal-1" -> OK §2023:8.3.3.6.4 3), so ONE
+      *> string is the length of literal-1" -> OK §2023:8.3.3.6.4 GR3, so ONE
       *> occurrence is the literal once. kb/Work PB243 (the
       *> BoundAllLiteral arm of OperandText.AsString); the COBOL-85
       *> formats are 85/pb243_display_all_literal.
@@ -32,7 +32,7 @@
       *>        (§2023:8.3.3.6.4 GR2: "the string of characters is repeated
       *>        character by character until the size of the
       *>        resultant string is greater than or equal to the
-      *>        number of character positions" -> OK §2023:8.3.3.6.4 2)).
+      *>        number of character positions" -> OK §2023:8.3.3.6.4 GR2).
       *> line 5  ALL over a concatenation expression: §2023:8.8.3.2 SR1
       *>        bars an ALL figurative as a concatenation OPERAND
       *>        ("Neither literal-1 nor literal-2 shall be a figurative
@@ -42,7 +42,7 @@
       *>        to "AB" alone would print AC ("When a figurative
       *>        constant is specified in a concatenation expression,
       *>        the length of the string is one character" -> OK
-      *>        §2023:8.3.3.6.4 3) a)) and fail. Beside it, the same
+      *>        §2023:8.3.3.6.4 GR3a) and fail. Beside it, the same
       *>        figurative associated with 7 positions -> ABCABCA.
       *> Below 2002 each literal kind is its own introduction diagnostic
       *> (negative/pb1545-hex-alphanumeric-literal-below-2002,

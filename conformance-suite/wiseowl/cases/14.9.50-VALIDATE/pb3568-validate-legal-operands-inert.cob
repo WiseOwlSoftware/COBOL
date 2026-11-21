@@ -10,7 +10,7 @@
       *> statement changes no item (§2023:14.9.50.4 GR5: "the content of the invalid data item does not change"; here every
       *> item is valid, and no exception checking is on). ISO §2023:14.9.50.3 SR1 admits a data item described in the
       *> working-storage section, referenced without reference modification.
-      *>   cite.py: OK  §2023:14.9.50.3 1)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.50.3 SR1  (Syntax rules)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3568OK.
        DATA DIVISION.

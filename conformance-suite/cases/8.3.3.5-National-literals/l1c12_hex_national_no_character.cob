@@ -14,18 +14,18 @@
       *>     of specifying a
       *>     hex-character-sequence-1 for which no corresponding
       *>       character in that coded character set
-      *>     exists."  -> OK  §2023:8.3.3.5.4 5)  (General rules)
+      *>     exists."  -> OK  §2023:8.3.3.5.4 GR5  (General rules)
       *> SR5 (four digits per national character is the implementor's
       *>   choice, CONFORMANCE DOC-A.1-122):
       *>   cite.py --check 8.3.3.5.3 "Each hex-character-sequence-1
       *>     shall consist of the number of
       *>     hexadecimal digits that the implementor has specified as
       *>       the number of hexadecimal digits that
-      *>     map to a national character."  -> OK  §2023:8.3.3.5.3 5)
+      *>     map to a national character."  -> OK  §2023:8.3.3.5.3 SR5
       *>       (Syntax rules)
-      *> ORD (§2023:15.70.4 2): "the ordinal position of argument-1 in the
+      *> ORD (§2023:15.70.4 RV2: "the ordinal position of argument-1 in the
       *>   current national program collating
-      *> sequence"  -> cite.py OK  §2023:15.70.4 2)
+      *> sequence"  -> cite.py OK  §2023:15.70.4 RV2
       *> THE DOCUMENTED CHOICE (docs/CONFORMANCE.md row DOC-A.1-97): "A
       *>   group that is not a character on
       *> its own, such as a surrogate half D800-DFFF or a noncharacter
@@ -51,7 +51,7 @@
       *>   (the subject is a data item: §2023:8.8.4.2.1 "A relation
       *>     condition shall contain at least one reference to an
       *>     operand that is not a literal" -> cite.py OK
-      *>     §2023:8.8.4.2.1 13))
+      *>     §2023:8.8.4.2.1 GR13)
       *>   DISPLAY of WS-L, the unpaired low surrogate DC00, writes
       *>     U+FFFD       => [�] (the replacement
       *>   character, UTF-8 EF BF BD, between the brackets)

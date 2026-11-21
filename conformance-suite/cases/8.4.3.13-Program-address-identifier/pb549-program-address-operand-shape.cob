@@ -11,7 +11,7 @@
       *> REPOSITORY paragraph"), and the grammar cannot tell identifier-1 from program-prototype-name-1 — both
       *> are a bare word — so all three are screened at BIND, by name, on COBOL2157. NN is a PIC 9 item:
       *> it is neither a prototype declared in the REPOSITORY paragraph nor an alphanumeric or national
-      *> identifier, and §2023:8.4.3.13.4 GR1 a) routes its CONTENT through §2023:8.3.2.2 as a program-name, which a
+      *> identifier, and §2023:8.4.3.13.4 GR1a routes its CONTENT through §2023:8.3.2.2 as a program-name, which a
       *> numeric item cannot supply.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB549OPS.

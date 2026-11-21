@@ -248,7 +248,7 @@ public readonly record struct CtNumber(bool WasSingleLiteral, CobolDec Value, st
   then reads in the active mode; the value a consumer computes with is `Value`, and `IsInteger` answers §2023:13.10.3
   SR2's "constant-name-1 is an integer" for the integer positions). A duplicated constant-name's §2023:13.10.3 SR9
   check compares the AS operands AS WRITTEN, through the ONE text-word equality (`TextWordSequence.Matches`,
-  §2023:7.2.3.4 9) c)) — never the folded values;
+  §2023:7.2.3.4 GR9c) — never the folded values;
   otherwise the final result is truncated to its integer part (GR3 / INTEGER-PART §2023:15.49). No consumer re-does
   this — the probe/truncate rule lives in one place, not copied at each operand site — and the boolean shift
   count is correct because it calls this boundary.
@@ -270,7 +270,7 @@ the three consumers cannot disagree:
 | Edition | Mode | Why |
 |---|---|---|
 | 2002 | `CompileTimeArithmetic.Standard2002` — the 2002 standard intermediate data item: 32 significant digits, every operand and every `+ - * /` result TRUNCATED toward zero to 32 digits (carried on `CobolDec` with `CobolRounding.Truncation`, then `CobolDec.TruncateToSignificantDigits(32)`), magnitude 10^-999 through 10^1000 - 10^968 (a value outside it is the §2002:8.8.1.3.1 r2 size error, reported as the range diagnostic) | §2002:7.2.5.2 GR1 "Standard arithmetic shall be used for all arithmetic operations"; §2002:8.8.1.3.1.1, §2002:8.8.1.3.2, §2002:8.8.1.3.4, §2002:8.8.1.3.5. |
-| 2014 | `CompileTimeArithmetic.StandardDecimal` — the SDIDI (`CobolDec`, 34 digits, decimal128 range), NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3 a) | §2014:7.3.5.2 GR1 "as if ARITHMETIC IS STANDARD-DECIMAL were in effect at compile time". |
+| 2014 | `CompileTimeArithmetic.StandardDecimal` — the SDIDI (`CobolDec`, 34 digits, decimal128 range), NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3a | §2014:7.3.5.2 GR1 "as if ARITHMETIC IS STANDARD-DECIMAL were in effect at compile time". |
 | 2023 | `CompileTimeArithmetic.SystemDecimal` — .NET `System.Decimal` (96-bit, 28–29 digits, ties to even; **not** decimal128) | E.2 6) makes the mode implementor-defined; the documented choice is CONFORMANCE.md DOC-A.1-29 (kept after a GnuCOBOL survey). |
 
 The two edition edges are written once, in the runtime's behaviour register (`DialectBehavior.CompileTimeArithmeticIsStandardDecimal` at 2014, VCR row 7.77, and
@@ -341,7 +341,7 @@ form is now accepted and evaluated per rule 7b. Existing COBOL1569 tests flip fr
   Table 4's: after a shift operator only a single identifier or literal may appear, so a compound (`1 + 1`),
   parenthesized (`(1)`) or separately-signed (`- 1`) count is refused by the SHARED formation screen
   (`ArithmeticFormationRules.ShiftCountNotSoleOperand`, which the runtime `ExpressionFormationPass` runs too —
-  COBOL1719 there, COBOL1619 here). The single operand is then held to §2023:5.5 2) a)'s INTEGER LITERAL by FORM
+  COBOL1719 there, COBOL1619 here). The single operand is then held to §2023:5.5 SR2a's INTEGER LITERAL by FORM
   (`NumericLiteral.IsIntegerLiteralForm` — "contains no decimal point", §2023:8.3.3.3.2): a literal as written, or a
   numeric compilation variable's literal (§2023:7.3.11.4 GR1), so `1.0` and a variable holding `1.5` are refused
   rather than truncated (kb/Work PB1413). Rule 8 specifies a single shift, repeated `count` times when `count` is greater than 1; a
@@ -363,7 +363,7 @@ both in the directive fragment (`compileTimeOperand`) and, as a latent-gap fix, 
 
 * **`cceOr`/`cceXor`/`cceAnd`/`cceNot`** — logical combination (§2023:8.8.4.9, precedence NOT > AND > XOR > OR per
   §2023:8.8.4.11.3); every operand evaluated **unconditionally** (a formation error in any operand is always reportable
-  per §2023:7.3.8, regardless of branch truth). Test-pinned. §2023:7.3.8.2 SR1 d) makes the operand "A complex condition as
+  per §2023:7.3.8, regardless of branch truth). Test-pinned. §2023:7.3.8.2 SR1d makes the operand "A complex condition as
   specified in 8.8.4.9", so these tiers are the runtime condition tiers' connectives over a compile-time leaf:
   ANTLR has no parameterized rules, so they are a second spelling, and `ConditionTierConnectiveDriftTests` requires
   each cce tier's connective shape (operand rule names masked) to equal its runtime tier's. The copy had drifted —

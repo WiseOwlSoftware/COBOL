@@ -13,7 +13,7 @@
       *> and category". A method that does not match is not bound; the
       *> search continues up the INHERITS chain (§2023:9.3.6 2)), and when no
       *> class matches, "6) otherwise, the EC-OO-METHOD exception
-      *> condition is set to exist" (§2023:14.9.23.4 GR7 b)). The declarative
+      *> condition is set to exist" (§2023:14.9.23.4 GR7b). The declarative
       *> on EC-OO-METHOD therefore selects each non-matching INVOKE and
       *> RESUME AT NEXT STATEMENT continues the run unit; the one matching
       *> INVOKE binds and runs. W67QNMD inherits T from W67QNMC, so its

@@ -15,9 +15,9 @@
       *>   expression shall be truncated to the integer part of the
       *>   value ..."
       *> cite.py:
-      *>   OK  §2023:7.3.13.4 2)  (General rules)
-      *>   OK  §2023:7.3.6.3 3)  (General rules)
-      *>   OK  §2023:7.3.13.4 4) b)  (General rules)
+      *>   OK  §2023:7.3.13.4 GR2  (General rules)
+      *>   OK  §2023:7.3.6.3 GR3  (General rules)
+      *>   OK  §2023:7.3.13.4 GR4b  (General rules)
       *> EXPECTED OUTPUT, DERIVED:
       *>   A-LIT-1.5         subject 1.5 is a literal (GR2): not = 1,
       *>                     = 1.5.

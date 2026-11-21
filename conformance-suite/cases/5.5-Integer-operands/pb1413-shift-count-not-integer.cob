@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1413 — ISO §2023:8.8.2 rule 5: "The second operand shall be an integer operand." §2023:5.5 2) a): "if that
+      *> kb/Work PB1413 — ISO §2023:8.8.2 SR5: "The second operand shall be an integer operand." §2023:5.5 SR2a: "if that
       *> operand is a literal, it shall be an integer literal", and §2023:8.3.3.3.2: "An integer literal is a fixed-point
       *> numeric literal that contains no decimal point." 1.5 is a single literal, so Table 4's shape is satisfied
       *> and the INTEGER half of rule 5 is what refuses it (COBOL2513; rule 5's first-operand half is

@@ -9,7 +9,7 @@
       *> The record below holds two DYNAMIC LENGTH members around a fixed one, inside a file described with the
       *> fixed-length clause RECORD CONTAINS 20 CHARACTERS. It is LEGAL: §2023:13.18.43.3 SR3 - "No record description entry
       *> for the file may specify a number of bytes greater than integer-1" - bounds the description by its
-      *> MAXIMUM (§2023:13.18.43.4 GR8 b), by the determination D-FRA (iv) that a dynamic-length item counts at its maximum size) - that maximum is its LIMIT (§2023:8.5.1.10.1): 9 + 3 + 8 = 20
+      *> MAXIMUM (§2023:13.18.43.4 GR8b, by the determination D-FRA (iv) that a dynamic-length item counts at its maximum size) - that maximum is its LIMIT (§2023:8.5.1.10.1): 9 + 3 + 8 = 20
       *> bytes, EXACTLY integer-1 (the negative pb1562-record-contains-limit-one-over has 10 + 3 + 8 = 21). (Without the LIMIT phrases the maximum is the implementor's, 1,073,741,791 characters per
       *> item, and the entry is refused by SR3 - conformance-suite/cases/13.18.43-RECORD/pb1562-record-contains-unbounded-dynamic.cob.)
       *> A variable-length group "behaves in all respects as though it were in fact contiguous with its neighbors"

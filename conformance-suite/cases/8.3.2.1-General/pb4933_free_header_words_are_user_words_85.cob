@@ -8,7 +8,7 @@
       *> SCREEN, LOCAL-STORAGE, REPOSITORY AND OPTIONS ARE USER-DEFINED WORDS AT COBOL-85
       *> (kb/Work PB4933). The COBOL-85 reserved word list has none of them (ISO 8.9 reserves
       *> them from COBOL-2002), and only a reserved word is refused as a user-defined word
-      *> (§2023:8.3.2.1 1): "Reserved words shall not be used as user-defined words or
+      *> (§2023:8.3.2.1 SR1: "Reserved words shall not be used as user-defined words or
       *> system-names"). Each heads a COBOL-2002 header whose keyword the reservation gate gives
       *> back where its user-word reading fails; this program writes no header, so every occurrence
       *> is the data item and is retyped as one. MOVE puts "A" in each one-character item and

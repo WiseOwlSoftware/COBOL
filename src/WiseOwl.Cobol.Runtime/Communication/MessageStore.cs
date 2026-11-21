@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Runtime.Communication;
 /// </summary>
 internal sealed class MessageStore : IDisposable
 {
-    /// <summary>The environment variable that says what the MCS scheduled the run unit for (ISO/IEC 1989:2002 A.1.2.3 GR6, GR28).</summary>
+    /// <summary>The environment variable that says what the MCS scheduled the run unit for (§2002:A.1.2.3 GR6, GR28).</summary>
     internal const string ScheduledVariable = "WISEOWL_COBOL_MCS_SCHEDULED";
 
     private const string DefinitionFile = "mcs.json";

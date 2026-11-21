@@ -14,7 +14,7 @@
       *>   used. If the literals are of unequal length they are not
       *>   equal."
       *> cite.py:
-      *>   OK  §2023:7.3.13.4 7)  (General rules)
+      *>   OK  §2023:7.3.13.4 GR7  (General rules)
       *> EXPECTED OUTPUT, DERIVED:
       *>  A-EXACT           "ABC" vs "ABC ": unequal length, not equal;
       *>                    vs "abc": encodings differ (no collating

@@ -13,7 +13,7 @@
       *> INTEGER-OF-DATE (99991231), which is 3,067,671."
       *>
       *> So the admissible interval is [1, 3067671] and BOTH ends are legal
-      *> values, not merely non-errors. Outside it §2023:15.3 rule 14 applies -
+      *> values, not merely non-errors. Outside it §2023:15.3 AR14 applies -
       *> "If the evaluation of an argument results in an incorrect value for
       *> that argument ... the EC-ARGUMENT-FUNCTION exception condition is
       *> set to exist" - which is what the declarative below observes. The

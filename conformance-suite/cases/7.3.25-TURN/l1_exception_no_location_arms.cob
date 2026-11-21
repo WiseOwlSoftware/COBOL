@@ -23,10 +23,10 @@
       *> the antecedent holds on both legs and r1 governs both.
       *>
       *> LEG A - the TURN-directive leg. The >>TURN below carries no
-      *> WITH LOCATION. §2023:14.9.43.4 8) b): STRING sets EC-OVERFLOW-STRING
+      *> WITH LOCATION. §2023:14.9.43.4 GR8b: STRING sets EC-OVERFLOW-STRING
       *> when the pointer passes the receiver - 7 characters DELIMITED
       *> BY SIZE into a PIC X(3). Table 13 makes it nonfatal and
-      *> §2023:14.6.13.1.4 1) hands control to ON OVERFLOW, so the run
+      *> §2023:14.6.13.1.4 GR1 hands control to ON OVERFLOW, so the run
       *> continues.
       *>
       *> LEG B - the PERFORM leg. No >>TURN names EC-USER-NOLOC, so

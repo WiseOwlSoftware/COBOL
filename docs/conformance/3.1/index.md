@@ -1,7 +1,7 @@
 ---
 heading: "### 3.1 Implementor behavior in Annex A.2 undefined cases (kb/Work PB1907)"
 ---
-Annex A.2 lists situations whose results the standard leaves undefined, and §2023:4.4 2) says that "A COBOL run unit that
+Annex A.2 lists situations whose results the standard leaves undefined, and §2023:4.4 GR2 says that "A COBOL run unit that
 allows these situations to happen is a conforming run unit, although the resultant execution is not defined by
 standard COBOL" (`cite.py --check 4.4 "A COBOL run unit that allows these situations to happen is a conforming run
 unit"` → OK 2)). This is NOT a §8 "no observable obligation" derivation: for each case below the owner decided

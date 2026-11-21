@@ -20,7 +20,7 @@
       *> (§1985:VII.3.8.4 GR10, §1985:VII.4.7.4 GR8) with 44
       *> (§1985:VII.1.3.5 GRL2.4 d, item 1, level-2 text).
       *> Every leg must show status key 1 = 4 and the USE procedure
-      *> for the file (§1985:VII.4.6.4 GR5 a). After a critical status
+      *> for the file (§1985:VII.4.6.4 GR5a. After a critical status
       *> the implementor determines the action (§1985:VII.4.6.4 GR6);
       *> WiseOwl COBOL continues with the next executable statement
       *> (docs/conformance/3.5). A leg fails if the statement succeeds

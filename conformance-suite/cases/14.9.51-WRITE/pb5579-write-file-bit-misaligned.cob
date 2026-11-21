@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5579 - §2002:14.8.47.2 SR9 b) "it is aligned on a byte boundary": B2 starts at bit 3 of BT. Expected: COBOL7353.
+      *> kb/Work PB5579 - §2002:14.8.47.2 SR9b "it is aligned on a byte boundary": B2 starts at bit 3 of BT. Expected: COBOL7353.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P5579N09.
        ENVIRONMENT DIVISION.

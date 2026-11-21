@@ -1,5 +1,5 @@
 - **D-PTHRU — control that runs off the end of the source element inside an out-of-line PERFORM whose return mechanism
-  is never reached (kb/Work PB3511, rows `GR-14.6.3-3`, `GR-14.9.28.4-5`).** §2023:14.9.28.4 GR5 b): "If procedure-name-2 is
+  is never reached (kb/Work PB3511, rows `GR-14.6.3-3`, `GR-14.9.28.4-5`).** §2023:14.9.28.4 GR5b: "If procedure-name-2 is
   specified, the return mechanism is after the last statement of procedure-name-2"; GR6: "There is no necessary
   relationship between procedure-name-1 and procedure-name-2 except that a consecutive sequence of operations is to be
   executed beginning at the procedure named procedure-name-1 and ending with the execution of the procedure named

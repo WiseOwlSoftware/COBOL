@@ -10,7 +10,7 @@
       *> the COBOL call convention is implied, "that method-name is
       *> treated as a COBOL word that maps to the externalized name of the
       *> method to be invoked" - the name METHOD-ID's AS phrase gives it
-      *> (§2023:11.7.4 GR1 b)), and the same name the typed INVOKE resolves.
+      *> (§2023:11.7.4 GR1b), and the same name the typed INVOKE resolves.
       *> So M2 AS "MixedExt" is found by "MixedExt" (as a COBOL word, in
       *> either case) through literal-1 and through identifier-2, exactly
       *> as the typed reference T finds it; its declared word "M2" names

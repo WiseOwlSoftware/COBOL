@@ -28,7 +28,7 @@
       *>   OOLV [123] K=4 and INLV [123] K=4: the same VARYING
       *>                 phrase out-of-line (PV) and inline give the
       *>                 same set executions and the same final K
-      *>                 (§2002:14.8.27.3 GR9 d).
+      *>                 (§2002:14.8.27.3 GR9d.
       *> Each leg fails if a THRU range drops a paragraph in between,
       *>   a basic PERFORM falls through into the next paragraph, a
       *>   section PERFORM runs on past its last paragraph, or the

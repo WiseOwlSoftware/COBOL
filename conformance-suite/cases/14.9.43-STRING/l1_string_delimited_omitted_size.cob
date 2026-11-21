@@ -10,7 +10,7 @@
       *> Each trailing phraseless sender holds a SPACE, the delimiter of
       *> the group before it, so a wrongly inherited delimiter (or any
       *> delimiter at all) would cut it short; SIZE moves it whole
-      *> (§2023:14.9.43.4 GR3 c). A phraseless run BEFORE a DELIMITED phrase
+      *> (§2023:14.9.43.4 GR3c. A phraseless run BEFORE a DELIMITED phrase
       *> is part of that phrase's group (the repeated sender group of
       *> the general format), so only the final group takes the
       *> implied SIZE.

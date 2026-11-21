@@ -11,7 +11,7 @@
       *> less than integer-4 or greater than integer-5, the following occurs: a) If a REWRITE or WRITE statement is
       *> being executed, the EC-I-O-LOGIC-ERROR exception condition is set to exist and the execution of the REWRITE
       *> or WRITE statement is unsuccessful."  The I-O status of a boundary violation is '44' (§2023:9.1.13.7 item 4).
-      *> §2002:13.16.41.3 GR19 a) (cite.py --check OK) carries the same rule, so it holds from COBOL-2002; §1985:VII.1.3.5
+      *> §2002:13.16.41.3 GR19a (cite.py --check OK) carries the same rule, so it holds from COBOL-2002; §1985:VII.1.3.5
       *> and §1985:VII.3.8.4 GR14 do not (see the COBOL-85 twin in the VII.1.3 LANGUAGE-CONCEPTS 1985 directory).
       *>
       *> FD FX is 3 TO 5: RX2 (2 bytes) 44, RX4 (4 bytes) 00, RX6 (6 bytes) 44.  Only the 4-byte record reaches the

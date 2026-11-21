@@ -9,7 +9,7 @@
       *> argument's STORAGE. PAGE-COUNTER and LINAGE-COUNTER reference "temporary unsigned integer data items" (§2023:8.4.3.15.4 GR1,
       *> §2023:8.4.3.14.4 GR1), so each converts the storage of its description (docs/CONFORMANCE.md §3, the counter registers'
       *> declared description): PAGE-COUNTER is an unsigned 32-bit binary integer, four bytes, so after INITIATE (value 1,
-      *> §2023:14.9.21.4 GR1 c) it converts exactly as a declared BINARY-LONG UNSIGNED item holding 1 and FUNCTION BYTE-LENGTH
+      *> §2023:14.9.21.4 GR1c it converts exactly as a declared BINARY-LONG UNSIGNED item holding 1 and FUNCTION BYTE-LENGTH
       *> says 4; LINAGE-COUNTER is a DISPLAY item of the page size's two digits (LINAGE IS 20 LINES), 1 after OPEN OUTPUT, so
       *> it converts as a PIC 99 item holding 1: the characters "01", hexadecimal 3031. The register's DISPLAY image
       *> ("0000000001") is not its storage, and converting that image was a silent wrong answer.

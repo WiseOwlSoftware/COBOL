@@ -11,9 +11,9 @@
       *> level-05 BASED entry, which §2023:13.16.3 SR16 forbids.
       *> cite.py --check 13.18.57.4 "excluding the level-number, name,
       *>   alignment, and the GLOBAL, SELECT WHEN, and TYPEDEF clauses
-      *>   specified for type-name-1" -> OK §2023:13.18.57.4 1)
+      *>   specified for type-name-1" -> OK §2023:13.18.57.4 GR1
       *> cite.py --check 13.16.3 "The level number of such data
-      *>   description entries shall be 1 or 77" -> OK §2023:13.16.3 16)
+      *>   description entries shall be 1 or 77" -> OK §2023:13.16.3 SR16
       *> The level-01 twin (01 X TYPE T) is legal and based: see
       *> 2002/w66g_pb1300_type_same_as_composition. Expected:
       *> COBOL2510 (composed-based-placement) on X.

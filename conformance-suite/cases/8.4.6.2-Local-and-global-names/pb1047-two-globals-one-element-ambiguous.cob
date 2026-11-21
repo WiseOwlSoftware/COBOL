@@ -5,7 +5,7 @@
       *> portable: unverified
       *>---
       *> kb/Work PB1047 / PB5629: two global X items in ONE source element, each the subordinate of its own GLOBAL record.
-      *> §2023:8.4.6.2.1 3) b) 1. narrows a name duplicated ACROSS nested source elements to the nearest element that declares
+      *> §2023:8.4.6.2.1 GR3b.1 narrows a name duplicated ACROSS nested source elements to the nearest element that declares
       *> it (positive twin: 85/pb1047_nearest_declaring_element); inside ONE element, qualification alone tells the two apart
       *> (§2023:8.4.2.2.1), and the unqualified `X` of PB1047B names neither uniquely (§2023:8.4.2.2.3 SR1: "uniqueness shall be
       *> established through a sequence of qualifiers that precludes any ambiguity of reference", cite.py: OK): the

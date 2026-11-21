@@ -10,7 +10,7 @@
       *> shall contain only a procedure division header."
       *> cite.py --check 14.2.2 "A procedure division in a method
       *>   prototype shall contain only a procedure division header"
-      *>   -> OK  §2023:14.2.2 11)  (Syntax rules)
+      *>   -> OK  §2023:14.2.2 SR11  (Syntax rules)
       *> cite.py --check 14.1 "The procedure division in an interface
       *>   contains method prototypes" -> OK  §2023:14.1   (General)
       *> Interface L1C22I's method SPEAK is a method prototype (14.1);

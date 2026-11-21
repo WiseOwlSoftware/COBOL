@@ -13,5 +13,5 @@
   a dynamic-capacity table is one `CobolDynTable` object, and every one a program reads was constructed from that
   program's own OCCURS clause or recreated into it by a variable-length group transfer at the receiving description
   (§2023:14.6.9.2); no storage form shares one across descriptions (an EXTERNAL record holding one is COBOL0899, a file
-  record cannot hold one, §2023:8.5.1.9.1 3), and a LINKAGE one crosses through that same recreation).
+  record cannot hold one, §2023:8.5.1.9.1 SR3, and a LINKAGE one crosses through that same recreation).
   `DynamicCapacityAgreementDriftTests` pins those construction paths. Pinned by `2014/pb1118_dyn_length_agreement`.

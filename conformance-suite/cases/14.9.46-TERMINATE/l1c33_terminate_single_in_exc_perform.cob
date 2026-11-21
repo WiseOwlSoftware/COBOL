@@ -9,7 +9,7 @@
       *> "A TERMINATE statement that specifies more than one report-name
       *> shall not be specified in an exception checking PERFORM
       *> statement."
-      *>   cite.py: OK  §2023:14.9.46.3 3)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.46.3 SR3  (Syntax rules)
       *> The companion of conformance:negative/l1c33-terminate-multi-in-
       *> exc-perform: SR3 bans only the MULTI-name form, so two
       *> single-name TERMINATEs in the same PERFORM shape are legal and
@@ -17,12 +17,12 @@
       *> the PERFORM altogether fails here).
       *> DERIVATION. Both reports are active, so neither TERMINATE
       *> raises EC-REPORT-INACTIVE (§2023:14.9.46.4 GR1, cite.py:
-      *> OK  §2023:14.9.46.4 1));
+      *> OK  §2023:14.9.46.4 GR1);
       *> the WHEN EC-REPORT handler does not run -> no "EX"; each report
-      *> had one GENERATE, so each RF is produced (§2023:14.9.46.4 GR3 c),
-      *> cite.py: OK  §2023:14.9.46.4 3) c)) in statement order -> "RF-A",
+      *> had one GENERATE, so each RF is produced (§2023:14.9.46.4 GR3c,
+      *> cite.py: OK  §2023:14.9.46.4 GR3c) in statement order -> "RF-A",
       *> "RF-B" via USE BEFORE REPORTING (§2023:14.9.49.4 GR8, cite.py:
-      *> OK  §2023:14.9.49.4 8)); then "OK".
+      *> OK  §2023:14.9.49.4 GR8); then "OK".
       *> EDITION: the exception-checking PERFORM is COBOL-2023.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C33C.

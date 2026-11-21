@@ -10,7 +10,7 @@
       *> used in handling arithmetic expressions, arithmetic statements,
       *> the SUM clause, and integer and numeric functions shall be as
       *> described for standard-decimal arithmetic"
-      *>   cite.py: OK  §2023:11.9.5.2 3)  (General rules)
+      *>   cite.py: OK  §2023:11.9.5.2 GR3  (General rules)
       *> The report engine accumulated every sum counter through a C#
       *> `(long)` cast, so a 20-digit addend wrapped modulo 2^64 under
       *> STANDARD-DECIMAL exactly as under NATIVE.
@@ -18,12 +18,12 @@
       *> integral and fractional, is derived from the corresponding
       *> number of digits, excluding insertion editing characters, in
       *> the PICTURE clause of the entry containing the SUM clause."
-      *>   cite.py: OK  §2023:13.18.54.4 1)  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 GR1  (General rules)
       *> "The adding is consistent with the general rules of the ADD
       *> statement with the ON SIZE ERROR phrase or, in the case of an
       *> arithmetic expression, the COMPUTE statement with the ON SIZE
       *> ERROR phrase."
-      *>   cite.py: OK  §2023:13.18.54.4 3)  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 GR3  (General rules)
       *> Every value below is exact in a 34-digit standard-decimal
       *> intermediate (§2023:8.8.1.5.2), so no rounding intervenes.
       *>

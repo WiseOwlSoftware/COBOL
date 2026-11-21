@@ -12,7 +12,7 @@
   table whose statement names no enclosing occurrence is referenced in every occurrence of the tables around it. (3) Rule 7 runs the
   section once for the operand, so SEARCH's identifier-1 and a WHEN phrase's reference to the same table are one run, after the statement,
   with identifier-1's content. (4) DEBUG-CONTENTS is as wide as every occurrence of each target item at its maximum (rule 15: "large enough
-  to contain the data required"; `RecordLayout.AllOccurrencesImageWidth`); a dynamic-capacity table has no maximum (§2023:8.5.1.9.1 2), so
+  to contain the data required"; `RecordLayout.AllOccurrencesImageWidth`); a dynamic-capacity table has no maximum (§2023:8.5.1.9.1 GR2, so
   it counts its expected capacity (TO integer-5), else its initial capacity (FROM integer-4), at least one occurrence, and an image past the
   register's width is truncated by rule 11's alphanumeric move. Witnesses: `conformance:cases/_unassigned/pb4855-debug-whole-table-search`,
   `conformance-test:DebugFacilityTests.TableSortOperands_AreWholeTableReferences`,

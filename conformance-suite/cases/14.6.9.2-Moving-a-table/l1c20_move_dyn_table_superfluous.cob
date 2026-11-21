@@ -17,7 +17,7 @@
       *>   receiving table, superfluous elements are not moved and no
       *>   exception exists,"
       *>   OK  §2023:14.6.9.2   (Moving a table)
-      *>   OK  §2023:14.6.9.2 1)  (Moving a table)
+      *>   OK  §2023:14.6.9.2 GR1  (Moving a table)
       *> §2023:14.6.9.1: a fixed table is "a dynamic capacity table that has
       *>   a current capacity equal to the fixed number of elements";
       *>   an occurs-depending table one "that has a current capacity
@@ -29,8 +29,8 @@
       *>   elements is equal" (3).
       *>   OK  §2023:8.5.1.12.2   (Positional correspondence)
       *>   OK  §2023:8.5.1.12.3   (Matching)
-      *> §2023:14.9.39.4 GR30 a): SET SC TO 3 makes the new capacity 3.
-      *>   OK  §2023:14.9.39.4 30)  (General rules)
+      *> §2023:14.9.39.4 GR30a: SET SC TO 3 makes the new capacity 3.
+      *>   OK  §2023:14.9.39.4 GR30  (General rules)
       *> "no exception exists" is observed with every EC checked
       *> (>>TURN EC-ALL CHECKING ON): FUNCTION EXCEPTION-STATUS stays
       *> spaces (31 characters between the brackets).

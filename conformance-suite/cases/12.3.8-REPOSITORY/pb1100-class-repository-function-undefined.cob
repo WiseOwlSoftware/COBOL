@@ -17,7 +17,7 @@
       *>   external repository (this implementation holds none).
       *>   cite.py --check 12.3.8.3 "or function-prototype-name-1, if
       *>   literal-5 is not specified, shall be one of the following"
-      *>   -> OK §2023:12.3.8.3 10) (positive twin:
+      *>   -> OK §2023:12.3.8.3 SR10 (positive twin:
       *>   2002/pb1100_class_repository_function_program).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1100NP.

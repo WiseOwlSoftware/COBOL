@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:14.9.37.4 GR3 b) 1 — "If identifier-2 references an index
+      *> ISO §2023:14.9.37.4 GR3b 1 — "If identifier-2 references an index
       *> data item, that data item is incremented by the same amount as,
       *> and at the same time as, the search index."
       *> GR4 increments the search index by ONE OCCURRENCE NUMBER per

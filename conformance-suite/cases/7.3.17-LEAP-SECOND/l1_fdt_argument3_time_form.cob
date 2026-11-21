@@ -17,7 +17,7 @@
       *>
       *> The admissible interval is therefore [0, 86400): 0 and 86399 are
       *> legal VALUES, 86400 is the first illegal one and a negative value is
-      *> below the floor. Outside the interval §2023:15.3 rule 14 sets
+      *> below the floor. Outside the interval §2023:15.3 AR14 sets
       *> EC-ARGUMENT-FUNCTION, which the declarative observes; the returned
       *> value on those legs is implementor-defined by rule 14's last
       *> sentence and is deliberately not asserted.

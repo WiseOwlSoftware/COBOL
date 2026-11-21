@@ -8,7 +8,7 @@
   name are "not a nonnegative number" and "greater than the maximum size". **Why this and not the other:** the
   standard gives "truncation" a defined meaning of its own, the ROUNDED MODE IS TRUNCATION mode that every
   arithmetic statement without a ROUNDED phrase takes (§2023:14.7.4.3 GR2), and defines that mode in the very idiom the SET SIZE rule
-  uses: "rounded to the nearest value nearer to zero" (§2023:14.7.4.3 GR10; §2023:11.9.11.2 GR2 e) for the intermediate
+  uses: "rounded to the nearest value nearer to zero" (§2023:14.7.4.3 GR10; §2023:11.9.11.2 GR2e for the intermediate
   value). "Truncated to the nearest integer" is that idiom compressed — the nearest integer in the toward-zero
   direction. **Order of the tests:** the sign test (GR37 first sentence) and GR38's "evaluates to a number that is
   greater than the maximum size" are asked of the EVALUATED value, before the truncation, so −0.5 takes GR37's leg
