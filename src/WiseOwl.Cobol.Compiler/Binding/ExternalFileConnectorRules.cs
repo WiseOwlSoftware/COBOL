@@ -26,6 +26,8 @@ using WiseOwl.Cobol.Runtime;
 /// that same external data item in each case"; §2002:12.3.4.3 GR1 i); §2023:12.4.5.3 GR1 h).</item>
 /// <item><b>The PADDING CHARACTER item</b> (COBOL1624, COBOL-85 and COBOL-2002, where the clause exists): §1985:VII.2.7.4
 /// GR6 "If data-name-1 is specified, it must reference an external data item"; §2002:12.3.4.3 GR1 h).</item>
+/// <item><b>The LINAGE items</b> (COBOL1624, COBOL-85): §1985:VII.3.7.4 GR11c "The same corresponding external data items referenced
+/// by data-name-1, data-name-2, data-name-3, and data-name-4", an error as the PADDING screen's (kb/Work PB5982).</item>
 /// <item><b>The FILE STATUS and LINAGE items</b> (COBOL1624, COBOL1573, COBOL-2023): §2023:14.8.4.2 and §2023:12.4.5.3 GR1
 /// i), the requirement Annex E.2 items 9 and 12 name as new in 2023. Its severity follows the removal policy (an error
 /// under strict, a warning under --permissive), the contract the continuity witnesses need: an 85 NIST program that
@@ -80,11 +82,15 @@ internal static class ExternalFileConnectorRules
                 if (f.Padding is { DataName: { } pad, Item: not null } p && p.Item.ExternalItemIdentity() is null)
                     NotExternal(edition, externalName, p.At, "PADDING CHARACTER", pad.Name,
                         EditionSeverity.Error, "ISO " + edition.Edition.Cite("§1985:VII.2.7.4 GR6", "§2002:12.3.4.3 GR1 h)"));
-                if (is2023 && f.Linage is { } lin)
+                // The 1985 text has the rule too (§1985:VII.3.7.4 GR11c, kb/Work PB5982), an error as the PADDING screen above is. The
+                // 2002 and 2014 texts carry it (§2002:13.3.4.3 GR2c2, §2014:13.4.4.3 GR2c2) and neither is screened here: 2002 is frozen
+                // and 2014 waits for the other editions (kb/Work PB5982).
+                if ((is2023 || edition.DialectLevel < 2002) && f.Linage is { } lin)
                     foreach (var op in lin.Operands)
                         if (op.DataName is { } opName && op.Item?.ExternalItemIdentity() is null)   // literal operands are exempt
                             NotExternal(edition, externalName, f.ClauseOrEntryAt(op.At), "LINAGE", opName.Name,
-                                newIn2023, "ISO §2023:14.8.4.2; Annex E.2 item 9");
+                                is2023 ? newIn2023 : EditionSeverity.Error,
+                                "ISO " + edition.Edition.Cite("§1985:VII.3.7.4 GR11c", "§2023:14.8.4.2; Annex E.2 item 9"));
             }
             // The agreement rules relate two describers; one has nothing to agree with (a lone program's external file
             // is checked against the other runtime elements at run time), except the rules an entry owes itself: its own
