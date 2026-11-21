@@ -14,8 +14,9 @@ operation here, applied by the one writer of a store (`record_verdicts.py`) as a
     whose moves are not applied cannot pass `inventory_view.py --check`.
   - A SPLIT, `{"rule-id": "<parent>", "split": {"old-text", "carved", "rows", "recheck"}}`. A margin paragraph the
     page prints at the block's margin leaves the numbered rule whose text held it (point 7). The split checks that the
-    record was decided against `old-text` and that `old-text` is the parent's text now followed by the `carved`
-    paragraphs, in order. A carved row (`rows`) INHERITS NOTHING: it must have no record, and gets none. The parent
+    record was decided against `old-text` and that `old-text` is the parent's text now with the `carved` pieces
+    inserted whole, in order (`carved_from`: a piece is a run of carved lines, so a paragraph a display interrupts, which
+    the parent keeps, is two pieces, and a carved row holds one or more consecutive pieces; kb/Work PB5452). A carved row (`rows`) INHERITS NOTHING: it must have no record, and gets none. The parent
     keeps its record only through its RECHECK (the three questions of section 10.3 asked of the remaining text, and
     its refuter: `outcome` UPHELD, `refuter`, `attempt`, `date`, and the `digest` of the text it read): an upheld
     recheck re-stamps the parent's digest and marks its notes; any other outcome withdraws the record, and the parent
@@ -53,6 +54,11 @@ QUOTE_WORDS = 8
 #: The mark an upheld recheck leaves in the parent's notes: the record's history, after its prose.
 RECHECK_MARK = "split-recheck:"
 
+#: Where an edition's applied split batches are kept, tracked: a split is an operation on the store whose batch file is
+#: otherwise gone once applied, and the WITNESS LOSS audit reads it here to tell a parent whose record a split withdrew
+#: (kb/Work PB5452) from a hand edit.
+SPLIT_DIR = "docs/rearchitecture/spec-splits-{year}"
+
 Record = dict[str, Any]
 
 
@@ -62,6 +68,17 @@ def is_move(rec: Record) -> bool:
 
 def is_split(rec: Record) -> bool:
     return SPLIT in rec
+
+
+def split_parents(records: list[Record]) -> dict[str, Record]:
+    """{parent id: its split} for every split among `records`."""
+    return {r["rule-id"]: r[SPLIT] for r in records if is_split(r)}
+
+
+def explains(split: Record, was: str | None, now: str | None) -> bool:
+    """Does `split` account for a parent whose `rule-digest` went from `was` to `now`? It was decided against the split's
+    `old-text` and the recheck read the remaining text it holds now (the two digests `errors` holds a split to)."""
+    return rule_digest(split["old-text"]) == was and split["recheck"]["digest"] == now
 
 
 def structural(rec: Record) -> bool:
@@ -83,6 +100,21 @@ def answered(records: list[Record]) -> set[str]:
 
 def _same_words(a: str, b: str) -> bool:
     return norm(a.replace("\\", "")).split() == norm(b.replace("\\", "")).split()
+
+
+def carved_from(old: str, new: str, carved: list[str]) -> bool:
+    """Is `old` the words of `new` with the `carved` pieces inserted whole, in order? A margin paragraph usually ends its
+    rule's text, but the displays among and after its lines stay in the rule (§1985:VI.6.3.4's figures, §1985:VI.6.4.6's
+    code; kb/Work PB5452), so a piece may come from the middle."""
+    o, n = (norm(t.replace("\\", "")).split() for t in (old, new))
+    i = j = 0
+    for c in (norm(p.replace("\\", "")).split() for p in carved):
+        while o[i:i + len(c)] != c:
+            if i >= len(o) or j >= len(n) or o[i] != n[j]:
+                return False
+            i, j = i + 1, j + 1
+        i += len(c)
+    return o[i:] == n[j:]
 
 
 def errors(records: list[Record], texts: dict[str, str], store: dict[str, Record], others: set[str]) -> list[str]:
@@ -141,12 +173,13 @@ def errors(records: list[Record], texts: dict[str, str], store: dict[str, Record
             continue
         if rule_digest(old_text) != store[parent].get("rule-digest"):
             bad.append(f"{where}: 'old-text' is not the text the record was decided against (its rule-digest)")
-        if not _same_words(old_text, " ".join([texts[parent], *carved])):
-            bad.append(f"{where}: the old text is not the parent's text now followed by the carved paragraphs, in order")
+        if not carved_from(old_text, texts[parent], carved):
+            bad.append(f"{where}: the old text is not the parent's text now with the carved paragraphs, in order")
         for rid in rows:
             if rid not in texts:
                 bad.append(f"{where}: the carved row {rid!r} is not in the catalog")
-            elif not any(_same_words(texts[rid], c) for c in carved):
+            elif not any(_same_words(texts[rid], " ".join(carved[a:b])) for a in range(len(carved))
+                         for b in range(a + 1, len(carved) + 1)):
                 bad.append(f"{where}: the carved row {rid!r} holds none of the carved paragraphs")
             if rid in store:
                 bad.append(f"{where}: the carved row {rid!r} has a record: a carved row inherits nothing (decision "

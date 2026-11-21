@@ -391,10 +391,13 @@ class WitnessLoss(NamedTuple):
     retired: bool   # the AFTER row's notes record it as a deliberate retirement
     resited: bool   # a re-adjudication's code-location, which the write rule REPLACES (see `resites`)
     respelled: bool = False   # the SAME test file under its new name, which the AFTER row cites (`witness_losses`)
+    #: the row's text moved under its record (a split carved part of it, rule_moves) and the record was withdrawn, so
+    #: the row is open for re-adjudication: its witnesses were evidence for text it no longer has (kb/Work PB5452)
+    withdrawn: bool = False
 
     @property
     def excused(self) -> bool:
-        return self.retired or self.resited or self.respelled
+        return self.retired or self.resited or self.respelled or self.withdrawn
 
 
 def witness_shape_error(field: str, ref: str, schema: "Schema") -> str | None:

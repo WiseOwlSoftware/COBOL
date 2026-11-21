@@ -366,13 +366,26 @@ UPHELD = "UPHELD"
 #: specified/described/defined in <target>." (decision PB5448 point 3). A target is an ISO locator with an optional title
 #: ("8.4.6, Scope of names"), or, as the 1985 text points, one or more printed pages each with the title of what it
 #: names ("page VI-11, The OBJECT-COMPUTER Paragraph, and page VI-13, The SPECIAL-NAMES Paragraph"; kb/Work PB5998).
+#: The 1985 text's own phrasings of a page target are part of the grammar (kb/Work PB5452; every one read in the 1985
+#: units its refuters upheld as pure pointers): a paragraph named before its page ("See paragraph 4.4.2, Explicit and
+#: Implicit Transfers of Control, page IV-25."), a part named by where it begins ("defined in the glossary beginning on
+#: page III-1"), a footnote's marker before "See" and its purpose after the target ("\* See page XIII-25, LINE NUMBER
+#: Clause Notation, for a description of the abbreviations used in column 1."), the verb "located" ("Information
+#: concerning the File Section is located on page VII-21.": a page with no title is named by the sentence's subject),
+#: and a sentence that says the subject is "explained elsewhere in these specifications", whose target another
+#: sentence of the unit gives. Page 585 prints a stray second stop after "page VII-6." (rendered), which the
+#: transcription keeps: a doubled stop ends such a sentence.
 FOLIO = r"(?:[IVX]+|[A-F])-\d+"
-_PAGE_TARGET = rf"page {FOLIO}(?:, [^.;()]+?)?"
+_PAGE_TARGET = rf"(?:paragraph [\d.]+, [^.;()]+?, |the [\w -]+? beginning on )?page {FOLIO}(?:, [^.;()]+?)?"
 _TARGETS = rf"(?:{_PAGE_TARGET}(?:(?:,? and |; ){_PAGE_TARGET})*|[A-Z0-9][\w.]*(?:,[^.]*?)?)"
-POINTER = re.compile(rf"^(?:\(?[Ss]ee (?P<see>{_TARGETS})\)?\.\)?"
-                     rf"|[^.]*? (?:is|are) (?:specified|described|defined) (?:in|on) (?P<in>{_TARGETS})\.)$")
-#: One page target of a pointer: its folio and the title it gives.
-PAGE_TARGET = re.compile(rf"page (?P<folio>{FOLIO})(?:, (?P<title>[^.;()]+?))?(?=(?:,? and |; )page |$)")
+POINTER = re.compile(rf"^(?:(?:\\?\*\s*)?\(?[Ss]ee (?P<see>{_TARGETS})(?:, for [^.()]+)?\)?\.\)?"
+                     rf"|(?:Information concerning )?(?P<subject>[^.]*?) (?:is|are) "
+                     rf"(?:specified|described|defined|located) (?:in|on) (?P<in>{_TARGETS})\.\.?"
+                     rf"|[^.]*? (?:is|are) (?:specified|described|defined|explained) elsewhere in these specifications\.)$")
+#: One page target of a pointer: its folio and the title it gives (or the paragraph or part it names before the page).
+PAGE_TARGET = re.compile(rf"(?:paragraph [\d.]+, (?P<before>[^.;()]+?), |the (?P<part>[\w -]+?) beginning on )?"
+                         rf"page (?P<folio>{FOLIO})(?:, (?P<title>[^.;()]+?))?"
+                         rf"(?=(?:,? and |; )(?:paragraph |the |page )|$)")
 #: Where one sentence of a unit ends and the next begins.
 SENTENCE_BREAK = re.compile(r"(?<=[.?!])[)\]\"'’”]*\s+(?=[A-Z(])")
 #: How many normalized words of a sentence's opening the SHAPE guard compares (decision PB5448 point 3).
@@ -422,14 +435,20 @@ def verbal_forms(edition: int) -> list[re.Pattern[str]]:
 
 def pointer_targets(sentence: str) -> list[tuple[str, str]] | None:
     """The targets of a sentence of the pointer grammar (`POINTER`), each (locator, title) in order, or None when the
-    sentence is no pointer. A page target's locator is the page's citable locator (`p.VI-13`, `§1985:p.VI-13`); a title
-    is "" when the pointer gives none."""
+    sentence is no pointer. A page target's locator is the page's citable locator (`p.VI-13`, `§1985:p.VI-13`); its
+    title is the one it gives, the paragraph or part it names before the page, or else the sentence's subject ("the File
+    Section is located on page VII-21"); "" when it names none. A sentence that points "elsewhere in these
+    specifications" has no target of its own ([])."""
     m = POINTER.match(sentence.strip())
     if m is None:
         return None
     target = m["see"] or m["in"]
-    if target.startswith("page "):
-        return [(f"p.{t['folio']}", (t["title"] or "").strip()) for t in PAGE_TARGET.finditer(target)]
+    if target is None:
+        return []
+    if PAGE_TARGET.match(target):
+        subject = re.sub(r"^the ", "", (m["subject"] or "").strip(), flags=re.I)
+        return [(f"p.{t['folio']}", (t["title"] or t["before"] or t["part"] or subject).strip())
+                for t in PAGE_TARGET.finditer(target)]
     locator, _, title = target.partition(",")
     return [(locator.rstrip("."), title.strip())]
 
@@ -442,14 +461,16 @@ def class_refusal(cls: str, u: Unit, clause: str, ctx: Context) -> str | None:
             return None
         return "a lead-in ends in a colon, or is a label of at most ten words with no sentence stop"
     if cls == "cross-reference":
+        named = 0
         for s in sentences(u.text):
             if (targets := pointer_targets(s)) is None:
                 return (f"the sentence {s[:60]!r} is no pointer (\"See <locator>.\", \"See page <folio>, <title>.\", "
                         "\"<subject> is specified in <locator>.\")")
+            named += len(targets)
             for locator, title in targets:
                 if not ctx.resolves(locator, title):
                     return f"its locator {locator}{f', {title},' if title else ''} resolves to no clause"
-        return None
+        return None if named else "it names no target (\"elsewhere in these specifications\" needs a sentence that does)"
     if cls == "data":
         if u.shape != "table" and any(ends_sentence(s) for s in sentences(u.text)):
             return "a data unit holds no sentence (list or table lines of values)"
@@ -459,13 +480,20 @@ def class_refusal(cls: str, u: Unit, clause: str, ctx: Context) -> str | None:
     return f"class {cls!r} is not one of {', '.join(NOT_A_RULE_CLASSES)}"
 
 
+def _bare_see(sentence: str) -> bool:
+    """Is `sentence` a pointer of the "See <target>." form (no subject of its own)?"""
+    return (m := POINTER.match(sentence.strip())) is not None and m["see"] is not None
+
+
 def guard_refusal(u: Unit, ctx: Context) -> str | None:
     """THE TWO GUARDS on a `not-a-rule` whose class test passed (a lead-in excepted, its words carried by its list): a
     verbal form of the edition, or a sentence opening like a row's (the SHAPE guard)."""
     for s in sentences(u.text):
         if form := next((f for f in ctx.verbal if f.search(s)), None):
             return f"the sentence {s[:60]!r} holds the verbal form /{form.pattern}/"
-        if " ".join(norm(s).split()[:SHAPE_WORDS]) in ctx.shapes:
+        if " ".join(norm(s).split()[:SHAPE_WORDS]) in ctx.shapes and not _bare_see(s):
+            # A bare "See <target>." states nothing, whatever row's text holds the same pointer; a "<subject> is
+            # specified in <locator>." still can open as a row does (§2023:14.5.2's shape) and stays guarded.
             return f"the sentence {s[:60]!r} opens as a row's sentence does (the shape guard)"
     return None
 
@@ -563,17 +591,23 @@ def class_counts(blocks: dict[str, dict], ctx: Context) -> dict[str, tuple[int, 
     return {c: (n, k) for c, (n, k) in out.items()}
 
 
-def block_refusals(declared: dict[str, dict], ctx: Context, required: bool) -> list[str]:
+def block_refusals(declared: dict[str, dict], ctx: Context, required: bool,
+                   measured: dict[str, dict] | None = None) -> list[str]:
     """The same question one level up (decision PB5448 point 3): a content-keyed `blocks` entry disposed `not-rules` (a
     whole numbered list kept out of the denominator) names an UPHELD refuter record of its clause (`refuted`, keyed by
     `unit` = the clause and `digest` = the entry's `digest`). `required` is the manifest's own `not-rules-refuted`:
     false until the step that refutes the edition's blocks (2023 PB5450, 1985 PB5452) sets it, so a record already
-    given is held to its form and a missing one is refused only from then on."""
+    given is held to its form and a missing one is refused only from then on. `measured` is the content-keyed scan's
+    reading of the text (clause => {..., digest}): an entry whose `digest` is not the one the text has now was refuted
+    against other text, and is refused (kb/Work PB5452)."""
     out = []
     for clause, info in declared.items():
         if info.get("disposition") != "not-rules" or (not required and not info.get("refuted")):
             continue
         why = record_refusal({"unit": clause, "digest": info.get("digest"), "refuted": info.get("refuted")}, None, ctx)
+        now = (measured or {}).get(clause, {}).get("digest")
+        if why is None and now is not None and now != info.get("digest"):
+            why = f"its text now digests to {now}, not the {info.get('digest')} its record read: refute it again"
         if why:
             out.append(f"{clause}: not-rules refused: {why}")
     return out

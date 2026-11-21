@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-GR-VI.6.4.6-2",
- "rule-digest": "ef0ce39d159d",
+ "rule-digest": "07661fe010b2",
  "test-ref": "conformance:cases/14.7.7-Arithmetic-statements/l1c04_arith_multiple_receivers; conformance:cases/14.7.7-Arithmetic-statements/pb5386_arith_receiver_identified_at_store",
+ "notes": "split-recheck:  carved 2026-11-21; the remaining text rechecked UPHELD by cobol-refuter pb5452 recheck (Tried to show the KEPT reason ('implementor-defined intermediate') rested on the carved 'temp is provided by the implementor' sentence.)",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

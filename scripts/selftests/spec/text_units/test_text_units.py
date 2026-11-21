@@ -33,7 +33,9 @@ RECORDS = "planted/refutations.jsonl"
 
 
 #: The planted pages a folio pointer may name, each with the titles it prints (kb/Work PB5998).
-PAGES = {"p.VI-11": ("The OBJECT-COMPUTER Paragraph",), "p.VI-13": ("The SPECIAL-NAMES Paragraph",)}
+PAGES = {"p.VI-11": ("The OBJECT-COMPUTER Paragraph",), "p.VI-13": ("The SPECIAL-NAMES Paragraph",),
+         "p.VII-21": ("File Section",), "p.III-1": ("glossary",),
+         "p.IV-25": ("Explicit and Implicit Transfers of Control",)}
 
 
 def _context(records: list | None = None) -> object:
@@ -321,6 +323,22 @@ def case_12_a_1985_folio_pointer_is_a_cross_reference(expect):
     expect("a title the page does not print resolves to nothing",
            any("resolves to no clause" in f for f in refused("See page VI-13, The OCCURS Clause.")))
     expect("a folio with no title resolves to nothing", any("resolves to no clause" in f for f in refused("See page VI-13.")))
+    # The 1985 text's other phrasings of a pointer (kb/Work PB5452), each resolving on its page.
+    expect.equal("'<subject> is located on page <folio>.' names the page by its subject (a stray second stop too)",
+                 refused("Information concerning the File Section is located on page VII-21.."), [])
+    expect.equal("a part named by where it begins", refused(
+        "All other types of user-defined words are defined in the glossary beginning on page III-1."), [])
+    expect.equal("a footnote's marker and the pointer's purpose", refused(
+        "\\* See page VI-13, The SPECIAL-NAMES Paragraph, for a description of the abbreviations used."), [])
+    expect.equal("a paragraph named before its page", refused(
+        "See paragraph 4.4.2, Explicit and Implicit Transfers of Control, page IV-25."), [])
+    expect.equal("'elsewhere in these specifications' with a sentence that names the page", refused(
+        "The clauses are described elsewhere in these specifications. (See page VI-13, The SPECIAL-NAMES Paragraph.)"),
+        [])
+    expect("'elsewhere in these specifications' alone names no target", any("names no target" in f for f in refused(
+        "The clauses are described elsewhere in these specifications.")))
+    expect("a located page whose subject the page does not print resolves to nothing", any(
+        "resolves to no clause" in f for f in refused("Information concerning the OCCURS Clause is located on page VI-13.")))
     targets = getattr(U, "pointer_targets", lambda s: "no pointer_targets")
     expect.equal("the targets a pointer names, in order", targets(
         "See page VI-11, The OBJECT-COMPUTER Paragraph, and page VI-13, The SPECIAL-NAMES Paragraph."),

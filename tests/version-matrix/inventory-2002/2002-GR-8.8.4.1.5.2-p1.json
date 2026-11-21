@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit; src/WiseOwl.Cobol.Runtime/Control/SwitchStore.cs#Get",
  "test-ref": "conformance:cases/8.8.4.6-Simple-switch-status-condition/pb400_evaluate_condition_subject_forms; conformance:cases/8.8.4.6-Simple-switch-status-condition/l1_search_when_condition_forms",
- "notes": "Own verdict from the read lineage-reads-2002/u-48.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.8.4.6.3-1, witnessed at 2002 by the cases test-ref names. The read: The sentence is word-identical to GR-8.8.4.6.3-1 (left unpaired only because the clause was renumbered); witnesses run green at 2002. Cited: §2002:8.8.4.1.5.2 GR1."
+ "notes": "Own verdict from the read lineage-reads-2002/u-48.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.8.4.6.3-1, witnessed at 2002 by the cases test-ref names. The read: The sentence is word-identical to GR-8.8.4.6.3-1 (left unpaired only because the clause was renumbered); witnesses run green at 2002. Cited: §2002:8.8.4.1.5.2 p1 (a paragraph row is cited by its unit designator, kb/Work PB5452)."
 }

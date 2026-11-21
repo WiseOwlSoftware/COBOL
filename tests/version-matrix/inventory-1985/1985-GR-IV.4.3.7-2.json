@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-GR-IV.4.3.7-2",
- "rule-digest": "380ed3c25f5f",
+ "rule-digest": "140069ec3441",
  "test-ref": "conformance:cases/IV.4.3@1985-CONCEPT-OF-COMPUTER-INDEPENDENT-DATA-DESCRIPTION/g85_bf04_01",
+ "notes": "split-recheck: 1985-GR-IV.4.3.7-p5 carved 2026-11-21; the remaining text rechecked UPHELD by cobol-refuter pb5452 recheck (Tried to show the KEPT mapping depended on the carved implementor special-alignment paragraph.)",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

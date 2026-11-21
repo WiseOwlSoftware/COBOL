@@ -54,6 +54,8 @@ from inventory_schema import (HELD, NEWEST, REPO, RETIRED_WITNESS_MARK, SCHEMA_P
 from inventory_store import history_pathspecs
 from inventory_view import inventory, inventory_at
 from lineage import chain_of
+import rule_moves
+from record_verdicts import read_batch
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -195,7 +197,20 @@ def default_base(repo: pathlib.Path = REPO) -> str:
     raise SystemExit("⛔ no base: neither origin/main nor main is a ref here — pass --base REF")
 
 
-def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revisions: Any = None) -> int:
+def recorded_splits(base: str, year: int) -> dict[str, dict[str, Any]]:
+    """{parent id: its split} for every split recorded in the edition's tracked split batches (`rule_moves.SPLIT_DIR`) that
+    changed between `base` and the working tree: a split is read as the writer reads it (`rule_moves.split_parents`), and a
+    batch file this change did not touch excuses nothing."""
+    names = _git("diff", "--name-only", "-z", base, "--", rule_moves.SPLIT_DIR.format(year=year)).split(chr(0))
+    found: dict[str, dict[str, Any]] = {}
+    for name in filter(None, names):
+        if (path := REPO / name).exists():
+            found |= rule_moves.split_parents(read_batch(path))
+    return found
+
+
+def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revisions: Any = None,
+          splits: Callable[[str, int], dict[str, dict[str, Any]]] = recorded_splits) -> int:
     """THE GATE'S WITNESS LOSS AUDIT: every HELD edition's rows at `base` (`at(base, year)`) against the working tree's
     (`now(year)`; the self-test plants both, and `revisions`, the comparison that reads git's renames). kb/Work PB5675: an older edition's chained row closes on a witness of its
     own, its `test-ref`, so losing it is the same loss as a newest row's. An older edition whose store `base` does not
@@ -204,6 +219,7 @@ def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revis
     vanished: list[str] = []
     erased: list[StatementLoss] = []
     heads: dict[int, list[dict[str, Any]]] = {}
+    reopened: set[str] = set()
 
     def head(year: int) -> list[dict[str, Any]]:
         if year not in heads:
@@ -219,16 +235,34 @@ def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revis
             continue
         after = head(year)
         got, gone = (revisions or compare_revisions)(before, after, base, None, schema)
-        losses += got
+        # A row whose text moved under its record and whose record is now withdrawn BY A RECORDED SPLIT (a parent that failed
+        # its recheck, rule_moves.apply): it is open, and its old witnesses witnessed text it no longer has (kb/Work PB5452).
+        # The split must be recorded in this change (`recorded_splits`) and account for the row's digests
+        # (`rule_moves.explains`): a changed digest and a blank record alone are a hand edit, and a loss.
+        was = {r["rule-id"]: r.get("rule-digest") for r in before}
+        recorded = splits(base, year)
+        opened = {r["rule-id"] for r in after if r["rule-id"] in was and was[r["rule-id"]] != r.get("rule-digest")
+                  and not r.get("verdict") and not r.get("next") and r["rule-id"] in recorded
+                  and rule_moves.explains(recorded[r["rule-id"]], was[r["rule-id"]], r.get("rule-digest"))}
+        reopened |= opened
+        losses += [l._replace(withdrawn=True) if l.rule_id in opened else l for l in got]
         vanished += gone
         ed = schema.edition(year)
         # an older edition's chained row is judged under its chain, at the head (kb/Work PB5822)
         targets = {} if ed.newest else {r["rule-id"]: r for r in head(ed.next_held)}
-        erased += compare_statements(before, after, schema, lambda r: chain_of(r, ed, schema, targets))
+        # (a withdrawn record's statements go with it: excused as its witnesses are)
+        erased += [e for e in compare_statements(before, after, schema, lambda r: chain_of(r, ed, schema, targets))
+                   if e.rule_id not in opened]
     unexcused = [l for l in losses if not l.excused]
     retired = [l for l in losses if l.retired]
     resited = [l for l in losses if l.resited and not l.retired]
     respelled = [l for l in losses if l.respelled and not (l.retired or l.resited)]
+    withdrawn = [l for l in losses if l.withdrawn and not (l.retired or l.resited or l.respelled)]
+    if reopened:
+        print(f"  ⓘ {len(reopened)} row(s) whose text moved under their record, the record withdrawn (open for "
+              "re-adjudication; their witnesses and statements go with the record): " + ", ".join(sorted(reopened)))
+    for l in withdrawn:
+        print(f"  ⓘ WITHDRAWN {l.rule_id} {l.field}: {l.ref}  (its text moved under its record, now open)")
     for l in retired:
         print(f"  ⓘ RETIRED  {l.rule_id} {l.field}: {l.ref}")
     for l in resited:
@@ -243,7 +277,7 @@ def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revis
     if vanished:
         print(f"  ⓘ {len(vanished)} witnessed row(s) no longer in the inventory (catalog-owned, not gated): "
               + ", ".join(vanished[:10]) + (" …" if len(vanished) > 10 else ""))
-    print(f"=== WITNESS LOSS vs {base[:12]}: {len(unexcused)} unexcused, {len(retired)} retired, "
+    print(f"=== WITNESS LOSS vs {base[:12]}: {len(unexcused)} unexcused, {len(retired)} retired, {len(withdrawn)} withdrawn, "
           f"{len(resited)} re-sited, {len(respelled)} re-spelled, {len(erased)} statements erased — "
           f"{'RED' if unexcused or erased else 'GREEN'} ===")
     return 1 if unexcused or erased else 0
@@ -442,15 +476,44 @@ def self_test(schema) -> int:
     base_rows = {y: ([kept] if y == older else [row]) for y in HELD}
     head_rows = {**base_rows, older: [{**kept, "test-ref": ""}]}
 
+    def no_splits(_base: str, _year: int) -> dict[str, dict[str, Any]]:
+        return {}   # hermetic: no split batch is read for a planted row
+
     def no_git(b: list[dict[str, Any]], a: list[dict[str, Any]], *_: Any) -> tuple[list[WitnessLoss], list[str]]:
         return compare(b, a, schema)   # hermetic: no rename record is read for a planted row
     with contextlib.redirect_stdout(io.StringIO()) as seen:
-        red = check("HEAD", schema, lambda _b, y: base_rows[y], lambda y: head_rows[y], no_git)
+        red = check("HEAD", schema, lambda _b, y: base_rows[y], lambda y: head_rows[y], no_git, no_splits)
     verify(f"an older ({older}) row's own witness, lost between base and head, turns WITNESS LOSS red",
            red == 1 and f"LOST     {kept['rule-id']} test-ref" in seen.getvalue(), "" if red == 1 else seen.getvalue()[-200:])
     with contextlib.redirect_stdout(io.StringIO()):
-        green = check("HEAD", schema, lambda _b, y: base_rows[y], lambda y: base_rows[y], no_git)
+        green = check("HEAD", schema, lambda _b, y: base_rows[y], lambda y: base_rows[y], no_git, no_splits)
     verify("and the same rows unchanged are green", green == 0)
+    # A SPLIT'S WITHDRAWN PARENT (kb/Work PB5452): its text moved under its record, a RECORDED split withdrew the record,
+    # so the row is open; its witnesses go with the record. The same withdrawal with the text unmoved, or with the digest
+    # changed but no split recorded for the row (a hand edit), or under a split that does not account for the digests, is
+    # a loss.
+    old_text, new_text = "The remaining rule. A carved margin paragraph.", "The remaining rule."
+    d_old, d_new = rule_moves.rule_digest(old_text), rule_moves.rule_digest(new_text)
+    split_base = {**base_rows, older: [{**kept, "rule-digest": d_old, "notes": "Kept on its chain."}]}
+    opened = {"rule-id": kept["rule-id"], "test-ref": "", "notes": "", "next": None}
+    recorded = {kept["rule-id"]: {"old-text": old_text, "carved": ["A carved margin paragraph."], "rows": [],
+                                  "recheck": {"digest": d_new}}}
+
+    def withdrawal(digest: str, splits: dict[str, dict[str, Any]]) -> tuple[int, str]:
+        with contextlib.redirect_stdout(io.StringIO()) as seen:
+            code = check("HEAD", schema, lambda _b, y: split_base[y],
+                         lambda y: {**base_rows, older: [{**opened, "rule-digest": digest}]}[y], no_git,
+                         lambda _b, _y: splits)
+        return code, seen.getvalue()
+    green, seen = withdrawal(d_new, recorded)
+    verify("a withdrawn parent of a recorded split, whose text moved under its record, loses nothing (WITHDRAWN, its statements too)",
+           green == 0 and f"WITHDRAWN {kept['rule-id']} test-ref" in seen, seen[-300:])
+    verify("... and the same withdrawal with its text unmoved is a loss", withdrawal(d_old, recorded)[0] == 1)
+    verify("... and the same withdrawal with a changed digest but NO recorded split (a hand edit) is a loss",
+           withdrawal(d_new, {})[0] == 1)
+    verify("... and so is one a recorded split does not account for (its digests are not the row's)",
+           withdrawal("d-other", recorded)[0] == 1
+           and withdrawal(d_new, {kept["rule-id"]: {**recorded[kept["rule-id"]], "old-text": "Another text."}})[0] == 1)
 
     # A RE-SPELLING (kb/Work PB3177): the same test file, moved, cited under its new name.
     moved_to = "conformance:cases/0-SELF-TEST/self_test_moved"
@@ -736,7 +799,7 @@ def self_test(schema) -> int:
            and not drv_errors({"derivation": ""}, derived85, targets=open85))
     with contextlib.redirect_stdout(io.StringIO()) as seen:
         lost = check("HEAD", ds, lambda _b, y: {older: [derived85], ed85.next_held: list(targets85.values())}.get(y, []),
-                     lambda y: {older: [kept85], ed85.next_held: list(targets85.values())}.get(y, []), no_git)
+                     lambda y: {older: [kept85], ed85.next_held: list(targets85.values())}.get(y, []), no_git, no_splits)
     verify("WITNESS LOSS (PB5822): a KEPT row's derivation erased while its chain is closed turns the audit red",
            lost == 1 and f"ERASED   {rid85} derivation" in seen.getvalue(),
            "" if lost == 1 else seen.getvalue()[-300:])

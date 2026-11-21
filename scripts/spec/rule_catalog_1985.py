@@ -31,7 +31,10 @@ RV, FMT for a general format), ordinal, `box` (none, part, whole: how much of th
 PDF page and printed folio it starts on, the printed band in effect, its text, and `provisional` (none, part, whole:
 how much of its text is a RECONSTRUCTION of a printed page the scan lacks, cite.RECONSTRUCTED, kb/Work PB4952; a
 provisional rule's text is the transcription's, not the standard's, and the inventory row and every verdict built on it
-carry the mark until the printed page's verbatim text replaces the reconstruction).
+carry the mark until the printed page's verbatim text replaces the reconstruction). A UNIT OF UNNUMBERED TEXT disposed
+a row kind in the content-keyed manifest is a row too (`mint`, kb/Work PB5452): `-p<n>`, `-T<t>.<r>`, `-T<t>`, an item's
+`-<n>`, with its `shape`, and `definitional` where its disposition says so; every row of a list a colon unit leads
+carries that unit's words as `lead`.
 
 COMPLETENESS (design §7) is held the 2023 way: a rule-shaped heading no kind resolves, a recognised block that yields no
 rule, an ordinal that neither continues its list nor restarts it, a box inside a one-level module, an amendment change
@@ -220,10 +223,15 @@ class Catalog:
     #: The dispositions audit of the units of unnumbered text (text_units.audit, kb/Work PB5449), and the units' count.
     dispositions: list[str] = dataclasses.field(default_factory=list)
     pending_units: int = 0
+    #: How many rows the units disposed a row kind made (`mint`, kb/Work PB5452).
+    minted: int = 0
     #: The paragraphs after a rule held to the margin-level data (measure_margin_levels.refusals, kb/Work PB5449 item 3),
     #: and the recorded paragraphs by what their level makes them (measure_margin_levels.tally).
     margin_levels: list[str] = dataclasses.field(default_factory=list)
     margin_tally: dict[str, int] = dataclasses.field(default_factory=dict)
+    #: The 1-based transcription line each numbered rule opens on, by row id: where `mint` places a unit's row among
+    #: its clause's rules, and where a unit's text ends (kb/Work PB5452).
+    row_line: dict[str, int] = dataclasses.field(default_factory=dict)
 
     def drift(self) -> tuple[list[str], int]:
         """The content-keyed check's report and its number of drifts: THE 2023 arm's, on this edition's manifest."""
@@ -311,14 +319,10 @@ def furniture(lines: list[str]) -> list[str | None]:
     return out
 
 
-def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
-    """The 1985 catalog of a transcription's lines (the module docstring states the structure it reads), with the
-    content-keyed scan measured against `manifest`, the `blocks` of extract_rule_catalog.UNHARVESTED_OF[1985]: the
-    paragraphs it admits are rule blocks of their declared kind."""
-    cat = Catalog(declared=dict(manifest or {}))
-    admitted = admitted_kinds(cat.declared)
-    # A rule is on the printed page whose folio is the first one below it on its `## Page`: one per page, but where
-    # printed pages from another scan stand inside a page (cite.SOURCE, kb/Work PB5789), each closes with its own.
+def folios_below(lines: list[str]) -> list[str]:
+    """For each line (0-based), the printed folio of the page it is on: a rule is on the printed page whose folio is the
+    first one below it on its `## Page`, one per page, but where printed pages from another scan stand inside a page
+    (cite.SOURCE, kb/Work PB5789) each closes with its own."""
     folio_below: list[str] = [""] * len(lines)
     below = ""
     for at in range(len(lines) - 1, -1, -1):
@@ -327,6 +331,28 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
         elif (f := FOLIO_85.match(lines[at])) is not None:
             below = f.group(1)
         folio_below[at] = below
+    return folio_below
+
+
+def pages_of(lines: list[str]) -> list[int]:
+    """For each 1-based line number (index 0 unused), the PDF page its `## Page` heading names."""
+    page_of, page = [0] * (len(lines) + 1), 0
+    for at, line in enumerate(lines, start=1):
+        if PAGE_HEADING.match(line):
+            page = int(line.split()[-1])
+        page_of[at] = page
+    return page_of
+
+
+def parse(lines: list[str], manifest: dict[str, dict] | None = None, carved: frozenset[int] = frozenset()) -> Catalog:
+    """The 1985 catalog of a transcription's lines (the module docstring states the structure it reads), with the
+    content-keyed scan measured against `manifest`, the `blocks` of extract_rule_catalog.UNHARVESTED_OF[1985]: the
+    paragraphs it admits are rule blocks of their declared kind. `carved` holds the 1-based lines of the decided margin
+    paragraphs (`carved_lines`): they leave the text of the rule they follow, each a unit of its own (decision PB5448
+    point 4; kb/Work PB5452)."""
+    cat = Catalog(declared=dict(manifest or {}))
+    admitted = admitted_kinds(cat.declared)
+    folio_below = folios_below(lines)
 
     section: str | None = None        # the Roman section, or "A"; None outside every section
     appendix: str | None = None       # the appendix of Section XVII being read, its letter the locator's (`§1985:C.2`)
@@ -352,12 +378,12 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
         kind = start.get("kind", kind)   # a rule an admitted paragraph types by its ordinal (rule_kind)
         text = re.sub(r"[ \t]+", " ", "\n".join(buf)).strip() if kind != "FMT" else "\n".join(buf).strip()
         year, folio = YEAR_OF[document], start["folio"]
-        add_row(cat, document=document, section=section, paragraph=para, kind=kind, n=start["n"],
+        cat.row_line[add_row(cat, document=document, section=section, paragraph=para, kind=kind, n=start["n"],
                 sublist=start["sublist"], text=text, page=start["page"], folio=folio,
                 band=start["band"], subject=titles.get(para.rsplit(".", 1)[0], ""),
                 citation=f"§{year}:{loc}" + ("" if kind == "FMT" else
                                              f" {citation.rule_designator(kind, start['n'], start['sublist'])}"),
-                provisional=PROVISIONAL[frozenset(drawn_from)])
+                provisional=PROVISIONAL[frozenset(drawn_from)])["id"]] = start["line"]
         buf, drawn_from = [], set()
 
     def close_block() -> None:
@@ -377,7 +403,9 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
         """Record the paragraph the content-keyed scan is reading, if its body carries a numbered list."""
         nonlocal scan, scan_body
         if scan is not None and (shape := ordinal_shape(scan_body, ORDINAL)) is not None:
-            cat.unharvested[scan[0]] = {"title": scan[1], **shape}
+            # Its `digest` keys the refuter record a `not-rules` disposition names (text_units.block_refusals): the whole
+            # body's, as a unit's is its whole text's, so a changed text matches no record (kb/Work PB5452).
+            cat.unharvested[scan[0]] = {"title": scan[1], **shape, "digest": text_units.digest(" ".join(scan_body))}
         scan, scan_body = None, []
 
     spec: str | dict | None = None  # the open block's kind as the manifest admits it (rule_kind), or None
@@ -473,7 +501,8 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             if kind is not None:
                 open_block(loc, kind, num, admitted_as)
                 if kind == "FMT":
-                    start = {"n": 0, "sublist": 1, "page": page, "band": "", "folio": recon_folio[at] or folio_below[at]}
+                    start = {"n": 0, "sublist": 1, "page": page, "band": "", "folio": recon_folio[at] or folio_below[at],
+                             "line": at + 1}
                     buf, drawn_from = [], set()
                     block_rules = 1
             elif RULE_SHAPED.search(title):
@@ -515,9 +544,10 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             if kind is None:   # the manifest's map does not name this rule: reported, never guessed
                 cat.untyped.append((f"§{YEAR_OF[document]}:{block[0]}", sublist, n))
                 kind = block[1]
-            start = {"n": n, "sublist": sublist, "page": page, "band": band, "kind": kind, "folio": recon_folio[at] or folio_below[at]}
+            start = {"n": n, "sublist": sublist, "page": page, "band": band, "kind": kind,
+                     "folio": recon_folio[at] or folio_below[at], "line": at + 1}
             buf, drawn_from = [m.group("box") + m.group("text")], {inside[at]}
-        elif buf:
+        elif buf and at + 1 not in carved:
             buf.append(line.strip())
             drawn_from.add(inside[at])
     close_block()
@@ -691,7 +721,8 @@ def summary(cat: Catalog) -> list[str]:
                f"({sum(1 for r in cat.rules if r['citation'].split(' ')[0] in admitted)} rows), "
                f"{dispositions['not-rules']} recorded as not rules")
     out.extend(cat.drift()[0])
-    out.append(f"   units of unnumbered text awaiting a disposition (kb/Work PB5449): {cat.pending_units}")
+    out.append(f"   units of unnumbered text awaiting a disposition (kb/Work PB5449): {cat.pending_units}; "
+               f"rows the units disposed a row kind make (kb/Work PB5452): {cat.minted}")
     out.append("   paragraphs after a rule, by printed level (scripts/spec/data/margin-levels-1985.json): "
                + ", ".join(f"{k} {v}" for k, v in cat.margin_tally.items()))
     out.append("✓ no findings" if not cat.findings() else f"FINDINGS: {cat.findings()}")
@@ -724,8 +755,14 @@ BOX_EDGE = re.compile(rf"^\s*{BOX_SIDE}\s*|\s*{BOX_SIDE}\s*$")
 #: formats ("<u>FORMATS 1 AND 3</u>:") or a figure's or table's caption ("Figure 4: ...", "Table 1. ..."). Neither is a
 #: paragraph of the clause: both are the rule's (`_rules_of`).
 HTML_TABLE_OPEN, HTML_TABLE_CLOSE = re.compile(r"^\s*<table\b"), re.compile(r"</table>\s*$")
-RULE_LABEL = re.compile(r"^\s*(?:<u>)?(?:FORMATS?\s+\d+(?:\s*(?:,|AND)\s*\d+)*(?:</u>)?:?(?:</u>)?\s*$"
-                        r"|(?:Figure|Table)\s+\d+[.:])", re.I)
+FORMAT_BAND = r"^\s*(?:<u>)?FORMATS?\s+\d+(?:\s*(?:,|AND)\s*\d+)*(?:</u>)?:?(?:</u>)?\s*$"
+RULE_LABEL = re.compile(rf"{FORMAT_BAND}|^\s*(?:<u>)?(?:Figure|Table)\s+\d+[.:]", re.I)
+#: A band naming a format on a line of its own ("<u>Format 1</u>:", page 182) is part of the general-format display it
+#: labels, in prose as in a rule's text: no unit (kb/Work PB5452, reader 85u-05's repair records).
+FORMAT_LABEL = re.compile(FORMAT_BAND, re.I)
+#: A paragraph headed "Examples" (§1985:VI.6.18.5, pages 332-334: a preamble, labelled INSPECT examples and their result
+#: tables) is example text, which is never a unit (decision PB5448 point 1; kb/Work PB5452, reader 85u-12's records).
+EXAMPLES_TITLE = re.compile(r"^(?:[\d.]+\s+)?(?:<u>)?Examples?(?:</u>)?$", re.I)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -749,13 +786,14 @@ class BlockParagraph:
 def _bodies(lines: list[str], rows: list[dict]) -> dict[str, list[tuple[int, str]]]:
     """The body of every paragraph region of the normative region but a general format's, by citation, in the order of
     the text, with the 1985 page furniture removed (`furniture`, the reading `parse` makes: a page heading, a page the scan prints
-    twice, an editorial note, a folio and the running header that opens a printed page) and every heading. A blank line
-    stays, as the segmentation's separator."""
+    twice, an editorial note, a folio and the running header that opens a printed page), every heading and every format
+    band (`FORMAT_LABEL`). A paragraph headed "Examples" has no body (`EXAMPLES_TITLE`). A blank line stays, as the
+    segmentation's separator."""
     formats = {r["citation"].split(" ")[0] for r in rows if r["kind"] == "FMT"}
-    regions = [(f"§1985:{loc}", s, e) for loc, _t, s, e in citation.regions_1985(lines)
-               if loc.split(".", 1)[0] in NORMATIVE_SECTIONS and "." in loc]
-    regions += [(f"§1989:{loc}", s, e) for loc, _t, s, e in citation.amendment_regions(lines, 1989)
-                if loc.startswith("A.")]
+    regions = [(f"§1985:{loc}", s, e) for loc, t, s, e in citation.regions_1985(lines)
+               if loc.split(".", 1)[0] in NORMATIVE_SECTIONS and "." in loc and not EXAMPLES_TITLE.match(t.strip())]
+    regions += [(f"§1989:{loc}", s, e) for loc, t, s, e in citation.amendment_regions(lines, 1989)
+                if loc.startswith("A.") and not EXAMPLES_TITLE.match(t.strip())]
     bodies: dict[str, list[tuple[int, str]]] = {}
     furn = furniture(lines)
     for clause, start, end in regions:
@@ -764,7 +802,7 @@ def _bodies(lines: list[str], rows: list[dict]) -> dict[str, list[tuple[int, str
         body = bodies.setdefault(clause, [])
         for at in range(start + 1, end):
             line = lines[at]
-            if furn[at] is not None or ANY_HEADING.match(line):
+            if furn[at] is not None or ANY_HEADING.match(line) or FORMAT_LABEL.match(line):
                 continue
             body.append((at + 1, unboxed(line) if line.strip() else line))
     return bodies
@@ -809,12 +847,8 @@ def block_paragraphs(lines: list[str], rows: list[dict]) -> tuple[list[BlockPara
     (text_units.after_rule), each with its key and page. The second are the candidates whose printed level the 1985
     margin-level data records (`measure_margin_levels.py`): level 0 is a margin paragraph of the clause, deeper a
     continuation of the rule."""
-    numbered = {r["citation"].split(" ")[0] for r in rows if r["kind"] != "FMT"}
-    page_of, page = [0] * (len(lines) + 1), 0
-    for at, line in enumerate(lines, start=1):
-        if PAGE_HEADING.match(line):
-            page = int(line.split()[-1])
-        page_of[at] = page
+    numbered = {r["citation"].split(" ")[0] for r in rows if r["kind"] != "FMT" and "shape" not in r}
+    page_of = pages_of(lines)
     leads: list[BlockParagraph] = []
     after: list[BlockParagraph] = []
     for clause, body in _bodies(lines, rows).items():
@@ -844,9 +878,9 @@ def units(lines: list[str], rows: list[dict], declared: dict[str, dict], margin:
     a unit numbered on after the lead-in's paragraphs (decision PB5448 point 2: `n` counts every margin paragraph of the clause). While its
     disposition is pending it ALSO stays in the rule's text, so the rule's words never leave the denominator undecided
     (design point 4); a decided one leaves the rule when the 1985 rows are minted (kb/Work PB5452)."""
-    numbered = {r["citation"].split(" ")[0] for r in rows if r["kind"] != "FMT"}
+    numbered = {r["citation"].split(" ")[0] for r in rows if r["kind"] != "FMT" and "shape" not in r}
     named: dict[str, set[int]] = collections.defaultdict(set)
-    for r in rows:
+    for r in (r for r in rows if "shape" not in r):
         named[r["citation"].split(" ")[0]].update(text_units.tables_named(r["text"]))
     glued: dict[str, list[text_units.Unit]] = collections.defaultdict(list)
     for p in margin:
@@ -861,6 +895,166 @@ def units(lines: list[str], rows: list[dict], declared: dict[str, dict], margin:
         if found:
             out[clause] = found
     return out
+
+
+# ── THE MINT (kb/Work PB5452, decision PB5448 points 2 and 4): a unit disposed a row kind is a row of the catalog ───────
+
+
+def _decided(blocks: dict[str, dict]) -> dict[str, dict[tuple[str, int], dict]]:
+    """The disposition entries of a `paragraph-blocks` map by clause and key (digest, order)."""
+    return {clause: {(e.get("digest"), e.get("order", 0)): e for e in es}
+            for clause, es in text_units.entries_of(blocks).items()}
+
+
+def _spans(lines: list[str], cat: Catalog, units: dict[str, list], after: list[BlockParagraph]
+           ) -> dict[tuple[str, int], tuple[int, ...]]:
+    """Where each unit's text lies in the transcription, by (clause, its first line): the 1-based lines from its first
+    up to the next thing the clause prints that is no part of it (another unit, a numbered rule, another paragraph after
+    a rule) or the clause's end, less every display among them (a table unit's are its own lines). A margin paragraph's span is what leaves its rule's text (`carved_lines`); a unit's span is
+    where its `box` is read (its text is segmented without the box sides, `unboxed`)."""
+    ends = {f"§1985:{loc}": e for loc, _t, _s, e in citation.regions_1985(lines)}
+    ends |= {f"§1989:{loc}": e for loc, _t, _s, e in citation.amendment_regions(lines, 1989)}
+    starts: dict[str, set[int]] = collections.defaultdict(set)
+    for r in cat.rules:
+        if r["id"] in cat.row_line:
+            starts[r["citation"].split(" ")[0]].add(cat.row_line[r["id"]])
+    for p in after:
+        starts[p.clause].add(p.unit.line)
+    for clause, us in units.items():
+        starts[clause].update(u.line for u in us)
+    out = {}
+    for clause, us in units.items():
+        marks = sorted(starts[clause])
+        for u in us:
+            end = min(next((m for m in marks if m > u.line), ends[clause] + 1), ends[clause] + 1)
+            if u.shape in ("table", "table-row"):
+                out[clause, u.line] = tuple(range(u.line, end))
+                continue
+            # A display among a paragraph's lines (a <pre> figure or code, a fence, a table) is no unit text
+            # (text_units.segment): it stays where it was, so §1985:VI.6.3.4's figures stay in rule (2)'s text when
+            # the paragraph naming them leaves it, and §1985:VI.6.4.6's code in rule (2)'s.
+            own, display = [], None
+            for i in range(u.line, end):
+                line = lines[i - 1]
+                if display is not None:
+                    if display.search(line):
+                        display = None
+                    continue
+                if text_units.PRE_OPEN.match(line) or HTML_TABLE_OPEN.match(line):
+                    closes = text_units.PRE_CLOSE if text_units.PRE_OPEN.match(line) else HTML_TABLE_CLOSE
+                    display = None if closes.search(line) else closes
+                    continue
+                if text_units.FENCE.match(line):
+                    display = text_units.FENCE
+                    continue
+                if not text_units.TABLE_LINE.match(line) and not FORMAT_LABEL.match(line):
+                    own.append(i)   # (a format band labels the display after it, and stays with it)
+            out[clause, u.line] = tuple(own)
+    return out
+
+
+def carved_lines(lines: list[str], cat: Catalog, units: dict[str, list], blocks: dict[str, dict],
+                 after: list[BlockParagraph], margin: list[BlockParagraph]) -> frozenset[int]:
+    """The 1-based lines of every DECIDED margin paragraph (a unit of `margin`, the paragraphs after a rule printed at
+    the block's margin, whose disposition is not pending): they leave the text of the rule they follow (decision PB5448
+    point 4; kb/Work PB5452), so `parse` reads the rule without them. A pending one stays in its rule's text."""
+    decided = _decided(blocks)
+    spans = _spans(lines, cat, units, after)
+    glued = {(p.clause, p.unit.line) for p in margin}
+    out: set[int] = set()
+    for clause, us in units.items():
+        for u, order in text_units.keyed(us):
+            e = decided.get(clause, {}).get((u.digest, order))
+            if (clause, u.line) in glued and e is not None and e.get("disposition") != text_units.PENDING:
+                out.update(spans[clause, u.line])
+    return frozenset(out)
+
+
+def _box(lines: list[str], span: tuple[int, ...], furn: list[str | None]) -> str:
+    """How much of a unit the level-2 box covers (none, part, whole), read on its printed lines (`_spans`)."""
+    printed = [lines[i - 1] for i in span if lines[i - 1].strip() and furn[i - 1] is None]
+    boxed = sum(BOX_SIDE in ln for ln in printed)
+    return "none" if not boxed else "whole" if boxed == len(printed) else "part"
+
+
+def mint(cat: Catalog, lines: list[str], units: dict[str, list], blocks: dict[str, dict],
+         after: list[BlockParagraph]) -> int:
+    """THE ROWS OF THE UNITS OF UNNUMBERED TEXT (kb/Work PB5452): every unit of `units` whose disposition in `blocks` is
+    a row kind becomes a row of `cat`, placed among its clause's rows in the order of the text (cite.py anchors a
+    clause's rows in that order), and returns how many. Its id is `<year>-<kind>-<locator>-<label>` (`unit_rule_id`:
+    `-p<n>`, `-T<t>.<r>`, `-T<t>`, an item `-<n>` or `-L<m>.<n>`), its citation the unit's designator (`p3`, `Table 1
+    row 2`), an item's the numbered rule's (`GR1`, `GRL2.1`: the id an item mints is the id a numbered rule of that
+    designator has, `citation.rule_designator`); `shape` the unit's; `box` read on its printed lines and `level` as a
+    numbered rule's (`add_row`); `definitional` when the disposition says the row obliges nothing (closed through the
+    `definitional` arm, kb/Work PB5453). Every row a list holds, numbered rule or item, then takes the words of the
+    colon unit that leads its list as its `lead` (outside `text`, so no digest moves; design point 1)."""
+    from cite import unit_designator  # noqa: PLC0415
+    decided = _decided(blocks)
+    spans = _spans(lines, cat, units, after)
+    furn, page_of, below = furniture(lines), pages_of(lines), folios_below(lines)
+    recon = reconstructed(lines)
+    minted: list[tuple[int, dict]] = []
+    for clause, us in units.items():
+        year, _, loc = clause.removeprefix("§").partition(":")
+        section, _, paragraph = loc.partition(".")
+        parent = cat.paragraphs.get(loc.rsplit(".", 1)[0])
+        module, levels = MODULES.get(section, (None, 0))
+        for u, order in text_units.keyed(us):
+            e = decided.get(clause, {}).get((u.digest, order))
+            if e is None or (kind := e.get("disposition")) not in text_units.ROW_KINDS:
+                continue
+            span = spans[clause, u.line]
+            box = _box(lines, span, furn)
+            designator = (citation.rule_designator(kind, u.ordinal, u.sublist) if u.shape == "item"
+                          else unit_designator(u.label))
+            row = {"id": unit_rule_id(kind, clause, u.label), "citation": f"{clause} {designator}",
+                   "document": AMENDMENT_1 if year == "1989" else BASE, "section": section, "paragraph": paragraph,
+                   "locator": loc, "module": module, "subject": parent.title if parent else "", "kind": kind,
+                   "ordinal": u.ordinal, "sublist": u.sublist, "box": box,
+                   "level": None if module is None else (2 if box == "whole" and levels == 2 else 1),
+                   "amended_by": [], "status": element_standing.NORMAL, "page": page_of[u.line],
+                   "folio": recon[u.line - 1] or below[u.line - 1], "band": "", "text": u.text,
+                   "provisional": PROVISIONAL[frozenset(recon[i - 1] is not None for i in span
+                                                        if lines[i - 1].strip())], "shape": u.shape}
+            if e.get("definitional"):
+                row["definitional"] = True
+            minted.append((u.line, row))
+    # In the order of the text: a minted row goes before the first row of the catalog that opens after it.
+    at_line = {r["id"]: cat.row_line.get(r["id"]) for r in cat.rules}
+    merged: list[dict] = []
+    pending = sorted(minted, key=lambda m: m[0])
+    for r in cat.rules:
+        line = at_line[r["id"]]
+        while pending and line is not None and pending[0][0] < line:
+            merged.append(pending.pop(0)[1])
+        merged.append(r)
+    merged += [row for _, row in pending]
+    for line, row in minted:
+        cat.row_line[row["id"]] = line
+    cat.rules[:] = merged
+    _leads(cat, units)
+    return len(minted)
+
+
+def _leads(cat: Catalog, units: dict[str, list]) -> None:
+    """Give every row of a list (a block's numbered rules of one sub-list, or a prose clause's items of one list) the
+    words of the colon unit that leads it, as `lead` (design point 1: "the colon unit's words before the list are also
+    each item's `lead` field"): the clause's paragraph unit printed last before the list's first row, with no row of
+    another list between, when it ends in a colon."""
+    by_list: dict[tuple[str, int], list[dict]] = collections.defaultdict(list)
+    for r in cat.rules:
+        if r["kind"] != "FMT" and r.get("shape") in (None, "item"):
+            by_list[r["citation"].split(" ")[0], r["sublist"]].append(r)
+    for (clause, _sub), rows in by_list.items():
+        first = min(cat.row_line[r["id"]] for r in rows)
+        before = [r for r in cat.rules if r["citation"].split(" ")[0] == clause and r["kind"] != "FMT"
+                  and r.get("shape") in (None, "item") and cat.row_line[r["id"]] < first]
+        floor = max((cat.row_line[r["id"]] for r in before), default=0)
+        lead = max((u for u in units.get(clause, []) if u.shape == "paragraph" and floor < u.line < first),
+                   key=lambda u: u.line, default=None)
+        if lead is not None and text_units.LEADS.search(lead.text):
+            for r in rows:
+                r["lead"] = lead.text
 
 
 def cite_check(cat: Catalog) -> None:

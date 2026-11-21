@@ -1,70 +1,162 @@
 {
  "rule-id": "1985-GR-XIII.3.7.4-4",
- "rule-digest": "16156d25ae59",
+ "rule-digest": "f393e5075939",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-039",
+  "pin": "712b030c57bfa3d5c62719ac60514cb29a714573",
+  "slice": "85x-01",
   "sources": {
-   "reader": "7a4457796b771bc74879f8bf7120fb8fc9c0556a64cdcccfa7b290aef2c357e3",
-   "refuter": "5b5e7dacf5d6d220560d67c9a706beed8e27c9d357e0559d6b013433940dd628"
+   "reader": "af05d545aadcfa4e72b63b35221e9f6a7e6ff9e97fbdc153594b38c4cd8091e1",
+   "refuter": "5dd7b95830c64442ef18904521ea02b46c47406a9383ca9491ae123c83af6e4e"
   },
   "imported": {
-   "reader": "897ac1c42e084ca4dfe1192852c06bcc69de26249bc9a67f731d816b47835b9a",
-   "refuter": "cf173a013ffb9c594467cb1acb7211a23a1af87b3389617876fd0631cc2761c3"
+   "reader": "5d289059a398d77b1192494833d39458fd66196c0f833bd4d4507562dccf09a4",
+   "refuter": "8486ef94039712cd0453b9a96833f50cf5ee5ad1af7bd9e0c11cbea881968c2f"
   }
  },
  "reader": {
   "rule-id": "1985-GR-XIII.3.7.4-4",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 FINAL, written once as the first CONTROL operand (format `FINAL [data-name-1]...`), names the most inclusive control level, which no control data item is associated with: it never breaks during GENERATE, its CH FINAL prints at the first GENERATE, its CF FINAL prints last at TERMINATE, a SUM RESET/CF FINAL accumulates the whole report, and FINAL is a level TYPE CH/CF FINAL may name only when the CONTROL clause names it. The witness covers FINAL plus one data-name only.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate",
+  "requirement": "At --std 85 FINAL names the most inclusive control level of the report, one tied to no control data item: written first in the CONTROL clause (alone or before data-name-1) it is the highest level, it never takes a control break from a change of value at GENERATE, its CONTROL HEADING is processed once at the chronologically first GENERATE and its CONTROL FOOTING once as the last body group at TERMINATE (none when no GENERATE ran), its RESET ON FINAL counters reset only there, and a TYPE CH/CF FINAL or RESET ON FINAL is refused when FINAL is not in the CONTROL clause. The one witness covers only FINAL with one data-name and a CF FINAL at TERMINATE.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportControlClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportControlName; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenResetLevel; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddControl; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
-    "switches": "Edition.DialectLevel >= 2002 asks the 2023 written-operand uniqueness (SR6) of the CONTROL operands; at 85 ResolveReports calls ScreenControlItemsDistinct (§1985 SR2, resolved items) instead. The FINAL placement screen (COBOL2421) and the FINAL level itself consult no edition",
+    "switches": "only the citation text of COBOL2421 (Edition.Edition.Cite) for FINAL written twice or after a data-name; the refusal itself is edition-independent",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports",
+    "switches": "only the citation text of COBOL0899 (TYPE CH/CF operand or RESET ON FINAL not in the CONTROL clause); the level resolution FindIndex(IsFinal) is edition-independent",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenResetLevel",
+    "switches": "Edition.DialectLevel < 2002: at 85 a RESET ON operand may be the footing's own level (SR4 'must not be a lower level'), so RESET ON FINAL inside CF FINAL is admitted; from 2002 it must be strictly higher and is refused (COBOL6824)",
     "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportGroupType",
+    "switches": "at 85 a TYPE CH/CF without its operand and OR PAGE are refused (COBOL0900, ReportControlOperandForms2002)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportControlName",
+    "switches": "at 85 the word ON/FOR before the TYPE operand (CF ON FINAL) is refused (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportControlClause",
+    "switches": "asks only data-name operands (GateCobol85ControlName); FINAL is not asked at any edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup (the NEXT GROUP save location, not FINAL); the FINAL footing loop ProcessControlFootings(0) is the same at every edition",
+    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "Read the CONTROL arm of BindReportDescriptionClauses, ResolveReports' CH/CF level match (ControlFinal -> FindIndex(IsFinal)), DetectBreakLevel (skips IsFinal) and grepped ReportWriter.cs for Edition/DialectBehavior: the four DialectBehavior arms there do not touch FINAL.",
-  "behaviour-differs-by-edition": "no (for FINAL; only the operand-uniqueness rule beside it differs)",
-  "witnesses-cover": "part: pb483 covers FINAL with one data-name; CONTROL FINAL alone, CH FINAL, SUM in CF FINAL, and the refusals were not exercised",
+  "edition-search": "grep of FINAL / IsFinal / ControlFinal / ResetFinal in ReportSectionBinder.cs, ReportWriter.cs, ReportWriterEmitter.cs, VersionConformancePass.cs and CobolReportWriter.g4, then of EditionContext / DialectLevel / DialectBehaviors / Cite inside the members found",
+  "behaviour-differs-by-edition": "yes: not in GR4's FINAL semantics (p1final and x1cycles print identically at 85 and 2023), but at edges FINAL reaches: TYPE CF ON FINAL and TYPE CF with no operand are refused at 85 only, and RESET ON FINAL inside a CF FINAL is admitted at 85 (§1985:XIII.3.19.3 SR4) and refused at 2023 (COBOL6824)",
+  "witnesses-cover": "part: the witness pb483_control_final_first exercises FINAL first with one data-name and CF FINAL at TERMINATE; not CONTROL FINAL alone, CH FINAL at the first GENERATE, a data-name break that must not reach FINAL, RESET ON FINAL, TERMINATE with no GENERATE, or the refusals",
   "probes": [
    {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/read-xiii374/probes/p1final.cob",
+    "printed": "report: RH / CH-F / D= 005 / D=-007 / D= 000 / D= 999 / CF-F  0997 / RF; stdout BEFORE CH-F N=+005, BEFORE CF-F N=+999 (identical at --std 2023)",
+    "expected": "CONTROL IS FINAL alone: CH FINAL once at the first GENERATE (§1985:XIII.3.20.4 GR4), CF FINAL once as the last body group (GR6) with the SUM of signed values including zero and 999 = 997, then RF"
+   },
+   {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r1final.cob",
-    "printed": "report: CH-F / D=005 / D=007 / D=009 / CF-F 0021",
-    "expected": "CONTROL IS FINAL alone: CH FINAL at first GENERATE, no break mid-report, CF FINAL at TERMINATE with the sum of all details (21)"
+    "file": "E:/COBOL-coord/scratch/read-xiii374/probes/p2finalkey.cob",
+    "printed": "CH-F / CH-G A1 / D=A1 01 / CF-B 1 001 / D=A1 02 / CF-B 2 002 / CF-G A1 003 / CH-G B1 / D=B1 03 / D=B1 04 / CF-B 2 007 / CF-G B1 007 / CF-F B1 010 010; declarative BEFORE CF-F GRP=B1; AFTER TERM GRP=Z9 B=9",
+    "expected": "FINAL above a group control and an elementary control: breaks on WS-B and WS-GRP never present CF or CH FINAL; CF FINAL once and last, with the prior control values (§1985:XIII.4.7.4 GR1), RESET ON FINAL total 10"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r1nofinal.cob",
-    "printed": "error COBOL0899 (x2): the TYPE CH/CF operand shall be the same as one of the operands of the CONTROL clause",
-    "expected": "CH/CF FINAL refused when the CONTROL clause does not name FINAL"
+    "file": "E:/COBOL-coord/scratch/read-xiii374/probes/r1after.cob",
+    "printed": "COBOL2421 FINAL is written after the data-name 'WS-K'",
+    "expected": "refused: §1985:XIII.3.7.2 prints FINAL first"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/read-xiii374/probes/r1twice.cob",
+    "printed": "COBOL2421 FINAL is written more than once in the CONTROL clause",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/read-xiii374/probes/r2nofinal.cob",
+    "printed": "COBOL0899 the TYPE CF operand shall be the same as one of the operands of the CONTROL clause (ISO §1985:XIII.3.20.3 SR4)",
+    "expected": "refused: §1985:XIII.3.20.3 SR4"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/read-xiii374/probes/r3resetnofinal.cob",
+    "printed": "COBOL0899 RESET ON 'FINAL' is not an operand of the CONTROL clause (ISO §1985:XIII.3.19.3 SR4)",
+    "expected": "refused: §1985:XIII.3.19.3 SR4"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/read-xiii374/probes/r5twocf.cob",
+    "printed": "COBOL2749 a second CONTROL FOOTING for control 'FINAL'",
+    "expected": "refused: §1985:XIII.3.20.3 SR4, at most one control footing for FINAL"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r1finallast.cob",
-    "printed": "error COBOL2421: FINAL is written after the data-name 'WS-N'",
-    "expected": "refused: §1985:XIII.3.7.2 admits FINAL only first"
+    "file": "E:/COBOL-coord/scratch/read-xiii374/probes/r4onfinal.cob",
+    "printed": "COBOL0900 the word ON before a TYPE clause's control operand requires COBOL-2002",
+    "expected": "refused at 85: the 1985 TYPE format prints the operand alone"
    },
    {
-    "class": "a",
-    "file": "conformance-suite/cases/13.14-Report-description/pb483_control_final_first.cob",
-    "printed": "EXPECT: MATCH (BEFORE CF WS-K x2, BEFORE CF FINAL)",
-    "expected": "the witness's golden"
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/read-xiii374/probes/r4nooperand.cob",
+    "printed": "COBOL0900 TYPE CF without its control operand requires COBOL-2002",
+    "expected": "refused at 85: the 1985 format braces {data-name-1 | FINAL}"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/read-xiii374/probes/c1finalonly.cob",
+    "printed": "report: 1 / 1 / CF-F",
+    "expected": "the 1985 spelling CONTROL FINAL with CONTROL FOOTING FINAL: CF FINAL once after the details"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/read-xiii374/probes/f1nogenerate.cob",
+    "printed": "empty report file; RAN",
+    "expected": "TERMINATE with no GENERATE produces no report group (§1985:XIII.4.7.4 GR2), so neither CH nor CF FINAL"
    }
   ],
   "citations": [
    {
     "cite": "§1985:XIII.3.7.4 GR4",
     "check": "OK  §1985:XIII.3.7.4 GR4  (3.7.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:XIII.3.7.4 GR1",
+    "check": "OK  §1985:XIII.3.7.4 GR1  (3.7.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XIII.3.20.4 GR4",
+    "check": "OK  §1985:XIII.3.20.4 GR4  (3.20.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:XIII.3.20.4 GR6",
+    "check": "OK  §1985:XIII.3.20.4 GR6  (3.20.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:XIII.3.20.3 SR4",
+    "check": "OK  §1985:XIII.3.20.3 SR4  (3.20.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:XIII.3.19.3 SR4",
+    "check": "OK  §1985:XIII.3.19.3 SR4  (3.19.3 Syntax Rules)  the text is in SR4"
    }
   ],
-  "notes": "FINAL is model.Controls' IsFinal level; DetectBreakLevel never breaks it and Terminate prints footings minor to major so CF FINAL is last. Diagnostics cite the 2023 clause numbers, which does not change the verdict.",
+  "notes": "FINAL is bound as a control entry with no data item (EmitReportConstruction emits AddControl(true, a constant empty image, a no-op set)) at index 0, and DetectBreakLevel skips it, so it never breaks during GENERATE; GenerateCore presents every CH, FINAL's first, at the first GENERATE, and TerminateCore runs ProcessControlFootings(0), which ends with FINAL's footing and its RESET ON FINAL reset. The FINAL semantics take the same arm at 85 and 2023; the edition arms on the path are the TYPE operand forms and the RESET level screen, both matching the 1985 text in the probes. Class a (variable length) and e (file organizations) do not apply: FINAL names no data item and the report file is sequential output only.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "",
+  "at-2023": "p1final and x1cycles print identically at --std 2023; p2finalkey is refused at 2023 by COBOL6824 (RESET ON FINAL in CF FINAL), as §2023:13.18.54.3 SR8 requires",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -74,7 +166,7 @@
   "rule-id": "1985-GR-XIII.3.7.4-4",
   "refutation": "UPHELD",
   "classes": "b,c,d,f",
-  "evidence": "Probes at --std 85 under refute-1985-039: p1nogen (CONTROL FINAL, CH/CF FINAL, INITIATE then TERMINATE with no GENERATE) -> empty report, as §1985:XIII.4.7.4 GR2 requires (cite OK); p1multi (CONTROLS ARE FINAL WS-A WS-B, CH FINAL, CH WS-A, CF WS-B with SUM and SUM RESET ON FINAL, CF WS-A rolling SUM, CF FINAL) -> CH-F once, CF-B/CF-A at each break, rolling TR 12/15/25/28 never reset by a data-name break, CF-F last with 0028: FINAL never breaks mid-report; p1sumrep (CONTROL FINAL, GENERATE report-name twice) -> CF-F 0010 only; p1ff (CONTROL IS FINAL FINAL) -> COBOL2421 refused; p1rf (RESET ON FINAL with CONTROL IS WS-B) -> COBOL0899 refused (§1985 SUM SR: FINAL in RESET must appear in the CONTROL clause). cite.py: OK §1985:XIII.3.7.4 GR4 'FINAL is used when the most inclusive control group in the report is not associated with a control data-name'. No 2002-only CONTROL form exists to refuse. Diagnostics cite §2023 clause numbers (wording only).",
+  "evidence": "Read §1985:XIII.3.7.4 GR1-GR4, §1985:XIII.3.20.3 SR4, §1985:XIII.3.20.4 GR4 and GR6, §1985:XIII.3.19.3 SR4 and §1985:XIII.4.7.4 GR1/GR2; cite.py: 'OK  §1985:XIII.3.7.4 GR4  (3.7.4 General Rules)  the text is in GR4', 'OK  §1985:XIII.3.20.4 GR6  (3.20.4 General Rules)  the text is in GR6'. Attacked what the reader's probes did not try with E:/COBOL-coord/scratch/read-xiii374/probes/x1cycles.cob at --std 85 (CONTROL IS FINAL, a PH carrying PAGE-COUNTER, an 8-line page forcing a page advance, two INITIATE/TERMINATE cycles, the second by GENERATE report-name summary reporting): report 'PH 01 / CH-F / D=01 D=02 D=03 / form feed / PH 02 / D=04 .. D=07 / CF-F 028 / PH 01 / CH-F / CF-F 030'. CH FINAL follows the PH at the first GENERATE and is not repeated after the page advance (1985 has no OR PAGE); CF FINAL is presented once per TERMINATE as the last body group; the RESET ON FINAL-level SUM resets between cycles (28, then 10+20=30); INITIATE clears every prior (ReportWriter.Initiate) so CH FINAL is presented again in cycle 2. Identical at --std 2023. Grepped DialectLevel, DialectBehaviors, IsActive, Cite and ConstructRegistry in ReportWriter.cs and in the FINAL members of ReportSectionBinder.cs and VersionConformancePass.cs: the arms on the FINAL path are the ones the reader lists (ScreenResetLevel's < 2002, the VCP TYPE operand gates); the runtime path consults the edition only for NEXT GROUP and GROUP INDICATE, which FINAL does not reach. Every refusal the 1985 text demands for FINAL (after a data-name, twice, CF FINAL or RESET ON FINAL without FINAL in CONTROL, two CF FINAL, CF ON FINAL, bare CF) is refused, and RESET ON FINAL inside CF FINAL is admitted at 85 as SR4 permits. No overturn found.",
   "edition-sites-missed": [],
   "corrected": ""
  }
