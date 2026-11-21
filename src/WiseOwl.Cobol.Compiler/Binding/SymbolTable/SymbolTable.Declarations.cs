@@ -183,7 +183,7 @@ public sealed partial class SymbolTable
             foreach (var record in _data.State.Inherited.RecordAreas.Keys)
             {
                 if (record.CobolName is not { } recordName || Key(recordName) != Key(name)) continue;
-                // The record's own containment distance (a GLOBAL record under a non-GLOBAL FD has no file depth, §2023:13.18.27.3 SR1 b)).
+                // The record's own containment distance (a GLOBAL record under a non-GLOBAL FD has no file depth, §2023:13.18.27.3 SR1b).
                 int depth = _data.State.Inherited.DataRoots.First(r => ReferenceEquals(r.Root, record)).Depth;
                 return _table.NearestInNameSet(name, [], NameSetClass.All) is { } hider && hider.Depth < depth ? hider : null;
             }

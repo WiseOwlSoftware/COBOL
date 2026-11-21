@@ -1317,12 +1317,16 @@ reference formats, and the only place source comments are recognized. Its model:
   "comment" the line's text is decides whether the text moves the LEXER's own mode (a `)` that closes the subscript,
   the picture string that ends PICMODE). PICMODE and SUBSCRIPT therefore skip the line's text and leave a
   `DEBUG_LINE_IN_REGION` marker (`PIC_DEBUG_LINE` / `SUB_DEBUG_LINE`); `Rewrite` returns the FIRST such line whose unit
-  declares the mode, `Frontend.LexAndParse` blanks that line's carrier (`WithCarrierBlanked`: same columns, same
+  declares the mode, `Frontend.LexAndParse` blanks that line's carrier (`WithCarriersBlanked`: same columns, same
   offsets) and lexes the text again, and the loop ends when no region line is source. Only the first per pass,
   because the tokens after a skipped source line were lexed without its text; the tokens up to and including it are
   exact, and a region sits after the unit's SOURCE-COMPUTER paragraph. The fragment re-parses
   (`FragmentParse`, `ReparseArgs`) read a slice of THAT text, in which every carrier left is a comment line, so
   `HideAll` is exactly right for them.
+  §1985:VI.7.3 asks the program to be syntactically correct "with or without" its debugging lines as comments, at `--std 85`
+  only (kb/Work PB5212, PB5990): `Frontend.ReportDebuggingLinesBreakingTheProgram` (the lines that are source, parsed again
+  hidden: COBOL7061) and `ReportDebuggingLinesBreakingTheProgramAsSource` (the lines that are comment, `Rewrite`'s
+  `hiddenLines`, parsed again with their carriers blanked: also COBOL7061) are the two directions; each runs after a clean parse. The as-source reading runs the same token screens source text gets (`Frontend.ReportTokenScreens`: lexer errors, the unterminated-literal screen, the PICTURE separator period and the separator rules) beside the parse, and a hidden line COBOL7060 already refused is left a comment there, so one cause draws one code.
 - **The program-text area is always positions 8–72**, a shorter record read as space-filled to margin R
   (DOC-A.1-157), so a continued literal carries every position to margin R (§2023:6.3.5).
 - **A syntax error beside text the margin cut NAMES the cut** (kb/Work PB2555; COBOL5788). Text past margin R is not program

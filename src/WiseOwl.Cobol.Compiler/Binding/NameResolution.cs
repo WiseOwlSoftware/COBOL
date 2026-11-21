@@ -56,7 +56,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// when the bare name exists nowhere; "does not uniquely identify" when it exists but the qualifiers or an
     /// ambiguity defeat resolution (§2023:8.4.2.2 — qualification shall establish uniqueness). <paramref name="written"/> is the
     /// name <paramref name="dref"/> writes, or null for a reference that writes none (a LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER
-    /// register, whose text as written the wording then quotes).</summary>
+    /// register, whose source text as written, WrittenSource.Of(dref), the wording then quotes).</summary>
     internal void ReportUnidentified(Core.DataReferenceContext dref, WrittenQualifiedName? written)
     {
         string name = written?.Name ?? WrittenSource.Of(dref);

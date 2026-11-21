@@ -35,6 +35,10 @@ internal sealed class LexerErrorListener : IAntlrErrorListener<int>
         int charPositionInLine, string msg, RecognitionException e)
         => _errors.Add((line, charPositionInLine, msg));
 
+    /// <summary>The first text line, among those <paramref name="onLine"/> accepts, of an error the lexer met, or null when none.</summary>
+    public int? FirstLineWhere(Func<int, bool> onLine)
+        => _errors.Where(e => onLine(e.Line)).Select(e => (int?)e.Line).Min();
+
     /// <summary>Report every error the lexer met into <paramref name="diagnostics"/>, located through
     /// <paramref name="lineMap"/> as a syntax error is.</summary>
     public void ReportInto(DiagnosticBag diagnostics, string sourcePath, SourceLineMap lineMap)

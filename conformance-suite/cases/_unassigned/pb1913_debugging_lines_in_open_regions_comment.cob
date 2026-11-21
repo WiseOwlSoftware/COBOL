@@ -10,9 +10,11 @@
       *> SOURCE-COMPUTER clause: every debugging line is a comment, so
       *> the PICTURE string is the one the line after it writes (X(2),
       *> holding "AB") and each subscript is the one written without
-      *> its debugging line: W-E(1) = 1 and W-E(W-I) = 1. Had the D
+      *> its debugging line: W-E(W-I) = 1 twice. Had the D
       *> line of the PICTURE been read as source the clause would be
-      *> PIC X(5) X(2), a syntax error.
+      *> PIC IS X(2), the same picture. Every debugging line is valid
+      *> source as well (section 1985:VI.7.3, kb/Work PB5990), so the
+      *> lines are comments by the missing clause alone.
 000100 IDENTIFICATION DIVISION.
 000200 PROGRAM-ID. PB1913B.
 000300 ENVIRONMENT DIVISION.
@@ -24,13 +26,13 @@
 000900 01  W-TR REDEFINES W-T.
 001000     05  W-E PIC 9 OCCURS 3.
 001100 01  W-PIC PIC
-001200D        X(5)
+001200D        IS
 001300         X(2) VALUE "AB".
 001400 01  W-I PIC 9 VALUE 1.
 001500 01  W-R PIC 9.
 001600 PROCEDURE DIVISION.
        PB4305-LEAD.
-001700     MOVE W-E(1
+001700     MOVE W-E(W-I
 001800D        + 2
 001900         ) TO W-R.
 002000     DISPLAY W-R.
