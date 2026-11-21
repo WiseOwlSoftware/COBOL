@@ -1,4 +1,4 @@
-## 1985 train B: eleven fix branches in one landing; the mint's 195 rows open, the import's 131 closed, every 1985 refusal cites the 1985 rule
+## Entry 3904 — 2026-11-21 14:21 PST — 1985 train B: eleven fix branches in one landing; the mint's 195 rows open, the import's 131 closed, every 1985 refusal cites the 1985 rule
 
 Wave 20262131, one train (owner: one gate and one landing for the group). Merged in order: `train85b-seg` (PB6007,
 PB6008), `train85b-arm` (PB6012), `train85b-editions` (PB5995), `train85b-ext` (PB5996), `train85b-cat` (PB6001),
@@ -53,3 +53,4 @@ The integration fixed three seams: the five moved adjudications and their two ca
 refutation file of slice s-12, and two later groups' messages (COBOL7735, COBOL1627's refuted-expression text) routed
 through the edition's designation. `edition_status.py --edition 1985`: `=== EDITION 1985: NOT COMPLETE — 195 inventory
 GAP · 8 code reads · 52 open work notes · 16 catalog prose holes ===`.
+
