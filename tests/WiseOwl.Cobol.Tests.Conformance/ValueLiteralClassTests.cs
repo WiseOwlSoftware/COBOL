@@ -73,4 +73,46 @@ public sealed class ValueLiteralClassTests
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1657");
     }
+
+    private static string Range(string decl) =>
+        Head + decl + "\nPROCEDURE DIVISION.\nMAIN-PARA.\n    STOP RUN.\n";
+
+    /// <summary>kb/Work PB942: <c>literal-2 THROUGH literal-3</c> is ONE value specification of the format (§1985:VI.5.15.2
+    /// Format 2, §2023:13.18.63.2 Format 3), so a rule both endpoints break is ONE diagnostic naming both — at every edition,
+    /// and under --permissive as one warning. A rule only one endpoint breaks keeps its own message.</summary>
+    [Theory]
+    [InlineData(85, "01 X PIC X(3).\n   88 XR VALUE 1 THRU 9.", "COBOL1657", "literal-2 1 and literal-3 9")]
+    [InlineData(2023, "01 X PIC X(3).\n   88 XR VALUE 1 THRU 9.", "COBOL1657", "literal-2 1 and literal-3 9")]
+    [InlineData(85, "01 Y PIC 9(3).\n   88 YR VALUE \"A\" THRU \"B\".", "COBOL1657", "literal-2 \"A\" and literal-3 \"B\"")]
+    [InlineData(2023, "01 N PIC N(3).\n   88 NR VALUE \"AAA\" THRU \"CCC\".", "COBOL0898", "literal-2 \"AAA\" and literal-3 \"CCC\"")]
+    public void ThroughRange_BothEndpointsBreakingOneRule_IsOneDiagnosticNamingBoth(int edition, string decl, string code, string named)
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(Range(decl), edition);
+        Assert.False(ok);
+        var hits = errors.Where(e => e.Contains(code)).ToList();
+        Assert.True(hits.Count == 1, string.Join("\n", errors));
+        Assert.Contains(named, hits[0]);
+    }
+
+    [Fact]
+    public void ThroughRange_UnderPermissive_IsOneWarningNamingBoth()
+    {
+        var (_, _, warnings) = EditionHarness.CompileFull(Range("01 X PIC X(3).\n   88 XR VALUE 1 THRU 9."), 2023, permissive: true);
+        var hits = warnings.Where(w => w.Contains("COBOL1657")).ToList();
+        Assert.True(hits.Count == 1, string.Join("\n", warnings));
+        Assert.Contains("literal-2 1 and literal-3 9", hits[0]);
+    }
+
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2023)]
+    public void ThroughRange_OneEndpointBreakingARule_KeepsItsOwnMessage(int edition)
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(Range("01 X PIC X(3).\n   88 XR VALUE 1 THRU \"9\"."), edition);
+        Assert.False(ok);
+        var hits = errors.Where(e => e.Contains("COBOL1657")).ToList();
+        Assert.True(hits.Count == 1, string.Join("\n", errors));
+        Assert.Contains("the VALUE literal 1 is numeric", hits[0]);
+        Assert.DoesNotContain("Both endpoints", hits[0]);
+    }
 }

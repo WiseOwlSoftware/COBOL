@@ -228,11 +228,46 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     {
         ErrorsRecorded++;
         var record = Record(DiagnosticSeverity.Error, code, message, flag);
+        if (_muted == 0 && _gathered is { } gathered) gathered.Add(record);
+        else RecordErrorOnce(record);
+    }
+
+    /// <summary>Keep an error record once (the rule <see cref="_reported"/> keeps), unless a <see cref="Muted"/> scope is open.</summary>
+    private void RecordErrorOnce(Diagnostic record)
+    {
         if (_muted == 0 && _reported.Add(KeyOf(record.ToString())))
         {
             _records.Add(record);
             _errorCount++;
         }
+    }
+
+    /// <summary>The records the innermost open <see cref="Gather"/> holds back, or null when none is open.</summary>
+    private List<Diagnostic>? _gathered;
+
+    /// <summary>⛔ ONE CLAUSE, ONE FINDING (kb/Work PB942). Run <paramref name="screen"/> and HOLD BACK the errors and warnings it
+    /// reports, so a caller that screens several operands of ONE clause of a general format can report the clause's findings
+    /// rather than one per operand it walked: a level-88 <c>literal-2 THROUGH literal-3</c> is one value specification of the
+    /// format (§2023:13.18.63.2 Format 3, §1985:VI.5.15.2 Format 2; its connective is §2023:13.18.63.3 SR28 and
+    /// §1985:VI.5.15.3 SR1), so the same rule broken by both of its endpoints is one diagnostic that names both. Every held record reaches the log only through <see cref="Report"/>.
+    /// <see cref="ErrorsRecorded"/> still counts each call, as it does under <see cref="Muted"/>.</summary>
+    internal IReadOnlyList<Diagnostic> Gather(Action screen)
+    {
+        var saved = _gathered;
+        List<Diagnostic> mine = [];
+        _gathered = mine;
+        try { screen(); }
+        finally { _gathered = saved; }
+        return mine;
+    }
+
+    /// <summary>Report a record a <see cref="Gather"/> held back (or a merge of several), by the rules a direct report keeps:
+    /// once per rendered line, nothing under <see cref="Muted"/>, and into an enclosing <see cref="Gather"/> when one is open.</summary>
+    internal void Report(Diagnostic record)
+    {
+        if (_muted == 0 && _gathered is { } gathered) gathered.Add(record);
+        else if (record.IsError) RecordErrorOnce(record);
+        else AddWarningOnce(record);
     }
 
     // ── ⛔ THE REFUSAL LEDGER (kb/Work PB1029) ─────────────────────────────────────────────────────────────────
@@ -373,6 +408,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     private void AddWarningOnce(Diagnostic record)
     {
         if (_muted != 0) return;
+        if (_gathered is { } gathered) { gathered.Add(record); return; }
         string key = KeyOf(record.ToString());
         if (!_reported.Add(key)) return;
         _records.Add(record);

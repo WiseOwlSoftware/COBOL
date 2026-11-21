@@ -3236,9 +3236,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                                 // sentences do not reach a condition-name subject, which is why the subject is
                                 // ValueSubject.ForConditionName, which carries the conditional variable's size only at 85
                                 // (kb/Work PB598, PB5190 — the derivation is on that factory).
-                                var condSubject = ValueSubject.ForConditionName(rp, Edition.DialectLevel);
-                                rawLo = ScreenValueLiteral(rp, rawLo, $"condition-name '{name}'", condSubject);
-                                rawHi = ScreenValueLiteral(rp, rawHi, $"condition-name '{name}'", condSubject);
+                                (rawLo, rawHi) = ScreenRangeLiterals(rp, rawLo, rawHi, $"condition-name '{name}'",
+                                    ValueSubject.ForConditionName(rp, Edition.DialectLevel));
                             }
                             cond.Values.Add((rawLo, rawHi));
                         }
@@ -3316,6 +3315,36 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             DeclareUserWord(name, UserWordKind.ConditionName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
             RegisterCondition(cond);
         }
+    }
+
+    /// <summary>⛔ ONE THROUGH PHRASE, ONE FINDING PER RULE (kb/Work PB942). Screen both endpoints of a level-88
+    /// <c>literal-2 THROUGH literal-3</c> through <see cref="ScreenValueLiteral"/> — each endpoint must be screened, since
+    /// either can break a rule the other keeps — and report what the CLAUSE breaks: a rule both endpoints break is ONE
+    /// diagnostic that names both, because the range is one value specification of the format (§2023:13.18.63.2 Format 3;
+    /// §1985:VI.5.15.2 Format 2), and a rule only one endpoint breaks keeps its own message, which names that literal. Before
+    /// this the screen reported per call, so <c>01 X PIC X(3). 88 XR VALUE 1 THRU 9.</c> drew two COBOL1657 at one position
+    /// at every edition. The merge is by code and severity over the held records (<see cref="EditionContext.Gather"/>), so a
+    /// rule added to the screen is merged the day it is added.</summary>
+    /// <returns>The two endpoints as the screen rewrote them (the text later readers store).</returns>
+    private (string Lo, string Hi) ScreenRangeLiterals(PicInfo pic, string rawLo, string rawHi, string where, ValueSubject subject)
+    {
+        string lo = rawLo, hi = rawHi;
+        var loFound = Edition.Gather(() => lo = ScreenValueLiteral(pic, rawLo, where, subject));
+        var hiFound = Edition.Gather(() => hi = ScreenValueLiteral(pic, rawHi, where, subject));
+        var hiLeft = hiFound.ToList();
+        foreach (var finding in loFound)
+        {
+            int twin = hiLeft.FindIndex(h => h.Code == finding.Code && h.Severity == finding.Severity);
+            if (twin < 0) { Edition.Report(finding); continue; }
+            hiLeft.RemoveAt(twin);
+            Edition.Report(finding with
+            {
+                Message = $"{finding.Message}. Both endpoints of the THROUGH phrase break this rule: literal-2 {rawLo.Trim()} "
+                    + $"and literal-3 {rawHi.Trim()}",
+            });
+        }
+        foreach (var finding in hiLeft) Edition.Report(finding);
+        return (lo, hi);
     }
 
     /// <summary>THE <c>[ IN alphabet-name-1 ]</c> phrase of a condition-name VALUE clause (ISO §2023:13.18.63.2 formats
