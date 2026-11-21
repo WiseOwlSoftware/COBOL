@@ -1,4 +1,4 @@
-## The 1985 reads recorded: 526 of the 657 minted rows close on their own verdicts (GAP 657 to 131)
+## Entry 3903 — 2026-11-21 10:36 PST — The 1985 reads recorded: 526 of the 657 minted rows close on their own verdicts (GAP 657 to 131)
 
 kb/Work PB5453, decision PB6003. The read fleet's 21 slices and its second read (`s-99`) are the tracked read records
 `tests/version-matrix/lineage-reads-1985/` (657 rules). From them `record_verdicts.py --edition 1985` records 526 rows:
@@ -15,3 +15,4 @@ the suite holds (`HELD`), and a re-run after its batch was applied joins the wit
 The 131 rows left are claimed by PB5453 with what each needs (74 refusal probes without a control, 14 probes needing
 library staging, PB6016; 11 presentation rows for a ruling). New notes: PB6015 (cite.py's two designator paths), PB6016
 (run_probe --with); the catalog leads join PB6001.
+
