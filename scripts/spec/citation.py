@@ -133,7 +133,24 @@ SUBLIST_RULE = re.compile(rf"({'|'.join(RULE_KINDS)}) ?L(\d+)\.(\d+)")
 #: yet: the tree writes `item <n>` for it and for other lists alike (`§2023:5.4 item 2` names no printed item), so the
 #: form waits until those citations are re-pointed (kb/Work PB5449's report).
 UNIT_RULE = r"p\d+|Table \d+ row \d+"
-RULE = rf"(?:(?:{'|'.join(RULE_KINDS)}) ?(?:\d+(?:[a-z0-9.]*[a-z0-9])?|L\d+\.\d+)|Format \d+|{UNIT_RULE}|Table \d+)"
+#: ⛔ THE ONE GRAMMAR OF A NUMBERED RULE DESIGNATOR (kb/Work PB5446): its kind, then the restarted list it names
+#: (`GRL2.4`) or its ordinal (`GR6`), then its glued SUB-ITEM PATH, letters and numbers, each optionally after a `.`
+#: (`GR6c`, `GR6d.2`, `GR3a1`, `GRL2.4d.1`). A path that opens with a number takes its `.` (`GR6.1`, never `GR61`;
+#: `cite.render_path`). The parser here (`RULE`), the checker's reading of its parts (`cite.DESIGNATOR`) and the writer
+#: of a suggestion (`cite.RuleBook.where`: a designator and `render_path`) are this one pattern, so a designator the
+#: checker suggests is one the parser reads: they disagreed until PB5446 (`GRL2.4d.1` was suggested and refused, the
+#: parser taking a sub-item path only after a plain ordinal). Its groups are named for `cite.DESIGNATOR`; `RULE` embeds
+#: it unnamed (`_unnamed`), being itself embedded in larger patterns.
+NUMBERED_DESIGNATOR = (rf"(?P<kind>{'|'.join(RULE_KINDS)}) ?(?:L(?P<list>\d+)\.(?P<lord>\d+)|(?P<n>\d+))"
+                       r"(?P<path>(?:\.?(?:[a-z]|\d+))*)")
+
+
+def _unnamed(pattern: str) -> str:
+    """`pattern` with each named group made a non-capturing one, to embed it beside other named groups."""
+    return re.sub(r"\(\?P<\w+>", "(?:", pattern)
+
+
+RULE = rf"(?:{_unnamed(NUMBERED_DESIGNATOR)}|Format \d+|{UNIT_RULE}|Table \d+)"
 _RULE = re.compile(RULE + r"\Z")
 
 #: THE ONE CITATION PATTERN. `edition`/`locator` are the edition form (the locator read loosely here, and per edition

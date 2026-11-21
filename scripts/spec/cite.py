@@ -223,9 +223,8 @@ FAILURE_KINDS = {
 #: The rule kinds a designator names, as a reader says them.
 KIND_NAMES = {"SR": "syntax rule", "GR": "general rule", "AR": "argument rule", "RV": "returned-value rule"}
 #: A numbered rule designator: its kind, the restarted list it names (`GRL2.1`) or its ordinal, and its glued sub-item
-#: path (`GR6d.2`: letters and numbers, each optionally after a `.`).
-DESIGNATOR = re.compile(rf"(?P<kind>{'|'.join(citation.RULE_KINDS)})(?:L(?P<list>\d+)\.(?P<lord>\d+)|(?P<n>\d+)"
-                        r"(?P<path>(?:\.?(?:[a-z]|\d+))*))")
+#: path (`GR6d.2`, `GRL2.4d.1`). The parser's own grammar (`citation.NUMBERED_DESIGNATOR`, kb/Work PB5446), never a copy.
+DESIGNATOR = re.compile(citation.NUMBERED_DESIGNATOR)
 FORMAT_DESIGNATOR = re.compile(r"Format (\d+)")
 TABLE_DESIGNATOR = re.compile(r"Table (\d+)")
 #: A unit of unnumbered text (kb/Work PB5449; citation.UNIT_RULE): a margin paragraph, a table's body row, a prose item.
@@ -1023,6 +1022,40 @@ _PLANTED_ROWS = [
 ]
 
 
+def _refused(text: str) -> bool:
+    """Whether the citation parser refuses `text`: a designator outside the one grammar is no citation (kb/Work PB5446)."""
+    try:
+        citation.parse(text)
+    except citation.CitationError:
+        return True
+    return False
+
+
+def _unparsed_suggestions(held) -> list[str]:
+    """Every designator `RuleBook.where` can print (each rule's designator, and with each sub-item path it prints) that
+    the citation parser refuses or the checker reads as no designator form: empty when the writer and the reader share
+    one grammar (kb/Work PB5446). A prose item's unit designator (`item 25`, `item L2.3`) is not read: the parser takes the
+    form only once the tree's loose `item <n>` citations are re-pointed (kb/Work PB5449 item 4; measured 2026-11-21: read
+    as designators, 1,456 of them name no unit), so until then it is that note's, named here and nowhere else."""
+    bad = []
+    for edition, book in held:
+        for locator, rules in book.rules.items():
+            for rule in rules:
+                if rule.unit and rule.designator.startswith("item "):
+                    continue
+                for path in [(), *book.item_paths(rule)]:
+                    text = f"§{edition}:{locator} {rule.designator + render_path(path)}"
+                    try:
+                        cited = citation.parse(text)
+                    except citation.CitationError:
+                        bad.append(text)
+                        continue
+                    if not (rule.unit or DESIGNATOR.fullmatch(cited.rule) or FORMAT_DESIGNATOR.fullmatch(cited.rule)
+                            or TABLE_DESIGNATOR.fullmatch(cited.rule)):
+                        bad.append(text)
+    return bad
+
+
 def self_test() -> int:
     """Each guard is shown to FIRE on its defect and to stay SILENT on its neighbour (kb/Work PB308, PB309, PB5317), in
     every edition the tree holds: 1985, 2002 and 2023 against their catalogs, 2014 in LABEL MODE, and a planted 2002
@@ -1041,6 +1074,8 @@ def self_test() -> int:
 
     q85 = "The input procedure may consist of any procedure needed to select, modify, or copy the records"
     q85b = "The file referenced by file-name-1 is sequenced"
+    q85l = ("An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest "
+            "record allowed by the RECORD IS VARYING clause")
     q23 = "Otherwise, arithmetic-expression-1 is evaluated to produce an algebraic value"
     q02 = "For the purpose of determining its length, identifier-1 is treated as if it were a sending data item"
     q14 = "If LEFT is specified, integer-1 is the leftmost column of the printable item"
@@ -1171,7 +1206,8 @@ def self_test() -> int:
         ("2023: a format the statement prints passes, one it does not fails",
          v("§2023:14.9.39 Format 4").ok and fails("§2023:14.9.39 Format 40", None, "no-format")),  # citation-audit: example
         ("2023: a designator form the checker does not read fails by name, never on the clause alone",
-         fails("§2023:14.9.8.4 GR1..2", q23, "designator-not-understood")),  # citation-audit: example
+         resolve(citation.Citation(2023, "14.9.8.4", "GR1..2"), q23).kind == "designator-not-understood"
+         and _refused("§2023:14.9.8.4 GR1..2")),  # citation-audit: example
         # 2002 against its catalog (kb/Work PB5256): no verdict marked; 2014 has none yet: LABEL MODE, every verdict marked.
         ("2002: GR99 fails", fails("§2002:14.8.21.3 GR99", q02, "no-ordinal")),  # citation-audit: example
         ("2002: the wrong ordinal fails naming GR1; GR1 passes, against the catalog (unmarked)",
@@ -1188,6 +1224,13 @@ def self_test() -> int:
          and v("§2014:14.9.23.2 SR2", "File-name-1 shall be described in a sort-merge file description entry").ok),
         ("every row of every held catalog is anchored in its transcription (the drift test)",
          all(not b.unanchored for _e, b in held) and any(b.catalog for _e, b in held)),
+        ("every designator the suggester can print parses, in every held edition: one grammar (kb/Work PB5446)",
+         not (unparsed := _unparsed_suggestions(held))
+         or print(f"  {len(unparsed)} unparsed, first: {unparsed[:3]}") is not None),
+        ("a sub-item of a restarted list is suggested, parsed and checked at its sub-item (kb/Work PB5446)",
+         (got := v("§1985:VII.1.3.5 GR4", q85l)).kind == "text-not-in-rule" and got.suggestion is not None
+         and (s := got.suggestion.split(" ", 1)[1]).startswith("GRL2.4") and len(s) > len("GRL2.4")
+         and v(got.suggestion, q85l).ok and fails(got.suggestion.split(" ")[0] + " GRL2.4z", q85l, "no-sub-item")),  # citation-audit: example
         ("fires EMPTY-NEEDLE (check)", fails("§2023:7.1", "| + | + | - |", "quote-too-short", EMPTY_NEEDLE)),
         ("fires EMPTY-NEEDLE (find)", find(lines, cls, "| + | - |", 2023)[0] == 1),
         ("fires on a table row of two real words", fails("§2023:15.43.4", "| S999 | +999 |", "quote-too-short")),
