@@ -8,7 +8,7 @@
       *> kb/Work PB5803. §1985:XII.3.3 SR4: "Pseudo-text-2 may contain zero,
       *> one, or more text words" (cite.py --check: OK). COBOL-85 has no
       *> compiler directive lines, so the line ">>XYZ" that pseudo-text-2
-      *> holds below is one text word (§1985:III.2 item 3), and the REPLACE
+      *> holds below is one text word (§1985:III.2 GRL4.3), and the REPLACE
       *> statement is legal. Its pseudo-text-1 matches nothing, so the
       *> program DISPLAYs "[OK  ]". The leg can fail: the edition-blind
       *> directive recognizer refused the statement (COBOL2697, COBOL2572)

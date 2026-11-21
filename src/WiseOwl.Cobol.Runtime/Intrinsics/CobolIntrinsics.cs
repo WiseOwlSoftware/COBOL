@@ -112,7 +112,7 @@ public static partial class CobolIntrinsics
     // EC-ARGUMENT-FUNCTION, fatal, under the edition's checking rules; with checking off the intake's truncated integer is the
     // result the implementor defines, DOC-A.1-124). COBOL-85 has no exception conditions; the result is undefined (§1985:I.1.6), and
     // the Correction Amendment's clarification "allows an implementation of amended third Standard COBOL to terminate processing"
-    // (§1985:p.B-46), so there the run unit is terminated (docs/conformance D-INTEGER-ARGUMENT-SCREEN). The emitter passes
+    // (§1993:p.B-46), so there the run unit is terminated (docs/conformance D-INTEGER-ARGUMENT-SCREEN). The emitter passes
     // `terminates` from the edition it compiles for, and renders the check only for an undecided argument
     // (IntrinsicArgumentRules.NeedsRunTimeIntegerCheck), so a proven or literal argument carries no test it cannot fail.
 
@@ -177,7 +177,7 @@ public static partial class CobolIntrinsics
         string what = $"FUNCTION {function} argument-{argument} is {value}, which is not an integer";
         if (terminates)
             throw new Exceptions.CobolImplementorFatalException(what + " (§1989:A.2.2 AR4: an integer argument must always result in an "
-                + "integer value; the run unit is terminated, as §1985:p.B-46 allows)");
+                + "integer value; the run unit is terminated, as §1993:p.B-46 allows)");
         Exceptions.ExceptionState.ArgumentError(what + " (ISO §2023:15.3 AR6, AR14)");
     }
 

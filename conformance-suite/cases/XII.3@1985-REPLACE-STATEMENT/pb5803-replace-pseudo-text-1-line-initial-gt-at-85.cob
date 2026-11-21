@@ -9,7 +9,7 @@
       *> more text words" (cite.py --check: OK). COBOL-85 has no compiler
       *> directive lines, so a line that begins with two greater-than signs is
       *> text: ">>XYZ" is a sequence of contiguous COBOL characters bounded by
-      *> separators, a text word (§1985:III.2 item 3, cite.py --check: OK).
+      *> separators, a text word (§1985:III.2 GRL4.3, cite.py --check: OK).
       *> Pseudo-text-1 below is that one text word, so the REPLACE statement
       *> is legal and replaces the ">>XYZ" word of the program text
       *> (§1985:XII.3.4 GR1: "Each matched occurrence of pseudo-text-1 in

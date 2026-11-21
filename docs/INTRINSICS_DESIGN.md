@@ -989,7 +989,7 @@ site `NotAnIntegerArgument` names the function, the argument and the value. From
 `ExceptionState.ArgumentError` (§2023:15.3 AR14; fatal when checking is enabled, otherwise the landing's truncated integer is the
 implementor's result, DOC-A.1-124); at COBOL-85, which has no exception conditions and leaves the result undefined (§1985:I.1.6), the run
 unit is terminated through `CobolImplementorFatalException`, as the Correction Amendment's clarification allows ("allows an
-implementation of amended third Standard COBOL to terminate processing", §1985:p.B-46; docs/conformance D-INTEGER-ARGUMENT-SCREEN). A
+implementation of amended third Standard COBOL to terminate processing", §1993:p.B-46; docs/conformance D-INTEGER-ARGUMENT-SCREEN). A
 proven argument, a literal and a scale-0 integer carrier take no check. Goldens `pb5889_run_time_check_85`, `pb5889_run_time_check`,
 `pb5889_run_time_check_unchecked`, and the 23 converted refusals below. The landing's own test stays the run-time net under
 `--permissive`, which admits a refused operand at an integer position as a coercion extension.

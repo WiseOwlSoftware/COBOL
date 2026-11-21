@@ -281,7 +281,7 @@ public sealed class FileBoundaryTests : IDisposable
 
     /// <summary>⛔ THE KEY RANGE'S STATUS IS THE EDITION'S (kb/Work PB5125). §2023:14.9.51.4 GR29 b) answers '34' for a key
     /// below 1 or above the highest permitted number, and so does the 2014 text (§2014:14.9.47.3 GR26 b)); the 2002 text
-    /// (§2002:14.8.47.3 GR29 b)) and §1985:VIII.1.3.4 item (3) c)
+    /// (§2002:14.8.47.3 GR29 b)) and §1985:VIII.1.3.4 GRL2.3c
     /// know only the write beyond the externally defined boundaries, '24', the invalid key condition. Below 2014 the attempt
     /// is therefore no permanent error: the next statement on the file runs, and nothing is released.</summary>
     [Theory]

@@ -1524,7 +1524,7 @@ public sealed class CopyProcessor(
         }
 
         /// <summary>COBOL2572 — a text-word made of a character outside the COBOL character repertoire, below COBOL-2014: a
-        /// text-word is "any other sequence of contiguous COBOL characters bounded by separators" (§2002:7.1.1.4 item 3; §1985:III.2 item 3),
+        /// text-word is "any other sequence of contiguous COBOL characters bounded by separators" (§2002:7.1.1.4 item 3; §1985:III.2 GRL4.3),
         /// so such characters form no text-word and no operand holds one (kb/Work PB5608). From 2014 a text-word is a sequence of
         /// characters "from the compile-time coded character set" (§2014:7.2.1.4 item 3), which the screen does not judge.</summary>
         private void TextWordCharacters(in TextWord word)

@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB5075 - the X3.23-1985 composite of operands. Each
       *> operand holds at most 18 digits and the composite must not
-      *> exceed 18 (§1985:VI.6.4.4 item 2). For MULTIPLY and DIVIDE it
+      *> exceed 18 (§1985:VI.6.4.4 SR2). For MULTIPLY and DIVIDE it
       *> is "the superimposition of all receiving data items of a given
       *> statement" (§1985:VI.6.20.3 SR3; §1985:VI.6.11.3 SR3), so
       *> F18 (PIC V9(18)) times or into R18 (PIC 9(18)) composes the

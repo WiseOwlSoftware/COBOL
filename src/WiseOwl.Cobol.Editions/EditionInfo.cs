@@ -46,7 +46,7 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// and WiseOwl COBOL allows the later editions' 65,535 there (inventory row 1985-SR-XII.2.3-8).</summary>
     public int MaxTextWordLength => Year == 2002 ? 322 : 65_535;
 
-    /// <summary>Whether a text-word is a sequence of contiguous COBOL CHARACTERS (§1985:III.2 item 3 "Any other sequence of contiguous COBOL
+    /// <summary>Whether a text-word is a sequence of contiguous COBOL CHARACTERS (§1985:III.2 GRL4.3 "Any other sequence of contiguous COBOL
     /// characters"; §2002:7.1.1.4 item 3 "any other sequence of contiguous COBOL characters bounded by separators") rather than, from 2014,
     /// "any other character or sequence of contiguous characters from the compile-time coded character set" (§2014:7.2.1.4 item 3): below
     /// 2014 a character outside the edition's COBOL character repertoire is in no text-word (kb/Work PB5608).</summary>
@@ -112,7 +112,7 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// <summary>Whether the edition HAS compiler directive lines (kb/Work PB5803): COBOL-2002 introduced them ("A compiler directive
     /// shall be preceded only by zero, one, or more space characters", §2002:7.2.2 SR2; §2023:7.3.3 SR2), and COBOL-85 has none, so
     /// there a line that begins <c>&gt;&gt;</c> is ordinary text: a sequence of contiguous COBOL characters bounded by separators, a
-    /// text-word (§1985:III.2 item 3), which pseudo-text may hold (§1985:XII.3.3 SR3 / SR4).</summary>
+    /// text-word (§1985:III.2 GRL4.3), which pseudo-text may hold (§1985:XII.3.3 SR3 / SR4).</summary>
     public bool HasCompilerDirectives => Year >= 2002;
 
     /// <summary>Whether a COPY statement's text-name and library-name are USER-DEFINED WORDS (kb/Work PB5482): at COBOL-85 they

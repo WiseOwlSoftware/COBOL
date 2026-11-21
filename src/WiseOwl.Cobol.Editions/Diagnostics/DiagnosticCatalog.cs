@@ -9417,9 +9417,9 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ArithmeticCompositeTooWide = new(
         "COBOL0805", "arithmetic-composite-too-wide", EditionSeverity.Error,
         "The composite of the operands of an arithmetic statement spans more than 31 digits (18 at COBOL-85). §2023:14.7.7 rule 2 a): \"the "
-        + "composite of operands shall not contain more than 31 digits.\" §1985:VI.6.4.4 item 2: \"must not contain more than 18 "
+        + "composite of operands shall not contain more than 31 digits.\" §1985:VI.6.4.4 SR2: \"must not contain more than 18 "
         + "decimal digits\"; the 1985 MULTIPLY and DIVIDE composite superimposes the receiving data items only.",
-        "ISO §2023:14.7.7 rule 2 a); §1985:VI.6.4.4 item 2");
+        "ISO §2023:14.7.7 rule 2 a); §1985:VI.6.4.4 SR2");
 
     /// <summary>COBOL0806 — arithmetic standard binary unsupported (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor ArithmeticStandardBinaryUnsupported = new(
