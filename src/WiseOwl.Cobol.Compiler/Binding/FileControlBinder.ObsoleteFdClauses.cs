@@ -35,7 +35,7 @@ public sealed partial class FileControlBinder
             string name = word.GetText();
             using var _ = Edition.At(word);
             Edition.Error(DiagnosticCatalog.FileDescriptionClauseOperand, $"DATA RECORDS {name}: '{name}' is not the name of an "
-                + $"01 record description of file '{fileName}' (ISO §1985:VII.3.5.3 SR1: \"Data-name-1 is the name of a data "
+                + $"01 record description of file '{fileName}' (§1985:VII.3.5.3 SR1: \"Data-name-1 is the name of a data "
                 + "record and must have an 01 level-number record description, with the same name, associated with it.\")");
         }
     }
@@ -132,16 +132,16 @@ public sealed partial class FileControlBinder
         {
             if (_host.ResolveClauseOperand(operand, "VALUE OF", at) is not { } item) continue;
             string? fault = item.Pic is { Usage: Usage.Index } || item.OwnUsage is Usage.Index
-                ? "is described with the USAGE IS INDEX clause (ISO §1985:VII.3.9.3 SR1: \"nor can data-name-1 be an item "
+                ? "is described with the USAGE IS INDEX clause (§1985:VII.3.9.3 SR1: \"nor can data-name-1 be an item "
                   + "described with the USAGE IS INDEX clause\")"
                 : item.IsTableElement
                     ? $"is a table element (its description contains, or is subordinate to, {item.SubscriptArity} OCCURS clause"
-                      + $"{(item.SubscriptArity == 1 ? "" : "s")}), which can only be referenced subscripted, and a VALUE OF clause cannot subscript it (ISO §1985:VII.3.9.3 SR1: "
+                      + $"{(item.SubscriptArity == 1 ? "" : "s")}), which can only be referenced subscripted, and a VALUE OF clause cannot subscript it (§1985:VII.3.9.3 SR1: "
                       + "\"cannot be subscripted\"; §1985:IV.4.3.8.2.3 SR4: \"Each table element reference must be subscripted except\" a SEARCH subject, a REDEFINES "
                       + "clause or an OCCURS KEY IS phrase, none of which this is)"
                 : item.Section is not EntrySection.WorkingStorage
                     ? $"is defined in the {(item.Section is { } s ? DataBinder.SectionWords(s) : "data division")}, not in the "
-                      + "Working-Storage Section (ISO §1985:VII.3.9.3 SR2: \"Data-name-1 must be in the Working-Storage Section.\")"
+                      + "Working-Storage Section (§1985:VII.3.9.3 SR2: \"Data-name-1 must be in the Working-Storage Section.\")"
                     : null;
             if (fault is null) continue;
             using var _ = Edition.At(at);

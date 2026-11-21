@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 namespace WiseOwl.Cobol.Frontend.Parsing;
 
 /// <summary>
@@ -33,10 +34,10 @@ public static class MnemonicNameSlot
     public static string SuffixMessage(string statement, string name, string format1985, string format2023,
         Func<string, string, string> cite)
         => $"'{name}' stands in the mnemonic-name-1 position of {statement}, and a mnemonic-name "
-           + cite("is associated with an implementor-name in the SPECIAL-NAMES paragraph (ISO §1985:VI.4.5.3 SR2)",
+           + cite("is associated with an implementor-name in the SPECIAL-NAMES paragraph (§1985:VI.4.5.3 SR2)",
                 "\"identifies an implementor-defined device-name, feature-name, or switch-name\" (ISO §2023:8.3.2.2.16)")
            + " — a word with no data "
            + "description, so it takes no subscript or reference modification, and no qualified format of "
            + cite("§1985:IV.4.3.8.1", "§2023:8.4.2.2.2") + " names one. "
-           + $"ISO {cite(format1985, format2023)} writes mnemonic-name-1 alone; write '{name}'.";
+           + $"{WiseOwl.Cobol.Editions.EditionInfo.Designated(cite(format1985, format2023))} writes mnemonic-name-1 alone; write '{name}'.";
 }

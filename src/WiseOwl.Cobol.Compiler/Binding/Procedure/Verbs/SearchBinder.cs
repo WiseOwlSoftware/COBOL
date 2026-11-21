@@ -220,8 +220,8 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
                 {
                     ctx.Edition.Error(DiagnosticCatalog.SearchVaryingOperand,
                         $"SEARCH VARYING identifier-2 '{text}' is subscripted by '{table.IndexNames[0]}', the first "
-                        + $"index-name in the INDEXED phrase of '{table.CobolName}'s OCCURS clause, which ISO "
-                        + ctx.Edition.Edition.Cite("§1985:VI.6.22.3 SR2", "§2023:14.9.37.3 SR5") + " prohibits");
+                        + $"index-name in the INDEXED phrase of '{table.CobolName}'s OCCURS clause, which "
+                        + ctx.Edition.Edition.CiteRule("§1985:VI.6.22.3 SR2", "§2023:14.9.37.3 SR5") + " prohibits");
                     admitted = false;
                 }
                 if (!admitted) return BoundRejected.Reported(ctx.Edition);

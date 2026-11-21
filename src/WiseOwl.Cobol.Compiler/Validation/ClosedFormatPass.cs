@@ -8,6 +8,7 @@ using WiseOwl.Cobol.Editions.Diagnostics; // DiagnosticCatalog
 using WiseOwl.Cobol.Frontend.Cst;         // ClosedFormats — the ONE table of closed general formats
 using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore
 using WiseOwl.Cobol.Frontend.Parsing;     // WrittenSource — the opening item quoted as written
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Validation;
 
@@ -118,8 +119,8 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
             using var at = _edition.At(period.Symbol);
             _edition.Error(DiagnosticCatalog.ParagraphInteriorPeriod,
                 $"{row.Subject} paragraph: a separator period follows '{WrittenOpening(sentences[i].Entries[^1])}' "
-                + $"and the paragraph goes on with '{WrittenOpening(sentences[i + 1].Entries[0])}' — the ISO "
-                + $"{row.FormatCitation(_edition.Edition)} general format prints {row.PrintedIn(_edition.Edition)} ({ParagraphPeriod.PunctuationRule(_edition.Edition)}); delete this period");
+                + $"and the paragraph goes on with '{WrittenOpening(sentences[i + 1].Entries[0])}' — the "
+                + $"{EditionInfo.Designated(row.FormatCitation(_edition.Edition))} general format prints {row.PrintedIn(_edition.Edition)} ({ParagraphPeriod.PunctuationRule(_edition.Edition)}); delete this period");
         }
         if (sentences[^1].Period is null)
         {
@@ -127,7 +128,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
             using var at = _edition.At(last.Stop);
             _edition.Error(DiagnosticCatalog.ParagraphPeriodMissing,
                 $"{row.Subject} paragraph: it ends after '{WrittenOpening(last)}' without a separator period — the "
-                + $"ISO {row.FormatCitation(_edition.Edition)} general format prints {row.PrintedIn(_edition.Edition)} ({ParagraphPeriod.PunctuationRule(_edition.Edition)}); write the period");
+                + $"{EditionInfo.Designated(row.FormatCitation(_edition.Edition))} general format prints {row.PrintedIn(_edition.Edition)} ({ParagraphPeriod.PunctuationRule(_edition.Edition)}); write the period");
         }
     }
 
@@ -237,30 +238,11 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
         // refusal says so (COBOL7654, kb/Work PB5920) rather than calling it a stray paragraph or clause.
         if (ctx is CobolParserCore.UnrecognizedClauseContext run && ClosedFormats.ComputerNameSlotOf(run) is { } paragraph)
         {
-            _edition.Error(DiagnosticCatalog.ComputerNameNotASystemName, ComputerNameRefusal(word, paragraph));
+            _edition.Error(DiagnosticCatalog.ComputerNameNotASystemName, ClosedFormats.ComputerNameRefusal(word, paragraph, _edition.Edition));
             return null;
         }
         _edition.Error(format.Diagnostic, format.Refusal(word, ClosedFormats.OwnerName(ctx), _edition.Edition));
         return null;   // nothing below an error production is diagnosed — one diagnostic per word run
-    }
-
-    /// <summary>What §2023:8.3.2.3.1 (and its 2002 and 2014 twins) say of a system-name's formation.</summary>
-    private const string SystemNameFormation =
-        "\"The implementor may define rules for the formation of a system-name that add restrictions to the rules for formation of a COBOL word\"";
-
-    /// <summary>The COBOL7654 sentence: the paragraph whose computer-name-1 the run stands in, the rule that makes the
-    /// computer-name a system-name in the edition in force, and what the standard says a system-name is. The 1985 text
-    /// prints the rule once per paragraph (§1985:VI.4.3.3 SR1, §1985:VI.4.4.3 SR1); the later texts define the system-name
-    /// types in one subclause.</summary>
-    private string ComputerNameRefusal(string word, string paragraph)
-    {
-        string rule = _edition.Edition.Cite(
-            $"§1985:{(paragraph == "SOURCE-COMPUTER" ? "VI.4.3.3" : "VI.4.4.3")} SR1 \"Computer-name is a system-name.\"",
-            "§2023:8.3.2.3.1: " + SystemNameFormation,
-            y2002: "§2002:8.3.1.1.2: " + SystemNameFormation,
-            y2014: "§2014:8.3.1.1.2: " + SystemNameFormation);
-        return $"'{word}' is written where the {paragraph} paragraph's computer-name-1 stands, and it is no system-name — "
-            + $"a computer-name is a system-name, which is a COBOL word, never a literal or a number (ISO {rule})";
     }
 
     /// <summary>A SPECIAL-NAMES FOR phrase written AFTER its clause's definition (kb/Work PB977) — the second error

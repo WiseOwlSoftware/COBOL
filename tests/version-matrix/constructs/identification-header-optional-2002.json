@@ -5,6 +5,7 @@
  "display": "a source unit without the IDENTIFICATION DIVISION header",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO §2023:11.2.1 (Identification division structure: `[ IDENTIFICATION DIVISION. ]`) — 2002 relaxation of the '85 required header",
+ "rule1985": "§1985:VI.3.1 (the Identification Division is required)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

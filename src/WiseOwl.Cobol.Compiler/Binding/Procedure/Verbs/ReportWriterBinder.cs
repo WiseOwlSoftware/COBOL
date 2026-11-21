@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -279,13 +280,13 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         if (MoveTable16.SenderClassRefusal(operand, ctx.Edition.Edition) is { } classRefusal)
         {
             ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: the implicit MOVE of {ImplicitMoveRule()} "
-                + $"from identifier-1 is invalid — {classRefusal} (ISO {SourceMoveRule()})");
+                + $"from identifier-1 is invalid — {classRefusal} ({EditionInfo.Designated(SourceMoveRule())})");
             return true;
         }
         if (printable is null || MoveTable16.Validity(operand, Table16Operand.Of(printable), printable, MoveTable16.CitationsOf(ctx.Edition.Edition)) is not { } refusal)
             return false;
         ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: the implicit MOVE of {ImplicitMoveRule()} "
-            + $"from identifier-1 to the printable item is invalid — {refusal.Reason} (ISO {SourceMoveRule()})");
+            + $"from identifier-1 to the printable item is invalid — {refusal.Reason} ({EditionInfo.Designated(SourceMoveRule())})");
         return true;
     }
 
@@ -386,7 +387,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             if (ctx.Data.Symbols.Identify(rn, NameClass.Report, report: true)?.Symbol is not ReportModel r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"INITIATE '{rn.GetText()}': report-name-1 shall be defined by a report "
-                    + $"description entry in the report section (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.4.3 SR1", "§2023:14.9.21.3 SR1")})"
+                    + $"description entry in the report section ({ctx.Edition.Edition.CiteRule("§1985:XIII.4.4.3 SR1", "§2023:14.9.21.3 SR1")})"
                     + HidingOfReportName(rn.GetText()));
             if (RejectContainedReportFile(r, $"INITIATE {r.Name}", ContainedReportRule.Initiate) is { } notGlobal) return notGlobal;
             members.Add(new BoundInitiate([r]));
@@ -408,14 +409,14 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             if (summary.Controls.Count == 0)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNeedsControl, $"GENERATE {name}: the report-name form requires a CONTROL "
-                    + "clause in the report description entry (ISO "
-                    + ctx.Edition.Edition.Cite("§1985:XIII.4.3.3 SR2", "§2023:14.9.16.3 SR2") + ")");
+                    + "clause in the report description entry ("
+                    + ctx.Edition.Edition.CiteRule("§1985:XIII.4.3.3 SR2", "§2023:14.9.16.3 SR2") + ")");
             // §1985:XIII.3.20.3 SR6 — the report-name form needs a report description with no more than one detail report
             // group; COBOL-2002 and later keep only the CONTROL-clause condition above.
             if (ctx.Edition.DialectLevel < 2002 && summary.Groups.Count(g => g.Kind == ReportGroupKindModel.Detail) is > 1 and var details)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateDetailCount, $"GENERATE {name}: the report description entry "
                     + $"holds {details} detail report groups; when a GENERATE report-name statement is specified, the report "
-                    + "description entry must include no more than one detail report group (ISO §1985:XIII.3.20.3 SR6)");
+                    + "description entry must include no more than one detail report group (§1985:XIII.3.20.3 SR6)");
             if (RejectContainedReportFile(summary, $"GENERATE {name}", ContainedReportRule.GenerateReport) is { } notGlobal) return notGlobal;
             // Summary reporting (GR2). §1985:XIII.3.20.4 GR11: a report with exactly one detail report group processes the
             // statement "as though a GENERATE data-name statement were being executed" for it, so the subtotalling designated
@@ -442,7 +443,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         }
         // Match.None is UNDIAGNOSED by contract ("leaves the 'this is not a report group' diagnostic to the
         // caller") — so this is the report, never a deferral (kb/Work PB909).
-        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"{where}: '{name}' names neither a detail report group (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.3.3 SR1", "§2023:14.9.16.3 SR1")}) "
+        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"{where}: '{name}' names neither a detail report group ({ctx.Edition.Edition.CiteRule("§1985:XIII.4.3.3 SR1", "§2023:14.9.16.3 SR1")}) "
             + "nor a report description entry (SR2)" + (qualifier is null ? HidingOfReportName(name) : ""));
     }
 
@@ -467,7 +468,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             if (ctx.Data.Symbols.Identify(rn, NameClass.Report, report: true)?.Symbol is not ReportModel r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"TERMINATE '{rn.GetText()}': report-name-1 shall be defined by a report "
-                    + $"description entry in the report section (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.7.3 SR1", "§2023:14.9.46.3 SR1")})"
+                    + $"description entry in the report section ({ctx.Edition.Edition.CiteRule("§1985:XIII.4.7.3 SR1", "§2023:14.9.46.3 SR1")})"
                     + HidingOfReportName(rn.GetText()));
             if (RejectContainedReportFile(r, $"TERMINATE {r.Name}", ContainedReportRule.Terminate) is { } notGlobal) return notGlobal;
             members.Add(Presenting(new BoundTerminate([r])));
@@ -506,7 +507,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         if (ctx.Enclosing.Declarative?.ReportGroup is not { } group)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReportSuppressContext,
-                $"SUPPRESS PRINTING may appear only in a USE BEFORE REPORTING procedure (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.6.3 SR1", "§2023:14.9.45.3 SR1")})");
+                $"SUPPRESS PRINTING may appear only in a USE BEFORE REPORTING procedure ({ctx.Edition.Edition.CiteRule("§1985:XIII.4.6.3 SR1", "§2023:14.9.45.3 SR1")})");
         }
         var report = ctx.Data.State.Reports.Visible.First(r => r.Groups.Contains(group));
         return new BoundSuppress(report, group);
@@ -531,7 +532,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             ? BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ContainedReportFileNotGlobal,
                 $"{where}: report '{report.Name}' is defined in a containing program and its file description entry "
                 + $"'{file.CobolName}' does not contain a GLOBAL clause; the file description entry associated with a "
-                + $"containing program's report shall contain a GLOBAL clause (ISO {rule.In(ctx.Edition.Edition)})")
+                + $"containing program's report shall contain a GLOBAL clause ({rule.In(ctx.Edition.Edition)})")
             : null;
 
     /// <summary>The rule a report-driving verb restates for a containing program's report, in each edition that has it
@@ -544,9 +545,9 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         public static readonly ContainedReportRule GenerateReport = new("§2002:14.8.15.2 SR4", "§2014:14.9.15.2 SR4", "§2023:14.9.16.3 SR4");
         public static readonly ContainedReportRule GenerateGroup = new("§2002:14.8.15.2 SR3", "§2014:14.9.15.2 SR3", "§2023:14.9.16.3 SR3");
 
-        /// <summary>The rule's citation in <paramref name="edition"/>, from COBOL-2002 on (the check runs from 2002 alone).</summary>
+        /// <summary>The rule's citation in <paramref name="edition"/> as a message prints it (<c>EditionInfo.CiteRule</c>), from COBOL-2002 on (the check runs from 2002 alone).</summary>
         public string In(WiseOwl.Cobol.Editions.EditionInfo edition) => edition.Has(2002)
-            ? edition.Cite(Y2002, Y2023, Y2002, Y2014)
+            ? edition.CiteRule(Y2002, Y2023, Y2002, Y2014)
             : throw new InvalidOperationException("the contained-report file rule begins at COBOL-2002 (kb/Work PB5080)");
     }
 
@@ -561,8 +562,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             ? BoundRejected.Report(ctx.Edition, DiagnosticCatalog.UseBeforeReportingRestriction,
                 $"{verb}: this statement is in USE BEFORE REPORTING declarative section "
                 + $"'{ctx.Enclosing.Declarative!.SectionName}' — \"The GENERATE, INITIATE, or TERMINATE statements "
-                + ctx.Edition.Edition.Cite("must", "shall") + " not appear in a paragraph within a USE BEFORE REPORTING procedure\" (ISO "
-                + ctx.Edition.Edition.Cite("§1985:XIII.4.9.3 SR3", "§2023:14.9.49.3 SR10") + ")")
+                + ctx.Edition.Edition.Cite("must", "shall") + " not appear in a paragraph within a USE BEFORE REPORTING procedure\" ("
+                + ctx.Edition.Edition.CiteRule("§1985:XIII.4.9.3 SR3", "§2023:14.9.49.3 SR10") + ")")
             : null;
 
     /// <summary>ISO §2023:14.9.49.3 SR11 (kb/Work PB363): "A USE BEFORE REPORTING procedure shall not alter the value of
@@ -602,7 +603,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             + $"'{ctx.Enclosing.Declarative!.SectionName}' — \"A USE BEFORE REPORTING procedure "
             + ctx.Edition.Edition.Cite("must", "shall") + " not alter the value of any control data item\" ("
             + ctx.Edition.Edition.Cite(
-                "ISO §1985:XIII.4.9.3 SR4)",
+                "§1985:XIII.4.9.3 SR4)",
                 "ISO §2023:14.9.49.3 SR11)",
                 y2002: "ISO §2002:14.8.45.2 SR11)",
                 y2014: "ISO §2014:14.9.45.2 SR11)"));

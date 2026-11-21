@@ -1161,8 +1161,8 @@ public static partial class ConditionalCompilationProcessor
         /// <summary>COBOL2650 — a compilation-variable-name that is a §2023:8.12 compiler-directive word (kb/Work PB1366).</summary>
         public void DirectiveWordAsName(string name, string where, int edition, CompilerDirectiveWords.Site site) =>
             Emit(Editions.Diagnostics.DiagnosticCatalog.DirectiveWordAsName.Code,
-                $"'{name}' is a compiler-directive word (ISO {CompilerDirectiveWords.TableCitation(edition)}) and shall not be used as a "
-                + $"compilation-variable-name in {where} (ISO {CompilerDirectiveWords.Citation(edition, site)})");
+                $"'{name}' is a compiler-directive word ({EditionInfo.Designated(CompilerDirectiveWords.TableCitation(edition))}) and shall not be used as a "
+                + $"compilation-variable-name in {where} ({EditionInfo.Designated(CompilerDirectiveWords.Citation(edition, site))})");
 
         /// <summary>COBOL2651 — a DEFINE directive that does not match its general format (kb/Work PB1367).</summary>
         public void DefineMalformed(string complaint) =>

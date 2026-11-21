@@ -89,9 +89,7 @@ public sealed class SourceUnitFacts
                 dateCompiled.Add(new ResultantPoint(context.Start.Line, context.Start.Column));
                 commentEntries.Add(new ResultantPoint(context.Start.Line, context.Start.Column));
                 return;
-            case CobolParserCore.AuthorParagraphContext or CobolParserCore.InstallationParagraphContext
-                or CobolParserCore.DateWrittenParagraphContext or CobolParserCore.SecurityParagraphContext
-                or CobolParserCore.RemarksParagraphContext:
+            case ParserRuleContext when Parsing.CommentEntryParagraph.Is(context):
                 commentEntries.Add(new ResultantPoint(context.Start.Line, context.Start.Column));
                 return;
             // A statement the parse began and recovered from consumed at least its first token; one that consumed none (its

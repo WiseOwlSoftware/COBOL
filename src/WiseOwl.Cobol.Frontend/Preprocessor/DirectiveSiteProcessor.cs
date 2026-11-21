@@ -87,9 +87,9 @@ public static class DirectiveSiteProcessor
             diagnostics.ReportError(DiagnosticCatalog.DirectivePlacementViolation.Code,
                 named
                     ? $">>{site.Word} {subject.DirectiveWords[0]} is written where {subject.DirectiveWords[0]} must not be specified "
-                      + $"(ISO §2023:7.3.20.3 SR2, §2023:7.3.22.3 SR2) — \"{placement.Text}\" (ISO {placement.Citation})"
+                      + $"(ISO §2023:7.3.20.3 SR2, §2023:7.3.22.3 SR2) — \"{placement.Text}\" ({EditionInfo.Designated(placement.Citation)})"
                     : $">>{site.Word} is written after the first compilation unit began — \"{placement.Text}\" "
-                      + $"(ISO {placement.Citation}); write it before the first IDENTIFICATION DIVISION of the compilation group",
+                      + $"({EditionInfo.Designated(placement.Citation)}); write it before the first IDENTIFICATION DIVISION of the compilation group",
                 lineMap?.Locate(site.Line, site.Column, sourcePath) ?? new SourceLocation(sourcePath, 0, site.Line - 1, site.Column), default);
         }
     }

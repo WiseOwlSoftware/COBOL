@@ -1,1 +1,1 @@
-{"refuse-at": ["85"], "expect": "violates ISO §1985:VI.6.23.4 GR3b: \"If identifier-1 references an index data item"}
+{"refuse-at": ["85"], "expect": "violates §1985:VI.6.23.4 GR3b: \"If identifier-1 references an index data item"}

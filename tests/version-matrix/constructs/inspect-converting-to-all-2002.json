@@ -4,6 +4,7 @@
  "display": "an INSPECT CONVERTING whose TO operand is a figurative constant beginning with ALL",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO §2023:14.9.22.3 SR3; ISO/IEC 1989:2002 Annex F.2 item 75",
+ "rule1985": "§1985:VI.6.18.2 (the CONVERTING phrase prints no ALL)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

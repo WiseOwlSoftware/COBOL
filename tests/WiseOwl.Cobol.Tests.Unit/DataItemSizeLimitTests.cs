@@ -108,7 +108,7 @@ public sealed class DataItemSizeLimitTests
             Assert.Contains($"'T': its size, {size} character positions", report);
             Assert.Contains("134,217,728", report);
             // The rule that admits the limits of an implementation, in the edition in force (kb/Work PB4950; review R3-1).
-            Assert.Contains(edition == 85 ? "ISO §1985:I.1.7: \"It is recognized that these limits will vary" : "ISO §2023:4.5: \"Translation may be unsuccessful", report);
+            Assert.Contains(edition == 85 ? "§1985:I.1.7: \"It is recognized that these limits will vary" : "ISO §2023:4.5: \"Translation may be unsuccessful", report);
         }
     }
 

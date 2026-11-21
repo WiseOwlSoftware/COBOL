@@ -165,7 +165,7 @@ internal static partial class PlacementRules
             : p.SentencesInParagraph != 1
                 ? $"is one of {p.SentencesInParagraph} sentences in its paragraph"
             : null,
-        Cite1985: "ISO §1985:VI.6.14.3 SR1",
+        Cite1985: "§1985:VI.6.14.3 SR1",
         Shall1985: "The EXIT statement must appear only in a sentence by itself and comprise the only sentence in the paragraph");
 
     /// <summary>§2023:14.9.17.3 SR2 — a Format 1 GO TO ends its consecutive sequence of imperative statements.</summary>
@@ -174,7 +174,7 @@ internal static partial class PlacementRules
         "A Format 1 GO TO that appears in a consecutive sequence of imperative statements shall be the last "
         + "statement in that sequence",
         FollowedByAnImperative,
-        Cite1985: "ISO §1985:VI.6.15.3 SR4",
+        Cite1985: "§1985:VI.6.15.3 SR4",
         Shall1985: "If a GO TO statement represented by format 1 appears in a consecutive sequence of imperative statements within a sentence, it must appear as the last statement in that sequence");
 
     /// <summary>§2023:14.9.42.3 SR1 — STOP ends its block of code (read as the same imperative run; D-SEQ).</summary>
@@ -182,7 +182,7 @@ internal static partial class PlacementRules
         DiagnosticCatalog.StopNotLast, "ISO §2023:14.9.42.3 SR1",
         "The STOP statement shall be specified only as the last statement in any discreet block of code",
         FollowedByAnImperative,
-        Cite1985: "ISO §1985:VI.6.24.3 SR2",
+        Cite1985: "§1985:VI.6.24.3 SR2",
         Shall1985: "If a STOP RUN statement appears in a consecutive sequence of imperative statements within a sentence, it must appear as the last statement in that sequence");
 
     /// <summary>§1985:VI.6.15.3 SR3 — the X3.23-1985 target-less GO TO is the whole of its paragraph (kb/Work PB5087). The

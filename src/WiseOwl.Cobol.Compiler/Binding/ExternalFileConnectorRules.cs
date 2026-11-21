@@ -79,10 +79,10 @@ internal static class ExternalFileConnectorRules
                 if (f.Organization == FileOrganization.Relative && f.RelativeKeyOperand is not null
                     && f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts) is null)
                     NotExternal(edition, externalName, f.ClauseOrEntryAt(f.RelativeKeyAt), "RELATIVE KEY", f.RelativeKeyOperand.Value.Name,
-                        EditionSeverity.Error, "ISO " + edition.Edition.Cite("§1985:VIII.2.4.4 GR8", "§2023:12.4.5.3 GR1 h)", y2002: "§2002:12.3.4.3 GR1 i)"));
+                        EditionSeverity.Error, edition.Edition.CiteRule("§1985:VIII.2.4.4 GR8", "§2023:12.4.5.3 GR1 h)", y2002: "§2002:12.3.4.3 GR1 i)"));
                 if (f.Padding is { DataName: { } pad, Item: not null } p && p.Item.ExternalItemIdentity() is null)
                     NotExternal(edition, externalName, p.At, "PADDING CHARACTER", pad.Name,
-                        EditionSeverity.Error, "ISO " + edition.Edition.Cite("§1985:VII.2.7.4 GR6", "§2002:12.3.4.3 GR1 h)"));
+                        EditionSeverity.Error, edition.Edition.CiteRule("§1985:VII.2.7.4 GR6", "§2002:12.3.4.3 GR1 h)"));
                 // The 1985 text has the rule too (§1985:VII.3.7.4 GR11c, kb/Work PB5982), an error as the PADDING screen above is. The
                 // 2002 and 2014 texts carry it (§2002:13.3.4.3 GR2c2, §2014:13.4.4.3 GR2c2) and neither is screened here: 2002 is frozen
                 // and 2014 waits for the other editions (kb/Work PB5982).
@@ -91,7 +91,7 @@ internal static class ExternalFileConnectorRules
                         if (op.DataName is { } opName && op.Item?.ExternalItemIdentity() is null)   // literal operands are exempt
                             NotExternal(edition, externalName, f.ClauseOrEntryAt(op.At), "LINAGE", opName.Name,
                                 is2023 ? newIn2023 : EditionSeverity.Error,
-                                "ISO " + edition.Edition.Cite("§1985:VII.3.7.4 GR11c", "§2023:14.8.4.2; Annex E.2 item 9"));
+                                edition.Edition.CiteRule("§1985:VII.3.7.4 GR11c", "§2023:14.8.4.2; Annex E.2 item 9"));
             }
             // The agreement rules relate two describers; one has nothing to agree with (a lone program's external file
             // is checked against the other runtime elements at run time), except the rules an entry owes itself: its own
@@ -122,8 +122,8 @@ internal static class ExternalFileConnectorRules
                     DiagnosticCatalog.ExternalRelativeKeyConsistency, EditionSeverity.Error,
                     $"external relative file '{externalName}': all corresponding SELECT statements in the run unit "
                     + "shall specify RELATIVE KEY naming the same external data item, the same name at the same character "
-                    + "positions of the external record (ISO "
-                    + edition.Edition.Cite("§1985:VIII.2.4.4 GR8", "§2023:12.4.5.3 GR1 h)", y2002: "§2002:12.3.4.3 GR1 i)") + ")",
+                    + "positions of the external record ("
+                    + edition.Edition.CiteRule("§1985:VIII.2.4.4 GR8", "§2023:12.4.5.3 GR1 h)", y2002: "§2002:12.3.4.3 GR1 i)") + ")",
                     edition.Edition.Cite("§1985:VIII.2.4.4 GR8", "§2023:12.4.5.3 GR1 h)", y2002: "§2002:12.3.4.3 GR1 i)"), externalName);
 
             // Every other specification: the entry identity's segments, each entry against EVERY earlier describer, by each
@@ -142,8 +142,8 @@ internal static class ExternalFileConnectorRules
                     edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,
                         $"external file '{externalName}': this file control entry and an earlier one in the run unit "
                         + $"that describes the file connector differ in {mine[d].Clause} — every entry of an external "
-                        + "file connector specifies it the same way (ISO "
-                        + edition.Edition.Cite("§1985:VII.2.3.4 GR1, §1985:VII.2.7.4 GR6, §1985:VII.2.8.4 GR6, §1985:VIII.2.3.4 GR1, §1985:IX.2.3.4 GR1",
+                        + "file connector specifies it the same way ("
+                        + edition.Edition.CiteRule("§1985:VII.2.3.4 GR1, §1985:VII.2.7.4 GR6, §1985:VII.2.8.4 GR6, §1985:VIII.2.3.4 GR1, §1985:IX.2.3.4 GR1",
                             "§2023:12.4.5.3 GR1", y2002: "§2002:12.3.4.3 GR1") + ")");
             }
             if (edition.DialectLevel < 2002) CheckFileDescriptions(edition, externalName, conns);
@@ -194,7 +194,7 @@ internal static class ExternalFileConnectorRules
                             edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,
                                 $"external file '{externalName}': this file description entry does not write {rule.Clause}, and another entry in the run unit "
                                 + $"that describes the file connector writes it (\"{w.Written}\") — every entry of an external file connector writes it if any does "
-                                + $"(ISO {rule.AbsentCite})");
+                                + $"({EditionInfo.Designated(rule.AbsentCite!)})");
                     continue;
                 }
                 if (reference is not { } first)
@@ -204,7 +204,7 @@ internal static class ExternalFileConnectorRules
                     using (edition.At(f.ClauseOrEntryAt(mine.At)))
                         edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,
                             $"external file '{externalName}': this file description entry specifies {rule.Clause} and its own record descriptions are not all the same length "
-                            + $"(\"{mine.Written}\") — the entries of an external file connector agree in it (ISO {rule.Cite})");
+                            + $"(\"{mine.Written}\") — the entries of an external file connector agree in it ({EditionInfo.Designated(rule.Cite)})");
                     continue;
                 }
                 if (rule.Agree(first.Value, mine.Value)) continue;
@@ -212,7 +212,7 @@ internal static class ExternalFileConnectorRules
                     edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,
                         $"external file '{externalName}': this file description entry and the first one in the run unit that writes {rule.Clause} "
                         + $"differ in what they specify (\"{mine.Written}\" against \"{first.Written}\") — the entries of an external file connector agree "
-                        + $"in it (ISO {rule.Cite})");
+                        + $"in it ({EditionInfo.Designated(rule.Cite)})");
             }
         }
     }

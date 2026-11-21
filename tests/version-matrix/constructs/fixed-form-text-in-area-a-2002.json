@@ -4,6 +4,7 @@
  "display": "program text other than an area-A item or a level-number that begins its fixed-form line in area A",
  "diagnosticCode": "COBOL3735",
  "citation": "ANSI X3.23-1985 reference format, area B; ISO §2023:6.3.1, §2023:6.3.5: no areas from 2002",
+ "rule1985": "§1985:IV.7.3.3 (sentences and entries begin in area B), §1985:IV.7.2.2 (area A of a continuation line must be blank)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL3735",

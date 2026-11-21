@@ -425,7 +425,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeMethodNotDefined,
                     $"INVOKE {(isSuper ? "SUPER" : "SELF")} \"{methodName}\": class '{searchRoot.Name}' (and "
                     + $"its inheritance chain) does not define a{(host.OoInFactory ? " factory" : "n instance")} "
-                    + "method named '" + methodName + $"' (ISO {selfRule})");
+                    + "method named '" + methodName + $"' ({EditionInfo.Designated(selfRule)})");
             }
             var selfForm = isSuper ? InvokeForm.Super : InvokeForm.Self;
             // §2023:14.8.3.3 rule 2 b) 2.: a method invoked with SELF or SUPER is invoked through ACTIVE-CLASS — the
@@ -768,7 +768,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             $"{where}: class '{cls.Name}' does not inherit from the standard class BASE, so its factory interface "
             + "has no method New — New belongs to BASE's factory interface, BaseFactoryInterface (ISO §2023:16.2), and a "
             + "class has it only through INHERITS (§2023:9.3.9); write `INHERITS FROM BASE` in its CLASS-ID paragraph "
-            + $"(or in a superclass's) with `CLASS BASE` in that class's REPOSITORY paragraph (ISO {rule})");
+            + $"(or in a superclass's) with `CLASS BASE` in that class's REPOSITORY paragraph ({EditionInfo.Designated(rule)})");
 
     /// <summary>Bind an invocation of a method of the standard class BASE (ISO §2023:16.2) — New or FactoryObject. Their
     /// §2023:16.2 signatures take no parameters and return an item described with ACTIVE-CLASS (New: <c>object reference
@@ -925,7 +925,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeMethodNotDefined,
                 $"INVOKE '{recvName}' \"{method}\": class '{cls.Name}' (and its inheritance "
                 + $"chain) does not define {(rdesc.Factory ? "a factory" : "an instance")} method named '"
-                + method + $"' (ISO {typedRule}; compile-time for a typed receiver — the runtime analog is "
+                + method + $"' ({EditionInfo.Designated(typedRule)}; compile-time for a typed receiver — the runtime analog is "
                 + $"EC-OO-METHOD, §2023:14.9.23.4 GR7b){hint}");
         }
         // A method of the standard class BASE through a typed reference: the object it runs on is described by the

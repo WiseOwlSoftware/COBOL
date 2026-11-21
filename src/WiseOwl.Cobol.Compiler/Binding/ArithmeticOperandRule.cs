@@ -30,6 +30,6 @@ internal static class ArithmeticOperandRule
     /// <summary>The clause naming where an index data item may be referenced, in the edition's own words.</summary>
     public static string IndexDataItemRule(this EditionInfo edition) =>
         edition.Cite(
-            "ISO §1985:VI.5.14.3 SR5 admits an index data item only in a SEARCH or SET statement, a relation condition, or the USING phrase of a Procedure Division header or CALL statement",
+            "§1985:VI.5.14.3 SR5 admits an index data item only in a SEARCH or SET statement, a relation condition, or the USING phrase of a Procedure Division header or CALL statement",
             "ISO §2023:13.18.60.3 SR10 admits an index data item only in SEARCH/SET, a relation condition, or an intrinsic argument");
 }

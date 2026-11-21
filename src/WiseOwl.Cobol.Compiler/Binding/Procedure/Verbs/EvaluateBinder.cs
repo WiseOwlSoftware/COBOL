@@ -156,7 +156,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         ctx.Edition.Error(DiagnosticCatalog.EvaluateObjectNegationNotPermitted,
             $"the selection object '{WrittenSource.Of(item)}' writes NOT before the word {word}; "
             + ctx.Edition.Edition.Cite(
-                "ISO §1985:VI.6.13.2 admits the bracketed NOT only before identifier-3, literal-3 and arithmetic-expression-1, "
+                "§1985:VI.6.13.2 admits the bracketed NOT only before identifier-3, literal-3 and arithmetic-expression-1, "
                 + $"with the THROUGH phrase that ends their range, never before {word}",
                 "ISO §2023:14.9.13.2 admits the bracketed NOT only before identifier-2, literal-2, arithmetic-expression-2, "
                 + $"boolean-expression-2 and a range-expression, never before {word}"));
@@ -319,8 +319,8 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             ? "§1985:VI.6.13.3 SR6b" : "§1985:VI.6.13.3 SR6a";
         ctx.Edition.Error(DiagnosticCatalog.EvaluateOperandCombinationInvalid,
             $"the selection subject is {EvaluateOperandCombinations.Label(s)} and the selection object "
-            + $"'{WrittenSource.Of(item)}' is {EvaluateOperandCombinations.Label(o)}; ISO "
-            + ctx.Edition.Edition.Cite($"{rule85} does not admit that combination.",
+            + $"'{WrittenSource.Of(item)}' is {EvaluateOperandCombinations.Label(o)}; "
+            + ctx.Edition.Edition.CiteRule($"{rule85} does not admit that combination.",
                 "§2023:14.9.13.3 SR10 Table 15 marks that combination invalid."));
         return false;
     }
@@ -341,7 +341,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             $"the WHEN phrase '{WrittenSource.Of(phrase)}' writes {objects} selection "
             + (objects == 1 ? "object" : "objects") + $" but the EVALUATE statement has {subjects} selection "
             + (subjects == 1 ? "subject" : "subjects")
-            + $"; ISO {ctx.Edition.Edition.Cite("§1985:VI.6.13.3 SR5", "§2023:14.9.13.3 SR2")} requires the two counts to be equal (write ANY for a position the phrase "
+            + $"; {ctx.Edition.Edition.CiteRule("§1985:VI.6.13.3 SR5", "§2023:14.9.13.3 SR2")} requires the two counts to be equal (write ANY for a position the phrase "
             + "does not test — " + ctx.Edition.Edition.Cite("§1985:VI.6.13.3 SR6c", "SR7 c") + ")");
     }
 
@@ -397,8 +397,8 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                 ok = false;
                 ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
                     $"the two operands of the range-expression '{WrittenSource.Of(range)}' are of class "
-                    + $"{IntrinsicArgumentRules.ClassNameOf(lo, lc)} and class {IntrinsicArgumentRules.ClassNameOf(hi, hc)}; ISO "
-                    + ctx.Edition.Edition.Cite("§1985:VI.6.13.3 SR4", "§2023:14.9.13.3 SR4")
+                    + $"{IntrinsicArgumentRules.ClassNameOf(lo, lc)} and class {IntrinsicArgumentRules.ClassNameOf(hi, hc)}; "
+                    + ctx.Edition.Edition.CiteRule("§1985:VI.6.13.3 SR4", "§2023:14.9.13.3 SR4")
                     + " requires them to be of the same class (§2023:8.5.2.1 Table 2 — CLASS, not "
                     + "category, so alphabetic and alphanumeric are two classes)");
             }
@@ -413,8 +413,8 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
                 $"the two operands of the range-expression '{WrittenSource.Of(range)}' are of class "
                 + $"{IntrinsicArgumentRules.DescribeClasses(lo)} and class {IntrinsicArgumentRules.DescribeClasses(hi)}, "
-                + "which share no class; ISO "
-                + ctx.Edition.Edition.Cite("§1985:VI.6.13.3 SR4", "§2023:14.9.13.3 SR4")
+                + "which share no class; "
+                + ctx.Edition.Edition.CiteRule("§1985:VI.6.13.3 SR4", "§2023:14.9.13.3 SR4")
                 + " requires them to be of the same class (a figurative "
                 + "constant other than ZERO represents a character value, §2023:8.3.3.6.4 GR1)");
         }

@@ -50,9 +50,9 @@ internal static class SortKeyAdmission
     /// position), so a MERGE key refusal never quotes SORT's clause (kb/Work PB2512).</summary>
     public static string Clause(SortKeyRules rules, EditionInfo edition) => rules switch
     {
-        SortKeyRules.FileSort => edition.Cite("ISO §1985:XI.4.4.3 SR4", "ISO §2023:14.9.40.3 SR6"),
+        SortKeyRules.FileSort => edition.Cite("§1985:XI.4.4.3 SR4", "ISO §2023:14.9.40.3 SR6"),
         SortKeyRules.TableSort => "ISO §2023:14.9.40.3 SR14",
-        _ => edition.Cite("ISO §1985:XI.4.1.3 SR4", "ISO §2023:14.9.24.3 SR4"),
+        _ => edition.Cite("§1985:XI.4.1.3 SR4", "ISO §2023:14.9.24.3 SR4"),
     };
 
     /// <summary>The lettered sub-rule of the key rule that is the same obligation in both printings, in the edition in force
@@ -117,7 +117,7 @@ internal static class SortKeyAdmission
             return $"{verb} key '{name}' is an index data item: "
                 + edition.Cite(
                     "\"An index data item can be referenced explicitly only in a SEARCH or SET statement, a relation condition, "
-                    + "the USING phrase of a Procedure Division header, or the USING phrase of a CALL statement\" (ISO §1985:VI.5.14.3 SR5; ",
+                    + "the USING phrase of a Procedure Division header, or the USING phrase of a CALL statement\" (§1985:VI.5.14.3 SR5; ",
                     "\"An index data item may be referenced explicitly only in a SEARCH or SET statement, a relation condition, an "
                     + "intrinsic function argument, an inline method invocation argument, the USING phrase of a procedure division "
                     + "header, or the USING phrase of a CALL or INVOKE statement\" (ISO §2023:13.18.60.3 SR10; ")

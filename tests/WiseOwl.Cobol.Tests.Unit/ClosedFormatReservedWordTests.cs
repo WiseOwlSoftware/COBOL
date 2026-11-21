@@ -71,11 +71,9 @@ public sealed class ClosedFormatReservedWordTests
         // §2023:12.3.7.2 — the SPECIAL-NAMES paragraph: the INNERMOST open list names it, not the configuration section's.
         { "special-names", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           GLOBAL.\n" + Proc,
           "COBOL1970", "'GLOBAL' is not a clause of the SPECIAL-NAMES paragraph" },
-        // §2023:12.3.6.2 — the OBJECT-COMPUTER paragraph, whose clauses may follow its period with no computer-name.
-        // (SOURCE-COMPUTER prints nothing but the name there, so `SOURCE-COMPUTER. GLOBAL.` reads as a configuration
-        // section paragraph — the configuration-section case below.)
-        { "object-computer", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. GLOBAL.\n" + Proc,
-          "COBOL1970", "'GLOBAL' is not a clause of the OBJECT-COMPUTER paragraph" },
+        // §2023:12.3.6.2 — the OBJECT-COMPUTER paragraph. A reserved word right after its header (`OBJECT-COMPUTER. GLOBAL.`)
+        // stands where computer-name-1 does and is no system-name (§2023:8.3.2.1 1); §1985:III.2), so it is the computer-name
+        // refusal COBOL7654, not a closed-list refusal (kb/Work PB5985): EditionCitationTests.ReservedWordAsComputerName_IsNoSystemName.
         // §2023:12.3.5.2 / §2023:12.3.6.2 AFTER the computer-name (kb/Work PB3370): XYZ could be the name or an unrecognized
         // configuration paragraph, both readings fail at GLOBAL, and the error-time prediction used to take the
         // configuration section's (a bare COBOL0307). The paragraphs' superset-parsed second period makes the name win.

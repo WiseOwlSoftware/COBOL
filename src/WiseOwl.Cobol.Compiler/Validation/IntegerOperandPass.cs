@@ -395,7 +395,7 @@ internal static class IntegerOperandRules
         + "counts or positions something the compiler lays out (docs/CONFORMANCE.md §3 'Integer operands and host "
         + "carriers'). "
         + new EditionInfo(dialectLevel).Cite(
-            "ISO §1985:I.1.7: \"Standard COBOL specifies no upper limit on such things as the number of statements in a program and "
+            "§1985:I.1.7: \"Standard COBOL specifies no upper limit on such things as the number of statements in a program and "
             + "the number of operands permitted in certain statements\" — the limits of an implementation",
             "ISO §2023:4.5: \"Translation may be unsuccessful due to factors other than lack of conformance of a compilation group\" — the limits of an implementation");
 

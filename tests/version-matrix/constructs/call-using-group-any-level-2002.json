@@ -4,6 +4,7 @@
  "display": "a CALL USING argument that is a group item with a level-number other than 01 or 77",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO §2023:14.9.4.3 SR3; ISO/IEC 1989:2002 Annex F.2 item 10",
+ "rule1985": "§1985:X.5.2.3 SR3 (each USING operand a level 01 or level 77 data item)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

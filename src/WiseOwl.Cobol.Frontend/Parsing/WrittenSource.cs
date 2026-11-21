@@ -12,12 +12,18 @@ public static class WrittenSource
 {
     /// <summary>The source extent of <paramref name="ctx"/> as written. A node continued across source lines keeps
     /// ONE space per separator run, and a node with no complete source extent (an error-recovered one) falls back
-    /// to its token text rather than throwing inside a diagnostic.</summary>
+    /// to its token text rather than throwing inside a diagnostic.
+    /// <para>A COMMENT-ENTRY PARAGRAPH (<see cref="CommentEntryParagraph.Is"/>) is quoted by its header alone, <c>AUTHOR.</c>:
+    /// the logical text holds the header and an implied terminating period the reference-format conversion writes for the
+    /// discarded entry (<c>AUTHOR. .</c>, ReferenceFormatProcessor.ConvertCommentEntryCandidate), so the extent after the
+    /// header's own period is not what the programmer wrote (kb/Work PB6009).</para></summary>
     public static string Of(Antlr4.Runtime.ParserRuleContext ctx)
     {
         if (ctx.Start is not { StartIndex: >= 0 } start || ctx.Stop is not { } stop || stop.StopIndex < start.StartIndex
             || start.InputStream is null)
             return ctx.GetText();
+        if (CommentEntryParagraph.HeaderPeriod(ctx) is { StopIndex: >= 0 } headerPeriod && headerPeriod.StopIndex >= start.StartIndex)
+            stop = headerPeriod;
         string raw = start.InputStream.GetText(new Antlr4.Runtime.Misc.Interval(start.StartIndex, stop.StopIndex));
         return raw.AsSpan().IndexOfAny('\r', '\n') < 0 ? raw
             : System.Text.RegularExpressions.Regex.Replace(raw, @"\s*[\r\n]\s*", " ");

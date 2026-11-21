@@ -80,7 +80,7 @@ internal sealed class CheckStorageLimitsPass : IBindPass
 
     /// <summary>The rule that admits an implementation's limits, as the message quotes it in the edition in force (kb/Work PB4950).</summary>
     private const string LimitsOfAnImplementation1985 =
-        "ISO §1985:I.1.7: \"It is recognized that these limits will vary from one implementation of Standard COBOL to another and may "
+        "§1985:I.1.7: \"It is recognized that these limits will vary from one implementation of Standard COBOL to another and may "
         + "prevent the successful translation of some programs that meet the requirements of Standard COBOL\"";
 
     private const string LimitsOfAnImplementation =

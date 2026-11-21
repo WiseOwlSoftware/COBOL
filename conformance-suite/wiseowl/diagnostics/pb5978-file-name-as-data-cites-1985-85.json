@@ -1,1 +1,1 @@
-{"refuse-at": ["85"], "expect": "is declared as a file-name (a file control entry, ISO §1985:VII.2.3), not as a data item"}
+{"refuse-at": ["85"], "expect": "is declared as a file-name (a file control entry, §1985:VII.2.3), not as a data item"}

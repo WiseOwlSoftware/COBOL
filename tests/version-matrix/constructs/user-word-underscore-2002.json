@@ -5,6 +5,7 @@
  "display": "the underscore in a COBOL word",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO §2023:8.3.2.1 (word character set: hyphen AND underscore; neither first nor last) — 2002 introduction, the '85 set being hyphen-only",
+ "rule1985": "§1985:IV.4.2.2.1.1 (a user-defined word's characters: letters, digits and the hyphen)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

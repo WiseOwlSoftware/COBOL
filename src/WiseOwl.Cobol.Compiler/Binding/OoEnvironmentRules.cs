@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -40,7 +41,7 @@ internal static class OoEnvironmentRules
         void Refuse(ParserRuleContext at, string requirement, string rule)
         {
             using var _ = edition.At(at);
-            edition.Error(DiagnosticCatalog.OoEnvironmentPlacement, $"{what}: {requirement} (ISO {rule})");
+            edition.Error(DiagnosticCatalog.OoEnvironmentPlacement, $"{what}: {requirement} ({EditionInfo.Designated(rule)})");
         }
 
         if (kind == OoDefinition.Method && environment.configurationSection() is { } configuration)

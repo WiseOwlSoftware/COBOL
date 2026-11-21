@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -211,8 +212,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         using (ctx.Edition.At(pn))   // the HEADER's position — a paragraph in a section is collected under its section's At
             ctx.Edition.Error(DiagnosticCatalog.QualifiedProcedureHeader,
                 $"{kind}-name '{ProcedureNameShape.AsWritten(pn)}' is written qualified in its "
-                + $"{kind} header — a {kind}-name that is being defined is written alone (ISO "
-                + ctx.Edition.Edition.Cite("§1985:IV.6.4.1.4.2: \"section-name SECTION.\", \"paragraph-name.\"",
+                + $"{kind} header — a {kind}-name that is being defined is written alone ("
+                + ctx.Edition.Edition.CiteRule("§1985:IV.6.4.1.4.2: \"section-name SECTION.\", \"paragraph-name.\"",
                     "§2023:14.2.1: \"section-name-1 SECTION.\", \"paragraph-name-1.\"")
                 + "); qualification ("
                 + ctx.Edition.Edition.Cite("§1985:IV.4.3.8.1", "§2023:8.4.2.2.2") + ") belongs to a "
@@ -605,8 +606,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                         {
                             ctx.Edition.Error(DiagnosticCatalog.DebugAllOperandIsProcedure, $"declarative section "
                                 + $"'{section.Name}': USE FOR DEBUGGING ON ALL REFERENCES OF '{anm}' names a paragraph or "
-                                + "section, and identifier-1 of ALL [REFERENCES OF] identifier-1 is a data item (ISO "
-                                + ctx.Edition.Edition.Cite("§1985:XV.3.2.2", "§2023:14.4.1") + ": a "
+                                + "section, and identifier-1 of ALL [REFERENCES OF] identifier-1 is a data item ("
+                                + ctx.Edition.Edition.CiteRule("§1985:XV.3.2.2", "§2023:14.4.1") + ": a "
                                 + $"procedure-name refers to a paragraph or section); write ON {anm} for a procedure-name subject");
                             continue;
                         }
@@ -1013,7 +1014,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             {
                 using var duplicateAt = ctx.Edition.At(target);   // the repeating USE statement's operand (kb/Work PB5090)
                 ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': this open mode already "
-                    + $"has a USE procedure in this procedure division (ISO {new EditionCite("§2023:14.9.49.3 SR7", "§1985:VII.4.6.3 SR6").At(ctx.Edition.Edition.Year, FileOrganization.Sequential)})");
+                    + $"has a USE procedure in this procedure division ({EditionInfo.Designated(new EditionCite("§2023:14.9.49.3 SR7", "§1985:VII.4.6.3 SR6").At(ctx.Edition.Edition.Year, FileOrganization.Sequential))})");
             }
             return new DeclScope([], m, global, null);
         }
@@ -1046,7 +1047,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 case ConstructOperand.Duplicate:
                     using (ctx.Edition.At(fn))   // the file-name that repeats (kb/Work PB5090)
                         ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': file '{fname}' "
-                            + $"already has a USE procedure in this procedure division (ISO {new EditionCite("§2023:14.9.49.3 SR8", "§1985:VII.4.6.3 SR3", "§1985:VIII.4.8.3 SR3", "§1985:IX.4.8.3 SR3").At(ctx.Edition.Edition.Year, file.Organization)})");
+                            + $"already has a USE procedure in this procedure division ({EditionInfo.Designated(new EditionCite("§2023:14.9.49.3 SR8", "§1985:VII.4.6.3 SR3", "§1985:VIII.4.8.3 SR3", "§1985:IX.4.8.3 SR3").At(ctx.Edition.Edition.Year, file.Organization))})");
                     continue;   // §2023:14.9.49.4 GR3 recovery — the FIRST declarative keeps the file
             }
             files.Add(file);
@@ -1149,7 +1150,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// (§1985:II.2.2.2.1.1; the merge file by the MERGE statement, §1985:II.2.2.2.1.2).</summary>
     private void ReportUseNamesSortMergeFile(string sectionName, string fname) =>
         ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE may not name the "
-            + $"sort/merge file '{fname}' (ISO " + ctx.Edition.Edition.Cite(
+            + $"sort/merge file '{fname}' (" + ctx.Edition.Edition.CiteRule(
                 "§1985:II.2.2.2.1.1 and §1985:II.2.2.2.1.2: a sort or merge file is referred to and accessed only by the SORT or MERGE statement",
                 "§2023:14.9.49.3 SR2") + ")");
 }

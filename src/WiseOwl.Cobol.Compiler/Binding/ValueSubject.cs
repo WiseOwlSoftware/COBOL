@@ -64,7 +64,7 @@ internal readonly record struct ValueSubject(ValueSubjectKind Kind, int? SizePos
     /// an 88 would send the reader to a rule that does not reach the entry refused (kb/Work PB5190, review R1-2).</summary>
     public string CharacterSizeRule(EditionInfo edition) => Kind is ValueSubjectKind.ConditionName
         ? "§1985:VI.5.15.3 SR3, the conditional variable's PICTURE"
-        : "ISO " + edition.Cite("§1985:VI.5.15.3 SR3", "§2023:13.18.63.3 SR4");
+        : edition.CiteRule("§1985:VI.5.15.3 SR3", "§2023:13.18.63.3 SR4");
 
     /// <summary>An ELEMENTARY item's VALUE clause (§2023:13.18.63 formats 1, 2 and 4). Its size is "the size indicated
     /// by an explicit PICTURE clause" (§2023:13.18.63.3 SR4/SR5/SR10 sentence 2).

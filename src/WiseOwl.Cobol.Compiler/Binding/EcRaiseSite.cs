@@ -59,7 +59,7 @@ internal readonly record struct EcRaiseSite(string Verb, string Clause, int Leve
     /// One clause, one set of ordinals — the format differs, the syntax rules do not.</summary>
     public static EcRaiseSite Exit(string verb) =>
         new(verb, "14.9.14.3", Level3Rule: 3, ObjectRule: 5, LastRule: 6, GlobalDeclarativeRule: 2,
-            GlobalDeclarativeRule1985: verb == "EXIT PROGRAM" ? "ISO §1985:X.5.4.3 SR2" : null);
+            GlobalDeclarativeRule1985: verb == "EXIT PROGRAM" ? "§1985:X.5.4.3 SR2" : null);
 
     /// <summary>The statement named as a message's subject: "RAISE", or "GOBACK RAISING" / "EXIT PROGRAM
     /// RAISING" for the phrase forms.</summary>

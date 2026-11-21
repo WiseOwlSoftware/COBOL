@@ -102,16 +102,16 @@ internal static class DirectivePlacementPass
         if (site.AllForm)
         {
             var (rule, text) = CobolKeywords.Same(site.Word, "PUSH") ? PushRule : PopRule;
-            return $"the >>{site.Word} ALL directive on line {site.Line} is written {where} — \"{text}\" (ISO {rule}).";
+            return $"the >>{site.Word} ALL directive on line {site.Line} is written {where} — \"{text}\" ({EditionInfo.Designated(rule)}).";
         }
         if (named is not null)
         {
             var (rule, _) = CobolKeywords.Same(site.Word, "PUSH") ? PushNameRule : PopNameRule;
             return $"the >>{site.Word} {named.DirectiveWords[0]} directive on line {site.Line} is written {where}, where "
-                + $"{named.DirectiveWords[0]} must not be specified (ISO {rule}: \"the {site.Word} directive shall not be "
-                + $"specified where directive-name must not be specified\") — \"{placement!.Text}\" (ISO {placement.Citation}).";
+                + $"{named.DirectiveWords[0]} must not be specified ({EditionInfo.Designated(rule)}: \"the {site.Word} directive shall not be "
+                + $"specified where directive-name must not be specified\") — \"{placement!.Text}\" ({EditionInfo.Designated(placement.Citation)}).";
         }
-        return $"the >>{site.Word} directive on line {site.Line} is written {where} — \"{placement!.Text}\" (ISO {placement.Citation}).";
+        return $"the >>{site.Word} directive on line {site.Line} is written {where} — \"{placement!.Text}\" ({EditionInfo.Designated(placement.Citation)}).";
     }
 
     /// <summary>The two ALL-form rules, each in its own words (the PUSH sentence is printed without the POP sentence's commas).</summary>

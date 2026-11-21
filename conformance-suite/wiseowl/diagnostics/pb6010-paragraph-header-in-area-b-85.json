@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL3734: an area-A item that does not start in area A of its fixed-form line (DECLARATIVES and END DECLARATIVES must also begin their line) requires COBOL-2002 (targeting COBOL-85) — the paragraph header NEXT-P begins in area B (§1985:IV.7.3.1"}

@@ -157,7 +157,7 @@ public sealed class EmbeddedBlockReading
               + "COBOL before compilation (ISO §2023:4.2.14), and this implementation has no precompiler. Run the source through "
               + "the precompiler first and compile the COBOL it writes."
             : $"[{Diagnostics.DiagnosticDescriptors.COBOL5842.Code}] EXEC {language}: the embedded {language} block has no "
-              + $"END-EXEC. The separator period that ends the sentence (ISO {edition.Cite("§1985:IV.4.2.1 SR3", "§2023:8.3.5 rule 3")}) comes first, so the block is taken "
+              + $"END-EXEC. The separator period that ends the sentence ({edition.CiteRule("§1985:IV.4.2.1 SR3", "§2023:8.3.5 rule 3")}) comes first, so the block is taken "
               + "through the text before that period. Write END-EXEC after the block's text and before that period.";
 
     /// <summary>Does the source hold a block? Then it does not parse, whatever the parse's own syntax errors.</summary>

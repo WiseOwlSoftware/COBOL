@@ -139,16 +139,17 @@ public sealed class RelationLiteralOperandTests
             """, edition);
         Assert.True(ok, string.Join(" | ", errors));
         // Each edition's own sentence: 1985's is "at least one reference to a variable" (COBOL7609), 2002's the "operand
-        // that is not a literal" (COBOL3146) at that edition's clause.
+        // that is not a literal" (COBOL3146) at that edition's clause. The 1985 text is ANSI X3.23-1985, not an ISO standard, so its
+        // citation is printed bare (kb/Work PB6013).
         var (code, cite) = edition switch
         {
             85 => ("COBOL7609", "§1985:VI.6.3.1.1"),
-            2002 => ("COBOL3146", "§2002:8.8.4.1.1"),
-            2014 => ("COBOL3146", "§2014:8.8.4.1.1"),
-            _ => ("COBOL3146", "§2023:8.8.4.2.1"),
+            2002 => ("COBOL3146", "ISO §2002:8.8.4.1.1"),
+            2014 => ("COBOL3146", "ISO §2014:8.8.4.1.1"),
+            _ => ("COBOL3146", "ISO §2023:8.8.4.2.1"),
         };
         Assert.Single(warnings, w => w.Contains($"warning {code}", StringComparison.Ordinal)
-            && w.Contains($"ISO {cite} requires", StringComparison.Ordinal));
+            && w.Contains($"{cite} requires", StringComparison.Ordinal));
     }
 
     /// <summary>⛔ AT --std 85 THE RULE IS §1985:VI.6.3.1.1 — "The relation condition must contain at least one reference to
