@@ -9,6 +9,8 @@
       *> rules)  and  13.18.57.4 8)  (General rules)
       *> The page heading starts on line 3, so a report heading that shares its page with it ends by line 2; RH LINE 4 lies below
       *> that lower limit. (The report heading has no NEXT GROUP NEXT PAGE, so it is not on a page by itself, GR8 a.)
+      *> Refused from 2002 only: at 85 the limit is FIRST DETAIL minus 1 whatever the page heading (§1985:XIII.3.10.6 GR2a,
+      *> kb/Work PB5981; XIII.3.8@1985-PAGE-CLAUSE/pb5981_report_heading_lower_limit_first_detail_85).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W11EPB1270REPORTHEADINGA.
        ENVIRONMENT DIVISION.

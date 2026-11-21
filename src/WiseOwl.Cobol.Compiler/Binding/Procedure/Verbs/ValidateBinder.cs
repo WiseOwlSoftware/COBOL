@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -36,7 +37,7 @@ internal sealed class ValidateBinder(BinderContext ctx, StatementBinder host)
     private BoundValidate? BindOperand(Core.DataReferenceContext dref)
     {
         if (ScreenValidateOperand(dref) is not { } place) return null;
-        string written = DataBinder.WrittenText(dref);
+        string written = WrittenSource.Of(dref);
         if (PlaceCursor.Over(place) is not { } cursor)
         {
             Unbuilt(written, "its storage form is one this stage cannot reach");
@@ -152,7 +153,7 @@ internal sealed class ValidateBinder(BinderContext ctx, StatementBinder host)
     /// or null when the operand is refused.</summary>
     private Place? ScreenValidateOperand(Core.DataReferenceContext dref)
     {
-        string written = DataBinder.WrittenText(dref);
+        string written = WrittenSource.Of(dref);
         bool ok = true;
         if (ReferenceResolver.ReadWritten(dref).IsReferenceModified)
         {

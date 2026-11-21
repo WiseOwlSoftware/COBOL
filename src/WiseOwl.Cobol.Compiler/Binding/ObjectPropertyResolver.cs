@@ -9,6 +9,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -115,9 +116,9 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         var (subject, view) = chain;
         var resolved = refs.ResolveImpl(subject, report);
         if (resolved.Place is not { } place || !report) return resolved;
-        if (ApplyObjectView?.Invoke(place, view, DataBinder.WrittenText(subject)) is { } viewed)
+        if (ApplyObjectView?.Invoke(place, view, WrittenSource.Of(subject)) is { } viewed)
             return RefResolution.Resolved(viewed, "");
-        return RefResolution.Refused(DataBinder.WrittenText(dref));
+        return RefResolution.Refused(WrittenSource.Of(dref));
     }
 
     /// <summary>The qualified data name an object-view written at the end of a chain applies to, and the view — or null.</summary>
@@ -159,8 +160,8 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         var terminal = written.PropertyObject;
         var objRef = PropertyObjectReference(dref);
         if (objRef is null && terminal is null) return default;
-        string objWritten = objRef is not null ? DataBinder.WrittenText(objRef) : ObjectText(terminal!);
-        RefResolution Refusal() => RefResolution.Refused(DataBinder.WrittenText(dref));
+        string objWritten = objRef is not null ? WrittenSource.Of(objRef) : ObjectText(terminal!);
+        RefResolution Refusal() => RefResolution.Refused(WrittenSource.Of(dref));
         int preOpMark = data.Procedure.PendingPreOps.Mark();
 
         PropertyReceiver receiver;
@@ -175,7 +176,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
             {
                 if (!refs.Probing && refs.Diagnosed.Add(dref))
                     data.Edition.Error(DiagnosticCatalog.SubscriptOnNonTableItem,
-                        $"'{DataBinder.WrittenText(dref)}': a subscript is written on the object property '{name}' OF "
+                        $"'{WrittenSource.Of(dref)}': a subscript is written on the object property '{name}' OF "
                         + $"'{objWritten}', which is no table element, so no subscript may be written on it "
                         + "(ISO §2023:8.4.2.3.3 SR2; §2023:8.4.3.9.3 SR5)");
                 return (null, Refusal());
@@ -186,7 +187,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
             {
                 if (!refs.Probing && refs.Diagnosed.Add(dref))
                     data.Edition.Error(DiagnosticCatalog.SuperPosition,
-                        $"'{DataBinder.WrittenText(dref)}' is written as an operand: SUPER may be specified only as the object "
+                        $"'{WrittenSource.Of(dref)}' is written as an operand: SUPER may be specified only as the object "
                         + "in an object-property identifier or as the object used to invoke a method (ISO §2023:8.4.3.8.3 SR3)");
                 return (null, Refusal());
             }
@@ -417,5 +418,5 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
 
     /// <summary>The non-word object as written, without its <c>OF</c>.</summary>
     private static string ObjectText(Core.PropertyObjectContext po) =>
-        DataBinder.WrittenText(po).AsSpan(po.OF().Symbol.Text.Length).Trim().ToString();
+        WrittenSource.Of(po).AsSpan(po.OF().Symbol.Text.Length).Trim().ToString();
 }

@@ -139,16 +139,11 @@
   for ⓜ ~45 min ≈ 1.5 landings ≈ 7 clusters; run it in a detached worktree at the batch's head commit and that cost
   is zero. The cadence does not change — ⓜ a bisect over N landings costs ⌈log₂N⌉ battery runs, and neither of the
   last two non-green batteries needed one (both reds were attributed by inspection).
-- **The owner's ledger artifact is refreshed after EVERY landing that moves GAP / DOCUMENTED-NON-SUPPORT / the
-  actionable count, and at every battery close** (owner reminder 2026-09-02): `python scripts/spec/gen_ledger.py
-  --out <html>` then an `Artifact` publish to the existing URL (recorded in the orchestrator's memory
-  `conformance-ledger-artifact`). Every number is computed by the generator, never typed, and nothing on the page is
-  hand-written (the in-flight narrative was removed, kb/Work PB2912): its top block is WHAT REMAINS to v1.0, and its
-  trend series (`<coord>/ledger-trend.json`, never in a checkout: kb/Work PB2426) gains a point whenever GAP or the
-  register's defect series moves. **Do it in the same turn as the landing report, once per landed train, not once a day** (owner
-  2026-10-04: trains 1011 and 1012 had landed with no refresh). The generator back-fills one trend point per
-  inventory-moving commit since the series' last point (`missed_points`), so a missed refresh costs nothing but
-  a stale page. The first publish after an unseen live version is refused with that version's source; publish the
+- **The owner's ledger artifact is refreshed after EVERY landing that moves an edition's state** (owner reminder
+  2026-09-02): `python scripts/spec/gen_ledger.py --out <html>` then an `Artifact` publish to the existing URL (`python
+  scripts/orchestrator/ledger_state.py url` names it). Every number is computed by the generator, never typed: each
+  edition's verdict is `edition_status.py`'s, in the owner's order (kb/Work PB5994). **Do it in the same turn as the
+  landing report** (owner 2026-10-04). The first publish after an unseen live version is refused with that version's source; publish the
   same file again unchanged and it goes through. **After every publish run `python scripts/orchestrator/ledger_state.py
   mark-published`**; the orchestrator's supervisor prints `LEDGER PUBLISH OWED` after any unit while the page's stamp is
   newer than the marked one, because a headless unit has no Artifact tool and only renders `{COORD}\ledger.html` (owner

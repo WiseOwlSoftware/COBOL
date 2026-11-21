@@ -8,6 +8,7 @@ using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 
 namespace WiseOwl.Cobol.Binding;
@@ -59,13 +60,13 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
         {
             if (!refs.Probing && refs.Diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
                 data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
-                    $"'{DataBinder.WrittenText(dref)}': reference modification of {why} is not permitted (ISO {RefModIdentifierRule(data.Edition.Edition)})");
-            refusal = RefResolution.Refused(DataBinder.WrittenText(dref));
+                    $"'{WrittenSource.Of(dref)}': reference modification of {why} is not permitted (ISO {RefModIdentifierRule(data.Edition.Edition)})");
+            refusal = RefResolution.Refused(WrittenSource.Of(dref));
             return null;
         }
         if (ReadRefMod(written.RefModPart!) is not { } spec)   // RefModCount > 0 ⇒ the first modifier is in hand
         {
-            refusal = refs.SegmentFailure(DataBinder.WrittenText(dref));   // a bound the materializer refused or deferred (§2023:8.4.3.3.3 SR4)
+            refusal = refs.SegmentFailure(WrittenSource.Of(dref));   // a bound the materializer refused or deferred (§2023:8.4.3.3.3 SR4)
             // A REFUSED segment was reported by whoever refused it (the materializer, or ReadRefMod's omitted
             // leftmost-position), so the reference counts as diagnosed: a caller that asks (ADDRESS OF's binder) then
             // adds no second, misleading "mis-subscripted" error of its own.
@@ -74,7 +75,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
         }
         if (!ScreenRefModLiterals(dref, described, spec, dref.Start.Line))
         {
-            refusal = RefResolution.Refused(DataBinder.WrittenText(dref));
+            refusal = RefResolution.Refused(WrittenSource.Of(dref));
             return null;
         }
         return spec;
@@ -301,7 +302,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
         bool checking = RefModCheckingAt?.Invoke(line) ?? false;
         if (refs.Diagnosed.Add(dref))
         {
-            string at = $"'{DataBinder.WrittenText(dref)}': {why}";
+            string at = $"'{WrittenSource.Of(dref)}': {why}";
             if (checking) data.Edition.Warning(DiagnosticCatalog.RefModLiteralOutOfRangeChecked, at);
             else data.Edition.Error(DiagnosticCatalog.RefModLiteralOutOfRange, at);
         }
@@ -331,7 +332,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
             // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written modifier (Diagnosed).
             if (!refs.Probing && refs.Diagnosed.Add(rmp))
                 data.Edition.Error(DiagnosticCatalog.RefModLeftmostPositionOmitted,
-                    $"'{DataBinder.WrittenText(rmp).Trim()}': a reference modifier is written ( leftmost-position : "
+                    $"'{WrittenSource.Of(rmp).Trim()}': a reference modifier is written ( leftmost-position : "
                     + "[ length ] ) and only the length may be omitted, so the colon cannot lead (ISO "
                     + data.Edition.Edition.Cite("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.2") + "). Write "
                     + "the leftmost position explicitly, for example (1:2).");

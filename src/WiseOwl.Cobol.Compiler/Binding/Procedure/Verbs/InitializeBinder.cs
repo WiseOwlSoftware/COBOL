@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -126,8 +127,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 // shall be specified". literal-1 is what the rule excludes, and it excludes it because GR4 makes
                 // the implicit statement a SET for exactly these five categories and no literal is a SET sending
                 // operand (§2023:14.9.39). Unreachable until the words became spellable (kb/Work PB415).
-                string senderText = lit?.GetText() ?? send?.dataReference()?.GetText()
-                    ?? send?.functionCall()?.GetText() ?? "the sending operand";
+                string senderText = WrittenSource.Of(
+                    lit ?? send?.dataReference() ?? (Antlr4.Runtime.ParserRuleContext?)send?.functionCall(), "the sending operand");
                 // NULL is identifier-2, not literal-1 (kb/Work PB1427): SR3 is satisfied, and SR4's SET is valid for
                 // every SET-form category (CheckSetFormCategoryAgreement), so only a real literal takes SR3.
                 if (lit is not null && value is not BoundPredefinedNull)
@@ -264,13 +265,13 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // used to sit in the resolve-FAILURE arm above, and a level-66 entry RESOLVES — so the rule never fired
         // and the violation shipped as an unhandled NotImplementedCobolFeatureException naming a missing
         // compiler feature instead of the reader's illegal program (kb/Work PB416).
-        if (!ctx.Validation.CheckInitializeTargetRenames(dref.GetText(), place)) return;
+        if (!ctx.Validation.CheckInitializeTargetRenames(WrittenSource.Of(dref), place)) return;
         // ISO §2023:14.9.20.3 SR1 — the class screen, asked of the ONE §2023:8.5.2.1 Table-2 classifier. See
         // DiagnosticCatalog.InitializeTargetClass for why this cannot be folded into GR5a1's exclusion below.
         if (IntrinsicArgumentRules.ClassOfPlace(place) is CobolClass.Index)
         {
             ctx.Edition.Error(DiagnosticCatalog.InitializeTargetClass,
-                $"INITIALIZE '{DataBinder.WrittenText(dref)}' — identifier-1 is " + ctx.Edition.Edition.Cite(
+                $"INITIALIZE '{WrittenSource.Of(dref)}' — identifier-1 is " + ctx.Edition.Edition.Cite(
                     "an index data item, and \"An index data item may not appear as an operand of an INITIALIZE statement\" "
                     + "(ISO §1985:VI.6.17.3 SR5); only a SEARCH or SET statement, a relation condition and the USING phrase of a "
                     + "Procedure Division header or CALL statement may reference one (§1985:VI.5.14.3 SR5)",
@@ -333,7 +334,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         PlaceCursor? cursor = PlaceCursor.Over(place);
         if (cursor is null)
         {
-            actions.Add(new InitializeErrorAction($"INITIALIZE target '{DataBinder.WrittenText(dref)}' (unsupported place kind)"));
+            actions.Add(new InitializeErrorAction($"INITIALIZE target '{WrittenSource.Of(dref)}' (unsupported place kind)"));
             return;
         }
         ExpandInitialize(cursor, spec, actions, place.Item, SeedOccurrenceKey(place), identifier1: true);

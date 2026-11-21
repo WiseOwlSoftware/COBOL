@@ -3161,8 +3161,14 @@ regression bisects to one step.
   `ZERO_ARITH` the same way — so `AdmittedKinds.Refusal` names "the figurative constant ZERO" wherever the parse expects
   `ZERO_ARITH`, with no neighbour test of its own. ⚠ The
   `ZERO_ARITH` token's text stays "0" (several readers parse the text of an arithmetic operand), so a diagnostic that
-  quotes an operand node spells it with `WrittenSource.Of` (`DataBinder.WrittenText`), never `GetText()` (kb/Work
-  PB3961: `PERFORM VARYING X FROM 1 BY ZERO + 1` printed `'0+1'`).
+  quotes an operand node spells it with `WrittenSource.Of`, never `GetText()` (kb/Work
+  PB3961: `PERFORM VARYING X FROM 1 BY ZERO + 1` printed `'0+1'`). ⛔ `RepoDrift`'s `MessageOperandTextDriftTests` holds
+  this for the whole compiler (kb/Work PB5979: `X OF Q` printed `XOFQ`, `KY OF IREC` printed `KYOFIREC`): a `GetText()` of a
+  multi-token parse context (a one-token word, read from the grammar, and a terminal node are exempt) is refused in an
+  interpolation hole, in a `+` that holds a string literal, or in a local that feeds either. ⚠ A `GetText()` of a qualified
+  name that is a KEY or a compared VALUE stays (the glued text is the whitespace-insensitive identity two sites agree on: `StorageClaimScan`,
+  the linkage-root and report-counter keys), so the rule has no "anywhere" form; a text handed to a message through a method parameter
+  (`ExpressionBinder.ScreenIndexNameOperand`) is the caller's to spell with `WrittenSource.Of`.
 - **The five preprocessor stages and their order** — correct per the TURN-anchoring hazard analysis; only
   namespaces + the injected severity policy change.
 - **SUBSCRIPT lexer mode existence** — the `x(i)`/`(a+b)` disambiguation genuinely needs it; we dedup its
