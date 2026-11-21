@@ -1963,12 +1963,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // ⛔ At the entry-name slot the question is OffendingPosition.PeriodIsMissingBeforeTheEntrySlot, the one the slot itself
         // asks (kb/Work PB4706). The expected set above is predicate-blind, so it holds a word the name's predicate refused
         // (CobolParserCoreBase.noHeaderWrittenHere: LOCAL-STORAGE before SECTION), and that word is the missing period's too.
+        // ⛔ And at a token that begins its fixed-form line in area A the reference format answers what the expected set cannot
+        // (OffendingPosition.PeriodIsMissingBeforeAnAreaAOpening, kb/Work PB6011): the parse refused it as an operand, so the
+        // predicate-blind set holds it and is read as null above.
         if (!(token.Text is { } spelled && CobolKeywords.StartsWith(spelled, "END-"))
             && !HasStructuralHint(hints)
             && !(recognizer is CobolParserCoreBase { CobolWords.IsEmpty: false } directed
                  && PreviousDefault(stream, token.TokenIndex) is { } previousWord
                  && directed.CobolWords.DirectingStatementSynonymOf(WrittenSource.Of(previousWord)) is not null)
-            && (at.PeriodIsMissingBeforeTheEntrySlot || expected?.Contains(CobolLexer.DOT) == true && at.APeriodLetsTheSentenceFollow()))
+            && (at.PeriodIsMissingBeforeTheEntrySlot || at.PeriodIsMissingBeforeAnAreaAOpening
+                || expected?.Contains(CobolLexer.DOT) == true && at.APeriodLetsTheSentenceFollow()))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0307, "A period may be missing at the end of the previous sentence.", 25));
 
         // ⛔ NO "A DATA-NAME IS EXPECTED HERE" / "A LITERAL VALUE IS EXPECTED HERE" GUESS (kb/Work PB3861). Hints 15
@@ -2101,8 +2105,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // comma decimal `1,5` begins with INTEGERLIT, but it is one character-string (a comma that no space follows is
         // no separator, ISO §2023:8.3.5 2)), never a level-number — the data division's run cannot hold it (kb/Work PB3390).
         // A word refused where its prediction failed is exempt (kb/Work PB3391, above).
-        bool beginsWhatFollows = probe.AfterPeriod.Contains(token.Type)
-                                 && CobolParserCoreBase.NumericLiteralWidth(stream, k) <= 1;
+        // A token that begins its fixed-form line in area A begins what follows the period whatever the walk collects: the
+        // reference format says so (OffendingPosition.OpensAreaA, kb/Work PB6011).
+        bool beginsWhatFollows = at.OpensAreaA
+                                 || probe.AfterPeriod.Contains(token.Type)
+                                    && CobolParserCoreBase.NumericLiteralWidth(stream, k) <= 1;
         return probe.Format is { } format && (refusedWord || !beginsWhatFollows)
             ? new Residue(format, probe.Production)
             : null;
@@ -3586,6 +3593,22 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                && walk.TakesAll([CobolLexer.DOT, Token.Type, next.Type]);
 
         private bool? _periodIsMissingBeforeTheEntrySlot;
+
+        /// <summary>⛔ DOES THE TOKEN BEGIN ITS FIXED-FORM LINE IN AREA A (kb/Work PB6011)? The reference format's own fact
+        /// (<see cref="CobolParserCoreBase.OpensAreaA"/>), not a guess: in the COBOL-85 reference format only an area-A item or
+        /// a level-number begins its line there, and the entry or sentence before it, continued on a later line, goes on in
+        /// area B (§1985:IV.7.3.3), so such a token begins what FOLLOWS a separator period, never more of the construct before
+        /// it. False at every edition without areas (from COBOL-2002 on, §2023:6.3.1) and in free form, where the guesses
+        /// stand alone.</summary>
+        public bool OpensAreaA => _recognizer is CobolParserCoreBase parser && parser.OpensAreaA(Token);
+
+        /// <summary>⛔ IS THE SEPARATOR PERIOD BEFORE AN AREA-A OPENING MISSING (kb/Work PB6011)? The token begins its line in
+        /// area A (<see cref="OpensAreaA"/>) and a period lets the sentence that starts at it follow
+        /// (<see cref="APeriodLetsTheSentenceFollow"/>). The parse refuses such a token as an operand
+        /// (<c>CobolParserCoreBase.nextEntryOpensHere</c>), so <c>01 A PIC X VALUE "A"</c> then <c>01 B PIC X.</c> fails a
+        /// prediction AT the 01, whose expected set (predicate-blind) still holds the integer the predicate refused: the
+        /// expected-set reading of hint 14 cannot see the period there, and the area says it is missing.</summary>
+        public bool PeriodIsMissingBeforeAnAreaAOpening => OpensAreaA && APeriodLetsTheSentenceFollow();
 
         /// <summary>Is the token the first word after the level-number of an entry that has written no name? The parser
         /// stands inside the entry (its context holds the level-number, <see cref="ClosedFormats.EntryAwaitingItsName"/>), or

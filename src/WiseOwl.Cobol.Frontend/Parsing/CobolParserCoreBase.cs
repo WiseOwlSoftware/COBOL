@@ -1567,6 +1567,38 @@ public abstract class CobolParserCoreBase : Parser
         return true;
     }
 
+    /// <summary>The indexes of the tokens that begin their fixed-form line in area A, at an edition whose reference format has
+    /// areas (<see cref="Preprocessor.FixedFormAreas.LineOpeningsInAreaA"/>; kb/Work PB6011), set by the front end beside
+    /// <see cref="Edition"/> for every parse; empty from COBOL-2002 on, in free form, and for a parser no front end set up.</summary>
+    public IReadOnlySet<int> AreaAOpenings { get; set; } = System.Collections.Frozen.FrozenSet<int>.Empty;
+
+    /// <summary>Does <paramref name="token"/> begin its fixed-form line in area A (<see cref="AreaAOpenings"/>)? The one
+    /// question the parse and its error recovery (<c>CobolErrorStrategy</c>) ask of a token's reference-format area.</summary>
+    internal bool OpensAreaA(IToken token) => AreaAOpenings.Count != 0 && AreaAOpenings.Contains(token.TokenIndex);
+
+    /// <summary>⛔ THE INTEGER AT <c>LT(1)</c> IS THE NEXT ENTRY'S LEVEL-NUMBER, SO NO OPERAND OF THIS ENTRY TAKES IT (kb/Work
+    /// PB6011). In the COBOL-85 reference format "each Data Division entry begins with a level indicator or a level-number"
+    /// and "the last clause is always terminated by a separator period" (§1985:IV.7.4); an entry continued on a later line
+    /// goes on in area B (§1985:IV.7.3.3: "Successive sentences or entries either begin in area B"), and only an area-A
+    /// item or a level-number begins its line in area A ("each new data description entry may begin any number of positions
+    /// to the right of margin A", §1985:IV.7.4). So an integer that begins its line in area A inside the data division is a
+    /// level-number: <c>01 A PIC X VALUE "A"</c> then <c>01 B PIC X.</c> has lost its period before the 01, and the VALUE
+    /// list must not read <c>01 B</c> as two more operands. Every grammar alternative that takes an INTEGERLIT as an
+    /// operand opens with <c>{!nextEntryOpensHere()}?</c> (<c>AreaAOpeningDriftTests</c> holds the inventory), so the entry
+    /// ends there and the recovery reports the one missing period. A left-edge predicate: it steers prediction. False at
+    /// every edition without areas (<see cref="AreaAOpenings"/> is empty), so the parse there is unchanged.</summary>
+    protected bool nextEntryOpensHere()
+        => AreaAOpenings.Count != 0 && TokenStream.LT(1) is { Type: CobolLexer.INTEGERLIT } token
+           && AreaAOpenings.Contains(token.TokenIndex) && InsideTheDataDivision();
+
+    /// <summary>Is the parser inside the data division? Asked by <see cref="nextEntryOpensHere"/> only.</summary>
+    private bool InsideTheDataDivision()
+    {
+        for (RuleContext? context = Context; context is not null; context = context.Parent)
+            if (context.RuleIndex == CobolParserCore.RULE_dataDivision) return true;
+        return false;
+    }
+
     /// <summary>⛔ A NUMERIC LITERAL THAT IS THE LEFT OPERAND OF AN ARITHMETIC OPERATOR IS NOT A STANDALONE ARGUMENT
     /// (kb/Work PB1135, decision R59). Every USING-argument list (CALL §2023:14.9.4.2, INVOKE §2023:14.9.23.2, the inline
     /// method invocation §2023:8.4.3.4.2) prints the keyword-less operand brace
