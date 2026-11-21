@@ -366,6 +366,60 @@ def case_13_a_sentence_broken_inside_a_parenthesis_joins(expect):
     expect.equal("a trailing comma alone joins nothing (2023 Annex B.3's data lines)", [x.label for x in u], ["p1", "p2"])
 
 
+def case_14_a_list_is_held_by_its_marker_not_by_its_clause(expect):
+    # kb/Work PB6001 defect 1: §1985:IV.4.2.2.1.3 (page 154) holds a `(n)` list its not-rules block disposes, then a
+    # second list printed `1.` one item per line, which no block holds.
+    import re  # noqa: PLC0415
+    paren = re.compile(r"^\\?\(\d+\\?\)\s")
+    u = _seg("Reserved words satisfy the following conditions:\n\n(1) Reserved words do not begin with X.\n\n"
+             "(2) Reserved words do not contain one character.\n\nThere are three types of reserved words:\n\n"
+             "1. required words\n2. optional words\n3. special purpose words", held=paren)
+    expect.equal("the held (n) list is no unit; the clause's other list is units, as its second list", _shown(u),
+                 [("p1", "Reserved words satisfy the following conditions:"),
+                  ("p2", "There are three types of reserved words:"), ("L2.1", "1. required words"),
+                  ("L2.2", "2. optional words"), ("L2.3", "3. special purpose words")])
+    expect.equal("a rule's text holds every list", [x.label for x in _seg("A.\n\n1. x\n\n(1) y", held=U.NUMBERED_ITEM)],
+                 ["p1"])
+    expect.equal("each unit holds its own lines, never a held item's", [x.lines for x in u],
+                 [(1,), (7,), (9,), (10,), (11,)])
+
+
+def case_15_an_html_table_is_a_table_and_a_caption_below_numbers_it(expect):
+    # kb/Work PB6001 defect 2: §1985:XIII.3.10.7 holds its Table 2 as an HTML <table>, captioned below it.
+    html = ("Table 2 shown below points to the rules.\n\n<table>\n<tr>\n<td>Sequence</td>\n<td>Rule</td>\n</tr>\n"
+            "<tr><td>A R</td><td>1</td></tr>\n<tr><td>R</td><td>2</td></tr>\n</table>\n\n"
+            "Table 2: Page Heading Group Presentation Rules Table\n\n\\* A note after the table.")
+    u = _seg(html)
+    expect.equal("the HTML table is table 2 by its caption below, read as a | table; no paragraph holds its markup",
+                 [(x.label, x.shape) for x in u], [("p1", "paragraph"), ("T2.1", "table-row"), ("T2.2", "table-row"),
+                                                   ("p2", "paragraph")])
+    expect.equal("its rows are its <tr> cells, on the line the row opens", [(x.text, x.line) for x in u[1:3]],
+                 [("A R | 1", 8), ("R | 2", 9)])
+    u = _seg("| A | B |\n|---|---|\n| x | 1 |\n\nTable 3: Below\n\n| C | D | E |\n|---|---|---|\n| y | 2 | 3 |")
+    expect.equal("a caption below names the table above it; a table under another header after it is not its part",
+                 [x.label for x in u], ["T3.1", "T2.1"])
+    expect("and never takes a number another table of the clause has",
+           not any(x.label.startswith("T3.") for x in _seg("**Table 3 — A**\n\n| A | B |\n|---|---|\n| x | 1 |\n\n"
+                                                          "| C | D |\n|---|---|\n| y | 2 |\n\nTable 3: again")[1:]))
+
+
+def case_16_a_record_is_keyed_by_clause_digest_and_order_never_by_label(expect):
+    # kb/Work PB6001: a repair before a unit (an HTML table that becomes a table unit) moves its label, not its words.
+    label, kinds = str, (lambda clause: {"SR", "GR"})
+    before = {"9.9": _seg("A first paragraph.\n\nSee 8.4.6, Scope of names.")}
+    records = [dict(r, unit="p2") for r in _upheld(before) if r["unit"] == "p2"]
+    after = {"9.9": _seg("See 8.4.6, Scope of names.")}
+    blocks = _decided(after, U.NOT_A_RULE, **{"class": "cross-reference", "refuted": RECORDS})
+    expect.equal("the record read as p2 stands for the same words now p1", U.audit(after, blocks, label, kinds,
+                                                                                    _context(records)), [])
+    other = [dict(r, clause="9.8") for r in records]
+    expect("a record of the same words in another clause does not",
+           any("holds no record" in f for f in U.audit(after, blocks, label, kinds, _context(other))))
+    second = [dict(r, order=1) for r in records]
+    expect("a record of the second unit of those words does not stand for the first",
+           any("holds no record" in f for f in U.audit(after, blocks, label, kinds, _context(second))))
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

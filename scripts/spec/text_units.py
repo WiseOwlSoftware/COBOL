@@ -209,22 +209,27 @@ def segment(lines: list[tuple[int, str]], held: re.Pattern[str] | None = None) -
     caption: tuple[int, int] | None = None   # (table number, line) of the caption naming the next table
     tables = 0
     uncaptioned: list | None = None  # the table just closed with no caption above it: a caption right below names it
+    below = False                  # caption was printed below the table before it
     verbatim = False               # inside a <pre> or a fence: no text
 
     def close_table() -> None:
-        nonlocal table, caption, tables, uncaptioned
+        nonlocal table, caption, tables, uncaptioned, below
         if table:
             t = caption[0] if caption else tables + 1
+            whole = next((p for p in paras if p[0] == "table" and p[3] == t), None)
+            if below and whole is not None and _header(whole[2]) != _header(table):
+                # The caption below the table before named THAT table; this one, under another header, is not its
+                # part printed on, and is numbered by its position.
+                t, whole = tables + 1, None
             # A part with the number and header of a table already read is that table printed on: its rows follow.
-            if (whole := next((p for p in paras if p[0] == "table" and p[3] == t), None)) is not None \
-                    and _header(whole[2]) == _header(table):
+            if whole is not None and _header(whole[2]) == _header(table):
                 whole[2].extend(_rows(table)[1:])
                 uncaptioned = None
             else:
                 tables += 1
                 paras.append(["table", table[0][0], table, t, [no for no, _ in table]])
                 uncaptioned = None if caption else paras[-1]
-            table, caption = [], None
+            table, caption, below = [], None, False
 
     for no, line in lines:
         s = line.strip()
@@ -273,6 +278,9 @@ def segment(lines: list[tuple[int, str]], held: re.Pattern[str] | None = None) -
             if uncaptioned is not None and paras and paras[-1] is uncaptioned \
                     and not any(p[0] == "table" and p[3] == t for p in paras if p is not uncaptioned):
                 uncaptioned[3] = t
+                below = True
+            else:
+                below = False
             uncaptioned = None
             caption = (t, no)
             fresh = True
