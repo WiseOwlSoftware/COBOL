@@ -222,15 +222,38 @@ public sealed class DebuggingLineRewriterTests
         Assert.Equal(clause ? TokenConstants.DefaultChannel : CobolLexer.ABSENT_DEBUG_LINE, plus.Channel);
     }
 
+    /// <summary>kb/Work PB5990: the lines a unit without the mode makes comment are returned, and only those, so the caller can read
+    /// them as source once more (§1985:VI.7.3, "with or without"); blanking their carriers makes a second lex find no marker.</summary>
+    [Fact]
+    public void HiddenLines_AreTheLinesOfAUnitWithoutTheMode_AndBlankingTheirCarriersLeavesNoMarker()
+    {
+        string text = string.Join("\n", ["PROGRAM-ID. P.", "SOURCE-COMPUTER. IBM-PC.", D("DISPLAY ONE."), "STOP RUN.",
+            "END PROGRAM P.", "PROGRAM-ID. Q.", "SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.", D("DISPLAY TWO."), "STOP RUN."]) + "\n";
+        var first = new CommonTokenStream(new CobolLexer(new AntlrInputStream(text)));
+        var hidden = new List<IToken>();
+        var source = new List<IToken>();
+        DebuggingLineRewriter.Rewrite(first, source, hiddenLines: hidden);
+        Assert.Equal([3], hidden.Select(t => t.Line));
+        Assert.Equal([8], source.Select(t => t.Line));
+
+        string blanked = DebuggingLineRewriter.WithCarriersBlanked(text, hidden);
+        Assert.Equal(text.Length, blanked.Length);
+        var second = new CommonTokenStream(new CobolLexer(new AntlrInputStream(blanked)));
+        var again = new List<IToken>();
+        DebuggingLineRewriter.Rewrite(second, again);
+        Assert.Equal([8], again.Select(t => t.Line));                                      // only the other unit's line still carries a marker
+        Assert.Equal(blanked, DebuggingLineRewriter.WithCarriersBlanked(blanked, hidden)); // a blank carrier is left as it stands
+    }
+
     /// <summary>kb/Work PB1913's second lex, over the one region that still needs it — an open PICTURE character-string:
     /// blanking the carrier keeps every column and offset, and the second lex reads the line's text as the picture.</summary>
     [Fact]
-    public void WithCarrierBlanked_MakesTheLineSourceAtTheSameColumns_AndTheSecondLexSeesNoMarker()
+    public void WithCarriersBlanked_MakesTheLineSourceAtTheSameColumns_AndTheSecondLexSeesNoMarker()
     {
         string text = string.Join("\n", ["PROGRAM-ID. P.", "SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.",
             "01 X PIC", D("X(5)."), "   VALUE 'A'."]) + "\n";
         var first = new CommonTokenStream(new CobolLexer(new AntlrInputStream(text)));
-        string blanked = DebuggingLineRewriter.WithCarrierBlanked(text, DebuggingLineRewriter.Rewrite(first)!);
+        string blanked = DebuggingLineRewriter.WithCarriersBlanked(text, [DebuggingLineRewriter.Rewrite(first)!]);
         Assert.Equal(text.Length, blanked.Length);
         Assert.Equal(text.Count(c => c == '\n'), blanked.Count(c => c == '\n'));
 
