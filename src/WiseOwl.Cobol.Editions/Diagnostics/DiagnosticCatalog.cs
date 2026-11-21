@@ -9738,9 +9738,9 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReadDynamicNextRequired = new(
         "COBOL7144", "read-dynamic-next-required", EditionSeverity.Error,
         "§1985:IX.4.5.3 SR5: \"The NEXT phrase must be specified for files in dynamic access mode, when records are to be "
-        + "retrieved sequentially.\" §1985:VIII.4.5.3 SR3 words the relative file's rule the same. A READ of a dynamic-access file "
-        + "that writes the AT END phrase (format 1 of the 1985 READ, the sequential retrieval) omits NEXT. COBOL-2002 and later "
-        + "imply the NEXT phrase from AT END (§2023:14.9.30.3 SR9).",
+        + "retrieved sequentially.\" §1985:VIII.4.5.3 SR3 words the relative file's rule the same, without the comma. A READ of a "
+        + "dynamic-access file that writes the AT END or the NOT AT END phrase (format 1 of the 1985 READ, the sequential "
+        + "retrieval) omits NEXT. COBOL-2002 and later imply the NEXT phrase from AT END or NOT AT END (§2023:14.9.30.3 SR9).",
         "ISO §1985:VIII.4.5.3 SR3; §1985:IX.4.5.3 SR5");
 
     /// <summary>COBOL7165 — a COBOL-85 comment-entry continued by a hyphen in the indicator area (kb/Work PB5169). The
