@@ -561,6 +561,7 @@ public sealed class Frontend
         // stream) and the final stream's own (kb/Work PB2490).
         var sourceDebuggingLines = new List<IToken>();
         var misplacedDebuggingLines = new List<IToken>();   // the final stream's own (§1985:VI.7.3)
+        var hiddenDebuggingLines = new List<IToken>();      // the final stream's debugging lines that are comment (§1985:VI.7.3, kb/Work PB5990)
         var commentLines = new HashSet<int>();   // the text lines the final stream makes comment (kb/Work PB5588)
         LexerErrorListener lexErrors;
         // Where the final lexer met each inline comment, for the source listing only (kb/Work PB5949).
@@ -574,16 +575,17 @@ public sealed class Frontend
             tokens = new CommonTokenStream(lexer);
             var streamSourceLines = new List<IToken>();
             misplacedDebuggingLines.Clear();
+            hiddenDebuggingLines.Clear();
             commentLines.Clear();
             if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines, misplacedDebuggingLines,
                     debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002),
-                    commentLines: commentLines) is not { } sourceRegionLine)
+                    commentLines: commentLines, hiddenLines: hiddenDebuggingLines) is not { } sourceRegionLine)
             {
                 sourceDebuggingLines.AddRange(streamSourceLines);
                 break;
             }
             sourceDebuggingLines.Add(sourceRegionLine);
-            text = DebuggingLineRewriter.WithCarrierBlanked(text, sourceRegionLine);
+            text = DebuggingLineRewriter.WithCarriersBlanked(text, [sourceRegionLine]);
         }
         // The COBOL-85 `*>` gate reports after this stage (Parse), yet its error keeps the binder from running like any prior
         // error, so the word-character screen below must know of it now (kb/Work PB5588, review R1-1).
@@ -686,6 +688,9 @@ public sealed class Frontend
             if (parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any && sourceDebuggingLines.Count > 0)
                 ReportDebuggingLinesBreakingTheProgram(tokens.GetTokens(), sourceDebuggingLines, retypes, edition, cobolWordsMap,
                     sourcePath, cuts, diagnostics);
+            if (parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any && hiddenDebuggingLines.Count > 0)
+                ReportDebuggingLinesBreakingTheProgramAsSource(text, sourceDebuggingLines, hiddenDebuggingLines, retypes, edition,
+                    cobolWordsMap, sourcePath, cuts, diagnostics);
         }
 
         // The source listing's classes of the text (DESIGN-listing.md section 7.2): the final stream, as the parse read it, at the
@@ -723,6 +728,34 @@ public sealed class Frontend
         int errorLine = verdict.Offender?.Line ?? int.MaxValue;
         var at = sourceLines.Where(t => t.Line <= errorLine).MaxBy(t => t.Line) ?? sourceLines.MinBy(t => t.Line)!;
         var descriptor = Editions.Diagnostics.DiagnosticCatalog.DebuggingLineSyntaxBothWays;
+        diagnostics.ReportError(descriptor.Code, descriptor.Title, LineMap.Locate(at.Line, at.Column, sourcePath), default);
+    }
+
+    /// <summary>§1985:VI.7.3, the other direction of "with or without" (kb/Work PB5990): the stream parsed clean with the
+    /// <paramref name="hiddenLines"/> (the debugging lines of a unit without WITH DEBUGGING MODE, which are comment lines) as
+    /// they stand; here <paramref name="text"/> is lexed again with every debugging line SOURCE
+    /// (<see cref="DebuggingLineRewriter.WithCarriersBlanked"/>), and a program that no longer parses is COBOL7675 at the last
+    /// hidden line before the first syntax error, or at the first when none precedes it. A source that holds an embedded
+    /// precompiler block is not asked: its parse is not the program's.</summary>
+    private void ReportDebuggingLinesBreakingTheProgramAsSource(string text, List<IToken> sourceLines, List<IToken> hiddenLines,
+        TokenRetypes retypes, EditionInfo edition, CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts,
+        DiagnosticBag diagnostics)
+    {
+        var lexer = new CobolLexer(new AntlrInputStream(DebuggingLineRewriter.WithCarriersBlanked(text, sourceLines.Concat(hiddenLines))));
+        retypes.PrimeLexer(lexer, edition);
+        LexerErrorListener.AttachTo(lexer);
+        var asSource = new CommonTokenStream(lexer);
+        DebuggingLineRewriter.Rewrite(asSource,
+            debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002));
+        ZeroTokenRewriter.Rewrite(asSource);
+        retypes.Rewrite(asSource);
+        if (EmbeddedBlockReading.Read(asSource, () => ParseCopyOf(asSource.GetTokens(), retypes, edition, cobolWordsMap, sourcePath, cuts).Clean).Any)
+            return;
+        var verdict = ParseCopyOf(asSource.GetTokens(), retypes, edition, cobolWordsMap, sourcePath, cuts);
+        if (verdict.Clean) return;
+        int errorLine = verdict.Offender?.Line ?? int.MaxValue;
+        var at = hiddenLines.Where(t => t.Line <= errorLine).MaxBy(t => t.Line) ?? hiddenLines.MinBy(t => t.Line)!;
+        var descriptor = Editions.Diagnostics.DiagnosticCatalog.DebuggingLineSyntaxAsSource;
         diagnostics.ReportError(descriptor.Code, descriptor.Title, LineMap.Locate(at.Line, at.Column, sourcePath), default);
     }
 

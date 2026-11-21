@@ -3374,6 +3374,16 @@ public static class DiagnosticCatalog
         + "debugging lines being considered as comment lines.\" Write the debugging line so that the statement or entry it "
         + "belongs to is complete without it.", "§1985:VI.7.3");
 
+    /// <summary>COBOL7675 - a debugging line of a unit WITHOUT WITH DEBUGGING MODE (a comment line there) whose being source leaves a
+    /// program that is not syntactically correct (§1985:VI.7.3, "with or without"; kb/Work PB5990). COBOL7061 is the other direction.</summary>
+    public static readonly DiagnosticDescriptor DebuggingLineSyntaxAsSource = new(
+        "COBOL7675", "debugging-line-syntax-as-source", EditionSeverity.Error,
+        "The program is not syntactically correct with its debugging lines taken as source lines. §1985:VI.7.3: "
+        + "\"The content of a debugging line must be such that a syntactically correct program is formed with or without the "
+        + "debugging lines being considered as comment lines.\" The unit has no WITH DEBUGGING MODE, so the line is a comment here, "
+        + "but it must still be valid source: write it so that the statement or entry it belongs to is correct with the line present.",
+        "§1985:VI.7.3");
+
     /// <summary>COBOL7081 - a RELEASE or RETURN statement outside the range of a SORT or MERGE procedure that names its sort-merge file
     /// (kb/Work PB5104). §1985:XI.4.2.3 SR2: "A RELEASE statement may be used only within the range of an input procedure associated with a
     /// SORT statement for the file-name whose sort-merge file description entry contains record-name-1." §1985:XI.4.3.3 SR3: "A RETURN
