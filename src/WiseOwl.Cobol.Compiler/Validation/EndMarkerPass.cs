@@ -86,8 +86,14 @@ internal static class EndMarkerPass
         if (unit.End is null && pid is not null && !isPrototype && (unit.Nested.Length > 0 || precedesAnother))
             Report(pid, "SR1", unit.Nested.Length > 0 ? "§1985:X.2.5.4 GR1" : "§1985:VI.2.3.3 GR2",
                 $"PROGRAM-ID '{name}' {(unit.Nested.Length > 0 ? "contains" : "precedes")} another source unit, so "
-                + $"its end marker END PROGRAM {name} shall be present — an end marker shall be present in every "
-                + "source unit that contains, is contained in, or precedes another source unit", edition);
+                + $"its end marker END PROGRAM {name} shall be present — " + edition.Edition.Cite(
+                    // At COBOL-85 the reason is the rule cited, worded as 1985 words it (kb/Work PB6030): two rules, where 2023 has one.
+                    unit.Nested.Length > 0
+                        ? "the end program header must be present in every program which either contains or is contained within another program"
+                        : "all separately compiled source programs in a sequence of programs must be terminated by an end program header "
+                          + "except for the last program in the sequence",
+                    "an end marker shall be present in every source unit that contains, is contained in, or precedes another source unit"),
+                edition);
 
         var inner = containers.Append(declared).ToList();
         foreach (var n in unit.Nested)

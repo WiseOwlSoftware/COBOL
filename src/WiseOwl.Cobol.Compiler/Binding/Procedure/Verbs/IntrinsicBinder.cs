@@ -2935,10 +2935,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // HERE, not in OperandOf: every other verb legitimately needs the temp→operand mapping.
         if (f.Place.Item.IsCompilerTemp)
         {
-            string fsec = sig.Name == "SMALLEST-ALGEBRAIC" ? "15.83.3"
-                : sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3";
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentDataItemRule, $"FUNCTION {sig.Name}: argument-1 is a FUNCTION RESULT, and "
-                + $"ISO §2023:{fsec} rule 1 admits a data item and \"shall not be an integer function or numeric "
+                + $"ISO §2023:{AlgebraicArgumentRules(sig)} rule 1 admits a data item and \"shall not be an integer function or numeric "
                 + "function\" — name the data item whose description defines the range instead");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} function argument");
         }
@@ -2961,8 +2959,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A.1 item 180's documented restriction is now "none beyond rules 2 and 3", CONFORMANCE.md).
         if (pic.IsFloat)
         {
-            string fsec3 = sig.Name == "SMALLEST-ALGEBRAIC" ? "15.83.3"
-                : sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3";
+            string fsec3 = AlgebraicArgumentRules(sig);
             // The two families through the ONE place they are written down (UsageFamilies, PicInfo.cs) — §2023:3.166
             // and §2023:3.167 name them as terms and several rules key on those exact sets, so a second spelling here
             // is a set that can silently disagree when a member is added (kb/Work PB174).
@@ -3093,12 +3090,20 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     private BoundExpr AlgebraicArgError(IntrinsicSig sig)
     {
         string cat = sig.Name == "SMALLEST-ALGEBRAIC" ? "category numeric" : "category numeric or numeric-edited";
-        string sec = sig.Name == "SMALLEST-ALGEBRAIC" ? "15.83.3" : sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3";
         ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentDataItemRule, $"FUNCTION {sig.Name} argument-1 shall be a {cat} DATA ITEM — not a "
             + "literal, an arithmetic expression, a group item, a reference-modified item, an index, or another "
-            + $"function (ISO §2023:{sec} rule 1)");
+            + $"function (ISO §2023:{AlgebraicArgumentRules(sig)} rule 1)");
         return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} argument");
     }
+
+    /// <summary>The argument-rules subclause of HIGHEST-ALGEBRAIC (§2023:15.43.3), LOWEST-ALGEBRAIC (§2023:15.58.3) or
+    /// SMALLEST-ALGEBRAIC (§2023:15.83.3): the one spelling of the three (COBOL1516's sites wrote it three times).</summary>
+    private static string AlgebraicArgumentRules(IntrinsicSig sig) => sig.Name switch
+    {
+        "SMALLEST-ALGEBRAIC" => "15.83.3",
+        "HIGHEST-ALGEBRAIC" => "15.43.3",
+        _ => "15.58.3",
+    };
 
     // ── Argument-list binding: split → ALL expansion → per-segment parse ───────────────────────────────────
 

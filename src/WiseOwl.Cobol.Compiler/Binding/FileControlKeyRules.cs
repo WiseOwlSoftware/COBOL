@@ -1121,7 +1121,7 @@ internal static class FileControlKeyRules
             foreach (var (code, cursor, message) in file.EntryShapeFindings)
             {
                 using var at = edition.At(cursor);
-                edition.Error(code, message);
+                edition.Error(code, message(AssignTargetRule.Rule1985Of(file.Organization)));
             }
         // The entry's REQUIRED members first (§2023:12.4.5.1: a clause printed with no bracket): an entry that lacks its
         // ASSIGN clause is told so before any rule over the clauses it did write.

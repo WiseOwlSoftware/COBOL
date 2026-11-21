@@ -63,9 +63,9 @@ internal static class AssignTargetRule
         bool deviceLed = first.cobolWord() is not null && DeviceClasses.Contains(first.GetText());
         if (targets.Length == 2 && deviceLed) return Text(edition, env, targets[1], file);
         using (edition.At(targets[1]))
-            file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignTargetListNotAllowed, edition.Cursor,
+            file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignTargetListNotAllowed, edition.Cursor, rule1985 =>
                 $"SELECT {file.CobolName}: the ASSIGN clause's TO phrase lists {targets.Length} operands ("
-                + string.Join(" ", targets.Select(t => WrittenSource.Of(t))) + $"); {edition.Edition.CiteRule("§1985:VII.2.3.3 SR3", "§2023:12.4.5.2 SR5")} leaves the "
+                + string.Join(" ", targets.Select(t => WrittenSource.Of(t))) + $"); {edition.Edition.CiteRule(rule1985, "§2023:12.4.5.2 SR5")} leaves the "
                 + "allowable specification of device-name-1 and literal-1 to the implementor, and this "
                 + "implementation allows ONE operand naming the file, or a device class ("
                 + string.Join(" or ", DeviceClasses.Order(StringComparer.Ordinal)) + ") followed by ONE operand "
@@ -88,8 +88,8 @@ internal static class AssignTargetRule
             // A numeric literal is no alphanumeric literal (SR4), and like the figurative constant that refusal belongs to the
             // entry's FORMAT: §1985:XI.2.3.3 has no rule making literal-1 nonnumeric, so Screen decides (kb/Work PB5587).
             using (edition.At(num))
-                file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignLiteralShape, edition.Cursor,
-                    $"ASSIGN TO {WrittenSource.Of(num)}: literal-1 shall be an alphanumeric literal ({EditionInfo.Designated(Sr4(edition))})"));
+                file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignLiteralShape, edition.Cursor, rule1985 =>
+                    $"ASSIGN TO {WrittenSource.Of(num)}: literal-1 shall be an alphanumeric literal ({EditionInfo.Designated(Sr4(edition, rule1985))})"));
             return "";
         }
         if (t.nonNumericLiteral() is not { } nn) return WordText(edition, env, t.cobolWord(), t.cobolWord().GetText());
@@ -102,7 +102,7 @@ internal static class AssignTargetRule
             return WordText(edition, env, nn, nn.GetText());
         void Refuse(string why, bool zeroLength = false) =>
             Report(edition, nn, $"ASSIGN TO {WrittenSource.Of(nn)}: literal-1 {why} ("
-                + EditionInfo.Designated(zeroLength ? edition.Edition.Cite("§1985:IV.4.2.2.2.1", "§2023:12.4.5.2 SR4") : Sr4(edition)) + ")");
+                + EditionInfo.Designated(zeroLength ? edition.Edition.Cite("§1985:IV.4.2.2.2.1", "§2023:12.4.5.2 SR4") : Sr4(edition, Rule1985Of(file))) + ")");
         string value;
         if (nn.concatenationExpression() is { } ce)
         {
@@ -123,8 +123,8 @@ internal static class AssignTargetRule
             // §2023:12.4.5.2 SR4's figurative-constant arm is a rule of the entry's FORMAT, and the 1985 sort-merge entry
             // carries none (§1985:XI.2.3.3): the file's kind is not known until its SD is read, so Screen decides.
             using (edition.At(nn))
-                file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignLiteralShape, edition.Cursor,
-                    $"ASSIGN TO {WrittenSource.Of(nn)}: literal-1 shall not be a figurative constant ({EditionInfo.Designated(Sr4(edition))})"));
+                file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignLiteralShape, edition.Cursor, rule1985 =>
+                    $"ASSIGN TO {WrittenSource.Of(nn)}: literal-1 shall not be a figurative constant ({EditionInfo.Designated(Sr4(edition, rule1985))})"));
             return "";
         }
         else
@@ -177,10 +177,26 @@ internal static class AssignTargetRule
     }
 
     /// <summary>The rule that literal-1 of the ASSIGN clause is an alphanumeric literal and no figurative constant, in the edition in
-    /// force (kb/Work PB4950): §2023:12.4.5.2 SR4, and at COBOL-85 §1985:VII.2.3.3 SR3 — "Literal-1 must be a nonnumeric literal
-    /// and must not be a figurative constant" (§1985:VIII.2.3.3 SR3 and §1985:IX.2.3.3 SR3 say it again for the other two modules).</summary>
-    private static string Sr4(EditionContext edition) =>
-        edition.Edition.Cite("§1985:VII.2.3.3 SR3", "§2023:12.4.5.2 SR4");
+    /// force (kb/Work PB4950): §2023:12.4.5.2 SR4, and at COBOL-85 <paramref name="rule1985"/>, the SR3 of the module whose file
+    /// control entry the file's is (<see cref="Rule1985Of(FileOrganization)"/>) — "Literal-1 must be a nonnumeric literal and must
+    /// not be a figurative constant".</summary>
+    private static string Sr4(EditionContext edition, string rule1985) =>
+        edition.Edition.Cite(rule1985, "§2023:12.4.5.2 SR4");
+
+    /// <summary>⛔ THE 1985 RULE OF THE ASSIGN CLAUSE IS ITS MODULE'S (kb/Work PB6029): §1985:VII.2.3.3 SR3 for a sequential file,
+    /// §1985:VIII.2.3.3 SR3 for a relative and §1985:IX.2.3.3 SR3 for an indexed one, each "Literal-1 must be a nonnumeric literal
+    /// and must not be a figurative constant. The meaning and rules for the allowable content of implementor-name-1 and the value
+    /// of literal-1 are defined by the implementor." It was §1985:VII.2.3.3 SR3 for every organization. The organization is
+    /// known when the entry has been read, which is why the format-level findings take it as an argument where they are
+    /// reported (<see cref="FileControlKeyRules.Screen"/>).</summary>
+    internal static string Rule1985Of(FileOrganization organization) => organization switch
+    {
+        FileOrganization.Relative => "§1985:VIII.2.3.3 SR3",
+        FileOrganization.Indexed => "§1985:IX.2.3.3 SR3",
+        _ => "§1985:VII.2.3.3 SR3",
+    };
+
+    private static string Rule1985Of(FileModel file) => Rule1985Of(file.Organization);
 
     /// <summary>The ONE report of an ASSIGN operand's literal-1 shape (COBOL2645), anchored at the operand.</summary>
     private static void Report(EditionContext edition, Antlr4.Runtime.ParserRuleContext at, string message)
