@@ -1,4 +1,4 @@
-## 1985: a line-framed file reads back as the records written, and its REWRITE keeps the record's size (PB5984, PB5915); round 3's rulings and the 1985 tooling triage
+## Entry 3890 — 2026-11-21 01:18 PST — 1985: a line-framed file reads back as the records written, and its REWRITE keeps the record's size (PB5984, PB5915); round 3's rulings and the 1985 tooling triage
 
 Round 3 of the open 1985 questions (one adjudicator, main at 8244f1aa4b) found two wrong answers on a RECORD DELIMITER IS
 LINE-SEQUENTIAL file at `--std 85`. PB5984, reproduced: three WRITE ... AFTER ADVANCING records read back as five, the two extras
@@ -33,3 +33,4 @@ Goldens at 85: `VII.4.7@1985-WRITE-STATEMENT/pb5984_line_delimited_advancing_one
 WRITEs, every read-back exact), its LINAGE twin `pb5984_line_delimited_linage_one_record_per_write_85` (LINAGE-COUNTER 2, 1, 1, 1 and three end-of-page imperatives, computed from §1985:VII.3.7.4 GR9, four records read back) and `VII.4.5@1985-REWRITE-STATEMENT/pb5915_line_delimited_rewrite_size_85` (shorter 44,
 longer 44, equal 00 and replaced, after a truncating READ 44, the file read back). No inventory row was re-verdicted: the
 1985 rows these rules hold are KEPT bridges or CONFORMS. Branch review round 1 (R1-1) found the REWRITE's two other refusals unpinned; `pb5915_line_delimited_rewrite_medium_85` now pins them and their order: a record of the line's character positions whose characters take more or fewer UTF-8 bytes is 44, a record holding the line delimiter is 99 (2023's '71' reported at 85), and a record that does both is 44, each leaving the file unchanged.
+
