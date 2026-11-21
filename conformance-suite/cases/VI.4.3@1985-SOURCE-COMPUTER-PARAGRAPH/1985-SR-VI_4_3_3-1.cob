@@ -6,7 +6,7 @@
       *>---
       *> §1985:VI.4.3.3 SR1 (THE SOURCE-COMPUTER PARAGRAPH). A refusal:
       *> the rule forbids line 5 of the program below, and WiseOwl
-      *> refuses it at 85 with COBOL1971 there; a compiler that accepts
+      *> refuses it at 85 with COBOL7654 there; a compiler that accepts
       *> it fails. Placed from the audit's draft, confirmed by
       *> scripts/spec/place_witnesses.py (kb/Work PB4995).
        IDENTIFICATION DIVISION.

@@ -248,8 +248,8 @@ succeedingAndExpression
     ;
 
 // A simple condition that is NOT the first of its sequence: §2023:8.8.4.12.1's abbreviated relation (subject, or
-// subject and relational operator, omitted), the 1985 logical NOT of one (negatedAbbreviatedRelation, below), or an
-// ordinary (NOT-)condition — a bare `object-1` is the latter's
+// subject and relational operator, omitted), a NOT before one (negatedAbbreviatedRelation, below: the logical NOT at
+// 85, NOT as part of the operator for the one shape 2002 keeps), or an ordinary (NOT-)condition — a bare `object-1` is the latter's
 // comparisonExpression with no operator, which the binder reads against the carried subject and operator.
 succeedingCondition
     : abbreviatedRelation
@@ -263,9 +263,14 @@ succeedingCondition
 // insertion of subject or relational operator results in a negated relation condition." So `A > B AND NOT >= C OR D`
 // is ((A > B) AND (NOT (A >= C))) OR (A >= D): the stated >= is the operator carried on. The left-edge predicate IS
 // GRL2.1 (the six words; a NOT after NOT is the relational operator's own, kb/Work PB5784), so this alternative never competes with the
-// comparisonOperator alternatives that open on NOT. The grammar is the superset: ISO 2002 prohibited the form
-// (§2002:F.1 item 22; §2023:8.8.4.12.4 GR1 NOTE: "NOT cannot immediately precede an extended-relational operator"),
-// and VersionConformancePass refuses it from 2002 on (construct abbreviated-not-logical-removed-2002, COBOL0902).
+// comparisonOperator alternatives that open on NOT. The grammar is the superset, and the node has two shapes with two
+// edition histories, told apart by the one reader NegatedAbbreviationForms.Of: NOT before an IS-led simple relational
+// operator with no NOT of its own (`NOT IS > C`), which 2002 keeps with the NOT read as part of the operator
+// (§2002:8.8.4.2.4.3 GR2b; ConditionBinder.BindNegatedAbbreviatedRelation) and 2014 drops (construct
+// abbreviated-not-is-simple-operator-removed-2014), and every other shape, which 2002 prohibits (§2002:F.1 item 22:
+// "The word NOT is prohibited before the relational operators meaning"; §2002:8.8.4.2.4.2 SR3) (construct
+// abbreviated-not-logical-removed-2002, COBOL0902). VersionConformancePass.VisitNegatedAbbreviatedRelation asks the
+// reader and gates each.
 negatedAbbreviatedRelation
     : NOT abbreviatedRelation
     ;

@@ -3,6 +3,7 @@
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -43,7 +44,7 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
     public bool Admit(Core.DataReferenceContext written, ReferenceResolver.AddressOfOperand operand)
     {
         var item = operand.Item;
-        string text = DataBinder.WrittenText(written);
+        string text = WrittenSource.Of(written);
         bool ok = true;
 
         // SR1, second sentence.

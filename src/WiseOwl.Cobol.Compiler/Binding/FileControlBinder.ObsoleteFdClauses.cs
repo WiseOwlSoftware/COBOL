@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -47,7 +48,7 @@ public sealed partial class FileControlBinder
         using (Edition.At(clause))
             file.FdClauses[FdClause.ValueOf] = new(
                 FileDescriptionIdentity.ValueOfValue(clause.valueOfEntry().Select(e => (e.cobolWord().GetText(), e.literal() is { } lit ? ValueOfLiteralValue(lit) : null))),
-                WiseOwl.Cobol.Frontend.Parsing.WrittenSource.Of(clause), Edition.Cursor);
+                WrittenSource.Of(clause), Edition.Cursor);
         foreach (var entry in clause.valueOfEntry())
             if (entry.dataReference() is { } dref)
             {
@@ -83,7 +84,7 @@ public sealed partial class FileControlBinder
             var form = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(fig.GetText(), includeNull: false);
             return form.Kind is { } kind ? $"F:{kind}"
                 : form.AllLiteral is { } all ? "ALL:" + Classed(CobolLiteral.ClassOf(all), CobolLiteral.Decode(all))
-                : "F:" + CobolNames.UpperFold(fig.GetText());   // ALL symbolic-character / constant-name: named, compared by name
+                : "F:" + CobolNames.UpperFold(WrittenSource.Of(fig));   // ALL symbolic-character / constant-name: named, compared by name
         }
         if (nn.concatenationExpression() is { } ce)
         {

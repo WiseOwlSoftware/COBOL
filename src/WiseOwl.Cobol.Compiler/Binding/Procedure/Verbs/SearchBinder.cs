@@ -86,7 +86,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         IReadOnlyList<Position>? enclosing = written ?? fromWhens?.Subscripts ?? (table.SubscriptArity == 1 ? [] : null);
         if (enclosing is null)
         {
-            ctx.Validation.SearchNestedDynamicWithoutOccurrence(verb, DataBinder.WrittenText(dref), table);
+            ctx.Validation.SearchNestedDynamicWithoutOccurrence(verb, WrittenSource.Of(dref), table);
             bail = BoundRejected.Reported(ctx.Edition);
             return false;
         }
@@ -214,7 +214,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
                 // identifier-1, whose occurrence would otherwise move with every step of the scan (measured: the
                 // illegal spelling printed NONE where the legal one printed HIT). Both are reported; the bind
                 // stops at a refusal (§2023:4.2.2 — the compile has failed).
-                string text = DataBinder.WrittenText(v);
+                string text = WrittenSource.Of(v);
                 bool admitted = OperandClassScreen.Screen(ctx.Edition, OperandPositions.SearchVaryingIdentifier, p, text);
                 if (table.Indexes.Count > 0 && ctx.Refs.Subscripts.SubscriptNamesIndex(v, table.Indexes[0]))
                 {
