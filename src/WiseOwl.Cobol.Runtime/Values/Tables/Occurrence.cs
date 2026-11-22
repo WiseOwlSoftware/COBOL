@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// position. The exact text rides WITH the position instead of beside it (a thread-static "last wide value" slot would
 /// be hidden state that any later unrelated narrowing could leave stale), so the one reader that raises is handed the
 /// one value it must print.</para>
-/// <para><b>A wide carrier's <c>CobolTable.Occ</c> / <c>CobolString.RefModPosition</c> returns this; a narrow one
+/// <para><b>A wide carrier's <c>CobolPosition&lt;PositionUse.Subscript&gt;.Read</c> / <c>CobolPosition&lt;PositionUse.RefMod&gt;.Read</c> returns this; a narrow one
 /// returns the plain <c>long</c>.</b> Both convert to each other implicitly, so a consumer that only positions (an
 /// OCCURS DEPENDING group extent, a record length) takes a <c>long</c> parameter unchanged, and a consumer that RAISES a
 /// position condition takes the <c>Occurrence</c> overload. The exact text exists only at the two saturation extremes

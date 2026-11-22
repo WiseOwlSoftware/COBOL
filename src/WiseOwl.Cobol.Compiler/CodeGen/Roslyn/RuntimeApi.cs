@@ -736,22 +736,24 @@ internal static class RuntimeApi
     };
 
     /// <summary>The position intake for a subscript or reference-modifier bound that is an arithmetic EXPRESSION —
-    /// <c>CobolTable.OccValue*</c> / <c>CobolString.RefModValue*</c> over the value on its OWN carrier, so
+    /// <c>CobolPosition&lt;use&gt;.Value*</c> over the value on its OWN carrier, so
     /// §2023:8.4.2.3.4 GR1b / §2023:8.4.3.3.4 GR5)c)'s integrality test reads the exact intermediate (kb/Work PB1890).
     /// Keyed by the same carrier kinds as <see cref="IntegerArgOf"/>; the result is the position's exact integer on the
     /// 38-digit segment temporary's capacity (saturated by sign past it, kb/Work PB2695) — a table subscript's is an
     /// <c>Int128</c>, narrowed to <c>long</c> only by the subscript read, so its diagnostic names the true value.</summary>
-    public static string PositionValueOf(IntegerArgCarrier carrier, string value, int scale, bool refMod) =>
-        (carrier, refMod) switch
-        {
-            (IntegerArgCarrier.Real, false) => $"{nameof(CobolTable)}.{nameof(CobolTable.OccValueReal)}({value})",
-            (IntegerArgCarrier.Dec, false) => $"{nameof(CobolTable)}.{nameof(CobolTable.OccValueDec)}({value})",
-            (IntegerArgCarrier.Scaled, false) => $"{nameof(CobolTable)}.{nameof(CobolTable.OccValue)}({value}, {scale})",
-            (IntegerArgCarrier.Real, true) => $"{nameof(CobolString)}.{nameof(CobolString.RefModValueReal)}({value})",
-            (IntegerArgCarrier.Dec, true) => $"{nameof(CobolString)}.{nameof(CobolString.RefModValueDec)}({value})",
-            (IntegerArgCarrier.Scaled, true) => $"{nameof(CobolString)}.{nameof(CobolString.RefModValue)}({value}, {scale})",
-            _ => throw new ArgumentOutOfRangeException(nameof(carrier)),
-        };
+    public static string PositionValueOf(IntegerArgCarrier carrier, string value, int scale, bool refMod) => carrier switch
+    {
+        IntegerArgCarrier.Real => $"{PositionOf(refMod)}.{nameof(CobolPosition<PositionUse.Subscript>.ValueReal)}({value})",
+        IntegerArgCarrier.Dec => $"{PositionOf(refMod)}.{nameof(CobolPosition<PositionUse.Subscript>.ValueDec)}({value})",
+        IntegerArgCarrier.Scaled => $"{PositionOf(refMod)}.{nameof(CobolPosition<PositionUse.Subscript>.Value)}({value}, {scale})",
+        _ => throw new ArgumentOutOfRangeException(nameof(carrier)),
+    };
+
+    /// <summary>⛔ THE ONE SPELLING OF THE POSITION READ'S USE (kb/Work PB2645): <c>CobolPosition&lt;PositionUse.Subscript&gt;</c>
+    /// (§2023:8.4.2.3.4 GR1b, EC-BOUND-SUBSCRIPT) or <c>CobolPosition&lt;PositionUse.RefMod&gt;</c> (§2023:8.4.3.3.4 GR5,
+    /// EC-BOUND-REF-MOD) — the one runtime read, specialized by the Table 13 condition its use raises.</summary>
+    private static string PositionOf(bool refMod) =>
+        $"{nameof(CobolPosition)}<{nameof(PositionUse)}.{(refMod ? nameof(PositionUse.RefMod) : nameof(PositionUse.Subscript))}>";
 
     /// <summary>The operand carriers an integer-argument intake is total over (<see cref="IntegerArgOf"/>): the
     /// exact scaled <c>Int128</c>, the SDIDI, and binary64 — the unsigned-wide lane funnels into the first through
@@ -1694,22 +1696,21 @@ internal static class RuntimeApi
         $"{nameof(CobolString)}.{nameof(CobolString.CompareFig)}({a}, {b}, "
         + $"figIsLeft: {(figIsLeft ? "true" : "false")}{weightsArg})";
 
-    /// <summary>An integer count or occurrence-number read — <c>CobolTable.Occ</c>, through the item's profile when
-    /// it is numeric (the checked §2023:14.6.13.2 GR2 read): <c>PlaceRenderer.CountRead</c>'s OCCURS DEPENDING count
-    /// and <c>PositionRenderer</c>'s subscript read.</summary>
-    public static string TableOcc(string expr, string? profile) => profile is null
-        ? $"{nameof(CobolTable)}.{nameof(CobolTable.Occ)}({expr})"
-        : $"{nameof(CobolTable)}.{nameof(CobolTable.Occ)}({expr}, {profile})";
+    /// <summary>A NUMERIC item read as a position through its own profile (the checked §2023:14.6.13.2 GR2 read, kb/Work
+    /// PB41: the item's value, never its unscaled storage) — <c>CobolPosition&lt;use&gt;.Read(x, profile)</c>:
+    /// <c>PlaceRenderer.CountRead</c>'s OCCURS DEPENDING count and <c>PositionRenderer</c>'s subscript and
+    /// reference-modifier reads.</summary>
+    public static string PositionRead(string expr, string profile, bool refMod) =>
+        $"{PositionOf(refMod)}.{nameof(CobolPosition<PositionUse.Subscript>.Read)}({expr}, {profile})";
+
+    /// <summary>A NON-numeric <c>--permissive</c> position operand's digit decode (COBOL0844) —
+    /// <c>CobolPosition.Digits(x)</c>, whatever the position's use.</summary>
+    public static string PositionDigits(string expr) => $"{nameof(CobolPosition)}.{nameof(CobolPosition.Digits)}({expr})";
 
     /// <summary>An integer literal past <c>long</c> as a position — <c>Occurrence.OfLiteral</c>: the saturated <c>long</c>
     /// every accessor positions by, with the literal's exact text for the diagnostic (kb/Work PB2938).</summary>
     public static string OccurrenceOfLiteral(string integerText) =>
         $"{nameof(Occurrence)}.{nameof(Occurrence.OfLiteral)}({EmitText.CsLiteral(integerText)})";
-
-    /// <summary>A numeric item read as a reference-modifier position through its own profile —
-    /// <c>CobolString.RefModPosition(x, profile)</c> (kb/Work PB41: the item's value, never its unscaled storage).</summary>
-    public static string StrRefModPosition(string expr, string profile) =>
-        $"{nameof(CobolString)}.{nameof(CobolString.RefModPosition)}({expr}, {profile})";
 
     /// <summary>A fixed table's initial elements — <c>CobolTable.Fill&lt;T&gt;(count, (int param) =&gt; element)</c>,
     /// the element composed afresh per occurrence (kb/Work PB1722).</summary>

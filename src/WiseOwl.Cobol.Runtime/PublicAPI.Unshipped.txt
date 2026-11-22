@@ -1405,3 +1405,24 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+WiseOwl.Cobol.Runtime.CobolPosition
+WiseOwl.Cobol.Runtime.CobolPosition<TUse>
+WiseOwl.Cobol.Runtime.IPositionUse
+WiseOwl.Cobol.Runtime.IPositionUse.NotAnInteger(string! shown) -> void
+WiseOwl.Cobol.Runtime.PositionUse
+WiseOwl.Cobol.Runtime.PositionUse.RefMod
+WiseOwl.Cobol.Runtime.PositionUse.RefMod.RefMod() -> void
+WiseOwl.Cobol.Runtime.PositionUse.Subscript
+WiseOwl.Cobol.Runtime.PositionUse.Subscript.Subscript() -> void
+static WiseOwl.Cobol.Runtime.CobolPosition.Digits(long value) -> long
+static WiseOwl.Cobol.Runtime.CobolPosition.Digits(string! image) -> WiseOwl.Cobol.Runtime.Occurrence
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(System.Int128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(System.UInt128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(long unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(string! image, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Read(ulong unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.Occurrence
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.Value(System.Int128 unscaled, int scale) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.ValueDec(WiseOwl.Cobol.Runtime.CobolDec value) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolPosition<TUse>.ValueReal(double value) -> System.Int128
+static WiseOwl.Cobol.Runtime.PositionUse.RefMod.NotAnInteger(string! shown) -> void
+static WiseOwl.Cobol.Runtime.PositionUse.Subscript.NotAnInteger(string! shown) -> void

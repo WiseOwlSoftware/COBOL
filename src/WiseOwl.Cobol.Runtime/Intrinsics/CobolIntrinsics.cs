@@ -47,7 +47,7 @@ public static partial class CobolIntrinsics
     // argument that is an integer is an integer EXACTLY (docs/CONFORMANCE.md DOC-A.1-124 — the ONE definition the
     // subscript, reference-modification and SET-index intakes use, CobolNum.HasFraction — a subscript or
     // reference-modification bound that is an EXPRESSION or a float item is tested on its own carrier before it is
-    // stored, CobolTable.OccValue / CobolString.RefModValue, kb/Work PB1890), never a rounded or truncated copy. This intake used to truncate the fraction silently on every carrier, so
+    // stored, CobolPosition<PositionUse.Subscript>.Value / CobolPosition<PositionUse.RefMod>.Value, kb/Work PB1890), never a rounded or truncated copy. This intake used to truncate the fraction silently on every carrier, so
     // FACTORIAL(X / 2 + 1) with X = 5 answered FACTORIAL(3) with no condition even under enabled checking.
     // WiseOwl COBOL's determination for the unchecked result is the truncated integer (the lenient continue
     // CobolNum.PositionOf documents for the same rule at a subscript), so checking off changes nothing a program

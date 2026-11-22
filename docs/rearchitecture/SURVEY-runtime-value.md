@@ -97,7 +97,7 @@ compile/runtime split is clean and, in the edited path, exemplary reuse:
   (`NumericRenderer.cs:80`). ONE editing implementation serves both a runtime MOVE and a compile-time constant — the
   singular pattern working as intended.
 - The runtime overload triplets (`CobolNum.StoreDisplay`/`FormatDisplay` × {long, Int128, string};
-  `CobolTable.Occ` × {long, string}) are a **deliberate storage-form bridge**, not duplication — they let the binder
+  `CobolPosition<PositionUse.Subscript>.Read` × {long, string}) are a **deliberate storage-form bridge**, not duplication — they let the binder
   emit one expression whose field storage form (`StoreAsImage`) is decided later, reconciled by C# overload
   resolution. `DESIGN-data-model.md §2.1` already owns this (StorageForm makes it non-load-bearing).
 
@@ -151,7 +151,7 @@ for consolidation but **omits these three numeric parsers** (see gap check §8).
   `ImageProfileOf` (`FieldEmitter.cs:271`) further does a `with { SignKind = … }` override for binary/packed image
   form. A field-rename on `NumProfile` breaks silently at generated-compile time today — `DESIGN-data-model.md §2.7`
   already flags routing this through the façade.
-- **`CobolNum` is the hub**: `CobolEdit.Rescale`, `CobolFloat.ToScaled`→Store, `CobolDec`→Store overload, `CobolTable.Occ`
+- **`CobolNum` is the hub**: `CobolEdit.Rescale`, `CobolFloat.ToScaled`→Store, `CobolDec`→Store overload, `CobolPosition<PositionUse.Subscript>.Read`
   → `FromAlphanumeric`, and `FieldEmitter` image codec (`FormatDisplay`/`ParseDisplay`) all depend on it. Refactors to
   `CobolNum`'s public surface ripple widely — but the surface is small and stable, so this is healthy centralization.
 - **`CobolString` is the text hub** (Store/Compare) used by `CobolBool` resize semantics, ref-mod splices, and the
@@ -164,7 +164,7 @@ for consolidation but **omits these three numeric parsers** (see gap check §8).
 ## 7. Latent-bug risks
 
 1. **[LOW] `CobolNum.FromAlphanumeric` (`:301`) accumulates in Int128 with no width cap / no overflow guard.** An
-   alphanumeric operand of >38 digit characters used in a numeric context (or as a `CobolTable.Occ(string)` subscript)
+   alphanumeric operand of >38 digit characters used in a numeric context (or as a `CobolPosition.Digits(string)` subscript)
    overflows `Int128` silently. Realistically unreachable (subscripts/decodes are short), but unguarded. Spec-wise the
    value should reduce to the receiver's capacity — which `Store` does downstream — so only the *intermediate* is at
    risk.

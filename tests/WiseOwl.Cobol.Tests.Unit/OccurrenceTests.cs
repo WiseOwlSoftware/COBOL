@@ -30,7 +30,7 @@ public sealed class OccurrenceTests
     [Fact]
     public void InRange_IsThePlainLong_AndConvertsBothWays()
     {
-        Occurrence o = CobolTable.Occ(3L, Profile(4, 0));
+        Occurrence o = CobolPosition<PositionUse.Subscript>.Read(3L, Profile(4, 0));
         Assert.Equal(3L, o.Value);
         Assert.Equal("3", o.ToString());
         long asLong = o;
@@ -42,7 +42,7 @@ public sealed class OccurrenceTests
     [Fact]
     public void WidePositive_SaturatesTheValue_AndKeepsTheExactText()
     {
-        Occurrence o = CobolTable.Occ(I("100000000000000000001"), Profile(21, 0));
+        Occurrence o = CobolPosition<PositionUse.Subscript>.Read(I("100000000000000000001"), Profile(21, 0));
         Assert.Equal(long.MaxValue, o.Value);
         Assert.Equal("100000000000000000001", o.ToString());
     }
@@ -50,7 +50,7 @@ public sealed class OccurrenceTests
     [Fact]
     public void WideNegative_SaturatesTheValue_AndKeepsTheExactText()
     {
-        Occurrence o = CobolTable.Occ(I("-100000000000000000001"), Profile(21, 0, signed: true));
+        Occurrence o = CobolPosition<PositionUse.Subscript>.Read(I("-100000000000000000001"), Profile(21, 0, signed: true));
         Assert.Equal(long.MinValue, o.Value);
         Assert.Equal("-100000000000000000001", o.ToString());
     }
@@ -59,7 +59,7 @@ public sealed class OccurrenceTests
     [Fact]
     public void ScaledItem_NamesTheValueNotTheStorage()
     {
-        Occurrence o = CobolTable.Occ(I("10000000000000000000100"), Profile(23, 2));
+        Occurrence o = CobolPosition<PositionUse.Subscript>.Read(I("10000000000000000000100"), Profile(23, 2));
         Assert.Equal(long.MaxValue, o.Value);
         Assert.Equal("100000000000000000001", o.ToString());
     }
@@ -69,7 +69,7 @@ public sealed class OccurrenceTests
     [Fact]
     public void TrailingP_NamesTheValueNotTheStorage()
     {
-        Occurrence o = CobolTable.Occ(5L, Profile(1, -20));
+        Occurrence o = CobolPosition<PositionUse.Subscript>.Read(5L, Profile(1, -20));
         Assert.Equal(long.MaxValue, o.Value);
         Assert.Equal("500000000000000000000", o.ToString());
     }
@@ -80,7 +80,7 @@ public sealed class OccurrenceTests
     [Fact]
     public void UnsignedWide_PastInt128_KeepsTheExactText()
     {
-        Occurrence o = CobolTable.Occ(UInt128.MaxValue, Profile(39, 0));
+        Occurrence o = CobolPosition<PositionUse.Subscript>.Read(UInt128.MaxValue, Profile(39, 0));
         Assert.Equal(long.MaxValue, o.Value);
         Assert.Equal("340282366920938463463374607431768211455", o.ToString());
     }
@@ -95,7 +95,7 @@ public sealed class OccurrenceTests
         for (int i = 0; i < 20; i++) pow20 *= 10;
         UInt128 value = (UInt128)3402823669209384634UL * pow20;
         Assert.True(value > (UInt128)Int128.MaxValue);
-        Occurrence o = CobolTable.Occ(value, Profile(39, 20));
+        Occurrence o = CobolPosition<PositionUse.Subscript>.Read(value, Profile(39, 20));
         Assert.Equal(3402823669209384634L, o.Value);
         Assert.Equal("3402823669209384634", o.ToString());
     }
@@ -106,16 +106,16 @@ public sealed class OccurrenceTests
     public void ExpressionIntake_IsExactToTheTemporarysCapacity_AndSaturatesBySign()
     {
         Int128 cap = I("99999999999999999999999999999999999999");
-        Assert.Equal(I("1000000000000000000000"), CobolTable.OccValue(I("1000000000000000000000"), 0));
-        Assert.Equal(I("100000000000000000001"), CobolTable.OccValue(I("10000000000000000000100"), 2));
-        Assert.Equal(cap, CobolTable.OccValue(Int128.MaxValue, 0));
-        Assert.Equal(-cap, CobolTable.OccValue(Int128.MinValue + 1, 0));
-        Assert.Equal(cap, CobolTable.OccValue(1, -40));
-        Assert.Equal((Int128)5000, CobolTable.OccValue(5, -3));
-        Assert.Equal(cap, CobolTable.OccValueReal(1e300));
-        Assert.Equal(-cap, CobolTable.OccValueReal(double.NegativeInfinity));
-        Assert.Equal((Int128)0, CobolTable.OccValueReal(double.NaN));
-        Assert.Equal((Int128)123456789012, CobolTable.OccValueReal(123456789012.0));
+        Assert.Equal(I("1000000000000000000000"), CobolPosition<PositionUse.Subscript>.Value(I("1000000000000000000000"), 0));
+        Assert.Equal(I("100000000000000000001"), CobolPosition<PositionUse.Subscript>.Value(I("10000000000000000000100"), 2));
+        Assert.Equal(cap, CobolPosition<PositionUse.Subscript>.Value(Int128.MaxValue, 0));
+        Assert.Equal(-cap, CobolPosition<PositionUse.Subscript>.Value(Int128.MinValue + 1, 0));
+        Assert.Equal(cap, CobolPosition<PositionUse.Subscript>.Value(1, -40));
+        Assert.Equal((Int128)5000, CobolPosition<PositionUse.Subscript>.Value(5, -3));
+        Assert.Equal(cap, CobolPosition<PositionUse.Subscript>.ValueReal(1e300));
+        Assert.Equal(-cap, CobolPosition<PositionUse.Subscript>.ValueReal(double.NegativeInfinity));
+        Assert.Equal((Int128)0, CobolPosition<PositionUse.Subscript>.ValueReal(double.NaN));
+        Assert.Equal((Int128)123456789012, CobolPosition<PositionUse.Subscript>.ValueReal(123456789012.0));
     }
 
     /// <summary>At the temporary's capacity the intake is exact up to 10^38 − 1 and clamps the exact value past it,
@@ -126,12 +126,12 @@ public sealed class OccurrenceTests
     {
         Int128 cap = I("99999999999999999999999999999999999999");
         Assert.Equal(I("99999999999999998000000000000000000000"),
-            CobolTable.OccValueDec(CobolDec.From(99999999999999998, -21)));
-        Assert.Equal(cap, CobolTable.OccValueDec(CobolDec.From(1, -38)));
-        Assert.Equal(-cap, CobolTable.OccValueDec(CobolDec.From(-1, -38)));
-        Assert.Equal(I("99999999999999997748809823456034029568"), CobolTable.OccValueReal(1e38));
-        Assert.Equal(cap, CobolTable.OccValueReal(1.6e38));
-        Assert.Equal(-cap, CobolTable.OccValueReal(-1.6e38));
+            CobolPosition<PositionUse.Subscript>.ValueDec(CobolDec.From(99999999999999998, -21)));
+        Assert.Equal(cap, CobolPosition<PositionUse.Subscript>.ValueDec(CobolDec.From(1, -38)));
+        Assert.Equal(-cap, CobolPosition<PositionUse.Subscript>.ValueDec(CobolDec.From(-1, -38)));
+        Assert.Equal(I("99999999999999997748809823456034029568"), CobolPosition<PositionUse.Subscript>.ValueReal(1e38));
+        Assert.Equal(cap, CobolPosition<PositionUse.Subscript>.ValueReal(1.6e38));
+        Assert.Equal(-cap, CobolPosition<PositionUse.Subscript>.ValueReal(-1.6e38));
     }
 
     // ── The reference-modification chain (kb/Work PB2938): the same carrier, the same exactness ──
@@ -141,12 +141,12 @@ public sealed class OccurrenceTests
     [Fact]
     public void RefModPosition_WideItem_KeepsTheExactText()
     {
-        Occurrence o = CobolString.RefModPosition(I("100000000000000000001"), Profile(21, 0));
+        Occurrence o = CobolPosition<PositionUse.RefMod>.Read(I("100000000000000000001"), Profile(21, 0));
         Assert.Equal(long.MaxValue, o.Value);
         Assert.Equal("100000000000000000001", o.ToString());
-        Occurrence scaled = CobolString.RefModPosition(I("10000000000000000000100"), Profile(23, 2));
+        Occurrence scaled = CobolPosition<PositionUse.RefMod>.Read(I("10000000000000000000100"), Profile(23, 2));
         Assert.Equal("100000000000000000001", scaled.ToString());
-        Occurrence inLong = CobolString.RefModPosition(5000000000L, Profile(10, 0));
+        Occurrence inLong = CobolPosition<PositionUse.RefMod>.Read(5000000000L, Profile(10, 0));
         Assert.Equal(5000000000L, inLong.Value);
         Assert.Equal("5000000000", inLong.ToString());
     }
@@ -157,28 +157,28 @@ public sealed class OccurrenceTests
     [Fact]
     public void RefModPosition_UnsignedWide_IsReadAsItself()
     {
-        Occurrence max = CobolString.RefModPosition(UInt128.MaxValue, Profile(39, 0));
+        Occurrence max = CobolPosition<PositionUse.RefMod>.Read(UInt128.MaxValue, Profile(39, 0));
         Assert.Equal(long.MaxValue, max.Value);
         Assert.Equal("340282366920938463463374607431768211455", max.ToString());
         UInt128 pow20 = 1;
         for (int i = 0; i < 20; i++) pow20 *= 10;
-        Occurrence back = CobolString.RefModPosition((UInt128)3402823669209384634UL * pow20, Profile(39, 20));
+        Occurrence back = CobolPosition<PositionUse.RefMod>.Read((UInt128)3402823669209384634UL * pow20, Profile(39, 20));
         Assert.Equal(3402823669209384634L, back.Value);
         Assert.Throws<WiseOwl.Cobol.Runtime.Exceptions.CobolFatalException>(
-            () => CobolString.RefModPosition(UInt128.MaxValue, Profile(39, 2)));
+            () => CobolPosition<PositionUse.RefMod>.Read(UInt128.MaxValue, Profile(39, 2)));
     }
 
-    /// <summary>The expression intake keeps the EXACT integer (the twin of <c>CobolTable.OccValue</c>) and the position
+    /// <summary>The expression intake keeps the EXACT integer (as the subscript use's does) and the position
     /// read after the temporary names it.</summary>
     [Fact]
     public void RefModValue_IsExact_AndTheReadAfterItNamesTheValue()
     {
-        Int128 position = CobolString.RefModValue(I("100000000000000000006"), 0);
+        Int128 position = CobolPosition<PositionUse.RefMod>.Value(I("100000000000000000006"), 0);
         Assert.Equal(I("100000000000000000006"), position);
-        Assert.Equal(I("99999999999999999999999999999999999999"), CobolString.RefModValue(Int128.MaxValue, 0));
-        Assert.Equal(I("100000000000000000000"), CobolString.RefModValueDec(CobolDec.From(1, -20)));
-        Assert.Equal((Int128)123456789012, CobolString.RefModValueReal(123456789012.0));
-        Occurrence o = CobolString.RefModPosition(position, Profile(38, 0, signed: true));
+        Assert.Equal(I("99999999999999999999999999999999999999"), CobolPosition<PositionUse.RefMod>.Value(Int128.MaxValue, 0));
+        Assert.Equal(I("100000000000000000000"), CobolPosition<PositionUse.RefMod>.ValueDec(CobolDec.From(1, -20)));
+        Assert.Equal((Int128)123456789012, CobolPosition<PositionUse.RefMod>.ValueReal(123456789012.0));
+        Occurrence o = CobolPosition<PositionUse.RefMod>.Read(position, Profile(38, 0, signed: true));
         Assert.Equal("100000000000000000006", o.ToString());
     }
 
@@ -187,7 +187,7 @@ public sealed class OccurrenceTests
     [Fact]
     public void SpecifiedRefModLength_FloorKeepsTheValueTheProgramHolds()
     {
-        Occurrence huge = CobolString.SpecifiedRefModLength(CobolString.RefModPosition(I("-100000000000000000001"), Profile(21, 0, signed: true)));
+        Occurrence huge = CobolString.SpecifiedRefModLength(CobolPosition<PositionUse.RefMod>.Read(I("-100000000000000000001"), Profile(21, 0, signed: true)));
         Assert.Equal(CobolString.OmittedRefModLength + 1L, huge.Value);
         Assert.Equal("-100000000000000000001", huge.ToString());
         Occurrence minusInt = CobolString.SpecifiedRefModLength(-2147483648L);
@@ -202,7 +202,7 @@ public sealed class OccurrenceTests
     [Fact]
     public void RefModRaise_NamesTheExactPositions()
     {
-        Occurrence wide = CobolString.RefModPosition(I("100000000000000000001"), Profile(21, 0));
+        Occurrence wide = CobolPosition<PositionUse.RefMod>.Read(I("100000000000000000001"), Profile(21, 0));
         string read = Assert.Throws<WiseOwl.Cobol.Runtime.Exceptions.CobolFatalException>(() => CobolString.RefMod("ABCDE", wide, 1)).Message;
         Assert.Contains("(100000000000000000001:1) out of range for a 5-position item", read);
         string write = Assert.Throws<WiseOwl.Cobol.Runtime.Exceptions.CobolFatalException>(() => CobolString.SpliceInto("ABCDE", 1, wide, "z")).Message;
@@ -234,8 +234,8 @@ public sealed class OccurrenceTests
     [Fact]
     public void ExpressionThenRead_NamesTheComputedValue()
     {
-        Int128 position = CobolTable.OccValue(I("100000000000000000006"), 0);
-        Occurrence o = CobolTable.Occ(position, Profile(38, 0, signed: true));
+        Int128 position = CobolPosition<PositionUse.Subscript>.Value(I("100000000000000000006"), 0);
+        Occurrence o = CobolPosition<PositionUse.Subscript>.Read(position, Profile(38, 0, signed: true));
         Assert.Equal(long.MaxValue, o.Value);
         Assert.Equal("100000000000000000006", o.ToString());
     }

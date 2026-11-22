@@ -8,6 +8,6 @@
 # Two branches that both changed this file conflict in plain git (kb/Work PB5110): take main's file, re-apply this
 # branch's own bump (the commands above) and let the test measure the merged tree; never merge the hashes by hand.
 runtime-major 33
-runtime-hash 8E087E8E492BEB04
+runtime-hash E541ECBFAE243938
 call-abi 6
 boundary-hash 0560D7E1172FC6C2
