@@ -5895,7 +5895,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // Every NUMERIC usage carries a pinned byte form since the Step D dissolution (kb/Work PB164) —
             // THE ONE image predicate, never a hand-rolled usage union.
             PicCategory.Numeric when p.HasImageByteForm => null,
-            _ => $"a leaf of category {p.Category} and usage {p.Usage} with no pinned byte image "
+            _ => $"a leaf of category {ItemCategory.CategoryName(p)} and usage {UsageFamilies.UsageWord(p.Usage)} with no pinned byte image "
                 + "(ISO §2023:13.18.60.4 — no representation this model can lay out in a byte window)",
         };
     }

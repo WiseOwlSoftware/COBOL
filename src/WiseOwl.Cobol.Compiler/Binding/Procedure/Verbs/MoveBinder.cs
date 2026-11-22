@@ -446,7 +446,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             return true;
         ctx.Edition.Error(DiagnosticCatalog.FromPhraseFunctionClass,
             $"{rules.Statement} {WrittenSource.Of(fc)}: {functionRule.At(ctx.Edition.DialectLevel, file.Organization)} — this function's result is of "
-            + $"category {cat.ToString().ToLowerInvariant()}");
+            + $"category {ItemCategory.CategoryName(cat)}");
         return false;
     }
 

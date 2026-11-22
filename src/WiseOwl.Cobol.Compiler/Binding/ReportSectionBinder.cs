@@ -2779,7 +2779,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     Edition.Error(DiagnosticCatalog.ReportSourceExpressionNotNumeric, $"RD '{model.Name}' entry "
                         + $"'{entryName ?? "FILLER"}': the SOURCE clause specifies an arithmetic-expression or the "
                         + $"ROUNDED phrase, so the entry shall define a numeric or numeric-edited data item (ISO "
-                        + $"§2023:13.18.53.3 SR3); its PICTURE '{picText}' describes a {pic.Category} item.");
+                        + $"§2023:13.18.53.3 SR3); its PICTURE '{picText}' describes a category {ItemCategory.CategoryName(pic)} item.");
                 int uid = _d.TakeUid();
                 var item = new DataItem
                 {
@@ -4246,7 +4246,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (item.Pic is not { Category: PicCategory.Numeric, Usage: not Usage.Index })
         {
             Edition.Error(DiagnosticCatalog.ReportSumAddendNotNumeric, $"RD '{model.Name}': SUM addend '{addend.Written}' is "
-                + $"{(item.IsGroup ? "a group item" : $"of category {item.Pic?.Category.ToString().ToLowerInvariant() ?? "unknown"}")}; "
+                + $"{(item.IsGroup ? "a group item" : $"of category {(item.Pic is { } pic ? ItemCategory.CategoryName(pic) : "unknown")}")}; "
                 + $"the addend shall specify a numeric data item ({Edition.Edition.CiteRule("§1985:XIII.3.19.3 SR1", "§2023:13.18.54.3 SR5")}) — its content is added "
                 + $"into the sum counter by an implicit ADD ({Edition.Edition.Cite("§1985:XIII.3.19.4 GR2", "§2023:13.18.54.4 GR3")}).");
             return;
@@ -4349,7 +4349,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (data is ReportSourceFamily { Category: not PicCategory.Numeric } source)
         {
             Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"{where} names the entry '{data.Name}', whose PICTURE is "
-                + $"{(source.Category is { } cat ? $"of category {cat.ToString().ToLowerInvariant()}" : "absent")}: "
+                + $"{(source.Category is { } cat ? $"of category {ItemCategory.CategoryName(cat)}" : "absent")}: "
                 + "data-name-1 shall be the name of a numeric data item in the report section ("
                 + Edition.Edition.CiteRule("§1985:XIII.3.19.3 SR1", "§2023:13.18.54.3 SR4") + ").");
             return null;

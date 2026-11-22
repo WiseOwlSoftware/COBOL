@@ -103,6 +103,85 @@ public sealed class ClassSpellingDriftTests
         }
     }
 
+    // "category {x.Category}", "of class {constant.Category}", "a {pic.Category} item", "{cat.ToString()…}" and any
+    // "Category.ToString().ToLowerInvariant()": an interpolation hole that renders a PicCategory member's C# name. A hole
+    // that goes through ItemCategory.CategoryName is the one spelling and is not matched.
+    private static readonly Regex CategoryOwnSpelling = new(
+        @"(?:category|class|a|an) \{(?![^{}]*CategoryName\()[^{}]*?(?:\b\w*Category\b|\bcat\??\.ToString\(\))[^{}]*\}"
+        + @"|Category\??\.ToString\(\)\.ToLowerInvariant\(\)",
+        RegexOptions.CultureInvariant);
+
+    /// <summary>⛔ A DIAGNOSTIC NAMES AN ISO §2023:8.5.2.1 TABLE 2 CATEGORY THROUGH <c>ItemCategory.CategoryName</c>, NEVER
+    /// THE <c>PicCategory</c> MEMBER'S NAME (kb/Work PB3229). The member names are coarser than Table 2 and are not its
+    /// words: a SIGN clause on a PIC ZZ9 entry said "this entry is of category numericedited", a data-pointer was
+    /// "pointer", and the CA1308 code fix (ToUpperInvariant) would only have shouted the same wrong word.</summary>
+    [Fact]
+    public void NoDiagnostic_SpellsACategoryFromTheEnumName()
+    {
+        var offenders = EnumNameSpellings(CategoryOwnSpelling);
+        Assert.True(offenders.Count == 0,
+            "spell a category through ItemCategory.CategoryName (kb/Work PB3229):\n" + string.Join("\n", offenders));
+    }
+
+    // "USAGE {x.Usage}", "usage {UsageOf(item)?.ToString()…}" and "Usage.ToString().ToUpperInvariant()": a hole that renders a
+    // Usage member's C# name ("Packed", "Comp5", "PROGRAMPOINTER") where UsageFamilies.UsageWord holds the COBOL keyword.
+    private static readonly Regex UsageOwnSpelling = new(
+        @"(?i:usage) \{(?![^{}]*UsageWord\()[^{}]*?\bUsage(?:Of)?\b[^{}]*\}"
+        + @"|Usage(?:Of\([^()]*\))?\??\.ToString\(\)\.ToUpperInvariant\(\)",
+        RegexOptions.CultureInvariant);
+
+    /// <summary>⛔ THE USAGE TWIN OF THE CATEGORY SWEEP (kb/Work PB3229's sibling sweep): a diagnostic names a USAGE through
+    /// <c>UsageFamilies.UsageWord</c>, the §2023:13.18.60.2 keyword, never the <c>Usage</c> member's name — a RECORD VARYING
+    /// depending item was "usage PACKED", an INSPECT or STRING operand "USAGE Comp5".</summary>
+    [Fact]
+    public void NoDiagnostic_SpellsAUsageFromTheEnumName()
+    {
+        var offenders = EnumNameSpellings(UsageOwnSpelling);
+        Assert.True(offenders.Count == 0,
+            "spell a usage through UsageFamilies.UsageWord (kb/Work PB3229):\n" + string.Join("\n", offenders));
+    }
+
+    /// <summary>The compiler's source lines <paramref name="spelling"/> matches. An internal invariant's exception text and
+    /// a culture-invariant identity key (a <c>…Exception(</c> or <c>string.Create(</c> on the line or the two above) name
+    /// the C# member on purpose and are exempt.</summary>
+    private static System.Collections.Generic.List<string> EnumNameSpellings(Regex spelling)
+    {
+        string root = TestRepo.Src(["WiseOwl.Cobol.Compiler"]);
+        return Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
+            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
+                        && !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}"))
+            .SelectMany(f =>
+            {
+                string[] lines = File.ReadAllLines(f);
+                return lines.Select((line, i) => (f, line, i, window: string.Join("\n", lines[Math.Max(0, i - 2)..(i + 1)])));
+            })
+            .Where(t => spelling.IsMatch(t.line)
+                        && !t.window.Contains("Exception(", StringComparison.Ordinal)
+                        && !t.window.Contains("string.Create(", StringComparison.Ordinal))
+            .Select(t => $"{Path.GetRelativePath(root, t.f)}:{t.i + 1}: {t.line.Trim()}")
+            .ToList();
+    }
+
+    [Theory]
+    [InlineData("$\"this entry is of category {pic.Category.ToString().ToLowerInvariant()} (PICTURE\"", true)]
+    [InlineData("$\"of class {constant.Category} (§2023:13.10.4 GR1/GR2)\"", true)]
+    [InlineData("$\"its PICTURE '{picText}' describes a {pic.Category} item.\"", true)]
+    [InlineData("$\"this function's result is of category {cat.ToString().ToLowerInvariant()}\"", true)]
+    [InlineData("$\"an item of category {p.Category}\"", true)]
+    [InlineData("$\"is of category {ItemCategory.CategoryName(pic)} (PICTURE\"", false)]
+    [InlineData("$\"shall be a {cat} DATA ITEM\"", false)]
+    public void TheCategoryPattern_CatchesTheFormsItWasWrittenIn(string text, bool offends)
+        => Assert.Equal(offends, CategoryOwnSpelling.IsMatch(text));
+
+    [Theory]
+    [InlineData("$\"usage {pic.Usage.ToString().ToUpperInvariant()}, category\"", true)]
+    [InlineData("$\"a numeric item of USAGE {p.Usage} (SR1 admits usage \"", true)]
+    [InlineData("$\"an elementary item of USAGE {ItemCategory.UsageOf(target.Item)?.ToString() ?? \"(none)\"}\"", true)]
+    [InlineData("$\"a numeric item of USAGE {UsageFamilies.UsageWord(p.Usage)} (SR1\"", false)]
+    [InlineData("$\"is an elementary item of USAGE {usage}, \"", false)]
+    public void TheUsagePattern_CatchesTheFormsItWasWrittenIn(string text, bool offends)
+        => Assert.Equal(offends, UsageOwnSpelling.IsMatch(text));
+
     [Theory]
     [InlineData("$\"{(IntrinsicArgumentRules.ClassOfItem(item) is { } cls ? IntrinsicArgumentRules.Name(cls) : \"unknown\")} \"", true)]
     [InlineData("$\"is of class {IntrinsicArgumentRules.Name(IntrinsicArgumentRules.ClassOfItem(item)!.Value)}\"", true)]

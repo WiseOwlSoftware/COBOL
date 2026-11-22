@@ -1147,7 +1147,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         _ => IntrinsicArgumentRules.FunctionIdentifierCategory(target) is not { } category
              || category is PicCategory.Alphanumeric or PicCategory.National
             ? null
-            : $"a function-identifier of category {category.ToString().ToLowerInvariant()}",
+            : $"a function-identifier of category {ItemCategory.CategoryName(category)}",
     };
 
     /// <summary>⛔ THE ONE §2023:14.9.4.3 SR1 / §2023:14.9.5.3 SR1 CATEGORY SCREEN of an identifier-1 program-name target

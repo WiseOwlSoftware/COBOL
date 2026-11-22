@@ -337,7 +337,7 @@ internal sealed class CheckUsageDeclarationsPass : IBindPass
     /// "POINTER" would make the one symptom of that invariant breaking look like an ordinary correct verdict.
     /// A message that cannot be false is worth one arm.</summary>
     private static string Sr14PhraseNameOf(DataItem d) => Sr14PhraseOf(d)
-        ?? $"an unnamed usage of category {d.Pic?.Category.ToString() ?? "(none)"} — this is a compiler defect: a "
+        ?? $"an unnamed usage of category {(d.Pic is { } pic ? ItemCategory.CategoryName(pic) : "(none)")} — this is a compiler defect: a "
             + "slot-carried item whose profile names no §2023:13.18.60.3 SR14 usage";
 
     /// <summary>SR14's "at level 1" arm. ⛔ 77 SATISFIES IT — see this file's header for the derivation
