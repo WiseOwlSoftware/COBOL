@@ -39,7 +39,7 @@
   accepts it (the double beneath one millionth, 9.99999999999999954748E-7, is not representable at six places). A
   floating-point DATA ITEM lands by its exact binary value (`ToScaled`, `ToScaledUnchecked`, `ToScaledIntermediate`), and so does a value
   a function derives from a float ITEM's content (kb/Work PB4622): MAX, MIN and an odd MEDIAN return "the content of the argument"
-  (§2023:15.59.4 1), §2023:15.63.4 1), §2023:15.61.1), INTEGER the greatest integer not above it (§2023:15.44.4 1)), and ABS, INTEGER-PART, FRACTION-PART, REM, SUM,
+  (§2023:15.59.4 RV1, §2023:15.63.4 RV1, §2023:15.61.1), INTEGER the greatest integer not above it (§2023:15.44.4 RV1), and ABS, INTEGER-PART, FRACTION-PART, REM, SUM,
   MEAN, RANGE and MIDRANGE have equivalent arithmetic expressions that the item's binary64 evaluates exactly or as the written-out expression
   does (D16), so `MOVE FUNCTION ABS (DN) TO X5` stores 73792 where `MOVE DN TO X5` does, and `COMPUTE R ROUNDED MODE IS PROHIBITED = FUNCTION
   ABS (A1)` raises the size error `= A1` raises (`IntrinsicCarrierRules.Binary64ResultIsApproximation`; witnesses

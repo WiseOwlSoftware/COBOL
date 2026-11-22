@@ -19,7 +19,7 @@
   argument, EC-ARGUMENT-FUNCTION (`§2023:15.3 AR14`, "the EC-ARGUMENT-FUNCTION exception condition is set to exist"), under the
   edition's checking rules; with checking off the truncated integer is the result (A.1 item 124). COBOL-85 has no exception
   conditions; the Correction Amendment's clarification of the intrinsic function module "allows an implementation of amended third
-  Standard COBOL to terminate processing" when an argument's value does not comply (`§1985:p.B-46`), so at `--std 85` the run unit
+  Standard COBOL to terminate processing" when an argument's value does not comply (`§1993:p.B-46`), so at `--std 85` the run unit
   is terminated with a message naming the function, the argument and the value. GnuCOBOL 3.2 accepts all four probe forms and
   checks nothing (`MOD (N / 3, 2)` prints 1.3333 even under `-debug`), so it gives no guidance past the text. Witnesses:
   `conformance:cases/15.3-Arguments/pb5889_function_meaning_identities`, `conformance:cases/15.3-Arguments/pb5889_run_time_check_85`,

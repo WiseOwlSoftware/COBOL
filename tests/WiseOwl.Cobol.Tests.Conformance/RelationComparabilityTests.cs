@@ -315,7 +315,7 @@ public sealed class RelationComparabilityTests
         {
             string src = CompiledProgramCache.StageSource(Path.Combine(dir, "prog.cob"), source);
             var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, "prog.dll"),
-                DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+                DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return r.Success ? [] : [.. r.Errors.DefaultIfEmpty($"status {r.Status}")];
         }
         finally { ScratchDirectory.Remove(dir); }

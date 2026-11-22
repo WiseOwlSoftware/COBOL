@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p243",
+ "rule-digest": "7b4de0211f9b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordName; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#Records",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p243",
+ "notes": "Derivation from the read lineage-reads-1985/g-05.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p243); the code location is where the compiler meets the rule's subject. The read: \"A user-defined word that names a record described in a record description entry in the Data Division of a COBOL program.\" A definition of a word class; the candidates (GR-13.18.43.4-5, SR-8.3.2.1-4, SR-13.4.6.3-4) state other requirements. The code location was located after the read (locations-all.json): recordName parses a record-name reference and FileModel.Records holds the 01-level record items an FD describes, the items it resolves to."
+}

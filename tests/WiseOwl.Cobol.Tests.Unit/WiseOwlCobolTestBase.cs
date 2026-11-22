@@ -35,7 +35,7 @@ public abstract class WiseOwlCobolTestBase : IDisposable
         string dllPath = Path.Combine(TempDir, "prog.dll");
         File.WriteAllText(srcPath, source);
 
-        var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, dllPath, DialectLevel: dialectLevel, SourceFormat: InitialReferenceFormat.Auto));
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, dllPath, DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
         if (!result.Success)
             return (false, "", $"{result.Status}: {string.Join("\n", result.Errors)}");
         return RunAssembly(dllPath);

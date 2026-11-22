@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p52",
+ "rule-digest": "1ca243f8b650",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#RecordLayout",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p52",
+ "notes": "Derivation from the read lineage-reads-1985/g-01.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p52); the code location is where the compiler meets the rule's subject. The read: \"Items that are described by consecutive entries in the Data Division, and that bear a definite hierarchical relationship to each other\" names a relationship that other rules use. Candidates are wording matches. The code location was located after the read (locations-all.json): WEAK: RecordLayout lays out consecutive entries of a record by hierarchy into contiguous storage offsets."
+}

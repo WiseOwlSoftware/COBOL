@@ -14,13 +14,13 @@
       *> function, method, or program."
       *> cite.py --check 14.2.3 "The correspondence between the
       *>   arguments and the formal parameters is established on a
-      *>   positional basis" -> OK  §2023:14.2.3 2)  (General rules)
+      *>   positional basis" -> OK  §2023:14.2.3 GR2  (General rules)
       *> cite.py --check 14.2.3 "Data-name-1 is a formal parameter for
-      *>   the function, method, or program" -> OK  §2023:14.2.3 5)
+      *>   the function, method, or program" -> OK  §2023:14.2.3 GR5
       *> cite.py --check 14.2.3 "If the argument is passed by
       *>   reference, the activated runtime element operates as if the
       *>   formal parameter occupies the same storage area as the
-      *>   argument" -> OK  §2023:14.2.3 8)  (General rules)
+      *>   argument" -> OK  §2023:14.2.3 GR8  (General rules)
       *> The caller and the callee both name their items X and Y, and
       *> the CALL passes them in the OPPOSITE order: USING Y X. A
       *> name-based binding would print the opposite of every line.
@@ -33,7 +33,7 @@
       *>  (the default: cite.py --check 14.2.3 "If neither the BY
       *>  REFERENCE nor the BY VALUE phrase is specified prior to the
       *>  first parameter, the BY REFERENCE phrase is assumed" -> OK
-      *>  §2023:14.2.3 4)), so it occupies the caller's Y's
+      *>  §2023:14.2.3 GR4), so it occupies the caller's Y's
       *>  storage (GR8): MOVE "ZZZ" TO X changes the caller's Y and
       *>  leaves the caller's X alone: "OUT X=AAA Y=ZZZ".
        IDENTIFICATION DIVISION.

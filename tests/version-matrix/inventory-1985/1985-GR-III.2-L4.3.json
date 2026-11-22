@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-L4.3",
+ "rule-digest": "1c0d6aab6b10",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#EndsCharacterString",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-L4_3",
+ "notes": "Own witness from the read lineage-reads-1985/g-06.json: the reader showed the compiler correct at 85 with its probe (textword2.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985 item (3) carries three requirements 2023 GR3 does not: 'except comment lines and the word 'COPY'' (2023 moves it to the unnumbered lead p1, not a candidate and not shown witnessed at 85) and 'One or both of the bounding separators may be a pseudo-text delimiter' (2023 reaches it only through SR-8.3.5-6). No single witnessed pointer states the whole scope; the probes show the compiler correct on every leg but COPY. Code location located after the read: TextWordScanner.TryNext takes as a character-string text-word every contiguous run not a separator, literal or comment, and EndsCharacterString bounds it at separators and pseudo-text delimiters."
+}

@@ -33,6 +33,11 @@ THE FORMAT (owner 2026-11-06; the edition is MANDATORY):
   in angle brackets after the colon (`§2023:<clause>`, the way a document shows the format), an interpolation hole
   (`$"ISO §2023:{clause}"`, the way the compiler composes a diagnostic) and a regex group (`@"§2023:([0-9.]+)"`, the
   way a test reads citations) are templates, not citations.
+- **A `§1985:` citation names the standard as amended, and an amendment's own text is cited by its own token**
+  (kb/Work PB5059). The transcription applies both amendments in place in the base text (kb/Work PB5045, each change
+  marked), so `§1985:VI.5.3.2` names the amended rule wherever an amendment changed it; the 1985 universe ends at the
+  first `# AMENDMENT` heading, and what only an amendment prints (Amendment 1's Section A and its pages, Amendment 2's
+  pages) is `§1989:` or `§1993:`, never a `§1985:` page (`§1985:p.B-16` named Amendment 2's page and validated). (citation-audit: example)
 - **Paragraph numbers restart in each section of the 1985 standard** (VI.5.3 and VII.5.3 are different paragraphs), so
   a 1985 locator always carries its section, and a paragraph the section does not have is refused even when another
   section has it.
@@ -128,7 +133,24 @@ SUBLIST_RULE = re.compile(rf"({'|'.join(RULE_KINDS)}) ?L(\d+)\.(\d+)")
 #: yet: the tree writes `item <n>` for it and for other lists alike (`§2023:5.4 item 2` names no printed item), so the
 #: form waits until those citations are re-pointed (kb/Work PB5449's report).
 UNIT_RULE = r"p\d+|Table \d+ row \d+"
-RULE = rf"(?:(?:{'|'.join(RULE_KINDS)}) ?(?:\d+(?:[a-z0-9.]*[a-z0-9])?|L\d+\.\d+)|Format \d+|{UNIT_RULE}|Table \d+)"
+#: ⛔ THE ONE GRAMMAR OF A NUMBERED RULE DESIGNATOR (kb/Work PB5446): its kind, then the restarted list it names
+#: (`GRL2.4`) or its ordinal (`GR6`), then its glued SUB-ITEM PATH, letters and numbers, each optionally after a `.`
+#: (`GR6c`, `GR6d.2`, `GR3a1`, `GRL2.4d.1`). A path that opens with a number takes its `.` (`GR6.1`, never `GR61`;
+#: `cite.render_path`). The parser here (`RULE`), the checker's reading of its parts (`cite.DESIGNATOR`) and the writer
+#: of a suggestion (`cite.RuleBook.where`: a designator and `render_path`) are this one pattern, so a designator the
+#: checker suggests is one the parser reads: they disagreed until PB5446 (`GRL2.4d.1` was suggested and refused, the
+#: parser taking a sub-item path only after a plain ordinal). Its groups are named for `cite.DESIGNATOR`; `RULE` embeds
+#: it unnamed (`_unnamed`), being itself embedded in larger patterns.
+NUMBERED_DESIGNATOR = (rf"(?P<kind>{'|'.join(RULE_KINDS)}) ?(?:L(?P<list>\d+)\.(?P<lord>\d+)|(?P<n>\d+))"
+                       r"(?P<path>(?:\.?(?:[a-z]|\d+))*)")
+
+
+def _unnamed(pattern: str) -> str:
+    """`pattern` with each named group made a non-capturing one, to embed it beside other named groups."""
+    return re.sub(r"\(\?P<\w+>", "(?:", pattern)
+
+
+RULE = rf"(?:{_unnamed(NUMBERED_DESIGNATOR)}|Format \d+|{UNIT_RULE}|Table \d+)"
 _RULE = re.compile(RULE + r"\Z")
 
 #: THE ONE CITATION PATTERN. `edition`/`locator` are the edition form (the locator read loosely here, and per edition
@@ -138,6 +160,66 @@ _RULE = re.compile(RULE + r"\Z")
 PATTERN = (r"(?P<cite>§(?:(?P<edition>\d{4}):(?![<{(])(?P<locator>p\.[A-Z]+-\d+|[A-Z0-9]+(?:\.[A-Z0-9]+)*(?![a-z]))?"
            r"|\s?(?P<bare>(?:\d+|[A-Z])(?:\.\d+)+)(?![a-z]|\.[A-Z])))")
 _SCAN = re.compile(PATTERN + r"(?: (?P<rule>" + RULE + r"))?")
+#: ⛔ THE NON-CANONICAL DESIGNATOR SPELLINGS (kb/Work PB4976, PB6000). `scan` reads a citation's rule only in the one
+#: grammar, so a designator written another way stands after the citation UNREAD: `§2023:14.9.8.4 GR1 b)` is read as (citation-audit: example)
+#: GR1 and its sub-item is checked by nothing, `§2023:14.7.8 rule 2` and `§2023:9.1.13.6 item 1` as the bare clause. (citation-audit: example)
+#: `loose_designator` finds them; the citations audit refuses each (RESOLVE's `designator-not-canonical`).
+#: A sub-item path written spaced after a numbered rule, the way the standard PRINTS its labels. The levels ALTERNATE:
+#: a rule's items are lettered (`b)`), theirs numbered (`2.`, the tree also writes `2)`), theirs lettered (`b.`); so a
+#: path opens with a letter, and a label of the same kind as the one before it is a SIBLING (`a) b)`: items a and b),
+#: never a level, as a number right after a rule (`37) 39)`) is another rule.
+SPACED_PATH = re.compile(r" [a-z]\)(?: \d{1,2}(?:\)|\.(?=[\s)]))(?: [a-z](?:\)|\.(?=[\s)])))?)?")
+#: What, right after a spaced path or a bare rule label, makes the spelling a LIST rather than one designator: another
+#: label of the same shape (`a) b)`, `37) 39)`) or a range or conjunction of them (`a)/c)`, `a)-c)`, `3) and 5)`).
+_LISTED = re.compile(r"(?: (?:and|or|to|through) |\s?[/,–-]\s?| )\(?(?:[a-z]|\d{1,2})\)"
+                     r"|,? (?:and|or|to|through) \d|\s?[/–-]\s?\d|, \d{1,2}(?:[,;)]| (?:and|or)\b)")
+#: A rule or list item named in words, or by a bare printed label, after a citation that names no rule: `rule 2`,
+#: `rules 3`, `<x> phrase rule 1`, `item 1`, `item (1)`, a bare `1)`.
+LOOSE_RULE = re.compile(r" (?:(?P<item>items? \(?\d+\)?)|(?:[A-Za-z-]+ phrase )?rules? (?P<word>\d+)|(?P<label>\d{1,2})\))"
+                        r"(?![\w.])")
+
+
+@dataclasses.dataclass(frozen=True)
+class Loose:
+    """A designator in no form `scan` reads, written after the citation `cited`: the text it spans (`written`, the
+    citation included, ending at `end`), the rule ordinal it names when it names one by number (`rule 2`, a bare `2)`),
+    and the sub-item path it writes spaced (`b) 2)` -> ('b', '2'))."""
+    cited: Citation
+    written: str
+    end: int
+    ordinal: int | None
+    path: tuple[str, ...]
+    #: A list of designators follows (`a) b)`, `a)/c)`, `37) 39)`): one canonical form cannot say it (`_LISTED`).
+    listed: bool = False
+
+    def glued(self, designator: str) -> str:
+        """The canonical citation: `designator` (the citation's own rule, or the one the ordinal names) with the path glued."""
+        tail = ("." if self.path and self.path[0].isdigit() else "") + ".".join(self.path)
+        return render(dataclasses.replace(self.cited, rule=designator + tail))
+
+
+def loose_designator(text: str, c: Citation) -> Loose | None:
+    """The designator in no form `scan` reads that follows the citation `c` found in `text`, else None: a spaced sub-item
+    path after a numbered rule (`GR3 c) 2)`, glued `GR3c.2`), or, after a citation that names no rule, a rule named in
+    words or by its bare printed label (`rule 2`, `2)`, then any spaced path) or a list item (`item 1`, whose designator
+    waits on kb/Work PB5449 item 4). Which kind of rule an ordinal is, is the rule catalog's to say (`cite.designator_of`)."""
+    if c.error or c.bare or c.edition is None:
+        return None
+    if c.rule:
+        if NUMBERED_RULE.match(c.rule) and (m := SPACED_PATH.match(text, c.end)):
+            return Loose(c, text[c.start:m.end()], m.end(), None, tuple(re.findall(r"[a-z]|\d+", m.group(0))),
+                         _LISTED.match(text, m.end()) is not None)
+        return None
+    if (m := LOOSE_RULE.match(text, c.end)) is None:
+        return None
+    end, path = m.end(), ()
+    if m["item"] is None and (p := SPACED_PATH.match(text, end)):
+        end, path = p.end(), tuple(re.findall(r"[a-z]|\d+", p.group(0)))
+    ordinal = None if m["item"] is not None else int(m["word"] or m["label"])
+    plural = re.match(r" (?:[A-Za-z-]+ phrase )?rules ", text[c.end:]) is not None   # `rules 3 and 5` names several
+    return Loose(c, text[c.start:end], end, ordinal, path, plural or _LISTED.match(text, end) is not None)
+
+
 #: A WHOLE citation, as `cite.py --check` takes it.
 _WHOLE = re.compile(r"§(?P<edition>\d{4}):(?P<locator>\S+?)(?: (?P<rule>.+))?")
 #: A clause number written without its edition (`§14.9.8`, `14.9.8 GR1`): `parse` refuses it, naming the edition form.
@@ -321,6 +403,13 @@ SECTIONS_85 = ("I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI"
 SOURCE_EDITION = {1989: 1985, 1993: 1985}
 
 
+def printed_with(edition: int) -> tuple[int, ...]:
+    """The edition tokens whose text `edition`'s transcription prints: the edition, then each amendment printed after it
+    (1985 -> 1985, 1989, 1993). `cite.py --find` searches them all, each hit cited by its own token (kb/Work PB5059)."""
+    source = SOURCE_EDITION.get(edition, edition)
+    return (source, *sorted(e for e, s in SOURCE_EDITION.items() if s == source))
+
+
 def transcription(edition: int, repo: pathlib.Path = spec_pdf.REPO) -> pathlib.Path | None:
     """The transcription `validate` checks `edition` against, or None while the edition is parsed only."""
     edition = SOURCE_EDITION.get(edition, edition)
@@ -376,6 +465,11 @@ def regions_1985(lines: list[str], start: int = 0, end: int | None = None, secti
             if owner:
                 out.append((owner, "", owner_start, i))
             owner, para = None, None
+            if i > start:
+                # ⛔ THE STANDARD ENDS AT THE FIRST AMENDMENT (kb/Work PB5059). Each amendment's lines are its own
+                # edition's (`amendment_regions`, cited `§1989:` and `§1993:`), so the 1985 universe holds none of its
+                # folios: `§1985:p.B-16` named Amendment 2's page and validated. An amendment opens at `start` itself. (citation-audit: example)
+                return out
             continue
         head = SECTION_85.match(line) or APPENDIX_85.match(line)
         if head is not None:
@@ -627,6 +721,8 @@ the planted appendix sentence
 ## 8. INTRINSIC FUNCTION FACILITY
 
 the planted addendum sentence
+
+A-1
 """
 
 
@@ -663,6 +759,8 @@ def self_test() -> int:
             ("1985 printed page that does not exist is refused", bad("§1985:p.VI-21", planted) is not None),
             ("an amendment's part heading ends the 1985 sections: its addendum paragraph is no paragraph of Section XVIII",
              bad("§1985:XVIII.1", planted) is None and bad("§1985:XVIII.8", planted) is not None),
+            ("the 1985 universe ends at the first amendment: an amendment's folio is no 1985 page (kb/Work PB5059)",
+             bad("§1985:p.A-1", planted) is not None and bad("§1989:p.A-1", planted) is None),  # citation-audit: example
             ("2002 validates against its transcription once it exists",
              bad("§2002:14.8.4 SR2", planted) is None),  # citation-audit: example
             ("2002 phantom refused once its transcription exists", bad("§2002:14.8.5", planted) is not None),
@@ -701,6 +799,9 @@ def self_test() -> int:
         ("a planted amendment is cut at the next one and owns only its own pages and section",
          _planted_amendments()),
         ("1985 against the real transcription", bad("§1985:VI.5.3.2") is None and bad("§1985:p.VI-20") is None),
+        ("the real 1985 universe holds no amendment folio, each amendment's own does (kb/Work PB5059)",
+         bad("§1985:p.B-16") is not None and bad("§1985:p.A-20") is not None  # citation-audit: example
+         and not any(loc.startswith(("p.A-", "p.B-")) for loc in universe(1985) or ())),
         *_real_1985_heads(),
         ("parses an argument rule and a returned-value rule, the catalogs' AR and RV (kb/Work PB4886)",
          parse("§2023:15.10.3 AR1").rule == "AR1" and parse("§1989:A.2.5.4 RV1").rule == "RV1"

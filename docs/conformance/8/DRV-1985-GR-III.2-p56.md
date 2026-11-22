@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-III.2-p56", "definitional", "defines a control data-name of a user's report as a data-name that appears in a CONTROL clause and refers to a control data item", "\"A data-name that appears in a CONTROL clause and refers to a control data item\" names a role. Candidates (TYPE SR14, CONTROL GR3/GR4) state other rules. Cited: §1985:III.2 p56. Proposed by the read lineage-reads-1985/g-01.json; its refuter, trying to write the witness the derivation says cannot exist (A program depending on what a control data-name is.), UPHELD it: The CONTROL clause rows state the form and the control-break behaviour. This row names a role in the user's report.", "claude: 2026-11-21", "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-01.jsonl"]
+---

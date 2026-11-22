@@ -45,6 +45,7 @@ public sealed class IntrinsicArgumentDomainDriftTests
     public void EveryBinary64RowsArgumentDomain_IsExactlyItsSection15ValueRule()
     {
         string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md"));
+        string spec1985 = File.ReadAllText(TestRepo.Specs("ANSI_COBOL_1985.md")).Replace("\r\n", "\n");
         var sections = SpecClauseText.FunctionSections(spec)
             .ToDictionary(f => f.Name, f => f.Section, StringComparer.OrdinalIgnoreCase);
         string src = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "IntrinsicCatalog.cs"));
@@ -74,6 +75,18 @@ public sealed class IntrinsicArgumentDomainDriftTests
                 problems.Add($"{name}: Domain {sig.Domain}, but {cite} states {expected}");
             else if (sig.DomainRule != cite)
                 problems.Add($"{name}: DomainRule \"{sig.DomainRule}\", but the rule is {cite}");
+            // The 1989 amendment's rule, which the screen's message cites at COBOL-85 (kb/Work PB6023): §1989:A.2.<p>.3, read
+            // from the 1985 text's own "(k) The value of argument-1 must be ..." rule of the function's paragraph.
+            if (IntrinsicCatalog.Paragraph1989(name) is not { } p)
+            {
+                if (sig.DomainRule1985 is not null) problems.Add($"{name}: carries DomainRule1985 but is not a function of the 1989 module");
+                continue;
+            }
+            var rules1989 = Regex.Match(spec1985, @"\n### 2\." + p + @"\.3 Arguments\n(.*?)\n### 2\." + p + @"\.4 ", RegexOptions.Singleline);
+            var valueRule1989 = Regex.Match(rules1989.Success ? rules1989.Groups[1].Value : "", @"\n\((\d+)\) The value of argument-1 must be ");
+            string cite1989 = valueRule1989.Success ? $"§1989:A.2.{p}.3 AR{valueRule1989.Groups[1].Value}" : "(none)";
+            if (sig.DomainRule1985 != cite1989)
+                problems.Add($"{name}: DomainRule1985 \"{sig.DomainRule1985}\", but the 1989 rule is {cite1989}");
         }
         Assert.True(withRule >= 7, $"only {withRule} Float rows carry an argument-1 value rule — the §15.x.3 shape changed; fix the scanner, do not lower the floor.");
         Assert.True(problems.Count == 0, "IntrinsicSig.Domain disagrees with the standard:\n  " + string.Join("\n  ", problems));

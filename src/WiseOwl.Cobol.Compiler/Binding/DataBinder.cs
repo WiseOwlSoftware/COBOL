@@ -1675,7 +1675,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             //    category from the cross-category arm below is what keeps a CONFORMING `PIC ZZ9 USAGE NATIONAL
             //    VALUE N"  1"` from being refused here as "a national literal may seed only its own category".
             case not (PicCategory.National or PicCategory.Boolean)
-                    when isBoolLit || isNatLit && pic.Category is not PicCategory.NumericEdited:
+                    when (isBoolLit || isNatLit && pic.Category is not PicCategory.NumericEdited)
+                         && LiteralScreen.EditionHasFormat(raw, Edition.Edition):   // else the literal's gate is the one report (kb/Work PB6028)
                 Edition.Error(isNatLit ? DiagnosticCatalog.ValueNationalLiteralRule : DiagnosticCatalog.ValueBooleanLiteralRule,
                     $"{where}: a {(isNatLit ? "national (N\"…\")" : "boolean (B\"…\")")} "
                     + "literal may seed only a data item of its own category (ISO §2023:13.18.63.3 SR5/SR10)");
@@ -4098,8 +4099,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (gluedMultiLiteral)
         {
             Edition.Error(DiagnosticCatalog.ValueFormat1SingleLiteral, $"{entryWhere}: a data-item VALUE clause (Format 1) takes exactly one "
-                + "literal; a list of literals requires the Format 2 table form's FROM (subscript) phrase "
-                + $"({Edition.Edition.CiteRule("§1985:VI.5.15.5 GR2", "§2023:13.18.63.2")})");
+                + Edition.Edition.Cite(
+                    "literal; a list of literals is Format 2, which \"can be used only in connection with condition-names\"",
+                    "literal; a list of literals requires the Format 2 table form's FROM (subscript) phrase")
+                + $" ({Edition.Edition.CiteRule("§1985:VI.5.15.5 GR2", "§2023:13.18.63.2")})");
             rawValue = null;
         }
 
@@ -5005,8 +5008,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return;
         }
         Edition.Error(DiagnosticCatalog.ValueOperandNotALiteral, $"{where}: {position.Operand} "
-            + $"'{WrittenSource.Of(op)}' is not a literal — {position.Format(Edition.Edition)}. A figurative constant (ISO §2023:8.3.3.6.3 SR1), a constant-name (ISO §2023:13.10.3 SR2) "
-            + "and a symbolic-character (ISO §2023:8.3.3.6.2 Format 7) stand where a literal stands, each written "
+            + $"'{WrittenSource.Of(op)}' is not a literal — {position.Format(Edition.Edition)}. " + Edition.Edition.Cite(
+                "A figurative constant, the symbolic-characters among them (§1985:IV.4.2.2.2.3: \"A figurative constant may be used "
+                    + "whenever 'literal' appears in a format\"), stands where a literal stands, written ",
+                "A figurative constant (ISO §2023:8.3.3.6.3 SR1), a constant-name (ISO §2023:13.10.3 SR2) "
+                    + "and a symbolic-character (ISO §2023:8.3.3.6.2 Format 7) stand where a literal stands, each written ")
             + "as a BARE word; an arithmetic expression, a function-identifier and a qualified, subscripted or "
             + "reference-modified reference do not.");
     }
@@ -5517,7 +5523,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             Edition.Error(DiagnosticCatalog.ValueOnNonLiteralUsage, $"data item '{name}': the VALUE clause shall not "
                 + $"be specified with USAGE {UsageFamilies.UsageWord(effective)}, inherited from its group "
-                + $"'{fromGroup.FromName ?? "FILLER"}' ({UsageFamilies.NoValueClauseRule(effective, Edition.Edition)}; §2023:13.18.60.4 GR1)");
+                + $"'{fromGroup.FromName ?? "FILLER"}' ({UsageFamilies.NoValueClauseRule(effective, Edition.Edition)}; {Edition.Edition.Cite("§1985:VI.5.14.4 GR1", "§2023:13.18.60.4 GR1")})");
             item.RawValue = null;
             item.TableValues = null;
         }
@@ -5676,11 +5682,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// pair §2023:13.18.52.3 SR2 names, kb/Work PB646 — a binary or packed item has no sign position for the clause to
     /// place, so it keeps its own representation); any other profile is returned unchanged. Read by
     /// <see cref="ApplyEffectiveSign"/> (the data division's group inheritance and the SAME AS ancestor transform)
-    /// and by <see cref="ReportPrintablePicture"/> (a report group entry's inherited clause, kb/Work PB493).</summary>
+    /// and by <see cref="ReportPrintablePicture"/> (a report group entry's inherited clause, kb/Work PB493).
+    /// <para>A COBOL-85 BLANK WHEN ZERO promotion of a signed numeric PICTURE (<see cref="PicInfo.BlankWhenZeroSigned"/>) is
+    /// such an item too: its PICTURE contains the 'S' (§1985:VI.5.12.3 SR1), so a SEPARATE clause it inherits gives its
+    /// edited image the sign's own position, exactly as its own clause would (kb/Work PB5790).</para></summary>
     private static PicInfo? WithInheritedSign(PicInfo? pic, SignSpec sign) =>
         pic is { Category: PicCategory.Numeric, Signed: true, Usage: Usage.Display or Usage.National }
             ? pic with { SignKind = PicInfo.SignKindFor(pic.Usage, signed: true, sign) }
-            : pic;
+            : pic?.WithBlankWhenZeroSeparateSign(sign);
 
     /// <summary>One entry of the §2023:13.18.52.4 GR1 walk: the nearest enclosing clause, unless the entry wrote its own.
     /// A subtree completed ahead of the pipeline (<see cref="CompleteDescriptionAhead"/>, kb/Work PB2465) took its

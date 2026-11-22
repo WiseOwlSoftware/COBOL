@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p172",
+ "rule-digest": "b93fed78c88d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/StoredMessage.cs#StoredMessage",
+ "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-10",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-10), joined as the row's own test. The read: \"Data associated with an end of message indicator or an end of group indicator\" is observable: the queue's message count rises only when an EMI or EGI closes the data. The 2023 SEND (14.9.38) is a message-server statement with no indicators; the 1985 communication module has no 2023 counterpart, and the candidates are 2023 message-server rules with no 85 case. Code location located after the read: StoredMessage holds a message as its segments with the end-of-group indication."
+}

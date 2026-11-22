@@ -11,7 +11,7 @@
       *>   physical data item". CONTROLS ARE WS-KEY RX names two distinct
       *>   data-names, and RX, a level 66 entry renaming WS-KEY, refers to
       *>   the same storage (§2023:13.18.45.4 GR1): legal.
-      *> DERIVATION. §2023:13.18.16.4 GR4 a): "the current contents of
+      *> DERIVATION. §2023:13.18.16.4 GR4a: "the current contents of
       *>   control data items are saved and the corresponding prior
       *>   controls are stored in the control data items before any
       *>   control footing is printed", and a USE BEFORE REPORTING

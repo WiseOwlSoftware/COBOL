@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p128",
+ "rule-digest": "90de5be5c514",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/IndexDeclaration.cs#IndexDeclaration; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs#CobolIndex",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p128",
+ "notes": "Own witness from the read lineage-reads-1985/g-02.json: the reader showed the compiler correct at 85 with its probe (index.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A computer storage area or register, the content of which represents the identification of a particular element in a table.\" Observable: the element an index selects. The candidates (index-name occurrence rules) have no 85 accepted case; the probe shows it. Code location located after the read: IndexDeclaration binds an index-name to its table storage cell and CobolIndex holds and validates the occurrence number the index identifies."
+}

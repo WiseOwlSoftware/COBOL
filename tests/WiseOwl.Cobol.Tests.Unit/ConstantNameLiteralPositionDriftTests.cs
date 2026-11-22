@@ -173,7 +173,7 @@ public sealed class ConstantNameLiteralPositionDriftTests
         int count = 0;
         Parallel.ForEach(programs, program =>
         {
-            var frontend = new WiseOwl.Cobol.Frontend.Frontend { DialectLevel = program.Year, InitialFormat = InitialReferenceFormat.Auto };
+            var frontend = new WiseOwl.Cobol.Frontend.Frontend { DialectLevel = program.Year, InitialFormat = TestSourceFormat.Inline };
             frontend.AddCopySearchPath(Path.GetDirectoryName(program.Path)!);
             if (frontend.Parse(program.Path, new DiagnosticBag()) is not { } tree) return;
             Interlocked.Increment(ref count);

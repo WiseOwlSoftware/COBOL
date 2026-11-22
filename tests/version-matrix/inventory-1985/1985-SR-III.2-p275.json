@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-III.2-p275",
+ "rule-digest": "625214effa1c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sectionDefinition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#configurationSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inputOutputSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDivision",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-SR-III_2-p275",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its refusal probe (badhdr.cob, refused at its line 7; its control sections compiles), placed as the row's own test. The read: \"In the Environment and Data Divisions, a section header is composed of reserved words followed by a separator period. The permissible section headers in the Environment Division are: CONFIGURATION SECTION. INPUT-OUTPUT SECTION.\" The probe accepts both and refuses a non-permitted header. Candidates have no 85 case. (The row's text ends there; the Data and Procedure Division header lists that follow on page III-22 are not in it: see leads.) Code location located after the read: sectionDefinition, configurationSection and inputOutputSection fix the section header words followed by a period, and dataDivision lists the Data Division section headers."
+}

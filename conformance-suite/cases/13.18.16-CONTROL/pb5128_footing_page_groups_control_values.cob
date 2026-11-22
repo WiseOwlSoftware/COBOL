@@ -16,7 +16,7 @@
       *> footing report group are supplied with prior values." c. "All other data item references within report
       *> groups and their USE procedures access the current values that are contained within the data items at the
       *> time the report group is processed."  So at COBOL-85 the page footing and page heading of the advance see
-      *> the CURRENT values (B and 3).  §2023:13.18.16.4 GR4 a) (and the 2002 text, 13.16.15.3 GR4 a): "If the
+      *> the CURRENT values (B and 3).  §2023:13.18.16.4 GR4a (and the 2002 text, 13.16.15.3 GR4 a): "If the
       *> printing of the control footing causes a page advance and the page heading or page footing refers to a
       *> control data item, the value produced is similarly the prior value" (A and 2).
       *>

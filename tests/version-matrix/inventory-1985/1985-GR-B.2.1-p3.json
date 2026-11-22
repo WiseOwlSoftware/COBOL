@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-B.2.1-p3",
+ "rule-digest": "ca34a745748a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-B.2.1-p3",
+ "notes": "Derivation from the read lineage-reads-1985/g-07.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-B.2.1-p3); the code location is where the compiler meets the rule's subject. The read: 'The following is a list of the changes of substance introduced by the Correction Amendment that are new features not impacting existing programs' introduces the appendix list in 2.1B. It informs the reader and requires nothing of a program or an implementation. Each listed change (INSPECT, MAX, MIN and the others) is stated in its body clause. The candidates are wording-only matches. The code location was located after the read (locations-x.json): Bind makes INSPECT Format 1's identifier-1 a sending item (the Correction Amendment's item 1); the amendment's other changes are their own rows."
+}

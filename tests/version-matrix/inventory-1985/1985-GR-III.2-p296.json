@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p296",
+ "rule-digest": "6b7637ddf9a8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PLUS; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#MINUS; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STAR; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SLASH",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-T7_1",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its probe (specchar.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"Special Character. A character that belongs to the following set:\" The lead of Table 7; its members are rows T7.1-T7.15. Candidates (GR-8.1.2-3 etc.) have no 85 case. The probe uses the members in this slice; the rest belong to their own rows. Code location located after the read: WEAK: The lexer tokenises each special character of the set (+ - * / = $ , ; . \" ( ) > < :) by its own rule, the arithmetic ones being named here."
+}

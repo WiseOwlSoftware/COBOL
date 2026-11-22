@@ -550,12 +550,47 @@ public sealed class ExceptionEngine
         set => _checking.ArgumentFunction = value;
     }
 
-    /// <summary>Raise EC-ARGUMENT-FUNCTION for an intrinsic argument/domain error when checking is enabled
-    /// (Table 13: Fatal — thrown as <see cref="CobolFatalException"/>, caught by the statement guard for USE F3
-    /// dispatch, else terminating the run unit per §2023:14.6.13.1.3 #7); otherwise return 0, the §2023:15.3
-    /// default-result convention.</summary>
+    /// <summary>True while the executing ACTIVATION is a COBOL-85 runtime element (kb/Work PB6019): installed and restored by
+    /// the activation boundary (<c>ProgramTable</c>) from <see cref="ICobolProgram.IsCobol85"/>, exactly as
+    /// <see cref="NonfatalDispatcher"/> is, so a CALLed element of another edition answers by its own text. It is a property of
+    /// the element's EDITION, never checking state: no PUSH ALL clears it and no TURN sets it (COBOL-85 has no exception
+    /// conditions), which is why it is not a <see cref="CheckingFlags"/> field. Its readers are the run-time answers that differ by
+    /// edition, and only those: <see cref="ArgumentError(string)"/> (what a broken argument rule does), <see cref="RefModViolation"/>
+    /// (a reference modification out of range terminates without naming an exception condition) and <see cref="EditionRule"/>
+    /// (which edition's rule a run-time message cites; kb/Work PB6023).</summary>
+    public bool IsCobol85 { get; set; }
+
+    /// <summary>⛔ THE RULE A RUN-TIME MESSAGE CITES, IN THE EXECUTING ELEMENT'S EDITION (kb/Work PB6023): <paramref name="rule1985"/>
+    /// — a rule of ANSI X3.23-1985 or of its 1989 intrinsic-function amendment, printed bare in its edition form
+    /// (<c>§1989:A.2.14.3 AR1</c>, <c>§1985:IV.4.3.8.4.4 GR4</c>) — when the activation is a COBOL-85 element (<see cref="IsCobol85"/>),
+    /// otherwise <paramref name="later"/> exactly as the site writes it (its <c>ISO </c> designation included). The run-time twin of
+    /// the compiler's <c>EditionInfo.CiteRule</c>: a message the run time builds (a function body's value check, the ref-mod range
+    /// test) names its rule through this, so a COBOL-85 run is never sent to a 2023 clause; a rule the COMPILER supplies to the run
+    /// time (a catalog row's domain rule) is chosen by <c>EditionInfo.CiteRule</c> where it is emitted. The drift test
+    /// <c>RuntimeMessageEditionDriftTests</c> refuses a breach message of a 1989 function that cites a later clause directly.</summary>
+    public string EditionRule(string rule1985, string later) => IsCobol85 ? rule1985 : later;
+
+    /// <summary>⛔ THE ONE ANSWER TO AN INTRINSIC ARGUMENT WHOSE VALUE BREAKS ITS FUNCTION'S ARGUMENT RULES (kb/Work PB6019): every
+    /// run-time value check of every intrinsic function (a negative FACTORIAL argument, a date out of range, a zero divisor, an
+    /// integer argument that is not an integer, a text the function cannot read ...) calls this, or one of its two text twins,
+    /// and nothing else decides what the breach does.
+    /// <list type="bullet">
+    /// <item>A COBOL-85 activation (<see cref="IsCobol85"/>): the result is undefined — if the arguments "do not have
+    /// values within the permissible range, then the result of such a reference is undefined" (§1989:A.2.2 p3; §1989:A.1.2.2 says
+    /// the same of values that do not "comply with the specified constraints") — and the Correction Amendment's
+    /// clarification "allows an implementation of amended third Standard COBOL to terminate processing" (§1993:p.B-46). The
+    /// run unit is terminated with the message (<see cref="CobolImplementorFatalException"/>: it raises no exception condition,
+    /// for COBOL-85 has none), so a 1985 program never runs on with a value the implementation made up.</item>
+    /// <item>From COBOL-2002: EC-ARGUMENT-FUNCTION is set to exist (§2002:15.2 AR13, §2014:15.3 AR13, §2023:15.3 AR14). With
+    /// checking enabled it is fatal (Table 13 — thrown as <see cref="CobolFatalException"/>, caught by the statement guard for
+    /// USE F3 dispatch, else terminating the run unit per §2023:14.6.13.1.3 #7); otherwise "the implementor defines the result
+    /// of the function reference" (the same rules), and this returns 0 (docs/CONFORMANCE.md DOC-A.1-90).</item>
+    /// </list></summary>
     public long ArgumentError(string detail)
     {
+        if (IsCobol85)
+            throw new CobolImplementorFatalException(detail + "; at COBOL-85 the result of such a reference is undefined (§1989:A.2.2 p3) "
+                + "and the run unit is terminated, as §1993:p.B-46 allows");
         FatalIfEnabled(ArgumentFunctionChecking, "EC-ARGUMENT-FUNCTION", detail);
         return 0;
     }
@@ -725,10 +760,15 @@ public sealed class ExceptionEngine
     /// wherever the standard names the outcome, LOUD ABORT wherever it names none — decides, and kb/Work R60
     /// (PB1707 part 2) confirmed it: the unchecked run unit terminates with a runtime error and never clamps or
     /// pads (a reference modification that addresses storage no item owns has no result to return). It is the
-    /// twin of <c>CobolPtr.Deref</c>'s unconditional throw.</summary>
+    /// twin of <c>CobolPtr.Deref</c>'s unconditional throw.
+    /// <para>A COBOL-85 activation (<see cref="IsCobol85"/>) has no exception conditions, so none is named or raised: the 1985 rule
+    /// is a "must" (§1985:IV.4.3.8.4.4 GR4: "The evaluation of length must result in a positive nonzero integer") with no outcome
+    /// stated, and the run unit is terminated with the message alone (<see cref="CobolImplementorFatalException"/>, the termination
+    /// <see cref="ArgumentError(string)"/> takes at 85), its rule cited through <see cref="EditionRule"/> (kb/Work PB6023).</para></summary>
     [System.Diagnostics.CodeAnalysis.DoesNotReturn]
     public void RefModViolation(string detail)
     {
+        if (IsCobol85) throw new CobolImplementorFatalException(detail);
         RefModError(detail);   // checking enabled: set the condition and throw (the statement guard's USE dispatch)
         throw new CobolFatalException("EC-BOUND-REF-MOD", detail);   // checking off: the loud abort
     }
@@ -2307,6 +2347,12 @@ public static class ExceptionState
         get => E.ArgumentFunctionChecking;
         set => E.ArgumentFunctionChecking = value;
     }
+
+    /// <inheritdoc cref="ExceptionEngine.IsCobol85"/>
+    public static bool IsCobol85 => E.IsCobol85;
+
+    /// <inheritdoc cref="ExceptionEngine.EditionRule"/>
+    public static string EditionRule(string rule1985, string later) => E.EditionRule(rule1985, later);
 
     /// <inheritdoc cref="ExceptionEngine.ArgumentError"/>
     public static long ArgumentError(string detail) => E.ArgumentError(detail);

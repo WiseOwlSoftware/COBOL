@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p208",
+ "rule-digest": "235cadf30327",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/LinagePage.cs#LinagePage; src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs#ReportGroupModel",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p208",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p208); the code location is where the compiler meets the rule's subject. The read: A vocabulary term; candidates (printed page arrangement, USE BEFORE REPORTING, report group printing) are wording-only. The code location was located after the read (locations-all.json): WEAK: LinagePage is the page layout (body, footing, top, bottom) the runtime paginates by; the Report Writer page model is separate."
+}

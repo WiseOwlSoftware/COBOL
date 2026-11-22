@@ -15,13 +15,13 @@
       *>   that is at a level other than the highest level at which the control break is detected."
       *> GR3 c) — "If NEXT GROUP NEXT PAGE is specified, the report heading is printed on the first page of
       *>   the report as the only report group on that page and LINE-COUNTER is then set equal to zero";
-      *>   §2023:14.9.16.4 GR4 a) — "an advance is made to the next physical page, and PAGE-COUNTER is either
+      *>   §2023:14.9.16.4 GR4a — "an advance is made to the next physical page, and PAGE-COUNTER is either
       *>   incremented by 1 or, if the report heading's NEXT GROUP clause has the WITH RESET phrase, set to 1".
       *> GR4 a) — an absolute NEXT GROUP whose integer-1 LINE-COUNTER has already reached goes to a save
       *>   location with LINE-COUNTER set to FOOTING, and "will have no effect at all if a TERMINATE is next
       *>   executed for the report".
       *> GR4 b) — relative: integer-2 is added while the sum stays below FOOTING.
-      *> §2023:14.9.46.4 GR3 b) — TERMINATE prints each control footing "as though a control break has been
+      *> §2023:14.9.46.4 GR3b — TERMINATE prints each control footing "as though a control break has been
       *>   sensed in the most major control data item", so only the MAJOR footing's clause applies there.
       *>
       *> THE PAGE: PAGE LIMIT 20, HEADING 1, FIRST DETAIL 3, LAST DETAIL 14, FOOTING 16; CONTROLS ARE

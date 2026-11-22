@@ -9,11 +9,11 @@
       *>
       *> THE RULES, --check validated:
       *>   cite.py --check 14.9.40.4 "The sorted table elements of the table referenced by data-name-2 are placed in
-      *>     the table referenced by data-name-2." -> OK §2023:14.9.40.4 24)
+      *>     the table referenced by data-name-2." -> OK §2023:14.9.40.4 GR24
       *>   cite.py --check 8.4.2.3.3 "the number of subscripts shall equal the number of OCCURS clauses in the
-      *>     description of the table element being referenced" -> OK §2023:8.4.2.3.3 3)
+      *>     description of the table element being referenced" -> OK §2023:8.4.2.3.3 SR3
       *>   cite.py --check 13.18.60.3 "may be specified only for an elementary data item at level 1 or an elementary
-      *>     data item subordinate to a type declaration that includes the STRONG phrase" -> OK §2023:13.18.60.3 14)
+      *>     data item subordinate to a type declaration that includes the STRONG phrase" -> OK §2023:13.18.60.3 SR14
       *> A table element is the whole of its description, so every occurrence of a pointer table inside it is part of
       *> what GR24 places: each inner pointer travels with its element. A pointer's value is a managed reference in
       *> the BASED area's slot, one slot per inner occurrence, not part of the element's byte image (kb/Work PB231,
@@ -29,7 +29,7 @@
       *>        second pointers (BBBB, DDDD, FFFF) in place; one that moved only the bytes would print A..F in order.
       *>   2  two inner levels inside a table inside ROW OCCURS 2: element E2(r, e) holds GP(r, e, g, p) for g, p in
       *>        1..2. ROW(2) holds keys 4, 3 with pointers A B C D and E F G H; ROW(1) holds keys 2, 1 with first
-      *>        pointers HHHH, GGGG. SORT E2(2, ALL) ASCENDING KEY EK2 sorts ROW(2) only (§2023:8.4.2.3.3 SR5 e)): ROW(2) reads
+      *>        pointers HHHH, GGGG. SORT E2(2, ALL) ASCENDING KEY EK2 sorts ROW(2) only (§2023:8.4.2.3.3 SR5e): ROW(2) reads
       *>        3 EEEE FFFF GGGG HHHH, 4 AAAA BBBB CCCC DDDD, and ROW(1) stays 2 HHHH, 1 GGGG.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1951PT.

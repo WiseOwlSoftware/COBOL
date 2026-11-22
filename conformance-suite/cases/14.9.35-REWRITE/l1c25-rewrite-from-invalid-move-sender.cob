@@ -9,8 +9,8 @@
       *> "If record-name-1 is specified, identifier-1 or literal-1 shall
       *> be valid as a sending operand in a MOVE statement specifying
       *> record-name-1 as the receiving operand."
-      *> cite.py: OK  §2023:14.9.35.3 6)  (Syntax rules)
-      *> cite.py: OK  §2023:14.9.25.3 10)  (Syntax rules) - "table 16,
+      *> cite.py: OK  §2023:14.9.35.3 SR6  (Syntax rules)
+      *> cite.py: OK  §2023:14.9.25.3 SR10  (Syntax rules) - "table 16,
       *> Validity of types of MOVE statements, specifies the validity
       *> of the move."
       *> Table 16: sending Alphabetic -> receiving Numeric = "No".

@@ -12,10 +12,10 @@
       *>   Compile-time arithmetic expressions."
       *> cite.py --check 7.3.8.2 "An arithmetic expression in a constant
       *>   conditional expression shall be formed in accordance with
-      *>   7.3.6" -> OK  §2023:7.3.8.2 2)  (Syntax rules)
+      *>   7.3.6" -> OK  §2023:7.3.8.2 SR2  (Syntax rules)
       *> cite.py --check 7.3.6.3 "The final result of the arithmetic
       *>   expression shall be truncated to the integer part of the
-      *>   value" -> OK  §2023:7.3.6.3 3)  (General rules)
+      *>   value" -> OK  §2023:7.3.6.3 GR3  (General rules)
       *> The admitting half of SR2: a well-formed §2023:7.3.6 expression is
       *>   accepted in a cce and evaluated by §2023:7.3.6 (§2023:8.8.1 precedence,
       *>   GR3 final truncation). The rejecting halves (§2023:7.3.6.2 SR1 a,

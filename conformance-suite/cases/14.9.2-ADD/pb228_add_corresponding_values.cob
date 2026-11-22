@@ -24,7 +24,7 @@
       *>      K the same qualifiers up to SRC and DST (§2023:14.7.6
       *>      rule 1), so 2 + 40 = 42.
       *> N    SRC's N is alphanumeric, and an ADD pair needs both
-      *>      items numeric (§2023:14.7.6 rule 3): no pair, N keeps 4.
+      *>      items numeric (§2023:14.7.6 GR3): no pair, N keeps 4.
       *> T    DST's T has no partner in SRC (rule 1): T keeps 9.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB228ACN.

@@ -14,7 +14,7 @@
       *> reference (COBOL0869), and a FUNCTION-ID RETURNING USAGE FUNCTION-POINTER did not compile at all — the
       *> generated StoreReturn call bound only to the object-reference generic (CS0315) because no overload took the
       *> FunctionPointer carrier, the program-pointer / data-pointer shape already fixed one category earlier.
-      *> EXPECTED OUTPUT: PB1929FP returns the address of PB1929T (SET … TO ADDRESS OF FUNCTION, §2023:8.4.3.12.4 GR1 b));
+      *> EXPECTED OUTPUT: PB1929FP returns the address of PB1929T (SET … TO ADDRESS OF FUNCTION, §2023:8.4.3.12.4 GR1b);
       *> SET FP TO FUNCTION PB1929FP(1) stores that address, so FP equals FPREF, which was set from the same
       *> function-address-identifier: FP-SAME. (§2023:14.9.39.3 SR20's same-signature rule holds: both prototypes are PB1929T.)
        IDENTIFICATION DIVISION.

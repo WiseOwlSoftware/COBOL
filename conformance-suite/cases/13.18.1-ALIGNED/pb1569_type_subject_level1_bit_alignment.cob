@@ -7,14 +7,14 @@
 *>---
       *> kb/Work PB1569 — a group TYPE subject is aligned as a LEVEL 1 item, so a bit group typed after a
       *> same-level bit item starts on a fresh byte instead of sharing its predecessor's.
-      *> ISO §2023:13.18.57.4 GR2 d): "the subject of the entry is aligned as though it were a level 1 item"
-      *>   (cite.py --check 13.18.57.4 -> OK §2023:13.18.57.4 2) d)).
+      *> ISO §2023:13.18.57.4 GR2d: "the subject of the entry is aligned as though it were a level 1 item"
+      *>   (cite.py --check 13.18.57.4 -> OK §2023:13.18.57.4 GR2d).
       *> ISO §2023:8.5.1.6.3: "a bit group item immediately following a bit group item or elementary bit data
       *>   item of the same level" goes at the next bit position, but "Alignment of elementary bit data
       *>   items of level 1 or level 77 and a level 1 bit group are at the first bit of a byte"
       *>   (cite.py --check 8.5.1.6.3 -> OK, both).
       *> ISO §2023:13.18.49.4 GR1: SAME AS acts "as though the data description identified by data-name-1 had
-      *>   been coded in place of the SAME AS clause" (cite.py --check 13.18.49.4 -> OK §2023:13.18.49.4 1)) —
+      *>   been coded in place of the SAME AS clause" (cite.py --check 13.18.49.4 -> OK §2023:13.18.49.4 GR1) —
       *>   so a SAME AS of a TYPE subject re-states its TYPE clause and inherits GR2 d), while a SAME AS of
       *>   a plain level-1 bit group does NOT: its level-number is excluded, and §2023:13.18.49.4 has no d).
       *> DERIVATION (bits high-order first; every record is cleared to all-zero bits first):
@@ -33,7 +33,7 @@
       *>       assumed by data defined using the type-name", cite.py --check -> OK) -> BYTE-LENGTH 02
       *>  AL = AF(1) | filler(7) | AG(1) | filler(7): the SIBLING ARM — an ALIGNED member (§2023:13.18.1.4
       *>       GR1 "aligned on the first bit of the first available byte boundary", cite.py --check
-      *>       13.18.1.4 -> OK §2023:13.18.1.4 1)) likewise starts a fresh byte, and a group MOVE composes and
+      *>       13.18.1.4 -> OK §2023:13.18.1.4 GR1) likewise starts a fresh byte, and a group MOVE composes and
       *>       distributes the record image by that same placement in both directions:
       *>       AL -> AX puts AF at bit 1 and AG at bit 9        -> AX19=11
       *>       AX (bit 9 set only) -> AL sets AG, clears AF    -> AFG=01

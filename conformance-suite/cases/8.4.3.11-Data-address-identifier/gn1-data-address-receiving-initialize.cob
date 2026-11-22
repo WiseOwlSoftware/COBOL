@@ -9,7 +9,7 @@
       *> SR5: "This identifier format shall not be specified as a
       *>   receiving operand."
       *>   cite.py --check 8.4.3.11.3 "This identifier format shall not
-      *>     be specified as a receiving operand" -> OK §2023:8.4.3.11.3 5)
+      *>     be specified as a receiving operand" -> OK §2023:8.4.3.11.3 SR5
       *> Why SR5 is the ONLY rule broken: INITIALIZE accepts an
       *> identifier-1 "of class ... pointer" (§2023:14.9.20.3 SR1, cite.py
       *> OK), ADDRESS OF W is of class pointer (§2023:8.4.3.11.4 GR1,

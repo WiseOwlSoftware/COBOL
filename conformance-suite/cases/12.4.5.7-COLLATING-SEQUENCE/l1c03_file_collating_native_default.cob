@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:12.4.5.7.4 4) - with no alphabet-name-1 in the file
+      *> ISO §2023:12.4.5.7.4 GR4 - with no alphabet-name-1 in the file
       *> control entry, alphanumeric keys collate in the NATIVE sequence
       *>
       *> "4) If alphabet-name-1 is not specified in the file control
@@ -13,10 +13,10 @@
       *> any record keys of class alphanumeric, whether primary or
       *> alternate, not specified in a key-level format of another
       *> COLLATING SEQUENCE clause."
-      *>   cite.py: OK  §2023:12.4.5.7.4 4)  (General rules)
+      *>   cite.py: OK  §2023:12.4.5.7.4 GR4  (General rules)
       *> "6) Alphabet-name-3 applies to record keys identified by
       *> data-name-1 or record-key-name-1."
-      *>   cite.py: OK  §2023:12.4.5.7.4 6)  (General rules)
+      *>   cite.py: OK  §2023:12.4.5.7.4 GR6  (General rules)
       *> Read order: "ascending based on the value of the key of
       *> reference according to the collating sequence of the physical
       *> file"
@@ -24,14 +24,14 @@
       *> START: "The key specified in the KEY phrase ... becomes the key
       *> of reference"; the comparison is made "according to the
       *> collating sequence of the file".
-      *>   cite.py: OK  §2023:14.9.41.4 16)  (General rules)
-      *>   cite.py: OK  §2023:14.9.41.4 17)  (General rules)
+      *>   cite.py: OK  §2023:14.9.41.4 GR16  (General rules)
+      *>   cite.py: OK  §2023:14.9.41.4 GR17  (General rules)
       *> The PROGRAM collating sequence governs relation conditions,
       *> condition-names, CONTROL (§2023:12.3.6.4 GR11) and sort/merge keys
       *> (GR13) - not indexed record keys, which GR4 gives the native
       *> sequence.
-      *>   cite.py: OK  §2023:12.3.6.4 11)  (General rules)
-      *>   cite.py: OK  §2023:12.3.6.4 13)  (General rules)
+      *>   cite.py: OK  §2023:12.3.6.4 GR11  (General rules)
+      *>   cite.py: OK  §2023:12.3.6.4 GR13  (General rules)
       *>
       *> SET-UP. PROGRAM COLLATING SEQUENCE IS REV (Z..A), so a
       *> compiler that wrongly let the program sequence reach a file

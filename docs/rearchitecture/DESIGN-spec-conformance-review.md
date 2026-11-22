@@ -33,7 +33,7 @@ The traceability inventory at **zero unresolved GAP** = P14 DONE (D13). This sup
 
 ⛔ **This is the ONE widening of §1 an agent did not make, and the bounds are the owner's, not a paraphrase.**
 Some normative rules impose no obligation a conforming program can observe: the standard declares the result
-*undefined* (§2023:4.4 2): *"Situations in which the results of executing a statement are explicitly undefined or
+*undefined* (§2023:4.4 GR2: *"Situations in which the results of executing a statement are explicitly undefined or
 unpredictable are identified in A.2, Undefined language element list. A COBOL run unit that allows these
 situations to happen is a conforming run unit"* — `cite.py --check 4.4` OK); or the rule's antecedent cannot be
 populated in this implementation; or its consequent cannot be told apart from another rule's. For such a rule
@@ -1454,7 +1454,25 @@ way, once where Amendment 2 prints them, a flag at the place they take in the bo
 Section XVII (pages B-30 to B-46, the Errata's C332) and the replacement index (pages B-49 to B-64, C337, whose row also
 deletes the base index's entries). `rule_catalog_1985.resolve_change`'s ADD path finds the body's row (of Section A for
 an Amendment 1 page) at the number the amended text gives it and records `amended_by` on it; it adds no row, so the
-catalog carries no `§1993` row and no page citation. The store records the renumberings and deletions moved through
+catalog carries no `§1993` row and no page citation.
+
+*How a change row names its rows (kb/Work PB5063, PB5093).* `rule_catalog_1985.attribute` resolves every change row
+once EVERY row exists, the mint's units of unnumbered text among them (a change may name "Paragraph 6.4.7" or "the
+second paragraph"), in this order: (1) a change that adds a WHOLE PARAGRAPH ("Add the following as new paragraph
+4.3.8.3:") is every row of that paragraph and its subparagraphs; (2) a change whose NEW TEXT (its directive's quotes, never
+the old text of a "change X to Y" or a deletion's, and the text it prints below, a table row with no page cell continuing
+it on the next page) lies in one row of the paragraph it names is that row: the amended text is the row's own, so it
+locates the row whatever number a rule had when the change was written (Amendment 1's INSPECT "general rule 4" is GR5
+once Amendment 2 inserts a new GR1), and a printed place ("second paragraph") settles a text two of the paragraph's
+paragraphs hold; (3) else its DESIGNATOR: a rule it adds or names, an ITEM of a numbered list ("item 2", "item 3b", "the
+second occurrence of a paragraph numbered (3)": the rule, its sub-list, the list holding the lettered item), or a general
+format. A renumbering changes no rule's text and is recorded on none. THE ATTRIBUTION CROSS-CHECK holds the result to the
+transcription's own record of what it applied: every Errata correction of kind `amendment-1` or `amendment-2` whose text
+as applied lies in exactly one row of the paragraph its `where` names must find that row carrying the amendment, else
+`extract_rule_catalog.py --edition 1985 --check` fails (`attribution_drift`); the corrections it cannot locate (no
+paragraph, a described rather than quoted text, a text in no row or in several) are counted in its summary.
+
+The store records the renumberings and deletions moved through
 `record_verdicts.py --edition 1985`, whose WITHDRAWAL record (`{"rule-id", "withdraw"}`) takes a record whose rule is gone
 or whose id now names another rule out of the store. A record moves to its rule's new id only when the rule's text there
 is the text the record was decided against (the same `rule-digest`); a record whose rule an amendment or a misprint
@@ -1603,7 +1621,12 @@ construct the standard states only in its diagram, with no SR or GR of its own (
 DIVISION header, USE without PROCEDURE: 12 windows at this slice), has no edge the lineage proves, and is held open in
 `edition_gates.FORMAT_ONLY` until the catalog numbers each format's alternatives; a new window resting on a general format
 alone is refused. An SR or GR has no direction in the lineage (a NEW rule adds a construct or a restriction), so an
-inverted window citing one is the version matrix's to catch, not this audit's. A gate whose cited rules are all KEPT contradicts its chain, and the audit refuses it until the gate or the record is
+inverted window citing one is the version matrix's to catch, not this audit's. **An empty window** (`introducedIn` equal to
+`removedIn`, `remarks-removed-85` [1985, 1985): the construct is in NO edition) has no edge a pair spans, and is held to the
+held editions' text instead (kb/Work PB5036, `edition_gates.empty_window`): its citations name at least one held edition's
+rule (the text it says the construct is absent from, §1985:VI.3.2.1.1's general format for REMARKS), and no rule they name
+holds a word of the construct (its `display`'s capitals); a cited rule holding the word, a citation of no held rule, or a
+display naming no word is refused. A gate whose cited rules are all KEPT contradicts its chain, and the audit refuses it until the gate or the record is
 corrected (two records were, by this slice: 1985-GR-VII.2.6.3-2 KEPT into line sequential organization, and the 1985
 FILLER rules KEPT into 2023's wider entry-name clause); so is a gate citing nothing of either edition, one whose every
 citation mixes changing rules with KEPT ones, or one resting on an unclassified rule. Three

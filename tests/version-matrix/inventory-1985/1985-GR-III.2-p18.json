@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p18",
+ "rule-digest": "1b621f448746",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupCensus",
+ "test-ref": "conformance:cases/13.18.57-TYPE/pb1299_report_summary_control_footing_only; conformance:cases/13.18.57-TYPE/pb1299_report_group_census_legal",
+ "notes": "Own verdict from the read lineage-reads-1985/g-01.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.18.57.3-15, witnessed at 85 by the cases test-ref names. The read: 1985: \"Generic name for a report group of TYPE DETAIL, CONTROL HEADING, or CONTROL FOOTING\"; 2023 SR15: \"Groups of type DETAIL, CONTROL HEADING, and CONTROL FOOTING are referred to as body groups\" — the same three types under the same name. pb1299_report_group_census_legal runs at 85 with a DETAIL, two CONTROL HEADINGs and two CONTROL FOOTINGs (the body groups) and checks their printed lines, so the pointer's 85 case exercises the whole 1985 scope. Cited: §1985:III.2 p18."
+}

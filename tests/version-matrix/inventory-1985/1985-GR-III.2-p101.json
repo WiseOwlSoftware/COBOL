@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p101",
+ "rule-digest": "6b0d4c1f3caa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p101",
+ "notes": "Derivation from the read lineage-reads-1985/g-02.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p101); the code location is where the compiler meets the rule's subject. The read: \"A clause that appears as part of any of the following Data Division entries: file description entry (FD entry) and sort-merge file description entry (SD entry.)\" A term only. The code location was located after the read (locations-all.json): fileDescriptionClause parses the clauses of an FD entry (file clauses)."
+}

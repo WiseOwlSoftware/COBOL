@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:12.3.7.4 GR7 d)2, e), k) 1.-2. — alphabet operands
+      *> ISO §2023:12.3.7.4 GR7d2, e), k) 1.-2. — alphabet operands
       *> CLAUSE ORDER (kb/Work PB1558; lane misc-p30): §2023:5.2.1 - clauses
       *> "shall be written ... in the sequence given in the general
       *> format"; §2023:12.3.7.2 puts alphabet-name-clause BEFORE the
@@ -21,24 +21,24 @@
       *>   cite.py --check 12.3.7.4 "If the NATIONAL phrase is
       *>     specified, the native national coded character set and
       *>     native national collating sequence are referenced"
-      *>     -> OK §2023:12.3.7.4 7)  (GR7 d) 2.)
+      *>     -> OK §2023:12.3.7.4 GR7  (GR7 d) 2.)
       *>   cite.py --check 12.3.7.4 "the collating sequence identified
       *>     is defined by the locale referenced by locale-name-2 when
-      *>     specified" -> OK §2023:12.3.7.4 7)  (GR7 e))
+      *>     specified" -> OK §2023:12.3.7.4 GR7  (GR7 e))
       *>   cite.py --check 12.3.7.4 "when specified in the NATIONAL
       *>     phrase, a national collating sequence is identified"
-      *>     -> OK §2023:12.3.7.4 7)  (GR7 e))
+      *>     -> OK §2023:12.3.7.4 GR7  (GR7 e))
       *>   cite.py --check 12.3.7.4 "The ordinal number of a character
       *>     within the native character set, if the literal is
-      *>     numeric." -> OK §2023:12.3.7.4 7) 1.  (GR7 k) 1. a.)
+      *>     numeric." -> OK §2023:12.3.7.4 GR7 1.  (GR7 k) 1. a.)
       *>   cite.py --check 12.3.7.4 "each character in the literal,
       *>     starting with the leftmost character, is assigned
       *>     successive ascending positions in the collating sequence
-      *>     being specified" -> OK §2023:12.3.7.4 7) 1.  (GR7 k) 1. b.)
+      *>     being specified" -> OK §2023:12.3.7.4 GR7 1.  (GR7 k) 1. b.)
       *>   cite.py --check 12.3.7.4 "The order in which the literals
       *>     appear in the ALPHABET clause specifies, in ascending
       *>     sequence, the ordinal number of the character within the
-      *>     collating sequence being specified." -> OK §2023:12.3.7.4 7) 2.
+      *>     collating sequence being specified." -> OK §2023:12.3.7.4 GR7 2.
       *>   cite.py --check 15.70.1 "The ORD function returns an integer
       *>     value that is the ordinal position of argument-1 in the
       *>     program collating sequence." -> OK §2023:15.70.1
@@ -47,7 +47,7 @@
       *> n is UTF-16 code unit n-1, so ordinal 36 is "#" (X"23").
       *> PROGRAM L1C30F: PCS FOR ALPHANUMERIC IS LA, FOR NATIONAL IS LN.
       *>   LA IS "C" "QM" 36 -> k2 order, k1b "QM" = Q then M, k1a 36 =
-      *>   "#": positions C=1 Q=2 M=3 #=4 (§2023:15.70.4 1) reads them):
+      *>   "#": positions C=1 Q=2 M=3 #=4 (§2023:15.70.4 RV1 reads them):
       *>     ORD("C")=1 ORD("Q")=2 ORD("M")=3 ORD("#")=4
       *>       -> ORD-C=00001 ORD-Q=00002 ORD-M=00003 ORD-H=00004
       *>     "Q" < "M" under LA (native: N)        -> Q-LT-M=Y
@@ -58,7 +58,7 @@
       *> PROGRAM L1C30G (sibling, own OBJECT-COMPUTER): PCS FOR
       *> NATIONAL IS NN, NN FOR NATIONAL IS NATIVE: code-unit order.
       *>     N"a" < N"B"? U+0061 > U+0042        -> NAT Na-LT-NB=N
-      *>     ORD(N"A") = native ordinal 66 (§2023:15.70.4 2))
+      *>     ORD(N"A") = native ordinal 66 (§2023:15.70.4 RV2)
       *>                                        -> NAT ORD-NA=00066
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C30F.

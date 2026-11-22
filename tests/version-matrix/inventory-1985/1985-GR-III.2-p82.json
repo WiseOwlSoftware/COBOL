@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p82",
+ "rule-digest": "705b36113e2a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapAccessMode; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#FileAccessMode",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p82",
+ "notes": "Own witness from the read lineage-reads-1985/g-02.json: the reader showed the compiler correct at 85 with its probe (dynamic4.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"obtained from or placed into a mass storage file in a nonsequential manner and obtained from a file in a sequential manner during the scope of the same OPEN statement.\" The candidate FMT-12.4.5.5.1 (ACCESS MODE syntax, one 85 case) states the syntax, not this semantics; the probe shows random and sequential retrieval and a random REWRITE in one OPEN. Code location located after the read: MapAccessMode maps ACCESS MODE IS DYNAMIC to FileAccessMode.Dynamic, which selects the access path allowing sequential and random operations on one file."
+}

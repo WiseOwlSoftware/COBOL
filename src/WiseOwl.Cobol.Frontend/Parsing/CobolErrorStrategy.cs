@@ -187,8 +187,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// leaves, as does a report carried into a construct the prediction closed early (<see cref="_leftByRecovery"/>),
     /// and a terminator of that statement's kind met later in the same unit is that statement's own: it terminates "the
     /// most-recently preceding unterminated statement having the statement-name for which that scope terminator is
-    /// defined" (§2023:14.5.3.2 1), so the newest record of the kind is searched first), and no separator period stands
-    /// between (a separator period terminates every statement's scope, §2023:14.5.3.3 1) c)). The one fault was reported,
+    /// defined" (§2023:14.5.3.2 GR1, so the newest record of the kind is searched first), and no separator period stands
+    /// between (a separator period terminates every statement's scope, §2023:14.5.3.3 GR1, its item c). The one fault was reported,
     /// the recovery consumes the terminator with the rest of the statement, and nothing more is said. Read from the same
     /// terminator map hint 13 reads, so a statement that gains a terminator is covered.</summary>
     private bool EndsAStatementTheRecoveryLeft(Parser recognizer, OffendingPosition at)
@@ -359,8 +359,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// which <paramref name="takes"/> (the token at <paramref name="token"/> is its terminator or its next phrase), returned
     /// in <paramref name="taker"/>; removed from the records when <paramref name="consume"/> (its terminator is met). A
     /// record is no longer due where a separator period stands
-    /// between (§2023:14.5.3.3 1) c)), where the statement ended in its own terminator after all, or where the statement
-    /// enclosing it ended (§2023:14.5.3.2 2)).</summary>
+    /// between (§2023:14.5.3.3 GR1, its item c), where the statement ended in its own terminator after all, or where the statement
+    /// enclosing it ended (§2023:14.5.3.2 GR2).</summary>
     private bool TakenByALeftStatement(Parser recognizer, IToken token, Func<LeftStatement, bool> takes, bool consume,
         out LeftStatement? taker)
     {
@@ -1236,6 +1236,21 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     protected override void ReportInputMismatch(Parser recognizer, InputMismatchException e)
         => Report(recognizer, e.OffendingToken ?? recognizer.CurrentToken, e, ErrorKind.InputMismatch);
 
+    /// <summary>⛔ THE AREA-A GUARD REFUSES ITS TOKEN, NEVER THE GRAMMAR (kb/Work PB6018). A rule whose one alternative opens with
+    /// <c>{!nextEntryOpensHere()}?</c> (<c>integerLiteral</c>, <c>signedIntegerLiteral</c>) asserts it on entry where the
+    /// enclosing decision could not see it (a required operand: <c>PERFORM</c> then <c>100.</c> in area A), and ANTLR's
+    /// default report is the raw COBOL0001 "rule … failed predicate". The guard's refusal is the token's (the reference format
+    /// puts it after a separator period), so it is reported as the token's mismatch, and the recovery's own reading of the
+    /// same fact (<see cref="OffendingPosition.OpensTheNextEntry"/>) names the period. Every other predicate keeps the
+    /// default report.</summary>
+    protected override void ReportFailedPredicate(Parser recognizer, FailedPredicateException e)
+    {
+        if (e.Predicate is { } predicate && predicate.Contains("nextEntryOpensHere", StringComparison.Ordinal))
+            Report(recognizer, e.OffendingToken ?? recognizer.CurrentToken, e, ErrorKind.InputMismatch);
+        else
+            base.ReportFailedPredicate(recognizer, e);
+    }
+
     protected override void ReportMissingToken(Parser recognizer)
     {
         if (errorRecoveryMode) return;
@@ -1858,7 +1873,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // ELSE) and from the fact that no period lets the sentence that starts at the word follow
         // (OffendingPosition.APeriodLetsTheSentenceFollow), so the sentence is never a missing period's.
         if (!HasStructuralHint(hints) && expected is not null && ScopeTerminator(recognizer, token.Type) is null
-            && !at.APeriodLetsTheSentenceFollow() && at.StatementThatEndedBefore() is { } endedStatement)
+            && !at.OpensTheNextEntry && !at.APeriodLetsTheSentenceFollow() && at.StatementThatEndedBefore() is { } endedStatement)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2269,
                 $"The {endedStatement} statement ends before this token: no general format of {endedStatement} "
                 + "prints it after what is written, and no missing period would let it begin the next sentence. "
@@ -1881,7 +1896,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         Func<string, bool> theEditionPrints = recognizer is CobolParserCoreBase editionParser ? editionParser.PrintsKeyword : _ => true;
         // A user-defined word where a format specifies a literal is a constant-name, which COBOL-85 has none of (kb/Work PB4435).
         bool constantNamesPrinted = recognizer is not CobolParserCoreBase constantParser || constantParser.PrintsConstantName;
-        if (!HasStructuralHint(hints) && !at.EntrySlotYields && ScopeTerminator(recognizer, token.Type) is null && at.Admitted() is { } admitted
+        // A token the reference format puts after a separator period (OffendingPosition.OpensTheNextEntry, kb/Work PB6018) is
+        // refused by no kind: hint 14 names the missing period.
+        if (!HasStructuralHint(hints) && !at.EntrySlotYields && !at.OpensTheNextEntry && ScopeTerminator(recognizer, token.Type) is null
+            && at.Admitted() is { } admitted
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, admitted.WordChangesNothing, StatementBlockStart(recognizer),
                    at.APeriodLetsTheSentenceFollow, theEditionPrints, constantNamesPrinted || !admitted.WordsStandForLiterals,
                    at.ClosedConstructCouldTake, EditionOf(recognizer), out bool anOperandIsDue) is { } kindMsg)
@@ -3631,8 +3649,19 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         /// (<see cref="APeriodLetsTheSentenceFollow"/>). The parse refuses such a token as an operand
         /// (<c>CobolParserCoreBase.nextEntryOpensHere</c>), so <c>01 A PIC X VALUE "A"</c> then <c>01 B PIC X.</c> fails a
         /// prediction AT the 01, whose expected set (predicate-blind) still holds the integer the predicate refused: the
-        /// expected-set reading of hint 14 cannot see the period there, and the area says it is missing.</summary>
-        public bool PeriodIsMissingBeforeAnAreaAOpening => OpensAreaA && APeriodLetsTheSentenceFollow();
+        /// expected-set reading of hint 14 cannot see the period there, and the area says it is missing. Where the token is
+        /// the one the parse itself yielded to (<see cref="OpensTheNextEntry"/>) no walk is asked: the reference format has
+        /// already said the entry or sentence before it ends there, so its period is missing whatever state the statement
+        /// before it was left in (<c>GO TO P2</c> then <c>P1.</c> fails inside GO TO's Format 2, kb/Work PB6018).</summary>
+        public bool PeriodIsMissingBeforeAnAreaAOpening => OpensAreaA && (OpensTheNextEntry || APeriodLetsTheSentenceFollow());
+
+        /// <summary>⛔ IS THE TOKEN THE NEXT ENTRY'S LEVEL-NUMBER OR THE NEXT PROCEDURE HEADER'S NAME (kb/Work PB6011, PB6018)?
+        /// The very fact the parse's left-edge predicate yields to (<see cref="CobolParserCoreBase.OpensTheNextEntry"/>,
+        /// <c>nextEntryOpensHere</c>): an integer that begins its line in area A in the data division, or a token that begins
+        /// its line in area A in a sentence and writes a header (§1985:IV.7.3.3, §1985:IV.7.3.2). The kind-refusal (hint 0i)
+        /// and the ended-statement diagnosis yield to it: what the position expected is no fault of a token the reference
+        /// format puts after a separator period.</summary>
+        public bool OpensTheNextEntry => _recognizer is CobolParserCoreBase parser && parser.OpensTheNextEntry(Token);
 
         /// <summary>Is the token the first word after the level-number of an entry that has written no name? The parser
         /// stands inside the entry (its context holds the level-number, <see cref="ClosedFormats.EntryAwaitingItsName"/>), or

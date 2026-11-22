@@ -1251,7 +1251,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       declaring word (`DeclareMethodWord`, from the data description entry that declares it), and the questions the data-name class
       asks with the text it holds its operands as (`IsDeclaredConstant`, `IsConstantName`, `IsRefusedConstantName`,
       `InheritedConstantDepthOf`, `MethodDeclaresWord`: an unidentified reference's verdict, the ranking of
-      §2023:8.4.6.2.1 3)); they take the written word when the data-name class carries it.
+      §2023:8.4.6.2.1 GR3); they take the written word when the data-name class carries it.
     - *Before the data bind there is no table (correction, slice 3).* The AS phrase of PROGRAM-ID, FUNCTION-ID, CLASS-ID,
       INTERFACE-ID, METHOD-ID and a REPOSITORY class or interface specifier is read before the unit's binder exists, and its word may
       be a constant-name (§2023:13.10.3 SR2; kb/Work PB2588). That reading (`PreBindConstants`, deleted) is a resolution, so it is
@@ -1455,7 +1455,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       function comparisons wait for.
     - *A method roster is keyed by no COBOL word (correction).* An INVOKE names its method only by literal-1 or identifier-2
       (§2023:14.9.23.2), resolved "as described in 8.3.2.2, User-defined words" (§2023:14.9.23.4 GR2) against the method's
-      externalized name (§2023:11.7.4 GR1 b)), so a class's instance and factory rosters and an interface's prototypes are keyed by a
+      externalized name (§2023:11.7.4 GR1b), so a class's instance and factory rosters and an interface's prototypes are keyed by a
       type of their own, `ExternalizedMethodName` (`OoMethodSymbol.RosterKey`), as slice 6 keyed the AS NESTED table by
       `ExternalizedProgramName`; its one equality is the Annex C fold the rosters compared with, one classified comparer site.
     - *A written name's SITE and its WORD are two inputs (correction).* The funnel took the site and the name as text. The census a
@@ -1497,7 +1497,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     - *The progress table's first row is several classes (correction).* It moved the data, condition, index, capacity, type and
       debug-register names "as one unit, because they resolve together". §2023:8.3.2.2 lists data-name, condition-name, index-name and
       type-name as separate user-defined words, and the two registers are names the standard or SR30 defines implicitly; what ties
-      them is §2023:8.4.6.2.1 3)'s ranking ACROSS the classes, and those questions (`NearerNameOfAnotherClassHides`,
+      them is §2023:8.4.6.2.1 GR3's ranking ACROSS the classes, and those questions (`NearerNameOfAnotherClassHides`,
       `Declarations.DeclaredNearerThan`, `NonConditionDeclarationsOf`) were already the table's members reading each class through
       a question. So each class moved alone, the oracle IDENTICAL after each. The data-names and the condition-names stay one unit
       (each ranks the other both ways, and one qualifier walk serves both) and are the lane's next slice.
@@ -1677,7 +1677,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       SR4 walk (`QualifierWalk`, whose comparison is now the table's) moved into the table; `TryResolve`, `TryResolveUnqualified` and
       `NearestDeclaringData` are private. A caller hands the written words: the procedure division a `WrittenQualifiedName`
       (`IdentifyDataName(WrittenQualifiedName, report)` and its scoped overload for the storage-claim scan, `IdentifyWithin` for a
-      SORT table key, §2023:14.9.40.3 SR14 a)), a data division clause the `WrittenDataName` its model keeps
+      SORT table key, §2023:14.9.40.3 SR14a), a data division clause the `WrittenDataName` its model keeps
       (`IdentifyDataName(WrittenDataName, Scope)`, `IdentifyEntryClauseOperand` for OCCURS DEPENDING ON and SAME AS with
       §2023:8.4.2.2.1 SR5's implicit qualifiers, `IdentifyRegionOperand` for OCCURS KEY and RENAMES). The questions that answer no
       symbol take the words as text: `DeclaresDataName` (the procedure division's word-class probes: INSPECT CONVERTING's
@@ -1740,7 +1740,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       description open" is the declaration question `Declarations.EntryDeclares(entry, word)`.
     - *The §2023:8.3.2.2 census is a table of the element's names, so it is nested in the table.* `SymbolTable.UserWordCensus`, keyed by
       `CobolName`, made per element as before (`OoClassTable.CensusOf`); the declaration funnel's once-per-word refusals (a letterless
-      word, a REPOSITORY intrinsic, §2023:8.3.2.1 rule 5) are `SymbolTable.FirstRefusal`, one per binder as before; a specifier that
+      word, a REPOSITORY intrinsic, §2023:8.3.2.1 SR5) are `SymbolTable.FirstRefusal`, one per binder as before; a specifier that
       names this unit is `SymbolTable.NamesOwnUnit`, read off the program entry `DeclareProgram` makes (§2023:12.3.8.3 SR11, SR15).
     - *A declaration question of the data division's own entries is the table's.* The screen-names' distinct first spellings
       (`DeclareScreenNames` answers them), the 1985 index-name uniqueness (`SymbolTable.RepeatedIndexNames`, §1985:VI.5.8.3 SR14), a
@@ -2094,8 +2094,9 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     write `litProgramName1=literal` before `sendingOperand`, a `lit` label (a literal that names a symbol, beside `ref`, `qual`, `def`, `nn`
     and `name`), which the occurrence oracle reads as a reference slot (a program literal's occurrence is demanded) and the name-slot counter
     leaves out of its one-for-one comparison. `CallBinder.RecordProgramName` records the occurrence at the literal of the entry of the program
-    the name reaches by the scope of a program-name (§2023:8.4.6.3 SR1, SR2, SR3: `BinderDriver.ProgramVisibleFrom`, the run-time resolver's
-    four arms in its order, with the COMMON exception, over the compilation group's units), or, where the group defines none, of the group's
+    the name reaches by the scope of a program-name (§2023:8.4.6.3 SR1, SR2, SR3: `BinderDriver.ProgramVisibleFrom`: arms 1 to 3
+    are `ProgramNameScope.FirstVisible`, the one spelling of the rule the run-time resolver and the AS NESTED table also ask, with the COMMON
+    exception, and arm 4 is an outermost unit of the compilation group; kb/Work PB5965, `ListingCallGraphTests` pins every arm), or, where the group defines none, of the group's
     one entry of class `ExternalProgram` of that externalized name (`ListingSymbolKind.ExternalProgram`, declared nowhere, so no `Defined`
     reference and never flagged unreferenced). **Decided (section 6.7 was silent):** an unresolved literal target is an edge to a named
     external program, since section 6.7 lists "CALL targets" among the symbols and a program called and not defined here is a target the

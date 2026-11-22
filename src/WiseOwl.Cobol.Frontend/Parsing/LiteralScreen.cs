@@ -157,7 +157,8 @@ public static class LiteralScreen
                 + "(§1985:IV.4.2.2.2.2)",
                 "this compiler limits a fixed-point numeric literal to the 31 digits §2023:8.3.3.3.2 requires an implementor to allow")
             : $"the numeric literal '{written}' has {digits} digits; COBOL-85 limits fixed-point items and literals to 18 "
-              + $"digits — 19–31 digits require --std 2002 or later (targeting COBOL-{edition.Year})");
+              + $"digits — 19–31 digits require --std 2002 or later (targeting COBOL-{edition.Year})"
+              + edition.Cite("; the implementor must allow for numeric literals of 1 through 18 digits, and this compiler allows no more (§1985:IV.4.2.2.2.2)", ""));
         return false;
     }
 
@@ -183,7 +184,11 @@ public static class LiteralScreen
     {
         string raw = t.GetText();
         using var _ = sink.At(ExpansionToken.CursorOf(t.Symbol));
-        if (gateFormats) GateFormat(raw, edition, sink);
+        // A literal whose FORMAT the edition lacks is refused by its gate, and that is the one report: the content rules below
+        // are the format's own (a national literal's repertoire, a hexadecimal literal's digits), which an edition without the
+        // format does not state, so a second report would cite a later edition's rule (kb/Work PB6028).
+        // The literal still has a value only when its content keeps the rules (the caller asks; nothing more is reported).
+        if (gateFormats && !GateFormat(raw, edition, sink)) return CobolLiteral.SyntaxViolation(raw, edition.Year) is null;
         if (CobolLiteral.SyntaxViolation(raw, edition.Year) is not { } v) return true;
         Error(sink, v.Rule switch
         {
@@ -321,26 +326,42 @@ public static class LiteralScreen
     /// </list>
     /// The hexadecimal and zero-length edges are DERIVED, the derivation being the VCR row's; the national, boolean and
     /// apostrophe edges are QUOTED from the texts they cite.</summary>
-    private static void GateFormat(string raw, EditionInfo edition, IDiagnosticSink sink)
+    /// <returns>False when the edition lacks the literal's FORMAT (national, boolean, hexadecimal): the gate has refused it, and
+    /// the format's content rules are not asked. The zero-length and apostrophe gates refuse a spelling of a format the edition
+    /// has, whose content rules still apply.</returns>
+    private static bool GateFormat(string raw, EditionInfo edition, IDiagnosticSink sink)
     {
-        switch (CobolLiteral.ClassOf(raw))
-        {
-            case LiteralClass.National:
-                ConstructRegistry.Check(edition, sink, Constructs.NationalLiteral2002, $"the national literal {CobolLiteral.Abbreviated(raw)}");
-                break;
-            case LiteralClass.Boolean:
-                ConstructRegistry.Check(edition, sink, Constructs.BooleanLiteral2002, $"the boolean literal {CobolLiteral.Abbreviated(raw)}");
-                break;
-            case LiteralClass.Alphanumeric when CobolLiteral.IsHexadecimalFormat(raw):
-                ConstructRegistry.Check(edition, sink, Constructs.HexAlphanumericLiteral2002,
-                    $"the hexadecimal alphanumeric literal {CobolLiteral.Abbreviated(raw)}");
-                break;
-        }
+        string? format = FormatConstructOf(raw);
+        if (format is not null)
+            ConstructRegistry.Check(edition, sink, format, CobolLiteral.ClassOf(raw) switch
+            {
+                LiteralClass.National => $"the national literal {CobolLiteral.Abbreviated(raw)}",
+                LiteralClass.Boolean => $"the boolean literal {CobolLiteral.Abbreviated(raw)}",
+                _ => $"the hexadecimal alphanumeric literal {CobolLiteral.Abbreviated(raw)}",
+            });
         if (CobolLiteral.IsZeroLength(raw))
             ConstructRegistry.Check(edition, sink, Constructs.ZeroLengthLiteral2014,
                 $"the zero-length literal {raw}");
         if (CobolLiteral.IsApostropheDelimited(raw))
             ConstructRegistry.Check(edition, sink, Constructs.ApostropheQuotationSymbol2002,
                 $"the apostrophe-delimited literal {CobolLiteral.Abbreviated(raw)}");
+        return EditionHasFormat(raw, edition);
     }
+
+    /// <summary>The construct of the literal's FORMAT when it is one an edition may lack (national, boolean, hexadecimal
+    /// alphanumeric), else null.</summary>
+    private static string? FormatConstructOf(string raw) => CobolLiteral.ClassOf(raw) switch
+    {
+        LiteralClass.National => Constructs.NationalLiteral2002,
+        LiteralClass.Boolean => Constructs.BooleanLiteral2002,
+        LiteralClass.Alphanumeric when CobolLiteral.IsHexadecimalFormat(raw) => Constructs.HexAlphanumericLiteral2002,
+        _ => null,
+    };
+
+    /// <summary>⛔ Does <paramref name="edition"/> have the FORMAT of the literal <paramref name="raw"/> (kb/Work PB6028)? A literal
+    /// whose format it lacks is refused once, by <see cref="GateFormat"/>, and a rule written about literals of that format (a
+    /// VALUE clause's "a national literal may seed only ...") is a later edition's rule there, which a consumer does not ask.</summary>
+    public static bool EditionHasFormat(string raw, EditionInfo edition) =>
+        FormatConstructOf(raw) is not { } format
+        || ConstructRegistry.VerdictAt(edition, format) is not { Availability: ConstructAvailability.NotYetIntroduced };
 }

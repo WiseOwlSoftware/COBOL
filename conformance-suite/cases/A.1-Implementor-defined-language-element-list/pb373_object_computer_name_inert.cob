@@ -363,7 +363,7 @@
        END PROGRAM L1OCW06.
       *> PART 2 leg — CHARACTER CLASSIFICATION follows a NAME.
       *> The value returned is FUNCTION ORD of the first character
-      *> of FUNCTION UPPER-CASE("i") (§2023:12.3.6.4 GR7 a).  It is NEVER
+      *> of FUNCTION UPPER-CASE("i") (§2023:12.3.6.4 GR7a.  It is NEVER
       *> compared with a pinned Turkish code point — only with the
       *> name-less leg's answer — so the leg is correct whether or
       *> not the environment provides "tr-TR" (§2023:8.2.1 makes locale

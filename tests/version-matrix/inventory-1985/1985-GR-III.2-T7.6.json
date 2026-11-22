@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-T7.6",
+ "rule-digest": "05c945a07c79",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/CurrencyDefinition.cs#CurrencyDefinition; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolSpecialNames.g4#currencySignClause",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-T7_10",
+ "notes": "Own witness from the read lineage-reads-1985/g-06.json: the reader showed the compiler correct at 85 with its probe (specchar.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Glossary Table 7 row '$ | currency sign' names '$' a special character. No 2023 catalog row enumerates the basic special characters (the candidates are CURRENCY SIGN clause rules, wording matches only, none with an 85 case). The accepted fixed-form probe uses '$' as the currency sign and passes. Code location located after the read: CurrencyDefinition.ImpliedDollar defines $ as the default currency symbol and currencySignClause redefines it."
+}

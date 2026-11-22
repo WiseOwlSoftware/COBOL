@@ -149,7 +149,7 @@ DOC-A.1-65/-116/-141/-167 document as the host API. This design gives the clause
 - Any change to the COBOL-to-COBOL activation boundary (`ICobolProgram`, `CobolArg`, `ProgramTable.CallProgram`),
   including group-formal aliasing (kb/Work PB2087).
 - A direct-IL backend (§3.9 says what it must emit; it is not started here).
-- Parametric polymorphism ("Parametric polymorphism is an optional feature", §2023:9.3.5.3 rule 7; A.4.10 item 3, not
+- Parametric polymorphism ("Parametric polymorphism is an optional feature", §2023:9.3.5.3 GR7; A.4.10 item 3, not
   claimed) and multiple inheritance (A.4.10 item 1). Parameterized classes are NOT this and are in scope (§10.5).
 - Implementing the plain-.NET provider of §4.6; the resolver and schema admit it, a later slice builds it.
 - Incremental builds or a compiled-program cache.
@@ -181,12 +181,12 @@ Each quotation was run through `cite.py --check`. **(group)** marks a row the in
 | §2023:12.3.8.3 SR16 | "there shall be information in the external repository for the property property-name-1 that is part of one of the classes or interfaces that are declared in this REPOSITORY paragraph" (and the literal twin; §19 T1) | §8.5; REPO-1 |
 | §2023:12.3.8.4 GR1/GR7 | "If object-class-name-1 is a class described with the USING phrase, object-class-name-1 may be specified only in the REPOSITORY paragraph" | (group) `SymbolTable.ClassNames`; an imported skeleton likewise (§10.5) |
 | §2023:12.3.8.4 GR2 ¶1 | "The implementor shall specify when the AS phrase is required" | §8.1 D-R2 |
-| §2023:12.3.8.4 GR2 ¶2 | the property literal "is the externalized name known to the operating environment for a method that implements the named property" | §8.5 D-R5 (§2023:11.7.4 GR1 a): "If the PROPERTY clause is specified, the name is implementor-defined") |
+| §2023:12.3.8.4 GR2 ¶2 | the property literal "is the externalized name known to the operating environment for a method that implements the named property" | §8.5 D-R5 (§2023:11.7.4 GR1a: "If the PROPERTY clause is specified, the name is implementor-defined") |
 | §2023:12.3.8.4 GR5/GR8 | "a class object-class-name-1 is created from the parameterized class object-class-name-2" | (group) `OoExpansion`; §10.5 |
 | §2023:12.3.8.4 GR6 / GR9 | "It is implementor-defined how the information in the class specifier and the external repository are used to determine which class is used" / the interface twin (A.1 161/162) | §8.4, §9.4 |
-| §2023:12.3.8.4 GR10 a) | IF "the externalized name of the program prototype is the externalized name of a program definition specified previously in the same compilation group" THEN "the details are taken from that program definition, which is the program that will be called, and the details in the external repository are ignored" | §8.2 step 1 (externalized name AND source order) |
-| §2023:12.3.8.4 GR10 b) | "the details are taken from that program prototype definition and the details in the external repository are ignored" | §8.2 step 2 |
-| §2023:12.3.8.4 GR10 c) | "the details are taken from the external repository for the program with the same name as the externalized name of the program prototype" | §8.2 step 3 — the record decoded from the entry's host-entry method (§5.3) |
+| §2023:12.3.8.4 GR10a | IF "the externalized name of the program prototype is the externalized name of a program definition specified previously in the same compilation group" THEN "the details are taken from that program definition, which is the program that will be called, and the details in the external repository are ignored" | §8.2 step 1 (externalized name AND source order) |
+| §2023:12.3.8.4 GR10b | "the details are taken from that program prototype definition and the details in the external repository are ignored" | §8.2 step 2 |
+| §2023:12.3.8.4 GR10c | "the details are taken from the external repository for the program with the same name as the externalized name of the program prototype" | §8.2 step 3 — the record decoded from the entry's host-entry method (§5.3) |
 | §2023:12.3.8.4 GR10 NOTE 1 | "Literal-3, if specified, is the externalized name of the program prototype; otherwise, the externalized name is program-prototype-name-1" | `ProgramSpecifier.ExternalizedName` |
 | §2023:12.3.8.4 GR11 a)–c) | the function twin: "if the externalized name of the function prototype is the externalized name of a function definition specified previously in the same compilation group" … "the details are taken from the external repository for the function with the same name as the externalized name of the function prototype" | §8.3 (externalized name; SR10's word alternative when all three miss — determination D-R3) |
 | §2023:12.3.8.4 GR12–GR14 | intrinsic precedence / keyword omission / ALL | (group) |
@@ -202,7 +202,7 @@ Each quotation was run through `cite.py --check`. **(group)** marks a row the in
 | §2023:14.2.3 GR13; A.1 141 | "When either the activating or the activated runtime element is other than a COBOL runtime element, the implementor shall specify the restrictions and mechanisms for all supported language products"; "Procedure division header rules when either the activating or the activated runtime element is not a COBOL element" | §4.3 (the host entry: parameter matching, representation, return of a value, omission, the refusals, the exception contract), §9.4 (DOC-A.1-141's text) |
 | §2023:14.2.2 SR2 | BY VALUE data "shall be defined as a data item of class numeric, message-tag, object, or pointer" | §4.3's host-type table (no OPTIONAL BY VALUE; message-tag has no item, §4.3) |
 | §2023:13.18.2.3 SR2/SR4 | ANY LENGTH only "in an elementary level 1 entry in the linkage section of a function, of a contained program, or of a method that is not a property method", and in a function "as a formal parameter with the BY REFERENCE phrase" | §4.3's host-type table (no ANY LENGTH RETURNING, ANY LENGTH only on a function's BY REFERENCE formal) |
-| §2023:8.8.4.4.4 GR3 n) | the NUMERIC class test: "consists entirely of a valid representation for the usage" (and the display/national arm) | §4.3 — the ONE validity rule for write-back and RETURNING at the host door (`CobolNum.IsNumericImage`) |
+| §2023:8.8.4.4.4 GR3n | the NUMERIC class test: "consists entirely of a valid representation for the usage" (and the display/national arm) | §4.3 — the ONE validity rule for write-back and RETURNING at the host door (`CobolNum.IsNumericImage`) |
 | §2023:9.3.12 | "Within a run unit, two classes with the same externalized object-class-name that are created by expanding the same parameterized class with the same actual parameters are the same class instance. If two classes expand a parameterized class with different actual parameters, they are not the same class instance and shall not have the same externalized object-class-name." | §10.5 (D3: one CLR type per (name, triple) by reuse of the expansion of the same `ExpansionKey`; a superseded key is a stale caller REPO-9 names; the "shall not" is reported where the two will necessarily share a run unit) |
 | A.1 66 / 67 / 161 / 162 | "External repository (mechanism for specifying whether checking and updating occur)"; "External repository information (other information beyond the required information)"; "how external repository and class-specifier determine which class is used"; "how interface specifier and external repository determine which interface is used" | §9 |
 
@@ -394,7 +394,7 @@ enabled in both elements, the lenient positional adoption otherwise — and by R
 **A site whose callee is compiled elsewhere describes its operands (determination, 2026-10-27; it settles the question
 kb/Work PB2097 carried to PB2103).** GR3 d) — "If the resources are available and the program being called is a COBOL
 program, the rules for conformance specified in 14.8.2, Parameters and 14.8.3, Returning items apply" … "if checking for
-it is enabled in both the activated program and activating runtime element" (§2023:14.9.4.4 3) d), `cite.py --check` OK) — is
+it is enabled in both the activated program and activating runtime element" (§2023:14.9.4.4 GR3d, `cite.py --check` OK) — is
 a RUN-TIME rule about the program actually activated. The compile-time check ran against a record of that program, which
 the callee's later build can replace; only the activated program's own registered formals say what it is now. Today one
 flag, `BoundCallProgram.CalleeSignatureKnown`, answers two different questions — "did the bind check §2023:14.8.2 against a
@@ -499,7 +499,7 @@ public static class ACCT_UPDATE
   store (`CobolNum.TryStore`/`TryStoreU`) under `CobolRounding.Prohibited` — so "exact" is the capacity rule every
   COBOL receiver of that description obeys, and an inexact transfer is refused — and returns the formal's unscaled carrier
   value; `HostLanding.LandText` (fixed length) and `LandVariable` (DYNAMIC LENGTH up to its LIMIT, ANY LENGTH) for a
-  string, through the MOVE's own alignment (`CobolString.Store`, space fill, zero fill for boolean, ISO §2023:13.18.32.4 2)).
+  string, through the MOVE's own alignment (`CobolString.Store`, space fill, zero fill for boolean, ISO §2023:13.18.32.4 GR2).
   An edited formal (numeric-edited, alphanumeric-edited) takes the host string as its character content under the
   same fit rule; a host that holds the number formats it.
 - **The arguments are the ones a COBOL CALL renders.** For each formal the entry renders the `CobolArg` that
@@ -537,7 +537,7 @@ public static class ACCT_UPDATE
   REFERENCE variable receives its storage's content decoded by the formal's description; after the try, the RETURNING
   receiver — allocated by the entry as an activating COBOL element allocates it (§2023:14.2.3 GR6 NOTE 1) — is decoded the
   same way and returned (`void` when the unit has none). A numeric content is decoded only when it is a valid
-  representation of its description: the class test NUMERIC (§2023:8.8.4.4.4 GR3 n)) is true of it, as the runtime's one
+  representation of its description: the class test NUMERIC (§2023:8.8.4.4.4 GR3n) is true of it, as the runtime's one
   implementation of that test (`CobolNum.IsNumericImage`) answers — the content a REDEFINES alias, a reference
   modification or a non-conforming caller can leave there (§2023:14.8.2.3.2 rule 1 lets a COBOL activator's argument carry
   it). Content that fails it leaves that variable unchanged (or returns no value), and after every other write-back the
@@ -573,7 +573,7 @@ public static class ACCT_UPDATE
      CallProgram` marks every `CobolCallException` that crosses out of `inst.Call`, and only that type). `EcName`
      names it.
   3. The run-unit-ended result of owner decision R48 (DOC-A.1-167): a STOP RUN, or a fatal exception condition that
-     terminates the run unit (§2023:14.6.13.1.3 rule 7, "execution of the run unit is terminated abnormally"), performs the
+     terminates the run unit (§2023:14.6.13.1.3 GR7, "execution of the run unit is terminated abnormally"), performs the
      §2023:14.6.11 actions at the OUTERMOST activation boundary — `CallProgram` with `callerPath: null`, the host's
      counterpart of `ProgramTable.RunMain` — and leaves as the one documented exception carrying the exit status and
      whether the ending was normal or abnormal. `StopRun` and `CobolFatalException` (with its `CobolSizeError`) are
@@ -594,7 +594,7 @@ emitter (this slice) and the decoder (slice 4) hold the same input and nothing i
 
 | COBOL description | Host type |
 |---|---|
-| fixed-point numeric, no positions right of the decimal point (`Scale ≤ 0`) | the first of `long`, `Int128`, `UInt128` that holds EVERY value the item's storage can hold: for display, national and packed forms the PICTURE's 9 positions times its P positions' scaling (a P position stores no digit, ISO §2023:13.18.40.4 14)), so `long` to 18 value digits and `Int128` to 38; for a binary form whose truncation is by capacity (COMP-5, BINARY-CHAR … BINARY-DOUBLE) the container's exact range — a signed container of up to 8 bytes and an unsigned one of fewer are `long`, an unsigned 8-byte or a signed 16-byte one `Int128`, an unsigned 16-byte one (`PIC 9(20) COMP-5`, [0, 2^128)) `UInt128`; a 16-byte container with P positions is past 38 digits and takes `CobolDec` |
+| fixed-point numeric, no positions right of the decimal point (`Scale ≤ 0`) | the first of `long`, `Int128`, `UInt128` that holds EVERY value the item's storage can hold: for display, national and packed forms the PICTURE's 9 positions times its P positions' scaling (a P position stores no digit, ISO §2023:13.18.40.4 GR14), so `long` to 18 value digits and `Int128` to 38; for a binary form whose truncation is by capacity (COMP-5, BINARY-CHAR … BINARY-DOUBLE) the container's exact range — a signed container of up to 8 bytes and an unsigned one of fewer are `long`, an unsigned 8-byte or a signed 16-byte one `Int128`, an unsigned 16-byte one (`PIC 9(20) COMP-5`, [0, 2^128)) `UInt128`; a 16-byte container with P positions is past 38 digits and takes `CobolDec` |
 | fixed-point numeric with `Scale > 0` | `decimal` when the unscaled value has at most 28 digits (the PICTURE's for display, national and packed forms; the container's for a capacity-truncated binary form, so an 8-byte COMP-5 item's 19) and `Scale ≤ 28`; otherwise the runtime's `CobolDec`, exact for every signed storage (its significand is an `Int128`). ⚠ GR13 RESTRICTION: an UNSIGNED 16-byte capacity container with fraction or P positions reaches 2^128 units, past `CobolDec`'s significand; its content below 2^127 units decodes exactly and content at or above it is refused by the validity decode (`HostLanding.TryDec`, `FormatException`), never narrowed |
 | floating-point (COMP-1/COMP-2, FLOAT-*) | the item's own CLR carrier (`float` / `double` / the decimal-float carrier) |
 | alphanumeric, national, boolean, alphanumeric-edited, numeric-edited; DYNAMIC LENGTH | `string` |
@@ -603,9 +603,9 @@ emitter (this slice) and the decoder (slice 4) hold the same input and nothing i
 | POINTER / PROGRAM-POINTER / FUNCTION-POINTER | `ManagedPointer` / `ProgramPointer` / `FunctionPointer` |
 | OBJECT REFERENCE | the referenced class's or interface's public CLR type; `CobolObject` when universal |
 | message-tag (§2023:14.2.2 SR2 admits it BY VALUE) | none: the A.4 message-control facility is not provided and the DATA DIVISION refuses a message-tag item (`docs/CONFORMANCE.md` §4), so no formal has that class |
-| fixed group | the published record struct: one property per named subordinate (FILLER kept privately so `FromImage` → `AsImage` round-trips), nested record structs for subordinate groups, an array property for OCCURS (its length checked at `AsImage`); for OCCURS DEPENDING ON whose data-name-1 is in the record (where §2023:13.18.38.3 20) places it before the table), the array's length is the DEPENDING ON value, which §2023:13.18.38.4 7) makes "the current number of occurrences", and for one whose data-name-1 is outside the record the array is the table's whole area, every occurrence the storage holds (§2023:8.5.1.8); a REDEFINES subordinate is not a member (the record is the first description; its other views are the image's) |
+| fixed group | the published record struct: one property per named subordinate (FILLER kept privately so `FromImage` → `AsImage` round-trips), nested record structs for subordinate groups, an array property for OCCURS (its length checked at `AsImage`); for OCCURS DEPENDING ON whose data-name-1 is in the record (where §2023:13.18.38.3 SR20 places it before the table), the array's length is the DEPENDING ON value, which §2023:13.18.38.4 GR7 makes "the current number of occurrences", and for one whose data-name-1 is outside the record the array is the table's whole area, every occurrence the storage holds (§2023:8.5.1.8); a REDEFINES subordinate is not a member (the record is the first description; its other views are the image's) |
 | strongly-typed group with an object-reference or pointer leaf | the published record struct with those members; packed as the CALL lane's carrier for that shape (PB2087's cell area with managed slots) |
-| variable-length group — a dynamic-length elementary item or a dynamic-capacity table beneath it (§2023:8.5.1.12), whose current extent composes (`DataItem.CurrentExtentImageCapable`, the CALL lane's own gate) | the published record struct: a dynamic-length member is `string`, a dynamic-capacity table an array of its current capacity (never below its minimum capacity, "Integer-4 is the minimum capacity of the table", §2023:13.18.38.4 16)); crosses as the CALL lane's variable-length carrier (`CobolVarGroup`); no `AsImage`/`FromImage`, because its storage has no single image (a dynamic-length item "may be located elsewhere", §2023:8.5.1.10.3). A group holding both such a component and a pointer or object-reference member (its current extent composing with each reference a fixed placeholder of its reserved positions, `DataItem.CurrentExtentTransferImageCapable`) has the same record and crosses as the CALL lane's cell AREA of its description, the form the COBOL boundary carries it in (kb/Work PB3139): the host class declares the DESCRIPTION'S own fresh cell (`__hs<n>`, `DataEmitter.FreshArea`, the factory the program's area formal takes, with the description's `_P_` profiles it names, so a prototype-only unit needs no program class and a dynamic-capacity table the area holds is created and initialized by the description, §2023:8.5.1.9.5); the record's carrier is distributed into that cell (`StorageCell.StoreVarGroupAt`, the store a formal's copy-in makes) and each reference set in its managed slot, a dynamic-capacity table's element cells included (`__PutSlots`); the argument states the group's §2023:8.5.1.12 atoms (`Shape`, `DynBase`) so the activated program's formal is laid over it (§2023:14.2.3 8): "operates as if the formal parameter occupies the same storage area as the argument"), and the write-back reads the area back by the inverse walk (`__TryGetArea`). There is no GR13 restriction on this shape (kb/Work PB3273; `HostEntryShapeDriftTests` pins the area's four parts) |
+| variable-length group — a dynamic-length elementary item or a dynamic-capacity table beneath it (§2023:8.5.1.12), whose current extent composes (`DataItem.CurrentExtentImageCapable`, the CALL lane's own gate) | the published record struct: a dynamic-length member is `string`, a dynamic-capacity table an array of its current capacity (never below its minimum capacity, "Integer-4 is the minimum capacity of the table", §2023:13.18.38.4 GR16); crosses as the CALL lane's variable-length carrier (`CobolVarGroup`); no `AsImage`/`FromImage`, because its storage has no single image (a dynamic-length item "may be located elsewhere", §2023:8.5.1.10.3). A group holding both such a component and a pointer or object-reference member (its current extent composing with each reference a fixed placeholder of its reserved positions, `DataItem.CurrentExtentTransferImageCapable`) has the same record and crosses as the CALL lane's cell AREA of its description, the form the COBOL boundary carries it in (kb/Work PB3139): the host class declares the DESCRIPTION'S own fresh cell (`__hs<n>`, `DataEmitter.FreshArea`, the factory the program's area formal takes, with the description's `_P_` profiles it names, so a prototype-only unit needs no program class and a dynamic-capacity table the area holds is created and initialized by the description, §2023:8.5.1.9.5); the record's carrier is distributed into that cell (`StorageCell.StoreVarGroupAt`, the store a formal's copy-in makes) and each reference set in its managed slot, a dynamic-capacity table's element cells included (`__PutSlots`); the argument states the group's §2023:8.5.1.12 atoms (`Shape`, `DynBase`) so the activated program's formal is laid over it (§2023:14.2.3 GR8: "operates as if the formal parameter occupies the same storage area as the argument"), and the write-back reads the area back by the inverse walk (`__TryGetArea`). There is no GR13 restriction on this shape (kb/Work PB3273; `HostEntryShapeDriftTests` pins the area's four parts) |
 
 The published record struct is rendered from the DESCRIPTION by `PublishedRecordEmitter` (corrected 2026-10-15, kb/Work
 PB2099: this paragraph used to name a "published mode" of `RecordStructEmitter` and `GroupImageCodec`, but a group
@@ -637,7 +637,7 @@ to share; what IS shared is the storage geometry and the door rules):
   §2023:13.18.60.3 SR14) crosses as the CALL lane's cell area (kb/Work PB2087, `CallEmitter.AreaOf`): its storage is a
   `StorageCell` holding the image and each reference in its managed slot (`__Area`, `__PutSlots` through
   `CobolPtr.SlotWrite`), the argument states `Area: new CellPointer(cell, 0)` so the activated program's formal occupies
-  that storage (§2023:14.2.3 8)), and the write-back reads each slot back (`CobolPtr.SlotRead`). An image alone
+  that storage (§2023:14.2.3 GR8), and the write-back reads each slot back (`CobolPtr.SlotRead`). An image alone
   (`AsImage`/`FromImage`) holds no reference: `FromImage` leaves those members in their null state.
 - **The variable-length carrier.** A record holding dynamic-length items or dynamic-capacity tables (§2023:8.5.1.12) crosses
   as the CALL lane's carrier of its description, `CobolVarGroup` (`__Var`; `ManagedPointer<CobolVarGroup>`, the
@@ -995,7 +995,7 @@ prototype's formals and entries are joined by the prototype's index and the form
   `CellPointer? <area>`, `bool <omitted>` (`OoEmitter.OoSignatureOf` / `OoArgPair`) — and the attributes sit on the
   CARRIER, the triple's first parameter, the one that names the formal; the area and the omitted flag carry nothing
   (both are functions of the formal's description and mode). The trailing `int __retLen` of a method whose RETURNING
-  item is ANY LENGTH (`OoEmitter.RetLenParam`, §2023:13.18.2.4 GR1 b)) carries nothing either: it is a fact of the
+  item is ANY LENGTH (`OoEmitter.RetLenParam`, §2023:13.18.2.4 GR1b) carries nothing either: it is a fact of the
   RETURNING description, which the return value's tree records. Property accessors are methods and carry
   `[CobolMethod(Accessor, PropertyName)]` beside the same parameter attributes. An interface's members are emitted by the
   same `OoSignatureOf` and carry the same attributes on the interface's own CLR methods. The covariant-return adapters
@@ -1117,7 +1117,7 @@ the group.
   EXTERNALIZED names of their classes and interfaces instead of words, so two separately compiled groups describe one
   class with one spelling. That changes the text every module's descriptions carry and the run-time relations compare:
   a call-ABI bump (`scripts/abi_pin.py bump --call-abi`, §15.4) in slice 8. `ClrTypeName` is `Target.ClrName` with its
-  namespace. ACTIVE-CLASS carries its containing class's identity (excluded from equality by §2023:9.3.8.2.3 rule 2 d) as
+  namespace. ACTIVE-CLASS carries its containing class's identity (excluded from equality by §2023:9.3.8.2.3 GR2d as
   today). **Landed, slice 8 step 1 part 1 (kb/Work PB2104, wave 20261830):** the run-time description's class facts —
   `ActivationDescriptions.Of` reads `OoClassTable.DescribedOperand`, `SetOperand`'s one derivation with every class and
   interface spelled by its externalized name, while the compile-time SET table keeps the words of its one scope — under
@@ -1545,7 +1545,7 @@ PREVIOUS BUILD OF THIS OUTPUT (the file callers were compiled against; one prefe
 every entry in the search space that publishes the same `kind:name` as a prototype or a definition (a definition that
 differs from a published prototype, a prototype that differs from a published definition). A difference is **REPO-9,
 a warning** naming the entry and the first differing position ("callers compiled against that entry are checked at
-run time by §2023:14.9.4.4 GR3 d) when checking is enabled in both, and adopt the arguments positionally otherwise;
+run time by §2023:14.9.4.4 GR3d when checking is enabled in both, and adopt the arguments positionally otherwise;
 recompile them"). An old-schema previous build is REPO-12 (informational) and skipped. Why a warning: a signature
 change is a normal event, this compile is the update, and §2023:10.6.2 SR2/SR3's "shall" is scoped to one compilation
 group. Cost: one header read per entry the resolver already opened, plus the previous output when it exists.
@@ -1969,7 +1969,7 @@ private bool LocateSiblingModule(string name, bool wantFunction)               /
         return Outermost(name, wantFunction) is not null || ProbeFailed(name, wantFunction, $"'{hit.Path}' did not register the {kind} {name}");
     }
     catch (Exception e) when (IsCodeLoadFailure(e) || e is IOException or UnauthorizedAccessException or TargetInvocationException or ArgumentException)
-    { return ProbeFailed(name, wantFunction, $"'{hit.Path}': {e.GetBaseException().Message}"); }   // never escapes the CALL (§2023:14.9.4.4 GR3 b))
+    { return ProbeFailed(name, wantFunction, $"'{hit.Path}': {e.GetBaseException().Message}"); }   // never escapes the CALL (§2023:14.9.4.4 GR3b)
 }
 ```
 The named file is loaded without a directory scan (`PAY.dll` beside `PAY - Copy.dll` keeps working); the index is read
@@ -1994,7 +1994,7 @@ of unit asked for (the same key as `_probedNames`): a program lookup and a funct
 with two reasons, and the second must not overwrite the first's.
 `--repository-update off` assemblies are reached (the index is unconditional).
 **Every fault on the way to an activation is one of the CALL's own conditions (determination, Mythos lane 2026-10-27;
-it answers the residual question kb/Work PB2101 carried from the R2 review).** §2023:14.9.4.4 GR3 b): "If the program cannot
+it answers the residual question kb/Work PB2101 carried from the R2 review).** §2023:14.9.4.4 GR3b: "If the program cannot
 be located or identifier-1 references a zero-length item, the EC-PROGRAM-NOT-FOUND exception condition is set to exist"
 (`cite.py --check` OK, located under 3)); GR3 c): "If the program is located but the resources necessary to execute the
 program are not available, the EC-PROGRAM-RESOURCES exception condition is set to exist … The runtime resources that are
@@ -2315,7 +2315,7 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   module reached again by the probe and the patched-metadata fixtures are C#, `RunTimeLocateFaultTests` and
   `ModuleRegistrationHostTests`); slices 7 and 8 add cases, not mechanism.
   Cases (slice 7 unless marked): program prototype resolved from a
-  prototype-only build (BY VALUE default from the formal, §2023:14.9.4.4 GR9 b); from a definition's build; the pb1115
+  prototype-only build (BY VALUE default from the formal, §2023:14.9.4.4 GR9b; from a definition's build; the pb1115
   shape split across two units (prototype names and grouping differ from the definition's: compiles, runs, no
   REPO-9); a caller's argument that does not conform to the repository formal → the §2023:14.8.2 argument diagnostic;
   function prototype (word and AS; the GR11 c)-hit order); a restricted program-pointer formal of a repository
@@ -2466,7 +2466,7 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   cannot be data-names), the internal and published record structs and the host class compile, every name is produced
   by `CsNames.Allocate`, and two compiles give the same names.
 - **One renderer** (`HostEntryShapeDriftTests.AHostEntryArgument_IsStatedByTheCallLanesRenderer`): what a host entry's
-  argument states for §2023:14.9.4.4 GR3 d) — its storage length and its description — is rendered by the CALL lane's
+  argument states for §2023:14.9.4.4 GR3d — its storage length and its description — is rendered by the CALL lane's
   `CallEmitter.Described`, from the builders a CALL argument's facts come from (`CallEmitter.ArgumentLength`,
   `ActivationDescriptions.Of`); the entry composes neither fact itself, and every described argument of the emitted
   fixture is in that renderer's form.
@@ -2592,7 +2592,7 @@ expansion assembly from two different expanding groups (slice 8).
 
 **Determinations this design makes under the standard's own latitude** (each derived from the cited clause, none an
 owner question): the host door's restrictions and its exception contract (§2023:14.2.3 GR13, §4.3); the one validity rule
-for write-back and RETURNING, `FormatException` (§2023:8.8.4.4.4 GR3 n), §4.3); one storage only for formals of one
+for write-back and RETURNING, `FormatException` (§2023:8.8.4.4.4 GR3n, §4.3); one storage only for formals of one
 description (§4.3); the forward-reference reading of SR14 — the output being produced is not repository information
 (§8.2); the one-segment namespace (§4.5); the call-ABI version (§15.4).
 
@@ -2615,7 +2615,7 @@ description (§4.3); the forward-reference reading of SR14 — the output being 
   PB2464 landed it): the record carries the full signature, and slice 7 makes the class identity a group-independent
   canonical key over the minimized signature graph rather than deleting the classes (§6.4); the approved text's
   "compared by identity" is withdrawn because it would have regressed GR25.
-- **A CALL whose callee is compiled elsewhere describes its operands for §2023:14.9.4.4 GR3 d)** — §2023:12.3.8.4 GR10 b) as well as c), and the
+- **A CALL whose callee is compiled elsewhere describes its operands for §2023:14.9.4.4 GR3d** — §2023:12.3.8.4 GR10b as well as c), and the
   function twin (§4.2; slice 7). It settles the question kb/Work PB2097 carried to PB2103.
 - **The schema's enums are the runtime's own persisted vocabulary**, structured values are flattened, nullability is
   presence, and a method's attributes sit on the carrier of PB2087's parameter triple (§6.2); `RepositoryIndex` and
@@ -2624,8 +2624,8 @@ description (§4.3); the forward-reference reading of SR14 — the output being 
 
 **Open:** none.
 
-**T1 (transcription, for the spec-reconcile lane):** §2023:12.3.8.3 SR16 a) prints "the property literal-5" where the
-specifier's literal is literal-4; §2023:12.3.8.4 GR11 c) is run into b)'s paragraph (cite.py reports 11) b)).
+**T1 (transcription, for the spec-reconcile lane):** §2023:12.3.8.3 SR16a prints "the property literal-5" where the
+specifier's literal is literal-4; §2023:12.3.8.4 GR11c is run into b)'s paragraph (cite.py reports 11) b)).
 
 ---
 

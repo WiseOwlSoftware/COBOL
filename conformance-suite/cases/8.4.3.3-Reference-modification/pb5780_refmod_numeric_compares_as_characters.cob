@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5780 - the 2023 twin: §2023:8.4.3.3.4 GR6 a) (the
+      *> kb/Work PB5780 - the 2023 twin: §2023:8.4.3.3.4 GR6a (the
       *> unique data item "is considered class and category
       *> alphanumeric"). The 1985 text, which the rest quotes:
       *> a reference-modified numeric item is class

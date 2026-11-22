@@ -1,0 +1,39 @@
+{
+  "queues": [
+    {
+      "name": "Q1",
+      "subQueues": [
+        {
+          "name": "SA",
+          "messages": [
+            { "segments": [ "MSG-A" ], "source": "SRC1", "date": "260101", "time": "01000000" }
+          ]
+        },
+        {
+          "name": "SB",
+          "messages": [
+            { "segments": [ "MSG-B" ], "source": "SRC2", "date": "260101", "time": "02000000" }
+          ]
+        }
+      ]
+    },
+    { "name": "HOLD" }
+  ],
+  "sources": [
+    { "name": "SRC1" },
+    { "name": "SRC2" },
+    { "name": "LOOPSRC" }
+  ],
+  "destinations": [
+    { "name": "LOOP", "deliverTo": "HOLD", "source": "LOOPSRC" },
+    { "name": "DEV" }
+  ],
+  "terminals": [
+    {
+      "name": "TERM1",
+      "messages": [
+        { "segments": [ "FROM-TERM" ], "source": "TERM1", "date": "260101", "time": "03000000" }
+      ]
+    }
+  ]
+}

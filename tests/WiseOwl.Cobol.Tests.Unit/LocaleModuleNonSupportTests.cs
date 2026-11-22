@@ -42,7 +42,7 @@ public sealed class LocaleModuleNonSupportTests
                 + "       01 R PIC X(20).\n       01 S PIC 9(8) VALUE 3600.\n"
                 + "       PROCEDURE DIVISION.\n       MAIN.\n" + procedureBody + "           STOP RUN.\n");
             return CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "a49.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto)).Errors;
+                src, Path.Combine(dir, "a49.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline)).Errors;
         }
         finally { ScratchDirectory.Remove(dir); }
     }
@@ -80,7 +80,10 @@ public sealed class LocaleModuleNonSupportTests
         Assert.DoesNotContain(errors, e => e.Contains("COBOL1518"));
         if (gated) Assert.Contains(errors, e => e.Contains("COBOL0900") && e.Contains("LOCALE phrase"));
         else Assert.DoesNotContain(errors, e => e.Contains("COBOL0900"));
-        Assert.Contains(errors, e => e.Contains("COBOL1664"));
+        // Below 2014 the gate is the one report: the locale-name rule is the 2014 phrase's, not asked where the edition has no
+        // phrase (kb/Work PB6028).
+        if (gated) Assert.DoesNotContain(errors, e => e.Contains("COBOL1664"));
+        else Assert.Contains(errors, e => e.Contains("COBOL1664"));
     }
 
     /// <summary>⚙ THE SUPPRESSION LIFTED (kb/Work PB64 T4 — the forcing function the class summary promised): the four

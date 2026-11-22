@@ -9,7 +9,7 @@
   marker (§2023:10.7.2; `cite.py --check 10.7.2 "METHOD, and INTERFACE are underlined"` → OK) and in EXIT METHOD (`cite.py --check E.2 "EXIT METHOD statement"` → OK; the 2002 and 2014 statement,
   removed at 2023); those keyword positions read the word whether or not the program also declares a data item of that
   name (`methodKeyword`, generated into `CobolWords.g4` from the row's `keywordWhereFree` determination in `cobol-words.json`, the rule MESSAGE and MULTIPLE share; kb/Work PB3794). ⚠ DETERMINATION (owner may overturn): the standard's own text decides — a
-  word its list does not reserve is not reserved (§2023:4.2.8, §2023:8.3.2.1 rule 1) — so the alternative, treating the
-  omission as a typo and keeping METHOD reserved at 2023, would be an added reserved word that §2023:4.2.10 3) obliges this
+  word its list does not reserve is not reserved (§2023:4.2.8, §2023:8.3.2.1 SR1) — so the alternative, treating the
+  omission as a typo and keeping METHOD reserved at 2023, would be an added reserved word that §2023:4.2.10 GR3 obliges this
   document to list, and would refuse a program the standard permits. Pinned by `conformance:cases/_unassigned/pb2623_method_is_a_user_word_at_2023`,
   `negative/pb2623-method-reserved-at-2002-2014` and `MethodUserWordTests`.

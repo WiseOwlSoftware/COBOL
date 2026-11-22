@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p189",
+ "rule-digest": "0e52febe9928",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsNumeric",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p189",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p189); the code location is where the compiler meets the rule's subject. The read: \"A character that belongs to the following set of digits: 0, 1, 2, ... 9.\" A definition of a term. Candidates (national character size, ALPHABET clause, CURRENT-DATE layout) are wording-only. The code location was located after the read (locations-all.json): IsNumeric accepts only the characters 0 through 9 in a NUMERIC class test."
+}

@@ -710,12 +710,13 @@ internal static class RuntimeApi
     public static string CheckedIntegerArgumentExact(string value, IntegerArgumentSite site) =>
         $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CheckedIntegerArgumentExact)}({value}, {site})";
 
-    /// <summary>Where a run-time integer check stands (kb/Work PB5889): the function, the argument's 1-based position and whether a
-    /// failure terminates the run unit (COBOL-85) rather than raising EC-ARGUMENT-FUNCTION, rendered as the check's trailing
-    /// arguments. A function name is a catalogued intrinsic name (letters, digits and hyphens), so it needs no escape.</summary>
-    internal readonly record struct IntegerArgumentSite(string Function, int Argument, bool Terminates)
+    /// <summary>Where a run-time integer check stands (kb/Work PB5889): the function and the argument's 1-based position, rendered as
+    /// the check's trailing arguments. What a failure does is the activation's edition's, decided at run time by the one answer to
+    /// every broken argument rule (<c>ExceptionEngine.ArgumentError</c>, kb/Work PB6019), never by the site. A function name is a
+    /// catalogued intrinsic name (letters, digits and hyphens), so it needs no escape.</summary>
+    internal readonly record struct IntegerArgumentSite(string Function, int Argument)
     {
-        public override string ToString() => $"\"{Function}\", {Argument}, {(Terminates ? "true" : "false")}";
+        public override string ToString() => $"\"{Function}\", {Argument}";
     }
 
     /// <summary>The §2023:15.3 type-6 intake for a value on ONE of the operand carriers, keyed by carrier KIND — the ONE
@@ -1381,7 +1382,7 @@ internal static class RuntimeApi
     /// (GR4 moves the group's bytes), a REDEFINES view, a record area shared with another record of its file or with a
     /// SAME RECORD AREA peer (a READ or RETURN fills the area's bytes), an APPLY COMMIT restore (ROLLBACK returns the
     /// saved image), or storage shared through a BY REFERENCE argument, EXTERNAL, BASED or ADDRESS OF. That
-    /// content is undefined (§2023:14.6.13.2 1)), and the boolean operators read such a position as zero.</para></summary>
+    /// content is undefined (§2023:14.6.13.2 GR1), and the boolean operators read such a position as zero.</para></summary>
     public static string StrStoreBoolean(string value, string width, bool justifiedRight) =>
         $"{nameof(CobolBool)}.{nameof(CobolBool.Store)}({value}, {width}, justifiedRight: {(justifiedRight ? "true" : "false")})";
 

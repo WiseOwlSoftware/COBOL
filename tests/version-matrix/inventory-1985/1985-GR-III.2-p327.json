@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p327",
+ "rule-digest": "ae8e5105f32a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#PhysicalFileCategory",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p245",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (REEL.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Same text as p320 with the synonyms rotated; the refuter's objection holds for the same reason. REEL.cob witnesses it at 85: no volume swap occurs on this implementation's non-reel/unit medium and both CLOSE forms answer alike. Code location located after the read: BindClose treats REEL and UNIT alike (volume synonymy) and PhysicalFileCategory.NonUnit records the medium has no volumes."
+}

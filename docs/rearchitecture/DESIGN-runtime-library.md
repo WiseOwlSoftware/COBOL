@@ -135,7 +135,7 @@ class's METHOD WORKING-STORAGE (OO deep-dive D3). Each such unit emits `__ResetS
 creates its factory object (`RunUnit.FactoryObject` → the generated override of `CobolObject.__AdoptRunUnitStorage`,
 which adopts both halves' resets and calls base, so every superclass adopts its own). Adoption runs the reset —
 §2023:14.6.2.3.2 1), the initial state at the first activation in a run unit — and `RunUnit.Terminate`, the ONE
-termination epilogue `ProgramTable.RunMain` and `RunUnit.Run` both call, closes every file (§2023:14.6.11 2) and runs every
+termination epilogue `ProgramTable.RunMain` and `RunUnit.Run` both call, closes every file (§2023:14.6.11 GR2 and runs every
 adopted reset again, so a static POINTER, OBJECT REFERENCE or dynamic item releases what it held (§2023:14.6.11 3, 4, 6).
 
 **No run-unit state in a static — enforced.** `RunUnitStateDriftTests.NoWritableStatic_OutsideTheDocumentedProcessStores`
@@ -278,10 +278,10 @@ what GR25 (*"the file is not affected"*) requires of the open that is about to f
 `UnauthorizedAccessException` is an answer — every other `IOException` propagates to `FileConnector.Open`'s
 ONE catch, which asks the host ONE question first: `HostFile.IsSharingRefusal` (Windows
 `ERROR_SHARING_VIOLATION`/`ERROR_LOCK_VIOLATION`, Unix `EWOULDBLOCK` from .NET's `flock`). A sharing refusal is
-§2023:9.1.13.9 1)'s '61' — another run unit's connector holds the file, and the host said so — and only the residue
-is §2023:9.1.13.6 1)'s '30', *"no further information is available"* (kb/Work PB860: every organization answered
+§2023:9.1.13.9 GR1's '61' — another run unit's connector holds the file, and the host said so — and only the residue
+is §2023:9.1.13.6 GR1's '30', *"no further information is available"* (kb/Work PB860: every organization answered
 '30'). DELETE FILE asks the same question of the host before it deletes (`HostFile.IsHeldByAnother`, an
-exclusive read request, inside the RETRY loop) and answers §2023:9.1.13.9 2)'s '62', because a Unix unlink never
+exclusive read request, inside the RETRY loop) and answers §2023:9.1.13.9 GR2's '62', because a Unix unlink never
 consults open handles and would otherwise destroy a file another run unit holds open. INPUT is excluded and the exclusion is load-bearing: a read-only file supports everything
 Table 20 permits in the input mode, and item 6 a) 3.'s read-capability question is already answered eagerly by
 the sequential reader and the keyed `Attach()`. `HostFileProbeDriftTests` bans `PermitsWrite` outside
@@ -309,7 +309,7 @@ registered by `CobolFile.RegisterReserve`, else `HostFile.ImplementorInputOutput
 other connector (`SHARING WITH NO OTHER`) releases its records to the medium as its areas fill; one whose file lock
 admits a reader or a writer (`AdmitsAnotherRunUnit`: READ ONLY or ALL OTHER) releases at every WRITE / REWRITE
 (`SequentialConnector.ReleaseRecord`, kb/Work PB1587: GR12 puts the record in the physical file at the statement, and
-§2023:9.1.15 2) admits the INPUT connector beside a READ ONLY writer), so the posture decides WHEN the areas are emptied,
+§2023:9.1.15 GR2 admits the INPUT connector beside a READ ONLY writer), so the posture decides WHEN the areas are emptied,
 never WHETHER they exist (before PB643 the areas were the host handle's 4,096-byte buffer in one posture and the reader's default buffer
 in the other, so RESERVE had no one place to land). `OpenConnectorStore(path, mode, access, share)` is a
 RELATIVE or INDEXED connector's long-lived store handle (kb/Work PB771, below), UNBUFFERED: the store is read and
@@ -391,7 +391,7 @@ cannot admit this run unit's second connector while refusing a foreign process. 
   protects its physical file from other PROCESSES exactly as `SHARING WITH NO OTHER` does;
 - the registry hands the posture down ONCE per OPEN, ahead of the handle (`c.HostSharing = sharing`; `HostShare` is derived from it
   in `SharedOpenAttempt`), and nothing re-derives it while the connector is open. **EVERY organization holds a
-  long-lived host handle carrying its posture** — §2023:9.1.15 3) names none, so all three owe the lock (kb/Work
+  long-lived host handle carrying its posture** — §2023:9.1.15 GR3 names none, so all three owe the lock (kb/Work
   PB771). `KeyedConnector` is where RELATIVE and INDEXED hold theirs: `TakeFileLock` on each `OpenCore` arm that
   has a physical file and `ReleaseFileLock` in the CLOSE and on an unsuccessful OPEN. ⛔ **It is the SAME handle
   the store travels through** — the keyed store engine's pages are read and written positionally through it
@@ -400,7 +400,7 @@ cannot admit this run unit's second connector while refusing a foreign process. 
   which is kb/Work PB713's defect re-opened by its own cure. The handle's ACCESS is `FileConnector.HostAccess`
   (every organization opens its handle, `FileConnector.FileLock`, with it and spells none of its own; kb/Work PB2758),
   not the open mode's floor, because the keyed store engine reads the physical file before it writes it in every
-  writable mode (the adoption rule's meta pages, 2.2.1.6 R6; §2023:14.9.51.4 GR29 a)'s release number is a fact of the
+  writable mode (the adoption rule's meta pages, 2.2.1.6 R6; §2023:14.9.51.4 GR29a's release number is a fact of the
   records already there).
 
 There is NO widening and NO handle rebuild. Every pair of the three modes that Table 19 admits already has
@@ -456,7 +456,7 @@ refuses the reader rule 2 admits; it is a second expression of the same table:
   2^62 + the column's wire number (the five `ExistingSharingColumn`s; the numbers are a contract between run units
   and are spelled out in the class, not derived from an ordinal), and then asks whether any OTHER description holds
   a column its request ROW refuses (`Table19.Cell(row, column) == UnsuccessfulOpen` over the five columns). A
-  refusal is §2023:9.1.13.9 1)'s `61`, the lock is given back, and §2023:14.9.27.4 GR25's *"the file is not affected"*
+  refusal is §2023:9.1.13.9 GR1's `61`, the lock is given back, and §2023:14.9.27.4 GR25's *"the file is not affected"*
   holds because the test precedes `OpenCore`'s body on a file that exists. Publishing FIRST is what makes two
   simultaneous OPENs unable to pass each other; it needs a lock the asker's OWN description does not conflict
   with, because the classes that refuse their own kind (NO OTHER, an OUTPUT) would otherwise refuse themselves.
@@ -683,12 +683,12 @@ rule was already written down in `SeekToRecord`'s doc comment — for the connec
 write.)
 
 **And ACROSS RUN UNITS: the FILE is the truth, and every run unit's store follows it one page at a time (kb/Work
-PB2660, PB3335; 2.2.1.7).** §2023:9.1.15 3) admits concurrent writers in other run units — *"The sharing with all other
+PB2660, PB3335; 2.2.1.7).** §2023:9.1.15 GR3 admits concurrent writers in other run units — *"The sharing with all other
 mode allows concurrent access to a physical file through other file connectors specifying input, I-O, or extend
 mode"*, and *"Multiple paths of access may exist … or runtime elements in different run units"* — and §2023:9.1.16 binds
 them to each other's record locks: *"While locked by a given file connector, a record is not accessible to another
 file connector in the same or a different run unit, except by the execution of a READ statement with the IGNORING LOCK
-phrase"*, answered by §2023:9.1.13.8 1)'s `51`. A run unit's `StoreTable` store is that run unit's alone, so the file has
+phrase"*, answered by §2023:9.1.13.8 GR1's `51`. A run unit's `StoreTable` store is that run unit's alone, so the file has
 to carry what the run units tell each other. Three pieces do it, and each lives in one place:
 
 - **The GENERATION in the work meta (page 2, 2.2.1.4).** Every statement that changes the file ends by writing page 2
@@ -810,7 +810,7 @@ varying framings.
 PB754).** An `OPEN OUTPUT` creates the file (§2023:14.9.27.4 GR18, *"After the creation of the file, the file contains no
 records"*), and emptying a store is a change every attached connector sees instantly, so the creation attaches a NEW
 empty store and refuses, loudly, to create one another connector of the run unit still holds — Table 19 has already
-refused that OPEN (§2023:9.1.13.9 1) e)), so reaching it is an arbitration defect. Its one truncation is `PagedFile.Create`
+refused that OPEN (§2023:9.1.13.9 GR1e), so reaching it is an arbitration defect. Its one truncation is `PagedFile.Create`
 (three meta pages), reached only through `KeyedStore.Create`. The absent-OPTIONAL creation arms (§2023:14.9.27.4 GR17) attach
 normally: the file of no bytes the file lock created is adopted as the empty store. A store holds no records in memory,
 so no connector clears one (`CrossRunUnitKeyedStoreDriftTests.NoConnectorClearsASharedStore`).
@@ -1089,12 +1089,12 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   KEY ORDER chosen once per tree at OPEN (`IKeyOrder`): ORDINAL bytes for a native collating sequence, WEIGHTED (decode, then
   the key's `CobolCollation` as `FreezeOpenSequences` fixed it at the OPEN, §2023:12.4.5.7.4 GR1) for a declared one, NUMERIC for a relative record
   number (stored as 8 bytes big-endian, so ordinal byte order IS numeric order and the ordinal comparer serves), and COMPOSITE
-  for an alternate tree (the key's order, then the 8-byte big-endian ordinal). A START's partial key (§2023:14.9.41.4 GR17 b) sets its
+  for an alternate tree (the key's order, then the 8-byte big-endian ordinal). A START's partial key (§2023:14.9.41.4 GR17b sets its
   length, c) and d) truncate each stored key to it, e) compares them by §2023:8.8.4.2.7's equal-length rule) is a
   seek to the prefix under the same order; the '02' look-ahead of §2023:14.9.30.4 GR27 is the next entry's key prefix. §2023:14.9.41.4
   GR17 c) and d) define that seek as a SEQUENTIAL search (forward, or in reverse for the LESS relations), and the tree narrows it by
   binary search wherever the qualifying entries are one run of the key order (`IKeyOrder.PrefixNarrows(length)`): at every
-  length under an order that compares position by position — the bytes, and a sequence under §2023:8.8.4.2.7 1)'s standard
+  length under an order that compares position by position — the bytes, and a sequence under §2023:8.8.4.2.7 GR1's standard
   comparison (`CobolCollation.UsesStandardComparison`) — and under a LOCALE-BASED sequence at the key's whole length only:
   a START key as long as the record key (GR17 b)) has nothing truncated by c) and d), so the prefix comparison IS the key
   order and every whole-key START reads the tree's depth (a leaf or two more where it settles across a leaf boundary). The
@@ -1156,7 +1156,7 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
     at every read of the search ('30', the retry answers GR17's entry); and another run unit's statement adopted between
     two of this one's (2.2.1.17).
 - **An INDEXED record is n + 1 entries, one per tree.** WRITE inserts the frame under the prime key and, for every alternate
-  key whose value is not the key's SUPPRESS WHEN value (the §2023:12.4.5.6.4 GR6 suppression; §2023:14.9.30.4 GR21 c): such a record *"is not
+  key whose value is not the key's SUPPRESS WHEN value (the §2023:12.4.5.6.4 GR6 suppression; §2023:14.9.30.4 GR21c: such a record *"is not
   considered to exist"* under that key), an entry (alternate key, ordinal) → prime key, every ordinal the one fresh mint value (§2023:14.9.51.4 GR40). REWRITE
   replaces the prime entry's value and, for each alternate key whose value or suppression changed (`AltChanged`, the one
   definition today), deletes the old composite entry and inserts the new one with a fresh ordinal — which is §2023:14.9.35.4 GR24
@@ -1172,7 +1172,7 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   carries the entry's ordinal under that key: the opt-out of DOC-A.1-129 (`WISEOWL_COBOL_KEYCHECK=OFF`) lets a description with a
   different key table drive the file's trees by key number, a tree it does not declare is not maintained by its statements,
   and such a tree's stale entry is passed over by every reader instead of naming a record that no longer has it.
-- **A RELATIVE record is one entry.** The record number is the key; `Highest` (§2023:14.9.51.4 GR29 a), *"one greater than the
+- **A RELATIVE record is one entry.** The record number is the key; `Highest` (§2023:14.9.51.4 GR29a, *"one greater than the
   highest relative record number existing in the physical file"*) is the tree's last key; an empty slot costs nothing, so the
   sparse case of kb/Work PB1192 (one record at a key in the billions) is one leaf. START relational operators are seeks;
   READ NEXT / PREVIOUS are cursor steps.
@@ -1250,7 +1250,7 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
 
 **2.2.1.5 The code set and the character set.** The frame payload and the key bytes are the channel bytes of today's
 `FileCharacterSet.ToChannel` + `Medium.GetBytes` (one byte per character position; a character with no byte image is refused at
-the WRITE with '91', DOC-A.1-110, before any page is touched), and a READ decodes them with `FromChannel` (§2023:13.18.13.4 GR6 a):
+the WRITE with '91', DOC-A.1-110, before any page is touched), and a READ decodes them with `FromChannel` (§2023:13.18.13.4 GR6a:
 the frames come back in the native character set). The meta page, the page headers, the key lengths and the ordinals are the
 §2023:9.1.7.2 information *"the implementor may add to the record on the physical storage medium"* and are never converted (the same
 rule the whole-store codec applied to its length word and header). A declared COLLATING SEQUENCE orders the tree through the
@@ -1519,7 +1519,7 @@ their places; what each does changes:
   statement since its last promotion (its OPEN's fence included) and otherwise only syncs, so a connector that changed
   nothing never fails its CLOSE over a page 2 another run unit's death left torn (PB3333, the relative rows of
   `KeyedStoreReloadFailureDriftTests`). *Why not
-  only the ALL OTHER writer:* the INPUT reader Table 19 admits beside a `SHARING WITH READ ONLY` writer (§2023:9.1.15 2),
+  only the ALL OTHER writer:* the INPUT reader Table 19 admits beside a `SHARING WITH READ ONLY` writer (§2023:9.1.15 GR2,
   *"restricts concurrent access to a physical file through file connectors other than this one, to input mode"*; the
   table's `SHARING WITH ALL OTHER` / `INPUT` request against an existing `sharing with read only` / `I-O` is *Normal open*)
   must find in the file every record that writer's WRITE released at the statement (§2023:14.9.51.4 GR12, kb/Work PB1587;
@@ -1614,7 +1614,7 @@ that handle positionally (`RandomAccess`), so no second handle is ever taken.
 **2.2.1.9 The size limit, and the new DOC-A.1-107 text (to replace the row when PB3333/PB3334 land).** *"The boundary of a
 physical relative or indexed file is the host file system's maximum file size, capped by the format at 2^32 pages of 4 096
 bytes (16 TiB). A WRITE or REWRITE whose record would take the store past that boundary is unsuccessful with I-O status '24'
-(§2023:14.9.51.4 GR33 b) relative, GR42 d) indexed; the invalid key condition exists, the INVALID KEY phrase runs, no record is
+(§2023:14.9.51.4 GR33b relative, GR42 d) indexed; the invalid key condition exists, the INVALID KEY phrase runs, no record is
 released and the file is unchanged); the host's answer that the file cannot grow further (`EFBIG`, `ERROR_FILE_TOO_LARGE`) is the
 same boundary. The '24' is a record WRITE's or REWRITE's alone: a DELETE, an OPEN or a CLOSE whose pages meet the boundary
 answers §2023:9.1.13.6 item 1's '30', since §2023:9.1.13.5 item 4's condition is an attempt to write a record outside the boundaries and
@@ -1622,7 +1622,7 @@ answers §2023:9.1.13.6 item 1's '30', since §2023:9.1.13.5 item 4's condition 
 `ERROR_DISK_QUOTA_EXCEEDED`) makes THAT statement unsuccessful with §2023:9.1.13.6 item 1's '30' and leaves the file as the previous
 statement left it; nothing is deferred to the CLOSE. A record's own size is bounded by the host, not the format (overflow pages).
 The relative key's own range is separate: a key less than 1 or greater than 2 147 483 647 (the highest relative record number
-permitted) answers '34' from 2014 (§2023:14.9.51.4 GR29 b, first in §2014:14.9.47.3 GR26 b); below 2014 the same attempt is the write beyond the boundaries, '24': `DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError`, kb/Work PB5125), and a sequential-access release whose number has more digits than the relative
+permitted) answers '34' from 2014 (§2023:14.9.51.4 GR29 b, first in §2014:14.9.47.3 GR26b; below 2014 the same attempt is the write beyond the boundaries, '24': `DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError`, kb/Work PB5125), and a sequential-access release whose number has more digits than the relative
 key item answers '24' (GR33 c)). Same in every edition except the key range's status."* The page layer answers both halves as `StoreStatus.Boundary`, never
 an escaping exception: a changing statement takes its RESERVATION before its claim, so one whose growth would pass 2^32 pages
 (`PagedFile.FormatPages`) claims and writes nothing; and the production medium reports the host's "the file cannot grow
@@ -1987,7 +1987,7 @@ have the effect of a CONTINUE statement (§2023:14.9.7.4 GR1 / §2023:14.9.36.4 
   the next attempt's entry settles it. The host's refusal of the new handle (the file is read-only to this process, a handle with
   an incompatible share mode is open, the medium refuses a page) is what any host open's refusal is: '37' at an OPEN for the
   authority the process lacks (§2023:14.9.27.4 GR3), '61' for a share mode another run unit's handle refuses, '30' otherwise and at a
-  statement's entry (§2023:9.1.13.6 1)) — the reader is refused, never shown the dead change. The SEQUENTIAL organization needs no
+  statement's entry (§2023:9.1.13.6 GR1) — the reader is refused, never shown the dead change. The SEQUENTIAL organization needs no
   new step, only to ask it of every reader (2.2.2.8): its settle already writes through the entering run unit's own handle.
 - **CLOSE under commit control promotes like any CLOSE** (R5) and keeps the handle; the first draft's "a CLOSE of such a file
   writes the work meta and keeps the handle but does NOT promote" is withdrawn with the reason it existed (finding R1-5's
@@ -2083,7 +2083,7 @@ have the effect of a CONTINUE statement (§2023:14.9.7.4 GR1 / §2023:14.9.36.4 
   answers '30' only if the medium still refuses the read. The OPEN's
   GR16 write probe is not made for a connector still holding its kept handle, whose own share mode would refuse it; the
   writable handle the re-OPEN takes asks the same question. So is the OPEN OUTPUT probe (`FileConnector.HeldByAnotherHandle`):
-  the kept handle is the connector's own, not *"another file connector"* (§2023:9.1.13.9 1) e)); the keyed connector gives it back for
+  the kept handle is the connector's own, not *"another file connector"* (§2023:9.1.13.9 GR1e); the keyed connector gives it back for
   the instant of the question and takes it again when another handle does hold the file. ⚠ **A WINDOW, NAMED:** the share-mode
   window — between the kept handle's release and the new handle's taking, and the retake — is the one instant the byte and
   the host share mode are free while the owner lives, and a host whose share modes are per handle cannot close it: a handle
@@ -2140,7 +2140,7 @@ have the effect of a CONTINUE statement (§2023:14.9.7.4 GR1 / §2023:14.9.36.4 
   activation, or the connector's association with the same file again, OPENs what the retired state holds as a re-OPEN would:
   `FileRegistry.ReclaimRetired` hands the kept state to the connector of the
   same name, organization and physical file under commit control (`KeyedConnector.InheritKept`) at its OPEN, so its own run unit's kept handle never
-  refuses it '61' (§2023:9.1.13.9 1) owes '61' only against a file open by another file connector; the kept file lock is against other run units). Before this the dropped connector's handle, file lock and transaction were beyond every
+  refuses it '61' (§2023:9.1.13.9 GR1 owes '61' only against a file open by another file connector; the kept file lock is against other run units). Before this the dropped connector's handle, file lock and transaction were beyond every
   COMMIT, ROLLBACK and run-unit end, and the file lock lasted as long as the process; and before PB3494 a connector associated with
   another file adopted the first file's kept handle and store (reads answered the first file's records) and its Table 19 column
   was amended on the first file.
@@ -2483,7 +2483,7 @@ asks `AdmitsAnotherRunUnit` (2.2.1.7), a new predicate beside the old one. `Admi
 its four callers outside the keyed store — `FileSupport.OpenConnectorWriteStream` (the unbuffered shared append stream),
 `EnsureReaderCoherent` (the reader's re-seek), `ReleaseRecord`'s ordinal (counted off the medium, kb/Work PB2692) and the
 EXTEND's mint seed — ask exactly "may another WRITER exist", the sequential organization's question.
-`SequentialConnector.ReleaseRecord`'s per-record flush is NOT among them (kb/Work PB1587, PB3415): it asks `AdmitsAnotherRunUnit`, because the INPUT reader §2023:9.1.15 2) admits beside a `SHARING WITH READ ONLY`
+`SequentialConnector.ReleaseRecord`'s per-record flush is NOT among them (kb/Work PB1587, PB3415): it asks `AdmitsAnotherRunUnit`, because the INPUT reader §2023:9.1.15 GR2 admits beside a `SHARING WITH READ ONLY`
 writer must find in the physical file every record a WRITE answered '00' for (§2023:14.9.51.4 GR12), exactly as it does beside
 a RELATIVE writer; a flush per record for such a writer is the price of that, and `SHARING WITH NO OTHER` keeps its
 buffered load. The rule is a
@@ -2797,7 +2797,7 @@ locks associated with those files"* (§2023:14.9.7.4 GR3); ROLLBACK restores it 
 last COMMIT statement or the start of the run unit if no COMMIT statements had previously been executed"* and *"This includes
 the setting of all file and record locks on those files"* (§2023:14.9.36.4 GR3); abnormal termination rolls back *"all file changes
 made since the previous commit or, if none, the beginning of the run unit"* (§2023:9.1.18.5) and normal termination commits them
-(§2023:14.6.11 1): *"An implicit COMMIT statement is executed for the files specified in all active APPLY COMMIT clauses in the run
+(§2023:14.6.11 GR1: *"An implicit COMMIT statement is executed for the files specified in all active APPLY COMMIT clauses in the run
 unit"*); the CLOSE keeps the file lock (§2023:14.9.6.4 GR9: *"Except when the file is specified in an APPLY COMMIT clause, the file
 lock and any record locks associated with the file connector referenced by file-name-1 are released by the execution of the
 CLOSE statement"*) until the COMMIT (§2023:14.9.7.4 GR4: *"For files specified in active APPLY COMMIT clauses that have been closed
@@ -2807,7 +2807,7 @@ OPEN's SHARING phrase is forbidden (§2023:14.9.27.3 SR7: *"The sharing phrase s
 COMMIT clause"*), so the posture is the file control entry's SHARING clause or the implementor's default; a DELETE FILE of
 such a file is allowed and undone by a rollback (§2023:14.9.10.4, the NOTE under GR15: *"Such files can still be deleted, however
 if they are, then in the event of a rollback they will be restored to the state they were in at the last commit or, if none,
-the start of the run unit"*); and a fatal condition on it runs item 8's unconditional ROLLBACK (§2023:14.6.13.1.3 8): *"a ROLLBACK
+the start of the run unit"*); and a fatal condition on it runs item 8's unconditional ROLLBACK (§2023:14.6.13.1.3 GR8: *"a ROLLBACK
 statement is executed unconditionally"*). The scope is 2.2.1.10's, derived there from §2023:9.1.17, §2023:9.1.16 and Annex D.2.5 and
 settled by the precedence survey: the RUN UNIT's own changes through its covered connectors, and nothing of another run unit's
 is committed, restored or discarded by this one. What the standard leaves to the implementor, and this section decides: where
@@ -2930,7 +2930,7 @@ parked file removed under the endpoint (the rename finds it gone) is published a
 the holder is closed and a fresh one published. `unit:SequentialEntryMutexParkingTests` pins the COUNT of publications (one for
 25 WRITEs and for 3 REWRITEs, through `SidecarLockFiles.RaceInjector`) and the lock directory's NAMES between statements (one
 parked file, the same one every time), two writers interleaving, a killed writer's litter, a parked file removed, and the WRITE the
-medium refuses. **The RETRY phrase (§2023:14.7.9.3 GR4 b), as built in
+medium refuses. **The RETRY phrase (§2023:14.7.9.3 GR4b, as built in
 `SequentialConnector.JournalLockTest`):** every journal arm of the test — WRITE, REWRITE and READ, covered or not — is ONE
 attempt function under `FileRegistry.RetryLoop` with the statement's phrase, so a statement that meets a holding waits and
 attempts again exactly as one that meets a region lock does. Each attempt is a whole entry step (a dead owner met on a later
@@ -3047,7 +3047,7 @@ leaves one of two states the settle reads unambiguously: no whole `K` — F is i
 holds. The model's mutation `R4`, the `K` synced before the before file, is RED on its witness row ("DELETE FILE then COMMIT"):
 a power loss between the two leaves a capture naming a before file that does not exist. **R5 — a refused sync of the record is fatal.** A record handed to the operating environment
 whose sync is refused (the `L` of a first append, the `R` of a REWRITE, the `K` of a capture) may or may not be on the medium,
-and the run unit cannot know which; the statement answers '30' (EC-I-O-PERMANENT-ERROR), item 8's unconditional ROLLBACK follows (§2023:14.6.13.1.3 8),
+and the run unit cannot know which; the statement answers '30' (EC-I-O-PERMANENT-ERROR), item 8's unconditional ROLLBACK follows (§2023:14.6.13.1.3 GR8,
 and nothing more changes through the transaction: the rollback reads the record as the operating environment shows it (the
 handed-over `K` present: the before file holds what F still holds, since F was not yet truncated; the `R` present: the image
 is F's record, since the overwrite never ran; the `L` present or absent: the append never ran, so F is right either way), and
@@ -3144,7 +3144,7 @@ determination of DOC-A.1-75 for a lock file applies): the statement's lock test 
 '61', loudly, until the owner or an administrator removes the `.wolk-*` directory — a refusal, where a silent grant would lose
 a dead run unit's rollback. A lock directory this process may not even LIST (on Linux, the directory of F at mode 000 hides
 it, and F with it) is no holder known to conflict: the entry step lacks the authority it needs, so a writable OPEN answers
-'37' (§2023:9.1.13.6 6) b), *"insufficient authority exists to access the file"*) and a covered DELETE FILE '37' (§2023:14.9.10.4 GR16)
+'37' (§2023:9.1.13.6 GR6b, *"insufficient authority exists to access the file"*) and a covered DELETE FILE '37' (§2023:14.9.10.4 GR16)
 — the answer the OPEN's own presence probe gives such a file (`Holdings.Unlistable`; measured by the Linux gate, whose
 `FileAuthorityPresenceTests` met the '61' first).
 
@@ -3153,7 +3153,7 @@ EXTEND, I-O; any posture, any run unit, covered or not), at every DELETE FILE, a
 under the entry mutex, which the statement then keeps through its own host open, creation, capture or drawing — the
 connector lists F's lock directory for `txn-*` names and, for each transaction id: its holder held → a live transaction,
 whose holdings the entering statement's test then meets (a REPLACED one: '61' to a writable OPEN and '62' to a DELETE FILE,
-§2023:9.1.13.9 2)'s file sharing conflict of that statement; a base one:
+§2023:9.1.13.9 GR2's file sharing conflict of that statement; a base one:
 '51' to a WRITE, to a READ or REWRITE of a held ordinal, and '61' to an OPEN OUTPUT or '62' to a DELETE FILE, which need no other
 transaction on the file at all); its holder free → SETTLED, from the record: no record, or a torn header → litter (the holder,
 a before file, the record: deleted); the decision `C` or `R` → the retirement completed; open → the rollback of 2.2.2.7. At the
@@ -3175,7 +3175,7 @@ reads, IGNORING LOCK and ADVANCING ON LOCK included (`SequentialConnector.ReadHo
 `testsLocks` false is the entry step alone): the lock-ignoring phrases ignore a live owner's holdings (§2023:14.9.30.4 GR12, GR22), not
 a rollback that is owed. A settle the host refuses is an I-O status, never an escaping exception: '37' at the OPEN when the
 refusal is the authority the process lacks (§2023:14.9.27.4 GR3; the keyed reader's answer too), '30' otherwise and at a READ's entry
-(§2023:9.1.13.6 1); a permanent error, as `KeyedConnector.Enter` gives); a file-system root named by a dynamic target (a directory
+(§2023:9.1.13.6 GR1; a permanent error, as `KeyedConnector.Enter` gives); a file-system root named by a dynamic target (a directory
 with no lock directory beside it) lists no transactions, so its OPEN is answered by the probe (`SequentialJournal.Enter`).
 
 **2.2.2.9 CLOSE, re-OPEN, DELETE FILE and termination under commit control.** A covered connector's CLOSE releases its records
@@ -3189,7 +3189,7 @@ closes the kept handle, removes the physical file and syncs its directory; the (
 the COMMIT or ROLLBACK, and the run unit's own OPEN OUTPUT of the name in the same transaction creates the file again (a new
 kept handle; REPLACED already, so nothing is journaled), its OPEN INPUT answers '35' (or '05' if OPTIONAL) and its OPEN EXTEND
 '35' (or creates, if OPTIONAL), as the standard's file-not-present rules say of a file that is not there. Normal termination
-commits every transaction (§2023:14.6.11 1), then closes; the runtime's abnormal-termination path runs the file-only rollback of
+commits every transaction (§2023:14.6.11 GR1, then closes; the runtime's abnormal-termination path runs the file-only rollback of
 2.2.2.7 before the process exits, retrying one that is owed (PB3338 routes it); a kill is the entry step's. A SORT or MERGE
 whose GIVING file is a covered connector writes through that connector under its transaction (the sort's OPEN OUTPUT is a
 capture, its WRITEs are appends); the EC-FLOW conditions of §2023:9.1.18.7 are the compiler's.
@@ -3608,10 +3608,10 @@ two intakes, and which one is not a property of the renderer arm — it is a pro
   `INTEGER-OF-DATE`/`DAY-OF-INTEGER`/…, §2023:15.23.3 r1's "less than 1 000 000", §2023:15.36.3 r1's "greater than or
   equal to zero" together with a codomain `Int128` cannot hold). A value the body cannot represent then really
   "results in an incorrect value for that argument or for the returned value according to the rules specified in
-  the function definition" (§2023:15.3 rule 14), so the argument crosses `CobolIntrinsics.IntegerArg`, the ONE
+  the function definition" (§2023:15.3 AR14), so the argument crosses `CobolIntrinsics.IntegerArg`, the ONE
   narrowing, which RAISES EC-ARGUMENT-FUNCTION instead of wrapping. **The body's parameter is `long`.**
 - **TOTAL** — the definition constrains nothing but integer-ness, so the returned-value rule answers for every
-  integer and §2023:15.3 rule 14 has nothing to fire on. Putting the narrowing in front of such a body manufactures
+  integer and §2023:15.3 AR14 has nothing to fire on. Putting the narrowing in front of such a body manufactures
   an exception condition the standard does not define: fatal under checking, and with checking off it
   substitutes 0 *for the argument*, which is how `TEST-DATE-YYYYMMDD(1.0E19)` once answered "the date is
   valid" (§2023:15.90.4 r1d) and `FIND-STRING(… START AFTER 9999999999999999999)` once answered a match position

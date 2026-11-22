@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p160",
+ "rule-digest": "3697462525b2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportLinePlacement.cs#FirstLine",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p159",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (p159_two_pages.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter's overturn stands: pb484, the only 85 case of GR-13.18.35.4-6, is unpaged, so a position in the file cannot be told from a position \"on a page\". The two-page probe, rerun now, places line number 3 on physical line 3 of page 2. Code location located after the read: FirstLine and SubsequentLine compute the integer line number of a report group line on its page."
+}

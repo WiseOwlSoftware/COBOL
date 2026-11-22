@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-T7.7",
+ "rule-digest": "200bf1f3afc3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#DecimalPointIsComma; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#DecimalSeparator",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-T7_7",
+ "notes": "Own witness from the read lineage-reads-1985/g-06.json: the reader showed the compiler correct at 85 with its probe (deccomma.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Table 7 row ', | comma (decimal point)' makes the comma a special character in both roles. The 2023 candidates (SR-8.3.3.3.2-3, AR-15.67.3-5) state literal and function-argument rules, not the character-set membership. Two accepted probes exercise both roles at 85. Code location located after the read: DECIMAL-POINT IS COMMA sets DecimalPointIsComma and DecimalSeparator makes the comma the numeric-literal decimal point."
+}

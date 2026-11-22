@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:8.5.1.11.3 2) — initial program: VL items reset per CALL
+      *> ISO §2023:8.5.1.11.3 GR2 — initial program: VL items reset per CALL
       *> An initial program's variable-length items, whose resources may
       *> be freed at its GOBACK, revert to initial state on every
       *> activation; a non-initial program's keep their last-used state.
@@ -20,7 +20,7 @@
       *>   item ... this has no effect on the results of the execution
       *>     of
       *>   the program."
-      *>   OK  §2023:8.5.1.11.3 2)  /  OK  §2023:8.5.1.11.3 (persistence
+      *>   OK  §2023:8.5.1.11.3 GR2  /  OK  §2023:8.5.1.11.3 (persistence
       *>     paragraph)
       *> §2023:8.6.4: "A variable-length data item is in its initial state at
       *>   the start of processing and reverts to its initial state
@@ -34,7 +34,7 @@
       *> §2023:11.10.4 GR3: "When an initial program is activated, the data
       *>   items and file connectors contained in it ... are set to
       *>     their
-      *>   initial states."                             OK  §2023:11.10.4 3)
+      *>   initial states."                             OK  §2023:11.10.4 GR3
       *> §2023:8.5.1.9.1: no FROM phrase and no VALUE clause, so "the current
       *>   capacity is initialized to zero".            OK  §2023:8.5.1.9.1
       *> §2023:8.5.1.9.3: MOVE to TE (5) past capacity 0 creates the element

@@ -12,7 +12,7 @@
       *> that has the format (COBOL-2002 introduced it).
       *>
       *> ⛔ AND THE CITATION IS THE OTHER HALF OF WHAT THIS PINS. The
-      *> message cited §2023:14.9.39.3 SR12 c), which answers a DIFFERENT
+      *> message cited §2023:14.9.39.3 SR12c, which answers a DIFFERENT
       *> question — SR12 governs a receiver described with an
       *> object-class-name, and its c)3./c)4. are about the FACTORY vs
       *> INSTANCE placement of a method that exists. WS-OBJ below is a

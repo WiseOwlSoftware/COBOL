@@ -5,7 +5,7 @@
   execution of this statement is undefined, even if they are defined by the same data description entry"` → OK, 18)) —
   and Annex A.2 item 61 (`cite.py --check A.2 "UNSTRING statement. If the UNSTRING identifier, DELIMITED BY identifier,
   or OR identifier, occupies the same storage area as the INTO identifier"` → OK, 61)) leave the case open; GR18 widens
-  §2023:14.6.10 rule 2 (*"When the data items are described by the same data description entry, the result of the statement is
+  §2023:14.6.10 GR2 (*"When the data items are described by the same data description entry, the result of the statement is
   the same as if the data items shared no part of their respective storage areas"*, OK) so the overlap is undefined even
   then. **WiseOwl COBOL examines identifier-1 as it stands before each receiving area:** the characters of the sending
   item are read from storage again before every receiving area after the first, so an earlier area's INTO, DELIMITER IN

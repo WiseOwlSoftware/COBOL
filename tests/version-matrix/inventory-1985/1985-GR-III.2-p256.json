@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p256",
+ "rule-digest": "1860258c2714",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupClause",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p256",
+ "notes": "Derivation from the read lineage-reads-1985/g-05.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p256); the code location is where the compiler meets the rule's subject. The read: \"A clause, in the Report Section of the Data Division, that appears in a report description entry or a report group description entry.\" A classification; the candidates (SR-13.15.3-1 etc.) are other requirements. The code location was located after the read (locations-all.json): reportDescriptionClause and reportGroupClause are the clauses of the report description entry and report group description entry in the Report Section."
+}

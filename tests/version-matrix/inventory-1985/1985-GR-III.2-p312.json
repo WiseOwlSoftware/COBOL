@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p312",
+ "rule-digest": "90a3aba3bd98",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#IsTable; src/WiseOwl.Cobol.Compiler/Binding/Model/OdoModel.cs#OccursSpec",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p312",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (tabconsec.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter's ruling stands: \"logically consecutive\" is a property a program observes, and no other 1985 row carries it. Rerun now at 85: MOVE \"AABBCC\" to the group gives elements AA/BB/CC, and a MOVE to element 2 changes positions 3-4 of the group. Code location located after the read: IsTable recognises an item defined with the OCCURS clause as a table of consecutive elements."
+}

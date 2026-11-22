@@ -115,7 +115,7 @@ MAIN.
             string src = Path.Combine(dir, "pb446.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb446.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "pb446.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return (r.Success, r.Errors);
         }
         finally { ScratchDirectory.Remove(dir); }

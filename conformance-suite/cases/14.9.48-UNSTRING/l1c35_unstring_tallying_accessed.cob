@@ -11,7 +11,7 @@
       *> incremented by 1 for each occurrence of the data item
       *>   referenced by
       *> identifier-4 accessed during the UNSTRING operation."
-      *> OK  §2023:14.9.48.4 6)  (General rules)
+      *> OK  §2023:14.9.48.4 GR6  (General rules)
       *> GR14: "... the content of the data item referenced by
       *>   identifier-8
       *> contains a value equal to its value at the beginning of the
@@ -19,18 +19,18 @@
       *> identifier-4 receiving data items accessed during execution of
       *>   the
       *> statement."
-      *> OK  §2023:14.9.48.4 14)  (General rules)
+      *> OK  §2023:14.9.48.4 GR14  (General rules)
       *> Which receivers are accessed:
-      *> OK  §2023:14.9.48.4 11) g) "... is repeated until either all the
+      *> OK  §2023:14.9.48.4 GR11g "... is repeated until either all the
       *>     characters are exhausted in the data item referenced by
       *>     identifier-1, or until there are no more receiving areas"
       *>     (its "12b through 12f" cross-reference is a typo for
       *>       11b-11f)
-      *> OK  §2023:14.9.48.4 15) b) "all receiving areas have been acted
+      *> OK  §2023:14.9.48.4 GR15b "all receiving areas have been acted
       *>   upon,
       *>     and the data item referenced by identifier-1 contains
       *>     characters that have not been examined"
-      *> OK  §2023:14.9.48.4 11) b) "If the DELIMITED BY phrase is not
+      *> OK  §2023:14.9.48.4 GR11b "If the DELIMITED BY phrase is not
       *>   specified,
       *>     the number of characters examined is equal to the size of
       *>       the

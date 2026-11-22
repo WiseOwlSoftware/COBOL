@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p269",
+ "rule-digest": "63f5fc9151d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p269",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (RESRC.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter is right that the definitional arm does not fit (the subject is an operating-system facility). Informative does not fit either: the row is not about the document and gives no reason for another row. The one rule that uses this sense, X.5.2.4 GR3 (\"The object time resources which must be checked\" for a called program's availability), makes it observable: RESRC.cob at 85 takes ON EXCEPTION for a program the system cannot make available and runs one it can. Code location located after the read: CallProgram checks at run time whether the called program can be made available and takes ON EXCEPTION when it cannot."
+}

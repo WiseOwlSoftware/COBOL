@@ -12,17 +12,17 @@
       *>   Compile-time boolean expressions."
       *> cite.py --check 7.3.8.2 "A boolean expression in a constant
       *>   conditional expression shall be formed in accordance with
-      *>   7.3.7" -> OK  §2023:7.3.8.2 3)  (Syntax rules)
+      *>   7.3.7" -> OK  §2023:7.3.8.2 SR3  (Syntax rules)
       *> cite.py --check 7.3.7.2 "all operands shall be boolean literals
       *>   or boolean expressions in which all operands are boolean
-      *>   literals" -> OK  §2023:7.3.7.2 1)  (Syntax rule)
+      *>   literals" -> OK  §2023:7.3.7.2 SR1  (Syntax rule)
       *> cite.py --check 7.3.7.3 "The order of precedence and the rules
       *>   for evaluation of compile-time boolean expressions are shown
-      *>   in 8.8.2" -> OK  §2023:7.3.7.3 1)  (General rule)
-      *> cite.py --check 8.8.2 "1st — negation (B-NOT)" -> OK  §2023:8.8.2 7)
+      *>   in 8.8.2" -> OK  §2023:7.3.7.3 GR1  (General rule)
+      *> cite.py --check 8.8.2 "1st — negation (B-NOT)" -> OK  §2023:8.8.2 GR7
       *>   b)  (Boolean expressions)
       *> cite.py --check 8.8.2 "3rd — exclusive disjunction (B-XOR)" ->
-      *>   OK  §2023:8.8.2 7) b)  (Boolean expressions)
+      *>   OK  §2023:8.8.2 GR7b  (Boolean expressions)
       *> The admitting half of SR3: a boolean expression of boolean
       *>   literals only is accepted in a cce and evaluated per §2023:8.8.2
       *>   (precedence B-NOT, B-AND, B-XOR, B-OR). The rejecting half is

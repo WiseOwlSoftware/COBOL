@@ -56,15 +56,14 @@ public sealed record PictureClauseIdentity(string CharacterString, string? Curre
     public static PictureClauseIdentity Of(string expanded, char currencySymbol, string currencyString,
         bool decimalPointIsComma)
     {
-        bool hasCurrency = false, hasSeparator = false;
-        var chars = expanded.ToCharArray();
-        for (int i = 0; i < chars.Length; i++)
-        {
-            char c = char.ToUpperInvariant(chars[i]);
-            if (c == currencySymbol) { hasCurrency = true; chars[i] = '$'; }
-            else if (c is '.' or ',') hasSeparator = true;
-        }
-        return new PictureClauseIdentity(new string(chars), hasCurrency ? currencyString : null,
+        // Whole-string (vectorized) operations, never a loop per character: an expansion holds as many characters as
+        // the item has positions (kb/Work PB5913). A period or comma that is the currency symbol is no separator, so the
+        // separators are looked for after the currency symbol is canonicalized.
+        string upper = expanded.ToUpperInvariant();
+        bool hasCurrency = upper.Contains(currencySymbol);
+        string canonical = hasCurrency ? upper.Replace(currencySymbol, '$') : upper;
+        bool hasSeparator = canonical.AsSpan().IndexOfAny('.', ',') >= 0;
+        return new PictureClauseIdentity(canonical, hasCurrency ? currencyString : null,
             hasSeparator ? decimalPointIsComma : null, Editing: null);
     }
 

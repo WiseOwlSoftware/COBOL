@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p244",
+ "rule-digest": "660c03857379",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#TargetReadOrdinal",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p244",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (RECNUM.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter's ruling stands: VII.4.4.4 GR4 makes sequential READ order depend on the record number this row defines. Rerun now at 85: records written C, A, B read back CAB. Code location located after the read: TargetReadOrdinal gives the ordinal record number a sequential READ delivers next, which decides the read order."
+}

@@ -15,7 +15,7 @@ order: 19
 > follows the item, for which there is no memory-safe behaviour to follow; before this determination the read
 > padded with spaces and the write clamped, so `DISPLAY CX(1:77777777777)` ended with "Out of memory."). The test is
 > ONE predicate for the read and the write (`CobolString.RefModOutOfRange`, through `CobolString.RefMod` and
-> `CobolString.SpliceInto`), it also covers a non-integer position (§2023:8.4.3.3.4 5) c), which is the same
+> `CobolString.SpliceInto`), it also covers a non-integer position (§2023:8.4.3.3.4 GR5c, which is the same
 > violation), and a LITERAL violation against a fixed-size item is refused at compile time before it can run (A.1 item 69).
 > Slices the COMPILER chooses — a REDEFINES view, an occurs-depending group's current extent, an INVOKE/CALL
 > boundary prefix, the current record of a READ … INTO — are not reference modifications the program wrote, go through

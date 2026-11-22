@@ -199,7 +199,7 @@ public sealed partial class SpecialNamesBinder
         if (a is null && n is null)
         {
             Edition.Error(DiagnosticCatalog.AlphabetNameNotDeclared, $"{site}: '{alphabetName}' is not an alphabet-name declared by a "
-                + $"SPECIAL-NAMES ALPHABET clause ({rule}; §2023:12.3.7)");
+                + "SPECIAL-NAMES ALPHABET clause (" + Edition.Edition.Cite("§1985:III.2; §1985:VI.4.5.4 GR4", $"{rule}; §2023:12.3.7") + ")");
             return null;
         }
         var set = a is not null ? a.CodedSet : n!.CodedSet;   // a LOCALE alphabet has a null CodedSet — never fall to the OTHER class
@@ -272,6 +272,10 @@ public sealed partial class SpecialNamesBinder
         // intercept them rather than mis-binding their letters as literal characters.
         if (CodeSetNameOf(def, _host.CobolWords) is { } wrongBranch)
         {
+            // An edition without the national coded character sets has refused the name at its gate (the version pass's
+            // AlphabetNational2002 check), and the branch rule below is that later edition's (kb/Work PB6028).
+            if (ConstructRegistry.VerdictAt(Edition.Edition, Constructs.AlphabetNational2002) is { Availability: ConstructAvailability.NotYetIntroduced })
+                return;
             Edition.Error(DiagnosticCatalog.AlphabetCodeSetBranch, $"ALPHABET {name} IS {wrongBranch}: the {wrongBranch} coded character "
                 + "set may be referenced only in the FOR NATIONAL branch of the ALPHABET clause "
                 + "(ISO §2023:12.3.7.2 general format)");

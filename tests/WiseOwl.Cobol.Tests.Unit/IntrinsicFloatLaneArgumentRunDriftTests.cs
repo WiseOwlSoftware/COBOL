@@ -213,6 +213,6 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
             """;
         string srcPath = Path.Combine(TempDir, programId + ".cob");
         File.WriteAllText(srcPath, source);
-        return CompilerDriver.Compile(new CompilerDriver.Options(srcPath, DialectLevel: 2023, Permissive: true, SourceFormat: InitialReferenceFormat.Auto));
+        return CompilerDriver.Compile(new CompilerDriver.Options(srcPath, DialectLevel: 2023, Permissive: true, SourceFormat: TestSourceFormat.Inline));
     }
 }

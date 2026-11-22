@@ -18,7 +18,7 @@
       *> under src/), so the illegal form reached the class screen and passed for the wrong reason; it would
       *> change meaning the day that screen lands.
       *>   python scripts/spec/cite.py --check 13.18.38.3 "The OCCURS clause shall not be specified in a data
-      *>   description entry that"  ->  OK  §2023:13.18.38.3 1)  (Syntax rules)
+      *>   description entry that"  ->  OK  §2023:13.18.38.3 SR1  (Syntax rules)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. R27NEG.
        DATA DIVISION.

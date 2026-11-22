@@ -144,7 +144,7 @@ public sealed class KeywordSpellingDriftTests
             string src = Path.Combine(dir, "prog.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "prog.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "prog.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return (r.Success, r.Success ? [] : [.. r.Errors]);
         }
         finally { ScratchDirectory.Remove(dir); }

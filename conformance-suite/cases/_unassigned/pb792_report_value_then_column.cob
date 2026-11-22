@@ -19,7 +19,7 @@
       *> multi-operand form to a repeating entry ("If the VALUE clause has more than one operand, the entry
       *> shall be a repeating entry or shall be subordinate to a repeating entry"), which is why the entries
       *> here carry exactly one literal each. The list therefore has to be greedy, and what stops it is the §2023:8.9
-      *> reservation gate on cobolWord: COLUMN is a reserved word at all four editions (§2023:8.3.2.1 rule 1 —
+      *> reservation gate on cobolWord: COLUMN is a reserved word at all four editions (§2023:8.3.2.1 SR1 —
       *> "Reserved words shall not be used as user-defined words or system-names"), so it can never be a VALUE
       *> operand. Before PB792 the migration mode (--permissive) handed the whole gated set back to cobolWord,
       *> the operand loop ate COLUMN and 20, and this line printed at column 1 with no diagnostic at all.

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p270",
+ "rule-digest": "154c1e75fdbb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#Receiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-T7_1",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its probe (specchar.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A user-defined data item that is to contain the result of an arithmetic operation.\" The candidates (GR-14.7.5-L2.2, GR-14.7.4.3-10/-8) have no 85 case; the probe's resultant identifiers contain the results. Code location located after the read: Receiver is the bound arithmetic resultant identifier (place plus rounding) and ScreenResultant checks an operand is a legal receiving data item."
+}

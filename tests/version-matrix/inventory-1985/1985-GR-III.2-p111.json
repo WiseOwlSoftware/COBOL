@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p111",
+ "rule-digest": "7ff2efe98f69",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#RecordClauseRules",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p111",
+ "notes": "Derivation from the read lineage-reads-1985/g-02.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p111); the code location is where the compiler meets the rule's subject. The read: \"A record associated with a file whose file description or sort-merge description entry requires that all records contain the same number of character positions.\" A term only. The code location was located after the read (locations-all.json): RecordClauseRules checks the RECORD clause that fixes every record of a file at one length (versus the varying forms)."
+}

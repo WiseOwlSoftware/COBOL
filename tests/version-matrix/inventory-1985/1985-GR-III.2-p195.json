@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p195",
+ "rule-digest": "3362b2642aa3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionBody",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p195",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p195); the code location is where the compiler meets the rule's subject. The read: A vocabulary term for the operands following the subject of a Data Division entry; candidates are wording-only. The code location was located after the read (locations-all.json): WEAK: dataDescriptionBody is the clause list (operands and words) that follows the subject (level number and data-name)."
+}

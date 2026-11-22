@@ -5,8 +5,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.58.4 rule 2 — the LOWEST-ALGEBRAIC returned value, over the shapes the clause's own NOTE
-      *> enumerates, plus the §2023:15.58.3 rule 2 ADMIT side (that bar is CONDITIONAL on standard-decimal).
+      *> ISO §2023:15.58.4 RV2 — the LOWEST-ALGEBRAIC returned value, over the shapes the clause's own NOTE
+      *> enumerates, plus the §2023:15.58.3 AR2 ADMIT side (that bar is CONDITIONAL on standard-decimal).
       *>
       *> THE RULE: "The value returned is equal to the lowest finite algebraic value that may be represented
       *> in argument-1." (§2023:15.58.4 r2). Its NOTE tabulates seven argument shapes; the first seven DISPLAYs

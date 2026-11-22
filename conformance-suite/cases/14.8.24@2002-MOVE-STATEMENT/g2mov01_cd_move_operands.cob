@@ -17,7 +17,7 @@
       *>   send literals. Fails if a CD sending operand is refused,
       *>   altered, or read from the wrong positions.
       *> §2002:14.8.24.2 SR4 - identifier-2 is a receiving operand:
-      *>   SQ (X(12), §2002:A.1.2.3 GR2 a), TL (9(4), GR2 h), IA
+      *>   SQ (X(12), §2002:A.1.2.3 GR2a, TL (9(4), GR2 h), IA
       *>   (A(5)), IN4 (9(4)), OB, OB2 (1(4)) each receive; line 7
       *>   moves to a CD field and a WS item in one statement. SQ
       *>   pads to 12 (QUEUE-A + 5 spaces; XY + 10 spaces), 42 into

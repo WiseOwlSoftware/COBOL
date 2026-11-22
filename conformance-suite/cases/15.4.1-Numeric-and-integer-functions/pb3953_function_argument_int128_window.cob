@@ -33,9 +33,9 @@
       *>         required"): +9999999998002000000000000000999.
       *>   Legs 8-11 (review R1-1): A = X * Y + C = 170141183460469231731687303715884105000 fits Int128 (39 digits, under
       *>         2**127 - 1 = ...884105727), so its temporary is exact; A + 1000 = ...884106000 is past Int128, on the wide
-      *>         form, and its 34-digit image (...8841 then zeros) lies BELOW A. §2023:15.59.4 1): "The returned value is the
+      *>         form, and its 34-digit image (...8841 then zeros) lies BELOW A. §2023:15.59.4 RV1: "The returned value is the
       *>         content of the argument-1 having the greatest value" - legs 8 and 9 MAX (A, A + 1000) = ...884106000 in
-      *>         either argument order; §2023:15.63.4 1) ("having the least value") - leg 10 MIN = ...884105000; §2023:15.61.4 1) -
+      *>         either argument order; §2023:15.63.4 RV1 ("having the least value") - leg 10 MIN = ...884105000; §2023:15.61.4 RV1 -
       *>         leg 11 MEDIAN (A + 1000, A, A + 2000), the middle of the sorted three, = ...884106000.
       *> Each leg can fail on its own: legs 1/2 if the function window moved below 38 digits, leg 3 if the arithmetic
       *> statement lost the exact wide form, legs 4-6 if a function argument past the window is lowered to its image again,

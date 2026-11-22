@@ -109,6 +109,9 @@ public static partial class CobolIntrinsics
         return Math.Sign(unscaled.CompareTo(bound > 0 ? unit : -unit));
     }
 
+    /// <summary>The breach of a domain screen. <paramref name="rule"/> is the rule as the message prints it, chosen and designated by
+    /// the compiler for the compilation's edition (<c>IntrinsicRenderer.DomainRuleCited</c>: <c>§1989:A.2.5.3 AR2</c> at COBOL-85,
+    /// <c>ISO §2023:15.8.3 AR2</c> after it; kb/Work PB6023).</summary>
     private static double DomainViolation(ArgumentDomain domain, string function, string rule)
     {
         Exceptions.ExceptionState.ArgumentError($"{function} argument-1 shall be {domain switch
@@ -117,7 +120,7 @@ public static partial class CobolIntrinsics
             ArgumentDomain.NonNegative => "greater than or equal to zero",
             ArgumentDomain.Positive => "greater than zero",
             _ => "greater than -1",
-        }} (ISO {rule})");
+        }} ({rule})");
         return double.NaN;
     }
 
@@ -406,12 +409,12 @@ public static partial class CobolIntrinsics
     /// the same file's Log/Log10 carried theirs, and ANNUITY(-0.5 3) returned +0.0714 silently.</summary>
     internal static long AnnuityDomain(double rate, double periods) =>
         rate < 0
-            ? Exceptions.ExceptionState.ArgumentError($"ANNUITY argument-1 {rate} is not greater than or equal to zero (§2023:15.9.3 r2)")
-            : Exceptions.ExceptionState.ArgumentError($"ANNUITY argument-2 {periods} is not a positive integer (§2023:15.9.3 r3)");
+            ? Exceptions.ExceptionState.ArgumentError($"ANNUITY argument-1 {rate} is not greater than or equal to zero ({Exceptions.ExceptionState.EditionRule("§1989:A.2.6.3 AR2", "§2023:15.9.3 r2")})")
+            : Exceptions.ExceptionState.ArgumentError($"ANNUITY argument-2 {periods} is not a positive integer ({Exceptions.ExceptionState.EditionRule("§1989:A.2.6.3 AR3", "§2023:15.9.3 r3")})");
 
     /// <summary>The ONE §2023:15.74.3 r2 raise site (both carriers).</summary>
     internal static long PresentValueDomain(double rate) =>
-        Exceptions.ExceptionState.ArgumentError($"PRESENT-VALUE argument-1 {rate} is not greater than -1 (§2023:15.74.3 r2)");
+        Exceptions.ExceptionState.ArgumentError($"PRESENT-VALUE argument-1 {rate} is not greater than -1 ({Exceptions.ExceptionState.EditionRule("§1989:A.2.34.3 AR2", "§2023:15.74.3 r2")})");
 
     /// <summary>ANNUITY (§2023:15.9.4): rate 0 ⇒ <c>1 / periods</c> (rule 1); else
     /// <c>rate / (1 − (1 + rate)^(−periods))</c> (rule 2). Domain: §2023:15.9.3 r2 (rate ≥ 0) and r3
@@ -584,7 +587,7 @@ public static partial class CobolIntrinsics
     {
         if (seed < 0)
         {
-            Exceptions.ExceptionState.ArgumentError($"RANDOM argument-1 {seed} is not zero or a positive integer (§2023:15.75.3 r2)");
+            Exceptions.ExceptionState.ArgumentError($"RANDOM argument-1 {seed} is not zero or a positive integer ({Exceptions.ExceptionState.EditionRule("§1989:A.2.35.3 AR1", "§2023:15.75.3 r2")})");
             return 0;
         }
         return RunUnit.Current.Random.Restart((int)(seed & 0x7FFFFFFF));

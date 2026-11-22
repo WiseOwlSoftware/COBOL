@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -31,7 +32,7 @@ public sealed class ReservedWordPositionTests : WiseOwlCobolTestBase
         string path = Path.Combine(TempDir, "pos.cob");
         File.WriteAllText(path, source);
         var bag = new DiagnosticBag();
-        var tree = new WiseOwl.Cobol.Frontend.Frontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = dialectLevel }.Parse(path, bag);
+        var tree = new WiseOwl.Cobol.Frontend.Frontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = dialectLevel }.Parse(path, bag);
         Assert.True(tree is not null && !bag.HasErrors,
             $"snippet must parse: {string.Join("; ", bag.Diagnostics.Select(d => d.ToString()))}");
         var hits = new List<CobolParserCore.CobolWordContext>();

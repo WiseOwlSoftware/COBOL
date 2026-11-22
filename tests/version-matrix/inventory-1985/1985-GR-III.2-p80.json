@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p80",
+ "rule-digest": "ef9309371492",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p80",
+ "notes": "Own witness from the read lineage-reads-1985/g-02.json: the reader showed the compiler correct at 85 with its probe (division.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A collection of zero, one, or more sections or paragraphs, called the division body\" grants an empty body, which needs an accepted program; division.cob gives one, with all four divisions. No candidate states it: every candidate is a 'wording only' match. Code location located after the read: programUnit composes the identification, environment, data and procedure divisions."
+}

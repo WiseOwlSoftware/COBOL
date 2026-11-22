@@ -24,10 +24,10 @@
       *>   EC-OO-EXCEPTION were specified in the RAISING phrase, instead
       *>   of an exception object".
       *>   OK  §2023:14.6.13.1.5 4)  (Exception objects)
-      *> §2023:14.9.18.4 GR1 b): a RAISING condition "is raised in the
+      *> §2023:14.9.18.4 GR1b: a RAISING condition "is raised in the
       *>   activating runtime element if checking for that exception
       *>   condition is enabled in the activating runtime element".
-      *>   OK  §2023:14.9.18.4 1) b)  (General rules)
+      *>   OK  §2023:14.9.18.4 GR1b  (General rules)
       *> §2023:14.6.13.1.1: "By default, checking is not enabled for any
       *>   exception condition."
       *>   OK  §2023:14.6.13.1.1  (General)

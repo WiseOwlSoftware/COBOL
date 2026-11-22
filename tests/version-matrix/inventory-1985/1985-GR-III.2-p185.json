@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p185",
+ "rule-digest": "78b39798f2b0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadNext; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p185",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p185); the code location is where the compiler meets the rule's subject. The read: The row defines a term; the READ NEXT obligations live in the I-O modules. Candidates (an A.1 RECORD item, RECORD SEQUENTIAL, an FD SR) are wording-only. The code location was located after the read (locations-all.json): ReadNext and Read retrieve the record that follows the current record in the file position order."
+}

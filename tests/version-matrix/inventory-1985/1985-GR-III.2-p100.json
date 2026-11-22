@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p100",
+ "rule-digest": "20ae251332d0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p100",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (ATTRCONF.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter is right that the condition is a run-time event the implementation detects, so not a derivation. The conformance case open_fixed_attribute_conflict runs at 85 and, rerun now, shows the condition (\"do not match the fixed attributes for that file\") as an unsuccessful OPEN with status 39 for each validated attribute, beside matching controls. Which attributes are validated is the implementor's (VII.4.3.4 GR8; the set is recorded in docs/conformance/3/D-IO-STATUS-39). The case is filed under 2023 rules only; the 1985 row needs it attached. Code location located after the read: OPEN compares the file attributes against the existing file through FixedAttributeConflict and fails the OPEN with status 39."
+}

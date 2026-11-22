@@ -46,7 +46,7 @@ public sealed class CurrentDateOffsetPinTests
                     DISPLAY CD
                     STOP RUN.
                 """);
-            var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Auto));
+            var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
             Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
 
             var (ok, stdout, detail) = CutRunner.Run(dll, dir, null,
@@ -79,7 +79,7 @@ public sealed class CurrentDateOffsetPinTests
                     STOP RUN.
                 """);
             string dll = Path.Combine(dir, "DDCDBAD.dll");
-            var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 85, SourceFormat: InitialReferenceFormat.Auto));
+            var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 85, SourceFormat: TestSourceFormat.Inline));
             Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
             var (ok, stdout, detail) = CutRunner.Run(dll, dir, null,
                 new Dictionary<string, string?> { [WiseOwl.Cobol.Runtime.IO.SystemClock.PinVariable] = "not-a-date" });

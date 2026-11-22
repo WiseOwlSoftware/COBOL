@@ -148,7 +148,7 @@ public sealed partial class SpecialNamesBinder
                 + withdrawn.WithdrawnSyntax("the DECIMAL-POINT IS COMMA clause", "COMMA"));
         else
             Edition.Error(DiagnosticCatalog.DecimalPointFormInvalid, $"DECIMAL-POINT IS {written}: the only form is "
-                + "DECIMAL-POINT IS COMMA (ISO §2023:12.3.7)");
+                + $"DECIMAL-POINT IS COMMA ({Edition.Edition.CiteRule("§1985:VI.4.5.2", "§2023:12.3.7")})");
     }
 
     /// <summary>Populate the switch registry from the SPECIAL-NAMES paragraph's switch-name clauses (ISO §2023:12.3.7

@@ -19,7 +19,7 @@
       *> §2002:14.8.12.2 SR8: a partial-expression object "is treated as
       *> though it were specified as condition-2" built by preceding it
       *> with the subject; the subject is treated as TRUE (SR5 lists the
-      *> partial forms). §2002:14.8.12.3 GR4 a) 1-6 analyse each pair;
+      *> partial forms). §2002:14.8.12.3 GR4a 1-6 analyse each pair;
       *> b) the first all-true WHEN is taken; c) a false pair ends that
       *> WHEN.
       *> T1 TL WHEN 3.0: a) numeric class, 3 = 3.0      T1 NUMERIC-EQ

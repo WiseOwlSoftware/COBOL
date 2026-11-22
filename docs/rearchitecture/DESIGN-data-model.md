@@ -150,7 +150,7 @@ public abstract record StorageForm
 **A dynamic-capacity table's ELEMENT is promoted by the same rule as any leaf (kb/Work PB1939, PB2004).**
 `DynamicTable(Element)` wraps the element's PROMOTED form: an elementary numeric table whose item a character channel
 writes, or that sits under a whole-group operand, is `DynamicTable(CharImage(Numeric))` — a `CobolDynTable<string>`
-— so an occurrence holds the spaces §2023:14.6.9.2 2) / §2023:14.6.9.4 leave in it and the negative zero §2023:14.9.22.4 GR4 d)
+— so an occurrence holds the spaces §2023:14.6.9.2 GR2 / §2023:14.6.9.4 leave in it and the negative zero §2023:14.9.22.4 GR4d
 retains. `DataItem.StoreAsImage` asks the element form (a per-occurrence question, like `ElementType`), a
 `DynTablePlace` is a channel and a whole-group operand like any other place (`UsageCollectionPass`), and a group
 element's members are promoted through the ordinary whole-group recursion.
@@ -196,7 +196,7 @@ here is emitted.
 
 **What can hold it.** A native carrier holds a VALUE and a value has no negative zero; an image carrier
 (`CharImage(Numeric)`, §2.1) holds the item's characters, a negative zero among them, exactly as it already holds the sign
-INSPECT retains over a zero magnitude (§2023:14.9.22.4 GR4 d). So the arm needs no new carrier, no sign flag beside a native
+INSPECT retains over a zero magnitude (§2023:14.9.22.4 GR4d. So the arm needs no new carrier, no sign flag beside a native
 field and no byte substrate: it is (A) a store that writes the sender's sign into an image, and (B) the existing promotion
 for the receivers that can be handed a negative zero.
 
@@ -529,7 +529,7 @@ equivalence is therefore no longer deferred — it is what the walk decides.
 implicit move — `… FROM`, `… INTO`), §2023:8.8.4.2.3 SR1 (`CheckRelationalOperands`, the ONE relation chokepoint) and
 §2023:8.8.4.2.12 (`RelationPair.Classify` → `StrongGroupComparison`, which pairs the two operands' elementary items by
 POSITION — the same correspondence this predicate proves — and compares them element by element), and the activation boundary's one sentence written three times — §2023:14.8.2.2 (arguments), §2023:14.8.3.2
-(returning items), §2023:9.3.8.2.3 rule 7 (interface conformance) — for an activation in
+(returning items), §2023:9.3.8.2.3 GR7 (interface conformance) — for an activation in
 `ActivationRelations.StrongTypeViolation` over the descriptions' `StrongType` identity (the §2023:8.5.3.1 key,
 `StrongTypeModel.TypeIdentityKey`), asked in BOTH modes because §2023:14.8.2.2's sentence qualifies neither (kb/Work
 PB3101), and in pair mode in `ActivationRelations.SignatureDifference`'s strong arm, reached from `OoConformance.SignatureDifference` (override and
@@ -613,7 +613,7 @@ literal — leftmost position and length, as ADDRESS OF and every 2002 / 2014 ru
 2023 CALL / INVOKE / function do — is the one `BitAlignmentRule.For` table, kb/Work PB5640). A reference-modified identifier-1 is legal (SR4 a) names it): the
 resolver admits it through the same `ReadScreenedRefMod` as an ordinary reference, and the address is that of its
 leftmost position (`BoundAddressOf.RefMod`, emitted through `CobolString.RefModStartOffset`, the same range test as
-a read). The size that range test measures is identifier-1's CURRENT one (§2023:8.4.3.3.4 5)): for a group holding an OCCURS
+a read). The size that range test measures is identifier-1's CURRENT one (§2023:8.4.3.3.4 GR5): for a group holding an OCCURS
 DEPENDING ON table that is the run-time extent §2023:13.18.38.4 GR8 gives it, carried as `AddressRefMod.CurrentExtent` (the
 `OdoGroupPlace` the resolver built) and rendered by `PlaceRenderer.CurrentPositionsExpr`, whose three arms are the channels
 `SendingGroupValue` reads (kb/Work PB1969), so the address and a read of the same reference cannot disagree. A reference
@@ -721,8 +721,8 @@ two-receiver MOVE of a national-group table element gives each receiver what the
 New `Binding/Model/RecordLayout.cs`: the single owner of character offset/width geometry over the record tree, reading
 `StorageForm.ImageWidth`. Exposes `ImageWidth(item)`, `PhysicalWidth(group)` (tier-aware), `OffsetOf(leaf)`,
 and the two key-operand rules — `KeyIndexOfKeyItem(...)` (ISO §2023:12.4.5.12.4 GR4's identical-byte-position
-correspondence, which answers §2023:14.9.30.3 SR11 and §2023:14.9.41.3 SR6 a)) and `GenericKeyIndex(...)`
-(§2023:14.9.41.3 SR6 b)'s three conditions), plus `IsSubjectToOccurs(item)`, the one predicate for the
+correspondence, which answers §2023:14.9.30.3 SR11 and §2023:14.9.41.3 SR6a) and `GenericKeyIndex(...)`
+(§2023:14.9.41.3 SR6b's three conditions), plus `IsSubjectToOccurs(item)`, the one predicate for the
 "shall not be subject to any OCCURS clauses" rules. Those two rules were ONE method until kb/Work PB354:
 the conflation is what kept SR6 b) 2.'s class/category/usage condition unwritable (it has no meaning for
 READ) and let SR11 accept a short item where the rule names the key itself.
@@ -879,7 +879,7 @@ clause goes through.** `PictureAnalyzer.Analyze` is called with the entry's OWN 
 that moment the item is indistinguishable from one whose source wrote `PICTURE X(n)`. §2023:13.18.60.4 GR1
 inheritance, the §2023:13.18.60.3 SR3/SR5/SR12/SR20 screens, SIGN inheritance, the VALUE initializer and the emitter
 all reach it through their existing single sites, each firing ONCE. The standard licenses this reading directly:
-§2023:13.18.60.3 SR13 a) and SR20 are both written over the "explicit or **implicit** picture character-string".
+§2023:13.18.60.3 SR13a and SR20 are both written over the "explicit or **implicit** picture character-string".
 
 **The two derivations it owns, and where they come from.**
 

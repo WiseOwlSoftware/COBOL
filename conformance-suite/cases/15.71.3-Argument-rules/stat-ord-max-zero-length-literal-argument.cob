@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.71.3 rule 2 (ORD-MAX): "Argument-1 shall not be a zero-length literal."
+      *> ISO §2023:15.71.3 AR2 (ORD-MAX): "Argument-1 shall not be a zero-length literal."
       *>
       *> THE ORDINAL IS THE FUNCTION'S OWN. MAX states the identical prohibition at
       *> §2023:15.59.3 r3 and MIN at §2023:15.63.3 r3, but ORD-MAX orders its argument rules

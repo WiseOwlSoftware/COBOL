@@ -43,7 +43,7 @@ public sealed class SizeErrorDispositionTests
         {
             string src = Path.Combine(dir, "prog.cob"), dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
-            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: InitialReferenceFormat.Auto));
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, "[compile] " + string.Join("\n", r.Errors));
             return CutRunner.RunExit(dll, dir);
         }
@@ -411,6 +411,19 @@ public sealed class SizeErrorDispositionTests
     [InlineData("IF NOT FUNCTION INTEGER (B / Z) > 1 DISPLAY \"T\" ELSE DISPLAY \"F\".", "T")]
     [InlineData("IF FUNCTION MAX (1 FUNCTION INTEGER (B / Z)) IS POSITIVE DISPLAY \"T\" ELSE DISPLAY \"F\".", "F")]
     [InlineData("IF FUNCTION INTEGER (B / 1) > 1 DISPLAY \"T\" ELSE DISPLAY \"F\".", "T")] // control
+    // EVALUATE (kb/Work PB5559): the subject's relation to each WHEN object is a leaf, as is a WHEN condition and each bound of
+    // a THRU range; a false leaf selects WHEN OTHER, and EVALUATE FALSE selects the WHEN whose condition is false.
+    [InlineData("EVALUATE B / Z WHEN 1 DISPLAY \"T\" WHEN OTHER DISPLAY \"F\" END-EVALUATE.", "F")]
+    [InlineData("EVALUATE B WHEN B / Z DISPLAY \"T\" WHEN OTHER DISPLAY \"F\" END-EVALUATE.", "F")]
+    [InlineData("EVALUATE B WHEN 1 THRU B / Z DISPLAY \"T\" WHEN OTHER DISPLAY \"F\" END-EVALUATE.", "F")]
+    [InlineData("EVALUATE TRUE WHEN B / Z > 1 DISPLAY \"T\" WHEN OTHER DISPLAY \"F\" END-EVALUATE.", "F")]
+    [InlineData("EVALUATE FALSE WHEN B / Z > 1 DISPLAY \"T\" WHEN OTHER DISPLAY \"F\" END-EVALUATE.", "T")]
+    [InlineData("EVALUATE B / 1 WHEN 5 DISPLAY \"T\" WHEN OTHER DISPLAY \"F\" END-EVALUATE.", "T")]   // control
+    // SEARCH and SEARCH ALL (kb/Work PB5559): the WHEN condition is false at every element, so the search runs AT END.
+    [InlineData("SET IX TO 1 SEARCH TE AT END DISPLAY \"F\" WHEN TK (IX) = B / Z DISPLAY \"T\" END-SEARCH.", "F")]
+    [InlineData("SEARCH ALL TE AT END DISPLAY \"F\" WHEN TK (IX) = B / Z DISPLAY \"T\" END-SEARCH.", "F")]
+    [InlineData("SET IX TO 1 SEARCH TE AT END DISPLAY \"F\" WHEN TK (IX) = B / 1 DISPLAY \"T\" END-SEARCH.", "T")]   // control
+    [InlineData("SEARCH ALL TE AT END DISPLAY \"F\" WHEN TK (IX) = B / 1 DISPLAY \"T\" END-SEARCH.", "T")]              // control
     public void Cobol85_SizeErrorInACondition_ContinuesWithTheLeafFalse(string body, string verdict)
     {
         var (exit, stdout, stderr) = Run(Prog85(body), dialectLevel: 85);
@@ -419,11 +432,18 @@ public sealed class SizeErrorDispositionTests
         Assert.DoesNotContain("EC-SIZE", stderr);
     }
 
-    /// <summary>The same condition from 2002 on: a fatal exception condition (§2023:14.7.5), so the run unit ends.</summary>
-    [Fact]
-    public void Cobol2002_SizeErrorInACondition_StaysFatal()
+    /// <summary>The same conditions from 2002 on: a fatal exception condition (§2023:14.7.5), so the run unit ends, in every
+    /// statement that renders one (the IF, EVALUATE and SEARCH / SEARCH ALL rows above; kb/Work PB5559).</summary>
+    [Theory]
+    [InlineData("IF B / Z > 1 DISPLAY \"T\" ELSE DISPLAY \"F\".")]
+    [InlineData("EVALUATE B / Z WHEN 1 DISPLAY \"T\" WHEN OTHER DISPLAY \"F\" END-EVALUATE.")]
+    [InlineData("EVALUATE B WHEN B / Z DISPLAY \"T\" WHEN OTHER DISPLAY \"F\" END-EVALUATE.")]
+    [InlineData("EVALUATE TRUE WHEN B / Z > 1 DISPLAY \"T\" WHEN OTHER DISPLAY \"F\" END-EVALUATE.")]
+    [InlineData("SET IX TO 1 SEARCH TE AT END DISPLAY \"F\" WHEN TK (IX) = B / Z DISPLAY \"T\" END-SEARCH.")]
+    [InlineData("SEARCH ALL TE AT END DISPLAY \"F\" WHEN TK (IX) = B / Z DISPLAY \"T\" END-SEARCH.")]
+    public void Cobol2002_SizeErrorInACondition_StaysFatal(string body)
     {
-        var (exit, stdout, stderr) = Run(Prog85("IF B / Z > 1 DISPLAY \"T\" ELSE DISPLAY \"F\"."), dialectLevel: 2002);
+        var (exit, stdout, stderr) = Run(Prog85(body), dialectLevel: 2002);
         Assert.Equal(1, exit);
         Assert.DoesNotContain("AFTER", stdout);
         Assert.Contains("EC-SIZE-ZERO-DIVIDE", stderr);
@@ -469,6 +489,9 @@ public sealed class SizeErrorDispositionTests
                01 N  PIC S9 VALUE -4.
                01 A  PIC 9(3) VALUE 7.
                01 R  PIC 9(3) VALUE 9.
+               01 TB VALUE "135".
+                  05 TE OCCURS 3 ASCENDING KEY TK INDEXED BY IX.
+                     10 TK PIC 9.
                PROCEDURE DIVISION.
                MAIN-P.
                    DISPLAY "BEFORE".

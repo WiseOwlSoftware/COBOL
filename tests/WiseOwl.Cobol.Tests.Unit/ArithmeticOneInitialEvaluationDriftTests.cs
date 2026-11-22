@@ -69,7 +69,7 @@ public sealed class ArithmeticOneInitialEvaluationDriftTests
             string src = Path.Combine(dir, "p.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "p.dll"), DialectLevel: edition, CheckOnly: false, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "p.dll"), DialectLevel: edition, CheckOnly: false, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, "the drift program must compile: " + string.Join("; ", r.Errors));
             Assert.NotNull(r.GeneratedCsPath);
             return File.ReadAllText(r.GeneratedCsPath!);

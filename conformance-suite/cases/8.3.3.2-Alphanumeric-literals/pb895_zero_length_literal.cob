@@ -11,12 +11,12 @@
       *>   cite.py --check 8.3.3.1 "If the opening and closing delimiters are contiguous, the length of the
       *>     literal is zero, and it is known as a zero-length literal" -> OK §2023:8.3.3.1
       *>   cite.py --check 8.3.3.2.4 "each of which has the bit configuration specified by one occurrence of
-      *>     hex-character-sequence-1" -> OK §2023:8.3.3.2.4 4)  (whose first sentence makes X"" zero-length too)
+      *>     hex-character-sequence-1" -> OK §2023:8.3.3.2.4 GR4  (whose first sentence makes X"" zero-length too)
       *>   cite.py --check 14.9.25.4 "If literal-1 is an alphanumeric or national zero-length literal and the
       *>     receiving operand is other than a dynamic-length elementary item, literal-1 is treated as if it
-      *>     were the figurative constant SPACE" -> OK §2023:14.9.25.4 2)
+      *>     were the figurative constant SPACE" -> OK §2023:14.9.25.4 GR2
       *>   cite.py --check 14.9.11.4 "If an operand is a zero-length data item or a zero-length literal, no
-      *>     data is transferred for that operand" -> OK §2023:14.9.11.4 1)
+      *>     data is transferred for that operand" -> OK §2023:14.9.11.4 GR1
       *> EXPECTED OUTPUT, DERIVED FROM THE RULES: each MOVE of a zero-length literal (both quotation symbols,
       *> and the hexadecimal format) fills X with SPACE, so X=[   ] three times; the DISPLAY of a zero-length
       *> literal between two brackets transfers nothing for it, so D=[].

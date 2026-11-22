@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p200",
+ "rule-digest": "4d05a6d3cc6a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundOperand",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p200",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p200); the code location is where the compiler meets the rule's subject. The read: \"for the purposes of this document, any lowercase word (or words) that appears in a statement or entry format may be considered to be an operand\": presentation of the document; candidates (MOVE conversion, ANY LENGTH, DISPLAY) are wording-only. The code location was located after the read (locations-all.json): WEAK: BoundOperand is the bound form of a statement or entry operand; the standard definition is a format-notation convention."
+}

@@ -9,7 +9,7 @@
       *> "2) Identifier-1 shall be an object reference; neither a
       *>   universal object reference nor the predefined object
       *>   reference NULL shall be specified."
-      *>   OK  §2023:8.4.3.9.3 2)  (Syntax rules)
+      *>   OK  §2023:8.4.3.9.3 SR2  (Syntax rules)
       *> U is USAGE OBJECT REFERENCE with no class or interface: a
       *> universal object reference (§3 definition: "object reference
       *> that is not restricted to a specific class or interface").

@@ -3,6 +3,7 @@
 using WiseOwl.Cobol;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -42,7 +43,7 @@ public sealed class DefinitionNameUniquenessTests : WiseOwlCobolTestBase
         string srcPath = Path.Combine(TempDir, "dnu.cob");
         File.WriteAllText(srcPath, source);
         var result = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, Path.Combine(TempDir, "dnu.dll"), DialectLevel: dialectLevel, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+            srcPath, Path.Combine(TempDir, "dnu.dll"), DialectLevel: dialectLevel, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
         return result.Success ? "" : string.Join("\n", result.Errors);
     }
 

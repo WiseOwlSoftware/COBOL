@@ -126,7 +126,8 @@ BRIEFS = {
                                r'I10', r'review_findings\.py', r'WAITING FOR REVIEW',  # PB3027: review on the branch
                                r'\| I11 \|',  # the owner's SORT and file I/O exception-path test rule (2026-10-17)
                                r'\| I12 \|', FIX_GATE_ENV,  # PB4888: the finisher's targeted tests and its fix gate
-                               r'\| P17 \|.*?run_probe\.py'],  # PB5764: no recursive delete of a variable path
+                               r'\| P17 \|.*?run_probe\.py',  # PB5764: no recursive delete of a variable path
+                               r'\| P18 \|.*?Stop-Process -Id'],  # PB6034: no kill by process name
 }
 # Prompts that live in code, not in a template (kb/Work PB4473): the loop's review lane builds its agents' prompts in
 # review_lane.py (its reviewer and conflict finisher), and each must tell the agent its own scratch directory in the rolling

@@ -1686,6 +1686,8 @@ def main_1985(args: argparse.Namespace) -> int:
         cat = rule_catalog_1985.parse(lines, manifest_blocks(UNHARVESTED_OF[1985]), carved)
         cat.margin_levels, cat.margin_tally = read.margin_levels, read.margin_tally
     minted = rule_catalog_1985.mint(cat, lines, units, blocks, after)
+    # THE AMENDMENTS' ATTRIBUTION, once every row exists (a change may name a minted row; kb/Work PB5093).
+    rule_catalog_1985.attribute(cat, lines)
     rule_catalog_1985.cite_check(cat)
     cat.standing = element_standing.apply(cat.rules, "locator", lines, citation.regions_1985(lines), STANDING_OF[1985])
     ctx = unit_context(1985, cat.rules)

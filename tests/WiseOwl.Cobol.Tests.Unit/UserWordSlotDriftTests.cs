@@ -50,6 +50,9 @@ public sealed class UserWordSlotDriftTests
     internal static IEnumerable<string> BareIdentifierRules(string grammar)
     {
         string text = Comment.Replace(grammar, "");
+        // The area-A guard (kb/Work PB6018, AreaAOpeningDriftTests) asks WHERE the token stands, never which word it spells:
+        // an IDENTIFIER behind it alone is as bare as one behind no predicate.
+        text = text.Replace("{!nextEntryOpensHere()}?", " ", StringComparison.Ordinal);
         text = StripActions(text);
         foreach (Match m in Rule.Matches(text))
         {

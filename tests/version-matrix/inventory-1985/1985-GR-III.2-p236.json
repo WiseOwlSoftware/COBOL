@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p236",
+ "rule-digest": "b4aad6f49f96",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#cdClause; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CommunicationFormats",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p236",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p236); the code location is where the compiler meets the rule's subject. The read: A vocabulary term for the symbolic name a program supplies to the MCS; candidates (2023 message server SEND/RECEIVE) are wording-only. The code location was located after the read (locations-all.json): cdClause SYMBOLIC QUEUE / SUB-QUEUE-n defines the communication-description field holding the symbolic queue name, and CommunicationFormats.FieldOf maps it to the Queue/SubQueue field."
+}

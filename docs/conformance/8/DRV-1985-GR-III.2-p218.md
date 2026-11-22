@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-III.2-p218", "definitional", "defines a phrase of the user's program: an ordered set of consecutive character-strings forming part of a statement or clause", "A vocabulary term; candidates (AS phrase list items, call convention) are wording-only. Cited: §1985:III.2 p218. Proposed by the read lineage-reads-1985/g-04.json; its refuter, trying to write the witness the derivation says cannot exist (Looked for a rule whose outcome turns on what counts as a 'phrase': each format names its phrases, so none does.), UPHELD it: Vocabulary for portions of the user's statements and clauses; nothing observable.", "claude: 2026-11-21", "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"]
+---

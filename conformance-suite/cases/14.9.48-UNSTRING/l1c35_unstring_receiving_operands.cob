@@ -12,24 +12,24 @@
       *> data. The data item referenced by identifier-5 is the receiving
       *>   operand
       *> for delimiters."
-      *> OK  §2023:14.9.48.3 9)  (Syntax rules)
+      *> OK  §2023:14.9.48.3 SR9  (Syntax rules)
       *> Supporting rules (cite.py --check, all OK):
-      *> OK  §2023:14.9.48.4 11) c) "shall be moved into the current
+      *> OK  §2023:14.9.48.4 GR11c "shall be moved into the current
       *>   receiving area
       *>     according to the rules for the MOVE statement"
-      *> OK  §2023:14.9.48.4 11) d) "shall be moved into the data item
+      *> OK  §2023:14.9.48.4 GR11d "shall be moved into the data item
       *>   referenced by
       *>     identifier-5 according to the rules for the MOVE statement"
-      *> OK  §2023:14.9.25.4 6) 3. (cite.py labels the list item "6) 3."; it
+      *> OK  §2023:14.9.25.4 GR6 3. (cite.py labels the list item "6) 3."; it
       *>   is
       *>     GR6 d) 3.) "the sending operand is treated as if it were an
       *>     unsigned integer of category numeric"
-      *> OK  §2023:14.6.8.2 4) "aligned by decimal point ... zero fill or
+      *> OK  §2023:14.6.8.2 GR4 "aligned by decimal point ... zero fill or
       *>     truncation on either end as required"
       *> OK  §2023:14.6.8.5 "aligned at the leftmost character position ...
       *>   with
       *>     space fill or truncation to the right, as required"
-      *> OK  §2023:13.18.32.4 2) "the data is aligned at the rightmost
+      *> OK  §2023:13.18.32.4 GR2 "the data is aligned at the rightmost
       *>   character
       *>     position"
       *> Derivation. S1 = "12,ABCDE::XY" (12 chars), DELIMITED BY "," OR

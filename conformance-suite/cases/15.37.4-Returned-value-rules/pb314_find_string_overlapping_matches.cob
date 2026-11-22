@@ -9,13 +9,13 @@
       *>   python scripts/spec/cite.py --check 15.37.4 "the character
       *>   position of the first occurrence where the string
       *>   represented by argument-2 matches a substring within
-      *>   argument-1"                          -> OK  §2023:15.37.4 1)
+      *>   argument-1"                          -> OK  §2023:15.37.4 RV1
       *>   python scripts/spec/cite.py --check 15.37.4 "argument-3
       *>   represents the number of matches to ignore before
       *>   determining the character position that shall be
-      *>   returned"                            -> OK  §2023:15.37.4 2)
+      *>   returned"                            -> OK  §2023:15.37.4 RV2
       *>   python scripts/spec/cite.py --check 15.37.4 "If no match is
-      *>   found, the function shall return zero" -> OK  §2023:15.37.4 3)
+      *>   found, the function shall return zero" -> OK  §2023:15.37.4 RV3
       *> DETERMINATION (docs/CONFORMANCE.md "DETERMINATION -- FIND-STRING
       *> counts overlapping matches"): §2023:15.37.4 states no consumption or
       *> resumption rule, unlike SUBSTITUTE's §2023:15.87.4 r3 ("...plus the

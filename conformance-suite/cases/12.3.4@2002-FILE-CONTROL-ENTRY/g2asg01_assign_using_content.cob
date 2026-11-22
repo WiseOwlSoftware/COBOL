@@ -13,7 +13,7 @@
       *> specification of device-name-1 or the value of literal-1 are
       *> defined by the implementor."
       *>   cite.py --check "§2002:12.3.4.3 GR4" (both sentences) -> OK
-      *> §2002:12.3.4.3 GR3 b): with USING the connector "is associated
+      *> §2002:12.3.4.3 GR3b: with USING the connector "is associated
       *> with a physical file identified by the content of the data item
       *> referenced by data-name-1"  -> cite.py OK §2002:12.3.4.3 GR3b
       *> §2002:9.1.12.5 item 2: status 31 when "the content of the data

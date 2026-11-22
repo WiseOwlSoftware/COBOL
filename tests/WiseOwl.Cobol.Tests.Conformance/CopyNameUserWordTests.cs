@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using WiseOwl.Cobol.Frontend.Preprocessor;
 
 namespace WiseOwl.Cobol.Tests.Conformance;
 
@@ -58,7 +59,7 @@ public sealed class CopyNameUserWordTests
     [MemberData(nameof(Spellings))]
     public void AWordOfTwoDisjointSets_IsRefusedAt85(string what, string declaration, string copy)
     {
-        var (ok, errors, _) = EditionHarness.CompileFull(Program(declaration, copy), 85, copybooks: Copybooks);
+        var (ok, errors, _) = EditionHarness.CompileFull(Program(declaration, copy), 85, copybooks: Copybooks, format: InitialReferenceFormat.Fixed);
         Assert.False(ok, what);
         Assert.Contains(errors, e => e.Contains(Conflict));
     }
@@ -69,7 +70,7 @@ public sealed class CopyNameUserWordTests
     {
         foreach (int edition in new[] { 2002, 2014, 2023 })
         {
-            var (ok, errors, _) = EditionHarness.CompileFull(Program(declaration, copy), edition, copybooks: Copybooks);
+            var (ok, errors, _) = EditionHarness.CompileFull(Program(declaration, copy), edition, copybooks: Copybooks, format: InitialReferenceFormat.Fixed);
             Assert.True(ok, $"{what} at {edition}: {string.Join('\n', errors)}");
         }
     }
@@ -78,7 +79,7 @@ public sealed class CopyNameUserWordTests
     [Fact]
     public void ATextNameThatIsAlsoTheLibraryName_IsRefusedAt85()
     {
-        var (ok, errors, _) = EditionHarness.CompileFull(Program("", "COPY PB5482TXT OF PB5482TXT."), 85, copybooks: Copybooks);
+        var (ok, errors, _) = EditionHarness.CompileFull(Program("", "COPY PB5482TXT OF PB5482TXT."), 85, copybooks: Copybooks, format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
         string error = Assert.Single(errors, e => e.Contains(Conflict));
         Assert.Contains("(text-name and library-name)", error);
@@ -90,7 +91,7 @@ public sealed class CopyNameUserWordTests
     public void AParagraphName_IsRefusedAtItsOwnLine()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Program("", "COPY PB5482TXT.", paragraph: "PB5482TXT"), 85,
-            copybooks: Copybooks);
+            copybooks: Copybooks, format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
         string error = Assert.Single(errors, e => e.Contains(Conflict));
         Assert.Contains("(text-name and paragraph-name)", error);
@@ -105,7 +106,7 @@ public sealed class CopyNameUserWordTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(
             Program("", "COPY PB5482NOP OF PB5482LIB.\n       COPY PB5482NOP OF PB5482LIB.\n       COPY PB5482TXT OF PB5482LIB."),
-            85, copybooks: new Dictionary<string, string>(Copybooks) { ["PB5482LIB/PB5482NOP.cpy"] = Empty });
+            85, copybooks: new Dictionary<string, string>(Copybooks) { ["PB5482LIB/PB5482NOP.cpy"] = Empty }, format: InitialReferenceFormat.Fixed);
         Assert.True(ok, string.Join('\n', errors));
     }
 
@@ -127,7 +128,7 @@ public sealed class CopyNameUserWordTests
             + "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. INNER1.\n       PROCEDURE DIVISION.\n       CPYB.\n"
             + "           DISPLAY \"IN1\".\n       END PROGRAM INNER1.\n"
             + "       COPY CPYB.\n       END PROGRAM OUTERP.\n";
-        var (ok, errors, _) = EditionHarness.CompileFull(source, 85, copybooks: new Dictionary<string, string> { ["CPYB.cpy"] = Inner2Copybook });
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 85, copybooks: new Dictionary<string, string> { ["CPYB.cpy"] = Inner2Copybook }, format: InitialReferenceFormat.Fixed);
         if (legal) Assert.True(ok, string.Join('\n', errors));
         else Assert.Contains(errors, e => e.Contains(Conflict));
     }
@@ -140,7 +141,7 @@ public sealed class CopyNameUserWordTests
         const string Prog = "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. {0}.\n       PROCEDURE DIVISION.\n       {1}.\n"
             + "           DISPLAY \"{0}\".\n           STOP RUN.\n       END PROGRAM {0}.\n";
         string source = string.Format(Prog, "PROGA", "CPYB") + string.Format(Prog, "PROGB", "B-PARA") + "       COPY CPYB.\n";
-        var (_, errors, _) = EditionHarness.CompileFull(source, 85, copybooks: new Dictionary<string, string> { ["CPYB.cpy"] = string.Format(Prog, "PROGC", "C-PARA") });
+        var (_, errors, _) = EditionHarness.CompileFull(source, 85, copybooks: new Dictionary<string, string> { ["CPYB.cpy"] = string.Format(Prog, "PROGC", "C-PARA") }, format: InitialReferenceFormat.Fixed);
         Assert.DoesNotContain(errors, e => e.Contains(Conflict));
     }
 
@@ -150,7 +151,7 @@ public sealed class CopyNameUserWordTests
     public void ALiteralName_IsNoUserDefinedWord()
     {
         var (_, errors, _) = EditionHarness.CompileFull(Program("01 PB5482TXT PIC X.", "COPY \"PB5482TXT.cpy\"."), 85,
-            copybooks: Copybooks);
+            copybooks: Copybooks, format: InitialReferenceFormat.Fixed);
         Assert.DoesNotContain(errors, e => e.Contains(Conflict));
     }
 }

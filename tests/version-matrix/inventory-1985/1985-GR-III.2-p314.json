@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p314",
+ "rule-digest": "86dd25ea1e94",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageDefinitions.cs#TerminalDefinition",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p235",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (COMMS.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter's objection holds (an entity of the MCS environment). Both roles are observable at 85 through this MCS: the terminal TERM1 originates the message the program receives, and receives the one the program sends, which lands in its device file. Code location located after the read: TerminalDefinition names the originator or receiver of a transmission from a queue."
+}

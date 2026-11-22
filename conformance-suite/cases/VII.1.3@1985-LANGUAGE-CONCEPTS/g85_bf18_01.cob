@@ -15,7 +15,7 @@
       *> results, no such procedure will be executed" (§1985:VII.1.3.5).
       *> USE-COUNT stays 0 through every successful statement. The last
       *> READ hits the at end condition with no AT END phrase, which is
-      *> NOT successful (§1985:VII.4.4.4 GR10 c), so the procedure runs
+      *> NOT successful (§1985:VII.4.4.4 GR10c, so the procedure runs
       *> once: that leg proves the declarative is live, so the 0 cannot
       *> pass by a procedure that never fires. Each leg fails if a
       *> successful statement reports anything but 00, runs the USE

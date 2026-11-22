@@ -19,14 +19,14 @@ order: 4
    `CobolScreen.g4` and fails when a grammar alternative has no clause row — so a clause added to the grammar
    cannot ship un-named. At `--std 85` the posture is pinned by `negative/a42-screen-section-at-85`.
    ⚠ Declining the module does **not** cost the user its WORDS. §2023:8.10 makes fifteen screen words
-   context-sensitive and §2023:8.9 reserves none of them at any edition, so §2023:8.3.2.1 rule 3 leaves each a legal
+   context-sensitive and §2023:8.9 reserves none of them at any edition, so §2023:8.3.2.1 SR3 leaves each a legal
    user-defined word everywhere (`01 REVERSE-VIDEO PIC X.`); §2023:8.9 adds `COL`, `COLS`, `COLUMNS`, `CRT`,
    `CURSOR` and `SCREEN` in 2002, so each is a legal COBOL-85 user word (`01 CURSOR PIC X.`); only `COLUMN`
    is reserved at every edition. All 22 carry `cobol-words.json` `nameSlot` rows, and the POPULATION is
    DERIVED from `CobolScreen.g4` plus the two SPECIAL-NAMES screen clauses rather than listed, so a screen
    token added without a name slot fails a gate instead of costing a word in silence. Corpus lanes:
    `{85,2002,2014,2023}/pb301_screen_words_as_user_words`, `negative/pb301-screen-words-reserved-from-2002`
-   (both the data-name and the §2023:12.3.7 system-name slot §2023:8.3.2.1 rule 1 bars) and
+   (both the data-name and the §2023:12.3.7 system-name slot §2023:8.3.2.1 SR1 bars) and
    `negative/pb301-column-reserved-at-every-edition` (kb/Work PB301).
    > **The A.4.2 item-10 EC-SCREEN naming surface used to be the one SILENT position in this facility, and it
    > is now refused with the rest** (kb/Work PB302, closed by the PB260 wave). Item 10 makes the EC-SCREEN

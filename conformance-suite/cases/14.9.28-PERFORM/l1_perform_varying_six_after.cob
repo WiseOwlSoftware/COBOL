@@ -13,7 +13,7 @@
       *> not what the rule buys — a sixth AFTER that parsed and then
       *> nested or reset wrongly would satisfy a parse-only witness and
       *> still be broken, so this program asserts the SEQUENCE that
-      *> §2023:14.9.28.4 GR13 e) prescribes for seven levels.
+      *> §2023:14.9.28.4 GR13e prescribes for seven levels.
       *>
       *> Seven induction variables, each FROM 1 BY 1 UNTIL x > 2, so
       *> each admits exactly the values 1 and 2:

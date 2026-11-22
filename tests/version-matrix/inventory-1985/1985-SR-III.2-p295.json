@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-III.2-p295",
+ "rule-digest": "18d761e16132",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Frontend/Preprocessor/CompilationUnitStart.cs#CompilationUnitStart",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-SR-III_2-p295",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its probe (srcrepl.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A COBOL source program commences with the Identification Division; a COPY statement; or a REPLACE statement. A COBOL source program is terminated by the end program header, if specified, or by the absence of additional source program lines.\" Each of the three openings and both terminations is accepted and runs; another opening is refused. Candidates (GR-8.4.3.13.4-2 etc.) have no 85 case. Code location located after the read: programUnit starts at the Identification Division and ends at the end program header or end of source, and CompilationUnitStart recognises where a unit begins."
+}

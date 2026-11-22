@@ -13,7 +13,7 @@
       *>     occurrences is the current capacity of the table" -> OK §2023:8.5.1.9.2
       *>   cite.py --check 8.4.2.3.4 "If the value of the subscript is not a positive integer or is less than one or
       *>     is greater than the highest permissible occurrence number, the EC-BOUND-SUBSCRIPT exception condition
-      *>     is set to exist" -> OK §2023:8.4.2.3.4 2)
+      *>     is set to exist" -> OK §2023:8.4.2.3.4 GR2
       *> A RECEIVING subscript past the current capacity GROWS the table (§2023:8.5.1.9.3) and is no condition; a
       *> receiving subscript below one is not a growth case, so the fixed-table rule applies to it.
       *> Dynamic-capacity tables are a COBOL-2023 introduction, so the construct has no earlier-edition copy.

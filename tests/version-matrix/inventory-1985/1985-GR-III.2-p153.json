@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p153",
+ "rule-digest": "d7c5cd1c123a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#CobolClass; src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#ClassConditionModel",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p153",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with its probe (p153_letter.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A character belonging to one of the following two sets: (1) uppercase letters ... (2) lowercase letters\" is observable through the alphabetic class tests. The candidates are the 2023 UPPER-CASE/LOWER-CASE functions with no 85 case. Code location located after the read: CobolClass.IsAlphabetic/IsAlphabeticUpper/IsAlphabeticLower classify the A-Z and a-z letters and ClassConditionModel binds the class tests."
+}

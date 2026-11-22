@@ -126,7 +126,7 @@ public sealed class SymbolTableDeclarationsTests
         try
         {
             var diags = new DiagnosticBag();
-            var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2002 }.Parse(path, diags);
+            var tree = new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = 2002 }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var program = tree!.compilationGroup().SelectMany(g => g.programUnit()).First();
             var data = new DataBinder(new EditionContext(2002));

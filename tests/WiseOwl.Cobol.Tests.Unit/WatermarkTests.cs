@@ -89,7 +89,7 @@ public sealed class WatermarkTests
         try
         {
             var diags = new DiagnosticBag();
-            var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2023 }.Parse(path, diags);
+            var tree = new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = 2023 }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var comp = new BinderDriver().Bind(tree!, new EditionContext(2023));
             Assert.All(comp.Units, u => Assert.NotNull(u.Data));

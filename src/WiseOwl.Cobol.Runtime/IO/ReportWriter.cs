@@ -247,8 +247,14 @@ public sealed class CobolReport(
     private readonly int _lineWidth = lineWidth;
 
     /// <summary>The page width (ISO §2023:13.18.39.4 GR2b/GR5 — the PAGE clause's integer-2, else 999), supplied by the
-    /// binder: THE width §2023:13.18.14.4 GR5 measures a printable item against, in one place.</summary>
+    /// binder: THE width §2023:13.18.14.4 GR5 measures a printable item against, in one place. <see cref="NoPageWidth"/> for a
+    /// report that has none (COBOL-85).</summary>
     private readonly int _pageWidth = pageWidth;
+
+    /// <summary>The page width of a report that has none: ANSI X3.23-1985 gives a report no page width (§1985:XIII.3.8.2 prints no
+    /// width phrase; §1985:XIII.3.2.4 GR2 leaves the line's record to the implementor; DialectBehavior.ReportPageWidth, kb/Work
+    /// PB6024), so no item ends past it and only the report file's record cuts the line.</summary>
+    public const int NoPageWidth = int.MaxValue;
     private readonly bool _paged = paged;           // PAGE clause present (§2023:13.18.39.4 GR2a — absent ⇒ one page of indefinite length)
 
     // Page regions (§2023:13.18.39.4 GR2, binder-supplied GR3 defaults).
@@ -1064,7 +1070,7 @@ public sealed class CobolReport(
     /// GR2: with NO GENERATE since INITIATE, no report group is processed at all — the sole effect is
     /// active→inactive. GR3: otherwise the control items revert to their prior values (GR3a), each control
     /// footing prints minor→major as though a most-major break occurred (GR3b), the page footing of the last
-    /// page prints (§2023:13.18.57.4 GR6 f) — every page's last group; "immediately followed by the report footing"),
+    /// page prints (§2023:13.18.57.4 GR6 — every page's last group; "immediately followed by the report footing"),
     /// the report footing prints (GR3c), and the control items are restored (GR3d). GR6: the file is NOT closed.</summary>
     public void Terminate(Func<int, bool>? beforeReporting = null)
     {

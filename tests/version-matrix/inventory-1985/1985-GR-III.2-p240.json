@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p240",
+ "rule-digest": "0bbe93703769",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#WrittenRecords",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p240",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p240); the code location is where the compiler meets the rule's subject. The read: A vocabulary term and a synonym; candidates (FORMAT clause, RECORD clause SR, implicit RECORD) are wording-only. The code location was located after the read (locations-all.json): dataDescriptionEntry parses each entry and FileModel.WrittenRecords holds, per FD, the records whose level-01 item carries the entry set the program wrote."
+}

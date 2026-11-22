@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p166",
+ "rule-digest": "79e483b40488",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#Store",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p166",
+ "notes": "Derivation from the read lineage-reads-1985/g-03.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p166); the code location is where the compiler meets the rule's subject. The read: \"The rightmost character of a string of characters\" names a position; it is observable only through the rules that align or truncate at the low order end. The candidates are the 2023 TRIM/REVERSE returned-value rules, not this term. The code location was located after the read (locations-x.json): Store places a value in a character receiver: left-justified, the characters past the receiver's rightmost position are truncated and the rightmost positions padded, and under JUSTIFIED RIGHT the value is aligned at the rightmost character."
+}

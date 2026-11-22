@@ -255,7 +255,7 @@ defined and made available on a processor*" (`--check` OK). WiseOwl COBOL's spec
    all identify the same locale — which matters because `fr_FR` is a legal COBOL word (§2023:8.3.2.1 admits the
    underscore) and so appears in the `external-locale-name-1` branch, while `"fr_FR.UTF-8"` appears in the
    `literal-4` branch.
-3. Both branches produce the same normalized key, so §2023:8.5.3.1 rule 2's "*same external identification*"
+3. Both branches produce the same normalized key, so §2023:8.5.3.1 GR2's "*same external identification*"
    equivalence test (`--check` OK) is a comparison of normalized keys, not of source spellings.
 4. **Availability is a run-time property, not a compile-time one.** The compiler never calls
    `GetCultureInfo` — a locale absent at compile time may be present at run time and vice versa. An
@@ -765,7 +765,7 @@ exist*"; GR15 `Z` suppression with space replacement.
 **Data model.** A format-2 item's **size in character positions is `integer-1`**, not the picture's width —
 "*the picture character string is not an indication of the field size needed to hold the edited item*"
 (Annex D's programmer guidance). So `DataItem` gains `LocaleEdit: (LocaleRef Locale, int Size)?`, the item's
-length is `Size`, and its category is numeric-edited. Type equivalence follows §2023:8.5.3.1 rule 2 (`--check` OK)
+length is `Size`, and its category is numeric-edited. Type equivalence follows §2023:8.5.3.1 GR2 (`--check` OK)
 and §2023:14.8.2.3.2 rule 2 (`--check` OK): two such items match only if they "*specify the same SIZE phrase*" and
 either both omit locale-name or both name the **same external identification** — i.e. the normalized key of
 DETERMINATION L1, which is why L1's normalization has to be a single function reachable from the
@@ -834,7 +834,7 @@ Three consequences the design must carry:
    `RV-15.54.4-3` each recorded independently; it is satisfied once, here.
 4. **A rejected argument-1 substitutes ONE SPACE, not a zero-length value** (kb/Work PB470). The three
    functions' argument rules can fail at run time (an invalid date, a malformed or out-of-range time, a
-   value outside standard numeric time form), and §2023:15.3 rule 14 hands the result of the reference to
+   value outside standard numeric time form), and §2023:15.3 AR14 hands the result of the reference to
    the implementor when EC-ARGUMENT-FUNCTION checking is off. **The determination is not made here** —
    it is `docs/CONFORMANCE.md` row `DOC-A.1-90`, which settles the class by asking what determines the
    returned LENGTH. Consequence 3 above is exactly why these three are NOT in that row's zero-length

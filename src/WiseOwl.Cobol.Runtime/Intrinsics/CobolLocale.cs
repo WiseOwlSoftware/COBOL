@@ -149,7 +149,7 @@ public static class CobolLocale
     public static string UpperCase(string? s, LocaleFacts? facts)
     {
         facts = facts?.Require(LocaleCategory.Ctype, "FUNCTION UPPER-CASE under the CHARACTER CLASSIFICATION", "ISO §2023:15.97.4 r3 / §2023:12.3.6.4 GR7a");
-        if (string.IsNullOrEmpty(s)) return CobolIntrinsics.CaseArgumentZeroLength("UPPER-CASE", "15.97.3");
+        if (string.IsNullOrEmpty(s)) return CobolIntrinsics.CaseArgumentZeroLength("UPPER-CASE", "§1989:A.2.44.3 AR1", "§2023:15.97.3 AR1");
         return facts is null || !facts.HasCultureData ? s.ToUpperInvariant() : facts.TextInfo.ToUpper(s);
     }
 
@@ -158,7 +158,7 @@ public static class CobolLocale
     public static string LowerCase(string? s, LocaleFacts? facts)
     {
         facts = facts?.Require(LocaleCategory.Ctype, "FUNCTION LOWER-CASE under the CHARACTER CLASSIFICATION", "ISO §2023:15.57.4 r3 / §2023:12.3.6.4 GR7a");
-        return string.IsNullOrEmpty(s) ? CobolIntrinsics.CaseArgumentZeroLength("LOWER-CASE", "15.57.3") : FoldLowerCore(s, facts);
+        return string.IsNullOrEmpty(s) ? CobolIntrinsics.CaseArgumentZeroLength("LOWER-CASE", "§1989:A.2.22.3 AR1", "§2023:15.57.3 AR1") : FoldLowerCore(s, facts);
     }
 
     /// <summary>The LOWER-CASE correspondence (§2023:15.57.4 r3 / r4) as a FOLD: the ANYCASE matchers of FIND-STRING and

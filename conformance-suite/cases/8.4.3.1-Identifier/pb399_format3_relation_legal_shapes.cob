@@ -13,7 +13,7 @@
       *> message-tag-object-or-pointer-reference relation condition."  Format 3 admits IS [NOT] EQUAL TO /
       *> = / <>, and §2023:8.8.4.2.3 SR5 requires both operands to be of one of those classes AND of the same
       *> category.  §2023:8.8.4.2.16: "The operands are equal if they reference the same address."
-      *> §2023:8.4.3.10.1 makes NULL "a predefined address of class pointer", and §2023:8.4.3.10.3 SR1 a) admits it
+      *> §2023:8.4.3.10.1 makes NULL "a predefined address of class pointer", and §2023:8.4.3.10.3 SR1a admits it
       *> "in a pointer-or-object-reference relation condition" by name — so NULL rides on either side and
       *> is exempt from SR5's same-category test, having no category of its own.
       *> §2023:14.9.13.4 GR2 makes an EVALUATE selection pair a comparison "as if the corresponding relation

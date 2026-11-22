@@ -12,10 +12,10 @@
       *>
       *> --check validated:
       *>   cite.py --check 15.36.4 "The equivalent arithmetic expression is as follows"
-      *>     -> OK §2023:15.36.4 1)
+      *>     -> OK §2023:15.36.4 RV1
       *>   cite.py --check 15.36.1 "The type of this function is integer." -> OK §2023:15.36.1
       *>   cite.py --check 15.36.3 "Argument-1 shall be an integer greater than or equal to zero."
-      *>     -> OK §2023:15.36.3 1) - every argument written below is a nonnegative integer, so each
+      *>     -> OK §2023:15.36.3 AR1 - every argument written below is a nonnegative integer, so each
       *>     reference is conforming source and r1's arms are what decide the value.
       *>   cite.py --check 15.4.1 "the returned value shall equal the value of the equivalent
       *>     arithmetic expression" -> OK §2023:15.4.1 1)

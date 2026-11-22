@@ -149,7 +149,7 @@ public sealed class StandardModeReturnedValueContainerDriftTests : WiseOwlCobolT
             """;
         string srcPath = Path.Combine(TempDir, programId + ".cob");
         File.WriteAllText(srcPath, source);
-        var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Auto));
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
         Assert.True(result.Success, $"[{programId}] {reference} must compile: {string.Join("\n", result.Errors)}");
         Assert.NotNull(result.GeneratedCsPath);
         return File.ReadAllText(result.GeneratedCsPath!);

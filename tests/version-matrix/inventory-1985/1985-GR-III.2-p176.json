@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p176",
+ "rule-digest": "c152df744c75",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/StoredMessage.cs#StoredMessage",
+ "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-10",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-10), joined as the row's own test. The read: \"Data that forms a logical subdivision of a message, normally associated with an end of segment indicator\" is observable through RECEIVE ... SEGMENT, which the 1985 SEND case uses. 2023 has no message segments; the candidates are message-server rules with no 85 case. Code location located after the read: WEAK: StoredMessage carries the message as a list of Segments; the segment is the list element, not a type."
+}

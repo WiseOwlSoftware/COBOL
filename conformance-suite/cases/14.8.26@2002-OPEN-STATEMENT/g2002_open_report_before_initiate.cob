@@ -20,7 +20,7 @@
       *>   HANDLED-F=EC-REPORT-FILE-MODE   the INITIATE (GR3).
       *>   PC1=07   PAGE-COUNTER was set to 7 before it; "no action is
       *>            taken on the report", so the INITIATE's "PAGE-COUNTER
-      *>            is set to 1" (§2002:14.8.20.3 GR1 c) did not happen.
+      *>            is set to 1" (§2002:14.8.20.3 GR1c did not happen.
       *>   HANDLED-I=EC-REPORT-INACTIVE    the GENERATE: the report never
       *>            entered the active state (§2002:14.8.20.3 GR4), and
       *>            §2002:14.8.15.3 GR7 requires it.

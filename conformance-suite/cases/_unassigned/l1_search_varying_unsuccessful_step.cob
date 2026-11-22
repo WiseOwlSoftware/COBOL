@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:14.9.37.4 GR3 b) 1 and b) 2 on the branch the successful
+      *> ISO §2023:14.9.37.4 GR3b 1 and b) 2 on the branch the successful
       *> legs cannot reach: how many times identifier-2 is incremented
       *> when the scan ends UNSUCCESSFULLY by exhaustion.
       *> GR4 fixes the count: "If none of the conditions is satisfied,

@@ -13,10 +13,10 @@
       *>
       *> THE RULES, in the order this program exercises them.
       *>
-      *> §2023:14.9.21.4 GR1 b) — "LINE-COUNTER is set to zero." INITIATE leaves the counter at 0.
+      *> §2023:14.9.21.4 GR1b — "LINE-COUNTER is set to zero." INITIATE leaves the counter at 0.
       *>
-      *> §2023:13.18.39.4 GR2 a) — "If integer-1 is not specified, the report consists of a single page of
-      *> indefinite length": `RD R-FL.` with no PAGE clause is an UNPAGED report, so §2023:13.18.35.4 GR5 c) —
+      *> §2023:13.18.39.4 GR2a — "If integer-1 is not specified, the report consists of a single page of
+      *> indefinite length": `RD R-FL.` with no PAGE clause is an UNPAGED report, so §2023:13.18.35.4 GR5c —
       *> "If the first LINE NUMBER clause of the report group is relative and the report is not divided
       *> into pages, the report group's first line number is obtained by adding integer-2 to the current
       *> value of the report's LINE-COUNTER" — governs every one of its body groups. (GR5 b) 3's FIRST
@@ -33,7 +33,7 @@
       *>   GENERATE DET-A  — first LINE clause relative, unpaged ⇒ GR5 c): 0 + 1 = 1. FIRST prints on the
       *>                     FIRST line of the file, with nothing above it. LINE-COUNTER = 1 (GR6).
       *>   GENERATE DET-B  — GR5 c): 1 + 2 = 3 ⇒ SECOND on line 3, line 2 unoccupied ⇒ blank (GR7).
-      *>                     Its second LINE clause is subsequent, so §2023:13.18.35.4 GR7 b) applies:
+      *>                     Its second LINE clause is subsequent, so §2023:13.18.35.4 GR7b applies:
       *>                     3 + 1 = 4 ⇒ MORE on line 4. LINE-COUNTER = 4.
       *>   GENERATE DET-C  — GR5 c): 4 + 3 = 7 ⇒ THIRD on line 7, lines 5 and 6 blank (GR7).
       *>   §2023:13.18.35.4 GR8 — "The final line number for the report group is given by the value contained in

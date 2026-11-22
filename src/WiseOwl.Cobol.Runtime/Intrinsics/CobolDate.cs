@@ -116,7 +116,7 @@ public static class CobolDate
         var (year, dayOfYear) = YearAndDayOf(integerDate);
         if (year > (long.MaxValue - 1231) / 10000)
             return Exceptions.ExceptionState.ArgumentError(
-                $"DATE-OF-INTEGER argument {integerDate} is in year {year}, whose YYYYMMDD the returned value cannot hold (§2023:15.3)");
+                $"DATE-OF-INTEGER argument {integerDate} is in year {year}, whose YYYYMMDD the returned value cannot hold ({Exceptions.ExceptionState.EditionRule("§1989:A.2.2 p3", "§2023:15.3")})");
         int month = 1;
         while (month < 12 && dayOfYear > DaysBefore(year, month + 1)) month++;   // the last month whose start is not past the day
         return year * 10000 + month * 100L + (dayOfYear - DaysBefore(year, month));
@@ -132,7 +132,7 @@ public static class CobolDate
         var (year, dayOfYear) = YearAndDayOf(integerDate);
         if (year > (long.MaxValue - 366) / 1000)
             return Exceptions.ExceptionState.ArgumentError(
-                $"DAY-OF-INTEGER argument {integerDate} is in year {year}, whose YYYYDDD the returned value cannot hold (§2023:15.3)");
+                $"DAY-OF-INTEGER argument {integerDate} is in year {year}, whose YYYYDDD the returned value cannot hold ({Exceptions.ExceptionState.EditionRule("§1989:A.2.2 p3", "§2023:15.3")})");
         return year * 1000 + dayOfYear;
     }
 

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p19",
+ "rule-digest": "2c52ad78111f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginNextLogicalPage",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p19",
+ "notes": "Own witness from the read lineage-reads-1985/g-01.json: the reader showed the compiler correct at 85 with its probe (p19_bottom.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"An empty area which follows the page body\". GR-13.18.34.4-5 (2023 LINAGE integer-4) says only that integer-4 is the number of lines in the bottom margin, not that the area is empty, and its 85 case pb523_linage_margins_on_the_medium_85 reports record positions. The probe, LINAGE 2 LINES AT BOTTOM 2, writes X, Y, Z: X and Y fill the body, lines 3 and 4 are empty, Z begins page 2 at line 5. Code location located after the read: BeginNextLogicalPage advances the rest of the page body plus _bottom empty lines (the LINAGE bottom margin) before the next page starts."
+}

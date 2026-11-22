@@ -38,7 +38,8 @@ carries that unit's words as `lead`.
 
 COMPLETENESS (design §7) is held the 2023 way: a rule-shaped heading no kind resolves, a recognised block that yields no
 rule, an ordinal that neither continues its list nor restarts it, a box inside a one-level module, an amendment change
-that names a rule this catalog cannot find, an adjudication
+that names a rule this catalog cannot find, a correction the transcription applied for an amendment whose row does not
+carry that amendment (`attribution_drift`), an adjudication
 (EXCLUDED_BLOCKS, KNOWN_EMPTY_BLOCKS) the transcription no longer has, a paragraph carrying a numbered list
 that the content-keyed scan's manifest does not record as measured (the 2023 arm's PB29 check), a rule of an admitted
 paragraph its kind map does not name, a row whose citation names no region of the transcription, and a disagreement
@@ -166,6 +167,38 @@ CHANGE_FORMAT = re.compile(rf"(?<!after )\bthe {GENERAL_FORMAT_NOUN}\b|\b{GENERA
 #: X-27, XIV-26), "as new syntax rule 5", "as a new general rule 12" (never "as a new last paragraph for general rule 7", which amends rule 7).
 CHANGE_ADDS = re.compile(r"\b(?:as (?:the |a )?|add )new (?P<kind>syntax|general|arguments?|returned values?) rule (?P<n>\d+)",
                          re.IGNORECASE)
+#: A change that ADDS A WHOLE PARAGRAPH: "Add the following as new paragraph 4.3.8.3:" (X3.23a-1989 IV-22), "and add new
+#: paragraph 1.3.5 without boxing as follows" (VI-2), "Insert the following as the new paragraph 2.1A" (XVII-50). Every
+#: row the paragraph and its subparagraphs hold is the amendment's (kb/Work PB5063). "New paragraph 4.3.8.4, change ..."
+#: names a paragraph a renumbering moved, never one added, and is not this shape.
+CHANGE_ADDS_PARAGRAPH = re.compile(r"\b(?:as (?:the |a )?new paragraph|add (?:the following as )?new paragraph)\s+"
+                                   r"(?P<num>\d+(?:\.\d+)*[A-Z]?)(?![\w.])", re.IGNORECASE)
+#: A change that names an ITEM of a numbered list where the rules name a rule ("last paragraph, item 2", X3.23b-1993
+#: IV-27; "item 3b for I-O status 22", IX-4; "numbered item 3", II-14), or a restarted list's rule by its OCCURRENCE
+#: ("second occurrence of a paragraph numbered (3), subparagraph b", X3.23a-1989 IX-4): the item is the list's numbered
+#: rule, the occurrence its sub-list, and a lettered sub-item narrows which list's rule holds it (kb/Work PB5093).
+CHANGE_ITEM = re.compile(r"\b(?:(?P<occ>first|second|third|fourth|fifth) occurrence of a paragraph numbered \(?(?P<on>\d+)\)?"
+                         r"(?:,? subparagraphs? (?P<osub>[a-z])\b)?|(?:numbered )?item (?P<n>\d+)(?P<sub>[a-z])?\b)",
+                         re.IGNORECASE)
+OCCURRENCE = {"first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5}
+#: A quoted text of a change's directive ("change in part to read: "If any identifier ...""), and the old text of a
+#: "change X to Y" (the quote a ` to "` follows), which the amended text no longer holds.
+QUOTED = re.compile(r'"(?P<a>[^"]+)"|“(?P<b>[^”]+)”')
+OLD_TEXT_AFTER = re.compile(r'\s*,?\s+to\s+["“]')
+#: The shortest new text that keys a row inside the paragraph the change names, and inside the whole section when the
+#: paragraph holds no such row ("Add the following before paragraph 4.2.2.2:", whose new paragraph is 4.2.2.1.4). Inside a
+#: paragraph a text is unique among a handful of rows; across a section only a long one is.
+KEY_IN_PARAGRAPH, KEY_IN_SECTION = 10, 40
+#: The printed paragraph a change names by its place in its clause ("second paragraph, last sentence, change
+#: "representative" to "representation"", X3.23a-1989 X-2): it settles a new text two paragraphs of the clause hold, as
+#: the unit row of that place (`-p2`). "the first paragraph after the general format" counts from elsewhere and is no
+#: such place.
+PLACE_PARAGRAPH = re.compile(r"\b(?P<place>first|second|third|fourth|fifth|sixth|last|penultimate) paragraph\b"
+                             r"(?! after| on page)", re.IGNORECASE)
+PLACES = {"first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5, "sixth": 6}
+#: How much of a new text keys its row: its opening words (a long rule's text may differ further on in line breaks
+#: or a box the change itself does not print).
+KEY_LENGTH = 80
 
 
 def kind_of(title: str) -> str | None:
@@ -211,7 +244,13 @@ class Catalog:
     unexplained: list[tuple[str, int, int]] = dataclasses.field(default_factory=list)  # (locator, ordinal, after)
     one_level_boxes: list[str] = dataclasses.field(default_factory=list)     # a box in a module with one level
     changes: int = 0                                                          # amendment change rows read
+    #: every change row of the amendments' tables, (document, page cell, change), in reading order (`attribute`)
+    change_rows: list[tuple[str, str, str]] = dataclasses.field(default_factory=list)
     unresolved: list[tuple[str, str, str]] = dataclasses.field(default_factory=list)  # (document, page, change)
+    #: THE ATTRIBUTION CROSS-CHECK (kb/Work PB5093, `attribution_drift`): every correction the transcription records it
+    #: applied for an amendment, located in one row, whose row does not carry that amendment; and its tally.
+    misattributed: list[str] = dataclasses.field(default_factory=list)
+    attribution_tally: dict[str, int] = dataclasses.field(default_factory=dict)
     unread: list[str] = dataclasses.field(default_factory=list)   # a change row in neither row shape (CHANGE_UNREAD)
     stale: list[str] = dataclasses.field(default_factory=list)   # an adjudication the transcription no longer needs
     #: THE CONTENT-KEYED SCAN (kb/Work PB29): every paragraph whose heading names no rule block and whose body carries a
@@ -254,7 +293,7 @@ class Catalog:
                 + len(self.unresolved) + len(self.unread) + len(self.stale) + len(self.duplicates())
                 + len(self.shared_citations())
                 + self.drift()[1] + len(self.untyped) + len(self.uncitable) + len(self.standing)
-                + len(self.dispositions) + len(self.margin_levels))
+                + len(self.dispositions) + len(self.margin_levels) + len(self.misattributed))
 
 
 def box_of(text: str, kind: str) -> str:
@@ -459,6 +498,14 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None, carved: fro
                 open_change = CHANGE_PAGE.search(row["page"]) is not None
                 if open_change:
                     change_rows.append((amendment, row["page"], row["change"]))
+                elif (not row["page"].strip() and row["change"].strip() and "|" not in row["change"]
+                      and change_rows and change_rows[-1][0] == amendment):
+                    # A two-cell row with no page cell CONTINUES the change above it on the next table page
+                    # (X3.23b-1993, page 918: "| | (2) For the COBOL words LENGTH, RANDOM, and SUM: ..." ends the new
+                    # text of 4.2.2.1): its text is that change's (kb/Work PB5093). A row of more cells (the
+                    # transcription's own tables after the amendment) is no change row.
+                    doc_, cell, change = change_rows[-1]
+                    change_rows[-1] = (doc_, cell, f"{change}<br><br>{row['change']}")
                 open_change = open_change and row["change"].endswith(":") and "<br>" not in row["change"]
             elif CHANGE_UNREAD.match(line):
                 cat.unread.append(f"page {page}: {line.strip()[:90]}")
@@ -556,9 +603,10 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None, carved: fro
     for declared in (*EXCLUDED_BLOCKS, *KNOWN_EMPTY_BLOCKS):
         if declared not in met:
             cat.stale.append(f"{declared}: adjudicated here, but the transcription no longer has it")
+    # The change rows are RESOLVED once every row exists (`attribute`): a change may name a row the mint makes (a
+    # paragraph of unnumbered text), so the walk only collects them (kb/Work PB5093).
+    cat.change_rows = change_rows
     cat.changes = len(change_rows)
-    for doc, cell, change in change_rows:
-        resolve_change(cat, doc, cell, change)
     return cat
 
 
@@ -581,10 +629,111 @@ def add_row(cat: Catalog, *, document: str, section: str | None, paragraph: str,
     return row
 
 
-def resolve_change(cat: Catalog, doc: str, cell: str, change: str) -> None:
-    """Record amendment `doc` on the rule one change row names, a rule it changes or one it adds ("add the following as
-    the new general rule 4"); a row naming a rule the catalog cannot find is reported. A row that names no rule (a
-    heading, a figure, a table of contents) changes no row and is left alone.
+def attribute(cat: Catalog, lines: list[str]) -> None:
+    """THE ATTRIBUTION OF THE AMENDMENTS (kb/Work PB5045, PB5063, PB5093): every change row of the amendments' tables
+    records its amendment on the rows it changes or adds (`resolve_change`), once EVERY row exists, the mint's among
+    them (a change may name a paragraph of unnumbered text: "Paragraph 6.4.7, change in part to read"); then the result
+    is held to the transcription's own record of what it applied, row by row (`attribution_drift`). It runs once, on
+    the final catalog (extract_rule_catalog.main_1985, after `mint`)."""
+    cat.unresolved = []
+    plain = {r["id"]: _plain(r["text"]) for r in cat.rules}
+    for doc, cell, change in cat.change_rows:
+        resolve_change(cat, doc, cell, change, plain)
+    cat.misattributed, cat.attribution_tally = attribution_drift(cat, lines, plain)
+
+
+def _plain(text: str) -> str:
+    """`text` as a change's new text is compared with a row's (`_keyed`): no markup (an underline, an emphasis, an escape,
+    a level-2 box side), one space for every run of white space and line break, case folded."""
+    text = re.sub(r"</?u>|\*+|\\|`", "", text).replace("<br>", " ").replace(BOX_SIDE, " ")
+    return re.sub(r"\s+", " ", text).strip().casefold()
+
+
+def _keys(pieces: list[str]) -> list[str]:
+    """The keys of new texts (`_keyed`): each piece cut at an ellipsis ("change in part to read: '...PICTURE clause or
+    function definition, then the result...'"), plain (`_plain`), its opening ordinal or letter dropped (a row's text
+    starts after its own)."""
+    keys = []
+    for piece in pieces:
+        for part in re.split(r"\.\.\.|…", piece):
+            if key := re.sub(r"^(?:\(?\d+\)|[a-z]\.)\s+", "", _plain(part)):
+                keys.append(key)
+    return keys
+
+
+def _new_texts(directive: str, body: str) -> list[str]:
+    """The keys of the text a change puts in the amended standard: the quoted texts of its directive (never the old text
+    of a "change X to Y", nor any quote of a change that deletes) and its new text (`body`, unless the change only
+    deletes: then the text it carries is the text deleted)."""
+    deletes = re.search(r"\bdelete\b", directive, re.IGNORECASE) is not None
+    only_deletes = deletes and re.search(r"\b(?:add|insert|replace|change)\b", directive, re.IGNORECASE) is None
+    pieces = [] if deletes else [m["a"] or m["b"] for m in QUOTED.finditer(directive)
+                                 if not OLD_TEXT_AFTER.match(directive, m.end())]
+    if body and not only_deletes:
+        # A body may itself be directives ("b. Change the first sentence in part to read: "Values are ..."", X3.23a-1989
+        # VI-62): its quoted texts are keys too.
+        pieces += body.split("<br><br>") + [m["a"] or m["b"] for m in QUOTED.finditer(body)]
+    return _keys(pieces)
+
+
+def _in_paragraph(r: dict, num: str) -> bool:
+    """Whether row `r` is of paragraph `num` or of a paragraph below it ("Paragraph 5.8 ..., general rule 4" names the
+    rules of 5.8.4)."""
+    return r["paragraph"] == num or r["paragraph"].startswith(num + ".")
+
+
+def _placed(rows: list[dict], num: str, place: str) -> list[dict]:
+    """The unit row of clause `num` at the printed place `place` names (PLACE_PARAGRAPH: `-p2` for "second", the last or
+    the one before it for "last" and "penultimate"), as a one-row list, or none."""
+    units = sorted((int(m[1]), r) for r in rows if r["paragraph"] == num
+                   and (m := re.search(r"-p(\d+)$", r["id"])) is not None)
+    place = place.lower()
+    at = len(units) if place == "last" else len(units) - 1 if place == "penultimate" else PLACES[place]
+    return [units[at - 1][1]] if 0 < at <= len(units) else []
+
+
+def _keyed(rows: list[dict], keys: list[str], plain: dict[str, str], num: str | None, folios: set[str],
+           place: str | None = None) -> list[dict]:
+    """THE ROWS A CHANGE'S NEW TEXT KEYS: for each key, the one row of the paragraph the change names (`num`, or the
+    rows on its page cell's folios when it names none) whose text holds it, else the one row of the whole section, a
+    key short enough to recur being tried only in the paragraph (KEY_IN_PARAGRAPH, KEY_IN_SECTION). A key two rows of
+    the paragraph hold keys the one of them at the printed place the change names (`place`, PLACE_PARAGRAPH), else
+    neither. The amended text is the row's own text (the transcription applies every change in place), so it locates
+    the row whatever number a rule had when the change was written: Amendment 1's "Paragraph 6.18.4, general rule 4"
+    is GR5 once Amendment 2 inserts a new GR1 (kb/Work PB5093)."""
+    scoped = [r for r in rows if (_in_paragraph(r, num) if num is not None else r["folio"] in folios)]
+    hits: dict[str, dict] = {}
+    for key in keys:
+        for scope, least in ((scoped, KEY_IN_PARAGRAPH), (rows, KEY_IN_SECTION)):
+            if len(key) < least:
+                continue
+            found = [r for r in scope if key[:KEY_LENGTH] in plain[r["id"]]]
+            if len(found) > 1 and scope is scoped and place is not None and num is not None:
+                found = [r for r in _placed(scoped, num, place) if any(r is f for f in found)] or found
+            if len(found) == 1:
+                hits[found[0]["id"]] = found[0]
+            if found:
+                break
+    return list(hits.values())
+
+
+def _record(doc: str, rows: list[dict]) -> None:
+    """Record amendment `doc` on every row of `rows`, once."""
+    for r in rows:
+        if doc not in r["amended_by"]:
+            r["amended_by"].append(doc)
+
+
+def resolve_change(cat: Catalog, doc: str, cell: str, change: str, plain: dict[str, str]) -> None:
+    """Record amendment `doc` on the rows one change row changes or adds; a row naming a rule the catalog cannot find is
+    reported. A row that names no rule and carries no new text a row holds (a heading, a figure, a table of contents,
+    a renumbering) changes no row and is left alone. In order:
+      1. a change that ADDS A WHOLE PARAGRAPH ("Add the following as new paragraph 4.3.8.3:") is every row of that
+         paragraph and its subparagraphs (kb/Work PB5063);
+      2. a change whose NEW TEXT one row holds is that row (`_keyed`): the amended text is the row's, whatever the rule's
+         number was when the change was written, or whether it names a rule, an item or "the second paragraph";
+      3. else its DESIGNATOR: a rule it adds ("add the following as the new general rule 4") or names ("general rule 4",
+         "rule (1)"), an item of a numbered list (`CHANGE_ITEM`), or a general format (`record_format_change`).
     The transcription applies every change in place (kb/Work PB5045), so a rule a change adds is already a row of the
     body (of Section A for an Amendment 1 page), at the number the amended text gives it: the change records itself on
     that row and adds none, an amended rule having one home (DESIGN-spec-conformance-review.md section 10.2).
@@ -592,8 +741,19 @@ def resolve_change(cat: Catalog, doc: str, cell: str, change: str) -> None:
     (`<br><br>`): the new text is the standard's own words, and a "(See 2.9.4, rule 2, ...)" inside an item it adds to an
     appendix list (X3.23a-1989 XVII-93) names no rule the change touches."""
     pages = [(m["folio"], bool(m["amd"])) for m in CHANGE_PAGE.finditer(cell)]
-    directive = change.split("<br><br>", 1)[0]
+    directive, _, body = change.partition("<br><br>")
     para = CHANGE_PARAGRAPH.search(directive)
+    sections = {"A" if in_amendment else folio.split("-")[0] for folio, in_amendment in pages}
+    home = [r for r in cat.rules if r["document"] in (BASE, AMENDMENT_1) and r["section"] in sections]
+    if (whole := CHANGE_ADDS_PARAGRAPH.search(directive)) is not None:
+        # A paragraph added where the catalog keeps no row (an appendix's) changes no row.
+        _record(doc, [r for r in home if _in_paragraph(r, whole["num"])])
+        return
+    place = PLACE_PARAGRAPH.search(directive)
+    if keyed := _keyed(home, _new_texts(directive, body), plain, para["num"] if para else None,
+                       {folio for folio, _ in pages}, place["place"] if place else None):
+        _record(doc, keyed)
+        return
     if (added := CHANGE_ADDS.search(directive)) is not None:
         if para is None:   # an added rule with no paragraph has no block to find it in: never read as a change to rule n
             cat.unresolved.append((doc, cell, change[:100]))
@@ -601,18 +761,20 @@ def resolve_change(cat: Catalog, doc: str, cell: str, change: str) -> None:
         kind = KINDS.get(canonical_title(f"{added['kind']} rule"))
         folio, in_amendment = pages[0]
         sec = "A" if in_amendment else folio.split("-")[0]
-        home = AMENDMENT_1 if in_amendment else BASE
-        found = [r for r in cat.rules if r["document"] == home and r["section"] == sec and r["kind"] == kind
+        document = AMENDMENT_1 if in_amendment else BASE
+        found = [r for r in cat.rules if r["document"] == document and r["section"] == sec and r["kind"] == kind
                  and r["ordinal"] == int(added["n"]) and r["sublist"] == 1
                  and para["num"] in (r["paragraph"], r["paragraph"].rsplit(".", 1)[0])]
         if len(found) == 1:
-            if doc not in found[0]["amended_by"]:
-                found[0]["amended_by"].append(doc)
+            _record(doc, found)
         else:
             cat.unresolved.append((doc, cell, change[:100]))
         return
     rule = CHANGE_RULE.search(directive)
     if rule is None:
+        if para is not None and (item := CHANGE_ITEM.search(re.sub(r'"[^"]*"', "", directive))) is not None:
+            resolve_item(cat, doc, cell, change, item, [r for r in home if _in_paragraph(r, para["num"])])
+            return
         if CHANGE_FORMAT.search(re.sub(r'"[^"]*"', "", directive)) is not None:
             record_format_change(cat, doc, cell, change, pages, para)
         return
@@ -633,9 +795,26 @@ def resolve_change(cat: Catalog, doc: str, cell: str, change: str) -> None:
                 continue
             found.append(r)
     if len(found) == 1:
-        if doc not in found[0]["amended_by"]:
-            found[0]["amended_by"].append(doc)
+        _record(doc, found)
     else:
+        cat.unresolved.append((doc, cell, change[:100]))
+
+
+def resolve_item(cat: Catalog, doc: str, cell: str, change: str, item: re.Match, rows: list[dict]) -> None:
+    """Record amendment `doc` on the numbered rule an ITEM designator names (`CHANGE_ITEM`) among `rows`, the rows of the
+    paragraph the change names: item n is the rule numbered n, its occurrence ("second occurrence of a paragraph
+    numbered (3)") the sub-list, and a lettered sub-item ("item 3b") keeps the rules that hold that letter's item. An
+    item of a paragraph the catalog keeps no row of (an appendix's list) changes no row; one the rows cannot settle to
+    one rule is reported."""
+    n = int(item["n"] or item["on"])
+    letter = item["sub"] or item["osub"]
+    found = [r for r in rows if r["kind"] != "FMT" and r.get("shape") in (None, "item") and r["ordinal"] == n
+             and (item["occ"] is None or r["sublist"] == OCCURRENCE[item["occ"].lower()])]
+    if letter and len(found) > 1:
+        found = [r for r in found if re.search(rf"(?m)^\W*{letter}\.\s", r["text"])]
+    if len(found) == 1:
+        _record(doc, found)
+    elif rows:
         cat.unresolved.append((doc, cell, change[:100]))
 
 
@@ -661,10 +840,67 @@ def record_format_change(cat: Catalog, doc: str, cell: str, change: str, pages: 
                 continue
             found.append(r)
     if len(found) == 1:
-        if doc not in found[0]["amended_by"]:
-            found[0]["amended_by"].append(doc)
+        _record(doc, found)
     elif found:
         cat.unresolved.append((doc, cell, change[:100]))
+
+
+#: THE TRANSCRIPTION'S RECORD OF THE AMENDMENTS IT APPLIED IN PLACE (kb/Work PB5045): its "Corrections applied" table, a
+#: row per correction (`| [C129](#errata-c129) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), general rule 4 |
+#: ... | amendment-1 |`), and each entry's text as applied (`| **This transcription** | `...` |`). The table's `where`
+#: is the transcriber's, written from the page; the change rows' directives are the amendment's own words: two readings
+#: of one change, which `attribution_drift` holds together.
+CORRECTION_ROW = re.compile(r"^\| \[(?P<id>C\d+)\]\(#errata-c\d+\) \|[^|]*\|[^|]*\| (?P<where>[^|]*?) \|.*"
+                            r"\| (?P<kind>amendment-[12]) \|$")
+CORRECTION_ENTRY = re.compile(r"^### (?P<id>C\d+) · ")
+CORRECTION_TEXT = re.compile(r"^\| \*\*This transcription\*\* \| `(?P<text>.*)` \|$")
+#: The paragraph a correction's `where` names: "Section VI, paragraph 6.18.4 (INSPECT), ...", "Section IV, a new
+#: paragraph 4.3.8.3 ...", "Section A, paragraph 2.2 (Arguments), ...". An appendix's or the table of contents' has none.
+CORRECTION_PLACE = re.compile(r"^Section (?P<sec>[IVX]+|A), (?:a new )?paragraphs? (?P<num>\d+(?:\.\d+)*)")
+CORRECTION_DOCUMENT = {"amendment-1": AMENDMENT_1, "amendment-2": AMENDMENT_2}
+
+
+def applied_corrections(lines: list[str]) -> list[tuple[str, str, str, str]]:
+    """Every amendment correction the transcription records it applied: (its id, the amendment, its `where`, its text
+    as applied), in the table's order (`CORRECTION_ROW`)."""
+    rows = [(m["id"], CORRECTION_DOCUMENT[m["kind"]], m["where"]) for ln in lines if (m := CORRECTION_ROW.match(ln))]
+    texts, entry = {}, None
+    for ln in lines:
+        if (m := CORRECTION_ENTRY.match(ln)) is not None:
+            entry = m["id"]
+        elif entry is not None and (m := CORRECTION_TEXT.match(ln)) is not None:
+            texts[entry], entry = m["text"], None
+    return [(cid, doc, where, texts.get(cid, "")) for cid, doc, where in rows]
+
+
+def attribution_drift(cat: Catalog, lines: list[str], plain: dict[str, str]) -> tuple[list[str], dict[str, int]]:
+    """THE ATTRIBUTION CROSS-CHECK (kb/Work PB5093): every amendment correction the transcription records it applied
+    (`applied_corrections`) whose text as applied lies in exactly ONE row of the paragraph its `where` names (the same
+    keys a change's new text is read by, `_keys`) must find that row carrying its amendment, else it is a finding: the
+    change rows' reading (`resolve_change`) missed or misplaced it. A correction with no paragraph (the table of
+    contents, an appendix, Section V's skeleton), a text that describes rather than quotes ("(deleted)", "each
+    renumbered ..."), or a text no row or several rows hold is not located, and is counted. A row an amendment ADDS
+    whole carries it on every row (CHANGE_ADDS_PARAGRAPH) though the table records the paragraph once, so the check
+    runs from the corrections to the rows and never back."""
+    tally: collections.Counter = collections.Counter()
+    out = []
+    for cid, doc, where, text in applied_corrections(lines):
+        place = CORRECTION_PLACE.match(where)
+        keys = [k for k in _keys(text.split("¶")) if len(k) >= KEY_IN_PARAGRAPH]
+        if place is None or not keys:
+            tally["not located: no paragraph, or no quoted text"] += 1
+            continue
+        rows = [r for r in cat.rules if r["section"] == place["sec"] and _in_paragraph(r, place["num"])]
+        found = {r["id"]: r for key in keys for r in rows if key[:KEY_LENGTH] in plain[r["id"]]}
+        if len(found) != 1:
+            tally[f"not located: its text is in {'no' if not found else 'more than one'} row"] += 1
+            continue
+        row = next(iter(found.values()))
+        if doc in row["amended_by"]:
+            tally["located, the row carries its amendment"] += 1
+        else:
+            out.append(f"{cid} ({doc}; {where}): its text is {row['id']}'s, which does not carry {doc}")
+    return out, dict(tally)
 
 
 def summary(cat: Catalog) -> list[str]:
@@ -684,7 +920,11 @@ def summary(cat: Catalog) -> list[str]:
     amended = collections.Counter(d for r in cat.rules for d in r["amended_by"])
     out.append(f"   amendment change rows read {cat.changes}; rules amended: "
                + (", ".join(f"{d} {amended[d]}" for d in sorted(amended)) or "none"))
+    out.append("   the corrections the transcription applied for an amendment, against the rows (attribution_drift): "
+               + ", ".join(f"{k} {v}" for k, v in sorted(cat.attribution_tally.items())))
     for label, items in (("recognised block(s) with no rule", cat.empty),
+                         ("amendment correction(s) the transcription applied whose row does not carry the amendment "
+                          "(attribution_drift: the change rows' reading missed or misplaced them)", cat.misattributed),
                          ("rule-shaped heading(s) no kind resolves (their rules are not harvested)", cat.unrecognised),
                          ("ordinal(s) that neither continue nor restart their list", cat.unexplained),
                          ("box(es) inside a module that has one level", cat.one_level_boxes),
@@ -1256,6 +1496,16 @@ Report Writer - TYPE
 
 (1) A planted TYPE rule.
 
+#### 3.21.4 General Rules
+
+(1) A planted first list.
+
+(1) A planted second list:
+
+a. its first item.
+
+b. its second item.
+
 XIII-56
 
 # SECTION XVII: APPENDICES
@@ -1290,6 +1540,9 @@ XVII-87
 |---|---|
 | VI-25 | Paragraph 5.7 entitled *Level-Number*, syntax rule 2, change to read: planted. |
 | XVII-93 | Add the following after item 80:<br><br>(81) Planted. (See 5.7.3, rule 1, on page VI-25.) |
+| VI-27 | Add the following as new paragraph 6.4.3:<br><br>6.4.3 The CORRESPONDING Phrase, planted. |
+| VI-27 | Paragraph 6.2.3, rule 1, change in part to read: "A planted formation rule." |
+| XIII-56 | Paragraph 3.21.4, second occurrence of a paragraph numbered (1), subparagraph b, box "item". |
 
 ## Page 832
 
@@ -1319,6 +1572,9 @@ A-33
 | VI-25 | Paragraph 5.7.4 of the level-number, add the following as the new general rule 3:<br><br>(3) A planted added rule. |
 | VI-25 | Paragraph 5.7.4 of the level-number, add the following as the new general rule 9:<br><br>(9) Planted, never applied in place. |
 | (A-33) | Paragraph 2.5.3 of the ACOS function, argument rule 1, change to read: planted. |
+| XIII-56 | Paragraph 3.21.4, item 1b, delete the last word. |
+| (A-33) | Paragraph 2.5.4, change to read: |
+| | (1) The planted value. |
 | x | Add an entry to the table of contents, planted. |
 | VI-25 | Paragraph 5.7.3 of the level-number, add the following as new syntax rule 3: |
 
@@ -1333,6 +1589,37 @@ VI-26 — Paragraph 5.7.4 of the level-number, general rule 1, change to read: p
 **VI-25 thru VI-26** Renumber paragraphs 5.7 thru 5.8, planted.
 
 B-1
+
+## Corrections applied
+
+| | page | folio | where | printed | this transcription | kind |
+|---|---:|---|---|---|---|---|
+| [C1](#errata-c1) | 257 | VI-25 | Section VI, paragraph 5.7.3, syntax rule 1 | `frist` | `first` | damage |
+| [C2](#errata-c2) | 260 | VI-27 | Section VI, paragraph 6.2.3, rule 1 | `x` | `A planted formation rule.` | amendment-1 |
+| [C3](#errata-c3) | 258 | VI-26 | Section VI, paragraph 5.7.4 (LEVEL-NUMBER), general rule 2 | `x` | `A planted rule under a band.` | amendment-1 |
+| [C4](#errata-c4) | 7 | — | the table of contents | `x` | `an entry` | amendment-2 |
+| [C5](#errata-c5) | 258 | VI-26 | Section VI, paragraph 5.7.4, general rules renumbered | `x` | `(each renumbered)` | amendment-2 |
+
+### C2 · page 260 (folio VI-27) · Section VI, paragraph 6.2.3, rule 1 · `x` → `A planted formation rule.`
+
+| | |
+|---|---|
+| **Printed** | `x` |
+| **This transcription** | `A planted formation rule.` |
+
+### C3 · page 258 (folio VI-26) · Section VI, paragraph 5.7.4 (LEVEL-NUMBER), general rule 2 · `x` → `A planted rule…`
+
+| | |
+|---|---|
+| **Printed** | `x` |
+| **This transcription** | `(2) A planted rule under a band.` |
+
+### C5 · page 258 (folio VI-26) · Section VI, paragraph 5.7.4, general rules renumbered · `x` → `(each renumbered)`
+
+| | |
+|---|---|
+| **Printed** | `x` |
+| **This transcription** | `(each renumbered)` |
 """
 
 
@@ -1360,6 +1647,9 @@ def self_test() -> int:
 
     cat = parse(PLANTED.splitlines(), PLANTED_MANIFEST)
     by = {r["id"]: r for r in cat.rules}
+    check("the walk collects the change rows and attributes none: `attribute` resolves them once every row exists",
+          not any(r["amended_by"] for r in cat.rules) and len(cat.change_rows) == cat.changes)
+    attribute(cat, PLANTED.splitlines())
     check("a rule is a column-0 (n) of a Syntax Rules paragraph, unheaded or headed",
           "1985-SR-VI.5.7.3-1" in by and "1985-GR-VI.5.7.4-1" in by)
     check("the row carries its citation, module and subject",
@@ -1415,8 +1705,27 @@ def self_test() -> int:
           by["1989-AR-A.2.5.3-1"]["amended_by"] == [AMENDMENT_2])
     check("a change naming no rule is no finding, one naming an absent rule is, and so is one adding a rule the body "
           "lacks (a change not applied in place)",
-          cat.changes == 10 and [cell for _d, cell, _c in cat.unresolved] == ["VI-26", "VI-25"]
+          cat.changes == 15 and [cell for _d, cell, _c in cat.unresolved] == ["VI-26", "VI-25"]
           and "general rule 9" in cat.unresolved[1][2])
+    # kb/Work PB5063: a change that adds a whole paragraph is every row the paragraph holds.
+    check("a change that adds a whole paragraph records itself on every row of it (kb/Work PB5063)",
+          by["1985-GR-VI.6.4.3-1"]["amended_by"] == [AMENDMENT_1] and by["1985-GR-VI.6.4.3-2"]["amended_by"] == [AMENDMENT_1])
+    # kb/Work PB5093: the change path. The new text locates the row whatever number the rule had when the change was
+    # written; an item names a list's rule, its occurrence the sub-list, a lettered sub-item the list holding it; a row
+    # with no page cell continues the change above it.
+    check("a change's new text locates its row over the rule number it names (an earlier amendment's numbering)",
+          by["1985-SR-VI.6.2.3-3"]["amended_by"] == [AMENDMENT_1] and by["1985-GR-VI.6.2.3-1"]["amended_by"] == [])
+    check("'second occurrence of a paragraph numbered (1)' and 'item 1b' name the restarted list's rule 1, not the first's",
+          by["1985-GR-XIII.3.21.4-L2.1"]["amended_by"] == [AMENDMENT_1, AMENDMENT_2]
+          and by["1985-GR-XIII.3.21.4-1"]["amended_by"] == [])
+    check("a two-cell row with no page cell continues the change above it: its new text locates the row",
+          by["1989-RV-A.2.5.4-1"]["amended_by"] == [AMENDMENT_2])
+    check("THE ATTRIBUTION CROSS-CHECK: a correction applied for an amendment whose one row does not carry it is a "
+          "finding; one whose row does, and one it cannot locate, are counted",
+          [m.split(" ", 1)[0] for m in cat.misattributed] == ["C3"] and "1985-GR-VI.5.7.4-2" in cat.misattributed[0]
+          and cat.attribution_tally == {"located, the row carries its amendment": 1,
+                                        "not located: no paragraph, or no quoted text": 1,
+                                        "not located: its text is in no row": 1})
     check("a change row in neither row shape is a finding, never swallowed as the open row's new text (review R1-1, "
           "kb/Work PB5045)",
           len(cat.unread) == 1 and cat.unread[0].startswith("page 913: VI-26 — Paragraph 5.7.4")

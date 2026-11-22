@@ -1,0 +1,7 @@
+PERFORM
+DEBUG [EMPTYS                        ] [PERFORM LOOP ]
+FALL
+DEBUG [EMPTYS                        ] [FALL THROUGH ]
+GOTO
+DEBUG [EMPTYS                        ] [             ]
+END

@@ -20,7 +20,7 @@
       *> or rules of Standard COBOL are undefined"), and the
       *> Correction Amendment's clarification "allows an
       *> implementation of amended third Standard COBOL to terminate
-      *> processing" (§1985:p.B-46). The run unit is terminated with
+      *> processing" (§1993:p.B-46). The run unit is terminated with
       *> a message naming the function, the argument and the value
       *> (docs/conformance D-INTEGER-ARGUMENT-SCREEN).
       *> EXPECTED: ORD ("A") is 66 in the native collating sequence,

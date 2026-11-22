@@ -36,7 +36,7 @@
       *> SIGN legs (GR5): WB is under W2 SIGN IS LEADING SEPARATE
       *> (alphanumeric group), SS OF V2 under a strong type with SIGN IS
       *> LEADING SEPARATE, WC under W3 GROUP-USAGE NATIONAL SIGN IS
-      *> TRAILING SEPARATE (national group). By §2002:13.16.50.3 GR6 a)
+      *> TRAILING SEPARATE (national group). By §2002:13.16.50.3 GR6a
       *> the separate sign is a character position that is not a digit
       *> position, so each S9(3) subject is 4 positions long:
       *> FUNCTION LENGTH (§2002:15.39.3 RV3 alphanumeric, RV2 national)

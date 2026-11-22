@@ -34,7 +34,7 @@
       *>
       *> ⛔ BOTH ARMS USE THE SAME PROBE, so they differ only in their
       *> directive context. The probe is a STRING whose pointer passes
-      *> the receiver (§2023:14.9.43.4 GR8 b) sets EC-OVERFLOW-STRING,
+      *> the receiver (§2023:14.9.43.4 GR8b sets EC-OVERFLOW-STRING,
       *> which Table 13 marks NF) written with NO ON OVERFLOW phrase,
       *> so §2023:14.6.13.1.4 falls through items 1-3 to item 4 and
       *> execution simply continues — no declarative and no abnormal

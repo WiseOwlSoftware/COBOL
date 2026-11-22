@@ -177,11 +177,22 @@ internal static class PictureComposition
         return packed;
     }
 
-    /// <summary>One symbol of the repeat-expanded character-string. <see cref="Text"/> is the symbol as the
-    /// standard names it — one character, or the two-character <c>CR</c>/<c>DB</c>, which SR12 NOTE 2 makes ONE
-    /// symbol. <see cref="At"/> is its 0-based SYMBOL ordinal (not a character offset), which is the position
-    /// every rule below counts in.</summary>
-    private readonly record struct Sym(string Text, char Kind, int At);
+    /// <summary>One RUN of identical symbols of the repeat-expanded character-string. <see cref="Text"/> is the symbol
+    /// as the standard names it — one character, or the two-character <c>CR</c>/<c>DB</c>, which SR12 NOTE 2 makes ONE
+    /// symbol. <see cref="At"/> is the 0-based SYMBOL ordinal (not a character offset) of the run's first symbol, which
+    /// is the position every rule below counts in, and <see cref="Count"/> how many symbols the run holds.
+    /// <para>⛔ THE RULES WALK RUNS, NEVER SYMBOLS (kb/Work PB5913). A repetition factor is a count (§2023:13.18.40.3 SR4
+    /// caps character-string-1 at 63 characters AS WRITTEN, and <c>PIC X(67108864)</c> obeys it), so the expanded string
+    /// holds as many symbols as the item has positions, while the composition rules ask only which symbols occur, how
+    /// often, and in what order. Every rule here is a question about runs: a count is a sum of run lengths, a position the
+    /// ordinal of a run's first or last symbol, adjacency the order of runs, and Table 10 is asked once per run, plus once
+    /// more where a run repeats a role whose own row may refuse it. One symbol per element cost 30 s for a 64 M-position
+    /// PICTURE (a string allocated per character, and each rule a pass over 64 M elements).</para></summary>
+    private readonly record struct Sym(string Text, char Kind, int At, int Count)
+    {
+        /// <summary>The ordinal of the run's last symbol.</summary>
+        public int Last => At + Count - 1;
+    }
 
     /// <summary>⛔ THE ONE ASKER OF SR13's ROLE SWAP (kb/Work PB3219). §2023:13.18.40.3 SR13 — "When the DECIMAL-POINT IS
     /// COMMA clause is specified, the symbol comma is the decimal separator and the symbol period is the grouping
@@ -213,8 +224,9 @@ internal static class PictureComposition
         char decimalSep = DecimalSeparator(decimalPointIsComma);
         char grouping = GroupingSeparator(decimalPointIsComma);
         var syms = Tokenize(expanded);
-        int n = syms.Count;
-        if (n == 0) return true;   // the empty string is already COBOL0808 at the caller
+        int runs = syms.Count;
+        if (runs == 0) return true;   // the empty string is already COBOL0808 at the caller
+        int n = syms[^1].Last + 1;    // the SYMBOL count, which the decimal point position counts in
 
         bool Fail(DiagnosticDescriptor code, string why)
         {
@@ -234,21 +246,24 @@ internal static class PictureComposition
         int Count(string sym)
         {
             int k = 0;
-            foreach (var s in syms) if (s.Text == sym) k++;
+            foreach (var s in syms) if (s.Text == sym) k += s.Count;
             return k;
         }
 
         var floating = MarkFloating(syms, cs, char1, char1Extended, decimalSep, grouping);
-        bool IsFloating(int i) => floating[i];
+        bool IsFloating(int r) => floating[r];
 
         // The DIGIT POSITIONS (§2023:13.18.40.4 GR14): 9, the zero-suppression symbols, every 'P' ("not counted in
         // the size of the item, but each symbol 'P' is counted in the maximum number of digit positions") and
-        // each occurrence of a floating string's symbol.
-        var digitPositions = new List<int>(n);
-        for (int i = 0; i < n; i++)
-            if (syms[i].Kind is '9' or 'Z' or '*' or 'P'
-                || ((syms[i].Kind == '+' || syms[i].Kind == '-' || syms[i].Kind == cs) && IsFloating(i)))
-                digitPositions.Add(i);
+        // each occurrence of a floating string's symbol. SR16 asks only for the leftmost and the rightmost.
+        int firstDigit = -1, lastDigit = -1;
+        for (int r = 0; r < runs; r++)
+            if (syms[r].Kind is '9' or 'Z' or '*' or 'P'
+                || ((syms[r].Kind == '+' || syms[r].Kind == '-' || syms[r].Kind == cs) && IsFloating(r)))
+            {
+                if (firstDigit < 0) firstDigit = syms[r].At;
+                lastDigit = syms[r].Last;
+            }
 
         // ── §2023:13.18.40.3's composition syntax rules, each cited, in a fixed order so the message names the most
         // specific rule the string breaks. Every one of them is a PROHIBITION on a combination; the precedence
@@ -306,18 +321,23 @@ internal static class PictureComposition
         // positions in character-string-1." Both halves are measured: one contiguous run, and that run standing
         // at an END of the DIGIT-POSITION sequence (GR14's digit positions, so `PIC $$$$PP` counts the floating
         // currency positions and its 'P's are rightmost — kb/Work PB155).
-        var ps = new List<int>();
-        for (int i = 0; i < n; i++) if (syms[i].Kind == 'P') ps.Add(i);
-        bool leadingP = false, trailingP = false;
-        if (ps.Count > 0)
+        // Identical adjacent symbols are one run, so the 'P's are continuous exactly when they are one run.
+        int pRun = -1;
+        for (int r = 0; r < runs; r++)
         {
-            for (int i = 1; i < ps.Count; i++)
-                if (ps[i] != ps[i - 1] + 1)
-                    return Fail(DiagnosticCatalog.PictureComposition,
-                        "the symbols 'P' do not form a CONTINUOUS string — 'P' may appear only as a continuous "
-                        + $"string of 'P's in the leftmost or rightmost digit positions ({EditionInfo.Designated(Rule("SR16", "§1985:VI.5.9.4 GR8"))})");
-            leadingP = ps[0] == digitPositions[0];
-            trailingP = ps[^1] == digitPositions[^1];
+            if (syms[r].Kind != 'P') continue;
+            if (pRun >= 0)
+                return Fail(DiagnosticCatalog.PictureComposition,
+                    "the symbols 'P' do not form a CONTINUOUS string — 'P' may appear only as a continuous "
+                    + $"string of 'P's in the leftmost or rightmost digit positions ({EditionInfo.Designated(Rule("SR16", "§1985:VI.5.9.4 GR8"))})");
+            pRun = r;
+        }
+        bool leadingP = false, trailingP = false;
+        int firstP = pRun >= 0 ? syms[pRun].At : -1, lastP = pRun >= 0 ? syms[pRun].Last : -1;
+        if (pRun >= 0)
+        {
+            leadingP = firstP == firstDigit;
+            trailingP = lastP == lastDigit;
             if (!leadingP && !trailingP)
                 return Fail(DiagnosticCatalog.PictureComposition,
                     "the string of 'P's stands at neither the leftmost nor the rightmost digit positions of "
@@ -326,11 +346,11 @@ internal static class PictureComposition
 
         // SR19 "When the symbol 'V' and one or more symbols 'P' are used in character-string-1, the symbol 'V'
         // shall either immediately precede the first symbol 'P' or immediately follow the last symbol 'P'."
-        if (ps.Count > 0 && Count("V") > 0)
+        if (pRun >= 0 && Count("V") > 0)
         {
             int v = -1;
-            for (int i = 0; i < n; i++) if (syms[i].Kind == 'V') { v = i; break; }
-            if (v != ps[0] - 1 && v != ps[^1] + 1)
+            for (int r = 0; r < runs; r++) if (syms[r].Kind == 'V') { v = syms[r].At; break; }
+            if (v != firstP - 1 && v != lastP + 1)
                 return Fail(DiagnosticCatalog.PictureComposition,
                     "the symbol 'V' neither immediately precedes the first symbol 'P' nor immediately follows the "
                     + $"last ({EditionInfo.Designated(Rule("SR19", "§1985:VI.5.9.4 GR8"))})");
@@ -363,11 +383,11 @@ internal static class PictureComposition
         // character-string-1", sanctions two. Counting character-1 here would reject `PIC LL EDITING "L" IS ":"`
         // and `PIC L999F`. Its placement is SR8-SR12 / SR25 / SR26, in PictureAnalyzer.ValidateEditing.
         int fixedCurrency = 0, fixedSign = 0;
-        for (int i = 0; i < n; i++)
+        for (int r = 0; r < runs; r++)
         {
-            if (IsFloating(i)) continue;
-            if (syms[i].Kind == cs) fixedCurrency++;
-            else if (syms[i].Text is "+" or "-" or "CR" or "DB") fixedSign++;
+            if (IsFloating(r)) continue;
+            if (syms[r].Kind == cs) fixedCurrency += syms[r].Count;
+            else if (syms[r].Text is "+" or "-" or "CR" or "DB") fixedSign += syms[r].Count;
         }
         if (fixedCurrency > 1)
             return Fail(DiagnosticCatalog.PictureComposition,
@@ -389,10 +409,10 @@ internal static class PictureComposition
         // position-ambiguous role search below at 2^4 assignments (kb/Work PB855).
         int extendedFixed = 0;
         var extendedFloating = new HashSet<char>();
-        for (int i = 0; i < n; i++)
+        for (int r = 0; r < runs; r++)
         {
-            if (!char1Extended.Contains(syms[i].Kind)) continue;
-            if (IsFloating(i)) extendedFloating.Add(syms[i].Kind); else extendedFixed++;
+            if (!char1Extended.Contains(syms[r].Kind)) continue;
+            if (IsFloating(r)) extendedFloating.Add(syms[r].Kind); else extendedFixed += syms[r].Count;
         }
         if (extendedFixed + extendedFloating.Count > 2)
             return Fail(DiagnosticCatalog.PictureEditingExtendedCount,
@@ -428,7 +448,7 @@ internal static class PictureComposition
 
         // The DECIMAL POINT POSITION — derived ONCE, here, because two rules count from it: SR29 just below and
         // the Table-10 role assignment (which of the eight two-row symbols' halves an occurrence takes).
-        int dp = DecimalPointPosition(syms, n, decimalSep, leadingP, ps);
+        int dp = DecimalPointPosition(syms, n, decimalSep, leadingP, firstP);
 
         // SR29 "For floating insertion, at least one insertion symbol shall be specified to the left of the
         // decimal point position." A floating string is anchored left of the point BY DEFINITION: §2023:13.18.40.5
@@ -442,12 +462,13 @@ internal static class PictureComposition
         // that has NOTHING to its left but the point itself (`PIC .$$`, `PIC V$$`, `PIC B.++`), which is exactly
         // the residue this rule names.
         int firstFloat = -1;
-        for (int i = 0; i < n; i++) if (IsFloating(i)) { firstFloat = i; break; }
-        if (firstFloat >= 0 && firstFloat >= dp)
+        for (int r = 0; r < runs; r++) if (IsFloating(r)) { firstFloat = r; break; }
+        if (firstFloat >= 0 && syms[firstFloat].At >= dp)
         {
-            string point = dp < n && syms[dp].Kind is 'V'
+            char atPoint = dp < n ? syms[RunOf(syms, dp)].Kind : '\0';
+            string point = atPoint is 'V'
                 ? $"the symbol 'V' at symbol position {dp + 1}"
-                : dp < n && syms[dp].Kind == decimalSep
+                : dp < n && atPoint == decimalSep
                     ? $"the symbol '{decimalSep}' at symbol position {dp + 1}"
                     : $"the assumed point to the left of the 'P' string at symbol position {dp + 1}";
             return Fail(DiagnosticCatalog.PictureComposition,
@@ -463,8 +484,21 @@ internal static class PictureComposition
         // a PICTURE clause are specified in 13.18.40.6, Precedence rules"). Assign every occurrence its role,
         // then require an 'x' for EVERY ordered pair: an 'x' means the column symbol "may precede (BUT NOT
         // NECESSARILY IMMEDIATELY)" the row symbol, so the relation binds non-adjacent pairs too.
-        return Precedence(syms, n, cs, char1, char1Extended, dp, decimalSep, grouping, IsFloating, leadingP,
+        return Precedence(syms, cs, char1, char1Extended, dp, decimalSep, grouping, IsFloating, leadingP,
             edition.DialectLevel, Fail);
+    }
+
+    /// <summary>The index of the run that holds the symbol at <paramref name="ordinal"/> (a binary search: the runs are
+    /// in order and contiguous).</summary>
+    private static int RunOf(List<Sym> syms, int ordinal)
+    {
+        int lo = 0, hi = syms.Count - 1;
+        while (lo < hi)
+        {
+            int mid = (lo + hi + 1) / 2;
+            if (syms[mid].At <= ordinal) lo = mid; else hi = mid - 1;
+        }
+        return lo;
     }
 
     /// <summary>
@@ -479,11 +513,11 @@ internal static class PictureComposition
     /// <para>⛔ ONE DEFINITION for the whole file: SR29 and the Table-10 role assignment both count from it, and
     /// they must agree about which half of a two-row symbol an occurrence takes (kb/Work PB530).</para>
     /// </summary>
-    private static int DecimalPointPosition(List<Sym> syms, int n, char decimalSep, bool leadingP, List<int> ps)
+    private static int DecimalPointPosition(List<Sym> syms, int n, char decimalSep, bool leadingP, int firstP)
     {
-        for (int i = 0; i < n; i++)
-            if (syms[i].Kind == 'V' || syms[i].Kind == decimalSep) return i;
-        return leadingP ? ps[0] : n;
+        foreach (var s in syms)
+            if (s.Kind == 'V' || s.Kind == decimalSep) return s.At;
+        return leadingP ? firstP : n;
     }
 
     /// <summary>
@@ -505,12 +539,12 @@ internal static class PictureComposition
         var syms = Tokenize(expanded);
         var floating = MarkFloating(syms, cs, char1, char1Extended, DecimalSeparator(decimalPointIsComma),
             GroupingSeparator(decimalPointIsComma));
-        for (int i = 0; i < syms.Count; i++)
+        for (int r = 0; r < syms.Count; r++)
         {
-            if (!floating[i]) continue;
-            char sym = syms[i].Kind;
+            if (!floating[r]) continue;
+            char sym = syms[r].Kind;
             int occ = 0;
-            foreach (var s in syms) if (s.Kind == sym) occ++;
+            foreach (var s in syms) if (s.Kind == sym) occ += s.Count;
             return (sym, occ);
         }
         return ('\0', 0);
@@ -545,8 +579,12 @@ internal static class PictureComposition
             GroupingSeparator(decimalPointIsComma));
         var marks = new bool[expanded.Length];
         int at = 0;
-        for (int i = 0; i < syms.Count; i++)
-            for (int k = 0; k < syms[i].Text.Length; k++) marks[at++] = floating[i];
+        for (int r = 0; r < syms.Count; r++)
+        {
+            int chars = syms[r].Text.Length * syms[r].Count;
+            if (floating[r]) Array.Fill(marks, true, at, chars);
+            at += chars;
+        }
         return marks;
     }
 
@@ -583,7 +621,7 @@ internal static class PictureComposition
                 if (syms[i].Kind != sym) { i++; continue; }
                 int last = i, occ = 0;
                 for (int j = i; j < n && (syms[j].Kind == sym || Embedded(syms[j].Kind)); j++)
-                    if (syms[j].Kind == sym) { last = j; occ++; }
+                    if (syms[j].Kind == sym) { last = j; occ += syms[j].Count; }
                 if (occ >= 2)
                     for (int j = i; j <= last; j++) if (syms[j].Kind == sym) floating[j] = true;
                 i = last + 1;
@@ -610,11 +648,15 @@ internal static class PictureComposition
     /// <para><paramref name="dp"/> is the decimal point position from <see cref="DecimalPointPosition"/> — the
     /// ONE derivation of it (SR29 counts from the same one), and what splits the eight two-row symbols into
     /// their left-of-point and right-of-point halves.</para></summary>
-    private static bool Precedence(List<Sym> syms, int n, char cs, IReadOnlySet<char> char1,
+    private static bool Precedence(List<Sym> syms, char cs, IReadOnlySet<char> char1,
         IReadOnlySet<char> char1Extended, int dp, char decimalSep, char grouping, Func<int, bool> isFloating,
         bool leadingP, int dialectLevel,
         Func<DiagnosticDescriptor, string, bool> fail)
     {
+        // One entry per RUN (kb/Work PB5913). A run never straddles the decimal point position: 'V' and the decimal
+        // separator are runs of their own, and a leading 'P' string puts the point at its own first symbol, so every
+        // symbol of a run is on one side of it and takes the run's role.
+        int n = syms.Count;
         var roleA = new PicRole[n];      // the first candidate role
         var roleB = new PicRole[n];      // the second, where the occurrence is position-ambiguous
         var live = new bool[n];
@@ -622,7 +664,7 @@ internal static class PictureComposition
         for (int i = 0; i < n; i++)
         {
             char c = syms[i].Kind;
-            bool left = i < dp;
+            bool left = syms[i].At < dp;
             // ⛔ A PICTURE EDITING character-1 TAKES A TABLE-10 ROLE ONLY WHEN THE STANDARD GIVES IT ONE. The
             // standard gives a Table-10 precedence to 'es' ALONE — "If the EDITING phrase is specified, the
             // precedence of 'es' as related to Table 10 … has the same precedence as the 'cs' symbol in the column
@@ -702,9 +744,13 @@ internal static class PictureComposition
         // micro-optimization — `ExpandRepeats` turns `PIC X(30000)` into a 30 000-symbol string (SR4's
         // 63-character limit is on character-string-1 AS WRITTEN, which `X(30000)` obeys), and a pair loop over
         // that is 9x10^8 comparisons inside the binder.
+        // A RUN is asked of the matrix once for its first symbol and, when it repeats, once more for its second: by then
+        // its own role is in `seen`, and a role whose own row refuses it (the empty S and leading-sign rows) may not
+        // repeat. Every later symbol of the run asks the same question again with the same `seen`, so the answer is the
+        // second's (kb/Work PB5913).
         var role = new PicRole[n];
         int combos = 1 << ambiguous.Count;
-        (int First, int Second) worst = (-1, -1);
+        (int First, int Second) worst = (-1, -1);   // SYMBOL ordinals, for the message
         long tests = 0;   // the work the PB1600 scale gate counts (WalkObserver)
         for (int pick = 0; pick < combos; pick++)
         {
@@ -713,28 +759,32 @@ internal static class PictureComposition
                 if ((pick & (1 << k)) != 0) role[ambiguous[k]] = roleB[ambiguous[k]];
             (int First, int Second) bad = (-1, -1);
             int seen = 0;
-            for (int j = 0; j < n; j++)
+            for (int j = 0; j < n && bad.First < 0; j++)
             {
                 if (!live[j]) continue;
-                tests++;
-                int refused = seen & ~MayPrecede[(int)role[j]];
-                // The pair-of-currency-likes exemption (see the role map above): a fixed currency symbol is bounded to
-                // ONE by SR24, so before extended symbols took these roles a currency role was never in `seen` when
-                // a currency role was asked and the exemption removed nothing.
-                if (role[j] is PicRole.CurrencyLeading or PicRole.CurrencyTrailing) refused &= ~CurrencyLikeRoles;
-                if (refused != 0)
+                for (int occurrence = 0; occurrence < Math.Min(2, syms[j].Count); occurrence++)
                 {
-                    // Report the LOWEST refused role's FIRST occurrence — deterministic, and the symbol a
-                    // reader would name (the earliest one the row forbids).
-                    var culprit = (PicRole)System.Numerics.BitOperations.TrailingZeroCount(refused);
-                    for (int i = 0; i < j; i++)
+                    tests++;
+                    int refused = seen & ~MayPrecede[(int)role[j]];
+                    // The pair-of-currency-likes exemption (see the role map above): a fixed currency symbol is bounded to
+                    // ONE by SR24, so before extended symbols took these roles a currency role was never in `seen` when
+                    // a currency role was asked and the exemption removed nothing.
+                    if (role[j] is PicRole.CurrencyLeading or PicRole.CurrencyTrailing) refused &= ~CurrencyLikeRoles;
+                    if (refused != 0)
                     {
-                        tests++;
-                        if (live[i] && role[i] == culprit) { bad = (i, j); break; }
+                        // Report the LOWEST refused role's FIRST occurrence — deterministic, and the symbol a
+                        // reader would name (the earliest one the row forbids). The run itself holds it when the
+                        // refusal is the run's own repetition.
+                        var culprit = (PicRole)System.Numerics.BitOperations.TrailingZeroCount(refused);
+                        for (int i = 0; i <= j; i++)
+                        {
+                            tests++;
+                            if (live[i] && role[i] == culprit) { bad = (syms[i].At, syms[j].At + occurrence); break; }
+                        }
+                        break;
                     }
-                    break;
+                    seen |= 1 << (int)role[j];
                 }
-                seen |= 1 << (int)role[j];
             }
             if (bad.First < 0) { WalkObserver.Value?.Invoke(tests); return true; }
             if (bad.Second > worst.Second || (bad.Second == worst.Second && bad.First > worst.First)) worst = bad;
@@ -743,10 +793,11 @@ internal static class PictureComposition
         WalkObserver.Value?.Invoke(tests);
         // A non-floating EXTENDED character-1 on either side of the pair stands in the cs column and row (§2023:13.18.40.6,
         // closing sentence), which is not obvious from the picture, so the message says it.
-        bool esInPair = IsFixedExtended(syms[worst.First], worst.First) || IsFixedExtended(syms[worst.Second], worst.Second);
+        int firstRun = RunOf(syms, worst.First), secondRun = RunOf(syms, worst.Second);
+        bool esInPair = IsFixedExtended(syms[firstRun], firstRun) || IsFixedExtended(syms[secondRun], secondRun);
         return fail(DiagnosticCatalog.PicturePrecedence,
-            $"the symbol '{syms[worst.Second].Text}' at symbol position {worst.Second + 1} may not follow the symbol "
-            + $"'{syms[worst.First].Text}' at symbol position {worst.First + 1}. Character-string-1 shall consist of "
+            $"the symbol '{syms[secondRun].Text}' at symbol position {worst.Second + 1} may not follow the symbol "
+            + $"'{syms[firstRun].Text}' at symbol position {worst.First + 1}. Character-string-1 shall consist of "
             + "an allowable COMBINATION of characters used as picture symbols (ISO §2023:13.18.40.3 SR2), and the "
             + "allowable combinations are §2023:13.18.40.6, Table 10 — Format 1 picture symbol order of precedence, "
             + "whose blank cell here is a prohibition"
@@ -769,17 +820,34 @@ internal static class PictureComposition
     /// <summary>Split the repeat-expanded string into SYMBOLS: one character each, except <c>CR</c> and
     /// <c>DB</c>, which SR12 NOTE 2 makes one symbol apiece ("The symbols 'CR' and 'DB' although consisting of
     /// two characters, are each considered to be a symbol by itself"). The caller's SR2 whitelist has already
-    /// guaranteed that a 'C' or 'D' outside such a pair is impossible.</summary>
+    /// guaranteed that a 'C' or 'D' outside such a pair is impossible.
+    /// <para>Identical adjacent symbols form one <see cref="Sym"/> run (kb/Work PB5913); <c>CR</c> and <c>DB</c> are never
+    /// merged, so each stays one symbol whose repetition SR12 b) counts.</para></summary>
     private static List<Sym> Tokenize(string expanded)
     {
-        var syms = new List<Sym>(expanded.Length);
-        for (int i = 0; i < expanded.Length; i++)
+        var syms = new List<Sym>();
+        var runs = PictureSymbolRuns.Of(expanded).Runs;
+        int ordinal = 0, taken = 0;   // `taken`: the first character of this run, already the second half of CR / DB
+        for (int r = 0; r < runs.Count; r++)
         {
-            if (expanded[i] == 'C' && i + 1 < expanded.Length && expanded[i + 1] == 'R')
-            { syms.Add(new Sym("CR", 'C', syms.Count)); i++; continue; }
-            if (expanded[i] == 'D' && i + 1 < expanded.Length && expanded[i + 1] == 'B')
-            { syms.Add(new Sym("DB", 'D', syms.Count)); i++; continue; }
-            syms.Add(new Sym(expanded[i].ToString(), expanded[i], syms.Count));
+            var (c, count) = runs[r];
+            count -= taken;
+            taken = 0;
+            // The last 'C' / 'D' of its run opens CR / DB when the next run starts with 'R' / 'B'.
+            bool pair = (c == 'C' && r + 1 < runs.Count && runs[r + 1].Symbol == 'R')
+                || (c == 'D' && r + 1 < runs.Count && runs[r + 1].Symbol == 'B');
+            if (c is 'C' or 'D')
+            {
+                // The 'C' / 'D' characters before the last are a run of their own (a declared character-1 or the currency
+                // symbol; the SR2 whitelist admits no other), and CR / DB is one symbol, never merged with its neighbour.
+                int lone = count - (pair ? 1 : 0);
+                if (lone > 0) { syms.Add(new Sym(c.ToString(), c, ordinal, lone)); ordinal += lone; }
+                if (pair) { syms.Add(new Sym(c == 'C' ? "CR" : "DB", c, ordinal++, 1)); taken = 1; }
+                continue;
+            }
+            if (count == 0) continue;
+            syms.Add(new Sym(c.ToString(), c, ordinal, count));
+            ordinal += count;
         }
         return syms;
     }

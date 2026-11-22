@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 ///
 /// <para><b>How a source element reaches it.</b> Like every class, only through its REPOSITORY paragraph
 /// (§2023:8.4.6.4; §2023:11.3.3 SR2 for INHERITS): a class-specifier <c>CLASS BASE</c> requires "information in the
-/// external repository for the class" (§2023:12.3.8.3 SR6 b), and the implementation's own standard class is always
+/// external repository for the class" (§2023:12.3.8.3 SR6, and the implementation's own standard class is always
 /// there. How a specifier and that information choose the class "is implementor-defined" (§2023:12.3.8.4 GR6): a class
 /// DEFINED in the compilation group under the same name is the one the group's own specifiers mean, and the
 /// standard class answers only a name no definition of the group claims (<c>SymbolTable.ClassNames</c>).</para>

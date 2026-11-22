@@ -5,20 +5,20 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:8.4.6.2.1 3) a) - a contained program's own BASED root
+      *> ISO §2023:8.4.6.2.1 GR3a - a contained program's own BASED root
       *> spelled like a container's GLOBAL BASED root is its own item,
       *> with its own data address (kb/Work PB1047, wave 69 Z: both
       *> roots' address pointers were named from the COBOL word, one C#
       *> member, and the program did not build)
-      *> RULE §2023:8.4.6.2.1 3) a): "If the name is declared in source
+      *> RULE §2023:8.4.6.2.1 GR3a: "If the name is declared in source
       *>   element B, the item in source element B is the referenced
       *>   item."  cite.py --check 8.4.6.2.1 "If the name is declared in
       *>   source element B, the item in source element B is the
-      *>   referenced item" -> OK §2023:8.4.6.2.1 3) a)
+      *>   referenced item" -> OK §2023:8.4.6.2.1 GR3a
       *> RULE §2023:13.18.27.4 GR2: a contained program "may reference that
       *>   name without describing it again" (cite.py --check 13.18.27.4
       *>   "may reference that name without describing it again" -> OK
-      *>   §2023:13.18.27.4 2)) - W69ZBJ, which declares no B, reaches the
+      *>   §2023:13.18.27.4 GR2) - W69ZBJ, which declares no B, reaches the
       *>   container's B and so the storage its address names.
       *> EXPECTED OUTPUT, DERIVED:
       *>   IN B=INNR   W69ZBI's own B, addressed at its own S2.

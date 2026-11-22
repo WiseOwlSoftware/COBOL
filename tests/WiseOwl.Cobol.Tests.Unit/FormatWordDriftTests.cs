@@ -90,7 +90,7 @@ public sealed class FormatWordDriftTests
 
     private static (CobolParserCore.CompilationUnitContext? Tree, CnFrontend Fe) Parse(string path, int edition)
     {
-        var fe = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = edition };
+        var fe = new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = edition };
         fe.AddCopySearchPath(Path.GetDirectoryName(path)!);
         return (fe.Parse(path, new DiagnosticBag()), fe);
     }

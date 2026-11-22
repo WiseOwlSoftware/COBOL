@@ -8,7 +8,7 @@
       *> and the rule's condition is EACH receiver's own restriction:
       *>   "If identifier-7 references a restricted program-pointer, identifier-8 shall be the predefined address
       *>   NULL or shall reference a program-pointer and the program-prototypes associated with identifier-7 and
-      *>   identifier-8 shall have the same signature."   cite.py: OK  §2023:14.9.39.3 22)  (Syntax rules)
+      *>   identifier-8 shall have the same signature."   cite.py: OK  §2023:14.9.39.3 SR22  (Syntax rules)
       *> RP is restricted to PB3224X (one USING formal); UPP is unrestricted and is written FIRST.
       *> The sender ADDRESS OF PROGRAM PB3224Y is restricted to PB3224Y (two USING formals, GR3), whose
       *> signature differs from RP's.

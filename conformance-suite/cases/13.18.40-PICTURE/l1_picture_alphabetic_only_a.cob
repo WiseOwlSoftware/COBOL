@@ -11,7 +11,7 @@
       *>   python scripts/spec/cite.py --check 13.18.40.4 "To define an
       *>   item as alphabetic, character-string-1 shall contain only
       *>   one or more occurrences of the symbol 'A'."
-      *>   -> OK  §2023:13.18.40.4 5)  (General rules)
+      *>   -> OK  §2023:13.18.40.4 GR5  (General rules)
       *>
       *> HOW A CATEGORY IS OBSERVED. GR5 assigns a CATEGORY, and the
       *> INITIALIZE statement selects its receiving operands BY
@@ -20,11 +20,11 @@
       *>   python scripts/spec/cite.py --check 14.9.20.4 "The REPLACING
       *>   phrase is specified and the category of the elementary data
       *>   item is one of the categories specified in the REPLACING
-      *>   phrase"   -> OK  §2023:14.9.20.4 5) c) 1.  [item 2.]
+      *>   phrase"   -> OK  §2023:14.9.20.4 GR5c.1  [item 2.]
       *>   python scripts/spec/cite.py --check 14.9.20.4 "the
       *>   sending-operand is the literal-1 or identifier-2 associated
       *>   with the category specified in the REPLACING phrase."
-      *>   -> OK  §2023:14.9.20.4 6)  (General rules)  [b]
+      *>   -> OK  §2023:14.9.20.4 GR6  (General rules)  [b]
       *> An elementary item is a receiving operand of REPLACING
       *> ALPHABETIC exactly when its category is alphabetic, and then
       *> literal-1 is moved to it (§2023:14.9.20.4 GR4's implicit MOVE).

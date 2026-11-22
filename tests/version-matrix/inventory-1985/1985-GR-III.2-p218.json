@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p218",
+ "rule-digest": "4a63416ad6fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/UnrepeatedElements.cs#AtMostOnce",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p218",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p218); the code location is where the compiler meets the rule's subject. The read: A vocabulary term; candidates (AS phrase list items, call convention) are wording-only. The code location was located after the read (locations-x.json): AtMostOnce holds a phrase (or clause) as one element of its statement's or clause's general format, written at most once where the format carries no ellipsis (COBOL2423, citing §1985:IV.2.1.4 at 85)."
+}

@@ -257,7 +257,7 @@ public sealed class KeyedClosePermanentErrorWitnessTests : WiseOwlCobolTestBase
         string src = Path.Combine(TempDir, $"{id}.cob"), dll = Path.Combine(TempDir, $"{id}.dll");
         File.WriteAllText(src, source);
         var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023,
-            SourceFormat: InitialReferenceFormat.Auto));
+            SourceFormat: TestSourceFormat.Inline));
         Assert.True(result.Success, $"{result.Status}: {string.Join("\n", result.Errors)}");
         var call = ScratchDirectory.LoadAssembly(dll).GetTypes()
             .Single(t => t.Name == id && t.GetMethod("Call") is not null).GetMethod("Call")!;

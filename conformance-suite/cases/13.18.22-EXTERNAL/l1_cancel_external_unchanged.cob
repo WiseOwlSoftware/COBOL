@@ -11,7 +11,7 @@
       *> last-used state.  External data is always in the last-used state except when the run unit is
       *> activated." — a CANCEL is not a run-unit activation, so external data keeps its contents across one.
       *> THE DISCRIMINATOR.  The same CANCEL that must LEAVE the external record alone must RESET the canceled
-      *> program's own working-storage: §2023:13.5.4 1) makes "Data items in the working-storage section of a
+      *> program's own working-storage: §2023:13.5.4 GR1 makes "Data items in the working-storage section of a
       *> program that does not have the initial attribute ... static data", and §2023:14.6.2.3.2 3) places static
       *> data in the initial state "The first time the program in which it is described is activated after the
       *> execution of a CANCEL statement referencing the program", where step 2 re-applies the VALUE clause.
@@ -20,7 +20,7 @@
       *> entirely would also leave the external record untouched and would read as GR8-conforming.
       *> THE SHARING.  §2023:13.18.22.1: "The constituent data items and group data items of an external data record
       *> are available in a run unit to every runtime element that describes the record as external."  The two
-      *> descriptions carry the same externalized name and define the same number of bytes, as §2023:13.18.22.4 6)
+      *> descriptions carry the same externalized name and define the same number of bytes, as §2023:13.18.22.4 GR6
       *> requires; that rule does not constrain the SUBORDINATE data-names, so they are deliberately different
       *> here — MAIN writes through L1X-MAIN and the sub reads and writes through L1X-SUB, which is itself the
       *> evidence that one run-unit storage, not two look-alike copies, is in play.

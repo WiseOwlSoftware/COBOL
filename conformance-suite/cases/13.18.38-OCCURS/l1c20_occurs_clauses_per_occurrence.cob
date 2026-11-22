@@ -14,38 +14,38 @@
       *>   data description clauses associated with an item whose
       *>   description includes an OCCURS clause apply to each
       *>   occurrence of the item described."
-      *>   OK  §2023:13.18.38.4 1)  (General rules)
+      *>   OK  §2023:13.18.38.4 GR1  (General rules)
       *> §2023:13.18.38.4 GR4: "The value of integer-2 represents the fixed
       *>   number of occurrences of the subject of the entry."
-      *>   OK  §2023:13.18.38.4 4)  (General rules)
+      *>   OK  §2023:13.18.38.4 GR4  (General rules)
       *> §2023:13.18.38.4 GR7: "The value of the data item referenced by
       *>   data-name-1 represents the current number of occurrences
       *>   of the subject of the entry."
-      *>   OK  §2023:13.18.38.4 7)  (General rules)
+      *>   OK  §2023:13.18.38.4 GR7  (General rules)
       *> The per-clause results the derivation applies to EACH
       *> occurrence:
-      *> §2023:13.18.40.5 5) "Fixed insertion editing results in the
+      *> §2023:13.18.40.5 GR5 "Fixed insertion editing results in the
       *>   insertion character(s) occupying the same character
       *>   position(s) in the edited item as the associated symbol
       *>   occupies in character-string-1." Table 8: '-' gives space
       *>   for a positive or zero value, '-' for a negative value.
-      *>   OK  §2023:13.18.40.5 5)  (Editing rules)
-      *> §2023:13.18.40.5 7) "If the symbol 'Z' is used, the replacement
+      *>   OK  §2023:13.18.40.5 GR5  (Editing rules)
+      *> §2023:13.18.40.5 GR7 "If the symbol 'Z' is used, the replacement
       *>   character is the character space"
-      *>   OK  §2023:13.18.40.5 7)  (Editing rules)
+      *>   OK  §2023:13.18.40.5 GR7  (Editing rules)
       *> §2023:13.18.32.4 GR2: "the data is aligned at the rightmost
       *>   character position ... with ... space fill for the
       *>   leftmost character positions."
-      *>   OK  §2023:13.18.32.4 2)  (General rules)
+      *>   OK  §2023:13.18.32.4 GR2  (General rules)
       *> §2023:13.18.8.4 GR1: "the content of the data item is set to all
       *>   spaces when the item is a receiving operand and the value
       *>   being stored is zero."
-      *>   OK  §2023:13.18.8.4 1)  (General rules)
-      *> §2023:13.18.52.4 GR6 b) SIGN ... SEPARATE: "The operational signs
+      *>   OK  §2023:13.18.8.4 GR1  (General rules)
+      *> §2023:13.18.52.4 GR6b SIGN ... SEPARATE: "The operational signs
       *>   for positive and negative are the basic special
       *>   characters '+' and '-', respectively." (6 a): the sign is
       *>   the leading character position.)
-      *>   OK  §2023:13.18.52.4 6) b)  (General rules)
+      *>   OK  §2023:13.18.52.4 GR6b  (General rules)
       *> §2023:14.6.8.5: alphanumeric receiving data is "aligned at the
       *>   leftmost character position in the data item with space
       *>   fill or truncation to the right".

@@ -51,7 +51,7 @@ order: 12
 > range, so that screen would be PB145's spurious size error again. GR-8.8.1.5.4-2/-3 are CONFORMS. Pinned by `2023/pb167_sdidi_exponentiation`,
 > `2023/exp_standard_decimal_eae` and `CobolDecPowDevelopmentTests`, whose drift leg fails if any binary64
 > transcendental returns to `CobolDec`.
-> ⚠ **Consequence under INTERMEDIATE ROUNDING IS PROHIBITED, and it is the standard's:** §2023:11.9.11.2 rule 3 d —
+> ⚠ **Consequence under INTERMEDIATE ROUNDING IS PROHIBITED, and it is the standard's:** §2023:11.9.11.2 GR3 d —
 > "If the PROHIBITED phrase is specified and an intermediate value cannot be represented exactly in SDIDI form,
 > the EC-SIZE-TRUNCATION exception condition is set to exist and the results of the operation are undefined."
 > The r2e development is a chain of inexact 34-digit operations over an irrational result, so under PROHIBITED a

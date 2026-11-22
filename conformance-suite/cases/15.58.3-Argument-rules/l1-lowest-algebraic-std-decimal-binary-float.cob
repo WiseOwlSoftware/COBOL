@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.58.3 rule 2 — "If standard-decimal arithmetic is in effect, argument-1 shall not be a data
+      *> ISO §2023:15.58.3 AR2 — "If standard-decimal arithmetic is in effect, argument-1 shall not be a data
       *> item whose data description entry specifies a standard binary floating-point usage." §2023:3.166 defines
       *> the term outright: "usages float-binary-32, float-binary-64, and float-binary-128". The OPTIONS
       *> paragraph writes ARITHMETIC IS STANDARD-DECIMAL (§2023:11.9.5.1), which §2023:11.9.5.2 GR3 puts in effect for

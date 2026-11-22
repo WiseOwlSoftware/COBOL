@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p304",
+ "rule-digest": "9c5c69f0d8df",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionEntry",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p304",
+ "notes": "Derivation from the read lineage-reads-1985/g-06.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p304); the code location is where the compiler meets the rule's subject. The read: 'An operand or reserved word that appears immediately following the level indicator or the level-number in a Data Division entry.' is vocabulary used by clause rules ('the subject of the entry'); it constrains nothing itself. The candidates are SAME AS, GLOBAL and level-number rules (wording only). The code location was located after the read (locations-all.json): dataDescriptionEntry takes the data-name or FILLER right after the level-number and fileDescriptionEntry the file-name right after FD, as the entry subject."
+}

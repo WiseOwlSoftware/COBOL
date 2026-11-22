@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §2023:8.1.2 1): "The number of bytes used in the memory of the computer to represent characters in
+      *> ISO/IEC 1989:2023 §2023:8.1.2 GR1: "The number of bytes used in the memory of the computer to represent characters in
       *> the alphanumeric coded character set shall be the same for all characters in that coded character set", and
       *> §2023:13.18.44.4 GR1: a REDEFINES entry's storage association is ONE storage area, so the national item N1 below
       *> reads the very bytes of the alphanumeric item A1 (§2023:13.18.60.4 GR7 / GR8: one byte per DISPLAY position, two per

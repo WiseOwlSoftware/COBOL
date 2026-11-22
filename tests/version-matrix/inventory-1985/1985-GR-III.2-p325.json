@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p325",
+ "rule-digest": "9fee28385e8b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/OdoModel.cs#OccursSpec",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p325",
+ "notes": "Derivation from the read lineage-reads-1985/g-06.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p325); the code location is where the compiler meets the rule's subject. The read: 'A variable occurrence data item is a table element which is repeated a variable number of times. Such an item must contain an OCCURS DEPENDING ON clause ... or be subordinate to such an item.' The 'must' fixes the term's membership; it places no constraint a program can break (an item without ODO is simply not one). OCCURS DEPENDING rules are their own rows. The code location was located after the read (locations-all.json): OccursSpec.DependingOperand records the OCCURS DEPENDING ON clause that makes a table element a variable occurrence item; OdoResolvePass resolves its object."
+}

@@ -8,7 +8,7 @@
       *>   "If program-prototype-name-1 is specified, this data item is a restricted program-pointer. A restricted
       *>   program-pointer shall contain only the predefined address NULL or the address of a program with the same
       *>   signature as that identified by the specified program-prototype-name."
-      *>   cite.py: OK  §2023:13.18.60.4 25)  (General rules)
+      *>   cite.py: OK  §2023:13.18.60.4 GR25  (General rules)
       *> The obligation is on the ITEM, whichever statement loads it. PP is restricted to PB935X (RPT is a TYPEDEF,
       *> §2023:13.18.60.3 SR19) and the ENTRY operand is a literal, which names a program by VALUE: its sender is an
       *> unrestricted program-address, associated with no program-prototype, exactly the literal-1 arm of

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-III.2-p45",
+ "rule-digest": "f877f0158b31",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/Condition88.cs#Condition88; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckConditionNameAssociationsPass.cs#CheckConditionNameAssociationsPass",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-SR-III_2-p45",
+ "notes": "Own witness from the read lineage-reads-1985/g-01.json: the reader showed the compiler correct at 85 with its probe (p45_condname.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"it represents a unique data item reference consisting of a syntactically correct combination of a condition-name, together with qualifiers and subscripts, as required for uniqueness of reference\". SR-8.4.2.2.3-5 (2023, 85 case pb567_condition_name_qualification) states the qualification half only, not subscripts or the switch status, so no single pointer covers the scope; the probe and pb862 do. Code location located after the read: Condition88 models a condition-name as a named subset of values of its conditional variable and the pass checks the association."
+}

@@ -9,7 +9,7 @@
       *> detail report group description, in an elementary entry that also contains a COLUMN clause and a
       *> SOURCE or VALUE clause."
       *>   cite.py --check 13.18.28.3 "in an elementary entry that also contains a COLUMN clause and a
-      *>     SOURCE or VALUE clause"  -> OK  §2023:13.18.28.3 1)  (Syntax rule)
+      *>     SOURCE or VALUE clause"  -> OK  §2023:13.18.28.3 SR1  (Syntax rule)
       *> WX has a SOURCE clause but no COLUMN clause, so it is not a printable item; it compiled and ran.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1245NC.

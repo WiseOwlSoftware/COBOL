@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p266",
+ "rule-digest": "cee5b5015875",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#CobolReport",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p258",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its probe (rw.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"An object time control system, provided by the implementor, that accomplishes the construction of reports.\" The implementation must provide it; the probe's GENERATE constructs the report. Candidates (SR-13.18.16.3-2, FMT-13.18.46.2, GR-14.9.42.4-6) have no 85 case. Code location located after the read: CobolReport is the per-report object-time engine that composes, places and writes the report lines (INITIATE, GENERATE, TERMINATE)."
+}

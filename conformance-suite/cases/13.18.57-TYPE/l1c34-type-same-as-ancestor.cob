@@ -16,7 +16,7 @@
       *>   clause that
       *>   references the subject of this entry or any group item to
       *>     which this
-      *>   entry is subordinate" -> OK §2023:13.18.57.3 1) (Syntax rules)
+      *>   entry is subordinate" -> OK §2023:13.18.57.3 SR1 (Syntax rules)
       *> The subject of "10 R-X TYPE T" is subordinate to R-G and to
       *>   REC. T-B,
       *> subordinate to type-name-1 (T), says SAME AS REC -- a group

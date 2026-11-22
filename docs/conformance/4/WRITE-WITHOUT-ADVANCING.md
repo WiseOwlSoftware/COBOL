@@ -9,7 +9,7 @@ order: 18
 > standard names no implementor choice of PLACEMENT, so the two spellings are ONE path (`SequentialConnector.WriteRecord`
 > reroutes the omitted phrase to `WriteAdvancingRecord(lines: 1, before: false)`), whatever the device holds: after a
 > BEFORE write, whose own advance already ended the line, a plain WRITE advances AGAIN (one empty line, as AFTER
-> does); on a LINAGE page the first plain WRITE after OPEN presents on body line 2 (§2023:13.18.34.4 GR7 d) puts the
+> does); on a LINAGE page the first plain WRITE after OPEN presents on body line 2 (§2023:13.18.34.4 GR7d puts the
 > counter at 1, and the AFTER advance makes it 2, GR7 c) 3), and an overflowing plain WRITE presents ON line 1 of the
 > next page (GR26 a) with the AFTER phrase implied); a line sequential file no longer travels twice around an AFTER
 > write. Before PB1027 the omitted phrase took BEFORE's placement whenever no line was open, so each of those was one

@@ -497,9 +497,11 @@ def main() -> int:
         # THE DERIVATION FROM A READ (kb/Work PB5453; section 10.6): a 1985 read that proposes a derivation its refuter
         # UPHELD becomes, in one derivation-batch, its section 8 register row, its slice's refuter record file and its
         # store record; the 1985 read's `compiler-at-1985` is read (until 2026-11-21 only `compiler-at-2002` was).
+        # The planted rules are any three GR rules of the 1985 catalog: derivation-batch writes into the scratch `repo`
+        # below, whose store starts empty, so no planted rule depends on the live store still holding unrecorded rows
+        # (until train-1985-c it took three GR rules the live store had no record of, and failed once 1985 had fewer).
         ed85 = inventory_schema.edition(1985)
-        store_1985 = A.read_store(A.inventory_dir(ed85, spec_pdf.REPO))
-        bare85 = [r for r in ed85.rules() if r["kind"] == "GR" and r["id"] not in store_1985][:3]
+        bare85 = [r for r in ed85.rules() if r["kind"] == "GR"][:3]
         drv_reads = root / "drv-reads"
         drv_reads.mkdir()
         names = "defines a property of the user's program that no output of a compiler can show"

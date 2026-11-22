@@ -12,7 +12,7 @@
       *>   evaluate the arithmetic expression."
       *>   cite.py --check 7.3.6.2 "The implementor shall define and
       *>     document any rules restricting the precision and/or
-      *>     magnitude and/or range ..." -> OK  §2023:7.3.6.2 2)
+      *>     magnitude and/or range ..." -> OK  §2023:7.3.6.2 SR2
       *> The documented restriction (docs/CONFORMANCE.md DOC-A.1-29):
       *>   an intermediate result whose magnitude is not below about
       *>   7.9E28 is a compile-time error, COBOL1547 in a constant

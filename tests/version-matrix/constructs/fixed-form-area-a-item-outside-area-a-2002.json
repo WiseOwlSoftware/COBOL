@@ -9,5 +9,6 @@
  "removedIn": null,
  "expectDiagnostic": "COBOL3734",
  "vcr": "VCR Table 7 row 7.35 - areas A and B of the fixed-form program-text area, removed in 2002",
+ "sourceFormat": "fixed",
  "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. AREAHDR.\n000300 PROCEDURE DIVISION.\n000400 MAIN-PARA.\n000500     DISPLAY \"A\".\n000600     NEXT-PARA.\n000700     DISPLAY \"B\".\n000800     STOP RUN.\n"
 }

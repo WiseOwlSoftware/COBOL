@@ -11,7 +11,7 @@
       *> SR2: "The number of selection objects within each set of selection objects shall be equal to the
       *> number of selection subjects."  A SET of selection objects is ONE WHEN phrase, so consecutive WHEN
       *> phrases sharing one imperative-statement are counted separately (leg TWO-PHRASES).
-      *> SR7 c): "The word ANY may correspond to a selection subject of any type", and §2023:14.9.13.4 GR4 a) 1.
+      *> SR7 c): "The word ANY may correspond to a selection subject of any type", and §2023:14.9.13.4 GR4a 1.
       *> makes such a pair true without consulting the subject (leg ANY-OK) — ANY still OCCUPIES a position
       *> and is counted.
       *> SR4: "The two operands in a range-expression shall be of the same class and shall not be of class

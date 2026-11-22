@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using WiseOwl.Cobol.Frontend.Preprocessor;
 
 namespace WiseOwl.Cobol.Tests.Conformance;
 
@@ -15,7 +16,7 @@ public sealed class DebuggingLineSourceReadingTests
 {
     private static string[] Errors(params string[] lines)
     {
-        var (_, errors, _) = EditionHarness.CompileFull(string.Join(Environment.NewLine, lines) + Environment.NewLine, 85);
+        var (_, errors, _) = EditionHarness.CompileFull(string.Join(Environment.NewLine, lines) + Environment.NewLine, 85, format: InitialReferenceFormat.Fixed);
         return [.. errors];
     }
 

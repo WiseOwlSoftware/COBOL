@@ -27,12 +27,12 @@
       *>
       *> cite.py (NOTE PB1554: cite.py labels the unnumbered group/alphabetic sentence of
       *> §2023:8.8.4.2.1 as list item "13)"; it is the paragraph after item 13):
-      *>   OK  §2023:8.8.4.2.1 2)  (General)
-      *>   OK  §2023:8.8.4.2.1 3)  (General)
-      *>   OK  §2023:8.8.4.2.1 7)  (General)
-      *>   OK  §2023:8.8.4.2.1 13)  (General)  [the group/alphabetic sentence]
-      *>   OK  §2023:8.8.4.2.7 1)  (Comparison of alphanumeric operands)
-      *>   OK  §2023:8.8.4.2.7 2)  (Comparison of alphanumeric operands)
+      *>   OK  §2023:8.8.4.2.1 GR2  (General)
+      *>   OK  §2023:8.8.4.2.1 GR3  (General)
+      *>   OK  §2023:8.8.4.2.1 GR7  (General)
+      *>   OK  §2023:8.8.4.2.1 GR13  (General)  [the group/alphabetic sentence]
+      *>   OK  §2023:8.8.4.2.7 GR1  (Comparison of alphanumeric operands)
+      *>   OK  §2023:8.8.4.2.7 GR2  (Comparison of alphanumeric operands)
       *>
       *> DERIVATION of every expected line (T = condition true, F = false):
       *>  item 2 (alphabetic vs alphabetic)

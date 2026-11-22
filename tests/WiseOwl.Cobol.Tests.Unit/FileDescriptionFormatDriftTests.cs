@@ -4,6 +4,7 @@ using System.Reflection;
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -60,8 +61,34 @@ public sealed class FileDescriptionFormatDriftTests
     public void EveryRow_IsAdmittedSomewhere_OrNamesItsHomeEntry()
     {
         foreach (var row in FileDescriptionFormats.Rows)
-            Assert.True((row.Formats != FileDescriptionFormat.None) ^ (row.HomeEntry is not null),
-                $"{row.Name}: Formats={row.Formats}, HomeEntry={row.HomeEntry ?? "null"}");
+            foreach (int year in new[] { 85, 2002 })
+            {
+                var formats = row.FormatsIn(EditionInfo.Of(year));
+                Assert.True((formats != FileDescriptionFormat.None) ^ (row.HomeEntry is not null),
+                    $"{row.Name} at {year}: Formats={formats}, HomeEntry={row.HomeEntry ?? "null"}");
+            }
+    }
+
+    /// <summary>⛔ THE 1985 COLUMNS ARE THE 1985 PAGES' (kb/Work PB6027). ANSI X3.23-1985's report-file entry (§1985:XIII.3.2.2, and
+    /// §1985:X.4.2.2 Format 3 with EXTERNAL and GLOBAL, both rendered from the printed pages) prints BLOCK CONTAINS, RECORD, LABEL
+    /// RECORDS, VALUE OF, CODE-SET and REPORT, and no DATA RECORDS clause, which the sequential and the relative-or-indexed entries
+    /// print (§1985:X.4.2.2 Formats 1 and 2). Each row's 1985 admission is held to that list, so a row copied from the 2023 lists
+    /// cannot admit a clause the 1985 report-file entry does not print.</summary>
+    [Fact]
+    public void At1985_TheReportFileEntry_AdmitsExactlyTheClausesItsPrintedFormatShows()
+    {
+        var edition = EditionInfo.Of(85);
+        var admitted = FileDescriptionFormats.Rows
+            .Where(r => r.IntroducedIn <= 85 && (r.FormatsIn(edition) & FileDescriptionFormat.Report) != 0)
+            .Select(r => r.Context).ToHashSet();
+        Assert.Equal(new HashSet<Type>
+        {
+            typeof(Core.FileGlobalExternalClauseContext), typeof(Core.BlockContainsClauseContext), typeof(Core.RecordClauseContext),
+            typeof(Core.LabelRecordsClauseContext), typeof(Core.ValueOfClauseContext), typeof(Core.CodeSetClauseContext),
+            typeof(Core.ReportClauseContext),
+        }, admitted);
+        Assert.NotEqual(FileDescriptionFormat.None,
+            FileDescriptionFormats.ByContext[typeof(Core.DataRecordsClauseContext)].FormatsIn(edition) & FileDescriptionFormat.Sequential);
     }
 
     /// <summary>The format is decided from the file control entry first: §2023:9.1.22 makes a report file SEQUENTIAL,

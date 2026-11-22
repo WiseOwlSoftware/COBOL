@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.1.3-L2.1",
+ "rule-digest": "8f01920e54da",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#ReservedWordSet; src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsUserWord",
+ "test-ref": "conformance:cases/IV.4.2.2.1@1985-COBOL-Words/1985-GR-IV_4_2_2_1_3-L2_1",
+ "notes": "Own witness from the read lineage-reads-1985/g-07.json: the reader showed the compiler correct at 85 with its refusal probe (rw-required.cob, refused at its line 8; its control rw-control compiles), placed as the row's own test. The read: Flagged definitional but testable: 'There are three types of reserved words: 1. required words' makes every required word a reserved word, which 'must not appear in the programs as user-defined words'. A program can show it, so it is read as a rule. The candidate SR-8.3.2.1-1 ('Reserved words shall not be used as user-defined words') is the consequence, but 2023 8.3.2.1 does not classify required words as reserved words, and the candidates were proposed on wording only. So no pointer states this row's own text, and the row needs its own witness. The refusal probe has a control beside it that changes one word. Code location located after the read: WEAK: ReservedWordSet/AdmitsAsUserWord refuse a reserved word (key words such as MOVE included) as a user-defined word; the table does not record the required/optional/special type of each word."
+}

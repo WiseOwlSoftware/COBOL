@@ -8,7 +8,7 @@
       *> GR3: "If the GLOBAL clause is used in a data description entry
       *>   that contains the REDEFINES clause, it is only the subject of
       *>   that REDEFINES clause that possesses the global attribute."
-      *>   cite.py --check 13.18.27.4 -> OK §2023:13.18.27.4 3)
+      *>   cite.py --check 13.18.27.4 -> OK §2023:13.18.27.4 GR3
       *> WS-A is the redefined item, not the subject, so it is not a
       *>   global name; the contained program L1G4GNB does not describe
       *>   it, so its reference identifies no resource. §2023:8.4.2.1: "In

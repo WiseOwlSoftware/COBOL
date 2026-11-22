@@ -249,6 +249,74 @@ public sealed class AreaPlacementPassTests
         Assert.False(Check(2002, source).Success);
     }
 
+    /// <summary>⛔ THE PROCEDURE DIVISION'S TWIN (kb/Work PB6018). "The paragraph header or paragraph-name starts in area A"
+    /// (§1985:IV.7.3.3), "the section header must start in area A" (§1985:IV.7.3.2), and a sentence is continued "by starting
+    /// subsequent line(s) in area B" (§1985:IV.7.2.2), so a word or integer that begins its line in area A and writes a header
+    /// (the period or SECTION follows it) is the next paragraph's or section's name, never one more operand of the sentence
+    /// before it: a receiver (MOVE), an operand (DISPLAY, of a word or of an all-digit paragraph-name), a procedure-name (GO TO,
+    /// PERFORM, a required one included), or the operand of a statement nested in an IF. At --std 85 each is the ONE report at
+    /// the header, where the period is missing; from COBOL-2002 on there are no areas (§2023:6.3.1), and the parse there is
+    /// unchanged (<c>DISPLAY "X" 100.</c> is a legal sentence at 2002, so only the refused ones are asserted refused).</summary>
+    [Theory]
+    [InlineData("P0.", "    MOVE \"B\" TO A", "P1.", true)]
+    [InlineData("P0.", "    DISPLAY A", "P1.", true)]
+    [InlineData("P0.", "    IF A = \"A\" MOVE \"B\" TO A", "P1.", true)]
+    [InlineData("P0.", "    GO TO P2", "P1.", true)]
+    [InlineData("P0.", "    PERFORM P2", "P1.", true)]
+    [InlineData("P0.", "    PERFORM", "P1.", true)]
+    [InlineData("P0.", "    DISPLAY \"X\"", "100.", false)]
+    [InlineData("P0.", "    GO TO", "100.", true)]
+    [InlineData("S0 SECTION.", "    MOVE \"B\" TO A", "S1 SECTION.", true)]
+    public void AMissingPeriodBeforeAnAreaAProcedureHeader_IsReportedOnce_AtTheHeader(
+        string opening, string statement, string header, bool refusedAt2002)
+    {
+        string source = Source(
+            L("IDENTIFICATION DIVISION."),
+            L("PROGRAM-ID. ARNOPP."),
+            L("DATA DIVISION."),
+            L("WORKING-STORAGE SECTION."),
+            L("01  A PIC X VALUE \"A\"."),
+            L("PROCEDURE DIVISION."),
+            L(opening),
+            L(statement),
+            L(header),
+            L("    DISPLAY A."),
+            L("P2."),
+            L("    STOP RUN."));
+        var at85 = Check(85, source);
+        Assert.False(at85.Success);
+        string only = Assert.Single(at85.Errors);
+        Assert.Contains($"(9,8): error COBOL0307: ", only);
+        Assert.Contains($"'{header.Split(' ', '.')[0]}'. A period may be missing", only);
+        if (refusedAt2002) Assert.False(Check(2002, source).Success);
+        else Assert.True(Check(2002, source).Success, string.Join("\n", Check(2002, source).Errors));
+    }
+
+    /// <summary>The other side of the procedure-division rule (kb/Work PB6018): an operand continued on the next line in AREA
+    /// B is part of the sentence (§1985:IV.7.2.2), a header after a period begins in area A, and both stand at --std 85.</summary>
+    [Fact]
+    public void AnOperandContinuedInAreaB_AndAHeaderAfterThePeriod_Stand_At85()
+    {
+        var r = Check(85, Source(
+            L("IDENTIFICATION DIVISION."),
+            L("PROGRAM-ID. ARCONTB."),
+            L("DATA DIVISION."),
+            L("WORKING-STORAGE SECTION."),
+            L("01  A PIC X VALUE \"A\"."),
+            L("PROCEDURE DIVISION."),
+            L("S0 SECTION."),
+            L("P0."),
+            L("    MOVE \"B\" TO"),
+            L("      A."),
+            L("    GO TO P1."),
+            L("P1."),
+            L("    PERFORM 100."),
+            L("S1 SECTION."),
+            L("100."),
+            L("    STOP RUN.")));
+        Assert.True(r.Success, string.Join("\n", r.Errors));
+    }
+
     /// <summary>The other side of the same rule: a literal list continued on a later line in AREA B is one entry
     /// (§1985:IV.7.3.3), and the next entry's level-number after the period begins in area A as it must (kb/Work PB6011).</summary>
     [Fact]

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p291",
+ "rule-digest": "26ea522631bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageDefinitions.cs#SourceDefinition",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p235",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (COMMS.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter is right that the identification is the MCS's datum, so the definitional arm fails. It is observable at 85: SYMBOLIC SOURCE after each RECEIVE names the originator the MCS recorded for that message. Communication is removed from 2023, so no pointer. Code location located after the read: SourceDefinition names the originator of a transmission to a queue."
+}

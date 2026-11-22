@@ -10,5 +10,6 @@
  "expectDiagnostic": "COBOL0902",
  "expectDiagnosticBelow": "COBOL0900",
  "vcr": "VCR row 7.25 (the debug facility); floating indicators (6.2.3) - 2002 introduction; kb/Work PB4298",
+ "sourceFormat": "fixed",
  "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. PB4298DL.\n000300 PROCEDURE DIVISION.\n000400 MAIN.\n000500     DISPLAY \"A\".\n000600     >>D DISPLAY \"DEBUG\".\n000700     STOP RUN.\n"
 }

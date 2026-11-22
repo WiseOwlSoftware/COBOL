@@ -11,7 +11,7 @@
 *> COPY statement and the REPLACE statement (7.2.2.2), found and
 *> applied in Steps 1 to 3 of 7.2.1, before the actions of the
 *> directive in Step 4.
-*>   cite.py: OK  §2023:7.3.10.4 6)  (General rules)
+*>   cite.py: OK  §2023:7.3.10.4 GR6  (General rules)
 *>   cite.py: OK  §2023:7.2.2.2   (Compiler directing statements)
 *> EQUATE "REPLACING" WITH "RPLG" changes nothing the COPY statement
 *> reads: the COPY statement (Step 1) is read before the directive

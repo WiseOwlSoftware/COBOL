@@ -8,7 +8,7 @@
   EC-DATA-NOT-FINITE (fatal) fires when a NaN/±Infinity float sending operand is referenced (both the numeric-value and
   the string-image read paths) except in a class condition, a sign condition, a same-usage MOVE, or VALIDATE;
   EC-DATA-OVERFLOW (fatal) fires when a MOVE's algebraic value is farther from zero than the receiver's usage
-  permits — §2023:14.9.25.4 GR6 d)4.a verbatim: "If the algebraic value of the sending operand is farther from zero
+  permits — §2023:14.9.25.4 GR6d4.a verbatim: "If the algebraic value of the sending operand is farther from zero
   than is permitted by the usage specifications of the receiving data item, the EC-DATA-OVERFLOW exception
   condition is set to exist, and the content of the receiving data item is undefined." Both default OFF
   (byte-identical to a pre-slice build). Goldens `2023/ec_data_not_finite`, `2023/ec_data_overflow`,

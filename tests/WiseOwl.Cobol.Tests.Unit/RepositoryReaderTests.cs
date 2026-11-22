@@ -11,6 +11,7 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
 using Xunit;
+using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -277,10 +278,10 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         Directory.CreateDirectory(dir);
         string path = Path.Combine(dir, "rtgroup.cob"), dll = Path.Combine(dir, "rtgroup.dll");
         File.WriteAllText(path, source);
-        var result = CompilerDriver.Compile(new CompilerDriver.Options(path, dll, SourceFormat: InitialReferenceFormat.Auto,
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(path, dll, SourceFormat: TestSourceFormat.Inline,
             RepositoryUpdate: repositoryUpdate));
         Assert.True(result.Success, $"{result.Status}: {string.Join("\n", result.Errors)}");
-        return (dll, RepositoryCodecTests.BindFile(path, 2023, InitialReferenceFormat.Auto), result.GeneratedCsPath!);
+        return (dll, RepositoryCodecTests.BindFile(path, 2023, TestSourceFormat.Inline), result.GeneratedCsPath!);
     }
 
     private static void AssertHostType(HostType type, string emitted, string at)

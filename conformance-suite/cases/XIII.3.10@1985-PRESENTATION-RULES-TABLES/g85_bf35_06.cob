@@ -16,15 +16,15 @@
       *> Six reports, each with one file read back as <report> P<page>
       *> L<line> <text>. Paged ones: PAGE LIMIT 10 HEADING 1 FIRST
       *> DETAIL 3 LAST DETAIL 6 FOOTING 7; each detail is LINE PLUS 1
-      *> and lands on FIRST DETAIL line 3 (§1985:XIII.3.10.8 GR4 b).
+      *> and lands on FIRST DETAIL line 3 (§1985:XIII.3.10.8 GR4b.
       *>
       *> RA (rule a): RF LINE 8 -> line 8. RB (rule b, first sentence):
-      *> PF LINE 8, final LINE-COUNTER 8 (§1985:XIII.3.10.9 GR5 c); RF
+      *> PF LINE 8, final LINE-COUNTER 8 (§1985:XIII.3.10.9 GR5c; RF
       *> LINE PLUS 2 -> 8 + 2 = line 10. RC (rule b, "Otherwise"): no
       *> PF; RF LINE PLUS 3 -> FOOTING 7 + 3 = line 10 (not LINE-
       *> COUNTER 3 + 3). RN (rule c): PF LINE 8 on page 1, then RF LINE
       *> 2 ON NEXT PAGE on line 2 of page 2, with no page footing on
-      *> that page (§1985:XIII.3.20.4 GR7 a). RU (rule d): no PAGE
+      *> that page (§1985:XIII.3.20.4 GR7a. RU (rule d): no PAGE
       *> clause; two details on lines 1 and 2; RF LINE PLUS 2 -> 2 + 2
       *> = line 4. RE (rule e): RF with no LINE clause and no printable
       *> item (§1985:XIII.3.15.3 SR8): its USE procedure runs ("RFE

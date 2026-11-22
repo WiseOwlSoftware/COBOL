@@ -8,7 +8,7 @@
       *> INTERFACE-ID (a method prototype).
       *> Rule: "The FINAL clause shall not be specified in a method
       *> prototype."
-      *> cite.py: OK  §2023:11.7.3 8)  (Syntax rules)
+      *> cite.py: OK  §2023:11.7.3 SR8  (Syntax rules)
       *> "Method definitions within an interface definition define
       *> method prototypes."
       *> cite.py: OK  §2023:9.3.7   (Method prototypes)

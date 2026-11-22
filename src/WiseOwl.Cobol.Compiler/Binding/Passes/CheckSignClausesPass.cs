@@ -57,12 +57,13 @@ internal sealed class CheckSignClausesPass : IBindPass
         }
     }
 
-    /// <summary>⛔ THE COBOL-85 GROUP SUBJECT IS NARROWER (kb/Work PB1319). ANSI X3.23-1985 admitted the clause on "a
-    /// numeric data description entry whose PICTURE contains the character S, or a group item containing at least one
-    /// such numeric data description entry", and required "The numeric data description entries to which the SIGN clause
-    /// applies" to be "described … as USAGE IS DISPLAY". The 2023 §2023:13.18.52.3 keeps neither: SR1 admits any alphanumeric,
-    /// national or strongly-typed group and SR2 restricts only "an elementary item for which the SIGN clause is
-    /// specified". Each relaxation is a construct row introduced at 2002 (the derived edge, VCR row 7.40), so the 85
+    /// <summary>⛔ THE COBOL-85 GROUP SUBJECT IS NARROWER (kb/Work PB1319). §1985:VI.5.12.3 SR1 admits the clause on "a
+    /// group item containing at least one such numeric data description entry", and §1985:VI.5.12.3 SR2 requires that
+    /// the entries it applies to "must be described, implicitly or explicitly, as USAGE IS DISPLAY". §2002:13.16.50.2
+    /// and §2023:13.18.52.3 keep neither: SR1 admits "an alphanumeric group item, national group item, or strongly-typed
+    /// group item" and SR2 restricts only "an elementary item for which the SIGN clause is specified" (§2002:F.2 states
+    /// the first change, its item 124). Each relaxation is a construct row introduced at 2002 (the edge QUOTED from both
+    /// editions' texts, VCR row 7.40; kb/Work PB3965), so the 85
     /// compiler refuses what the 85 text refuses through the canonical funnel, and later editions take the 2023 rules.
     /// A subordinate that writes its own SIGN clause is the subject of that clause (§2023:13.18.52.4 GR2/GR3), so the group's
     /// clause applies neither to it nor below it.</summary>
@@ -79,10 +80,10 @@ internal sealed class CheckSignClausesPass : IBindPass
     }
 
     /// <summary>A numeric data description entry whose WRITTEN picture character-string contains the symbol 'S' — the
-    /// entry both editions' SIGN rules name.</summary>
+    /// entry both editions' SIGN rules name; at --std 85 a BLANK WHEN ZERO promotion of one is such an entry too
+    /// (<see cref="PicInfo.PictureIsSignedNumeric"/>, kb/Work PB5790).</summary>
     private static bool IsSignedNumericEntry(DataItem d) =>
-        d.IsElementary && d.Pic is { Category: PicCategory.Numeric, Signed: true, IsRecovery: false }
-        && d.PictureText is not null;
+        d.IsElementary && d.Pic is { PictureIsSignedNumeric: true } && d.PictureText is not null;
 
     /// <summary>The signed numeric items below <paramref name="group"/> that its own clause applies to: every one not
     /// at or under a subordinate entry that writes its own SIGN clause (§2023:13.18.52.4 GR2/GR3).</summary>

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p147",
+ "rule-digest": "1e85a72d0888",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#DataItem",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p147",
+ "notes": "Derivation from the read lineage-reads-1985/g-03.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p147); the code location is where the compiler meets the rule's subject. The read: \"The entire collection of groups and elementary data items from a logical record which is defined by a contiguous subset of the data description entries\" names a structure that every record description already has; it requires nothing. The candidates are wording matches (one is DOCUMENTED-NON-SUPPORT in 2023 and none has an 85 case). The code location was located after the read (locations-all.json): WEAK: DataItem is the tree node for a group or elementary entry and the subtree under an 01 is the contiguous intra-record structure; no member singles out an intra-record structure as such."
+}

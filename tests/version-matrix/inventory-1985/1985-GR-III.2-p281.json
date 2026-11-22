@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p281",
+ "rule-digest": "9d5cd89ac938",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#compilationGroup; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p272",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its probe (nested.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A program which, together with its contained programs, is compiled separately from all other programs.\" Candidates (GR-9.1.5-2 etc.) have no 85 case; the probes show the outer program carries its contained program and that two outermost programs are separate units. Code location located after the read: programUnit with its nestedProgram list is one separately compiled program together with its contained programs, and compilationGroup is each separate compile unit."
+}

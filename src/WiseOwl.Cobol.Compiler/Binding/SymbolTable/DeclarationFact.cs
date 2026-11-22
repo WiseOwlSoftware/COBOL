@@ -59,12 +59,13 @@ internal enum DeclarationKind
 /// entry's data-name), and <paramref name="Report"/> the report-name of the report description a report entry belongs to.
 /// <paramref name="Line"/> is the source line of the declaring entry where a message names it (0 when none is known): a
 /// declaration of §1985:X.1.3.8.2 GR1's set that HIDES another of its spelling (<see cref="DeclarationKind.DataItem"/> among them)
-/// is a fact too, so a refusal can say what the reference names instead (kb/Work PB5975, PB5976).
+/// is a fact too, so a refusal can say what the reference names instead (kb/Work PB5975, PB5976). <paramref name="ReportFormat"/>
+/// is a report entry's report group description format, whose own data-name rule a COBOL-85 refusal cites (kb/Work PB6026).
 /// The fact names no symbol: it answers a declaration question (<see cref="SymbolTable.Declarations"/>), never a reference
 /// (docs/rearchitecture/DESIGN-listing.md section 6.7.1).</summary>
 internal readonly record struct DeclarationFact(
     DeclarationKind Kind, string? TypeName = null, bool DeclarationRefused = false, int Depth = 0, string? Spelling = null,
-    string? Report = null, int Line = 0)
+    string? Report = null, int Line = 0, ReportEntryFormat? ReportFormat = null)
 {
     /// <summary>⛔ THE ONE WORDING of what <paramref name="name"/> IS (kb/Work PB1906), completing a sentence whose subject
     /// is the reference as <paramref name="written"/>: "'T' is declared as a type-name …". Every site that refuses a

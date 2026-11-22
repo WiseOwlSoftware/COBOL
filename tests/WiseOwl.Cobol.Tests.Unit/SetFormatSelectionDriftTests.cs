@@ -216,7 +216,7 @@ public sealed class SetFormatSelectionDriftTests : WiseOwlCobolTestBase
             "           SET WS-N UP BY 1", "           STOP RUN.",
         ]);
         var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: dialect,
-            SourceFormat: WiseOwl.Cobol.Frontend.Preprocessor.InitialReferenceFormat.Auto));
+            SourceFormat: WiseOwl.Cobol.Tests.Shared.TestSourceFormat.Inline));
         string message = Assert.Single(r.Errors, e => e.Contains("COBOL2112", StringComparison.Ordinal));
         foreach (var n in named) Assert.Contains(n, message, StringComparison.Ordinal);
         foreach (var a in absent) Assert.DoesNotContain(a, message, StringComparison.Ordinal);
@@ -247,7 +247,7 @@ public sealed class SetFormatSelectionDriftTests : WiseOwlCobolTestBase
             "       PROCEDURE DIVISION.", "       P1.", $"           {statement}.", "           STOP RUN.",
         ]);
         var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: dialect,
-            SourceFormat: WiseOwl.Cobol.Frontend.Preprocessor.InitialReferenceFormat.Auto));
+            SourceFormat: WiseOwl.Cobol.Tests.Shared.TestSourceFormat.Inline));
         string message = Assert.Single(r.Errors, e => e.Contains("COBOL2112", StringComparison.Ordinal));
         Assert.Contains(format, message, StringComparison.Ordinal);
         const string Label = "absent from this edition";

@@ -18,7 +18,7 @@
 *>     class, category, usage, and length as literal-1" (§2023:14.9.35.4 GR9).
 *>   §2002:14.8.33.2 SR10 "If the FILE phrase is specified, the FROM phrase shall also be specified".
 *> EXPECTED: the sequential file (an FD with no record description entries, RECORD CONTAINS 10, so only the FILE form
-*> binds, §2023:13.4.5.3 SR3 b)) holds "OLD-RECORD", "SECOND-REC". After READ of the first record, REWRITE FILE FROM the
+*> binds, §2023:13.4.5.3 SR3b) holds "OLD-RECORD", "SECOND-REC". After READ of the first record, REWRITE FILE FROM the
 *> group W (4 digits "0042" then 6 characters "NEWREC") replaces it with the 10 bytes "0042NEWREC"; the second record is
 *> rewritten FROM a 10-character literal "LIT-REWRIT". Read back: "0042NEWREC", "LIT-REWRIT". The indexed file's 9-byte
 *> record "KEY-OLD-1" (prime key "KEY") is read by key and rewritten FROM W9, "KEY-NEW-9": the key is unchanged, so the

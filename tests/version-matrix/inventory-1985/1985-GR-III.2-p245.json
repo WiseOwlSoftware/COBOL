@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p245",
+ "rule-digest": "5738d25cd686",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#PhysicalFileCategory",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p245",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (REEL.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter's objection holds: the subject is the medium and the implementor's choice, not the user's program. A program does see the choice and the synonymy: on this implementation's non-reel/unit medium, CLOSE REEL and CLOSE UNIT each complete 07, the file stays open with its position unchanged (VII.4.2.4 GR3 F), and every record survives on output and input. Code location located after the read: BindClose treats REEL and UNIT alike and PhysicalFileCategory.NonUnit records that no reel/unit exists on this medium (status 07)."
+}

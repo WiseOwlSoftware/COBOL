@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p136",
+ "rule-digest": "52b60913d48a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Mode; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#IsOpen",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p136",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with its probe (p136_input_mode.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The definition carries a testable span: input mode runs from OPEN INPUT until \"a CLOSE statement without the REEL or UNIT phrase\". GR-14.9.6.4-8 (pb140_close_status at 85) states only that CLOSE without UNIT ends the open mode; it says nothing of OPEN INPUT starting it or of REEL keeping it, so no pointer carries the whole scope. Code location located after the read: FileConnector.Mode holds the mode set by OPEN and IsOpen is true from OPEN until CLOSE, the span the definition names."
+}

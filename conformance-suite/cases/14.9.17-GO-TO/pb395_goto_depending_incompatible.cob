@@ -12,7 +12,7 @@
       *> unsigned integers 1 through n, no transfer occurs and control passes to the next statement."
       *> All three halves are measured here, in that order.
       *>
-      *> The condition is the §2023:14.6.13.2 rule 2 sibling — "When the content of a numeric sending item … is
+      *> The condition is the §2023:14.6.13.2 GR2 sibling — "When the content of a numeric sending item … is
       *> referenced during the execution of a statement and the content of that sending operand would evaluate to
       *> false in a numeric class condition, the result of the reference is undefined and an EC-DATA-INCOMPATIBLE
       *> exception condition is set to exist" — reached here through a REDEFINES window holding "AB". Table 13

@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4758 - ISO §2023:15.7.4 1) a) (cite.py --check 15.7.4 OK): FUNCTION ABS of a zero or positive argument is "(argument-1)", the
+      *> PB4758 - ISO §2023:15.7.4 RV1a (cite.py --check 15.7.4 OK): FUNCTION ABS of a zero or positive argument is "(argument-1)", the
       *> equivalent arithmetic expression, so FUNCTION ABS (1 / 3 * 3) is the value the arithmetic expression 1 / 3 * 3 has, whatever
       *> number of digits the arithmetic keeps for the quotient: the two receivers (one picture) must agree. §2023:15.3 item 6 (cite.py
       *> --check 15.3 OK) makes an arithmetic expression that "will always result in an integer value" an Integer argument, and the

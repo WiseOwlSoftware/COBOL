@@ -27,17 +27,17 @@
       *> Semantics each leg pins (INDEXED, ACCESS DYNAMIC, keys K1..K5):
       *>   FROM: "equivalent to ... MOVE identifier-1 TO record-name-1
       *>     ... MOVE literal-1 TO record-name-1 ... b) The same REWRITE
-      *>     statement without the FROM phrase" (OK §2023:14.9.35.4 7)).
+      *>     statement without the FROM phrase" (OK §2023:14.9.35.4 GR7).
       *>   Random/dynamic: the record replaced is the one whose prime key
-      *>     is in the area; none -> '23' (OK §2023:14.9.35.4 23)).
+      *>     is in the area; none -> '23' (OK §2023:14.9.35.4 GR23).
       *>   A RETRY phrase acts only after "a file sharing conflict
       *>     condition or a record operation conflict condition" (OK
-      *>     §2023:14.7.9.3 4)); this single connector meets none, so each
+      *>     §2023:14.7.9.3 GR4); this single connector meets none, so each
       *>     RETRY leg succeeds on its first attempt.
       *>   Branch: INVALID KEY runs on the invalid key condition (OK
       *>     §2023:9.1.14 2)); NOT INVALID KEY on success (OK §2023:9.1.14 2),
       *>     second list). W-BR = "-" means neither ran.
-      *>   '00' = successful completion (§2023:9.1.13.2 1)).
+      *>   '00' = successful completion (§2023:9.1.13.2 GR1).
       *> Legs:
       *>   R1 RECORD FROM literal RETRY 3 TIMES WITH NO LOCK, NOT INVALID
       *>      KEY written BEFORE INVALID KEY, END-REWRITE  -> 00 N

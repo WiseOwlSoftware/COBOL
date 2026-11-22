@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p317",
+ "rule-digest": "a726e20a20df",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EmitTopMarginIfPending",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85",
+ "notes": "Own witness from the read lineage-reads-1985/g-06.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85), joined as the row's own test. The read: 1985: 'An empty area which precedes the page body.' 2023 GR-13.18.34.4-4 gives the margin's line count but not that it is empty or that it precedes the page body; so the pointer does not state the whole requirement. Its 85 case pb523_linage_margins_on_the_medium_85 does observe the blank top-margin lines on the medium, making it the candidate own witness. Code location located after the read: EmitTopMarginIfPending materializes the empty top-margin lines that precede the page body of a LINAGE logical page."
+}

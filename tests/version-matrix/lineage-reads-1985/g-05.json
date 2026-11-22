@@ -1,0 +1,1310 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice g-05 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "g-05",
+ "edition": 1985,
+ "asked": {
+  "slice": "g-05",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-III.2-p241",
+   "1985-GR-III.2-p243",
+   "1985-GR-III.2-p244",
+   "1985-GR-III.2-p245",
+   "1985-GR-III.2-p248",
+   "1985-GR-III.2-p249",
+   "1985-GR-III.2-p252",
+   "1985-GR-III.2-p253",
+   "1985-GR-III.2-p255",
+   "1985-GR-III.2-p256",
+   "1985-GR-III.2-p258",
+   "1985-GR-III.2-p263",
+   "1985-GR-III.2-p266",
+   "1985-GR-III.2-p267",
+   "1985-GR-III.2-p269",
+   "1985-GR-III.2-p270",
+   "1985-GR-III.2-p272",
+   "1985-GR-III.2-p274",
+   "1985-SR-III.2-p275",
+   "1985-SR-III.2-p279",
+   "1985-GR-III.2-p281",
+   "1985-GR-III.2-p283",
+   "1985-GR-III.2-p284",
+   "1985-GR-III.2-p291",
+   "1985-SR-III.2-p295",
+   "1985-GR-III.2-p296",
+   "1985-GR-III.2-T7.1",
+   "1985-GR-III.2-T7.2",
+   "1985-GR-III.2-T7.3",
+   "1985-GR-III.2-T7.4",
+   "1985-GR-III.2-T7.5"
+  ],
+  "pointers": {
+   "1985-GR-III.2-p241": {
+    "candidates-2023": [
+     "SR-13.18.24.3-1",
+     "SR-13.18.43.3-1",
+     "GR-13.18.43.4-5"
+    ],
+    "nearest-2023": "SR-13.18.24.3-1",
+    "similarity": 0.448
+   },
+   "1985-GR-III.2-p243": {
+    "candidates-2023": [
+     "GR-13.18.43.4-5",
+     "SR-8.3.2.1-4",
+     "SR-13.4.6.3-4"
+    ],
+    "nearest-2023": "GR-13.18.43.4-5",
+    "similarity": 0.301
+   },
+   "1985-GR-III.2-p244": {
+    "candidates-2023": [
+     "GR-12.4.5.10.3-3",
+     "GR-12.4.5.10.3-6",
+     "FMT-12.4.5.10.2"
+    ],
+    "nearest-2023": "GR-12.4.5.10.3-3",
+    "similarity": 0.453
+   },
+   "1985-GR-III.2-p245": {
+    "candidates-2023": [
+     "GR-14.9.30.4-23",
+     "GR-14.9.51.4-24",
+     "GR-14.9.6.4-3"
+    ],
+    "nearest-2023": "GR-14.9.30.4-23",
+    "similarity": 0.346
+   },
+   "1985-GR-III.2-p248": {
+    "candidates-2023": [
+     "SR-14.9.41.3-3",
+     "SR-8.3.2.4.2-2",
+     "SR-8.8.4.12.1-2"
+    ],
+    "nearest-2023": "SR-14.9.41.3-3",
+    "similarity": 0.346
+   },
+   "1985-GR-III.2-p249": {
+    "candidates-2023": [
+     "GR-8.1.2-3",
+     "GR-12.3.7.4-7",
+     "RV-15.26.4-1"
+    ],
+    "nearest-2023": "GR-8.1.2-3",
+    "similarity": 0.293
+   },
+   "1985-GR-III.2-p252": {
+    "candidates-2023": [
+     "GR-12.4.5.3-7",
+     "GR-12.4.5.10.3-4",
+     "FMT-12.4.5.13.2"
+    ],
+    "nearest-2023": "GR-12.4.5.3-7",
+    "similarity": 0.553
+   },
+   "1985-GR-III.2-p253": {
+    "candidates-2023": [
+     "FMT-12.4.5.13.2",
+     "GR-12.4.5.13.4-1",
+     "GR-14.9.30.4-25"
+    ],
+    "nearest-2023": "FMT-12.4.5.13.2",
+    "similarity": 0.591
+   },
+   "1985-GR-III.2-p255": {
+    "candidates-2023": [
+     "GR-12.4.5.13.4-1",
+     "GR-12.4.5.10.3-4",
+     "GR-9.1.13.4-2"
+    ],
+    "nearest-2023": "GR-12.4.5.13.4-1",
+    "similarity": 0.499
+   },
+   "1985-GR-III.2-p256": {
+    "candidates-2023": [
+     "SR-13.15.3-1",
+     "SR-14.9.46.3-1",
+     "SR-14.9.21.3-1"
+    ],
+    "nearest-2023": "SR-13.15.3-1",
+    "similarity": 0.718
+   },
+   "1985-GR-III.2-p258": {
+    "candidates-2023": [
+     "SR-12.4.5.2-11",
+     "SR-13.4.5.3-8",
+     "GR-13.4.5.4-4"
+    ],
+    "nearest-2023": "SR-12.4.5.2-11",
+    "similarity": 0.477
+   },
+   "1985-GR-III.2-p263": {
+    "candidates-2023": [
+     "GR-13.18.35.4-1",
+     "GR-13.18.39.4-2",
+     "GR-13.18.35.4-5"
+    ],
+    "nearest-2023": "GR-13.18.35.4-1",
+    "similarity": 0.481
+   },
+   "1985-GR-III.2-p266": {
+    "candidates-2023": [
+     "SR-13.18.16.3-2",
+     "FMT-13.18.46.2",
+     "GR-14.9.42.4-6"
+    ],
+    "nearest-2023": "SR-13.18.16.3-2",
+    "similarity": 0.246
+   },
+   "1985-GR-III.2-p267": {
+    "candidates-2023": [
+     "GR-13.4.5.4-4",
+     "SR-12.4.6.3.3-2",
+     "DOC-A.1-160"
+    ],
+    "nearest-2023": "GR-13.4.5.4-4",
+    "similarity": 0.434
+   },
+   "1985-GR-III.2-p269": {
+    "candidates-2023": [
+     "GR-14.9.18.4-7",
+     "GR-14.9.18.4-8",
+     "GR-14.9.18.4-9"
+    ],
+    "nearest-2023": "GR-14.9.18.4-7",
+    "similarity": 0.263
+   },
+   "1985-GR-III.2-p270": {
+    "candidates-2023": [
+     "GR-14.7.5-L2.2",
+     "GR-14.7.4.3-10",
+     "GR-14.7.4.3-8"
+    ],
+    "nearest-2023": "GR-14.7.5-L2.2",
+    "similarity": 0.319
+   },
+   "1985-GR-III.2-p272": {
+    "candidates-2023": [
+     "SR-8.4.3.7.3-2",
+     "GR-13.18.60.4-22",
+     "GR-14.6.2.3.2-1"
+    ],
+    "nearest-2023": "SR-8.4.3.7.3-2",
+    "similarity": 0.202
+   },
+   "1985-GR-III.2-p274": {
+    "candidates-2023": [
+     "SR-8.4.3.11.3-1",
+     "SR-13.18.33.3-5",
+     "SR-13.16.3-16"
+    ],
+    "nearest-2023": "SR-8.4.3.11.3-1",
+    "similarity": 0.537
+   },
+   "1985-SR-III.2-p275": {
+    "candidates-2023": [
+     "SR-8.4.3.11.3-1",
+     "SR-12.3.3-2",
+     "SR-13.18.33.3-5"
+    ],
+    "nearest-2023": "SR-8.4.3.11.3-1",
+    "similarity": 0.451
+   },
+   "1985-SR-III.2-p279": {
+    "candidates-2023": [
+     "SR-10.6.2-4",
+     "SR-14.2.2-11",
+     "SR-8.3.2.1-4"
+    ],
+    "nearest-2023": "SR-10.6.2-4",
+    "similarity": 0.203
+   },
+   "1985-GR-III.2-p281": {
+    "candidates-2023": [
+     "GR-9.1.5-2",
+     "GR-14.9.5.4-4",
+     "GR-8.6.7-2"
+    ],
+    "nearest-2023": "GR-9.1.5-2",
+    "similarity": 0.271
+   },
+   "1985-GR-III.2-p283": {
+    "candidates-2023": [
+     "GR-14.9.51.4-12",
+     "GR-12.4.5.5.3-1",
+     "GR-12.4.5.5.3-2"
+    ],
+    "nearest-2023": "GR-14.9.51.4-12",
+    "similarity": 0.346
+   },
+   "1985-GR-III.2-p284": {
+    "candidates-2023": [
+     "GR-12.4.5.3-8",
+     "GR-12.4.5.10.3-6",
+     "GR-12.4.5.10.3-2"
+    ],
+    "nearest-2023": "GR-12.4.5.3-8",
+    "similarity": 0.561
+   },
+   "1985-GR-III.2-p291": {
+    "candidates-2023": [
+     "SR-8.3.3.6.3-4",
+     "GR-12.3.4-1",
+     "GR-14.6.4-1"
+    ],
+    "nearest-2023": "SR-8.3.3.6.3-4",
+    "similarity": 0.188
+   },
+   "1985-SR-III.2-p295": {
+    "candidates-2023": [
+     "GR-8.4.3.13.4-2",
+     "SR-11.10.3-3",
+     "GR-9.1.5-2"
+    ],
+    "nearest-2023": "GR-8.4.3.13.4-2",
+    "similarity": 0.402
+   },
+   "1985-GR-III.2-p296": {
+    "candidates-2023": [
+     "GR-8.1.2-3",
+     "GR-12.3.7.4-7",
+     "RV-15.26.4-1"
+    ],
+    "nearest-2023": "GR-8.1.2-3",
+    "similarity": 0.283
+   },
+   "1985-GR-III.2-T7.1": {
+    "candidates-2023": [
+     "FMT-15.81.2",
+     "DOC-A.1-178",
+     "SR-13.18.35.3-1"
+    ],
+    "nearest-2023": "FMT-15.81.2",
+    "similarity": 0.304
+   },
+   "1985-GR-III.2-T7.2": {
+    "candidates-2023": [
+     "FMT-15.81.2",
+     "SR-13.18.35.3-11",
+     "RV-15.67.4-2"
+    ],
+    "nearest-2023": "FMT-15.81.2",
+    "similarity": 0.3
+   },
+   "1985-GR-III.2-T7.3": {
+    "candidates-2023": [
+     "SR-8.4.3.11.3-1",
+     "SR-13.18.33.3-5",
+     "SR-14.9.14.3-9"
+    ],
+    "nearest-2023": "SR-8.4.3.11.3-1",
+    "similarity": 0.233
+   },
+   "1985-GR-III.2-T7.4": {
+    "candidates-2023": [
+     "SR-8.4.3.11.3-1",
+     "SR-13.18.33.3-5",
+     "SR-14.9.14.3-9"
+    ],
+    "nearest-2023": "SR-8.4.3.11.3-1",
+    "similarity": 0.188
+   },
+   "1985-GR-III.2-T7.5": {
+    "candidates-2023": [
+     "FMT-15.81.2",
+     "DOC-A.1-178",
+     "GR-13.18.52.4-3"
+    ],
+    "nearest-2023": "FMT-15.81.2",
+    "similarity": 0.32
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "g-05",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-III.2-p241",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Glossary term 'record description entry': the set of data description entries of one record (Nucleus, every Data Division section); synonym of 'record description'"
+    ],
+    "evidence-1985": {
+     "term definition": "not shown (no program can show the naming of a set of entries; the entries themselves are governed by the Data Division rules)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p241",
+      "quote": "The total set of data description entries associated with a particular record",
+      "check": "OK  §1985:III.2 p241  (2. <u>DEFINITIONS</u>)  the text is in p241"
+     }
+    ],
+    "reason": "The row only names a construct: \"The total set of data description entries associated with a particular record. The term is synonymous with record description.\" It requires nothing a program can violate. The 2023 candidates (SR-13.18.24.3-1 FORMAT/SELECT WHEN, SR-13.18.43.3-1, GR-13.18.43.4-5 RECORD) are wording matches about other requirements.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a glossary definition that names a set of entries; no program behaviour distinguishes it",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a record description entry as the total set of data description entries associated with one record of the user's program"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p243",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Glossary term 'record-name': a user-defined word naming a record described by a record description entry (Nucleus, Data Division)"
+    ],
+    "evidence-1985": {
+     "term definition": "not shown (the uses of a record-name are governed by the statements that reference it, e.g. WRITE)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p243",
+      "quote": "A user-defined word that names a record described in a record description entry",
+      "check": "OK  §1985:III.2 p243  (2. <u>DEFINITIONS</u>)  the text is in p243"
+     }
+    ],
+    "reason": "\"A user-defined word that names a record described in a record description entry in the Data Division of a COBOL program.\" A definition of a word class; the candidates (GR-13.18.43.4-5, SR-8.3.2.1-4, SR-13.4.6.3-4) state other requirements.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a word-class definition; the requirements on record-names are other rows",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a record-name as the user-defined word of the user's program that names a record described in a record description entry"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p244",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Glossary term 'record number': the ordinal number of a record in a sequential file (Sequential I-O)"
+    ],
+    "evidence-1985": {
+     "term definition": "not shown (a sequential file in 1985 offers no access by record number, so no program observes it)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p244",
+      "quote": "The ordinal number of a record in the file whose organization is sequential",
+      "check": "OK  §1985:III.2 p244  (2. <u>DEFINITIONS</u>)  the text is in p244"
+     }
+    ],
+    "reason": "\"The ordinal number of a record in the file whose organization is sequential.\" Names a quantity; the candidates (GR-12.4.5.10.3-3/-6, FMT-12.4.5.10.2) are 2023 sequential-organization rules that state other requirements.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a definition of a term; no 1985 statement exposes a sequential record's number",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines the record number as the ordinal position of a record in a file of the user's program whose organization is sequential"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p245",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Glossary term 'reel': an implementor-dimensioned portion of a storage medium holding part of, all of, or several files; synonym of unit and volume (Sequential I-O: CLOSE REEL/UNIT, multi-file reels)"
+    ],
+    "evidence-1985": {
+     "term definition": "not shown (a property of the storage medium, not of a program)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p245",
+      "quote": "A discrete portion of a storage medium",
+      "check": "OK  §1985:III.2 p245  (2. <u>DEFINITIONS</u>)  the text is in p245"
+     }
+    ],
+    "reason": "\"A discrete portion of a storage medium, the dimensions of which are determined by each implementor, that contains part of a file, all of a file, or any number of files.\" It defines a medium term used by CLOSE REEL/UNIT and MULTIPLE FILE, whose own rows carry the requirements.",
+    "probe": null,
+    "compiler-at-1985": "not probed: defines a storage-medium term whose dimensions are the implementor's",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a reel as the discrete portion of a storage medium that holds part of a file, all of a file or several files of the user's program"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p248",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Glossary synonym: 'relation' means 'relational operator' (Nucleus, relation condition)"
+    ],
+    "evidence-1985": {
+     "synonym": "not shown (vocabulary of the standard itself)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p248",
+      "quote": "The term is synonymous with relational operator",
+      "check": "OK  §1985:III.2 p248  (2. <u>DEFINITIONS</u>)  the text is in p248"
+     }
+    ],
+    "reason": "\"Relation. The term is synonymous with relational operator.\" The single sentence tells the reader how the document uses a word; it requires nothing of a program or an implementation.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row states the standard's own vocabulary",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's vocabulary of synonymous terms: \"The term is synonymous with relational operator\""
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p249",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Relation character set > < = (the table that follows the row on page III-19)",
+     "their use as relational operators IS [NOT] > / < / = in a relation condition (Nucleus)"
+    ],
+    "evidence-1985": {
+     "> < = accepted and evaluated as relation characters": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (run E:\\COBOL-coord\\scratch\\w20262131o\\runs\\specchar-003: EQ-OK GT-OK LT-OK NLT-OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p249",
+      "quote": "A character that belongs to the following set",
+      "check": "OK  §1985:III.2 p249  (2. <u>DEFINITIONS</u>)  the text is in p249"
+     }
+    ],
+    "reason": "\"Relation Character. A character that belongs to the following set:\" (> greater than, < less than, = equal to). No candidate (GR-8.1.2-3, GR-12.3.7.4-7, RV-15.26.4-1) states the set; the probe uses each character as a relation character and its comparisons answer correctly.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p252",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Glossary term 'relative file': a file with relative organization (Relative I-O)"
+    ],
+    "evidence-1985": {
+     "term definition": "not shown (a name for a file of a given organization)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p252",
+      "quote": "A file with relative organization",
+      "check": "OK  §1985:III.2 p252  (2. <u>DEFINITIONS</u>)  the text is in p252"
+     }
+    ],
+    "reason": "\"Relative File. A file with relative organization.\" A name only; relative organization's requirements are the Relative I-O rows.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a naming definition",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a relative file as a file of the user's program whose organization is relative"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p253",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "RELATIVE KEY data item's contents identify a logical record of a relative file (Relative I-O: random READ, START, sequential WRITE updating the key)"
+    ],
+    "evidence-1985": {
+     "key value 2 / 3 selects the 2nd / 3rd record on random READ; START KEY = 1 then READ NEXT returns records 1, 2 with the key updated": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\files.cob (run E:\\COBOL-coord\\scratch\\w20262131o\\runs\\files-004: REL2=BBBBB REL3=CCCCC NEXT=AAAAA KEY=0001 NEXT=BBBBB KEY=0002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p253",
+      "quote": "A key whose contents identify a logical record in a relative file",
+      "check": "OK  §1985:III.2 p253  (2. <u>DEFINITIONS</u>)  the text is in p253"
+     }
+    ],
+    "reason": "\"A key whose contents identify a logical record in a relative file.\" The candidates (FMT-12.4.5.13.2, GR-12.4.5.13.4-1, GR-14.9.30.4-25) carry no 85 case. The probe shows the key's contents select the record on READ and START.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\files.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\files.cob (runs\\files-004)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p255",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "relative record number = ordinal number of a record in a relative file (Relative I-O)",
+     "the number is treated as an integer numeric literal (the RELATIVE KEY's value)"
+    ],
+    "evidence-1985": {
+     "records written sequentially receive numbers 1, 2, 3 in order, returned in the RELATIVE KEY": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\files.cob (runs\\files-004: WK=0001 WK=0002 WK=0003)",
+     "the integer number 2 selects the 2nd written record": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\files.cob (runs\\files-004: REL2=BBBBB)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p255",
+      "quote": "The ordinal number of a record in a file whose organization is relative",
+      "check": "OK  §1985:III.2 p255  (2. <u>DEFINITIONS</u>)  the text is in p255"
+     },
+     {
+      "cite": "§1985:III.2 p255",
+      "quote": "This number is treated as a numeric literal which is an integer",
+      "check": "OK  §1985:III.2 p255  (2. <u>DEFINITIONS</u>)  the text is in p255"
+     }
+    ],
+    "reason": "\"The ordinal number of a record in a file whose organization is relative. This number is treated as a numeric literal which is an integer.\" No candidate carries an 85 case; the probe shows ordinal numbering and integer selection.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\files.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\files.cob (runs\\files-004)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p256",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Glossary term 'report clause': a clause of a report description entry or report group description entry (Report Writer)"
+    ],
+    "evidence-1985": {
+     "term definition": "not shown (a classification of clauses; each clause has its own rows)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p256",
+      "quote": "that appears in a report description entry or a report group description entry",
+      "check": "OK  §1985:III.2 p256  (2. <u>DEFINITIONS</u>)  the text is in p256"
+     }
+    ],
+    "reason": "\"A clause, in the Report Section of the Data Division, that appears in a report description entry or a report group description entry.\" A classification; the candidates (SR-13.15.3-1 etc.) are other requirements.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a classification of clauses with no behaviour of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a report clause as a clause of the user's program that appears in a report description entry or a report group description entry"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p258",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a report file is an output file whose FD contains a REPORT clause (Report Writer, Sequential I-O)",
+     "its records are written under control of the RWCS (INITIATE / GENERATE / TERMINATE), no WRITE by the program"
+    ],
+    "evidence-1985": {
+     "FD with REPORT IS, opened OUTPUT, records produced by GENERATE": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\rw.cob (run E:\\COBOL-coord\\scratch\\w20262131o\\runs\\rw-004: G05RW.TXT = HEAD1 / blank / '  DET03', LC=03)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p258",
+      "quote": "An output file whose file description entry contains a REPORT clause",
+      "check": "OK  §1985:III.2 p258  (2. <u>DEFINITIONS</u>)  the text is in p258"
+     },
+     {
+      "cite": "§1985:III.2 p258",
+      "quote": "records that are written under control of the report writer control system",
+      "check": "OK  §1985:III.2 p258  (2. <u>DEFINITIONS</u>)  the text is in p258"
+     }
+    ],
+    "reason": "\"An output file whose file description entry contains a REPORT clause. The contents of a report file consist of records that are written under control of the report writer control system.\" The candidates (SR-12.4.5.2-11, SR-13.4.5.3-8, GR-13.4.5.4-4) have no 85 case; the probe's file holds exactly the RWCS-produced lines.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\rw.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\rw.cob (runs\\rw-004)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p263",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "report lines are rows of a page, character positions aligned vertically (Report Writer)",
+     "numbered from 1, by 1, from the top of the page (LINE integer, LINE-COUNTER)"
+    ],
+    "evidence-1985": {
+     "LINE 1 group on the first line, LINE 3 group on the third, line 2 empty; COLUMN 3 aligned in the same positions": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\rw.cob (runs\\rw-004: 'HEAD1', '', '  DET03')",
+     "LINE-COUNTER counts from 1": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\rw.cob (runs\\rw-004: LC=03)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p263",
+      "quote": "Report lines are numbered from 1, by 1, starting at the top of the page",
+      "check": "OK  §1985:III.2 p263  (2. <u>DEFINITIONS</u>)  the text is in p263"
+     }
+    ],
+    "reason": "\"Report lines are numbered from 1, by 1, starting at the top of the page.\" The candidates (GR-13.18.35.4-1 etc.) have no 85 case; the probe places LINE 1 and LINE 3 at the first and third physical lines.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\rw.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\rw.cob (runs\\rw-004)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p266",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "an implementor-provided object-time control system constructs reports (Report Writer: INITIATE, GENERATE, TERMINATE)"
+    ],
+    "evidence-1985": {
+     "a report is constructed at object time from the RD": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\rw.cob (runs\\rw-004)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p266",
+      "quote": "An object time control system, provided by the implementor, that accomplishes the construction of reports",
+      "check": "OK  §1985:III.2 p266  (2. <u>DEFINITIONS</u>)  the text is in p266"
+     }
+    ],
+    "reason": "\"An object time control system, provided by the implementor, that accomplishes the construction of reports.\" The implementation must provide it; the probe's GENERATE constructs the report. Candidates (SR-13.18.16.3-2, FMT-13.18.46.2, GR-14.9.42.4-6) have no 85 case.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\rw.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\rw.cob (runs\\rw-004)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p267",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a report writer logical record = one print line plus the control information for its selection and vertical positioning (Report Writer)"
+    ],
+    "evidence-1985": {
+     "each print line is written with its vertical positioning (line 2 advanced past, detail on line 3)": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\rw.cob (runs\\rw-004)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p267",
+      "quote": "A record that consists of the report writer print line and associated control information",
+      "check": "OK  §1985:III.2 p267  (2. <u>DEFINITIONS</u>)  the text is in p267"
+     }
+    ],
+    "reason": "\"A record that consists of the report writer print line and associated control information necessary for its selection and vertical positioning.\" The observable part is that each print line lands at its vertical position; the probe shows it. Candidates have no 85 case.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\rw.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\rw.cob (runs\\rw-004)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p269",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Glossary term 'resource': an operating-system facility or service an executing program may use"
+    ],
+    "evidence-1985": {
+     "term definition": "not shown (no program behaviour names a resource as such)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p269",
+      "quote": "A facility or service, controlled by the operating system, that can be used by an executing program",
+      "check": "OK  §1985:III.2 p269  (2. <u>DEFINITIONS</u>)  the text is in p269"
+     }
+    ],
+    "reason": "\"A facility or service, controlled by the operating system, that can be used by an executing program.\" A vocabulary entry; candidates (GR-14.9.18.4-7/8/9) are other requirements.",
+    "probe": null,
+    "compiler-at-1985": "not probed: defines an environment term with no requirement on a program",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a resource as a facility or service controlled by the operating system that the user's executing program can use"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p270",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a resultant identifier is the data item receiving an arithmetic result (Nucleus: ADD/SUBTRACT/MULTIPLY/DIVIDE GIVING, COMPUTE)"
+    ],
+    "evidence-1985": {
+     "COMPUTE R1 and ADD ... GIVING R2 store their results": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003: R1=+0011 R2=+0010)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p270",
+      "quote": "A user-defined data item that is to contain the result of an arithmetic operation",
+      "check": "OK  §1985:III.2 p270  (2. <u>DEFINITIONS</u>)  the text is in p270"
+     }
+    ],
+    "reason": "\"A user-defined data item that is to contain the result of an arithmetic operation.\" The candidates (GR-14.7.5-L2.2, GR-14.7.4.3-10/-8) have no 85 case; the probe's resultant identifiers contain the results.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p272",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a run unit is one or more object programs interacting and functioning at object time as one entity (Nucleus, Inter-Program Communication)"
+    ],
+    "evidence-1985": {
+     "two programs (outer and contained) interact through CALL USING in one run unit": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\nested.cob (run E:\\COBOL-coord\\scratch\\w20262131o\\runs\\nested-001: V=0015)",
+     "two separately compiled programs in one run unit": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\srcend.cob (runs\\srcend-001: FIRST SECOND)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p272",
+      "quote": "One or more object programs which interact with one another",
+      "check": "OK  §1985:III.2 p272  (2. <u>DEFINITIONS</u>)  the text is in p272"
+     }
+    ],
+    "reason": "\"One or more object programs which interact with one another and which function, at object time, as an entity to provide problem solutions.\" Candidates (SR-8.4.3.7.3-2 etc.) have no 85 case; the probes run several programs as one entity.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\nested.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\nested.cob (runs\\nested-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p274",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Procedure Division section: header plus a body of zero, one or more paragraphs (Nucleus)",
+     "Environment/Data Division section: header plus entries (CONFIGURATION, INPUT-OUTPUT, FILE, WORKING-STORAGE)"
+    ],
+    "evidence-1985": {
+     "sections of zero, one and two paragraphs performed (C=4)": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\sections.cob (run E:\\COBOL-coord\\scratch\\w20262131o\\runs\\sections-001: C=4)",
+     "Environment and Data Division sections holding entries": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\sections.cob (runs\\sections-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p274",
+      "quote": "A set of zero, one, or more paragraphs or entries, called a section body",
+      "check": "OK  §1985:III.2 p274  (2. <u>DEFINITIONS</u>)  the text is in p274"
+     }
+    ],
+    "reason": "\"A set of zero, one, or more paragraphs or entries, called a section body, the first of which is preceded by a section header.\" It grants a section of zero paragraphs; the accepted probe has one (S-ZERO) and performs it. Candidates (SR-8.4.3.11.3-1 etc.) have no 85 case.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\sections.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\sections.cob (runs\\sections-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-III.2-p275",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a section header is words followed by a separator period (Environment, Data, Procedure Divisions)",
+     "Environment Division headers are reserved words + period: CONFIGURATION SECTION. INPUT-OUTPUT SECTION."
+    ],
+    "evidence-1985": {
+     "both Environment Division headers accepted": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\sections.cob (runs\\sections-001)",
+     "a header that is not the permitted reserved words is refused": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\badhdr.cob (run E:\\COBOL-coord\\scratch\\w20262131o\\runs\\badhdr-001: COBOL5506 'SECTIONS' expected SECTION), control sections.cob differs in that one line"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p275",
+      "quote": "In the Environment and Data Divisions, a section header is composed of reserved words followed by a separator period",
+      "check": "OK  §1985:III.2 p275  (2. <u>DEFINITIONS</u>)  the text is in p275"
+     },
+     {
+      "cite": "§1985:III.2 p275",
+      "quote": "The permissible section headers in the Environment Division are",
+      "check": "OK  §1985:III.2 p275  (2. <u>DEFINITIONS</u>)  the text is in p275"
+     }
+    ],
+    "reason": "\"In the Environment and Data Divisions, a section header is composed of reserved words followed by a separator period. The permissible section headers in the Environment Division are: CONFIGURATION SECTION. INPUT-OUTPUT SECTION.\" The probe accepts both and refuses a non-permitted header. Candidates have no 85 case. (The row's text ends there; the Data and Procedure Division header lists that follow on page III-22 are not in it: see leads.)",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\badhdr.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\sections.cob (accepted) and badhdr.cob (refused)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-III.2-p279",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "segment-number classifies Procedure Division sections (Segmentation)",
+     "contains only digits 0-9",
+     "one or two digits"
+    ],
+    "evidence-1985": {
+     "one-digit (5, 7) and two-digit (50) segment-numbers accepted": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\sections.cob (runs\\sections-001, COBOL0903 obsolete-element warnings only)",
+     "three digits refused": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\seg3digit.cob (run E:\\COBOL-coord\\scratch\\w20262131o\\runs\\seg3digit-001: COBOL6819 'segment-number 100 is not a one or two digit number')",
+     "non-digit refused": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\segalpha.cob (run E:\\COBOL-coord\\scratch\\w20262131o\\runs\\segalpha-001: COBOL0307 at 'A1')"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p279",
+      "quote": "Segment-numbers may contain only the characters",
+      "check": "OK  §1985:III.2 p279  (2. <u>DEFINITIONS</u>)  the text is in p279"
+     },
+     {
+      "cite": "§1985:III.2 p279",
+      "quote": "A segment-number may be expressed either as a one or two digit number",
+      "check": "OK  §1985:III.2 p279  (2. <u>DEFINITIONS</u>)  the text is in p279"
+     }
+    ],
+    "reason": "\"Segment-numbers may contain only the characters '0','1', ... , '9'. A segment-number may be expressed either as a one or two digit number.\" Segmentation is absent from 2023, so no pointer can state it; the probes accept one and two digits and refuse three digits and a letter (each refusal one line from the accepted control).",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\seg3digit.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\sections.cob (accepted), seg3digit.cob and segalpha.cob (refused)",
+    "class": "removed-form",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p281",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a separately compiled program is compiled, with its contained programs, apart from all other programs (Inter-Program Communication, nested programs)"
+    ],
+    "evidence-1985": {
+     "one separately compiled program with a contained program compiles and runs as one unit": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\nested.cob (runs\\nested-001: V=0015)",
+     "two separately compiled programs in one compilation, each terminated by its end program header": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\srcend.cob (runs\\srcend-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p281",
+      "quote": "A program which, together with its contained programs, is compiled separately from all other programs",
+      "check": "OK  §1985:III.2 p281  (2. <u>DEFINITIONS</u>)  the text is in p281"
+     }
+    ],
+    "reason": "\"A program which, together with its contained programs, is compiled separately from all other programs.\" Candidates (GR-9.1.5-2 etc.) have no 85 case; the probes show the outer program carries its contained program and that two outermost programs are separate units.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\nested.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\nested.cob (runs\\nested-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p283",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "sequential access mode: records obtained from or placed into a file in predecessor-to-successor order (Sequential I-O; also Relative I-O sequential access / READ NEXT)"
+    ],
+    "evidence-1985": {
+     "sequential file read back in write order, then AT END": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\files.cob (runs\\files-004: SEQ=11111 SEQ=22222 SEQ=33333 SEQ-END)",
+     "relative file written in sequential access gets successive numbers; READ NEXT follows them": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\files.cob (runs\\files-004)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p283",
+      "quote": "in a consecutive predecessor-to-successor logical record sequence determined by the order of records in the file",
+      "check": "OK  §1985:III.2 p283  (2. <u>DEFINITIONS</u>)  the text is in p283"
+     }
+    ],
+    "reason": "\"An access mode in which logical records are obtained from or placed into a file in a consecutive predecessor-to-successor logical record sequence determined by the order of records in the file.\" Candidates (GR-14.9.51.4-12, GR-12.4.5.5.3-1/-2) have no 85 case; the probe shows the order.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\files.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\files.cob (runs\\files-004)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p284",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Glossary term 'sequential file': a file with sequential organization (Sequential I-O)"
+    ],
+    "evidence-1985": {
+     "term definition": "not shown (a naming definition)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p284",
+      "quote": "A file with sequential organization",
+      "check": "OK  §1985:III.2 p284  (2. <u>DEFINITIONS</u>)  the text is in p284"
+     }
+    ],
+    "reason": "\"Sequential File. A file with sequential organization.\" A name only.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a naming definition",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a sequential file as a file of the user's program whose organization is sequential"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p291",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Glossary term 'source': symbolic identification of the originator of a transmission to a queue (Communication module, input CD SYMBOLIC SOURCE)"
+    ],
+    "evidence-1985": {
+     "term definition": "not shown (names a value; the CD rows carry the requirements)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p291",
+      "quote": "The symbolic identification of the originator of a transmission to a queue",
+      "check": "OK  §1985:III.2 p291  (2. <u>DEFINITIONS</u>)  the text is in p291"
+     }
+    ],
+    "reason": "\"The symbolic identification of the originator of a transmission to a queue.\" A term of the Communication module (absent from 2023); the candidates (SR-8.3.3.6.3-4 etc.) are unrelated.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a definition of a Communication-module term with no requirement of its own",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines source as the symbolic identification of the originator of a transmission to a queue that the user's program receives"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-III.2-p295",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a source program commences with the Identification Division, a COPY statement, or a REPLACE statement (Nucleus, Source Text Manipulation)",
+     "it is terminated by its end program header, if specified, or by the absence of further source lines"
+    ],
+    "evidence-1985": {
+     "commences with Identification Division": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\srcend.cob (runs\\srcend-001)",
+     "commences with REPLACE": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\srcrepl.cob (run E:\\COBOL-coord\\scratch\\w20262131o\\runs\\srcrepl-001: REPLACE-FIRST)",
+     "commences with COPY": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\srccopy.cob with g05cpy.cpy (run E:\\COBOL-coord\\scratch\\w20262131o\\runs\\srccopy-001: COPY-FIRST)",
+     "terminated by end program header": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\srcend.cob (runs\\srcend-001: FIRST SECOND)",
+     "terminated by absence of lines": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\srccopy.cob (runs\\srccopy-001)",
+     "commencing with another statement refused": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\srcbad.cob (run E:\\COBOL-coord\\scratch\\w20262131o\\runs\\srcbad-001: COBOL0001 unexpected 'MOVE')"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p295",
+      "quote": "A COBOL source program commences with the Identification Division; a COPY statement; or a REPLACE statement",
+      "check": "OK  §1985:III.2 p295  (2. <u>DEFINITIONS</u>)  the text is in p295"
+     },
+     {
+      "cite": "§1985:III.2 p295",
+      "quote": "is terminated by the end program header, if specified, or by the absence of additional source program lines",
+      "check": "OK  §1985:III.2 p295  (2. <u>DEFINITIONS</u>)  the text is in p295"
+     }
+    ],
+    "reason": "\"A COBOL source program commences with the Identification Division; a COPY statement; or a REPLACE statement. A COBOL source program is terminated by the end program header, if specified, or by the absence of additional source program lines.\" Each of the three openings and both terminations is accepted and runs; another opening is refused. Candidates (GR-8.4.3.13.4-2 etc.) have no 85 case.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\srcrepl.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\srcrepl.cob, srccopy.cob, srcend.cob (accepted) and srcbad.cob (refused)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p296",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the special character set of page III-23 (+ - * / = $ , ; . \" ( ) > < :), from which character-strings and separators are formed (§1985:IV.4.1 p1)"
+    ],
+    "evidence-1985": {
+     "+ - * / = > < used as operators, PICTURE symbols and relation characters": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003)",
+     "$ , ; . \" ( ) :": "not shown in this probe (each has its own Table 7 row, T7.6-T7.15, outside this slice)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p296",
+      "quote": "A character that belongs to the following set",
+      "check": "OK  §1985:III.2 p296  (2. <u>DEFINITIONS</u>)  the text is in p296"
+     },
+     {
+      "cite": "§1985:IV.4.1 p1",
+      "quote": "The set of characters used to form COBOL character-strings and separators includes the letters of the alphabet, digits, and special characters",
+      "check": "OK  §1985:IV.4.1 p1  (4.1 CHARACTER SET)  the text is in p1"
+     }
+    ],
+    "reason": "\"Special Character. A character that belongs to the following set:\" The lead of Table 7; its members are rows T7.1-T7.15. Candidates (GR-8.1.2-3 etc.) have no 85 case. The probe uses the members in this slice; the rest belong to their own rows.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003) for + - * / = > <",
+    "class": "own-text",
+    "needs": "needs-own-witness (the lead is closed with its table rows T7.1-T7.15)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-T7.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "'+' (plus sign) is a special character: addition operator, PICTURE insertion symbol"
+    ],
+    "evidence-1985": {
+     "+ in COMPUTE and PIC +9999": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003: R1=+0011, E1=+0011)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 Table 7 row 1",
+      "quote": "",
+      "check": "OK  §1985:III.2 Table 7 row 1 (structure only) ok"
+     }
+    ],
+    "reason": "Table 7 row 1: \"+ | plus sign\". The probe forms character-strings with '+' as an operator and a PICTURE symbol. Candidates (FMT-15.81.2, DOC-A.1-178, SR-13.18.35.3-1) are unrelated.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-T7.2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "'-' (minus sign) is a special character: subtraction operator, PICTURE insertion symbol"
+    ],
+    "evidence-1985": {
+     "- in COMPUTE and PIC -9999": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003: R1=+0011, E2=-0012)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 Table 7 row 2",
+      "quote": "",
+      "check": "OK  §1985:III.2 Table 7 row 2 (structure only) ok"
+     }
+    ],
+    "reason": "Table 7 row 2: \"- | minus sign\". The probe uses '-' as an operator and a PICTURE symbol. Candidates are unrelated.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-T7.3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "'*' (asterisk) is a special character: multiplication operator, PICTURE check-protection symbol"
+    ],
+    "evidence-1985": {
+     "* in COMPUTE and PIC ***99": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003: R1=+0011, E3=***05)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 Table 7 row 3",
+      "quote": "",
+      "check": "OK  §1985:III.2 Table 7 row 3 (structure only) ok"
+     }
+    ],
+    "reason": "Table 7 row 3: \"* | asterisk\". The probe uses '*' as an operator and as check protection. Candidates are unrelated.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-T7.4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "'/' (slant) is a special character: division operator, PICTURE simple-insertion symbol"
+    ],
+    "evidence-1985": {
+     "/ in COMPUTE and PIC 99/99/99": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003: R1=+0011, E4=31/12/85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 Table 7 row 4",
+      "quote": "",
+      "check": "OK  §1985:III.2 Table 7 row 4 (structure only) ok"
+     }
+    ],
+    "reason": "Table 7 row 4: \"/ | slant (solidus)\". The probe uses '/' as an operator and an insertion character. Candidates are unrelated.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-T7.5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "'=' (equal sign) is a special character: COMPUTE assignment, relation character"
+    ],
+    "evidence-1985": {
+     "= in COMPUTE and IF R1 = 11": "covered by E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003: R1=+0011, EQ-OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 Table 7 row 5",
+      "quote": "",
+      "check": "OK  §1985:III.2 Table 7 row 5 (structure only) ok"
+     }
+    ],
+    "reason": "Table 7 row 5: \"= | equal sign\". The probe uses '=' in COMPUTE and as a relation character. Candidates are unrelated.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob",
+    "compiler-at-1985": "correct: E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05\\specchar.cob (runs\\specchar-003)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "segmentation",
+    "row": "1985-SR-III.2-p275",
+    "what": "The row's text stops at 'INPUT-OUTPUT SECTION.'; the rest of the Section Header definition on page III-22 (the Data Division headers FILE/WORKING-STORAGE/LINKAGE/COMMUNICATION/REPORT SECTION and the Procedure Division header 'section-name SECTION [segment-number].') is in no 1985 catalog row (no p276-p278). Similarly the Relation Character table under p249 (> < =) and the COBOL Character Set table under p29 have no table rows, while the Special Character table got T7.1-T7.15.",
+    "repro": "python E:\\COBOL-coord\\scratch\\w20262131o\\tools\\show.py 1985-SR-III.2-p275 \"1985-GR-III.2-p27*\"; specs/ANSI_COBOL_1985.md lines 6051-6064, 5967-5973",
+    "site": "docs/rearchitecture/spec-rule-catalog-1985.json"
+   },
+   {
+    "kind": "defect",
+    "row": null,
+    "what": "Diagnostic text: with RD PAGE LIMIT 10 LINES (HEADING and FIRST DETAIL omitted, so integer-2 = integer-3 = 1 per §1985:XIII.3.8.4 GR2), a REPORT HEADING at LINE 1 is correctly refused, but COBOL2199 says the line 'lies below the lower limit 0'; the region is lines 1 to 0 (empty: integer-3 minus 1 = 0 is the UPPER limit). The verdict is right; the wording names the wrong bound.",
+    "repro": "E:\\COBOL-coord\\scratch\\w20262131o\\runs\\rw-002 (rw.cob before HEADING 1 FIRST DETAIL 3 was added)",
+    "site": "COBOL2199 emitter (Report Writer PAGE-region check)"
+   },
+   {
+    "kind": "tooling",
+    "row": null,
+    "what": "run_goldens.py fails: EXE is built as BASE / an absolute Windows path in a non-raw string (SyntaxWarning '\\C'), and it reads BASE/prose85-map.json, which does not exist. No row of g-05 has prose85 goldens, so no evidence was lost here.",
+    "repro": "python E:\\COBOL-coord\\scratch\\w20262131o\\tools\\run_goldens.py g-05",
+    "site": "E:\\COBOL-coord\\scratch\\w20262131o\\tools\\run_goldens.py:12,23"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "g-05",
+  "cases": [],
+  "disputed-different": []
+ },
+ "derivation-refute": {
+  "slice": "g-05",
+  "cases": [
+   {
+    "rule-id": "1985-GR-III.2-p241",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A program whose outcome changes with what counts as 'the total set of data description entries associated with a particular record': none; the requirements on record description entries (level 01, subordinate entries, REDEFINES, implicit redefinition in an FD) are their own rows, and the second sentence is a synonym.",
+    "reason": "Both sentences name a construct of the user's program (\"The total set of data description entries associated with a particular record\"; \"synonymous with record description\"). Neither obliges the implementation to anything a program can observe; the subject is the user's program's Data Division.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p243",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A WRITE naming a level-05 item, or a record-name used where another word class is required: each is refused or accepted by the WRITE/FD syntax rules, not by this definition; no program distinguishes the definition itself.",
+    "reason": "The single sentence \"A user-defined word that names a record described in a record description entry\" classifies a word of the user's program; the obligations on record-names live in the statement rows.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p244",
+    "arm": "definitional",
+    "verdict": "OVERTURNED",
+    "attempt": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05-refute\\RECNUM.cob: WRITE C, A, B to a sequential file, reopen INPUT, READ three times, expect CAB (ascending record number = write ordinal), DISPLAY PASS/FAIL. At --std 85 (run E:\\COBOL-coord\\scratch\\w20262131o\\runs\\RECNUM-001): 'PASS RECNUM CAB'.",
+    "reason": "The reader's CPL says 'no 1985 statement exposes a sequential record's number', but §1985:VII.4.4.4 GR4 (OK: \"Comparisons for records in sequential files relate to the record number\") and GR4d (OK: \"the first existing record in the file whose record number is greater than the file position indicator is selected\") make the sequential READ order depend on exactly this definition: record number is the ordinal number of the record in the file (§1985:III.2 p244, OK). A READ that returned records in any order other than their ordinal position violates p244 read with GR4, so a program's outcome depends on it, and the subject (the ordinal numbering of records in a file, which the implementation maintains) is not a property of the user's program. Not a derivation: it takes a witness; the probe above is a candidate own witness and the compiler is correct at 85.",
+    "probe": "E:\\COBOL-coord\\scratch\\w20262131o\\probes\\g-05-refute\\RECNUM.cob"
+   },
+   {
+    "rule-id": "1985-GR-III.2-p245",
+    "arm": "definitional",
+    "verdict": "OVERTURNED",
+    "attempt": "No program witness attempted: the overturn is on the arm's shape. A reel's dimensions are observable only through CLOSE REEL/UNIT and multi-file reels on the implementor's media, which are the implementor's.",
+    "reason": "§1985:III.2 p245 (OK) defines a portion of a storage medium \"the dimensions of which are determined by each implementor\". The subject is the storage medium and the implementor's choice of its dimensions, not a property of the user's program; the reader's names adds 'of the user's program' that the text does not carry. DESIGN-spec-conformance-review.md section 1.1: 'A rule whose subject is the implementation or the implementor is never this arm.' The row needs another arm (informative 'explains' the CLOSE REEL/UNIT row, or an implementor-defined documentation record), not definitional.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p248",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "Read sentence by sentence: the row has one sentence, \"Relation. The term is synonymous with relational operator.\" A compiler or program violating it: none; it fixes how the document's own text uses a word, and every requirement on relation conditions and relational operators is its own row in VI.6.3.",
+    "reason": "The quotation \"The term is synonymous with relational operator\" lies in the row's own text and its subject is the standard's vocabulary. No sentence a program or compiler can violate.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p252",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A program whose outcome depends on calling a relative-organization file a 'relative file': none; relative organization's behaviour is the Relative I-O module's rows.",
+    "reason": "\"A file with relative organization.\" names a file of the user's program by its ORGANIZATION clause; nothing is required by the name itself.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p256",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "A clause that appears in an RD or report group entry but is treated as not a 'report clause': no 1985 rule turns on the classification so that a program would observe it differently; the clause rows of the Report Writer module carry every requirement.",
+    "reason": "\"A clause, in the Report Section of the Data Division, that appears in a report description entry or a report group description entry\" classifies clauses of the user's program; no observable consequence of its own.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p269",
+    "arm": "definitional",
+    "verdict": "OVERTURNED",
+    "attempt": "No program witness attempted: the overturn is on the arm's shape.",
+    "reason": "§1985:III.2 p269 (OK): \"A facility or service, controlled by the operating system, that can be used by an executing program.\" The subject is an operating-system facility, i.e. the implementation's environment, not a property of the user's program (the program only 'can use' it). DESIGN-spec-conformance-review.md section 1.1 bars the definitional arm for a rule whose subject is the implementation. The row may fit informative (a vocabulary entry about the environment) but the definitional arm as named does not stand.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p284",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "As for p252: no program outcome depends on the name 'sequential file' for a file of sequential organization; sequential organization's behaviour is the Sequential I-O rows.",
+    "reason": "\"A file with sequential organization.\" names a file of the user's program by its organization.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-III.2-p291",
+    "arm": "definitional",
+    "verdict": "OVERTURNED",
+    "attempt": "No program witness attempted (Communication module; the overturn is on the arm's shape).",
+    "reason": "§1985:III.2 p291 (OK): \"The symbolic identification of the originator of a transmission to a queue.\" The identification is supplied by the message control system (the implementation) into an input CD's SYMBOLIC SOURCE; the originator is outside the user's program. The reader's names adds 'that the user's program receives', which is not in the text. The subject is the MCS's datum, not a property of the user's program, so section 1.1 bars the definitional arm; the row belongs with the Communication module's disposition (a 2023-removed module: removed-form / documented non-support), not a definitional derivation.",
+    "probe": null
+   }
+  ]
+ },
+ "imported": {
+  "asked": "c2384f2f64a525b93e1a6e7cc437c7a29cbd56371cc01539b824125e3ca27073",
+  "derivation-refute": "a5b06d6b6bc824437bb09dab4c150acadf1bb0e3a17528f00a20546aa7a0ea1d",
+  "read": "1ce3be6ed6a43f939c68f79671c9a38bcd556e4bf3323419c8cfd2e89f484734",
+  "refute": "07a413658c178e1ec3c060f9747e157c6cdd6f297cac6c3fd798d4d175d058cc"
+ }
+}

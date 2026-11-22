@@ -1,0 +1,82 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice g-98 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "g-98",
+ "edition": 1985,
+ "asked": {
+  "slice": "g-98",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-III.2-p169"
+  ],
+  "pointers": {
+   "1985-GR-III.2-p169": {
+    "candidates-2023": [
+     "GR-14.9.10.4-1",
+     "GR-14.9.30.4-20",
+     "DOC-A.1-146"
+    ],
+    "nearest-2023": "GR-14.9.10.4-1",
+    "similarity": 0.323
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "g-98",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-III.2-p169",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "I-O modules: the term 'mass storage file', a collection of records assigned to a mass storage medium"
+    ],
+    "evidence-1985": {
+     "the term": "not shown: a name; the rules restricted to mass storage files (relative, indexed, REWRITE, DELETE) carry the behaviour"
+    },
+    "citations": [
+     {
+      "cite": "§1985:III.2 p169",
+      "quote": "A collection of records that is assigned to a mass storage medium",
+      "check": "OK  §1985:III.2 p169  (2. <u>DEFINITIONS</u>)  the text is in p169"
+     }
+    ],
+    "reason": "\"A collection of records that is assigned to a mass storage medium\" names a kind of file; the candidates' rules (DELETE, READ PREVIOUS, RECORD sizes) are the rows that use it.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a name for a kind of file",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines a mass storage file of a program as a collection of records assigned to a mass storage medium"
+    },
+    "licence-1985": null,
+    "supersedes": "g-03"
+   }
+  ],
+  "leads": []
+ },
+ "refute": null,
+ "derivation-refute": {
+  "slice": "g-98",
+  "cases": [
+   {
+    "rule-id": "1985-GR-III.2-p169",
+    "arm": "definitional",
+    "verdict": "UPHELD",
+    "attempt": "Tried to show the definition obliges the implementation: (1) 'assigned to a mass storage medium' makes the implementation's media the subject; (2) a program observes whether its file is a mass storage file. Witness E:\\COBOL-coord\\scratch\\w20262131\\p169\\msf2.cob (run msf2-001, train85c-last20 cobol.exe --std 85, EXIT 0): a sequential file ASSIGNed to a host path takes OPEN I-O 00, READ 00, REWRITE 00, re-read REC BBBBB. The observation is real, but every obligation it shows belongs to other rows: §1985:VII.4.5.4 GR1 (REWRITE 'must be a mass storage file', cite.py OK in the worktree) and the IV I-O-mode text 'Only mass storage files may be referenced in the open I-O mode'.",
+    "code-location-ok": false,
+    "code-location-why": "CloseTable14.cs#PhysicalFileCategory is the §2023:14.9.6.4 GR2 CLOSE partition by whether rewind and units have meaning. It has no mass-storage member, and its NonUnit category ('rewind and units have no meaning') also covers media that are not mass storage. Mass storage is mentioned only in its doc comments, so it does not give the 1985 term its meaning. The term takes effect where the implementation decides that every file it supports is on mass storage, and where OPEN I-O, REWRITE and DELETE accept a file. The FileConnector hierarchy, which puts every Sequential, Relative and Indexed connector on a host-path medium, together with the OPEN I-O and REWRITE acceptance paths, is a closer site. No single member spells it out.",
+    "reason": "§1985:III.2 p169 (cite.py OK at the train85c-last20 checker; main's checker says III.2 has no unit p169, a checker difference, not a text one) only names a kind of file of the user's program: a collection of records assigned to a mass storage medium. The assignment is the program's ASSIGN clause. The implementor's choice of which media count as mass storage is governed by the rules that use the term, not by this sentence. No program can tell the definition apart from those rules, and it obliges the implementation to nothing, so the definitional arm fits, and the derivation's 'defines a mass storage file of a program ...' states a property of the user's program."
+   }
+  ]
+ },
+ "imported": {
+  "asked": "fe7d884b0646c2ca687bc1c470a3c4384951b9dc74804eaf14e8d34673d589e5",
+  "derivation-refute": "04e3c38acb7ddaebcc0706d6d5ffece8914fb557db8da76301bd3fe03a6d8f97",
+  "read": "9371eb1625ff679c4eac50ae24fa523704dcc30dcfee9c53ff5934883a4d6949"
+ }
+}

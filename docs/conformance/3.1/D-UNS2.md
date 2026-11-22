@@ -1,5 +1,5 @@
 - **D-UNS2 — UNSTRING: an identifier DELIMITER is read live and DELIMITER IN receives its live content (kb/Work PB1907,
-  row `GR-14.9.48.4-18`).** The same rule (§2023:14.9.48.4 GR18, Annex A.2 item 61, §2023:4.4 2)) covers identifier-2 and identifier-3
+  row `GR-14.9.48.4-18`).** The same rule (§2023:14.9.48.4 GR18, Annex A.2 item 61, §2023:4.4 GR2) covers identifier-2 and identifier-3
   overlapping identifier-4 and identifier-5. **WiseOwl COBOL reads an identifier delimiter from storage before each
   receiving area**, so an earlier area's store into it changes the delimiter for the later areas, and **DELIMITER IN
   receives the matched delimiter item's content as it stands after that area's INTO store** (libcob

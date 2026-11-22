@@ -224,7 +224,7 @@ public sealed partial class SymbolTable
             edition.Error(code,
                 cls is { Origin: OoSymbolOrigin.Standard }
                     // The standard class is reached exactly like a written one — through a REPOSITORY class-specifier
-                    // (§2023:12.3.8.3 SR6 b): name the missing entry, which is the whole fix.
+                    // (§2023:12.3.8.3 SR6: name the missing entry, which is the whole fix.
                     ? $"{where} '{nameWritten}': '{nameWritten}' is the standard class BASE (ISO §2023:16.1), but {notDeclared} — "
                       + $"add `CLASS {nameWritten}` to the REPOSITORY paragraph"
                 : definedInGroup
@@ -356,7 +356,7 @@ public sealed partial class SymbolTable
                 : null;
 
         /// <summary>A class of the group by its table key, or the standard class BASE (ISO §2023:16.1), whose information the
-        /// implementation's external repository always holds (§2023:12.3.8.3 SR6 b)). A class DEFINED in the group wins.</summary>
+        /// implementation's external repository always holds (§2023:12.3.8.3 SR6). A class DEFINED in the group wins.</summary>
         private OoClassSymbol? ClassKeyed(string name)
         {
             var key = Key(name);

@@ -122,7 +122,7 @@ public sealed class ImpliedRecordDescriptionDriftTests
         try
         {
             var diags = new DiagnosticBag();
-            var tree = new CnFrontend() { InitialFormat = InitialReferenceFormat.Auto }.Parse(path, diags);
+            var tree = new CnFrontend() { InitialFormat = TestSourceFormat.Inline }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             Assert.NotNull(tree);
             var program = tree!.compilationGroup().SelectMany(g => g.programUnit()).First();

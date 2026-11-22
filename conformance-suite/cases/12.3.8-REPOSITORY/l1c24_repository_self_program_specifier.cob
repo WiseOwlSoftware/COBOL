@@ -16,11 +16,11 @@
       *>   cite.py --check 12.3.8.3 "If the specified program-prototype-
       *>   name-1 is the name of the program definition in which this
       *>   REPOSITORY paragraph is specified or the name of a containing
-      *>   program definition" -> OK §2023:12.3.8.3 15)
+      *>   program definition" -> OK §2023:12.3.8.3 SR15
       *>   cite.py --check 12.3.8.4 "Program-prototype-name-1 is the
       *>   name of a program prototype that may be used throughout the
       *>   scope of the containing environment division"
-      *>     -> OK §2023:12.3.8.4 10)
+      *>     -> OK §2023:12.3.8.4 GR10
       *> SET-UP: L1C24R (RECURSIVE, outermost) writes PROGRAM L1C24R AS
       *>   "L1C24T" and, as a control, PROGRAM L1C24U AS "L1C24T".
       *>   L1C24T is a real program printing OTHER-T. L1C24S is directly

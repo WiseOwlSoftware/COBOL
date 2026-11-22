@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p119",
+ "rule-digest": "2e78e8f1456f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#Store",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p119",
+ "notes": "Own witness from the read lineage-reads-1985/g-02.json: the reader showed the compiler correct at 85 with its probe (highend.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The leftmost character of a string of characters.\" Which end is high order is observable wherever a rule truncates at the high-order end; the probe shows it is the leftmost. No candidate states it: every candidate is a 'wording only' match. Code location located after the read: Store truncates on the left (the high-order end) for a JUSTIFIED RIGHT receiver and on the right otherwise."
+}

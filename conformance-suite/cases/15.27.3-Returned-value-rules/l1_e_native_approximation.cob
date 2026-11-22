@@ -10,13 +10,13 @@
       *>
       *> --check validated:
       *>   cite.py --check 15.27.3 "If native arithmetic is in effect, the returned value is an
-      *>     implementor-defined approximation" -> OK §2023:15.27.3 1)
+      *>     implementor-defined approximation" -> OK §2023:15.27.3 RV1
       *>   cite.py --check 11.9.5.2 "it is as if the ARITHMETIC clause were specified with the
-      *>     NATIVE phrase" -> OK §2023:11.9.5.2 4) - so OMITTING the ARITHMETIC clause is precisely
+      *>     NATIVE phrase" -> OK §2023:11.9.5.2 GR4 - so OMITTING the ARITHMETIC clause is precisely
       *>     what selects r1's arm. This program has no OPTIONS paragraph for that reason.
       *>   cite.py --check 15.4.1 "When native arithmetic is in effect, the characteristics and
       *>     representation of the returned value are defined by the implementor" -> OK
-      *>   cite.py --check 15.34.4 "(FUNCTION E \*\* (argument-1))" -> OK §2023:15.34.4 1)
+      *>   cite.py --check 15.34.4 "(FUNCTION E \*\* (argument-1))" -> OK §2023:15.34.4 RV1
       *>   cite.py --check 15.4 "The evaluation of a function produces a returned value in a
       *>     temporary elementary data item" -> OK §2023:15.4
       *>

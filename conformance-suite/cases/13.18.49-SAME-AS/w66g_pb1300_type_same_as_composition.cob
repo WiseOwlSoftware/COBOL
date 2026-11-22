@@ -12,21 +12,21 @@
       *> its rules name.
       *> cite.py --check 13.18.57.4 "excluding the level-number, name,
       *>   alignment, and the GLOBAL, SELECT WHEN, and TYPEDEF clauses
-      *>   specified for type-name-1" -> OK §2023:13.18.57.4 1)
+      *>   specified for type-name-1" -> OK §2023:13.18.57.4 GR1
       *> cite.py --check 13.18.58.4 "All other data description clauses
       *>   and subordinate data descriptions are assumed by data defined
-      *>   using the type-name" -> OK §2023:13.18.58.4 3)
+      *>   using the type-name" -> OK §2023:13.18.58.4 GR3
       *> cite.py --check 13.18.57.4 "When the description of type-name-1
       *>   includes an implicit PICTURE clause derived from a VALUE
       *>   clause, that implicit PICTURE clause becomes part of the
-      *>   description of the subject of the entry" -> OK §2023:13.18.57.4 3)
+      *>   description of the subject of the entry" -> OK §2023:13.18.57.4 GR3
       *> cite.py --check 13.18.49.4 "If an alphanumeric group item or
       *>   strongly-typed group item to which data-name-1 is subordinate
-      *>   contains a USAGE clause" -> OK §2023:13.18.49.4 3)
+      *>   contains a USAGE clause" -> OK §2023:13.18.49.4 GR3
       *> cite.py --check 13.18.49.4 "If an alphanumeric group item,
       *>   national group item, or strongly-typed group item to which
       *>   data-name-1 is subordinate contains a SIGN clause"
-      *>   -> OK §2023:13.18.49.4 5)
+      *>   -> OK §2023:13.18.49.4 GR5
       *> DERIVATION:
       *>  BASED is in neither GR-1 exclusion list, so X (TYPE T, T BASED)
       *>  and S (SAME AS B, B BASED) are based: after SET ADDRESS OF they

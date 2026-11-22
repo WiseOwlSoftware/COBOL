@@ -9,7 +9,7 @@
       *> of interface G2FS03I (a method-definition in an
       *> interface-definition, §2002:10.5.1 NOTE) declares a FILE
       *> SECTION, so the case is refused at 2002 with COBOL1519 (the
-      *> file-section placement check). §2002:10.5.2 SR5 e) ("The data
+      *> file-section placement check). §2002:10.5.2 SR5e ("The data
       *> division may contain only a linkage section") refuses the same
       *> line as well (COBOL2272). Why it can fail: the FILE SECTION in
       *> the interface is accepted, or the placement code is missing.

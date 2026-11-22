@@ -8,7 +8,7 @@
       *> kb/Work PB5196 - §2002:13.16.41.2 SR7 (cite.py --check OK): "Integer-4
       *> shall be greater than or equal to zero." (§2023:13.18.43.3 SR8, the same
       *> words.) It is the express override of the nonzero default for an integer
-      *> (§2023:5.5 1)), so RECORD CONTAINS 0 TO 5 CHARACTERS is
+      *> (§2023:5.5 SR1), so RECORD CONTAINS 0 TO 5 CHARACTERS is
       *> legal from 2002. At COBOL-85 no rule of §1985:VII.3.8 allows zero and
       *> §1985:III.2 says an integer "must be neither signed nor zero unless
       *> explicitly allowed by the rules for that format", so it is refused

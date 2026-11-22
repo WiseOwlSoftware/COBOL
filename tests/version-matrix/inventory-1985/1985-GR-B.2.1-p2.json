@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-B.2.1-p2",
+ "rule-digest": "472d25b2aeff",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Paragraph1989",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-B.2.1-p2",
+ "notes": "Derivation from the read lineage-reads-1985/g-07.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-B.2.1-p2); the code location is where the compiler meets the rule's subject. The read: 'The following is a list of the changes of substance introduced by the Intrinsic Function Amendment that are new features not impacting existing programs' introduces the appendix list in 2.1A. It informs the reader and requires nothing. The Intrinsic Function module it points to is covered by the §1989:A rows. The candidates are wording-only matches. The code location was located after the read (locations-x.json): Paragraph1989 holds the Intrinsic Function Amendment's own set of functions (its Module1989 table), each available at --std 85."
+}

@@ -8,7 +8,7 @@
       *> terminating separator period.
       *> "1) If any of the clauses are specified, then there shall be
       *>   a terminating separator period."
-      *>   OK  §2023:11.9.3 1)  (Syntax rule)
+      *>   OK  §2023:11.9.3 SR1  (Syntax rule)
       *> The ARITHMETIC IS NATIVE clause (a clause of every edition
       *> that has the OPTIONS paragraph, §2023:11.9.5.1) is written and no
       *> separator period follows it before the DATA DIVISION header,

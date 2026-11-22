@@ -301,7 +301,7 @@ public sealed class GlobalReportScopeTests
         try
         {
             var diags = new DiagnosticBag();
-            var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = level }.Parse(path, diags);
+            var tree = new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = level }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var edition = new EditionContext(level);
             new BinderDriver().Bind(tree!, edition);
@@ -317,7 +317,7 @@ public sealed class GlobalReportScopeTests
         try
         {
             var diags = new DiagnosticBag();
-            var frontend = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 85 };
+            var frontend = new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = 85 };
             var tree = frontend.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var emitter = new CSharpEmitter();

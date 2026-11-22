@@ -373,6 +373,13 @@ public interface ICobolProgram : INonfatalSelector
     /// <summary>Close every file connector this program owns (CANCEL GR9 / run-unit termination §2023:14.6.11).</summary>
     void CloseFiles();
 
+    /// <summary>True for an element compiled for COBOL-85, whose intrinsic argument that breaks its function's argument rules
+    /// terminates the run unit (§1989:A.2.2 p3: the result is undefined; §1993:p.B-46 allows termination; kb/Work
+    /// PB6019). The activation boundary installs it in <see cref="Exceptions.ExceptionEngine.IsCobol85"/> for
+    /// the activation and restores the activator's on return. An element of a later edition emits no override and takes this
+    /// default: there the breach is EC-ARGUMENT-FUNCTION (§2023:15.3 AR14).</summary>
+    bool IsCobol85 => false;
+
     /// <summary>Select and execute this element's USE declarative for a NONFATAL exception condition raised at a
     /// RUNTIME site (ISO §2023:14.6.13.1.4 #3 — "If there is an applicable USE statement in the source unit that
     /// specifies the exception-name associated with the exception condition … the associated declarative is

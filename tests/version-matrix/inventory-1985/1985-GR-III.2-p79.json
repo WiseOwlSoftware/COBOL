@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p79",
+ "rule-digest": "f42ad40b2779",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#PicInfo; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceivingStore.cs#StorageBytes",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p79",
+ "notes": "Own witness from the read lineage-reads-1985/g-02.json: the reader showed the compiler correct at 85 with its probe (digitpos.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"If the data description entry specifies that usage is DISPLAY, then a digit position is synonymous with a character position.\" Observable: a DISPLAY numeric item of n digits occupies n characters. No candidate states it: every candidate is a 'wording only' match. Code location located after the read: PicInfo carries the Digits count and StorageBytes computes the physical storage taken by the digit positions for each usage."
+}

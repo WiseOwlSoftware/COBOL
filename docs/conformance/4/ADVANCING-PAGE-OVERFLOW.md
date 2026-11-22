@@ -2,10 +2,10 @@
 order: 16
 ---
 > ⚖ **DETERMINATION — WRITE ADVANCING PAGE on a logical page is a page overflow** (2026-10-16; kb/Work PB578). The
-> standard's text decides it, so CLAUDE.md rule 1's precedence never reaches the implementations. §2023:13.18.34.4 GR7 c) 1
+> standard's text decides it, so CLAUDE.md rule 1's precedence never reaches the implementations. §2023:13.18.34.4 GR7c 1
 > resets the counter to one and says how: "During the resetting of LINAGE-COUNTER to the value one, the value of
 > LINAGE-COUNTER is implicitly incremented to exceed the value specified by integer-1 or the data item referenced by
-> data-name-1." A counter past the page size is §2023:14.9.51.4 GR26 a)'s trigger ("This occurs when the associated
+> data-name-1." A counter past the page size is §2023:14.9.51.4 GR26a's trigger ("This occurs when the associated
 > LINAGE-COUNTER is equal to or exceeds the page size"), and GR27 a) names the condition it causes: "If the
 > end-of-page condition was caused by the action in General rule 26a, the EC-I-O-EOP-OVERFLOW exception condition is
 > set to exist." So a WRITE with ADVANCING PAGE on a file whose logical page is established is SUCCESSFUL, takes the

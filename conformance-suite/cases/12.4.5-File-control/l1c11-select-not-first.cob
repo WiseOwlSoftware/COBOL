@@ -9,7 +9,7 @@
       *>   control entry."
       *>   cite.py --check 12.4.5.2 "The SELECT clause shall be
       *>   specified first in the file control entry."
-      *>   -> OK  §2023:12.4.5.2 1)  (Syntax rules)
+      *>   -> OK  §2023:12.4.5.2 SR1  (Syntax rules)
       *> The file control entry for F-OUT opens with its ASSIGN clause
       *> and names the file in a SELECT clause written second; the
       *> same entry with SELECT first is legal, so the only defect is

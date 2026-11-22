@@ -186,7 +186,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             return Reject(alias.Constant is not null
                 ? $"UNSTRING sender '{senderText}' is a constant-name, which stands only where a format specifies a "
                     + $"literal; identifier-1 is a data item ({EditionInfo.Designated(Sr(true, 8))}{ctx.Edition.Edition.Cite("", "; §2023:13.10.3 SR2")})"
-                : $"UNSTRING sender '{senderText}' is a symbolic-character, a figurative constant (ISO §2023:12.3.7.4 GR11 a)); "
+                : $"UNSTRING sender '{senderText}' is a symbolic-character, a figurative constant ({ctx.Edition.Edition.Cite("§1985:III.2", "ISO §2023:12.3.7.4 GR11 a)")}); "
                     + $"identifier-1 is a data item ({EditionInfo.Designated(Sr(true, 8))})");
         // SR2 — identifier-1 (the sender) shall be category alphanumeric or national (a fixed-length group and a
         // reference-modified slice are alphanumeric-image senders and remain permitted). A numeric item — INCLUDING

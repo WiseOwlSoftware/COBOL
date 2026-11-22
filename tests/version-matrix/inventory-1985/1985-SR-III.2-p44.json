@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-III.2-p44",
+ "rule-digest": "eec4278c9e51",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#condition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionBinder",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-SR-III_2-p44",
+ "notes": "Own witness from the read lineage-reads-1985/g-01.json: the reader showed the compiler correct at 85 with its probe (p44_cond.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"it is a conditional expression consisting of either a simple condition optionally parenthesized, or a combined condition\" grants the forms wherever a format writes condition-n; the probe's IF and PERFORM UNTIL accept and evaluate each. The candidates (OMITTED, zero-length class, NOT) do not state it. Code location located after the read: The condition rule parses simple and combined (parenthesized, AND/OR/NOT) conditions and ConditionBinder binds them to a truth-valued expression."
+}

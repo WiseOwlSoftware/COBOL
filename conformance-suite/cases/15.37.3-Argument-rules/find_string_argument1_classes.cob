@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.37.3 rule 1 — "Argument-1 shall be a data item or literal of class alphabetic,
+      *> ISO §2023:15.37.3 AR1 — "Argument-1 shall be a data item or literal of class alphabetic,
       *> alphanumeric, or national." The rule names THREE CLASSES and TWO SPECIES (data item, literal),
       *> and §2023:8.5.2.1 realises each class through more than one kind of item, so this pins the rule's
       *> whole admitted set rather than the one PIC X item every earlier case happens to use.

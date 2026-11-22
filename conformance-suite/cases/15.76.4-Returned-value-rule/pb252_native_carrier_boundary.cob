@@ -28,15 +28,15 @@
       *>   cite.py --check 14.7.5 "the values of all of the resultant data items remain unchanged from
       *>     the values they had at the start of the execution of the arithmetic statement" -> OK
       *>     §2023:14.7.5 1) (under the SIZE ERROR phrase)
-      *>   cite.py --check 15.88.3 "Argument-1 shall be of class numeric" -> OK §2023:15.88.3 1)
+      *>   cite.py --check 15.88.3 "Argument-1 shall be of class numeric" -> OK §2023:15.88.3 AR1
       *>   cite.py --check 15.76.4 "(FUNCTION MAX (argument-list) - FUNCTION MIN (argument-list))"
-      *>     -> OK §2023:15.76.4 1)   [en dash in the source]
+      *>     -> OK §2023:15.76.4 RV1   [en dash in the source]
       *>   cite.py --check 15.4.1 "the value returned is an implementor-defined approximation of the
       *>     value of that expression" -> OK §2023:15.4.1
       *>   cite.py --check 15.59.4 "the returned value is the content of the argument-1 having the
-      *>     greatest value" -> OK §2023:15.59.4 1)
+      *>     greatest value" -> OK §2023:15.59.4 RV1
       *>   cite.py --check 15.63.4 "the returned value is the content of the argument-1 having the
-      *>     least value" -> OK §2023:15.63.4 1)   -- together these two make MAX >= MIN, hence case (3).
+      *>     least value" -> OK §2023:15.63.4 RV1   -- together these two make MAX >= MIN, hence case (3).
       *>
       *> ⚠ EDITION. The witness needs 31-digit items: COBOL-85 caps fixed-point at 18 digits
       *> (COBOL0802), and eighteen-digit arguments cannot reach a 38-digit carrier in four terms.

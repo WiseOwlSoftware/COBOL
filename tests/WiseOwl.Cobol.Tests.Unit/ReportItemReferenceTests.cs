@@ -343,16 +343,53 @@ public sealed class ReportItemReferenceTests
         Assert.DoesNotContain("§2023:13.8.6.2.3", verdict);
     }
 
-    private static IReadOnlyList<string> Bind(string source)
+    /// <summary>⛔ AT COBOL-85 THE RULE IS THE ENTRY'S FORMAT'S (kb/Work PB6026). ANSI X3.23-1985 has no section rule; each of the
+    /// three report group description formats (§1985:XIII.3.9.2) holds its data-name to its own syntax rule: the level 1 entry to
+    /// §1985:XIII.3.9.3 SR5, a group entry below it to SR7, an elementary entry to SR10d. The refusal names the rule of the entry
+    /// the reference reaches, never SR10d for all three.</summary>
+    [Theory]
+    [InlineData("DL", "§1985:XIII.3.9.3 SR5: \"In a format 1 entry, data-name-1 is required only when\"")]
+    [InlineData("LG", "§1985:XIII.3.9.3 SR7: \"In a format 2 entry, data-name-1 is optional. If present it may be used only to qualify a sum counter reference.\"")]
+    [InlineData("PV", "§1985:XIII.3.9.3 SR10d: \"Data-name-1 may be referenced only if the entry defines a sum counter\"")]
+    public void AtCobol85_AReportEntryReference_CitesTheRuleOfItsEntrysFormat(string name, string rule)
+    {
+        var d = Bind(string.Join("\n",
+            "       IDENTIFICATION DIVISION.",
+            "       PROGRAM-ID. PB6026U.",
+            "       ENVIRONMENT DIVISION.",
+            "       INPUT-OUTPUT SECTION.",
+            "       FILE-CONTROL.",
+            "           SELECT PRT ASSIGN TO \"pb6026u.rpt\".",
+            "       DATA DIVISION.",
+            "       FILE SECTION.",
+            "       FD  PRT REPORT IS RR.",
+            "       WORKING-STORAGE SECTION.",
+            "       01  W PIC X(3) VALUE \"ABC\".",
+            "       REPORT SECTION.",
+            "       RD  RR.",
+            "       01  DL TYPE DETAIL.",
+            "           05  LG LINE PLUS 1.",
+            "               10  PV COLUMN 5 PIC X(3) SOURCE W.",
+            "       PROCEDURE DIVISION.",
+            "       MAIN.",
+            $"           MOVE {name} TO W.",
+            "           STOP RUN.",
+            ""), dialect: 85);
+        string verdict = Assert.Single(d, x => x.Contains(ReportItemCode));
+        Assert.Contains(rule, verdict);
+        Assert.Single(d, x => x.Contains("§1985:XIII.3.9.3 SR"));
+    }
+
+    private static IReadOnlyList<string> Bind(string source, int dialect = 2023)
     {
         string path = Path.Combine(Path.GetTempPath(), $"pb1046_{Guid.NewGuid():N}.cob");
         File.WriteAllText(path, source);
         try
         {
             var diags = new DiagnosticBag();
-            var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2023 }.Parse(path, diags);
+            var tree = new CnFrontend { InitialFormat = TestSourceFormat.Inline, DialectLevel = dialect }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
-            var edition = new EditionContext(2023);
+            var edition = new EditionContext(dialect);
             new BinderDriver().Bind(tree!, edition);
             return [.. edition.Diagnostics];
         }

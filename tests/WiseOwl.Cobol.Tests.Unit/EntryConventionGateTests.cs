@@ -27,7 +27,7 @@ public sealed class EntryConventionGateTests
             string src = Path.Combine(dir, "pb4611w.cob");
             File.WriteAllText(src, Source(convention));
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb4611w.dll"), DialectLevel: dialect, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "pb4611w.dll"), DialectLevel: dialect, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return [.. r.Errors];
         }
         finally { ScratchDirectory.Remove(dir); }

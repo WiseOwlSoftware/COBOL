@@ -68,8 +68,11 @@ public sealed partial class FileControlBinder
                 // empty assignment).
                 Edition.Error(DiagnosticCatalog.FileDescriptionWithoutSelect, $"file description entry '{name}' names "
                     + "a file that no file control entry specifies; " + Edition.Edition.CiteRule(
-                        "§1985:VII.2.3.3 SR2 (§1985:VIII.2.3.3 SR2, §1985:IX.2.3.3 SR2): \"Each file-name in the Data Division must be "
-                        + "specified only once in the FILE-CONTROL paragraph.\"",
+                        fd.fileDescriptionClauses()?.fileDescriptionClause().Any(c => c.reportClause() is not null) == true
+                            ? "§1985:XIII.2.3.3 SR2: \"Each report file described in the Data Division must be specified only once in "
+                              + "the FILE-CONTROL paragraph.\""
+                            : "§1985:VII.2.3.3 SR2 (§1985:VIII.2.3.3 SR2, §1985:IX.2.3.3 SR2): \"Each file-name in the Data Division must be "
+                              + "specified only once in the FILE-CONTROL paragraph.\"",
                         "§2023:13.4.5.3 SR1: \"File-name-1 shall be specified in a file control entry.\""));
                 file = new FileModel { CobolName = name, SelectName = name };
                 _host.Symbols.Declare(file, name, selected: false);
@@ -250,7 +253,7 @@ public sealed partial class FileControlBinder
                 + $"'{fdName}'. It is not bound here, so it has no effect on the file.");
             return false;
         }
-        if ((row.Formats & format) == 0)
+        if ((row.FormatsIn(Edition.Edition) & format) == 0)
         {
             Edition.Error(DiagnosticCatalog.FileDescriptionClauseFormat, $"the {row.Name} ({WrittenSource.Of(clause)}) is not "
                 + $"a clause of {FileDescriptionFormats.Caption(Edition.Edition, format, file.Organization)} of the file description entry: file "
@@ -610,7 +613,14 @@ public sealed partial class FileControlBinder
         foreach (var (set, name) in new[] { (alnumSet, alnumName), (natSet, natName) })
         {
             if (set is null) continue;
-            if (set.Medium is CodeSetMedium.NotProvided)
+            if (set.Medium is CodeSetMedium.NotProvided && Edition.DialectLevel < 2002 && set.Table is not null)
+                // §1985:VII.3.4.3 SR2 refuses a literal-phrase alphabet as a SYNTAX rule; the A.3 item 27 non-support is the
+                // later editions' reading of it (a 1985 alphabet has no UTF-8 / UCS-4 phrase, so this is the only 85 arm).
+                Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET {name}: the alphabet-name clause it references "
+                    + "specifies the literal phrase; §1985:VII.3.4.3 SR2: \"The alphabet-name clause referenced by the CODE-SET "
+                    + "clause must not specify the literal phrase.\" Name an alphabet defined by STANDARD-1, STANDARD-2, NATIVE or "
+                    + "an implementor-name");
+            else if (set.Medium is CodeSetMedium.NotProvided)
                 Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET {name}: the {set.Phrase} coded "
                     + "character set's on-medium representation differs from the native encoding, and this processor "
                     + $"does not provide alternate device code sets ({Edition.Edition.Cite("§1985:C.3 item 8", "Annex A §2023:A.3 item 27")} — documented non-support, "

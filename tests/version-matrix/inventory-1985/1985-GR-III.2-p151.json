@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p151",
+ "rule-digest": "43095fcc167a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#moveStatement",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p151",
+ "notes": "Own witness from the read lineage-reads-1985/g-03.json: the reader showed the compiler correct at 85 with its refusal probe (p151_key_word_omitted.cob, refused at its line 12; its control p151_key_word_control compiles), placed as the row's own test. The read: \"A reserved word or function-name whose presence is required when the format in which the word appears is used\" is a requirement a program can break; the refusals of a missing TO and a missing function-name beside the conforming control show it. The candidates (VALUE IS, COPY EQUATE/SUBSTITUTE) are wording matches. The notation row 1985-SR-IV.2.1.2-p1 states the reserved-word half too. Code location located after the read: moveStatement prints the key word TO of the MOVE format, so MOVE A B (TO omitted) is refused by the parser: the key word is required when the format is used (overridden by the importer: the locator named compilationUnit, the whole grammar)."
+}

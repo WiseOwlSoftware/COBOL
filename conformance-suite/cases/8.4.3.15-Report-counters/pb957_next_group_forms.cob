@@ -27,14 +27,14 @@
       *> GR4 b) (body, relative) — integer-2 is added when the sum is less than FOOTING.
       *> GR4 c) (body, NEXT PAGE) — "the FOOTING integer is moved to LINE-COUNTER".
       *> GR5 b) (page footing, relative) — integer-2 is added to LINE-COUNTER, which moves a report footing
-      *>   placed relative to it (§2023:13.18.35.4 GR5 b) 5.: LINE-COUNTER + integer-2 after a page footing).
-      *> GR6 — WITH RESET: PAGE-COUNTER is set to 1 at the next page advance (§2023:14.9.16.4 GR6 d)).
+      *>   placed relative to it (§2023:13.18.35.4 GR5b 5.: LINE-COUNTER + integer-2 after a page footing).
+      *> GR6 — WITH RESET: PAGE-COUNTER is set to 1 at the next page advance (§2023:14.9.16.4 GR6d).
       *>
       *> THE PAGE: PAGE LIMIT 20, HEADING 1, FIRST DETAIL 5, LAST DETAIL 14, FOOTING 16 (§2023:13.18.39).
       *> DERIVATION, group by group (LC = LINE-COUNTER, PC = PAGE-COUNTER; INITIATE: LC 0, PC 1).
       *>  GENERATE DE-A (the first GENERATE, §2023:14.9.16.4 GR4):
       *>   RH    LINE 1 absolute -> line 1 "RH". GR3 b): LC 1 + 1 = 2.
-      *>   PH    relative, a report heading on this page -> LC + 1 = 3 (§2023:13.18.35.4 GR5 b) 2.): "PH 1".
+      *>   PH    relative, a report heading on this page -> LC + 1 = 3 (§2023:13.18.35.4 GR5b.2): "PH 1".
       *>         (Without the RH's NEXT GROUP it would print on line 2.)
       *>   DE-A  first body group on the page -> FIRST DETAIL 5 (GR5 b) 3.): "A05". GR4 b): 5 + 2 = 7.
       *>  GENERATE DE-B: page fit 7 + 1 = 8 <= 14 -> line 8 "B08". GR4 b) (+): 8 + 2 = 10.
@@ -51,7 +51,7 @@
       *>  GENERATE DE-B: GR4 a) — the page advance: PF line 17 "PF 1"; form feed; PC 2; PH line 1 "PH 2".
       *>   DE-B has only relative lines, so GR4 a) 3.: its first line is 6 + 1 = 7 (NOT FIRST DETAIL 5):
       *>   "B07". GR4 b): LC 9.
-      *>  TERMINATE (§2023:14.9.46.4 GR3; no CONTROL clause): PF line 17 "PF 2"; §2023:13.18.37.4 GR5 b) LC 18; RF, a page
+      *>  TERMINATE (§2023:14.9.46.4 GR3; no CONTROL clause): PF line 17 "PF 2"; §2023:13.18.37.4 GR5b LC 18; RF, a page
       *>   footing printed on this page -> LC + 1 = 19 "RF" (without the PF's NEXT GROUP, line 18).
       *>
       *> THE READ-BACK numbers every physical line of each page (the PB484 byte reader) and shows each form

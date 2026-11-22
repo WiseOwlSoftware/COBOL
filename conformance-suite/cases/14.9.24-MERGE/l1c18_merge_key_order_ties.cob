@@ -19,17 +19,17 @@
       *> DESCENDING are transitive across all occurrences of
       *> data-name-1 until another occurrence of the word ASCENDING or
       *> DESCENDING is encountered."
-      *>   cite.py: OK  §2023:14.9.24.4 3)  (General rules)
-      *>   cite.py: OK  §2023:14.9.24.4 3) b)  (General rules)
+      *>   cite.py: OK  §2023:14.9.24.4 GR3  (General rules)
+      *>   cite.py: OK  §2023:14.9.24.4 GR3b  (General rules)
       *> GR4: equal-key records: "a) Follows the order of the
       *> associated input files as specified in the MERGE statement.
       *> b) Is such that all records associated with one input file
       *> are returned prior to the return of records from another
       *> input file."
-      *>   cite.py: OK  §2023:14.9.24.4 4) a)  (General rules)
-      *>   cite.py: OK  §2023:14.9.24.4 4) b)  (General rules)
+      *>   cite.py: OK  §2023:14.9.24.4 GR4a  (General rules)
+      *>   cite.py: OK  §2023:14.9.24.4 GR4b  (General rules)
       *> SR8: "The words THROUGH and THRU are equivalent."
-      *>   cite.py: OK  §2023:14.9.24.3 8)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.24.3 SR8  (Syntax rules)
       *> Numeric keys compare "with respect to the algebraic value of
       *> the operands regardless of the manner in which their usage is
       *> described".

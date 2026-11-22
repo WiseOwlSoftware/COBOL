@@ -15,25 +15,25 @@
       *>   follow in the compilation group".
       *>   cite.py --check 7.3.25.4 "procedure division statements and
       *>   procedure division headers that follow in the compilation
-      *>   group" -> OK §2023:7.3.25.4 6)
+      *>   group" -> OK §2023:7.3.25.4 GR6
       *> RULE §2023:7.3.25.4 GR8: the OFF phrase disables checking "for all
       *>   procedure division statements and procedure division headers
       *>   that follow in the compilation group".
       *>   cite.py --check 7.3.25.4 "checking for the exception condition
       *>   associated with exception-name-1 is disabled for all
       *>   procedure division statements and procedure division
-      *>   headers" -> OK §2023:7.3.25.4 8)
-      *> RULE §2023:14.9.4.4 GR3 d): EC-PROGRAM-ARG-MISMATCH "is set to exist
+      *>   headers" -> OK §2023:7.3.25.4 GR8
+      *> RULE §2023:14.9.4.4 GR3d: EC-PROGRAM-ARG-MISMATCH "is set to exist
       *>   if checking for it is enabled in both the activated program
       *>   and activating runtime element".
       *>   cite.py --check 14.9.4.4 "is set to exist if checking for it
       *>   is enabled in both the activated program and activating
-      *>   runtime element" -> OK §2023:14.9.4.4 3)
-      *> RULE §2023:14.9.23.4 GR7 c): the same "enabled in both the activated
+      *>   runtime element" -> OK §2023:14.9.4.4 GR3
+      *> RULE §2023:14.9.23.4 GR7c: the same "enabled in both the activated
       *>   method and the activating runtime element" gate for
       *>   EC-OO-UNIVERSAL (cite.py --check 14.9.23.4 "is set to exist if
       *>   checking for it is enabled in both the activated method and
-      *>   the activating runtime element" -> OK §2023:14.9.23.4 7)).
+      *>   the activating runtime element" -> OK §2023:14.9.23.4 GR7).
       *>   GR7 c) is reached only by a BOUND method: GR7 b) resolves
       *>   first by §2023:9.3.6, whose match rules require a BY REFERENCE
       *>   argument to have the formal's PICTURE (cite.py --check 9.3.6

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p2",
+ "rule-digest": "365b25a8cb89",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapAccessMode; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#FileAccessMode",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p2",
+ "notes": "Derivation from the read lineage-reads-1985/g-01.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p2); the code location is where the compiler meets the rule's subject. The read: \"The manner in which records are to be operated upon within a file\" names a concept; it requires nothing a program or compiler could break apart from the ACCESS MODE clause rules. The 2023 candidates are wording matches only (the clause format and its GRs), which state clause behaviour, not this definition. The code location was located after the read (locations-all.json): MapAccessMode binds the ACCESS MODE clause to FileAccessMode (Sequential, Random or Dynamic), the manner in which the records of the file are operated upon."
+}

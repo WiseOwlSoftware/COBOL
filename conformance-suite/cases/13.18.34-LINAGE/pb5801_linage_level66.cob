@@ -11,10 +11,10 @@
       *>   GR1 gives it "all of the data attributes of data-name-2", so
       *>   each operand is legal.
       *> DERIVATION. Page body 5 (L66), footing area from line 3 (F66).
-      *>   §2023:13.18.34.4 GR7 d): LINAGE-COUNTER "is automatically set
+      *>   §2023:13.18.34.4 GR7d: LINAGE-COUNTER "is automatically set
       *>   to one at the time an OPEN statement with the OUTPUT phrase is
       *>   executed"; GR7 c) 2.: each WRITE BEFORE ADVANCING 1 LINE adds
-      *>   1: 2, then 3. §2023:14.9.51.4 GR26 b): the end-of-page condition
+      *>   1: 2, then 3. §2023:14.9.51.4 GR26b: the end-of-page condition
       *>   occurs when "the associated LINAGE-COUNTER is equal to or
       *>   exceeds the current value of the footing start": not on the
       *>   first WRITE (2), on the second (3).

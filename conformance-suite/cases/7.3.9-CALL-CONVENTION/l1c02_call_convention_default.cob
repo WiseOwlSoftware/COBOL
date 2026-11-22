@@ -11,20 +11,20 @@
       *> Rule: "The default for the CALL-CONVENTION directive is
       *> '>>CALL-CONVENTION COBOL'."
       *> cite.py OK lines:
-      *>  OK §2023:7.3.9.3 1) The default for the CALL-CONVENTION directive
+      *>  OK §2023:7.3.9.3 GR1 The default for the CALL-CONVENTION directive
       *>     is '>>CALL-CONVENTION COBOL'.
-      *>  OK §2023:7.3.9.3 2) ... program-names ... specified in subsequent
+      *>  OK §2023:7.3.9.3 GR2 ... program-names ... specified in subsequent
       *>     ... CALL statements, CANCEL statements ...
-      *>  OK §2023:7.3.9.3 2) a) When COBOL is specified, that program-name
+      *>  OK §2023:7.3.9.3 GR2a When COBOL is specified, that program-name
       *>     or method-name is treated as a COBOL word that maps to the
       *>     externalized name ...
       *>  OK §2023:8.3.2.2 2) a) When the COBOL call convention is implied
       *>     or COBOL is specified in the CALL-CONVENTION compiler
       *>     directive, the program-name is treated as a COBOL word
-      *>  OK §2023:8.1.3.2 3) a) ... COBOL basic letters appearing elsewhere
+      *>  OK §2023:8.1.3.2 GR3a ... COBOL basic letters appearing elsewhere
       *>     within the compilation group are treated in a case-
       *>     insensitive manner.
-      *>  OK §2023:14.9.5.4 3) If the program referenced by a successfully
+      *>  OK §2023:14.9.5.4 GR3 If the program referenced by a successfully
       *>     executed CANCEL statement in a run unit is subsequently
       *>     called in that run unit, that program is in its initial
       *>     state.

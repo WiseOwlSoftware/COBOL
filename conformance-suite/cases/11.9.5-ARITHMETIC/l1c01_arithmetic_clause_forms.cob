@@ -16,17 +16,17 @@
       *>     specified, the techniques used in handling arithmetic
       *>     expressions, arithmetic statements, the SUM clause, and
       *>     integer and numeric functions shall be as described for
-      *>     standard-decimal arithmetic" -> OK §2023:11.9.5.2 3)
+      *>     standard-decimal arithmetic" -> OK §2023:11.9.5.2 GR3
       *>   cite.py --check 11.9.5.2 "If the ARITHMETIC clause is not
       *>     specified in this source element or a containing source
-      *>     element" -> OK §2023:11.9.5.2 4)
+      *>     element" -> OK §2023:11.9.5.2 GR4
       *>   cite.py --check 15.84.4 "When standard-decimal arithmetic is
       *>     in effect, the returned value is the absolute value of the
       *>     exact square root of argument-1 rounded to 34 digits"
-      *>     -> OK §2023:15.84.4 2)
+      *>     -> OK §2023:15.84.4 RV2
       *>   cite.py --check 15.84.4 "When native arithmetic is in effect,
       *>     the returned value is the absolute value of the
-      *>     approximation of the square root" -> OK §2023:15.84.4 4)
+      *>     approximation of the square root" -> OK §2023:15.84.4 RV4
       *> STANDARD-BINARY is the documented processor-dependent decline
       *> (A.3 item 2, docs/CONFORMANCE.md, COBOL0806); not used here.
       *> 2014 dir: STANDARD-DECIMAL first exists in 2014.

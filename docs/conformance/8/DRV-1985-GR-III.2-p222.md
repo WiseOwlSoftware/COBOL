@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-III.2-p222", "definitional", "defines a printable group of the user's report: a report group that contains at least one print line", "A vocabulary term; candidates (report group placement, LINE clause) are wording-only. Cited: §1985:III.2 p222. Proposed by the read lineage-reads-1985/g-04.json; its refuter, trying to write the witness the derivation says cannot exist (Searched for any rule that reads 'printable group': the glossary is its only occurrence.), UPHELD it: A term definition of the user's report that no other rule reads (R43 item 4 as extended 2026-10-08).", "claude: 2026-11-21", "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-04.jsonl"]
+---

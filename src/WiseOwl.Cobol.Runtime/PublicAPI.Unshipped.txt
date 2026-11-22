@@ -202,10 +202,12 @@ WiseOwl.Cobol.Runtime.DialectBehavior.NumvalCCurrencyContentRules = 12 -> WiseOw
 WiseOwl.Cobol.Runtime.DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter = 3 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.RecordContainsRangeBindsRecordSize = 13 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError = 14 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.ReportPageWidth = 34 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SavedNextGroupForcesPageAdvance = 26 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SearchIndexBelowTableUnsuccessful = 6 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SelectWhenOnlyForFilePhraseStatements = 23 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SumAdditionsInDependencyOrder = 31 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.SumDataNameRules = 33 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SumSizeErrorBlanksPrintableItem = 8 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SumSizeErrorRaisedAtAddition = 27 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.TerminateDiscardsSavedNextGroup = 9 -> WiseOwl.Cobol.Runtime.DialectBehavior
@@ -219,6 +221,7 @@ WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowRollback -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.SizeOverflow -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.SizeTruncation -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.SizeUnderflow -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.EditionRule(string! rule1985, string! later) -> string!
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowApplyCommitChecking.get -> bool
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowApplyCommitChecking.set -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowApplyCommitError(string! detail) -> void
@@ -228,6 +231,8 @@ WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowCommitError(string! detail)
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowRollbackChecking.get -> bool
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowRollbackChecking.set -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowRollbackError(string! detail) -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.IsCobol85.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.IsCobol85.set -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeChecksEnabled.get -> WiseOwl.Cobol.Runtime.SizeChecks
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeOverflowChecking.get -> bool
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeOverflowChecking.set -> void
@@ -257,6 +262,7 @@ WiseOwl.Cobol.Runtime.FunctionValueField.DeviceText(bool commaMode) -> string!
 WiseOwl.Cobol.Runtime.FunctionValueField.FunctionValueField() -> void
 WiseOwl.Cobol.Runtime.FunctionValueField.Length.get -> long
 WiseOwl.Cobol.Runtime.HostLanding
+WiseOwl.Cobol.Runtime.ICobolProgram.IsCobol85.get -> bool
 WiseOwl.Cobol.Runtime.IO.CobolReport.AddRolled(WiseOwl.Cobol.Runtime.IO.ReportGroup! source, int sumId, int presentSlot, System.Func<System.Int128, System.Int128>! apply, bool crossFoot) -> void
 WiseOwl.Cobol.Runtime.IO.CobolReport.Edition.get -> int
 WiseOwl.Cobol.Runtime.IO.CobolReport.Edition.init -> void
@@ -468,6 +474,10 @@ WiseOwl.Cobol.Runtime.OdoTail.RecordUnit.get -> int
 WiseOwl.Cobol.Runtime.OdoTail.Trailing.get -> int
 WiseOwl.Cobol.Runtime.OdoTail.Trailing.init -> void
 WiseOwl.Cobol.Runtime.OverlappingMove
+WiseOwl.Cobol.Runtime.ProgramNameArm
+WiseOwl.Cobol.Runtime.ProgramNameArm.Common = 2 -> WiseOwl.Cobol.Runtime.ProgramNameArm
+WiseOwl.Cobol.Runtime.ProgramNameArm.Contained = 0 -> WiseOwl.Cobol.Runtime.ProgramNameArm
+WiseOwl.Cobol.Runtime.ProgramNameArm.RecursiveSelf = 1 -> WiseOwl.Cobol.Runtime.ProgramNameArm
 WiseOwl.Cobol.Runtime.ProgramTable.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
 WiseOwl.Cobol.Runtime.ProgramTable.RunModule(System.Action! ensureRegistered, string! mainPath) -> void
 WiseOwl.Cobol.Runtime.ReceivingReferences
@@ -942,6 +952,7 @@ const WiseOwl.Cobol.Runtime.CobolDec.SidiRoundedDigits = 31 -> int
 const WiseOwl.Cobol.Runtime.CobolNum.NestedQuotientGuardDigits = 14 -> int
 const WiseOwl.Cobol.Runtime.DebugItem.MaxSubscriptLevels = 3 -> int
 const WiseOwl.Cobol.Runtime.DebugItem.MinContentsWidth = 30 -> int
+const WiseOwl.Cobol.Runtime.IO.CobolReport.NoPageWidth = 2147483647 -> int
 const WiseOwl.Cobol.Runtime.IO.FileStatusCode.RecordIdentificationFailure = "45" -> string!
 const WiseOwl.Cobol.Runtime.IO.RecordFormat.BySelectWhen = -1 -> int
 const WiseOwl.Cobol.Runtime.IO.RecordFormat.NoSelection = -1 -> int
@@ -1048,11 +1059,11 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.AcosWide(WiseOwl.Cobol.Runtime.Cobo
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AnnuityDec(WiseOwl.Cobol.Runtime.DecArithmetic ar, WiseOwl.Cobol.Runtime.CobolDec rate, WiseOwl.Cobol.Runtime.CobolDec periods) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AnnuityExact(WiseOwl.Cobol.Runtime.CobolRounding mode, WiseOwl.Cobol.Runtime.CobolExact rate, WiseOwl.Cobol.Runtime.CobolDec periods) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AsinWide(WiseOwl.Cobol.Runtime.CobolWide? x, int scale) -> double
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentDec(WiseOwl.Cobol.Runtime.CobolDec v, string! function, int argument, bool terminates) -> WiseOwl.Cobol.Runtime.CobolDec
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentExact(WiseOwl.Cobol.Runtime.CobolExact v, string! function, int argument, bool terminates) -> WiseOwl.Cobol.Runtime.CobolExact
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentReal(double v, string! function, int argument, bool terminates) -> double
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentScaled(System.Int128 unscaled, int scale, string! function, int argument, bool terminates) -> System.Int128
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentWide(WiseOwl.Cobol.Runtime.CobolWide v, int scale, string! function, int argument, bool terminates) -> WiseOwl.Cobol.Runtime.CobolWide
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentDec(WiseOwl.Cobol.Runtime.CobolDec v, string! function, int argument) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentExact(WiseOwl.Cobol.Runtime.CobolExact v, string! function, int argument) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentReal(double v, string! function, int argument) -> double
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentScaled(System.Int128 unscaled, int scale, string! function, int argument) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentWide(WiseOwl.Cobol.Runtime.CobolWide v, int scale, string! function, int argument) -> WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.CosWide(WiseOwl.Cobol.Runtime.CobolWide x, int scale) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.CurrencyStringViolatesContentRules(string! currency) -> bool
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.DomainWideAdmitted(WiseOwl.Cobol.Runtime.CobolWide value, int scale, WiseOwl.Cobol.Runtime.CobolIntrinsics.ArgumentDomain domain, string! function, string! rule) -> WiseOwl.Cobol.Runtime.CobolWide?
@@ -1194,12 +1205,14 @@ static WiseOwl.Cobol.Runtime.DebugItem.GroupWidthFor(int contentsWidth) -> int
 static WiseOwl.Cobol.Runtime.DecArithmetic.Sdidi(WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.DecArithmetic
 static WiseOwl.Cobol.Runtime.DecArithmetic.Standard(WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.DecArithmetic
 static WiseOwl.Cobol.Runtime.Exceptions.DispatchResult.CompletedNotNormally(int result) -> bool
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.EditionRule(string! rule1985, string! later) -> string!
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking.set -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowCommitChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowCommitChecking.set -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowRollbackChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowRollbackChecking.set -> void
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.IsCobol85.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeChecksEnabled.get -> WiseOwl.Cobol.Runtime.SizeChecks
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeOverflowChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeOverflowChecking.set -> void
@@ -1310,6 +1323,7 @@ static WiseOwl.Cobol.Runtime.OverlappingMove.PackedToDisplay(string! sender, str
 static WiseOwl.Cobol.Runtime.PointerImage.DataPointerOf(string! image) -> WiseOwl.Cobol.Runtime.ManagedPointer!
 static WiseOwl.Cobol.Runtime.PointerImage.FunctionPointerOf(string! image) -> WiseOwl.Cobol.Runtime.FunctionPointer
 static WiseOwl.Cobol.Runtime.PointerImage.ProgramPointerOf(string! image) -> WiseOwl.Cobol.Runtime.ProgramPointer
+static WiseOwl.Cobol.Runtime.ProgramNameScope.FirstVisible<T>(T! caller, System.Func<T!, WiseOwl.Cobol.Runtime.ProgramNameArm, bool>! accept, System.Func<T!, System.Collections.Generic.IEnumerable<T!>!>! childrenOf, System.Func<T!, T?>! containerOf, System.Func<T!, bool>! isRecursive, System.Func<T!, bool>! isCommon) -> T?
 static WiseOwl.Cobol.Runtime.ProgramRegistry.AddressNotLocated(string! name, bool function) -> string!
 static WiseOwl.Cobol.Runtime.ProgramRegistry.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
 static WiseOwl.Cobol.Runtime.ProgramRegistry.RunModule(System.Action! ensureRegistered, string! mainPath) -> void

@@ -416,11 +416,19 @@ public sealed class ProgramTable
         var mainExc = _owner.Exceptions;
         var savedNonfatalDispatcher = mainExc.NonfatalDispatcher;
         mainExc.NonfatalDispatcher = inst;
+        // The activation's edition answer to a broken intrinsic argument rule (kb/Work PB6019): same scope, same boundary.
+        bool savedCobol85 = mainExc.IsCobol85;
+        mainExc.IsCobol85 = inst.IsCobol85;
         // A GOBACK … RAISING in the MAIN program stages for no activation at all (ModuleStack.ActivatingActivation
         // is −1 for the main frame), so nothing can ever take it — §2023:14.9.18.4 GR3: "A RAISING phrase, if
         // specified, is ignored" (kb/Work PB892 Arm B).
         try { inst.Activate(); }
-        finally { n.Active--; n.MainActive = false; _owner.Modules.Pop(); mainExc.NonfatalDispatcher = savedNonfatalDispatcher; }
+        finally
+        {
+            n.Active--; n.MainActive = false; _owner.Modules.Pop();
+            mainExc.NonfatalDispatcher = savedNonfatalDispatcher;
+            mainExc.IsCobol85 = savedCobol85;
+        }
     }
 
     /// <summary>The §2023:14.6.12 abnormal-run-unit-termination indication (§2023:14.6.11 CLOSE is the caller's finally): the
@@ -673,6 +681,10 @@ public sealed class ProgramTable
         // declarative" when it has none — displaces the activator's for the duration of the activation.
         var savedNonfatalDispatcher = exc.NonfatalDispatcher;
         exc.NonfatalDispatcher = inst;
+        // The activated element's edition answers a broken intrinsic argument rule by its own text (kb/Work PB6019): a COBOL-85
+        // callee terminates, a later-edition one raises EC-ARGUMENT-FUNCTION, whoever activated it.
+        bool savedCobol85 = exc.IsCobol85;
+        exc.IsCobol85 = inst.IsCobol85;
         // The AMBIENT checking flags are per SOURCE TEXT, not per run unit (kb/Work PB841): §2023:7.3.25.4 GR6 enables
         // checking "for the procedure division statements and procedure division headers that follow in the
         // compilation group", so the activated element's statements start from all-off and each sets only what
@@ -727,6 +739,7 @@ public sealed class ProgramTable
             exc.ActivatorExternalMask = savedActivator;
             exc.ActivatorFlowApplyCommit = savedActivatorApplyCommit;
             exc.NonfatalDispatcher = savedNonfatalDispatcher;
+            exc.IsCobol85 = savedCobol85;
             exc.RestoreChecking(savedChecking);
             if (freshInstance)
             {
@@ -1061,20 +1074,13 @@ public sealed class ProgramTable
         if (target.Length == 0) return null;
         Node? caller = callerPath is not null && _byPath.TryGetValue(callerPath, out var c) ? c : null;
 
-        if (caller is not null)
-        {
-            foreach (var child in caller.Children)                                   // rule 1
-                if (child.IsFunction == wantFunction && ExternalizedNames.Same(child.CallName, target)) return child;
-            if (caller.IsFunction == wantFunction && ExternalizedNames.Same(caller.CallName, target) && caller.Recursive)
-                return caller;                                                       // rule 2
-            for (var anc = ParentOf(caller); anc is not null; anc = ParentOf(anc))   // rule 3 — nearest container first
-                foreach (var sib in anc.Children)
-                {
-                    if (sib.IsFunction != wantFunction || !sib.Common || !ExternalizedNames.Same(sib.CallName, target)) continue;
-                    // §2023:8.4.6.3 2)'s exception — written ONCE, shared with the bind-time AS NESTED table (kb/Work PB1460).
-                    if (ProgramNameScope.CommonProgramReferable(sib, sib.Recursive, caller, ParentOf)) return sib;
-                }
-        }
+        // Rules 1 to 3, in their order and with the COMMON exception, are ProgramNameScope's, shared with the bind-time scope the
+        // listing and AS NESTED read (kb/Work PB1460, PB5965).
+        if (caller is not null
+            && ProgramNameScope.FirstVisible(caller,
+                (n, _) => n.IsFunction == wantFunction && ExternalizedNames.Same(n.CallName, target),
+                n => n.Children, ParentOf, n => n.Recursive, n => n.Common) is { } scoped)
+            return scoped;
         if (Outermost(target, wantFunction) is { } outermost) return outermost;     // rule 4 — outermost programs
 
         // Rule-4 fallthrough: the run unit may be composed of SEPARATELY COMPILED modules ("a run unit contains

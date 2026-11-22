@@ -18,8 +18,8 @@
       *> zero". NOT: §2023:8.8.4.10.1 "A condition is negated by use of the logical operator
       *> 'NOT', which reverses the truth value of the condition to which it is applied."
       *>   cite.py: OK  §2023:8.8.4.7.2   (General format)  [arithmetic-expression-1 IS [ NOT ] ...]
-      *>   cite.py: OK  §2023:8.8.4.7.3 1)  (Syntax rules)
-      *>   cite.py: OK  §2023:8.8.4.7.4 1) a)  (General rules)  [a), and b) and c): cite.py
+      *>   cite.py: OK  §2023:8.8.4.7.3 SR1  (Syntax rules)
+      *>   cite.py: OK  §2023:8.8.4.7.4 GR1a  (General rules)  [a), and b) and c): cite.py
       *>            labels all three list items "1) a)" - PB1554]
       *>   cite.py: OK  §2023:8.8.4.10.1   (General)
       *> (cite.py ignores operator symbols, PB1554; the expressions below are quoted here

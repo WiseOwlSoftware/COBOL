@@ -7,7 +7,7 @@
       *> kb/Work PB1139 - A FILE SORT IN THE INPUT PROCEDURE OF ANOTHER FILE SORT IS REFUSED.
       *>   cite.py --check 14.9.40.3 "A SORT statement shall not appear in imperative-statement-1 of an
       *>     exception-checking PERFORM statement, in an input or output procedure, or in a declarative procedure."
-      *>     -> OK §2023:14.9.40.3 3)
+      *>     -> OK §2023:14.9.40.3 SR3
       *> No check asked the procedure ranges about a SORT (only MERGE and COMMIT/ROLLBACK, and only from 2023), so the
       *> statement compiled clean. SR3 is a COBOL-2023 rule: 2002 and 2014 let a SORT "appear anywhere in the procedure
       *> division except" the declarative portion, and 1985 forbids only executing one there (kb/Work PB5274).

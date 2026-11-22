@@ -5,22 +5,22 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:14.9.24.4 GR14 -> §2023:12.4.5.3 GR3 b) — a MERGE associates
+      *> ISO §2023:14.9.24.4 GR14 -> §2023:12.4.5.3 GR3b — a MERGE associates
       *> each USING/GIVING file with the physical file its ASSIGN USING
       *> data item names AT THE TIME THE MERGE EXECUTES.
       *>
       *> GR14: "Additional rules affecting the execution of the MERGE
       *> statement are given in 12.4.5, File control entry, General
       *> rules 3 and 4."
-      *>   cite.py: OK  §2023:14.9.24.4 14)  (General rules)
+      *>   cite.py: OK  §2023:14.9.24.4 GR14  (General rules)
       *> 12.4.5.3 GR3: "The association occurs at the time of execution
       *> of an OPEN, SORT, or MERGE statement that referenced
       *> file-name-1"; b) "the file connector referenced by file-name-1
       *> is associated with a physical file identified by the content
       *> of the data item referenced by data-name-1 in the runtime
       *> element that executes the OPEN, SORT, or MERGE statement."
-      *>   cite.py: OK  §2023:12.4.5.3 3)  (General rules)
-      *>   cite.py: OK  §2023:12.4.5.3 3) b)  (General rules)
+      *>   cite.py: OK  §2023:12.4.5.3 GR3  (General rules)
+      *>   cite.py: OK  §2023:12.4.5.3 GR3b  (General rules)
       *> Closing sentence: "If the association cannot be made because
       *> the content of the data item referenced by data-name-1 is not
       *> consistent ..., the OPEN, SORT, or MERGE statement is

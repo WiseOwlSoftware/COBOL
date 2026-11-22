@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p159",
+ "rule-digest": "b81c1cdc4ce7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#CobolReport; src/WiseOwl.Cobol.Runtime/IO/ReportLinePlacement.cs#FirstLine",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p159",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (p159_two_pages.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter's overturn stands: the pointer GR-13.18.39.4-1 states the rule, but its 85 cases (pb484 unpaged, pb1270 one page) never show the numbering restart at the top of a second page. Rerun now at 85, the refuter's two-page report restarts at line 1 on page 2 and places details on lines 3-4 there with LINE-COUNTER 03-04. Since SAME needs the pointer's own 85 case to exercise the scope, the row takes this own witness. Code location located after the read: CobolReport keeps the LINE-COUNTER and ReportLinePlacement.FirstLine computes the line number of a report line within its page."
+}

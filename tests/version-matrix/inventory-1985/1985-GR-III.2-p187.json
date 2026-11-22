@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p187",
+ "rule-digest": "748a7dd4ac14",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsAlphanumeric",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p187",
+ "notes": "Derivation from the read lineage-reads-1985/g-04.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p187); the code location is where the compiler meets the rule's subject. The read: The row classifies data items for the standard's vocabulary; the character-set obligations of each category are the PICTURE and class rules'. Candidates (A.1 coded character set, national character size) are wording-only. The code location was located after the read (locations-all.json): WEAK: IsAlphanumeric admits the items whose content may be any characters; it is the alphanumeric test and not a general nonnumeric test."
+}

@@ -6,7 +6,7 @@
       *>---
       *> ISO §2023:7.3.16.3 SR1 — ">>IF conditional-expression-1 shall begin
       *> on a new line and shall be specified entirely on that line."
-      *>   cite.py: OK  §2023:7.3.16.3 1)  (Syntax rules)
+      *>   cite.py: OK  §2023:7.3.16.3 SR1  (Syntax rules)
       *> The >>IF begins in the middle of a line, after DISPLAY "A",
       *> not on a new line.  (§2023:7.3.3 SR2: "A compiler directive shall
       *> be preceded only by zero, one, or more space characters.")

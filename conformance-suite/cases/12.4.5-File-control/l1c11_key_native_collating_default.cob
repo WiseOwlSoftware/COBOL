@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:12.4.5.3 GR6 a) — no COLLATING SEQUENCE clause: record
+      *> ISO §2023:12.4.5.3 GR6a — no COLLATING SEQUENCE clause: record
       *>   keys (prime and alternate) use the native alphanumeric order
       *> Rule: "If no COLLATING SEQUENCE clause is specified: a) the
       *>   collating sequence for alphanumeric record keys, both
@@ -14,7 +14,7 @@
       *>   cite.py --check 12.4.5.3 "the collating sequence for
       *>   alphanumeric record keys, both primary and alternate, is
       *>   the native alphanumeric collating sequence"
-      *>   -> OK  §2023:12.4.5.3 6) a)  (General rules)
+      *>   -> OK  §2023:12.4.5.3 GR6a  (General rules)
       *>   cite.py --check 9.1.8.2 "the order of sequential access when
       *>   NEXT is specified or implied on a READ statement is
       *>   ascending based on the value of the key of reference
@@ -27,10 +27,10 @@
       *>   phrase shall assume a position in the collating sequence
       *>   that is greater than that of the highest character
       *>   specified in this literal phrase"
-      *>   -> OK  §2023:12.3.7.4 7) 2.  (General rules)
+      *>   -> OK  §2023:12.3.7.4 GR7 2.  (General rules)
       *>   cite.py --check 12.3.6.4 "the initial alphanumeric program
       *>   collating sequence is the collating sequence associated with
-      *>   alphabet-name-1" -> OK  §2023:12.3.6.4 9)  (General rules)
+      *>   alphabet-name-1" -> OK  §2023:12.3.6.4 GR9  (General rules)
       *> It governs comparisons but is NOT a COLLATING SEQUENCE clause
       *> of the file control entry, so GR6 a) still gives the keys the
       *> native order: UTF-16 code-unit order (docs/CONFORMANCE.md

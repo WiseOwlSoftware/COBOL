@@ -18,7 +18,7 @@
       *> procedure runs for a Successful Completion condition, the 02s
       *> included: USE-COUNT stays 0. A last READ NEXT with no AT END
       *> phrase is the at end condition, which is not successful
-      *> (§1985:IX.4.5.4 GR10 c): the procedure runs once, so the 0 is
+      *> (§1985:IX.4.5.4 GR10c: the procedure runs once, so the 0 is
       *> not a procedure that never fires. Each leg fails on a wrong
       *> status, a wrong record, or a USE procedure run for a success.
        IDENTIFICATION DIVISION.

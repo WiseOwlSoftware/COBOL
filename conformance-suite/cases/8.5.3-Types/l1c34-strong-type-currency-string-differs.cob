@@ -17,14 +17,14 @@
       *> cite.py --check 14.8.2.2 "If either the formal parameter or the
       *>   corresponding argument is a strongly-typed group item, both
       *>     shall be
-      *>   of the same type" -> OK §2023:14.8.2.2 2) (Group items)
+      *>   of the same type" -> OK §2023:14.8.2.2 SR2 (Group items)
       *> cite.py --check 12.3.8.4 "if the externalized name of the
       *>   program
       *>   prototype is the externalized name of a program prototype
       *>     definition
       *>   specified in the same compilation group, the details are
       *>     taken from
-      *>   that program prototype definition" -> OK §2023:12.3.8.4 10) b)
+      *>   that program prototype definition" -> OK §2023:12.3.8.4 GR10b
       *> The prototype L1C34IS and its definition write AMT PIC $$9
       *>   under
       *> CURRENCY SIGN "#" WITH PICTURE SYMBOL "$"; the caller writes

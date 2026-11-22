@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB5789. GENERATE report-name on a report with one
       *>   detail report group: subtotalled, the detail not presented
-      *>   (§1985:XIII.3.20.4 GR11 d).
+      *>   (§1985:XIII.3.20.4 GR11d.
       *> DERIVATION. §1985:XIII.3.19.4 GR11: "The subtotalling that
       *>   occurs when a GENERATE report-name statement is executed is
       *>   discussed in the appropriate paragraph"; §1985:XIII.3.20.4

@@ -8,7 +8,7 @@
       *> kb/Work PB5130 - from COBOL-2002 the integer date form ends
       *> at 9999-12-31.
       *>
-      *> §2023:15.46.3 AR1 a) (cite.py --check): YYYY "shall be an
+      *> §2023:15.46.3 AR1a (cite.py --check): YYYY "shall be an
       *> integer greater than 1600 and less than 10000"; §2023:15.5.2:
       *> a value in integer date form "shall be less than or equal to
       *> the value of FUNCTION INTEGER-OF-DATE (99991231), which is

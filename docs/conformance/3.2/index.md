@@ -6,7 +6,7 @@ columns: ["Id", "Extension (class 1: a documented language element ISO does not 
 claimed and shall specify any reserved words added for nonstandard extensions", and "An implementation shall provide a
 warning mechanism that optionally may be invoked by the user at compile time to indicate use of a nonstandard extension
 in a compilation group. This warning mechanism shall flag only extensions that are syntactically distinguishable"
-(`cite.py --check 4.2.10` on both sentences → OK §2023:4.2.10 3)). This section is the first obligation and the **register**
+(`cite.py --check 4.2.10` on both sentences → OK §2023:4.2.10 GR3). This section is the first obligation and the **register**
 behind it is the second: one table, `NonstandardExtensionRegister` (`src/WiseOwl.Cobol.Editions/NonstandardExtension.cs`), read
 by the one binder seam `EditionContext.Extension`; `NonstandardExtensionRegisterDriftTests` keeps this table, that
 register, the reserved-word table (D-RW1) and the grammar's `usageKeyword` equal, and refuses an accepted extension that

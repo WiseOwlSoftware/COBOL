@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-III.2-p113", "informative", "describes the standard's vocabulary term format: \"A specific arrangement of a set of data\"", "\"A specific arrangement of a set of data.\" Tells the reader what the standard means by the word; obliges nothing. Cited: §1985:III.2 p113. Proposed by the read lineage-reads-1985/g-02.json; its refuter, trying to write the witness the derivation says cannot exist (Read: one sentence, \"A specific arrangement of a set of data.\" No behaviour violates it; the standard's general formats are described by its notation rows.), UPHELD it: The quotation is the row's whole text; vocabulary only.", "claude: 2026-11-21", "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-02.jsonl"]
+---

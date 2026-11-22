@@ -12,7 +12,7 @@
   "choice": [
    "COBOL"
   ],
-  "citation": "ISO §2023:7.3.9.2 general format: { COBOL | call-convention-name-1 }, plain braces — exactly one shall be written; call-convention-name-1 names one of the implementor's call conventions (§2023:7.3.9.3 GR2 b) maps program-names under it 'in a manner defined by the implementor'), and WiseOwl COBOL defines none, so COBOL is the whole admissible set and any other word names no convention."
+  "citation": "ISO §2023:7.3.9.2 general format: { COBOL | call-convention-name-1 }, plain braces — exactly one shall be written; call-convention-name-1 names one of the implementor's call conventions (§2023:7.3.9.3 GR2b maps program-names under it 'in a manner defined by the implementor'), and WiseOwl COBOL defines none, so COBOL is the whole admissible set and any other word names no convention."
  },
  "introducedIn": 2002,
  "removedIn": null,

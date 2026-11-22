@@ -8,5 +8,6 @@
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
  "vcr": "floating indicators (6.2.3) - 2002 introduction",
+ "sourceFormat": "fixed",
  "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. PB1359FC.\n000300 DATA DIVISION.\n000400 WORKING-STORAGE SECTION.\n000500 01 W-TXT PIC X(20) VALUE \"AAAAAAAAAA\"-\n000600     \"BBBBBBBBBB\".\n000700 PROCEDURE DIVISION.\n000800 MAIN.\n000900     DISPLAY W-TXT.\n001000     STOP RUN.\n"
 }

@@ -13,7 +13,7 @@
       *> 1985 relative-file status list has no 34, and §1985:VIII.1.3.5 makes 24 an invalid key condition. §2002:14.8.47.3
       *> GR29 b) says the same ("When an attempt is made to write beyond the externally defined boundaries of the file, the
       *> I-O status associated with the write file connector is set to '24'") and its GR25 b) has no status 34 for a
-      *> relative key out of range; the 34 sentence of §2023:14.9.51.4 GR29 b) is new in 2014 (§2014:14.9.47.3 GR26 b): see
+      *> relative key out of range; the 34 sentence of §2023:14.9.51.4 GR29b is new in 2014 (§2014:14.9.47.3 GR26b: see
       *> pb5125_relative_write_key_range.
       *>
       *> The boundaries are WiseOwl's (docs/CONFORMANCE.md DOC-A.1-107): relative record numbers 1 through 2 147 483 647.

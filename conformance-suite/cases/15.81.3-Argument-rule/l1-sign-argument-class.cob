@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.81.3 rule 1 — "Argument-1 shall be of class numeric." Two violations, both refused by the
+      *> ISO §2023:15.81.3 AR1 — "Argument-1 shall be of class numeric." Two violations, both refused by the
       *> §2023:15.3 argument-class screen with COBOL1627:
       *>   (a) AN PIC X(5) — class alphanumeric (§2023:8.5.2.1 Table 2).
       *>   (b) NE PIC ZZ9.99 — CLASS, not category: §2023:8.5.2.1 Table 2 files NUMERIC-EDITED under class

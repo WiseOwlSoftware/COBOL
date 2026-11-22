@@ -1,5 +1,6 @@
 {
  "batch": "train-1985-b-pb6001-relabel-moves",
+ "applied": 2,
  "records": [
   {
    "rule-id": "1985-GR-XIII.3.10.7-p3",

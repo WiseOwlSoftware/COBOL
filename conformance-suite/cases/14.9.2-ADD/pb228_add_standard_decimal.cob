@@ -53,7 +53,7 @@
       *>       arithmetic would truncate 10**30 + 4.9996 to ...0004.
       *>       The pair Q (0.55 + 2.2 = 2.75 -> PIC 9V9 2.7) is exact
       *>       in both modes; SRC's S has no DST partner and DST's T
-      *>       none in SRC, so T keeps 9 (§2023:14.7.6 rule 1).
+      *>       none in SRC, so T keeps 9 (§2023:14.7.6 GR1).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB228ASD.
        OPTIONS.

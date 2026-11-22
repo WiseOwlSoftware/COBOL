@@ -17,7 +17,7 @@
       *>   literals used as currency strings"): X"2B" is the character '+', which SR23 b forbids in a currency string
       *>   written as an ordinary literal, but a hexadecimal literal-7 is interpreted at runtime as written, so
       *>   PICTURE #9.99 edits 1.5 as +1.50. SR19 itself requires the PICTURE SYMBOL phrase for it (present).
-      *>   That NOTE is first in the 2014 text (§2014:12.3.6.2 SR19); §2002:12.2.6.2 SR20 b) refuses the '+' of a literal-7
+      *>   That NOTE is first in the 2014 text (§2014:12.3.6.2 SR19); §2002:12.2.6.2 SR20b refuses the '+' of a literal-7
       *>   whatever its form (kb/Work PB5595), so this program is accepted from 2014.
       *> What each line proves:
       *>   E1 - the multi-character currency string of an ordinary literal.

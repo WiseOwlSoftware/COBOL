@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5253. §2023:13.18.54.3 SR4 g) (from §2002:13.16.52.2
+      *> kb/Work PB5253. §2023:13.18.54.3 SR4g (from §2002:13.16.52.2
       *> SR3 g)): "If data-name-1 specifies an entry in a different
       *> report description, there are no restrictions on the
       *> combinations of report types of each report group." RPT2's

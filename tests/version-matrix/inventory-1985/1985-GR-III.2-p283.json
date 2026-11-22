@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p283",
+ "rule-digest": "e8d869b426c3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapAccessMode; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p253",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its probe (files.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"An access mode in which logical records are obtained from or placed into a file in a consecutive predecessor-to-successor logical record sequence determined by the order of records in the file.\" Candidates (GR-14.9.51.4-12, GR-12.4.5.5.3-1/-2) have no 85 case; the probe shows the order. Code location located after the read: MapAccessMode makes ACCESS MODE IS SEQUENTIAL the default and SequentialConnector.Read delivers the next record in file order."
+}

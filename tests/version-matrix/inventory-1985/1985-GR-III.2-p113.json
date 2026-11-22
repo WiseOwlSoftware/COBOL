@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p113",
+ "rule-digest": "ef2b5c31162d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/StorageForm.cs#StorageForm",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p113",
+ "notes": "Derivation from the read lineage-reads-1985/g-02.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p113); the code location is where the compiler meets the rule's subject. The read: \"A specific arrangement of a set of data.\" Tells the reader what the standard means by the word; obliges nothing. The code location was located after the read (locations-x.json): StorageForm is the closed classification of how an item's data is arranged in storage (display characters, binary, packed, floating), computed once for every elementary item."
+}

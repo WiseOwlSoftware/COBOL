@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p24",
+ "rule-digest": "b2aaf492a9c5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#RecordLayout",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p24",
+ "notes": "Own witness from the read lineage-reads-1985/g-01.json: the reader showed the compiler correct at 85 with its probe (p24_charpos.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"the amount of physical storage required to store a single standard data format character whose usage is DISPLAY\". GR-13.18.40.4-1 (2023) concerns national vs alphanumeric positions; no candidate states this. The first run (runs\\p24_charpos-001) used MOVE FUNCTION LENGTH and was correctly refused COBOL0900 (§1985:IV.4.3.8.3.3 SR4); the probe uses COMPUTE. Code location located after the read: WEAK: RecordLayout fixes the character width (one position per DISPLAY character) of every item image, so a group of X(3) and 9(2) spans five positions."
+}

@@ -11,11 +11,11 @@
       *> the runtime representation of literal-1, or the record
       *> referenced by record-name-1 may differ from the number of
       *> bytes in the record being replaced."
-      *> cite.py: OK  §2023:14.9.35.4 18)  (General rules)
-      *> cite.py: OK  §2023:13.18.43.4 13) a)  (General rules) - the REWRITE
+      *> cite.py: OK  §2023:14.9.35.4 GR18  (General rules)
+      *> cite.py: OK  §2023:13.18.43.4 GR13a  (General rules) - the REWRITE
       *>   record length is "the content of the data item referenced by
       *>   data-name-1" (DEPENDING ON)
-      *> cite.py: OK  §2023:13.18.43.4 15)  (General rules) - after a
+      *> cite.py: OK  §2023:13.18.43.4 GR15  (General rules) - after a
       *>   successful READ data-name-1 holds "the number of bytes in the
       *>   record just read"
       *> Both lengths stay within FROM 5 TO 20, so GR20 ('44') does not

@@ -10,12 +10,12 @@
       *> row, and the paragraph below records WHY, so the claim it once carried is not inherited again.
       *> r5: "The returned length shall include the number of implicit FILLER positions, if any, in argument-1."
       *>   python scripts/spec/cite.py --check 15.50.4 "The returned length shall include the number of implicit
-      *>   FILLER positions, if any, in argument-1."  ->  OK  §2023:15.50.4 5)  (Returned value rules)
+      *>   FILLER positions, if any, in argument-1."  ->  OK  §2023:15.50.4 RV5  (Returned value rules)
       *> r3: "If argument-1 is other than category boolean or usage national, the returned value is an integer
-      *>   equal to the length of argument-1 in alphanumeric character positions."  ->  OK  §2023:15.50.4 3)
+      *>   equal to the length of argument-1 in alphanumeric character positions."  ->  OK  §2023:15.50.4 RV3
       *> r1: "If argument-1 is a bit group item, an elementary boolean data item, a boolean literal, or a type
       *>   declaration for a boolean item, the returned value is an integer equal to the length of argument-1 in
-      *>   boolean positions."  ->  OK  §2023:15.50.4 1)
+      *>   boolean positions."  ->  OK  §2023:15.50.4 RV1
       *>
       *> ⛔ THIS FILE DOES NOT EXERCISE §2023:15.50.4 r9, AND THE FIRST DRAFT'S CLAIM THAT IT DID WAS WRONG.
       *> That draft argued that §2023:8.5.1.6.3's boundary-advance filler — "implicitly described as a filler

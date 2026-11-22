@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-L4.2",
+ "rule-digest": "c3fe8b49458a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#LiteralEnd; src/WiseOwl.Cobol.Editions/CobolSourceText.cs#TryOpeningDelimiterAt; src/WiseOwl.Cobol.Editions/CobolSourceText.cs#LiteralEnd",
+ "test-ref": "conformance:cases/7.2.2.5-Text-words/pb1350_text_words_85",
+ "notes": "Own verdict from the read lineage-reads-1985/g-06.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-7.2.2.5-2, witnessed at 85 by the cases test-ref names. The read: 1985: 'A literal including, in the case of nonnumeric literals, the opening quotation mark and the closing quotation mark which bound the literal.' 2023 GR2 states the same for alphanumeric literals (numeric literals fall under its item 3, a character sequence bounded by separators, the same result). GR-7.2.2.5-2 is not among the proposed candidates, but pb1350_text_words_85 lists it in its rules header with accept [85] and its [P\"Q] leg fails if the literal were split. Cited: §1985:III.2 GRL4.2."
+}

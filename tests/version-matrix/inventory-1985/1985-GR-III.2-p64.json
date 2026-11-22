@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p64",
+ "rule-digest": "7332fd061909",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundCurrentRecord; src/WiseOwl.Cobol.Compiler/Binding/Validation/RecordAreaRule.cs#RecordAreaRule",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p64",
+ "notes": "Derivation from the read lineage-reads-1985/g-01.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p64); the code location is where the compiler meets the rule's subject. The read: \"In file processing, the record which is available in the record area associated with a file\" names the record; candidates (WRITE, RELEASE, REWRITE record-area rules) state when a record stops being available, other rules. The code location was located after the read (locations-all.json): BoundCurrentRecord represents the record available in the file record area, and RecordAreaRule screens the statements that reference it."
+}

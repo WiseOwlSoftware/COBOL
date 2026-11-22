@@ -18,7 +18,7 @@
       *> THE EVIDENCE IS ARMED FIRST.  Leg 1 is an EXPLICIT `CONTINUE AFTER <negative> SECONDS`, which by
       *> §2023:14.9.9.4 1 a/b sets the value to 0 AND, checking being enabled by the >>TURN directive above, sets
       *> EC-CONTINUE-LESS-THAN-ZERO — reported by FUNCTION EXCEPTION-STATUS as a "31-character, left-justified,
-      *> alphanumeric character string that is the exception-name" (§2023:15.33.3 1), 26 name characters and 5
+      *> alphanumeric character string that is the exception-name" (§2023:15.33.3 RV1, 26 name characters and 5
       *> spaces.  Leg 2 clears it, and §2023:15.33.3 1's last sentence fixes the cleared answer: "If the last
       *> exception status indicates no exception, alphanumeric spaces are returned."  Only then do the implicit
       *> sites run.  The closing silence is therefore a MEASUREMENT taken with a facility proven to answer, not

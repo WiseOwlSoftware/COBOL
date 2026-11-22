@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p255",
+ "rule-digest": "4fed873235eb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#SetPendingKey; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#LastSlot",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p253",
+ "notes": "Own witness from the read lineage-reads-1985/g-05.json: the reader showed the compiler correct at 85 with its probe (files.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The ordinal number of a record in a file whose organization is relative. This number is treated as a numeric literal which is an integer.\" No candidate carries an 85 case; the probe shows ordinal numbering and integer selection. Code location located after the read: RelativeConnector.SetPendingKey stages the relative record number taken from the key item and LastSlot returns the ordinal slot number of the record last made available."
+}

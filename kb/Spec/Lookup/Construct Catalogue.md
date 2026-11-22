@@ -99,7 +99,7 @@ construct id, a paraphrased summary, ISO § citation, `Introduced`/`Removed` edi
 | set-dyn-length-size-2023 | SET [SIZE OF] dynamic-length item TO n | §2023:14.9.39 Fmt 16 | 2023 | | 0900 | active |
 | concat-operator-2002 | Concatenation expression (`&` operator) | §2023:8.8.3 | 2002 | | 0900 | active |
 | boolean-operators-2002 | B-AND/B-OR/B-XOR/B-NOT operators | §2023:8.8.2 | 2002 | | 0900 | active |
-| boolean-shift-operators-2023 | B-SHIFT-L/R/LC/RC shift operators | §2023:8.8.2 rule 8 | 2023 | | 0900 | active |
+| boolean-shift-operators-2023 | B-SHIFT-L/R/LC/RC shift operators | §2023:8.8.2 GR8 | 2023 | | 0900 | active |
 | rounded-mode-is-2014 | ROUNDED MODE IS phrase (8-mode set) | §2023:14.7.4 | 2014 | | 0803 | active |
 | arithmetic-intermediate-precision-2023 | Implementor-defined arithmetic mode (behavior variant) | §2023:8.8/Annex E.2 | 85 | | — | pending |
 | move-alphanumeric-figurative-removed-2023 | MOVE alnum figurative to numeric (removed 2023) | §2023:14.9.25.3 SR5 | 85 | 2023 | 0902 | active |

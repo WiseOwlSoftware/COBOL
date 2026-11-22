@@ -3,7 +3,7 @@
   an alphanumeric or national sending operand against a boolean receiving operand, and §2023:14.6.8.6 transfers the data
   "after any necessary conversion, into the corresponding boolean positions of the receiving data item, with zero fill
   or truncation to the right" (JUSTIFIED per §2023:13.18.32). But a boolean character is "the value zero or one" (§2023:3.21), no rule
-  converts a character that is neither, and §2023:14.6.13.2 1) calls a later reference to non-boolean content undefined with
+  converts a character that is neither, and §2023:14.6.13.2 GR1 calls a later reference to non-boolean content undefined with
   EC-DATA-INCOMPATIBLE, so the standard leaves the conversion to the implementor. Before the determination a MOVE of
   `"AB"` to `PIC 1(5)` stored the characters themselves, so DISPLAY showed `AB000` while `B-NOT` of the same item
   gave `11111` (the operators read a position outside `{'0','1'}` as zero). WiseOwl COBOL converts EACH transferred
@@ -17,10 +17,10 @@
   has no boolean category. The paths that deposit characters into a boolean item and now convert: the elementary
   MOVE and every statement that MOVEs (READ INTO, MOVE CORRESPONDING, INITIALIZE ... REPLACING BOOLEAN DATA, a CALL
   argument landed by §2023:14.2.3 GR9, the element MOVE of a variable-length group MOVE between corresponding dynamic-capacity
-  tables, §2023:14.6.9.2), a reference-modified boolean receiver, STRING into a USAGE DISPLAY boolean item (§2023:14.9.43.4 GR3 a)),
+  tables, §2023:14.6.9.2), a reference-modified boolean receiver, STRING into a USAGE DISPLAY boolean item (§2023:14.9.43.4 GR3a),
   a group sender into a USAGE DISPLAY or USAGE NATIONAL boolean item (§2023:14.9.25.4 GR4's alphanumeric move; into a display
   item it zero-fills where it used to space-fill), a READ or RETURN into an elementary boolean record area that no other
-  description shares (§2023:14.9.30.4 GR13 c); §2023:14.9.34.4 GR3; a record area shared with another record of the FD
+  description shares (§2023:14.9.30.4 GR13c; §2023:14.9.34.4 GR3; a record area shared with another record of the FD
   (§2023:13.18.33.4 GR3) or with a SAME RECORD AREA peer (§2023:12.4.6.4.4 GR2) holds the record's bytes for every description and a
   READ leaves them as they are, as the restore of an APPLY COMMIT item does, §2023:14.9.36.4 GR3), and COMPUTE's boolean result. **The GR4 arm converts the DECODED characters, never the
   bytes:** GR4 has "no conversion of data from one form of internal representation to another", so the sender's BYTES
@@ -37,7 +37,7 @@
   store into the item reaches: a group receiver (GR4 moves the group's bytes), a REDEFINES view, a record area shared with
   another record of its file or with a SAME RECORD AREA peer (a READ or RETURN fills the area's bytes), an APPLY COMMIT
   restore (ROLLBACK returns the saved image), or storage shared through a BY REFERENCE argument,
-  EXTERNAL, BASED or ADDRESS OF. That content is undefined (§2023:14.6.13.2 1)), and the boolean operators read such a position
+  EXTERNAL, BASED or ADDRESS OF. That content is undefined (§2023:14.6.13.2 GR1), and the boolean operators read such a position
   as zero. (`MOVE "A1Z" TO G` leaves `A1Z` in a boolean member of the group G.) VALUE cannot reach it (§2023:13.18.63.3 SR10: the literals of a boolean item's VALUE clause are boolean
   literals), UNSTRING refuses a boolean receiver (§2023:14.9.48.3 SR4) and a .NET host's string landing into a boolean formal is
   REFUSED when it holds a character other than `0` or `1` (`HostLanding.RequireClass`). Written once, in

@@ -154,7 +154,7 @@ public sealed partial class SymbolTable
             // stays an invalid reference.
             if (survivors.TrueForAll(DataBinder.InTypeDeclaration)) return new([]);
         }
-        // §2023:8.4.6.2.1 3) AFTER qualification (rule 1 applies "the normal rules for qualification" over the whole set first): the
+        // §2023:8.4.6.2.1 GR3 AFTER qualification (§2023:8.4.6.2.1 GR1 applies "the normal rules for qualification" over the whole set first): the
         // survivors of the nearest declaring source element (kb/Work PB1047 / PB1243), and none when a report entry of a nearer source
         // element is the referenced item (kb/Work PB4196).
         var tier = NearestDeclaringData(survivors, name, quals);

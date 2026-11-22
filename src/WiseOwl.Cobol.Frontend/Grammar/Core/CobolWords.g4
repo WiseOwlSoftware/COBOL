@@ -9,74 +9,74 @@ parser grammar CobolWords;
 options { tokenVocab = CobolLexer; }
 
 cobolWord
-    : IDENTIFIER
-    | {!keywordContinuesHere()}? APPLY
-    | {!keywordContinuesHere()}? ARITHMETIC
-    | {!keywordContinuesHere()}? AUTO
-    | {!keywordContinuesHere()}? AUTOMATIC
-    | {!keywordContinuesHere()}? AWAY_FROM_ZERO
-    | {!keywordContinuesHere()}? BACKGROUND_COLOR
-    | {!keywordContinuesHere()}? BACKWARD
-    | {!keywordContinuesHere()}? BELL
-    | {!keywordContinuesHere()}? BINARY_ENCODING
-    | {!keywordContinuesHere()}? BLINK
-    | {!keywordContinuesHere()}? BYTES
-    | {!keywordContinuesHere()}? CAPACITY
-    | {!keywordContinuesHere()}? CENTER
-    | {!keywordContinuesHere()}? CYCLE
-    | {!keywordContinuesHere()}? DECIMAL_ENCODING
-    | {!keywordContinuesHere()}? END_METHOD
-    | {!keywordContinuesHere()}? ENTRY_CONVENTION
-    | {!keywordContinuesHere()}? EOL
-    | {!keywordContinuesHere()}? EOS
-    | {!keywordContinuesHere()}? ERASE
-    | {!keywordContinuesHere()}? FLOAT_BINARY
-    | {!keywordContinuesHere()}? FLOAT_DECIMAL
-    | {!keywordContinuesHere()}? FOREGROUND_COLOR
-    | {!keywordContinuesHere()}? FOREVER
-    | {!keywordContinuesHere()}? FULL_
-    | {!keywordContinuesHere()}? GENERIC
-    | {!keywordContinuesHere()}? HIGHLIGHT
-    | {!keywordContinuesHere()}? HIGH_ORDER_LEFT
-    | {!keywordContinuesHere()}? HIGH_ORDER_RIGHT
-    | {!keywordContinuesHere()}? IGNORING
-    | {!keywordContinuesHere()}? IMPLEMENTS
-    | {!keywordContinuesHere()}? INITIALIZED
-    | {!keywordContinuesHere()}? INTERMEDIATE
-    | {!keywordContinuesHere()}? INTRINSIC
-    | {!keywordContinuesHere()}? LOWLIGHT
-    | {!keywordContinuesHere()}? MANUAL
-    | {!keywordContinuesHere()}? NEAREST_AWAY_FROM_ZERO
-    | {!keywordContinuesHere()}? NEAREST_EVEN
-    | {!keywordContinuesHere()}? NEAREST_TOWARD_ZERO
-    | {!keywordContinuesHere()}? NORMAL
-    | {!keywordContinuesHere()}? NUMBERS
-    | {!keywordContinuesHere()}? ONLY
-    | {!keywordContinuesHere()}? PACKED
-    | {!keywordContinuesHere()}? PARAGRAPH
-    | {!keywordContinuesHere()}? PARSE
-    | {!keywordContinuesHere()}? PREVIOUS
-    | {!keywordContinuesHere()}? PROCESSING
-    | {!keywordContinuesHere()}? PROHIBITED
-    | {!keywordContinuesHere()}? RECURSIVE
-    | {!keywordContinuesHere()}? REMARKS
-    | {!keywordContinuesHere()}? REQUIRED
-    | {!keywordContinuesHere()}? REVERSE_VIDEO
-    | {!keywordContinuesHere()}? ROUNDING
-    | {!keywordContinuesHere()}? SECONDS
-    | {!keywordContinuesHere()}? SECURE
-    | {!keywordContinuesHere()}? SIGNED
-    | {!keywordContinuesHere()}? STANDARD_BINARY
-    | {!keywordContinuesHere()}? STANDARD_DECIMAL
-    | {!keywordContinuesHere()}? STATEMENT
-    | {!keywordContinuesHere()}? STRONG
-    | {!keywordContinuesHere()}? TOWARD_GREATER
-    | {!keywordContinuesHere()}? TOWARD_LESSER
-    | {!keywordContinuesHere()}? TRUNCATION
-    | {!keywordContinuesHere()}? UNDERLINE_
-    | {!keywordContinuesHere()}? UNSIGNED
-    | {!keywordContinuesHere()}? YYYYDDD
-    | {!keywordContinuesHere()}? YYYYMMDD
+    : {!nextEntryOpensHere()}? IDENTIFIER
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? APPLY
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? ARITHMETIC
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? AUTO
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? AUTOMATIC
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? AWAY_FROM_ZERO
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? BACKGROUND_COLOR
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? BACKWARD
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? BELL
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? BINARY_ENCODING
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? BLINK
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? BYTES
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? CAPACITY
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? CENTER
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? CYCLE
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? DECIMAL_ENCODING
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? END_METHOD
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? ENTRY_CONVENTION
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? EOL
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? EOS
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? ERASE
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? FLOAT_BINARY
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? FLOAT_DECIMAL
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? FOREGROUND_COLOR
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? FOREVER
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? FULL_
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? GENERIC
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? HIGHLIGHT
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? HIGH_ORDER_LEFT
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? HIGH_ORDER_RIGHT
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? IGNORING
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? IMPLEMENTS
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? INITIALIZED
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? INTERMEDIATE
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? INTRINSIC
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? LOWLIGHT
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? MANUAL
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? NEAREST_AWAY_FROM_ZERO
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? NEAREST_EVEN
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? NEAREST_TOWARD_ZERO
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? NORMAL
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? NUMBERS
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? ONLY
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? PACKED
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? PARAGRAPH
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? PARSE
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? PREVIOUS
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? PROCESSING
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? PROHIBITED
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? RECURSIVE
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? REMARKS
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? REQUIRED
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? REVERSE_VIDEO
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? ROUNDING
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? SECONDS
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? SECURE
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? SIGNED
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? STANDARD_BINARY
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? STANDARD_DECIMAL
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? STATEMENT
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? STRONG
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? TOWARD_GREATER
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? TOWARD_LESSER
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? TRUNCATION
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? UNDERLINE_
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? UNSIGNED
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? YYYYDDD
+    | {!nextEntryOpensHere() && !keywordContinuesHere()}? YYYYMMDD
     ;
 
 // The USER-WORD home of every reservation-gated word (kb/Work PB300/PB137/PB693/PB655/PB4206). A gated word

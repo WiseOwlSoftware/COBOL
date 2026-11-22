@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Common;
 using Xunit;
+using WiseOwl.Cobol.Frontend.Preprocessor;
 
 namespace WiseOwl.Cobol.Tests.Conformance;
 
@@ -58,7 +59,7 @@ public sealed class LiteralScreenTests
                 .Replace("{Z}", new string('0', positions))
                 .Replace("{Q}", new string('0', positions / 4));
             if (data.Contains("{Q}") && positions % 4 != 0) continue;   // BX counts in fours — 8,192 only (8,188 is below)
-            var (ok, errors, _) = EditionHarness.CompileFull(Program("LS" + positions, Fill(data), Fill(proc)), 2023);
+            var (ok, errors, _) = EditionHarness.CompileFull(Program("LS" + positions, Fill(data), Fill(proc)), 2023, format: InitialReferenceFormat.Fixed);
             if (positions <= 8191)
                 Assert.True(ok, $"[{position}] a {positions}-position literal is legal (§2023:8.3.3.2.3 SR1 '≤ 8,191'):\n"
                     + string.Join("\n", errors));
@@ -121,7 +122,7 @@ public sealed class LiteralScreenTests
             "all-concat" => ("01 W PIC X(9000).", $"    MOVE ALL \"{A(80)}\" & \"{A(positions - 80)}\" TO W."),
             _ => throw new ArgumentException(kind),
         };
-        var (ok, errors, _) = EditionHarness.CompileFull(Program("LSED" + edition, data, proc, classic: edition < 2002), edition);
+        var (ok, errors, _) = EditionHarness.CompileFull(Program("LSED" + edition, data, proc, classic: edition < 2002), edition, format: InitialReferenceFormat.Fixed);
         if (code is null)
             Assert.True(ok, $"[{kind} {positions} at COBOL-{edition}] is within that edition's bound:\n{string.Join("\n", errors)}");
         else
@@ -143,7 +144,7 @@ public sealed class LiteralScreenTests
     public void LiteralLength_Over8191_IsRefusedAtEveryEdition(int edition)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(
-            Program("LSOVER" + edition, "01 W PIC X(9000).", $"    MOVE \"{new string('A', 8192)}\" TO W.", classic: edition < 2002), edition);
+            Program("LSOVER" + edition, "01 W PIC X(9000).", $"    MOVE \"{new string('A', 8192)}\" TO W.", classic: edition < 2002), edition, format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
         Assert.Single(errors, e => e.Contains("COBOL0814"));
     }
@@ -163,7 +164,7 @@ public sealed class LiteralScreenTests
         "REPOSITORY.\n    FUNCTION ALL INTRINSIC.")]
     public void HexGrouping_IsScreenedAtEveryPosition(string position, string data, string proc, string special)
     {
-        var (ok, errors, _) = EditionHarness.CompileFull(Program("LSHEX", data, proc, special), 2023);
+        var (ok, errors, _) = EditionHarness.CompileFull(Program("LSHEX", data, proc, special), 2023, format: InitialReferenceFormat.Fixed);
         Assert.False(ok, $"[{position}] a malformed hexadecimal literal shall be rejected (§2023:8.3.3.2.3 SR6 / §2023:8.3.3.5.3 SR5)");
         Assert.Single(errors, e => e.Contains("COBOL1635"));
     }
@@ -180,7 +181,7 @@ public sealed class LiteralScreenTests
             + "    MOVE LENGTH(NX\"00410042\") TO L.\n    DISPLAY \"NX=\" L.\n"
             + "    MOVE \"Z\" & X\"41\" TO W.\n    DISPLAY \"C=[\" W \"]\".",
             "REPOSITORY.\n    FUNCTION ALL INTRINSIC.");
-        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 2023);
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 2023, format: InitialReferenceFormat.Fixed);
         Assert.True(ok, detail);
         Assert.Equal("X=0002\nNX=0002\nC=[ZA  ]", stdout.Replace("\r\n", "\n").TrimEnd());
     }
@@ -196,10 +197,10 @@ public sealed class LiteralScreenTests
     {
         string Lit(int n) => open + string.Concat(Enumerable.Repeat(ch, n)) + "\"";
         var (okAt8191, errors8191, _) = EditionHarness.CompileFull(
-            Program("LSALL1", data, $"    MOVE ALL {Lit(4096)} & {Lit(4095)} TO W."), 2023);
+            Program("LSALL1", data, $"    MOVE ALL {Lit(4096)} & {Lit(4095)} TO W."), 2023, format: InitialReferenceFormat.Fixed);
         Assert.True(okAt8191, string.Join("\n", errors8191));
         var (okAt8192, errors8192, _) = EditionHarness.CompileFull(
-            Program("LSALL2", data, $"    MOVE ALL {Lit(4096)} & {Lit(4096)} TO W."), 2023);
+            Program("LSALL2", data, $"    MOVE ALL {Lit(4096)} & {Lit(4096)} TO W."), 2023, format: InitialReferenceFormat.Fixed);
         Assert.False(okAt8192, "an 8,192-position concatenated ALL literal-1 shall be rejected (§2023:8.8.3.2 SR2–SR4)");
         Assert.Single(errors8192, e => e.Contains("COBOL1545"));
     }

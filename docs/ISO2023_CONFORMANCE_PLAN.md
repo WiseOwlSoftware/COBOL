@@ -694,7 +694,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 ### `>>PROPAGATE` directive semantics (§2023:7.3.21)
 
 The PROPAGATE compiler directive (automatic propagation of unhandled exception conditions to the activating
-runtime element, §2023:7.3.21 + §2023:14.6.13.1.3 6)'s "as if a GOBACK statement with the RAISING LAST EXCEPTION phrase" rule)
+runtime element, §2023:7.3.21 + §2023:14.6.13.1.3 GR6's "as if a GOBACK statement with the RAISING LAST EXCEPTION phrase" rule)
 is implemented (kb/Work PB1119; the mechanism is CONDITIONS_EXCEPTIONS_DESIGN "Automatic propagation", the
 readings CONFORMANCE.md D-PROP). The deliberate GOBACK/EXIT ... RAISING propagation path it reuses is
 `oo_ec_goback_raising`. Note the spec

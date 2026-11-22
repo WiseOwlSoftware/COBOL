@@ -34,6 +34,7 @@ internal sealed class _PRG_CHAR_INTRINSICS : ICobolProgram
     public void CloseFiles()
     {
     }
+    bool ICobolProgram.IsCobol85 => true;   // §1989:A.2.2 p3 / §1993:p.B-46 (kb/Work PB6019)
 
 
     private const int __N = 1;   // paragraph count

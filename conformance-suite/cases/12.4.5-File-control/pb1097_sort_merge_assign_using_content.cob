@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §2023:12.4.5.3 GR3 b) and the implementor's content rule DOC-A.1-73 (Annex A.1 item 73; §2023:12.4.5.3 GR4) -
+      *> ISO 1989:2023 §2023:12.4.5.3 GR3b and the implementor's content rule DOC-A.1-73 (Annex A.1 item 73; §2023:12.4.5.3 GR4) -
       *> a sort-merge file's ASSIGN USING content is checked at EVERY SORT and MERGE, exactly as at every OPEN.
       *> GR3: "The association occurs at the time of execution of an OPEN, SORT, or MERGE statement that referenced
       *> file-name-1", and "If the association cannot be made because the content of the data item referenced by

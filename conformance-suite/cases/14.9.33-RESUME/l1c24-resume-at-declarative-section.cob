@@ -10,7 +10,7 @@
       *>   cite.py --check 14.9.33.3 "Procedure-name-1 shall be a
       *>   procedure-name in the nondeclarative portion of the
       *>   function, method, or program."
-      *>     -> OK §2023:14.9.33.3 3) (Syntax rules)
+      *>     -> OK §2023:14.9.33.3 SR3 (Syntax rules)
       *> The RESUME is inside a (non-GLOBAL) declarative (SR1, SR2
       *> satisfied); its target HZ is the declarative SECTION itself,
       *> a procedure-name in the DECLARATIVE portion. The only

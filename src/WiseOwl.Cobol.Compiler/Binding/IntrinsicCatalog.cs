@@ -83,7 +83,10 @@ public readonly record struct IntrinsicResultLength(int? Positions, bool OfArgum
 /// <c>IntrinsicArgumentClassDriftTests</c> fails on a code with neither an <c>Admissible</c> arm nor an entry
 /// there — the PB1 dead-column trap, closed for every future name/keyword kind.
 /// <paramref name="Float"/> marks the §2023:15.4.1 floating-math family (computes in double; the emitter quantizes via
-/// the one <c>FromDouble</c>). <paramref name="IntroducedIn"/>/<paramref name="RemovedIn"/> are the D8 edition
+/// the one <c>FromDouble</c>). <paramref name="DomainRule"/> is the COBOL-2023 rule of the row's <see cref="IntrinsicDomain"/>
+/// and <paramref name="DomainRule1985"/> the 1989 amendment's (§1989:A.2.x.3), the renderer passing the compilation's edition's
+/// to the run-time screen's message through <c>EditionInfo.CiteRule</c> (kb/Work PB6023); <c>IntrinsicArgumentDomainDriftTests</c>
+/// reads both from their texts. <paramref name="IntroducedIn"/>/<paramref name="RemovedIn"/> are the D8 edition
 /// window (85 = the 1989 Intrinsic Function Module amendment, part of the CCVS-85 corpus), enforced by the binder
 /// against <c>--std</c> with a per-edition diagnostic. <paramref name="ValueSource"/> says what fixes the returned value
 /// (<see cref="IntrinsicValueSource"/>; kb/Work PB5891).
@@ -93,7 +96,7 @@ public readonly record struct IntrinsicSig(
     string ArgKinds, string RuntimeMethod, IntrinsicBind Bind, bool Float,
     int IntroducedIn, int? RemovedIn = null,
     IntrinsicResultRule Result = IntrinsicResultRule.Fixed,
-    IntrinsicDomain Domain = IntrinsicDomain.None, string? DomainRule = null,
+    IntrinsicDomain Domain = IntrinsicDomain.None, string? DomainRule = null, string? DomainRule1985 = null,
     FunctionDeviceForm DeviceForm = FunctionDeviceForm.Value, int DeviceDigits = 0,
     IntrinsicResultLength Length = default,
     IntrinsicValueSource ValueSource = IntrinsicValueSource.Arguments)
@@ -222,17 +225,17 @@ public static class IntrinsicCatalog
 
         // ── The 1989 Intrinsic Function Module (IntroducedIn 85 — the NIST IF101A..IF142A surface) ──────────
         // §2023:15.4.1 floating-math family (double + FromDouble quantization; Float: true).
-        Add(new("ACOS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Acos", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.ClosedUnit, DomainRule: "§2023:15.8.3 rule 2"));    // §2023:15.8
-        Add(new("ASIN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Asin", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.ClosedUnit, DomainRule: "§2023:15.10.3 rule 2"));  // §2023:15.10
+        Add(new("ACOS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Acos", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.ClosedUnit, DomainRule: "§2023:15.8.3 rule 2", DomainRule1985: "§1989:A.2.5.3 AR2"));    // §2023:15.8
+        Add(new("ASIN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Asin", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.ClosedUnit, DomainRule: "§2023:15.10.3 rule 2", DomainRule1985: "§1989:A.2.7.3 AR2"));  // §2023:15.10
         Add(new("ATAN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Atan", IntrinsicBind.Runtime, true, 85));           // §2023:15.11
         Add(new("COS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Cos", IntrinsicBind.Runtime, true, 85));             // §2023:15.20
         Add(new("SIN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Sin", IntrinsicBind.Runtime, true, 85));             // §2023:15.82
         Add(new("TAN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Tan", IntrinsicBind.Runtime, true, 85));             // §2023:15.89
-        Add(new("SQRT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Sqrt", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.NonNegative, DomainRule: "§2023:15.84.3 rule 2"));           // §2023:15.84
-        Add(new("LOG", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Log", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.Positive, DomainRule: "§2023:15.55.3 rule 2"));             // §2023:15.55
-        Add(new("LOG10", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Log10", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.Positive, DomainRule: "§2023:15.56.3 rule 2"));         // §2023:15.56
-        Add(new("ANNUITY", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "ni", "Annuity", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.NonNegative, DomainRule: "§2023:15.9.3 rule 2"));    // §2023:15.9
-        Add(new("PRESENT-VALUE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 2, inf, "n", "PresentValue", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.AboveMinusOne, DomainRule: "§2023:15.74.3 rule 2")); // §2023:15.74
+        Add(new("SQRT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Sqrt", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.NonNegative, DomainRule: "§2023:15.84.3 rule 2", DomainRule1985: "§1989:A.2.40.3 AR2"));           // §2023:15.84
+        Add(new("LOG", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Log", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.Positive, DomainRule: "§2023:15.55.3 rule 2", DomainRule1985: "§1989:A.2.20.3 AR2"));             // §2023:15.55
+        Add(new("LOG10", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Log10", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.Positive, DomainRule: "§2023:15.56.3 rule 2", DomainRule1985: "§1989:A.2.21.3 AR2"));         // §2023:15.56
+        Add(new("ANNUITY", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "ni", "Annuity", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.NonNegative, DomainRule: "§2023:15.9.3 rule 2", DomainRule1985: "§1989:A.2.6.3 AR2"));    // §2023:15.9
+        Add(new("PRESENT-VALUE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 2, inf, "n", "PresentValue", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.AboveMinusOne, DomainRule: "§2023:15.74.3 rule 2", DomainRule1985: "§1989:A.2.34.3 AR2")); // §2023:15.74
         Add(new("RANDOM", IntrinsicType.Numeric, IntrinsicArity.OptionalTrailing, 0, 1, "i", "Random", IntrinsicBind.Runtime, true, 85, ValueSource: IntrinsicValueSource.RunUnitState));      // §2023:15.75
         Add(new("STANDARD-DEVIATION", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "StandardDeviation", IntrinsicBind.Runtime, true, 85)); // §2023:15.86
         Add(new("VARIANCE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "Variance", IntrinsicBind.Runtime, true, 85));          // §2023:15.98

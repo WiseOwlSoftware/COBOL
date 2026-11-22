@@ -12,7 +12,7 @@
       *>   cite.py --check 12.4.5.2 "The SELECT clause shall be
       *>   specified first in the file control entry. The clauses that
       *>   follow the SELECT clause may appear in any order."
-      *>   -> OK  §2023:12.4.5.2 1)  (Syntax rules)
+      *>   -> OK  §2023:12.4.5.2 SR1  (Syntax rules)
       *> F-IX writes its clauses in the REVERSE of the printed order
       *> (FILE STATUS, RECORD KEY, ACCESS MODE, ORGANIZATION, ASSIGN).
       *> F-SQ puts ASSIGN last after ORGANIZATION and FILE STATUS.

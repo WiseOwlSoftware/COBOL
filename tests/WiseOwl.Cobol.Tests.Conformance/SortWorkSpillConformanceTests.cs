@@ -122,7 +122,7 @@ public sealed class SortWorkSpillConformanceTests
         string src = CompiledProgramCache.StageSource(Path.Combine(dir, "PB3339SP.cob"), Program);
         string dll = Path.Combine(dir, "PB3339SP.dll");
         var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023,
-            SourceFormat: InitialReferenceFormat.Auto));
+            SourceFormat: TestSourceFormat.Inline));
         Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
         return dll;
     }

@@ -27,12 +27,12 @@
       *>
       *> cite.py (NOTE PB1554: cite.py labels the unnumbered national-group sentence of
       *> §2023:8.8.4.2.1 as list item "13)"; it is the paragraph after item 13):
-      *>   OK  §2023:8.8.4.2.1 5)  (General)
-      *>   OK  §2023:8.8.4.2.1 7)  (General)
-      *>   OK  §2023:8.8.4.2.1 13)  (General)  [the group/alphabetic/national-group sentence]
+      *>   OK  §2023:8.8.4.2.1 GR5  (General)
+      *>   OK  §2023:8.8.4.2.1 GR7  (General)
+      *>   OK  §2023:8.8.4.2.1 GR13  (General)  [the group/alphabetic/national-group sentence]
       *>   OK  §2023:8.8.4.2.6   (Comparison of alphanumeric and national operands)
-      *>   OK  §2023:8.8.4.2.10 1)  (Standard comparison)
-      *>   OK  §2023:8.8.4.2.10 2)  (Standard comparison)
+      *>   OK  §2023:8.8.4.2.10 GR1  (Standard comparison)
+      *>   OK  §2023:8.8.4.2.10 GR2  (Standard comparison)
       *>
       *> Directory 2002: class national (PIC N, N"..", GROUP-USAGE NATIONAL) enters
       *> with ISO/IEC 1989:2002.

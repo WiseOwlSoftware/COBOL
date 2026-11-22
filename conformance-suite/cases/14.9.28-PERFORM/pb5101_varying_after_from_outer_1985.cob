@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB5101 - PERFORM VARYING ... AFTER at COBOL-85: the ORDER of the two operations of an AFTER step.
       *>
-      *> §1985:VI.6.21.4 GR10 d) 1 (checked with scripts/spec/cite.py --check): "the content of the data item
+      *> §1985:VI.6.21.4 GR10d 1 (checked with scripts/spec/cite.py --check): "the content of the data item
       *> referenced by identifier-2 is augmented by literal-2 or the content of the data item referenced by
       *> identifier-4" and THEN "the content of the data item referenced by identifier-5 is set to literal-3 or the
       *> current value of the data item referenced by identifier-6".  The OUTER variable augments FIRST, so an

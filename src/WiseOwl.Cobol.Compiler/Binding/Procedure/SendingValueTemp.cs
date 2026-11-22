@@ -420,8 +420,8 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         Model(op, use) is { } model ? FreezeAs(op, model, tag) : null;
 
     /// <summary>⛔ A NON-FIGURATIVE LITERAL HELD IN AN ITEM OF ITS OWN DESCRIPTION (kb/Work PB5579) — the implicit record
-    /// of <c>WRITE FILE file-name-1 FROM literal-1</c> and <c>REWRITE FILE …</c>, which §2023:14.9.51.4 GR8 c) and
-    /// §2023:14.9.35.4 GR9 c) (§2002:14.8.47.3 GR5 c), §2002:14.8.33.3 GR8 c)) describe "as though implicit-record-1 were a record
+    /// of <c>WRITE FILE file-name-1 FROM literal-1</c> and <c>REWRITE FILE …</c>, which §2023:14.9.51.4 GR8c and
+    /// §2023:14.9.35.4 GR9a (§2002:14.8.47.3 GR5c, §2002:14.8.33.3 GR8c) describe "as though implicit-record-1 were a record
     /// description entry … having the same class, category, usage, and length as literal-1". The returned place is the
     /// item the literal is MOVEd into (a pre-op, ahead of the carrying statement) and whose image the statement releases.
     /// <see cref="Materialize"/> leaves a literal alone, and rightly: its callers hold a VALUE against a later change, which

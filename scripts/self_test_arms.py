@@ -302,6 +302,9 @@ DECLARED: dict[str, tuple[str, ...]] = {
         '("a phase / wave / step marker",', '("an emit-site or gate pointer",', '("a decision or review id",',
         '("a line pointer into the spec",',
         'silent on the REPAIRED', 'silent calibration',
+        # the designator form (kb/Work PB4976, PB6000): an unread designator is refused, glued where it has one form
+        '("designator-not-canonical", "// the receiver (§2023:14.9.25.4 rule 6)', '--canonicalize glues a spaced path',  # citation-audit: example
+        'is not read for the designator form',
     ),
     'scripts/spec/audit_doc_citations.py': (
         '("prefix, misfiled", "misfiled"', '("postfix, misfiled", "misfiled"', '("elided quotation", "elided"',
@@ -325,6 +328,9 @@ DECLARED: dict[str, tuple[str, ...]] = {
         '2002 catalog mode: a clause with no general rules', '2002 catalog mode: a catalog row the transcription does not carry',
         '2002: GR99 fails', '2002: the wrong ordinal fails', '2014 LABEL MODE: GR6c',
         'every row of every held catalog is anchored',
+        # kb/Work PB5446: one designator grammar; kb/Work PB5059: --find reads the amendments
+        'every designator the suggester can print parses', 'a sub-item of a restarted list is suggested',
+        '--find --edition 1985 searches the amendments',
     ),
     # THE ONE CITATION PARSER (kb/Work PB4887 item 5): every edition, every locator shape and each rejection.
     'scripts/spec/citation.py': (
@@ -332,6 +338,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'refuses a bare citation, naming the edition form it lacks', '2023 phantom refused',
         '1985 paragraph outside its section is refused', '1985 printed page validates', '1985 appendix paragraph validates',
         '2002 validates against its transcription once it exists', 'scan flags an unknown edition',
+        'the 1985 universe ends at the first amendment',  # kb/Work PB5059
     ),
     # THE RUNNER (kb/Work PB2563, PB2914): the planted-tree arms are the "a failing self-test turns the gate red" proof,
     # the fleet arms the reuse, the machine-wide budget and the hang detector; the real-tree arms the net and the entry

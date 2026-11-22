@@ -307,7 +307,7 @@ public sealed class CobolTimingTests
             string src = Path.Combine(dir, "p.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, assemblyName + ".dll"), DialectLevel: 2023, CheckOnly: false, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, assemblyName + ".dll"), DialectLevel: 2023, CheckOnly: false, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, "the program must compile: " + string.Join("; ", r.Errors));
             var assembly = ScratchDirectory.LoadAssembly(Path.Combine(dir, assemblyName + ".dll"));
             Type program = assembly.GetTypes().Single(t => typeof(ICobolProgram).IsAssignableFrom(t) && !t.IsAbstract);

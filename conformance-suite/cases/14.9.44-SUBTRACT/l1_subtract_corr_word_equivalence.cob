@@ -25,7 +25,7 @@
       *> §2023:14.9.44.4 GR5: "The results are the same as if the user had
       *> referred to each pair of corresponding identifiers in
       *> separate SUBTRACT statements."  Hence P: 10 - 03 = 07 and
-      *> Q: 20 - 07 = 13, into PIC 9(2) receivers (§2023:14.6.8.2 rule 4,
+      *> Q: 20 - 07 = 13, into PIC 9(2) receivers (§2023:14.6.8.2 GR4,
       *> aligned with zero fill) -> 07 and 13 for EACH spelling.
       *> The values are chosen so the two members differ from one
       *> another, so a fixture that matched only the first pair, or
@@ -33,7 +33,7 @@
       *> The receivers are copied to unqualified items before DISPLAY
       *> only to keep the printed line free of qualification syntax;
       *> a PIC 9(2) to PIC 9(2) move is an identity transfer under
-      *> §2023:14.6.8.2 rule 4 and adds nothing to the derivation.
+      *> §2023:14.6.8.2 GR4 and adds nothing to the derivation.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1SBCORW.
        DATA DIVISION.

@@ -399,7 +399,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                     $"the two operands of the range-expression '{WrittenSource.Of(range)}' are of class "
                     + $"{IntrinsicArgumentRules.ClassNameOf(lo, lc)} and class {IntrinsicArgumentRules.ClassNameOf(hi, hc)}; "
                     + ctx.Edition.Edition.CiteRule("§1985:VI.6.13.3 SR4", "§2023:14.9.13.3 SR4")
-                    + " requires them to be of the same class (§2023:8.5.2.1 Table 2 — CLASS, not "
+                    + " requires them to be of the same class (" + ctx.Edition.Edition.Cite("§1985:IV.4.3.3", "§2023:8.5.2.1 Table 2") + " — CLASS, not "
                     + "category, so alphabetic and alphanumeric are two classes)");
             }
         }
@@ -416,7 +416,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                 + "which share no class; "
                 + ctx.Edition.Edition.CiteRule("§1985:VI.6.13.3 SR4", "§2023:14.9.13.3 SR4")
                 + " requires them to be of the same class (a figurative "
-                + "constant other than ZERO represents a character value, §2023:8.3.3.6.4 GR1)");
+                + "constant other than ZERO represents a character value, " + ctx.Edition.Edition.Cite("§1985:IV.4.2.2.2.3", "§2023:8.3.3.6.4 GR1") + ")");
         }
         // SR9 — a variable-length group is §2023:8.5.1.12.1's: "a group item whose data description has at least one
         // dynamic-length elementary item or dynamic-capacity table as a subordinate item". ⛔ NOT an

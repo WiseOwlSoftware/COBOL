@@ -19,10 +19,10 @@
       *> cite.py --check 8.3.5 "All spaces immediately following the
       *>   separators comma, semicolon, or period are considered part
       *>   of that separator and are not considered to be the
-      *>   separator space." -> OK §2023:8.3.5 1)
+      *>   separator space." -> OK §2023:8.3.5 SR1
       *> cite.py --check 8.3.5 "A space following the opening
       *>   delimiter of a literal is part of the literal and not a
-      *>   separator." -> OK §2023:8.3.5 9)
+      *>   separator." -> OK §2023:8.3.5 SR9
       *>
       *> DERIVED OUTPUT (the program is legal only if rules 1) and 9)
       *> hold; each line's value follows from the statements):

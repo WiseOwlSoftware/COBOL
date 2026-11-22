@@ -10,7 +10,7 @@
       *> that will always result in an integer value or an integer data item". So ABS, MAX and MIN over an arithmetic expression that
       *> ALWAYS results in an integer - not only a bare integer item, a literal or a parenthesized one (pb4635_parenthesized_numeric_
       *> arguments) - are INTEGER functions, and an integer position may hold them. FACTORIAL's argument-1 "shall be an integer greater
-      *> than or equal to zero" (§2023:15.36.3 1), cite.py --check 15.36.3 OK), and §2023:8.4.3.2.3 SR11 bars a NUMERIC function from such a
+      *> than or equal to zero" (§2023:15.36.3 AR1, cite.py --check 15.36.3 OK), and §2023:8.4.3.2.3 SR11 bars a NUMERIC function from such a
       *> position even when a particular reference would yield an integer; PERFORM ... TIMES asks the same of its count (§2023:14.9.28.3 SR2).
       *> The refusal that bounds the admission is pb4709-abs-non-integral-expression (this folder): S2 + 1 is not always an integer.
       *>

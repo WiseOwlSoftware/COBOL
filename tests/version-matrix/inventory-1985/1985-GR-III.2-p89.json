@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p89",
+ "rule-digest": "c7e5f6e520ed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunMain",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-III.2-p89",
+ "notes": "Derivation from the read lineage-reads-1985/g-02.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-III.2-p89); the code location is where the compiler meets the rule's subject. The read: \"The time at which an object program is executed. The term is synonymous with object time.\" Both sentences tell the reader what the standard's words mean; they require nothing. The code location was located after the read (locations-x.json): RunMain starts the execution of the object program (the run unit's main program); every run-time rule acts after it."
+}

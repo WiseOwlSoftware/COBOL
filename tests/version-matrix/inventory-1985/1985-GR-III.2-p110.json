@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-III.2-p110",
+ "rule-digest": "e6e96fc4d17a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#FixedFileAttributes",
+ "test-ref": "conformance:cases/III@1985-section-preamble/1985-GR-III_2-p100",
+ "notes": "Own witness from the read lineage-reads-1985/g-99.json: the reader showed the compiler correct at 85 with its probe (ATTRCONF.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The refuter is right: \"cannot subsequently be changed during the existence of the file\" binds the implementation's file system and is observable through the p100 condition. The 85-accepting case open_fixed_attribute_conflict, rerun now, shows both halves: the attributes are fixed at the creating OPEN OUTPUT and an EXTEND through another description cannot change them. Which attributes are recorded for each organization is the implementor's determination (VII.4.3.4 GR8; D-IO-STATUS-39). A sequential FD over a relative store opening 00 (S3) is inside that latitude. Code location located after the read: FixedFileAttributes is the value of the attributes (organization, record type and sizes, keys) fixed at creation and compared at OPEN."
+}

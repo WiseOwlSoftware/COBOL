@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.37.4 rule 2 — "If argument-3 is specified, argument-3 represents the number of matches
+      *> ISO §2023:15.37.4 RV2 — "If argument-3 is specified, argument-3 represents the number of matches
       *> to ignore before determining the character position that shall be returned." — beyond the small
       *> values every earlier case uses, up to the 18-digit reach this program registers.
       *>

@@ -18,9 +18,9 @@
       *> spelled +) must print identical lines at identical distances. This golden runs at 2002 because the
       *> relative COLUMN operand is a 2002 addition (construct report-multi-column-2002).
       *>
-      *> DERIVATION. The report is not divided into pages (§2023:13.18.39.4 GR2 a)), so §2023:13.18.35.4 GR5 c)
+      *> DERIVATION. The report is not divided into pages (§2023:13.18.39.4 GR2a), so §2023:13.18.35.4 GR5c
       *> places a body group's first relative line at LINE-COUNTER + integer-2, GR7 b) every later one the
-      *> same way, and §2023:13.18.37.4 GR4 b) adds the NEXT GROUP integer-2 to LINE-COUNTER after the group
+      *> same way, and §2023:13.18.37.4 GR4b adds the NEXT GROUP integer-2 to LINE-COUNTER after the group
       *> (an unpaged report has no FOOTING region to clamp it against).
       *> §2023:13.18.14.4 GR7-GR9: the horizontal counter is zero at the start of a line, a relative COLUMN's
       *> leftmost position is the counter + integer-2, and the counter becomes the item's rightmost column.
