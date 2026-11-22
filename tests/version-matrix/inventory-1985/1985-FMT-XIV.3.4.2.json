@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-FMT-XIV.3.4.2",
- "rule-digest": "461f03f0d929",
+ "rule-digest": "f1d52138a159",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#purgeStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPurge; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#ResolveCommunicationCd; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Purge",
  "test-ref": "conformance:cases/XIV.3.4@1985-PURGE-STATEMENT/1985-FMT-XIV_3_4_2",
@@ -11,6 +11,7 @@
   "to": [],
   "bridge": true,
   "reason": "1985: \"PURGE cd-name-1\"; 2023: \"no candidate covers the PURGE statement; the Communication module and its cd-name statements are absent from 2023\". No 2023 clause holds PURGE or any cd-name feature. The Communication module this format belongs to is not carried into 2023, so the statement is dropped.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {}
  }
 }

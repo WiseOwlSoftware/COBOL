@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-FMT-XIV.3.6.2",
- "rule-digest": "c8fbcec69f9a",
+ "rule-digest": "5fec93fde353",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationSendStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#sendIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#sendIndicator; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#sendAdvancingPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#sendReplacingPhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitMessagingSendStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindSend",
  "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-FMT-XIV_3_6_2",
@@ -11,6 +11,7 @@
   "to": [],
   "bridge": true,
   "reason": "1985: \"SEND cd-name-1 [ FROM identifier-1 ] WITH identifier-2 / WITH ESI / WITH EMI / WITH EGI ... BEFORE/AFTER ADVANCING\"; 2023: \"SEND TO {literal-1|message-server-name-1} FROM identifier-1 RETURNING data-name-1 ... END-SEND (no cd-name formats)\". 2023 SEND only sends to message servers. No cd-name, ESI/EMI/EGI, ADVANCING or REPLACING LINE form remains: the Communication-module SEND is dropped.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {}
  }
 }

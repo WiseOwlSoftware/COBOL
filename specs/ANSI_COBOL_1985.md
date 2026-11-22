@@ -1202,7 +1202,7 @@ I-2
 
 Introduction
 
-The Debug module provides a means by which the user can specify his debugging algorithm -- the conditions under which data or procedure items are monitored during execution of the program. The elements or the Debug module are divided into two levels. Debug module level 1 provides a basic debugging capability, including the ability to specify selective or full paragraph monitoring. Debug module level 2 provides the full COBOL debugging capability.
+The Debug module provides a means by which the user can specify his debugging algorithm -- the conditions under which data or procedure items are monitored during execution of the program. The elements of the Debug module are divided into two levels. Debug module level 1 provides a basic debugging capability, including the ability to specify selective or full paragraph monitoring. Debug module level 2 provides the full COBOL debugging capability.
 
 The Segmentation module provides for the overlaying at object time of Procedure Division sections. The elements of the Segmentation module are divided into two levels. Segmentation level 1 provides for section segment-numbers and fixed segment limits. Segmentation level 2 adds the capability for varying the segment limit.
 
@@ -1566,16 +1566,16 @@ Nucleus Element Summary
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ZERO, SPACE, HIGH-VALUE, LOW-VALUE, QUOTE ................ | X | X |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL option ............................................ | N | X |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ZEROS, ZEROES, SPACES, HIGH-VALUES, LOW-VALUES, QUOTES ... | X | X |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL option ............................................ | N | X |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Symbolic-character ...................................... | N | X |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL option .......................................... | N | X |
-| &nbsp;ALL literal ............................................. | N | X |
-| &nbsp;&nbsp;Literals | | |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL option ............................................ | N | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Symbolic-character ...................................... | N | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL option .......................................... | N | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL literal ............................................. | N | X |
+| &nbsp;Literals | | |
 | &nbsp;&nbsp;Numeric literals: 1 through 18 digits ....................... | X | X |
-| &nbsp;Nonnumeric literals: 1 through 160 characters ............... | X | X |
+| &nbsp;&nbsp;Nonnumeric literals: 1 through 160 characters ............... | X | X |
 | &nbsp;PICTURE character-string ...................................... | X | X |
-| <u>Comment-entries</u> ............................................... | Z | Z |
-| &nbsp;<u>Uniqueness of Reference</u> | | |
+| &nbsp;Comment-entries ............................................... | Z | Z |
+| <u>Uniqueness of Reference</u> | | |
 | &nbsp;&nbsp;Qualification | | |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No qualification permitted; names must be unique if referenced ................................................ | X | N |
 | &nbsp;&nbsp;50 qualifiers ............................................... | N | X |
@@ -1677,36 +1677,36 @@ Nucleus Element Summary
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
-| OCCURS clause | X | X |
-| &nbsp;Integer TIMES | X | X |
-| &nbsp;ASCENDING/DESCENDING KEY phrase | N | X |
-| &nbsp;INDEXED BY phrase | X | X |
-| &nbsp;Integer-1 TO integer-2 TIMES DEPENDING ON phrase | N | X |
-| PICTURE clause | X | X |
-| &nbsp;Character-string has a maximum of 30 characters | X | X |
-| &nbsp;Data characters X 9 A | X | X |
-| &nbsp;Operational symbols S V P | X | X |
-| &nbsp;Nonfloating insertion characters B + - . , $ 0 CR DB / | X | X |
-| &nbsp;Replacement or floating insertion characters $ + - Z \* | X | X |
-| &nbsp;Currency sign substitution | X | X |
-| &nbsp;Decimal point substitution | X | X |
-| REDEFINES clause | X | X |
-| &nbsp;May not be nested | X | N |
-| &nbsp;May be nested | N | X |
-| RENAMES clause | N | X |
-| SIGN clause | X | X |
-| SYNCHRONIZED clause | X | X |
-| USAGE clause | X | X |
-| &nbsp;BINARY | X | X |
-| &nbsp;COMPUTATIONAL | X | X |
-| &nbsp;DISPLAY | X | X |
-| &nbsp;INDEX | X | X |
-| &nbsp;PACKED-DECIMAL | X | X |
-| VALUE clause | X | X |
-| &nbsp;Literal | X | X |
-| &nbsp;Literal series | N | X |
-| &nbsp;Literal-1 THROUGH literal-2 | N | X |
-| &nbsp;Literal range series | N | X |
+| &nbsp;OCCURS clause | X | X |
+| &nbsp;&nbsp;Integer TIMES | X | X |
+| &nbsp;&nbsp;ASCENDING/DESCENDING KEY phrase | N | X |
+| &nbsp;&nbsp;INDEXED BY phrase | X | X |
+| &nbsp;&nbsp;Integer-1 TO integer-2 TIMES DEPENDING ON phrase | N | X |
+| &nbsp;PICTURE clause | X | X |
+| &nbsp;&nbsp;Character-string has a maximum of 30 characters | X | X |
+| &nbsp;&nbsp;Data characters X 9 A | X | X |
+| &nbsp;&nbsp;Operational symbols S V P | X | X |
+| &nbsp;&nbsp;Nonfloating insertion characters B + - . , $ 0 CR DB / | X | X |
+| &nbsp;&nbsp;Replacement or floating insertion characters $ + - Z \* | X | X |
+| &nbsp;&nbsp;Currency sign substitution | X | X |
+| &nbsp;&nbsp;Decimal point substitution | X | X |
+| &nbsp;REDEFINES clause | X | X |
+| &nbsp;&nbsp;May not be nested | X | N |
+| &nbsp;&nbsp;May be nested | N | X |
+| &nbsp;RENAMES clause | N | X |
+| &nbsp;SIGN clause | X | X |
+| &nbsp;SYNCHRONIZED clause | X | X |
+| &nbsp;USAGE clause | X | X |
+| &nbsp;&nbsp;BINARY | X | X |
+| &nbsp;&nbsp;COMPUTATIONAL | X | X |
+| &nbsp;&nbsp;DISPLAY | X | X |
+| &nbsp;&nbsp;INDEX | X | X |
+| &nbsp;&nbsp;PACKED-DECIMAL | X | X |
+| &nbsp;VALUE clause | X | X |
+| &nbsp;&nbsp;Literal | X | X |
+| &nbsp;&nbsp;Literal series | N | X |
+| &nbsp;&nbsp;Literal-1 THROUGH literal-2 | N | X |
+| &nbsp;&nbsp;Literal range series | N | X |
 
 <u>PROCEDURE DIVISION</u>
 
@@ -2666,7 +2666,7 @@ Report Writer Element Summary
 | INITIATE statement | X |
 | OPEN statement | X |
 | &nbsp;OUTPUT phrase | X |
-| &nbsp;WITH NO REWIND phrase | X |
+| &nbsp;&nbsp;WITH NO REWIND phrase | X |
 | &nbsp;EXTEND phrase | X |
 | SUPPRESS statement | X |
 | TERMINATE statement | X |
@@ -8370,7 +8370,7 @@ Data Division - File Description Entry
 
     ┌                                        ╭<u>RECORDS</u>   ╮┐
     │<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ┤          ├│
-    └                                        ╰<u>CHARACTERS</u>╯┘
+    └                                        ╰CHARACTERS╯┘
 
     ┌       ╭CONTAINS integer-3 CHARACTERS                                   ╮ ┐
     │<u>RECORD</u> ┤IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ├ │
@@ -8422,7 +8422,7 @@ Data Division - File Description Entry
 
     ┌                                        ╭<u>RECORDS</u>   ╮┐
     │<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ┤          ├│
-    └                                        ╰<u>CHARACTERS</u>╯┘
+    └                                        ╰CHARACTERS╯┘
 
     ┌       ╭CONTAINS integer-3 CHARACTERS                                   ╮ ┐
     │<u>RECORD</u> ┤IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ├ │
@@ -8518,7 +8518,7 @@ Data Division - File Description Entry
 
     ┌<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ╭<u>RECORDS</u>    ╮ ┐
     │                                        ┤           ├ │
-    └                                        ╰<u>CHARACTERS</u> ╯ ┘
+    └                                        ╰CHARACTERS ╯ ┘
 
     ┌<u>RECORD</u> ╭CONTAINS integer-3 CHARACTERS             ╮ ┐
     │       ┤                                          ├ │
@@ -10319,7 +10319,7 @@ Nucleus - End Program Header
 #### ║2.4.2 General Format║
 
 <pre style="line-height:1">
-<u>END</u> <u>PROGRAM</u> program-name.
+║ <u>END</u> <u>PROGRAM</u> program-name. ║
 </pre>
 
 #### ║2.4.3 Syntax Rules║
@@ -11044,7 +11044,7 @@ a. Level-number 77 is assigned to identify noncontiguous working storage data it
 
 ║b. Level-number 66 is assigned to identify RENAMES entries and can be used only as described by format 2 of the data description entry. (See page VI-20, The Data Description Entry.)║
 
-c. Level-number 88 is assigned to entries which define condition-names associated with a conditional variable and can be used only as described by format 3 of the data description entry. (See page VI-20, The Data Description Entry.)
+║c. Level-number 88 is assigned to entries which define condition-names associated with a conditional variable and can be used only as described by format 3 of the data description entry. (See page VI-20, The Data Description Entry.)║
 
 (3) Multiple level 01 entries subordinate to any given level indicator other than the level indicator RD for a report description entry, represent implicit redefinitions of the same area.
 
@@ -12151,7 +12151,7 @@ Nucleus - Condition-Name Condition
 ║In a condition-name condition, a conditional variable is tested to determine whether or not its value is equal to one of the values associated with condition-name-1. The general format for the condition-name condition is as follows:║
 
 <pre style="line-height:1">
-condition-name-1
+║ condition-name-1 ║
 </pre>
 
 ║If condition-name-1 is associated with a range or ranges of values, then the conditional variable is tested to determine whether or not its value falls in this range, including the end values.║
@@ -15119,9 +15119,9 @@ Nucleus - UNSTRING
 
 ║(18) When an overflow condition exists, the UNSTRING operation is terminated, the NOT ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the UNSTRING statement or, if the ON OVERFLOW phrase is specified, to imperative-statement-1. If control is transferred to imperative-statement-1, execution continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the UNSTRING statement.║
 
-(19) The END-UNSTRING phrase delimits the scope of the UNSTRING statement. (See page IV-40, Scope of Statements.)
+║(19) The END-UNSTRING phrase delimits the scope of the UNSTRING statement. (See page IV-40, Scope of Statements.)║
 
-(20) If, at the time of execution of an UNSTRING statement, the conditions described in general rule 17 are not encountered, after completion of the transfer of data according to the other general rules, the ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the UNSTRING statement or, if the NOT ON OVERFLOW phrase is specified, to imperative-statement-2. If control is transferred to imperative-statement-2, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the UNSTRING statement.
+║(20) If, at the time of execution of an UNSTRING statement, the conditions described in general rule 17 are not encountered, after completion of the transfer of data according to the other general rules, the ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the UNSTRING statement or, if the NOT ON OVERFLOW phrase is specified, to imperative-statement-2. If control is transferred to imperative-statement-2, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the UNSTRING statement.║
 
 VI-139
 
@@ -15273,11 +15273,11 @@ VII-3
 
 Sequential I-O - Introduction
 
-c. I-O Status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, [║or EXTEND║] phrase is attempted on a [║non-optional║] file that is not present.
+c. I-O Status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, ║or EXTEND║ phrase is attempted on a ║non-optional║ file that is not present.
 
 d. I-O Status = 37. A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. The possible violations are:
 
-1\) The [║EXTEND or║] OUTPUT phrase is specified but the file will not support write operations.
+1\) The ║EXTEND or║ OUTPUT phrase is specified but the file will not support write operations.
 
 2\) The I-O phrase is specified but the file will not support the input and output operations that are permitted for a sequential file when opened in the I-O mode.
 
@@ -15859,7 +15859,7 @@ The file description entry furnishes information concerning the physical structu
 
     ┌                                          ╭<u>RECORDS</u>   ╮┐
     │<u>BLOCK</u> CONTAINS ║[integer-1 <u>TO</u>]║ integer-2 ┤          ├│
-    └                                          ╰<u>CHARACTERS</u>╯┘
+    └                                          ╰CHARACTERS╯┘
 
     ┌       ╭ CONTAINS integer-3 CHARACTERS                                    ╮ ┐
     │<u>RECORD</u> ┤╔IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ╗├ │
@@ -16510,10 +16510,10 @@ The OPEN statement initiates the processing of files. ║The REVERSED phrase is 
 #### 4.3.2 General Format
 
 <pre style="line-height:1">
-       ╭ <u>INPUT</u>  ╭            ┌ <u>REVERSED</u>       ┐ ╮     ╮
-       │        ┤file-name-1 │                │ ├ …   │
-       │        ╰            └ WITH <u>NO</u> <u>REWIND</u> ┘ ╯     │
-<u>OPEN</u>   ┤ <u>OUTPUT</u> {file-name-2 [ WITH <u>NO</u> <u>REWIND</u> ] } …   ├ …
+       ╭ <u>INPUT</u>  ╭           ║┌ <u>REVERSED</u>       ┐║╮     ╮
+       │        ┤file-name-1║│                │║├ …   │
+       │        ╰           ║└ WITH <u>NO</u> <u>REWIND</u> ┘║╯     │
+<u>OPEN</u>   ┤ <u>OUTPUT</u> {file-name-2║[ WITH <u>NO</u> <u>REWIND</u> ]║} …   ├ …
        │ <u>I-O</u> {file-name-3} …                          │
        ╰║<u>EXTEND</u> {file-name-4}  … ║                    ╯
 </pre>
@@ -17560,7 +17560,7 @@ The file description entry furnishes information concerning the physical structu
 
     ┌                                          ╭<u>RECORDS</u>   ╮┐
     │<u>BLOCK</u> CONTAINS ║[integer-1 <u>TO</u>]║ integer-2 ┤          ├│
-    └                                          ╰<u>CHARACTERS</u>╯┘
+    └                                          ╰CHARACTERS╯┘
 
     ┌       ╭ CONTAINS integer-3 CHARACTERS                                    ╮ ┐
     │<u>RECORD</u> ┤╔IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ╗├ │
@@ -17843,7 +17843,7 @@ Relative I-O - OPEN
 
 Table 2: Permissible Statements
 
-(5) A file may be opened with the INPUT, OUTPUT, [║EXTEND,║] and I-O phrases in the same run unit. Following the initial execution of an OPEN statement for a file, each subsequent OPEN statement execution for that same file must be preceded by the execution of a CLOSE statement, [║without the LOCK phrase,║] for that file.
+(5) A file may be opened with the INPUT, OUTPUT, ║EXTEND,║ and I-O phrases in the same run unit. Following the initial execution of an OPEN statement for a file, each subsequent OPEN statement execution for that same file must be preceded by the execution of a CLOSE statement, ║without the LOCK phrase,║ for that file.
 
 (6) Execution of the OPEN statement does not obtain or release the first data record.
 
@@ -18147,7 +18147,7 @@ VIII-31
 
 Relative I-O - REWRITE
 
-(13) For a file accessed in |║either║| random |║or dynamic║| access mode, the mass storage control system (MSCS) logically replaces the record specified by the content of the relative key data of the file-name associated with record-name-1. If the file does not contain the record specified by the key, the invalid key condition exists. When the invalid key condition is recognized, the execution of the REWRITE statement is unsuccessful, the updating operation does not take place, the contents of the record area are unaffected and the I-O status of the file-name associated with record-name-1 is set to a value indicating the cause of the condition. (See page VIII-2, I-O Status.)
+(13) For a file accessed in ║either║ random ║or dynamic║ access mode, the mass storage control system (MSCS) logically replaces the record specified by the content of the relative key data of the file-name associated with record-name-1. If the file does not contain the record specified by the key, the invalid key condition exists. When the invalid key condition is recognized, the execution of the REWRITE statement is unsuccessful, the updating operation does not take place, the contents of the record area are unaffected and the I-O status of the file-name associated with record-name-1 is set to a value indicating the cause of the condition. (See page VIII-2, I-O Status.)
 
 VIII-32
 
@@ -18917,7 +18917,7 @@ The file description entry furnishes information concerning the physical structu
 
     ┌                                          ╭<u>RECORDS</u>   ╮┐
     │<u>BLOCK</u> CONTAINS ║[integer-1 <u>TO</u>]║ integer-2 ┤          ├│
-    └                                          ╰<u>CHARACTERS</u>╯┘
+    └                                          ╰CHARACTERS╯┘
 
     ┌       ╭ CONTAINS integer-3 CHARACTERS                                    ╮ ┐
     │<u>RECORD</u> ┤╔IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ╗├ │
@@ -19541,7 +19541,7 @@ Indexed I-O - REWRITE
 
 a. When the file is open in the sequential access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of the last record read from the file, or
 
-b. When the file is open in the [║dynamic or║] random access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of any record existing in the file, or
+b. When the file is open in the ║dynamic or║ random access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of any record existing in the file, or
 
 ║c. When the value of an alternate record key of the record to be replaced, for which duplicates are not allowed, equals the value of the corresponding data item of a record already existing in the file.║
 
@@ -20068,9 +20068,9 @@ Inter-Program Communication - Nested Source Programs
 
 ### ║2.3 STRUCTURE║
 
-║The following gives the general format and order of presentation of the entries and statements which constitute a COBOL source program. The generic terms identification-division, environment-division, data-division, procedure-division, source-program, and end-program-header║ represent a COBOL Identification Division, a COBOL Environment Division, a COBOL Data Division, a COBOL Procedure Division, a COBOL source program, and a COBOL end program header, respectively.
+║The following gives the general format and order of presentation of the entries and statements which constitute a COBOL source program. The generic terms identification-division, environment-division, data-division, procedure-division, source-program, and end-program-header represent a COBOL Identification Division, a COBOL Environment Division, a COBOL Data Division, a COBOL Procedure Division, a COBOL source program, and a COBOL end program header, respectively.║
 
-#### 2.3.1 General Format
+#### ║2.3.1 General Format║
 
 <pre style="line-height:1">
 ╔ identification-division  ╗
@@ -20378,7 +20378,7 @@ Within the Inter-Program Communication module, the file description entry in the
 
     ┌                                        ╭<u>RECORDS</u>   ╮┐
     │<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ┤          ├│
-    └                                        ╰<u>CHARACTERS</u>╯┘
+    └                                        ╰CHARACTERS╯┘
 
     ┌       ╭CONTAINS integer-3 CHARACTERS                                   ╮ ┐
     │<u>RECORD</u> ┤IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ├ │
@@ -20462,7 +20462,7 @@ Inter-Program Communication - File Description Entry
 
     ┌                                        ╭<u>RECORDS</u>   ╮┐
     │<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ┤          ├│
-    └                                        ╰<u>CHARACTERS</u>╯┘
+    └                                        ╰CHARACTERS╯┘
 
     ┌       ╭CONTAINS integer-3 CHARACTERS                                   ╮ ┐
     │<u>RECORD</u> ┤IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ├ │
@@ -20839,7 +20839,7 @@ X-27
 
 Inter-Program Communication - CALL
 
-program. After control is returned from the called program, ║the ON OVERFLOW or ON EXCEPTION phrase, if specified, is ignored and║ control is transferred to the end of the CALL statement ║or, if the NOT ON EXCEPTION phrase is specified, to imperative-statement-2. If control is transferred to imperative-statement-2, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the CALL statement.║
+program. After control is returned from the called program, ║the ON OVERFLOW or ON EXCEPTION phrase, if specified, is ignored and║ ║control is transferred to the end of the CALL statement║ ║or, if the NOT ON EXCEPTION phrase is specified, to imperative-statement-2. If control is transferred to imperative-statement-2, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the CALL statement.║
 
 (3) If it is determined, when a CALL statement is executed, that the program specified by the CALL statement cannot be made available for execution at that time, one of the two actions listed below will occur. The object time resources which must be checked in order to determine the availability of the called program for execution are defined by the implementor.
 
@@ -20861,7 +20861,7 @@ b. ║If the ON OVERFLOW or ON EXCEPTION phrase is not specified in the CALL sta
 
 ║a. If one of the two programs having the same name as that specified in the CALL statement is directly contained within the program which includes that CALL statement, that program is called.║
 
-║b. If one of the two programs having the same name as that specified in the CALL statement possesses the common attribute and is directly contained within another program which directly or indirectly contains║ the program which
+║b. If one of the two programs having the same name as that specified in the CALL statement possesses the common attribute and is directly contained within another program which directly or indirectly contains the program which║
 
 X-28
 
@@ -21970,7 +21970,7 @@ Source Text Manipulation - REPLACE
 ║<u>Format 2:</u>║
 
 <pre style="line-height:1">
-<u>REPLACE</u> <u>OFF</u>
+║ <u>REPLACE</u> <u>OFF</u> ║
 </pre>
 
 ### ║3.3 Syntax Rules║
@@ -24949,8 +24949,8 @@ Use of either option results in a record whose implicit description is equivalen
 | 01 data-name-0. | |
 | &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-1 PICTURE X(12). | SYMBOLIC QUEUE |
 | &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-2 PICTURE X(12). | ║SYMBOLIC SUB-QUEUE-1║ |
-| ║&nbsp;&nbsp;&nbsp;&nbsp;02 data-name-3 PICTURE X(12). | SYMBOLIC SUB-QUEUE-║2 |
-| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-4 PICTURE X(12). | SYMBOLIC SUB-QUEUE-3 |
+| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-3 PICTURE X(12). | ║SYMBOLIC SUB-QUEUE-2║ |
+| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-4 PICTURE X(12). | ║SYMBOLIC SUB-QUEUE-3║ |
 | &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-5 PICTURE 9(6). | MESSAGE DATE |
 | &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-6 PICTURE 9(8). | MESSAGE TIME |
 | &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-7 PICTURE X(12). | SYMBOLIC SOURCE |
@@ -25009,15 +25009,15 @@ Communication - CD Entry
 
 ║3\) If less than a message is transferred, the content of the data item referenced by data-name-9 is set to 0.║
 
-b. When the RECEIVE SEGMENT phrase is specified, then:
+║b. When the RECEIVE SEGMENT phrase is specified, then:║
 
-1\) If an end of group has been detected, the content of the data item referenced by data-name-9 is set to 3;
+║1\) If an end of group has been detected, the content of the data item referenced by data-name-9 is set to 3;║
 
-2\) If an end of message has been detected, the content of the data item referenced by data-name-9 is set to 2;
+║2\) If an end of message has been detected, the content of the data item referenced by data-name-9 is set to 2;║
 
-3\) If an end of segment has been detected, the content of the data item referenced by data-name-9 is set to 1;
+║3\) If an end of segment has been detected, the content of the data item referenced by data-name-9 is set to 1;║
 
-4\) If less than a message segment is transferred, the content of the data item referenced by data-name-9 is set to 0.
+║4\) If less than a message segment is transferred, the content of the data item referenced by data-name-9 is set to 0.║
 
 c. When more than one of the above conditions is satisfied simultaneously, the rule first satisfied in the order listed determines the content of the data item referenced by data-name-9.
 
@@ -25413,7 +25413,7 @@ Communication - PURGE
 #### ║**3.4.2 General Format**║
 
 <pre style="line-height:1">
-<u>PURGE</u> cd-name-1
+║ <u>PURGE</u> cd-name-1 ║
 </pre>
 
 #### ║**3.4.3 Syntax Rules**║
@@ -25537,7 +25537,7 @@ The SEND statement causes a message, ║a message segment, or a portion of a mes
 
 <pre style="line-height:1">
                                      ╭ ║ WITH identifier-2 ║ ╮
-<u>SEND</u> cd-name-1 [ <u>FROM</u> identifier-1 ] ┤   WITH <u>ESI</u>            ├
+<u>SEND</u> cd-name-1 [ <u>FROM</u> identifier-1 ] ┤ ║ WITH <u>ESI</u>          ║ ├
                                      │   WITH <u>EMI</u>            │
                                      ╰   WITH <u>EGI</u>            ╯
 
@@ -26188,7 +26188,7 @@ Segmentation - SEGMENT-LIMIT
 #### ║2.3.2 General Format║
 
 <pre style="line-height:1">
-<u>SEGMENT-LIMIT</u> IS segment-number
+║ <u>SEGMENT-LIMIT</u> IS segment-number ║
 </pre>
 
 #### ║2.3.3 Syntax Rules║
@@ -26199,9 +26199,9 @@ Segmentation - SEGMENT-LIMIT
 
 ║(1) When the SEGMENT-LIMIT clause is specified, only those segments having segment-numbers from 0 up to, but not including, the segment-number designated as the segment-limit, are considered as permanent segments of the object program.║
 
-(2) Those segments having segment-numbers from the segment-limit through 49 are considered as overlayable fixed segments.
+║(2) Those segments having segment-numbers from the segment-limit through 49 are considered as overlayable fixed segments.║
 
-(3) When the SEGMENT-LIMIT clause is omitted, all segments having segment-numbers from 0 through 49 are considered as permanent segments of the object program.
+║(3) When the SEGMENT-LIMIT clause is omitted, all segments having segment-numbers from 0 through 49 are considered as permanent segments of the object program.║
 
 XVI-5
 
@@ -27579,49 +27579,49 @@ Procedure Division Difference Summary
 | ELEMENT | 2ND STD | 3RD STD |
 |---|---|---|
 | <u>PROCEDURE DIVISION</u> | | |
-| Procedure Division is required .................................. | 1 NUC | N |
-| Procedure Division is optional .................................. | N | 1 NUC |
+| &nbsp;Procedure Division is required .................................. | 1 NUC | N |
+| &nbsp;Procedure Division is optional .................................. | N | 1 NUC |
 | Procedure Division header ....................................... | 1 NUC | 1 NUC |
-| USING phrase .................................................... | 1 IPC | 1 IPC |
-| At least 5 operands permitted ................................ | N | 1 IPC |
-| No minimum on number of operands permitted ...................... | 1 IPC | 2 IPC |
+| &nbsp;USING phrase .................................................... | 1 IPC | 1 IPC |
+| &nbsp;&nbsp;At least 5 operands permitted ................................ | N | 1 IPC |
+| &nbsp;&nbsp;No minimum on number of operands permitted ...................... | 1 IPC | 2 IPC |
 | Declarative procedures .......................................... | 1 SEQ | 1 SEQ |
 | | 1 REL | 1 REL |
 | | 1 INX | 1 INX |
 | | 1 RPW | 1 RPW |
-| | 1 DEB | 1 DEB |
-| DECLARATIVES .................................................... | 1 SEQ | 1 SEQ |
+| | 1 DEB | 1 DEB Z |
+| &nbsp;DECLARATIVES .................................................... | 1 SEQ | 1 SEQ |
 | | 1 REL | 1 REL |
 | | 1 INX | 1 INX |
 | | 1 RPW | 1 RPW |
-| | 1 DEB | 1 DEB |
-| END DECLARATIVES ................................................ | 1 SEQ | 1 SEQ |
+| | 1 DEB | 1 DEB Z |
+| &nbsp;END DECLARATIVES ................................................ | 1 SEQ | 1 SEQ |
 | | 1 REL | 1 REL |
 | | 1 INX | 1 INX |
 | | 1 RPW | 1 RPW |
-| | 1 DEB | 1 DEB |
+| | 1 DEB | 1 DEB Z |
 | Arithmetic expressions .......................................... | 2 NUC | 2 NUC |
-| Binary arithmetic operators &nbsp; + - \* / \*\* &nbsp; ...................... | 2 NUC | 2 NUC |
-| Unary arithmetic operators &nbsp; + - &nbsp; ............................. | 2 NUC | 2 NUC |
+| &nbsp;Binary arithmetic operators &nbsp; + - \* / \*\* &nbsp; ...................... | 2 NUC | 2 NUC |
+| &nbsp;Unary arithmetic operators &nbsp; + - &nbsp; ............................. | 2 NUC | 2 NUC |
 | Conditional expressions ......................................... | 1 NUC | 1 NUC |
-| Simple condition ................................................ | 1 NUC | 1 NUC |
-| Relation condition .............................................. | 1 NUC | 1 NUC |
-| Relational operators ............................................ | 1 NUC | 1 NUC |
-| [NOT] GREATER THAN .............................................. | 1 NUC | 1 NUC |
-| [NOT] &gt; ........................................................ | 2 NUC | 1 NUC |
-| [NOT] LESS THAN ................................................. | 1 NUC | 1 NUC |
-| [NOT] &lt; ........................................................ | 2 NUC | 1 NUC |
-| [NOT] EQUAL TO .................................................. | 1 NUC | 1 NUC |
-| [NOT] = ......................................................... | 2 NUC | 1 NUC |
-| GREATER THAN OR EQUAL TO ........................................ | N | 1 NUC |
-| &gt;= ............................................................. | N | 1 NUC |
-| LESS THAN OR EQUAL TO ........................................... | N | 1 NUC |
-| &lt;= ............................................................. | N | 1 NUC |
-| Comparison of numeric operands .................................. | 1 NUC | 1 NUC |
-| Comparison of nonnumeric operands ............................... | 1 NUC | 1 NUC |
-| Operands must be of equal size .................................. | 1 NUC | N |
-| Operands may be of unequal size ................................. | 2 NUC | 1 NUC |
-| Comparison of index-names and/or index data items ............... | 1 TBL | 1 NUC |
+| &nbsp;Simple condition ................................................ | 1 NUC | 1 NUC |
+| &nbsp;&nbsp;Relation condition .............................................. | 1 NUC | 1 NUC |
+| &nbsp;&nbsp;&nbsp;Relational operators ............................................ | 1 NUC | 1 NUC |
+| &nbsp;&nbsp;&nbsp;&nbsp;[NOT] GREATER THAN .............................................. | 1 NUC | 1 NUC |
+| &nbsp;&nbsp;&nbsp;&nbsp;[NOT] &gt; ........................................................ | 2 NUC | 1 NUC |
+| &nbsp;&nbsp;&nbsp;&nbsp;[NOT] LESS THAN ................................................. | 1 NUC | 1 NUC |
+| &nbsp;&nbsp;&nbsp;&nbsp;[NOT] &lt; ........................................................ | 2 NUC | 1 NUC |
+| &nbsp;&nbsp;&nbsp;&nbsp;[NOT] EQUAL TO .................................................. | 1 NUC | 1 NUC |
+| &nbsp;&nbsp;&nbsp;&nbsp;[NOT] = ......................................................... | 2 NUC | 1 NUC |
+| &nbsp;&nbsp;&nbsp;&nbsp;GREATER THAN OR EQUAL TO ........................................ | N | 1 NUC |
+| &nbsp;&nbsp;&nbsp;&nbsp;&gt;= ............................................................. | N | 1 NUC |
+| &nbsp;&nbsp;&nbsp;&nbsp;LESS THAN OR EQUAL TO ........................................... | N | 1 NUC |
+| &nbsp;&nbsp;&nbsp;&nbsp;&lt;= ............................................................. | N | 1 NUC |
+| &nbsp;&nbsp;&nbsp;Comparison of numeric operands .................................. | 1 NUC | 1 NUC |
+| &nbsp;&nbsp;&nbsp;Comparison of nonnumeric operands ............................... | 1 NUC | 1 NUC |
+| &nbsp;&nbsp;&nbsp;&nbsp;Operands must be of equal size .................................. | 1 NUC | N |
+| &nbsp;&nbsp;&nbsp;&nbsp;Operands may be of unequal size ................................. | 2 NUC | 1 NUC |
+| &nbsp;&nbsp;&nbsp;Comparison of index-names and/or index data items ............... | 1 TBL | 1 NUC |
 
 XVII-30
 
@@ -27795,53 +27795,53 @@ Procedure Division Difference Summary
 |---|---|---|---|
 | DELETE statement | 1 REL | 1 REL | |
 | | 1 INX | 1 INX | |
-| INVALID KEY phrase | 1 REL | 1 REL | |
+| &nbsp;INVALID KEY phrase | 1 REL | 1 REL | |
 | | 1 INX | 1 INX | |
-| NOT INVALID KEY phrase | N | 1 REL | |
+| &nbsp;NOT INVALID KEY phrase | N | 1 REL | |
 | | | 1 INX | |
-| END-DELETE phrase | N | 1 REL | |
+| &nbsp;END-DELETE phrase | N | 1 REL | |
 | | | 1 INX | |
 | DISABLE statement | 1 COM | 2 COM | |
-| INPUT phrase | 1 COM | 2 COM | |
-| TERMINAL phrase | 2 COM | 2 COM | |
-| I-O TERMINAL phrase | N | 2 COM | |
-| OUTPUT phrase | 1 COM | 2 COM | |
-| KEY phrase | 1 COM | 2 COM | Z |
+| &nbsp;INPUT phrase | 1 COM | 2 COM | |
+| &nbsp;&nbsp;TERMINAL phrase | 2 COM | 2 COM | |
+| &nbsp;I-O TERMINAL phrase | N | 2 COM | |
+| &nbsp;OUTPUT phrase | 1 COM | 2 COM | |
+| &nbsp;KEY phrase | 1 COM | 2 COM | Z |
 | DISPLAY statement | 1 NUC | 1 NUC | |
-| Only one transfer of data | 1 NUC | 1 NUC | |
-| No restriction on number of transfers of data | 2 NUC | 2 NUC | |
-| Identifier/literal | 1 NUC | 1 NUC | |
-| Identifier/literal series | 1 NUC | 1 NUC | |
-| UPON mnemonic-name phrase | 2 NUC | 2 NUC | |
-| WITH NO ADVANCING phrase | N | 2 NUC | |
+| &nbsp;Only one transfer of data | 1 NUC | 1 NUC | |
+| &nbsp;No restriction on number of transfers of data | 2 NUC | 2 NUC | |
+| &nbsp;Identifier/literal | 1 NUC | 1 NUC | |
+| &nbsp;Identifier/literal series | 1 NUC | 1 NUC | |
+| &nbsp;UPON mnemonic-name phrase | 2 NUC | 2 NUC | |
+| &nbsp;WITH NO ADVANCING phrase | N | 2 NUC | |
 | DIVIDE statement | 1 NUC | 1 NUC | |
-| BY identifier/literal | 1 NUC | 1 NUC | |
-| INTO identifier | 1 NUC | 1 NUC | |
-| INTO identifier series | 2 NUC | 1 NUC | |
-| GIVING identifier | 1 NUC | 1 NUC | |
-| GIVING identifier series | 2 NUC | 1 NUC | |
-| ROUNDED phrase | 1 NUC | 1 NUC | |
-| REMAINDER phrase | 2 NUC | 2 NUC | |
-| ON SIZE ERROR phrase | 1 NUC | 1 NUC | |
-| NOT ON SIZE ERROR phrase | N | 1 NUC | |
-| END-DIVIDE phrase | N | 1 NUC | |
+| &nbsp;BY identifier/literal | 1 NUC | 1 NUC | |
+| &nbsp;INTO identifier | 1 NUC | 1 NUC | |
+| &nbsp;INTO identifier series | 2 NUC | 1 NUC | |
+| &nbsp;GIVING identifier | 1 NUC | 1 NUC | |
+| &nbsp;GIVING identifier series | 2 NUC | 1 NUC | |
+| &nbsp;ROUNDED phrase | 1 NUC | 1 NUC | |
+| &nbsp;REMAINDER phrase | 2 NUC | 2 NUC | |
+| &nbsp;ON SIZE ERROR phrase | 1 NUC | 1 NUC | |
+| &nbsp;NOT ON SIZE ERROR phrase | N | 1 NUC | |
+| &nbsp;END-DIVIDE phrase | N | 1 NUC | |
 | ENABLE statement | 1 COM | 2 COM | |
-| INPUT phrase | 1 COM | 2 COM | |
-| TERMINAL phrase | 2 COM | 2 COM | |
-| I-O TERMINAL phrase | N | 2 COM | |
-| OUTPUT phrase | 1 COM | 2 COM | |
-| KEY phrase | 1 COM | 2 COM | Z |
+| &nbsp;INPUT phrase | 1 COM | 2 COM | |
+| &nbsp;&nbsp;TERMINAL phrase | 2 COM | 2 COM | |
+| &nbsp;I-O TERMINAL phrase | N | 2 COM | |
+| &nbsp;OUTPUT phrase | 1 COM | 2 COM | |
+| &nbsp;KEY phrase | 1 COM | 2 COM | Z |
 | ENTER statement | 1 NUC | 1 NUC | Z |
 | EVALUATE statement | N | 2 NUC | |
-| Identifier/literal | N | 2 NUC | |
-| Arithmetic expression | N | 2 NUC | |
-| Conditional expression | N | 2 NUC | |
-| TRUE/FALSE | N | 2 NUC | |
-| ALSO phrase | N | 2 NUC | |
-| WHEN phrase | N | 2 NUC | |
-| ALSO phrase | N | 2 NUC | |
-| WHEN OTHER phrase | N | 2 NUC | |
-| END-EVALUATE phrase | N | 2 NUC | |
+| &nbsp;Identifier/literal | N | 2 NUC | |
+| &nbsp;Arithmetic expression | N | 2 NUC | |
+| &nbsp;Conditional expression | N | 2 NUC | |
+| &nbsp;TRUE/FALSE | N | 2 NUC | |
+| &nbsp;&nbsp;ALSO phrase | N | 2 NUC | |
+| &nbsp;WHEN phrase | N | 2 NUC | |
+| &nbsp;&nbsp;ALSO phrase | N | 2 NUC | |
+| &nbsp;WHEN OTHER phrase | N | 2 NUC | |
+| &nbsp;END-EVALUATE phrase | N | 2 NUC | |
 
 XVII-33
 
@@ -28997,8 +28997,6 @@ Under second Standard COBOL, PARA3 will be executed 8 times with the following v
 
 Under third Standard COBOL, PARA3 will be executed 6 times with the following values:
 
-> ⚠ **CORRECTED — see the Errata (C171).** The standard prints `Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.` (page 772, folio XVII-64). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-64 (T) (page 854, folio A-24), applied in place: "Substantive change 26, entitled 'PERFORM statement', prior to the last paragraph on the page, delete: 'Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.'", a typographical error (the sentences repeat the two that precede the values) (kb/Work PB5045). Corrected to `(deleted)`.
-
 | | | | | | | |
 |---|---|---|---|---|---|---|
 | X: | 1 | 1 | 1 | 2 | 2 | 3 |
@@ -29012,6 +29010,8 @@ One would expect the above example to perform the same as the following example:
       PARA2.
           PERFORM PARA3 VARYING Y FROM X BY 1 UNTIL Y IS GREATER THAN 3.
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C171).** The standard prints `Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.` (page 772, folio XVII-64). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-64 (T) (page 854, folio A-24), applied in place: "Substantive change 26, entitled 'PERFORM statement', prior to the last paragraph on the page, delete: 'Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.'", a typographical error (the sentences repeat the two that precede the values) (kb/Work PB5045). Corrected to `(deleted)`.
 
 The X3J4 COBOL Technical Committee believes that few existing programs will be affected by this change. The situation where one VARYING variable depends on another is useful for processing half of a matrix along the diagonal; the rules in third Standard COBOL specify this function properly while the rules in second Standard COBOL did not specify this function properly.
 
@@ -31524,11 +31524,11 @@ A-27
 
 Intrinsic Function - Arguments
 
-**2.1.1 Date Conversion Function**
+#### **2.1.1 Date Conversion Function**
 
 The Gregorian calendar is used in the date conversion functions. The starting date of Monday, January 1, 1601, was chosen to establish a simple relationship between the Standard Date and DAY-OF-WEEK; i.e., integer date 1 was a Monday, DAY-OF-WEEK 1.
 
-**2.2 ARGUMENTS**
+### **2.2 ARGUMENTS**
 
 Arguments specify values used in the evaluation of a function. Arguments are specified in the function-identifier. These arguments can be specified as identifiers, as arithmetic expressions, or as literals. The definition of a function specifies the number of arguments required, which can be zero, one, or more. For some functions, the number of arguments which can be specified may be variable. The order in which arguments are specified in a function-identifier determines the interpretation given to each value in arriving at the function value.
 
@@ -31560,7 +31560,7 @@ the ALL subscript is associated with an OCCURS DEPENDING ON clause, the range of
 
 > ⚠ **CORRECTED — see the Errata (C313).** The standard prints `otherwise the returned value is undefined.` (page 859, folio A-29). Amendment 2 (ANSI X3.23b-1993), its change for page (A-29) (page 937, folio B-25), applied in place: "Paragraph 2.2 entitled Arguments, last paragraph, replace the last sentence with the following" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `otherwise the result of the reference to the function-identifier is undefined.`.
 
-## 2.3 TYPES OF FUNCTIONS
+### 2.3 TYPES OF FUNCTIONS
 
 Data item functions are elementary data items and return alphanumeric, numeric, or integer values. Data item functions are treated as elementary data items and can not be receiving operands. Types of data item functions are:
 
@@ -31578,7 +31578,7 @@ An integer function may be used only in an arithmetic expression.
 
 An integer function can be referenced where an integer operand is required and where a signed operand is allowed.
 
-## 2.4 DEFINITIONS OF FUNCTIONS
+### 2.4 DEFINITIONS OF FUNCTIONS
 
 Table 1 on pages A-30 through A-32 summarizes the functions that are available.
 
@@ -31678,25 +31678,25 @@ A-32
 
 Intrinsic Function - ACOS
 
-## 2.5 THE ACOS FUNCTION
+### 2.5 THE ACOS FUNCTION
 
-### 2.5.1 Description
+#### 2.5.1 Description
 
 The ACOS function returns a numeric value in radians that approximates the arccosine of argument-1. The type of this function is numeric.
 
-### 2.5.2 General Format
+#### 2.5.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>ACOS</u> ( argument-1 )
 </pre>
 
-### 2.5.3 Arguments
+#### 2.5.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
 (2) The value of argument-1 must be greater than or equal to -1 and less than or equal to +1.
 
-### 2.5.4 Returned Values
+#### 2.5.4 Returned Values
 
 (1) The returned value is the approximation of the arccosine of argument-1 and is greater than or equal to zero and less than or equal to pi.
 
@@ -31706,19 +31706,19 @@ A-33
 
 Intrinsic Function - ANNUITY
 
-## 2.6 THE ANNUITY FUNCTION
+### 2.6 THE ANNUITY FUNCTION
 
-### 2.6.1 Description
+#### 2.6.1 Description
 
 The ANNUITY function (annuity immediate) returns a numeric value that approximates the ratio of an annuity paid at the end of each period for the number of periods specified by argument-2 to an initial investment of one. Interest is earned at the rate specified by argument-1 and is applied at the end of the period, before the payment. The type of this function is numeric.
 
-### 2.6.2 General Format
+#### 2.6.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>ANNUITY</u> ( argument-1 argument-2 )
 </pre>
 
-### 2.6.3 Arguments
+#### 2.6.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
@@ -31726,7 +31726,7 @@ The ANNUITY function (annuity immediate) returns a numeric value that approximat
 
 (3) Argument-2 must be a positive integer.
 
-### 2.6.4 Returned Values
+#### 2.6.4 Returned Values
 
 (1) When the value of argument-1 is zero, the value of the function is the approximation of:
 
@@ -31742,25 +31742,25 @@ A-34
 
 Intrinsic Function - ASIN
 
-## 2.7 THE ASIN FUNCTION
+### 2.7 THE ASIN FUNCTION
 
-### 2.7.1 Description
+#### 2.7.1 Description
 
 The ASIN function returns a numeric value in radians that approximates the arcsine of argument-1. The type of this function is numeric.
 
-### 2.7.2 General Format
+#### 2.7.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>ASIN</u> ( argument-1 )
 </pre>
 
-### 2.7.3 Arguments
+#### 2.7.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
 (2) The value of argument-1 must be greater than or equal to -1 and less than or equal to +1.
 
-### 2.7.4 Returned Values
+#### 2.7.4 Returned Values
 
 (1) The returned value is the approximation of the arcsine of argument-1 and is greater than or equal to -pi/2 and less than or equal to +pi/2.
 
@@ -31770,23 +31770,23 @@ A-35
 
 Intrinsic Function - ATAN
 
-## 2.8 THE ATAN FUNCTION
+### 2.8 THE ATAN FUNCTION
 
-### 2.8.1 Description
+#### 2.8.1 Description
 
 The ATAN function returns a numeric value in radians that approximates the arctangent of argument-1. The type of this function is numeric.
 
-### 2.8.2 General Format
+#### 2.8.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>ATAN</u> ( argument-1 )
 </pre>
 
-### 2.8.3 Arguments
+#### 2.8.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
-### 2.8.4 Returned Values
+#### 2.8.4 Returned Values
 
 (1) The returned value is the approximation of the arctangent of argument-1 and is greater than -pi/2 and less than +pi/2.
 
@@ -31796,25 +31796,25 @@ A-36
 
 Intrinsic Function - CHAR
 
-## 2.9 THE CHAR FUNCTION
+### 2.9 THE CHAR FUNCTION
 
-### 2.9.1 Description
+#### 2.9.1 Description
 
 The CHAR function returns a one-character alphanumeric value that is a character in the program collating sequence having the ordinal position equal to the value of argument-1. The type of this function is alphanumeric.
 
-### 2.9.2 General Format
+#### 2.9.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>CHAR</u> ( argument-1 )
 </pre>
 
-### 2.9.3 Arguments
+#### 2.9.3 Arguments
 
 (1) Argument-1 must be an integer.
 
 (2) The value of argument-1 must be greater than zero and less than or equal to the number of positions in the collating sequence.
 
-### 2.9.4 Returned Values
+#### 2.9.4 Returned Values
 
 (1) If more than one character has the same position in the program collating sequence, the character returned as the function value is that of the first literal specified for that character position in the ALPHABET clause.
 
@@ -31826,23 +31826,23 @@ A-37
 
 Intrinsic Function - COS
 
-## 2.10 THE COS FUNCTION
+### 2.10 THE COS FUNCTION
 
-### 2.10.1 Description
+#### 2.10.1 Description
 
 The COS function returns a numeric value that approximates the cosine of an angle or arc, expressed in radians, that is specified by argument-1. The type of this function is numeric.
 
-### 2.10.2 General Format
+#### 2.10.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>COS</u> ( argument-1 )
 </pre>
 
-### 2.10.3 Arguments
+#### 2.10.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
-### 2.10.4 Returned Values
+#### 2.10.4 Returned Values
 
 (1) The returned value is the approximation of the cosine of argument-1 and is greater than or equal to -1 and less than or equal to +1.
 
@@ -31852,19 +31852,19 @@ A-38
 
 Intrinsic Function - CURRENT-DATE
 
-## 2.11 THE CURRENT-DATE FUNCTION
+### 2.11 THE CURRENT-DATE FUNCTION
 
-### 2.11.1 Description
+#### 2.11.1 Description
 
 The CURRENT-DATE function returns a 21-character alphanumeric value that represents the calendar date, time of day, and local time differential factor provided by the system on which the function is evaluated. The type of this function is alphanumeric.
 
-### 2.11.2 General Format
+#### 2.11.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>CURRENT-DATE</u>
 </pre>
 
-### 2.11.3 Returned Values
+#### 2.11.3 Returned Values
 
 (1) The character positions returned, numbered from left to right, are:
 
@@ -31900,23 +31900,23 @@ A-40
 
 Intrinsic Function - DATE-OF-INTEGER
 
-## 2.12 THE DATE-OF-INTEGER FUNCTION
+### 2.12 THE DATE-OF-INTEGER FUNCTION
 
-### 2.12.1 Description
+#### 2.12.1 Description
 
 The DATE-OF-INTEGER function converts a date in the Gregorian calendar from integer date form to standard date form (YYYYMMDD). The type of this function is integer.
 
-### 2.12.2 General Format
+#### 2.12.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>DATE-OF-INTEGER</u> ( argument-1 )
 </pre>
 
-### 2.12.3 Arguments
+#### 2.12.3 Arguments
 
 (1) Argument-1 is a positive integer that represents a number of days succeeding December 31, 1600, in the Gregorian calendar.
 
-### 2.12.4 Returned Values
+#### 2.12.4 Returned Values
 
 (1) The returned value represents the ISO Standard date equivalent of the integer specified in argument-1.
 
@@ -31928,23 +31928,23 @@ A-41
 
 Intrinsic Function - DAY-OF-INTEGER
 
-## 2.13 THE DAY-OF-INTEGER FUNCTION
+### 2.13 THE DAY-OF-INTEGER FUNCTION
 
-### 2.13.1 Description
+#### 2.13.1 Description
 
 The DAY-OF-INTEGER function converts a date in the Gregorian calendar from integer date form to Julian date form (YYYYDDD). The type of this function is integer.
 
-### 2.13.2 General Format
+#### 2.13.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>DAY-OF-INTEGER</u> ( argument-1 )
 </pre>
 
-### 2.13.3 Arguments
+#### 2.13.3 Arguments
 
 (1) Argument-1 is a positive integer that represents a number of days succeeding December 31, 1600, in the Gregorian calendar.
 
-### 2.13.4 Returned Values
+#### 2.13.4 Returned Values
 
 (1) The returned value represents the Julian equivalent of the integer specified in argument-1.
 
@@ -31956,23 +31956,23 @@ A-42
 
 Intrinsic Function - FACTORIAL
 
-## 2.14 THE FACTORIAL FUNCTION
+### 2.14 THE FACTORIAL FUNCTION
 
-### 2.14.1 Description
+#### 2.14.1 Description
 
 The FACTORIAL function returns an integer that is the factorial of argument-1. The type of this function is integer.
 
-### 2.14.2 General Format
+#### 2.14.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>FACTORIAL</u> ( argument-1 )
 </pre>
 
-### 2.14.3 Arguments
+#### 2.14.3 Arguments
 
 (1) Argument-1 must be an integer greater than or equal to zero.
 
-### 2.14.4 Returned Values
+#### 2.14.4 Returned Values
 
 (1) If the value of argument-1 is zero, the value 1 is returned.
 
@@ -31984,23 +31984,23 @@ A-43
 
 Intrinsic Function - INTEGER
 
-## 2.15 THE INTEGER FUNCTION
+### 2.15 THE INTEGER FUNCTION
 
-### 2.15.1 Description
+#### 2.15.1 Description
 
 The INTEGER function returns the greatest integer value that is less than or equal to the argument. The type of this function is integer.
 
-### 2.15.2 General Format
+#### 2.15.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>INTEGER</u> ( argument-1 )
 </pre>
 
-### 2.15.3 Arguments
+#### 2.15.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
-### 2.15.4 Returned Values
+#### 2.15.4 Returned Values
 
 (1) The returned value is the greatest integer less than or equal to the value of argument-1. For example, if the value of argument-1 is -1.5, -2 is returned. If the value of argument-1 is +1.5, +1 is returned.
 
@@ -32010,19 +32010,19 @@ A-44
 
 Intrinsic Function - INTEGER-OF-DATE
 
-## 2.16 THE INTEGER-OF-DATE FUNCTION
+### 2.16 THE INTEGER-OF-DATE FUNCTION
 
-### 2.16.1 Description
+#### 2.16.1 Description
 
 The INTEGER-OF-DATE function converts a date in the Gregorian calendar from standard date form (YYYYMMDD) to integer date form. The type of this function is integer.
 
-### 2.16.2 General Format
+#### 2.16.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>INTEGER-OF-DATE</u> ( argument-1 )
 </pre>
 
-### 2.16.3 Arguments
+#### 2.16.3 Arguments
 
 (1) Argument-1 must be an integer of the form YYYYMMDD, whose value is obtained from the calculation (YYYY * 10,000) + (MM * 100) + DD.
 
@@ -32032,7 +32032,7 @@ b. MM represents a month and must be a positive integer less than 13.
 
 c. DD represents a day and must be a positive integer less than 32 provided that it is valid for the specified month and year combination.
 
-### 2.16.4 Returned Values
+#### 2.16.4 Returned Values
 
 (1) The returned value is an integer that is the number of days the date represented by argument-1 succeeds December 31, 1600, in the Gregorian calendar.
 
@@ -32042,19 +32042,19 @@ A-45
 
 Intrinsic Function - INTEGER-OF-DAY
 
-## 2.17 THE INTEGER-OF-DAY FUNCTION
+### 2.17 THE INTEGER-OF-DAY FUNCTION
 
-### 2.17.1 Description
+#### 2.17.1 Description
 
 The INTEGER-OF-DAY function converts a date in the Gregorian calendar from Julian date form (YYYYDDD) to integer date form. The type of this function is integer.
 
-### 2.17.2 General Format
+#### 2.17.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>INTEGER-OF-DAY</u> ( argument-1 )
 </pre>
 
-### 2.17.3 Arguments
+#### 2.17.3 Arguments
 
 (1) Argument-1 must be an integer of the form YYYYDDD, whose value is obtained from the calculation (YYYY \* 1000) + DDD.
 
@@ -32062,7 +32062,7 @@ a. YYYY represents the year in the Gregorian calendar. It must be an integer gre
 
 b. DDD represents the day of the year. It must be a positive integer less than 367 provided that it is valid for the year specified.
 
-### 2.17.4 Returned Values
+#### 2.17.4 Returned Values
 
 (1) The returned value is an integer that is the number of days the date represented by argument-1 succeeds December 31, 1600, in the Gregorian calendar.
 
@@ -32102,25 +32102,25 @@ A-47
 
 Intrinsic Function - LENGTH
 
-## 2.19 THE LENGTH FUNCTION
+### 2.19 THE LENGTH FUNCTION
 
-### 2.19.1 Description
+#### 2.19.1 Description
 
 The LENGTH function returns an integer equal to the length of the argument in character positions. The type of this function is integer.
 
-### 2.19.2 General Format
+#### 2.19.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>LENGTH</u> ( argument-1 )
 </pre>
 
-### 2.19.3 Arguments
+#### 2.19.3 Arguments
 
 (1) Argument-1 may be a nonnumeric literal or a data item of any class or category.
 
 (2) If argument-1 or any data item subordinate to argument-1 is described with the DEPENDING phrase of the OCCURS clause, the contents of the data item referenced by the data-name specified in the DEPENDING phrase are used at the time the LENGTH function is evaluated.
 
-### 2.19.4 Returned Values
+#### 2.19.4 Returned Values
 
 (1) If argument-1 is a nonnumeric literal or an elementary data item or argument-1 is a group data item that does not contain a variable occurrence data item, the value returned is an integer equal to the length of argument-1 in character positions.
 
@@ -32134,25 +32134,25 @@ A-48
 
 Intrinsic Function - LOG
 
-## 2.20 THE LOG FUNCTION
+### 2.20 THE LOG FUNCTION
 
-### 2.20.1 Description
+#### 2.20.1 Description
 
 The LOG function returns a numeric value that approximates the logarithm to the base e (natural log) of argument-1. The type of this function is numeric.
 
-### 2.20.2 General Format
+#### 2.20.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>LOG</u> ( argument-1 )
 </pre>
 
-### 2.20.3 Arguments
+#### 2.20.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
 (2) The value of argument-1 must be greater than zero.
 
-### 2.20.4 Returned Values
+#### 2.20.4 Returned Values
 
 (1) The returned value is the approximation of the logarithm to the base e of argument-1.
 
@@ -32162,25 +32162,25 @@ A-49
 
 Intrinsic Function - LOG10
 
-## 2.21 THE LOG10 FUNCTION
+### 2.21 THE LOG10 FUNCTION
 
-### 2.21.1 Description
+#### 2.21.1 Description
 
 The LOG10 function returns a numeric value that approximates the logarithm to the base 10 of argument-1. The type of this function is numeric.
 
-### 2.21.2 General Format
+#### 2.21.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>LOG10</u> ( argument-1 )
 </pre>
 
-### 2.21.3 Arguments
+#### 2.21.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
 (2) The value of argument-1 must be greater than zero.
 
-### 2.21.4 Returned Values
+#### 2.21.4 Returned Values
 
 (1) The returned value is the approximation of the logarithm to the base 10 of argument-1.
 
@@ -32190,25 +32190,25 @@ A-50
 
 Intrinsic Function - LOWER-CASE
 
-## 2.22 THE LOWER-CASE FUNCTION
+### 2.22 THE LOWER-CASE FUNCTION
 
-### 2.22.1 Description
+#### 2.22.1 Description
 
 The LOWER-CASE function returns a character string that is the same length as argument-1 with each uppercase letter replaced by the corresponding lowercase letter. The type of this function is alphanumeric.
 
 > ⚠ **CORRECTED — see the Errata (C16).** The standard prints `with each upppercase letter replaced` (page 881, folio A-51): a misspelling on the printed page. Corrected to `uppercase`.
 
-### 2.22.2 General Format
+#### 2.22.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>LOWER-CASE</u> ( argument-1 )
 </pre>
 
-### 2.22.3 Arguments
+#### 2.22.3 Arguments
 
 (1) Argument-1 must be class alphabetic or alphanumeric and must be at least one character in length.
 
-### 2.22.4 Returned Values
+#### 2.22.4 Returned Values
 
 (1) The same character string as argument-1 is returned, except that each uppercase letter replaced by the corresponding lowercase letter.
 
@@ -32222,9 +32222,9 @@ A-51
 
 Intrinsic Function - MAX
 
-## 2.23 THE MAX FUNCTION
+### 2.23 THE MAX FUNCTION
 
-### 2.23.1 Description
+#### 2.23.1 Description
 
 The MAX function returns the content of the argument-1 that contains the maximum value. The type of this function depends upon the argument types as follows:
 
@@ -32235,19 +32235,19 @@ The MAX function returns the content of the argument-1 that contains the maximum
 | All arguments integer | Integer |
 | Numeric (some arguments may be integer) | Numeric |
 
-### 2.23.2 General Format
+#### 2.23.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>MAX</u> ( { argument-1 } … )
 </pre>
 
-### 2.23.3 Arguments
+#### 2.23.3 Arguments
 
 (1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.
 
 > ⚠ **CORRECTED — see the Errata (C314).** The standard prints `(1) If more than one argument-1 is specified, all arguments must be of the same class.` (page 882, folio A-52). Amendment 2 (ANSI X3.23b-1993), its change for page (A-52) (page 937, folio B-25), applied in place: "Paragraph 2.23.3 of the MAX function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.`.
 
-### 2.23.4 Returned Values
+#### 2.23.4 Returned Values
 
 (1) The returned value is the content of the argument-1 having the greatest value. The comparisons used to determine the greatest value are made according to the rules for simple conditions. (See page VI-54, Simple Conditions.)
 
@@ -32261,23 +32261,23 @@ A-52
 
 Intrinsic Function - MEAN
 
-## 2.24 THE MEAN FUNCTION
+### 2.24 THE MEAN FUNCTION
 
-### 2.24.1 Description
+#### 2.24.1 Description
 
 The MEAN function returns a numeric value that is the arithmetic mean (average) of its arguments. The type of this function is numeric.
 
-### 2.24.2 General Format
+#### 2.24.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>MEAN</u> ( { argument-1 } … )
 </pre>
 
-### 2.24.3 Arguments
+#### 2.24.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
-### 2.24.4 Returned Values
+#### 2.24.4 Returned Values
 
 (1) The returned value is the arithmetic mean of the argument-1 series.
 
@@ -32289,23 +32289,23 @@ A-53
 
 Intrinsic Function - MEDIAN
 
-## 2.25 THE MEDIAN FUNCTION
+### 2.25 THE MEDIAN FUNCTION
 
-### 2.25.1 Description
+#### 2.25.1 Description
 
 The MEDIAN function returns the content of the argument whose value is the middle value in the list formed by arranging the arguments in sorted order. The type of this function is numeric.
 
-### 2.25.2 General Format
+#### 2.25.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>MEDIAN</u> ( { argument-1 } … )
 </pre>
 
-### 2.25.3 Arguments
+#### 2.25.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
-### 2.25.4 Returned Values
+#### 2.25.4 Returned Values
 
 (1) The returned value is the content of the argument-1 having the middle value in the list formed by arranging all the argument-1 values in sorted order.
 
@@ -32319,23 +32319,23 @@ A-54
 
 Intrinsic Function - MIDRANGE
 
-## 2.26 THE MIDRANGE FUNCTION
+### 2.26 THE MIDRANGE FUNCTION
 
-### 2.26.1 Description
+#### 2.26.1 Description
 
 The MIDRANGE (middle range) function returns a numeric value that is the arithmetic mean (average) of the values of the minimum argument and the maximum argument. The type of this function is numeric.
 
-### 2.26.2 General Format
+#### 2.26.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>MIDRANGE</u> ( { argument-1 } … )
 </pre>
 
-### 2.26.3 Arguments
+#### 2.26.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
-### 2.26.4 Returned Values
+#### 2.26.4 Returned Values
 
 (1) The returned value is the arithmetic mean of the greatest argument-1 value and the least argument-1 value. The comparisons used to determine the greatest and least values are made according to the rules for simple conditions. (See page VI-54, Simple Conditions.)
 
@@ -32345,9 +32345,9 @@ A-55
 
 Intrinsic Function - MIN
 
-## 2.27 THE MIN FUNCTION
+### 2.27 THE MIN FUNCTION
 
-### 2.27.1 Description
+#### 2.27.1 Description
 
 The MIN function returns the content of the argument-1 that contains the minimum value. The type of this function depends upon the argument types as follows:
 
@@ -32358,19 +32358,19 @@ The MIN function returns the content of the argument-1 that contains the minimum
 | All arguments integer | Integer |
 | Numeric (some arguments may be integer) | Numeric |
 
-### 2.27.2 General Format
+#### 2.27.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>MIN</u> ( { argument-1 } … )
 </pre>
 
-### 2.27.3 Arguments
+#### 2.27.3 Arguments
 
 (1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.
 
 > ⚠ **CORRECTED — see the Errata (C315).** The standard prints `(1) If more than one argument-1 is specified, all arguments must be of the same class.` (page 886, folio A-56). Amendment 2 (ANSI X3.23b-1993), its change for page (A-56) (page 937, folio B-25), applied in place: "Paragraph 2.27.3 of the MIN function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.`.
 
-### 2.27.4 Returned Values
+#### 2.27.4 Returned Values
 
 (1) The returned value is the content of the argument-1 having the least value. The comparisons used to determine the least value are made according to the rules for simple conditions. (See page VI-54, Simple Conditions.)
 
@@ -32384,25 +32384,25 @@ A-56
 
 Intrinsic Function - MOD
 
-## 2.28 THE MOD FUNCTION
+### 2.28 THE MOD FUNCTION
 
-### 2.28.1 Description
+#### 2.28.1 Description
 
 The MOD function returns an integer value that is argument-1 modulo argument-2. The type of this function is integer.
 
-### 2.28.2 General Format
+#### 2.28.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>MOD</u> ( argument-1 argument-2 )
 </pre>
 
-### 2.28.3 Arguments
+#### 2.28.3 Arguments
 
 (1) Argument-1 and argument-2 must be integers.
 
 (2) The value of argument-2 must not be zero.
 
-### 2.28.4 Returned Values
+#### 2.28.4 Returned Values
 
 (1) The returned value is argument-1 modulo argument-2. The returned value is defined as:
 
@@ -32423,19 +32423,19 @@ A-57
 
 Intrinsic Function - NUMVAL
 
-## 2.29 THE NUMVAL FUNCTION
+### 2.29 THE NUMVAL FUNCTION
 
-### 2.29.1 Description
+#### 2.29.1 Description
 
 The NUMVAL function returns the numeric value represented by the character string specified by argument-1. Leading and trailing spaces are ignored. The type of this function is numeric.
 
-### 2.29.2 General Format
+#### 2.29.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>NUMVAL</u> ( argument-1 )
 </pre>
 
-### 2.29.3 Arguments
+#### 2.29.3 Arguments
 
 (1) Argument-1 must be a nonnumeric literal or alphanumeric data item whose content has one of the following two formats:
 
@@ -32463,7 +32463,7 @@ where space is a string of zero or more spaces and digit is a string of one to 1
 
 (3) If the DECIMAL-POINT IS COMMA clause is specified in the SPECIAL-NAMES paragraph, a comma must be used in argument-1 rather than a decimal point.
 
-### 2.29.4 Returned Values
+#### 2.29.4 Returned Values
 
 (1) The returned value is the numeric value represented by argument-1.
 
@@ -32473,23 +32473,23 @@ A-58
 
 ## Page 889
 
-# Intrinsic Function - NUMVAL-C
+Intrinsic Function - NUMVAL-C
 
-## 2.30 THE NUMVAL-C FUNCTION
+### 2.30 THE NUMVAL-C FUNCTION
 
-### 2.30.1 Description
+#### 2.30.1 Description
 
 The NUMVAL-C function returns the numeric value represented by the character string specified by argument-1. Any optional currency sign specified by argument-2 and any optional commas preceding the decimal point are ignored. The type of this function is numeric.
 
 > ⚠ **CORRECTED — see the Errata (C17).** The standard prints `The NUMVAL-C function ıeturns the numeric value` (page 889, folio A-59): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `returns`.
 
-### 2.30.2 General Format
+#### 2.30.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>NUMVAL-C</u> ( argument-1 [ argument-2 ] )
 </pre>
 
-### 2.30.3 Arguments
+#### 2.30.3 Arguments
 
 (1) Argument-1 must be a nonnumeric literal or alphanumeric data item whose content has one of the following two formats:
 
@@ -32519,7 +32519,7 @@ where space is a string of zero or more spaces, cs is the string of one or more 
 
 (5) If argument-2 is not specified, the character used for cs is the currency symbol specified for the program.
 
-### 2.30.4 Returned Values
+#### 2.30.4 Returned Values
 
 (1) The returned value is the numeric value represented by argument-1.
 
@@ -32531,23 +32531,23 @@ A-59
 
 Intrinsic Function - ORD
 
-## 2.31 THE ORD FUNCTION
+### 2.31 THE ORD FUNCTION
 
-### 2.31.1 Description
+#### 2.31.1 Description
 
 The ORD function returns an integer value that is the ordinal position of argument-1 in the collating sequence for the program. The lowest ordinal position is 1. The type of this function is integer.
 
-### 2.31.2 General Format
+#### 2.31.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>ORD</u> ( argument-1 )
 </pre>
 
-### 2.31.3 Arguments
+#### 2.31.3 Arguments
 
 (1) Argument-1 must be one character in length and must be class alphabetic or alphanumeric.
 
-### 2.31.4 Returned Values
+#### 2.31.4 Returned Values
 
 (1) The returned value is the ordinal position of argument-1 in the collating sequence for the program.
 
@@ -32557,25 +32557,25 @@ A-60
 
 Intrinsic Function - ORD-MAX
 
-## 2.32 THE ORD-MAX FUNCTION
+### 2.32 THE ORD-MAX FUNCTION
 
-### 2.32.1 Description
+#### 2.32.1 Description
 
 The ORD-MAX function returns a value that is the ordinal number of the argument-1 that contains the maximum value. The type of this function is integer.
 
-### 2.32.2 General Format
+#### 2.32.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>ORD-MAX</u> ( { argument-1 } … )
 </pre>
 
-### 2.32.3 Arguments
+#### 2.32.3 Arguments
 
 (1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.
 
 > ⚠ **CORRECTED — see the Errata (C316).** The standard prints `(1) If more than one argument-1 is specified, all arguments must be of the same class.` (page 891, folio A-61). Amendment 2 (ANSI X3.23b-1993), its change for page (A-61) (page 937, folio B-25), applied in place: "Paragraph 2.32.3 of the ORD-MAX function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.`.
 
-### 2.32.4 Returned Values
+#### 2.32.4 Returned Values
 
 (1) The returned value is the ordinal number that corresponds to the position of the argument-1 having the greatest value in the argument-1 series.
 
@@ -32589,25 +32589,25 @@ A-61
 
 Intrinsic Function - ORD-MIN
 
-## 2.33 THE ORD-MIN FUNCTION
+### 2.33 THE ORD-MIN FUNCTION
 
-### 2.33.1 Description
+#### 2.33.1 Description
 
 The ORD-MIN function returns a value that is the ordinal number of the argument that contains the minimum value. The type of this function is integer.
 
-### 2.33.2 General Format
+#### 2.33.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>ORD-MIN</u> ( { argument-1 } … )
 </pre>
 
-### 2.33.3 Arguments
+#### 2.33.3 Arguments
 
 (1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.
 
 > ⚠ **CORRECTED — see the Errata (C317).** The standard prints `(1) If more than one argument-1 is specified, all arguments must be of the same class.` (page 892, folio A-62). Amendment 2 (ANSI X3.23b-1993), its change for page (A-62) (page 937, folio B-25), applied in place: "Paragraph 2.33.3 of the ORD-MIN function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.`.
 
-### 2.33.4 Returned Values
+#### 2.33.4 Returned Values
 
 (1) The returned value is the ordinal number that corresponds to the position of the argument-1 having the least value in the argument-1 series.
 
@@ -32621,25 +32621,25 @@ A-62
 
 Intrinsic Function - PRESENT-VALUE
 
-## 2.34 THE PRESENT-VALUE FUNCTION
+### 2.34 THE PRESENT-VALUE FUNCTION
 
-### 2.34.1 Description
+#### 2.34.1 Description
 
 The PRESENT-VALUE function returns a value that approximates the present value of a series of future period-end amounts specified by argument-2 at a discount rate specified by argument-1. The type of this function is numeric.
 
-### 2.34.2 General Format
+#### 2.34.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>PRESENT-VALUE</u> ( argument-1 { argument-2 } … )
 </pre>
 
-### 2.34.3 Arguments
+#### 2.34.3 Arguments
 
 (1) Argument-1 and argument-2 must be of the class numeric.
 
 (2) The value of argument-1 must be greater than -1.
 
-### 2.34.4 Returned Values
+#### 2.34.4 Returned Values
 
 (1) The returned value is an approximation of the summation of a series of calculations with each term in the following form:
 
@@ -32653,19 +32653,19 @@ A-63
 
 Intrinsic Function - RANDOM
 
-## 2.35 THE RANDOM FUNCTION
+### 2.35 THE RANDOM FUNCTION
 
-### 2.35.1 Description
+#### 2.35.1 Description
 
 The RANDOM function returns a numeric value that is a pseudo-random number from a rectangular distribution. The type of this function is numeric.
 
-### 2.35.2 General Format
+#### 2.35.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>RANDOM</u> [ ( argument-1 ) ]
 </pre>
 
-### 2.35.3 Arguments
+#### 2.35.3 Arguments
 
 (1) If argument-1 is specified, it must be zero or a positive integer. It is used as the seed value to generate a sequence of pseudo-random numbers.
 
@@ -32675,7 +32675,7 @@ The RANDOM function returns a numeric value that is a pseudo-random number from 
 
 (4) In each case, subsequent references without specifying argument-1 return the next number in the current sequence.
 
-### 2.35.4 Returned Values
+#### 2.35.4 Returned Values
 
 (1) The returned value is greater than or equal to zero and less than one.
 
@@ -32689,9 +32689,9 @@ A-64
 
 Intrinsic Function - RANGE
 
-## 2.36 THE RANGE FUNCTION
+### 2.36 THE RANGE FUNCTION
 
-### 2.36.1 Description
+#### 2.36.1 Description
 
 The RANGE function returns a value that is equal to the value of the maximum argument minus the value of the minimum argument. The type of this function depends upon the argument types as follows:
 
@@ -32700,17 +32700,17 @@ The RANGE function returns a value that is equal to the value of the maximum arg
 | All arguments integer | Integer |
 | Numeric (some arguments may be integer) | Numeric |
 
-### 2.36.2 General Format
+#### 2.36.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>RANGE</u> ( { argument-1 } … )
 </pre>
 
-### 2.36.3 Arguments
+#### 2.36.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
-### 2.36.4 Returned Values
+#### 2.36.4 Returned Values
 
 (1) The returned value is equal to the greatest value of argument-1 minus the least value of argument-1. The comparisons used to determine the greatest and least values are made according to the rules for simple conditions. (See page VI-54, Simple Conditions.)
 
@@ -32720,25 +32720,25 @@ A-65
 
 Intrinsic Function - REM
 
-## 2.37 THE REM FUNCTION
+### 2.37 THE REM FUNCTION
 
-### 2.37.1 Description
+#### 2.37.1 Description
 
 The REM function returns a numeric value that is the remainder of argument-1 divided by argument-2. The type of this function is numeric.
 
-### 2.37.2 General Format
+#### 2.37.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>REM</u> ( argument-1 argument-2 )
 </pre>
 
-### 2.37.3 Arguments
+#### 2.37.3 Arguments
 
 (1) Argument-1 and argument-2 must be class numeric.
 
 (2) The value of argument-2 must not be zero.
 
-### 2.37.4 Returned Values
+#### 2.37.4 Returned Values
 
 (1) The returned value is the remainder of argument-1 / argument-2. It is defined as the expression:
 
@@ -32752,23 +32752,23 @@ A-66
 
 Intrinsic Function - REVERSE
 
-## 2.38 THE REVERSE FUNCTION
+### 2.38 THE REVERSE FUNCTION
 
-### 2.38.1 Description
+#### 2.38.1 Description
 
 The REVERSE function returns a character string of exactly the same length as argument-1 and whose characters are exactly the same as those of argument-1, except that they are in reverse order. The type of this function is alphanumeric.
 
-### 2.38.2 General Format
+#### 2.38.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>REVERSE</u> ( argument-1 )
 </pre>
 
-### 2.38.3 Arguments
+#### 2.38.3 Arguments
 
 (1) Argument-1 must be class alphabetic or alphanumeric and must be at least one character in length.
 
-### 2.38.4 Returned Values
+#### 2.38.4 Returned Values
 
 (1) If argument-1 is a character string of length n, the returned value is a character string of length n such that for 1 ≤ j ≤ n, the character in position j of the returned value is the character from position n-j+1 of argument-1.
 
@@ -32778,23 +32778,23 @@ A-67
 
 Intrinsic Function - SIN
 
-## 2.39 THE SIN FUNCTION
+### 2.39 THE SIN FUNCTION
 
-### 2.39.1 Description
+#### 2.39.1 Description
 
 The SIN function returns a numeric value that approximates the sine of an angle or arc, expressed in radians, that is specified by argument-1. The type of this function is numeric.
 
-### 2.39.2 General Format
+#### 2.39.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>SIN</u> ( argument-1 )
 </pre>
 
-### 2.39.3 Arguments
+#### 2.39.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
-### 2.39.4 Returned Values
+#### 2.39.4 Returned Values
 
 (1) The returned value is the approximation of the sine of argument-1 and is greater than or equal to -1 and less than or equal to +1.
 
@@ -32804,25 +32804,25 @@ A-68
 
 Intrinsic Function - SQRT
 
-## 2.40 THE SQRT FUNCTION
+### 2.40 THE SQRT FUNCTION
 
-### 2.40.1 Description
+#### 2.40.1 Description
 
 The SQRT function returns a numeric value that approximates the square root of argument-1. The type of this function is numeric.
 
-### 2.40.2 General Format
+#### 2.40.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>SQRT</u> ( argument-1 )
 </pre>
 
-### 2.40.3 Arguments
+#### 2.40.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
 (2) The value of argument-1 must be zero or positive.
 
-### 2.40.4 Returned Values
+#### 2.40.4 Returned Values
 
 (1) The returned value is the absolute value of the approximation of the square root of argument-1.
 
@@ -32832,23 +32832,23 @@ A-69
 
 Intrinsic Function - STANDARD-DEVIATION
 
-## 2.41 THE STANDARD-DEVIATION FUNCTION
+### 2.41 THE STANDARD-DEVIATION FUNCTION
 
-### 2.41.1 Description
+#### 2.41.1 Description
 
 The STANDARD-DEVIATION function returns a numeric value that approximates the standard deviation of its arguments. The type of this function is numeric.
 
-### 2.41.2 General Format
+#### 2.41.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>STANDARD-DEVIATION</u> ( { argument-1 } … )
 </pre>
 
-### 2.41.3 Arguments
+#### 2.41.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
-### 2.41.4 Returned Values
+#### 2.41.4 Returned Values
 
 (1) The returned value is the approximation of the standard deviation of the argument-1 series.
 
@@ -32868,9 +32868,9 @@ A-70
 
 Intrinsic Function - SUM
 
-## 2.42 THE SUM FUNCTION
+### 2.42 THE SUM FUNCTION
 
-### 2.42.1 Description
+#### 2.42.1 Description
 
 The SUM function returns a value that is the sum of the arguments. The type of this function depends upon the argument types as follows:
 
@@ -32879,17 +32879,17 @@ The SUM function returns a value that is the sum of the arguments. The type of t
 | All arguments integer | Integer |
 | Numeric (some arguments may be integer) | Numeric |
 
-### 2.42.2 General Format
+#### 2.42.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>SUM</u> ( { argument-1 } … )
 </pre>
 
-### 2.42.3 Arguments
+#### 2.42.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
-### 2.42.4 Returned Values
+#### 2.42.4 Returned Values
 
 (1) The returned value is the sum of the arguments.
 
@@ -32903,23 +32903,23 @@ A-71
 
 Intrinsic Function - TAN
 
-## 2.43 THE TAN FUNCTION
+### 2.43 THE TAN FUNCTION
 
-### 2.43.1 Description
+#### 2.43.1 Description
 
 The TAN function returns a numeric value that approximates the tangent of an angle or arc, expressed in radians, that is specified by argument-1. The type of this function is numeric.
 
-### 2.43.2 General Format
+#### 2.43.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>TAN</u> ( argument-1 )
 </pre>
 
-### 2.43.3 Arguments
+#### 2.43.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
-### 2.43.4 Returned Values
+#### 2.43.4 Returned Values
 
 (1) The returned value is the approximation of the tangent of argument-1.
 
@@ -32957,23 +32957,23 @@ A-73
 
 Intrinsic Function - VARIANCE
 
-## 2.45 THE VARIANCE FUNCTION
+### 2.45 THE VARIANCE FUNCTION
 
-### 2.45.1 Description
+#### 2.45.1 Description
 
 The VARIANCE function returns a numeric value that approximates the variance of its arguments. The type of this function is numeric.
 
-### 2.45.2 General Format
+#### 2.45.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>VARIANCE</u> ( { argument-1 } … )
 </pre>
 
-### 2.45.3 Arguments
+#### 2.45.3 Arguments
 
 (1) Argument-1 must be class numeric.
 
-### 2.45.4 Returned Values
+#### 2.45.4 Returned Values
 
 (1) The returned value is the approximation of the variance of the argument-1 series.
 
@@ -32987,19 +32987,19 @@ A-74
 
 Intrinsic Function - WHEN-COMPILED
 
-## 2.46 THE WHEN-COMPILED FUNCTION
+### 2.46 THE WHEN-COMPILED FUNCTION
 
-### 2.46.1 Description
+#### 2.46.1 Description
 
 The WHEN-COMPILED function returns the date and time the program was compiled as provided by the system on which the program was compiled. The type of this function is alphanumeric.
 
-### 2.46.2 General Format
+#### 2.46.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> <u>WHEN-COMPILED</u>
 </pre>
 
-### 2.46.3 Returned Values
+#### 2.46.3 Returned Values
 
 (1) The character positions returned, numbered from left to right, are:
 
@@ -33397,8 +33397,8 @@ ANSI X3.23b-1993
 
 | Page No. | Description of Change |
 |---|---|
-| VI-16 | Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, subitem 4, replace the first sentence (Beginning "If the THROUGH phrase is specified") with the following new sentence:<br><br>If the THROUGH phrase is specified, the contiguous characters in the native character set, beginning with the character specified by literal-1 and ending with the character specified by literal-2, are each assigned a successive ascending collating position in the collating sequence being specified and/or a successive ascending ordinal number in the character code set being specified. |
-| VI-16 | Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, renumber subitems 4 and 5 to new subitems 5 and 6. Insert the following as the new subitem 4:<br><br>4) If a character code set is being specified, the implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase. |
+| VI-16 | Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, subitem 4, replace the first sentence (Beginning "║If the THROUGH phrase is specified║") with the following new sentence:<br><br>║If the THROUGH phrase is specified, the contiguous characters in the native character set, beginning with the character specified by literal-1 and ending with the character specified by literal-2, are each assigned a successive ascending collating position in the collating sequence being specified and/or a successive ascending ordinal number in the character code set being specified.║ |
+| VI-16 | Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, renumber subitems 4 and 5 to new subitems 5 and 6. Insert the following as the new subitem 4:<br><br>║4) If a character code set is being specified, the implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase.║ |
 | VI-31 | Paragraph 5.9.4 of the PICTURE clause, general rule 8, explanation of symbol "P", second paragraph, change subparagraph b to read:<br><br>b. An elementary MOVE statement where the sending operand is numeric and its PICTURE character-string contains the symbol 'P'. |
 | VI-31 | Paragraph 5.9.4 of the PICTURE clause, general rule 8, explanation of the symbol "P", second paragraph, shade subparagraph c. |
 | VI-34 | Paragraph 5.9.5, editing rules of the PICTURE clause, editing rule 7, second paragraph, change last sentence from: "... this string of floating insertion characters may have the fixed insertion characters 'CR' and 'DB' immediately to the right of this string." to "... this string of floating insertion characters may have one of the editing sign control symbols '+', '—', 'CR', or 'DB' immediately to the right of this string." |
@@ -33609,7 +33609,7 @@ ANSI X3.23b-1993
 
 | Page No. | Description of Change |
 |---|---|
-| XI-10 | Paragraph 4.1.4 of thc MERGE statement, general rule 7b, add the following as the new last sentence for the paragraph:<br><br>If the file referenced by file-name-1 is described with variable length records, the size of any record written to file-name-1 is the size of that record when it was read from file-name-2 or file-name-3, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the sort-merge file description entry for file-name-1. |
+| XI-10 | Paragraph 4.1.4 of the MERGE statement, general rule 7b, add the following as the new last sentence for the paragraph:<br><br>If the file referenced by file-name-1 is described with variable length records, the size of any record written to file-name-1 is the size of that record when it was read from file-name-2 or file-name-3, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the sort-merge file description entry for file-name-1. |
 | XI-11 | Paragraph 4.1.4 of the MERGE statement, general rule 7c, add the following as a new last sentence after the words "... the last statement in the output procedure.":<br><br>For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement. |
 | XI-11 | Paragraph 4.1.4 of the MERGE statement, general rule 7, add the following as a new last paragraph for general rule 7:<br><br>The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for file-name-2 or file-name-3 is undefined upon completion of the MERGE statement. |
 | XI-11 | Paragraph 4.1.4 of the MERGE statement, general rule 11b, add the following as the new last sentence for the first paragraph:<br><br>If the file referenced by file-name-4 is described with variable length records, the size of any record written to file-name-4 is the size of that record when it was read from file-name-1, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the file description entry for file-name-4. |

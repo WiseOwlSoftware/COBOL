@@ -4,19 +4,19 @@
 THE RULE (owner 2026-11-22: "Shouldn't the PDF Table of Contents provide the correct heading structure?"). The printed
 contents (PDF pages 9-15) list every Section, chapter (`6.`) and clause (`6.18 The INSPECT Statement ... VI-94`) with its
 folio, and below the clause the number fixes the depth. A Section is level 1, an Appendix level 2, a chapter `n.` level 2, a
-clause `n.n` level 3, and each further number one level deeper: a numbered heading's level is its number's depth plus one, at most 6 (Markdown's deepest; the 22 headings of six and seven parts share it).
+clause `n.n` level 3, and each further number one level deeper: a numbered heading's level is its number's depth plus one, at most 6 (Markdown's deepest; the 14 headings of six and seven parts share it).
 A numbered title line the printed page sets as a heading is a heading; the running header at the top of a page (the
 module and clause names, `Sequential I-O - Input-Output Section`) is no heading.
 
-THE SCOPE is the standard itself, from Section I to the first `# AMENDMENT` part: an amendment's pages quote the
-standard's clause numbers as change instructions and print their own structure (kb/Work PB6057 Sites).
+THE SCOPE is the standard itself, from Section I, and Amendment 1's Section A (the intrinsic function module, set out as
+the other modules are), to the part heading of Amendment 2. Amendment 1's addendum and Amendment 2 quote the standard's
+clause numbers as change instructions and print their own structure (kb/Work PB6057 Sites).
 
 A heading's level is markup. A citation locator is the number (`citation.ISO_HEADING` reads `#{1,6}`) and the rule catalog
 types a block by its title, so a heading changed here leaves both identical; `heading_levels.py --check` is the
 `verify_publishable.py --edition 1985` audit, and `normalize` is the one function that applies the rule.
 
-    python scripts/spec/heading_levels.py            # the audit of specs/ANSI_COBOL_1985.md
-    python scripts/spec/heading_levels.py --self-test
+    python scripts/spec/heading_levels.py            # the audit of specs/ANSI_COBOL_1985.md (its cases: scripts/selftests/spec/heading_levels/)
 """
 from __future__ import annotations
 
@@ -36,13 +36,15 @@ HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*$")
 #: A numbered title: `4.4.3 Subscripting Example`, `## 4. <u>TABLE HANDLING</u>`, `║**3.4.1 Function**║`, `2.1A SUBSTANTIVE ...`.
 NUMBERED = re.compile(rf"^({OPENERS})(\d+(?:\.\d+)*)([A-Z]?)(\.?)\s+(\S.*?)\s*$")
 #: A section or an appendix title (heading text, markup before it dropped).
-SECTION = re.compile(rf"^{OPENERS}SECTION ([IVX]+):\s")
+SECTION = re.compile(rf"^{OPENERS}SECTION ([IVX]+|A):\s")
 APPENDIX = re.compile(rf"^{OPENERS}APPENDIX [A-F]:\s")
 #: A plain line that is a clause title: a number of at least two parts and a short capitalised title with no sentence end.
 PLAIN_TITLE = re.compile(rf"^{OPENERS}\d+(?:\.\d+)+[A-Z]?\s+[A-Z][A-Za-z0-9 ,/:().'-]{{2,95}}{CLOSERS}$")
 #: The unnumbered headings the printed pages set without an underline: page 21's title block, the index's title.
 TITLE_BLOCK = re.compile(r"^(?:American National Standard for Information Systems|Programming Language – COBOL|INDEX$)")
 FIRST_AMENDMENT = "# AMENDMENT 1:"
+SECOND_AMENDMENT = "# AMENDMENT 2:"
+SECTION_A = "# SECTION A:"
 #: The first PDF page of Section I: the contents (PDF pages 9-15) and the front matter before it hold no heading to level.
 BODY_FROM_PAGE = 21
 FOLIO = citation.FOLIO_85
@@ -74,20 +76,32 @@ def level_of(text: str) -> int | None:
 
 
 def body_region(lines: list[str]) -> tuple[int, int]:
-    """The 0-based [first, last) lines of the standard: Section I's page to the first amendment part."""
+    """The 0-based [first, last) lines in scope: Section I's page to Amendment 2's part heading."""
     first = next(i for i, line in enumerate(lines) if line == f"## Page {BODY_FROM_PAGE}")
-    last = next((i for i, line in enumerate(lines) if line.startswith(FIRST_AMENDMENT)), len(lines))
+    last = next((i for i, line in enumerate(lines) if line.startswith(SECOND_AMENDMENT)), len(lines))
     return first, last
+
+
+def change_pages(lines: list[str]) -> tuple[int, int]:
+    """The 0-based [first, last) lines of Amendment 1 before its Section A: the addendum's change instructions and the
+    standard's clauses they quote, out of scope."""
+    start = next((i for i, line in enumerate(lines) if line.startswith(FIRST_AMENDMENT)), None)
+    if start is None:
+        return 0, 0
+    return start, next(i for i, line in enumerate(lines) if line.startswith(SECTION_A))
 
 
 def walk(lines: list[str], first: int, last: int):
     """Yield (index, page, kind, line) for every line of [first, last) outside a fence, a figure and a table, its kind
     `heading`, `plain` (a numbered title line that is no heading) or `other`."""
     page, fence, figure = 0, False, False
+    skip = change_pages(lines)
     for i in range(first, last):
         line = lines[i]
         if (m := spec_pdf.PAGE_HEADING.match(line)) is not None:
             page = int(m.group(1))
+            continue
+        if skip[0] <= i < skip[1]:
             continue
         if line.lstrip().startswith("```"):
             fence = not fence
@@ -205,7 +219,7 @@ def check(text: str) -> list[str]:
             want = level_of(text_)
             if (s := SECTION.match(text_)) is not None:
                 section = s.group(1)
-                if f"{section}-1" not in page_folio.get(page, set()):
+                if section != "A" and f"{section}-1" not in page_folio.get(page, set()):
                     failures.append(f"line {i + 1} (page {page}): the heading of Section {section} is on page {page} "
                                     f"(folios {sorted(page_folio.get(page, set()))}), not on its first page, folio {section}-1")
             if want is None:
@@ -242,37 +256,7 @@ def check(text: str) -> list[str]:
     return failures
 
 
-def self_test() -> int:
-    failures: list[str] = []
-
-    def ok(name: str, cond: bool) -> None:
-        print(("  ok    " if cond else "  FAIL  ") + name)
-        if not cond:
-            failures.append(name)
-
-    ok("a Section is level 1, an Appendix 2, a chapter 2, a clause 3, each further number one deeper",
-       [level_of(t) for t in ("<u>SECTION IV: X</u>", "<u>APPENDIX B: X</u>", "4. <u>TABLE HANDLING</u>", "4.4 SUBSCRIPTING",
-                              "4.4.3 Subscripting Example", "6.2.2.2.1 A")] == [1, 2, 2, 3, 4, 6])
-    ok("a box side, bold and an underline do not change the number's depth", level_of("║**3.4.1 Function**║") == 4)
-    ok("a heading takes its level and a plain numbered title becomes a heading",
-       canonical("## 4.4.3 Subscripting Example") == "#### 4.4.3 Subscripting Example"
-       and canonical("1.6 DEFINITION OF A CONFORMING SOURCE PROGRAM") == "### 1.6 DEFINITION OF A CONFORMING SOURCE PROGRAM"
-       and canonical("║3.4 THE PURGE STATEMENT║") == "### ║3.4 THE PURGE STATEMENT║")
-    ok("a sentence that opens with a number is no title", canonical("1.5 million records are read in each pass.") is None)
-    page = "\n".join(["## Page 21", "# <u>SECTION I: INTRODUCTORY INFORMATION</u>", "## 1.1 SCOPE", "1.2 STRUCTURE", "I-1", ""])
-    text = "## Page 9\n\n## Page 21\n" + page.split("\n", 1)[1]
-    found = check(text)
-    ok("the audit names a clause at the wrong level and a title left as plain text",
-       any("level 2" in f for f in found) and any("plain text" in f for f in found))
-    fixed, changes = normalize(text)
-    ok("the normalizer repairs both and the audit then names neither",
-       len(changes) == 2 and not any("level" in f or "plain" in f for f in check(fixed)))
-    return 1 if failures else 0
-
-
 def main() -> int:
-    if "--self-test" in sys.argv:
-        return self_test()
     text = spec_pdf.markdown(1985).read_text(encoding="utf-8")
     failures = check(text)
     print("\n".join(f"  x {f}" for f in failures[:60]) or "  ok every heading of the 1985 standard at its derived level")

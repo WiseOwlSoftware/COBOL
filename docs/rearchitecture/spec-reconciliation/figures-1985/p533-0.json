@@ -40,7 +40,7 @@
   "",
   "    ┌                                        ╭<u>RECORDS</u>   ╮┐",
   "    │<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ┤          ├│",
-  "    └                                        ╰<u>CHARACTERS</u>╯┘",
+  "    └                                        ╰CHARACTERS╯┘",
   "",
   "    ┌       ╭CONTAINS integer-3 CHARACTERS                                   ╮ ┐",
   "    │<u>RECORD</u> ┤IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ├ │",
@@ -61,5 +61,5 @@
   "    ┤             ├ { report-name-1 } …   .",
   "    ╰ <u>REPORTS</u> ARE ╯"
  ],
- "reason": "The printed page sets FD Format 3 with [IS EXTERNAL] and [IS GLOBAL] inside one level-2 box, the BLOCK, RECORD, LABEL, VALUE OF and CODE-SET clauses unboxed, and {REPORT IS / REPORTS ARE} {report-name-1} ... . The speck printed between TO and integer-5 is no character. Drawn from the page."
+ "reason": "The printed page sets FD Format 3 with [IS EXTERNAL] and [IS GLOBAL] inside one level-2 box, the BLOCK, RECORD, LABEL, VALUE OF and CODE-SET clauses unboxed, and {REPORT IS / REPORTS ARE} {report-name-1} ... . The speck printed between TO and integer-5 is no character. Drawn from the page. Second pass (kb/Work PB6051, claim p533-1): CHARACTERS in the BLOCK CONTAINS braces is printed without an underline."
 }
