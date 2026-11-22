@@ -11,9 +11,11 @@ one deeper for each further number, at most 6.
 `§1985:VII.1.3.7` paragraph 1 (the LINAGE-COUNTER paragraph), its `box` `part` to `whole` and its `level` 1 to 2. The cause is
 the running header of page 380, which was a heading and so closed the rule block before the page break; as plain text it no longer
 does, and the paragraph, which is one boxed line, is wholly boxed. The unharvested-block manifest is unchanged, and `cite.py`
-reads `#{1,6}` and the number, so no locator moved. Three code anchors named the old heading lines and were moved to the
-page-top headings: the body marker (`spec_pdf.EDITIONS[1985].body`), the heading that closes the reserved-word list
-(`reserved_word_order._columns_1985`) and the planted texts of `verify_publishable`'s self-test.
+reads `#{1,6}` and the number, so no locator moved. Six code anchors named the old heading lines or levels and were moved: the body marker (`spec_pdf.EDITIONS[1985].body`), the
+heading that closes the reserved-word list (`reserved_word_order._columns_1985`, `gen-reserved-words.ps1`,
+`ReservedWordsDriftTests`), the `Arguments` headings of Section A (`IntrinsicArgumentDomainDriftTests`, level 4 now) and the
+planted texts of `verify_publishable`'s self-test. The first gate found the last two, which read the text by level; every reader
+now reads the level the rule gives.
 
 **Not in scope, and why.** Amendment 1's change list (pages 831 to 856) and Amendment 2 quote the standard's clause numbers
 (`**4.3.8.3 Function-Identifier**`, `Paragraph 4.5.4 of ...`) as change instructions and print their own structure; they are not

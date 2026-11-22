@@ -16,8 +16,9 @@ lines (872 levels and 148 plain titles in Sections I to XVIII, 200 levels and 2 
 headers made plain) and 18 stray `# SECTION` dividers that sat after the previous page's folio are gone; each Section's title,
 which the page prints at its top, is the level-1 heading. Two contents entries differ from the heading the standard prints (page
 553, page 654) and stay as printed. The rule catalog has the same 3,109 rules and ids; headings are markup and `cite.py` reads a
-number. Four code anchors named the old heading lines (the body marker, the heading closing the reserved-word list, two planted
-texts) and moved to the page-top headings.
+number. Six code anchors named the old heading lines or levels (the body marker, the heading closing the reserved-word list in three
+readers, the Section A `Arguments` headings of one drift test, the planted texts of one self-test) and moved; the first gate
+found two of them.
 
 **The other 46 claims**, each read on the rendered page: `CHARACTERS` in the BLOCK CONTAINS braces is not underlined (six pages
 named; the sweep found two more, pages 396 and 486); level-2 box sides missing or misplaced in prose, tables and one-row general
