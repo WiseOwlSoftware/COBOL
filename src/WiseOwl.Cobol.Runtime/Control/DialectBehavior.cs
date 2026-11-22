@@ -495,6 +495,66 @@ public enum DialectBehavior
     /// report-name statement is specified the report description entry must include "no more than one detail report group".
     /// The consumer is <c>ReportWriterBinder</c>'s GENERATE binding.</summary>
     GenerateReportNameSingleDetail = 49,
+    /// <summary>§2002:F.2 item 108 — "Index-names may be qualified in the same manner as data and condition-names, even in
+    /// cases where uniqueness of reference may already be established", so from 2002 two tables may each declare one
+    /// spelling and a reference that does not tell them apart is the ambiguity of §2023:8.4.2.2.3 SR1. §1985:VI.5.8.3 SR14:
+    /// "Index-name-1 must be a unique word within the program", a rule of the declaration. The consumer is
+    /// <c>DataBinder.ScreenIndexNameUniqueness</c>.</summary>
+    IndexNameQualification = 50,
+    /// <summary>§2002:13.16.10.2 SR1 — "If integer-1 is specified, integer-2 shall be greater than integer-1"
+    /// (§2023:13.18.10.3 SR1 the same). The 1985 BLOCK CONTAINS clause has no syntax rules (§1985:VII.3.3) and says only
+    /// that the two integers "refer to the minimum and maximum size of the physical record, respectively" (§1985:VII.3.3.3
+    /// GR4), so at <c>--std 85</c> equal bounds translate (kb/Work PB5115). The consumer is <c>FileControlBinder</c>'s
+    /// BLOCK CONTAINS binding.</summary>
+    BlockContainsRangeOrdered = 51,
+    /// <summary>§2002:8.8.4.1.1 — "A relation condition shall contain at least one reference to an operand that is not a
+    /// literal", and the 2002 sign condition (§2002:8.8.4.1.6) states no such sentence. COBOL-85 asks a variable of both:
+    /// "The relation condition must contain at least one reference to a variable" (§1985:VI.6.3.1.1) and
+    /// "Arithmetic-expression-1 must contain at least one reference to a variable" (§1985:VI.6.3.1.5), so <c>IF 2 * 2 =
+    /// 4</c> and <c>IF 1 + 1 IS POSITIVE</c> are outside the 1985 text (kb/Work PB5826; the warning severity is
+    /// D-RELLITERAL's). The consumers are <c>StatementValidation.CheckRelationHasNonLiteralOperand</c> and
+    /// <c>StatementValidation.CheckSignConditionHasVariable</c>.</summary>
+    RelationOperandNotALiteral = 52,
+    /// <summary>§2002:F.1 item 17 records the change: "In the previous COBOL standard, the value obtained for the remainder
+    /// when the dividend and divisor have different signs differs depending on whether the receiving operand for the
+    /// quotient is" signed; from 2002 the subsidiary quotient is signed (§2002:14.8.11.3 GR6, §2023:14.9.12.4 GR6 c)).
+    /// §1985:VI.6.11.4 GR6 forms the remainder from "an intermediate field ... which contains the same number of digits,
+    /// the same decimal point location, and the same presence or absence of a sign as the quotient", so <c>DIVIDE -11 BY 3
+    /// GIVING Q REMAINDER R</c> with an unsigned Q gives -20 at <c>--std 85</c> (kb/Work PB5182). The consumer is
+    /// <c>ArithmeticEmitter.UnsignedSubsidiary</c>.</summary>
+    DivideRemainderSignedSubsidiary = 53,
+    /// <summary>§2002:13.16.41.3 GR14 b) — "If a RELEASE statement is being executed, the EC-SORT-MERGE-RELEASE exception
+    /// condition is set to exist and the execution of the RELEASE statement is unsuccessful" (§2023:13.18.43.4 GR14b the
+    /// same); with the checking off the result is undefined (§2023:14.6.13.1.1) and the record is released (D-SMA (c)).
+    /// COBOL-85 has no exception checking and states the outcome: "the output statement is unsuccessful and, except during
+    /// execution of a RELEASE statement, the associated I-O status is set" (§1985:VII.3.8.4 GR10; kb/Work PB5124). The
+    /// consumer is <c>SortBinder</c>'s RELEASE binding (<c>BoundRelease.RangeFailsStatement</c>).</summary>
+    ReleaseOutsideRecordRangeRaisesException = 54,
+    /// <summary>§2002:F.2 item 67 — "Data-names referenced in a data description entry need not be qualified when they are
+    /// defined in the same group as the subject of the entry" (§2023:8.4.2.2.1 SR5 the rule). §1985:IV.4.3.8.1 SR3 excepts
+    /// only "the case of redefinition": every other explicitly referenced name must be unique by qualification, so below
+    /// 2002 the whole scope's candidates of an OCCURS DEPENDING ON, KEY or RENAMES operand are counted (kb/Work PB5165).
+    /// The consumer is <c>SymbolTable.ClauseOperandsTakeImplicitQualifiers</c>.</summary>
+    EntryClauseImplicitQualifiers = 55,
+    /// <summary>From 2002 the INSPECT size rules are general rules whose violation is the run-time EC-RANGE-INSPECT-SIZE
+    /// condition (§2002:14.5.12.1.5, "Size of replace items in INSPECT differs"; §2023:14.9.22.4 GR14, GR15 and GR22), so
+    /// only literals are asked at compile time. §1985:VI.6.18.3 SR7, SR8 and SR9 state them as syntax rules: the size of
+    /// the replacing operand "must be equal to the size of literal-1 or the data item referenced by identifier-3", so at
+    /// <c>--std 85</c> a mis-sized identifier is refused (kb/Work PB5103). The consumer is
+    /// <c>StatementValidation.InspectSizeRulesCoverDataItems</c>.</summary>
+    InspectSizeRulesAreGeneralRules = 56,
+    /// <summary>§2002:8.8.4.1.1 — a group in a relation "shall be treated as an elementary alphanumeric data item", so the
+    /// elementary rule applies and a signed numeric operand is compared without its operational sign (§2023:8.8.4.2.5).
+    /// §1985:VI.6.3.1.1.2 GR2 moves the numeric operand "to a group item of the same size", a move "exactly as if it were
+    /// an alphanumeric to alphanumeric elementary move, except that there is no conversion of data" (§1985:VI.6.19.4 GR3),
+    /// so its own character image, a SEPARATE sign included, is compared (kb/Work PB5106). The consumer is
+    /// <c>ConditionRenderer.DropsOperationalSign</c>.</summary>
+    GroupComparisonIsElementaryAlphanumeric = 57,
+    /// <summary>§2002:8.8.4.1.1.3 — when native arithmetic is in effect "the comparison proceeds by the rules of native
+    /// arithmetic" (§2023:8.8.4.2.4 the same). §1985:VI.6.3.1.1.1 knows only that "a comparison is made with respect to the
+    /// algebraic value of the operands", so at <c>--std 85</c> a float operand lifts to its exact value and compares
+    /// decimally (kb/Work PB5835). The consumer is <c>ConditionRenderer</c>'s numeric relation.</summary>
+    NativeArithmeticComparison = 58,
 }
 
 /// <summary>
@@ -749,6 +809,44 @@ public static class DialectBehaviors
             "7.105", "§2002:14.8.15.2 SR2", "§1985:XIII.3.20.3 SR6",
             "GENERATE report-name needs only a CONTROL clause from COBOL-2002; COBOL-85 also requires the report to "
             + "hold no more than one detail report group"),
+        new(DialectBehavior.IndexNameQualification, "index-name-qualification", 2002,
+            "7.106", "§2002:F.2 item 108", "§1985:VI.5.8.3 SR14",
+            "an index-name may be qualified, so two tables may declare one spelling, only from COBOL-2002; COBOL-85 "
+            + "requires each index-name to be a unique word within the program"),
+        new(DialectBehavior.BlockContainsRangeOrdered, "block-contains-range-ordered", 2002,
+            "7.107", "§2002:13.16.10.2 SR1", "§1985:VII.3.3.3 GR4",
+            "a BLOCK CONTAINS integer-1 TO integer-2 whose integer-2 is not greater than integer-1 is refused only "
+            + "from COBOL-2002; the COBOL-85 clause has no syntax rules and equal bounds are legal"),
+        new(DialectBehavior.RelationOperandNotALiteral, "relation-operand-not-a-literal", 2002,
+            "7.108", "§2002:8.8.4.1.1", "§1985:VI.6.3.1.1",
+            "a relation condition needs an operand that is not a literal, and a sign condition needs nothing, only "
+            + "from COBOL-2002; COBOL-85 requires a reference to a variable in each, so an expression of literals alone "
+            + "draws the warning"),
+        new(DialectBehavior.DivideRemainderSignedSubsidiary, "divide-remainder-signed-subsidiary", 2002,
+            "7.109", "§2002:F.1 item 17", "§1985:VI.6.11.4 GR6",
+            "the remainder of a DIVIDE is formed from a signed subsidiary quotient only from COBOL-2002; COBOL-85 "
+            + "gives the subsidiary quotient identifier-3's presence or absence of a sign"),
+        new(DialectBehavior.ReleaseOutsideRecordRangeRaisesException, "release-outside-record-range-raises-exception", 2002,
+            "7.110", "§2002:13.16.41.3 GR14b", "§1985:VII.3.8.4 GR10",
+            "a RELEASE of a record outside the RECORD clause's range raises EC-SORT-MERGE-RELEASE, the record "
+            + "released when checking is off, only from COBOL-2002; COBOL-85 makes the statement unsuccessful"),
+        new(DialectBehavior.EntryClauseImplicitQualifiers, "entry-clause-implicit-qualifiers", 2002,
+            "7.111", "§2002:F.2 item 67", "§1985:IV.4.3.8.1 SR3",
+            "a name referenced in a data description entry clause takes the groups above the entry's subject as "
+            + "implicit qualifiers only from COBOL-2002; COBOL-85 counts every candidate of the scope"),
+        new(DialectBehavior.InspectSizeRulesAreGeneralRules, "inspect-size-rules-are-general-rules", 2002,
+            "7.112", "§2023:14.9.22.4 GR14", "§1985:VI.6.18.3 SR7",
+            "INSPECT's equal-size rules over identifiers are general rules raising EC-RANGE-INSPECT-SIZE only from "
+            + "COBOL-2002; COBOL-85 states them as syntax rules over data items"),
+        new(DialectBehavior.GroupComparisonIsElementaryAlphanumeric, "group-comparison-is-elementary-alphanumeric", 2002,
+            "7.113", "§2002:8.8.4.1.1", "§1985:VI.6.3.1.1.2 GR2",
+            "a numeric operand compared with a group is compared by the elementary rule, without its operational "
+            + "sign, only from COBOL-2002; COBOL-85 moves it to a group item of the same size, its sign character "
+            + "included"),
+        new(DialectBehavior.NativeArithmeticComparison, "native-arithmetic-comparison", 2002,
+            "7.114", "§2002:8.8.4.1.1.3", "§1985:VI.6.3.1.1.1",
+            "a floating-point operand under native arithmetic is compared by the rules of native arithmetic only from "
+            + "COBOL-2002; COBOL-85 compares the algebraic values"),
     ];
 
     static DialectBehaviors()

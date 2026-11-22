@@ -15,6 +15,8 @@ using WiseOwl.Cobol.Frontend.Parsing;
 namespace WiseOwl.Cobol.Binding.Validation;
 
 using Core = CobolParserCore;
+using DialectBehavior = WiseOwl.Cobol.Runtime.DialectBehavior;
+using DialectBehaviors = WiseOwl.Cobol.Runtime.DialectBehaviors;
 
 /// <summary>⭐ ONE ROW PER OPEN TAPE PHRASE — the two alternatives of ISO §2023:14.9.27.2's per-file-name
 /// <c>[ REVERSED | WITH NO REWIND ]</c> bracket, each stating its own ORGANIZATION rule and its own OPEN MODE
@@ -1102,7 +1104,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// a mis-sized identifier is a program the standard does not allow. From 2002 the same words are general rules
     /// (§2023:14.9.22.4 GR14, GR15 and GR22) that SET EC-RANGE-INSPECT-SIZE at run time, so only literals are asked at
     /// compile time there. The one predicate, so the three rules read the same edition boundary.</summary>
-    private bool InspectSizeRulesCoverDataItems => data.Edition.DialectLevel < 2002;
+    private bool InspectSizeRulesCoverDataItems => !DialectBehaviors.IsActive(DialectBehavior.InspectSizeRulesAreGeneralRules, data.Edition.DialectLevel);
 
     /// <summary>The rule's citation in the edition being compiled: the 2023 number, or the 1985 number at --std 85, where
     /// the REPLACING pair is SR7 and the CHARACTERS rule SR8 (CONVERTING's is SR9 in both).</summary>
@@ -2147,7 +2149,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// evaluation as written are D-RELLITERAL's, extended to the 1985 text.</para></summary>
     public void CheckRelationHasNonLiteralOperand(BoundOperand subject, BoundOperand obj)
     {
-        if (data.Edition.DialectLevel < 2002)
+        if (!DialectBehaviors.IsActive(DialectBehavior.RelationOperandNotALiteral, data.Edition.DialectLevel))
         {
             if (HasNoVariableReference(subject) && HasNoVariableReference(obj))
                 data.Edition.Warning(DiagnosticCatalog.RelationNoVariableReference,
@@ -2193,7 +2195,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// EVALUATE's, not asked here (see <see cref="CheckRelationHasNonLiteralOperand"/>).</summary>
     public void CheckSignConditionHasVariable(BoundExpr expr)
     {
-        if (data.Edition.DialectLevel >= 2002 || !IsLiteralOnly(expr)) return;
+        if (DialectBehaviors.IsActive(DialectBehavior.RelationOperandNotALiteral, data.Edition.DialectLevel) || !IsLiteralOnly(expr)) return;
         data.Edition.Warning(DiagnosticCatalog.SignConditionNoVariableReference,
             "the arithmetic expression of this sign condition references no variable, and §1985:VI.6.3.1.5 requires that "
             + "\"Arithmetic-expression-1 must contain at least one reference to a variable\"; test a data item; the condition "

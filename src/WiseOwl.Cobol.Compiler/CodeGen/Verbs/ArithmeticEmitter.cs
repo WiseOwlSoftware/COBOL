@@ -266,7 +266,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// to the subsidiary of every lane (native, carried, fixed-point and exact), which is scaled Int128, SDIDI or exact.</summary>
     private NumX UnsignedSubsidiary(NumX subsidiary, SubsidiaryShape shape)
     {
-        if (ctx.Data.DialectLevel >= 2002 || shape.Form != SubsidiaryForm.FixedPoint || shape.Pic is not { HoldsSign: false })
+        if (DialectBehaviors.IsActive(DialectBehavior.DivideRemainderSignedSubsidiary, ctx.Data.DialectLevel) || shape.Form != SubsidiaryForm.FixedPoint || shape.Pic is not { HoldsSign: false })
             return subsidiary;
         if (subsidiary.Real || subsidiary.Wide)
             throw new InvalidOperationException("DIVIDE REMAINDER: a subsidiary quotient on a binary64 or wide carrier for a fixed-point identifier-3");
