@@ -1,4 +1,4 @@
-## Wave 20262135 group B: one unscaled-decimal reduction, one contiguous-record walk, one native comparison walker, one position read
+## Entry 3918 — 2026-11-22 12:13 PST — Wave 20262135 group B: one unscaled-decimal reduction, one contiguous-record walk, one native comparison walker, one position read
 
 Five R2 findings of the PB1754 review, landed as behavior-neutral restructurings (the run was interrupted by a Windows
 reboot and resumed from its pushed branch).
@@ -26,3 +26,4 @@ Runtime surface: one major bump (33) for the branch. Gate reds on the way: an un
 inventory witnesses and a test asserting the old citation text; each fixed at its root.
 
 Left for the next agent of this group: PB2627, PB2636, PB2637, PB2737, PB2746 and PB2747, each a redesign of its own.
+
