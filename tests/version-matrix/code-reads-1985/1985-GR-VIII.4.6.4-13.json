@@ -1,63 +1,60 @@
 {
  "rule-id": "1985-GR-VIII.4.6.4-13",
- "rule-digest": "f2cee78885c7",
+ "rule-digest": "d6ea11141b3a",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-136",
+  "pin": "a012d507517aa6f1a337c1a60204f25bb9c10e5b",
+  "slice": "1985-c07",
   "sources": {
-   "reader": "15c79324ed68ea6516287bb8931f5cef958eef5caa3ef38dad69d7c84f11ce98",
-   "refuter": "3286e614e427bf24fa93b65f249932df9023a44048f20bfc136422ad00f027b2"
+   "reader": "57aecac6978246c4426329e186db64916e3d119f74f408c0d78f52ebd7fc56b5",
+   "refuter": "fb0ae45b7f80ed3b0c735d05dbb731791be1d07fa94c74ba95495c4ff2cba983"
   },
   "imported": {
-   "reader": "0bbac14dc659a1b07bdee9b9a39ff4f1b47c95e25b2d92c0539710f6caf1444e",
-   "refuter": "45737494127a64422b187150d45eecff6b6c9851c475aab002bf3594a0a1c834"
+   "reader": "acf1fa444ff9671eceaa92ee74d082da0fa2979ec932ea8d86265c4f284c1cfb",
+   "refuter": "a2ecde3951cab6468978210d7da134d4551c2b3c197f48b71ecb94dbde9c19ab"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VIII.4.6.4-13",
   "verdict": "CONFORMS",
-  "requirement": "For a relative file in random or dynamic access mode, REWRITE must replace the record whose relative record number is the RELATIVE KEY's content (no prior READ needed); when no such record exists (a gap, a deleted record, key zero, a key past the last record) the invalid key condition exists, the file is not updated, the record area is unchanged and the I-O status is set (23 per VIII.1.3.4).",
-  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook",
+  "requirement": "For a relative file in random or dynamic access, REWRITE must replace the record whose relative record number is the RELATIVE KEY's content, and when no such record exists (never written, deleted, key 0 or beyond the file) raise the invalid key condition: no update, record area unchanged, I-O status 23, the INVALID KEY phrase or the USE procedure taking control.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RecordNotFound; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration",
-    "switches": "passes ctx.Data.DialectLevel to the relative connector as FileConnector.Edition",
+    "switches": "passes DialectLevel to the relative connector, which consults it only for RelativeWriteKeyOutOfRangeIsPermanentError on WRITE, not on REWRITE",
     "same-arm-as-latest": true
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
-    "switches": "DialectBehavior.FileSharingFacility (from 2002): at 85 the store is attached without sharing arbitration; the REWRITE body and its 23 arm are the same code",
-    "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep Edition|DialectBehavior|CobolVersion over RelativeConnector.cs, FileConnector.cs, FileRegistry.cs, KeyedIoEmitter.cs, SequentialIoEmitter.cs, EcEmitter.cs; RelativeConnector#Rewrite itself consults no edition (the only DialectBehavior in the file is RelativeWriteKeyOutOfRangeIsPermanentError in Write).",
+  "edition-search": "grep of RelativeConnector.cs for DialectBehaviors|Edition: Rewrite consults no edition; the connector's only edition switch is the WRITE boundary status",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: g85_bf26_03 covers random access with a key past the file; not dynamic access, key zero, a deleted record's key, the FROM phrase with an absent record, or a READ of one record followed by REWRITE with the key moved to another",
+  "witnesses-cover": "part: g85_bf26_03 covers a random REWRITE of a missing record; dynamic access, a deleted slot, key 0, the USE-declarative path and record-area preservation are not exercised",
   "probes": [
    {
-    "class": "b,d,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-136/rw13a.cob",
-    "printed": "K3 INV 23 | K3 AREA GAP333 -00009.99 333 | K0 INV 23 | K0 AREA ZERO00 | K9999 INV 23 | K9999 AREA BIG999 | K2D INV 23 | K5F INV 23 | K5F AREA FROMXX -00123.45 777 | K4F OK 00 | K14 OK 00 | F0001 AAAAAA +00001.11 001 | F0004 KEY4WN +00001.11 001 | EOF 10",
-    "expected": "dynamic access: gap key 3, key 0, key 9999 and deleted key 2 each take INVALID KEY with 23 and leave the group record area (COMP-3 signed field included) as moved; FROM with absent key 5 leaves the area holding the FROM data (GR5 a MOVE) and updates nothing; key 4 replaced by FROM, then by the area after READ 1 with the key moved to 4; the file holds only records 1 and 4, record 1 unchanged"
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/w20262138/coderead/probes-c07/src/rr1.cob",
+    "printed": "A1 INVALID 23 [NEW3  0333]; A2 key 3 still absent 23; A3 USE FIRED 23 (no INVALID KEY phrase); A4 key 0 INVALID 23; A5 deleted slot INVALID 23; A6 OK 00 / A7 NEW4  0444 (random); B1/B3 INVALID 23 (dynamic, before and after a READ NEXT); B4 00 / B5 D-NEW5 (dynamic success)",
+    "expected": "GR13: invalid key, status 23, no update, record area unaffected; an existing record is replaced"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VIII.4.6@1985-REWRITE-STATEMENT/g85_bf26_03.cob",
-    "printed": "witness: RW1 OK 00 / RW5 INV 23 / AREA CINCO5 / RD5 INV 23 / RD1 UNO-01 / RD2 TWO-02",
-    "expected": "random access: record 1 replaced with no READ, absent record 5 invalid key 23, area unchanged, not created"
+    "file": "E:/COBOL-coord/scratch/w20262138/coderead/probes-c07/src/fo1.cob",
+    "printed": "OPEN I-O of an absent file 35; the REWRITE then 49 through USE, not INVALID KEY, record area unchanged",
+    "expected": "the statement after a failed OPEN is not an invalid key condition"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/w20262138/coderead/probes-c07/src/rr1.cob",
+    "printed": "RELATIVE KEY 0 and 9 (beyond the last record) both 23",
+    "expected": "no record specified by the key: invalid key"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VIII.4.6.4 GR13",
-    "check": "OK  §1985:VIII.4.6.4 GR13  (4.6.4 General Rules)  the text is in GR13"
-   },
-   {
-    "cite": "§1985:VIII.1.3.4",
-    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3b.1"
+    "check": "OK  §1985:VIII.4.6.4 GR13  the text is in the clause or rule: \"the contents of the record area are unaffected\""
    }
   ],
-  "notes": "The emitter stores the RELATIVE KEY into the connector (FileSetRelativeKey) for non-sequential access, and RelativeConnector.Rewrite replaces _pendingKey's slot or answers 23 before touching the store; the record area is never written by the statement, so it is unaffected. Identical output at --std 2023 is not required for a CONFORMS verdict; the code path has no edition arm.",
+  "notes": "RelativeConnector.Rewrite takes the pending key for random and dynamic access and returns RecordNotFound (23) before any replacement when the slot is empty; the emitted INVALID KEY / USE dispatch keys off that status.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -70,8 +67,8 @@
  "refuter": {
   "rule-id": "1985-GR-VIII.4.6.4-13",
   "refutation": "UPHELD",
-  "classes": "b,d,e,f",
-  "evidence": "Probe refute-1985-136/g13b.cob at --std 85 (runs/g13b-001), RANDOM access with a PIC 9(9) COMP relative key: REWRITE of a record WRITTEN in the same open -> 'K7 OK 00'; after DELETE of 5, REWRITE key 5 -> 'K5 INV 23', area 'NEW-05' unaffected; READ 2 then REWRITE with key moved to 1 (gap) -> 'K1 INV 23' and record 2 untouched until the keyed REWRITE 'K2 OK 00' with no READ; key 999999999 -> 'KBIG INV 23'; OPTIONAL file absent, OPEN I-O '05' (created), REWRITE -> 'KO INV 23'; reread: only 2 NEW-02 and 7 NEW-07 exist. RelativeConnector#Rewrite picks _pendingKey for non-sequential access and answers 23 before _st.Replace; no edition arm on the path (HoldingsGate/RefusedAtCommit inert without LOCK at 85). cite.py: 'OK  §1985:VIII.4.6.4 GR13  (4.6.4 General Rules)  the text is in GR13'; 'OK  §1985:VIII.4.6.4 GR5  (4.6.4 General Rules)  the text is in GR5' (the FROM MOVE precedes, so the area holding FROM data on 23 is right).",
+  "classes": "e,f",
+  "evidence": "Probe probes-refute-c07/src/rr2.cob at --std 85 (runs/rr2-002, EXIT 0), dynamic access: after READ NEXT of record 1, RELATIVE KEY set to 3 and REWRITE replaces record 3, not the last record read (C1 00; C4 shows 000000003 NEW-THREE, record 1 unchanged until C2); after a random READ of 2, key set to 1 and REWRITE replaces 1 (C2 00); key 999999999 gives invalid key 23 with the record area unchanged (C3 INVALID 23 [HUGE]). KeyedIoEmitter.cs consults DialectLevel only at registration (lines 62, 72), as the reader found. cite.py: 'OK  §1985:VIII.4.6.4 GR13 ... logically replaces the record specified by the content of the relative key data'.",
   "edition-sites-missed": [],
   "corrected": ""
  }
