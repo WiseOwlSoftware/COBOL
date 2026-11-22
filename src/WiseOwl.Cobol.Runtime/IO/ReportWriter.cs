@@ -736,10 +736,9 @@ public sealed class CobolReport(
         {
             Occurrence subscript = subscripts[k];   // the detail names its exact value, even past long (kb/Work PB2695)
             long s = subscript.Value;
-            if (s < 1 || s > extents[k])
+            if (!CobolTable.Permissible(s, extents[k]))
             {
-                ExceptionState.SubscriptError($"report {Name}: sum counter subscript {subscript} is outside 1..{extents[k]} "
-                    + "(ISO 8.4.2.3.4 GR2)");
+                CobolTable.SubscriptOutOfRange(subscript, extents[k], subject: $"report {Name}: sum counter");
                 return -1;
             }
             linear = linear * extents[k] + (int)(s - 1);
