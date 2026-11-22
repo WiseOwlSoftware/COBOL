@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Globalization;
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
@@ -251,7 +252,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         // kb/Work PB1529); the emitter narrows nothing.
         var x = num.Render(s.Amount, ReceiverContext.None);
         ctx.Writer.Line(PlaceRenderer.Write(s.Target,
-            SetSizeCall(x, PlaceRenderer.Read(s.Target), s.MaxSize.ToString())));
+            SetSizeCall(x, PlaceRenderer.Read(s.Target), s.MaxSize.ToString(CultureInfo.InvariantCulture))));
     }
 
     /// <summary>⛔ THE SET SIZE RUNTIME CALL, ONE ARM PER CARRIER (kb/Work PB464; the sibling of

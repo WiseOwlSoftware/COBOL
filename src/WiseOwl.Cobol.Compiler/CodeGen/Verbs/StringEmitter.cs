@@ -448,14 +448,8 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     {
         var w = ctx.Writer;
         ec.EmitOverflow(flag, ecName, hasPhrase: onOverflow is not null);
-        if (onOverflow is { } on)
-        {
-            using (w.Block($"if ({flag})")) Statements.EmitStatementList(on);
-            if (notOnOverflow is { } notAlso)
-                using (w.Block("else")) Statements.EmitStatementList(notAlso);
-        }
-        else if (notOnOverflow is { } notOnly)
-            using (w.Block($"if (!{flag})")) Statements.EmitStatementList(notOnly);
+        ConditionalPhrase.EmitPair(w, Statements, flag, onOverflow, notOnOverflow,
+            new NotPhraseCondition($"!{flag}", ComplementsPhrase: true, Gate: null));
     }
 
     /// <summary>The character image of a STRING/UNSTRING character-position operand — its raw content (a group's

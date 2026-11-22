@@ -176,8 +176,9 @@ public sealed class StorageClaimScanTests
             .ToList();
         Assert.Equal(["BindSession.cs", "DataBinder.Ptr.cs"], sites);
 
-        string driver = StripComments(File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "BinderDriver.cs")));
-        Assert.Matches(@"ClaimScans\s*=\s*session\.ClaimScans", driver);
+        // Every element's binder is seeded by BindSession.NewDataBinder (kb/Work PB2626), which hands it the session's one scan.
+        string session = StripComments(File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "BindSession.cs")));
+        Assert.Matches(@"NewDataBinder\([^)]*\)\s*=>\s*new\(Edition\)\s*\{[^}]*\bClaimScans\s*=\s*ClaimScans\b", session);
     }
 
     private static string StripComments(string s) =>

@@ -796,7 +796,8 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs (D20).
             if (rt.IntoMove is { } intoMove) move.Emit(intoMove);
             using (seqIo.Debug.OweAfterAction())
-                if (rt.NotAtEnd is { } not) Statements.EmitStatementList(not);
+                if (rt.NotAtEnd is { } not)   // reached only on a record returned: the success arm itself
+                    ConditionalPhrase.EmitNot(ctx.Writer, Statements, not, new NotPhraseCondition(null, ComplementsPhrase: false, Gate: null));
             if (rt.IntoMove is not null) seqIo.Debug.LandAfterAction();   // §1985:XV.3.2.4 GR5 d: "immediately after execution of that statement" — NOT AT END is inside it (kb/Work PB5295)
         }
         // §2023:14.9.34.4 GR3 — the at end condition: control transfers to imperative-statement-1, and on return from
@@ -1097,7 +1098,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// field — ST108A/ST137A shape).</summary>
     private string WeightsExpr(SortCollation c) =>
         c.Alphanumeric is not { } def ? "null"
-        : ReferenceEquals(def, ctx.Data.Configuration.Collating) ? "__COLLATE"
+        : ReferenceEquals(def, ctx.Data.Configuration.Collating) ? ObjectComputerEmit.ProgramCollation
         : CollationEmit.New(def);
 
     /// <summary>Its NATIONAL twin (ISO §2023:14.9.40.4 GR5 — the sequence for keys of class national, determined
@@ -1106,7 +1107,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// which on the D-N1/D-N3 substrate IS code-point order.</summary>
     private string NatWeightsExpr(SortCollation c) =>
         c.National is not { } def ? "null"
-        : ReferenceEquals(def, ctx.Data.Configuration.NationalCollating) ? "__COLLATE_NAT"
+        : ReferenceEquals(def, ctx.Data.Configuration.NationalCollating) ? ObjectComputerEmit.NationalProgramCollation
         : CollationEmit.New(def);
 
     /// <summary>The trailing collation argument a TABLE-sort key comparison takes, chosen by the key's CLASS
@@ -1117,9 +1118,9 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// A non-PCS statement alphabet is materialized once per statement into a local carrier.</summary>
     private string TableWeightsArg(SortCollation c, CollatingClass cls, int id, HashSet<string> declared) => cls switch
     {
-        CollatingClass.Alphanumeric => CarrierArg(c.Alphanumeric, ctx.Data.Configuration.Collating, "__COLLATE", $"__sw{id}",
+        CollatingClass.Alphanumeric => CarrierArg(c.Alphanumeric, ctx.Data.Configuration.Collating, ObjectComputerEmit.ProgramCollation, $"__sw{id}",
             "statement COLLATING SEQUENCE (GR5a)", CollationEmit.New, declared),
-        CollatingClass.National => CarrierArg(c.National, ctx.Data.Configuration.NationalCollating, "__COLLATE_NAT", $"__swn{id}",
+        CollatingClass.National => CarrierArg(c.National, ctx.Data.Configuration.NationalCollating, ObjectComputerEmit.NationalProgramCollation, $"__swn{id}",
             "statement COLLATING SEQUENCE FOR NATIONAL (GR5a)", CollationEmit.New, declared),
         _ => "",
     };
