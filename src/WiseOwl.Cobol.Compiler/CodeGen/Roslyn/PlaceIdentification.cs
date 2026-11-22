@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// ⛔ ITEM IDENTIFICATION, DONE ONCE (ISO §2023:14.6.4; kb/Work PB1123) — the ONE mechanism that turns a
 /// <see cref="Place"/> whose address is computed from RUN-TIME values (a subscript, a reference-modification
 /// start/length, a Tier-B window offset) into a place whose address is FROZEN at the moment the statement begins.
-/// <para>§2023:14.6.4 7) — "the identifiers within a statement are evaluated in left to right order as the first
+/// <para>§2023:14.6.4 GR7 — "the identifiers within a statement are evaluated in left to right order as the first
 /// operation of the execution of that statement" — and a verb whose own general rules add no other timing (INSPECT
 /// §2023:14.9.22.4 GR6: "Item identification for any identifier is done only once as the first operation in the
 /// execution of the INSPECT statement"; GR19 extends it across a format 3's two passes) owes exactly that. A
@@ -30,7 +30,7 @@ internal static class PlaceIdentification
 {
     /// <summary>The ONE hoist every verb emitter hands <see cref="Freeze(Place, Func{string, string})"/>: it writes
     /// <c>var __identN = &lt;fragment&gt;;</c> at the current point of the statement's emission and returns the local's
-    /// name. A verb freezes ALL of its operands before it reads or stores any (§2023:14.6.4 7), so the locals are assigned
+    /// name. A verb freezes ALL of its operands before it reads or stores any (§2023:14.6.4 GR7), so the locals are assigned
     /// at the head of the statement. UNSTRING and INSPECT (kb/Work PB1123) share it, and so does any verb adopted
     /// next.</summary>
     public static Func<string, string> Hoister(EmitContext ctx) => fragment =>
@@ -59,7 +59,7 @@ internal static class PlaceIdentification
     /// start and length are converted before the value argument, so the same inversion reached it by argument order.
     /// When both sides identify at run time the value is evaluated into a block-scoped local first; otherwise the
     /// order is unobservable and the store is rendered as it always was.</para>
-    /// <para>A caller whose verb identifies the receiver FIRST (§2023:14.6.4 7)'s left-to-right default with the receiver
+    /// <para>A caller whose verb identifies the receiver FIRST (§2023:14.6.4 GR7)'s left-to-right default with the receiver
     /// written first, as INITIALIZE's identifier-1) does not call this.</para></summary>
     public static string SenderFirst(BoundOperand sender, Place receiver, string value, Func<string, string> store) =>
         IdentifiesAtRunTime(sender) && IdentifiesAtRunTime(receiver)
@@ -88,7 +88,7 @@ internal static class PlaceIdentification
     /// reads the DEPENDING ON item and may raise EC-BOUND-ODO), a reference modification's range test, or the guard
     /// of a formal that may be omitted (EC-PROGRAM-ARG-OMITTED).
     /// <para>⛔ A REFERENCE MODIFICATION IS RANGE-TESTED AT RUN TIME WHATEVER ITS POSITIONS (kb/Work PB3261 review
-    /// R1-1). ISO §2023:8.4.3.3.4 5) c): "The sum of leftmost-position and length minus the value one shall be less than or
+    /// R1-1). ISO §2023:8.4.3.3.4 GR5c: "The sum of leftmost-position and length minus the value one shall be less than or
     /// equal to the number of positions in the data item referenced by identifier-1", and every read and splice of a
     /// <see cref="RefModPlace"/> tests it when it executes (<c>StrRefMod</c> / <c>StrSpliceInto</c>), raising
     /// EC-BOUND-REF-MOD. Integer-literal positions are no exception: over a DYNAMIC LENGTH or ANY LENGTH identifier-1

@@ -109,7 +109,7 @@ public readonly struct CobolExact
     /// <summary>⛔ A FLOAT ITEM'S CONTENT, EXACTLY (kb/Work PB4730): the binary64's own value <c>m × 2^e</c> written out in full — 0.1 is
     /// its 55-place expansion, DP = 2.5E+40 the 41-digit integer 25000000000000000155002161260194579873792 — not the SDIDI's 34-digit
     /// rounding of it (§2023:8.8.1.5.1 leaves that conversion to the implementor). MAX, MIN and an odd MEDIAN return "the content of the
-    /// argument" (§2023:15.59.4 1), §2023:15.63.4 1), §2023:15.61.1), and a list that mixes a float item with a fixed-point one selects among exact
+    /// argument" (§2023:15.59.4 RV1, §2023:15.63.4 RV1, §2023:15.61.1), and a list that mixes a float item with a fixed-point one selects among exact
     /// values. A NaN is the IEC 60559 invalid-operation state and an infinity exceeds the range, as <see cref="CobolDec.FromBinary64"/>
     /// reports them.</summary>
     public static CobolExact FromBinary64(double value)
@@ -159,8 +159,8 @@ public readonly struct CobolExact
 
     /// <summary>⛔ IS THIS VALUE A BINARY64 (kb/Work PB4891), and which: a float item's content (<see cref="FromBinary64"/>) or an engine's
     /// approximation (<see cref="FromApproximation"/>), carried whole through a selection (MAX, MIN and an odd MEDIAN return "the content of
-    /// the argument", §2023:15.59.4 1), §2023:15.63.4 1)) and a negation. Which argument a selection returns is a run-time fact, so a body
-    /// whose evaluation turns on an operand's kind (an even MEDIAN's mean, §2023:15.61.4 2), docs/CONFORMANCE.md DOC-A.1-92b) reads it here,
+    /// the argument", §2023:15.59.4 RV1, §2023:15.63.4 RV1) and a negation. Which argument a selection returns is a run-time fact, so a body
+    /// whose evaluation turns on an operand's kind (an even MEDIAN's mean, §2023:15.61.4 RV2, docs/CONFORMANCE.md DOC-A.1-92b) reads it here,
     /// from the value, never from a compile-time list of the written arguments' kinds. Every other operation forms a new value without it.</summary>
     internal bool TryBinary64(out double binary64)
     {
@@ -270,7 +270,7 @@ public readonly struct CobolExact
         return TruncatedQuotient(a, b, CobolNum.NestedQuotientScale(receiverScale, precision), precision);
     }
 
-    /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF A NATIVE <c>DIVIDE ... GIVING ... REMAINDER</c> OVER EXACT OPERANDS (ISO §2023:14.9.12.4 6) c),
+    /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF A NATIVE <c>DIVIDE ... GIVING ... REMAINDER</c> OVER EXACT OPERANDS (ISO §2023:14.9.12.4 GR6c),
     /// kb/Work PB4640, PB4702; DOC-A.1-70, DOC-A.1-123): the exact quotient TRUNCATED toward zero at <paramref name="scale"/>,
     /// identifier-3's decimal point location, with EVERY integer digit — "derived from the quotient by truncation of digits at the least
     /// significant end". It is formed from the operands' exact values, not from the final transfer's 34-digit quotient

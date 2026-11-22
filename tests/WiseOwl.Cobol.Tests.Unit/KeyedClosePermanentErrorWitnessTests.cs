@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A KEYED CLOSE THAT ANSWERS '30', THROUGH A COMPILED PROGRAM (kb/Work PB3335, review w1118-a5 lead R2-L1; the owner's
 /// standing rule, MANDATORY-PRACTICES I11: the exception paths of file I/O are tested as fully as its success paths). The
-/// keyed store engine answers a CLOSE §2023:9.1.13.6 item 1's '30' — <i>"A permanent error exists and no further information
+/// keyed store engine answers a CLOSE §2023:9.1.13.6 GR1's '30' — <i>"A permanent error exists and no further information
 /// is available concerning the input-output operation"</i> — in two ways (docs/rearchitecture/DESIGN-runtime-library.md
 /// 2.2.1.16): the PROMOTION of a writable connector that changed the file is refused (2.2.1.6 R5), or the last writable
 /// connector's CLOSE re-adopts the store for the INPUT sibling it leaves open and the host refuses that re-adoption's read
@@ -41,7 +41,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// the USE procedure runs, and then <i>"The implementor may either continue or terminate the execution of the run unit"</i>,
 /// which docs/CONFORMANCE.md DOC-A.1-103 makes: with EC-I-O checking not enabled the run unit continues when a FILE STATUS
 /// clause or a USE procedure covers the statement and terminates abnormally when neither does. With checking enabled the
-/// fatal-exception rules follow the §2023:9.1.13 processing (§2023:14.6.13.1.3 rule 3), and the run unit terminates abnormally even
+/// fatal-exception rules follow the §2023:9.1.13 processing (§2023:14.6.13.1.3 GR3), and the run unit terminates abnormally even
 /// with a FILE STATUS clause: with no USE procedure by rule 7, <i>"If checking for the exception condition is enabled,
 /// execution of the run unit is terminated abnormally"</i>; after a format 1 USE procedure on the file has run (rule 3's
 /// §2023:9.1.13 processing) by the same rule 7; and after a declarative for the condition by rule 5, <i>"If execution of the
@@ -70,7 +70,7 @@ public sealed class KeyedClosePermanentErrorWitnessTests : WiseOwlCobolTestBase
 
     /// <summary>What covers the writer's statements: a USE procedure, a FILE STATUS clause, both, neither; or, with EC-I-O
     /// checking enabled, a FILE STATUS clause alone, a format 1 USE procedure on the file (<c>USE AFTER STANDARD ERROR
-    /// PROCEDURE ON KW</c>, §2023:14.6.13.1.3 rule 3, then rule 7) with and without a FILE STATUS clause, or a declarative for
+    /// PROCEDURE ON KW</c>, §2023:14.6.13.1.3 GR3, then rule 7) with and without a FILE STATUS clause, or a declarative for
     /// the condition (<c>USE AFTER EXCEPTION CONDITION EC-I-O</c>, rule 5) with one.</summary>
     public enum Cover
     {

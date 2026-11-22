@@ -26,11 +26,11 @@ internal sealed class BoundUnit
     /// 5) as program-name in a program-address-identifier, 6) as method-name in an INVOKE statement or inline
     /// method invocation.  All other references to names for which externalization is permitted shall be
     /// specified using the user-defined words, as opposed to the externalized names." It is also the key of
-    /// §2023:12.3.8.4 GR10 a)'s program-definition search. kb/Work PB303.</summary>
+    /// §2023:12.3.8.4 GR10a's program-definition search. kb/Work PB303.</summary>
     public required string ExternalizedName;
     public required string ClassName;
     /// <summary>Where this unit's source text STARTS in the compilation group — the character offset of its first
-    /// token, a total order over every source element of the group (§2023:12.3.8.4 GR10 a) / GR11 a): "a program
+    /// token, a total order over every source element of the group (§2023:12.3.8.4 GR10a / GR11 a): "a program
     /// definition specified PREVIOUSLY in the same compilation group" means a definition whose position is less
     /// than the referencing element's; kb/Work PB989). A contained program's own context carries no start token,
     /// so this reads the first token under it.</summary>
@@ -48,7 +48,7 @@ internal sealed class BoundUnit
     /// (ISO §2023:11.10.2 Format 2; kb/Work PB894) — a signature-only unit (§2023:10.6.2 SR4: LINKAGE-only data + a
     /// header-only procedure division, screened by <c>PrototypeUnitRules</c>). A function prototype contributes
     /// its signature to the user-function table (M2-UDF-3), a program prototype to the REPOSITORY program-specifier
-    /// resolution (§2023:12.3.8.4 GR10 b)); neither emits a body nor registers in the run unit — the definition
+    /// resolution (§2023:12.3.8.4 GR10b); neither emits a body nor registers in the run unit — the definition
     /// (in-group, else separately compiled) is the activation target. <see cref="IsFunction"/> says which kind.</summary>
     public bool IsPrototype;
     /// <summary>What the unit's data binding hands a backend (<see cref="DataBindResult"/>), frozen once the group tail has
@@ -67,7 +67,7 @@ internal sealed class BoundUnit
     public RepositoryRecord? Record;
 
     /// <summary>The §2023:14.8.2 description of each FORMAL, in <c>Linkage.Formals</c> order, and the §2023:14.8.3 description of the
-    /// RETURNING item (<see cref="ReturningDescription"/>), each null for an item with no crossing form: what §2023:14.9.4.4 GR3 d)
+    /// RETURNING item (<see cref="ReturningDescription"/>), each null for an item with no crossing form: what §2023:14.9.4.4 GR3d
     /// compares at a CALL located by name at run time. Built by the binder's one description builder
     /// (<c>ActivationDescriptions</c>) at the end of the bind (<c>BackendAnswers</c>; kb/Work PB2403) for a unit a backend
     /// describes: one that checks EC-PROGRAM-ARG-MISMATCH itself (its registration states them) or publishes a host entry

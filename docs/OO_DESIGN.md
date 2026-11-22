@@ -427,7 +427,7 @@ The procedure-division header's BY phrases parse and CARRY on a method (kb/Work 
    compiled, where §2023:9.3.8.2.3 GR3 refuses it (a group has no PICTURE clause; §2023:8.4.3.9.3 SR7 likewise). A bit /
    national group stays the same description as the elementary `PIC 1(m)` / `N(m)` item of its usage (§2023:13.18.29.4 GR1
    b) / GR2 b)); two fixed groups are the same description at the same length, two variable-length groups when
-   compatible at the same collapsed length (§2023:9.3.5.3 item 7 keeps a variable-length group apart from a fixed one).
+   compatible at the same collapsed length (§2023:9.3.5.3 GR7 keeps a variable-length group apart from a fixed one).
    **A signature is compared as TEXT; a pointer formal is its TO phrase (kb/Work PB4491).** A restricted program- or
    function-pointer's description is its USAGE clause — `Clauses`, the TO phrase by the folded externalized name of the
    prototype it names, and the same inside a strong group's `StrongType` key (docs/CONFORMANCE.md D-RP1) — for every
@@ -997,7 +997,7 @@ derivation of the emitted type (PicInfo.ClrType and StorageForm.ObjectRef both r
   01 A USAGE OBJECT REFERENCE ACTIVE-CLASS.        → private OWNER? A = null;         // GR22 e)2. — the CONTAINING class
   01 FA USAGE OBJECT REFERENCE FACTORY OF ACTIVE-CLASS. → private __FACTORY_OWNER? FA = null;  // GR22 e)1.
   (ONLY and the FACTORY axis are STATIC facts the C# type cannot carry — an ONLY reference emits the same C#
-   type as a plain one; §2023:14.9.39.3 SR12a1./a)3. enforce them at BIND time, which is where the standard puts
+   type as a plain one; §2023:14.9.39.3 SR12a.1./a)3. enforce them at BIND time, which is where the standard puts
    them. ACTIVE-CLASS emits the containing class for a LOCAL: GR22 e) admits that class or a subclass of it, both
    assignable. §2023:13.18.60.3 SR16 confines ACTIVE-CLASS to a factory definition, an instance definition, or a
    method's LINKAGE/LOCAL-STORAGE — and a method PROTOTYPE of an interface is a method definition (§2023:10.6.1 NOTE), so

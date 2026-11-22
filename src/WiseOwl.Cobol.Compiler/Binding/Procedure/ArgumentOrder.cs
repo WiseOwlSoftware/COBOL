@@ -34,7 +34,7 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// a value: <see cref="Hold"/> holds ITS arguments and the call is read over them, a pure selection reading what it read at its
 /// place. Any other held argument is described by its value (<c>FunctionDeviceText.Field</c>).</para>
 ///
-/// <para><b>A table(ALL) argument is a sequence of arguments, and is held as a table (kb/Work PB4162).</b> §2023:15.3 14): "When ALL is
+/// <para><b>A table(ALL) argument is a sequence of arguments, and is held as a table (kb/Work PB4162).</b> §2023:15.3 AR14: "When ALL is
 /// specified as a subscript, the effect is as if each table element associated with that subscript position were specified", each
 /// evaluated where it stands in the list. <c>IntrinsicBinder.TryBindAllArgument</c> records the operand it builds like any other, and
 /// <see cref="StoreAt"/> holds it with <see cref="SendingValueTemp.MaterializeTableAll"/>: a compiler-temporary TABLE of the element's
@@ -44,7 +44,7 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// <para><b>An object property is an argument evaluated IN ITS PLACE (kb/Work PB1932).</b> Its value is temp-1,
 /// "determined as though the associated get property method were invoked" (§2023:8.4.3.9.4 GR1), so the GET IS the
 /// argument's evaluation. Every property reference in a function argument is SENDING — an intrinsic argument always
-/// is, and a user function's identifier argument is BY REFERENCE "other than an object property" (§2023:8.4.3.2.4 GR5 a))
+/// is, and a user function's identifier argument is BY REFERENCE "other than an object property" (§2023:8.4.3.2.4 GR5a)
 /// — so <see cref="Record"/> moves the GETs the argument registered from the statement-level property list (whose
 /// wrap runs them ahead of EVERY pre-op of the statement) onto the pending pre-op list at the argument's position.
 /// The argument then counts as one that registered pre-ops, an earlier argument it could change is frozen before it,
@@ -56,7 +56,7 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// list, and no later argument writes it. A BY REFERENCE identifier argument of a user function designates its
 /// storage, and §2023:8.4.3.2.4 GR6a says "the values of argument-1 are made available to the activated function at
 /// the time control is transferred" — the caller of <see cref="Window.Freeze"/> never offers it. A BOOLEAN-EXPRESSION
-/// argument is stored by COMPUTE Format 2's own store into a boolean item of §2023:8.8.2 rule 10's length
+/// argument is stored by COMPUTE Format 2's own store into a boolean item of §2023:8.8.2 GR10's length
 /// (<see cref="SendingValueTemp.MaterializeBoolean"/>); the one shape left alone is a boolean expression whose
 /// length is a run-time value, which no intermediate item can describe.</para>
 /// </summary>
@@ -245,7 +245,7 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
     {
         int start = Pending.Mark();
         added = 0;
-        // A boolean-expression argument has its own store (COMPUTE Format 2's) and its own length (§2023:8.8.2 rule 10); a
+        // A boolean-expression argument has its own store (COMPUTE Format 2's) and its own length (§2023:8.8.2 GR10); a
         // run-time length is the one shape no intermediate item can describe, and stays where it was.
         var held = operand switch
         {

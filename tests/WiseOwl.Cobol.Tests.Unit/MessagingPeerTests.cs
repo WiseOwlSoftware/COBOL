@@ -172,7 +172,7 @@ public sealed class MessagingPeerTests : IDisposable
         var served = OnThread(() => server.Receive(default, 40, MessageWait.Forever));
         var sent = requestor.Send("ENDS", MessageBody.Of("Q"));
         Assert.True(Result(served).Successful);
-        server.End(abnormal);                                                         // design 5.6: ISO §2023:14.6.11 item 7, §2023:14.6.12
+        server.End(abnormal);                                                         // design 5.6: ISO §2023:14.6.11 GR7, §2023:14.6.12
         var reply = requestor.Receive(sent.Tag, 100, MessageWait.Forever);
         Assert.Equal(expected, reply.ExceptionName);
         Assert.Equal(new string(' ', 40), reply.Image);                               // spaces of the size the RECEIVE recorded

@@ -105,7 +105,7 @@ public sealed class FunctionValueIntermediateDriftTests : WiseOwlCobolTestBase
         @"FormatFloatStore\(CobolDec\.FromApproximation\(\(double\)\(__sendval\d+_MOVE\)\)", RegexOptions.Compiled);
 
     /// <summary>⛔ AN EXACT VALUE WHOSE EVERY RECEIVER IS FLOATING-POINT IS HELD IN THE RECEIVERS' OWN BINARY FORMAT, AND A
-    /// BINARY32 SET NEVER ON A BINARY64 (kb/Work PB3268, review R2-1). ISO §2023:14.6.8.3 rule 2 converts the value to a
+    /// BINARY32 SET NEVER ON A BINARY64 (kb/Work PB3268, review R2-1). ISO §2023:14.6.8.3 GR2 converts the value to a
     /// binary32 receiver "in a manner consistent with the specifications of ISO/IEC 60559" — one rounding; a binary64
     /// intermediate narrowed into a binary32 receiver is two (kb/Work PB1110). A binary32 receiver beside a binary64 one,
     /// and a floating-point receiver beside a fixed-point one, have no float format that converts once for both and no

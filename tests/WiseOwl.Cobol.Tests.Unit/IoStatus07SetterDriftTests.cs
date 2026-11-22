@@ -52,7 +52,7 @@ public sealed class IoStatus07SetterDriftTests
                     ?? node.Ancestors().OfType<BaseTypeDeclarationSyntax>().First().Identifier.Text,
         };
 
-    /// <summary>The named constant is read in exactly the two dispatches §2023:9.1.13.2 item 6 names statements for, and in
+    /// <summary>The named constant is read in exactly the two dispatches §2023:9.1.13.2 GR6 names statements for, and in
     /// both — a setter that moved, was deleted or was added fails here with its location.</summary>
     [Fact]
     public void TheNamedConstant_IsUsedOnlyByTheCloseDispatchAndTheOpenNoRewindArm()

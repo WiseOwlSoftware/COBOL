@@ -19,7 +19,7 @@
       *> Nothing pinned r3 for FORMATTED-DATETIME before this file: every
       *> existing golden's four-argument call uses a UTC ('Z') format.
       *>
-      *> THE DIRECTION OF r2's ADJUSTMENT IS NOT IN r2. §2023:15.3.3.6.1 item 1
+      *> THE DIRECTION OF r2's ADJUSTMENT IS NOT IN r2. §2023:15.3.3.6.1 GR1
       *> supplies it - "A plus sign to indicate that the common time portion
       *> of the data is adjusted DOWNWARD by the offset values to represent
       *> UTC" - and r3 makes a positive argument-4 render with that plus

@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// exactly two subjects — "an elementary item" (bounded by "the size indicated by an <b>explicit</b> PICTURE
 /// clause") and a group item (bounded by "the size of the group item"). A CONDITION-NAME is neither: a Format-3
 /// entry is <c>88 condition-name-1 value-clause .</c> (§2023:13.16.2), which admits no PICTURE clause, and §2023:13.18.63.3
-/// SR33 makes that level-88 entry the subject; §2023:8.5.1.3.2 item 3 gives a condition-name entry "no true concept of
+/// SR33 makes that level-88 entry the subject; §2023:8.5.1.3.2 GR3 gives a condition-name entry "no true concept of
 /// level", so it is neither of §2023:8.5.1.3.1's record subdivisions; and §2023:13.18.63.4 GR19 gives it its conditional
 /// variable's characteristics only IMPLICITLY — which is what "explicit" excludes. The three level-88 call sites
 /// in <c>DataBinder.BindCondition</c> nevertheless handed the screen the CONDITIONAL VARIABLE's size, so all three
@@ -38,7 +38,7 @@ public sealed class ConditionNameValueSizeTests
 
     /// <summary>§2023:13.18.63.3 SR4 sentence 2 does not reach a Format-3 subject from COBOL-2002 on (§2002:13.16.61.2 SR4
     /// has the same "elementary item" and "explicit PICTURE clause" words), so all three compile and produce the same
-    /// answer: §2023:8.8.4.5.3 item 2 sends the comparison to the relation-condition rules, which space-extend the
+    /// answer: §2023:8.8.4.5.3 GR2 sends the comparison to the relation-condition rules, which space-extend the
     /// shorter operand, so a literal longer than the conditional variable never compares equal. COBOL-85 bounds it:
     /// <see cref="At85_AnOversizeAlphanumericConditionNameLiteral_IsRefusedBySr3"/>.</summary>
     [Theory]

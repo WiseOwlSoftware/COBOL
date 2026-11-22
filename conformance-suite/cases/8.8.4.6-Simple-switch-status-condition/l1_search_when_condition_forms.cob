@@ -130,7 +130,7 @@
                    DISPLAY "R9=" WS-N
            END-SEARCH.
       *> §2023:8.8.4.12 abbreviated combined relation condition, subject AND
-      *> relational operator omitted (§2023:8.8.4.12.1 item 2). §2023:8.8.4.12.4:
+      *> relational operator omitted (§2023:8.8.4.12.1 SR2). §2023:8.8.4.12.4:
       *> the last stated subject and operator are inserted, so
       *> "= 9 OR 7" is (K = 9) OR (K = 7), first true at occurrence 4.
       *> The implied insertion is load-bearing here: a compiler that

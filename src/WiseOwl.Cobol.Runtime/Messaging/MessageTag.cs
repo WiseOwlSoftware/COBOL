@@ -24,7 +24,7 @@ public enum MessageParty
 /// its own, the slot rule of DOC-A.1-210 (<see cref="FunctionPointer"/>).
 /// <para>The contents are the MCS's identity, the party's role, the server's name or the requestor run unit's
 /// identity, and the message's serial number. <see cref="Null"/> (the default) is the value with no party
-/// (§2023:8.4.3.10.3 SR1 b), §2023:8.4.3.10.4 GR4). Only the message control system makes a non-null tag; a program copies tags
+/// (§2023:8.4.3.10.3 SR1b, §2023:8.4.3.10.4 GR4). Only the message control system makes a non-null tag; a program copies tags
 /// (SET, a strongly-typed group MOVE, a parameter, a message) and compares them.</para>
 /// <para>⛔ A <c>readonly struct</c>, NOT a record: C# has no <c>==</c> an emitter could mistake for §2023:8.8.4.2.14's
 /// equality, which <see cref="SameParty"/> alone decides.</para>

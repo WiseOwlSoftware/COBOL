@@ -31,7 +31,7 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
     /// <summary>Start offsets of the offending tokens already reported as COBOL0901 (kb/Work PB693).
     /// ANTLR can raise TWO syntax errors on one offending token — the prediction failure and
     /// <c>CobolErrorStrategy</c>'s recovery message — and the strategy names the word's §2023:8.9 violation in both, so
-    /// without this the user is told twice that the word is reserved. ISO §2023:8.3.2.1 rule 1 is violated ONCE by one
+    /// without this the user is told twice that the word is reserved. ISO §2023:8.3.2.1 SR1 is violated ONCE by one
     /// occurrence of the word, and that is how often it is reported; bounded by <see cref="MaxErrors"/>.</summary>
     private readonly HashSet<int> _reservedWordReported = [];
 

@@ -34,7 +34,7 @@
       *>
       *> C1..C3 walk the same file through the other connector.  C3 is
       *> the CONTROL: the third record is locked by another file
-      *> connector, so §2023:14.9.30.4 GR9 + §2023:9.1.13.8 item 1 make it '51'
+      *> connector, so §2023:14.9.30.4 GR9 + §2023:9.1.13.8 GR1 make it '51'
       *> and GR10 a) leaves C's file position indicator unchanged.
       *>
       *> A4 is the SUBJECT.  It is a plain READ that finds no next

@@ -139,16 +139,16 @@ internal static class HostCapability
     /// <see cref="FileShare.ReadWrite"/>, exactly as <c>FileLockPostureDriftTests</c> does, so the probe never
     /// manufactures the refusal it is measuring.</para></summary>
     /// <param name="ExclusiveRefusesAnOutsideReader">A <see cref="FileShare.None"/> handle outstanding: may an
-    /// outsider still READ? §2023:9.1.15 1) says no.</param>
+    /// outsider still READ? §2023:9.1.15 GR1 says no.</param>
     /// <param name="ExclusiveRefusesAnOutsideWriter">The same handle: may an outsider still WRITE?</param>
     /// <param name="ReadShareAdmitsAnOutsideReader">A <see cref="FileShare.Read"/> handle outstanding: may an
-    /// outsider READ? §2023:9.1.15 2) says yes — it restricts others <i>"to input mode"</i>, it does not exclude
+    /// outsider READ? §2023:9.1.15 GR2 says yes — it restricts others <i>"to input mode"</i>, it does not exclude
     /// them.</param>
     /// <param name="ReadShareRefusesAnOutsideWriter">⛔ THE DISCRIMINATING ONE. The same handle: is an outsider's
     /// WRITE refused? Only a host whose sharing is access-discriminating can answer yes; a host whose sharing is
     /// one advisory lock with two states cannot express the distinction at all.</param>
     /// <param name="ReadWriteShareAdmitsAnOutsideWriter">A <see cref="FileShare.ReadWrite"/> handle outstanding:
-    /// may an outsider WRITE? §2023:9.1.15 3) says yes.</param>
+    /// may an outsider WRITE? §2023:9.1.15 GR3 says yes.</param>
     /// <param name="Because">The measurement, as text, for the failure message that quotes it.</param>
     public readonly record struct SharingFacts(
         bool ExclusiveRefusesAnOutsideReader,
@@ -158,12 +158,12 @@ internal static class HostCapability
         bool ReadWriteShareAdmitsAnOutsideWriter,
         string Because)
     {
-        /// <summary>Whether this host can express ISO §2023:9.1.15 2) at all — a share mode that admits a reader and
+        /// <summary>Whether this host can express ISO §2023:9.1.15 GR2 at all — a share mode that admits a reader and
         /// refuses a writer. Windows' share modes are mandatory and per-access, so it can; a host that maps
         /// every share mode but <see cref="FileShare.None"/> onto one shared advisory lock cannot.</summary>
         public bool SeparatesReadersFromWriters => ReadShareAdmitsAnOutsideReader && ReadShareRefusesAnOutsideWriter;
 
-        /// <summary>Whether this host can express ISO §2023:9.1.15 1)'s <i>exclusive access</i> against a handle that
+        /// <summary>Whether this host can express ISO §2023:9.1.15 GR1's <i>exclusive access</i> against a handle that
         /// is not this run unit's.</summary>
         public bool EnforcesExclusiveAccess => ExclusiveRefusesAnOutsideReader && ExclusiveRefusesAnOutsideWriter;
     }

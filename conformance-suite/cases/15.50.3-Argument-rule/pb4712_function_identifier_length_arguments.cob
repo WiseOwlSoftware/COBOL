@@ -11,7 +11,7 @@
       *> (§2023:8.4.3.2.4 r1), so each bare function below is a legal argument:
       *>   ABS(I2)                    - a copy of its argument's item, S9(4): 4 positions, 4 bytes (§2023:15.4.1, DOC-A.1-92);
       *>   BOOLEAN-OF-INTEGER(5 4)    - 4 boolean positions (§2023:15.50.4 r1), occupying one byte (§2023:15.14.4 r4);
-      *>   UPPER-CASE(X9)             - an alphanumeric result of the argument's 9 positions (§2023:15.2 item 1).
+      *>   UPPER-CASE(X9)             - an alphanumeric result of the argument's 9 positions (§2023:15.2 GR1).
       *> A parenthesis INSIDE the function's own argument list is not the argument's: ABS((I2)) is still a bare function.
       *> Each leg can fail by the argument's parentheses being read as the argument's own, or by the function-identifier arm losing the
       *> bare spelling that the parenthesized refusal now separates from it.

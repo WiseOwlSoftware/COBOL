@@ -39,7 +39,7 @@ public sealed class CobolVarGroupNestedTests
         Assert.Equal("hzz", got.Fixed);
         var elements = got.ElementsAt(0)!;
         Assert.Equal(2, elements.Length);
-        // IT's superfluous "q" is not moved into the ONE-occurrence table (§2023:14.6.9.2 rule 1).
+        // IT's superfluous "q" is not moved into the ONE-occurrence table (§2023:14.6.9.2 GR1).
         Assert.Equal(("p", "ab"), (elements[0].Fixed, elements[0].Dyn(0)));
         Assert.Equal(("r", "c"), (elements[1].Fixed, elements[1].Dyn(0)));
         // And back: the fixed table's one occurrence becomes a dynamic table of capacity 1.

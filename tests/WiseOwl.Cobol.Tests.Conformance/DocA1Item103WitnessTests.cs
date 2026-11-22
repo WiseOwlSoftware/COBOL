@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// handler ends the run unit for a file with no FILE STATUS clause).</para>
 ///
 /// <para><b>Every expected value is derived from the rules, not observed.</b> OPEN INPUT of a non-optional file whose
-/// physical file is not present sets I-O status '35' (§2023:9.1.13.6 rule 5), whose first digit '3' makes it fatal and
+/// physical file is not present sets I-O status '35' (§2023:9.1.13.6 GR5), whose first digit '3' makes it fatal and
 /// maps it to EC-I-O-PERMANENT-ERROR (§2023:9.1.13.1). A WRITE to a file that is not open sets '48' (§2023:9.1.13.7), fatal
 /// by its first digit '4' and EC-I-O-LOGIC-ERROR. The at end condition ('10', first digit 1) is not fatal.</para>
 /// </summary>
@@ -42,7 +42,7 @@ public sealed class DocA1Item103WitnessTests
         Assert.Equal(expectedStdout, stdout);
     }
 
-    [Fact]   // §2023:9.1.13.6 rule 5 → '35' is fatal; no FILE STATUS, no USE procedure → the run unit terminates.
+    [Fact]   // §2023:9.1.13.6 GR5 → '35' is fatal; no FILE STATUS, no USE procedure → the run unit terminates.
     public void FatalStatus_NoFileStatusNoUse_TerminatesAbnormally()
         => AssertTerminates("""
             IDENTIFICATION DIVISION.
@@ -139,7 +139,7 @@ public sealed class DocA1Item103WitnessTests
                 STOP RUN.
             """, "IN USE\nAFTER-OPEN");
 
-    [Fact]   // CONTROL: the statement's own ON EXCEPTION phrase covers every unsuccessful family (§2023:14.9.10.4 GR20 c).
+    [Fact]   // CONTROL: the statement's own ON EXCEPTION phrase covers every unsuccessful family (§2023:14.9.10.4 GR20c).
     public void FatalStatus_WithOnExceptionPhrase_Continues()
         => AssertContinues("""
             IDENTIFICATION DIVISION.
@@ -191,14 +191,14 @@ public sealed class DocA1Item103WitnessTests
 
     // ── The SORT/MERGE implicit transfers (kb/Work PB2700) ──────────────────────────────────────────────────────────
     // Each as-if statement is performed "as if an OPEN statement with the INPUT phrase ... had been executed"
-    // (§2023:14.9.40.4 GR12 a), §2023:14.9.24.4 GR7 a)) — "as if an OPEN statement with the OUTPUT and SHARING WITH NO OTHER
+    // (§2023:14.9.40.4 GR12a, §2023:14.9.24.4 GR7a) — "as if an OPEN statement with the OUTPUT and SHARING WITH NO OTHER
     // phrases had been executed" for a GIVING file (GR15 a), GR12 a)) — so its fatal status meets the same §2023:9.1.13.1
     // determination as the explicit OPEN's. The verb's rules ("the SORT is terminated") are what the CONTINUED run
     // unit does with the statement. Before PB2700 the implicit OPEN's hook never asked the question: the SORT ended
     // and the program carried on silently with nothing sorted. The covered arms (FILE STATUS, USE) are the corpus
     // golden 85/pb2700_sort_merge_missing_using_covered.
 
-    [Fact]   // §2023:9.1.13.6 rule 5 → the USING file's implicit OPEN INPUT is '35'; nothing covers it → the run unit ends.
+    [Fact]   // §2023:9.1.13.6 GR5 → the USING file's implicit OPEN INPUT is '35'; nothing covers it → the run unit ends.
     public void SortUsingFileMissing_NoFileStatusNoUse_TerminatesAbnormally()
         => AssertTerminates("""
             IDENTIFICATION DIVISION.
@@ -290,7 +290,7 @@ public sealed class DocA1Item103WitnessTests
                 RELEASE SW-REC.
             """, "EC-I-O-PERMANENT-ERROR", "SORT GIVING implicit OPEN", "BEFORE");
 
-    [Fact]   // CONTROL: with checking ENABLED for the condition, §2023:14.6.13.1.3 2) gives the status to the SORT's own rules
+    [Fact]   // CONTROL: with checking ENABLED for the condition, §2023:14.6.13.1.3 GR2 gives the status to the SORT's own rules
              // (kb/Work PB993): the SORT is terminated and the run unit continues — the "not enabled" half of the question.
     public void SortUsingFileMissing_CheckingEnabled_FollowsTheVerbRule()
         => AssertContinues("""
@@ -320,12 +320,12 @@ public sealed class DocA1Item103WitnessTests
                 DISPLAY "IN-OP".
             """, "AFTER-SORT EC-I-O-PERMANENT-ERROR");
 
-    // The implementor-defined '91' (§2023:9.1.13.11 item 1; DOC-A.1-110: a record character with no byte image in the file's
+    // The implementor-defined '91' (§2023:9.1.13.11 GR1; DOC-A.1-110: a record character with no byte image in the file's
     // coded character set) is FATAL because WiseOwl COBOL defines it so: §2023:9.1.13.1 makes a status that begins with the
     // digit 9 fatal only when the implementor defines it as fatal (3, 4 and 7 are fatal by their first digit alone), and
     // DOC-A.1-110 records that definition. Its status-to-condition correspondence is EC-I-O-IMP. Both halves are
     // pinned for a WRITE whose record holds U+2603 (kb/Work PB3681): the FILE STATUS item receives '91' and execution continues while
-    // checking is not enabled, and with checking ENABLED §2023:14.6.13.1.3 rule 7 ends the run unit although the file has a
+    // checking is not enabled, and with checking ENABLED §2023:14.6.13.1.3 GR7 ends the run unit although the file has a
     // FILE STATUS clause (DOC-A.1-103) -- the same rule that ends it for '48' and '35'.
     private static string CharacterWithoutByteImageWrite(string turn) => """
             IDENTIFICATION DIVISION.
@@ -357,7 +357,7 @@ public sealed class DocA1Item103WitnessTests
     public void CharacterWithoutByteImage_Status91_WithFileStatusClause_Continues()
         => AssertContinues(CharacterWithoutByteImageWrite(""), "AFTER-WRITE FS=91");
 
-    [Fact]   // §2023:14.6.13.1.3 rule 7: checking for EC-I-O-IMP enabled and nothing applicable -> abnormal termination, FILE STATUS or not.
+    [Fact]   // §2023:14.6.13.1.3 GR7: checking for EC-I-O-IMP enabled and nothing applicable -> abnormal termination, FILE STATUS or not.
     public void CharacterWithoutByteImage_Status91_CheckingEnabled_TerminatesAbnormally()
     {
         // The checked path's message names the condition, status and file but not the statement (the unchecked

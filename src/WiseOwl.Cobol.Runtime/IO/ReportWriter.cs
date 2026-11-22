@@ -186,7 +186,7 @@ public sealed class ReportGroup(ReportGroupKind kind, string name, int controlLe
     /// presentation's snapshot at <paramref name="PresentSlot"/> (§2023:13.18.54.4 GR11; −1 = always present).</summary>
     /// <paramref name="CrossFoot"/> marks the additions that are the group's OWN sum-counter arithmetic — the addend is a
     /// sum counter of this group (roll forward) or the counter added into is defined in this group (crossfoot) — which
-    /// precede the group's USE BEFORE REPORTING declarative (§1985:XIII.3.20.4 GR10 a)/b); §2023:14.9.49.4 GR9 b)). Any
+    /// precede the group's USE BEFORE REPORTING declarative (§1985:XIII.3.20.4 GR10 a)/b); §2023:14.9.49.4 GR9b). Any
     /// other addition is a data entry's contribution into ANOTHER group's counter (a detail's SOURCE added into its
     /// control footing's total): it follows the declarative, which may compute the entry's source (kb/Work PB5127).</summary>
     internal readonly record struct RolledAddition(CobolReport Target, int SumId, int PresentSlot, Func<Int128, Int128> Apply, bool CrossFoot);
@@ -196,7 +196,7 @@ public sealed class ReportGroup(ReportGroupKind kind, string name, int controlLe
 
     /// <summary>A control heading written with the OR PAGE phrase (ISO §2023:13.18.57.2): "The OR PAGE phrase causes the
     /// associated control heading to be printed in addition after each page advance, following any page heading"
-    /// (§2023:13.18.57.4 GR6 c)). Read by <see cref="CobolReport"/>'s page advance only; false for every other group.</summary>
+    /// (§2023:13.18.57.4 GR6c). Read by <see cref="CobolReport"/>'s page advance only; false for every other group.</summary>
     public bool OrPage { get; set; }
 
     /// <summary>⛔ ONE PRESENCE SNAPSHOT PER GROUP PRESENTATION (kb/Work PB1272). ISO §2023:13.18.41.4 GR2: "condition-1
@@ -304,7 +304,7 @@ public sealed class CobolReport(
     public bool IsActive => _active;
     private bool _started;                 // a GENERATE has executed since INITIATE (§2023:14.9.46.4 GR2/GR3)
     private bool _firstBodySinceInitiate;  // the §2023:13.18.35.4 GR4 page-fit exemption
-    private bool _firstBodyOnPage;         // the §2023:13.18.35.4 GR5b3 FIRST DETAIL placement
+    private bool _firstBodyOnPage;         // the §2023:13.18.35.4 GR5b.3 FIRST DETAIL placement
     private bool _rhOnThisPage;            // a report heading printed on the current page (GR5b2)
     private bool _pfOnThisPage;            // a page footing printed on the current page (GR5b5)
     /// <summary>The <see cref="ReportGroup.Index"/> of the group whose USE BEFORE REPORTING declarative is running
@@ -331,7 +331,7 @@ public sealed class CobolReport(
     /// <summary>⛔ THE ONE EVALUATION OF THE CODE CLAUSE (§2023:13.18.12.4 GR3 — "If identifier-1 is specified, it is evaluated
     /// at the start of the processing for each body group, either during page advance processing, as detailed in the
     /// GENERATE statement, or whenever page advance processing is not performed. The resultant value is used until the
-    /// next evaluation."). It is called from exactly two places: <see cref="AdvancePage"/> at §2023:14.9.16.4 GR6 c), and
+    /// next evaluation."). It is called from exactly two places: <see cref="AdvancePage"/> at §2023:14.9.16.4 GR6c, and
     /// <see cref="PresentBody"/> for a body group whose presentation took NO page advance — plus the first GENERATE,
     /// whose report heading and page heading precede its first body group. A literal re-reads as the same constant.</summary>
     private void EvaluateCode() => _code = _codeRead?.Invoke() ?? "";
@@ -383,13 +383,13 @@ public sealed class CobolReport(
 
         /// <summary>⛔ THE BREAK TEST IS THE PROGRAM'S RELATION CONDITION, NOT AN ORDINAL IMAGE COMPARE (kb/Work
         /// PB1131). §2023:13.18.16.4 GR3 tests each control data item "for equality with the corresponding prior
-        /// control", and §2023:12.3.6.4 GR11 c) names that comparison — "Implicitly specified by the presence of a
+        /// control", and §2023:12.3.6.4 GR11c names that comparison — "Implicitly specified by the presence of a
         /// CONTROL clause in a report description entry" — among those whose truth value the alphanumeric and
         /// national PROGRAM COLLATING SEQUENCES determine. The compiler supplies the comparison the item's category
         /// takes under the program's sequence (the collated <c>CobolString.Compare</c> a relation condition over
         /// the same item renders); for an image-carried numeric item the comparison of two numeric operands
         /// (<see cref="NumericControlEqual"/>, kb/Work PB5782: §2023:8.8.4.2.4 "Zero is considered a unique value
-        /// regardless of the sign"; §1985:XIII.3.7.4 GR3 a), since -0 and +0 are two images of one value); null where
+        /// regardless of the sign"; §1985:XIII.3.7.4 GR3a, since -0 and +0 are two images of one value); null where
         /// that comparison IS code-unit equality of the two equal-length images — no program collating sequence in
         /// effect, or a boolean item (§2023:8.8.4.2.8 collates neither) or a numeric one that is not image-carried,
         /// whose image is a function of its value.</summary>
@@ -410,7 +410,7 @@ public sealed class CobolReport(
     // ── The floating-point prior-control channel (ISO §2023:13.18.16.4 GR3/GR4; kb/Work PB1234) ────────────────────
     // GR3 defines a prior control "having the same data description as the corresponding data item", and GR4 a)
     // stores the priors INTO the control items before the control footings print and restores the new current
-    // values afterwards — a same-usage copy each way, which §2023:14.9.25.4 GR6 c) makes a transfer "without change".
+    // values afterwards — a same-usage copy each way, which §2023:14.9.25.4 GR6c makes a transfer "without change".
     // A CONTROL entry saves its item as a string key, so a floating-point item's key is its BIT PATTERN: the
     // character (DISPLAY) image is a rounded rendering, and restoring through it would hand the program back a
     // value an ulp away from the one it held. The break test compares VALUES (−0 equals +0, as the program's own
@@ -489,7 +489,7 @@ public sealed class CobolReport(
         /// identifier-1"), or a pre-2023 figurative fill — puts THOSE characters in it, a non-digit included, exactly
         /// as it would in a stored item. <see cref="Value"/> alone cannot hold them, so they are kept here, with
         /// <see cref="Value"/> the image's lenient decode, until a numeric store replaces the content. A reference to
-        /// the content while they are not a valid numeric image is §2023:14.6.13.2 rule 2's incompatible data (<see cref="Current"/>).</summary>
+        /// the content while they are not a valid numeric image is §2023:14.6.13.2 GR2's incompatible data (<see cref="Current"/>).</summary>
         public string? Image;
 
         /// <summary>The counter's GR1 profile <see cref="Image"/> was stored under (the decode it is read back with).</summary>
@@ -497,7 +497,7 @@ public sealed class CobolReport(
 
         /// <summary>⛔ ISO §2023:13.18.54.4 GR1 — "Each entry containing a SUM clause establishes an independent sum
         /// counter AND SIZE ERROR INDICATOR" (kb/Work PB1130). Set by an addition that is a size error (GR3);
-        /// unset with the counter's reset — at INITIATE (§2023:14.9.21.4 GR1 a)) and at the end of the group that
+        /// unset with the counter's reset — at INITIATE (§2023:14.9.21.4 GR1a) and at the end of the group that
         /// prints it or of its RESET level's control footing (GR2). While it is set the printable item is filled
         /// with spaces (GR4).</summary>
         public bool SizeError;
@@ -524,7 +524,7 @@ public sealed class CobolReport(
 
         /// <summary>The counter's content as the addition's first operand (GR3: "consistent with the general rules of
         /// the ADD statement"): its value, or — when a store left characters that are not a numeric image — their
-        /// decode through the ONE checked sending read, which sets EC-DATA-INCOMPATIBLE (§2023:14.6.13.2 rule 2: "the
+        /// decode through the ONE checked sending read, which sets EC-DATA-INCOMPATIBLE (§2023:14.6.13.2 GR2: "the
         /// content of a numeric sending item … would evaluate to false in a numeric class condition").</summary>
         private Int128 Current() => Image is null ? Value : CobolNum.ParseImageSending(Image, ImageProfile);
 
@@ -543,7 +543,7 @@ public sealed class CobolReport(
             ImageProfile = profile;
         }
 
-        /// <summary>GR2 / §2023:14.9.21.4 GR1 a) — the counter set to zero and its size error indicator unset.</summary>
+        /// <summary>GR2 / §2023:14.9.21.4 GR1a — the counter set to zero and its size error indicator unset.</summary>
         public void Reset()
         {
             Value = 0;
@@ -557,7 +557,7 @@ public sealed class CobolReport(
         public ReportGroup PrintedIn { get; } = printedIn;
 
         /// <summary>The SUM entry's slot in <see cref="PrintedIn"/>'s presence snapshot — its full PRESENT WHEN
-        /// chain (ISO §2023:13.18.41.4 GR3 g) / §2023:13.18.54.4 GR10); −1 = unconditional. The printable face reads its own
+        /// chain (ISO §2023:13.18.41.4 GR3g / §2023:13.18.54.4 GR10); −1 = unconditional. The printable face reads its own
         /// slot of the SAME snapshot, so the entry is printed exactly when it is reset (kb/Work PB1272).</summary>
         public int PresentSlot { get; } = presentSlot;
     }
@@ -594,7 +594,7 @@ public sealed class CobolReport(
     }
 
     /// <summary>Register one CONTROL operand, major→minor order (ISO §2023:13.18.16.4 GR1/GR2; FINAL first).
-    /// <paramref name="equal"/> is the program's equality comparison for the item (§2023:12.3.6.4 GR11 c); see
+    /// <paramref name="equal"/> is the program's equality comparison for the item (§2023:12.3.6.4 GR11c); see
     /// <see cref="ControlEntry.Equal"/>), null when that comparison is code-unit equality.</summary>
     public void AddControl(bool isFinal, Func<string> get, Action<string> set, Func<string, string, bool>? equal = null) =>
         _controls.Add(new ControlEntry(isFinal, get, set, equal));
@@ -602,7 +602,7 @@ public sealed class CobolReport(
     /// <summary>Register a SUM counter (ISO §2023:13.18.54.4 GR1 — one per ENTRY containing a SUM clause).
     /// <paramref name="resetLevel"/> is the RESET control level (GR2; −1 = reset at the end of the group it
     /// prints in); <paramref name="presentSlot"/> is the entry's slot in <paramref name="printedIn"/>'s presence
-    /// snapshot (§2023:13.18.41.4 GR3 g) — absent suppresses the end-of-group reset; −1 = unconditional). The counter's
+    /// snapshot (§2023:13.18.41.4 GR3g — absent suppresses the end-of-group reset; −1 = unconditional). The counter's
     /// capacity (GR1's digit count of the entry's PICTURE, past which an addition is the GR3 size error, kb/Work
     /// PB1130) is enforced by the store each term's addition ends in, through the counter's own profile.
     /// The addends arrive through <see cref="AddSumTerm"/>, one call per <c>SUM … [UPON …]</c> group.
@@ -641,7 +641,7 @@ public sealed class CobolReport(
     public void AddRolled(ReportGroup source, int sumId, int presentSlot, Func<Int128, Int128> apply, bool crossFoot) =>
         source.Rolled.Add(new ReportGroup.RolledAddition(this, sumId, presentSlot, apply, crossFoot));
 
-    /// <summary>One SUM group's UPON on a detail of ANOTHER report (ISO §2023:13.18.54.4 GR7 c) 2) — "whenever any GENERATE
+    /// <summary>One SUM group's UPON on a detail of ANOTHER report (ISO §2023:13.18.54.4 GR7c.2) — "whenever any GENERATE
     /// statement is executed for a detail referenced by the UPON phrase", the detail being of a different report
     /// description, SR7 permits only the report-name qualifier to say so): register, on THIS report's engine, whose
     /// GENERATE of <paramref name="detailName"/> is the event, the addition into counter <paramref name="sumId"/> of
@@ -683,7 +683,7 @@ public sealed class CobolReport(
     /// a signed USAGE DISPLAY item carried as its image (docs/CONFORMANCE.md A.4.11; kb/Work PB2553), read by the
     /// generated compose of the printable item the counter is the source of (ISO §2023:13.18.54.4 GR4), by a rolled total,
     /// and by a procedure division statement that names the counter (GR5 + GR12), each through the ordinary
-    /// image-carried numeric read (§2023:14.6.13.2 rule 2's checked decode included).</summary>
+    /// image-carried numeric read (§2023:14.6.13.2 GR2's checked decode included).</summary>
     public string SumImage(int id, in NumProfile profile) => _sums[id].ImageOf(profile);
 
     /// <summary>The image of one OCCURRENCE of a repeating SUM entry's counter, selected by a procedure division
@@ -718,7 +718,7 @@ public sealed class CobolReport(
     public static int DependingCount(int value, int minOccurs, int maxOccurs) =>
         value >= minOccurs && value <= maxOccurs - 1 ? value : maxOccurs;
 
-    /// <summary>⛔ A REPEATING ENTRY'S SUM COUNTER IS A TABLE (kb/Work PB1271). ISO §2023:13.18.54.4 GR8 a) adds each
+    /// <summary>⛔ A REPEATING ENTRY'S SUM COUNTER IS A TABLE (kb/Work PB1271). ISO §2023:13.18.54.4 GR8a adds each
     /// occurrence of a repeating addend "into the corresponding occurrence of the sum counter", so an entry that is
     /// subject to an OCCURS clause, a multiple LINE clause or a multiple COLUMN clause (§2023:13.18.38 Format 3;
     /// §2023:13.18.35.4 GR9 and §2023:13.18.14.4 GR12 make the latter two simple OCCURS levels) has one counter per
@@ -877,7 +877,7 @@ public sealed class CobolReport(
     /// data-name statement for the same report, except that no detail is printed"). <paramref name="detailName"/> is the
     /// detail group the report has when it has exactly one (§1985:XIII.3.20.4 GR11, "as though a GENERATE data-name
     /// statement were being executed"): its SUM ... UPON subtotalling is performed (kb/Work PB5249) and the detail is
-    /// processed — its USE BEFORE REPORTING procedure runs (§1985:XIII.3.20.4 GR11 b), kb/Work PB5337) — but its
+    /// processed — its USE BEFORE REPORTING procedure runs (§1985:XIII.3.20.4 GR11b, kb/Work PB5337) — but its
     /// presentation is not. Null for a report with no single named detail.</summary>
     public void GenerateSummary(string? detailName, Func<int, bool>? beforeReporting = null) =>
         GenerateWith(detailName, printDetail: false, beforeReporting);
@@ -960,7 +960,7 @@ public sealed class CobolReport(
                     Accumulate(k, t.Apply);
             }
         // …and for a SUM group whose UPON names THIS report's detail while its counter belongs to ANOTHER report
-        // (§2023:13.18.54.4 GR7 c) 2), SR4 g)'s twin for UPON): the event is this GENERATE, the counter the target's.
+        // (§2023:13.18.54.4 GR7c.2, SR4 g)'s twin for UPON): the event is this GENERATE, the counter the target's.
         if (detailName is not null)
             foreach (var (triggerDetail, target, sumId, apply) in _generateTriggers)
                 if (CobolNames.Same(triggerDetail, detailName))
@@ -971,7 +971,7 @@ public sealed class CobolReport(
         {
             // GR2 — summary reporting is "the same processing as for a GENERATE data-name statement for the same report,
             // except that no detail is printed": the sole detail is PROCESSED (§2023:14.9.49.4 GR9 runs its USE BEFORE
-            // REPORTING procedure "on each occasion that the named report group is processed"; §1985:XIII.3.20.4 GR11 b)
+            // REPORTING procedure "on each occasion that the named report group is processed"; §1985:XIII.3.20.4 GR11b
             // runs it, and GR11 d) ends the processing there), so it takes the one group prologue — its own sum
             // additions, the declarative, its end-of-group reset — and no presentation. It leaves the GROUP INDICATE
             // occasion owed: §1985:XIII.3.13.4 GR1 keys it to a presentation, and §2023:13.18.28.4 GR1 to the occasion
@@ -994,7 +994,7 @@ public sealed class CobolReport(
 
     /// <summary>⛔ THE ONE CONTROL-FOOTING SEQUENCE — a control break at <paramref name="breakLevel"/> (§2023:14.9.16.4
     /// GR5 a)) and TERMINATE's "as though a control break has been sensed in the most major control data item"
-    /// (§2023:14.9.46.4 GR3 b), <paramref name="breakLevel"/> 0) both process the footings minor → break level. Each
+    /// (§2023:14.9.46.4 GR3b, <paramref name="breakLevel"/> 0) both process the footings minor → break level. Each
     /// LEVEL is processed whether or not a control footing is DECLARED for it, because §2023:13.18.54.4 GR2 resets a
     /// RESET ON counter "at the end of the processing of the control footing for the specified level of control.
     /// If no such control footing is defined, it is assumed to be present and to consist of a 01-level entry
@@ -1210,7 +1210,7 @@ public sealed class CobolReport(
         // The first line's position when the preceding body group's absolute NEXT GROUP filled the save location
         // (§2023:13.18.37.4 GR4a 3) — the ordinary GR5 placement otherwise.
         long? firstTarget = null;
-        bool advanced = false;   // a page advance was processed for THIS group (its §2023:14.9.16.4 GR6 c) evaluated the CODE)
+        bool advanced = false;   // a page advance was processed for THIS group (its §2023:14.9.16.4 GR6c evaluated the CODE)
         // From 2002 the save location forces the page advance whatever the page-fit test would say
         // (DialectBehavior.SavedNextGroupForcesPageAdvance, kb/Work PB5823). §1985:XIII.3.10.8 GR3 consults the saved
         // integer only AFTER a page advance: while a body group has been presented on the current page (the one whose
@@ -1353,7 +1353,7 @@ public sealed class CobolReport(
                 break;
             case ReportGroupKind.PageFooting:
                 // GR5 — the clause "affects any report footing defined in the current report using only relative
-                // LINE clauses": the footing is placed from LINE-COUNTER (§2023:13.18.35.4 GR5b5), so moving it here IS
+                // LINE clauses": the footing is placed from LINE-COUNTER (§2023:13.18.35.4 GR5b.5), so moving it here IS
                 // the effect. (SR5 forbids NEXT PAGE in a page footing.)
                 LineCounter = ReportLinePlacement.AfterHeadingOrFootingNextGroup(ng, LineCounter);   // GR5a, GR5b
                 break;
@@ -1412,11 +1412,11 @@ public sealed class CobolReport(
     /// runs here:
     /// <list type="bullet">
     /// <item>a group with no present line — no LINE clause at all, or every line absent under PRESENT WHEN /
-    /// OCCURS … DEPENDING. §2023:13.18.41.4 GR2 b) omits the ENTIRE group only when "the entry is a level-01 entry"
+    /// OCCURS … DEPENDING. §2023:13.18.41.4 GR2b omits the ENTIRE group only when "the entry is a level-01 entry"
     /// whose condition is false; an absent LINE entry is "as though the entry were omitted", which leaves a
     /// present 01-level entry alone — the very shape §2023:13.18.54.4 GR2 still treats as a control footing that is
     /// processed (kb/Work PB1272). A counter whose own entry is absent — which includes every counter of an absent
-    /// 01-level entry, since its chain carries the 01 condition — is not reset (§2023:13.18.41.4 GR3 g)). No line
+    /// 01-level entry, since its chain carries the 01 condition — is not reset (§2023:13.18.41.4 GR3g). No line
     /// prints, so nothing moves LINE-COUNTER or PAGE-COUNTER and no NEXT GROUP applies (§2023:8.4.3.15.4 GR5 — a dummy
     /// report group);</item>
     /// <item>a group whose declarative executed SUPPRESS (§2023:14.9.45.4 GR3 a)–d)): only the PRINTING half is
@@ -1432,7 +1432,7 @@ public sealed class CobolReport(
     private bool BeginGroup(ReportGroup group, out int first, bool reprint = false, bool print = true)
     {
         // ⛔ THE GROUP'S OWN SUM ADDITIONS PRECEDE ITS USE PROCEDURE. §1985:XIII.3.20.4 GR10 a)–c) orders a control
-        // footing's processing: a) crossfoot, b) roll forward, c) "the USE procedure is executed"; §2023:14.9.49.4 GR9 b)
+        // footing's processing: a) crossfoot, b) roll forward, c) "the USE procedure is executed"; §2023:14.9.49.4 GR9b
         // invokes the declarative "After incrementing sum counters defined in the report group". A USE procedure that
         // reads (or SUPPRESSes on) its group's crossfooted or rolled totals therefore sees them current, never the
         // previous instance's (kb/Work PB5127).
@@ -1485,7 +1485,7 @@ public sealed class CobolReport(
     /// <summary>The §2023:14.9.16.4 GR6 page advance, in the GR's order: (a) the page footing, (b) the physical
     /// advance to the next page, (c) CODE evaluation (<see cref="EvaluateCode"/> — the new page's records carry
     /// the new value, and the page footing of step (a) was written with the old one), (d) PAGE-COUNTER + 1, or 1 after a NEXT GROUP NEXT PAGE WITH RESET, (e) LINE-COUNTER ←
-    /// 0, (f) the page heading — and then the control headings written with OR PAGE (§2023:13.18.57.4 GR6 c), see
+    /// 0, (f) the page heading — and then the control headings written with OR PAGE (§2023:13.18.57.4 GR6c), see
     /// <see cref="PresentOrPageHeadings"/>). <paramref name="causing"/> is the body group whose presentation needed
     /// the advance: the headings reprinted depend on it.</summary>
     private void AdvancePage(ReportGroup causing) =>
@@ -1495,13 +1495,13 @@ public sealed class CobolReport(
             PageFeed();                                                      // GR6b–e
             EvaluateCode();                                                  // GR6c — §2023:13.18.12.4 GR3
             if (_pageHeading is not null) PresentPageHeading();              // GR6f
-            PresentOrPageHeadings(causing);                                  // §2023:13.18.57.4 GR6 c)
+            PresentOrPageHeadings(causing);                                  // §2023:13.18.57.4 GR6c
         });
 
     /// <summary>⛔ WHICH CONTROL VALUES A PAGE GROUP SEES WHILE A CONTROL FOOTING'S PHASE HAS THE PRIORS IN PLACE (kb/Work
-    /// PB5128; <see cref="DialectBehavior.ControlFootingPageGroupsSeePriorControlValues"/>). §2023:13.18.16.4 GR4 a), and
+    /// PB5128; <see cref="DialectBehavior.ControlFootingPageGroupsSeePriorControlValues"/>). §2023:13.18.16.4 GR4a, and
     /// the 2002 text it carries forward, give "any reference to a control data item" while the footings print the PRIOR
-    /// value, and say so of a page heading or page footing a footing's page advance reaches. §1985:XIII.3.20.4 GR13 a)
+    /// value, and say so of a page heading or page footing a footing's page advance reaches. §1985:XIII.3.20.4 GR13a
     /// and b) give the prior values ONLY to a control footing's own USE procedure and SOURCE clauses (and, at TERMINATE,
     /// the report footing's); GR13 c): "All other data item references within report groups and their USE procedures
     /// access the current values that are contained within the data items at the time the report group is processed".
@@ -1526,7 +1526,7 @@ public sealed class CobolReport(
 
     /// <summary>The control values saved at a control break (or at TERMINATE's GR3a), non-null exactly while that break's
     /// control footings are being processed — the footing phase during which the control items hold their PRIORS
-    /// (§2023:13.18.16.4 GR4 a)). Read by <see cref="AdvancePage"/> through <see cref="WithPageGroupControlValues"/>.</summary>
+    /// (§2023:13.18.16.4 GR4a). Read by <see cref="AdvancePage"/> through <see cref="WithPageGroupControlValues"/>.</summary>
     private string[]? _footingPhaseCurrent;
 
     /// <summary>The ISO edition the program was compiled for (the CLI's <c>--std</c>: 85 / 2002 / 2014 / 2023), baked in
@@ -1534,7 +1534,7 @@ public sealed class CobolReport(
     /// <see cref="DialectBehaviors.IsActive"/> question of this engine is asked with.</summary>
     public int Edition { get; init; } = 2023;
 
-    /// <summary>⛔ ISO §2023:13.18.57.4 GR6 c) — "The OR PAGE phrase causes the associated control heading to be printed
+    /// <summary>⛔ ISO §2023:13.18.57.4 GR6c — "The OR PAGE phrase causes the associated control heading to be printed
     /// in addition after each page advance, following any page heading, provided that the page advance did not
     /// take place just before the printing of a control footing at a lower control level." (kb/Work PB1298.)
     /// The headings are presented major → minor, like every run of control headings (GR6 c) 1.), each as the FIRST
@@ -1583,7 +1583,7 @@ public sealed class CobolReport(
         // the feed ends its (empty) line. An AFTER write would leave the connector standing on an "open" line — a
         // record presented after the feed — and the device is then NOT at the start of the new page's empty line 1,
         // which is what a null `_physLine` tells PresentLine (CobolFile.DeviceOnOpenLine) and what makes a zero
-        // advance on it an overprint return (§2023:14.9.51.4 GR25 c)).
+        // advance on it an overprint return (§2023:14.9.51.4 GR25c).
         CobolFile.WriteAdvancing(_fileName, "", -1, before: true, page: null);   // GR6b — form feed
         _physLine = null;
         // GR6d — "If the page advance was preceded by the printing of a group whose description has a NEXT GROUP
@@ -1598,7 +1598,7 @@ public sealed class CobolReport(
         ArmGroupIndicate();                                                  // §2023:13.18.28.4 GR1b — a page advance
     }
 
-    /// <summary>Present the page heading (placement ISO §2023:13.18.35.4 GR5b2: absolute → integer-1; relative with no
+    /// <summary>Present the page heading (placement ISO §2023:13.18.35.4 GR5b.2: absolute → integer-1; relative with no
     /// report heading on the page → HEADING + integer-2 − 1, with one → LINE-COUNTER + integer-2). "First" =
     /// the first PRESENT line (§2023:13.18.41.4 GR2/GR5); an all-absent PH prints nothing (GR2b).</summary>
     private void PresentPageHeading()
@@ -1611,7 +1611,7 @@ public sealed class CobolReport(
 
     /// <summary>Place every PRESENT line of a heading or footing group: the first by the one §2023:13.18.35.4 GR5 rule
     /// (<see cref="FirstLineTarget"/>, or <paramref name="firstTarget"/> when the caller owns that placement), the
-    /// rest by GR7. An absent line is skipped as though its entry were omitted (§2023:13.18.41.4 GR2 b)). False when a
+    /// rest by GR7. An absent line is skipped as though its entry were omitted (§2023:13.18.41.4 GR2b). False when a
     /// raised EC-REPORT-PAGE-LIMIT abandoned the rest of the group (<see cref="PresentLine"/>): the caller then
     /// resumes at the next report group, skipping the group's NEXT GROUP clause and its end-of-group reset.</summary>
     private bool PresentLines(ReportGroup group, long? firstTarget = null)
@@ -1627,7 +1627,7 @@ public sealed class CobolReport(
         return true;
     }
 
-    /// <summary>Present the page footing (placement ISO §2023:13.18.35.4 GR5b4: absolute → integer-1; relative →
+    /// <summary>Present the page footing (placement ISO §2023:13.18.35.4 GR5b.4: absolute → integer-1; relative →
     /// FOOTING + integer-2). "First" = the first PRESENT line (§2023:13.18.41.4 GR2/GR5); an all-absent PF prints
     /// nothing (GR2b).</summary>
     private void PresentPageFooting()
@@ -1641,7 +1641,7 @@ public sealed class CobolReport(
         EndOfGroupSumReset(pf);   // §2023:13.18.54.4 GR2 — a page total restarts with the page footing that printed it
     }
 
-    /// <summary>Present the report heading or report footing in flow (placement ISO §2023:13.18.35.4 GR5b1 for RH —
+    /// <summary>Present the report heading or report footing in flow (placement ISO §2023:13.18.35.4 GR5b.1 for RH —
     /// relative → HEADING + integer-2 − 1; GR5b5 for RF — relative → FOOTING + integer-2 unless a page footing
     /// printed on the same page, then LINE-COUNTER + integer-2; absolute → integer-1 for both; in a report NOT
     /// divided into pages, relative → LINE-COUNTER + integer-2 for both, GR5c — all in <see cref="FirstLineTarget"/>). "First" = the
@@ -1788,7 +1788,7 @@ public sealed class CobolReport(
         // last line, and INITIATE's null _physLine names an empty PAGE MODEL, not an empty device. The new page's
         // line 1 is then the line BELOW it, so the device stands at line 0 and the first line travels `target`
         // lines — one of which ends the open line. Reading it as "at line 1" gave a zero advance, which
-        // §2023:14.9.51.4 GR25 c) makes an overprint: the new run's first line landed ON the old run's last one.
+        // §2023:14.9.51.4 GR25c makes an overprint: the new run's first line landed ON the old run's last one.
         long firstPhysical = Math.Min(target, 1);   // the line number the page's first physical line carries
         long from = _physLine ?? (CobolFile.DeviceOnOpenLine(_fileName) ? firstPhysical - 1 : firstPhysical);
         int advance = (int)(target - from);
@@ -1840,7 +1840,7 @@ public sealed class CobolReport(
     /// <summary>Reset the SUM counters with no RESET phrase that <paramref name="group"/> prints: ISO §2023:13.18.54.4
     /// GR2 — "reset to zero and the size error indicator is unset at the end of the processing of the report group
     /// in which it is printed". A RESET ON counter resets with its LEVEL instead (<see cref="ProcessControlFootings"/>).
-    /// An entry absent in THIS presentation's snapshot is neither printed nor reset (§2023:13.18.41.4 GR3 g) /
+    /// An entry absent in THIS presentation's snapshot is neither printed nor reset (§2023:13.18.41.4 GR3g) /
     /// §2023:13.18.54.4 GR10): the compose reads the entry's printable face from the same snapshot, so the two halves
     /// cannot disagree (kb/Work PB1272).</summary>
     private void EndOfGroupSumReset(ReportGroup group)
@@ -1863,7 +1863,7 @@ public sealed class CobolReport(
     /// printed. If this rule is violated the EC-REPORT-COLUMN-OVERLAP exception condition is set to exist and the
     /// results are undefined." When it is RAISED, §2023:14.9.16.4 GR8 / §2023:14.9.46.4 GR5 resume "at the next report
     /// item": this item is not placed. With checking off it overwrites, as it always did. An ABSENT item never
-    /// reaches here (its compose guard), which is §2023:13.18.41.4 GR3 e) — the rule "not applied to items associated
+    /// reaches here (its compose guard), which is §2023:13.18.41.4 GR3e — the rule "not applied to items associated
     /// with absent data items".</item>
     /// <item>§2023:13.18.14.4 GR5 — an item whose final column exceeds the page width sets EC-REPORT-PAGE-WIDTH, and
     /// "the report line is truncated, and the report line is printed" — that outcome is stated, so it holds

@@ -194,7 +194,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             foreach (var item in tallyPhrase.inspectTallyingItem())
             {
                 // ⛔ THE TALLYING COUNTER IS A RECEIVING OPERAND, SO IT RESOLVES AT THE RECEIVING CHOKEPOINT
-                // (kb/Work PB429). §2023:14.9.22.4 GR12 a): "the content of the data item referenced by identifier-2
+                // (kb/Work PB429). §2023:14.9.22.4 GR12a: "the content of the data item referenced by identifier-2
                 // is incremented by one for each occurrence of literal-1 matched" — which makes identifier-2 a
                 // receiver, and ExpressionBinder.ResolveReceiving is where every receiver-side
                 // rule is written down ONCE: §2023:8.4.3.15.3 SR1 admits PAGE-COUNTER here ("any context where an
@@ -461,7 +461,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             // literal-1 ... were written" — so it substitutes BEFORE the identifier arm below, which would refuse it as
             // an undefined data-name, in the SAME bound shape the written literal produces, so SR3's class/zero-length
             // screens and SR4/SR6/SR7/SR9 all see it as one. A bare symbolic-character IS a figurative constant
-            // (§2023:12.3.7.4 GR11 a)) — the bare figurative operand, one character, with the SR6 / GR14 figurative expansion
+            // (§2023:12.3.7.4 GR11a) — the bare figurative operand, one character, with the SR6 / GR14 figurative expansion
             // the literal figuratives get, and identifier-1's class (SR3), so SR4 does not record it.
             if (host.Expr.LiteralAliasOf(dref) is { } alias)
                 return alias.IsNumeric

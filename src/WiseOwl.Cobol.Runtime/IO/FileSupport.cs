@@ -30,7 +30,7 @@ public enum OpenTapePhrase
     /// <summary>No tape phrase was written for this file-name.</summary>
     None,
     /// <summary>WITH NO REWIND — §2023:14.9.27.4 GR11/GR12; on this compiler's only medium category (a) Non-unit it
-    /// is ignored and the successful OPEN reports '07' (§2023:9.1.13.2 item 6).</summary>
+    /// is ignored and the successful OPEN reports '07' (§2023:9.1.13.2 GR6).</summary>
     NoRewind,
     /// <summary>REVERSED — the COBOL-85 phrase: the file is positioned at its END and every subsequent READ
     /// retrieves the PRECEDING record, the at end condition arising at the file's first record. Legal source
@@ -108,7 +108,7 @@ public enum WriteAdvanceKind : byte
     After,
     // ⛔ A `BeforeAndAfter` MEMBER LIVED HERE AND IS GONE (kb/Work PB712). It carried a SECOND advance amount for
     // `WRITE … BEFORE ADVANCING n AFTER ADVANCING m` — a spelling §2023:14.9.51.2 Format 1 never prints. The printed
-    // phrase has ONE `ADVANCING` operand and §2023:14.9.51.4 GR25 a) advances the page "the number of lines equal to
+    // phrase has ONE `ADVANCING` operand and §2023:14.9.51.4 GR25a advances the page "the number of lines equal to
     // that value", once; the two WORDS only place that one advance (GR25 e)/f)), and the combined form places it
     // exactly where BEFORE does. There are TWO presentation shapes, which is what this enum now spells.
 }
@@ -143,7 +143,7 @@ public enum FileRetryKind
     /// <summary>RETRY FOREVER — GR3: attempts until the operation completes, waiting between attempts while the
     /// holder is outside the run unit. A holder inside it — another file connector of this run unit — can never
     /// release while the statement runs, so there the conflict's own §2023:9.1.13 status stands, except that a wait on
-    /// a record locked by another file connector is the deadlock §2023:9.1.13.8 item 2 defines and this implementation
+    /// a record locked by another file connector is the deadlock §2023:9.1.13.8 GR2 defines and this implementation
     /// detects ('52'; A.1 item 109). See <c>FileRegistry.RetryLoop</c> and <c>ExhaustionStatus</c>.</summary>
     Forever,
 }
@@ -161,7 +161,7 @@ public enum FileRetryKind
 /// the DELETE FILE twin of the same defect was kb/Work PB140).</para></summary>
 public enum FilePresence
 {
-    /// <summary>The physical file is not present — §2023:9.1.13.6 item 5's '35' for a non-optional INPUT/I-O/EXTEND,
+    /// <summary>The physical file is not present — §2023:9.1.13.6 GR5's '35' for a non-optional INPUT/I-O/EXTEND,
     /// and the condition §2023:14.9.27.4 GR13 and GR17 both open with (<i>"If the file is not present"</i>) for the
     /// OPTIONAL at-end and creation arms.</summary>
     Absent,
@@ -233,7 +233,7 @@ public static class HostFile
     /// or the host cannot tell. It opens nothing another handle could refuse, or be refused by.</summary>
     internal static PhysicalFileIdentity? IdentityAt(string hostPath) => HostFileIdentity.At(hostPath);
 
-    /// <summary>Probe the physical file at <paramref name="hostPath"/>, distinguishing §2023:9.1.13.6 item 5's
+    /// <summary>Probe the physical file at <paramref name="hostPath"/>, distinguishing §2023:9.1.13.6 GR5's
     /// ABSENT from §2023:14.9.27.4 GR3's PRESENT-but-unauthorized. Never throws for either of those two.
     /// <para>The probe is <c>File.GetAttributes</c> rather than <c>File.Exists</c> precisely because its
     /// FAILURES carry the distinction: a missing file or directory raises
@@ -241,7 +241,7 @@ public static class HostFile
     /// <see cref="UnauthorizedAccessException"/>. <c>File.Exists</c> collapses both to <c>false</c>.</para>
     /// <para>A DIRECTORY at the path answers <see cref="FilePresence.Absent"/>: §2023:9.1.6's fixed file attributes
     /// describe a <i>physical file</i>, and a directory of that name is not one — so "the physical file is not
-    /// present" (§2023:9.1.13.6 item 5) is the true statement about it. That is also the answer <c>File.Exists</c>
+    /// present" (§2023:9.1.13.6 GR5) is the true statement about it. That is also the answer <c>File.Exists</c>
     /// gave, so the OPEN path is unchanged; DELETE FILE on a directory moves from a factually wrong '37'
     /// ("insufficient authority") to §2023:14.9.10.4 GR14's '05', the successful completion for a file that is not
     /// there.</para>
@@ -251,7 +251,7 @@ public static class HostFile
     /// PATH, not an input-output failure, so it belongs with Absent rather than with '30'; it is also the
     /// reading the keyed store's meta-page read (<c>Store.MetaPage.Describes</c>) already takes, and the answer
     /// <c>File.Exists</c> gave.</para>
-    /// <para>Every OTHER <see cref="IOException"/> PROPAGATES on purpose: §2023:9.1.13.6 item 1's '30' (<i>"A
+    /// <para>Every OTHER <see cref="IOException"/> PROPAGATES on purpose: §2023:9.1.13.6 GR1's '30' (<i>"A
     /// permanent error exists and no further information is available concerning the input-output
     /// operation"</i>) is mapped in exactly ONE place — <see cref="FileConnector.Open"/>'s catch — and a probe
     /// that swallowed it here would have to guess between '35' and '37' for a file it never reached.</para></summary>
@@ -262,8 +262,8 @@ public static class HostFile
             return File.GetAttributes(hostPath).HasFlag(FileAttributes.Directory)
                 ? FilePresence.Absent : FilePresence.Present;
         }
-        catch (FileNotFoundException) { return FilePresence.Absent; }              // §2023:9.1.13.6 item 5
-        catch (DirectoryNotFoundException) { return FilePresence.Absent; }         // §2023:9.1.13.6 item 5
+        catch (FileNotFoundException) { return FilePresence.Absent; }              // §2023:9.1.13.6 GR5
+        catch (DirectoryNotFoundException) { return FilePresence.Absent; }         // §2023:9.1.13.6 GR5
         catch (UnauthorizedAccessException) { return FilePresence.Unauthorized; }  // §2023:14.9.27.4 GR3 / item 6 b)
         catch (PathTooLongException) { return FilePresence.Absent; }               // a path shape, not an I/O failure
         catch (ArgumentException) { return FilePresence.Absent; }                  // not a file name the host takes
@@ -283,7 +283,7 @@ public static class HostFile
     /// most permissive request there is, so the probe itself never manufactures a sharing failure that the
     /// organization's own open would not have hit.</para>
     /// <para>ONLY <see cref="UnauthorizedAccessException"/> is an answer. Every other
-    /// <see cref="IOException"/> PROPAGATES on purpose, exactly as <see cref="Probe"/>'s do: §2023:9.1.13.6 item 1's
+    /// <see cref="IOException"/> PROPAGATES on purpose, exactly as <see cref="Probe"/>'s do: §2023:9.1.13.6 GR1's
     /// '30' (<i>"A permanent error exists and no further information is available concerning the input-output
     /// operation"</i>) is mapped in ONE place — <see cref="FileConnector.Open"/>'s catch — and a probe that
     /// swallowed a host refusal here would have to invent "writable" for a file it never reached. That is also
@@ -303,7 +303,7 @@ public static class HostFile
     /// environment refuse this operation because another handle holds the physical file in a manner that
     /// excludes it? That is §2023:9.1.13.9's condition — <i>"that physical file is already open by another file
     /// connector in a manner that conflicts with this request"</i> — and the host SAYS so, so it must never be
-    /// answered with §2023:9.1.13.6 item 1's '30', whose whole definition is that <i>"no further information is
+    /// answered with §2023:9.1.13.6 GR1's '30', whose whole definition is that <i>"no further information is
     /// available"</i>.
     /// <para>The host's own words, and nothing else: Windows reports <c>ERROR_SHARING_VIOLATION</c> (32) for a
     /// share-mode refusal and <c>ERROR_LOCK_VIOLATION</c> (33) for a byte-range one, both surfaced by .NET as
@@ -311,8 +311,8 @@ public static class HostFile
     /// and surfaces its refusal, <c>EWOULDBLOCK</c>, as the raw errno — 11 on Linux, 35 on the BSD family
     /// (macOS). The errno is a per-host fact, so the platform question is asked HERE, once, and never at a call
     /// site (kb/Work PB795).</para>
-    /// <para>The caller decides what the refusal MEANS for its statement — '61' for an OPEN (§2023:9.1.13.9 1)),
-    /// '62' for a DELETE FILE (§2023:9.1.13.9 2)) — because the standard gives the two statements different values
+    /// <para>The caller decides what the refusal MEANS for its statement — '61' for an OPEN (§2023:9.1.13.9 GR1),
+    /// '62' for a DELETE FILE (§2023:9.1.13.9 GR2) — because the standard gives the two statements different values
     /// for the one host fact.</para></summary>
     public static bool IsSharingRefusal(IOException refusal) => refusal.HResult switch
     {
@@ -356,7 +356,7 @@ public static class HostFile
     };
 
     /// <summary>Is the PRESENT physical file at <paramref name="hostPath"/> held open by a handle this call does
-    /// not own — §2023:9.1.13.9 2)'s <i>"that physical file is currently open by another file connector"</i>, asked of
+    /// not own — §2023:9.1.13.9 GR2's <i>"that physical file is currently open by another file connector"</i>, asked of
     /// the host for a connector that is not this run unit's (kb/Work PB860)?
     /// <para>⛔ ASKED BY REQUESTING EXCLUSIVE ACCESS, because the delete itself cannot answer it on every host.
     /// Windows refuses to delete a file any handle holds without <c>FILE_SHARE_DELETE</c>, but a Unix unlink
@@ -494,7 +494,7 @@ public static class HostFile
     /// <summary>Create the lock directory <paramref name="directory"/> beside a physical file, ⛔ WITH THE PERMISSIONS OF
     /// THE DIRECTORY THE PHYSICAL FILE IS IN (kb/Work PB2917): the first holder's umask (0755 at the default 022) would
     /// make a second user who may write the physical file's directory unable to publish into the lock directory, and
-    /// that user's OPEN would be granted where §2023:9.1.15 2) requires the refusal. Only the creator applies the mode, and
+    /// that user's OPEN would be granted where §2023:9.1.15 GR2 requires the refusal. Only the creator applies the mode, and
     /// only to a directory it created; a directory that exists is the first holder's and is left as it is. Windows has
     /// no such mode.
     /// <para>⛔ <c>EEXIST</c> FROM THE CREATION IS THE CLOSING-SIBLING RACE, NOT A HOST FAILURE, UNLESS A FILE HOLDS THE
@@ -515,7 +515,7 @@ public static class HostFile
     {
         // ⛔ NEVER THE PHYSICAL FILE'S OWN DIRECTORY (kb/Work PB3492's Linux witness): the lock directory lives BESIDE the file, and
         // Directory.CreateDirectory makes every missing parent, so a lock taken for a file whose directory was removed outside the
-        // run unit made that directory again and the OPEN that should answer '30' (§2023:9.1.13.6 1)) created the file in it.
+        // run unit made that directory again and the OPEN that should answer '30' (§2023:9.1.13.6 GR1) created the file in it.
         if (!ContainingDirectoryExists(directory))
             throw new DirectoryNotFoundException($"the directory of the lock directory '{directory}' is not there");
         if (OperatingSystem.IsWindows()) { Directory.CreateDirectory(directory); return; }
@@ -572,7 +572,7 @@ public static class HostFile
     /// <summary>⛔ THE ONE HOST CLASSIFICATION OF A WRITE FAILURE AS THE MEDIUM'S BOUNDARY (kb/Work PB1192): did
     /// the operating environment refuse to store bytes because the medium is full, a quota is exhausted, or the
     /// file has reached the largest size the host allows? That is the manner in which WiseOwl COBOL defines the
-    /// externally-defined boundary of a physical sequential file — ISO §2023:9.1.13.6 3), <i>"The implementor
+    /// externally-defined boundary of a physical sequential file — ISO §2023:9.1.13.6 GR3, <i>"The implementor
     /// specifies the manner in which these boundaries are defined"</i> (Annex A.1 item 108, docs/CONFORMANCE.md
     /// <c>DOC-A.1-108</c>).
     /// <para>The host's own words, and nothing else, exactly as <see cref="IsSharingRefusal"/> reads them:
@@ -591,8 +591,8 @@ public static class HostFile
     /// <summary>The narrower half of <see cref="IsMediumBoundary"/>: did the operating environment refuse the write
     /// because the FILE has reached the largest size the host allows — <c>ERROR_FILE_TOO_LARGE</c> (223) on Windows,
     /// <c>EFBIG</c> (27) on every Unix — rather than because the medium is full? A relative or indexed file's boundary is
-    /// this answer and the paged format's own 2^32 pages (§2023:9.1.13.5 item 4's '24', Annex A.1 item 107,
-    /// docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.9); a full medium there is §2023:9.1.13.6 item 1's '30'.</summary>
+    /// this answer and the paged format's own 2^32 pages (§2023:9.1.13.5 GR4's '24', Annex A.1 item 107,
+    /// docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.9); a full medium there is §2023:9.1.13.6 GR1's '30'.</summary>
     internal static bool IsFileSizeLimit(IOException failure) => failure.HResult switch
     {
         unchecked((int)0x800700DF) => true,
@@ -630,7 +630,7 @@ public static class HostFile
     /// second, lower buffer keeps the superseded bytes and hands them straight back, because
     /// <see cref="FileStream.Seek"/> reuses its read buffer whenever the target offset falls inside it. That was
     /// measured — with the invalidation in place and this handle still 4096-byte buffered, a sibling's REWRITE
-    /// was still invisible. §2023:14.9.30.4 GR21 c) selects <i>"the first existing record in the physical file"</i>;
+    /// was still invisible. §2023:14.9.30.4 GR21c selects <i>"the first existing record in the physical file"</i>;
     /// one managed buffer between the connector and the file is the most that leaves true. It used to be
     /// unbuffered only where the posture admitted another writer and 4096-byte buffered elsewhere, which put the
     /// connector's area in the HANDLE in one posture and in the reader in the other, so RESERVE integer-1 had no
@@ -655,7 +655,7 @@ public static class HostFile
     /// <summary>The handle a Table 19 COLUMN is published through where the host's locks belong to a HANDLE and the
     /// file lock is its share mode (<see cref="HandleColumnLockHost"/>, kb/Work PB3482): a READ handle that admits every
     /// other reader and writer, held for the life of the OPEN, so it adds nothing to what the connector's own handle
-    /// refuses — and is itself refused by exactly one posture, <see cref="FileShare.None"/>, which is §2023:9.1.15 1)'s
+    /// refuses — and is itself refused by exactly one posture, <see cref="FileShare.None"/>, which is §2023:9.1.15 GR1's
     /// exclusive access (a connector that holds it takes no column). Throws what <see cref="File.OpenHandle(string, FileMode,
     /// FileAccess, FileShare, FileOptions, long)"/> throws; the caller maps it.</summary>
     internal static Microsoft.Win32.SafeHandles.SafeFileHandle OpenColumnHolder(string hostPath) =>

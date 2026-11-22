@@ -90,7 +90,7 @@ public static partial class CobolCharacterRepertoire
         => codePoint >= 0x80 && (dialectLevel < 2002 || PositionOf(codePoint, dialectLevel) == WordCharacterPosition.NotPermitted);
 
     /// <summary>The length of a COBOL word in CHARACTERS (§2023:8.3.2.1's 63): one per code point, so a supplementary-plane
-    /// letter is one character, and §2023:8.1.3.2 GR4 c) — "the base character and each combining character are treated as
+    /// letter is one character, and §2023:8.1.3.2 GR4c — "the base character and each combining character are treated as
     /// separate characters in determining the length of a user-defined word" — holds because a combining character is
     /// a code point of its own.</summary>
     public static int LengthInCharacters(string word)

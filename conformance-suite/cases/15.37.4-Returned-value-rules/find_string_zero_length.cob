@@ -22,7 +22,7 @@
       *> literal", and §2023:8.5.4 (Zero-length items) lists nine ways to BE one — eight of them DATA
       *> ITEMS, whose length is a RUN-TIME fact rather than a compile-time constant. A file of
       *> zero-length LITERALS alone would leave that whole half unreached, so three species are
-      *> written: the zero-length literal (§2023:8.5.4 item 8 — Z1..Z6), a group containing only an
+      *> written: the zero-length literal (§2023:8.5.4 GR8 — Z1..Z6), a group containing only an
       *> occurs-depending table whose current number of occurrences is zero (item 1 — ZG1/ZG2, whose
       *> extent is set at run time by MOVE 0 TO ZN), and a reference-modified item that has resolved
       *> to a length of zero under >>REF-MOD-ZERO-LENGTH (item 9 — ZR1/ZR2).
@@ -82,7 +82,7 @@
            DISPLAY "Z5=" P.
            MOVE FUNCTION FIND-STRING(N"" NN) TO P.
            DISPLAY "Z6=" P.
-      *> r5 over a zero-length DATA ITEM (§2023:8.5.4 item 1: a group containing only an occurs-depending
+      *> r5 over a zero-length DATA ITEM (§2023:8.5.4 GR1: a group containing only an occurs-depending
       *> table with zero occurrences). ZGCTRL first reads the SAME group at its full extent — the
       *> three characters "ABC", in which "BC" starts at 2 — so the two zero answers below are known
       *> to come from the extent going to zero and not from the group never being read at all.
@@ -97,7 +97,7 @@
            DISPLAY "ZG1=" P.
            MOVE FUNCTION FIND-STRING(H ZG) TO P.
            DISPLAY "ZG2=" P.
-      *> r5 over the other zero-length DATA ITEM shape (§2023:8.5.4 item 9: a reference-modified item
+      *> r5 over the other zero-length DATA ITEM shape (§2023:8.5.4 GR9: a reference-modified item
       *> resolved to length zero, permitted by the >>REF-MOD-ZERO-LENGTH directive above). If the
       *> slice were read as the whole item these would answer 1, so both discriminate.
            MOVE FUNCTION FIND-STRING(H(1:0) "A") TO P.

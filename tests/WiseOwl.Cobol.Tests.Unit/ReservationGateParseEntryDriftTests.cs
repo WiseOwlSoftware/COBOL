@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ EVERY WHOLE-GROUP PARSE GOES THROUGH THE ONE §2023:8.9 GATE LOOP (kb/Work PB655; ISO §2023:8.3.2.1 1)).
+/// ⛔ EVERY WHOLE-GROUP PARSE GOES THROUGH THE ONE §2023:8.9 GATE LOOP (kb/Work PB655; ISO §2023:8.3.2.1 SR1).
 /// A reservation-gated word is not a <c>cobolWord</c> alternative, so a front end that calls
 /// <c>compilationUnit()</c> WITHOUT <c>ReservationGateRewriter.ParseToFixpoint</c> can never read a word §2023:8.9
 /// leaves free at its edition as a name: a program naming a table <c>COL</c> at COBOL-85 dies with "no viable

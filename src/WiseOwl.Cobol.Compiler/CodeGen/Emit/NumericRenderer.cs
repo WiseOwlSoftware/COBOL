@@ -24,7 +24,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// the names it enables. §2023:14.6.13.1.1: a condition is raised "if checking for an exception condition is enabled",
     /// its NOTE 3 "An exception condition is set to exist only if checking for that condition is enabled" — so a kernel
     /// that raises EC-SIZE-OVERFLOW is chosen only where EC-SIZE-OVERFLOW is taken, and every other name takes the
-    /// not-enabled disposition, the unchecked kernel's value (§2023:14.6.13.1.3 item 8; docs/CONFORMANCE.md DOC-A.1-70). The
+    /// not-enabled disposition, the unchecked kernel's value (§2023:14.6.13.1.3 GR8; docs/CONFORMANCE.md DOC-A.1-70). The
     /// family was one question before PB4092: checking enabled for EC-SIZE-TRUNCATION alone raised EC-SIZE-OVERFLOW from
     /// <c>IF WS-D * WS-D &gt; 0</c> and ended the run unit.</summary>
     private SizeChecks Taken => TakenFor(_rcv);
@@ -100,7 +100,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     private SendingRef _sending = SendingRef.Normal;
 
     /// <summary>True while rendering a division node whose quotient is transferred DIRECTLY to a single resultant
-    /// identifier — the "final transfer" of §2023:14.7.7 rule 3 NOTE 1. Set by the emit sites that own that transfer
+    /// identifier — the "final transfer" of §2023:14.7.7 GR3 NOTE 1. Set by the emit sites that own that transfer
     /// (a single-receiver COMPUTE RHS, a DIVIDE top-level division); an outermost division computes at the
     /// receiver's scale + ROUNDED mode in one exact step. A division NESTED inside a larger expression is NOT the
     /// final transfer (ROUNDED applies only to that final transfer, §2023:14.7 NOTE 1; PROHIBITED tests only the
@@ -179,7 +179,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <list type="bullet">
     ///   <item><b>The final transfer to ONE fixed-point resultant</b> (<paramref name="outermost"/>, a receiver that is
     ///         neither receiver-less nor floating-point) — the exact value is rounded ONCE, at that resultant's scale and
-    ///         with its mode (<c>CobolWide.ToUnscaled</c>, the kernel <c>CobolDec.MulAtScale</c> shares): §2023:14.7.7 rule 3 NOTE 1 gives
+    ///         with its mode (<c>CobolWide.ToUnscaled</c>, the kernel <c>CobolDec.MulAtScale</c> shares): §2023:14.7.7 GR3 NOTE 1 gives
     ///         ROUNDED to the final transfer only, and the receiver's own rounding must see every digit.</item>
     ///   <item><b>The final transfer to a FLOAT receiver</b> (<paramref name="outermost"/>, <see cref="ReceiverContext.LandsAsBinary64"/>,
     ///         kb/Work PB4730) - the exact value is rounded ONCE into the binary64 or binary32 item by the receiver's mode, from ALL
@@ -333,7 +333,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// native arithmetic is in effect and none of the operands is described with usage binary-char, binary-short,
     /// binary-long, binary-double, float-short, float-long, or float-extended, enough places shall be carried so as
     /// not to lose any significant digits during execution." A LITERAL is not "described with usage" anything, and
-    /// §2023:14.7.7 rule 2 proves the drafters spell a float literal out as its OWN bullet when they mean to include it —
+    /// §2023:14.7.7 SR2 proves the drafters spell a float literal out as its OWN bullet when they mean to include it —
     /// GR4 does not. So `ADD 1.0E+0 TO W` over a PIC 9(20) holding 12345678901234567890 owed …891 and a binary64
     /// operand delivered …168. Numeric design D16's §2023:8.8.1.3 latitude is therefore NARROWED to what it always
     /// described: an expression touching a float ITEM or a float RECEIVER still evaluates in IEEE binary64 (the
@@ -348,7 +348,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// operand routes the statement onto the decimal128 lane (34 significant digits) where a fixed-point literal
     /// keeps the Int128 one (~38), so `A * B + 0.0E+0` and `A * B + 0.0` differ for 18-digit A and B — and
     /// INTERMEDIATE ROUNDING (§2023:11.9.11) reaches the first and not the second. See <see cref="CombineCore"/>.</para>
-    /// <para>Residual, documented (CONFORMANCE.md §7 / A.1 item 82): §2023:8.3.3.3.3 rule 2 admits a 36-digit
+    /// <para>Residual, documented (CONFORMANCE.md §7 / A.1 item 82): §2023:8.3.3.3.3 SR2 admits a 36-digit
     /// significand and the SDIDI carrier holds 34, so a 35th/36th significand digit rounds at
     /// <c>CobolDec.FromParsed</c>.</para>
     /// <para>Every consumer of the Dec lane already exists — the PB84 landing/store funnel; <see cref="Real"/>
@@ -409,7 +409,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     {
         // A binary node's CHILDREN are never the final transfer (a sub-expression operand), so they render with
         // _outermost cleared; the node's OWN combine (which may be the final-transfer division) sees the value
-        // that reached this node. §2023:14.7.7 rule 3 NOTE 1 — ROUNDED/PROHIBITED bind to the final transfer only.
+        // that reached this node. §2023:14.7.7 GR3 NOTE 1 — ROUNDED/PROHIBITED bind to the final transfer only.
         bool outer = _outermost;
         _outermost = false;
         var l = n.Left.Accept(this);
@@ -458,7 +458,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// carrier at scale 0 or below, so a P-scaled exponent item is an integer too, kb/Work PB5891 review R2-2): <c>10 ** 30</c> took the exact Int128 power and
     /// <c>10 ** 30.0</c> (scale 1) and <c>10 ** 3.0E+1</c> (a Dec since D-B, a Real before it) both dropped to the
     /// §2023:8.8.1.2 binary64 approximation — the same expression, three notations, and the answers differed from the
-    /// 17th significant digit up. §2023:8.3.3.3.3 rule 5 makes a floating-point literal's value "the algebraic product
+    /// 17th significant digit up. §2023:8.3.3.3.3 GR5 makes a floating-point literal's value "the algebraic product
     /// of the value of its significand and the quantity derived by raising ten to the power of the exponent" and
     /// nothing more (cite.py-verified), and §2023:8.3.3.3.2's fixed-point form is likewise a value — so trailing zeros
     /// past the point are notation, not precision, and 30, 30.0 and 3.0E+1 are ONE operand.</para>
@@ -528,7 +528,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         : new NumX(EmitText.LoudValue("long", $"figurative '{n.Kind}' in a numeric context"), 0);
     // An alphanumeric literal in a numeric context is an UNSIGNED integer (§2023:14.9.25.3 Table 16 — the
     // alphanumeric→numeric move; NC105A's MOVE "12345" TO MOVE1), decoded exactly like an alphanumeric field. A
-    // NATIONAL literal decodes the same way (§2023:14.9.25.4 GR6d3 — national→numeric as an unsigned integer under the
+    // NATIONAL literal decodes the same way (§2023:14.9.25.4 GR6d.3 — national→numeric as an unsigned integer under the
     // Latin-1 identity); class BOOLEAN is not a numeric operand (§2023:8.8.1) — loud.
     public NumX Visit(BoundStringLiteral n) => n.Category == PicCategory.Boolean
         ? new NumX(EmitText.LoudValue("long", "boolean literal in a numeric context (ISO §2023:8.8.1 — class boolean is not a numeric operand)"), 0)
@@ -540,7 +540,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     public NumX Visit(BoundAddressOperand n) => new(EmitText.LoudValue("long", "address-identifier as a numeric operand"), 0);
     // THE CURRENT RECORD in a NUMERIC context (kb/Work PB339): an alphanumeric operand decoded as an unsigned
     // integer, exactly as the alphanumeric field arm below decodes one (§2023:14.9.25.3 Table 16). ⛔ REACHABLE, not a
-    // backstop: a FORMAT 3 `RECORD CONTAINS m TO n` file (whose §2023:14.9.30.4 GR4 b) move carries no group-move
+    // backstop: a FORMAT 3 `RECORD CONTAINS m TO n` file (whose §2023:14.9.30.4 GR4b) move carries no group-move
     // designation) with an ELEMENTARY 01 and `READ F INTO a-numeric-item` classifies MoveKind.Convert and lands
     // here — a loud arm would abort legal source at run time.
     public NumX Visit(BoundCurrentRecord n) => AlnumNum(OperandText.CurrentRecordImage(n), _sending);
@@ -582,7 +582,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         : FieldNumCore(p, _sending);
 
     /// <summary>⛔ THE ONE RENDERING OF AN ALPHANUMERIC OR NATIONAL OPERAND READ IN A NUMERIC CONTEXT (ISO
-    /// §2023:14.9.25.4 GR6 d) 3 — such an operand "is treated as if it were an unsigned integer of category numeric",
+    /// §2023:14.9.25.4 GR6d 3 — such an operand "is treated as if it were an unsigned integer of category numeric",
     /// over its rightmost 31 character positions; §2023:14.9.25.3 Table 16 makes the move valid). Five distinct
     /// operand shapes reach it — an alphanumeric/national LITERAL, a FIELD, a reference-modified result
     /// (§2023:8.4.3.3.4 GR6), a GROUP item's image (§2023:8.5.2.1) and the current RECORD area — and every one of them is
@@ -601,7 +601,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// reaches them HERE, so a new lane lands once:
     /// <list type="bullet">
     /// <item>FLOAT — the window holds the item's IEEE interchange bytes and decodes through the distinctly-named
-    ///   float lane, wrapped in CobolFloat.Sending (EC-DATA-NOT-FINITE, §2023:14.6.13.2 item 3) unless exempt.</item>
+    ///   float lane, wrapped in CobolFloat.Sending (EC-DATA-NOT-FINITE, §2023:14.6.13.2 GR3) unless exempt.</item>
     /// <item>UNSIGNED 16-BYTE BINARY (<see cref="PicInfo.IsUnsignedWideBinary"/>) — ParseImageU128 reinterprets
     ///   bit-identically into the UInt128 lane, which keeps the item's full [0, 2^128) container range (kb/Work
     ///   R10); decoded SIGNED, a value at or above 2^127 turns negative — the scout's silent wrong answer, and a
@@ -610,7 +610,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <item>EVERY OTHER FORM — the signed Int128 lane, THE FIXED-POINT SENDING-READ CHOKEPOINT (kb/Work PB230): only
     ///   a WINDOWED leaf can hold content that fails its own numeric class condition (a native-carrier leaf can
     ///   only hold digits, which is exactly why ConditionRenderer folds `IS NUMERIC` on one to the constant true),
-    ///   so this is where ISO §2023:14.6.13.2 rule 2's EC-DATA-INCOMPATIBLE can arise: under checking
+    ///   so this is where ISO §2023:14.6.13.2 GR2's EC-DATA-INCOMPATIBLE can arise: under checking
     ///   ParseImageSending raises for content that "would evaluate to false in a numeric class condition"; with
     ///   checking off, or in an exempt context, the decode stays the tolerant deterministic one the standard's
     ///   "undefined" permits.</item>
@@ -683,7 +683,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // The capability guard now lives in the ONE reader too (it stages the same Tier-C loud), so the
         // former `when p.Item.IsImageCapable` arm and its hand-written twin below collapse into this one.
         // ⛔ …and through the ONE GROUP VALUE reader, never the image reader alone (kb/Work PB944's sibling
-        // sweep): a NATIONAL group is Table 16's National row (§2023:13.18.29.4 GR2b) and §2023:14.9.25.4 GR6 d) 3 decodes
+        // sweep): a NATIONAL group is Table 16's National row (§2023:13.18.29.4 GR2b) and §2023:14.9.25.4 GR6d 3 decodes
         // its CHARACTER positions, not the UTF-16BE bytes its image carries.
         // A VARIABLE-LENGTH group decodes its CURRENT-extent image - the one DISPLAY shows (CONFORMANCE.md A.1 item 57),
         // through the reader every character consumer asks (kb/Work PB3424). Reached only under --permissive (ISO 8.8.1.1
@@ -1192,7 +1192,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         over PIC 9(21) operands is exactly 1, where the 34-digit SDIDI this arm used to form rounded each 41-digit product
     ///         and the cancellation kept only the rounding error (stored 10000000). The sums, differences and negations above it
     ///         stay exact on the same form (<see cref="CombineAdditive"/>, <see cref="Negate"/>), and the value is SETTLED once, at
-    ///         the public entry (<see cref="Settle"/>): into the receiver's scale and mode at the final transfer — §2023:14.7.7 rule 3
+    ///         the public entry (<see cref="Settle"/>): into the receiver's scale and mode at the final transfer — §2023:14.7.7 GR3
     ///         NOTE 1, ROUNDED sees every digit, for a 16-byte COMP-5 receiver as for a PICTURE-limited one — else into the SDIDI.
     ///         A product whose BOUND passes 77 digits (two intrinsic values, 39 + 39) takes the run-time-scaled exact carrier
     ///         (<see cref="ExactBinary"/>, kb/Work PB4592, PB4729): <c>CobolExact.Mul</c> tries the VALUE on the 256-bit form and leaves it
@@ -1271,7 +1271,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         the true integer remainder, so no guard digits are needed; ROUNDED and PROHIBITED apply here, §2023:14.7.7
     ///         rule 3 NOTE 1 / §2023:14.7.4.3 GR7).</item>
     ///   <item><b>A nested quotient whose digit bound fits the scaled carrier</b>: computed with TRUNCATION (never the
-    ///         receiver's mode — rounding happens once, at the receiver store, §2023:14.7.7 rule 3 NOTE 1) at the working scale
+    ///         receiver's mode — rounding happens once, at the receiver store, §2023:14.7.7 GR3 NOTE 1) at the working scale
     ///         <c>w = max(receiver scale, operands' precision) + 14</c>. The operands' PRECISION is their
     ///         <see cref="NumX.FractionPrecision"/>, not their scale: a quotient operand's scale holds the guard digits
     ///         its own division added, and deriving <c>w</c> from it made the scale COMPOUND with depth — 14, 28, 42 —
@@ -1391,7 +1391,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// next SDIDI operation, which holds 34 digits, and never widens.</summary>
     private int FinalTransferSignificandDigits => _outermost ? _rcv.FloatSignificandDigits : 0;
 
-    /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF A NATIVE <c>DIVIDE ... REMAINDER</c> OVER EXACT OPERANDS (ISO §2023:14.9.12.4 6) c), kb/Work
+    /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF A NATIVE <c>DIVIDE ... REMAINDER</c> OVER EXACT OPERANDS (ISO §2023:14.9.12.4 GR6c), kb/Work
     /// PB4640): the quotient of the two operands' EXACT values truncated at identifier-3's <paramref name="scale"/> with every integer
     /// digit (<c>CobolExact.SubsidiaryQuotient</c>), an exact value (<see cref="NumX.Exact"/>) that the back-multiply and the
     /// subtraction of GR7 keep exact. It is NOT the final transfer's quotient (<see cref="ExactFinalQuotient"/>) truncated: that
@@ -1419,7 +1419,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
 
     /// <summary>The scaled kernel's quotient of <paramref name="a"/> by <paramref name="b"/> at <paramref name="scale"/> in
     /// <paramref name="mode"/> (<see cref="RuntimeApi.NumDivide"/>): it raises a zero divisor (ISO §2023:14.7.5 case 2, checked or
-    /// not, kb/Work PB1605) and a PROHIBITED-inexact quotient (§2023:14.7.4.3 rule 7, checked or not, kb/Work PB3990).</summary>
+    /// not, kb/Work PB1605) and a PROHIBITED-inexact quotient (§2023:14.7.4.3 GR7, checked or not, kb/Work PB3990).</summary>
     private static string DivideAt(NumX a, NumX b, int scale, CobolRounding mode) =>
         RuntimeApi.NumDivide(a.Expr, $"{a.Scale}", b.Expr, $"{b.Scale}", $"{scale}", mode);
 
@@ -1498,9 +1498,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <summary>⛔ A FLOAT ITEM'S CONTENT ON ITS OWN CARRIER — <c>float</c> for binary32, <c>double</c> for
     /// binary64 — for a COPY of that content, never for arithmetic (kb/Work PB961). The arithmetic read
     /// (<see cref="FieldNumCore"/>'s float arms) widens to binary64 because D16 evaluates there, and an ISO/IEC
-    /// 60559 widening QUIETS a signaling NaN; a transfer §2023:14.9.25.4 GR6 c) makes "without change" must not take
+    /// 60559 widening QUIETS a signaling NaN; a transfer §2023:14.9.25.4 GR6c makes "without change" must not take
     /// it. A windowed (image-stored) item decodes through the binary32 carrier lane
-    /// (<c>CobolNum.ParseImageSingle</c>). The §2023:14.6.13.2 rule 3 read check is decided by the ONE reader of that
+    /// (<c>CobolNum.ParseImageSingle</c>). The §2023:14.6.13.2 GR3 read check is decided by the ONE reader of that
     /// rule's exemption list, <see cref="SendingRefRules.FloatChecked"/>, exactly as on the arithmetic read.</summary>
     internal static string FloatCarrierRead(Place p, SendingRef sending)
     {
@@ -1522,7 +1522,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// one, which raises past the carrier too) lands AT the requested scale and RAISES EC-SIZE-OVERFLOW (§2023:14.7.5 5)) for a
     /// magnitude the carrier cannot hold, as the Dec arm below does: no sentinel for a later range test, comparison or
     /// selection to mistake for a value. TRUNCATION matches this helper's existing contract (alignment
-    /// is not a ROUNDED transfer; §2023:14.7.7 rule 3 NOTE 1 gives ROUNDED only to the final transfer).</para></summary>
+    /// is not a ROUNDED transfer; §2023:14.7.7 GR3 NOTE 1 gives ROUNDED only to the final transfer).</para></summary>
     /// <para>⛔ AND THE <c>Dec</c> ARM IS THE ONE IT WAS MISSING (fix-queue PB32/PB14). The paragraph above
     /// declares this helper TOTAL over the carrier kinds; <see cref="NumX"/> has THREE — exact scaled
     /// <see cref="Int128"/>, the <c>CobolDec</c> SDIDI, and binary64 — and only two were written down. Under
@@ -1541,7 +1541,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// strictly smaller wrong than "does not compile" and it is not the end state — the §2023:15.4.1 r1 answer is a
     /// Dec-carrier body, ledgered as PB38.</para></para></summary>
     /// <param name="mode">The rounding of the narrowing. TRUNCATION is this helper's contract and every
-    /// value-semantics caller takes it (alignment is not a ROUNDED transfer; §2023:14.7.7 rule 3 NOTE 1 gives ROUNDED only to
+    /// value-semantics caller takes it (alignment is not a ROUNDED transfer; §2023:14.7.7 GR3 NOTE 1 gives ROUNDED only to
     /// the final transfer). The ONE caller that passes otherwise is the report SUM accumulation, where the
     /// alignment IS the final transfer: §2023:13.18.54.4 GR3 adds each addend into the counter "consistent with the
     /// general rules of the ADD statement … or, in the case of an arithmetic expression, the COMPUTE statement",
@@ -1637,7 +1637,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     private NumX StatusNum(BoundOperand v) =>
         v is BoundStringLiteral or BoundFigurative or BoundAllLiteral
             // sending: false — the STOP status slot is not a MOVE into a numeric receiver; its numeric
-            // interpretation is CONFORMANCE.md item 192's own determination, and §2023:14.9.25.4 GR6 d) 1's
+            // interpretation is CONFORMANCE.md item 192's own determination, and §2023:14.9.25.4 GR6d 1's
             // condition has no scope over it.
             ? new NumX(RuntimeApi.NumFromAlphanumeric(OperandText.AsString(v, this), sending: false), 0)
             : AsNum(v, ReceiverContext.None);
@@ -1737,7 +1737,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // ⛔ THE SAME QUANTIZER, SO THE SAME LANDING DECISION (PB13's sibling — feedback_scan_all_similar). A flat
         // max(Scale, 9) here silently saturated `COMPUTE R = 10 ** 30` into a PIC 9(31) exactly as it did for the
         // float-intrinsic family, and the hard-coded NEAREST-AWAY-FROM-ZERO mode made `COMPUTE A = 3 ** 0.5` round
-        // where §2023:14.7.4.3 rule 2 makes a no-phrase store TRUNCATE, exactly as it did there (kb/Work PB647).
+        // where §2023:14.7.4.3 GR2 makes a no-phrase store TRUNCATE, exactly as it did there (kb/Work PB647).
         // ReceiverContext.FloatLanding is the one rule both consume, and it answers the WHETHER as well as the
         // scale and the mode: the resultant identifier's scale + the statement's mode for a final transfer into a
         // fixed-point resultant, NO QUANTIZATION AT ALL for a nested intermediate / a float receiver / a

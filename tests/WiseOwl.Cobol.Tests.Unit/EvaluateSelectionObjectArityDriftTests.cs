@@ -30,7 +30,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para>⛔ <b>THE FIX WAS THE ARITY, AND MUST NOT BECOME AN ALTERNATIVE REORDER.</b> Putting <c>condition</c>
 /// before <c>valueOperand</c> in <c>evaluateWhenItem</c> would also retarget <c>EVALUATE X / WHEN Y</c> where Y is
-/// a level-88 condition-name — a value comparison (§2023:14.9.13.4 GR4a6) silently becoming a truth-value test —
+/// a level-88 condition-name — a value comparison (§2023:14.9.13.4 GR4a.6) silently becoming a truth-value test —
 /// because <b>Table 15</b> makes the object's legality depend on the SUBJECT, which no context-free ordering can
 /// express. The subject-dependent half lives in <c>EvaluateBinder.BindWhenItem</c> via
 /// <c>ConditionBinder.BareOperandAsCondition</c>. Both facts are pinned below.</para>
@@ -115,7 +115,7 @@ public sealed class EvaluateSelectionObjectArityDriftTests
     }
 
     /// <summary>⛔ The alternative ORDER is load-bearing and deliberately unchanged: <c>valueOperand</c> precedes
-    /// <c>condition</c>, so a bare name under a VALUE subject stays an equality operand (§2023:14.9.13.4 GR4a6). The
+    /// <c>condition</c>, so a bare name under a VALUE subject stays an equality operand (§2023:14.9.13.4 GR4a.6). The
     /// subject-dependent reclassification is the binder's job, not the parser's.</summary>
     [Fact]
     public void WhenItem_KeepsValueOperandBeforeCondition()

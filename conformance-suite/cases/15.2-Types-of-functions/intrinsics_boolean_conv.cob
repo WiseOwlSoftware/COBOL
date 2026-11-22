@@ -34,7 +34,7 @@
       *> §2023:15.45.4 r1 MSB-first: B"10000000" = 128 (an LSB-first bug would yield 1).
            COMPUTE N-3 = FUNCTION INTEGER-OF-BOOLEAN(BIT-8)
            DISPLAY "T3=" N-3
-      *> §2023:15.45.4 r1 over a boolean literal argument (§2023:15.3 item 3).
+      *> §2023:15.45.4 r1 over a boolean literal argument (§2023:15.3 AR3).
            COMPUTE N-3 = FUNCTION INTEGER-OF-BOOLEAN(B"00000101")
            DISPLAY "T4=" N-3
       *> Round-trip identity for 0 <= n < 2^k (§2023:15.13.4 r1 ∘ §2023:15.45.4 r1, both unsigned MSB-first).

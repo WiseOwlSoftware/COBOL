@@ -69,7 +69,7 @@ public static class CobolSort
     /// the implicit <see cref="Release(string, string, int, int, int, RecordExtents?)"/>, <see cref="Sort"/>,
     /// <see cref="Merge"/> and the implicit <see cref="Return"/> — run their bodies under this exception FILTER, which
     /// sets <see cref="CobolFatalException.RaisedBySortMerge"/> and declines the catch, so the condition unwinds with its
-    /// stack intact. ISO §2023:14.6.13.1.3 2) ("If the executed statement is a MERGE or SORT statement, then the rules for
+    /// stack intact. ISO §2023:14.6.13.1.3 GR2) ("If the executed statement is a MERGE or SORT statement, then the rules for
     /// those statements apply") keys on the statement that EXECUTED, and only this code knows it: an EC-SORT-MERGE-*
     /// condition, but equally an EC-LOCALE-* condition a locale-collated key raises while the sequence phase compares
     /// records. The RELEASE and RETURN statements' OWN tests are deliberately not marked — the executed statement there
@@ -152,7 +152,7 @@ public static class CobolSort
     /// format 1 SORT statement is active does not complete normally, the SORT statement is terminated." The generated
     /// <c>__RunUse</c> of every EC-model element hands every DECLARATIVE's action here, with its own declarative scope
     /// (<paramref name="useScope"/>), once the declarative has finished. When the action is a completion that is not
-    /// normal (<see cref="DispatchResult.CompletedNotNormally"/>: a RESUME, or a fall-off §2023:14.6.13.1.2 1) marks) and a
+    /// normal (<see cref="DispatchResult.CompletedNotNormally"/>: a RESUME, or a fall-off §2023:14.6.13.1.2 GR1 marks) and a
     /// format 1 SORT is active in the run unit (<see cref="RegisterFormat1Sort"/>), the SORT is terminated:
     /// <see cref="SortTerminationSignal"/> unwinds to the statement's landing, whatever invoked the procedure — an
     /// implicit USING/GIVING transfer, a statement of the input or output procedure, a statement of a program CALLed or a
@@ -174,7 +174,7 @@ public static class CobolSort
     }
 
     /// <summary>⛔ §2023:14.9.40.4 GR17 FOR A USE PROCEDURE THAT ENDS IN EXIT PROGRAM OR GOBACK (kb/Work PB1177) — a
-    /// completion that is not normal (§2023:14.6.13.1.2 1)) that leaves the declarative by its own signal, so
+    /// completion that is not normal (§2023:14.6.13.1.2 GR1) that leaves the declarative by its own signal, so
     /// <see cref="AfterUseProcedure"/> never sees it. The generated <c>__RunUse</c> asks this as a declining exception
     /// FILTER on the element's return signal, with its declarative scope (<paramref name="useScope"/>); always false.
     /// When the active format 1 SORT is the element's OWN (its registered scope), the return leaves the SORT statement
@@ -208,17 +208,17 @@ public static class CobolSort
     /// is set to exist." The test precedes the release, so a raise leaves the record unreleased; with checking off
     /// nothing is raised (§2023:14.6.13.1.1) and the record is released as GR2 describes — a store with no executing
     /// SORT is discarded by the next <see cref="Init(string, Key[], CobolCollation?, CobolCollation?)"/>. The implicit
-    /// USING transfer (§2023:14.9.40.4 GR12 b) is not a RELEASE statement and uses <see cref="Release"/> (kb/Work PB349).
+    /// USING transfer (§2023:14.9.40.4 GR12b) is not a RELEASE statement and uses <see cref="Release"/> (kb/Work PB349).
     /// <para>Two more tests precede the release (kb/Work PB1036). <b>EC-SORT-MERGE-ACTIVE</b>: a RELEASE within
     /// the range of any executing output procedure (§2023:14.9.40.4 GR13, §2023:14.9.24.4 GR8). ⚠ DETERMINATION: the same
     /// RELEASE also fails GR1, and §2023:14.6.13.1.1 leaves which one is set to exist undefined ("if more than one
     /// exception is detected during the execution of a statement, the one that is set to exist is undefined");
     /// -ACTIVE, the rule written for exactly this range, is tested first, and GR1's general "any other time" only
     /// when -ACTIVE is not raised (docs/CONFORMANCE.md §3 D-SMA). <b>EC-SORT-MERGE-RELEASE</b>: the record's
-    /// size — <paramref name="size"/>, the §2023:13.18.43.4 GR13 a) DEPENDING ON value, else the image's own length
+    /// size — <paramref name="size"/>, the §2023:13.18.43.4 GR13a DEPENDING ON value, else the image's own length
     /// (GR13 b)/c)) — outside <paramref name="min"/>..<paramref name="max"/>: "If a RELEASE statement is being
     /// executed, the EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the RELEASE
-    /// statement is unsuccessful" (§2023:13.18.43.4 GR14 b) / GR19 b)), so a raise releases nothing. The record is
+    /// statement is unsuccessful" (§2023:13.18.43.4 GR14b / GR19 b)), so a raise releases nothing. The record is
     /// sliced to <paramref name="size"/> HERE, after the test, never by an emitted reference modification — a
     /// DEPENDING ON value past the record area would otherwise raise EC-BOUND-REF-MOD, a condition no rule of the
     /// RELEASE names. With checking off, <paramref name="rangeFailsStatement"/> decides (kb/Work PB5124): when it
@@ -270,7 +270,7 @@ public static class CobolSort
         return true;
     }
 
-    /// <summary>The record area image at the §2023:13.18.43.4 GR13 a) length <paramref name="size"/> — the lenient
+    /// <summary>The record area image at the §2023:13.18.43.4 GR13a length <paramref name="size"/> — the lenient
     /// reference modification <c>(1:size)</c> this slicing replaced, kept byte-identical for checking off: a
     /// negative size is the whole area, zero is the zero-length record, and a size past the area space-extends.</summary>
     private static string Released(string image, int size) =>
@@ -328,14 +328,14 @@ public static class CobolSort
 
     /// <summary>RELEASE one record image at its released length (ISO §2023:14.9.32.4 GR2; §2023:14.9.40.4 GR12b for the implicit
     /// USING release) — the RELEASE STATEMENT's §2023:14.9.32.4 GR1 test lives in <see cref="ReleaseStatement"/>, and
-    /// this implicit release is not a RELEASE statement. Its one test is the size rule of §2023:14.9.40.4 GR12 b) /
-    /// §2023:14.9.24.4 GR7 b) (kb/Work PB1036): "If the size of the record read from the file referenced by file-name-2
+    /// this implicit release is not a RELEASE statement. Its one test is the size rule of §2023:14.9.40.4 GR12b /
+    /// §2023:14.9.24.4 GR7b (kb/Work PB1036): "If the size of the record read from the file referenced by file-name-2
     /// is larger than the largest record allowed in the file description entry for file-name-1, the
     /// EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the SORT statement is
     /// terminated", and the smaller-than-smallest twin when file-name-1 has variable-length records — so the
     /// caller passes <paramref name="min"/> 0 for a fixed-length sort-merge file. <paramref name="readSize"/> is
     /// the size the record had when it was READ, not the image's length after the fixed-length fit. A raise
-    /// releases nothing and the SORT/MERGE statement's guard terminates the statement (§2023:14.6.13.1.3 2)); with
+    /// releases nothing and the SORT/MERGE statement's guard terminates the statement (§2023:14.6.13.1.3 GR2); with
     /// checking off the store accepts the record as the transfer shaped it. <paramref name="extents"/> is the
     /// record's EXTENT TABLE when a variable-length group record is released (D-FRA (v); kb/Work PB1053). <paramref name="slots"/> are the
     /// managed-slot values of a record that holds a pointer or message tag (<see cref="ReleaseStatement"/>; kb/Work PB4838): the
@@ -371,7 +371,7 @@ public static class CobolSort
         FileConnector.AssociationFailure(assign, dynamic: true, out _) is null;
 
     /// <summary>The EC-SORT-MERGE-FILE-OPEN test for one USING or GIVING file (kb/Work PB1036), rendered where the
-    /// rule places it: SORT at the start of the phase that processes the file — §2023:14.9.40.4 GR9 a) "If the file
+    /// rule places it: SORT at the start of the phase that processes the file — §2023:14.9.40.4 GR9a "If the file
     /// referenced by file-name-2 is in an open mode when this phase commences" and its GR9 c) twin for
     /// file-name-3 — and MERGE for every USING and GIVING file "at the start of execution of the MERGE
     /// statement" (§2023:14.9.24.4 GR7 / GR12). The test precedes the implicit OPEN, so a raise leaves the program's

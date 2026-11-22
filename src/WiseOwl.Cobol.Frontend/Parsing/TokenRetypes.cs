@@ -41,7 +41,7 @@ public sealed record TokenRetypes(CobolWordsMap CobolWords, IReadOnlySet<string>
     /// (PIC's mode switch, the FUNCTION argument region, the SUBSCRIPT trigger) reads the word the directive made of
     /// it — a de-reserved keyword is a data-name, so its '(' opens a SUBSCRIPT;</item>
     /// <item>a word <paramref name="edition"/> RESERVES is a data name only where the PROGRAM DECLARES it as one (ISO
-    /// §2023:8.3.2.1 rule 1: reserved words shall not be user-defined words, and <c>--permissive</c> admits the word an
+    /// §2023:8.3.2.1 SR1: reserved words shall not be user-defined words, and <c>--permissive</c> admits the word an
     /// edition added as the user-defined word an older program declared). Until a program declares it, a reserved
     /// word's '(' is no subscript — the '(' after a boolean operator at 2002+ groups a boolean sub-expression (§2023:8.8.2
     /// Table 4; kb/Work PB1465, PB1669). The declaration is the parser's own finding

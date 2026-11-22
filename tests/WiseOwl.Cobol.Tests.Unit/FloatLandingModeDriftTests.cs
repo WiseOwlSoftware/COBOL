@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// returned value landed TWO ways in ONE receiver — <c>MOVE FUNCTION SQRT(3) TO S</c> gave 1.732050807 into
 /// <c>PIC 9V9(9)</c> and <c>COMPUTE S = FUNCTION SQRT(3)</c> gave 1.732050808 — and the ROUNDED phrase was a
 /// no-op on the whole §2023:15.4.1 float family. ISO §2023:15.4.1 forbids the split outright; §2023:14.7.4.1 puts the
-/// truncation "relative to the size provided for the resultant identifier"; §2023:14.7.4.3 rule 2 makes a no-phrase
+/// truncation "relative to the size provided for the resultant identifier"; §2023:14.7.4.3 GR2 makes a no-phrase
 /// store ROUNDED MODE IS TRUNCATION.
 /// </para>
 /// <para>
@@ -134,7 +134,7 @@ public sealed class FloatLandingModeDriftTests
     /// defect: the mode became a parameter, but a body that still writes <c>CobolRounding.Something</c> into the
     /// quantization silently overrides it, and no golden would say so — the value would simply be wrong in one
     /// channel again. The file names no mode constant at all: it used to name <see cref="CobolRounding.Prohibited"/>
-    /// to test for the §2023:14.7.4.3 rule 7 raise, which the landing's own rounding decision now makes (kb/Work PB3990).
+    /// to test for the §2023:14.7.4.3 GR7 raise, which the landing's own rounding decision now makes (kb/Work PB3990).
     /// </summary>
     [Fact]
     public void TheRuntimeQuantizer_HardCodesNoRoundingMode()

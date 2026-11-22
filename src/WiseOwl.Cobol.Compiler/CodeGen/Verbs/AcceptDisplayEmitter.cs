@@ -98,14 +98,14 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
             // through the ONE reader, never re-spelled here as its PICTURE length (kb/Work PB3128: one position for a
             // DYNAMIC LENGTH or ANY LENGTH identifier-1, whose length is a run-time value, and one short of a SIGN
             // SEPARATE item). The slice write below raises EC-BOUND-REF-MOD for an out-of-range start or length
-            // (§2023:8.4.3.3.4 item 5c), naming the position's exact value.
+            // (§2023:8.4.3.3.4 GR5c), naming the position's exact value.
             string len = PlaceRenderer.SliceLength(rm);
             w.Line(PlaceRenderer.Write(target, $"AcceptSource.Device({len})"));
             return;
         }
 
         // ⛔ THE TRANSFER SIZE IS THE RECEIVER'S, AT EXECUTION — §2023:14.9.1.4 GR3/GR4 are written over "the size of the
-        // receiving data item", and an ANY LENGTH receiver's size is its carrier's (§2023:13.18.2.4 GR1 b)), never the one
+        // receiving data item", and an ANY LENGTH receiver's size is its carrier's (§2023:13.18.2.4 GR1b), never the one
         // symbol its PICTURE spells (§2023:13.18.2.3 SR1). Every arm below, the group arm included, reads this ONE
         // expression (ReceivingStore.CharacterPositions — a group's is its character positions, a bit / national
         // group's its as-if positions); each used to read the declared width, so an ANY LENGTH receiver bound to a
@@ -157,7 +157,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
                 // DOC-A.1-1; kb/Work PB887 — this arm was a run-time LoudStmt that aborted the run unit): ONE
                 // record read as the inverse of the DISPLAY image (AcceptSource.DeviceFloat — the NUMVAL-F format;
                 // a non-conforming record is zero). The value lands in the receiver's carrier by a plain cast of a
-                // value already converted ONCE into the receiver's own format (§2023:14.6.8.3 rule 2; kb/Work PB1110:
+                // value already converted ONCE into the receiver's own format (§2023:14.6.8.3 GR2; kb/Work PB1110:
                 // DeviceFloat(single) — a binary32 receiver is never rounded through binary64). This is the device
                 // conversion, NOT a MOVE (GR1–GR4 are explicitly not the MOVE rules), so no EC-DATA-OVERFLOW; a
                 // WINDOWED receiver re-encodes its IEEE window bytes.

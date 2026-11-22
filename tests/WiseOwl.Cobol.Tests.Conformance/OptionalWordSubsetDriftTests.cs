@@ -61,7 +61,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     // ── USE Format 1 (§2023:14.9.49.2): USE [GLOBAL] AFTER STANDARD {EXCEPTION | ERROR} PROCEDURE ON {…} ──────────
     // Underlined on printed folio 774: USE, GLOBAL, EXCEPTION, ERROR, INPUT, OUTPUT, I-O, EXTEND. Plain: AFTER,
     // STANDARD, PROCEDURE, ON. Neither file is ever opened, so the CLOSE is unsuccessful with I-O status 42
-    // (§2023:14.9.6.4 GR1) and the declarative selected by §2023:14.9.49.4 GR6 a) reports it.
+    // (§2023:14.9.6.4 GR1) and the declarative selected by §2023:14.9.49.4 GR6a reports it.
     private const string UseFormat1 = """
            IDENTIFICATION DIVISION.
            PROGRAM-ID. OPWA.
@@ -158,7 +158,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     """;
 
     // ── START … [WITH] LENGTH (§2023:14.9.41.2) ───────────────────────────────────────────────────────────────────
-    // Printed folio 754 underlines LENGTH and leaves WITH plain. §2023:14.9.41.4 GR17 b) makes the temporary key area
+    // Printed folio 754 underlines LENGTH and leaves WITH plain. §2023:14.9.41.4 GR17b makes the temporary key area
     // 2 characters, so both spellings must position at AA01 and read it back identically.
     private const string StartWithLength = """
            IDENTIFICATION DIVISION.
@@ -284,7 +284,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     // ── OBJECT-COMPUTER §2023:12.3.6.2 ────────────────────────────────────────────────────────────────────────────
     // Printed folio 285's whole underline roster is ALPHANUMERIC CLASSIFICATION LOCALE NATIONAL OBJECT-COMPUTER.
     // SEQUENCE SYSTEM-DEFAULT USER-DEFAULT, so CHARACTER, PROGRAM, COLLATING, FOR and IS are all optional. The
-    // reversed alphabet makes the choice observable: §2023:12.3.6.4 9) + §2023:8.8.4.2.7 compare under it, so "A" > "Z".
+    // reversed alphabet makes the choice observable: §2023:12.3.6.4 GR9 + §2023:8.8.4.2.7 compare under it, so "A" > "Z".
     private const string ObjectComputer = """
            IDENTIFICATION DIVISION.
            PROGRAM-ID. OPWH.
@@ -364,7 +364,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     // ── CODE-SET §2023:13.18.13.2 ─────────────────────────────────────────────────────────────────────────────────
     // PDF p414 / folio 384 carries exactly three underlines in the whole format — CODE-SET, ALPHANUMERIC,
     // NATIONAL. FOR and IS are plain. STANDARD-1's correspondence to the native set is the identity over the
-    // ISO 646 characters (§2023:12.3.7.4 GR7 c), so the round trip is byte-exact whichever subset is written.
+    // ISO 646 characters (§2023:12.3.7.4 GR7c), so the round trip is byte-exact whichever subset is written.
     private const string CodeSetFor = """
            IDENTIFICATION DIVISION.
            PROGRAM-ID. OPWK.
@@ -706,7 +706,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     // occurrence POSITION-BLIND — read the format's own word as a user-defined one: the four spellings that
     // WRITE ORDER were COBOL0901 at 2002/2014/2023 and clean at 85. A single-edition row would have passed
     // the whole time (feedback_edition_gate_sweep).
-    // The observable is §2023:14.9.40.4 GR3 b): among records equal on every key the order of return is the order in
+    // The observable is §2023:14.9.40.4 GR3b: among records equal on every key the order of return is the order in
     // which the input procedure RELEASED them, so the output pins the phrase's ONE semantic effect and not
     // merely that it parsed.
     private const string SortDuplicates = """

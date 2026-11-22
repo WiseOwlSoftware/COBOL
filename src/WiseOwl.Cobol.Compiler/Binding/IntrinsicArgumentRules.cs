@@ -145,12 +145,12 @@ internal enum ArgPredicateKind
     /// and a function-identifier (§2023:8.4.3.2.4 GR1: "a temporary data item") are.</summary>
     DataItemOnly,
     /// <summary>"nor shall it be a strongly-typed group item" (§2023:15.59.3 r1 / §2023:15.63.3 r1 / §2023:15.71.3 r1 /
-    /// §2023:15.72.3 r1) — a group whose TYPE is STRONG (<c>StrongTypeModel.IsStrongGroup</c>); §2023:15.3 item 2 treats
+    /// §2023:15.72.3 r1) — a group whose TYPE is STRONG (<c>StrongTypeModel.IsStrongGroup</c>); §2023:15.3 AR2 treats
     /// every OTHER strongly-typed group as an alphanumeric argument, which is why this cannot be a class.</summary>
     NotStrongGroup,
     /// <summary>"shall be of CATEGORY alphanumeric or national" (§2023:15.68.3 r1 and, through §2023:15.94.3 r1,
     /// TEST-NUMVAL-C; §2023:15.67.3 r1 / §2023:15.69.3 r1 say "an alphanumeric or national … data item", which §2023:8.5.2.1's
-    /// closing sentence and §2023:8.5.2.3 4) / §2023:8.5.2.10 4) — "Such an item is referred to as an alphanumeric [a
+    /// closing sentence and §2023:8.5.2.3 GR4 / §2023:8.5.2.10 GR4 — "Such an item is referred to as an alphanumeric [a
     /// national] data item", each item listed being of that CATEGORY — read as the category) — the
     /// FINER axis under the position's class kind (kb/Work PB658). Table 2 puts the edited categories
     /// (numeric-edited, alphanumeric-edited, national-edited) in class alphanumeric or national, so the class kind
@@ -376,7 +376,7 @@ internal static partial class IntrinsicArgumentRules
     /// Before this, that question was answered by FOUR independent mechanisms — <c>ExpressionBinder</c>'s private
     /// <c>NonNumericOperandKind</c> category switch (which had no index-data-item arm, so
     /// <c>COMPUTE N = IDX + 1</c> compiled clean under STRICT and returned the occurrence number), its
-    /// <c>BindPrimary</c> <c>ResultCategory</c> test (which folds §2023:15.2 item 6's INDEX functions into numeric),
+    /// <c>BindPrimary</c> <c>ResultCategory</c> test (which folds §2023:15.2 GR6's INDEX functions into numeric),
     /// the receiving-side <c>ScreenResultant</c> (which DID have the index arm), and this table, which nothing in
     /// the arithmetic funnel used. Expressing the rule over <see cref="CandidateClasses"/> closes the index hole,
     /// the pointer/object hole and the bit/national-group hole in one stroke, and preserves the 2026-08-02 owner
@@ -463,7 +463,7 @@ internal static partial class IntrinsicArgumentRules
         BoundFieldOperand f => ClassOfPlace(f.Place),
         // An arithmetic expression IS a numeric argument (§2023:15.3 types 6 and 10 admit one outright); a nested
         // intrinsic contributes the class of ITS result category — resolved through the SAME
-        // type the binder gave the call (BoundIntrinsicCall.ResultType, kb/Work PB124 wave 5b): §2023:15.2 item 6
+        // type the binder gave the call (BoundIntrinsicCall.ResultType, kb/Work PB124 wave 5b): §2023:15.2 GR6
         // makes MAX/MIN over index arguments an INDEX function ("these are of the class and category index"),
         // and the storage model's ResultCategory folds Index into Numeric, so reading the category alone let
         // FUNCTION SQRT(FUNCTION MAX(IX1 IX2)) pass a class-numeric screen (GR-15.2-6 / AR-15.3-10).
@@ -507,14 +507,14 @@ internal static partial class IntrinsicArgumentRules
     /// <see cref="ClassOfPlace"/>'s answer through <see cref="Name"/>, so a message never states a class of its own.
     /// <para>⛔ ONE RULE, ONE PLACE (kb/Work PB1400). <c>ExpressionBinder.NonNumericOperandKind</c> spelled the class
     /// itself — <c>"group item … (class alphanumeric, ISO §2023:8.5)"</c> for EVERY group and <c>"class alphanumeric"</c>
-    /// for every reference-modified operand — so a <c>GROUP-USAGE BIT</c> group (class boolean, §2023:8.5.2.5 3)), a
-    /// <c>GROUP-USAGE NATIONAL</c> group (class national, §2023:8.5.2.10 3)) and a reference-modified national item
+    /// for every reference-modified operand — so a <c>GROUP-USAGE BIT</c> group (class boolean, §2023:8.5.2.5 GR3), a
+    /// <c>GROUP-USAGE NATIONAL</c> group (class national, §2023:8.5.2.10 GR3) and a reference-modified national item
     /// (class national, §2023:8.4.3.3.4 GR6 b)/c)) were each told they were alphanumeric while LENGTH, MOVE and the
     /// class screen itself read them correctly.</para>
     /// <para>⚠ The ONE place this differs from <see cref="ClassOfItem"/> is the strongly-typed group, and it is
     /// a reading, not a fork: §2023:8.5.2.1 — "Both the class and the category of a strongly-typed group item are the
     /// type-name specified in the TYPE clause" — while <see cref="ClassOfItem"/> answers ALPHANUMERIC for it on
-    /// §2023:15.3 item 2's ARGUMENT-position reading. A diagnostic outside a function argument names §2023:8.5.2.1's class.
+    /// §2023:15.3 AR2's ARGUMENT-position reading. A diagnostic outside a function argument names §2023:8.5.2.1's class.
     /// A strongly-typed SUBORDINATE group (§2023:8.5.3.1: "subordinate to a group item described with the TYPE clause")
     /// writes no TYPE clause of its own, so it names the type of the nearest TYPE clause it is typed by.</para>
     /// <para>Three overloads, one reading (kb/Work PB3192 review R1-1): a caller holding a <see cref="Place"/>, a
@@ -539,7 +539,7 @@ internal static partial class IntrinsicArgumentRules
     /// pair rule worded in CLASS asks (§2023:14.9.13.3 SR4's range-expression, "The two operands in a range-expression
     /// shall be of the same class"). <paramref name="ca"/> and <paramref name="cb"/> are the lattice's answers
     /// (<see cref="ClassOf"/>, projected through <see cref="TableTwoClass"/> where the rule says class), and they
-    /// are NOT enough: for a strongly-typed group the lattice answers ALPHANUMERIC — §2023:15.3 item 2's reading of a
+    /// are NOT enough: for a strongly-typed group the lattice answers ALPHANUMERIC — §2023:15.3 AR2's reading of a
     /// function ARGUMENT — while §2023:8.5.2.1 makes its class the type-name, so comparing the answers called a strongly
     /// typed group "the same class" as any alphanumeric item and as a strongly-typed group of another type. A
     /// strongly-typed group is of the class of another operand only when that operand is a strongly-typed group of
@@ -597,7 +597,7 @@ internal static partial class IntrinsicArgumentRules
         // §2023:8.5.2.1 — an alphanumeric group item has class alphanumeric, a bit group boolean, a national group
         // national. A group has no PICTURE of its own, so it cannot fall through to the category table.
         // ⚠ A STRONGLY-TYPED group answers Alphanumeric TOO, and that is the §2023:15.3 reading, not a missing arm (kb/Work
-        // PB1901, refuted): §2023:8.5.2.1 gives it the class and category of its TYPE-NAME, but §2023:15.3 item 2 says "Strongly-typed
+        // PB1901, refuted): §2023:8.5.2.1 gives it the class and category of its TYPE-NAME, but §2023:15.3 AR2 says "Strongly-typed
         // group items are treated as though they were of class and category alphanumeric, unless they are prohibited as
         // arguments of a function" — this classifier answers ARGUMENT positions, where that sentence governs, and the
         // functions that do prohibit one (MAX, MIN, ORD-MAX, ORD-MIN) carry ArgPredicateKind.NotStrongGroup. Every
@@ -699,7 +699,7 @@ internal static partial class IntrinsicArgumentRules
     /// ⛔ <see cref="CobolClass"/> IS NOT THE CLASS COLUMN. One of its members is FINER than the class it
     /// belongs to, kept apart on purpose so a CATEGORY-worded rule can see the category Table 2 folds away:
     /// <see cref="CobolClass.NumericEditedDeEditing"/> is category numeric-edited, whose CLASS is alphanumeric.
-    /// §2023:8.4.3.3.4 GR6 c) says it in words — "the categories numeric and numeric-edited are considered class and
+    /// §2023:8.4.3.3.4 GR6c says it in words — "the categories numeric and numeric-edited are considered class and
     /// category national if the usage is national; otherwise they are considered class and category
     /// alphanumeric" — and §2023:8.5.2.1's own closing sentence is why the distinction has to exist at all: "Use of
     /// the name of a data class or data category in the rules of COBOL refers to the category unless class is
@@ -1130,7 +1130,7 @@ internal static partial class IntrinsicArgumentRules
             // The NUMVAL family — argument-1 "an alphanumeric or national literal or … data item":
             // ⛔ CATEGORY vs CLASS, ROW BY ROW (kb/Work PB658). §2023:15.67.3 r1 / §2023:15.69.3 r1 say "an alphanumeric or
             // national … data item" and §2023:15.68.3 r1 says "of category alphanumeric or national": the CATEGORY
-            // column (§2023:8.5.2.1's closing sentence; §2023:8.5.2.3 4) / §2023:8.5.2.10 4) name the data item by category), so
+            // column (§2023:8.5.2.1's closing sentence; §2023:8.5.2.3 GR4 / §2023:8.5.2.10 GR4 name the data item by category), so
             // the edited categories are out — the CharacterCategory predicate. §2023:15.93.3 r1 and §2023:15.95.3 r1 say "a
             // data item of CLASS alphanumeric or national", which Table 2 gives numeric-edited (display), so the
             // two TEST- twins of the class-worded kind carry NO predicate; the golden
@@ -1398,7 +1398,7 @@ internal static partial class IntrinsicArgumentRules
         //     item "is referred to as a NUMERIC-EDITED data item" — a distinct defined term — and §2023:8.5.2.1
         //     Table 2 puts category numeric-edited in class ALPHANUMERIC or NATIONAL, never numeric;
         //   · type 6's only other alternative is "an INTEGER DATA ITEM", which it also is not;
-        //   · de-editing is granted by the MOVE rules (§2023:14.9.25.4 GR6d1) and nowhere extended to arithmetic — a
+        //   · de-editing is granted by the MOVE rules (§2023:14.9.25.4 GR6d.1) and nowhere extended to arithmetic — a
         //     grant that would be unnecessary if de-editing were generally available.
         // So `FUNCTION CHAR(WS-ED)` over a `PIC Z9` is NOT conforming. The distinction between a CLASS rule and
         // §2023:15.3's integer TYPE is still real — it is just not a distinction about numeric-edited.
@@ -1499,7 +1499,7 @@ internal static partial class IntrinsicArgumentRules
         // (a parenthesised function-identifier or bare data reference or literal is written as one, and is refused: the
         // argument binder wraps it as the computed operand it is, IntrinsicBinder.BindArgOperandCore, kb/Work PB4635). A
         // nested FUNCTION-IDENTIFIER is a data item (§2023:8.4.3.2.4 GR1: "a temporary data item"; an integer function's
-        // is an integer one, §2023:15.2 item 5) and so is admitted here; whether its function is INTEGER is the class
+        // is an integer one, §2023:15.2 GR5) and so is admitted here; whether its function is INTEGER is the class
         // kind's integer test, not this predicate's (kb/Work PB4507 — it used to bar the function outright).
         // The position's class kind says INTEGER where the rule does (§2023:15.37.3 r3, §2023:15.12.3 r1's bases) and class numeric, alphanumeric...
         // where it does not (CONCAT, BASECONVERT argument-1), so the shape verdict names the shape alone. A BOOLEAN expression is refused
@@ -1612,7 +1612,7 @@ internal static partial class IntrinsicArgumentRules
     /// to lead with it. It defines the term for an identifier operand as "a <b>fixed-point</b> numeric data
     /// item, other than an intrinsic function, whose description does not include any digit positions to the
     /// right of the radix point" (--check verified), which is exactly this arm plus the scale arm in one
-    /// sentence — but §2023:5.5 2) scopes itself to "a syntax rule", and §2023:5.3.1 says "Except for intrinsic
+    /// sentence — but §2023:5.5 SR2 scopes itself to "a syntax rule", and §2023:5.3.1 says "Except for intrinsic
     /// functions, rules are categorized as syntax rules and general rules. Intrinsic functions have argument
     /// rules and returned value rules INSTEAD". §2023:15.15.3 r1 ("Argument-1 shall be an integer") is an ARGUMENT
     /// rule, so §2023:5.5 reaches it only as the standard's own usage of the word, never as its definition here.
@@ -1796,7 +1796,7 @@ internal static partial class IntrinsicArgumentRules
         // stores 0.9999, so an argument proved integral by the fold alone was rewritten to the literal 1 (`IntegralForm`) and
         // `FUNCTION ABS (1 / 3 * 3)` returned 1 where `COMPUTE X = 1 / 3 * 3` stores 0.9999. A quotient whose exact value has a
         // non-terminating decimal expansion, or a terminating one longer than the fraction digits the arithmetic keeps
-        // (`1 / 1048576 * 1048576`, PB4794), therefore voids the proof (§2023:15.3 6) asks for an expression that "will always result in
+        // (`1 / 1048576 * 1048576`, PB4794), therefore voids the proof (§2023:15.3 AR6) asks for an expression that "will always result in
         // an integer value", and that value is the one the arithmetic produces); the argument stays a Numeric one and the type 6 screen does not prove it (it is undecided, kb/Work PB5889: its exact value is 1, so it is checked at run time).
         _ when ExactValue(e) is { } v => v.IsInteger && QuotientsAreExact(e),
         // Category NUMERIC only: any other operand an extension admits (a de-edited numeric-edited item, say) is
@@ -1823,7 +1823,7 @@ internal static partial class IntrinsicArgumentRules
     };
 
     /// <summary>⛔ THE SCALE-0 FORM OF AN ARGUMENT THAT <see cref="ProvablyIntegral"/> PROVED INTEGRAL (kb/Work PB4709, review R1-1).
-    /// An integer function "has an operational sign and no digits to the right of the decimal point" (§2023:15.2 5)), and ABS, MAX, MIN,
+    /// An integer function "has an operational sign and no digits to the right of the decimal point" (§2023:15.2 GR5), and ABS, MAX, MIN,
     /// RANGE and SUM return their argument's value at the argument's own scale, so an argument integral by VALUE but written with
     /// fraction digits (<c>I2 + 1.0</c>, <c>1.5 + 0.5</c>, <c>4 / 2</c>) would return <c>4.0</c> from a function whose type says it has
     /// none: <c>MOVE FUNCTION ABS(I2 + 1.0) TO A10</c> stored <c>4.0</c>. The rewrite replaces every integral-valued subtree WRITTEN with

@@ -98,7 +98,7 @@ internal sealed class SortWork : IDisposable
         FrameOverheadBytes + (2L * (frame.Image?.Length ?? 0)) + _keyBytes
         + (frame.Extents is { } e ? 64 + (8L * e.Count) : 0);
 
-    /// <summary>MERGE: the records released from here on belong to the next USING stream (§2023:14.9.24.4 GR4 b)).</summary>
+    /// <summary>MERGE: the records released from here on belong to the next USING stream (§2023:14.9.24.4 GR4b).</summary>
     public void NextStream()
     {
         _streams.Add(new MergeStream(_chunk.Count));
@@ -118,7 +118,7 @@ internal sealed class SortWork : IDisposable
         if (_chunkBytes > PeakResidentBytes) PeakResidentBytes = _chunkBytes;
     }
 
-    /// <summary>The sequence phase (§2023:14.9.40.4 GR9 b) for a SORT, the merge operation of §2023:14.9.24.4 for a MERGE): from
+    /// <summary>The sequence phase (§2023:14.9.40.4 GR9b for a SORT, the merge operation of §2023:14.9.24.4 for a MERGE): from
     /// here on <see cref="Next"/> returns the records in key order.</summary>
     public void Sequence()
     {
@@ -410,7 +410,7 @@ internal sealed class SortRun
 /// <summary>⛔ THE ONE MERGE of a SORT/MERGE statement's runs (kb/Work PB3339) — the cascade, the consolidation and the
 /// return phase all read through it. Each run's head record holds a slot of one <see cref="SortKeyColumns"/>, decoded
 /// once; <see cref="Next"/> takes the lowest head, and a STRICT less-than keeps an equal head from displacing an
-/// earlier run's (§2023:14.9.24.4 GR4 a), and §2023:14.9.40.4 GR3 for runs in release order). One run is read straight through,
+/// earlier run's (§2023:14.9.24.4 GR4a, and §2023:14.9.40.4 GR3 for runs in release order). One run is read straight through,
 /// with no key decoded at all.</summary>
 internal sealed class SortMergeCursor
 {

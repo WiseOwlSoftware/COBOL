@@ -18,7 +18,7 @@
       *>   and the file stays open; its status is successful (class 0;
       *>   whether 00 or 07 is not pinned). The next READ still sees the
       *>   not-present indicator: 10 (§2002:14.8.29.3 GR18 b;
-      *>   §2002:9.1.12.3 item 1 c) -- 47 if the CLOSE UNIT had closed
+      *>   §2002:9.1.12.3 item 1c -- 47 if the CLOSE UNIT had closed
       *>   it.
       *>   CLOSE OF1 WITH LOCK: no end-of-file processing, successful,
       *>   00; the lock still applies (GR3 symbol e), so the re-OPEN is

@@ -170,7 +170,7 @@ public sealed class DiagnosticPositionTests : IDisposable
     /// <summary>kb/Work PB4485 (review R1-1): EVERY report <c>NameResolution.ResolveIndexName</c> makes about a written
     /// index-name reference stands at that word, not only the edition gate — the ISO §2023:8.4.2.2.3 SR6 "not defined"
     /// (the qualifier names no table declaring the index-name), the SR1 ambiguity (two tables declare the same index-name,
-    /// the bare reference names neither), and the §2023:13.7.3 SR4 e) refusal of a linkage table's index-name. Default
+    /// the bare reference names neither), and the §2023:13.7.3 SR4e refusal of a linkage table's index-name. Default
     /// edition, so the 2002 gate is silent and the position under test is the resolution diagnostic's own. The statement
     /// under test starts on line 13 at column 12, so a report at (13,12) is the statement's position.</summary>
     [Theory]
@@ -191,7 +191,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Assert.DoesNotContain(lines, d => d.Contains("pb4485r.cob(13,12): error COBOL1639"));   // the statement first token
     }
 
-    [Fact] // kb/Work PB4485 (review R1-1): the §2023:13.7.3 SR4 e) refusal of a linkage table's index-name stands at the word
+    [Fact] // kb/Work PB4485 (review R1-1): the §2023:13.7.3 SR4e refusal of a linkage table's index-name stands at the word
     public void LinkageIndexNameRefusal_NamesTheWordNotTheStatement()
     {
         Write("pb4485l.cob",
@@ -215,7 +215,7 @@ public sealed class DiagnosticPositionTests : IDisposable
             Write(name, Head + $"       01 V PIC X{pictureTail} VALUE \"A\"B.\n       PROCEDURE DIVISION.\n           STOP RUN.\n");
             var (ok, lines) = Compile(name);
             Assert.False(ok);
-            string d = Assert.Single(lines, l => l.Contains("COBOL2633"));   // §2023:8.3.5 5): anchored on the literal
+            string d = Assert.Single(lines, l => l.Contains("COBOL2633"));   // §2023:8.3.5 SR5: anchored on the literal
             return d[d.IndexOf($"{name}(", StringComparison.Ordinal)..d.IndexOf(')')];
         }
         Assert.Equal(At("s.cob", " ").Replace("s.cob", ""), At("c.cob", ",").Replace("c.cob", ""));
@@ -298,7 +298,7 @@ public sealed class DiagnosticPositionTests : IDisposable
     public void ArchiveMarker_OutsideNist_IsDiagnosedAtItsOwnLine()
     {
         Write("m.cob", "*HEADER,COBOL,PB82N\n" + Head + "       PROCEDURE DIVISION.\n           STOP RUN.\n");
-        var (ok, lines) = Compile("m.cob", format: InitialReferenceFormat.Fixed);   // the standard default (§2023:7.3.24.3 2))
+        var (ok, lines) = Compile("m.cob", format: InitialReferenceFormat.Fixed);   // the standard default (§2023:7.3.24.3 GR2)
         Assert.False(ok);
         AssertPositioned(lines, "m.cob", 1, "error COBOL2616");
     }
@@ -385,11 +385,11 @@ public sealed class DiagnosticPositionTests : IDisposable
         Assert.DoesNotContain(lines, d => d.Contains("COBOL0900"));
     }
 
-    /// <summary>Two supplementary-plane letters (Annex B extended letters, ISO §2023:8.1.3.2 4)): four UTF-16 units, two
+    /// <summary>Two supplementary-plane letters (Annex B extended letters, ISO §2023:8.1.3.2 GR4): four UTF-16 units, two
     /// character positions.</summary>
     private const string Wide = "\U0001000D\U0001000E";
 
-    /// <summary>⛔ kb/Work PB2983 — ONE column unit for every diagnostic: the CHARACTER POSITION (ISO §2023:6.1 1) a), §2023:6.3.1).
+    /// <summary>⛔ kb/Work PB2983 — ONE column unit for every diagnostic: the CHARACTER POSITION (ISO §2023:6.1 GR1a, §2023:6.3.1).
     /// The parser counts UTF-16 units and the reference-format gates counted positions, so on a line holding a
     /// supplementary-plane character a parser diagnostic named a column two to the right of the gate's for the same place.
     /// Each producer arm of the source map is pinned: a plain fixed-form line, a line that also holds a TAB, a continuation
@@ -452,8 +452,8 @@ public sealed class DiagnosticPositionTests : IDisposable
         Assert.Contains(lines, d => d.Contains("sup.cpy(1,24): error COBOL1941"));
     }
 
-    /// <summary>⛔ kb/Work PB3031 — text a stage WRITES is counted in character positions too (ISO §2023:6.1 1) a), §2023:6.3.1): a
-    /// REPLACE replacement (§2023:7.2.4.4 2)) and COPY ... REPLACING text (§2023:7.2.3.4 8)) holding supplementary-plane letters is
+    /// <summary>⛔ kb/Work PB3031 — text a stage WRITES is counted in character positions too (ISO §2023:6.1 GR1a, §2023:6.3.1): a
+    /// REPLACE replacement (§2023:7.2.4.4 GR2) and COPY ... REPLACING text (§2023:7.2.3.4 GR8) holding supplementary-plane letters is
     /// two units per letter, one position per letter, so the parser's error at a word after them names the position the
     /// programmer counts. The replacement ends in a second TO, which the parser rejects: the word "X" stands at position
     /// 17 of its line, the two letters, a blank, TO and a blank fill positions 17-22, and the second TO stands at 23.</summary>
@@ -480,7 +480,7 @@ public sealed class DiagnosticPositionTests : IDisposable
     [Fact]
     public void FixedForm_IndicatorGates_NameColumn7_WhateverTheSequenceAreaHolds()
     {
-        // six supplementary-plane characters in the sequence area; the hyphen indicator continues a NATIONAL literal (§2023:6.3.5 2))
+        // six supplementary-plane characters in the sequence area; the hyphen indicator continues a NATIONAL literal (§2023:6.3.5 SR2)
         string sequence = string.Concat(Enumerable.Repeat("\U0001D400", 6));
         Write("seq.cob", Head + $"       PROCEDURE DIVISION.\n           DISPLAY N\"A\n{sequence}-    \"B\".\n           STOP RUN.\n");
         var (ok, lines) = Compile("seq.cob", format: InitialReferenceFormat.Fixed);
@@ -511,7 +511,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Assert.False(ok);
         Assert.Contains(lines, d => d.Contains("DBG.CPY(2,7): error COBOL3473"));
         Assert.DoesNotContain(lines, d => d.Contains("COBOL0900"));
-        // without the clause the same line is a comment (§2023:6.3.5 2)), the literal is joined and the program is accepted
+        // without the clause the same line is a comment (§2023:6.3.5 SR2), the literal is joined and the program is accepted
         Write("dbgoff.cob", unit(""));
         (ok, lines) = Compile("dbgoff.cob", edition: 85, format: InitialReferenceFormat.Fixed);
         Assert.True(ok, string.Join("\n", lines));

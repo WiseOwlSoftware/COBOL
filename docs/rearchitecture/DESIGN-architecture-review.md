@@ -1889,7 +1889,7 @@ Approximate, int Digits)` (`EmitCore.cs:178-183`), and the enum's totality is al
 `BoundExpr`, `BoundCondition`, `BoundOperand` and `BoundBoolExpr` a statement holds directly, read from EVERY property
 of every case through the semantic model, `:126-244`), which walks THROUGH the two container roots
 `BoundPerformControl` and `BoundSetTarget` by the generated `Parts_<root>` helpers. `EcBinder` builds the ambient
-EC-ARGUMENT-FUNCTION gate on it (`EcBinder.cs:1000,1034`; §2023:15.3 item 14), and it is generated because of kb/Work PB26,
+EC-ARGUMENT-FUNCTION gate on it (`EcBinder.cs:1000,1034`; §2023:15.3 AR14), and it is generated because of kb/Work PB26,
 a landed wrong-answer, silent defect: the gate was a hand-maintained switch over statement kinds, so the same FUNCTION
 reference raised in COMPUTE and was silent in STRING. A switch is total over CASES, not over a case's FIELDS: the day a
 statement record gains an operand property, a hand switch misses it and `FUNCTION LOG10(0)` there raises nothing —

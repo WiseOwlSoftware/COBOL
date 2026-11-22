@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para>What each test fails on: the first on any pair of opens (every organization, every pair of open modes) that is
 /// refused at 85 or admitted by mistake at 2002; the second on a '61' where a process outside the run unit holds the file
-/// (a status 1985 does not define: the host's refusal is §2023:9.1.13.6 item 1's '30') and on a file that a refused open
+/// (a status 1985 does not define: the host's refusal is §2023:9.1.13.6 GR1's '30') and on a file that a refused open
 /// affected; the third on a second RUN UNIT being refused by a file lock (there is none at 85); the fourth on a record a
 /// connector appended and a sibling's append losing it; the last on the CLOSE and the re-OPEN that follow a refusal.</para>
 /// </summary>
@@ -118,8 +118,8 @@ public sealed class SharingFacilityEditionTests
     }
 
     /// <summary>A process outside the run unit holds the file exclusively. Where the facility is in effect that is
-    /// §2023:9.1.13.9 item 1's '61' (kb/Work PB860); at COBOL-85 '61' is a status the edition does not define, and the host's
-    /// refusal is §2023:9.1.13.6 item 1's '30'. §2023:14.9.27.4 GR25 holds at both: the unsuccessful OPEN leaves the file as it
+    /// §2023:9.1.13.9 GR1's '61' (kb/Work PB860); at COBOL-85 '61' is a status the edition does not define, and the host's
+    /// refusal is §2023:9.1.13.6 GR1's '30'. §2023:14.9.27.4 GR25 holds at both: the unsuccessful OPEN leaves the file as it
     /// was, OUTPUT's truncation included.</summary>
     [Theory]
     [MemberData(nameof(EveryOpen))]
@@ -145,7 +145,7 @@ public sealed class SharingFacilityEditionTests
                     $"{org} OPEN {mode} at {edition} against an outside process's exclusive handle answered '{status}'; "
                     + $"expected '{expected}'.");
                 reg.Close("F");
-                Assert.Equal(FileStatusCode.FileNotOpen, reg.Status("F"));   // §2023:9.1.13.7 item 2: nothing was opened
+                Assert.Equal(FileStatusCode.FileNotOpen, reg.Status("F"));   // §2023:9.1.13.7 GR2: nothing was opened
                 Assert.Equal(before, File.ReadAllBytes(host));               // §2023:14.9.27.4 GR25
                 // The refusal ends with the handle: the connector's next OPEN succeeds.
                 FileHarness.Open(reg, "F", mode);
@@ -307,8 +307,8 @@ public sealed class SharingFacilityEditionTests
     /// file connector with no sibling open pays nothing for it. §2023:14.9.51.4 GR12 releases a record to the operating environment,
     /// not to the physical file at once (the 2002 program with no sharing clause buffers its OUTPUT the same way), so a
     /// lone writer keeps its records in its input-output areas; a sibling connector of the run unit that OPENs the file
-    /// later is owed what was already written, and every WRITE while it is open reaches the medium at once (§2023:9.1.15 3), the
-    /// reader's next READ selects it (§2023:14.9.30.4 GR21 c)); when the sibling closes the writer buffers again. The control
+    /// later is owed what was already written, and every WRITE while it is open reaches the medium at once (§2023:9.1.15 GR3), the
+    /// reader's next READ selects it (§2023:14.9.30.4 GR21c); when the sibling closes the writer buffers again. The control
     /// arms: 2002's clause-less OUTPUT buffers (NO OTHER), and 2002's SHARING WITH ALL OTHER writes through.</summary>
     [Fact]
     public void AtCobol85_ALoneWriterBuffers_AndASiblingThatArrivesFindsWhatWasWritten()
@@ -347,7 +347,7 @@ public sealed class SharingFacilityEditionTests
     }
 
     /// <summary>A sibling OPEN OUTPUT truncates the file an open INPUT connector has read ahead of (admitted at COBOL-85, where
-    /// Table 19 is not asked): the reader's next READ selects an existing record of the physical file (§2023:14.9.30.4 GR21 c), and
+    /// Table 19 is not asked): the reader's next READ selects an existing record of the physical file (§2023:14.9.30.4 GR21c, and
     /// the truncated file holds none, so it is the at end condition ('10') whether or not the truncating connector has written
     /// anything yet. Fails on a reader serving its read-ahead of records the file no longer holds. The control arm writes first:
     /// the reader, positioned after its first record, finds the new second record, never one of the old ones.</summary>

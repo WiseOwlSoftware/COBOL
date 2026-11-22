@@ -43,7 +43,7 @@
       *> group item that is not strongly typed and is not a variable-length group, that group item is an
       *> alphanumeric group item" — makes each group below alphanumeric (no GROUP-USAGE, no TYPE, no
       *> dynamic-length or dynamic-capacity subordinate, §2023:8.5.1.12.1), so r3 measures it in alphanumeric
-      *> character positions rather than r1 measuring it in boolean ones. §2023:8.1.2 item 3 leaves the number of bits
+      *> character positions rather than r1 measuring it in boolean ones. §2023:8.1.2 GR3 leaves the number of bits
       *> in a byte to the implementor; WiseOwl COBOL specifies 8 (docs/CONFORMANCE.md).
       *>   AG  11 bits + 5 implicit filler = 16 = 2  — a bit run that does NOT end on a byte boundary
       *>   BG  16 bits, no filler needed   = 16 = 2  — the exactly-integral control; a blanket +1 byte answers 3

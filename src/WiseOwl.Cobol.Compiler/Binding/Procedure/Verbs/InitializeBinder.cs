@@ -40,7 +40,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// (COBOL1981) and only then recovers as if ALL. The former code read it as ALL on the strength of a
     /// "§2023:14.9.20.2 note 2" the clause does not have (kb/Work PB415).</para>
     /// <para>⛔ <paramref name="HasReplacing"/> IS THE PHRASE'S PRESENCE, NOT <paramref name="Replacements"/>'s
-    /// COUNT. §2023:14.9.20.4 GR5c4's premise is "neither the REPLACING phrase nor the VALUE phrase is specified" — a
+    /// COUNT. §2023:14.9.20.4 GR5c.4's premise is "neither the REPLACING phrase nor the VALUE phrase is specified" — a
     /// REPLACING phrase whose every item was dropped (the §2023:14.9.20.3 SR6 duplicate-category skip) is still
     /// SPECIFIED, so an item of a non-matching category is left unchanged by GR5c and must NOT collect the GR6c
     /// category default. Reading the count made the two indistinguishable.</para></summary>
@@ -211,7 +211,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // does not resolve to an element Place (it is guarded loud), so detect it by name and expand the element's
         // stores under a RUN-TIME loop 1‥Capacity (RefReceiving within bounds does not grow). The stores are the
         // INITIALIZE statement's own (category defaults / REPLACING / VALUE-phrase) — NOT the OCCURS grow-seed.
-        // The candidates are the nearest declaring source element's (§2023:8.4.6.2.1 3)): a contained program's own
+        // The candidates are the nearest declaring source element's (§2023:8.4.6.2.1 GR3): a contained program's own
         // item hides a container's GLOBAL dynamic table of the same name. The name is the one the reference writes, through
         // the symbol table's identification (SymbolTable.IdentifyDataName), never the reference's glued text (kb/Work PB2040):
         // a LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER register writes no data-name. Asked as a probe (report: false): an
@@ -478,7 +478,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         if (spec.WithFiller) ExpandImplicitFillers(cur, item, spec, actions);
     }
 
-    /// <summary>⛔ THE IMPLICIT FILLER BIT ITEMS OF A GROUP ARE RECEIVERS UNDER WITH FILLER (ISO §2023:14.9.20.4 5) a) 2.: "If the FILLER
+    /// <summary>⛔ THE IMPLICIT FILLER BIT ITEMS OF A GROUP ARE RECEIVERS UNDER WITH FILLER (ISO §2023:14.9.20.4 GR5a.2): "If the FILLER
     /// phrase is not specified, elementary data items with an explicit or implicit FILLER clause" are not receiving
     /// operands; §2023:8.5.1.6.3 describes the bits the layout adds after a bit run and between the occurrences of an ALIGNED
     /// table as "implicitly described as a filler elementary bit data item"). Each stored filler (<see cref="BitLayout.FillersOf"/>) is the elementary boolean item
@@ -581,7 +581,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         return InitializeQualification.None;
     }
 
-    /// <summary>ISO §2023:14.9.20.4 GR5c1a — "Either the category of the elementary data item is data-pointer,
+    /// <summary>ISO §2023:14.9.20.4 GR5c.1.a — "Either the category of the elementary data item is data-pointer,
     /// message-tag, object-reference, or program-pointer". These categories are receiving-operands under the VALUE
     /// phrase UNCONDITIONALLY, and the rule exists because they can never satisfy GR5c1b or GR5c1c: §2023:13.18.63.3 SR9
     /// forbids a VALUE clause on FUNCTION-POINTER / MESSAGE-TAG / OBJECT-REFERENCE / PROGRAM-POINTER outright, and
@@ -591,7 +591,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// <c>INITIALIZE p ALL TO VALUE</c> silently did nothing to a pointer (kb/Work PB418).
     /// <para>⛔ FUNCTION-POINTER IS DELIBERATELY ABSENT, and that is the PRINTED standard, not a transcription
     /// loss: GR4's SET-form list, GR6a1's sender list and GR6c's fill table all name function-pointer, and GR5c1a
-    /// alone does not — verified against the licensed PDF (§2023:14.9.20.4 GR5c1a, printed folio 639). A FUNCTION-POINTER
+    /// alone does not — verified against the licensed PDF (§2023:14.9.20.4 GR5c.1.a, printed folio 639). A FUNCTION-POINTER
     /// item is consequently NOT a receiving operand under the VALUE phrase alone (SR9 denies it GR5c1b and GR5c1c
     /// too); it is still one under REPLACING (GR5c2), DEFAULT (GR5c3) and the bare form (GR5c4), where GR6c gives
     /// it the predefined address NULL. Do not "even up" this list — the rule is quoted, not paraphrased.</para>
@@ -712,7 +712,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         //         "The length of each dynamic-length elementary item that is specified WITHOUT a VALUE clause is
         //         set to zero" — so the standard's own parallel sentence excludes the VALUE case;
         //   (ii)  §2023:8.6.4 makes a dynamic-length item's initial-state LENGTH the VALUE clause's length, and
-        //         §2023:14.9.20.4 GR6a3 demands a sender that "produces the same result as the initial value of the
+        //         §2023:14.9.20.4 GR6a.3 demands a sender that "produces the same result as the initial value of the
         //         data item as produced by the application of the VALUE clause" — under the unconditional
         //         reading no sender can satisfy GR6a3 for this population, i.e. the rule becomes unsatisfiable;
         //   (iii) §2023:14.9.20.3 SR8 designates literal-1 / identifier-2 as THE sending operand under REPLACING —
@@ -757,7 +757,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// variable, the ones identifier-1 pinned by its own subscript (an integer literal folds at bind time, any
     /// other expression is tested at run time). A key SHORTER than the plan's dimension list is the one shape
     /// nothing can answer — a storage form that carries no access path — and it is staged LOUD rather than
-    /// resolved to an arbitrary literal, because §2023:14.9.20.4 GR6a3 names ONE literal per occurrence and a lane
+    /// resolved to an arbitrary literal, because §2023:14.9.20.4 GR6a.3 names ONE literal per occurrence and a lane
     /// that cannot identify the occurrence has no honest answer.</para></summary>
     private void ExpandTableValue(PlaceCursor cur, DataItem item, InitializeCategory cat,
         in InitializeSpec spec, List<InitializeAction> actions, IReadOnlyList<OccurrenceDim> key, TableValuePlan plan)
@@ -772,7 +772,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         {
             actions.Add(new InitializeErrorAction($"INITIALIZE TO VALUE of '{item.CobolName ?? "FILLER"}', whose "
                 + "table-format VALUE clause is keyed to occurrences identifier-1 does not pin at compile time "
-                + "(ISO §2023:14.9.20.4 GR5c1c/GR6a3)"));
+                + "(ISO §2023:14.9.20.4 GR5c.1.c/GR6a3)"));
             return;
         }
 
@@ -1025,7 +1025,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         : cat.OBJECT_REFERENCE() is not null ? InitializeCategory.ObjectReference
         : InitializeCategory.ProgramPointer;
 
-    /// <summary>The bound sending operand for a VALUE-qualified receiver (ISO §2023:14.9.20.4 GR6a3 — "<i>The actual
+    /// <summary>The bound sending operand for a VALUE-qualified receiver (ISO §2023:14.9.20.4 GR6a.3 — "<i>The actual
     /// sending-operand is a literal that, when moved to the receiving-operand with a MOVE statement, produces the
     /// same result as the initial value of the data item as produced by the application of the VALUE clause</i>"):
     /// the raw VALUE text decodes to the figurative / ALL-literal / string / numeric operand the MOVE path already

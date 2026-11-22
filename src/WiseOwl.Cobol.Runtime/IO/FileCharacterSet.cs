@@ -42,7 +42,7 @@ public static class FileCharacterSet
     /// <summary>⛔ THE NATIVE → CHANNEL mapping of a record image about to be written — every physical write of
     /// record data passes through here (<c>FileConnector.ToMedium</c>, <see cref="RecordFraming.EncodeFrame"/>).
     /// The HIGH-VALUE character takes its byte 0xFF (<see cref="StorageByte"/>), and a CODE-SET conversion
-    /// (§2023:13.18.13.4 GR6 b) then replaces each native channel character with its coded character; with none
+    /// (§2023:13.18.13.4 GR6b) then replaces each native channel character with its coded character; with none
     /// (GR7) the channel IS the medium. The output statement has already refused a record holding a character
     /// with no byte image (<see cref="HasCharacterWithoutByteImage"/>, <see cref="CodeSetConversion.HasCharacterWithoutImage"/>).</summary>
     public static string ToChannel(string native, CodeSetConversion? codeSet) =>
@@ -50,7 +50,7 @@ public static class FileCharacterSet
         : native.Replace(NativeCollatingSequence.HighValue, (char)StorageByte.ToByte(NativeCollatingSequence.HighValue));
 
     /// <summary>⛔ THE CHANNEL → NATIVE mapping of a record image just read — the inverse of <see cref="ToChannel"/>:
-    /// a CODE-SET conversion first (§2023:13.18.13.4 GR6 a), then the storage-byte law, which reads 0xFF as the HIGH-VALUE
+    /// a CODE-SET conversion first (§2023:13.18.13.4 GR6a), then the storage-byte law, which reads 0xFF as the HIGH-VALUE
     /// character.</summary>
     public static string FromChannel(string channel, CodeSetConversion? codeSet) =>
         codeSet is not null ? codeSet.ToNative(channel)

@@ -95,7 +95,7 @@ internal static class FunctionValueLane
 
     /// <summary>True when <paramref name="call"/>'s returned value is a binary64 wherever no fixed-point scale governs the
     /// render — the lane <c>IntrinsicRenderer.RenderNum</c> reaches through <c>RenderFloat</c> under NATIVE arithmetic.
-    /// Always false under a decimal-engine mode. An INTEGER function (§2023:15.2 item 5) is answered as any other is, because
+    /// Always false under a decimal-engine mode. An INTEGER function (§2023:15.2 GR5) is answered as any other is, because
     /// the renderer has no integer early-out (a binary64 argument takes INTEGER onto <c>FloorReal</c>); the intermediate
     /// of a TOP-LEVEL integer function asks it too, before its scale-0 item (<c>SendingValueTemp.IntermediatePic</c>,
     /// review R1-1).</summary>
@@ -160,7 +160,7 @@ internal static class FunctionValueLane
         // A function of a non-numeric result (reachable in a numeric context only under --permissive) is an exact value
         // (RenderNum's alphanumeric-decode arm). ⛔ AN INTEGER FUNCTION IS NOT EXEMPT (kb/Work PB3268, review R3-1):
         // RenderNum has no integer early-out, so INTEGER(1.5E0) computes FloorDec on the SDIDI, a SUM over wide integer
-        // items takes the PB621 arm onto the SDIDI, and INTEGER of a COMP-2 item takes FloorReal. §2023:15.2 item 5 fixes the
+        // items takes the PB621 arm onto the SDIDI, and INTEGER of a COMP-2 item takes FloorReal. §2023:15.2 GR5 fixes the
         // value's TYPE ("an integer function has an operational sign and no digits to the right of the decimal point"),
         // never its carrier. The exemption that stood here predicted an exact value for a nested call the renderer hands
         // its caller on the SDIDI, so ANNUITY(INTEGER(1.5E0) 3) got a COMP-2 intermediate that rounded AnnuityDec's value

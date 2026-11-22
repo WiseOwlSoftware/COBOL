@@ -550,7 +550,7 @@ literal, non-numeric literal, **function call**) instead of splitting the enum.
 
 **⛔ "Is this operand of class numeric?" has exactly ONE answer**, `IntrinsicArgumentRules.CandidateClasses`
 (the §2023:8.5.2.1 Table-2 classifier) via `IsArithmeticOperandClass`. It previously had four — a private category
-switch missing the index arm, a `ResultCategory` test that folded §2023:15.2 item 6 index functions into numeric, the
+switch missing the index arm, a `ResultCategory` test that folded §2023:15.2 GR6 index functions into numeric, the
 receiving-side `ScreenResultant` (which DID have the index arm), and this classifier, which nothing in the funnel
 used. The extraction is what closes the index-data-item, pointer and object holes without a new rule, and what
 preserves the 2026-08-02 numeric-edited owner decision by construction rather than by a hand-written arm.
@@ -608,7 +608,7 @@ synthesized-temp constructor) with the **operand's own description**, so the sto
 and the equivalence is exact: a data item clones its description (§2023:8.4.3.3.4 GR6's "unique data item" when
 reference-modified, carried by a run-time-length item per §2023:8.5.1.10.4), and a function-identifier takes §2023:15.4's
 "temporary elementary data item" as the item `SendingValueTemp.IntermediatePic` describes FOR THE VALUE AND ITS USE
-(kb/Work PB3268): for an INTEGER function (§2023:15.2 item 5) read as text in a character formal, the returned-value item's
+(kb/Work PB3268): for an INTEGER function (§2023:15.2 GR5) read as text in a character formal, the returned-value item's
 30-digit `IntegerFunctionValuePic`; for any numeric or integer function a `double` when the value is a binary64, and
 an item of the receivers' own binary format when every receiver is floating-point of ONE format (`SharedFloatFormatPic`:
 a `float` for an all-binary32 set, since a binary64 narrowed into a binary32 rounds an exact value twice, ISO
@@ -860,7 +860,7 @@ is materialized by `SendingValueTemp`; one folded to a literal is the compile-ti
 name through `PtrEmitter.NameImage`, the operand's character image, because a group's `Read` is its record struct.
 
 **A strongly-typed group's class is its type-name outside a function argument (kb/Work PB3355, sibling of PB1901).**
-`IntrinsicArgumentRules.ClassOf` answers ALPHANUMERIC for a strongly-typed group, and that is §2023:15.3 item 2's reading of a
+`IntrinsicArgumentRules.ClassOf` answers ALPHANUMERIC for a strongly-typed group, and that is §2023:15.3 AR2's reading of a
 function ARGUMENT; §2023:8.5.2.1 makes the class and the category of the group its type-name everywhere else, so a rule outside
 an argument position must not read the lattice's alphanumeric answer. Two shapes, two readers: a rule worded in a CATEGORY
 ("Identifier-1 shall be defined as an alphanumeric or national data item" — CALL §2023:14.9.4.3 SR1, CANCEL §2023:14.9.5.3 SR1, the

@@ -344,7 +344,7 @@ public sealed partial class SequentialConnector : IJournalData
     /// DESIGN-runtime-library.md 2.2.2.14; kb/Work PB3492, PB3635; the keyed twin is <c>KeyedConnector.CreateTheFileAgain</c>). The
     /// ROLLBACK released this connector's file lock of a file not open at the last COMMIT (§2023:9.1.15) and reversed only this run
     /// unit's own changes, so a file another run unit has made at the path since is protected from this one (§2023:9.1.17): the WRITE
-    /// is refused '30' (§2023:9.1.13.6 item 1), never appended to it. The presence probe and the creating handle are one decision
+    /// is refused '30' (§2023:9.1.13.6 GR1), never appended to it. The presence probe and the creating handle are one decision
     /// under the entry mutex the lock test holds, and the handle is opened <see cref="FileMode.CreateNew"/>, so a file made
     /// between the probe and the open (by a run unit whose OPEN takes no entry mutex) is refused rather than adopted.
     /// <para>An unsuccessful creation leaves the connector on no file (<see cref="_fileRemoved"/> stays set). The journal this WRITE
@@ -418,7 +418,7 @@ public sealed partial class SequentialConnector : IJournalData
     /// <summary>⛔ THE READ'S STEP (2.2.2.3, 2.2.2.8): a READ not IGNORING LOCK through a connector whose file lock admits another
     /// run unit's writer (<c>SHARING WITH ALL OTHER</c>, the one posture under which another transaction can live beside it)
     /// meets every other live transaction's holding of the record it would make available — the whole file once replaced, a
-    /// record it rewrote, one it appended — with '51' (§2023:9.1.13.8 1)), and a dead one's is settled before the READ. The record
+    /// record it rewrote, one it appended — with '51' (§2023:9.1.13.8 GR1), and a dead one's is settled before the READ. The record
     /// a forward READ makes available starts at the file position indicator's offset; a backward one's is told by its ordinal.
     /// The lock test is <see cref="JournalLockTest"/>'s, the statement's RETRY phrase applying. Null when the READ may proceed.
     /// The caller asks it after the record-lock conflict check (DOC-A.1-104's point).
@@ -428,7 +428,7 @@ public sealed partial class SequentialConnector : IJournalData
     /// or, if none, the beginning of the run unit are rolled back"</i>): it ignores a LIVE transaction's holdings, never a rollback
     /// that is owed, since a dead transaction's rewritten record is not in the file once its owner's locks are gone.</para>
     /// <para>A host refusal of the settle (the file is read-only to this process, the medium refused a page) is the entry's host
-    /// failure: '30', a permanent error as every statement's entry gives (<c>KeyedConnector.Enter</c>; §2023:9.1.13.6 1)), never an
+    /// failure: '30', a permanent error as every statement's entry gives (<c>KeyedConnector.Enter</c>; §2023:9.1.13.6 GR1), never an
     /// exception out of the statement and never the dead change shown to the reader.</para></summary>
     internal string? ReadHoldingsGate(bool previous, bool testsLocks)
     {
@@ -451,7 +451,7 @@ public sealed partial class SequentialConnector : IJournalData
     private bool MeetsAnotherRunUnitsTransactions => FileLockPosture.AdmitsAnotherWriter(HostShare) && HostPath.Length != 0 && _reader is not null;
 
     /// <summary>⛔ THE JOURNAL ARM OF THE LOCK TEST, UNDER THE STATEMENT'S RETRY PHRASE (2.2.2.3: <i>"held, '51' (RETRY
-    /// applies)"</i>; §2023:14.7.9.3 GR4 b): a record operation conflict is attempted again as GR1 to GR3 specify, and an attempt the
+    /// applies)"</i>; §2023:14.7.9.3 GR4b: a record operation conflict is attempted again as GR1 to GR3 specify, and an attempt the
     /// holder permits makes the statement successful). Each attempt is one entry step (<see cref="SequentialJournal.Enter"/>,
     /// <paramref name="ownId"/> the connector's own transaction, which it never meets): a dead owner's transaction is settled,
     /// and a live one's holding that <paramref name="held"/> picks refuses the attempt (<see cref="SequentialJournal.Holdings.Conflict"/>:

@@ -308,7 +308,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     /// <summary>What a SET SENDER is, as the sending braces distinguish operands (kb/Work PB1399 + PB1929). A data
     /// reference is classified like a receiver; a function-identifier or inline invocation by the data item it
     /// references — its returned temporary when it has one (a user function's RETURNING item, an invocation's
-    /// result), and class INDEX for an index intrinsic (§2023:15.2 item 6), which has no item but is of class index just
+    /// result), and class INDEX for an index intrinsic (§2023:15.2 GR6), which has no item but is of class index just
     /// as an index data item is. Anything else — a numeric or character intrinsic's computed value, a literal, an
     /// expression — is <see cref="SetOperandKind.Unclassified"/>: it names no carrier format's sending brace, and
     /// the format that takes it refuses it by its own rule.</summary>

@@ -219,7 +219,7 @@ public sealed class NationalBooleanLiteralTests
                 DISPLAY N"{new string('A', 8192)}".
                 STOP RUN.
             """;
-        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §2023:6.1 3) a): not one free-form line
+        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §2023:6.1 SR3a: not one free-form line
         Assert.False(ok, "an 8,192-position national literal must be rejected (ISO §2023:8.3.3.5.3 SR1)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0814");
     }
@@ -237,7 +237,7 @@ public sealed class NationalBooleanLiteralTests
                 DISPLAY B"{new string('0', 8192)}".
                 STOP RUN.
             """;
-        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §2023:6.1 3) a): not one free-form line
+        var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §2023:6.1 SR3a: not one free-form line
         Assert.False(ok, "an 8,192-position boolean literal must be rejected (ISO §2023:8.3.3.4.3 SR1)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0814");
     }

@@ -56,7 +56,7 @@ public sealed class OperatorSpacingDiagnosticTests
         Assert.Contains("write a space after it", error);
     }
 
-    [Theory] // a reference modifier's unary operator (kb/Work PB2017 finisher): its colon is a separator (§2023:8.3.5 7)) but not the
+    [Theory] // a reference modifier's unary operator (kb/Work PB2017 finisher): its colon is a separator (§2023:8.3.5 SR7) but not the
              // space §2023:8.7.1 requires, and its left parenthesis exempts only the side of the operator it touches
     [InlineData("MOVE X(1:-(A)) TO Y.", "preceded", "write a space before it")]
     [InlineData("MOVE X(-A:1) TO Y.", "followed", "write a space after it")]
@@ -84,7 +84,7 @@ public sealed class OperatorSpacingDiagnosticTests
 
     [Theory] // the conforming spellings the diagnostic's advice leads to
     [InlineData("COMPUTE R = 1 * ,1.")]       // the comma begins the literal ,1 = 0,1
-    [InlineData("COMPUTE R = 1 *, 1.")]       // a comma followed by a space is a separator usable where the space is (§2023:8.3.5 2))
+    [InlineData("COMPUTE R = 1 *, 1.")]       // a comma followed by a space is a separator usable where the space is (§2023:8.3.5 SR2)
     [InlineData("COMPUTE R = 1,5 * 2.")]
     [InlineData("COMPUTE R = (1 + ,5) * 2.")]
     public void ConformingCommaSpellings_Compile(string statement)

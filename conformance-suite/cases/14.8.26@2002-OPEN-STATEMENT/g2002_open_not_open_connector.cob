@@ -42,7 +42,7 @@
       *>   which §2002:14.8.36.3 GR8 a) and c) require; G receives F's
       *>   records in ascending key order: G1=AAAA, G2=BBBB, G3=10.
       *>   The exempt OPEN: OPEN INPUT F succeeds (REOPEN=00), and F still
-      *>   holds exactly BBBB, AAAA, then '10' (§2002:9.1.12.3 item 1 a):
+      *>   holds exactly BBBB, AAAA, then '10' (§2002:9.1.12.3 item 1a):
       *>   the forbidden WRITE added nothing (§2002:14.8.47.3 GR13, "the
       *>   write operation does not take place"). USE stays 7: the AT END
       *>   phrase takes precedence (§2002:9.1.12).

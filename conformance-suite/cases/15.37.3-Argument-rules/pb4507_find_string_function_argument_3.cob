@@ -7,7 +7,7 @@
 *>---
       *> PB4507 - ISO §2023:15.37.3 r3: "argument-3 shall be an integer data item or integer literal." (cite.py --check
       *> 15.37.3 OK). §2023:8.4.3.2.4 r1: "A function-identifier references a temporary data item whose value is determined
-      *> when the function is referenced at runtime." An INTEGER function (§2023:15.2 item 5: "An integer function has an
+      *> when the function is referenced at runtime." An INTEGER function (§2023:15.2 GR5: "An integer function has an
       *> operational sign and no digits to the right of the decimal point") therefore returns an integer data item, and
       *> argument-3 may be one. The screen used to bar every nested function; an arithmetic expression stays barred
       *> (negative/pb58-findstr-expr), and so does a numeric function that is not an integer function, by the §2023:15.3

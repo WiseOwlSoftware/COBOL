@@ -38,7 +38,7 @@ public sealed class StandardClassBaseTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    /// <summary>§2023:14.9.23.3 SR4 f): SELF "New" in a factory method names a method of "the factory interface of the
+    /// <summary>§2023:14.9.23.3 SR4f: SELF "New" in a factory method names a method of "the factory interface of the
     /// class containing the INVOKE statement" — which has no New unless the class inherits BASE.</summary>
     [Fact]
     public void SelfNew_InFactoryOfAClassWithoutBase_Is2448_Sr4f()
@@ -62,7 +62,7 @@ public sealed class StandardClassBaseTests
         EditionHarness.AssertHasDiagnostic(errors, "SR4 f)");
     }
 
-    /// <summary>§2023:14.9.23.3 SR4 h): SUPER "New" in a factory method names a method of "the factory interface of a
+    /// <summary>§2023:14.9.23.3 SR4h: SUPER "New" in a factory method names a method of "the factory interface of a
     /// class inherited by the class containing the INVOKE statement" — here a superclass that does not inherit
     /// BASE either.</summary>
     [Fact]
@@ -92,10 +92,10 @@ public sealed class StandardClassBaseTests
             END CLASS SCB2B.
             """);
         EditionHarness.AssertHasDiagnostic(errors, "COBOL2448");
-        EditionHarness.AssertHasDiagnostic(errors, "SR4 h)");
+        EditionHarness.AssertHasDiagnostic(errors, "SR4h");
     }
 
-    /// <summary>§2023:14.9.23.3 SR4 a): through a reference described FACTORY OF a class, literal-1 names "a method
+    /// <summary>§2023:14.9.23.3 SR4a: through a reference described FACTORY OF a class, literal-1 names "a method
     /// contained in the factory interface of that object-class-name".</summary>
     [Fact]
     public void FactoryOfReferenceNew_OnAClassWithoutBase_Is2448_Sr4a()
@@ -125,7 +125,7 @@ public sealed class StandardClassBaseTests
         EditionHarness.AssertHasDiagnostic(errors, "SR4 a)");
     }
 
-    /// <summary>§2023:14.9.23.3 SR4 c): through a reference described FACTORY OF ACTIVE-CLASS, literal-1 names "a method
+    /// <summary>§2023:14.9.23.3 SR4c: through a reference described FACTORY OF ACTIVE-CLASS, literal-1 names "a method
     /// contained in the factory interface of the class containing the INVOKE statement" — no New without BASE.</summary>
     [Fact]
     public void FactoryOfActiveClassNew_InAClassWithoutBase_Is2448_Sr4c()
@@ -259,7 +259,7 @@ public sealed class StandardClassBaseTests
     /// New creates an object of the factory's class: the universal FactoryObject invocation on it dispatches to the
     /// subclass's override and answers the subclass's factory.
     /// <para>The receivers of the universal invocations are universal. A receiver described with the subclass does not
-    /// match BASE's New (§2023:9.3.6 rule 6: its returning item is ACTIVE-CLASS in BASE, and §2023:14.9.39.3 SR12 b) 2. relates
+    /// match BASE's New (§2023:9.3.6 rule 6: its returning item is ACTIVE-CLASS in BASE, and §2023:14.9.39.3 SR12b.2) relates
     /// the class containing it, BASE, to the receiver's class; kb/Work PB2463), which the next test pins.</para></summary>
     [Fact]
     public void FactoryObject_Override_AndUniversalNew_CreatesTheFactorysClass()

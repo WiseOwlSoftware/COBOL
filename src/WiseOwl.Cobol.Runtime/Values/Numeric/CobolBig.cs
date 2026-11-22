@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// SDIDI significand at its exponent (<see cref="CobolExact"/>); the value a step of the work leaves those forms is THIS: its exact
 /// integer and the scale it is written at, nothing rounded. GnuCOBOL 3.2's <c>cob_decimal</c> sum, difference, product, truncated
 /// quotient and integer power are exact over an arbitrary-precision integer at any size (CLAUDE.md rule 1 sends the latitude of
-/// ISO §2023:8.8.1.3 and §2023:11.9.11.2 1) to it), and so is this form: <c>(P*1.0E0) ** 2 / P - P</c> of a 39-digit P is 0, where the 34-digit
+/// ISO §2023:8.8.1.3 and §2023:11.9.11.2 GR1 to it), and so is this form: <c>(P*1.0E0) ** 2 / P - P</c> of a 39-digit P is 0, where the 34-digit
 /// image of the 78-digit P² left 99001.
 /// <para>THE PUBLISHED BOUND (§2023:14.7.5 5): "if native arithmetic is in effect and the implementor defines that the range of values allowed
 /// for the intermediate data item is to be checked" — the range is the SDIDI's: <c>|value| &lt; 10^6145</c> (<see cref="MaxIntegerDigits"/>;

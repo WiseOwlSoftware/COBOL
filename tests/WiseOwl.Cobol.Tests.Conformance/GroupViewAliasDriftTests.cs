@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// ⛔ A BIT OR NATIONAL GROUP IS THE SAME OPERAND WHETHER OR NOT IT REDEFINES ANOTHER ITEM (kb/Work PB1653).
 ///
-/// <para>ISO §2023:13.18.29.4 GR1 b) / GR2 b): "a national group is treated as though it were an elementary data item of
+/// <para>ISO §2023:13.18.29.4 GR1b / GR2 b): "a national group is treated as though it were an elementary data item of
 /// usage national … described with PICTURE N(m)", and a bit group the same with PICTURE 1(m). A group that
 /// REDEFINES another item is a Tier-B WINDOW over the class's one byte backing (<c>RedefViewPlace</c>) instead of a
 /// record struct, and its VALUE alphabet is its window's coding — boolean positions for a bit group, national
@@ -36,11 +36,11 @@ public sealed class GroupViewAliasDriftTests
     // §2023:14.9.25.4 GR4 — a national group is an elementary item in MOVE: positions 1-2 are M1, 3-5 are M2.
     [InlineData("GVA01", "NATIONAL", NationalMembers, "X PIC X(10)",
         "MOVE N\"ABCDE\" TO {G}. DISPLAY {G} \"|\" M1 \"|\" M2.", "ABCDE|AB|CDE")]
-    // §2023:14.9.25.4 GR6 a) — a shorter sender is left-aligned and space-filled, a longer one truncated on the right.
+    // §2023:14.9.25.4 GR6a — a shorter sender is left-aligned and space-filled, a longer one truncated on the right.
     [InlineData("GVA02", "NATIONAL", NationalMembers, "X PIC X(10)",
         "MOVE N\"XY\" TO {G}. DISPLAY \"[\" {G} \"]\". MOVE N\"1234567\" TO {G}. DISPLAY \"[\" {G} \"]\".",
         "[XY   ]\n[12345]")]
-    // §2023:8.4.3.3.4 GR5 a) — reference modification of a national group counts national positions.
+    // §2023:8.4.3.3.4 GR5a — reference modification of a national group counts national positions.
     [InlineData("GVA03", "NATIONAL", NationalMembers, "X PIC X(10)",
         "MOVE N\"QRSTU\" TO {G}. DISPLAY {G}(2:3). MOVE N\"MN\" TO {G}(2:2). DISPLAY {G}.", "RST\nQMNTU")]
     // §2023:14.9.22.4 — INSPECT over a national group's characters, in place.
@@ -53,10 +53,10 @@ public sealed class GroupViewAliasDriftTests
     // §2023:8.8.4.2 — a comparison reads the national value, not its bytes.
     [InlineData("GVA06", "NATIONAL", NationalMembers, "X PIC X(10)",
         "MOVE N\"ABCDE\" TO {G}. IF {G} = N\"ABCDE\" DISPLAY \"EQ\" ELSE DISPLAY \"NE\" END-IF.", "EQ")]
-    // §2023:13.18.29.4 GR1 b) / §2023:8.5.1.6.3 — a bit group is its boolean positions: M1 = bits 1-2, M2 = bits 3-5.
+    // §2023:13.18.29.4 GR1b / §2023:8.5.1.6.3 — a bit group is its boolean positions: M1 = bits 1-2, M2 = bits 3-5.
     [InlineData("GVA08", "BIT", BitMembers, "X PIC X(1)",
         "MOVE B\"10110\" TO {G}. DISPLAY {G} \"|\" M1 \"|\" M2.", "10110|10|110")]
-    // §2023:8.4.3.3.4 GR5 a) — a bit group's reference modification counts BIT positions.
+    // §2023:8.4.3.3.4 GR5a — a bit group's reference modification counts BIT positions.
     [InlineData("GVA09", "BIT", BitMembers, "X PIC X(1)",
         "MOVE B\"10110\" TO {G}. DISPLAY {G}(2:3). MOVE B\"01\" TO {G}(1:2). DISPLAY {G}.", "011\n01110")]
     [InlineData("GVA10", "BIT", BitMembers, "X PIC X(1)",

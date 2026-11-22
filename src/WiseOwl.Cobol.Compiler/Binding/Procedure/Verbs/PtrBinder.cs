@@ -294,7 +294,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         ?? BoundOperandError.Refused(ctx.Edition, $"address-identifier '{WrittenSource.Of(ai)}'");
 
     /// <summary>§2023:14.8.2's verdict for ONE address-identifier ARGUMENT against its formal parameter — the CALL
-    /// argument (kb/Work PB239) and the INVOKE argument (kb/Work PB1021) alike, because §2023:14.9.23.3 SR5 c) sends
+    /// argument (kb/Work PB239) and the INVOKE argument (kb/Work PB1021) alike, because §2023:14.9.23.3 SR5c sends
     /// INVOKE to the same "14.8.2, Parameters" CALL reads. Both passing regimes reach the same law: BY REFERENCE is
     /// §2023:14.8.2.3.2's class-pointer paragraph — "If either the argument or the formal parameter is of class
     /// pointer, the corresponding formal parameter or argument shall be of class pointer and the corresponding

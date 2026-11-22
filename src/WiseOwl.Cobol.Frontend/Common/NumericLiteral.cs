@@ -52,7 +52,7 @@ public static class NumericLiteral
     /// though its value is integral, and no §2023:8.3.3.3.3 floating-point literal is one (its significand includes a
     /// decimal point). Either separator counts — the text may be as written (a ',' under DECIMAL-POINT IS COMMA) or
     /// canonical. Read by the compiler's integer classifier (<c>IntrinsicResultType.IsIntegerOperand</c>) and the
-    /// compile-time boolean-shift count (kb/Work PB1413), so the two lanes answer §2023:5.5 2) a) the same way.</summary>
+    /// compile-time boolean-shift count (kb/Work PB1413), so the two lanes answer §2023:5.5 SR2a the same way.</summary>
     public static bool IsIntegerLiteralForm(string text) => !text.Contains('.') && !text.Contains(',');
 
     /// <summary>The digits a fixed-point numeric literal is WRITTEN in, leading zeros included, the way the PICTURE rule counts digit
@@ -72,7 +72,7 @@ public static class NumericLiteral
     /// of ISO §2023:8.3.3.3.3: a fixed-point significand (optional sign, digits, at most one decimal point), the letter E,
     /// and an optionally signed integer exponent — <c>1.5E+3</c>, <c>-2.5E-2</c>. Fixed-point text and any
     /// non-numeric operand return false. (Whether the significand carries the decimal point the standard requires, and
-    /// whether that point is not its rightmost character (§2023:8.3.3.3.2 3)), is the lexer's question: FLOAT_BODY's
+    /// whether that point is not its rightmost character (§2023:8.3.3.3.2 SR3), is the lexer's question: FLOAT_BODY's
     /// significand IS the fixed-point DEC_BODY, kb/Work PB2729; a text of this shape only ever arrives from a
     /// numeric-literal token.)</summary>
     public static bool IsFloatingPointForm(string text)
@@ -123,7 +123,7 @@ public static class NumericLiteral
     /// <summary>The ISO §2023:8.3.3.3.3 SR2/SR3/SR4 form check of a canonical floating-point literal text (which shall
     /// satisfy <see cref="IsFloatingPointForm"/>). SR2's "shall include a decimal point" is the lexer's shape
     /// (a point-less <c>1E10</c> is a user-defined word, §2023:8.3.2.1), and so is the point's position: the significand
-    /// is the fixed-point DEC_BODY, whose point is never the rightmost character (§2023:8.3.3.3.2 3), kb/Work PB2729 —
+    /// is the fixed-point DEC_BODY, whose point is never the rightmost character (§2023:8.3.3.3.2 SR3), kb/Work PB2729 —
     /// <c>3.E2</c> is no token of this shape); the digit counts and the zero form are checked
     /// here — the ONE place, since both the expression funnel and the VALUE funnel normalize through it.</summary>
     public static FloatingLiteralIssue CheckFloatingPointForm(string text)
@@ -189,9 +189,9 @@ public static class NumericLiteral
     /// <summary>⛔ THE ONE exact unscaled decomposition of a numeric literal, in EITHER notation: the signed
     /// unscaled digit string and the fraction-digit SCALE, so that the literal's value is exactly
     /// <c>digits × 10^−scale</c>. A FIXED-POINT literal is its digits at its decimal-point position (ISO
-    /// §2023:8.3.3.3.2 rule 4 — "The value of a fixed-point numeric literal is the algebraic quantity represented by
+    /// §2023:8.3.3.3.2 GR4 — "The value of a fixed-point numeric literal is the algebraic quantity represented by
     /// the characters in the fixed-point numeric literal"); a FLOATING-POINT literal decomposes to the SAME
-    /// KIND OF PAIR, because ISO §2023:8.3.3.3.3 rule 5 makes its value "the algebraic product of the value of its
+    /// KIND OF PAIR, because ISO §2023:8.3.3.3.3 GR5 makes its value "the algebraic product of the value of its
     /// significand and the quantity derived by raising ten to the power of the exponent" — an EXACT scaled
     /// integer, never an approximation.
     /// <para>⛔ NEVER A TEXT EXPANSION. The pair comes from <see cref="TryParseExact"/>'s (significand,
@@ -225,7 +225,7 @@ public static class NumericLiteral
         digits = ""; scale = 0;
         if (!TryParseExact(t, out Int128 sig, out int exp10)) return false;
         // Normalize toward scale ≥ 0 while the magnitude still fits the Int128 carrier (the guard keeps the
-        // multiply from overflowing; a literal's significand is at most 36 digits per §2023:8.3.3.3.3 rule 2).
+        // multiply from overflowing; a literal's significand is at most 36 digits per §2023:8.3.3.3.3 SR2).
         Int128 limit = Int128.MaxValue / 10;
         while (exp10 > 0 && sig >= -limit && sig <= limit) { sig *= 10; exp10--; }
         digits = sig.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -243,7 +243,7 @@ public static class NumericLiteral
 
     /// <summary>The integer VALUE of a numeric literal of either form, whatever notation it was written in — <c>30</c>,
     /// <c>30.0</c> and <c>3.0E+1</c> are one operand (trailing zeros past the point are notation, not scale; ISO
-    /// §2023:8.3.3.3.3 rule 5 makes a floating-point literal's value "the algebraic product of the value of its significand
+    /// §2023:8.3.3.3.3 GR5 makes a floating-point literal's value "the algebraic product of the value of its significand
     /// and the quantity derived by raising ten to the power of the exponent" and nothing more). False for a literal
     /// whose value is not an integer, and for one past <see cref="Int128"/>. The ONE reader of "is this literal an
     /// integer VALUE" (kb/Work PB272): the native exact-integer exponentiation arm keys on it
@@ -277,7 +277,7 @@ public static class NumericLiteral
         int e = t.IndexOfAny(['E', 'e']);
         string sig = t[..e], exps = t[(e + 1)..];
         // The significand's written sign survives the expansion: "If the significand is signed, the floating-point
-        // numeric literal is considered to be signed" (§2023:8.3.3.3.3 2)), and the SR3 test downstream
+        // numeric literal is considered to be signed" (§2023:8.3.3.3.3 SR2), and the SR3 test downstream
         // (DataBinder.ValidateNumericValue) reads the sign off the text, so dropping a '+' made +1.5E+0 an unsigned
         // literal (kb/Work PB3567 sibling arm).
         char? sign = sig.Length > 0 && (sig[0] == '-' || sig[0] == '+') ? sig[0] : null;

@@ -12,7 +12,7 @@
       *> §2023:15.40.3 rule 5.) The clause's own NOTE explains the number: "The offset value 1439 represents
       *> 23 hours 59 minutes, which is one minute less than a day."
       *>
-      *> ⛔ THE RULE'S OBLIGATION IS THE EXCEPTION, NOT A VALUE. §2023:15.3 item 14: an argument that "results in
+      *> ⛔ THE RULE'S OBLIGATION IS THE EXCEPTION, NOT A VALUE. §2023:15.3 AR14: an argument that "results in
       *> an incorrect value for that argument ... according to the rules specified in the function
       *> definition" sets EC-ARGUMENT-FUNCTION; the RESULT is implementor-defined and only when checking is
       *> not enabled. So this program turns checking ON and asserts the exception. Enforced NOWHERE before

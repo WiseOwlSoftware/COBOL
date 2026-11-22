@@ -411,7 +411,7 @@ public abstract class CobolParserCoreBase : Parser
     /// <summary>⛔ THE RESERVATION GATE ON THE USER-DEFINED-WORD SLOT (kb/Work PB693) — true when this compile
     /// ADMITS <paramref name="keyword"/> to <c>cobolWord</c>. The generated <c>cobolWord</c> alternatives carry
     /// <c>{userWordHere("W")}?</c> and their <c>reservedGatedWord</c> twins the exact inverse, for every name-slot
-    /// word ISO §2023:8.9 reserves at some edition (§2023:8.3.2.1 rule 1: "Reserved words shall not be used as user-defined
+    /// word ISO §2023:8.9 reserves at some edition (§2023:8.3.2.1 SR1: "Reserved words shall not be used as user-defined
     /// words or system-names").
     /// <para>It is <see cref="reservedHere"/> plus ONE thing: the MIGRATION MODE, and the whole decision lives in
     /// <see cref="ReservedWordSet.AdmitsAsUserWord"/> — the assembly that owns §2023:8.9 — so this gate and the funnel
@@ -437,7 +437,7 @@ public abstract class CobolParserCoreBase : Parser
         // keyword TOKEN, which the lexer's retype has ALREADY resolved against this compilation group's >>COBOL-WORDS
         // directive (a de-reserved word is an IDENTIFIER and never gets here; a synonym carries its original's spelling),
         // exactly as reservedHere reads it, so composing the overlay twice would double-count it. A SUBSTITUTE synonym of a
-        // word §2023:8.9 reserves here is therefore reserved here, not a user-defined word (§2023:7.3.10.4 GR4, §2023:8.3.2.1 rule 1;
+        // word §2023:8.9 reserves here is therefore reserved here, not a user-defined word (§2023:7.3.10.4 GR4, §2023:8.3.2.1 SR1;
         // kb/Work PB4589).
         => ReservedWordSet.Default.AdmitsAsUserWord(CobolKeywords.Spelling(keyword), Edition);
 
@@ -485,7 +485,7 @@ public abstract class CobolParserCoreBase : Parser
     /// the period alone (<c>ReadingParsesFollowDriftTests</c>). ISO §2023:13.16.3 SR4: "If no entry-name clause
     /// is specified, it is as though the filler format of the entry-name clause were specified"; §2023:13.18.60.2 prints
     /// <c>[ USAGE IS ]</c> as optional, so <c>05 NATIONAL PIC N(3).</c> is a conforming unnamed USAGE NATIONAL item
-    /// wherever §2023:8.9 reserves NATIONAL — and there §2023:8.3.2.1 1) ("Reserved words shall not be used as user-defined
+    /// wherever §2023:8.9 reserves NATIONAL — and there §2023:8.3.2.1 SR1) ("Reserved words shall not be used as user-defined
     /// words") leaves the entry-name reading illegal. So the name reading is refused exactly when the lookahead is a
     /// reservation-gated word §2023:8.9 reserves at this edition AND the rest of the entry parses as its clauses; when it
     /// does not (`05 DEFAULT PIC X.`), the name reading stands and the funnel's COBOL0901 names the word.
@@ -534,7 +534,7 @@ public abstract class CobolParserCoreBase : Parser
     /// the separator period) and <c>sectionName</c> (the word SECTION). ISO §2023:14.4.3: "A paragraph consists of a
     /// paragraph-name followed by a separator period"; the general formats of §2023:14.2.1 write a section header as
     /// <c>section-name-1 SECTION.</c> A procedure-name is a user-defined word, so a word §2023:8.9 reserves at this edition stands there only as
-    /// the §2023:8.3.2.1 1) violation ("Reserved words shall not be used as user-defined words or system-names") the funnel
+    /// the §2023:8.3.2.1 SR1 violation ("Reserved words shall not be used as user-defined words or system-names") the funnel
     /// names with COBOL0901, and the source writes that use only where the header follows: <c>END-DISPLAY.</c> and
     /// <c>RECEIVE SECTION.</c> are headers naming a reserved word. Where the header does not follow, the word is its
     /// keyword: <c>END-DISPLAY MOVE 2 TO W-K.</c> at the start of a sentence is a scope terminator no statement owns
@@ -733,7 +733,7 @@ public abstract class CobolParserCoreBase : Parser
     /// <summary>⛔ A WORD §2023:8.9 RESERVES, WRITTEN WHERE A PROCEDURE-NAME STANDS (kb/Work PB4229) — the word and its §2023:8.9
     /// message when the sentence the syntax error at <paramref name="offending"/> falls in reads COMPLETELY with one
     /// reserved word of it taken as a user-defined word, and that word then stands in a procedure-name slot
-    /// (<c>procedureName</c>, a definition or a reference); else null. ISO §2023:8.3.2.1 1): "Reserved words shall not be used
+    /// (<c>procedureName</c>, a definition or a reference); else null. ISO §2023:8.3.2.1 SR1: "Reserved words shall not be used
     /// as user-defined words or system-names", and a procedure-name is a user-defined word (§2023:8.3.2.2).
     /// <para>A word reserved at EVERY edition (READ, DISPLAY, EXIT) is a keyword token, which no name slot can take, so
     /// the parse reads it as the keyword and dies after it: <c>PERFORM READ.</c> is an inline PERFORM whose READ statement
@@ -813,7 +813,7 @@ public abstract class CobolParserCoreBase : Parser
     /// and its §2023:8.9 message when the syntax error at <paramref name="offending"/> falls in an entry that wrote no name, the
     /// word right after the entry's level-number is a keyword reserved at this edition (any keyword, gated or not:
     /// <see cref="ReservedWordHere"/>), and the entry reads COMPLETELY with that word taken as a user-defined word (retyped
-    /// <c>IDENTIFIER</c> in a copy, so it stands in the entry's <c>dataName</c>); else null. ISO §2023:8.3.2.1 1) and
+    /// <c>IDENTIFIER</c> in a copy, so it stands in the entry's <c>dataName</c>); else null. ISO §2023:8.3.2.1 SR1 and
     /// §1985:IV.4.2.2.1.3: a reserved word may not be a user-defined word, and a data-name is one.
     /// <para>The name slot of an entry is optional (§1985:VI.5.3.2 Format 1 brackets <c>data-name-1 | FILLER</c>; §2023:13.16.3
     /// SR4), so a word that BEGINS a clause is read as that clause: <c>01 CLASS PIC X.</c> parsed as the CLASS clause and died at
@@ -866,7 +866,7 @@ public abstract class CobolParserCoreBase : Parser
     }
 
     /// <summary>⛔ IS THE RESERVED WORD NAMED AS A PROCEDURE BY ANOTHER SENTENCE OF THE PROGRAM (kb/Work PB4283)? The one piece
-    /// of evidence that decides a bare <c>VERB.</c> sentence (<see cref="IsBareVerbSentence"/>): ISO §2023:8.3.2.1 1) ("Reserved
+    /// of evidence that decides a bare <c>VERB.</c> sentence (<see cref="IsBareVerbSentence"/>): ISO §2023:8.3.2.1 SR1) ("Reserved
     /// words shall not be used as user-defined words or system-names") is broken by a USE of the word as a name, and a
     /// procedure reference (<c>PERFORM VERB.</c>, <c>GO TO VERB.</c>) elsewhere is what shows the sentence is that name's
     /// paragraph header. With none, nothing written shows a use, and the sentence is the verb's statement lacking its operand.
@@ -1037,9 +1037,9 @@ public abstract class CobolParserCoreBase : Parser
     /// KEYWORD of whatever follows the list in this construct. Every non-IDENTIFIER <c>cobolWord</c> alternative
     /// carries <c>{!keywordContinuesHere()}?</c> (generated, <c>scripts/gen-cobol-words.ps1</c>), so the list ENDS
     /// there and the keyword reading wins.
-    /// <para>THE RULE. §2023:8.3.2.1 3): "Context-sensitive words may be used as user-defined words and system-names in
+    /// <para>THE RULE. §2023:8.3.2.1 SR3: "Context-sensitive words may be used as user-defined words and system-names in
     /// contexts other than the language construct in which they are defined" — inside that construct the word IS
-    /// its keyword (§2023:5.2.2/§2023:5.2.3), and a word §2023:8.9 reserves is never a user-defined word at all (§2023:8.3.2.1 1)).
+    /// its keyword (§2023:5.2.2/§2023:5.2.3), and a word §2023:8.9 reserves is never a user-defined word at all (§2023:8.3.2.1 SR1).
     /// So a word that takes its keyword reading here (<see cref="IsKeywordReadingHere"/>) and that the enclosing
     /// construct can read as its next keyword is not an operand of the list before it.</para>
     /// <para>WHY DERIVED, NOT LISTED. The question used to be answered per word and per site — PROPERTY (two
@@ -1080,9 +1080,9 @@ public abstract class CobolParserCoreBase : Parser
     }
 
     /// <summary>Whether the lookahead word takes its KEYWORD reading in an operand list (kb/Work PB805/PB655).
-    /// True when §2023:8.9 reserves the word at this edition (it is never a user-defined word, §2023:8.3.2.1 1) — it reaches
+    /// True when §2023:8.9 reserves the word at this edition (it is never a user-defined word, §2023:8.3.2.1 SR1) — it reaches
     /// <c>cobolWord</c> only through the migration mode), or when it has no §2023:8.9 row at all (a §2023:8.10 context-
-    /// sensitive word: a keyword inside its construct, §2023:8.3.2.1 3)). A word §2023:8.9 leaves FREE at this edition —
+    /// sensitive word: a keyword inside its construct, §2023:8.3.2.1 SR3). A word §2023:8.9 leaves FREE at this edition —
     /// GOBACK or END-DISPLAY at COBOL-85, ALTER at 2002 — is a user-defined word exactly when the program
     /// DECLARES it (<see cref="declareName"/>): then ISO gives the source one reading and it is one more operand.
     /// Undeclared, the user-word reading could only be an unresolvable reference, so the keyword reading wins and
@@ -1205,7 +1205,7 @@ public abstract class CobolParserCoreBase : Parser
 
     /// <summary>The §2023:8.9 message for a syntax error whose offending token is a RESERVED WORD written where a user-defined
     /// word stands, or null when the error is about something else (kb/Work PB693, PB4208). Two kinds of word, one rule
-    /// (ISO §2023:8.3.2.1 1): "Reserved words shall not be used as user-defined words or system-names"):
+    /// (ISO §2023:8.3.2.1 SR1: "Reserved words shall not be used as user-defined words or system-names"):
     /// <list type="bullet">
     /// <item>a RESERVATION-GATED word §2023:8.9 reserves at this edition. The gate removes it from <c>cobolWord</c>, which is
     /// right — nothing may absorb it into an operand list — but it also means a REFERENCE to the word has no alternative
@@ -1234,7 +1234,7 @@ public abstract class CobolParserCoreBase : Parser
             ? UserWordViolationOf(offendingSymbol!)
             : null;
 
-    /// <summary>⛔ DOES THE KEYWORD <paramref name="token"/> BREAK §2023:8.3.2.1 1) WRITTEN WHERE A NAME IS DUE (kb/Work PB4604)? It is
+    /// <summary>⛔ DOES THE KEYWORD <paramref name="token"/> BREAK §2023:8.3.2.1 SR1 WRITTEN WHERE A NAME IS DUE (kb/Work PB4604)? It is
     /// a word §2023:8.9 reserves at this edition (<see cref="ReservedUserWordViolation"/> with <c>atAName</c>), or one this
     /// implementation reserves for a nonstandard extension (§2023:4.2.10, <see cref="NonstandardExtensionRegister.ReservesWord"/>),
     /// the register the parser's own hint for the vendor statement words reads (COBOL0313).</summary>
@@ -1247,7 +1247,7 @@ public abstract class CobolParserCoreBase : Parser
     internal EditionInfo EditionInForce => Edition;
 
     /// <summary>The canonical word of the keyword <paramref name="token"/> when this implementation reserves it for a
-    /// nonstandard extension (§2023:4.2.10 3), else null.</summary>
+    /// nonstandard extension (§2023:4.2.10 GR3), else null.</summary>
     internal string? ExtensionReservedWord(IToken token)
         => CobolErrorStrategy.IsReservedWord(token) && CobolWordsRewriter.CanonicalWordOf(token, CobolWords) is { } w
            && NonstandardExtensionRegister.ReservesWord(w)
@@ -1419,7 +1419,7 @@ public abstract class CobolParserCoreBase : Parser
     /// <para>WHAT FOLLOWS IS THE LIVE CONTEXT'S (kb/Work PB4235). The usage clause is a clause of the data description
     /// entry, the report group description entry AND the screen description entry, and each is followed by its own
     /// entry's clauses. §2023:8.10 makes AUTO, BELL, SECURE and the other screen attribute words context-sensitive words of
-    /// the "screen description entry", and §2023:8.3.2.1 3) lets such a word be a user-defined word "in contexts other than
+    /// the "screen description entry", and §2023:8.3.2.1 SR3 lets such a word be a user-defined word "in contexts other than
     /// the language construct in which they are defined" — so in a data description entry <c>USAGE POINTER AUTO</c>
     /// names a type AUTO, exactly as <c>USAGE POINTER TO AUTO</c> does, while in a screen entry AUTO begins the AUTO
     /// clause. The follow is therefore walked from this rule's end through the parser's live rule-invocation stack
@@ -1511,7 +1511,7 @@ public abstract class CobolParserCoreBase : Parser
                 // must fall to the normal comparison unchanged (else a plain comparison mis-gates as boolean, and RETRY
                 // #4's sibling mis-fire class returns). Below 2002 B-AND/B-OR/B-XOR are legal user words; at ≥2002 the
                 // §2023:8.9 funnel already reserves them, so a leading occurrence is a name-slot error either way — never here.
-                // The four boolean SHIFT operators (§2023:8.8.2 rule 8, 2023) are NEVER legal user words (absent from
+                // The four boolean SHIFT operators (§2023:8.8.2 GR8, 2023) are NEVER legal user words (absent from
                 // _dataNameTokens), so a shift token always IS the operator — detecting it here recognizes a shift-only
                 // boolean expression (e.g. `A B-SHIFT-L 2`), which no binary/unary B-op precedes. The token set is
                 // BooleanOperatorTokens, the ONE list the binder's discriminator reads too (kb/Work PB1412).
@@ -1582,7 +1582,7 @@ public abstract class CobolParserCoreBase : Parser
     /// <summary>How many tokens the UNSIGNED numeric literal at <c>LT(<paramref name="i"/>)</c> of
     /// <paramref name="stream"/> spans, or 0 when none starts there: one for a one-token literal and the unsigned
     /// integer, three for the contiguous comma decimal <c>1,5</c> and two for <c>,5</c> (numericLiteralCore's
-    /// alternatives; a comma that no space follows is no separator, ISO §2023:8.3.5 2), so each is ONE character-string).
+    /// alternatives; a comma that no space follows is no separator, ISO §2023:8.3.5 SR2, so each is ONE character-string).
     /// The one reading of a literal's extent off the token stream, for the parser's predicates and for
     /// <c>CobolErrorStrategy</c>, which must not take <c>1,5</c>'s first token for a level-number (kb/Work PB3390).</summary>
     internal static int NumericLiteralWidth(ITokenStream stream, int i) => stream.LA(i) switch
@@ -1704,7 +1704,7 @@ public abstract class CobolParserCoreBase : Parser
 
     /// <summary>The ARGUMENT-scoped twin of <see cref="boolExprAhead"/> (kb/Work PB65, FMT-15.45.2): does a boolean
     /// operator belong to THIS intrinsic-function argument? §2023:8.4.3.2.3 SR8 admits "a boolean expression" as
-    /// argument-1 and §2023:15.3 item 3 names it for a Boolean argument (INTEGER-OF-BOOLEAN(BIT-A B-AND BIT-B)). The
+    /// argument-1 and §2023:15.3 AR3 names it for a Boolean argument (INTEGER-OF-BOOLEAN(BIT-A B-AND BIT-B)). The
     /// scan stops where the ARGUMENT ends — a depth-0 comma, the argument list's ')', or a SPACE-SEPARATED
     /// boundary: two adjacent operand terms with no operator between them (kb/Work PB124, AR-15.3-3 — boolean
     /// expressions connect every term with a B-operator, so `CONCAT(WS-A B1 B-AND B2)` ends WS-A's argument at

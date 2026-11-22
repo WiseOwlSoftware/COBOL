@@ -24,7 +24,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class CommitGateDriftTests
 {
-    private const string Ceiling = "54";   // §2023:9.1.13.8 item 4 — this file connector holds the maximum number of locks
+    private const string Ceiling = "54";   // §2023:9.1.13.8 GR4 — this file connector holds the maximum number of locks
 
     private static void Gate(FileConnector c, bool refusing) => c.CommitGate = refusing ? () => Ceiling : null;
 

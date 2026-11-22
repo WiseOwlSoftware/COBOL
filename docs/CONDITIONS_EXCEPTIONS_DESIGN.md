@@ -17,7 +17,7 @@ OO mechanism (feedback_one_mechanism_per_job):
   a catalog name and `ExceptionCatalog.TryGet` fails on it by design), `SetObject`,
   `SetPropagatingObject`/`TakePropagatedObject` (the object propagation slot — mutually exclusive with the
   named `_propagated` slot; each staging call clears the other), and the `SetPropagatingLast` object
-  leg (GOBACK RAISING LAST with an object status re-propagates the OBJECT, §2023:14.9.18.4 GR1b3a second sentence).
+  leg (GOBACK RAISING LAST with an object status re-propagates the OBJECT, §2023:14.9.18.4 GR1b.3.a second sentence).
 - **RAISE identifier-1** → `BoundRaiseObject` (grammar takes `objectReference` so NULL/SUPER get the
   targeted 0848, and RAISE SELF parses); NOT TURN-gated (§2023:7.3.25 takes names only); NEVER fatal by itself
   (GR2 — the continue-after-RAISE path is the normal exit).
@@ -288,7 +288,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§2023
   `ExceptionDispatchInfo` at the ONE place a COBOL comparer meets the framework, covering any future comparer
   raise by construction. Measured, not deduced; pinned as the sweep golden's L12; with checking OFF the flag test short-circuits before the O(digits) scan and the decode stays the
   tolerant deterministic one the standard's "undefined" permits, byte-identical to a pre-slice build.
-  **`CobolNum.IsNumericImage` is the ONE §2023:8.8.4.4.4 GR3n1 predicate** — keyed on the item's `NumericByteForm`
+  **`CobolNum.IsNumericImage` is the ONE §2023:8.8.4.4.4 GR3n.1 predicate** — keyed on the item's `NumericByteForm`
   (zoned digits + declared sign presentation for n)1.a; valid BCD nibbles + a sign nibble for packed, and the
   PICTURE-range test for binary, both n)1.c; a `BinaryCapacity` item takes its range from its container per
   §2023:13.18.60.4 GR12) — and the CLASS CONDITION calls the same predicate over the same RAW window, because the
@@ -306,7 +306,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§2023
   STATEMENT (`FloatNotFiniteChecking` / `FloatOverflowChecking` in the statement's checking scope via `FatalAmbientGates` + the try/catch F3
   dispatch) and the runtime raise sites consult the flag. Both are **always-emitted** (the singular pattern —
   `CobolString.RefMod`, not an emit-time fork) so a directive-free build is byte-identical (the flag defaults OFF ⇒
-  the wrap is a pass-through). **EC-DATA-NOT-FINITE (§2023:14.6.13.2 item 3)** is wrapped at the TWO float sending-read
+  the wrap is a pass-through). **EC-DATA-NOT-FINITE (§2023:14.6.13.2 GR3)** is wrapped at the TWO float sending-read
   chokepoints — the numeric-value read (`NumericRenderer.FieldNumCore` line 140 → `RuntimeApi.FloatSending`) and the
   string-image read (`OperandText.FieldAsString` float arm → `RuntimeApi.FloatSending`) — so DISPLAY, STRING,
   MOVE-to-alphanumeric/group, arithmetic, relations, level-88, intrinsic args, and a different-usage float MOVE
@@ -316,7 +316,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§2023
   the re-entrant `NumericRenderer._sending`), a **same-usage MOVE** (source and receiver share the same `Usage` —
   endianness is a separate phrase, not a Usage value) passes `SameUsageMove`, and **VALIDATE** will pass `Validate`
   once its emitter lands (documented no-op today). Note the two lists differ — `SignCondition` and `SameUsageMove`
-  suppress rule 3's wrap and NOT rule 2's. **EC-DATA-OVERFLOW (§2023:14.9.25.4 GR6d4.a)** is MOVE-only: `CobolFloat.StoreSingleChecked` at the
+  suppress rule 3's wrap and NOT rule 2's. **EC-DATA-OVERFLOW (§2023:14.9.25.4 GR6d.4.a)** is MOVE-only: `CobolFloat.StoreSingleChecked` at the
   single-precision-float MOVE receiver raises when a FINITE source casts to ±Inf (cast-based, `double.IsFinite(src)
   && float.IsInfinity((float)src)` — never a MaxValue compare, since a double in `(float.MaxValue, ~3.4028e38]`
   rounds to a finite `float.MaxValue`). An arithmetic ±Inf store (`ArithmeticEmitter.StoreArith`) stays a bare cast
@@ -907,7 +907,7 @@ homes, each read mechanically, never from a hand list:
   activation window holds. `EcRaiseSiteRegistryDriftTests` reads every bound statement that carries a `FileModel` and
   asks `IoFilesOf` for it, so an I-O verb added tomorrow cannot be missing (DELETE FILE once was, kb/Work PB141).
 - **An OPERAND** raises wherever it is written: a program-address-identifier (§2023:8.4.3.13.4 GR4) in a relation, a CALL
-  or an INVOKE argument alike; a function reference's argument check (§2023:15.3 item 14: EC-ARGUMENT-FUNCTION, and the
+  or an INVOKE argument alike; a function reference's argument check (§2023:15.3 AR14: EC-ARGUMENT-FUNCTION, and the
   families that ride the same intrinsic call — EC-ORDER-NOT-SUPPORTED, EC-DATA-CONVERSION, EC-LOCALE-INVALID).
   `EcBinder.OperandRaises` declares each over the GENERATED value parts (`BoundStatementTree.OwnValueParts`), so a
   statement kind added tomorrow is covered without an edit; `OperandRaisableNames` is the one walker, and the
@@ -998,7 +998,7 @@ bool _se=false; { var _v = new CobolInt(…, _s); if (CobolNum.TryStore(_v, _P_B
 if (_se) { <ON SIZE ERROR> } else { <NOT ON SIZE ERROR> }
 ```
 A statement written with ONLY a NOT ON SIZE ERROR phrase takes the same shape with an empty ON arm, on purpose: §2023:14.7.5
-ignores the NOT phrase on a size error and §2023:14.6.13.1.3 item 8 leaves the receivers to the implementor, and CONFORMANCE.md
+ignores the NOT phrase on a size error and §2023:14.6.13.1.3 GR8 leaves the receivers to the implementor, and CONFORMANCE.md
 DOC-A.1-70 follows GnuCOBOL there (any `[NOT] SIZE ERROR` phrase keeps an overflowing resultant unchanged, as the CCVS85
 NC programs expect, except a COMP-5, COMP-X or COMP-N receiver of a NOT-only statement, which GnuCOBOL stores as if no phrase were written (its `build_store_option` sets the flag for those usages only with ON SIZE ERROR): GnuCOBOL's error, by the owner's decision, so WiseOwl keeps those too, kb/Work PB3989; kb/Work
 PB3869, retired).
@@ -1144,7 +1144,7 @@ been recorded, so a condition error node can never reach a successful compile an
 - NEXT SENTENCE (obsolete) is NOT CONTINUE: it jumps past the next period, so it lowers via a labeled sentence block + goto, unlike a plain if-fall-through (COBOL0701).
 - ALPHABETIC is the closed set {A-Z,a-z,space} only (ISO §2023:8.8.4.4) — must NOT use char.IsLetter (rejects accented/Unicode letters); legacy comment line 2436.
 - IS NUMERIC on a signed numeric-DISPLAY item accepts the overpunch sign ({,A-I positive; },J-R negative) or separate sign (+/-) at the sign position; spaces are NOT digits so a field with embedded/trailing spaces is NOT NUMERIC.
-- IS NUMERIC on a pure native long/Int128 item folds to constant true (COBOL0706): the fold applies ONLY to a numeric item with no REDEFINES/overlay view; an aliased item routes through the runtime byte-form-keyed check (CobolNum.IsNumericImage, §2023:8.8.4.4.4 GR3n1; CobolClass.IsNumeric is n)2's non-numeric-category arm and n)1.a's zoned delegate).
+- IS NUMERIC on a pure native long/Int128 item folds to constant true (COBOL0706): the fold applies ONLY to a numeric item with no REDEFINES/overlay view; an aliased item routes through the runtime byte-form-keyed check (CobolNum.IsNumericImage, §2023:8.8.4.4.4 GR3n.1; CobolClass.IsNumeric is n)2's non-numeric-category arm and n)1.a's zoned delegate).
 - NOT POSITIVE means ≤ 0 (includes zero), which is NOT the same as NEGATIVE — the !(>0) wrap gets it right.
 - Figurative ZERO compared with a numeric value is the numeric 0 (ISO §2023:8.3.3.6.4 r4), not the character '0'.
 - Literal-vs-literal comparisons constant-fold at emit time to true/false (clean output, matches mainstream compilers).

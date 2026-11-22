@@ -179,7 +179,7 @@ public sealed class RecordKey
     public IReadOnlyList<DataItem> Segments { get; }
 
     /// <summary>True when the key was declared with the SOURCE phrase — the fact §2023:12.4.5.6.3 SR4's last sentence and
-    /// §2023:14.9.41.3 SR6 b) 1. ("defined without the SOURCE phrase") are stated on.</summary>
+    /// §2023:14.9.41.3 SR6b.1 ("defined without the SOURCE phrase") are stated on.</summary>
     public bool IsSourceForm => RecordKeyName is not null;
 
     /// <summary>data-name-1's item, or null for a SOURCE-form key, which no data item IS.</summary>
@@ -195,7 +195,7 @@ public sealed class RecordKey
     public IReadOnlyList<int> OccurrenceOf(int segment) => _segmentSubscripts[segment];
 
     /// <summary>True when this is the data-name-1 key of exactly <paramref name="item"/> at exactly the occurrence
-    /// <paramref name="occurrence"/> selects — the identity §2002:14.8.29.2 SR10 and §2002:14.8.37.2 SR6 a) ask of an operand,
+    /// <paramref name="occurrence"/> selects — the identity §2002:14.8.29.2 SR10 and §2002:14.8.37.2 SR6a ask of an operand,
     /// where <c>K(1)</c> and <c>K(2)</c> are two different keys.</summary>
     public bool Names(DataItem item, IReadOnlyList<int> occurrence) =>
         !IsSourceForm && ReferenceEquals(Segments[0], item) && Subscripts.SequenceEqual(occurrence);
@@ -246,7 +246,7 @@ public sealed record SuppressWhenOperand(string Written, SuppressWhenForm Form, 
 
 /// <summary>The §2023:12.4.5.6.4 GR6 key suppression value of one resolved alternate key, as the relation condition
 /// compares it with the key: <paramref name="Value"/> is in the key's own character positions — a figurative or
-/// ALL literal repeated to the key's size (§2023:8.3.3.6.4 GR2), a shorter literal extended with spaces (§2023:8.8.4.2.7 2)),
+/// ALL literal repeated to the key's size (§2023:8.3.3.6.4 GR2), a shorter literal extended with spaces (§2023:8.8.4.2.7 GR2),
 /// a longer one cut back to the key's size when every excess position is a space — and
 /// <paramref name="National"/> says those positions are national characters, which the record image carries as
 /// UTF-16BE byte pairs (determination D-N1).</summary>
@@ -283,7 +283,7 @@ public sealed class FileModel
     public string SelectName { get; init; } = "";
 
     /// <summary>The ASSIGN clause's TO-phrase target text — literal-1's decoded value or device-name-1 (ISO
-    /// §2023:12.4.5.3 GR3 a); resolved to a host path at run time by <c>CobolFile.ResolveHostPath</c>. ⛔ NEVER DEFAULTED
+    /// §2023:12.4.5.3 GR3a; resolved to a host path at run time by <c>CobolFile.ResolveHostPath</c>. ⛔ NEVER DEFAULTED
     /// TO THE FILE-NAME: an entry with no ASSIGN clause is refused (<see cref="AssignWritten"/>, §2023:12.4.5.1 prints the
     /// clause unbracketed in all four formats), and a target invented from the file-name is what made a file bind
     /// to <c>&lt;file-name&gt;.txt</c> (kb/Work PB4236). EMPTY for the bare <c>ASSIGN USING data-name-1</c> form,
@@ -581,7 +581,7 @@ public sealed class FileModel
     /// items stay per-program (§2023:13.18.22 is about the connector and record data, not the status item).</summary>
     public bool IsExternal { get; set; }
 
-    /// <summary>True for an <c>FD … IS GLOBAL</c> file (ISO §2023:13.18.27.4 GR1 / §2023:13.18.27.3 SR1 d)): the file-name and its
+    /// <summary>True for an <c>FD … IS GLOBAL</c> file (ISO §2023:13.18.27.4 GR1 / §2023:13.18.27.3 SR1d): the file-name and its
     /// record-names are GLOBAL names — visible in every directly/indirectly contained program; the contained
     /// program's verbs reach the OWNER's one connector and record storage.</summary>
     public bool IsGlobal { get; set; }
@@ -664,7 +664,7 @@ public sealed class FileModel
     /// <summary>The RESERVE clause's integer-1 (ISO §2023:12.4.5.14), or null when the entry writes no RESERVE clause.
     /// It has two readers: the connector's input-output area count (§2023:12.4.5.14.3 GR1 — "the number of input-output
     /// areas allocated is equal to the value of integer-1"; <c>SequentialIoEmitter.EmitReserveRegistration</c>,
-    /// kb/Work PB643), and the external file connector's entry identity, which §2023:12.4.5.3 GR1 d) makes include "The
+    /// kb/Work PB643), and the external file connector's entry identity, which §2023:12.4.5.3 GR1d makes include "The
     /// same value for integer-1 in the RESERVE clause" (<c>FileEntryIdentity.Of</c>, kb/Work PB1079).</summary>
     public int? ReserveAreas { get; set; }
 
@@ -710,7 +710,7 @@ public sealed class FileModel
     /// <summary>The PADDING CHARACTER clause as written (§1985:VII.2.7, §2002:12.3.4.10; deleted from 2014), or null when
     /// the entry writes none (kb/Work PB5069, PB5070). WiseOwl COBOL has no blocking model, so the padding character
     /// changes no I-O; the clause's readers are its own syntax rules and the external file connector's entry identity,
-    /// which §1985:VII.2.7.4 GR6 and §2002:12.3.4.3 GR1 h) make include "the same specification of the PADDING CHARACTER
+    /// which §1985:VII.2.7.4 GR6 and §2002:12.3.4.3 GR1h make include "the same specification of the PADDING CHARACTER
     /// clause" (<c>FileEntryIdentity.Segments</c>).</summary>
     public PaddingCharacterSpec? Padding { get; set; }
 
@@ -720,7 +720,7 @@ public sealed class FileModel
     /// <c>FileControlBinder.BindIoControl</c>, which runs after the file control entries are bound (the clause is in a
     /// different paragraph, so this fact is NOT knowable while a SELECT is being bound).
     /// <para>⛔ It is also THE FACT THAT THE FILE IS UNDER COMMIT CONTROL AT RUN TIME, for every organization §2023:9.1.18.2
-    /// admits (kb/Work PB3340): §2023:14.6.13.1.3 item 8's emission (<c>SequentialIoEmitter.Item8Applies</c>), its
+    /// admits (kb/Work PB3340): §2023:14.6.13.1.3 GR8's emission (<c>SequentialIoEmitter.Item8Applies</c>), its
     /// EC-FLOW-ROLLBACK declaration (<c>EcBinder.NodeKindRaises</c>) and the syntax rules that key on subject-hood
     /// (§2023:14.9.27.3 SR8's leading conjunct, read at <c>StatementValidation.CheckOpenSharingAllOther</c>; kb/Work PB319)
     /// read it.</para></summary>
@@ -773,7 +773,7 @@ public sealed class FileModel
     /// ISO §2023:13.18.43.4 GR9's "the least number of bytes described for a record in that file" (each record by
     /// <see cref="MinRecordSize"/>, GR8 a); −1 for fixed-length records.
     /// <para>⛔ ONE formula for BOTH arms that reach it — an explicit Format 2/3 clause that omits integer-2, and
-    /// the implied Format 2 clause of <see cref="ImpliesVariableFormat"/> (§2023:13.18.43.4 GR5 b) states the implied
+    /// the implied Format 2 clause of <see cref="ImpliesVariableFormat"/> (§2023:13.18.43.4 GR5b) states the implied
     /// integer-2 as the same smallest record). <see cref="VaryMax"/> is its twin.</para></summary>
     public int VaryMin => !RecordSizeVaries ? -1
         : Varying is { BoundsEnforced: true, Min: { } stated } ? stated
@@ -802,7 +802,7 @@ public sealed class FileModel
     /// of the statement (§2023:14.9.40.3 SR5 / SR11, §2023:14.9.24.3 SR3 / SR12). A variable-length file describes the range
     /// <see cref="VaryMin"/>..<see cref="VaryMax"/> (the clause's integers, else GR9 / GR10's smallest and largest
     /// record description); a fixed-length file describes the ONE record <see cref="RecordWidth"/> — integer-1 of an
-    /// explicit Format 1 clause, else the largest record description entry (§2023:13.18.43.4 GR5 a), GR6), so the rules'
+    /// explicit Format 1 clause, else the largest record description entry (§2023:13.18.43.4 GR5a, GR6), so the rules'
     /// "the record described for file-name-n" is that size. (kb/Work PB995.)
     /// <para>⛔ A FORMAT 3 CLAUSE WHOSE INTEGERS DO NOT BOUND THE RECORDS (<see cref="VaryingRecordInfo.BoundsEnforced"/> false, --std 85,
     /// kb/Work PB5731) DESCRIBES EACH RECORD AT ITS MAXIMUM: §1985:VII.3.8.4 GR15 makes the size of a format 3 record "the sum of the
@@ -818,7 +818,7 @@ public sealed class FileModel
     /// RECORD clause is not specified, an implicit format 1 or format 2 RECORD clause is assumed to be
     /// specified. This implicit RECORD clause is defined by the implementor". WiseOwl COBOL implies FORMAT 2 exactly
     /// when a record description is VARIABLE-LENGTH (a dynamic-length elementary record, or a variable-length
-    /// group — §2023:8.5.1.12.1): such a record has no one size, and §2023:13.18.43.4 GR13 c) already sizes a record containing a
+    /// group — §2023:8.5.1.12.1): such a record has no one size, and §2023:13.18.43.4 GR13c already sizes a record containing a
     /// variable-occurrence item by its extent at the time of the output statement, which is what WRITE sends.
     /// Every other file keeps the implied Format 1 it has always had, so no fixed-record file changes
     /// shape.
@@ -857,7 +857,7 @@ public sealed class FileModel
     /// <c>RECORD CONTAINS integer-1</c> whose integer-1 exceeds the largest description (legal — the descriptions may be
     /// smaller, §1985:VII.3.8.3 SR1, §2023:13.18.43.3 SR3), or a Format 2 <c>RECORD IS VARYING … TO integer-3</c> whose
     /// integer-3 does. The record the file holds is then LONGER than any record area item: §2023:13.18.43.4 GR6 /
-    /// GR7 and §1985:VII.3.8.4 GR3 give each record the clause's size, §2023:14.9.30.4 GR4 b) (§1985:VII.4.4.4 GR8b) moves THE
+    /// GR7 and §1985:VII.3.8.4 GR3 give each record the clause's size, §2023:14.9.30.4 GR4b (§1985:VII.4.4.4 GR8b) moves THE
     /// CURRENT RECORD sized by the RECORD clause, and §2023:13.18.43.4 GR16 / §1985:VII.3.8.4 GR12 count its bytes, so the
     /// implied move of an INTO phrase sends the record at its own length and not the area's description-wide image. False
     /// for Format 3, whose records the descriptions size completely (§2023:13.18.43.4 GR18), and for a file with a
@@ -882,7 +882,7 @@ public sealed class FileModel
         : RecordContains is { } n ? new RecordClauseFacts(RecordClauseFormat.Fixed, null, n, RecordClauseAt)
         : null;
 
-    /// <summary>The MAXIMUM byte size of one record description (ISO §2023:13.18.43.4 GR8 b): "The maximum number of
+    /// <summary>The MAXIMUM byte size of one record description (ISO §2023:13.18.43.4 GR8b): "The maximum number of
     /// table elements described in the record is used in the summation above to determine the maximum number of
     /// bytes associated with the record description" — the twin of <see cref="MinRecordSize"/>, and the quantity
     /// §2023:13.18.43.3 SR3 and SR4's upper arm compare against.
@@ -915,7 +915,7 @@ public sealed class FileModel
     /// maximum 12 and a legal <c>RECORD CONTAINS 11</c> was refused.</para>
     /// <para>⛔ A DYNAMIC-LENGTH ELEMENTARY ITEM IS THE ONLY VARIABLE-LENGTH MEMBER A RECORD CAN HOLD, so this
     /// walk has no dynamic-capacity-table arm (kb/Work PB1604, discharged): a dynamic-capacity table "may be
-    /// defined in any place, other than the file section" (§2023:8.5.1.9.1 3)), and COBOL1526
+    /// defined in any place, other than the file section" (§2023:8.5.1.9.1 SR3), and COBOL1526
     /// (<c>DynamicResolvePass</c>) refuses one under any FD / SD record — written there directly, or
     /// arriving through a TYPE or SAME AS clause — so no record reaches this walk with one
     /// (<c>OccursDynamicGuardTests.FileSectionDynamicTable_EveryRoute_Rejected1526</c> pins every route). Were
@@ -1046,7 +1046,7 @@ public sealed class FileModel
     /// (kb/Work PB5086).</summary>
     public List<MultipleFileReel> MultipleFileReels { get; } = [];
 
-    /// <summary>This file's X3.23-1985 RERUN clause of the integer-1 RECORDS form (§1985:VII.2.12.4 GR2 d): the device
+    /// <summary>This file's X3.23-1985 RERUN clause of the integer-1 RECORDS form (§1985:VII.2.12.4 GR2d): the device
     /// implementor-name-1 names and integer-1, recorded by <c>FileControlBinder.ScreenRerunClauses</c> for a clause whose
     /// syntax rules held and whose integer-1 is nonzero (kb/Work PB5198). At most one per file, by §1985:VII.2.12.3 SR4 a.
     /// Null for a file no such clause names. The code generator registers it on the file's connector, which writes the
@@ -1072,7 +1072,7 @@ public sealed class FileModel
     /// line.</summary>
     public DataItem? CharacterAnchor => Records.FirstOrDefault(r => !IsOutOfLineRecord(r));
 
-    /// <summary>The MINIMUM byte size of one record description (ISO §2023:13.18.43.4 GR8 a): "The minimum number of
+    /// <summary>The MINIMUM byte size of one record description (ISO §2023:13.18.43.4 GR8a): "The minimum number of
     /// table elements described in the record is used in the summation above to determine the minimum number of
     /// bytes associated with the record description" — the twin of <see cref="MaxRecordSize"/> (a bare
     /// <c>RECORD IS VARYING</c> over an ODO record — RL211A — has minimum 120, not its 140-byte maximum).
@@ -1109,7 +1109,7 @@ public sealed class FileModel
     /// <summary>Whether an occurs-depending table — the one table in a record whose occurrence count varies —
     /// lies strictly beneath <paramref name="item"/> (a redefinition contributes nothing to GR8's sum, so one
     /// beneath a redefining entry does not count). A dynamic-capacity table cannot be in a record: see
-    /// <see cref="MaxDynamicExtent"/> (§2023:8.5.1.9.1 3), COBOL1526).</summary>
+    /// <see cref="MaxDynamicExtent"/> (§2023:8.5.1.9.1 SR3, COBOL1526).</summary>
     private static bool HasVaryingTableBeneath(DataItem item) =>
         item.Children.Any(c => c.RedefinesTargetName is null
             && (c.OccursSpec is { DependingOperand: not null } || HasVaryingTableBeneath(c)));
@@ -1123,7 +1123,7 @@ public sealed class FileModel
     ///         description be SMALLER than integer-1, so the descriptions do not size such a file (kb/Work
     ///         PB1276 — two 10-byte WRITEs under <c>RECORD CONTAINS 20</c> produced one 20-byte record);</item>
     ///   <item>otherwise the descriptions' PHYSICAL (codec) width — the max over the records of the extent the
-    ///         emitted <c>AsImage()</c>/<c>FromImage()</c> spans, which is §2023:13.18.43.4 GR5 a)'s implied
+    ///         emitted <c>AsImage()</c>/<c>FromImage()</c> spans, which is §2023:13.18.43.4 GR5a's implied
     ///         "record size of the largest record description entry" (P5.8: <c>ImageWidth</c> under-counted a
     ///         record whose REDEFINES redefiner is wider than its target — the codec spans the class-max
     ///         backing, §2023:13.18.44).</item>
@@ -1138,14 +1138,14 @@ public sealed class FileModel
     /// of file-name-2/-3 on the USING side and of file-name-4/-3 on the GIVING side: <i>"If there is only one record
     /// description entry associated with the file … and that record is described as a national data item or as an
     /// elementary data item of usage national and of category numeric, numeric-edited, or boolean, the record is
-    /// filled with national space characters"</i> (§2023:14.9.24.4 GR2 a) / GR13 a), §2023:14.9.40.4 GR7 a) / GR16 a)); otherwise
+    /// filled with national space characters"</i> (§2023:14.9.24.4 GR2a / GR13 a), §2023:14.9.40.4 GR7a / GR16 a)); otherwise
     /// it is <i>"filled with alphanumeric space characters"</i> (c). Written once, over the FD's own record
     /// descriptions, so the USING release and the GIVING write cannot answer differently — and it is NOT the
     /// connector's <c>NationalRecordArea</c>, which is §2023:14.9.30.4 GR15's per-RECORD-AREA test (ANY national record
     /// description of the FD) for the READ's own fill.
     /// <para>⚠ DETERMINATION — SORT GR16 a) / b) print <i>"file-name-2"</i> where the rule's own lead-in names the GIVING
     /// file (<i>"If the file referenced by file-name-3 contains only fixed-length records"</i>) and its MERGE twin
-    /// (§2023:14.9.24.4 GR13 a) names file-name-4; the printed name is a slip of the standard, so the GIVING side reads the
+    /// (§2023:14.9.24.4 GR13a) names file-name-4; the printed name is a slip of the standard, so the GIVING side reads the
     /// record descriptions of the GIVING file.</para>
     /// <para>⚠ arm b) (several record descriptions WITH a SELECT WHEN clause, the clause choosing the description) is decided at RUN time —
     /// <c>RuntimeApi.ShortRecordFillNational</c> asks <c>CobolFile.SelectedRecordIsNational</c> of the record being transferred, because the
@@ -1155,8 +1155,8 @@ public sealed class FileModel
 
     /// <summary>⛔ THE ONE ANSWER TO "IS THIS RECORD DESCRIPTION NATIONAL?" — the standard's own wording, "described as a
     /// national data item or as an elementary data item of usage national and of category numeric, numeric-edited, or
-    /// boolean" (§2023:14.9.40.4 GR7 a) / GR16 a)), over the item's OPERAND category (<see cref="DataItem.OperandPic"/>, which
-    /// answers a GROUP-USAGE NATIONAL group's as-if national picture, §2023:13.18.29.4 GR2 b)). The same question decides
+    /// boolean" (§2023:14.9.40.4 GR7a / GR16 a)), over the item's OPERAND category (<see cref="DataItem.OperandPic"/>, which
+    /// answers a GROUP-USAGE NATIONAL group's as-if national picture, §2023:13.18.29.4 GR2b). The same question decides
     /// <see cref="ShortRecordFillNational"/> (a sort transfer's fill), a file's record-AREA category
     /// (<see cref="RecordAreaIsNational"/>, §2023:14.9.30.4 GR15) and a WRITE / REWRITE's record-name-1 category
     /// (§2023:14.9.51.4 GR21 / GR22, §2023:14.9.35.4 GR17 — kb/Work PB1191), so the three cannot answer it differently.</summary>
@@ -1173,7 +1173,7 @@ public sealed class FileModel
     public bool RecordAreaIsNational => Records.Any(IsNationalRecord);
 
     /// <summary>The record description whose view spans the WHOLE record area — the largest one (ISO §2023:13.18.33.4
-    /// GR3: level-1 entries under an FD are "implicit redefinitions of the same area"; §2023:13.18.43.4 GR5 a) sizes it
+    /// GR3: level-1 entries under an FD are "implicit redefinitions of the same area"; §2023:13.18.43.4 GR5a sizes it
     /// as "the record size of the largest record description entry"). Reading a record makes it available in the
     /// whole area, so every area-wide store/read (sequential and keyed READ, sort RETURN) must go through THIS
     /// record's view — a shorter <c>Records[0]</c> window would truncate the splice (ST111A's 50/75/100 FD,
@@ -1192,7 +1192,7 @@ public sealed class FileModel
     /// <summary>Whether <see cref="AreaRecord"/> is the ONLY description of this file's record area: the file has one
     /// record and no record-area SAME clause shares the area with another file's records (§2023:13.18.33.4 GR3: multiple
     /// level 1 entries of an FD are implicit redefinitions of the same area; §2023:12.4.6.4.4 GR2: so are a SAME RECORD
-    /// AREA peer's), and the file is not EXTERNAL (§2023:13.18.22.4 GR4 b): the data of an external file's records "may be
+    /// AREA peer's), and the file is not EXTERNAL (§2023:13.18.22.4 GR4b: the data of an external file's records "may be
     /// accessed by any runtime element in the run unit that describes the same file and records as external", and this
     /// compiler binds that area to ONE run-unit cell every describing element reads, so another element's complete
     /// redefinition of it (GR6) reads what this element's READ deposits. A READ / RETURN into an area with one description
@@ -1208,14 +1208,14 @@ public sealed class FileModel
     /// (§2023:13.18.33.4 GR3: every level-1 entry is an implicit redefinition of the same area), so a statement that
     /// transfers more than record-name-1 sends <see cref="AreaRecord"/>'s image instead of record-name-1's own.
     /// <para>It transfers more exactly when ALL of these hold. (1) The number of bytes comes from somewhere other
-    /// than record-name-1: the DEPENDING ON item (§2023:13.18.43.4 GR13 a)) or a fixed-length file, whose every record is
+    /// than record-name-1: the DEPENDING ON item (§2023:13.18.43.4 GR13a) or a fixed-length file, whose every record is
     /// integer-1 bytes (GR6) — a variable-length file without DEPENDING transfers record-name-1 itself (GR13 b/c).
     /// (2) The file is not LINE SEQUENTIAL, whose transfer is defined outright: a WRITE drops trailing spaces
-    /// (§2023:14.9.51.4 GR21) or fills with spaces (GR22), and a REWRITE appends spaces (§2023:14.9.35.4 GR17 c)).
+    /// (§2023:14.9.51.4 GR21) or fills with spaces (GR22), and a REWRITE appends spaces (§2023:14.9.35.4 GR17c).
     /// (3) record-name-1 has a character window (<see cref="IsOutOfLineRecord"/> records do not overlay the area,
     /// D-FRA), and (4) can be narrower than the area, whose widest such record <see cref="AreaRecord"/> is: it is a
     /// narrower description, or it holds an OCCURS DEPENDING table, whose current size is that of its occurrences at the time
-    /// of execution (§2023:13.18.43.4 GR13 c)) and so is the area's width only when the table is at its maximum (kb/Work
+    /// of execution (§2023:13.18.43.4 GR13c)) and so is the area's width only when the table is at its maximum (kb/Work
     /// PB5217: an ODO record of a fixed-length file sent at one occurrence wrote spaces where the area held the rest).</para>
     /// <para>(0) The statement's record is one of the file's. The implicit record of a <c>WRITE FILE</c> / <c>REWRITE FILE</c>
     /// (§2023:14.9.51.4 GR8, §2023:14.9.35.4 GR9; kb/Work PB5579) is the FROM operand under its own description, an item that
@@ -1237,7 +1237,7 @@ public sealed class FileModel
 /// <param name="VaryingClause">True for FORMAT 2 (<c>RECORD IS VARYING IN SIZE …</c>), false for FORMAT 3
 /// (<c>RECORD CONTAINS integer-4 TO integer-5</c>). ⛔ THE TWO FORMATS ARE NOT INTERCHANGEABLE even though both
 /// describe variable-length records: §2023:13.18.43.4 GR16 (the READ/RETURN INTO sending size) is stated under the
-/// FORMAT 2 heading, and §2023:14.9.30.4 GR4 b) / §2023:14.9.34.4 GR5 b) designate the implied move an alphanumeric group
+/// FORMAT 2 heading, and §2023:14.9.30.4 GR4b / §2023:14.9.34.4 GR5b designate the implied move an alphanumeric group
 /// move only "If the file description entry contains a RECORD IS VARYING clause" — a format-3 file's record size
 /// is instead "completely defined in the record description entry" (GR18) and its move is classified normally.
 /// The two formats were indistinguishable here until kb/Work PB339, which is why a rule keyed on the WORD

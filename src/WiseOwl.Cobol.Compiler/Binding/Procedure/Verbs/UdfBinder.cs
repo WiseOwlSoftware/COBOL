@@ -297,9 +297,9 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // Through a function-pointer the callee is whatever the pointer HOLDS when the activation runs (GR6c):
         // the pointer operand rides DynamicName and the emitter's pointer arm reads its carrier.
         // ⛔ The function lane takes the CALL's rule (DESIGN-external-repository §4.2; kb/Work PB2103): unless the activated
-        // function is a definition this compilation group compiles (§2023:12.3.8.4 GR11 a), or §2023:8.4.6.6's own definition), it
+        // function is a definition this compilation group compiles (§2023:12.3.8.4 GR11a, or §2023:8.4.6.6's own definition), it
         // may have been recompiled with another signature since §2023:8.4.3.2.3 SR13 checked it here, so every operand is
-        // described for §2023:14.9.4.4 GR3 d)'s run-time check — through a function-pointer always (GR6c: whatever it holds).
+        // described for §2023:14.9.4.4 GR3d's run-time check — through a function-pointer always (GR6c: whatever it holds).
         bool calleeCompiledHere = pointer is null && fn.DefinitionCompiledHere;
         if (!calleeCompiledHere)
             for (int i = 0; i < callArgs.Count; i++)
@@ -353,7 +353,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 => new BoundCallArg(CobolPassMode.Value, null, new BoundNumericLiteral("0")),
             BoundNumericLiteral or BoundStringLiteral or BoundFigurative or BoundAllLiteral or BoundComputedOperand
                 => new BoundCallArg(formal.ByValue ? CobolPassMode.Value : CobolPassMode.Content, null, op),
-            // §2023:8.4.3.10.3 SR1 a): the predefined NULL "as an argument in … a function-prototype format function
+            // §2023:8.4.3.10.3 SR1a: the predefined NULL "as an argument in … a function-prototype format function
             // activation" — it references no storage-section item, so it crosses BY CONTENT (BY VALUE to a BY VALUE
             // formal) as the storage-free NULL carrier CallEmitter renders for every lane (kb/Work PB1630, PB1427).
             BoundPredefinedNull => new BoundCallArg(formal.ByValue ? CobolPassMode.Value : CobolPassMode.Content, null, op),
@@ -368,7 +368,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         return arg is null ? null : arg with { Formal = formal.Item };
     }
 
-    /// <summary>§2023:8.4.3.2.4 GR5 a)'s test — is argument <paramref name="a"/>, bound to <paramref name="place"/>, "an
+    /// <summary>§2023:8.4.3.2.4 GR5a's test — is argument <paramref name="a"/>, bound to <paramref name="place"/>, "an
     /// identifier that is permitted as a receiving operand, other than an object property or object data item"?
     /// Each clause is asked where it is answered: the argument must BE an identifier (a sole data reference that
     /// resolves to a data item — a function-identifier, keyword-omitted or not, is "not specified as a receiving
@@ -392,12 +392,12 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// double-activates.</para>
     /// <para>⛔ IT IS ALSO WHERE AN OPERAND-EVALUATION STEP IS STAMPED (kb/Work PB892, PB1432). Everything it drains
     /// was WRITTEN INSIDE the statement now binding, so every step is marked
-    /// <see cref="BoundStatement.OperandEvaluation"/> — an activation (§2023:14.9.33.4 GR2 a) 2.: the applicable statement
+    /// <see cref="BoundStatement.OperandEvaluation"/> — an activation (§2023:14.9.33.4 GR2a.2): the applicable statement
     /// is "the statement in which the inline invocation or function invocation was specified") and a §2023:15.4
     /// subscript temporary store alike (GR2 a) 1.: "the one in which the exception condition was raised"; before
     /// PB1432 an unmarked store's size-error landing wrote a <c>goto</c> inside a short-circuited operand's lambda,
     /// CS0159, and fell back INTO the statement when hoisted). An <see cref="IProfiledStatement"/> is also given THAT statement's
-    /// §2023:7.3.25 checking profile (§2023:14.9.18.4 GR1 b) — "if checking for that exception condition is enabled in the
+    /// §2023:7.3.25 checking profile (§2023:14.9.18.4 GR1b) — "if checking for that exception condition is enabled in the
     /// activating runtime element"). The profile cannot wait for <c>EcBinder.EcWrap</c>'s stamp: a per-evaluation
     /// window's activations live inside a CONDITION or an OPERAND, which that statement-shaped walk never enters,
     /// so before PB892 they carried an empty profile and every condition they propagated was discarded.</para></summary>

@@ -48,7 +48,7 @@ options {
 // and `ClosedFormatDriftTests` derives which list writes which from the generated parser: the data form exactly where
 // a level-number may follow the list's period.
 // ⚠ The data form leaves out the integer-led comma decimal (`1,5`) too, although it is never a level-number (a comma
-// that no space follows is no separator, ISO §2023:8.3.5 2), so `1,5` is one character-string): every item that begins
+// that no space follows is no separator, ISO §2023:8.3.5 SR2, so `1,5` is one character-string): every item that begins
 // with INTEGERLIT must be out, because a predicated alternative that is the only one viable at its first token throws
 // NoViableAlt there when its predicate fails — `FOO` then `05 Y` would draw a bare parse error at 05. The parse layer
 // refuses the comma decimal by name instead (CobolErrorStrategy), and a bare integer there is the missing period's.
@@ -78,9 +78,9 @@ unrecognizedDataClause
 // competes with no legal reading but a clause's own literal list, which keeps it (loop continuation is the lower
 // alternative). Every multi-token literal shape is held, or the run would end inside a literal at a bare parse error
 // with a false "a period may be missing" (`01 A PIC X FOO -1.`, `FOO "A" & "B"`): a sign-led numeric literal (ISO
-// §2023:8.3.3.3.2 2), "If a sign is used, it shall appear as the leftmost character of the literal"; `-1` is MINUS INTEGERLIT
+// §2023:8.3.3.3.2 SR2, "If a sign is used, it shall appear as the leftmost character of the literal"; `-1` is MINUS INTEGERLIT
 // outside the list and argument regions), the DECIMAL-POINT IS COMMA literals (the leading-comma `,5` here, kb/Work
-// PB3390: `OBJECT-COMPUTER. XYZ ,5.` quoted XYZ while the run could not open at it) and a concatenation (§2023:8.8.3.3 3),
+// PB3390: `OBJECT-COMPUTER. XYZ ,5.` quoted XYZ while the run could not open at it) and a concatenation (§2023:8.8.3.3 GR3,
 // "equivalent to a literal"), whose `&` continues the run (residueItem) with the operand after it.
 // The leading-comma decimal is numericLiteralCore's alternative, with its contiguity predicate (kb/Work PB1446: `, 5`
 // is a separator and an integer), and ClosedFormatDriftTests holds the split: residueOpening's numeric shapes and
@@ -398,15 +398,15 @@ comparisonOperand
 booleanExpression : booleanXorTerm ( B_OR booleanXorTerm )* ;
 booleanXorTerm    : booleanAndTerm ( B_XOR booleanAndTerm )* ;
 booleanAndTerm    : booleanShiftTerm ( B_AND booleanShiftTerm )* ;
-// Boolean shift tier (ISO §2023:8.8.2 rule 8, COBOL-2023). The shift's SECOND operand is an INTEGER operand (rule 5 /
+// Boolean shift tier (ISO §2023:8.8.2 GR8, COBOL-2023). The shift's SECOND operand is an INTEGER operand (rule 5 /
 // Table 4 — after a shift operator ONLY an identifier-or-literal integer may appear), never a booleanFactor. The
 // tiers fix only the operand/operator SEQUENCE: rule 7b's context-inherited shift precedence (a shift takes the
 // precedence of the preceding operation — a B-NOT included) is re-derived by the ONE BooleanExpressionResolver.
 booleanShiftTerm  : booleanFactor booleanShiftSuffix* ;
-// The shift's second operand is an INTEGER operand (ISO §2023:8.8.2 rule 5). Superset parse, NARROWED in both lanes
+// The shift's second operand is an INTEGER operand (ISO §2023:8.8.2 SR5). Superset parse, NARROWED in both lanes
 // (kb/Work PB1413): the arithmeticExpression is screened back to Table 4's single identifier or literal by
 // ArithmeticFormationRules.ShiftCountNotSoleOperand (a grammar tier cannot do it — `-1` is an integer literal and
-// `- 1` a unary operator, one token sequence in the default lexer mode), then held to §2023:5.5 2)'s INTEGER operand by
+// `- 1` a unary operator, one token sequence in the default lexer mode), then held to §2023:5.5 SR2's INTEGER operand by
 // each lane (ConditionBinder via IntrinsicResultType.IsIntegerOperand; the compile-time evaluator by literal form).
 booleanShiftSuffix : (B_SHIFT_L | B_SHIFT_R | B_SHIFT_LC | B_SHIFT_RC) arithmeticExpression ;
 booleanFactor     : B_NOT booleanFactor
@@ -458,7 +458,7 @@ classConditionName
     | nnAlphabeticLower1=ALPHABETIC_LOWER
     | nnAlphabeticUpper1=ALPHABETIC_UPPER
     | nameCobolWord1=cobolWord                     // alphabet-name-1, or a user-defined CLASS from SPECIAL-NAMES
-    | nnBoolean1=BOOLEAN                       // §2023:8.8.4.4.4 GR3 e) — reserved (and so reachable here) at 2002+ only
+    | nnBoolean1=BOOLEAN                       // §2023:8.8.4.4.4 GR3e — reserved (and so reachable here) at 2002+ only
     | nnFarthestFromZero1=FARTHEST_FROM_ZERO            // GR3 g) — this and the six below reserved (reachable here) at 2014+ only
     | nnFloatInfinity1=FLOAT_INFINITY                // GR3 h)
     | nnFloatNotANumber1=FLOAT_NOT_A_NUMBER            // GR3 i)
@@ -538,7 +538,7 @@ powerExpression
 // ⛔ THE SELF-RECURSION IS DELIBERATE AND MUST STAY (kb/Work PB158). §2023:8.8.1.2 Table 3 marks (unary, unary) an
 // INVALID pair, and the obvious fix — `addOp primaryExpression`, the non-self-recursive shape §2023:8.8.4.11.3's
 // Table 5 tier (unaryLogicalExpression) uses to exclude NOT NOT structurally — REJECTS LEGAL SOURCE here.
-// §2023:8.3.3.3.2 rule 2 makes a sign part of the numeric literal when the literal is one contiguous character-string,
+// §2023:8.3.3.3.2 SR2 makes a sign part of the numeric literal when the literal is one contiguous character-string,
 // so `- -2` is the PERMISSIBLE (unary, literal) pair while `- - 2` is the invalid (unary, unary) one — and in the
 // DEFAULT lexer mode both emit MINUS MINUS INTEGERLIT (the SIGNED_INTEGERLIT/SIGNED_DECIMALLIT twins that encode
 // the adjacency exist only in the lexer's list regions — argument and subscript lists). No CFG tier can separate them; only
@@ -584,7 +584,7 @@ unaryExpression
 // ZEROES)" as an operand, and §2023:8.3.3.6.2 Format 1 prints that figurative constant as `[ ALL ] ZERO`, so `1 + ALL ZERO`
 // is an arithmetic expression whose operand is written with the word ALL. ZeroTokenRewriter reads the context that
 // decides past the ALL (the ZERO's neighbour on the left is the ALL, not the operator), and the arm carries the ALL
-// so the binder asks §2023:8.3.3.6.3 SR1 a)'s edition gate of it (ExpressionBinder.ZeroOperand, the one numeric reading of
+// so the binder asks §2023:8.3.3.6.3 SR1a)'s edition gate of it (ExpressionBinder.ZeroOperand, the one numeric reading of
 // the figurative ZERO, shared with `ADD ALL ZERO TO X`): accepted at 85, COBOL0902 from 2002. Before, the arm was the
 // bare token, and `1 + ALL ZERO`, `ALL ZERO + 1`, `- ALL ZERO` and `(ALL ZERO)` were a bare COBOL0001.
 primaryExpression
@@ -643,7 +643,7 @@ primaryExpression
 // ⛔ THAT ARGUMENT DOES NOT APPLY TO A RESERVED WORD, and that is the whole basis for this alternative: a
 // reserved word can NEVER be a user-defined data name (§2023:8.3.2.4.1), so `SUM(1 2 3)` cannot be a subscripted
 // data reference and there is nothing to be ambiguous with. §2023:8.9 ∩ §2023:8.11 is exactly four words — LENGTH,
-// RANDOM, SIGN, SUM — the four §2023:8.3.2.1 5) bars from user-defined words, and all four arrive here. (LENGTH used to
+// RANDOM, SIGN, SUM — the four §2023:8.3.2.1 SR5) bars from user-defined words, and all four arrive here. (LENGTH used to
 // reach the binder through the cobolWord name slot, which made it a legal NAME in every slot at every edition:
 // `INDEXED BY LENGTH` compiled. kb/Work PB845 took it out of cobolWord.)
 // ⚠ WHY NOT JUST ADD THEM TO cobolWord — this was tried and NIST NC116A caught it. A word in the
@@ -787,7 +787,7 @@ ccePrimary : LPAREN constantConditionalExpression RPAREN
 // §2023:7.3.8.4.4 defined-condition. DEFINED is a token only under PrimeDirectiveExpr (a primed-lexer keyword). Listed
 // before cceRelationOrBoolean so a trailing DEFINED selects it; a cobolWord with no DEFINED falls through.
 definedCondition : nnCobolWord1=cobolWord IS? NOT? DEFINED ;
-// ⛔ NO `IS? NOT?` BEFORE comparisonOperator (kb/Work PB1034): §2023:7.3.8.2 SR1 a) makes the relation "formed according to
+// ⛔ NO `IS? NOT?` BEFORE comparisonOperator (kb/Work PB1034): §2023:7.3.8.2 SR1a makes the relation "formed according to
 // the rules in 8.8.4.2", whose operator set is comparisonOperator's alone — it carries its own IS and its own NOT. The
 // prefix this rule used to write was a second, unscreened way to say NOT, which let `>>IF X NOT >= 3` through the
 // narrowed operator rule and `X NOT NOT = 3` through at all.
@@ -818,7 +818,7 @@ displayUponPhrase : UPON nnCobolWord1=cobolWord+ ;
 // word (§2023:8.3.2.2.10) DECLARED by `FUNCTION-ID.` through programName — which is cobolWord — so this REFERENCE slot,
 // and the REPOSITORY specifier that reads this rule too (§2023:12.3.8.2 `FUNCTION function-prototype-name-1`), must admit
 // the same word set. It used to be IDENTIFIER, so a function named by a §2023:8.10 context-sensitive word that has a lexer
-// token (`FUNCTION-ID. CAPACITY.`, §2023:8.3.2.1 3)) was declared cleanly and then refused at `REPOSITORY. FUNCTION
+// token (`FUNCTION-ID. CAPACITY.`, §2023:8.3.2.1 SR3) was declared cleanly and then refused at `REPOSITORY. FUNCTION
 // CAPACITY.` and at `FUNCTION CAPACITY(V)`. An intrinsic-function-name is no user-defined word, but no §15 name
 // spelled by IDENTIFIER is §2023:8.9-reserved, so the §2023:8.9 funnel the cobolWord arm passes through never meets one; the
 // reserved ones have their own tokens and their own arm.
@@ -931,7 +931,7 @@ predefinedNull
 // admits only the three classes), so `5 & …` is a parse error by construction. A WORD is an operand too: the two
 // words that stand for a literal — a constant-name (§2023:13.10.3 SR2: "anywhere that a format specifies a literal of
 // the class and category of constant-name-1") and a symbolic-character (a figurative constant its SPECIAL-NAMES
-// SYMBOLIC CHARACTERS clause defines, §2023:12.3.7.4 GR11 a)
+// SYMBOLIC CHARACTERS clause defines, §2023:12.3.7.4 GR11a
 // — are both user-defined words, which the parse cannot tell apart from a data-name, so the arm admits any
 // cobolWord and ConcatFolder resolves it (COBOL2473 for a word that stands for no literal). The SR1 same-class
 // rule, the no-ALL-figurative rule, and the SR2–SR4 8,191-position caps are BIND-time checks too (a superset
@@ -979,13 +979,13 @@ numericLiteralCore
 
 // ⛔ TWO SLOTS, AND THE DIFFERENCE IS THE SIGN — NOT ONE RULE WITH A HOLE IN IT (kb/Work PB553).
 // `integerLiteral` is the metalanguage `integer-n` of a printed general format, and its UNSIGNED shape IS the
-// rule: ISO §2023:5.5 1) — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and associated
+// rule: ISO §2023:5.5 SR1 — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and associated
 // rules, it refers to a fixed-point integer literal that shall be unsigned and nonzero unless otherwise
 // specified in the associated rules." So `01 T PIC X OCCURS +3.` is correctly rejected (§2023:13.18.38.3 SR16
 // otherwise-specifies only the NONZERO half, never the sign), and widening THIS rule would accept it.
 // `signedIntegerLiteral` is the other slot: one whose own syntax rule constrains the operand as an INTEGER
-// NUMERIC LITERAL rather than as `integer-n` — the Format 2 (table) VALUE clause's FROM/TO subscripts. §2023:5.5 2) a) — "if that operand is a literal, it shall be an
-// integer literal, as defined in 8.3.3.3.2, Fixed-point numeric literals" — and §2023:8.3.3.3.2 2) admits the sign:
+// NUMERIC LITERAL rather than as `integer-n` — the Format 2 (table) VALUE clause's FROM/TO subscripts. §2023:5.5 SR2a — "if that operand is a literal, it shall be an
+// integer literal, as defined in 8.3.3.3.2, Fixed-point numeric literals" — and §2023:8.3.3.3.2 SR2 admits the sign:
 // "A literal shall not contain more than one sign character. If a sign is used, it shall appear as the
 // leftmost character of the literal." §2023:13.18.63.3 SR19, "Subscript-1 and subscript-2 shall be integer numeric
 // literals", is the one such slot in the whole grammar today; SignedIntegerSlotDriftTests pins that inventory
@@ -1000,11 +1000,11 @@ integerLiteral
 
 // ⛔ THE ONE SPELLING OF AN `integer-n` POSITION THAT MAY BE WRITTEN AS AN INTEGER CONSTANT-NAME (kb/Work PB1947).
 // ISO §2023:13.10.3 SR2 — "constant-name-1 may be used anywhere that a format specifies a literal of the class and
-// category of constant-name-1" — and §2023:5.5 1) makes every `integer-n` of a general format "a fixed-point integer
+// category of constant-name-1" — and §2023:5.5 SR1 makes every `integer-n` of a general format "a fixed-point integer
 // literal", so each such position is a literal position a constant-name stands in (§2023:13.10.4 GR1: "as if literal-1 …
 // were written where constant-name-1 is written"). The grammar cannot tell a constant-name from any other user
 // word, so the alternative is `cobolWord` and the BINDER substitutes (ConstantEntryBinder.IntegerOperandValue — the ONE
-// reader, which also asks the §2023:5.5 1) unsigned and nonzero questions of the value the constant substitutes). A clause
+// reader, which also asks the §2023:5.5 SR1 unsigned and nonzero questions of the value the constant substitutes). A clause
 // whose integer position takes this rule is classified by the CLAUSE that owns it (IntegerOperandRules.Slots), never
 // by this rule, so the zero permissions stay per clause. The OCCURS bounds, the report-writer LINE / COLUMN / NEXT
 // GROUP / PAGE operands and the OCCURS STEP integer are the sites so far; the next clause whose format prints an

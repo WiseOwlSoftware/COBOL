@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> EC-DATA-OVERFLOW (ISO §2023:14.9.25.4 GR6d4.a; Table 13 Fatal): "If the algebraic value of the sending
+      *> EC-DATA-OVERFLOW (ISO §2023:14.9.25.4 GR6d.4.a; Table 13 Fatal): "If the algebraic value of the sending
       *> operand is farther from zero than is permitted by the usage specifications of the receiving data item,
       *> the EC-DATA-OVERFLOW exception condition is set to exist, and the content of the receiving data item is
       *> undefined."  MOVE-only (an arithmetic ±Inf result is the valid §2023:14.6.8.3 GR1 value, never this EC), and

@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Binding;
 /// which writes it BEFORE the unit's first data phase from its containers, nearest container first. Empty for an outermost
 /// program and for every OO source element.
 /// <para>A lookup reads the unit's own declarations first and this slice after (<see cref="SymbolTable.VisibleFiles"/>,
-/// <c>SymbolTable.TypeDeclarationOf</c>), which is the §2023:8.4.6.2.1 3) a) rule — "if the name is declared in source
+/// <c>SymbolTable.TypeDeclarationOf</c>), which is the §2023:8.4.6.2.1 GR3a rule — "if the name is declared in source
 /// element B, the item in source element B is the referenced item" — made structural: an own declaration never has to
 /// displace an inherited one.</para>
 /// </summary>
@@ -26,7 +26,7 @@ public sealed class InheritedGlobals
     /// <summary>How many containment levels out <paramref name="file"/> is declared: n for a GLOBAL file of the n-th
     /// container (<c>SymbolTable.InheritFiles</c>), 0 for any other — the file-name twin of <see cref="ForestSlice.DeclaringDepth"/>
     /// and <see cref="ReportScope.Depth"/>, so a name a container declares as a file and a nearer element declares
-    /// as something else resolves to the nearer declaration (§2023:8.4.6.2.1 3); kb/Work PB4219).</summary>
+    /// as something else resolves to the nearer declaration (§2023:8.4.6.2.1 GR3; kb/Work PB4219).</summary>
     public int FileDepth(FileModel file) => _fileDepths.GetValueOrDefault(file);
 
     /// <summary>The record areas of every containing program's files that are GLOBAL names (§2023:13.18.27.4 GR1: the record of a

@@ -28,7 +28,7 @@
       *>   GR21  LAST — the file position indicator is set to "the
       *>         record number of the last existing logical record in
       *>         the physical file"; three records exist, so the START
-      *>         succeeds ('00', §2023:9.1.13.2 item 1) and NOT INVALID KEY
+      *>         succeeds ('00', §2023:9.1.13.2 GR1) and NOT INVALID KEY
       *>         runs (§2023:9.1.14).
       *>   §2023:14.9.30.4 GR21b — "If the file position indicator was
       *>         established by a prior successful OPEN or START

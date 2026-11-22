@@ -17,9 +17,9 @@
       *>     item AND the substituted SPACE fill for the numeric one, from one statement.
       *> (2) GR1: "If identifier-1 is a zero-length item, it is as if literal-1 were specified as a zero-length
       *>     literal" — which lands back in GR2.  A DYNAMIC LENGTH sending item at current length zero
-      *>     (§2023:8.5.4 item 4) therefore stores the SPACE fill into a numeric receiver, and the SAME item at a
+      *>     (§2023:8.5.4 GR4) therefore stores the SPACE fill into a numeric receiver, and the SAME item at a
       *>     non-zero length converts normally; both are shown so the runtime test is measured as a test.
-      *> (3) The same route through a FUNCTION-IDENTIFIER sender (§2023:8.5.4 item 6, "an intrinsic function that
+      *> (3) The same route through a FUNCTION-IDENTIFIER sender (§2023:8.5.4 GR6, "an intrinsic function that
       *>     returns a zero-length value").  FUNCTION TRIM of an all-space argument is zero-length by
       *>     §2023:15.96.4 r4 ("If argument-1 contains only characters that are argument-2, spaces if argument-2 is
       *>     not specified, ... the returned value is of length zero"), and GR1's other sentence, "the ...

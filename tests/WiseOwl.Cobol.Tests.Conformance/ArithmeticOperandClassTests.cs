@@ -214,7 +214,7 @@ public sealed class ArithmeticOperandClassTests
     /// §2023:8.8.1.1 admits "an identifier referencing a <b>numeric data item</b>", §2023:8.5.2.13 calls this a
     /// "<b>numeric-edited</b> data item" — a distinct defined term — and §2023:8.5.2.1 Table 2 puts that category in
     /// class ALPHANUMERIC (usage display) or NATIONAL, never numeric. Every de-editing rule in the standard is a
-    /// MOVE/editing rule (§2023:14.9.25.4 GR6d1), and GR6d1 has to GRANT de-editing for the MOVE, which would be
+    /// MOVE/editing rule (§2023:14.9.25.4 GR6d.1), and GR6d1 has to GRANT de-editing for the MOVE, which would be
     /// unnecessary if it were generally available. The sibling `IntrinsicArgumentRules` 'n' screen had already
     /// refuted this same reading, so the two rested on readings of §2023:8.8.1.1 that could not both be right.
     /// </para>
@@ -313,8 +313,8 @@ public sealed class ArithmeticOperandClassTests
     /// <summary>⛔ THE REFUSAL NAMES THE CLASS §2023:8.5.2.1 GIVES THE OPERAND (kb/Work PB1400). The refusal of a group as an
     /// arithmetic operand was always right; the reason it gave was not — "group item … (class alphanumeric, ISO §2023:8.5)"
     /// for EVERY group, and "class alphanumeric" for every reference-modified operand. ISO §2023:8.5.2.1: "a bit group item
-    /// has class and category boolean — a national group item has class and category national"; §2023:8.5.2.5 3) and
-    /// §2023:8.5.2.10 3) reach a group "explicitly or implicitly described with a GROUP-USAGE clause", so the SUBORDINATE
+    /// has class and category boolean — a national group item has class and category national"; §2023:8.5.2.5 GR3 and
+    /// §2023:8.5.2.10 GR3 reach a group "explicitly or implicitly described with a GROUP-USAGE clause", so the SUBORDINATE
     /// group of each is the same class; "the class and the category of a strongly-typed group item are the type-name";
     /// §2023:8.4.3.3.4 GR6 keeps a reference-modified national item class national. GROUP-USAGE is COBOL-2002 (the 85
     /// refusal of the clause is <c>negative/pb79-group-usage-85</c>), and the text is edition-invariant from there.</summary>

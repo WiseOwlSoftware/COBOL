@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Frontend.Expressions;
 /// </summary>
 public static class BooleanOperatorTokens
 {
-    /// <summary>A binary boolean operator between two operands: B-AND, B-OR, B-XOR (COBOL-2002, §2023:8.8.2 rule 7) and the
+    /// <summary>A binary boolean operator between two operands: B-AND, B-OR, B-XOR (COBOL-2002, §2023:8.8.2 GR7) and the
     /// four shifts (COBOL-2023, rule 8), whose right operand is an integer rather than a boolean.</summary>
     public static bool IsInfix(int type) => IsBinary(type) || IsShift(type);
 
@@ -33,7 +33,7 @@ public static class BooleanOperatorTokens
     /// <summary>B-NOT — the COBOL-2002 unary operator, written before its operand.</summary>
     public static bool IsPrefix(int type) => type == CobolLexer.B_NOT;
 
-    /// <summary>B-SHIFT-L, B-SHIFT-R, B-SHIFT-LC, B-SHIFT-RC — the COBOL-2023 shift operators (§2023:8.8.2 rule 8), a
+    /// <summary>B-SHIFT-L, B-SHIFT-R, B-SHIFT-LC, B-SHIFT-RC — the COBOL-2023 shift operators (§2023:8.8.2 GR8), a
     /// DISTINCT construct from the 2002 set so a program using only shifts at 2002 is told about the shift.</summary>
     public static bool IsShift(int type) =>
         type is CobolLexer.B_SHIFT_L or CobolLexer.B_SHIFT_R or CobolLexer.B_SHIFT_LC or CobolLexer.B_SHIFT_RC;

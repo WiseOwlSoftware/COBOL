@@ -24,7 +24,7 @@
       *>
       *> 1-2. FAW is declared in the FACTORY definition's WORKING-STORAGE (SR16 position 1)
       *>    as FACTORY OF ACTIVE-CLASS.  FMK is a factory method; SET FAW TO SELF is
-      *>    §2023:14.9.39.3 SR14b2. (the receiver carries the FACTORY phrase and the method IS
+      *>    §2023:14.9.39.3 SR14b.2. (the receiver carries the FACTORY phrase and the method IS
       *>    defined in the factory definition).  GR22 e)1. then binds FAW to the factory
       *>    object of the class that invoked the method, so INVOKE FAW "TAG" prints  FTAG-C
       *>    when invoked on PB496C and                                               FTAG-D

@@ -26,7 +26,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// final image stores back through the receiver's own store path. An operand that can occupy identifier-3's storage
     /// (GR10, Annex A.2 item 60 — undefined) is read AT ITS TRANSFER from the storage the earlier transfers stored into,
     /// as libcob <c>cob_string_append</c> does (D-STR1, D-STR2, docs/CONFORMANCE.md), after being identified up front
-    /// like every operand (§2023:14.6.4 7); every other operand, a function-identifier included (D-STR4), is read once, up front. The pointer initializes from the POINTER item
+    /// like every operand (§2023:14.6.4 GR7); every other operand, a function-identifier included (D-STR4), is read once, up front. The pointer initializes from the POINTER item
     /// (GR4) or 1 (GR5), advances only with the per-character moves (GR6 — the runtime kernel), and writes back —
     /// before the overflow phrases run, which may inspect it — only when the phrase was written. The overflow flag
     /// is latched across sendings by the kernel (GR8a) and dispatches ON / NOT ON OVERFLOW per GR8c/GR8e/GR9 (the
@@ -35,7 +35,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     public void EmitString(BoundStringStmt statement)
     {
         var w = ctx.Writer;
-        var s = IdentifyOperands(statement);   // §2023:14.6.4 7) — identified once, before the first character moves (kb/Work PB1123)
+        var s = IdentifyOperands(statement);   // §2023:14.6.4 GR7 — identified once, before the first character moves (kb/Work PB1123)
         // ⛔ kb/Work PB2078: the same identification for an object-property identifier-3 / identifier-4 — its object and,
         // for the read pointer, its GET — before the first operation; each SET follows that receiver's own store.
         brackets.Identify(s.Into, s.Pointer);
@@ -43,7 +43,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         string ptr = $"__strPtr{id}", ptr0 = $"__strPtr0{id}", ovf = $"__strOvf{id}", acc = $"__strInto{id}";
         // ⛔ THE OPERANDS ARE READ IN THE ORDER THEY ARE WRITTEN (kb/Work PB3261). The freeze above hoists each operand's
         // subscript and reference-modifier VALUES, but the range tests that raise EC-BOUND-SUBSCRIPT / EC-BOUND-REF-MOD run
-        // where the operand is READ — so the order of the reads is the order of identification §2023:14.6.4 7) fixes: "the
+        // where the operand is READ — so the order of the reads is the order of identification §2023:14.6.4 GR7 fixes: "the
         // identifiers within a statement are evaluated in left to right order as the first operation of the execution of
         // that statement", and §2023:14.9.49.4 GR11 selects the declarative by the first condition in that order. Each sending
         // operand and delimiter that identifies at run time is therefore read here, in statement order, BEFORE
@@ -154,7 +154,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// which the emitter assigns again when the operand's own transfer begins (D-STR1, D-STR2). A FUNCTION never does
     /// (D-STR4, kb/Work PB4973): a function-identifier "references a temporary data item whose value is determined when the
     /// function is referenced at runtime" (§2023:8.4.3.2.4 GR1), so no transfer can store into it and §2023:14.9.43.4 GR10's overlap
-    /// never reaches it; it is evaluated once, with the statement's other identifiers (§2023:14.6.4 7), whatever its
+    /// never reaches it; it is evaluated once, with the statement's other identifiers (§2023:14.6.4 GR7), whatever its
     /// arguments are, FUNCTION RANDOM and a user-defined function included.</summary>
     private string ReadOperand(BoundOperand operand, string local, BoundStringStmt s, bool first, List<(string Local, string Read)> rereads)
     {
@@ -198,7 +198,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     public void EmitUnstring(BoundUnstringStmt statement)
     {
         var w = ctx.Writer;
-        // ⛔ §2023:14.6.4 7) — every identifier of the statement is identified ONCE, left to right, as its first operation
+        // ⛔ §2023:14.6.4 GR7 — every identifier of the statement is identified ONCE, left to right, as its first operation
         // (kb/Work PB1123): §2023:14.9.48.4 states no other timing, so `UNSTRING S INTO I UE(I)` stores into UE(1), the
         // occurrence I named before the first store changed it.
         var s = IdentifyOperands(statement);
@@ -475,7 +475,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// alphanumeric, NATIONAL, USAGE DISPLAY boolean or image-stored receiver (a numeric item of usage display or
     /// national, which SR1 admits and which holds the characters GR6 moves into it — kb/Work PB4089) assigns the image directly
     /// (same width by construction — a national elementary item is a string of national character positions, and
-    /// §2023:14.9.43.4 GR3 a) moves "national-to-national" with no space fill, GR7 keeping every position not written; a
+    /// §2023:14.9.43.4 GR3a moves "national-to-national" with no space fill, GR7 keeping every position not written; a
     /// display boolean item is a string of '0' / '1' characters; kb/Work PB1179).</summary>
     private void WriteImage(Place p, string imageExpr)
     {
@@ -502,7 +502,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         // every other character to zero — D-B5, kb/Work PB3666), exactly as a MOVE's are. The authority is D-B5, not
         // GR3 a): that rule transfers the characters "in accordance with the MOVE statement rules for
         // alphanumeric-to-alphanumeric moves" (which do not convert), so the conversion of content the standard leaves
-        // undefined (§2023:14.6.13.2 1)) is the implementor's choice, made once for every store into a boolean item. The
+        // undefined (§2023:14.6.13.2 GR1) is the implementor's choice, made once for every store into a boolean item. The
         // image carries every untouched position (GR7), already boolean, so converting the whole image changes only
         // what this statement wrote.
         w.Line(PlaceRenderer.Write(p, p.Item.OperandPic is { Category: PicCategory.Boolean }

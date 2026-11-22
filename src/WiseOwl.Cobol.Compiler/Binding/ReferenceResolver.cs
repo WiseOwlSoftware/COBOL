@@ -438,8 +438,8 @@ public sealed class ReferenceResolver(DataBinder data)
             : Names.DataItemNamed(named);
         // §2023:8.4.3.1.2 Format 7 (kb/Work PB1425): `property-name-1 OF identifier-3` is textually a qualified data
         // reference, so it legitimately FAILS normal qualification. ResolveObjectProperty splits the chain — identifier-3
-        // takes the qualifiers and the subscripts (§2023:8.4.3.1.4 GR1 a) before d)) — and synthesizes the §2023:8.4.3.9.4 GR1–GR3
-        // temp; the rest of THIS method gives the temp the reference-modification tail (§2023:8.4.3.1.4 GR1 g)), which
+        // takes the qualifiers and the subscripts (§2023:8.4.3.1.4 GR1a before d)) — and synthesizes the §2023:8.4.3.9.4 GR1–GR3
+        // temp; the rest of THIS method gives the temp the reference-modification tail (§2023:8.4.3.1.4 GR1g), which
         // §2023:8.4.3.9.3 SR5/SR6 permit on the property value. A view of a qualified data item written `A OF G AS C` arrives
         // here too, and is that view.
         bool objectProperty = false;
@@ -533,7 +533,7 @@ public sealed class ReferenceResolver(DataBinder data)
             else if (suffix.propertyObject() is { } po)
             {
                 propertyObject ??= po;
-                // §2023:8.4.3.1.4 GR1 g): a reference modifier written after a function object's arguments applies to the
+                // §2023:8.4.3.1.4 GR1g: a reference modifier written after a function object's arguments applies to the
                 // whole identifier, last — never to the object reference the function returns (kb/Work PB1425).
                 foreach (var resultRef in ObjectPropertyResolver.ResultRefModsOf(po)) { refModCount++; cleanRef ??= resultRef; }
             }
@@ -628,7 +628,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// address of occurrence k is the class cell displaced by the SAME in-class occurrence law the Tier-B view
     /// window uses (<see cref="PlaceForItem"/> — a table lays its occurrences end-to-end in the ONE cell
     /// image), so the two share one formula, <see cref="PositionOffset"/>.
-    /// <para>⛔ A REFERENCE-MODIFIED OPERAND IS LEGAL (kb/Work PB1407): §2023:8.4.3.11.3 SR4 a) itself speaks of
+    /// <para>⛔ A REFERENCE-MODIFIED OPERAND IS LEGAL (kb/Work PB1407): §2023:8.4.3.11.3 SR4a itself speaks of
     /// "subscripting and reference modification in identifier-1", and identifier-1 is a general identifier. It goes
     /// through the ONE ref-mod admission <see cref="ReadScreenedRefMod"/> that <see cref="Resolve"/> uses (SR3
     /// count, SR1 exclusion, the spec, the literal range screen); the address is that of its leftmost position,
@@ -691,7 +691,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// displacement of its subscripts, the reference modification when one is written, and, for a bit item, the
     /// place its §2023:8.4.3.11.3 SR4 alignment proof walks.</summary>
     /// <param name="CurrentExtent">The occurs-depending group place whose CURRENT extent bounds a written reference
-    /// modifier (§2023:8.4.3.3.4 5) — "a position outside the area of identifier-1", the area being the group's current
+    /// modifier (§2023:8.4.3.3.4 GR5) — "a position outside the area of identifier-1", the area being the group's current
     /// size under §2023:13.18.38.4 GR8); null for every operand whose size is a compile-time fact.</param>
     /// <param name="Item">The data item the reference names (the table ELEMENT's item for a subscripted one).</param>
     /// <param name="OccursDisplacement">The <c>(idx − 1) × width</c> byte terms within the item's storage class, or null
@@ -790,7 +790,7 @@ public sealed class ReferenceResolver(DataBinder data)
         var written = ReadWritten(dref);
         var reached = tables.Where(t => t.OccursSpec?.CapacityRegister is { } cand
                                         && data.Symbols.QualifierChainMatches(cand, written.Qualifiers)).ToList();
-        // The nearest declaring element's reached registers (the list is in nearest-element order, §2023:8.4.6.2.1 3)), or
+        // The nearest declaring element's reached registers (the list is in nearest-element order, §2023:8.4.6.2.1 GR3), or
         // the nearest register at all when the qualifiers reach none, so the qualifier fault is stated about it.
         DataItem table = reached.Count > 0 ? reached[0] : tables[0];
         int depth = data.State.Forest.DeclaringDepth(table);
@@ -848,7 +848,7 @@ public sealed class ReferenceResolver(DataBinder data)
     internal DebugRegisterPlace? DebugRegisterPlaceOf(DataItem entry) => data.State.Implicit.DebugPlaceOf(entry);
 
     /// <summary>The places of the named entries of the X3.23-1985 DEBUG-ITEM group, in the order of its description (general rule 10);
-    /// the FILLER entries are not receivers (INITIALIZE: §2023:14.9.20.4 GR5a2) and have no place.</summary>
+    /// the FILLER entries are not receivers (INITIALIZE: §2023:14.9.20.4 GR5a.2) and have no place.</summary>
     internal IEnumerable<DebugRegisterPlace> DebugItemMemberPlaces() =>
         data.State.Implicit.DebugItemMembers.Select(m => new DebugRegisterPlace(m.Item, m.Member));
 
@@ -856,7 +856,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// the single reporting site for every ill-formed reference to a named CAPACITY register (kb/Work PB457). Every
     /// arm names the rule the reference breaks; none of them can be "not defined", because the name IS defined.
     /// <para>⚠ <b>DETERMINATION (<see cref="CapacityRefFault.UnderATable"/>)</b> — a dynamic-capacity table nested
-    /// within another table is legal to DEFINE (§2023:8.5.1.9.1 item 3: it "may be nested in any combination to the same
+    /// within another table is legal to DEFINE (§2023:8.5.1.9.1 SR3: it "may be nested in any combination to the same
     /// number of levels as a fixed-capacity table") and its register may be NAMED, but no reference to that register
     /// is writable. §2023:13.18.38.3 SR30 puts the register at the same level as the OCCURS entry — inside the outer
     /// table, and deliberately unlike the occurs-depending item, which §2023:13.18.38.3 SR20 forces OUTSIDE the table —

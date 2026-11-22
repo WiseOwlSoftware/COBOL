@@ -132,7 +132,7 @@ public sealed class SortManagedSlotTests : IDisposable
                 Assert.Equal("EC-FLOW-RELEASE",
                     Assert.Throws<CobolFatalException>(() => CobolSort.ReleaseStatement(sd, a, 0, a.Length, slots: SlotsOf(1))).EcName);
                 CobolSort.EnterProcedure(sd, output: false);
-                // §2023:13.18.43.4 GR14 b): a size outside the record range is EC-SORT-MERGE-RELEASE, and it releases nothing.
+                // §2023:13.18.43.4 GR14b: a size outside the record range is EC-SORT-MERGE-RELEASE, and it releases nothing.
                 ExceptionState.SortMergeReleaseChecking = true;
                 Assert.Equal("EC-SORT-MERGE-RELEASE",
                     Assert.Throws<CobolFatalException>(() => CobolSort.ReleaseStatement(sd, a, 0, a.Length - 1, slots: SlotsOf(1))).EcName);

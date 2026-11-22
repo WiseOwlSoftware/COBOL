@@ -12,7 +12,7 @@
       *>   encoding is used. If the literals are of unequal length they
       *>   are not equal." NOTE: "uppercase and lowercase letters are
       *>   not equivalent". The operators are the 2002 set, "IS [NOT]
-      *>   EQUAL TO" or "IS [NOT] =" (§2002:7.2.7.1 SR1a2), over
+      *>   EQUAL TO" or "IS [NOT] =" (§2002:7.2.7.1 SR1a.2), over
       *>   alphanumeric and national literals and a compilation variable
       *>   that references an alphanumeric literal (§2002:7.2.9.3 GR7).
       *> EXPECTED OUTPUT, DERIVED (why each leg can fail):

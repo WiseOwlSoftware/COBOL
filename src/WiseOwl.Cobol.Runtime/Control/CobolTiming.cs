@@ -37,7 +37,7 @@ public static class CobolTiming
     /// </summary>
     public static bool ContinueAfter(double seconds, bool checkLessThanZero)
     {
-        // ⛔ NO EC-DATA-NOT-FINITE SCREEN HERE (kb/Work PB2841, which corrects PB138's). §2023:14.6.13.2 item 3 raises
+        // ⛔ NO EC-DATA-NOT-FINITE SCREEN HERE (kb/Work PB2841, which corrects PB138's). §2023:14.6.13.2 GR3 raises
         // EC-DATA-NOT-FINITE for a STANDARD floating-point SENDING OPERAND only, and that raise is made where such an
         // operand is READ (CobolFloat.Sending, wrapped by the emitter), so a NaN or an infinity that reaches this
         // method came from a NON-standard usage (FLOAT-LONG, COMP-2) or from a standard one with its checking off:

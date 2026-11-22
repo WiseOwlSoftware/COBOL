@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <param name="Name">The function's name (the key of the carrier rules, <c>IntrinsicCarrierRules</c>).</param>
 /// <param name="RuntimeMethod">The runtime body's name (the key of the native SDIDI bodies).</param>
 /// <param name="Float">Is the function of the §2023:15.4.1 floating-math family?</param>
-/// <param name="IntegerResult">Is the call's resolved type Integer (§2023:15.2 item 5)?</param>
+/// <param name="IntegerResult">Is the call's resolved type Integer (§2023:15.2 GR5)?</param>
 /// <param name="IntegerPositions">For each argument written, is its position a §2023:15.3 type 6 (integer) position?</param>
 /// <param name="ArgumentRunAllNumeric">Are all the positions of the argument run, as written, numeric-only?</param>
 public sealed record IntrinsicCarrierFacts(string Name, string RuntimeMethod, bool Float, bool IntegerResult,

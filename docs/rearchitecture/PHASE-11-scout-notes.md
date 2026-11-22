@@ -45,21 +45,21 @@
 
 ## §2023:15.13 BOOLEAN-OF-INTEGER (spec file E:/COBOL/specs/ISO_COBOL_2023.md, line 34594)
 
-General (15.13.1): "The BOOLEAN-OF-INTEGER function returns a boolean item of usage bit representing the binary value of argument-1. Argument-2 specifies the length of the boolean data item that is returned. The function type is boolean." Per §2023:15.2 item 2, a boolean function is "of the class and category boolean" with "implicit usage bit".
+General (15.13.1): "The BOOLEAN-OF-INTEGER function returns a boolean item of usage bit representing the binary value of argument-1. Argument-2 specifies the length of the boolean data item that is returned. The function type is boolean." Per §2023:15.2 GR2, a boolean function is "of the class and category boolean" with "implicit usage bit".
 
 Format (15.13.2): `FUNCTION BOOLEAN-OF-INTEGER ( argument-1 argument-2 )` — no comma in the general format; the comma is an optional COBOL separator (the Annex D.10 example writes `( integer-item , 6)`).
 
-Arguments rules (15.13.3): "1) Argument-1 shall be a positive integer. 2) Argument-2 shall be a positive nonzero integer." Both are Integer-type arguments per §2023:15.3 item 6 ("An arithmetic expression that will always result in an integer value or an integer data item... The value of the arithmetic expression, including operational sign, is used"). Note argument-2 is a plain integer VALUE (the requested bit length), NOT a data item/length reference. See gotcha on whether arg-1 'positive' admits zero.
+Arguments rules (15.13.3): "1) Argument-1 shall be a positive integer. 2) Argument-2 shall be a positive nonzero integer." Both are Integer-type arguments per §2023:15.3 AR6 ("An arithmetic expression that will always result in an integer value or an integer data item... The value of the arithmetic expression, including operational sign, is used"). Note argument-2 is a plain integer VALUE (the requested bit length), NOT a data item/length reference. See gotcha on whether arg-1 'positive' admits zero.
 
 Returned value rule (15.13.4, rule 1, verbatim): "The returned value is a boolean item of usage bit that has the same bit configuration as the binary representation of the value of argument-1, where the rightmost boolean position is the low-order binary digit. The boolean value is zero-filled or truncated on the left, if necessary, in order to return a boolean item whose length is specified by argument-2 in terms of boolean positions." NOTE: "Binary representation is a mathematical concept. It is not required that this representation be the same as a COBOL representation." So the result is exactly (argument-1 mod 2^argument-2) written MSB-first in argument-2 bit positions — the plan's MSB-first/unsigned-binary assumption is VERIFIED, with the addition that left truncation (arg-1 too big for arg-2 bits) is NORMAL, not an error (Annex D.10 comment: "the function returns the low order 6 bits").
 
 ## §2023:15.45 INTEGER-OF-BOOLEAN (line 36245)
 
-General (15.45.1): "returns the numeric value of the boolean string in argument-1. The function type is integer" (§2023:15.2 item 5: integer function = class/category numeric, operational sign, no fraction digits).
+General (15.45.1): "returns the numeric value of the boolean string in argument-1. The function type is integer" (§2023:15.2 GR5: integer function = class/category numeric, operational sign, no fraction digits).
 
 Format (15.45.2): `FUNCTION INTEGER-OF-BOOLEAN ( argument-1 )`.
 
-Argument rule (15.45.3): "1) Argument-1 shall be of class boolean." Per §2023:15.3 item 3 (Boolean argument): "A bit group item, a boolean expression or literal, or an elementary boolean data item shall be specified. The size associated with the argument may be used in determining the value of the function." So literals (B"..."/BX"...") and reference-modified bit items are valid arguments.
+Argument rule (15.45.3): "1) Argument-1 shall be of class boolean." Per §2023:15.3 AR3 (Boolean argument): "A bit group item, a boolean expression or literal, or an elementary boolean data item shall be specified. The size associated with the argument may be used in determining the value of the function." So literals (B"..."/BX"...") and reference-modified bit items are valid arguments.
 
 Returned value rule (15.45.4, rule 1, verbatim): "a) Argument-1 is assigned to a temporary boolean data item of usage bit described with the same number of boolean positions as argument-1. b) The unsigned binary value represented by the same bit configuration as the bit configuration of that temporary boolean data item is determined. [NOTE: mathematical concept] c) The numeric value determined in subrule 1b is the returned value." So: unsigned, MSB-first interpretation of the whole bit string — the plan's assumption is VERIFIED. The informative summary table (line 34226) paraphrases it as "The numeric value of a BINARY-DOUBLE item whose bit configuration is the same as argument-1, right-justified" — informative only, but hints the practical result width is 64-bit unsigned.
 
@@ -88,7 +88,7 @@ Neither §2023:15.13 nor §2023:15.45 has function-local EC rules. The EC machin
 | FUNCTION BOOLEAN-OF-INTEGER(256, 8) | B"00000000" (256 mod 2^8 = 0) | §2023:15.13.4 RV1 left truncation |
 | FUNCTION BOOLEAN-OF-INTEGER(1, 1) | B"1" | §2023:15.13.4 RV1; §2023:15.13.3 AR2 minimum legal argument-2 = 1 |
 | FUNCTION INTEGER-OF-BOOLEAN(B"00000101") | 5 | §2023:15.45.4 rule 1a-c: unsigned binary value of the same bit configuration, same number of boolean positions as argument-1 |
-| FUNCTION INTEGER-OF-BOOLEAN(bit-item(1:6)) where bit-item = B"10000000" | 32 (leading 6 bits B"100000") | §2023:15.45.4 RV1 + §2023:15.3 item 3 (ref-modified boolean argument); Annex D.10: 'the numeric value of the leading 6 bits, 32' |
+| FUNCTION INTEGER-OF-BOOLEAN(bit-item(1:6)) where bit-item = B"10000000" | 32 (leading 6 bits B"100000") | §2023:15.45.4 RV1 + §2023:15.3 AR3 (ref-modified boolean argument); Annex D.10: 'the numeric value of the leading 6 bits, 32' |
 | FUNCTION INTEGER-OF-BOOLEAN(BX"5") | 5 (BX"5" == B"0101") | §2023:8.3.3.4.4 GR5 ('5' is B"0101") + GR6; §2023:15.45.4 RV1 |
 | FUNCTION INTEGER-OF-BOOLEAN(B"1111") | 15 | §2023:15.45.4 RV1 |
 | FUNCTION INTEGER-OF-BOOLEAN(FUNCTION BOOLEAN-OF-INTEGER(200, 8)) | 200 (round-trip identity for 0 <= n < 2^k) | §2023:15.13.4 RV1 composed with §2023:15.45.4 RV1 (both unsigned, MSB-first) |
@@ -99,14 +99,14 @@ Neither §2023:15.13 nor §2023:15.45 has function-local EC rules. The EC machin
 
 - AMBIGUITY ON ZERO for BOOLEAN-OF-INTEGER argument-1: rule 1 says 'a positive integer' while the ADJACENT rule 2 says 'a positive nonzero integer'. Under the sign-condition definition (§2023:8.8.4.7.4 GR1a: POSITIVE true iff value > 0) zero is NOT positive, making BOOLEAN-OF-INTEGER(0, n) an argument-rule violation -> EC-ARGUMENT-FUNCTION; but the intra-section contrast with 'positive nonzero' (which would be redundant otherwise) plus the informal 'unsigned/binary value' framing strongly suggests the drafters meant arg-1 to admit 0 and only arg-2 to exclude it. Comparable rules elsewhere use explicit 'greater than or equal to zero' (§2023:15.9.3 AR2) when zero is intended. RECOMMENDATION: accept 0 (returns all-zero bits) — with checking enabled this is the risky leg only under the strictest reading; do NOT raise EC for 0, do raise it for negatives. The plan's word 'unsigned' is not in the spec text; the spec's constraint is 'positive'.
 - The plan's phrase 'the unsigned binary representation of argument-1' is incomplete: §2023:15.13.4 RV1 explicitly ZERO-FILLS OR TRUNCATES ON THE LEFT to argument-2 positions — i.e. the result is argument-1 mod 2^argument-2, and overflow of argument-2 bits is NORMAL (no EC). Annex D.10 (544 -> low 6 bits) confirms.
-- Argument-2 is an Integer-type argument (§2023:15.3 item 6) — a plain integer VALUE giving the result length in boolean positions; it must be >= 1 ('positive nonzero'). There is no upper bound in §2023:15.13; the only cap is §2023:15.4's implementor-defined max returned-value length (exceeding it -> EC-ARGUMENT-FUNCTION). Pick and document an implementor max (the boolean-literal max of 8191 positions, §2023:8.3.3.4.3 SR1, is a natural choice).
+- Argument-2 is an Integer-type argument (§2023:15.3 AR6) — a plain integer VALUE giving the result length in boolean positions; it must be >= 1 ('positive nonzero'). There is no upper bound in §2023:15.13; the only cap is §2023:15.4's implementor-defined max returned-value length (exceeding it -> EC-ARGUMENT-FUNCTION). Pick and document an implementor max (the boolean-literal max of 8191 positions, §2023:8.3.3.4.3 SR1, is a natural choice).
 - Neither §2023:15.13 nor §2023:15.45 defines any function-specific EC rule — ALL argument-violation behavior routes through the general §2023:15.3 paragraph (line 33761): EC-ARGUMENT-FUNCTION (Fatal) only if no exception arose during item identification/expression evaluation; with checking disabled the function result is implementor-defined (implementor item 90, line 39483).
 - The §15 summary table row for INTEGER-OF-BOOLEAN (line 34226) says 'numeric value of a BINARY-DOUBLE item... right-justified' — that 64-bit framing is the informative table only; §2023:15.45.4 itself sizes the temporary item to argument-1's length with NO 64-bit cap. A boolean argument longer than 64 bits (legal: PIC 1(100) USAGE BIT, or literals up to 8191 positions) overflows uint64 — decide a policy (EC-ARGUMENT-FUNCTION via the §2023:15.4 max-returned-length hook, or wider arithmetic) and document it.
 - Zero-length boolean argument to INTEGER-OF-BOOLEAN is not addressed by §2023:15.45 (hex-boolean literals CAN be zero-length, §2023:8.3.3.4.3 NOTE after SR3). No explicit rule exists; value 0 is the natural reading of 'unsigned binary value' of an empty configuration, but flag it as an undefined edge.
 - DISPLAY of a boolean/bit item: legal (§2023:14.9.11.3 SR1 excludes only message-tag/object/pointer) but the conversion to the device is IMPLEMENTOR-DEFINED (§2023:14.9.11.4 GR1) — the spec does NOT mandate '0'/'1' character rendering; our compiler defines it. A fully spec-pinned golden alternative: IF FUNCTION BOOLEAN-OF-INTEGER(5, 8) = B"00000101" (boolean relation, §2023:8.8.4.3).
 - MOVE into a bit item fills/truncates on the RIGHT (§2023:14.6.8.6) — the OPPOSITE end from BOOLEAN-OF-INTEGER's left fill/truncate. A golden that MOVEs a shorter function result into a longer PIC 1(n) item (the Annex 544/6 -> PIC 1(8) case, giving B"10000000") catches conflation of the two.
 - General format has NO comma between argument-1 and argument-2 (`( argument-1 argument-2 )`); the comma is just an optional separator (the Annex example uses one) — the argument-list grammar must accept both.
-- Function result types: BOOLEAN-OF-INTEGER is a boolean function -> class/category boolean, IMPLICIT USAGE BIT (§2023:15.2 item 2; §2023:8.5.2.5 item 4 lists 'a boolean function' as category boolean); INTEGER-OF-BOOLEAN is an integer function -> class/category numeric with an operational sign (§2023:15.2 item 5), though its value is always >= 0 by §2023:15.45.4 ('unsigned binary value').
+- Function result types: BOOLEAN-OF-INTEGER is a boolean function -> class/category boolean, IMPLICIT USAGE BIT (§2023:15.2 GR2; §2023:8.5.2.5 GR4 lists 'a boolean function' as category boolean); INTEGER-OF-BOOLEAN is an integer function -> class/category numeric with an operational sign (§2023:15.2 GR5), though its value is always >= 0 by §2023:15.45.4 ('unsigned binary value').
 - No contradiction found with the P11 phase doc's core assumptions (MSB-first, arg-2 = bit-position count, unsigned interpretation) — the only corrections are the mod-2^k truncation semantics and the arg-1-zero ambiguity above.
 
 ## `spec:byte-length` — BYTE-LENGTH §2023:15.14 (vs LENGTH)
@@ -1233,7 +1233,7 @@ Apply ONLY after the Step-1 commit lands and no battery is running.
 - Row :161 → `"IntegerOfBoolean"`, `IntrinsicBind.Runtime` (keep Type Integer, "s", 2002).
 - `ResultCategory` (:46-51): add `IntrinsicType.Boolean => PicCategory.Boolean,` and REWRITE the doc
   comment's parenthetical ("Boolean-type rows are all Deferred; they fall to Numeric unchanged" is now false —
-  a boolean function result IS category boolean, §2023:15.2 item 2 / §2023:8.5.2.5 item 4).
+  a boolean function result IS category boolean, §2023:15.2 GR2 / §2023:8.5.2.5 GR4).
 
 ## 2. The four channel seams (scout `code:renderer-runtime` §11 — Boolean flows like National)
 - `CodeGen/Emit/OperandText.cs:32` AsString entry intercept: `Alphanumeric or National` → add `or PicCategory.Boolean`.
@@ -1365,7 +1365,7 @@ unit-style golden if in doubt; the corpus golden stays within 8 bits.)
       *> §2023:15.45.4 r1 MSB-first: B"10000000" = 128 (an LSB-first bug would yield 1).
            COMPUTE N-3 = FUNCTION INTEGER-OF-BOOLEAN(BIT-8)
            DISPLAY "T3=" N-3
-      *> §2023:15.45.4 r1 over a boolean literal argument (§2023:15.3 item 3).
+      *> §2023:15.45.4 r1 over a boolean literal argument (§2023:15.3 AR3).
            COMPUTE N-3 = FUNCTION INTEGER-OF-BOOLEAN(B"00000101")
            DISPLAY "T4=" N-3
       *> Round-trip identity for 0 <= n < 2^k (§2023:15.13.4 r1 ∘ §2023:15.45.4 r1, both unsigned MSB-first).

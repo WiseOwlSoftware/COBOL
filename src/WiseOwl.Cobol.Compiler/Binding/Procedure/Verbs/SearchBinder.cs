@@ -180,7 +180,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Bind a serial SEARCH (ISO §2023:14.9.37 Format 1). identifier-1 is resolved and screened by
-    /// <see cref="Identifier1"/>; the scan uses the table's FIRST index (§2023:14.9.37.4 GR3 a) — unless VARYING names
+    /// <see cref="Identifier1"/>; the scan uses the table's FIRST index (§2023:14.9.37.4 GR3a) — unless VARYING names
     /// another index OF THE SAME TABLE, which then IS the search index (GR3 c) 1.: "If index-name-1 is specified
     /// in the INDEXED BY phrase in the OCCURS clause associated with identifier-1, the index referenced by
     /// index-name-1 is the search index"); VARYING a different table's index (GR3 c) 2.) or a data item (GR3 b)
@@ -261,7 +261,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// <para>⛔ THE CONFORMANCE ARGUMENT DOES NOT REST ON SYNTAX RULE 7, AND MUST NOT BE "RESTORED" TO (kb/Work
     /// PB445). SR7 requires only that the OCCURS clause CARRY a KEY phrase — a requirement on the data
     /// description entry, saying nothing about how the data is ordered at run time. The proposition a search
-    /// technique would need is §2023:14.9.37.4 GR5 a) ("The contents of each key data item referenced in the WHEN
+    /// technique would need is §2023:14.9.37.4 GR5a) ("The contents of each key data item referenced in the WHEN
     /// phrase shall be sequenced in the table according to the ASCENDING or DESCENDING phrase"), and that is a
     /// condition the PROGRAM shall satisfy, never a guarantee the compiler may rely on — GR6 exists precisely to
     /// define behaviour when it is false, and GR6 a) 2. ends "It is undefined which of these alternatives

@@ -163,7 +163,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// subsidiary quotient from THAT quotient by truncation. The statement used to run an Int128 kernel in every mode
     /// and let only the back-multiply and the subtraction ride the SDIDI, so an operand the Int128 carrier cannot hold
     /// — an unsigned 16-byte dividend in [2^127, 2^128), a float or SDIDI dividend past 1.7E+38 — was a size error
-    /// (or a saturated sentinel quotient) where §2023:8.8.1.5.2 1) rounds it into the SDIDI and the quotient fits the
+    /// (or a saturated sentinel quotient) where §2023:8.8.1.5.2 GR1 rounds it into the SDIDI and the quotient fits the
     /// receiver. The SDIDI lane now forms the quotient, the subsidiary quotient and the remainder on
     /// <c>CobolDec</c>, from the OPERANDS as they are (<see cref="NumericRenderer.DecOperand"/> lifts each); the native
     /// lane keeps the exact Int128 kernel for two scaled operands and a FIXED-POINT identifier-3, whose intermediate range
@@ -198,7 +198,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // GR6c stores identifier-4 only "if the size error condition is not raised": under a SIZE ERROR phrase (ON, NOT
             // or both, kb/Work PB3989's one disposition for every [NOT] SIZE ERROR statement) or EC-SIZE checking the store
             // is gated on the statement's flag, so the quotient's size error leaves the remainder untouched. With checking
-            // NOT enabled and no phrase, the size error condition is §2023:14.6.13.1.3 8)'s, whose receivers are the
+            // NOT enabled and no phrase, the size error condition is §2023:14.6.13.1.3 GR8's, whose receivers are the
             // implementor's: docs/CONFORMANCE.md DOC-A.1-70 follows GnuCOBOL 3.2 (libcob cob_div_quotient /
             // cob_div_remainder), which stores the remainder whatever the quotient met, formed from the quotient truncated
             // at identifier-3's scale with every integer digit (SubsidiaryShape; kb/Work PB3975). A zero divisor raises
@@ -217,14 +217,14 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         });
 
     /// <summary>The forms identifier-3 of <c>DIVIDE ... REMAINDER</c> can take, as far as its SUBSIDIARY QUOTIENT is
-    /// concerned (ISO §2023:14.9.12.4 6) c)).</summary>
+    /// concerned (ISO §2023:14.9.12.4 GR6c).</summary>
     private enum SubsidiaryForm
     {
         /// <summary>A fixed-point numeric or numeric-edited item (or a PICTURE-less one): a decimal point location and a
         /// digit count.</summary>
         FixedPoint,
         /// <summary>A floating-point numeric-edited item: a significand of a fixed digit count at the quotient's own
-        /// exponent (§2023:13.18.40.4 13) b)).</summary>
+        /// exponent (§2023:13.18.40.4 GR13b).</summary>
         FloatEdited,
         /// <summary>A binary floating-point usage (COMP-1/2, FLOAT-SHORT/-LONG/-EXTENDED, FLOAT-BINARY-32/-64; the wider
         /// FLOAT-BINARY-128 and FLOAT-DECIMAL-16/-34 are refused at the data description, COBOL1564): a format.</summary>
@@ -232,7 +232,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     }
 
     /// <summary>⛔ IDENTIFIER-3'S SHAPE UNDER TRUNCATION - the ONE description of what "the same number of digits and the same
-    /// decimal point location as the data item referenced by identifier-3" (ISO §2023:14.9.12.4 6) c)) means for each form of
+    /// decimal point location as the data item referenced by identifier-3" (ISO §2023:14.9.12.4 GR6c) means for each form of
     /// identifier-3 (kb/Work PB2923). It replaced a (scale, digit cap) pair that every form was forced into: a
     /// floating-point numeric-edited item took its mask's working-scale HINT as a decimal point location it does not
     /// have, so a quotient below 0.005 truncated to zero in <c>+9.99E+99</c> and the remainder became the whole dividend.
@@ -241,7 +241,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// GR6 c) applies only "If the size error condition is not raised", and then the quotient fits identifier-3, so its
     /// truncation (never further from zero than the stored quotient, whatever the ROUNDED mode) has identifier-3's digits
     /// already. When the quotient DID meet a size error and the remainder is still stored (checking not enabled and no SIZE
-    /// ERROR phrase: §2023:14.6.13.1.3 8), docs/CONFORMANCE.md DOC-A.1-70), the subsidiary quotient keeps every integer digit, as
+    /// ERROR phrase: §2023:14.6.13.1.3 GR8, docs/CONFORMANCE.md DOC-A.1-70), the subsidiary quotient keeps every integer digit, as
     /// GnuCOBOL 3.2's <c>cob_div_quotient</c> does: <c>DIVIDE 1003 BY 4 GIVING B REMAINDER R</c> with B <c>PIC 99</c> stores
     /// R = 3 (1003 - 250 x 4), where the digit cap kb/Work PB129 used to apply gave 803 (kb/Work PB3975).
     /// The two floating forms carry the item's <see cref="Pic"/> and nothing else: their shape is the item's own.</para></summary>
@@ -260,7 +260,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// location, and the same presence or absence of a sign as the quotient (identifier-3)", so for an UNSIGNED identifier-3
     /// the quotient the remainder is formed from is the one that item holds: the absolute value
     /// (§1985:VI.6.19.4, an unsigned receiver takes the magnitude). <c>DIVIDE -11 BY 3 GIVING PIC 9 REMAINDER</c> gives
-    /// -11 - 3 x 3 = -20. §2002:14.8.11.3 GR6c (and §2023:14.9.12.4 GR6 c)) made the subsidiary quotient always SIGNED, "the same value
+    /// -11 - 3 x 3 = -20. §2002:14.8.11.3 GR6c (and §2023:14.9.12.4 GR6c) made the subsidiary quotient always SIGNED, "the same value
     /// for the remainder regardless of the presence or absence of a sign in the receiving operand" (§2002:F.1), so the
     /// subsidiary is left as formed from 2002 on and for a signed identifier-3 at 1985. The one edition test lives here, applied
     /// to the subsidiary of every lane (native, carried, fixed-point and exact), which is scaled Int128, SDIDI or exact.</summary>
@@ -298,7 +298,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             return CarriedSubsidiaryQuotient(d, Snapshot(dividendX), Snapshot(divisorX), ise, shape);
         NumX dividend = Snapshot(NumericRenderer.DeU(dividendX)),
              divisor = Snapshot(NumericRenderer.DeU(divisorX));
-        // The SUBSIDIARY quotient is the quotient truncated at the GIVING receiver's scale (ISO §2023:14.9.12.4 6) c);
+        // The SUBSIDIARY quotient is the quotient truncated at the GIVING receiver's scale (ISO §2023:14.9.12.4 GR6c);
         // SubsidiaryShape says why it carries no digit cap). It is also the stored quotient under TRUNCATION.
         string qt = $"__q{ctx.Names.NextStoreTmp()}";
         w.Line($"Int128 {qt} = {RuntimeApi.NumDivide(dividend.Expr, $"{dividend.Scale}", divisor.Expr, $"{divisor.Scale}", $"{qs}", CobolRounding.Truncation)};");
@@ -313,21 +313,21 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// FLOATING-POINT identifier-3 in every mode (kb/Work PB2923), and for a NATIVE sender that is a binary64 (a
     /// FLOAT-LONG item, a float function's returned value) or an SDIDI value (a float literal, a NUMVAL value): the
     /// quotient is the SAME division the statement without REMAINDER performs, <see cref="FinalQuotient"/> as the final
-    /// transfer into identifier-3 (§2023:14.9.12.4 1): under standard-decimal "the result of the arithmetic expression
+    /// transfer into identifier-3 (§2023:14.9.12.4 GR1): under standard-decimal "the result of the arithmetic expression
     /// (dividend / divisor)"), and the subsidiary quotient is that quotient truncated into identifier-3's shape
-    /// (§2023:14.9.12.4 6) c): "a subsidiary quotient is developed that is signed and derived from the quotient by
+    /// (§2023:14.9.12.4 GR6c): "a subsidiary quotient is developed that is signed and derived from the quotient by
     /// truncation of digits at the least significant end and that has the same number of digits and the same decimal
     /// point location as the data item referenced by identifier-3"; <see cref="SubsidiaryShapeOf"/>). A quotient on the
     /// SDIDI or binary64 carrier is formed ONCE and the store rounds it by the receiver's mode; one the division already
     /// landed at identifier-3's scale is formed again at the receiver's mode when that is not TRUNCATION.
-    /// <para>⛔ THE STORED QUOTIENT IS NEVER DERIVED FROM THE SUBSIDIARY ONE (§2023:14.9.12.4 6) b) forms and stores the quotient;
+    /// <para>⛔ THE STORED QUOTIENT IS NEVER DERIVED FROM THE SUBSIDIARY ONE (§2023:14.9.12.4 GR6b) forms and stores the quotient;
     /// 6) c) only feeds the remainder). A floating-point identifier-3 stores the quotient with all its digits and
     /// exponent, and its subsidiary quotient is the shape arm's (<see cref="FloatEditedSubsidiary"/>,
     /// <see cref="BinaryFloatSubsidiary"/>).</para>
     /// <para>⛔ NO SENDER IS QUANTIZED BEFORE THE DIVISION (kb/Work PB3829's sweep). The native lane used to land such a sender
     /// TRUNCATED at the receiver's float working scale first, so the ROUNDED decision saw a value already cut:
     /// <c>DIVIDE FL BY 1 GIVING Q ROUNDED MODE AWAY-FROM-ZERO REMAINDER R</c> with FL = 0.12340000000001 stored 0.1234
-    /// where the same statement without REMAINDER stored 0.1235 (§2023:14.7.4.3 3)), and <c>DIVIDE 0.09 BY FB GIVING Q
+    /// where the same statement without REMAINDER stored 0.1235 (§2023:14.7.4.3 GR3), and <c>DIVIDE 0.09 BY FB GIVING Q
     /// REMAINDER R</c> with FB = 0.30000000000001 stored 0.3000 where the quotient 0.2999999999999 truncates to 0.2999.
     /// One quotient, one rounding, whichever format of DIVIDE asks for it.</para></summary>
     private (NumX Dividend, NumX Divisor, NumX Subsidiary, Func<CobolRounding, NumX> QuotientFor) CarriedSubsidiaryQuotient(
@@ -394,9 +394,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 $"DIVIDE REMAINDER: a final-transfer quotient at scale {truncated.Scale}, not identifier-3's {qs}");
     }
 
-    /// <summary>The subsidiary quotient for a FLOATING-POINT numeric-edited identifier-3 (ISO §2023:14.9.12.4 6) c)): the quotient
+    /// <summary>The subsidiary quotient for a FLOATING-POINT numeric-edited identifier-3 (ISO §2023:14.9.12.4 GR6c): the quotient
     /// as the item holds it under truncation, <c>CobolEdit.TruncateToFloatShape</c> - its significand's digits at the
-    /// quotient's own exponent (§2023:13.18.40.4 13) b), §2023:14.6.8.4 1)), the normalization its store performs. An SDIDI value
+    /// quotient's own exponent (§2023:13.18.40.4 GR13b, §2023:14.6.8.4 GR1), the normalization its store performs. An SDIDI value
     /// (<c>CobolDec</c>, exact), whatever carrier the quotient arrived on, so the back-multiply keeps every digit.</summary>
     private NumX FloatEditedSubsidiary(NumX truncated, PicInfo pic)
     {
@@ -405,9 +405,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         return new NumX(sq, 0, Dec: true);
     }
 
-    /// <summary>The subsidiary quotient for a BINARY floating-point identifier-3 (ISO §2023:14.9.12.4 6) c)): the quotient as the
+    /// <summary>The subsidiary quotient for a BINARY floating-point identifier-3 (ISO §2023:14.9.12.4 GR6c): the quotient as the
     /// item holds it under truncation, which is the ONE transfer of an arithmetic value into a floating-point resultant,
-    /// <c>FloatResultant</c> under implied TRUNCATION (§2023:14.7.4.3 10): "rounded to the nearest value nearer to zero that can
+    /// <c>FloatResultant</c> under implied TRUNCATION (§2023:14.7.4.3 GR10): "rounded to the nearest value nearer to zero that can
     /// be represented in the resultant identifier") - the very landing the item's own store performs when the statement
     /// has no ROUNDED phrase, so the subsidiary quotient and the stored one cannot disagree (kb/Work PB2923, PB1196). A
     /// native binary64 quotient stays binary64 and the remainder is formed in binary64 (DOC-A.1-123); an SDIDI quotient
@@ -507,8 +507,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             {
                 // Single receiver: the RHS's top-level division (if any) IS the final transfer to r — render it
                 // outermost so an outermost quotient rounds at r's scale + mode and a nested quotient does not
-                // inherit r's mode (CA5; §2023:14.7.7 rule 3 NOTE 1). A receiver that identifies at run time takes the
-                // value materialized first (§2023:14.7.7 rule 4; MaterializesInitialEvaluation).
+                // inherit r's mode (CA5; §2023:14.7.7 GR3 NOTE 1). A receiver that identifies at run time takes the
+                // value materialized first (§2023:14.7.7 GR4; MaterializesInitialEvaluation).
                 // The materialized value is this receiver's final transfer too, so a PROHIBITED-inexact one raises while
                 // it is formed, before the store: the rule-7 keep spans both (KeepsOnProhibitedInexact).
                 if (MaterializesInitialEvaluation(c.Targets))
@@ -526,7 +526,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// <summary>A subscript / reference-modifier bound's pre-operation (kb/Work PB1890): the expression renders
     /// RECEIVER-LESS — no resultant scale truncates it, a nested quotient keeps its guard digits — and its value
     /// reaches the position intake on its own carrier (<see cref="NumericRenderer.IntakeCarrier"/>), which raises
-    /// EC-BOUND-SUBSCRIPT / EC-BOUND-REF-MOD for a non-integer (§2023:8.4.2.3.4 GR1b, §2023:8.4.3.3.4 rule 5)c)) and yields the
+    /// EC-BOUND-SUBSCRIPT / EC-BOUND-REF-MOD for a non-integer (§2023:8.4.2.3.4 GR1b, §2023:8.4.3.3.4 GR5)c)) and yields the
     /// saturated integer position the integer temporary stores. It rides <see cref="EmitArith"/> with no phrase, so
     /// the expression's own size-error conditions (a zero divisor) keep the arithmetic statements' discipline — all but
     /// COBOL-85's, which is the rule of an ARITHMETIC STATEMENT (§1985:VI.6.4.2 GR3) and which a position expression is not.</summary>
@@ -542,7 +542,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// <summary>The size-error catch pair (kb/Work PB129 — factored so the outer statement try and every
     /// per-receiver <see cref="GuardedStore"/> emit the identical discipline).
     /// <para>⛔ A statement WITHOUT a SIZE ERROR phrase catches only the conditions it TAKES (kb/Work PB4092,
-    /// <see cref="EcState.SizeErrOnlyNames"/>): the enabled names, and §2023:14.7.4.3 rule 7's keep, which the rule makes
+    /// <see cref="EcState.SizeErrOnlyNames"/>): the enabled names, and §2023:14.7.4.3 GR7's keep, which the rule makes
     /// whether or not checking is enabled (the condition is latched, the receiver stays, and the EC-SIZE handling then
     /// finds the name not enabled and does nothing — <c>CobolSizeError.IsProhibitedInexact</c>). Every other condition
     /// is not enabled, so it propagates: a zero divisor or an exponentiation-rule violation ends the run unit exactly as
@@ -609,7 +609,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly in the resultant identifier,
     /// the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition exists, and the content of the
     /// resultant identifier is unchanged": the rule keeps the resultant whether or not checking is enabled, and with
-    /// checking off §2023:14.6.13.1.3 8) leaves only whether and how execution continues to the implementor — it continues
+    /// checking off §2023:14.6.13.1.3 GR8 leaves only whether and how execution continues to the implementor — it continues
     /// (docs/CONFORMANCE.md DOC-A.1-70, GnuCOBOL 3.2's disposition). Every landing raises
     /// <c>CobolSizeError.ProhibitedInexact</c> before it stores (StoreArith), so the receiver's compute+store — and its
     /// accessors, whose SET a size error skips as under checking — runs in a try that catches THAT condition alone and
@@ -664,7 +664,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// string + the unit's DECIMAL-POINT IS COMMA).</summary>
     private string EditCfg(PicInfo? pic) => ctx.EditCfg(pic);
 
-    /// <summary>⛔ IS THE INITIAL EVALUATION MATERIALIZED BEFORE THE FIRST RECEIVER IS STORED? ISO §2023:14.7.7 rule 4 orders an
+    /// <summary>⛔ IS THE INITIAL EVALUATION MATERIALIZED BEFORE THE FIRST RECEIVER IS STORED? ISO §2023:14.7.7 GR4 orders an
     /// arithmetic statement: a) "The initial evaluation of the statement is done and the result of this operation is placed
     /// in an intermediate data item", then b) "Item identification for the receiving data items is done as each data item is
     /// accessed unless it was already done in step a". Two things make the order observable, and either one materializes:
@@ -920,7 +920,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // "significant digits truncated in store"; the §2023:14.7.5 size error on the final transfer).
             string onFail = ecState.SizeErrEcVar is { } ecn2 ? $"{{ {flag} = true; {ecn2} = \"EC-SIZE-TRUNCATION\"; }}" : $"{flag} = true;";
             // ROUNDED MODE PROHIBITED and an inexact transfer is a size error that leaves the receiver UNCHANGED
-            // (§2023:14.7.4.3 rule 7 — the ROUNDED phrase's rule, not §2023:14.7.5's): TryStore answers false for a scaled value,
+            // (§2023:14.7.4.3 GR7 — the ROUNDED phrase's rule, not §2023:14.7.5's): TryStore answers false for a scaled value,
             // and a float or SDIDI value's landing raises it inside the statement's catch (kb/Work PB3990).
             w.Line($"if (!{RuntimeApi.NumTryStore(args, mode, tmp, value.U)}) {onFail}");
             // On success store the value (a whole-group-aliased numeric-DISPLAY receiver stores its character image).

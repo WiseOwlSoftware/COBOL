@@ -19,7 +19,7 @@
       *> of "1A" from base 16 to base 10 is 26 (0x1A).
       *>
       *> THE FUNCTION TYPE SURVIVES THE PARENTHESES (review R1-2). §2023:15.7.1: an Integer argument gives an Integer ABS, and
-      *> §2023:15.3 item 6 admits "an arithmetic expression that will always result in an integer value", which (I2) over an
+      *> §2023:15.3 AR6 admits "an arithmetic expression that will always result in an integer value", which (I2) over an
       *> integer item is. So ABS((I2)) is an integer function: FACTORIAL's argument is an integer position that
       *> §2023:8.4.3.2.3 SR11 bars a numeric function from, and FACTORIAL(2) = 2 (0002 in T); and the count of PERFORM ... TIMES
       *> is MAX((I2) 1) = 2, so CNT reaches 2.

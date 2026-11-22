@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ EVERY TYPE OF USER-DEFINED WORD IS DECLARED THROUGH THE ONE FUNNEL (kb/Work PB1083; ISO §2023:8.3.2.2).
-/// <para>§2023:8.3.2.1 rule 5 and §2023:12.3.8.3 SR12/SR13 forbid a user-defined word of ANY type from spelling an
+/// <para>§2023:8.3.2.1 SR5 and §2023:12.3.8.3 SR12/SR13 forbid a user-defined word of ANY type from spelling an
 /// intrinsic-function-name the REPOSITORY paragraph identifies. The screen was called from six hand-picked declaration
 /// funnels, so an alphabet-name, a class-name, a symbolic-character, a program-name or a function-prototype-name
 /// spelling one compiled clean. Every declaration now announces its word through <c>DataBinder.DeclareUserWord</c> with
@@ -358,7 +358,7 @@ public sealed class UserWordDeclarationDriftTests
             bool exempt = NotDeclaredInASourceElement.ContainsKey(kind);
             Assert.True(declared ^ exempt, declared
                 ? $"{kind.Spelling()} is declared through DataBinder.DeclareUserWord AND listed exempt — drop the exemption"
-                : $"no declaration of a {kind.Spelling()} reaches DataBinder.DeclareUserWord — §2023:8.3.2.1 rule 5 / §2023:12.3.8.3 "
+                : $"no declaration of a {kind.Spelling()} reaches DataBinder.DeclareUserWord — §2023:8.3.2.1 SR5 / §2023:12.3.8.3 "
                   + "SR12-SR13 do not reach it; call the funnel where the word is declared, or exempt it with the rule "
                   + "that makes the exemption true");
         }

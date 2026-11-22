@@ -13,7 +13,7 @@
       *> record area established by the output CD entry"), a reach the
       *> 2023 text has no CD for. The CD facility is obsolete (COBOL0903
       *> warning, not an error).
-      *> §2002:14.8.34.3 GR3b2: an integer identifier-2 "is incremented
+      *> §2002:14.8.34.3 GR3b.2: an integer identifier-2 "is incremented
       *> by the value one at the same time as the search index is
       *> incremented"; GR3b1: an index data item "is incremented by the
       *> same amount as, and at the same time as, the search index".

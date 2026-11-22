@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// PB235).</para>
 ///
 /// <para>⛔ WiseOwl COBOL'S DETERMINATION IS NOT FREE — IT IS FORCED BY THE STATUS THE COMPILER ALREADY REPORTS.
-/// §2023:9.1.13.2 item 6 defines '07' as <i>"An OPEN or CLOSE statement is successfully executed but a CLOSE
+/// §2023:9.1.13.2 GR6 defines '07' as <i>"An OPEN or CLOSE statement is successfully executed but a CLOSE
 /// statement with the NO REWIND, REEL/UNIT, or FOR REMOVAL phrase or an OPEN statement with the NO REWIND
 /// phrase references a physical file on a non-reel/unit medium"</i> — '07' EXISTS ONLY on a non-reel/unit
 /// medium. `CLOSE … WITH NO REWIND` reports '07' (Table 14 symbol g, the <see cref="NonUnit"/> column's cell
@@ -27,21 +27,21 @@ namespace WiseOwl.Cobol.Runtime.IO;
 public enum PhysicalFileCategory
 {
     /// <summary>(a) Non-unit — <i>"A file whose input or output medium is such that the concepts of rewind and
-    /// units have no meaning."</i> (§2023:14.9.6.4 GR2 a). Every <see cref="SequentialConnector"/> file: a host path
+    /// units have no meaning."</i> (§2023:14.9.6.4 GR2a). Every <see cref="SequentialConnector"/> file: a host path
     /// on mass storage, with no reel, unit or volume behind it.</summary>
     NonUnit,
 
     /// <summary>(b) Sequential single-unit — <i>"A sequential file that is entirely contained on one unit."</i>
-    /// (§2023:14.9.6.4 GR2 b). ⛔ NO SUPPORTED MEDIUM IS IN THIS CATEGORY (see the type remarks); the arm exists so
+    /// (§2023:14.9.6.4 GR2b). ⛔ NO SUPPORTED MEDIUM IS IN THIS CATEGORY (see the type remarks); the arm exists so
     /// that adding one is a compile-time obligation rather than a silent omission.</summary>
     SequentialSingleUnit,
 
     /// <summary>(c) Sequential multi-unit — <i>"A sequential file that is contained on more than one unit."</i>
-    /// (§2023:14.9.6.4 GR2 c). ⛔ NO SUPPORTED MEDIUM IS IN THIS CATEGORY.</summary>
+    /// (§2023:14.9.6.4 GR2c). ⛔ NO SUPPORTED MEDIUM IS IN THIS CATEGORY.</summary>
     SequentialMultiUnit,
 
     /// <summary>(d) Non-sequential single/multi-unit — <i>"A file with organization other than sequential, that
-    /// resides on a mass storage device."</i> (§2023:14.9.6.4 GR2 d). Every <see cref="RelativeConnector"/> and
+    /// resides on a mass storage device."</i> (§2023:14.9.6.4 GR2d). Every <see cref="RelativeConnector"/> and
     /// <see cref="IndexedConnector"/> file.</summary>
     NonSequential,
 }

@@ -59,7 +59,7 @@ public sealed class ActivationConformanceDriftTests
 
     /// <summary>⛔ INVOKE IS THE THIRD CALLER OF THE OPERAND SCREENS (kb/Work PB1137). §2023:14.9.23.3 states CALL's storage
     /// section rule (SR9/SR11 for SR3/SR7) and bit-alignment rule (SR12 for SR6/SR8) in the same words, and §2023:14.9.23.4
-    /// GR6 a) builds the keyword-less mode on SR9 exactly as §2023:14.9.4.4 GR9 a) builds it on SR3 — yet INVOKE's argument
+    /// GR6 a) builds the keyword-less mode on SR9 exactly as §2023:14.9.4.4 GR9a builds it on SR3 — yet INVOKE's argument
     /// binder re-implemented a slice of CALL's screens and missed half of them: a report's PAGE-COUNTER crossed
     /// BY REFERENCE and was a RETURNING item, a misaligned bit item crossed, and a keyword-less object property
     /// crossed BY REFERENCE so the method's write reached it. INVOKE's arguments, its RETURNING item and its
@@ -98,7 +98,7 @@ public sealed class ActivationConformanceDriftTests
     /// comparator family (<c>OoConformance.ContentMismatch</c>, <c>ContentValueMismatch</c> and the two literal arms)
     /// re-derived §2023:14.8.2.3.3 from <c>DataItem</c> fields while the run-time CALL lane asked
     /// <c>ActivationRelations.CallArgumentViolation</c>, and the two disagreed: a group argument into a numeric formal was
-    /// refused at bind (§2023:14.8.2.2 rule 2's MOVE admits it), the run-time lane let a strongly-typed group argument reach a
+    /// refused at bind (§2023:14.8.2.2 SR2's MOVE admits it), the run-time lane let a strongly-typed group argument reach a
     /// <c>PIC X</c> formal, and ZERO into a <c>PIC A</c> formal and SPACE into a <c>PIC 1</c> one ran on both (§2023:14.9.25.3
     /// SR6 / SR7). The family is deleted: <c>OoConformance</c> answers a BY CONTENT argument only for the object-reference
     /// pair, which reads the class table as a pair, and every verb binder reaches the rule through
@@ -181,7 +181,7 @@ public sealed class ActivationConformanceDriftTests
     /// than an arithmetic or boolean expression" was written twice: <c>CallBinder.Gr8Classify</c> and an inline block in
     /// <c>OoBinder.OoBindInvocationArg</c>, which alone folded a sole numeric literal. The CALL copy once recovered only the
     /// arithmetic leg of an operator-free boolean node (PB238), and CALL's keyword-less boolean arm passed the identifier
-    /// it recovered BY CONTENT where §2023:14.9.4.4 GR9 a) 1. assumes BY REFERENCE. So <c>ConditionBinder.ReduceArgument</c> is
+    /// it recovered BY CONTENT where §2023:14.9.4.4 GR9a.1 assumes BY REFERENCE. So <c>ConditionBinder.ReduceArgument</c> is
     /// the one reduction, both activating binders ask it, and no other verb binder unwraps a boolean node to an argument
     /// operand itself.</summary>
     [Fact]
@@ -206,7 +206,7 @@ public sealed class ActivationConformanceDriftTests
     /// (OVERRIDE), §2023:9.3.11 (IMPLEMENTS), interface conformance and §2023:8.4.3.9.3 SR7 (a property's accessors) import it. The
     /// compiler answered them with a <c>DataItem</c> comparator (<c>OoConformance.DescriptionMismatch</c>) while the §2023:9.3.6
     /// match and the activation conformance read <c>ActivationDescription</c>s, and the copies disagreed: the comparator,
-    /// carrying §2023:14.8.2.2 rule 1's activation reading, called a 4-byte alphanumeric group and a <c>PIC X(4)</c> the same
+    /// carrying §2023:14.8.2.2 SR1's activation reading, called a 4-byte alphanumeric group and a <c>PIC X(4)</c> the same
     /// description, so such an override compiled where rule 3 refuses it (the group has no PICTURE clause). So
     /// <c>OoConformance.SignatureDifference</c> is the one entry — it describes both items through the one builder and asks
     /// <c>ActivationRelations.SignatureDifference</c> — the override, IMPLEMENTS, property, MOVE-element and prototype

@@ -124,7 +124,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     [InlineData(39, (byte)9, FileStatusCode.FixedAttributeConflict)]
     // The format's magic and version over meta pages that do not validate — an ORGANIZATION byte outside the two a
     // keyed store can carry, a RECORD TYPE outside fixed/variable — is the store's own format DAMAGED: the adoption
-    // rule's '30' (§2023:9.1.13.6 item 1; 2.2.1.6 R6 step 1), not GR10's '39' (2.2.1.4: "a page carrying this magic and
+    // rule's '30' (§2023:9.1.13.6 GR1; 2.2.1.6 R6 step 1), not GR10's '39' (2.2.1.4: "a page carrying this magic and
     // version whose committed slots both fail is StoreFormat.Damaged").
     [InlineData(40, (byte)'S', FileStatusCode.PermanentError)]
     [InlineData(41, (byte)'X', FileStatusCode.PermanentError)]
@@ -198,7 +198,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
         // WiseOwl COBOL adds none to a fixed-length one — and "In line sequential files the length of each record
         // is determined by the number of characters between the preceding line delimiter and the following
         // line delimiter or the end of file if no line delimiter is present". The standard answers the
-        // resulting disagreement with a SUCCESSFUL completion, §2023:9.1.13.2 item 3's '04' and item 5's '06', so
+        // resulting disagreement with a SUCCESSFUL completion, §2023:9.1.13.2 GR3's '04' and item 5's '06', so
         // GR10's '39' must NOT fire first — writing a print or report file and reading it back under a
         // different record description is exactly the idiom those statuses exist for.
         string host = Host($"ffa-seq-{width}-{lineSequential}.dat");
@@ -303,7 +303,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     {
         // The subject is a plain 20-byte text file: its first four bytes ("ABCD") read as a length prefix name
         // 0x44434241 bytes, ~1.1 GB, which the file does not hold. That is not a framed file, so a connector
-        // declaring the VARIABLE record type contradicts the medium — '39' (§2023:9.1.13.6 item 7).
+        // declaring the VARIABLE record type contradicts the medium — '39' (§2023:9.1.13.6 GR7).
         // ⚖ Behaviourally GnuCOBOL's "variable-length SEQUENTIAL data integrity" case.
         string host = Host("ffa-vary-foreign.dat");
         MakeSequentialTwentyByteFile(host);
@@ -337,7 +337,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
     public void AVaryingPrefixOutsideTheRecordClausesBounds_IsNotAConflict()
     {
         // ⛔ THE BOUNDARY OF THE RULE. The prefix PARSES — it names 5 bytes and the file holds them — but 5 is
-        // below the reader's VaryMin of 20. §2023:9.1.13.2 item 3 makes that a SUCCESSFUL READ with '04' ("shorter
+        // below the reader's VaryMin of 20. §2023:9.1.13.2 GR3 makes that a SUCCESSFUL READ with '04' ("shorter
         // than or longer than the minimum or maximum length of records allowed for the fixed file attributes
         // for that file"), which a '39' at the OPEN would make unreachable. The OPEN must succeed.
         string host = Host("ffa-vary-bounds.dat");

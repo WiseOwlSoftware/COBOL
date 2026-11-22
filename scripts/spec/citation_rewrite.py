@@ -12,7 +12,7 @@ RESOLVE (`audit_code_citations.resolve_line`) refuses a designator written in no
   1. A sub-item path written without its space (`SR12 a)2.`) was glued only to its first level (`SR12a2.`).
      `citation.SPACED_PATH` reads a later level with or without its space, and `citation.GLUED_NUMBER` makes the glued
      number itself non-canonical (`SR12a2` -> `SR12a.2`), so RESOLVE refuses it and this rewrites it.
-  2. A label's `)` that also closed a parenthesis opened before the citation (`(ISO §2023:14.9.40.3 SR14 e)`) was
+  2. A label's `)` that also closed a parenthesis opened before the citation (`(ISO §2023:14.9.40.3 SR14 e)`) was (citation-audit: example)
      dropped with the label. THE PARENTHESES ARE COUNTED (`_kept`): the rewrite keeps as many of the label's closers as
      the text around the citation needs to stay balanced. In a comment or a document that count is read on the line;
      in a string literal it is read over the literal's whole concatenation chain (`_chain`), and where the chain holds
@@ -116,8 +116,8 @@ def balance(text: str) -> int:
 def _kept(before: int, after: int, closers: int) -> int | None:
     """How many of a label's `closers` (the net `)` of the text the rewrite removes) the rewrite keeps, so the text keeps
     its parentheses: `before` opens before the citation, `after` the balance of the text after it. A label's `)` that also
-    closes a parenthesis opened before the citation (`(ISO §2023:14.9.40.3 SR14 e)`) is kept (`SR14e)`); one that is only
-    a label (`(COBOL2199, §2023:13.18.35.3 SR6 e)) an`) is not (`SR6e)`). None when no count balances the text."""
+    closes a parenthesis opened before the citation (`(ISO §2023:14.9.40.3 SR14 e)`) is kept (`SR14e)`); one that is only (citation-audit: example)
+    a label (`(COBOL2199, §2023:13.18.35.3 SR6 e)) an`) is not (`SR6e)`). None when no count balances the text. (citation-audit: example)"""
     j = before + after
     return j if 0 <= j <= closers else None
 
@@ -258,7 +258,7 @@ def _proposals(rel: str, text: str) -> tuple[list[Edit], list[Refusal]]:
             removed = line[c.end:end]
             closers = max(0, -balance(removed))
             site = _site(rel, text, lexed, line_start, line_end, line_start + c.start, line_start + end)
-            why = _refusal(site, closers)
+            why = _refusal(site, closers) or _unresolved(canonical) or _not_canonical(line, c.start, end, canonical)
             if why is not None:
                 refusals.append(Refusal(rel, i + 1, citation.render(c), why, line_start + c.start))
                 continue
@@ -306,6 +306,25 @@ def _refusal(site: _Site | str, closers: int) -> str | None:
     if closers and _kept(site.before, site.after, closers) is None:
         return "the parentheses around the designator do not balance in its string"
     return None
+
+
+def _not_canonical(line: str, start: int, end: int, canonical: str) -> str | None:
+    """Why the rewrite would leave a designator RESOLVE still refuses: the text after it continues the path it glued
+    (`SR12 a)2.,` read only to `a)` would be written `SR12a` + `2.,` = `SR12a2.,`, breakage 1 of kb/Work PB6035). A
+    rewrite is written only when its result reads as canonical in its own line. (citation-audit: example)"""
+    after = line[:start] + canonical + line[end:]
+    c = next(citation.scan(after[start:]), None)
+    if c is None or citation.loose_designator(after[start:], c) is not None:
+        return "the rewritten designator would still not be canonical in its line"
+    return None
+
+
+def _unresolved(canonical: str) -> str | None:
+    """Why the canonical form is not written: it names a sub-item or an ordinal the rule lacks (`cite.resolve` refuses
+    it), so the designator the citer meant must be derived from the standard, never written as the form spells it."""
+    c = citation.parse(canonical)
+    v = audit._resolved(c.edition, c.locator, c.rule, None)
+    return None if v.ok or v.kind == "no-clause" else f"its canonical form {canonical} is refused ({v.kind}): derive the designator"
 
 
 def _why_no_form(loose: "citation.Loose") -> str:
@@ -384,7 +403,7 @@ def _quoters(rel: str, text: str) -> str | None:
 def _occurrences(fragments: list[str], text: str, quoting: bool = True) -> dict[str, list[tuple[int, int]]]:
     """Where each of `fragments` stands in `text`, the longest at each place (a shorter one is not counted inside a
     longer one's), in one pass. In a quotation (`quoting`) a tail written right after a citation is that citation's,
-    answered only by its whole-citation fragment (`§2023:6.1 3) a)` is not the `3) a)` of §2023:8.4.6.2.1); in message
+    answered only by its whole-citation fragment (`§2023:6.1 3) a)` is not the `3) a)` of §2023:8.4.6.2.1); in message (citation-audit: example)
     text every occurrence counts."""
     out: dict[str, list[tuple[int, int]]] = {}
     if not fragments or (pattern := _alternation(tuple(sorted(set(fragments), key=lambda f: (-len(f), f))))) is None:
@@ -402,7 +421,30 @@ _CITED_BEFORE = re.compile(r"§\d{4}:\S+ \Z")
 
 @functools.lru_cache(maxsize=16)
 def _alternation(fragments: tuple[str, ...]) -> re.Pattern | None:
-    return re.compile("|".join(_bounded(f).pattern for f in fragments)) if fragments else None
+    """One pattern of every fragment, each a whole token (`_bounded`), built as a trie so a scan of a large file costs its
+    length, not its length times the fragments (a flat alternation of some 600 took nine minutes a run)."""
+    if not fragments:
+        return None
+    trie: dict = {}
+    for f in fragments:
+        node = trie
+        for ch in f:
+            node = node.setdefault(ch, {})
+        node[""] = True
+
+    def emit(node: dict, last: str) -> str:
+        arms = []
+        for ch in sorted((k for k in node if k), key=lambda k: -_depth(node[k])):
+            arms.append(re.escape(ch) + emit(node[ch], ch))
+        if "" in node:
+            arms.append(r"(?![\w])" if last.isalnum() else "")
+        return arms[0] if len(arms) == 1 else "(?:" + "|".join(arms) + ")"
+
+    return re.compile(r"(?<![\w])" + emit(trie, ""))
+
+
+def _depth(node: dict) -> int:
+    return 1 + max((_depth(v) for k, v in node.items() if k), default=0)
 
 
 def _blanked(text: str, spans) -> str:

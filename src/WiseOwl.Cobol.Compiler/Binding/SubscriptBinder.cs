@@ -236,7 +236,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// <summary>⛔ §2002:14.8.36.2 SR13 — "If data-name-2 is subject to more than one level of OCCURS clauses, subscripts shall
     /// be specified for all levels with the exception that the rightmost subscript shall be the word ALL": at COBOL-2002 a
     /// table SORT subject of a nested table writes ALL as its rightmost subscript, where the later editions let the
-    /// subject omit its own level's subscript (§2023:8.4.2.3.3 SR5 e), kb/Work PB5641). Returns <see langword="true"/> when the
+    /// subject omit its own level's subscript (§2023:8.4.2.3.3 SR5e, kb/Work PB5641). Returns <see langword="true"/> when the
     /// reference is rejected.</summary>
     private bool ScreenTableSubjectRightmostAll(Core.DataReferenceContext dref, DataItem table)
     {
@@ -387,7 +387,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// specified in the INDEXED phrase … for identifier-1", kb/Work PB211) and SR10's over a Format-2 WHEN operand.
     /// Asked of the source text for the reason <see cref="SubscriptSegments"/> gives: the rendered subscript has
     /// already erased which name was written. Index-names are user-defined words, compared case-insensitively
-    /// (§2023:8.1.3.2 GR3 a)).</summary>
+    /// (§2023:8.1.3.2 GR3a).</summary>
     /// <para>⛔ BY DECLARATION, NOT SPELLING (kb/Work PB919): with two tables each <c>INDEXED BY IX</c>, a
     /// subscript <c>IX OF OTHER</c> names the other table's index and is legal here, so each written occurrence of
     /// the spelling is resolved — with the OF/IN qualifiers that follow it — and compared by identity.</para>
@@ -672,7 +672,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         List<PendingScreen>? pending = null;
         bool functionChecked = false;
         if (Additive(expr.additiveExpression()) is not { } bound) return MaterializePosition(seg, position);
-        // ⛔ AN EXPRESSION THAT CAN PASS THE HOST'S long IS NOT A DIRECT SHAPE (kb/Work PB2616): §2023:8.4.2.3.4 1) b) takes the
+        // ⛔ AN EXPRESSION THAT CAN PASS THE HOST'S long IS NOT A DIRECT SHAPE (kb/Work PB2616): §2023:8.4.2.3.4 GR1b takes the
         // subscript from "the evaluation of arithmetic-expression-1", and the typed walk renders + - * as C# long
         // arithmetic, so `A * B - C * D` over PIC 9(21) operands wrapped and selected another element. Decided at
         // compile time from the operands' digit bounds (Position.ExceedsLongArithmetic); the narrow common case
@@ -735,9 +735,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             // ⛔ The figurative ZERO beside a ref-mod colon, an operator or a lone grouping pair (ZeroTokenRewriter) is the
             // INTEGER 0 (§2023:8.8.1.1 "the figurative constant ZERO"; §2023:8.3.3.6.4 GR4 — the zero format is the value 0 in a
             // numeric context), so it is a literal like `0` and meets every literal-only screen as one (kb/Work PB3960):
-            // routed through D18 it became a §2023:15.4 temp read, and `T(ZERO:2)` over PIC X(4) escaped the §2023:8.4.3.3.4 5) b)
+            // routed through D18 it became a §2023:15.4 temp read, and `T(ZERO:2)` over PIC X(4) escaped the §2023:8.4.3.3.4 GR5b
             // range screen that `T(0:2)` meets. ALL before it is §2023:8.3.3.6.2 Format 1's optional word, whose
-            // §2023:8.3.3.6.3 SR1 a) edition edge is queued with the other screens (an abandoned walk must not report twice).
+            // §2023:8.3.3.6.3 SR1a edition edge is queued with the other screens (an abandoned walk must not report twice).
             if (p.ZERO_ARITH() is { } zero)
             {
                 if (p.ALL() is not null)
@@ -770,7 +770,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// <summary>An integer literal (a sign before it is a unary operator of the expression, ISO §2023:8.3.3.3.2) as a
     /// <see cref="PositionConstant"/> — or, past the host's <c>long</c>, a <see cref="PositionWideConstant"/> that keeps
     /// the value (kb/Work PB2938); null for any other numeric literal (a decimal or floating-point literal — the D18
-    /// route applies §2023:8.4.2.3.4 GR1 b)'s integrality rule to it).</summary>
+    /// route applies §2023:8.4.2.3.4 GR1b's integrality rule to it).</summary>
     private static Position? IntegerLiteral(Core.NumericLiteralContext lit)
     {
         var signed = lit.signedNumericLiteral();
@@ -799,7 +799,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// screen (<see cref="IndexNameInPositionError"/>, <c>Item</c> null). Queued rather than emitted so an exit
     /// to D18 later in the token loop cannot leave a diagnostic behind for the D18 route to duplicate — see
     /// <see cref="BindPosition"/>. The third kind (<paramref name="AllZero"/>, <c>Name</c> the operand as written) is the
-    /// §2023:8.3.3.6.3 SR1 a) edition edge of a position written <c>ALL ZERO</c> (kb/Work PB3960). The fourth
+    /// §2023:8.3.3.6.3 SR1a edition edge of a position written <c>ALL ZERO</c> (kb/Work PB3960). The fourth
     /// (<paramref name="LinkageRef"/>, the operand's own reference) is the §2023:13.7.3 SR4 linkage screen
     /// (kb/Work PB5846), which keeps <c>Item</c> the resolved item.</summary>
     private readonly record struct PendingScreen(DataItem? Item, string Name, bool AllZero = false,
@@ -1124,7 +1124,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// <para>A WiseOwl COBOL numeric item stores UNSCALED — <c>PIC 9V9 VALUE 2.0</c> is the field <c>20L</c> at scale
     /// 1 — so the item's VALUE and its STORAGE are different numbers whenever the PICTURE has a <c>V</c>. Both
     /// position clauses are about the VALUE: §2023:8.4.2.3.4 GR1b makes the subscript "the result of the evaluation of
-    /// arithmetic-expression-1", and §2023:8.4.3.3.4 rule 5)c) says the same for a leftmost-position/length. Reading the
+    /// arithmetic-expression-1", and §2023:8.4.3.3.4 GR5)c) says the same for a leftmost-position/length. Reading the
     /// storage instead is what made <c>W-E(W-S)</c> with <c>W-S = 2.0</c> index occurrence 20 and return the
     /// out-of-range scratch.</para>
     /// <para>⛔ A NUMERIC item reads through its OWN PROFILE, at every scale and in both positions:
@@ -1228,7 +1228,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
 
 /// <summary>Which ORDINAL-POSITION rule a rendered segment is subject to. The two positions share one token
 /// renderer and one integrality rule, and differ only in the Table 13 condition a non-integer value sets:
-/// §2023:8.4.2.3.4 GR1b names EC-BOUND-SUBSCRIPT for a subscript, §2023:8.4.3.3.4 rule 5)c) names EC-BOUND-REF-MOD for a
+/// §2023:8.4.2.3.4 GR1b names EC-BOUND-SUBSCRIPT for a subscript, §2023:8.4.3.3.4 GR5)c) names EC-BOUND-REF-MOD for a
 /// leftmost-position/length (fix-queue PB41). Carried by parameter rather than a field — the renderer is
 /// re-entrant through <see cref="RefModBinder.ReadRefMod(CobolParserCore.RefModPartContext)"/>, and ambient
 /// state goes stale across a re-entrant descent (the ExpressionBinder OperandContext discipline).</summary>

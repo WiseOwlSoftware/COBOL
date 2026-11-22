@@ -71,7 +71,7 @@ public sealed partial class SpecialNamesBinder
         _host.Symbols.DeclaresConfigurationName(NameClass.ClassName, name) || IsAlphabetName(name);
 
     /// <summary>Normalize a NUMERIC literal's source text to the canonical dot-decimal form the whole emit-side
-    /// decode pipeline consumes (ISO §2023:12.3.7.4 GR14 a): under DECIMAL-POINT IS COMMA "the character written in
+    /// decode pipeline consumes (ISO §2023:12.3.7.4 GR14a): under DECIMAL-POINT IS COMMA "the character written in
     /// numeric literals to represent the decimal separator shall be the comma" — and §2023:8.3.3.3.2 admits ONLY the
     /// decimal point in a fixed-point literal, so the OTHER separator is diagnosed in each mode; the legacy's
     /// unconditional acceptance of both is a version-invariant non-conformance, not ported). The ONE literal
@@ -80,7 +80,7 @@ public sealed partial class SpecialNamesBinder
     public string NormalizeNumericLiteral(string text)
     {
         // The normalization ALGORITHM is the ONE shared WiseOwl.Cobol.Common.NumericLiteral.Normalize (Frontend), so the
-        // compile-time expression evaluator applies the identical §2023:12.3.7.4 GR14 a) rule; the binder retains ownership
+        // compile-time expression evaluator applies the identical §2023:12.3.7.4 GR14a rule; the binder retains ownership
         // of the COBOL0895 diagnostic (its own channel/descriptor), routing the returned issue to it verbatim.
         string norm = Common.NumericLiteral.Normalize(text, Cfg.DecimalPointIsComma, out var issue);
         switch (issue)

@@ -154,7 +154,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // checking or an IN phrase routed it here.
         static bool IsFigSeed(BoundOperand o) => o is BoundFigurative or BoundAllLiteral;
         bool loFig = IsFigSeed(n.Lo), hiFig = IsFigSeed(n.Hi);
-        // ⛔ deSign, EXACTLY AS THE DIRECT STRING RELATION DOES IT (kb/Work PB401 sweep). §2023:14.9.13.4 GR4 a) 5.
+        // ⛔ deSign, EXACTLY AS THE DIRECT STRING RELATION DOES IT (kb/Work PB401 sweep). §2023:14.9.13.4 GR4a.5
         // lowers this node to "selection-subject >= left-part AND selection-subject <= right-part", i.e. to the
         // very relation pair <see cref="RenderRelational"/> renders, and that pair drops a signed numeric
         // operand's operational sign when the comparison is alphanumeric (§2023:8.8.4.2.5 → §2023:14.9.25.4 GR6a). This arm
@@ -186,7 +186,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// the variable's DECLARED width while the EVALUATE range sized it at run time).
     /// <para><paramref name="checkInvalid"/> selects <c>ThruMember</c> / <c>ThruMemberFig</c>, which add exactly
     /// the §2023:14.7.8 GR2 EC-set; unchecked, the test is the inclusive bound pair the relation lowering produces
-    /// (§2023:14.9.13.4 GR4 a) 5.) — emitting the carrier with checking off would set a nonfatal EC no >>TURN asked
+    /// (§2023:14.9.13.4 GR4a.5) — emitting the carrier with checking off would set a nonfatal EC no >>TURN asked
     /// for. <paramref name="weights"/> is the trailing pad / collation fragment.</para></summary>
     private static string RenderStringRange(string read, MembershipOperand lo, MembershipOperand hi, bool checkInvalid,
         string weights)
@@ -225,12 +225,12 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     /// <summary>One pending PRE-op rendered for EXPRESSION position (inside the IIFE above), through the ONE
     /// statement emitter, captured as text — a user-function activation exactly as a hoisted one is emitted, with
-    /// its exception arms and its §2023:14.9.18.4 GR1 b) propagation pickup.
+    /// its exception arms and its §2023:14.9.18.4 GR1b propagation pickup.
     /// <para>⛔ THERE IS NO SECOND ACTIVATION TEXT ANY MORE (kb/Work PB892). A function activation used to render
     /// here through a dedicated single-statement text that emitted no propagation pickup, on the ground
     /// that a RESUME is a <c>__pc</c>-anchored statement surface a lambda cannot hold; so the registry's boundary
     /// default (since removed) DISCARDED every condition a function propagated from a PERFORM UNTIL, a SEARCH WHEN, an EVALUATE
-    /// object or a short-circuited operand, although §2023:14.9.18.4 GR1 b) raises it in the activating element. The
+    /// object or a short-circuited operand, although §2023:14.9.18.4 GR1b raises it in the activating element. The
     /// activation is marked <c>OperandEvaluation</c> at bind, so its pickup leaves by throwing to the carrying
     /// statement's <c>BoundActivationSite</c> — never by a <c>goto</c> — and it can run inside the lambda.</para>
     /// <para>The captured text keeps its line breaks: a trailing <c>//</c> comment in it would otherwise swallow
@@ -353,7 +353,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // GR1, one rule earlier in the same subclause, says "receiving operand" where GR3 says "the object of an
         // OPERATION", and §2023:8.8.4.2.1 calls the two operands of a relation its subject and its object — so the rule
         // reaches every operation in which the item is a SENDER, and a relation condition is the only one besides
-        // the de-editing MOVE that may take a numeric-edited sender at all (§2023:14.9.25.4 GR6 d) 1 legislates that
+        // the de-editing MOVE that may take a numeric-edited sender at all (§2023:14.9.25.4 GR6d) 1 legislates that
         // MOVE, and §2023:8.8.1.1 admits only "an identifier referencing a numeric data item" into an arithmetic
         // expression, which an edited item is not). It has to name numeric-edited objects for a reason, and the
         // only reason available is that THE COMPARISON IS BY VALUE there: giving the blanked item "the value
@@ -703,7 +703,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     private string RenderSign(BoundSignCondition s)
     {
-        // §2023:14.6.13.2 rule 3 dash-2: a float sending item referenced in a SIGN condition is EXEMPT from
+        // §2023:14.6.13.2 GR3 dash-2: a float sending item referenced in a SIGN condition is EXEMPT from
         // EC-DATA-NOT-FINITE — render the whole operand sub-tree with the finiteness wrap suppressed (a NaN/±Inf
         // sign test is well-defined: NaN is neither >0, <0, nor ==0, so a compound sibling like `AND Y > 0.0`
         // still raises on its own read).
@@ -741,10 +741,10 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// <summary>A class condition (ISO §2023:8.8.4.4). A typed-numeric operand IS NUMERIC folds to <c>true</c> ONLY
     /// when its storage is the native long/Int128 (it can only hold digits — DESIGN §6.6); a numeric item
     /// whose storage is a CHARACTER window (a REDEFINES view, or a whole-group-aliased StoreAsImage leaf) can hold
-    /// arbitrary characters and tests its image at run time — sign-aware for a signed zoned item (§2023:8.8.4.4.4 GR3 n)1.a,
+    /// arbitrary characters and tests its image at run time — sign-aware for a signed zoned item (§2023:8.8.4.4.4 GR3n.1)a,
     /// NC174A CLASS-TEST-GF-8/10: S9(18) REDEFINES X(18) holding letters is NOT numeric).
     /// <para>⛔ A WINDOWED numeric leaf tests through <c>CobolNum.IsNumericImage</c> over its RAW WINDOW — the ONE
-    /// §2023:8.8.4.4.4 GR3 n)1 predicate, which §2023:14.6.13.2 rule 2's checked sending read also calls, because the standard
+    /// §2023:8.8.4.4.4 GR3 n)1 predicate, which §2023:14.6.13.2 GR2's checked sending read also calls, because the standard
     /// defines rule 2's test BY REFERENCE to this one ("would evaluate to false in a numeric class condition").
     /// Writing that rule twice is how the two answers drift, so it is written once (kb/Work PB230).</para>
     /// <para>THE RAW WINDOW IS THE POINT, and it is what the previous form could not reach: <c>arg</c> is
@@ -758,7 +758,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// spell inline — so the sign-aware answer NC174A pins is the same code it always was.</para>
     /// <para>⛔ WHICH of GR3 n)'s two tests applies is decided by the OPERAND's category, read through THE ONE
     /// operand-category reader (<see cref="StringCategoryOf"/>), never by the ITEM's picture and never by a
-    /// place-kind exclusion (kb/Work PB823). §2023:8.4.3.3.4 GR6 c) makes a reference-modified numeric item "class and
+    /// place-kind exclusion (kb/Work PB823). §2023:8.4.3.3.4 GR6c makes a reference-modified numeric item "class and
     /// category alphanumeric" (national when its usage is national) and <c>RefModPlace.Category</c> is where that
     /// rewrite lives, so <c>S (1:4)</c> over <c>PIC S9(4)</c> reaches n) 2.'s all-digits test and the over-punched
     /// image "123M" is NOT numeric. The previous chain excluded the ref-mod shape from the WINDOWED arm only and
@@ -766,9 +766,9 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// StoreAsImage base, a sign-admitting n) 1. test — both answers about the item, not the operand.</para></summary>
     private string RenderClass(BoundClassCondition c)
     {
-        // §2023:8.8.4.4.4 GR3 n) 1. versus n) 2. is a question about the OPERAND's category (kb/Work PB823): a
-        // reference-modified slice answers alphanumeric / national here (§2023:8.4.3.3.4 GR6 c), whatever its base
-        // item is, and a bit / national group answers its as-if category (§2023:13.18.29.4 GR1 b)/GR2 b), never numeric.
+        // §2023:8.8.4.4.4 GR3n.1 versus n) 2. is a question about the OPERAND's category (kb/Work PB823): a
+        // reference-modified slice answers alphanumeric / national here (§2023:8.4.3.3.4 GR6c), whatever its base
+        // item is, and a bit / national group answers its as-if category (§2023:13.18.29.4 GR1b/GR2 b), never numeric.
         // ⛔ ASKED OF EVERY OPERAND SHAPE, NOT ONLY A DATA-ITEM REFERENCE (kb/Work PB1401 / PB1466): §2023:8.5.2.12 items
         // 3–7 make the three counter registers and every numeric / integer function category-numeric data items,
         // and they bind as COMPUTED operands. This renderer used to ask the category of a BoundFieldOperand only,
@@ -801,14 +801,14 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // on the very content it was asked to report would leave it unable to answer.
         string arg = OperandText.AsString(c.Operand, num, sending: SendingRef.ClassCondition);
         string numericTest = numericCategory
-            // §2023:8.8.4.4.4 GR3 n) 1. b. — "If the usage … is any standard floating-point usage, the condition is true
+            // §2023:8.8.4.4.4 GR3n.1.b — "If the usage … is any standard floating-point usage, the condition is true
             // only if the content … represents a finite numeric value" (kb/Work PB225): a FLOAT-BINARY-64 holding
             // an infinity or a NaN is NOT numeric, so the typed-field fold below would answer it wrongly.
             ? IsStandardFloat(fld!) ? FloatTest(fld!, WiseOwl.Cobol.Runtime.FloatClassTest.Finite)
             : windowedNumeric
                 ? RuntimeApi.NumIsNumericImage(PlaceRenderer.Read(fld!.Place), fld.Place.Item.ProfileName)
                 : "true"
-            // §2023:8.8.4.4.4 GR3 n) 2. — a NON-numeric-category operand (alphanumeric / edited / national, a ref-mod
+            // §2023:8.8.4.4.4 GR3n.2) — a NON-numeric-category operand (alphanumeric / edited / national, a ref-mod
             // slice included) is numeric iff its content "consists entirely of the characters 0, 1, 2, 3, …, 9",
             // with no operational sign admitted.
             : $"CobolClass.IsNumeric({arg})";
@@ -824,12 +824,12 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             'A' => $"CobolClass.IsAlphabetic({arg}{classify})",
             'U' => $"CobolClass.IsAlphabeticUpper({arg}{classify})",
             'L' => $"CobolClass.IsAlphabeticLower({arg}{classify})",
-            // §2023:8.8.4.4.4 GR3 e) — "If BOOLEAN is specified, the condition is true if the content of the data
+            // §2023:8.8.4.4.4 GR3e — "If BOOLEAN is specified, the condition is true if the content of the data
             // item referenced by identifier-1 consists entirely of the boolean values '0' and '1'." No
             // classification argument: LC_CTYPE governs the three ALPHABETIC forms (GR3 b1/c1/d1) and names no
             // boolean category, and the boolean values are the two characters of the D-B1 substrate, not a
             // locale's letters. CobolClass.IsBoolean is that scan, with §2023:8.8.4.4.4 GR1's zero-length FALSE on
-            // it — the same predicate §2023:14.6.13.2 rule 1 reads through HasNonBooleanPosition, which is why the
+            // it — the same predicate §2023:14.6.13.2 GR1 reads through HasNonBooleanPosition, which is why the
             // two do not share an answer at zero length (kb/Work PB590).
             'B' => RuntimeApi.ClassIsBoolean(arg),
             // §2023:8.8.4.4.4 GR3 h)–k) — the four IEEE special-value tests, over a standard floating-point operand
@@ -861,13 +861,13 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             ? RuntimeApi.FloatClassImage(PlaceRenderer.Read(f.Place), f.Place.Item.ProfileName, test)
             : RuntimeApi.FloatClass(PlaceRenderer.Read(f.Place), test);
 
-    /// <summary>ISO §2023:8.8.4.4.4 GR3 g) FARTHEST-FROM-ZERO — "the numeric value farthest from zero that may be
+    /// <summary>ISO §2023:8.8.4.4.4 GR3g FARTHEST-FROM-ZERO — "the numeric value farthest from zero that may be
     /// contained in that data item, whether that value is positive or negative" — and m) NEAREST-TO-ZERO, "the
     /// nonzero numeric value nearest to zero that may be contained in that data item, whether that value is positive
     /// or negative" (kb/Work PB225).
     /// <para>⛔ THE EXTREMES ARE <see cref="AlgebraicRanges"/>'s, NOT A THIRD COPY. The same quantity already has
     /// two surfaces — the §2023:15.43/§2023:15.83 HIGHEST-/SMALLEST-ALGEBRAIC intrinsics and SET Format 15's
-    /// FARTHEST-FROM-ZERO / NEAREST-TO-ZERO (§2023:14.9.39.4 GR32 a)/GR36 a), which Annex D.32 equates) — and the class
+    /// FARTHEST-FROM-ZERO / NEAREST-TO-ZERO (§2023:14.9.39.4 GR32a/GR36 a), which Annex D.32 equates) — and the class
     /// condition is the third question about the one value, so a SET CONTENT OF X TO FARTHEST-FROM-ZERO followed by
     /// IF X IS FARTHEST-FROM-ZERO is TRUE by construction. A float carrier is asked on its own bits instead
     /// (<see cref="WiseOwl.Cobol.Runtime.CobolFloatClass"/>), which are the same extremes AlgebraicRanges states for it.</para>
@@ -899,11 +899,11 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         return numericTest == "true" ? $"({equal})" : $"({numericTest} && ({equal}))";
     }
 
-    /// <summary>ISO §2023:8.8.4.4.4 GR3 l) IN-ARITHMETIC-RANGE — "the numeric content of the data item referenced by
+    /// <summary>ISO §2023:8.8.4.4.4 GR3l IN-ARITHMETIC-RANGE — "the numeric content of the data item referenced by
     /// identifier-1 is neither farther from zero nor closer to zero than is permitted for the form of an intermediate
     /// data item appropriate to the mode of arithmetic in effect" (kb/Work PB225).
     /// <para>The mode's intermediate extremes are <see cref="ArithmeticModes.IntermediateExtremes"/> — the table
-    /// SET Format 15's IN-ARITHMETIC-RANGE phrase (§2023:14.9.39.4 GR32 b)/GR36 b)) already clamps against — and the
+    /// SET Format 15's IN-ARITHMETIC-RANGE phrase (§2023:14.9.39.4 GR32b/GR36 b)) already clamps against — and the
     /// item's own are <see cref="AlgebraicRanges"/>'s. Where the item's whole range lies inside the intermediate's
     /// (compared EXACTLY, as scaled decimal text), every numeric value the item can hold is in range, and the rule
     /// reduces to "the content IS a numeric value": finite for a float carrier (zero is permitted — the
@@ -935,7 +935,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// conditions over the operand would not guarantee.
     /// <list type="bullet">
     /// <item>A binary64 value (the float function family, DOC-A.1-92) is asked on its own bits by
-    /// <c>CobolFloatClass</c>, as a float data item is: NUMERIC is §2023:8.8.4.4.4 GR3 n) 1.'s "valid representation" (a
+    /// <c>CobolFloatClass</c>, as a float data item is: NUMERIC is §2023:8.8.4.4.4 GR3n) 1.'s "valid representation" (a
     /// finite value), FARTHEST-FROM-ZERO / NEAREST-TO-ZERO are binary64's extremes, and IN-ARITHMETIC-RANGE is
     /// finiteness because binary64's range lies inside every mode's intermediate (the containment
     /// <see cref="RenderInArithmeticRange"/> states for a float item).</item>
@@ -999,7 +999,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         return RuntimeApi.ValueClassIsExtreme(dec, DecLiteral(positive), negative is null ? null : DecLiteral(negative));
     }
 
-    /// <summary>§2023:8.8.4.4.4 GR3 l) over a computed operand's decimal value, against the mode's intermediate.</summary>
+    /// <summary>§2023:8.8.4.4.4 GR3l over a computed operand's decimal value, against the mode's intermediate.</summary>
     private string ComputedInArithmeticRangeTest(string dec)
     {
         var (farthest, nearest) = ArithmeticModes.IntermediateExtremes(ctx.CurrentOptions.Arithmetic);
@@ -1105,7 +1105,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // relation condition sizes it (kb/Work PB1477). §2023:8.8.4.5.3 GR2 makes this comparison the relation
             // condition's, and §2023:8.3.3.6.4 GR2 repeats a figurative to "the number of character positions in the
             // associated data item": the conditional variable AS IT IS COMPARED, i.e. at its CURRENT extent
-            // (§2023:13.18.38.4 GR8 a) — an occurs-depending group item referenced as an operand uses "only that part
+            // (§2023:13.18.38.4 GR8a) — an occurs-depending group item referenced as an operand uses "only that part
             // of the table area that is specified by the value of the data item referenced by data-name-1"). A
             // compile-time fold to the variable's declared width sized `88 GV-ALLX VALUE ALL "X"` on a group
             // holding an OCCURS DEPENDING ON table to the MAXIMUM extent while `read` is the current one, so the

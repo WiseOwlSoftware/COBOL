@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#MatchWords",
  "test-ref": "conformance:cases/7.1.3@2002-REPLACE-STATEMENT/g2-replace-debugging-line-matching-no-mode; conformance:cases/7.1.3@2002-REPLACE-STATEMENT/g2-replace-debugging-line-matching-mode",
- "notes": "§2002:7.1.3.3 GR8c6: the debugging indicator is ignored and D-line text-words take part in matching; pseudo-text-1 and source split across normal and D lines match, as does a LEADING partial-word on a D line (R1Z, BR3Z, R5Z, NEW). The --std 2002 runs matched the derivation."
+ "notes": "§2002:7.1.3.3 GR8c.6: the debugging indicator is ignored and D-line text-words take part in matching; pseudo-text-1 and source split across normal and D lines match, as does a LEADING partial-word on a D line (R1Z, BR3Z, R5Z, NEW). The --std 2002 runs matched the derivation."
 }

@@ -154,7 +154,7 @@ public sealed class OoPortedTests
     /// supported (no 0113 analog exists), so this port asserts the combination compiles AND runs.
     /// PORTED NOTE: the legacy driver passed an elementary <c>PIC X(3)</c> to the method's 3-character group formal LK,
     /// which ISO §2023:9.3.6 match rule 3 e) refuses (the argument has a PICTURE clause the group lacks; kb/Work PB2077,
-    /// decision PB3098) — so the driver's T is a 3-character group, which matches and conforms (§2023:14.8.2.2 rule 1).</summary>
+    /// decision PB3098) — so the driver's T is a 3-character group, which matches and conforms (§2023:14.8.2.2 SR1).</summary>
     [Fact]
     public void Ported_Inherits_SubclassMethodLinkageIndex_Allowed()
     {

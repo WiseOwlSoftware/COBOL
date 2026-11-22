@@ -80,15 +80,15 @@ public static class FileLockPosture
     /// while a connector that wrote no clause at all refused the same write.</para></summary>
     public static FileShare OfSharingMode(FileSharing sharing) => sharing switch
     {
-        FileSharing.NoOther => FileShare.None,        // §2023:9.1.15 1) — exclusive access
-        FileSharing.ReadOnly => FileShare.Read,       // §2023:9.1.15 2) — others restricted to input mode
-        FileSharing.AllOther => FileShare.ReadWrite,  // §2023:9.1.15 3) — others may specify input, I-O or extend
+        FileSharing.NoOther => FileShare.None,        // §2023:9.1.15 GR1 — exclusive access
+        FileSharing.ReadOnly => FileShare.Read,       // §2023:9.1.15 GR2 — others restricted to input mode
+        FileSharing.AllOther => FileShare.ReadWrite,  // §2023:9.1.15 GR3 — others may specify input, I-O or extend
         _ => throw new ArgumentOutOfRangeException(nameof(sharing), $"{sharing} is not an ISO §2023:9.1.15 sharing mode"),
     };
 
     /// <summary>⛔ THE SECOND POSTURE: the file lock of a connector whose first attempt the host refused although Table 19
     /// admitted the OPEN (kb/Work PB3482). <c>SHARING WITH READ ONLY</c> <i>"restricts concurrent access to a physical
-    /// file through file connectors other than this one, to input mode"</i> (§2023:9.1.15 2)), and an INPUT connector can still
+    /// file through file connectors other than this one, to input mode"</i> (§2023:9.1.15 GR2), and an INPUT connector can still
     /// OWE WRITES: a connector under an active APPLY COMMIT clause that changed a record, was CLOSEd and re-OPENed INPUT
     /// keeps a handle open for writing until the COMMIT or ROLLBACK (docs/rearchitecture/DESIGN-runtime-library.md
     /// 2.2.1.10), and Table 19 prints <i>Normal open</i> for a READ ONLY request beside it. A host share mode
@@ -135,7 +135,7 @@ public static class FileLockPosture
     };
 
     /// <summary>Would a handle carrying <paramref name="share"/> admit a handle of this run unit — or of any
-    /// other — WRITING to the same physical file? Only <c>SHARING WITH ALL OTHER</c> does (§2023:9.1.15 3)). The
+    /// other — WRITING to the same physical file? Only <c>SHARING WITH ALL OTHER</c> does (§2023:9.1.15 GR3). The
     /// sequential organization's question about another WRITER, and only that one; four places ask it:
     /// <c>HostFile.OpenConnectorWriteStream</c> (true: the <see cref="SharedAppendStream"/>, which lands each
     /// release at the physical end as it stands at that moment, §2023:14.9.51.4 GR19, kb/Work PB739; false: the plain
@@ -145,7 +145,7 @@ public static class FileLockPosture
     /// another run unit's writer may exist, kb/Work PB2692).
     /// <para>⛔ IT DOES NOT DECIDE THE RELEASE (kb/Work PB1587, PB3415). <c>SequentialConnector.ReleaseRecord</c>'s
     /// flush asks <see cref="AdmitsAnotherRunUnit"/>: §2023:14.9.51.4 GR12 releases the record to the operating
-    /// environment at the WRITE, and §2023:9.1.15 2) admits an INPUT connector beside a <c>SHARING WITH READ ONLY</c>
+    /// environment at the WRITE, and §2023:9.1.15 GR2 admits an INPUT connector beside a <c>SHARING WITH READ ONLY</c>
     /// writer, so that writer flushes every record too; only <c>SHARING WITH NO OTHER</c> keeps the buffered
     /// load.</para>
     /// <para>A bit test rather than <c>HasFlag</c>: <c>SequentialConnector.ReleaseRecord</c> asks this once per
@@ -153,10 +153,10 @@ public static class FileLockPosture
     public static bool AdmitsAnotherWriter(FileShare share) => (share & FileShare.Write) != 0;
 
     /// <summary>Would a handle carrying <paramref name="share"/> admit ANY other run unit's connector — reader or
-    /// writer — to the same physical file? Every sharing mode but <c>SHARING WITH NO OTHER</c> does (§2023:9.1.15 1),
+    /// writer — to the same physical file? Every sharing mode but <c>SHARING WITH NO OTHER</c> does (§2023:9.1.15 GR1),
     /// <i>"The sharing with no other mode specifies exclusive access to a physical file"</i>). The predicate an engine
     /// that writes the file AT EVERY STATEMENT needs (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7, kb/Work
-    /// PB3333): such a writer must serialize against the INPUT reader that §2023:9.1.15 2) admits beside a
+    /// PB3333): such a writer must serialize against the INPUT reader that §2023:9.1.15 GR2 admits beside a
     /// <c>SHARING WITH READ ONLY</c> writer, or the reader meets a half-written path. Two places ask it:
     /// <c>KeyedConnector.TakeFileLock</c> (the keyed store engine's coherence, its statements under the store mutex)
     /// and <c>SequentialConnector.ReleaseRecord</c>'s flush (§2023:14.9.51.4 GR12: that same INPUT reader must find in

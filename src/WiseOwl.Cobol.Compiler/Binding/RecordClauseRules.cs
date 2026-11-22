@@ -26,7 +26,7 @@ internal enum RecordRuleSubject
 
 /// <summary>ONE subject of a §2023:13.18.43.3 syntax rule, as the screen sees it: the clause alone
 /// (<paramref name="Record"/> null, the sizes meaningless), one record description entry with its
-/// §2023:13.18.43.4 GR8 a) / GR8 b) byte counts already computed, or the DEPENDING phrase's data-name-1.</summary>
+/// §2023:13.18.43.4 GR8a / GR8 b) byte counts already computed, or the DEPENDING phrase's data-name-1.</summary>
 /// <param name="Record">The record description entry, or null when the subject is not a record description.</param>
 /// <param name="MinBytes">GR8 a) — the sum with every occurs-depending table at its MINIMUM occurrences.</param>
 /// <param name="MaxBytes">GR8 b) — the same sum with every such table at its MAXIMUM occurrences.</param>
@@ -111,7 +111,7 @@ internal sealed record RecordClauseRule(
 /// NOTHING checked them. Six of the subclause's nine syntax rules had no enforcement site anywhere in the
 /// compiler: <c>FD F RECORD IS VARYING IN SIZE FROM 20 TO 5 DEPENDING ON L.</c> — an SR5 violation written in
 /// two adjacent literals — compiled clean at every edition, and the program learned about it only as an I-O
-/// status '44' on the first WRITE, which is §2023:13.18.43.4 GR14 a)'s runtime CONSEQUENCE and not the clause's
+/// status '44' on the first WRITE, which is §2023:13.18.43.4 GR14a's runtime CONSEQUENCE and not the clause's
 /// diagnosis. The same held for a record description that does not fit the clause it is written under
 /// (SR3/SR4). Those are syntax rules of the ENTRY: the entry violates them whether or not any statement
 /// references the file, exactly as PB699 established for the file control entry's key clauses.</para>
@@ -151,7 +151,7 @@ internal sealed record RecordClauseRule(
 /// LEXICAL permission, not a check: it is discharged by the grammar admitting both words in
 /// <c>CobolData.g4 recordClause</c>, with BYTES carried as the §2023:8.10 context-sensitive word it is.</item>
 /// <item><b>SR7 and SR8</b> ("Integer-2 / integer-4 shall be greater than or equal to zero") are discharged by
-/// the GENERAL FORMAT, and a row asserting them would be a dead lookup. §2023:5.5 1) makes every <c>integer-n</c> "a
+/// the GENERAL FORMAT, and a row asserting them would be a dead lookup. §2023:5.5 SR1 makes every <c>integer-n</c> "a
 /// fixed-point integer literal that shall be unsigned and nonzero unless otherwise specified in the associated
 /// rules", the format writes integer-2 and integer-4 as the grammar's unsigned <c>integerLiteral</c>, so a
 /// negative operand cannot be written; SR7/SR8 are the express override of the NONZERO half, and what they
@@ -237,7 +237,7 @@ internal static class RecordClauseRules
         // SR6 — "Data-name-1 shall describe an elementary unsigned integer in the working-storage, local-storage, or
         // linkage section" (kb/Work PB858). ⛔ THREE OBLIGATIONS, THREE ROWS, for the reason SR4 is two: a rule read
         // as one predicate ships with an arm silent. The integer arm asks only of an elementary item (a group has no
-        // numeric description to judge, and the elementary row has already named it). "Integer" is §2023:5.5 2) b) 2.'s
+        // numeric description to judge, and the elementary row has already named it). "Integer" is §2023:5.5 SR2b 2.'s
         // "a fixed-point numeric data item … whose description does not include any digit positions to the right of
         // the radix point" — PicInfo.IsIntegerDescription, so a trailing-P PIC 99P (§2023:13.18.40.4 GR14) IS one; where
         // the standard bars the symbol P it says so (§2023:12.4.5.13.3 SR2). "Unsigned" is no S.
@@ -333,7 +333,7 @@ internal static class RecordClauseRules
             // (FileModel.MinRecordSize). Skipping these records made SR3 and SR4 vacuous for exactly the descriptions
             // that can overflow them: `RECORD CONTAINS 20` over two unbounded dynamic members compiled clean and its
             // records read back mis-split. (A dynamic-capacity table cannot be in a record at all — COBOL1526,
-            // §2023:8.5.1.9.1 3) — so it needs no exclusion.)
+            // §2023:8.5.1.9.1 SR3 — so it needs no exclusion.)
             var subject = new RecordClauseSubject(record, FileModel.MinRecordSize(record), FileModel.MaxRecordSize(record));
             foreach (var rule in Rules)
             {

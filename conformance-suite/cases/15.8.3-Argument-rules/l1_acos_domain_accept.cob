@@ -23,7 +23,7 @@
       *>     exist at all, so the approximating mode is the ONLY one reachable here.
       *>
       *> ⛔ WHY ONLY THE ACCEPT ARM AT THIS EDITION. §2023:15.8.3 r2's REJECT arm has its consequence in
-      *> §2023:15.3 item 14 - "the EC-ARGUMENT-FUNCTION exception condition is set to exist" (--check
+      *> §2023:15.3 AR14 - "the EC-ARGUMENT-FUNCTION exception condition is set to exist" (--check
       *> OK; cite.py reports the ITEM number, recorded here rather than a bare § because an
       *> inherited clause reference that names no item is how a wrong number propagates) - and
       *> that paragraph's closing sentence hands the RESULT to the implementor whenever checking

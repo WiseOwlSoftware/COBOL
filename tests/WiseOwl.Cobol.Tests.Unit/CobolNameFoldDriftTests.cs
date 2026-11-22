@@ -12,7 +12,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A COBOL WORD IS COMPARED BY ONE FOLD, ANNEX C, AND BY NOTHING ELSE (kb/Work PB1402; ISO §2023:8.1.3.2 GR3 b) and
+/// ⛔ A COBOL WORD IS COMPARED BY ONE FOLD, ANNEX C, AND BY NOTHING ELSE (kb/Work PB1402; ISO §2023:8.1.3.2 GR3b) and
 /// GR4 b)), AND A KEYWORD ON THE BASIC LETTERS ALONE (kb/Work PB4240: 4) folds extended letters in user-defined words
 /// only). Every name table and every comparison of two words in EVERY project under <c>src</c> goes through
 /// <see cref="CobolNames"/> (kb/Work PB1965, PB2845), every comparison of a word with a keyword through
@@ -381,7 +381,7 @@ public sealed class CobolNameFoldDriftTests
     }
 
     /// <summary>§2023:8.3.2.1's 63 characters are counted per character: a supplementary letter is one, a combining
-    /// character is one of its own (§2023:8.1.3.2 GR4 c).</summary>
+    /// character is one of its own (§2023:8.1.3.2 GR4c).</summary>
     [Fact]
     public void WordLength_CountsCharacters_NotUtf16Units()
     {

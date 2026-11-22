@@ -62,10 +62,14 @@ def case_01_a_later_path_level_without_its_space_is_read_whole(expect):
     expect.equal("the glued form the first run wrote is itself rewritten, and a three-level path read whole",
                  _run({"docs/x.md": doc})[0]["docs/x.md"],
                  "the SET (§2023:14.9.39.3 SR12a.2.) admits it, and §2023:13.18.60.4 GR22d.2.a names it")
+    # the second run of 2026-11-21 read `a)2.,` only to `a)` and wrote `SR12a2.,`: a label before a comma is a level
+    chained = "/// a sender conforms (§2023:14.9.39.3 SR12 a)2., SR8) and a"  # citation-audit: example
+    expect.equal("a level before a comma is read, so the rewrite is canonical in its line",
+                 _run({"src/C.cs": chained})[0]["src/C.cs"], "/// a sender conforms (§2023:14.9.39.3 SR12a.2, SR8) and a")
 
 
 def case_02_a_label_closer_that_closes_the_message_is_kept(expect):
-    # breakage 2: `(ISO §2023:14.9.40.3 SR14 e)` lost the `)` that also closed the message's `(`
+    # breakage 2: `(ISO §2023:14.9.40.3 SR14 e)` lost the `)` that also closed the message's `(`  # citation-audit: example
     src = ('class A {\n'
            '  string n = "TIN: (ISO §2023:14.9.40.3 SR14 e)";\n'  # citation-audit: example
            '  string m = "a key (COBOL2199, §2023:13.18.35.3 SR6 e)) is refused";\n'  # citation-audit: example
@@ -159,7 +163,7 @@ def case_08_a_tail_after_another_clause_is_that_clauses(expect):
     out, _ = _run(scope)
     expect.equal("a quotation of the same tail after another clause is left; one after the rewritten clause is rewritten",
                  out["tests/T.cs"],
-                 'class T { void F() { Ok("over §2023:6.1 3) a)\'s 255"); Has("§2023:8.4.6.2.1 GR3a"); } }\n')
+                 'class T { void F() { Ok("over §2023:6.1 3) a)\'s 255"); Has("§2023:8.4.6.2.1 GR3a"); } }\n')  # citation-audit: example
 
 
 if __name__ == "__main__":

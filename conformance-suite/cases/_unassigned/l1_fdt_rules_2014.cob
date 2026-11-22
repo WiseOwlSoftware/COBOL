@@ -35,7 +35,7 @@
       *> is 1995-02-15, day 046 of 1995, and - by §2023:15.3.1.7's "first week ...
       *> includes January 4" - 1995-W07-3. §2023:15.5.5: 45296 seconds past
       *> midnight is 12:34:56, 0 is 00:00:00, 86399 is 23:59:59, and
-      *> 18867.812479168304 is 05:14:27.812479168304. §2023:15.3.3.6.1 item 1
+      *> 18867.812479168304 is 05:14:27.812479168304. §2023:15.3.3.6.1 GR1
       *> makes a positive offset an adjustment DOWNWARD to reach UTC, so
       *> +300 minutes turns 12:34:56 into 07:34:56 under a 'Z' format and
       *> leaves it alone under a '+hhmm' one.

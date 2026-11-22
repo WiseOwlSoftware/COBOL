@@ -25,7 +25,7 @@ public sealed partial class DataBinder
     /// find a global name). The
     /// data-names subordinate to it are global NAMES ("All data-names subordinate to a global name are global names",
     /// §2023:13.18.27.4 GR1), a matter of SCOPE, and they are told apart by qualification like any other data-names
-    /// (§2023:8.4.2.2.1; §2023:8.4.6.2.1 3) b) 1. picks the nearest declaring element for a name duplicated ACROSS nested
+    /// (§2023:8.4.2.2.1; §2023:8.4.6.2.1 GR3b.1) picks the nearest declaring element for a name duplicated ACROSS nested
     /// source elements): a second subordinate of the same name, in the same record or another, is no violation of the
     /// sentence, and an unqualified reference to the pair is the reference-time ambiguity COBOL1639
     /// (the ruling, kb/Work PB5629, which reversed PB5150's reading of the same sentence). A description a TYPE or SAME AS clause copied in IS a data

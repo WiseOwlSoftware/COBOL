@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:12.3.7.3 SR14c4 + SR17 c)5 — national count at bound
+      *> ISO §2023:12.3.7.3 SR14c.4 + SR17 c)5 — national count at bound
       *> THE RULES:
       *>   SR14 c)4 (ALPHABET, NATIONAL phrase): "The number of
       *>   characters specified shall not exceed the number of

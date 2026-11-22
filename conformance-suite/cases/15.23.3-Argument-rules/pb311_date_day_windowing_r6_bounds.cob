@@ -42,7 +42,7 @@
       *>   A3SUM     (7000, 3000) max 10000 -> EC-ARGUMENT-FUNCTION even though a clock-year-keyed sum
       *>             (about 2026 + 7000 = 9026) would be legal.
       *> Argument-3 is 1700, 2100 or 3000 in every probe, inside r4's "greater than 1600 and less than 10000",
-      *> so a raised exception is attributable to r6 alone. Checking is ON, so §2023:15.3 item 14's exception is the
+      *> so a raised exception is attributable to r6 alone. Checking is ON, so §2023:15.3 AR14's exception is the
       *> observable rather than its implementor-defined result; RESUME AT NEXT STATEMENT abandons the failed
       *> COMPUTE and the receiver still holding the previous probe's value shows nothing was stored.
        >>TURN EC-ARGUMENT-FUNCTION CHECKING ON

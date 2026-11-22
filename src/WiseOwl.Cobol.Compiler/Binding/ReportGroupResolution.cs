@@ -90,7 +90,7 @@ internal static class ReportGroupResolution
     /// <param name="where">The reference site for the diagnostic, e.g. <c>"GENERATE 'DET-A'"</c>.</param>
     /// <param name="reach"><see cref="NameReach.Visible"/> for a procedure division reference, whose reports include the GLOBAL
     /// ones inherited from containers: candidates from more than one source element are narrowed to the NEAREST one before
-    /// ambiguity is asked (§2023:8.4.6.2.1 rule 3 — <see cref="ReportScope.NearestInScope"/>). <see cref="NameReach.Own"/> for the
+    /// ambiguity is asked (§2023:8.4.6.2.1 GR3 — <see cref="ReportScope.NearestInScope"/>). <see cref="NameReach.Own"/> for the
     /// data-division site, whose reports are all the unit's own. The reach selects the reports only: at both, a data item of the
     /// head's spelling counts against an unqualified reference (kb/Work PB5775).</param>
     /// <param name="preferred">The report whose name the hint's example qualifier should use when it is one of the

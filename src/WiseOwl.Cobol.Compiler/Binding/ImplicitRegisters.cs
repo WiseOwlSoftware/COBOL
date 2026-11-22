@@ -125,7 +125,7 @@ public sealed class ImplicitRegisters
     }
 
     /// <summary>The members of the DEBUG-ITEM group in the order of its implicit description (general rule 10) — the named
-    /// entries only; the single-space FILLER between each pair is not a receiver (§2023:14.9.20.4 GR5a2) and has no register.
+    /// entries only; the single-space FILLER between each pair is not a receiver (§2023:14.9.20.4 GR5a.2) and has no register.
     /// Empty until <see cref="ActivateDebugRegisters"/> runs.</summary>
     public IEnumerable<(DataItem Item, DebugRegisterMember Member)> DebugItemMembers =>
         _debugRegisters.Where(r => r.Member is not DebugRegisterMember.Item).OrderBy(r => r.Member);

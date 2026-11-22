@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <para>
 /// ⚠ <b>"Never double" scopes the ARGUMENT REPRESENTATION these bodies accept, not the family's whole surface.</b>
 /// A floating-point argument is legal for every one of these functions (§2023:15.7.3 r1 and siblings require class
-/// NUMERIC; §2023:8.5.2.12 item 2 makes COMP-1/COMP-2 category numeric, hence class numeric by §2023:8.5.2.1 Table 2), and
+/// NUMERIC; §2023:8.5.2.12 GR2 makes COMP-1/COMP-2 category numeric, hence class numeric by §2023:8.5.2.1 Table 2), and
 /// it is served by the <c>…Real</c> twins in <c>CobolIntrinsics.RealArgs.cs</c> — reached by routing on the
 /// ARGUMENT's type rather than the function's family. Nothing exact is surrendered: once the operand arrives as
 /// binary64 there is no exact value left to preserve, and §2023:15.4.1 makes the returned value implementor-defined
@@ -251,10 +251,10 @@ public static partial class CobolIntrinsics
     /// an arithmetic operation on the intermediate data item would cause the new value to be outside of the
     /// allowed range". §2023:8.8.1.3 makes native arithmetic implementor-defined, D1 defines the intermediate as
     /// Int128 and declares its range CHECKED, and r5 then makes each step past it the size error condition
-    /// exactly. PB32's original message cited "§2023:8.8.1.2 rule 7" — a REAL clause answering a DIFFERENT question
+    /// exactly. PB32's original message cited "§2023:8.8.1.2 GR7" — a REAL clause answering a DIFFERENT question
     /// (arithmetic expressions are exempt from the composite-of-operands limit; every other citation of r7 in the
     /// tree uses it correctly for that). Corrected by kb/Work PB252; it had been user-visible text.</para>
-    /// <para>Left-to-right accumulation is normative (§2023:8.8.1.2 rule 3), so a partial sum that escapes the carrier
+    /// <para>Left-to-right accumulation is normative (§2023:8.8.1.2 GR3), so a partial sum that escapes the carrier
     /// IS an r5 size error even when later terms would bring the total back inside — the modular cancellation the
     /// old unchecked <c>s += x</c> happened to deliver for such a list was never the standard's answer, it was
     /// two's complement's.</para>
@@ -485,7 +485,7 @@ public static partial class CobolIntrinsics
         return CobolDec.FromParsed(p.Neg ? -p.Unscaled : p.Unscaled, p.Exp - p.Frac, mode);
     }
 
-    /// <summary>NUMVAL-F's value converted ONCE into a BINARY32 receiver of an ACCEPT device transfer (ISO §2023:14.6.8.3 rule 2: "in a manner
+    /// <summary>NUMVAL-F's value converted ONCE into a BINARY32 receiver of an ACCEPT device transfer (ISO §2023:14.6.8.3 GR2: "in a manner
     /// consistent with the specifications of ISO/IEC 60559:2020" — one correctly rounded conversion; kb/Work
     /// PB1110): <see cref="CobolFloat.ScaledToSingle"/> of the scan's exact (significand, scale). Narrowing
     /// <see cref="NumvalFDouble"/> would round twice — a text a hair above a binary32 midpoint lands ON that
@@ -702,9 +702,9 @@ public static partial class CobolIntrinsics
                          || (c is 'D' or 'd' && text[i + 1] is 'B' or 'b'))) { neg = true; i += 2; }
             // A C or D that opens the CR / DB pair but is not completed (only when no leading sign was taken: with
             // one, CR/DB is not admitted at all and the C or D itself is the character in error): the C or D is a
-            // valid prefix, so the first character in error is the one that fails to complete it (§2023:15.93.4 1) b) -
+            // valid prefix, so the first character in error is the one that fails to complete it (§2023:15.93.4 RV1b) -
             // "12CX" → 4, "1 D B" → 4), and when the text ends right after it the argument is valid but incomplete
-            // (§2023:15.93.4 1) c), NOTE: LENGTH+1 - "4.5 D" → 6).
+            // (§2023:15.93.4 RV1c, NOTE: LENGTH+1 - "4.5 D" → 6).
             else if (!leadSign && c is 'C' or 'c' or 'D' or 'd') return new(i + 1 < n ? i + 2 : n + 1, false, false, 0, 0);
             else return new(i + 1, false, false, 0, 0);               // r1b — first char in error ("0 1" → 3)
         }

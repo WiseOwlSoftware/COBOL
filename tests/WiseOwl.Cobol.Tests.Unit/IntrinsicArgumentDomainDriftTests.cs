@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE ARGUMENT-1 VALUE DOMAINS OF THE binary64 FAMILY, HELD TO THE STANDARD AND TO THE EXACT OPERAND (kb/Work
-/// PB952). ISO §2023:15.3 rule 14 sets EC-ARGUMENT-FUNCTION for "an incorrect value for that argument", and the seven
+/// PB952). ISO §2023:15.3 AR14 sets EC-ARGUMENT-FUNCTION for "an incorrect value for that argument", and the seven
 /// §15.x.3 rules that state such a value domain for a <c>Float: true</c> catalog row are ONE catalog column
 /// (<see cref="IntrinsicSig.Domain"/>) screened by ONE runtime seam on the argument's own carrier BEFORE the
 /// binary64 conversion — because a correctly-rounded conversion moves a value across the bound (ASIN(1 + 10^-18)

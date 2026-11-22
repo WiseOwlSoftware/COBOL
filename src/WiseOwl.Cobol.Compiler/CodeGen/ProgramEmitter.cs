@@ -702,7 +702,7 @@ internal sealed class ProgramEmitter
                         w.Line($"{copyCarrier}.{nameof(ManagedPointer<string>.Watch)}({f.CarrierField});");
                 }
             }
-            // An ANY LENGTH RETURNING item (§2023:13.18.2.3 SR3 b)) has no length of its own: §2023:13.18.2.4 GR1 b) makes it
+            // An ANY LENGTH RETURNING item (§2023:13.18.2.3 SR3b) has no length of its own: §2023:13.18.2.4 GR1b makes it
             // "the length of the corresponding … returning item of the activating runtime element", which only the
             // activator's receiver (__ret) states. The item is seeded with that length before the first statement runs,
             // so FUNCTION LENGTH, a MOVE and the delivery below all see n (kb/Work PB1167).
@@ -892,7 +892,7 @@ internal sealed class ProgramEmitter
     /// <c>OutputKind.DynamicallyLinkedLibrary</c> with no <c>Main</c> and no <c>runtimeconfig.json</c>, reached through its
     /// host entries (§2023:4.3) and, by a COBOL CALL, through <c>EnsureRegistered()</c> from the sibling probe. A prototype
     /// precedes every other unit (§2023:10.6.2 SR1), so units[0] may be a prototype; a PROGRAM prototype (§2023:11.10.2 Format 2,
-    /// kb/Work PB894) is not a program definition and has no body (§2023:10.6.2 SR4 f), so it is never the main — the same
+    /// kb/Work PB894) is not a program definition and has no body (§2023:10.6.2 SR4f, so it is never the main — the same
     /// exclusion the Register loop applies. One function, read by <see cref="EmitMain"/> and by the backend's output
     /// kind, so the two cannot disagree.</summary>
     internal static BoundUnit? MainUnit(IReadOnlyList<BoundUnit> units) =>

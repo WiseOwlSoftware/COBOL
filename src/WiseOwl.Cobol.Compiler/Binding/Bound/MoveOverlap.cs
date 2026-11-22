@@ -42,7 +42,7 @@ public readonly record struct OverlapStore(OverlapStoreKind Kind, int Positions 
         or OverlapStoreKind.AlphanumericToDisplay or OverlapStoreKind.DisplayToPacked;
 }
 
-/// <summary>⛔ <b>ISO §2023:14.6.10 1) — "operands … not described by the same data description entry … overlap: the
+/// <summary>⛔ <b>ISO §2023:14.6.10 GR1 — "operands … not described by the same data description entry … overlap: the
 /// result is undefined" (Annex A.2 item 36; §2023:4.4 makes a run unit that allows it a conforming one) — WHAT
 /// WISEOWL COBOL DOES, WRITTEN ONCE</b> (kb/Work PB1907, PB1910; docs/CONFORMANCE.md §3 D-OVL1/D-OVL2).
 /// <para>The standard defines no result, so the choice is the implementor's and CLAUDE.md rule 1 settles it: where
@@ -74,7 +74,7 @@ public readonly record struct OverlapStore(OverlapStoreKind Kind, int Positions 
 /// <para>⛔ It applies ONLY where the overlap is a COMPILE-TIME FACT (<see cref="StorageExtent"/>), so the
 /// ordinary MOVE — which cannot overlap — carries <see cref="OverlapStore.None"/> and emits exactly what it always
 /// did. Where the overlap is not provable (a run-time reference-modification bound, an OCCURS element) the
-/// snapshot stands. ISO §2023:14.6.10 2) makes operands described by the SAME entry behave as if disjoint, but Annex A.2
+/// snapshot stands. ISO §2023:14.6.10 GR2 makes operands described by the SAME entry behave as if disjoint, but Annex A.2
 /// item 36 b) — "When one or more of the operands is reference-modified" — makes a reference-modified operand's
 /// overlap undefined whatever its entry, so a move from a slice of the receiver itself is overlap like any other
 /// (GnuCOBOL measured: <c>MOVE JR(1:2) TO JR</c>, JR PIC X(4) JUSTIFIED RIGHT, leaves four spaces). An

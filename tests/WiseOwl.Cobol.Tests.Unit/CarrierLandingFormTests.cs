@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// by the value: the CHECKED landing (ON SIZE ERROR / EC-SIZE checking) RAISES the size error past the Int128
 /// carrier (EC-SIZE-TRUNCATION, PB2967 - it saturated until then, which a receiver as wide as the carrier cannot
 /// see); the UNCHECKED landing (a MOVE — ISO §2023:14.6.8.2 r4
-/// "truncation on either end"; the no-phrase arithmetic store — §2023:14.6.13.1.3 item 8; INVOKE BY CONTENT) keeps the
+/// "truncation on either end"; the no-phrase arithmetic store — §2023:14.6.13.1.3 GR8; INVOKE BY CONTENT) keeps the
 /// LOW-ORDER digits, never a sentinel. The SDIDI carrier had both since PB74 (<c>CobolDec.ToUnscaledChecked</c> /
 /// <c>ToUnscaled</c>); the native exact family (<c>CobolIntrinsics.Rescaled</c>) and the float family
 /// (<c>CobolFloat.ToScaled</c>, <c>CobolIntrinsics.FromDouble</c>) had only the saturating one, so
@@ -66,7 +66,7 @@ public sealed class CarrierLandingFormTests
 
     // ── the float family's two landings ───────────────────────────────────────────────────────────────────────
 
-    /// <summary>A landing's answer as one comparable value: the landed integer, or §2023:14.7.4.3 rule 7's raise, which every
+    /// <summary>A landing's answer as one comparable value: the landed integer, or §2023:14.7.4.3 GR7's raise, which every
     /// form makes alike for a PROHIBITED value the scale cannot hold exactly (kb/Work PB3990).</summary>
     private static string Landed(Func<Int128> land)
     {
@@ -171,7 +171,7 @@ public sealed class CarrierLandingFormTests
     public void NativeCarrier_HasThreeLandings_AndOnlyOneOfThemWraps()
     {
         Int128 v = Int128.Parse("1000000000000000000000000000000");      // 10^30, 31 digits (ISO §2023:8.3.3.3.2)
-        // UNCHECKED: the low-order digits of 10^39 — §2023:14.6.13.1.3 item 8 / DOC-A.1-70.
+        // UNCHECKED: the low-order digits of 10^39 — §2023:14.6.13.1.3 GR8 / DOC-A.1-70.
         Assert.Equal(Int128.Zero, CobolNum.RescaleStoreCap(v, 0, 9, CobolRounding.Truncation));
         // CHECKED: the §2023:14.7.5 case-3 size error, so the receiver can be left unchanged.
         Assert.Throws<CobolSizeError>(() => CobolNum.RescaleChecked(v, 0, 9, CobolRounding.Truncation));
@@ -375,7 +375,7 @@ public sealed class CarrierLandingFormTests
     // ── ONE binary64, ONE landing: the EXACT value (kb/Work PB623) ───────────────────────────────────────────
 
     /// <summary>⛔ THE LANDING IS THE EXACT VALUE OF THE BINARY64, never a binary64 product of it (kb/Work PB623).
-    /// ISO §2023:14.6.8.2 rule 1 — "If the sending operand is an intermediate data item or a data item described with a
+    /// ISO §2023:14.6.8.2 GR1 — "If the sending operand is an intermediate data item or a data item described with a
     /// standard floating-point usage, the value is treated as if it had been converted to a fixed-point value" —
     /// and rule 4's "truncation on either end" of THAT value. Both entry points answer with it, which is what
     /// §2023:15.4.1 ("the returned value is the same for all instances of a given function within a single execution of
@@ -602,7 +602,7 @@ public sealed class CarrierLandingFormTests
     }
 
     /// <summary>ROUNDED MODE PROHIBITED is asked of the SAME exact value the landing rounds, by the landing's own rounding
-    /// decision (kb/Work PB623, PB3990; ISO §2023:14.7.4.3 item 7 — "If the PROHIBITED phrase is specified, and the
+    /// decision (kb/Work PB623, PB3990; ISO §2023:14.7.4.3 GR7 — "If the PROHIBITED phrase is specified, and the
     /// arithmetic value cannot be represented exactly in the resultant identifier, the EC-SIZE-TRUNCATION exception
     /// condition is set to exist … and the content of the resultant identifier is unchanged"). A binary64 product test
     /// could not: <c>0.1 * 10.0</c> is exactly 1.0 in binary64, so it called a value with 55 fraction digits

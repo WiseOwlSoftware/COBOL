@@ -31,7 +31,7 @@
            SET WS-P TO NULL.
            SET WS-Q TO NULL.
            SET WS-PP TO NULL.
-      *> Two operands of class pointer, of the SAME category (§2023:8.8.4.2.1 item 11) — both set to the one
+      *> Two operands of class pointer, of the SAME category (§2023:8.8.4.2.1 GR11) — both set to the one
       *> predefined address, so they reference the same address and are equal (§2023:8.8.4.2.16).
            IF WS-P = WS-Q
                DISPLAY "PTR-EQ"

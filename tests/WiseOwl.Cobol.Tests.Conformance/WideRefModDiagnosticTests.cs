@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ A REFERENCE-MODIFIER POSITION THAT LEFT <c>int</c>'S (OR <c>long</c>'S) RANGE IS NAMED BY ITS VALUE (kb/Work PB2938,
-/// the reference-modification twin of PB2695's <see cref="WideSubscriptDiagnosticTests"/>). ISO §2023:8.4.3.3.4 5) — "If the
+/// the reference-modification twin of PB2695's <see cref="WideSubscriptDiagnosticTests"/>). ISO §2023:8.4.3.3.4 GR5 — "If the
 /// evaluation of leftmost-position or length results in a non-integer value, a zero value, or a value that references a
 /// position outside the area of identifier-1, the EC-BOUND-REF-MOD exception condition is set to exist" — is raised
 /// whatever the magnitude, and the runtime SATURATES a position so that stays true; but the detail the fatal termination
@@ -108,7 +108,7 @@ public sealed class WideRefModDiagnosticTests
 
     /// <summary>An integer LITERAL, or a named integer constant, past <c>long</c> (<c>PositionWideConstant</c>): the value
     /// the program wrote is the value named, with the sign it carried. The literal arm needs no declaration. K5's unary
-    /// operator follows the colon with a space: the colon is a separator (§2023:8.3.5 7)) but not the space §2023:8.7.1 requires
+    /// operator follows the colon with a space: the colon is a separator (§2023:8.3.5 SR7) but not the space §2023:8.7.1 requires
     /// before the operator (<c>X(1:-(N))</c> is COBOL2993, kb/Work PB2017).</summary>
     [Theory]
     [InlineData("K1", "", "MOVE X(100000000000000000001:1) TO Y", "(100000000000000000001:1)")]
@@ -178,7 +178,7 @@ public sealed class WideRefModDiagnosticTests
     }
 
     /// <summary>The compile-time screen of a LITERAL position names the literal too (COBOL2670, checking not enabled:
-    /// ISO §2023:14.6.13.1.3 8): "the implementor is not required to produce executable code" for a fatal condition the compiler detects). It printed the <c>long</c> clamp.</summary>
+    /// ISO §2023:14.6.13.1.3 GR8: "the implementor is not required to produce executable code" for a fatal condition the compiler detects). It printed the <c>long</c> clamp.</summary>
     [Theory]
     [InlineData("N1", "MOVE X(100000000000000000001:1) TO Y", "leftmost-position 100000000000000000001 is not a position of the 10-position item")]
     [InlineData("N2", "MOVE X(1:100000000000000000001) TO Y", "the reference modification (1:100000000000000000001) extends past the 10-position item")]

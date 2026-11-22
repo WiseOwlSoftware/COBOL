@@ -17,7 +17,7 @@ public enum IntrinsicType { Alphanumeric, Boolean, National, Numeric, Integer, I
 public enum IntrinsicArity { Fixed, OptionalTrailing, Variadic }
 
 /// <summary>The rational VALUE domain a §15.x.3 "The value of argument-1 shall be …" rule states for a §2023:15.4.1
-/// binary64-family row (kb/Work PB952). §2023:15.3 rule 14
+/// binary64-family row (kb/Work PB952). §2023:15.3 AR14
 /// makes a value outside it EC-ARGUMENT-FUNCTION, and the renderer screens it on the EXACT operand before the
 /// binary64 conversion (<c>CobolIntrinsics.DomainScaled</c> / <c>DomainDec</c> / <c>DomainReal</c>), because a
 /// correctly-rounded conversion moves a value across the bound. <c>IntrinsicArgumentDomainDriftTests</c> derives
@@ -36,7 +36,7 @@ public enum FunctionDeviceForm
     /// <summary>The temporary is described by the returned value alone (<c>cob_alloc_field</c>): ordinary integer and
     /// numeric functions, the default.</summary>
     Value,
-    /// <summary>The returned value IS the content of an argument (§2023:15.7.1 ABS, §2023:15.59.4 1) MAX, §2023:15.63.4 1) MIN,
+    /// <summary>The returned value IS the content of an argument (§2023:15.7.1 ABS, §2023:15.59.4 RV1 MAX, §2023:15.63.4 RV1 MIN,
     /// §2023:15.61 MEDIAN, §2023:15.60 MEAN of one argument), so the temporary is a copy of that argument's item
     /// (<c>FunctionValueField</c>); a MEAN of several arguments is a computed value (<see cref="Value"/>).</summary>
     Argument,
@@ -133,7 +133,7 @@ public readonly record struct IntrinsicSig(
     /// <summary>THE §2023:15.2-type → §2023:8.4.2-category mapping, in ONE place so the declared and the argument-resolved
     /// paths cannot disagree. A NATIONAL-type function's result IS category national (§2023:15.2 type 4 — NATIONAL-OF
     /// §2023:15.66.1: "the type of the function is national"), and a BOOLEAN-type function's result IS class/category
-    /// boolean with implicit usage bit (§2023:15.2 item 2; §2023:8.5.2.5 item 4 lists "a boolean function"), so the
+    /// boolean with implicit usage bit (§2023:15.2 GR2; §2023:8.5.2.5 GR4 lists "a boolean function"), so the
     /// §2023:14.9.25.3 Table-16 legality and the string channels see the correct class — never an alphanumeric or
     /// numeric fold.
     /// <para>
@@ -151,7 +151,7 @@ public readonly record struct IntrinsicSig(
     };
 
     /// <summary>⛔ THE USAGE ISO §2023:15.2 GIVES A FUNCTION'S RESULT, in ONE place (kb/Work PB3665), asked by the category
-    /// that <see cref="CategoryOf"/> folds the §2023:15.2 type to. §2023:15.2 1) "Alphanumeric functions have an implicit usage
+    /// that <see cref="CategoryOf"/> folds the §2023:15.2 type to. §2023:15.2 GR1 "Alphanumeric functions have an implicit usage
     /// display", 2) "Boolean functions have an implicit usage bit" and 3) "National functions have an implicit usage
     /// national"; 4) numeric, 5) integer and 6) index functions state NO usage (only an operational sign and the shape
     /// of the value), so they answer <see langword="null"/> — a rule worded "described implicitly or explicitly as
@@ -287,7 +287,7 @@ public static class IntrinsicCatalog
         Add(new("FRACTION-PART", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "FractionPart", IntrinsicBind.Runtime, false, 2002)); // §2023:15.42
         // BOOLEAN-OF-INTEGER (§2023:15.13) — argument-1's binary value as a boolean item of argument-2 positions
         // (rightmost = low-order digit; zero-filled or TRUNCATED ON THE LEFT — the result is arg-1 mod
-        // 2^arg-2, Annex D.10). A boolean function result IS class/category boolean (§2023:15.2 item 2).
+        // 2^arg-2, Annex D.10). A boolean function result IS class/category boolean (§2023:15.2 GR2).
         Add(new("BOOLEAN-OF-INTEGER", IntrinsicType.Boolean, IntrinsicArity.Fixed, 2, 2, "ii", "BooleanOfInteger", IntrinsicBind.Runtime, false, 2002)); // §2023:15.13
         // BYTE-LENGTH (§2023:15.14) — a COMPILE-TIME FOLD like LENGTH (§2023:15.50), but counting BYTES, not character
         // positions (the D7 distinction). The per-usage byte widths are IMPLEMENTOR-DEFINED (§2023:13.18.60.4 GR4/6/7/

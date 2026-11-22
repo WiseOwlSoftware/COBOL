@@ -56,7 +56,7 @@ public sealed class CobolSizeError(string detail, string ecName) : CobolFatalExc
         catch (OverflowException) { return false; }
     }
 
-    /// <summary>Is this §2023:14.7.4.3 rule 7's condition — ROUNDED MODE IS PROHIBITED and a value the resultant identifier
+    /// <summary>Is this §2023:14.7.4.3 GR7's condition — ROUNDED MODE IS PROHIBITED and a value the resultant identifier
     /// cannot represent exactly (<see cref="ProhibitedInexact"/>)? The one fact the emitted code of an arithmetic
     /// statement with no SIZE ERROR phrase and checking off filters on: there the resultant is left unchanged and
     /// execution continues (docs/CONFORMANCE.md DOC-A.1-70), while every OTHER size error such a statement meets keeps
@@ -73,7 +73,7 @@ public sealed class CobolSizeError(string detail, string ecName) : CobolFatalExc
     /// a value it cut (a Try form answers false instead).</summary>
     public static CobolSizeError ProhibitedInexact() =>
         new("ROUNDED MODE IS PROHIBITED and the value cannot be represented exactly in the resultant identifier "
-            + "(ISO §2023:14.7.4.3 rule 7 — EC-SIZE-TRUNCATION; the resultant identifier is unchanged)", "EC-SIZE-TRUNCATION")
+            + "(ISO §2023:14.7.4.3 GR7 — EC-SIZE-TRUNCATION; the resultant identifier is unchanged)", "EC-SIZE-TRUNCATION")
         { IsProhibitedInexact = true };
 
     /// <summary>The zero divisor — §2023:14.7.5 case 2, "if the divisor in a divide operation or in a DIVIDE statement is
@@ -81,7 +81,7 @@ public sealed class CobolSizeError(string detail, string ecName) : CobolFatalExc
     /// lane's quotient kernel throws (<c>CobolNum.Divide</c> for the scaled <see cref="Int128"/> carrier,
     /// <c>CobolFloat.Div</c> for binary64, <c>CobolDec.Div</c> for the standard-decimal intermediate), and it throws
     /// it whether or not checking is enabled: the condition exists either way, and only its disposition differs.
-    /// With checking off and no SIZE ERROR phrase §2023:14.6.13.1.3 item 8 leaves that disposition to the implementor,
+    /// With checking off and no SIZE ERROR phrase §2023:14.6.13.1.3 GR8 leaves that disposition to the implementor,
     /// and WiseOwl COBOL's (CONFORMANCE.md DOC-A.1-70) is that a quotient which cannot be formed has no value to store,
     /// so the run unit terminates abnormally naming the condition (kb/Work PB1605) — from 2002; at COBOL-85 the statement
     /// ends and the program continues (§1985:VI.6.4.2 GR3, kb/Work PB5484). Until then the scaled lane

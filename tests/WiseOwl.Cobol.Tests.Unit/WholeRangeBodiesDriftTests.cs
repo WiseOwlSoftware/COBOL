@@ -178,7 +178,7 @@ public sealed class WholeRangeBodiesDriftTests
             $"{method}({sig}E{exp}) = {actual:R}, oracle {expected:R} ({Math.Abs(actual - expected) / ulp:F1} ulps)");
     }
 
-    /// <summary>⛔ ANNUITY's §2023:15.9.4 1) b) denominator 1 − (1 + rate)^−n, evaluated without forming 1 + rate in
+    /// <summary>⛔ ANNUITY's §2023:15.9.4 RV1b denominator 1 − (1 + rate)^−n, evaluated without forming 1 + rate in
     /// binary64 (kb/Work PB1310): a rate below 2^−53 made it 1 − 1 = 0 and the value 0 where it is about 1/n.
     /// Oracle: Python <c>decimal</c> at 80 digits, to within two ulps.</summary>
     [Theory]

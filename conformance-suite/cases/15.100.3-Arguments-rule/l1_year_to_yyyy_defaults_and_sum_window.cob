@@ -47,7 +47,7 @@
       *>   SUM9999   (30 0 9999): maximum-year 9999, MOD 99 >= 30 -> r2a -> 30 + 100*99 = 9930. LEGAL:
       *>             9999 is "less than 10000".
       *>   SUM10000  (30 1 9999): maximum-year 10000 is NOT less than 10000 -> EC-ARGUMENT-FUNCTION.
-      *>   Checking is ON, so §2023:15.3 item 14's exception is the observable rather than its implementor-
+      *>   Checking is ON, so §2023:15.3 AR14's exception is the observable rather than its implementor-
       *>   defined result; RESUME AT NEXT STATEMENT abandons the failed COMPUTE, and the receiver still
       *>   holding the previous probe's value corroborates that nothing was stored.
       *>   NOTE1     (98 -15 2008) is §2023:15.100.4 NOTE 1's own second example: maximum-year 1993 — which only

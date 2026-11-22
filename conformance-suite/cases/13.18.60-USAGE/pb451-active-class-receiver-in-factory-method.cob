@@ -8,7 +8,7 @@
       *> phrase and the sender "the predefined object SELF", "if the data item referenced by
       *> identifier-3 is described without a FACTORY phrase, the method containing the SET
       *> statement shall be defined in the instance definition of its containing class."
-      *> §2023:13.18.60.4 GR22e2. is the semantics being protected: without FACTORY the item
+      *> §2023:13.18.60.4 GR22e.2. is the semantics being protected: without FACTORY the item
       *> shall hold "an instance object of that class", and SELF in a factory method is not
       *> one.  ⛔ SR14 b)1. is WORD FOR WORD SR12 c)3. — `cite.py --check` on the sentence
       *> returns rule 12, never 14 — which is precisely why the compiler runs ONE placement

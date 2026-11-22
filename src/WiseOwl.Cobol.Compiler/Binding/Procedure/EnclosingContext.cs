@@ -24,7 +24,7 @@ internal enum SourceElementKind
     /// says "a program procedure division"; the alternative reading would reject source the standard never
     /// forbids.
     /// <para>REACHABLE since kb/Work PB894 made §2023:11.10.2 Format 2 writable (<c>prototypePhrase</c>, shared with
-    /// FUNCTION-ID). Any statement in a prototype's procedure division is refused by §2023:10.6.2 SR4 f)
+    /// FUNCTION-ID). Any statement in a prototype's procedure division is refused by §2023:10.6.2 SR4f
     /// (COBOL2272, <c>PrototypeUnitRules</c>), NOT by the placement rules — which is what
     /// <c>ExitPlacementContextDriftTests.ProgramPrototypeDefinition_ExitProgram_IsRefusedBySr4fNotBySr7</c>
     /// pins; §2023:14.9.4.3 SR13's NESTED screen (<c>CallBinder</c>) refuses this element, because its "program

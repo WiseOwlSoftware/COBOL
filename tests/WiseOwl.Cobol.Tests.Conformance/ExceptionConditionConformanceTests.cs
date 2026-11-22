@@ -166,7 +166,7 @@ public sealed class ExceptionConditionConformanceTests
         }
     }
 
-    [Fact]   // A FATAL name with checking off is not advised: it terminates the run unit (§2023:14.6.13.1.3 8), the
+    [Fact]   // A FATAL name with checking off is not advised: it terminates the run unit (§2023:14.6.13.1.3 GR8), the
              // implementor arm Raise_Fatal_CheckingOff_TerminatesLoudly pins), which no reader of the run misses.
     public void Raise_CheckingOff_Fatal_IsNotAdvised()
     {
@@ -292,7 +292,7 @@ public sealed class ExceptionConditionConformanceTests
              // this tail-shaped one runs H1 AND H2 — a handler end derived from paragraph SHAPE stopped at D-EX and
              // printed H1 alone (kb/Work PB367). §2023:14.9.14.4 GR1 makes the bare EXIT a no-op and GR7 sends D-LAST's
              // EXIT SECTION to the return mechanism after the section's LAST paragraph, so D-TAIL never runs — which
-             // is why the run does NOT stop there. It ends instead through §2023:14.9.49.4 GR13 b): EC-BOUND-SUBSCRIPT is
+             // is why the run does NOT stop there. It ends instead through §2023:14.9.49.4 GR13b: EC-BOUND-SUBSCRIPT is
              // fatal (Table 13), the declarative completed normally, and §2023:14.6.13.1.3 #5 terminates the run unit
              // abnormally. Both halves are load-bearing: the stdout pins the truncation, the fatality pins GR13b.
     public void UseF3_UseProcedureIsTheWholeSection_ThenGr13bTerminates()
@@ -678,7 +678,7 @@ public sealed class ExceptionConditionConformanceTests
             """, "EC-PROGRAM-NOT-FOUND", "BEFORE");
 
     [Theory] // docs/CONFORMANCE.md DOC-A.1-17, its abnormal half: a failed CALL's declarative that ends WITHOUT RESUME.
-             // §2023:14.6.3 3): "In the declarative section for a fatal exception condition, there is no next executable
+             // §2023:14.6.3 GR3: "In the declarative section for a fatal exception condition, there is no next executable
              // statement" after its last statement, so the run unit terminates abnormally (§2023:14.6.12): the declarative
              // runs, control never reaches the end of the CALL. Every EC-PROGRAM condition is fatal (Table 13). The
              // RESUME half is the goldens doc_a1_17_call_other_effects and doc_a1_17_call_other_effects_2002.
@@ -1157,7 +1157,7 @@ public sealed class ExceptionConditionConformanceTests
                 GOBACK RAISING EXCEPTION EC-USER-PROP.
             """, "CAUGHT: EC-USER-PROP\nAFTER-CALL");
 
-    [Fact]   // §2023:14.9.18.4 GR1b3a first sentence: "If an exception condition is currently raised, that exception
+    [Fact]   // §2023:14.9.18.4 GR1b.3.a first sentence: "If an exception condition is currently raised, that exception
              // condition is set to exist in the activating runtime element." The callee's PD header DOES specify
              // EC-USER-Q, so no substitution applies and the activator's matching declarative selects.
              //
@@ -1199,7 +1199,7 @@ public sealed class ExceptionConditionConformanceTests
                 DISPLAY "NEVER".
             """, "CAUGHT: EC-USER-Q\nAFTER-CALL");
 
-    // ── §2023:14.9.18.4 GR1 b): THE ENABLEMENT TEST IS THE ACTIVATOR'S (kb/Work PB408) ───────────────────────
+    // ── §2023:14.9.18.4 GR1b: THE ENABLEMENT TEST IS THE ACTIVATOR'S (kb/Work PB408) ───────────────────────
     // GR1 b) names ONE runtime element twice: "an exception condition is raised in the activating runtime
     // element if checking for that exception condition is enabled in the activating runtime element". The
     // compiler used to fold the CALLEE's own >>TURN state into the RAISING phrase at bind time and act on that,
@@ -1403,7 +1403,7 @@ public sealed class ExceptionConditionConformanceTests
             END CLASS ECT408FC.
             """, "IN-METHOD\nCAUGHT: EC-USER-Z\nAFTER-INVOKE");
 
-    [Fact]   // §2023:14.9.18.4 GR1b3a, THE SUBSTITUTION: "If the exception condition is a level-3 exception for EC-USER
+    [Fact]   // §2023:14.9.18.4 GR1b.3.a, THE SUBSTITUTION: "If the exception condition is a level-3 exception for EC-USER
              // and that exception condition is not specified in the RAISING phrase of the procedure division
              // header of the source element in which this EXIT statement is contained, the EC-RAISING-NOT-SPECIFIED
              // exception condition is set to exist in the activating runtime element instead of the EC-USER
@@ -2107,7 +2107,7 @@ public sealed class ExceptionConditionConformanceTests
              // §2023:7.3.25.4 GR7 keys the operands on the directive governing THE SOURCE STATEMENT — "all information
              // necessary to identify a source statement … is made available to the run unit" — and that statement
              // is the CALLEE's GOBACK, so WITH LOCATION stays on the callee's directive here and the activator's
-             // is a plain CHECKING ON. The activator's ON is what kb/Work PB408 added: §2023:14.9.18.4 GR1 b) raises the
+             // is a plain CHECKING ON. The activator's ON is what kb/Work PB408 added: §2023:14.9.18.4 GR1b raises the
              // condition in the ACTIVATING element only if checking is enabled THERE, and §2023:14.6.13.1.1 sets the
              // run unit's last exception status only for a condition that was RAISED — so with the activator
              // enabling nothing (as this fixture used to have it) there is no status for EXCEPTION-STATEMENT to
@@ -2140,7 +2140,7 @@ public sealed class ExceptionConditionConformanceTests
     }
 
     [Fact]   // The complement, and the one that makes the pair EVIDENCE rather than a single reading: with the
-             // activator enabling NOTHING, §2023:14.9.18.4 GR1 b) raises nothing in it, so §2023:14.6.13.1.1's run-unit last
+             // activator enabling NOTHING, §2023:14.9.18.4 GR1b raises nothing in it, so §2023:14.6.13.1.1's run-unit last
              // exception status — "set to indicate the last level-3 exception condition that was RAISED in the run
              // unit" — has nothing to record and both functions answer their no-information values. Before
              // kb/Work PB408 the RETURNING element wrote the status on its way out, so an activator that had
@@ -2223,7 +2223,7 @@ public sealed class ExceptionConditionConformanceTests
         END CLASS K892.
         """;
 
-    [Fact]   // §2023:14.9.18.4 GR1 b): "an exception condition is raised in the activating runtime element if checking for
+    [Fact]   // §2023:14.9.18.4 GR1b: "an exception condition is raised in the activating runtime element if checking for
              // that exception condition is enabled in the activating runtime element". The activator of RAISE1 is the
              // EC-FREE main, which enables nothing — so EC-USER-BZ is raised NOWHERE. P892X is a DIFFERENT activation
              // (and not RAISE1's activator); its INVOKE of QUIET, which raises nothing, must not run its declarative.

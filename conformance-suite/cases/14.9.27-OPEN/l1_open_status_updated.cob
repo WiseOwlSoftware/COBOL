@@ -14,7 +14,7 @@
       *> value is stated outright by the standard:
       *>   A-OUT    OPEN OUTPUT, file absent. Table 18 (GR4): "Open
       *>            causes the file to be created" — successful with no
-      *>            further information ⇒ §2023:9.1.13.2 item 1, '00'.
+      *>            further information ⇒ §2023:9.1.13.2 GR1, '00'.
       *>   A-AGAIN  OPEN on a connector already open. GR2: "the
       *>            execution of the OPEN statement is unsuccessful and
       *>            the I-O status … is set to '41'" (= §2023:9.1.13.7 item

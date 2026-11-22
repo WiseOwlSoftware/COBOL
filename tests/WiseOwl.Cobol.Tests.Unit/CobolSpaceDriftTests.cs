@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A SPACE IN SOURCE TEXT IS <see cref="CobolSpace"/>'S, AND THE TEXT STAGES NEVER ASK .NET WHAT WHITE SPACE IS
-/// (kb/Work PB1543, PB1660). ISO §2023:8.3.5 1): "The COBOL character space is a separator" — the only one — and §2023:6.3.6: "A
+/// (kb/Work PB1543, PB1660). ISO §2023:8.3.5 SR1: "The COBOL character space is a separator" — the only one — and §2023:6.3.6: "A
 /// blank line is one that contains only space characters between margin C and margin R". .NET's Unicode
 /// <c>White_Space</c> set (<c>char.IsWhiteSpace</c>, a parameterless <c>Trim</c> / <c>TrimStart</c> / <c>TrimEnd</c>,
 /// <c>Split()</c>, <c>string.IsNullOrWhiteSpace</c>) adds U+00A0, U+2000–U+200A, U+3000 and more, so a stage that uses it

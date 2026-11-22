@@ -23,14 +23,14 @@ using WiseOwl.Cobol.Runtime;
 /// elements (EC-EXTERNAL-FILE-MISMATCH), so the two checks read one definition of "the same specification".</item>
 /// <item><b>The RELATIVE KEY item</b> (COBOL1624, COBOL1575, every edition): §1985:VIII.2.4.4 GR8 "data-name-1 must
 /// reference an external data item and the RELATIVE KEY phrase in each associated file control entry must reference
-/// that same external data item in each case"; §2002:12.3.4.3 GR1 i); §2023:12.4.5.3 GR1 h).</item>
+/// that same external data item in each case"; §2002:12.3.4.3 GR1i; §2023:12.4.5.3 GR1h.</item>
 /// <item><b>The PADDING CHARACTER item</b> (COBOL1624, COBOL-85 and COBOL-2002, where the clause exists): §1985:VII.2.7.4
-/// GR6 "If data-name-1 is specified, it must reference an external data item"; §2002:12.3.4.3 GR1 h).</item>
+/// GR6 "If data-name-1 is specified, it must reference an external data item"; §2002:12.3.4.3 GR1h.</item>
 /// <item><b>The LINAGE items</b> (COBOL1624, COBOL-85): §1985:VII.3.7.4 GR11c "The same corresponding external data items referenced
 /// by data-name-1, data-name-2, data-name-3, and data-name-4", an error as the PADDING screen's (kb/Work PB5982).</item>
 /// <item><b>The FILE STATUS and LINAGE items</b> (COBOL1624, COBOL1573, COBOL-2023): §2023:14.8.4.2 and §2023:12.4.5.3 GR1
 /// i), which Annex E.2 items 9 and 12 name as new in 2023; for LINAGE that is not so: 1985 states it (the item above), and
-/// §2002:13.3.4.3 GR2c2 and §2014:13.4.4.3 GR2c2 carry it unscreened while those editions wait. Its severity follows the removal policy (an error
+/// §2002:13.3.4.3 GR2c.2 and §2014:13.4.4.3 GR2c.2 carry it unscreened while those editions wait. Its severity follows the removal policy (an error
 /// under strict, a warning under --permissive), the contract the continuity witnesses need: an 85 NIST program that
 /// violates the new rule (IC227A, two differently-named non-external FILE STATUS items) still compiles under permissive.</item>
 /// </list>
@@ -79,12 +79,12 @@ internal static class ExternalFileConnectorRules
                 if (f.Organization == FileOrganization.Relative && f.RelativeKeyOperand is not null
                     && f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts) is null)
                     NotExternal(edition, externalName, f.ClauseOrEntryAt(f.RelativeKeyAt), "RELATIVE KEY", f.RelativeKeyOperand.Value.Name,
-                        EditionSeverity.Error, edition.Edition.CiteRule("§1985:VIII.2.4.4 GR8", "§2023:12.4.5.3 GR1 h)", y2002: "§2002:12.3.4.3 GR1 i)"));
+                        EditionSeverity.Error, edition.Edition.CiteRule("§1985:VIII.2.4.4 GR8", "§2023:12.4.5.3 GR1h", y2002: "§2002:12.3.4.3 GR1i"));
                 if (f.Padding is { DataName: { } pad, Item: not null } p && p.Item.ExternalItemIdentity() is null)
                     NotExternal(edition, externalName, p.At, "PADDING CHARACTER", pad.Name,
-                        EditionSeverity.Error, edition.Edition.CiteRule("§1985:VII.2.7.4 GR6", "§2002:12.3.4.3 GR1 h)"));
+                        EditionSeverity.Error, edition.Edition.CiteRule("§1985:VII.2.7.4 GR6", "§2002:12.3.4.3 GR1h"));
                 // The 1985 text has the rule too (§1985:VII.3.7.4 GR11c, kb/Work PB5982), an error as the PADDING screen above is. The
-                // 2002 and 2014 texts carry it (§2002:13.3.4.3 GR2c2, §2014:13.4.4.3 GR2c2) and neither is screened here: 2002 is frozen
+                // 2002 and 2014 texts carry it (§2002:13.3.4.3 GR2c.2, §2014:13.4.4.3 GR2c.2) and neither is screened here: 2002 is frozen
                 // and 2014 waits for the other editions (kb/Work PB5982).
                 if ((is2023 || edition.DialectLevel < 2002) && f.Linage is { } lin)
                     foreach (var op in lin.Operands)
@@ -103,7 +103,7 @@ internal static class ExternalFileConnectorRules
             }
 
             // FILE STATUS (VCR 18, new in 2023): if ANY corresponding SELECT specifies FILE STATUS, ALL shall, each naming
-            // the same corresponding external data item (§2023:12.4.5.3 GR1 i)).
+            // the same corresponding external data item (§2023:12.4.5.3 GR1i).
             if (is2023 && conns.Any(f => f.FileStatusOperand is not null))
                 SameItem(edition, conns, f => f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts), f => f.ClauseOrEntryAt(f.FileStatusAt),
                     DiagnosticCatalog.ExternalFileStatusConsistency, newIn2023,
@@ -123,8 +123,8 @@ internal static class ExternalFileConnectorRules
                     $"external relative file '{externalName}': all corresponding SELECT statements in the run unit "
                     + "shall specify RELATIVE KEY naming the same external data item, the same name at the same character "
                     + "positions of the external record ("
-                    + edition.Edition.CiteRule("§1985:VIII.2.4.4 GR8", "§2023:12.4.5.3 GR1 h)", y2002: "§2002:12.3.4.3 GR1 i)") + ")",
-                    edition.Edition.Cite("§1985:VIII.2.4.4 GR8", "§2023:12.4.5.3 GR1 h)", y2002: "§2002:12.3.4.3 GR1 i)"), externalName);
+                    + edition.Edition.CiteRule("§1985:VIII.2.4.4 GR8", "§2023:12.4.5.3 GR1h", y2002: "§2002:12.3.4.3 GR1i") + ")",
+                    edition.Edition.Cite("§1985:VIII.2.4.4 GR8", "§2023:12.4.5.3 GR1h", y2002: "§2002:12.3.4.3 GR1i"), externalName);
 
             // Every other specification: the entry identity's segments, each entry against EVERY earlier describer, by each
             // segment's own agreement (FileEntrySegment.Agrees). Pairwise, because the RECORD DELIMITER item's agreement is not

@@ -53,7 +53,7 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move, Debug
                 move.Emit(s.Move);
                 break;
             case InitializeStoreValue s:
-                // §2023:14.9.20.4 GR6 a) 3. for a receiver a MOVE would edit / justify / blank (kb/Work PB4512): the
+                // §2023:14.9.20.4 GR6a.3 for a receiver a MOVE would edit / justify / blank (kb/Work PB4512): the
                 // result the rule asks for is the initial value, so it is the ONE §2023:13.18.63 VALUE recipe's image —
                 // the same call the item's declaration, a report field and SET condition-name TO TRUE make.
                 w.Line(PlaceRenderer.Write(s.Target, Data.ValueImageOf(s.Target.Item, s.Raw))
@@ -89,7 +89,7 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move, Debug
                         EmitAction(b);
                 break;
             case InitializeOccurrenceSelect sel:
-                // ISO §2023:14.9.20.4 GR5c1c/GR6a3 — the only per-occurrence arm of the expansion: a Format-2 (table)
+                // ISO §2023:14.9.20.4 GR5c.1.c/GR6a3 — the only per-occurrence arm of the expansion: a Format-2 (table)
                 // VALUE keys a different literal to each occurrence, and the occurrences it does not key are not
                 // receiving-operands under the VALUE phrase at all. The arms come LAST PHRASE FIRST (§2023:13.18.63.4
                 // GR15), so the if/else-if chain's first holding arm is the literal the occurrence takes.

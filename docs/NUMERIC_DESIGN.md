@@ -318,7 +318,7 @@ The compiler's `PictureComposition.MarkFloating` reads the same `IsSimpleInserti
 
 `ibm` is what IBM Enterprise COBOL, Micro Focus and GnuCOBOL's `-fsign=ebcdic` write; `ascii` is GnuCOBOL's `-fsign=ascii`, its default on a PC host. The value is named `ibm` and NOT "ebcdic" because nothing about those characters is EBCDIC-encoded on an ASCII host — they are what an EBCDIC-descended CONVENTION produces after translation, and the misnomer would make the option unreadable.
 
-**The VALID SIGN SET (item 178) is derived from the same tables**, not written a second time: at the sign position, a plain digit 0-9 (an item whose sign was never punched — what a group MOVE of raw characters deposits) plus every character of the convention's two tables; every other position must be a plain digit. §2023:8.8.4.4.4 GR3n1.a closes "Valid operational signs are defined in 13.18.52, SIGN clause", so the NUMERIC class condition asks `ZonedSign.IsSignCharacter` — the same table the encoder punches with and the decoder unpunches with.
+**The VALID SIGN SET (item 178) is derived from the same tables**, not written a second time: at the sign position, a plain digit 0-9 (an item whose sign was never punched — what a group MOVE of raw characters deposits) plus every character of the convention's two tables; every other position must be a plain digit. §2023:8.8.4.4.4 GR3n.1.a closes "Valid operational signs are defined in 13.18.52, SIGN clause", so the NUMERIC class condition asks `ZonedSign.IsSignCharacter` — the same table the encoder punches with and the decoder unpunches with.
 
 **How the convention reaches the runtime.** `CompilerDriver.Options.SignEncoding` → `EditionContext` → `DataBinder.Edition` → `EmitContext.SignEncoding`, and from there into the ONE place a `NumProfile` is written (`PicInfo.ProfileInitializer(SignEncoding)`, a METHOD precisely so the parameter cannot be forgotten) and the ONE place a signed class condition is emitted (`ConditionRenderer.RenderClass`). Nothing is read from the process environment, so two programs of one run unit compiled under different options interoperate exactly as two vendors' programs do: each reads storage by its own convention, and a data file's convention is whatever wrote it. The emitted PROFILE states `SignEncoding` only when it is NOT the default, so an ordinary compile's profiles are byte-identical to what they were before the option existed. ⚠ The emitted CLASS CONDITION states the convention ALWAYS, so an ordinary compile's generated C# is *not* unchanged there — deliberately: a defaulted parameter on `CobolClass.IsNumericZoned` would hide exactly the drift this option can cause.
 
@@ -924,7 +924,7 @@ Comparisons are on algebraic value (ISO §2023:8.8.4.2). Load both operands as C
 
 ### IS NUMERIC / IS NOT NUMERIC class condition on a DISPLAY field (and the sign-image validity).
 
-For a typed numeric field the value is always a valid number, so IS NUMERIC is trivially true UNLESS the field can hold an externally-set image (REDEFINES over alphanumeric, file input, ACCEPT). For those the test validates the character image against the PIC: every position a digit, the sign position a valid sign for the SignKind — and, for a fused sign, for the program's `SignEncoding`, which is what §2023:8.8.4.4.4 GR3n1.a's closing "Valid operational signs are defined in 13.18.52, SIGN clause" delegates (D5; the predicate asks `ZonedSign.IsSignCharacter`, never a literal character range — a literal one would be a second copy of the tables and could only answer for one convention). Port that image-validation as CobolNum.IsNumericClass(image,profile) used only on the byte-boundary/redefines cases.
+For a typed numeric field the value is always a valid number, so IS NUMERIC is trivially true UNLESS the field can hold an externally-set image (REDEFINES over alphanumeric, file input, ACCEPT). For those the test validates the character image against the PIC: every position a digit, the sign position a valid sign for the SignKind — and, for a fused sign, for the program's `SignEncoding`, which is what §2023:8.8.4.4.4 GR3n.1.a's closing "Valid operational signs are defined in 13.18.52, SIGN clause" delegates (D5; the predicate asks `ZonedSign.IsSignCharacter`, never a literal character range — a literal one would be a second copy of the tables and could only answer for one convention). Port that image-validation as CobolNum.IsNumericClass(image,profile) used only on the byte-boundary/redefines cases.
 
 ### ON SIZE ERROR semantics across multiple receivers and the initial-evaluation step (ISO rule 4, p595).
 
@@ -1092,7 +1092,7 @@ switch for a floating-point edited receiver (`CobolEdit.FormatFloatStoreU` / `Tr
 every intermediate consumer with no capacity check downstream (`Align`, an argument) — SATURATES so the receiver's
 capacity check raises the size error (PB13's invariant, `ReceiverContext.WorkingScale`'s cap keeping the sentinel
 above the receiver). The UNCHECKED landing — a MOVE (§2023:14.6.8.2 r4 "truncation on either end"; there is no size
-error in a MOVE), the no-phrase arithmetic store (§2023:14.6.13.1.3 item 8 — CONFORMANCE.md item 70: the resultant takes
+error in a MOVE), the no-phrase arithmetic store (§2023:14.6.13.1.3 GR8 — CONFORMANCE.md item 70: the resultant takes
 the LOW-ORDER digits), INVOKE BY CONTENT — keeps the low-order digits, because it has no check to see a sentinel and
 truncating a sentinel stores garbage: `MOVE FUNCTION NUMVAL-F("5E+30") TO PIC V9(9)` (before NUMVAL-F became an SDIDI function) stored 884105727 and
 `COMPUTE X5 = <COMP-2 1.0E+40>` stored 03715, the low digits of `Int128.MaxValue`. The SDIDI carrier had the two
@@ -1128,7 +1128,7 @@ the ONE definition: a finite double is ±man·2^exp exactly, so v·10^scale = ±
 PROVABLY exact for every scale ≤ 31 (man < 2^53 and 5^31 < 2^72 put the product below 2^125), with the same
 expansion over `BigInteger` for a wider scale, a negative one (a trailing-P receiver, whose 5^|scale| is a divisor)
 or a magnitude past the carrier — the runtime's second and last cold `BigInteger` path. `ExactRatio` is the one
-place a double's exact value at a decimal scale is written down, and ROUNDED MODE PROHIBITED (§2023:14.7.4.3 item 7) is
+place a double's exact value at a decimal scale is written down, and ROUNDED MODE PROHIBITED (§2023:14.7.4.3 GR7) is
 the landing's own `RoundDiv` over THAT ratio, raising when it does not divide, rather than a test of a product. **What this replaced**
 was `v * Pow10.AsDouble(scale)` formed in binary64 at each of three sites: past 2^53 the product is itself rounded,
 so the landing answered with a value the sender never held, and because the MOVE channel lands at the RECEIVER's

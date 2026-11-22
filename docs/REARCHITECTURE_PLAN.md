@@ -442,7 +442,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   NO-VERDICT. No gate is owed.
   **✅ PB77 CLOSED (DEVLOG 1310, 2026-08-18)** — every carrier's landing past the Int128 carrier has TWO forms
   chosen by the LANDING: checked (ON SIZE ERROR / EC-SIZE, intermediate consumers) saturates so the capacity check
-  raises (PB13); unchecked (MOVE §2023:14.6.8.2 r4, the no-phrase store §2023:14.6.13.1.3 item 8, INVOKE BY CONTENT) keeps
+  raises (PB13); unchecked (MOVE §2023:14.6.8.2 r4, the no-phrase store §2023:14.6.13.1.3 GR8, INVOKE BY CONTENT) keeps
   the low-order digits — `Rescaled(…, checkedLanding)`, `CobolFloat.ToScaledUnchecked` + `LowOrderDigits` (the
   exact binary64 expansion), `FromDouble(…, checkedLanding)`; `RuntimeApi.FloatToScaled` names the landing with no
   default. Four verdicts → CONFORMS, GAP 4011. **PB90 REGISTERED** (analysis: the in-carrier float→fixed manner —
@@ -977,7 +977,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
     NOT an arithmetic operand and NOT an integer argument.** §2023:8.8.1.1 admits "an identifier referencing a
     NUMERIC data item"; §2023:8.5.2.13 calls this a "numeric-edited data item" — a distinct defined term — and
     §2023:8.5.2.1 Table 2 puts that category in class ALPHANUMERIC or NATIONAL, never numeric; §2023:15.3 type 6's only
-    other alternative is "an integer data item"; and de-editing is GRANTED by the MOVE rules (§2023:14.9.25.4 GR6d1)
+    other alternative is "an integer data item"; and de-editing is GRANTED by the MOVE rules (§2023:14.9.25.4 GR6d.1)
     and nowhere extended to arithmetic. The `'n'` arm had already refuted the identical reading, so the two arms
     rested on readings of §2023:8.8.1.1 that could not both be right. Both external oracles agree: no NIST program
     depends on it, and GnuCOBOL exercises de-editing only under MOVE. **The surviving lesson is narrower and
@@ -1208,7 +1208,7 @@ three times an entry named a lexer-mode cause that a dump refuted (PB8, PB45 ×2
 `evaluateWhenItem` was CORRECT, was honoured, and is now pinned by `EvaluateSelectionObjectArityDriftTests`.
 
 ⚙ **AND THE SPEC-DERIVED GOLDEN FOUND A DEFECT THE REPORT NEVER MENTIONED** — `EVALUATE TRUE / WHEN <level-88>`,
-one of the commonest idioms in COBOL, threw at run time too (fixed; Table 15 + §2023:14.9.13.4 GR4a3). It was found
+one of the commonest idioms in COBOL, threw at run time too (fixed; Table 15 + §2023:14.9.13.4 GR4a.3). It was found
 ONLY because the golden was written from §2023:14.9.13's general format rather than scoped to the reported symptom
 (`feedback_spec_scopes_not_tests`), and neither external oracle could see it: the program COMPILES either way.
 
@@ -1292,7 +1292,7 @@ case and the defect is a silent **under-rejection** — a different defect needi
 numeric, so its `'i'` arm cannot distinguish them. **A claim about reachability is a measurement, not a
 deduction.**
 ⛔ **THREE OF MY OWN ERRORS, EACH CAUGHT BY RUNNING SOMETHING:** a "sibling defect" I fixed and had to un-fix (a
-group of `PIC N` children is an ALPHANUMERIC group — §2023:8.5.2.10 item 3 needs `GROUP-USAGE NATIONAL`, which is not
+group of `PIC N` children is an ALPHANUMERIC group — §2023:8.5.2.10 GR3 needs `GROUP-USAGE NATIONAL`, which is not
 modelled — so the compiler was already right); a citation `cite.py --check` rejected (§2023:13.18.27 for GROUP-USAGE;
 it is **§2023:13.18.29**); and a new source-form guard that fired on **its own explanatory comment**, found only
 because the guard was proven in the failing direction before being trusted.

@@ -130,7 +130,7 @@ public static class AcceptSource
     /// optional period decimal point, an optional <c>E</c>±exponent, leading/trailing spaces ignored. A record
     /// that does not conform (TEST-NUMVAL-F non-zero — an all-space record included) converts to ZERO and sets
     /// no exception condition, the float twin of the fixed-point arm's "a non-digit contributes no digit". The
-    /// value is converted ONCE into the receiver's own format (ISO §2023:14.6.8.3 rule 2, kb/Work PB1110): the correctly
+    /// value is converted ONCE into the receiver's own format (ISO §2023:14.6.8.3 GR2, kb/Work PB1110): the correctly
     /// rounded binary64 <see cref="CobolIntrinsics.NumvalFDouble"/> returns, or for a binary32 receiver
     /// (<paramref name="single"/>) the correctly rounded binary32 <see cref="CobolIntrinsics.NumvalFSingle"/> returns,
     /// widened exactly so the emitter's <c>(float)</c> cast is not a second rounding.</summary>

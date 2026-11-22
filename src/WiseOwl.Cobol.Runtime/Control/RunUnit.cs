@@ -166,7 +166,7 @@ public sealed class RunUnit
     /// run unit, created on first reference (the emitted <c>__Instance</c> property reads it). Creation runs the
     /// generated constructor — the factory's VALUE initialization and its file registrations (§2023:9.1.4) — once per
     /// run unit.
-    /// <para>⛔ THE ONE RESOURCE AN INVOKE CHECKS (ISO §2023:14.9.23.4 GR7 b): "If the method is not found or the resources
+    /// <para>⛔ THE ONE RESOURCE AN INVOKE CHECKS (ISO §2023:14.9.23.4 GR7b): "If the method is not found or the resources
     /// necessary to execute the method are not available, the EC-OO-METHOD exception condition is set to exist". The
     /// implementor defines which resources are checked (Annex A.1 item 102; docs/CONFORMANCE.md DOC-A.1-102), and this is
     /// it: the class's type initialization, which the first reference to its factory object triggers, completes. A class
@@ -223,9 +223,9 @@ public sealed class RunUnit
 
     /// <summary>Normal and abnormal run-unit termination's runtime epilogue — ONE method for every boundary
     /// (<see cref="ProgramTable.RunMain"/>'s, <see cref="Run"/>'s and a host activation's, <see cref="EndForHost"/>),
-    /// idempotent so a host that nests them runs it harmlessly twice. ISO §2023:14.6.11 2): "An implicit CLOSE statement without any phrases is executed for each file
+    /// idempotent so a host that nests them runs it harmlessly twice. ISO §2023:14.6.11 GR2: "An implicit CLOSE statement without any phrases is executed for each file
     /// that is in the open mode" (also after an abnormal termination, §2023:14.6.12). Then every adopted static storage
-    /// returns to its initial state, which RELEASES what it held — §2023:14.6.11 3) "Any storage obtained with an ALLOCATE
+    /// returns to its initial state, which RELEASES what it held — §2023:14.6.11 GR3 "Any storage obtained with an ALLOCATE
     /// statement and not yet released by a FREE statement is released", 4) "All instance objects are destroyed" and
     /// 6) "Any resources occupied by dynamic-capacity tables or dynamic-length elementary items are freed": a static
     /// POINTER, OBJECT REFERENCE or dynamic item is managed memory that stays reachable exactly as long as the
@@ -260,7 +260,7 @@ public sealed class RunUnit
             }
             finally
             {
-                // ISO §2023:14.6.11 item 7: each active message is answered EC-MCS-NORMAL-TERMINATION, and §2023:14.6.12 has an abnormal ending perform the same
+                // ISO §2023:14.6.11 GR7: each active message is answered EC-MCS-NORMAL-TERMINATION, and §2023:14.6.12 has an abnormal ending perform the same
                 // operations after the rollback; the peer then closes its links and listeners and deletes its socket files (design 5.6). Last, and in its
                 // own finally, so no failed close above can skip it.
                 Messaging.End(EndedAbnormally);
@@ -328,7 +328,7 @@ public sealed class RunUnit
         lock (_openRunUnits) _ = owes ? _openRunUnits.Add(this) : _openRunUnits.Remove(this);
     }
 
-    /// <summary>End every run unit the process leaves running, as a NORMAL termination (§2023:14.6.11 2): "These implicit
+    /// <summary>End every run unit the process leaves running, as a NORMAL termination (§2023:14.6.11 GR2): "These implicit
     /// close statements shall be executed for all open files in the run unit"; the first of them commits, §2023:9.1.18.5:
     /// "When a run unit terminates normally, all file changes are permanently committed"). A failure of one run unit's
     /// close is reported on standard error and does not stop the others, because a process exit has no caller to hand it to.</summary>
@@ -386,8 +386,8 @@ public sealed class RunUnit
 
     /// <summary>Begin a NEW run unit and make it the ambient one — the emitted run-unit driver's first statement
     /// (<c>ProgramRegistry.Reset()</c>). Every member of the new run unit is fresh (program table, EXTERNAL store,
-    /// MODULE-NAME stack, files, switches (§2023:12.3.7.4 4) — the implementor-defined scope is the run unit), locale
-    /// (§2023:14.6.11 5), FUNCTION RANDOM sequence
+    /// MODULE-NAME stack, files, switches (§2023:12.3.7.4 GR4 — the implementor-defined scope is the run unit), locale
+    /// (§2023:14.6.11 GR5), FUNCTION RANDOM sequence
     /// (§2023:15.75.3 r4), report flow, exception status, factory objects (§2023:9.3.14.2) and the termination status),
     /// because it is a new object — only the <see cref="HostConfiguration"/> carries over. The run unit it
     /// replaces is not touched: its own termination (<see cref="ProgramTable.RunMain"/>'s finally, or

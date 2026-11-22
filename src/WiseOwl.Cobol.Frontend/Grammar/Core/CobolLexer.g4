@@ -13,12 +13,12 @@ options {
 // consumer stop guessing — see the SR6 note on OnDefaultLParen.
 // REF_LPAREN / REF_RPAREN are virtual for the same reason (kb/Work PB2113, owner ruling D10): the '(' right after a word
 // that can name a data item opens that reference's SUBSCRIPT list, REFERENCE MODIFIER or keyword-omitted ARGUMENT list
-// (ISO §2023:8.3.5 4) names all three), never an arithmetic group. The lexer publishes that decision as the paren's TYPE, the
+// (ISO §2023:8.3.5 SR4 names all three), never an arithmetic group. The lexer publishes that decision as the paren's TYPE, the
 // parser's subscriptPart / refModPart read it, and the tokens BETWEEN the two parens are the ordinary DEFAULT-mode
 // vocabulary — the SUBSCRIPT lexer mode, its parallel SUB_* token family and the binder's hand-rolled re-parse of that
 // flat stream are gone.
 // SIGNED_INTEGERLIT / SIGNED_DECIMALLIT are virtual: the FN_SIGNED_* rules retype a sign-adjacent literal to them inside
-// a list region (an argument list or a reference's parenthesized tail), where §2023:8.3.5 1) makes the space a separator.
+// a list region (an argument list or a reference's parenthesized tail), where §2023:8.3.5 SR1 makes the space a separator.
 // DEFINED is virtual for the same reason in another region: it is a keyword ONLY inside a primed compiler-directive
 // expression, so IDENTIFIER's action retypes the word there (see IDENTIFIER). A rule spelling 'DEFINED' would publish
 // that literal in the vocabulary, whose literal names are read as "the lexer makes this word a keyword token"
@@ -61,7 +61,7 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
     // keyword that can appear as a user-defined data-name. Safe failure mode: a token missing from the set makes
     // the parser see LPAREN/RPAREN (arithmetic) instead of REF_LPAREN/REF_RPAREN — a clear parse error on the
     // first subscripted use.
-    // ⛔ WHY THE DECISION STAYS IN THE LEXER (kb/Work PB2113, DESIGN-frontend-grammar §9.4): ISO §2023:8.3.5 1) makes the
+    // ⛔ WHY THE DECISION STAYS IN THE LEXER (kb/Work PB2113, DESIGN-frontend-grammar §9.4): ISO §2023:8.3.5 SR1 makes the
     // SPACE a separator, so `X (I J)` is two subscripts and `X (I -1)` a subscript and the literal -1, while
     // `X (I - 1)` is one subtraction (§2023:8.7.1 spaces an operator, §2023:8.3.3.3.2 puts a literal's sign at its leftmost
     // character). The parser sees the skipped-WS stream, so only the lexer can tell `-1` from `- 1`; it does that
@@ -82,7 +82,7 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
     // the reference-paren decision is frozen here, before any parser predicate can ask the edition. That made the '(' after
     // a boolean OPERATOR — B-AND / B-OR / B-XOR / B-NOT, user words at COBOL-85 and reserved by ISO §2023:8.9 from 2002 —
     // open a reference paren, so `IF BZ B-OR (BW B-AND BW)` and `COMPUTE BR = B-NOT (BW B-XOR BZ)` were COBOL0001
-    // although §2023:8.8.2's Table 4 admits '(' after every boolean operator. §2023:8.3.2.1 rule 1 ("Reserved words shall not
+    // although §2023:8.8.2's Table 4 admits '(' after every boolean operator. §2023:8.3.2.1 SR1 ("Reserved words shall not
     // be used as user-defined words") settles it for EVERY reservation-gated word at once: the compile's own answer
     // to "is this word a user-defined word here" (ReservedWordSet.AdmitsAsUserWord — the question the parser's
     // userWordHere gate and the §2023:8.9 funnel ask) is handed in by TokenRetypes.PrimeLexer, and a word it refuses
@@ -167,7 +167,7 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
     // THE LIST REGIONS (P7 Step 12; kb/Work PB2113). '(' after "FUNCTION functionName" is the function's argument-list
     // paren (ISO §2023:8.4.3.2.3 SR6); '(' after a word that can name a data item is that reference's parenthesized tail —
     // its subscripts (§2023:8.4.2.3.2), its reference modifier (§2023:8.4.3.3.2) or, for the keyword-omitted form name(args)
-    // (§2023:8.4.3.2.3 SR2, D2), its arguments. Both are LIST regions: the §2023:8.3.5 2) comma/semicolon separator survives
+    // (§2023:8.4.3.2.3 SR2, D2), its arguments. Both are LIST regions: the §2023:8.3.5 SR2 comma/semicolon separator survives
     // as FNARG_SEPARATOR and a sign touching its digits after a separator is a signed literal (SignedLiteralCanStart),
     // so juxtaposed operands stay apart. Every token inside either region is the DEFAULT-mode vocabulary. The paren
     // stack tracks what each OPEN paren is, so the matching ')' takes the same type and the region tests are exact.
@@ -346,7 +346,7 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
     // is (DEFINED became a virtual token IDENTIFIER's action retypes); actions do not suppress DFA edges.
     // LexerDfaCacheDriftTests holds it: re-lexing the suite's sources after a warm-up leaves the cached DFA nowhere.
 
-    // A signed numeric literal's sign is the leftmost CHARACTER of the literal (ISO §2023:8.3.3.3.2 2): "If a sign is
+    // A signed numeric literal's sign is the leftmost CHARACTER of the literal (ISO §2023:8.3.3.3.2 SR2): "If a sign is
     // used, it shall appear as the leftmost character of the literal") and an arithmetic operator "shall be
     // preceded by a space and followed by a space" (§2023:8.7.1) — so inside a list region a [+-] that follows a
     // separator and touches its digits starts a NEW argument or subscript (a signed literal), never a binary
@@ -1197,19 +1197,19 @@ QUOTES      : 'QUOTES' ;
 // The body is a FRAGMENT (the Group-B one-body discipline) because THREE tokens consume it: this one, the
 // FN_SIGNED twin (kb/Work R17 — the float shape was the one signed-capable literal with no twin, so
 // `FUNCTION EXP(-1.5E3)` lexed as TWO arguments and drew a false COBOL1504).
-// ⛔ THE SIGNIFICAND IS A FIXED-POINT LITERAL, SO IT IS WRITTEN AS ONE (kb/Work PB2729). §2023:8.3.3.3.3 1): "A floating-point
+// ⛔ THE SIGNIFICAND IS A FIXED-POINT LITERAL, SO IT IS WRITTEN AS ONE (kb/Work PB2729). §2023:8.3.3.3.3 SR1: "A floating-point
 // numeric literal is formed from two fixed-point numeric literals separated by the letter 'E' without intervening
-// spaces", and §2023:8.3.3.3.2 3) puts a fixed-point literal's decimal point "anywhere within the literal except as the
+// spaces", and §2023:8.3.3.3.2 SR3 puts a fixed-point literal's decimal point "anywhere within the literal except as the
 // rightmost character". DEC_BODY is that fixed-point shape; this body used to spell a WIDER copy beside it
 // (`[0-9]+ '.' [0-9]*`), so `VALUE 3.E2` lexed as one FLOATLIT that no form check refused and the backend died on
 // (CS1061), and `COMPUTE X = 1.E2 + 5` compiled. Over DEC_BODY, `3.E2` is INTEGERLIT `3` and a period with no space
-// after it, which SeparatorRule names (§2023:8.3.5 3), COBOL2632). The exponent is the other fixed-point literal, an
-// integer ("no decimal point", §2023:8.3.3.3.3 3)). SignedLiteralShapeDriftTests holds every FLOAT*_BODY significand to a DEC*_BODY.
+// after it, which SeparatorRule names (§2023:8.3.5 SR3, COBOL2632). The exponent is the other fixed-point literal, an
+// integer ("no decimal point", §2023:8.3.3.3.3 SR3). SignedLiteralShapeDriftTests holds every FLOAT*_BODY significand to a DEC*_BODY.
 fragment FLOAT_BODY : DEC_BODY 'E' [-+]? INT_BODY ;
 FLOATLIT    : FLOAT_BODY ;
 
 // The DECIMAL-POINT IS COMMA twin of the floating-point literal (kb/Work PB98): under DECIMAL-POINT IS COMMA "the
-// character written in numeric literals to represent the decimal separator shall be the comma" (ISO §2023:12.3.7.4 GR14 a) —
+// character written in numeric literals to represent the decimal separator shall be the comma" (ISO §2023:12.3.7.4 GR14a) —
 // the floating-point form's significand included (§2023:8.3.3.3.3: "two fixed-point numeric literals separated by the
 // letter 'E'"), so `1,5E+3` is ONE literal. The lexer cannot know the SPECIAL-NAMES clause, so the shape is one token
 // in EVERY mode; the binder's ONE normalizer canonicalizes it to dot-decimal and reports COBOL0895 when
@@ -1218,7 +1218,7 @@ FLOATLIT    : FLOAT_BODY ;
 // float shape needs the E-tail, so it is lexed whole — before this a comma-mode `VALUE 1,5E+3` silently seeded 1 and
 // `MOVE 1,5E+3 TO X` was a parse error). Same body discipline as FLOAT_BODY: fragment + FN_SIGNED twin
 // (SignedLiteralShapeDriftTests scrapes every FLOAT*_BODY). Its significand is the comma-decimal fixed-point body, as
-// FLOAT_BODY's is DEC_BODY (kb/Work PB2729): `1,E2` is no literal (§2023:8.3.3.3.2 3)).
+// FLOAT_BODY's is DEC_BODY (kb/Work PB2729): `1,E2` is no literal (§2023:8.3.3.3.2 SR3).
 fragment FLOAT_COMMA_BODY : DEC_COMMA_BODY 'E' [-+]? INT_BODY ;
 COMMA_FLOATLIT : FLOAT_COMMA_BODY ;
 
@@ -1228,7 +1228,7 @@ COMMA_FLOATLIT : FLOAT_COMMA_BODY ;
 // string-escape / national-literal / data-name fix is applied ONCE (DESIGN-frontend-grammar §3.3b).
 // ⛔ THE CLOSING DELIMITER IS OPTIONAL HERE, AND AN UNTERMINATED LITERAL IS STILL THE LITERAL'S TOKEN (kb/Work PB3245).
 // The general formats close every delimited literal (§2023:8.3.3.2.2, §2023:8.3.3.4.2, §2023:8.3.3.5.2), and a literal may stay open at
-// the end of a line only when a continuation line continues it (§2023:6.3.5 1) fixed, §2023:6.4.2 floating: "When such a literal
+// the end of a line only when a continuation line continues it (§2023:6.3.5 SR1) fixed, §2023:6.4.2 floating: "When such a literal
 // is incomplete at the end of a line, the incomplete portion of the literal shall be terminated by a floating
 // continuation indicator") — and the reference-format stage has already joined every continued literal into one line,
 // so an opening delimiter this text never closes is an error. It used to match nothing: the delimiter fell to ANY_CHAR
@@ -1238,7 +1238,7 @@ COMMA_FLOATLIT : FLOAT_COMMA_BODY ;
 // a doubled delimiter included), keeps its kind and its prefix, and the parser reads it as the literal it was meant to
 // be. LiteralScreen.ReportUnterminated names it (COBOL5563) over every token of the unit and of each compiler-directive
 // fragment; OnDelimitedLiteral gives back a trailing separator period. Not the reference-format stage's to decide: an
-// unterminated literal on a line an >>IF omits is legal (§2023:7.3.16.4 3) omits "all lines of text-1"), and conditional
+// unterminated literal on a line an >>IF omits is legal (§2023:7.3.16.4 GR3 omits "all lines of text-1"), and conditional
 // compilation runs after that stage.
 fragment STR_BODY  : '"' (~["\n] | '""')* '"'? | '\'' (~['\n] | '\'\'')* '\''? ;   // STRINGLIT
 // ⛔ FORMAT 2 IS THE SAME LITERAL KIND, SO IT IS THE SAME TOKEN (fix-queue R03). §2023:8.3.3.5.2 and §2023:8.3.3.4.2 each
@@ -1251,7 +1251,7 @@ fragment STR_BODY  : '"' (~["\n] | '""')* '"'? | '\'' (~['\n] | '\'\'')* '\''? ;
 // words) — and that split is why its decoding had to be added at FOUR separate call sites, the fourth being a
 // silent VALUE-clause miscompile. A second token here would have bought the same bill twice over.
 // ⛔ A PREFIXED LITERAL'S BODY IS ANY QUOTED CONTENT — THE LEXER DELIMITS, IT DOES NOT JUDGE THE CONTENT (kb/Work
-// PB1441, PB1394). §2023:8.3.5 5) makes `X"`, `N"`, `B"` and the three-character `NX"` / `BX"` OPENING DELIMITERS, so
+// PB1441, PB1394). §2023:8.3.5 SR5 makes `X"`, `N"`, `B"` and the three-character `NX"` / `BX"` OPENING DELIMITERS, so
 // once one is written the character-string can only be a literal of that format, well formed or not. The bodies
 // used to spell each format's REPERTOIRE — `[0-9a-f]*` for X, NX and BX, `[01]*` for B — and a body outside it
 // failed the whole alternative, so maximal munch fell back to IDENTIFIER `X` + a Format 1 STRINGLIT: beside a
@@ -1279,7 +1279,7 @@ fragment BOOL_BODY : 'B' STR_BODY                                               
                    | 'BX' STR_BODY ;                                                 // §2023:8.3.3.4.2 Format 2
 fragment INT_BODY  : [0-9]+ ;                                                        // INTEGERLIT
 fragment DEC_BODY  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;                                // DECIMALLIT
-// The DECIMAL-POINT IS COMMA fixed-point shape (ISO §2023:12.3.7.4 GR14 a)). Its UNSIGNED form has no token of its own: a
+// The DECIMAL-POINT IS COMMA fixed-point shape (ISO §2023:12.3.7.4 GR14a). Its UNSIGNED form has no token of its own: a
 // comma is a token, so numericLiteralCore assembles the contiguous INTEGERLIT COMMA INTEGERLIT / COMMA INTEGERLIT.
 // The SIGNED form cannot be assembled there: inside a list region the sign and the digits before the comma are already
 // one SIGNED_INTEGERLIT, so `MIN(-1,5 2)` was MIN(-1, 0.5, 2) and `ABS(-1,5)` two arguments (kb/Work PB2506). It is a
@@ -1404,7 +1404,7 @@ LTEQUAL     : '<=' ;
 GTEQUAL     : '>=' ;
 NOTEQUAL    : '<>' ;
 
-// A period is a separator only when a space follows it (§2023:8.3.5 rule 3). The token is every period the literal and
+// A period is a separator only when a space follows it (§2023:8.3.5 SR3). The token is every period the literal and
 // PICTURE rules did not take; SeparatorRule reports one with no space after it (COBOL2632, kb/Work PB1394).
 DOT         : '.' ;
 // P7 Step 12: inside a list region (an argument list, or a reference's subscripts — kb/Work PB2113) the ','/';'-plus-
@@ -1412,7 +1412,7 @@ DOT         : '.' ;
 // opens a PARENTHESIZED ARGUMENT or SUBSCRIPT, and the LPAREN whitelist action sees the separator (not the previous
 // operand's data-name) as the previous token, so `MAX(A * B, (C + 1) / 2, …)` (IF119A/IF123A) and
 // `HARRY (I - 3, 4, (X * 2) - 3)` (ISO Annex D.3.5.3) do not mis-lex the group as a subscript of the operand before
-// it. Outside list regions the ACTION skips it — ISO §2023:8.3.5 2): "The COBOL characters comma and semicolon,
+// it. Outside list regions the ACTION skips it — ISO §2023:8.3.5 SR2: "The COBOL characters comma and semicolon,
 // immediately followed by a space, are separators that may be used anywhere the separator space is used" — so it
 // is skipped exactly as the space is. ONE rule matches the separator everywhere and its action says which it is;
 // ⛔ never a predicate choosing between two rules (kb/Work PB1715): the predicate this rule carried kept every
@@ -1424,7 +1424,7 @@ DOT         : '.' ;
 // (COBOL0001) at every edition. ListItemBoundary decides, from the token before it and the character after it.
 FNARG_SEPARATOR : [,;] [ \n]+ { if (!InListRegion() || !ListItemBoundary()) Skip(); } ;
 // A comma NOT followed by whitespace is preserved for DECIMAL-POINT IS COMMA, where it is a numeric literal's
-// decimal point; anywhere else it is no separator (§2023:8.3.5 rule 2) and SeparatorRule reports it (COBOL2631).
+// decimal point; anywhere else it is no separator (§2023:8.3.5 SR2) and SeparatorRule reports it (COBOL2631).
 COMMA       : ',' ;
 LPAREN      : '(' { OnDefaultLParen(); } ;
 RPAREN      : ')' { OnDefaultRParen(); } ;
@@ -1437,7 +1437,7 @@ STAR        : '*' ;
 SLASH       : '/' ;
 // ⛔ THE INVOCATION OPERATOR IS A TOKEN, AND IT HAD NONE (kb/Work PB428). ISO §2023:8.7.4: "The invocation operator
 // is the two contiguous COBOL characters '::'". §2023:8.4.3.4.2 prints it as the required punctuation of the
-// inline-method-invocation identifier format, and §2023:8.3.5 rule 7 ("The COBOL character colon, EXCEPT AS PART
+// inline-method-invocation identifier format, and §2023:8.3.5 SR7 ("The COBOL character colon, EXCEPT AS PART
 // OF THE INVOCATION OPERATOR, is a separator") makes the two characters one lexical unit rather than two
 // colons. With no rule here the whole of §2023:8.4.3.1.2 Format 4 was unwritable in EVERY identifier position: the
 // lexer stopped at the first ':' and the parser reported punctuation. MUST precede COLON in source order for
@@ -1498,7 +1498,7 @@ PIC_STRING  : ( ~[ \n.] | '.' ~[ \n] )+ { OnPictureString(); } ;
     // Post-action (OnPictureString): a trailing separator period or ','/';' clause separator (§2023:8.3.5 SR2) the greedy
     //   match took is given back; a match that was the IS keyword and its separator (`PICTURE IS, X(2)`) is the IS.
 // ⛔ THE MODE IS TOTAL: A SEPARATOR PERIOD WHERE THE CHARACTER-STRING SHOULD BE ENDS IT (kb/Work PB4233). A '.' followed
-// by a space, a line end or the end of the text is the separator period (§2023:8.3.5 3)), which PIC_STRING cannot start, so
+// by a space, a line end or the end of the text is the separator period (§2023:8.3.5 SR3), which PIC_STRING cannot start, so
 // `01 X PIC.` matched no rule here: ANTLR reported it on the console, outside the diagnostics, dropped the period and
 // stayed in PICMODE, and the next line's `X(3)` became the picture of an entry the source left without one. It is the
 // DOT token the parser reads, and the mode ends with it, so the PICTURE clause with no character-string is the parse

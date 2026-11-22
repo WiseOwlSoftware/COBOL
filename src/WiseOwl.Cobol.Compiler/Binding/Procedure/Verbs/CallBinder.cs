@@ -52,7 +52,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         //   (a) `… AS NESTED` / `… AS program-prototype-name-1` — a SYNTACTIC discriminator (Format 1 has no AS
         //       phrase at all), which is what refuted PB46's "the formats are indistinguishable at parse time";
         //   (b) the bracket omitted whole: `CALL program-prototype-name-1`, spelled EXACTLY like Format 1's
-        //       `CALL identifier-1`. That one IS semantic, and §2023:14.9.4.4 GR3 b) is written for it ("If neither
+        //       `CALL identifier-1`. That one IS semantic, and §2023:14.9.4.4 GR3b) is written for it ("If neither
         //       identifier-1 nor literal-1 is specified, program-prototype-name-1 determines the externalized
         //       program-name of the program being called").
         // Spelling (b) is resolved AFTER the data-reference attempt, below, so no program that binds today
@@ -147,9 +147,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // §2023:14.8.2/§2023:14.8.3 regime to prototype calls in one assignment rather than by copying seven checks.
         CalleeSignature? callee = null;
         // ⛔ Whether the element this CALL activates is a definition this compilation group compiles — AS NESTED, or a
-        // prototype through §2023:12.3.8.4 GR10 a)'s definition that names no other program (DESIGN-external-repository §4.2,
+        // prototype through §2023:12.3.8.4 GR10a)'s definition that names no other program (DESIGN-external-repository §4.2,
         // kb/Work PB2103). Only then can the activated program not differ from the signature checked here; otherwise
-        // §2023:14.9.4.4 GR3 d) is asked again at run time against the program actually activated.
+        // §2023:14.9.4.4 GR3d is asked again at run time against the program actually activated.
         bool calleeCompiledHere = false;
         // kb/Work PB131 — the AS NESTED callee's bound formals (§2023:14.9.4.3 SR15 sentence 2 enforced here:
         // the name shall be a directly-contained or visible-COMMON program; the old binder bound the flag,
@@ -237,7 +237,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 
         // §2023:14.9.4.4 GR7: "If the NESTED phrase is not specified, program-prototype-name-1 is used to determine
         // the characteristics of the called program." Its externalized name is the program-name whenever
-        // identifier-1/literal-1 was not written (GR3 b)), and its signature — when §2023:12.3.8.4 GR10 a) found the
+        // identifier-1/literal-1 was not written (GR3 b)), and its signature — when §2023:12.3.8.4 GR10a found the
         // definition in this compilation group — is the ONE callee signature every §2023:14.8.2/§2023:14.8.3 check below
         // reads. A GR10 c) prototype (a separately-compiled program) legally carries none; the locate and the
         // EC-PROGRAM-ARG-MISMATCH conformance check then happen at activation, per GR3 b) and GR3 d).
@@ -327,7 +327,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // §2023:14.9.4.3 SR3 — BY REFERENCE passes identifier-2, "an address-identifier or a data item defined in
                 // the file, working-storage, local-storage, or linkage section". The predefined NULL is an identifier
                 // (§2023:8.4.3.1.2 Format 8) that references neither, so it is refused by THAT rule's name (kb/Work
-                // PB1427); BY CONTENT / BY VALUE NULL are the §2023:8.4.3.10.3 SR1 a) argument the arms below admit.
+                // PB1427); BY CONTENT / BY VALUE NULL are the §2023:8.4.3.10.3 SR1a argument the arms below admit.
                 if (byRef.predefinedNull() is not null)
                     return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallOperandSection,
                         "CALL USING BY REFERENCE NULL: ISO §2023:14.9.4.3 SR3 — identifier-2 \"shall reference an "
@@ -372,7 +372,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     byContent.literal(), null,
                     byContent.booleanExpression(), byContent.arithmeticExpression());
                 // A bare word that stands for a literal — a constant-name (§2023:13.10.4 GR1) or a symbolic-character
-                // (§2023:12.3.7.4 GR11 a)) — is literal-2, never identifier-2 (kb/Work PB1544), asked of the ONE alias
+                // (§2023:12.3.7.4 GR11a) — is literal-2, never identifier-2 (kb/Work PB1544), asked of the ONE alias
                 // resolution.
                 var cAlias = cDref is null ? null : host.Expr.LiteralAliasOf(cDref);
                 // (§2023:14.9.4.2 Format 1's BY CONTENT is `{ identifier-2 } …` and nothing else: Format2OnlySpellingOf
@@ -447,7 +447,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     Sr23LiteralIsNumeric(vlit, "BY VALUE");
                     args.Add(new BoundCallArg(CobolPassMode.Value, null, host.Expr.NullAdmittingOperand(vlit)));
                 }
-                // literal-2 written as a sole numeric literal, its sign included (§2023:8.3.3.3.2 rule 2): the literal operand
+                // literal-2 written as a sole numeric literal, its sign included (§2023:8.3.3.3.2 SR2): the literal operand
                 // the BY CONTENT and keyword-less spellings bind (kb/Work PB3760). Bound as an expression it was a computed
                 // operand a reader had to recover the literal from, and that recovery could not tell `(3)` from 3.
                 else if (vSoleNum is { } vnum)
@@ -543,7 +543,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // literal-2 never meets Syntax rule 3, so GR9 a)2 assumes BY CONTENT (or GR9 b) BY VALUE).
                 // The old arm resolve-RECEIVED it and drew COBOL1548 "constant-name shall not be specified
                 // as a receiving operand", rejecting conforming Format-2 source (kb/Work PB238). A symbolic-character
-                // is literal-2 the same way — a figurative constant (§2023:12.3.7.4 GR11 a)), asked of the ONE alias
+                // is literal-2 the same way — a figurative constant (§2023:12.3.7.4 GR11a), asked of the ONE alias
                 // resolution (kb/Work PB1544; it drew COBOL1639 "not defined").
                 if (formatTwo && host.Expr.LiteralAliasOf(bare) is { } bareAlias)
                 {
@@ -605,7 +605,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 args.Add(new BoundCallArg(CobolPassMode.Reference, null, null, Omitted: true));
             else if (a.literal() is { } bLit)
             {
-                // §2023:14.9.4.4 GR9 b) — BY VALUE is assumed when the corresponding formal is BY VALUE, and the
+                // §2023:14.9.4.4 GR9b — BY VALUE is assumed when the corresponding formal is BY VALUE, and the
                 // MODE is the mechanism, not a side effect of the copy-out (kb/Work PB238: this arm hard-coded
                 // Content and the VALUE outcome happened only because a Content literal has no storage to copy
                 // back to — right by accident, and it would not have survived a change to the copy-out).
@@ -676,7 +676,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // ⛔ ONE BOOLEAN VALUE CHANNEL for the CALL side, mirroring BoundInvokeArg.ContentBool exactly
         // (kb/Work PB46 landed the INVOKE half and left this one; PB238 closes it). §2023:14.9.4.3 SR17 makes every
         // identifier inside boolean-expression-1 a SENDING operand, and a boolean expression evaluates to a
-        // '0'/'1' bit-string VALUE (§2023:8.8.2) whose length is fixed by §2023:8.8.2 rule 10 — it is neither an
+        // '0'/'1' bit-string VALUE (§2023:8.8.2) whose length is fixed by §2023:8.8.2 GR10 — it is neither an
         // algebraic value nor a storage reference, so it is its own channel rather than a spelling of the
         // arithmetic one. BY CONTENT by construction: an expression has no storage to write back to.
         BoundCallArg BooleanContentArg(Core.BooleanExpressionContext bx)
@@ -700,7 +700,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             OperandArg(ExpressionOperand(ax), argMode);
 
 
-        // §2023:14.9.4.4 GR9 b) for an arithmetic-expression-1 as for a literal-2: "When the BY VALUE phrase is specified or
+        // §2023:14.9.4.4 GR9b for an arithmetic-expression-1 as for a literal-2: "When the BY VALUE phrase is specified or
         // implied for the corresponding formal parameter, BY VALUE is assumed" (the BY VALUE brace prints
         // arithmetic-expression-1). It was hard-coded BY CONTENT, so `USING (7)` against a BY VALUE formal drew
         // §2023:14.9.4.3 SR19's mode mismatch (COBOL1687) on conforming source. SR22 then screens the value's class.
@@ -766,7 +766,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 
         // §2023:14.8.2.1 + §2023:14.9.4.3 SR24 (kb/Work PB133 wave C, generalized by PB237): with the Format-2 callee's
         // formals known at BIND time — from the AS NESTED containment table or from the program prototype's
-        // §2023:12.3.8.4 GR10 a) definition — the argument COUNT (equality, except trailing OPTIONAL formals omitted)
+        // §2023:12.3.8.4 GR10a definition — the argument COUNT (equality, except trailing OPTIONAL formals omitted)
         // and each written OMITTED's OPTIONAL correspondence are compile-time checks — the design doc's "or
         // diagnostic" lane; the dynamic Format-1 count check (EC-PROGRAM-ARG-MISMATCH at activation) rides wave C2.
         if (calleeFormals is not null)
@@ -841,14 +841,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         }
         // §2023:14.9.4.3 SR25 → §2023:14.8.3, RETURNING ITEMS — the half that had NO home at all (kb/Work PB204). SR25
         // makes §2023:14.8.3's rules apply to a Format-2 CALL, and wherever the callee's PD header is bound — the
-        // AS NESTED containment table, or a program prototype's §2023:12.3.8.4 GR10 a) definition (PB237) —
+        // AS NESTED containment table, or a program prototype's §2023:12.3.8.4 GR10a definition (PB237) —
         // §2023:14.8.3.1's "if and only if" and §2023:14.8.3.2/§2023:14.8.3.3's description rules are compile-time facts
         // rather than the run-time EC-PROGRAM-ARG-MISMATCH a dynamically-resolved callee would need. THE SAME
         // comparator the USING loop and INVOKE use, so the three can never drift.
         // §2023:14.8.3.1: "The returning item in the activated element is the sending operand, the corresponding
         // returning item in the activating element is the receiving operand" — hence the callee's item is
         // parameter 1, which is also what the §2023:14.8.3.3 rule-4/5 ANY LENGTH relaxation keys on. No prefix
-        // latitude: §2023:14.8.3.2 asks for "the same length", not §2023:14.8.2.2 rule 1's "same or smaller".
+        // latitude: §2023:14.8.3.2 asks for "the same length", not §2023:14.8.2.2 SR1's "same or smaller".
         if (callee is { } calleeSig)
         {
             if ((returning is null) != (calleeSig.Returning is null))
@@ -885,14 +885,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // (CallOnOverflowRemoved2023) moved to the post-bind VersionConformancePass (Step 14d), reading the flag.
         // ⛔ A CALL WHOSE ACTIVATED PROGRAM THIS GROUP DOES NOT COMPILE (a dynamic Format-1 CALL; a §2023:12.3.8.4 GR10 b) / c)
         // prototype; a pointer target) has §2023:14.8.2 / §2023:14.8.3 asked at run time against the program actually activated
-        // (§2023:14.9.4.4 GR3 d); kb/Work PB165, PB2103): each operand's description rides its CobolArg when the site checks
+        // (§2023:14.9.4.4 GR3d; kb/Work PB165, PB2103): each operand's description rides its CobolArg when the site checks
         // EC-PROGRAM-ARG-MISMATCH — whether or not a signature was also checked here, because the callee may have been
         // recompiled since (DESIGN-external-repository §4.2).
         if (!calleeCompiledHere)
             for (int i = 0; i < args.Count; i++)
                 args[i] = Described(host, ctx.Symbols, args[i]);
         // The CALL's receivers -- each BY REFERENCE argument and the RETURNING item -- are identified at its start
-        // (§2023:14.9.4.4 GR3 a)) and stored at the return, before either EXCEPTION phrase runs: CallEmitter places an
+        // (§2023:14.9.4.4 GR3a) and stored at the return, before either EXCEPTION phrase runs: CallEmitter places an
         // object-property receiver's accessors there (kb/Work PB2078).
         ctx.Data.Procedure.ClaimInterleavedReceiver(BoundCallProgram.Receivers(args, returning));
         return new BoundCallProgram(literalName, dynamicName, args, returning, onExc, notOnExc)
@@ -905,7 +905,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         };
     }
 
-    /// <summary>⛔ ONE ARGUMENT, DESCRIBED FOR §2023:14.9.4.4 GR3 d)'s RUN-TIME CHECK (kb/Work PB165, PB2103): <paramref name="arg"/>
+    /// <summary>⛔ ONE ARGUMENT, DESCRIBED FOR §2023:14.9.4.4 GR3d's RUN-TIME CHECK (kb/Work PB165, PB2103): <paramref name="arg"/>
     /// with its §2023:14.8.2 description (<see cref="ActivationDescriptions.OfCallArgument"/>, the builder a universal INVOKE's
     /// operands take; a program-address-identifier described by its prototype's restriction, through the
     /// element's prototype table, <paramref name="symbols"/>). The CALL statement and the user-defined function reference
@@ -950,7 +950,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The predefined NULL an argument writes as its operand, in any of the four places the grammar lets an
     /// argument carry one: BY REFERENCE <c>NULL</c>, and the operand ConditionBinder.ReduceArgument reduces BY CONTENT,
-    /// BY VALUE and the bare argument to (§2023:8.4.3.10.3 SR1 a); a NULL that reached the boolean node is still the
+    /// BY VALUE and the bare argument to (§2023:8.4.3.10.3 SR1a); a NULL that reached the boolean node is still the
     /// literal). Null = the argument writes no NULL. One reader, so the edition verdict
     /// (<see cref="UnreservedKeywordReference"/>) is asked once per argument, not once per arm (kb/Work PB4155).</summary>
     private static Core.PredefinedNullContext? NullSpellingOf(Core.CallArgumentContext a, ConditionBinder.ArgumentOperand bare)
@@ -1110,7 +1110,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // (§2023:13.18.60.3 SR19 / §2023:13.18.60.4 GR25, PicInfo.RestrictedPrototypeName) against the AS phrase's,
             // through the ONE signature comparator and the ONE name-to-signature reader the SET
             // program-pointer pairs spend. An unrestricted pointer has no prototype to disagree with; a
-            // prototype whose details are the external repository's (§2023:12.3.8.4 GR10 c)) has that entry's
+            // prototype whose details are the external repository's (§2023:12.3.8.4 GR10c) has that entry's
             // signature (DESIGN-external-repository §8.2), and so is compared as any other.
             if (prototype is { } named && pointerPic.RestrictedPrototypeName is { } held
                 && StatementBinder.SignaturesDiffer(ctx.Symbols.ProgramSignatureOf(pointer), named.Signature))
@@ -1157,7 +1157,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// unless class is specifically indicated" — makes that the CATEGORY, the reading <see cref="ItemCategory"/> holds
     /// for every rule so worded (ASSIGN USING, the record keys, SET … ADDRESS OF PROGRAM). The screen asked the class
     /// lattice instead (<c>IntrinsicArgumentRules.ClassOf</c>), whose answer for a strongly-typed group is
-    /// ALPHANUMERIC — §2023:15.3 item 2's reading of a function ARGUMENT, not the group's own class, which §2023:8.5.2.1 makes
+    /// ALPHANUMERIC — §2023:15.3 AR2's reading of a function ARGUMENT, not the group's own class, which §2023:8.5.2.1 makes
     /// its type-name — so a strongly-typed group (and a variable-length one, which §2023:13.18.29.4 GR3 excludes from the
     /// alphanumeric group items) was accepted and its character image read as a program-name at run time.
     /// <para>⚠ An operand whose class is not statically decidable (a recovery profile for an entry whose PICTURE was
@@ -1295,7 +1295,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // production of its own because it is spelled exactly like identifier-1, so the discrimination is
                 // semantic and takes the SAME order the CALL twin takes: Probe the data reference first (Probe,
                 // not Resolve — an unresolved Probe reports nothing), and only a word that is NOT a data item is
-                // read as a prototype. §2023:14.9.5.4 GR1 c) then makes the prototype the identification of the program
+                // read as a prototype. §2023:14.9.5.4 GR1c then makes the prototype the identification of the program
                 // to be canceled, and §2023:12.3.8.4 GR10 NOTE 1 says which name that is — literal-3 if the specifier
                 // wrote AS, otherwise the prototype name. A prototype cancel is therefore a STATIC-name cancel,
                 // the same bound shape literal-1 produces (GR1 b)); the run-time locate is GR2's. Below the edition that
@@ -1467,7 +1467,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// <list type="bullet">
     /// <item>A numeric literal.</item>
     /// <item>The figurative ZERO without ALL. It is a numeric literal wherever a literal is restricted to numeric
-    /// (§2023:8.3.3.6.3 SR1 a), <see cref="ExpressionBinder.IsNumericRestrictedZero"/>). <c>ALL ZERO</c> is not one:
+    /// (§2023:8.3.3.6.3 SR1a, <see cref="ExpressionBinder.IsNumericRestrictedZero"/>). <c>ALL ZERO</c> is not one:
     /// the former <c>zeroWord() is not null</c> test admitted it.</item>
     /// <item>NULL, which is not literal-2 at all (kb/Work PB1630). §2023:8.4.3.1.2 makes it an IDENTIFIER (Format 8,
     /// predefined-address; Format 6, predefined-object) of class pointer (§2023:8.4.3.10.1) or object (§2023:8.4.3.7.3
@@ -1511,7 +1511,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// constant-name is literal-2 by substitution (§2023:13.10.4 GR1) with the SUBSTITUTED literal's class and category
     /// (GR2), so SR23 is a question about that literal and never about the name (§2023:13.10.3 SR2 is the admission — a
     /// constant-name "may be used anywhere that a format specifies a literal of [its] class and category"); a
-    /// symbolic-character is a figurative constant other than ZERO, the only one §2023:8.3.3.6.3 SR1 a) admits where a
+    /// symbolic-character is a figurative constant other than ZERO, the only one §2023:8.3.3.6.3 SR1a admits where a
     /// literal is restricted to numeric, so it never satisfies SR23.</summary>
     private void Sr23AliasIsNumeric(ExpressionBinder.LiteralAlias alias, string subject)
     {

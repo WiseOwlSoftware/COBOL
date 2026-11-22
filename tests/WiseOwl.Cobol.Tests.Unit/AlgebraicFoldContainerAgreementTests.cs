@@ -110,7 +110,7 @@ public sealed class AlgebraicFoldContainerAgreementTests
         Assert.True(CobolNum.TryStore((Int128)lowest, 0, prof, CobolRounding.Truncation, out _));
         if (lowest - 1 >= (BigInteger)Int128.MinValue)
         {
-            // ⚠ An UNSIGNED receiver's TryStore applies the §2023:14.9.25.4 GR6d2b magnitude rule, so −1 stores
+            // ⚠ An UNSIGNED receiver's TryStore applies the §2023:14.9.25.4 GR6d.2.b magnitude rule, so −1 stores
             // as 1 (in range): the "one below zero rejects" leg exists only for a SIGNED container.
             if (signed)
                 Assert.False(CobolNum.TryStore((Int128)(lowest - 1), 0, prof, CobolRounding.Truncation, out _));

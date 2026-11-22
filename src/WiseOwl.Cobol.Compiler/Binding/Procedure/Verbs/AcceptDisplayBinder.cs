@@ -305,7 +305,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
                 continue;
             }
             // The operand-class gate (kb/Work PB148) — every operand shape, literals and intrinsic results
-            // included (FUNCTION MAX(IX1 IX2) is class index per §2023:15.2 item 6).
+            // included (FUNCTION MAX(IX1 IX2) is class index per §2023:15.2 GR6).
             if (host.Expr.ScreenOperandClass(op, DisplayExcludedClasses, text, "DISPLAY", DisplayClassCite()))
             {
                 ops.Add(BoundOperandError.Refused(ctx.Edition, $"DISPLAY operand '{text}' of an excluded class"));

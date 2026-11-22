@@ -185,10 +185,10 @@ The old boolean triad is replaced by pure functions on the item's form (or cache
 
 #### 2.1.1 The sign of a zero result before 2014: the sending operand's sign, held by the image (kb/Work PB5852)
 
-**The rule, by each edition's own text.** §1985:VI.6.19.4 GR4b1 and §2002:14.8.24.3 GR4b1 say the same sentence: "When a
+**The rule, by each edition's own text.** §1985:VI.6.19.4 GR4b.1 and §2002:14.8.24.3 GR4b.1 say the same sentence: "When a
 signed numeric item is the receiving item, the sign of the sending operand is placed in the receiving item." It names the
 OPERAND, so `MOVE -100 TO S99` stores a NEGATIVE zero (`-00` under SIGN LEADING SEPARATE, `00-` trailing, the negative
-over-punch of a plain `S99`): the digits truncate, the sign does not. §2014:14.9.24.3 GR6d2a and §2023:14.9.25.4 GR6d.2.a
+over-punch of a plain `S99`): the digits truncate, the sign does not. §2014:14.9.24.3 GR6d.2.a and §2023:14.9.25.4 GR6d.2.a
 say instead that "the sign of the numeric value shall be represented in the receiving operand", and the value after
 alignment and truncation is zero, which has no negative form (D-EDIT-SIGN-ZERO). The boundary is therefore 2014, and it is
 one `DialectBehavior` row (`MoveSignIsTheValuesSign`, VCR Table 7 row 7.85): from 2014 nothing here applies and nothing

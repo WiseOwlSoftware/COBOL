@@ -8,7 +8,7 @@
       *> PB4507 - ISO §2023:15.12.3 r1: "Argument-2 and argument-3 shall be positive nonzero numeric integer literals or data
       *> items with unequal values in the range 2 to 16." (cite.py --check 15.12.3 OK). §2023:8.4.3.2.4 r1: "A function-identifier
       *> references a temporary data item whose value is determined when the function is referenced at runtime." An integer
-      *> function (§2023:15.2 item 5) returns an integer data item, so a base may be one; an arithmetic expression stays barred
+      *> function (§2023:15.2 GR5) returns an integer data item, so a base may be one; an arithmetic expression stays barred
       *> (negative/pb2079-baseconvert-expression-base) and so does a numeric function that is not an integer function.
       *> The screen used to bar every nested function.
       *>

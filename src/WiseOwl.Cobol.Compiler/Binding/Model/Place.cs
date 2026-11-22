@@ -491,7 +491,7 @@ public sealed record NationalWindow(int Positions) : WindowCoding
         item is { IsElementary: true, Pic.Usage: Usage.National } ? item.ElementaryImageWidth : null;
 
     /// <summary>⛔ THE POSITION COUNT OF A MEMBER'S OWN WINDOW (kb/Work PB1653) — <see cref="PositionsOf"/> for an
-    /// elementary national item, and for a NATIONAL GROUP its as-if <c>PICTURE N(m)</c> length: §2023:13.18.29.4 GR2 b)
+    /// elementary national item, and for a NATIONAL GROUP its as-if <c>PICTURE N(m)</c> length: §2023:13.18.29.4 GR2b
     /// "a national group is treated as though it were an elementary data item of usage national and class and
     /// category national described with PICTURE N(m), where m is the length of the group". The window of a national
     /// group (<see cref="RedefViewPlace.For"/>) is therefore a NATIONAL window exactly as a bit group's is a bit
@@ -617,7 +617,7 @@ public sealed record DynSlotWindow(AccessPath Cell, Position Ordinal) : CellWind
 
 /// <summary>⛔ THE ONE MODEL OF A CELL-BACKED AREA'S VARIABLE-LENGTH COMPONENTS (kb/Work PB1026, PB1042). A component
 /// is a dynamic-length elementary item (<see cref="DynSlotWindow.CarriedBySlot"/>) or a dynamic-capacity table: ISO
-/// §2023:8.5.1.9.1 3) lets the table be "defined in any place, other than the file section, in which a fixed-capacity table
+/// §2023:8.5.1.9.1 SR3 lets the table be "defined in any place, other than the file section, in which a fixed-capacity table
 /// may be defined", so an EXTERNAL or ADDRESS-OF-taken record may hold one. Each rides its own managed slot of the
 /// cell (<c>StorageCell.DynAt</c> / <c>DynTableAt</c>), numbered in storage order with one slot per OCCURRENCE of
 /// every enclosing fixed table, and a table's elements are element cells that are a SCOPE of their own: the element's
@@ -809,7 +809,7 @@ public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasIte
 ///     specified by the value of [data-name-1] at the start of the operation will be used" — the group image
 ///     truncated to the current extent. SR22 (the subject may be followed within its record only by entries
 ///     subordinate to it) guarantees the table is the TRAILING storage, so the current extent is a character PREFIX
-///     of the maximum image; a zero count with no preceding fixed part is the zero-length item of §2023:8.5.4 item 1.</item>
+///     of the maximum image; a zero count with no preceding fixed part is the zero-length item of §2023:8.5.4 GR1.</item>
 ///   <item><b>Receiving, data-name-1 outside the group</b> (GR8a): the same current extent — character positions
 ///     past it are NOT modified; the stored prefix is spliced over the live image.</item>
 ///   <item><b>Receiving, data-name-1 inside the group</b> (GR8b): "the maximum length of the group will be used"
@@ -1179,7 +1179,7 @@ public sealed record ExceptionObjectPlace(DataItem RegisterItem) : Place
 /// <paramref name="Start"/>/<paramref name="Length"/> are typed <see cref="Position"/>s (kb/Work PB2151), the SAME
 /// carrier <see cref="RefModPlace"/> holds, rendered only by the code generator.
 /// </summary>
-/// <param name="Start">The leftmost position (§2023:8.4.3.3.4 item 5b).</param>
+/// <param name="Start">The leftmost position (§2023:8.4.3.3.4 GR5b).</param>
 /// <param name="Length">The length, or <see langword="null"/> for the omitted "to the end" form (§2023:8.4.3.3.4 item
 /// 5c).</param>
 /// <param name="AllowZeroLength">The REF-MOD-ZERO-LENGTH directive (ISO §2023:7.3.23) is ON at this ref-mod's source
@@ -1196,7 +1196,7 @@ public readonly record struct RefModSpec(Position Start, Position? Length, bool 
 public sealed record RefModPlace(Place Inner, Position Start, Position? Length) : PlaceDecorator(Inner)
 {
     /// <summary>The REF-MOD-ZERO-LENGTH directive (ISO §2023:7.3.23) is ON at this ref-mod's source line — a zero-length
-    /// result is ALLOWED (no EC-BOUND-REF-MOD raise, §2023:8.4.3.3.4 item 5c). The directive's GR default is OFF, so this
+    /// result is ALLOWED (no EC-BOUND-REF-MOD raise, §2023:8.4.3.3.4 GR5c). The directive's GR default is OFF, so this
     /// is <see langword="false"/> for every ref-mod outside a <c>&gt;&gt;REF-MOD-ZERO-LENGTH ON</c> region — an
     /// init-only property (not a positional member) so existing deconstructions/constructions stay untouched.</summary>
     public bool AllowZeroLength { get; init; }
@@ -1335,7 +1335,7 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
 
     /// <summary>The storage width, in BITS, of ONE position <see cref="PositionCount"/> counts — the unit a
     /// reference modifier's leftmost position is multiplied by to reach a byte displacement (kb/Work PB1407): 1 for
-    /// a bit position (§2023:8.4.3.3.4 GR5 a), 16 for a national character (D-N1: two bytes, UTF-16BE) and 8 for every
+    /// a bit position (§2023:8.4.3.3.4 GR5a), 16 for a national character (D-N1: two bytes, UTF-16BE) and 8 for every
     /// other character position. It reads the same <see cref="DataItem.OperandPic"/> discriminant
     /// <see cref="PositionCount"/> does, so the two cannot disagree about what a position is.</summary>
     public static int PositionBits(DataItem inner) => inner.OperandPic switch
@@ -1350,11 +1350,11 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
 
     /// <summary>⛔ <b>THE MOST POSITIONS identifier-1 can have</b> — the bound every slice of it lies within, which is
     /// the capacity §2023:14.9.25.4 GR1's intermediate result item needs (<c>SendingValueTemp.OfPlace</c>) and the maximum
-    /// extent §2023:14.8.2.2 rule 1 measures a run-time-length slice by (<c>ActivationDescriptions.OfReferenceModification</c>,
+    /// extent §2023:14.8.2.2 SR1 measures a run-time-length slice by (<c>ActivationDescriptions.OfReferenceModification</c>,
     /// docs/CONFORMANCE.md D-RM1 a)). It is identifier-1's <see cref="PositionCount"/> for every item whose description
     /// fixes a bound: its static count, or for a DYNAMIC LENGTH item its §2023:8.5.1.10.1 maximum size (it "is smallest of": "the
     /// value declared in the LIMIT phrase", …, "the maximum permitted by the implementor"), of which a reference-modified one's
-    /// current length (§2023:8.5.1.10.4) is never more. An ANY LENGTH item's description fixes none: §2023:13.18.2.4 GR1 b) gives it
+    /// current length (§2023:8.5.1.10.4) is never more. An ANY LENGTH item's description fixes none: §2023:13.18.2.4 GR1b gives it
     /// "n repetitions of the picture symbol … where n is the length of the corresponding argument", so its bound is the
     /// largest character string the run time holds, <see cref="WiseOwl.Cobol.Runtime.CobolDynString.MaxLength"/> (the
     /// carrier's own ceiling, the implementor maximum a dynamic-length item without a LIMIT takes). ⛔ Never
@@ -1366,7 +1366,7 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
 
     /// <summary>identifier-1's positions when its length is a COMPILE-TIME quantity — the <c>innerLength</c> a static
     /// reader passes to <see cref="StaticLength"/> — or null for an ANY LENGTH or DYNAMIC LENGTH identifier-1, whose
-    /// length is a run-time value (§2023:13.18.2.4 GR1 b); §2023:8.5.1.10.4); a reader that needs a bound for those asks
+    /// length is a run-time value (§2023:13.18.2.4 GR1b; §2023:8.5.1.10.4); a reader that needs a bound for those asks
     /// <see cref="MaximumInnerPositions"/>. ⛔ A GROUP'S length is static too: reading it through
     /// <see cref="DataItem.OperandPic"/>, which an alphanumeric group lacks, measured <c>G(3:)</c> as a run-time slice
     /// and every slice of a group as zero positions (kb/Work PB2077 review R1-1).</summary>

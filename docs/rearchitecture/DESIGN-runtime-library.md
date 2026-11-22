@@ -250,7 +250,7 @@ public sealed class FileRegistry { … Register/Open/Close/Read/Write/Status/Clo
 ```
 **One presence probe, three answers (`HostFile.Probe` → `FilePresence`, in `IO/FileSupport.cs`).** "Is the
 physical file there?" is asked in exactly ONE place in the runtime, and its answer has **three** states —
-`Absent` · `Present` · `Unauthorized` — because the standard prices two of them differently: §2023:9.1.13.6 item 5
+`Absent` · `Present` · `Unauthorized` — because the standard prices two of them differently: §2023:9.1.13.6 GR5
 sets '35' when *"the physical file is not present"*, while §2023:14.9.27.4 GR3 sets '37' when *"the file … is present
 and insufficient authority exists to open the file"*. `File.Exists` cannot express that — it swallows every
 access error and answers `false` — so it is **banned** everywhere under `Runtime/IO` (drift-guarded by
@@ -425,7 +425,7 @@ mode (`ImplementorDefaultSharing(mode, edition)`) is ALL OTHER — §2023:9.1.15
 the one that restricts nobody, whose host share mode (`FileShare.ReadWrite`) admits every sibling handle of the run unit in every open
 mode; `FileConnector.Open` takes no `RunUnitFileLock` (a column lock would refuse an in-process sibling like any other holder: the
 OFD and handle locks do not know a process's own descriptors), and a host refusal by a process outside the run unit answers `'30'`
-(§2023:9.1.13.6 item 1), because `'61'` is a status the 1985 edition does not define. Every pair of opens is therefore a normal open, and
+(§2023:9.1.13.6 GR1), because `'61'` is a status the 1985 edition does not define. Every pair of opens is therefore a normal open, and
 the engines meet the states Table 19 used to keep out: a keyed `OPEN OUTPUT` beside connectors that hold the file creates the new store
 and `StoreTable.AttachCreated(…, arbitrated: false)` makes it the path's (the holders keep the store they have; what they find in the file
 is the engine's own word, an at-end `'10'` for a created file with no records, §2023:14.9.27.4 GR18). From 2002 the guard of PB754 stays loud
@@ -715,7 +715,7 @@ to carry what the run units tell each other. Three pieces do it, and each lives 
   run unit, PB833), so it runs the same statement path without the mutex and without the page-2 read. Every page is read
   and written POSITIONALLY through a connector's own handle, one page per call (`Store.HandlePageMedium`), never through
   the `FileStream`'s buffer, which would hand back a page another run unit has replaced; a page write or a sync the
-  medium refuses is the statement's own §2023:9.1.13.6 item 1 `30`, and nothing is deferred to the CLOSE.
+  medium refuses is the statement's own §2023:9.1.13.6 GR1 `30`, and nothing is deferred to the CLOSE.
   `WholeStoreBanDriftTests` keeps every whole-file read and write out of `Runtime/IO`.
 - **Published RECORD LOCKS (`PhysicalFileTable.LockRecord` / `HolderOf`, `HostRegionLocks.RecordLockByte`).** Every
   lock the run unit grants through a connector that has `RecordLocks` (the keyed organizations) is also held
@@ -985,7 +985,7 @@ after any later crash.)
    file, its HOLDINGS (decision 7).
 6. **The boundary of a relative or indexed file is the host's** (2.2.1.9): a WRITE or REWRITE answers '24' only when the
    record would take the store past the format's 2^32 pages or past a maximum file size the host REPORTS (`EFBIG`,
-   `ERROR_FILE_TOO_LARGE`); a DELETE that meets it answers §2023:9.1.13.6 item 1's '30' with no invalid key condition — item 4's '24' is an attempt to WRITE outside the boundaries, and §2023:14.9.10.4 GR3 and GR4 give a DELETE the invalid key condition only when the file does not contain the record (its tree and ledger rewrite can need a growth page); a medium that is full answers §2023:9.1.13.6 item 1's '30' at the STATEMENT, with the file as the
+   `ERROR_FILE_TOO_LARGE`); a DELETE that meets it answers §2023:9.1.13.6 GR1's '30' with no invalid key condition — item 4's '24' is an attempt to WRITE outside the boundaries, and §2023:14.9.10.4 GR3 and GR4 give a DELETE the invalid key condition only when the file does not contain the record (its tree and ledger rewrite can need a growth page); a medium that is full answers §2023:9.1.13.6 GR1's '30' at the STATEMENT, with the file as the
    previous statement left it, never at a later CLOSE.
 7. **APPLY COMMIT, COMMIT and ROLLBACK are per-run-unit TRANSACTIONS with record-level before-images kept in the file**
    (2.2.1.10): a COMMIT is a promotion whose one durable write — the slot write and the sync that acknowledges it — carries
@@ -1298,7 +1298,7 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
 - **R3 — every POINTER is STAMPED with the generation of the write it names, and a read through a pointer verifies the page:
   its checksum, its `self`, and its generation equal to the stamp.** A page that is torn, lost (the medium shows an older
   version of the same page number, which a released-then-reused page makes possible) or stale is therefore recognized at the
-  moment it is read, in every statement and not only at OPEN, and answered as §2023:9.1.13.6 item 1's '30'. Stamping is what lets
+  moment it is read, in every statement and not only at OPEN, and answered as §2023:9.1.13.6 GR1's '30'. Stamping is what lets
   R6's verification trust the ledger's own pages and what makes a reused page safe. **Its corollary, which the stamp needs to
   mean anything: no (page, generation) pair is ever written twice in a file's history** (finding R2-2). Within one history a
   generation belongs to one statement ATTEMPT — the attempt CLAIMS it before its first page write, in the store's memory
@@ -1354,7 +1354,7 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
   names it and `committing` is a transaction t: the promotion was a COMMIT that did not land, and the statement UNWINDS
   it — page 2 := the same content with PROMOTING clear and `committing` 0, nothing else written — so that t is an ordinary
   active transaction again, intact with its UNDO tree and its holdings: its owner, alive, was told the COMMIT failed and is
-  rolling back (§2023:14.6.13.1.3 item 8) or retrying; dead, it is rolled back by the dead-owner step, which runs next. Only
+  rolling back (§2023:14.6.13.1.3 GR8) or retrying; dead, it is rolled back by the dead-owner step, which runs next. Only
   then does the statement proceed with its own work. R6 needs no flag: it classifies the same states by base and
   generation (a DESCENDANT whose promotion never reached a slot, or the PROMOTION SOURCE), and its fence applies the same
   rule to `committing` (step 4).
@@ -1388,7 +1388,7 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
   run unit attaches to the open store, 2.2.1.7, and runs none of this). Read pages 0, 1 and 2 (three reads; the whole of what
   an OPEN reads besides the verification below) and validate each checksum; then:
   1. the COMMITTED meta C is the valid committed slot with the higher generation G; if neither validates, the OPEN is
-     unsuccessful with '30' (§2023:9.1.13.6 item 1): the file is damaged beyond what the format can repair, and nothing is written;
+     unsuccessful with '30' (§2023:9.1.13.6 GR1): the file is damaged beyond what the format can repair, and nothing is written;
   2. the WORK slot W is classified by its base (`committed generation`) and its generation against G:
      - a DESCENDANT: W validates and its base equals G — the last completed statement of the history built on C;
      - the PROMOTION SOURCE: W validates, its base is below G and its generation equals G — the promotion copied W into C and
@@ -1470,7 +1470,7 @@ their places; what each does changes:
   completed, and leaves a reader on the tree it holds, since nothing it can follow moved. The READER is the entry, not
   the store: an INPUT connector's statement entering the writable store its run unit's I-O sibling opened holds the mutex
   shared and writes nothing, so it keeps the tree it holds and answers as another run unit's reader would, and the
-  sibling's next statement, an exclusive entry, answers the '30' (§2023:9.1.13.6 item 1). A page 2 the medium refuses to READ
+  sibling's next statement, an exclusive entry, answers the '30' (§2023:9.1.13.6 GR1). A page 2 the medium refuses to READ
   is '30' to either (2.2.1.16's refused READ row). *Measured (PB3335 review lead R1-L1;
   `StoreCoherenceTests.An_input_readers_entry_beside_its_writable_sibling_keeps_its_tree_over_a_torn_page_2` and
   `..._answers_30_to_a_refused_page_2_read`).* — and
@@ -1617,9 +1617,9 @@ bytes (16 TiB). A WRITE or REWRITE whose record would take the store past that b
 (§2023:14.9.51.4 GR33b relative, GR42 d) indexed; the invalid key condition exists, the INVALID KEY phrase runs, no record is
 released and the file is unchanged); the host's answer that the file cannot grow further (`EFBIG`, `ERROR_FILE_TOO_LARGE`) is the
 same boundary. The '24' is a record WRITE's or REWRITE's alone: a DELETE, an OPEN or a CLOSE whose pages meet the boundary
-answers §2023:9.1.13.6 item 1's '30', since §2023:9.1.13.5 item 4's condition is an attempt to write a record outside the boundaries and
+answers §2023:9.1.13.6 GR1's '30', since §2023:9.1.13.5 GR4's condition is an attempt to write a record outside the boundaries and
 §2023:14.9.10.4 gives DELETE none. A medium with no room for the statement's pages (`ENOSPC`, `EDQUOT`, `ERROR_DISK_FULL`, `ERROR_HANDLE_DISK_FULL`,
-`ERROR_DISK_QUOTA_EXCEEDED`) makes THAT statement unsuccessful with §2023:9.1.13.6 item 1's '30' and leaves the file as the previous
+`ERROR_DISK_QUOTA_EXCEEDED`) makes THAT statement unsuccessful with §2023:9.1.13.6 GR1's '30' and leaves the file as the previous
 statement left it; nothing is deferred to the CLOSE. A record's own size is bounded by the host, not the format (overflow pages).
 The relative key's own range is separate: a key less than 1 or greater than 2 147 483 647 (the highest relative record number
 permitted) answers '34' from 2014 (§2023:14.9.51.4 GR29 b, first in §2014:14.9.47.3 GR26b; below 2014 the same attempt is the write beyond the boundaries, '24': `DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError`, kb/Work PB5125), and a sequential-access release whose number has more digits than the relative
@@ -1629,13 +1629,13 @@ an escaping exception: a changing statement takes its RESERVATION before its cla
 further" as `MediumSizeLimitException` (`HandlePageMedium.Write`, asked of `HostFile.IsFileSizeLimit` — the narrower half of
 the sequential boundary's `HostFile.IsMediumBoundary`, the one place both read the host's codes), which a changing statement's
 refused write answers as the boundary while every other refusal stays '30'. The page layer does not know which statement it
-serves, so the CONNECTOR answers the boundary by the statement: a WRITE or REWRITE '24' with the invalid key condition, and a DELETE that meets it answers §2023:9.1.13.6 item 1's '30' with no invalid key condition — item 4's '24' is an attempt to WRITE outside the boundaries, and §2023:14.9.10.4 GR3 and GR4 give a DELETE the invalid key condition only when the file does not contain the record. A promotion, a CLOSE and an OPEN have no '24': at
+serves, so the CONNECTOR answers the boundary by the statement: a WRITE or REWRITE '24' with the invalid key condition, and a DELETE that meets it answers §2023:9.1.13.6 GR1's '30' with no invalid key condition — item 4's '24' is an attempt to WRITE outside the boundaries, and §2023:14.9.10.4 GR3 and GR4 give a DELETE the invalid key condition only when the file does not contain the record. A promotion, a CLOSE and an OPEN have no '24': at
 either boundary they answer '30'. The mapping is written once for both organizations, `KeyedConnector.RecordWriteFailed`
 (a record WRITE or REWRITE) beside `KeyedConnector.Failed` (every other statement). *The two arms of the boundary (PB3334 review, kb/Work PB3396):* a changing statement and a retirement reserve the same
 BOUND (R2: `Ledger.WriteBound`, an upper bound of the ledger pages the write takes, a few pages even for an empty ledger),
 and the format's last page treats it differently. A statement's boundary is its RESERVATION (`BoundaryAt.Reservation`): a
 bound that would grow the file past 2^32 pages is refused before the claim, the implementor's definition of the
-externally-defined boundary §2023:9.1.13.5 item 4 leaves to it, so a WRITE a few pages short of the end may answer '24' although
+externally-defined boundary §2023:9.1.13.5 GR4 leaves to it, so a WRITE a few pages short of the end may answer '24' although
 it would have fitted. A RETIREMENT (an `OPEN I-O` fence, a promotion at a CLOSE, at the generation ceiling or at the ledger
 checkpoint) has no '24' and its claim is already taken, so its boundary is the PAGE (`BoundaryAt.Take`): the pages of its
 reservation past the format's last are `PageOrigin.Beyond`, carry no page number, and the retirement is refused ('30', the
@@ -1738,7 +1738,7 @@ have the effect of a CONTINUE statement (§2023:14.9.7.4 GR1 / §2023:14.9.36.4 
   **(1) Refused BEFORE the slot write** — the claim, sync 1, or the slot write itself refused by the host: the slot carries
   nothing and the transaction is exactly as it was — the claim is unwound by R5's restart rule, at the next entry of any
   connector, this run unit's ROLLBACK included — the COMMIT is unsuccessful, which for a file under an active APPLY COMMIT
-  is §2023:14.6.13.1.3 item 8's fatal condition, *"a ROLLBACK statement is executed unconditionally"*, and that ROLLBACK
+  is §2023:14.6.13.1.3 GR8's fatal condition, *"a ROLLBACK statement is executed unconditionally"*, and that ROLLBACK
   restores from the intact UNDO tree; every state the medium can later show agrees, since every durable slot carries the
   entry and the fence rolls it back. **(2) The slot write handed to the operating environment and sync 2 LANDED:**
   committed, whatever becomes of the retirement — a dead or refused retirement is completed by the next entry, whose
@@ -1906,7 +1906,7 @@ have the effect of a CONTINUE statement (§2023:14.9.7.4 GR1 / §2023:14.9.36.4 
   to run concurrently"*.
 - **Abnormal termination** (§2023:9.1.18.5: *"When a run unit terminates abnormally, all file changes made since the previous commit
   or, if none, the beginning of the run unit are rolled back for all files for which there are active APPLY COMMIT clauses."*)
-  is two mechanisms. Where the runtime still runs — a fatal exception condition (§2023:14.6.13.1.3 item 8: *"if there is a fatal
+  is two mechanisms. Where the runtime still runs — a fatal exception condition (§2023:14.6.13.1.3 GR8: *"if there is a fatal
   exception condition for a file subject to an active APPLY COMMIT clause, then a ROLLBACK statement is executed
   unconditionally"*) and §2023:14.6.12's termination path (*"If commit and rollback is in effect, a rollback is executed. This
   rollback differs from user specified rollbacks in that only files and not any of the data items"* are restored) — the
@@ -2155,7 +2155,7 @@ have the effect of a CONTINUE statement (§2023:14.9.7.4 GR1 / §2023:14.9.36.4 
   it is not: the creation landed; the final sync was refused after the truncation (nothing left to undo); or the medium refused
   the UNDO as well (review finding R1-1) - the commit slot then holds the empty meta at N, so R6 adopts the empty store at every
   later OPEN, and a kept transaction would stand over a store the file no longer holds and its COMMIT would promote it beside
-  that slot and answer success. In those two refusals the OPEN answers '30' (§2023:9.1.13.6 item 1) and the kept state ends with the
+  that slot and answer success. In those two refusals the OPEN answers '30' (§2023:9.1.13.6 GR1) and the kept state ends with the
   previous file. The undo goes on past a refused page, so the commit slot is the previous file's again wherever the medium lets it
   be (2.2.1.16's row). The same decision
   stands where the kept file is not there at the re-OPEN (an absent OPTIONAL file on INPUT or I-O, removed outside the run unit): the
@@ -2234,7 +2234,7 @@ have the effect of a CONTINUE statement (§2023:14.9.7.4 GR1 / §2023:14.9.36.4 
   lock posture; kb/Work PB3541): the file's later changes are no ROLLBACK's and item 8 no longer applies to it. COMMIT and ROLLBACK
   are run-unit calls (`CobolFile.Commit` / `Rollback`, named by their full name, since a statement's element need
   describe no file); a refused file is answered by name with '30' in its status, stored into the FILE STATUS item by
-  the element that describes it, and handed to that file's exception processing. §2023:14.6.13.1.3 item 8's ROLLBACK is ONE
+  the element that describes it, and handed to that file's exception processing. §2023:14.6.13.1.3 GR8's ROLLBACK is ONE
   rule (`SequentialIoEmitter.Item8Applies`, kb/Work PB3542-PB3544), which every hook arm consumes: it is asked at the
   raise (`CobolFile.RollbackDueOnFatal`: checking for the raised condition not enabled, the status fatal, the file under
   commit control; asked before the declarative, whose own CLOSE would replace the status) and run after the declarative
@@ -2582,7 +2582,7 @@ of 2.2.1.12's matrix or of its R-tests; a row with none would be a design defect
 | | after sync 2, before any retirement page | as above, durable | as above | as above |
 | | during the retirement, before its page 2 | retirement pages on no-slot pages, stamped with its claim | next writer: R5 restarted — the retirement claims above the dead claim and stamps its pages afresh; OPEN: the PROMOTION SOURCE, C adopted, its fence re-runs the retirement from C's ledger (whose own pages R4 kept, finding R3-2) | the promoted state is durable and whole; the retirement's pages were reached by nothing |
 | | after the retirement's page 2 (flag clear, base = the promotion) | complete; CLOSE's third sync may be unlanded (power loss: the retirement's few pages → the PROMOTION SOURCE, as above) | none / OPEN as above | — |
-| A CLOSE that owes no promotion (no statement completed since the store's last promotion, its OPEN's fence included; 2.2.1.7): ONE sync, no write, no read | before the sync / after it | nothing written; page 2 = the last promotion's retirement, untouched | nothing to do; OPEN: a DESCENDANT or C as the state was | nothing changed, so the last completed statement is what it was. A sync the host REFUSES is the CLOSE's '30' (§2023:9.1.13.6 item 1), never '00': the program must not believe a file durable that the host refused to flush (`PagedFileCrashMatrixTests`' `CloseUnchanged` path and `KeyedStoreReloadFailureDriftTests`' unchanged-CLOSE cases; kb/Work PB3382) |
+| A CLOSE that owes no promotion (no statement completed since the store's last promotion, its OPEN's fence included; 2.2.1.7): ONE sync, no write, no read | before the sync / after it | nothing written; page 2 = the last promotion's retirement, untouched | nothing to do; OPEN: a DESCENDANT or C as the state was | nothing changed, so the last completed statement is what it was. A sync the host REFUSES is the CLOSE's '30' (§2023:9.1.13.6 GR1), never '00': the program must not believe a file durable that the host refused to flush (`PagedFileCrashMatrixTests`' `CloseUnchanged` path and `KeyedStoreReloadFailureDriftTests`' unchanged-CLOSE cases; kb/Work PB3382) |
 | The fence (R6 step 4; a promotion of the ADOPTED meta at F) | the same six points | the claim rewrote page 2 to the adopted meta at F (C's content after a rejection), so page 2 no longer holds a rejected slot from the moment the fence began | the next OPEN: before the slot landed, a DESCENDANT of C with generation F (its `fresh` pages are C's own, present) and a fence at the same F (harmless when repeated; the retirement claims above the dead one's mint); after it, the PROMOTION SOURCE. A live INPUT reader adopts page 2 when its generation becomes F — the same tree it held | the fence changes no record; the superseded history's stamps lie below F (R2) and are never reissued |
 | COMMIT (2.2.1.10; round 4): the promotion with `committing` = t — the claim → sync 1 → the slot write → sync 2 → the retirement that removes t's entry and holdings → the byte and READ locks given back | before the claim | the entry, the UNDO tree and the holdings stand; the owner is dead (the byte free) | the dead-owner step (next writer or OPEN) rolls it back | the COMMIT never began; §2023:9.1.18.5's rollback applies |
 | | after the claim, before the slot write (before or after sync 1) | page 2 flagged with `committing` = t; the slots unchanged; the entry stands | next writer: the restart rule finds no slot naming page 2's generation and `committing` = t → UNWINDS the claim, then the dead-owner step rolls t back; OPEN: W is a DESCENDANT with the flag → the fence writes `committing` 0, step 5 rolls t back. Power loss: the same, or page 2 torn → FOREIGN → C (which carries the entry → rolled back) | the one durable write never happened, so the COMMIT is "not at all": the run unit never saw a result, and §2023:9.1.18.5's "rolled back" is the outcome |
@@ -2614,7 +2614,7 @@ slot (`committing`).
 | A changing statement (coherent), at its CLAIM write | nothing changed; page 2 = the previous statement; the memory's claim raised, wasted | '30' replayed, nothing touched · CLOSE: when a statement completed since the store's last promotion, promotes, its claim above the memory, and retires; when none did, only syncs (2.2.1.7), since the wasted claim reached no page; the condition ends either way · OPEN: the fence | its entry finds page 2 unchanged and claims from page 2; the wasted claim never reaches a page |
 | A changing statement (coherent), at a data, FREE-tree or ledger page | page 2 holds the claim (mints raised, roots unchanged); pages under the claim on no-slot pages; a drawn byte given back | '30' · CLOSE: when a statement completed since the store's last promotion, the promotion claims above (memory and page 2 agree); when none did, only syncs (2.2.1.7), and page 2's raised mints serve the next claim; the refused pages stay allocatable either way (the reservation never took effect) · OPEN: the fence | claims above `stamp mint` (finding R3-4); a first change draws above the claimed `transaction mint` (finding R4-2) |
 | A changing statement (NO OTHER), at any page | the memory's claim raised; page 2 unchanged | '30' · CLOSE: when a statement completed since the store's last promotion, the promotion claims above the memory and writes page 2 from it, so the retirement never re-stamps the refused pages (finding R4-3); when none did, only syncs (2.2.1.7): page 2 is that promotion's retirement, no retirement runs, and the next OPEN's fence lies above the refused pages' stamps (R2's ceiling), as after a death · OPEN: the fence | none exists |
-| A transaction's first change, at any page | as the row above; the byte given back; no entry, no holdings | '30' · the fatal condition's unconditional ROLLBACK (§2023:14.6.13.1.3 item 8) finds no transaction · CLOSE / OPEN as above | draws the next id from the claimed mint; a byte still held is skipped (finding R4-2) |
+| A transaction's first change, at any page | as the row above; the byte given back; no entry, no holdings | '30' · the fatal condition's unconditional ROLLBACK (§2023:14.6.13.1.3 GR8) finds no transaction · CLOSE / OPEN as above | draws the next id from the claimed mint; a byte still held is skipped (finding R4-2) |
 | ROLLBACK, at any page | the entry, the UNDO tree and the holdings stand; restored frames on no-slot pages | '30' · the unconditional ROLLBACK is refused again while the medium refuses, and the run unit terminates (item 8): the dead-owner step restores when the medium allows · CLOSE: promotes the state with the entry, keeps the handle · OPEN: R6 step 5 | its lock tests meet the holdings: '51' while the owner lives; rolled back at the test or the entry once it is dead |
 | COMMIT, at its claim, sync 1 or its slot write | the claim with `committing` = t may stand (flag set), the slot does not; the transaction intact; the COMMIT unsuccessful | the unconditional ROLLBACK: its entry unwinds the claim (no slot, `committing` = its own) and restores from the intact UNDO tree · CLOSE: its promotion's entry unwinds first · OPEN: a DESCENDANT with the flag → the fence writes `committing` 0; step 5 rolls t back if its owner is dead | its entry unwinds the claim (R5's restart rule) and proceeds; t stands, held by its live owner |
 | COMMIT, at sync 2 (UNACKNOWLEDGED; round 5, finding R5-1) | the slot in the operating environment (every live run unit reads it as C), the medium's state unknown; the COMMIT, still holding the mutex, REVERSES: the retirement-as-rollback statement, then a promotion of the reversed state | reversal landed and synced: the COMMIT answers '30', the unconditional ROLLBACK finds no transaction on the file, and every future reads the rollback · CLOSE and OPEN: ordinary. Reversal refused (a page write, or its promotion's sync): the file is MARKED; the COMMIT answers '30'; the unconditional ROLLBACK reverses again if the entry still stands under the flag, promotes page 2 as it stands and answers by the sync — '30' while it is refused, '00' once one lands, and '30' if the entry is gone without this run unit's doing; the termination path's rollback the same · OPEN: R6 finishes a landed COMMIT slot and rolls back anything else | sees nothing while the reversal runs (the mutex); after a refused reversal that left the flag beside the landed slot, its entry completes the COMMIT in the operating environment (it cannot tell), after which the owner's ROLLBACK answers '30' — unknown to the owner, settled by whoever next syncs |
@@ -2627,9 +2627,9 @@ slot (`committing`).
 | `OPEN OUTPUT`, at any read, write, sync or the truncation but the last sync | the previous file, byte for byte: the pages written get their previous bytes back (a page the file held only part of too) and a file shorter than three pages its length to the byte, then a sync (§2023:14.9.27.4 GR25, *"the file is not affected"*) | the OPEN answers '30' and the connector stays closed · the next OPEN finds the previous store (or '30' over a file with none) · OPEN OUTPUT recreates | the same |
 | `OPEN OUTPUT`, at its last sync | the empty store, committed and truncated; the medium's state unknown | '30' · the next OPEN adopts the empty store | the same |
 | `OPEN OUTPUT`, at any refusal above whose UNDO is refused too (a restore write, the length; review finding R1-1 of kb/Work PB3493) | not the previous file: every page whose restore landed is back (the undo goes on past a refused one), the rest are the creation's; a commit slot left holding the empty meta at N makes the file the empty store, and one restored with page 2 refused leaves the previous committed store beside a foreign work slot | '30', the file REPORTED REPLACED (`PagedFile.Create`'s `replaced`): what a CLOSE under commit control kept over the previous store ends with it (2.2.1.10) · the next OPEN adopts by R6 | the same |
-| Any path, a refused READ (OPEN's meta pages, R6 step 3's verification, a statement's entry, the promotion's read of both slots, the retirement's chains, a tree page) | unchanged by the read; whatever the path wrote before it stands as at a refused write at that point | '30' (§2023:9.1.13.6 item 1): a refused read is no verdict on the page — it never rejects a work slot, never chooses a slot for a promotion, never reads as zeros | the same |
-| A changing statement, at its reservation or a write the host refuses because the file cannot grow further (2.2.1.9) | the reservation: nothing claimed, nothing written; a refused write: as a refused write at that point | the BOUNDARY, the file unchanged: a WRITE or REWRITE answers '24' with the invalid key condition (§2023:9.1.14); a DELETE answers '30' with no invalid key condition (§2023:9.1.13.6 item 1: §2023:9.1.13.5 item 4's '24' is a write's, and §2023:14.9.10.4 GR3/GR4 give a DELETE the invalid key condition only for a record the file does not contain); the same connector's next statement that fits succeeds | the same; a promotion, a CLOSE and an OPEN meeting either boundary answer '30' (they have no '24') |
-| The reader's re-adoption when the run unit's last writable connector CLOSEs and an INPUT sibling stays (2.2.1.7), a refused read | unchanged by the read; the CLOSE's promotion, when one ran, landed before it | that CLOSE answers '30' (§2023:9.1.13.6 item 1) and the connector is closed · the store keeps the writable meta it holds, its fence OWED: the run unit's next writable OPEN opens it again and fences (R6) | the INPUT sibling's next statement enters as a reader over the trees the store holds: '00' |
+| Any path, a refused READ (OPEN's meta pages, R6 step 3's verification, a statement's entry, the promotion's read of both slots, the retirement's chains, a tree page) | unchanged by the read; whatever the path wrote before it stands as at a refused write at that point | '30' (§2023:9.1.13.6 GR1): a refused read is no verdict on the page — it never rejects a work slot, never chooses a slot for a promotion, never reads as zeros | the same |
+| A changing statement, at its reservation or a write the host refuses because the file cannot grow further (2.2.1.9) | the reservation: nothing claimed, nothing written; a refused write: as a refused write at that point | the BOUNDARY, the file unchanged: a WRITE or REWRITE answers '24' with the invalid key condition (§2023:9.1.14); a DELETE answers '30' with no invalid key condition (§2023:9.1.13.6 GR1: §2023:9.1.13.5 GR4's '24' is a write's, and §2023:14.9.10.4 GR3/GR4 give a DELETE the invalid key condition only for a record the file does not contain); the same connector's next statement that fits succeeds | the same; a promotion, a CLOSE and an OPEN meeting either boundary answer '30' (they have no '24') |
+| The reader's re-adoption when the run unit's last writable connector CLOSEs and an INPUT sibling stays (2.2.1.7), a refused read | unchanged by the read; the CLOSE's promotion, when one ran, landed before it | that CLOSE answers '30' (§2023:9.1.13.6 GR1) and the connector is closed · the store keeps the writable meta it holds, its fence OWED: the run unit's next writable OPEN opens it again and fences (R6) | the INPUT sibling's next statement enters as a reader over the trees the store holds: '00' |
 | Any path, a sync failure | the medium's state unknown | '30', permanent error; R3 and R6 decide the state at the next read or OPEN, never a torn one | the same |
 
 **2.2.1.17 Every two-run-unit interleaving over one file (the round-3 self-attack, 2026-10-17).** A and B are run units
@@ -3019,7 +3019,7 @@ entry (SR7 forbids it on the OPEN).
 **2.2.2.5 The write-ahead rules — five, each held by the model at every operation and each with a drift test.** **R1 — the
 header before the first change.** Under the entry mutex: the holder published, the record created, the header (START) written
 and SYNCED, the lock directory synced — all before the first byte of F changes or the file is created. A holder that cannot be
-published refuses the statement ('30', §2023:9.1.13.6 item 1; an OPEN leaves the file unaffected, §2023:14.9.27.4 GR25) for either of two
+published refuses the statement ('30', §2023:9.1.13.6 GR1; an OPEN leaves the file unaffected, §2023:14.9.27.4 GR25) for either of two
 causes the medium's `PublishHolder` answers with the publication's `RegionLockResult` (kb/Work PB3675): `Unavailable`, the host
 takes no lock here, and `Held`, every try lost its race to another run unit (a failure to publish, not a finding about the
 host): `SidecarLockFiles.Publish` counts three ways to lose a try, the unit removed the lock directory, or reaped the pending

@@ -178,7 +178,7 @@ _SCAN = re.compile(PATTERN + r"(?: (?P<rule>" + RULE + r"))?")
 #: never a level, as a number right after a rule (`37) 39)`) is another rule. A level after the first is read with or
 #: without its space (`SR12 a)2.`, `GR22 d)2.a.`, kb/Work PB6035): read only with the space, the canonicalizer glued
 #: `SR12 a)` and left the `2.` attached, writing `SR12a2.`.
-SPACED_PATH = re.compile(r" [a-z]\)(?: ?\d{1,2}(?:\)|\.(?=[\s)a-z]|$))(?: ?[a-z](?:\)|\.(?=[\s)]|$)))?)?")
+SPACED_PATH = re.compile(r" [a-z]\)(?: ?\d{1,2}(?:\)|\.(?=[\s),;:a-z]|$))(?: ?[a-z](?:\)|\.(?=[\s),;:]|$)))?)?")
 #: A designator whose sub-item path glues a number straight after a letter (`SR12a2`, `GR22d2.a`): `cite.render_path`
 #: writes a `.` before every level after the first (`SR12a.2`), so this spelling is not canonical (kb/Work PB6035 (d)).
 GLUED_NUMBER = re.compile(rf"(?P<base>(?:{'|'.join(RULE_KINDS)})(?:L\d+\.)?\d+)(?P<path>[a-z]\d.*)\Z")

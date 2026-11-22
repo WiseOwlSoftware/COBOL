@@ -21,10 +21,10 @@ public sealed class ObjectReferenceSetDriftTests
 {
     /// <summary>The refusal texts only the table writes: a second copy of an arm in the compiler would spell one.</summary>
     [Theory]
-    [InlineData("(ISO §2023:14.9.39.3 SR12 a)2.)")]
-    [InlineData("(ISO §2023:14.9.39.3 SR12 b)2.)")]
+    [InlineData("(ISO §2023:14.9.39.3 SR12a.2)")]
+    [InlineData("(ISO §2023:14.9.39.3 SR12b.2)")]
     [InlineData("(ISO §2023:14.9.39.3 SR10 a))")]
-    [InlineData("(ISO §2023:14.9.39.3 SR14 a))")]
+    [InlineData("(ISO §2023:14.9.39.3 SR14a)")]
     public void NoCompilerSource_SpellsAnArmOfTheTable(string refusal)
     {
         var offenders = Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Compiler"), "*.cs", SearchOption.AllDirectories)
@@ -68,9 +68,9 @@ public sealed class ObjectReferenceSetDriftTests
         var activeReceiver = new ObjectReferenceOperand(ObjectReferenceKind.ActiveClass, "Q", false, false, ["Q"], []);
 
         Assert.Null(ObjectReferenceSet.Refusal(sub, parent));                                    // SR12 a)2. subclass
-        Assert.Contains("SR12 a)2.", ObjectReferenceSet.Refusal(sub, other));                     // unrelated
-        Assert.Contains("SR12 a)1.", ObjectReferenceSet.Refusal(sub, Class("S", only: true)));    // ONLY receiver
-        Assert.Contains("SR12 a)3.", ObjectReferenceSet.Refusal(sub, Class("S", factory: true))); // FACTORY differs
+        Assert.Contains("SR12a.2", ObjectReferenceSet.Refusal(sub, other));                     // unrelated
+        Assert.Contains("SR12a.1", ObjectReferenceSet.Refusal(sub, Class("S", only: true)));    // ONLY receiver
+        Assert.Contains("SR12a.3", ObjectReferenceSet.Refusal(sub, Class("S", factory: true))); // FACTORY differs
         Assert.Null(ObjectReferenceSet.Refusal(sub, ifaceA));                                     // SR10 b)2.
         Assert.Contains("SR10 b)2.", ObjectReferenceSet.Refusal(other, ifaceA));
         Assert.Null(ObjectReferenceSet.Refusal(ifaceB, ifaceA));                                  // SR10 a)
@@ -78,7 +78,7 @@ public sealed class ObjectReferenceSetDriftTests
         Assert.Contains("SR12 —", ObjectReferenceSet.Refusal(universal, parent));                 // closed list
         Assert.Null(ObjectReferenceSet.Refusal(universal, universal));                            // SR8
         Assert.Null(ObjectReferenceSet.Refusal(activeInM, Class("M")));                           // SR12 b)2.
-        Assert.Contains("SR12 b)2.", ObjectReferenceSet.Refusal(activeInM, parent));
+        Assert.Contains("SR12b.2", ObjectReferenceSet.Refusal(activeInM, parent));
         Assert.Null(ObjectReferenceSet.Refusal(activeInM, activeReceiver));                       // SR14 a)
         Assert.Contains("SR14", ObjectReferenceSet.Refusal(sub, activeReceiver));
         Assert.Contains("unresolvable", ObjectReferenceSet.Refusal(Class("X", classes: null) with { Classes = null }, parent));

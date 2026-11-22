@@ -214,7 +214,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         // same as specified in the other constant-name" — the SPECIFICATIONS, as written, not the values they fold to
         // (kb/Work PB1230: `AS 5` then `AS 2 + 3`, and `AS LENGTH OF W` then `AS 7`, compared equal by value and
         // compiled). ⚠ DETERMINATION: "the same" is text-word equality under the ONE matcher the standard itself
-        // defines for comparing written text (§2023:7.2.3.4 9) c), COPY REPLACING — separators collapse to a space, COBOL
+        // defines for comparing written text (§2023:7.2.3.4 GR9c), COPY REPLACING — separators collapse to a space, COBOL
         // words compare without regard to case), so `AS 5` / `AS 05` / `AS +5` are three specifications. The two
         // entries are compared whichever binds first (an entry may now be bound on demand, out of source order).
         // ⚠ DETERMINATION (kb/Work PB1009): SR9's "duplicates another constant-name" is read within one source element
@@ -775,7 +775,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// written, or an INTEGER constant-name substituting it (ISO §2023:13.10.3 SR2 — "constant-name-1 may be used anywhere
     /// that a format specifies a literal of the class and category of constant-name-1"; §2023:13.10.4 GR1/GR3 — "as if
     /// literal-1 … were written where constant-name-1 is written"). Because the constant stands for the literal, the
-    /// substituted value meets what the WRITTEN literal meets: §2023:5.5 1)'s "unsigned and nonzero unless otherwise
+    /// substituted value meets what the WRITTEN literal meets: §2023:5.5 SR1's "unsigned and nonzero unless otherwise
     /// specified in the associated rules" (the clause's own exception, <see cref="WiseOwl.Cobol.Validation.IntegerOperandRules.Classify"/>)
     /// and the host limit (COBOL2427, which <c>IntegerOperandPass</c> raises for a literal pre-bind and which a
     /// constant can only meet here, where its value is known). Null (reported) for a non-integer, a negative or zero-
@@ -839,7 +839,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                         WiseOwl.Cobol.Validation.IntegerOperandRules.BeyondLimitMessage(where, $"{what} '{word}', the integer {it},", owner.Edition.DialectLevel));
                     return null;
                 }
-                // §2023:5.5 1) — "unsigned": a negative literal is not an integer-n, so a constant that is one is not the
+                // §2023:5.5 SR1 — "unsigned": a negative literal is not an integer-n, so a constant that is one is not the
                 // literal this position names; "nonzero unless otherwise specified in the associated rules" — the
                 // clause's own exception is the ONE table IntegerOperandPass asks of a written literal.
                 if (kv < 0)

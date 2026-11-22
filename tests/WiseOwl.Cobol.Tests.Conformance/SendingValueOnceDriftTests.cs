@@ -143,7 +143,7 @@ public sealed class SendingValueOnceDriftTests
     [InlineData("SVF02", "FUNCTION INTEGER-PART(-12.5)")]     // §2023:15.49 — a negative integer: GR6 a) drops the sign
     [InlineData("SVF03", "FUNCTION ORD(\"A\")")]               // §2023:15.70 — an integer from a character argument
     [InlineData("SVF04", "FUNCTION MOD(-7 3)")]               // §2023:15.64 — 2
-    [InlineData("SVF05", "FUNCTION MAX(3 7)")]                // §2023:15.59 — integer when every argument is (§2023:15.2 item 5)
+    [InlineData("SVF05", "FUNCTION MAX(3 7)")]                // §2023:15.59 — integer when every argument is (§2023:15.2 GR5)
     public void MaterializedIntegerFunction_MovesAsTheFunctionDoes(string pid, string fn)
     {
         string src = $"""
@@ -286,7 +286,7 @@ public sealed class SendingValueOnceDriftTests
     /// (kb/Work PB886). §2023:14.9.25.4 GR1's equivalence is a RESULT equivalence — <c>MOVE a (b) TO temp / MOVE temp
     /// TO b</c> owes what <c>MOVE a (b) TO b</c> owes — so the one-receiver form (no intermediate) and the
     /// two-receiver form (an intermediate) must agree for EVERY usage a reference-modified sender can have. The
-    /// capacity is counted in §2023:8.4.3.3.4 GR5 a)'s positions ("If the usage of identifier-1 is bit, positions used
+    /// capacity is counted in §2023:8.4.3.3.4 GR5a)'s positions ("If the usage of identifier-1 is bit, positions used
     /// in evaluation are bit positions; otherwise … character positions"), which is what
     /// <c>RefModPlace.PositionCount</c> answers; sizing it by the item's CHARACTER OCCUPANCY instead truncated a
     /// boolean slice to one position (<c>MOVE BE(1:4) TO B1 B2</c> gave <c>1000</c>) and a dynamic-length slice
@@ -340,7 +340,7 @@ public sealed class SendingValueOnceDriftTests
     /// operands", and "the evaluation of the length of identifier-1 or identifier-2 may be affected by the
     /// DEPENDING ON phrase of the OCCURS clause". The DISCRIMINATING shape is the one where data-name-1 is
     /// itself a receiving operand, because only then does the extent CHANGE between the two stores: with N = 3
-    /// the sender is §2023:13.18.38.4 GR8 a)'s three positions "125", the first store leaves N = 1 (a group sender
+    /// the sender is §2023:13.18.38.4 GR8a)'s three positions "125", the first store leaves N = 1 (a group sender
     /// makes this GR4's alphanumeric-to-alphanumeric move into a one-character receiving area), and the second
     /// store still owes three positions. Re-reading the length gives "1" (kb/Work PB394's residue).</summary>
     [Fact]

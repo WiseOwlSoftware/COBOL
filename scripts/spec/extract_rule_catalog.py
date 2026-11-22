@@ -171,7 +171,7 @@ ORDINAL = re.compile(r"^(?P<n>\d+)\\?(?P<form>[.)])\s+(?P<text>.*)$")
 # referent both live in the item above it. That is the same silent-false-confidence class as PB689's
 # contamination, in the other direction.
 #
-# The transcription flattened the TAIL of some nested lists onto column 0 at a PAGE BREAK (§2023:14.9.41.3 SR6 b) 2.
+# The transcription flattened the TAIL of some nested lists onto column 0 at a PAGE BREAK (§2023:14.9.41.3 SR6b.2)
 # and 3. are printed indented under b) on PDF page 785 / folio 755 — the ordinal glyph measured at x0 115.05 on
 # a page whose body margin is 80.04 — and were transcribed at column 0). All 23 such items, in 14 clauses, were
 # measured on the PDF and REPAIRED in the transcription by PB698, so this arm catches nothing today and is a

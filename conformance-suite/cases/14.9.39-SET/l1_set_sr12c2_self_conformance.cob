@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:14.9.39.3 SR12c2. — SET format 5 with the predefined
+      *> ISO §2023:14.9.39.3 SR12c.2. — SET format 5 with the predefined
       *> object reference SELF as identifier-4 and an
       *> object-class-name receiver: "the class containing the SET
       *> statement shall be the same class or a subclass of the class

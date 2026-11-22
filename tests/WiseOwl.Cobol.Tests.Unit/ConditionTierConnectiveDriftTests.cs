@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE CONSTANT-CONDITIONAL-EXPRESSION TIERS ARE THE CONDITION TIERS' CONNECTIVES OVER A COMPILE-TIME LEAF, AND THE
 /// EXCLUSIVE-OR CONNECTIVE IS SPELLED ONCE (kb/Work PB1371, PB1390).
-/// <para><b>ISO §2023:7.3.8.2 SR1 d)</b>: a constant conditional expression may be "A complex condition as specified in
+/// <para><b>ISO §2023:7.3.8.2 SR1d</b>: a constant conditional expression may be "A complex condition as specified in
 /// 8.8.4.9, Complex conditions", so its connectives are §2023:8.8.4.9's — AND, OR, EXCLUSIVE-OR / XOR and NOT, with
 /// §2023:8.8.4.11.3's precedence and Table 5's ban on 'NOT NOT'. ANTLR has no parameterized rules, so the cce tiers
 /// (<c>cceOr</c> / <c>cceXor</c> / <c>cceAnd</c> / <c>cceNot</c>) are a second SPELLING of the condition tiers over a

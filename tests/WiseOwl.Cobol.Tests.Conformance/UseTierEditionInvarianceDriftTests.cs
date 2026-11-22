@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// SQ138A, SQ148A — SQ137A's own remark is "INPUT DECLARATIVE NOT EXECUTED").</para>
 ///
 /// <para><b>Why it is not a golden.</b> The tier pair is rendered by THREE selectors —
-/// <c>DispatchEmitter.__IoCheck</c>, <c>EcEmitter.__IoCheckEc</c> and the §2023:14.9.49.4 GR4 b) outward GLOBAL
+/// <c>DispatchEmitter.__IoCheck</c>, <c>EcEmitter.__IoCheckEc</c> and the §2023:14.9.49.4 GR4b outward GLOBAL
 /// walk <c>ProgramEmitter.__RunGlobalUse</c> — and only the first two are reachable from an observable output
 /// difference in a single program. Comparing the EMITTED TEXT covers all three at once, and it fails on the
 /// re-introduction of ANY per-edition condition, in any of them, whether or not a golden happens to exercise

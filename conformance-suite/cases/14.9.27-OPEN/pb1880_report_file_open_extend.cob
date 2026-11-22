@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> ISO 1989:2023 §2023:14.9.27.3 SR1: "The OPEN statement for a report file shall not contain the INPUT phrase or the I-O
-      *> phrase", so OUTPUT and EXTEND are the two modes a report file opens in, and §2023:9.1.13.2 item 1 gives a successful
+      *> phrase", so OUTPUT and EXTEND are the two modes a report file opens in, and §2023:9.1.13.2 GR1 gives a successful
       *> OPEN the I-O status '00'. A report file has no record description (§2023:13.4.5.3 SR8; §2023:9.1.22): the bytes an earlier run
       *> left in it are print lines with terminators, whose count has no relationship to the connector's width (the widest
       *> report line, here 3 columns), and OPEN EXTEND over them must simply succeed and append. WiseOwl COBOL once treated

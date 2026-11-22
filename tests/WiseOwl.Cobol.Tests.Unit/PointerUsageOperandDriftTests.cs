@@ -33,7 +33,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>WHAT FOLLOWS IS PER ENTRY (kb/Work PB4235). The usage clause is a clause of THREE entries — the data
 /// description entry, the report group description entry and the screen description entry — and the guard once
 /// excluded the context-free FOLLOW(usageKeyword), the union of all three, so the §2023:8.10 screen words (AUTO, BELL,
-/// SECURE …: context-sensitive in the "screen description entry", user-defined words elsewhere by §2023:8.3.2.1 3)) were
+/// SECURE …: context-sensitive in the "screen description entry", user-defined words elsewhere by §2023:8.3.2.1 SR3) were
 /// refused as a data entry's type-name. So the oracle here is each entry's OWN follow, read off the generated ATN
 /// along that entry's chain of rules, independently of the parser's live-context walk, and the per-word fact is an
 /// IFF over EVERY word <c>cobolWord</c> can match: the word is the TO-less operand exactly when it does not follow

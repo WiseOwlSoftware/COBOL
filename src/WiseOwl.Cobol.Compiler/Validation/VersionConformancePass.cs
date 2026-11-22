@@ -1057,7 +1057,7 @@ internal sealed class VersionConformancePass
         /// Asked only where the construct row is available (COBOL-85), and for a section's number where --permissive keeps its
         /// meaning (<see cref="Segmentation.MeaningKept"/>): from 2002 the clause and the number are removed (COBOL0902), which
         /// is the whole answer there. The number is an <c>integerLiteral</c>, so it is unsigned and
-        /// integral by the grammar; zero is §2023:5.5 1)'s question for SEGMENT-LIMIT (<c>IntegerOperandRules.Slots</c>),
+        /// integral by the grammar; zero is §2023:5.5 SR1's question for SEGMENT-LIMIT (<c>IntegerOperandRules.Slots</c>),
         /// so only the upper bound can be broken there.</summary>
         private void ScreenSegmentNumber(CobolParserCore.IntegerLiteralContext? number, int min, int max, string construct,
             string where, string rule)
@@ -2293,7 +2293,7 @@ internal sealed class VersionConformancePass
         public override object? VisitFileCollatingSequenceClause(CobolParserCore.FileCollatingSequenceClauseContext ctx)
         { _p.Check(Constructs.FileCollatingClause2002, "the file COLLATING SEQUENCE clause"); return base.VisitChildren(ctx); }
 
-        /// <summary>The USING phrase of the ASSIGN clause (ISO §2023:12.4.5.3 GR3 b) — dynamic file assignment, §2023:9.1.21) —
+        /// <summary>The USING phrase of the ASSIGN clause (ISO §2023:12.4.5.3 GR3b — dynamic file assignment, §2023:9.1.21) —
         /// a COBOL-2002 introduction, on BOTH arms of <c>assignClause</c>: the <c>TO … USING data-name-1</c> tail and
         /// the bare <c>ASSIGN USING data-name-1</c>. One token test covers both, because USING is the only token the
         /// two arms share past ASSIGN and no other file-control rule spells it.
@@ -3513,7 +3513,7 @@ internal sealed class VersionConformancePass
 
         /// <summary>⭐ THE boolean-operator introduction gate — ONE rule, called once per GRAMMAR SITE that hosts
         /// a top-level <c>booleanExpression</c>. B-AND/B-OR/B-XOR/B-NOT are a COBOL-2002 introduction (ISO
-        /// §2023:8.7.2) and the four boolean SHIFT operators a COBOL-2023 one (§2023:8.8.2 rule 8).
+        /// §2023:8.7.2) and the four boolean SHIFT operators a COBOL-2023 one (§2023:8.8.2 GR8).
         /// <para>⚠ THE GATE IS PER-SITE, NOT PER-NODE, AND THAT IS DELIBERATE: the <c>booleanExpression</c>
         /// tiers nest through parentheses and through the relation form, so a gate hanging off the tier rule
         /// itself would fire once per nesting level and multiply the diagnostic. Passing a site's operand(s)
@@ -3628,7 +3628,7 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>The INLINE METHOD INVOCATION's argument — <c>boolean-expression-1</c> of §2023:8.4.3.4.2's
-        /// printed brace (kb/Work PB428), and the exact twin of the INVOKE site above: §2023:8.4.3.4.4 GR1 a) makes
+        /// printed brace (kb/Work PB428), and the exact twin of the INVOKE site above: §2023:8.4.3.4.4 GR1a makes
         /// these operands the arguments of the equivalent <c>INVOKE … USING</c>, so they owe the same boolean
         /// gates. The BooleanOperators2002 half is again unreachable (the construct is itself 2002), the SHIFT
         /// half is live — <c>O :: "M" (B1 B-SHIFT-L 2)</c> is a 2023 operator inside a 2002 construct and
@@ -3682,7 +3682,7 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>The relational operator <c>&lt;&gt;</c> — "an abbreviation for NOT EQUAL" (ISO §2023:8.7.5.2 SR11), a special
-        /// character word of §2023:8.3.2.4.2 2) — is a COBOL-2014 introduction (not-equal-operator-2014, kb/Work PB1459,
+        /// character word of §2023:8.3.2.4.2 SR2) — is a COBOL-2014 introduction (not-equal-operator-2014, kb/Work PB1459,
         /// PB3604): the COBOL-85 operators are the GREATER / LESS / EQUAL forms, their symbols and NOT, the 2002 text's
         /// clause 8.7.5.2 ends its abbreviation rules at <c>&lt;=</c>, and Annex D.3 (2002→2014 changes) item 16 of the 2009
         /// committee draft adds "The symbol &lt;&gt; … as an extended relational operator". The one arm that answers for
@@ -3789,13 +3789,13 @@ internal sealed class VersionConformancePass
             // carry a LADDER — six `ctx.Parent is …Context` arms (ENTRY-CONVENTION, CALL AS NESTED, the SPECIAL-NAMES
             // LOCALE clause, ALPHABET IS LOCALE, PICTURE LOCALE, CHARACTER CLASSIFICATION) and an ancestor walk over
             // SET LOCALE — each saying "this cobolWord is the general format's own keyword, not a name". A keyword
-            // standing where its format prints it is a use OF the word (ISO §2023:5.2.2 / §2023:5.2.3), outside §2023:8.3.2.1 rule 1
+            // standing where its format prints it is a use OF the word (ISO §2023:5.2.2 / §2023:5.2.3), outside §2023:8.3.2.1 SR1
             // entirely; but a list of the places that happens is exactly what forgot `SORT … WITH DUPLICATES IN ORDER`
             // for two trains (kb/Work PB704). Those keywords now parse as `formatWord` — IDENTIFIER, never cobolWord —
             // so this funnel does not meet them BY CONSTRUCTION, and the next general format that spells a keyword by
             // text needs no C# here (`FormatWordDriftTests` fails if it borrows cobolWord instead).
             // ⚠ The ladder was also WRONG in two slots: it exempted ENTRY-CONVENTION's entry-convention-name-1 and the
-            // LOCALE clause's external-locale-name-1, which are SYSTEM-NAMES (§2023:8.3.2.3.1) — and §2023:8.3.2.1 rule 1 forbids
+            // LOCALE clause's external-locale-name-1, which are SYSTEM-NAMES (§2023:8.3.2.3.1) — and §2023:8.3.2.1 SR1 forbids
             // a reserved word as a system-name exactly as it does as a user-defined word. They reach the funnel now.
             // What remains below is not position-keyed: a DECLINED construct is refused whole, by the pass that owns it.
             if (DeclinedFacilityPass.EnclosingDeclinedConstruct(ctx) is not null)
@@ -3853,7 +3853,7 @@ internal sealed class VersionConformancePass
         /// (kb/Work PB4589). The lexer's retype has already applied the directive to it: a de-reserved word is an
         /// <c>IDENTIFIER</c>, and a synonym (EQUATE literal-2, SUBSTITUTE literal-5) is its original's keyword token carrying the
         /// original's text (kb/Work PB4573), the original the synonym STANDS FOR and so is reserved with (ISO §2023:7.3.10.4 GR2,
-        /// GR4; §2023:8.3.2.1 rule 1). The suppression of a SUBSTITUTE'd original (literal-4, a user-defined word now, GR4) is the
+        /// GR4; §2023:8.3.2.1 SR1). The suppression of a SUBSTITUTE'd original (literal-4, a user-defined word now, GR4) is the
         /// right answer for the word the source writes as an <c>IDENTIFIER</c> and the wrong one for the synonym that replaced
         /// it: asking it of the original's text read <c>01 RCV</c> after <c>SUBSTITUTE "RECEIVE" BY "RCV"</c> as a user word.
         /// The view keeps the RESERVE layer (GR5), which names words the lexer may well have a token for (REMARKS, PACKED).

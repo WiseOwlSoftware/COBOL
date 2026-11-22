@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// records — the control, which must NOT take the report registration), so that a record-less FD that falls back to the
 /// record arm, or a record FD that takes the report arm, fails here even if no golden crosses it.
 /// <para>The conformance witness of the same behavior is <c>pb1880_report_file_open_extend</c> (OPEN EXTEND of a report
-/// file answers '00', §2023:9.1.13.2 item 1).</para>
+/// file answers '00', §2023:9.1.13.2 GR1).</para>
 /// </summary>
 public sealed class ReportFileRegistrationEmitterTests
 {

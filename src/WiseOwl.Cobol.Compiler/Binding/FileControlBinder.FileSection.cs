@@ -199,7 +199,7 @@ public sealed partial class FileControlBinder
                         "(§1985:XI.3.2.3 SR3) — a SORT or MERGE key is a data item within a record of this file, so there is "
                         + "nothing for the KEY phrase to name.",
                         "(ISO §2023:13.4.6.3 SR2) — a SORT or MERGE key is a data item within a "
-                        + "record of this file (§2023:14.9.40.3 SR6 a), so there is nothing for the KEY phrase to name."));
+                        + "record of this file (§2023:14.9.40.3 SR6a), so there is nothing for the KEY phrase to name."));
             sdFile.Records.AddRange(sdRecords);
             LinkImplicitRecordArea(sdFile);   // §2023:13.18.33.4 GR3 — the SD twin of the FD arm (kb/Work PB836)
             foreach (var clause in sd.sortMergeDescriptionClauses()?.sortMergeDescriptionClause() ?? [])
@@ -346,7 +346,7 @@ public sealed partial class FileControlBinder
         // "the maximum size established by the RECORD clause" (§2023:14.9.30.4 GR6): format 1's integer-1, format 3's
         // integer-5, or format 2's integer-3. A format-2 clause with no TO phrase establishes none — §2023:13.18.43.4
         // GR10 defers to "the greatest number of bytes described for a record in that file" and this file
-        // describes none — and neither does an absent clause, which §2023:13.4.5.3 SR3 a) / §2023:13.18.43.3 SR1 forbid.
+        // describes none — and neither does an absent clause, which §2023:13.4.5.3 SR3a / §2023:13.18.43.3 SR1 forbid.
         int? max = file.RecordClause?.Upper;   // the one reading of the clause's upper operand, in all three formats (PB2519)
         if (max is not > 0)
         {
@@ -428,7 +428,7 @@ public sealed partial class FileControlBinder
             depAt = Edition.Cursor;
         }
         // FORMAT 2 vs FORMAT 3: the WORD VARYING is the discriminator, and it is load-bearing — §2023:13.18.43.4 GR16
-        // (the READ/RETURN INTO sending size) sits under the FORMAT 2 heading and §2023:14.9.30.4 GR4 b) designates
+        // (the READ/RETURN INTO sending size) sits under the FORMAT 2 heading and §2023:14.9.30.4 GR4b designates
         // the implied move an alphanumeric group move only for a RECORD IS VARYING clause (kb/Work PB339).
         bool varyingClause = rc.VARYING() is not null;
         file.Varying = new VaryingRecordInfo(lo, hi, dep, VaryingClause: varyingClause)

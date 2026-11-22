@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// write-side rule.
 ///
 /// <para><b>The derivation.</b> §2023:14.9.35.4 GR4: <i>"The successful execution of the REWRITE statement releases a
-/// logical record to the operating environment."</i> §2023:14.9.51.4 GR12 says the same of WRITE. §2023:9.1.15 3) makes
+/// logical record to the operating environment."</i> §2023:14.9.51.4 GR12 says the same of WRITE. §2023:9.1.15 GR3 makes
 /// the concurrency legal: <i>"The sharing with all other mode allows concurrent access to a physical file
 /// through other file connectors specifying input, I-O, or extend mode."</i> And §2023:14.9.30.4 GR21 c)/d) say what
 /// the reader then owes — the record selected is <i>"the first existing record in the physical file whose
@@ -55,7 +55,7 @@ public sealed class SharedReadCoherenceDriftTests
         LockModeOnly,
 
         /// <summary>Neither clause. <c>FileConnector.SharedPhysical</c> is NULL for such a connector (it sets no
-        /// record locks — §2023:12.4.5.9.4 GR1 b) 2.), which is exactly why the release generation had to be reachable
+        /// record locks — §2023:12.4.5.9.4 GR1b.2), which is exactly why the release generation had to be reachable
         /// through <c>FileConnector.Physical</c> instead: the read-coherence rule is a rule about the medium, not
         /// about record locking (kb/Work PB740 widened the reach, PB753 covers it).</summary>
         NoClause,
@@ -125,7 +125,7 @@ public sealed class SharedReadCoherenceDriftTests
         reg.RewriteShared(name, image, -1, FileRecordLock.None, FileRetryKind.None, 0);
 
     /// <summary>Four printable characters per record, so LINE SEQUENTIAL's trailing-space trim cannot make the
-    /// physical span depend on the value (§2023:14.9.35.4 GR17 c) rewrites within the replaced record's span).</summary>
+    /// physical span depend on the value (§2023:14.9.35.4 GR17c rewrites within the replaced record's span).</summary>
     private static string Rec(int n) => $"R{n % 1000:000}";
 
     private static void Seed(FileRegistry reg, string host, SharedExtendOpenDriftTests.Framing framing, int count)

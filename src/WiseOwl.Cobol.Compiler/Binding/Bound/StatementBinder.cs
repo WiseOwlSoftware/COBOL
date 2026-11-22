@@ -525,7 +525,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         core = BoundImplicitSeries.Rewrap(core, n => WrapReceiverIdentifications(n, identificationMark));
         core = BoundImplicitSeries.Rewrap(core, n => Udf.UdfWrapCalls(n, marks.PreOps));
         core = BoundImplicitSeries.Rewrap(core, n => Oo.OoWrapPropertyOps(n, marks.PropertyOps));
-        // ISO §2023:14.9.33.4 GR2 a) 2./3. — the statement an operand activation was specified in is where a RESUME AT
+        // ISO §2023:14.9.33.4 GR2a 2./3. — the statement an operand activation was specified in is where a RESUME AT
         // NEXT STATEMENT for the condition it propagates lands. Through Rewrap like the hoist above, so a
         // multi-operand statement's landing is the implicit statement the activation belongs to.
         if (data.Procedure.OperandEvaluations.Current > 0) core = BoundImplicitSeries.Rewrap(core, n => new BoundActivationSite(n));
@@ -803,7 +803,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// the one place that executes them is <c>FileRegistry.RetryLoop</c> (docs/FILES_DESIGN.md "D8").
     /// The three forms stay three: GR1's count is a bounded loop, GR2's timeout period is clamped to this
     /// implementation's maximum meaningful value of zero, and GR3's unbounded wait is the only one whose
-    /// failure is reported as the §2023:9.1.13.8 item 2 deadlock — collapsing any two of them upstream is the defect
+    /// failure is reported as the §2023:9.1.13.8 GR2 deadlock — collapsing any two of them upstream is the defect
     /// kb/Work PB346 names.</summary>
     internal RetrySpec BindRetry(Core.RetryPhraseContext rp) =>
         rp.FOREVER() is not null ? new RetrySpec(RetryKind.Forever, null)
