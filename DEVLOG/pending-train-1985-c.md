@@ -64,7 +64,10 @@ pinned by goldens and docs/conformance entries.
 - PB6034 was root-caused by the controller. It was not a flake: another agent's `Get-Process dotnet-stack,cobol |
   Stop-Process -Force` had killed train B's gate compiles. `forbidden_commands.py` rule 8 now refuses a kill by process
   name (+21 self-test cases, 323/337 RED on the old hook), MANDATORY-PRACTICES gains P18, and the WiseOwl adapter reads
-  exit 4294967295 (TerminateProcess(-1)) as a crash, so a killed compiler is NO VERDICT, not FAIL.
+  exit 4294967295 (TerminateProcess(-1)) as a crash, so a killed compiler is NO VERDICT, not FAIL. The branch review
+  (R1-1) showed five forms passing it (`kill $(pgrep cobol)`, `-Id (Get-Process cobol).Id`, a `Where-Object` stage,
+  `.Kill()` in a script block, `xargs kill`), so the rule now refuses any command line that both enumerates processes
+  by name and kills, in any order (+31 cases, 348/368 RED on the old hook). Leads R1-2 and R1-4 are PB6036 and PB6037.
 - Train B's review lead R1-1: `rule_moves.recorded_moves` follows the move batches in the order they were applied (an
   `applied` place in each tracked copy), not in file-name order, with self-test case 08.
 - R1-2: PB904 closed, because de-editing is COBOL-85 (§1985:VI.6.19.4 GR4b; a probe at 85 gives `01234.56`).

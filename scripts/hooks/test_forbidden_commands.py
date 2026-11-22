@@ -274,6 +274,23 @@ CASES = [
     ("kill 1234", False),                                                 # a pid
     ('kill "$pid"', False),
     ("taskkill /PID 1234 /F", False),
+    # the branch review of PB6034 (train-1985-c R1-1): a name ENUMERATION and a KILL anywhere in one command line, in
+    # any order or pipe, through a substitution, xargs or a loop
+    ("kill $(pgrep cobol)", True),
+    ("pgrep cobol | xargs kill", True),
+    ("pgrep -f cobol | xargs -r kill -9", True),
+    ("ps aux | grep cobol | awk '{print $2}' | xargs kill", True),
+    ("for p in $(pidof cobol); do kill $p; done", True),
+    ("kill `pgrep cobol`", True),
+    ("wmic process where name='cobol.exe' delete", True),
+    ("wmic process where \"name='cobol.exe'\" call terminate", True),
+    ('taskkill /F /FI "IMAGENAME eq cobol.exe"', True),
+    ('tasklist /FI "IMAGENAME eq cobol.exe"', False),                     # listing kills nothing
+    ("pgrep -a cobol", False),
+    ("ps -p 1234 && kill 1234", False),                                   # a pid, looked up and killed
+    ('kill -0 "$pid"', False),
+    ('wmic process where processid=1234 delete', False),
+    ("git log --grep 'pgrep cobol | xargs kill'", False),                 # quoted text is text
 ]
 
 
@@ -351,6 +368,23 @@ PS_CASES = [
     ("taskkill /PID 1234 /T /F", False),
     ("Get-Process cobol", False),                                        # listing kills nothing
     ("Write-Output 'Stop-Process -Name cobol'", False),
+    # the branch review of PB6034 (train-1985-c R1-1): every form that ENUMERATES by name and KILLS in one command line
+    ("Get-Process cobol | Where-Object { $_.StartTime -lt (Get-Date).AddMinutes(-5) } | Stop-Process -Force", True),
+    ("Stop-Process -Id (Get-Process cobol).Id -Force", True),
+    ("Get-Process -Name cobol | ForEach-Object { $_.Kill() }", True),
+    ("foreach ($p in Get-Process cobol) { $p.Kill() }", True),
+    ("Get-Process | Where-Object Name -eq cobol | Stop-Process", True),
+    ("$procs = Get-Process cobol; $procs | Stop-Process", True),
+    ("Get-Process cobol | ForEach-Object { Stop-Process -Id $_.Id }", True),
+    ("Get-CimInstance Win32_Process -Filter \"Name='cobol.exe'\" | Invoke-CimMethod -MethodName Terminate", True),
+    ("gwmi Win32_Process | Where-Object Name -eq cobol.exe | Remove-WmiObject", True),
+    ("[System.Diagnostics.Process]::GetProcessesByName('cobol') | ForEach-Object { $_.Kill() }", True),
+    ("Get-Process cobol | ForEach-Object { taskkill /PID $_.Id /F }", True),
+    ("$p = Start-Process cobol -ArgumentList x.cob -PassThru; Stop-Process -Id $p.Id", False),   # its own pid
+    ("$p = Start-Process cobol -PassThru; $p.WaitForExit(5000); $p.Kill()", False),
+    ("Get-Process -Id $p.Id -ErrorAction SilentlyContinue | Stop-Process", False),
+    ("Get-CimInstance Win32_Process -Filter \"ProcessId=$($p.Id)\" | Invoke-CimMethod -MethodName Terminate", False),
+    ("Get-Process cobol | Select-Object Id, StartTime", False),         # listing kills nothing
 ]
 
 
