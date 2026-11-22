@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -25,7 +26,7 @@ public sealed class ApostropheValueDifferentialTests
             string src = Path.Combine(dir, "prog.cob");
             src = CompiledProgramCache.StageSource(src, source);
             string dll = Path.Combine(dir, "prog.dll");
-            var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.CompilerDriver.Options(src, dll, DialectLevel: 2002, SourceFormat: TestSourceFormat.Inline));
+            var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.CompilerDriver.Options(src, EditionInfo.Of(2002), dll, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, "must compile strict: " + string.Join("\n", r.Errors));
             var (ok, stdout, detail) = CutRunner.Run(dll, dir);
             Assert.True(ok, detail);

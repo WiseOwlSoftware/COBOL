@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Reflection;
 using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -196,7 +197,7 @@ public sealed class OperandClassScreenDriftTests
             string src = Path.Combine(dir, "ocs.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "ocs.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(2023), Path.Combine(dir, "ocs.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return r.Errors;
         }
         finally { ScratchDirectory.Remove(dir); }

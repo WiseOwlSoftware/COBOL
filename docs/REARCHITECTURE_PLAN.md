@@ -3390,8 +3390,8 @@ already-derivable coverage; none change the pipeline.
   `gen-diagnostics-doc.ps1`.
 - Work register: `python scripts/spec/work.py check` (frontmatter well-formed, including the `closes_rows`
   back-link's shape; and, through `scripts/spec/work_inventory.py`, the register against the inventory) ·
-  `work.py --self-test` (the register's ONE frontmatter reader against
-  `tests/version-matrix/work-frontmatter-cases.json`). ⛔ The checks that enforce the register against the
+  `python scripts/self_tests.py --only scripts/selftests/spec/work/test_work.py` (the register's ONE frontmatter reader against
+  `tests/version-matrix/work-frontmatter-cases.json`, and every rule of `check` on a scratch register and tree). ⛔ The checks that enforce the register against the
   inventory are audits, so a `kb/`-only change runs them (the inert lane, DESIGN-test-build-ci.md §3.18): **coverage**
   (every defective-verdict row is claimed by a LIVE note's `inventory_rows`) and the **back-link**
   (every LANDED `kind: defect` note names the rows its fix CLOSED in `closes_rows`, or says why it closed none;

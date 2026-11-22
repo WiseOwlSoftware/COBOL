@@ -52,7 +52,7 @@ internal static class PlaceIdentification
     /// §2023:14.9.49.4 GR11 selects the declarative by "the first one that occurs in the order of evaluation of the
     /// statement that causes the exception to exist".</para>
     /// <para><b>Why a store needs this at all.</b> A store renders as <c>&lt;receiver&gt; = &lt;value&gt;</c>, and C#
-    /// evaluates the left operand's address first: <c>CobolTable.At(TB.T, CobolTable.Occ(I, …)) =
+    /// evaluates the left operand's address first: <c>CobolTable.At(TB.T, CobolPosition&lt;PositionUse.Subscript&gt;.Read(I, …)) =
     /// CobolString.Store(CobolString.RefMod(X, …), 4)</c> range-tests the receiving subscript (EC-BOUND-SUBSCRIPT)
     /// before the sending reference modifier (EC-BOUND-REF-MOD), so <c>MOVE X(1:L) TO T(I)</c> ran the wrong USE
     /// declarative. A reference-modified receiver splices (<c>X = SpliceInto(X, start, length, value)</c>), whose

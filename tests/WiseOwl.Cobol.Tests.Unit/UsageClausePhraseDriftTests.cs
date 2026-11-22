@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -525,7 +526,7 @@ public sealed class UsageClausePhraseDriftTests : WiseOwlCobolTestBase
         string id = ProgramId(tag, dialect);
         string src = Path.Combine(TempDir, $"{id}.cob");
         File.WriteAllText(src, source(id));
-        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: dialect, SourceFormat: TestSourceFormat.Inline));
+        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(dialect), SourceFormat: TestSourceFormat.Inline));
         return [.. r.Errors, .. r.Warnings];
     }
 }

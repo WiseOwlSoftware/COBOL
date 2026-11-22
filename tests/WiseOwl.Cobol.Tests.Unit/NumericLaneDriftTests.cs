@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -128,7 +129,7 @@ public sealed class NumericLaneDriftTests : WiseOwlCobolTestBase
         string srcPath = Path.Combine(TempDir, "lanepin.cob");
         File.WriteAllText(srcPath, source);
         var compiled = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, Path.Combine(TempDir, "lanepin.dll"), DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Free));
+            srcPath, EditionInfo.Of(2023), Path.Combine(TempDir, "lanepin.dll"), SourceFormat: InitialReferenceFormat.Free));
         Assert.True(compiled.Errors.Count == 0, "the lane program drew a diagnostic:\n  " + string.Join("\n  ", compiled.Errors));
         var stores = File.ReadAllLines(compiled.GeneratedCsPath!)
             .Where(l => Regex.IsMatch(l, @"^\s*R = ")).ToList();

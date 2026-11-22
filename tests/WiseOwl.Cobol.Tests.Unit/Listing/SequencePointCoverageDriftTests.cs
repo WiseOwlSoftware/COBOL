@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
@@ -178,7 +179,7 @@ public sealed class SequencePointCoverageDriftTests : WiseOwlCobolTestBase
             "           ADD CORRESPONDING G1 TO G2",
             "           SUBTRACT 1 FROM N OF G2",
             "           STOP RUN."));
-        var options = new CompilerDriver.Options(source, Path.Combine(TempDir, "corrprobe.dll"));
+        var options = new CompilerDriver.Options(source, EditionInfo.Latest, Path.Combine(TempDir, "corrprobe.dll"));
         var frontend = CompilerDriver.NewFrontend(options, new CompilationInputs(), recordsListing: false);
         var tree = frontend.Parse(source, new DiagnosticBag());
         Assert.NotNull(tree);
@@ -201,7 +202,7 @@ public sealed class SequencePointCoverageDriftTests : WiseOwlCobolTestBase
     public void EveryCompiledStatement_HasItsSequencePoint_AndNothingElseHasOne(string program)
     {
         string dll = Path.Combine(TempDir, program + ".dll");
-        var options = new CompilerDriver.Options(TestRepo.Nist("programs", program + ".cob"), dll, NistTestName: program, DialectLevel: 85);
+        var options = new CompilerDriver.Options(TestRepo.Nist("programs", program + ".cob"), EditionInfo.Of(85), dll, NistTestName: program);
         var (missing, stray) = Coverage(options);
         Assert.True(missing.Count == 0 && stray.Count == 0,
             $"{program}: {missing.Count} statements with no sequence point, {stray.Count} sequence points at no statement\n"

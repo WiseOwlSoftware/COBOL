@@ -51,7 +51,27 @@ public sealed class ArchCensusDriftTests
                      "a census record is a generated reader, never a live caller, on every OS",
                      "a frozen evidence record is never judged by a caller query",
                      "a drift literal naming a missing path or file is dangling",
+                     "the walk boundary passes the real tree",
+                     "a C# project outside the solution REFUSES the walk",
+                     "a source linked into a walked project from outside the walked roots REFUSES the walk",
+                     "a Compile path the boundary cannot resolve REFUSES the walk",
+                     "a host that references a project REFUSES the walk",
                  });
+    }
+
+    /// <summary>
+    /// THE CENSUS READS THE PATH LOCATOR AS A SYMBOL (kb/Work PB3201): the host finds the type the drift tests'
+    /// repository paths go through by its metadata name (<c>TestArtifacts.LocatorMetadataName</c>), outside the
+    /// solution and so outside every rename's computed file set. This pins that name to the type itself, so a rename or
+    /// move of <see cref="TestRepo"/> is red here, at the gate, rather than a census refusal on the next on-demand run.
+    /// </summary>
+    [Fact]
+    public void CensusHost_NamesTheLocatorTheDriftTestsCall()
+    {
+        string host = TestRepo.At("tools", "ArchCensus", "TestArtifacts.cs");
+        string declaration = $"LocatorMetadataName = \"{typeof(TestRepo).FullName}\";";
+        Assert.True(File.ReadAllText(host).Contains(declaration, StringComparison.Ordinal),
+            $"{host} must declare `{declaration}`: the census host reads drift-test paths through that type");
     }
 
     /// <summary>

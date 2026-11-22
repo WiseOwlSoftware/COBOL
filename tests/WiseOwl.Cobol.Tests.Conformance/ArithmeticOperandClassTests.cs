@@ -108,7 +108,7 @@ public sealed class ArithmeticOperandClassTests
     /// <c>SubscriptBinder.ResolveSubscriptName</c>, on the fast path EVERY subscript and reference-modification
     /// in the corpus takes, and it must have the SAME two lanes the expression-binder screen has: strict rejects,
     /// <c>--permissive</c> warns and decodes the digit characters. The decode is not new behaviour to write —
-    /// <c>CobolTable.Occ(string)</c> and <c>CobolString.RefModPosition(string, …)</c> already implement it — so
+    /// <c>CobolPosition.Digits(string)</c> and <c>CobolPosition&lt;PositionUse.RefMod&gt;.Read(string, …)</c> already implement it — so
     /// the permissive lane's EMITTED TEXT is unchanged and only the diagnostic differs.
     /// <para>The strict half is pinned at all four editions by the corpus fixtures
     /// <c>pb170-subscript-alphanumeric-simple</c> / <c>-compound</c> / <c>-edited</c> /
@@ -132,7 +132,7 @@ public sealed class ArithmeticOperandClassTests
     /// <summary>⛔ THE GROUP CARRIER AT A POSITION OPERAND (kb/Work PB201) — the shape the sibling test
     /// above could not reach, because a group is not a <c>string</c> field. The <c>--permissive</c> message
     /// promises to decode "its digit characters as an unsigned integer"; the emitted C# handed
-    /// <c>CobolTable.Occ</c> the group's per-program <c>record struct</c> instead (backend CS1503) and, for a
+    /// <c>CobolPosition&lt;PositionUse.Subscript&gt;.Read</c> the group's per-program <c>record struct</c> instead (backend CS1503) and, for a
     /// class-tier BASED group, a bare COBOL word that is not a C# name at all (CS0103) — so the promise was
     /// never kept and the two shapes DIVERGED, which is the half of the defect a reject-only fixture cannot
     /// express. They agree now because neither is rendered by the fast path any more: both route to D18, where

@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -71,7 +72,7 @@ public sealed class NumericFunctionIdentifierDoorTests
         {
             string src = Path.Combine(dir, "MAIN.cob");
             File.WriteAllText(src, source);
-            return CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: edition, CheckOnly: true,
+            return CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(edition), CheckOnly: true,
                 SourceFormat: InitialReferenceFormat.Fixed));
         }
         finally { ScratchDirectory.Remove(dir); }

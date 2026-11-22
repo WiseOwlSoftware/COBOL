@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Text;
 using WiseOwl.Cobol.Tests.Shared;
@@ -26,8 +27,7 @@ internal sealed class ListingHookCases(string dir, int edition)
         string source = Path.Combine(dir, name + ".cob");
         File.WriteAllText(source, string.Join("\n", lines));
         foreach (var (book, text) in copybooks ?? new Dictionary<string, string>()) File.WriteAllText(Path.Combine(dir, book), text);
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(dir, name + ".dll"),
-            DialectLevel: edition, CopyPaths: [dir], CheckOnly: checkOnly,
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, EditionInfo.Of(edition), Path.Combine(dir, name + ".dll"), CopyPaths: [dir], CheckOnly: checkOnly,
             Listing: new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json, PageLength: 0)));
         Assert.True(result.Success, string.Join("\n", result.Errors));
         var listing = Assert.IsType<ListingDocument>(result.Listing);
@@ -131,8 +131,7 @@ internal sealed class ListingHookCases(string dir, int edition)
     {
         string source = Path.Combine(dir, "nolstpage.cob");
         File.WriteAllText(source, string.Join("\n", (string[])[.. Prologue, "       >>PAGE NO LISTING", "       01 A PIC X.", .. Epilogue]));
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(dir, "nolstpage.dll"),
-            DialectLevel: edition, CheckOnly: true));
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, EditionInfo.Of(edition), Path.Combine(dir, "nolstpage.dll"), CheckOnly: true));
         Assert.True(result.Success, string.Join("\n", result.Errors));
         Assert.Null(result.Listing);
         Assert.Empty(result.CompileOutput);

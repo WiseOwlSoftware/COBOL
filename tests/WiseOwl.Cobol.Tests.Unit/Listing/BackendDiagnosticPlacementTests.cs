@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
@@ -49,10 +50,10 @@ public sealed class BackendDiagnosticPlacementTests : WiseOwlCobolTestBase
         File.WriteAllText(copybook, "           ADD 2 TO B.\n");   // its line 1: ADD at 12
 
         var request = new ListingRequest(Formats: ListingFormats.Text) { Sections = ListingSectionSet.Of(ListingSection.Source, ListingSection.Diagnostics) };
-        var options = new CompilerDriver.Options(source, Path.Combine(work, "placement.dll"), CopyPaths: [library], Listing: request);
+        var options = new CompilerDriver.Options(source, EditionInfo.Latest, Path.Combine(work, "placement.dll"), CopyPaths: [library], Listing: request);
         var inputs = new CompilationInputs { DigestsFiles = true };
         var facts = new ListingFacts(request, inputs, options.SourcePath, options.OutputDll(),
-            Editions.EditionInfo.Of(options.DialectLevel, options.Permissive), () => DateTimeOffset.UnixEpoch, []);
+            options.Edition, () => DateTimeOffset.UnixEpoch, []);
         var frontend = CompilerDriver.NewFrontend(options, inputs, recordsListing: true);
         Assert.NotNull(frontend.Parse(source, new DiagnosticBag()));
         facts.DepositFrontend(frontend);

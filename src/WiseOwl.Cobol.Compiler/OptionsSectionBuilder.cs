@@ -32,9 +32,18 @@ internal static class OptionsSectionBuilder
     /// <summary>A row of the listing request: the property of <see cref="ListingRequest"/> it reads.</summary>
     internal sealed record RequestRow(string Property, string Name, Func<ListingRequest, string> Value);
 
-    private static readonly CompilerDriver.Options Defaults = new("");
+    /// <summary>The options a command line that names only its source compiles under: the latest edition, strict (the CLI's
+    /// <c>--std</c> default, <see cref="Editions.EditionInfo.Latest"/>), and every other option at its library default.</summary>
+    private static readonly CompilerDriver.Options Defaults = new("", Editions.EditionInfo.Latest);
 
     private static readonly ListingRequest RequestDefaults = new();
+
+    /// <summary>The two command-line options <see cref="CompilerDriver.Options.Edition"/> carries, each a row of its own: the
+    /// year (<c>--std</c>) and the severity axis (<c>--permissive</c>), named as the property path that reads them.</summary>
+    internal const string EditionYear = nameof(CompilerDriver.Options.Edition) + "." + nameof(Editions.EditionInfo.Year);
+
+    /// <inheritdoc cref="EditionYear"/>
+    internal const string EditionPermissive = nameof(CompilerDriver.Options.Edition) + "." + nameof(Editions.EditionInfo.Permissive);
 
     /// <summary>The rows of <see cref="CompilerDriver.Options"/>, in the order the command line's help lists the options.</summary>
     internal static readonly IReadOnlyList<Row> Table =
@@ -43,9 +52,9 @@ internal static class OptionsSectionBuilder
         new(nameof(CompilerDriver.Options.OutputPath), "--output", o => o.OutputDll(), o => o.OutputPath is null,
             nameof(CompilerDriver.Options.SourcePath)),
         new(nameof(CompilerDriver.Options.NistTestName), "--nist", o => o.NistTestName ?? "off"),
-        new(nameof(CompilerDriver.Options.DialectLevel), "--std", o => string.Create(CultureInfo.InvariantCulture,
-            $"{o.DialectLevel} ({Editions.EditionInfo.Of(o.DialectLevel).StandardName})")),
-        new(nameof(CompilerDriver.Options.Permissive), "--permissive", o => OnOff(o.Permissive)),
+        new(EditionYear, "--std", o => string.Create(CultureInfo.InvariantCulture,
+            $"{o.Edition.Year} ({o.Edition.StandardName})")),
+        new(EditionPermissive, "--permissive", o => OnOff(o.Edition.Permissive)),
         new(nameof(CompilerDriver.Options.CopyPaths), "--copy", o => List(o.CopyPaths)),
         new(nameof(CompilerDriver.Options.SignEncoding), "--sign-encoding", o => o.SignEncoding.ToString().ToLowerInvariant()),
         new(nameof(CompilerDriver.Options.NumericDisplay), "--numeric-display",

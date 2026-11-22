@@ -1718,7 +1718,7 @@ carries its order and blockers):
 | `Frontend.Preprocessor.ReferenceFormatProcessor` (R0-0033) | the §2023:6.5 logical conversion (one pass, PB1491) and the line builder (the partials) | `LogicalLineConverter`; `LogicalLineBuilder` | LogicalLineConverter.Convert(source text, reference format) → logical lines (§2023:6.5, one pass) |
 | `Runtime.CobolArgAdapt` (R0-0034, `CallAbi.cs`) | one file holds the whole CALL ABI (`CobolPassMode`, `CobolArg`, `BoundaryItem`, `ICobolProgram`); adapters by boundary class | CallAbi.cs split one type per file (CobolPassMode, CobolArg, BoundaryItem, ICobolProgram); ArgumentAdapters, one per boundary class | a boundary-class selector picks an IArgumentAdapter (`BoundaryClass`, a §2023:14.8.2.2 conformance class, was deleted by kb/Work PB165: `BoundaryItem.Description` carries those facts) |
 | `CodeGen.Emit.ConditionRenderer` (R0-0035) | the condition visitor; range membership (`Membership` 4), class conditions | `MembershipRenderer`; `ClassConditionRenderer` | Render(a BoundCondition leaf, EmitContext), ConditionRenderer keeping the dispatch |
-| `Runtime.CobolDec` (R0-0036) | standard-decimal arithmetic; the unscaled helpers | `CobolDec`; `DecUnscaled` | DecUnscaled, the unscaled-Int128 helpers CobolDec owns; emitted names unchanged |
+| `Runtime.CobolDec` (R0-0036) | standard-decimal arithmetic; the unscaled helpers | `CobolDec`; `DecUnscaled` | DecUnscaled, the unscaled-Int128 helpers CobolDec owns (its digit count and trailing-zero strip landed first, kb/Work PB2657); emitted names unchanged |
 | `Frontend.Preprocessor.ConditionalCompilationProcessor` (R0-0037) | `>>IF`/`>>EVALUATE` evaluation, `>>DISPLAY` (the partial), the line walk | `DirectiveEvaluator`; `DisplayDirective` | DirectiveEvaluator.Evaluate(expression, compilation variables) → value |
 | `Frontend.Generated.CobolParserCoreBase` (R0-0038) | the ANTLR superclass: the lookahead predicates (`…Ahead`, `Locale`) | `LookaheadPredicates`; `LocalePredicates`; EditionWordPredicates (every member that reads the compile edition, §8.4's pin, as one set); the type's namespace becomes its folder's (R0-0222) | static predicate types the grammar's predicate actions call directly (no forwarding member on the superclass); a grammar wave, so after the §4 item 3 token and parse-tree differential (PB2350) exists, and after PB2291 decides which edition reads stay |
 | `CodeGen.EcEmitter` (R0-0039) | per-statement checking state, declarative dispatch (`Dispatch`) | `EcCheckingEmitter`; `DeclarativeDispatchEmitter` | EcCheckingEmitter.Emit(EcStatementInfo, EmitContext); DeclarativeDispatchEmitter.Emit(the unit's declaratives) |
@@ -2025,8 +2025,16 @@ Roslyn walk (`tools/ArchCensus --member-index`, recorded by `scripts/arch/member
 `<sha>.members.json.gz`: per symbol, the authored product and test files that use it; per type and member, the files
 that declare it; and, for every type and member of the EMITTED SURFACE, the authored files whose string or
 interpolated text writes its name, because `catch (ProgramReturn)` in `DispatchEmitter.cs` is C# text and binds no
-symbol; K1). Every index carries `treeKey`, the hash of what the walk read (the tracked C#, project and solution files
-of `src/` and `tests/`, and the host's sources), and the planner plans only on THE index of its own tree
+symbol; K1). The walk reads the solution's projects and nothing else, so the census and the member index both take
+their scope from ONE function, `census.walk_scope`, which REFUSES a tree that compiles C# outside them (THE WALK
+BOUNDARY, kb/Work PB3201): a tracked C# project that is not a solution project, the host or frozen evidence; a host
+that references a project; and a `<Compile Include>` naming sources outside `src/` and `tests/` or a path it cannot
+resolve. A consumer the walk cannot see (`tools/impact/ImpactTestFramework.cs` derived `GateTestFramework` through
+`ImpactRecording.targets` until PB4328 deleted it) is otherwise outside every rename's file set and breaks far from
+the change. The host's own name for a solution type (the drift tests' path locator, `TestArtifacts.LocatorMetadataName`)
+is a symbol it resolves or refuses, pinned to the type by `ArchCensusDriftTests`. Every index carries `treeKey`, the
+hash of what the walk read (the tracked C#, project and solution files of `src/` and `tests/`, the host's sources, and
+every tracked MSBuild file, which the walk boundary reads), and the planner plans only on THE index of its own tree
 (`member_index.current`: a committed or cached record with that key, else one regenerated into
 `<coord>/member-index/`, else a refusal with `--no-index-regenerate`): a stale index cannot see a type or file a
 landing added (PB833's `OfdRegionLocks.cs` inside PB2251's site folder; K1), and Draft 8's "an older index only widens

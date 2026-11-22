@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 using WiseOwl.Cobol.Tests.Shared;
@@ -31,7 +32,7 @@ public sealed class AreaPlacementPassTests
             string src = Path.Combine(dir, "MAIN.cob");
             File.WriteAllText(src, source);
             foreach (var (name, text) in library) File.WriteAllText(Path.Combine(dir, name), text);
-            return CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: edition, CopyPaths: [dir],
+            return CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(edition), CopyPaths: [dir],
                 CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
         }
         finally { ScratchDirectory.Remove(dir); }

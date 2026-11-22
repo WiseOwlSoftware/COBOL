@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -133,7 +134,7 @@ public sealed class ArchOracleDriftTests
             dirs.Add(dir);
             string src = Path.Combine(dir, "prog.cob");
             File.WriteAllText(src, source);
-            var r = CompiledProgramCache.CompileCold(new CompilerDriver.Options(src, Path.Combine(dir, "prog.dll"), DialectLevel: 2023));
+            var r = CompiledProgramCache.CompileCold(new CompilerDriver.Options(src, EditionInfo.Of(2023), Path.Combine(dir, "prog.dll")));
             return ArchOracle.Observe(dir, r);
         }
 
@@ -179,7 +180,7 @@ public sealed class ArchOracleDriftTests
             Directory.CreateDirectory(compileDir);
             string staged = CompiledProgramCache.StageSource(Path.Combine(compileDir, "pb5862.cob"), source,
                 new Dictionary<string, byte[]>(StringComparer.Ordinal));
-            return CompiledProgramCache.Compile(new CompilerDriver.Options(staged, Path.Combine(dir, "pb5862.dll"), DialectLevel: 2023));
+            return CompiledProgramCache.Compile(new CompilerDriver.Options(staged, EditionInfo.Of(2023), Path.Combine(dir, "pb5862.dll")));
         }));
         var cold = oracle.Observe();
         var warm = oracle.Observe();

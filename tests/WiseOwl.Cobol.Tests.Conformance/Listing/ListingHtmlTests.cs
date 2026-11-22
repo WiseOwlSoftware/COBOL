@@ -3,6 +3,7 @@
 using System.Xml;
 using System.Xml.Linq;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Html;
 using WiseOwl.Cobol.Tests.Shared;
@@ -51,8 +52,7 @@ public sealed class ListingHtmlTests : IDisposable
         string source = Path.Combine(_dir, "html85.cob"), copybook = Path.Combine(_dir, "HREC.cpy");
         File.WriteAllText(source, main);
         File.WriteAllText(copybook, Rec);
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(_dir, "html85.dll"),
-            DialectLevel: 85, CopyPaths: [_dir], Listing: request));
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, EditionInfo.Of(85), Path.Combine(_dir, "html85.dll"), CopyPaths: [_dir], Listing: request));
         if (result.Listing is { } listing) ListingJsonContract.AssertHolds(listing);
         return (result, Path.GetFullPath(Path.Combine(_dir, "html85.lst.html")), source, copybook);
     }

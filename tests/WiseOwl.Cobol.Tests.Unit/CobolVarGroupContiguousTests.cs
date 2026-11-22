@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The D-FRA split rule (docs/CONFORMANCE.md §3; kb/Work PB981) — <see cref="CobolVarGroup.FromContiguous"/>, the
+/// The D-FRA split rule (docs/CONFORMANCE.md §3; kb/Work PB981) — <see cref="CobolContiguousLayout.Decompose"/>, the
 /// ONE decomposition of a variable-length record read back from a file. A WRITE sends the record "as though it
 /// were in fact contiguous with its neighbors" (ISO §2023:8.5.1.11.2), so the read record carries no marker of where a
 /// dynamic member ends; each component takes as many whole units as the record holds beyond the fixed material
@@ -18,7 +18,7 @@ public sealed class CobolVarGroupContiguousTests
 {
     // Record layout A X(3) · D dynamic (max 20) · B X(2): fixed run 5, D at fixed offset 3.
     private static CobolVarGroup Split(string record) =>
-        CobolVarGroup.FromContiguous(record, 5, [3], [1], [20L]);
+        new CobolContiguousLayout(5, [3], [1], [20L]).Decompose(record);
 
     [Fact]
     public void OneDynamicMember_InTheMiddle_IsTheExactInverseOfTheComposer()
@@ -40,7 +40,7 @@ public sealed class CobolVarGroupContiguousTests
     [Fact]
     public void AComponentStopsAtItsMaximum_AndTheFixedMaterialFollowsIt()
     {
-        var v = CobolVarGroup.FromContiguous("ABC" + "0123456789" + "XY", 5, [3], [1], [4L]);
+        var v = new CobolContiguousLayout(5, [3], [1], [4L]).Decompose("ABC" + "0123456789" + "XY");
         Assert.Equal("0123", v.Dyn(0));
         Assert.Equal("ABC45", v.Fixed);   // the fixed material after D is read from D's end, left to right
     }
@@ -49,7 +49,7 @@ public sealed class CobolVarGroupContiguousTests
     public void SeveralComponents_TheEarlierTakesTheExcess()
     {
         // K X(1) · D1 dynamic · D2 dynamic: fixed run 1, both at fixed offset 1.
-        var v = CobolVarGroup.FromContiguous("K" + "AB" + "CD", 1, [1, 1], [1, 1], [10L, 10L]);
+        var v = new CobolContiguousLayout(1, [1, 1], [1, 1], [10L, 10L]).Decompose("K" + "AB" + "CD");
         Assert.Equal("K", v.Fixed);
         Assert.Equal("ABCD", v.Dyn(0));
         Assert.Equal("", v.Dyn(1));
@@ -59,7 +59,7 @@ public sealed class CobolVarGroupContiguousTests
     public void ATableComponent_TakesWholeElementsOnly()
     {
         // K X(1) · T dynamic table of 3-character elements (max 5) · Z X(1): fixed run 2, T at fixed offset 1.
-        var v = CobolVarGroup.FromContiguous("K" + "AAABBBC" + "Z", 2, [1], [3], [5L]);
+        var v = new CobolContiguousLayout(2, [1], [3], [5L]).Decompose("K" + "AAABBBC" + "Z");
         Assert.Equal("AAABBB", v.Dyn(0));
         Assert.Equal("KC", v.Fixed);   // the partial element is not taken; the fixed run reads on from there
     }

@@ -29,13 +29,14 @@ internal static class PlaceRenderer
     /// <summary>⛔ THE ONE CODEGEN-TIME INTEGER COUNT READ — data-name-1 of an OCCURS DEPENDING table (§2023:13.18.38.4
     /// GR7's "current number of occurrences"), a RECORD VARYING DEPENDING length, a report DEPENDING count — as the
     /// <c>long</c> the runtime positions by. A numeric item reads through its OWN profile
-    /// (<c>CobolTable.Occ(x, _P_n)</c>): the count is a numeric SENDING item referenced during item identification,
+    /// (<c>CobolPosition&lt;PositionUse.Subscript&gt;.Read(x, _P_n)</c>): the count is a numeric SENDING item referenced during item identification,
     /// so §2023:14.6.13.2 GR2's EC-DATA-INCOMPATIBLE check applies to a count stored as its character image exactly
     /// as it does to a subscript (kb/Work PB1117 — the profile-less read decoded that image through a tolerant
     /// digit scan, so the condition was unreachable and a signed image's sign was dropped). Every emitter that
-    /// needs a count calls THIS, never <c>RuntimeApi.TableOcc(Read(p), …)</c> by hand.</summary>
-    public static string CountRead(Place p) =>
-        RuntimeApi.TableOcc(Read(p), p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false } ? p.Item.ProfileName : null);
+    /// needs a count calls THIS, never <c>RuntimeApi.PositionRead(Read(p), …)</c> by hand.</summary>
+    public static string CountRead(Place p) => p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false }
+        ? RuntimeApi.PositionRead(Read(p), p.Item.ProfileName, refMod: false)
+        : RuntimeApi.PositionDigits(Read(p));
 
     /// <summary>A C# expression that reads <paramref name="p"/>'s current value.</summary>
     public static string Read(Place p) => p switch

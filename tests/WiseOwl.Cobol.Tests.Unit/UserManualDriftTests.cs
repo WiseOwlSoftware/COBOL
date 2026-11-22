@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
 using WiseOwl.Cobol.Cli;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -41,7 +42,7 @@ public sealed class UserManualDriftTests
             {
                 string src = Path.Combine(dir, Path.GetFileName(program));
                 File.WriteAllText(src, File.ReadAllText(program).Replace("\r\n", "\n"), new UTF8Encoding(false));
-                var result = CompilerDriver.Compile(new CompilerDriver.Options(src, CheckOnly: true));
+                var result = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Latest, CheckOnly: true));
                 if (!result.Success)
                     offenders.Add($"{Path.GetFileName(program)}: {string.Join(" | ", result.Errors)}");
             }

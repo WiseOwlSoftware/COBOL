@@ -18,7 +18,8 @@ What remains:
 1. `python scripts/spec/work.py check` — the register is well-formed (kind/status/id, no duplicates, and the
    `closes_rows` back-link's shape, and the register against the traceability inventory: every defective row claimed
    by a live note, every `closes_rows` entry a row the inventory calls closed; `scripts/spec/work_inventory.py`).
-   `python scripts/spec/work.py --self-test` holds the register's one frontmatter reader to its cases.
+   `python scripts/self_tests.py --only scripts/selftests/spec/work/test_work.py` holds the register's one frontmatter reader, and each rule of
+   `check`, to their cases.
 2. `python scripts/rendered_views.py --check` — every rendered view (the burn-down, the drift-rule index, the diagnostics table) still renders, none is tracked.
 3. `constructs/` — still its own authority for CI and the drift tests; unchanged.
 4. Plan §0 — narrative and owner decisions ONLY. It no longer carries a worklist; `Fix next` does.

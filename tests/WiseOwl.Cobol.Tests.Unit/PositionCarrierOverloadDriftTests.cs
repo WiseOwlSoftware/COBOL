@@ -13,10 +13,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <c>SubscriptBinder.PositionRead</c> emits <c>CobolTable.Occ(&lt;field&gt;, _P_n)</c> for a NUMERIC subscript,
-/// <c>CobolString.RefModPosition(&lt;field&gt;, _P_n)</c> for a NUMERIC reference-modification bound (the item's own
+/// <c>SubscriptBinder.PositionRead</c> emits <c>CobolPosition&lt;PositionUse.Subscript&gt;.Read(&lt;field&gt;, _P_n)</c> for a
+/// NUMERIC subscript, <c>CobolPosition&lt;PositionUse.RefMod&gt;.Read(&lt;field&gt;, _P_n)</c> for a NUMERIC reference-modification bound (the item's own
 /// profile carries its scale, its sign and the byte form §2023:14.6.13.2 GR2's check reads — kb/Work PB1117), and
-/// the profile-less <c>CobolTable.Occ(&lt;field&gt;)</c> only for a NON-numeric <c>--permissive</c> operand. That is a
+/// the profile-less <c>CobolPosition.Digits(&lt;field&gt;)</c> only for a NON-numeric <c>--permissive</c> operand. That is a
 /// deliberate design: the post-bind whole-group analysis has not yet chosen the field's storage form when the
 /// text is produced, so ONE text has to serve a <c>long</c> field and the <c>string</c> image it may become, and
 /// the C# compiler picks the conversion later. The bet is only good for carriers the method DECLARES a parameter
@@ -29,14 +29,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>
 /// ⚠ This is the drift guard the fix is paired with, not a restatement of it. The fix reads two lists; adding an
 /// overload without widening them leaves the fast path routing a carrier it could now render, and widening them
-/// without the overload puts the CS1503 back. Both directions fail here. The two-arm assertion
-/// (<c>two_arm_dispatch</c>) holds <c>CobolTable.Occ</c> and <c>CobolString.RefModPosition</c> to the SAME
-/// numeric carrier set, because <c>PositionRead</c> screens both arms with ONE list.
+/// without the overload puts the CS1503 back. Both directions fail here. The subscript and reference-modification
+/// arms cannot diverge: since kb/Work PB2645 they are one generic read whose use is a type argument (they were
+/// <c>CobolTable.Occ</c> and <c>CobolString.RefModPosition</c>, held together by a two-arm assertion here).
 /// </para>
 /// <para>
 /// PROVEN TO FAIL, both directions, before being trusted: adding <c>"double"</c> to the numeric list made the
-/// first assertion red naming "double" as the extra carrier, and deleting a <c>RefModPosition</c> overload made
-/// the two-arm one red.
+/// first assertion red naming "double" as the extra carrier.
 /// </para>
 /// </remarks>
 public sealed class PositionCarrierOverloadDriftTests
@@ -69,82 +68,69 @@ public sealed class PositionCarrierOverloadDriftTests
                                == typeof(NumProfile))
                 .Select(m => Spelling(m.GetParameters()[0].ParameterType)));
 
-    /// <summary>A NUMERIC position operand renders <c>CobolTable.Occ(path, _P_n)</c>, so the numeric carrier list
-    /// is exactly the profile-arity overload set.</summary>
+    /// <summary>The one numeric position read, at either use (the use is a type argument, so both closed types share
+    /// one overload set by construction, kb/Work PB2645).</summary>
+    private static readonly Type NumericRead = typeof(CobolPosition<PositionUse.Subscript>);
+
+    /// <summary>A NUMERIC position operand renders <c>CobolPosition&lt;use&gt;.Read(path, _P_n)</c>, so the numeric
+    /// carrier list is exactly the profile-arity overload set.</summary>
     [Fact]
-    public void NumericCarriers_AreExactlyTheProfileArityOccOverloads()
+    public void NumericCarriers_AreExactlyTheProfileArityReadOverloads()
     {
         var declared = new SortedSet<string>(SubscriptBinder.NumericPositionCarriers);
-        var actual = ProfileArityCarriers(typeof(CobolTable), nameof(CobolTable.Occ));
+        var actual = ProfileArityCarriers(NumericRead, nameof(CobolPosition<PositionUse.Subscript>.Read));
         Assert.True(declared.SetEquals(actual),
             $"SubscriptBinder.NumericPositionCarriers = [{string.Join(", ", declared)}] but "
-            + $"CobolTable.Occ(x, in NumProfile) accepts [{string.Join(", ", actual)}]. A carrier declared here with "
+            + $"CobolPosition<use>.Read(x, in NumProfile) accepts [{string.Join(", ", actual)}]. A carrier declared here with "
             + "no overload puts the CS1503 back (kb/Work PB201); an overload with no entry here leaves the fast path "
             + "routing work it could now render.");
     }
 
-    /// <summary>A NON-numeric (<c>--permissive</c>) position operand renders <c>CobolTable.Occ(path)</c>, so its
-    /// carrier list is exactly the one-argument overload set.</summary>
+    /// <summary>A NON-numeric (<c>--permissive</c>) position operand renders <c>CobolPosition.Digits(path)</c>, so its
+    /// carrier list is exactly that method's one-argument overload set.</summary>
     [Fact]
-    public void NonNumericCarriers_AreExactlyTheOneArgumentOccOverloads()
+    public void NonNumericCarriers_AreExactlyTheDigitsOverloads()
     {
         var declared = new SortedSet<string>(SubscriptBinder.NonNumericPositionCarriers);
-        var actual = OneArgumentCarriers(typeof(CobolTable), nameof(CobolTable.Occ));
+        var actual = OneArgumentCarriers(typeof(CobolPosition), nameof(CobolPosition.Digits));
         Assert.True(declared.SetEquals(actual),
             $"SubscriptBinder.NonNumericPositionCarriers = [{string.Join(", ", declared)}] but "
-            + $"CobolTable.Occ(x) accepts [{string.Join(", ", actual)}].");
+            + $"CobolPosition.Digits(x) accepts [{string.Join(", ", actual)}].");
     }
 
     /// <summary>⛔ THE PROFILE-LESS ARITY IS NOT A NUMERIC READ (kb/Work PB1117). A numeric item read without its
     /// profile cannot apply §2023:14.6.13.2 GR2 to a character image and cannot see its sign or scale, which is
-    /// exactly how EC-DATA-INCOMPATIBLE became unreachable on the item-identification lane. So no one-argument
-    /// overload may accept a carrier only a NUMERIC item has (the wide and unsigned-binary tiers), and no
-    /// profile-less scale arity may come back.</summary>
+    /// exactly how EC-DATA-INCOMPATIBLE became unreachable on the item-identification lane. So the digit decode may
+    /// not accept a carrier only a NUMERIC item has (the wide and unsigned-binary tiers), and no profile-less scale
+    /// arity of the numeric read may come back.</summary>
     [Fact]
     public void NoProfileLessNumericArity()
     {
-        var one = OneArgumentCarriers(typeof(CobolTable), nameof(CobolTable.Occ));
+        var one = OneArgumentCarriers(typeof(CobolPosition), nameof(CobolPosition.Digits));
         foreach (string numericOnly in new[] { "Int128", "ulong", "UInt128" })
             Assert.DoesNotContain(numericOnly, one);
-        foreach (var host in new[] { typeof(CobolTable), typeof(CobolString) })
-            Assert.DoesNotContain(host.GetMethods(BindingFlags.Public | BindingFlags.Static), m =>
-                m.Name is nameof(CobolTable.Occ) or nameof(CobolString.RefModPosition)
-                && m.GetParameters() is { Length: 2 } ps && ps[1].ParameterType == typeof(int));
+        Assert.DoesNotContain(NumericRead.GetMethods(BindingFlags.Public | BindingFlags.Static), m =>
+            m.Name == nameof(CobolPosition<PositionUse.Subscript>.Read)
+            && m.GetParameters() is { Length: 2 } ps && ps[1].ParameterType == typeof(int));
     }
 
     /// <summary>⛔ NO FLOAT CARRIER AT EITHER ARITY, AND THIS IS A CONFORMANCE RULE, NOT A CAPABILITY GAP. A
     /// <c>double</c>/<c>float</c> operand can be fractional, and §2023:8.4.2.3.4 GR1b sets EC-BOUND-SUBSCRIPT when the
-    /// expression "does not result in an integer" — a test <c>Occ</c> performs over an unscaled/profile pair a
+    /// expression "does not result in an integer" — a test <c>Read</c> performs over an unscaled/profile pair a
     /// float has no equivalent of. So a float position operand must keep routing to the D18 §2023:15.4 temp, where the
-    /// rule is applied exactly once, to the result. An <c>Occ(double)</c> overload added for convenience would
+    /// rule is applied exactly once, to the result. A <c>Read(double)</c> overload added for convenience would
     /// silently truncate <c>E(FUNCTION SQRT(2))</c> to occurrence 1 and raise nothing; this test is what makes that
     /// a deliberate decision to reverse rather than an easy one to slip in.</summary>
     [Fact]
     public void NoFloatCarrier_AtEitherArity()
     {
-        foreach (var set in new[] { OneArgumentCarriers(typeof(CobolTable), nameof(CobolTable.Occ)),
-                                    ProfileArityCarriers(typeof(CobolTable), nameof(CobolTable.Occ)),
-                                    ProfileArityCarriers(typeof(CobolString), nameof(CobolString.RefModPosition)) })
+        foreach (var set in new[] { OneArgumentCarriers(typeof(CobolPosition), nameof(CobolPosition.Digits)),
+                                    ProfileArityCarriers(NumericRead, nameof(CobolPosition<PositionUse.Subscript>.Read)) })
         {
             Assert.DoesNotContain("double", set);
             Assert.DoesNotContain("float", set);
         }
         Assert.DoesNotContain("double", SubscriptBinder.NumericPositionCarriers);
         Assert.DoesNotContain("double", SubscriptBinder.NonNumericPositionCarriers);
-    }
-
-    /// <summary>⛔ THE TWO-ARM ASSERTION. <c>PositionRead</c> asks ONE question — "may the fast path name this
-    /// numeric carrier" — and then emits <c>CobolTable.Occ</c> for a subscript or <c>CobolString.RefModPosition</c>
-    /// for a reference-modification bound. A single admission list is only correct while the two methods admit the
-    /// same carriers.</summary>
-    [Fact]
-    public void SubscriptAndRefModArms_AdmitTheSameNumericCarriers()
-    {
-        var occ = ProfileArityCarriers(typeof(CobolTable), nameof(CobolTable.Occ));
-        var refmod = ProfileArityCarriers(typeof(CobolString), nameof(CobolString.RefModPosition));
-        Assert.True(occ.SetEquals(refmod),
-            $"CobolTable.Occ(x, in NumProfile) accepts [{string.Join(", ", occ)}] but "
-            + $"CobolString.RefModPosition(x, in NumProfile) accepts [{string.Join(", ", refmod)}]. "
-            + "SubscriptBinder.PositionRead screens both arms with ONE list, so they must not diverge.");
     }
 }

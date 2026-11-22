@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using WiseOwl.Cobol.Tests.Shared;                             // ProcessObserver — the ONE child-process observer
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 
@@ -29,7 +30,7 @@ public sealed class AcceptDifferentialTests
             string src = Path.Combine(dir, "prog.cob");
             string dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
-            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialect, SourceFormat: TestSourceFormat.Inline, NumericDisplay: numericDisplay));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Of(dialect), dll, SourceFormat: TestSourceFormat.Inline, NumericDisplay: numericDisplay));
             if (!result.Success)
                 return (false, "", $"[compile] {result.Status}: {string.Join("\n", result.Errors)}");
 

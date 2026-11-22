@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using BenchmarkDotNet.Attributes;
 using WiseOwl.Cobol.Benchmarks.Collation;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Benchmarks.Compile;
@@ -61,8 +62,8 @@ public class CompileBenchmarks
     {
         _outputDirectory = ScratchDirectory.Create("pb2117-compile-");
         string source = TestRepo.Nist("programs", Program + ".cob");
-        _full = new CompilerDriver.Options(source, Path.Combine(_outputDirectory, Program + ".dll"),
-            NistTestName: Program, DialectLevel: 85,
+        _full = new CompilerDriver.Options(source, EditionInfo.Of(85), Path.Combine(_outputDirectory, Program + ".dll"),
+            NistTestName: Program,
             Listing: Listing switch
             {
                 ListingMode.None => null,

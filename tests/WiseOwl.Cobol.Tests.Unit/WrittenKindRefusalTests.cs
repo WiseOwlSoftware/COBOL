@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -330,7 +331,7 @@ public sealed class WrittenKindRefusalTests
             string src = Path.Combine(dir, "pb3428u.cob");
             File.WriteAllText(src, Head + Config + $"       OBJECT-COMPUTER. XYZ MEMORY SIZE 12 {unit}.\n" + Proc);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb3428u.dll"), DialectLevel: 85, CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
+                src, EditionInfo.Of(85), Path.Combine(dir, "pb3428u.dll"), CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
             Assert.True(r.Success, $"MEMORY SIZE 12 {unit} is the '85 clause; got:\n{string.Join("\n", r.Errors)}");
         }
         finally { ScratchDirectory.Remove(dir); }
@@ -364,7 +365,7 @@ public sealed class WrittenKindRefusalTests
             string src = Path.Combine(dir, "pb3428u.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb3428u.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
+                src, EditionInfo.Of(edition), Path.Combine(dir, "pb3428u.dll"), CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
             return r.Success ? [] : r.Errors;
         }
         finally { ScratchDirectory.Remove(dir); }

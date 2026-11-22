@@ -3,6 +3,7 @@
 using System.Text;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 
@@ -142,7 +143,7 @@ public sealed class IntrinsicIntegerPositionPermissiveDriftTests : WiseOwlCobolT
         string dllPath = Path.Combine(TempDir, "pb651intpos.dll");
         File.WriteAllText(srcPath, source);
         var compiled = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, dllPath, DialectLevel: 2023, Permissive: true, SourceFormat: InitialReferenceFormat.Free));
+            srcPath, EditionInfo.Of(2023, true), dllPath, SourceFormat: InitialReferenceFormat.Free));
 
         // ⛔ A BACKEND error is the PB635 signature: Roslyn refusing generated C# for source the front end accepted.
         Assert.True(compiled.Success,

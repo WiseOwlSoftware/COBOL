@@ -4,6 +4,7 @@ using WiseOwl.Cobol;
 using WiseOwl.Cobol.CodeGen;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -28,8 +29,7 @@ internal static class NonCobolElement
         InitialReferenceFormat format = TestSourceFormat.Inline)
     {
         string src = CompiledProgramCache.StageSource(Path.Combine(dir, name + ".cob"), source);
-        var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"),
-            DialectLevel: dialect, SourceFormat: format));
+        var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Of(dialect), Path.Combine(dir, name + ".dll"), SourceFormat: format));
         Assert.True(r.Success, $"compile {name}: {string.Join("; ", r.Errors)}");
     }
 

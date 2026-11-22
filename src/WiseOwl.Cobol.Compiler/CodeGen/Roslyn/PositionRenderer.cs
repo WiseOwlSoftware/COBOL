@@ -22,9 +22,9 @@ internal static class PositionRenderer
         PositionIndexCell ix => ix.Cell,
         PositionItemRead r => r.Form switch
         {
-            PositionReadForm.Occurrence => RuntimeApi.TableOcc(PlaceRenderer.RenderPath(r.Path, AccessDir.Sending), r.Item.ProfileName),
-            PositionReadForm.RefModPosition => RuntimeApi.StrRefModPosition(PlaceRenderer.RenderPath(r.Path, AccessDir.Sending), r.Item.ProfileName),
-            PositionReadForm.Digits => RuntimeApi.TableOcc(PlaceRenderer.RenderPath(r.Path, AccessDir.Sending), null),
+            PositionReadForm.Subscript => RuntimeApi.PositionRead(PlaceRenderer.RenderPath(r.Path, AccessDir.Sending), r.Item.ProfileName, refMod: false),
+            PositionReadForm.RefMod => RuntimeApi.PositionRead(PlaceRenderer.RenderPath(r.Path, AccessDir.Sending), r.Item.ProfileName, refMod: true),
+            PositionReadForm.Digits => RuntimeApi.PositionDigits(PlaceRenderer.RenderPath(r.Path, AccessDir.Sending)),
             _ => throw new System.InvalidOperationException($"PositionRenderer has no arm for read form {r.Form}"),
         },
         PositionLocal l => l.AsLong ? $"(long){LocalNames.Of(l.Local)}" : LocalNames.Of(l.Local),

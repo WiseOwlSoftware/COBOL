@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -42,7 +43,7 @@ public sealed class LocaleModuleNonSupportTests
                 + "       01 R PIC X(20).\n       01 S PIC 9(8) VALUE 3600.\n"
                 + "       PROCEDURE DIVISION.\n       MAIN.\n" + procedureBody + "           STOP RUN.\n");
             return CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "a49.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline)).Errors;
+                src, EditionInfo.Of(edition), Path.Combine(dir, "a49.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline)).Errors;
         }
         finally { ScratchDirectory.Remove(dir); }
     }

@@ -6,6 +6,7 @@ using WiseOwl.Cobol;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Compiler.Oo;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Symbols;
@@ -596,7 +597,7 @@ public sealed class SymbolEntryDriftTests : WiseOwlCobolTestBase
     {
         string path = Path.Combine(TempDir, $"entries{edition}-{Guid.NewGuid():N}.cob");
         File.WriteAllText(path, string.Join("\n", source));
-        var options = new CompilerDriver.Options(path, DialectLevel: edition, CheckOnly: true);
+        var options = new CompilerDriver.Options(path, EditionInfo.Of(edition), CheckOnly: true);
         var frontend = CompilerDriver.NewFrontend(options, new CompilationInputs(), recordsListing: false);
         var bag = new DiagnosticBag();
         var tree = frontend.Parse(path, bag);
