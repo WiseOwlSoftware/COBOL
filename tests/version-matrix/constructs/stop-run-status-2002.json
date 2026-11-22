@@ -1,12 +1,12 @@
 {
  "id": "stop-run-status-2002",
- "description": "STOP RUN WITH status phrase, ISO §2023:14.9.42 — the status phrase is 2002+",
+ "description": "STOP RUN WITH status phrase, ISO §2023:14.9.42 — the status phrase is a COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 1985 STOP statement is STOP RUN or STOP literal-1, with no status operand (§1985:VI.6.24.4 GR1: 'If the RUN phrase is specified, execution of the run unit ceases and control is transferred to the operating system'; GR4: 'If STOP literal-1 is specified, the execution of the run unit is suspended and literal-1 is communicated to the operator'); §2002:14.8.38.3 GR5 reads 'During execution of the STOP statement with literal-1 or identifier-1 specified, literal-1 or the contents of the data item referenced by identifier-1 are passed to the operating system', and §2002:F.2 states the change, its item 131: 'The WITH STATUS phrase was added to the STOP statement to allow a run unit to return a value to the operating system.' §2014:14.9.38.3 GR5 carries it, so 2014 = 2023.",
  "display": "STOP RUN WITH status",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:14.9.42.2 (the WITH STATUS phrase of the general format); §2023:14.9.42.4 GR5",
+ "citation": "§2002:14.8.38.3 GR5; §2002:F.2 item 131; §2014:14.9.38.3 GR5; §2023:14.9.42.4 GR5",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:F.2 item 131)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 RC PIC 99 VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN WITH NORMAL STATUS RC.\n"
 }

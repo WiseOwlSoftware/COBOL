@@ -1,13 +1,13 @@
 {
  "id": "pointer-arithmetic-2002",
  "status": "active",
- "description": "SET pointer UP/DOWN BY (data-pointer arithmetic), ISO §2023:14.9.39 Format 10 - introduced 2002 (GR20 byte-granular movement; GR18 NULL -> EC-DATA-PTR-NULL; GR19: an amount that does not evaluate to an integer is a runtime EC-SIZE-ADDRESS fatal, and GR20's own arm - a resulting address outside the implementor data-pointer range (DOC-A.1-216) - is EC-RANGE-PTR with the operand unchanged, two rules with two conditions via CobolPtr.UpByAmount). LIVE (Phase-4b increment 2, DEVLOG 617): the D-U7 category re-route on the shared 85 index grammar shape - the 85 index form itself stays ungated.",
+ "description": "SET pointer UP/DOWN BY (data-pointer arithmetic), ISO §2023:14.9.39 Format 10 - introduced 2002 (GR20 byte-granular movement; GR18 NULL -> EC-DATA-PTR-NULL; GR19: an amount that does not evaluate to an integer is a runtime EC-SIZE-ADDRESS fatal, and GR20's own arm - a resulting address outside the implementor data-pointer range (DOC-A.1-216) - is EC-RANGE-PTR with the operand unchanged, two rules with two conditions via CobolPtr.UpByAmount). LIVE (Phase-4b increment 2, DEVLOG 617): the D-U7 category re-route on the shared 85 index grammar shape - the 85 index form itself stays ungated. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 1985 SET statement's UP BY / DOWN BY format moves index-name-3 alone ('All references to index-name-1, identifier-1, and index-name-3 apply equally to all recursions thereof', §1985:VI.6.23.3 SR1; its amount 'Identifier-3 must reference an elementary numeric integer', SR3), and 1985 has no data-pointer; the 2002 SET Format 9 (data-pointer-arithmetic) has 'Identifier-9 shall be of category data-pointer' (§2002:14.8.35.2 SR22) and 'The address contained in each identifier-9, in the order specified, is incremented, if UP is specified, or decremented, if DOWN is specified, by the number of bytes specified by arithmetic-expression-3' (§2002:14.8.35.3 GR17), and §2002:F.2 item 103 records 'Pointer data. A new class of data is introduced, a pointer type which holds data and program addresses'. 2014 keeps it (§2014:14.9.35.2 SR23; §2014:14.9.35.3 GR20).",
  "display": "SET pointer UP/DOWN BY (data-pointer arithmetic)",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:14.9.39 Format 10 (§2023:14.9.39.4 GR18, GR19, GR20); 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)",
+ "citation": "§2002:14.8.35.2 SR22; §2002:14.8.35.3 GR17; §2002:F.2 item 103; §2014:14.9.35.2 SR23; §2014:14.9.35.3 GR20; §2023:14.9.39.3 SR23; §2023:14.9.39.4 GR18; §2023:14.9.39.4 GR19; §2023:14.9.39.4 GR20",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only)",
+ "vcr": "2002 introduction (§2002:14.8.35 Format 9 / §2002:F.2 item 103)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PAMX1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 X PIC X(5) VALUE \"HELLO\".\n01 P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    SET P TO ADDRESS OF X.\n    SET P UP BY 2.\n    STOP RUN.\n"
 }

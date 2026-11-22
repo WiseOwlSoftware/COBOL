@@ -1,12 +1,12 @@
 {
  "id": "format-clause-2002",
- "description": "The FD FORMAT clause (records written to the file are formatted to an external representation suitable for presentation or printing, and converted back on input), ISO/IEC 1989:2002 13.16.22 and 2023 13.18.24 - introduced 2002 (FORMAT is a 2002 reserved word per 8.9; at COBOL-85 it is a user-defined word). kb/Work PB5578.",
+ "description": "The FD FORMAT clause (records written to the file are formatted to an external representation suitable for presentation or printing, and converted back on input), ISO/IEC 1989:2002 13.16.22 and 2023 13.18.24 - a COBOL-2002 introduction (FORMAT is a 2002 reserved word per 8.9; at COBOL-85 it is a user-defined word). THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the ANSI X3.23-1985 sequential file description entry's clauses are BLOCK CONTAINS, RECORD, LABEL RECORDS, VALUE OF, DATA RECORDS, LINAGE and CODE-SET (§1985:VII.3.2.2; §1985:VII.3.2.1: 'The file description entry furnishes information concerning the physical structure, identification, and record-names pertaining to a sequential file'); §2002:13.16.22 introduces the clause: 'The FORMAT clause specifies that records written to the file are to be formatted to an external representation during the output process and records read from the file are to be converted from the external format into internal representation during the input process', and §2002:F.2 states the change, its item 57: 'For sequentially-organized files, the FORMAT clause provides the capability to present data so that people may read it.' §2014:13.18.24 carries the 2002 sentence unchanged, so 2014 = 2023. kb/Work PB5578.",
  "display": "the FORMAT clause",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:13.18.24; ISO/IEC 1989:2002 §13.16.22",
+ "citation": "§2002:13.16.22; §2002:F.2 item 57; §2014:13.18.24; §2023:13.18.24.1",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:13.16.22, §2002:F.2 item 57; no VCR row)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FMT9CL.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F1 ASSIGN TO \"fmt9cl.dat\".\nDATA DIVISION.\nFILE SECTION.\nFD F1 RECORD IS VARYING IN SIZE FROM 1 TO 20 CHARACTERS\n    FORMAT CHARACTER DATA.\n01 R1.\n    05 R1-NUM PIC S9(4).\n    05 R1-TXT PIC X(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
 }

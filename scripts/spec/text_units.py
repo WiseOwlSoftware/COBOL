@@ -183,6 +183,18 @@ def caption_number(line: str) -> int | None:
     return int(c.group("t"))
 
 
+#: The mark a caption carries on each later part of a table printed across pages ("Table 1: Table of Functions
+#: (Continued)", 1985 Annex A; "Table 22 — Table of functions (Continued)", 2002 and 2014).
+CONTINUED = re.compile(r"\(continued\)[*\s]*$", re.I)
+
+
+def continued_caption(line: str) -> bool:
+    """Does caption `line` (`caption_number` reads one) caption a later part of a table printed before it? A table
+    continued across pages repeats its caption with "(Continued)" on each part, and every part is the one table
+    (cite.py#_resolve_table; kb/Work PB6022 review R2-1)."""
+    return caption_number(line) is not None and CONTINUED.search(line.strip().strip("║").strip()) is not None
+
+
 def open_at_end(text: str) -> bool:
     """Does `text` stop where no paragraph can, inside a parenthesis it opened and did not close? The 1985 text breaks a
     sentence there across a page ("... (see page VI-127," / page 247: "The SET Statement). The implementor defines ...";

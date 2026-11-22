@@ -13,12 +13,12 @@
       *> previous COBOL standard", OBSOLETE at 2014 (the COBOL0903 warning). Both were
       *> silently consumed at EVERY edition until kb/Work PB725.
       *>
-      *> The introduction edge rides the same derivation as VCR row 28's other landed leg,
-      *> arithmetic-standard-2002: the 7.3 facility is a COBOL-2002 introduction.
-      *>
-      *> Their OPERAND syntax is NOT derivable in-repo - the 2023 text removed the clauses,
-      *> and the repo holds no 2002 or 2014 standard - so these rows gate the directive
-      *> WORD, which is exactly what the removal record supports.
+      *> The introduction edge is quoted from the 2002 text (kb/Work PB3965): §2002:F.2
+      *> item 56 "A directive, FLAG-85, has been added", and §2002:7.2.12 introduces
+      *> FLAG-NATIVE-ARITHMETIC (§2002:F.2 item 29). Their operand syntax is the 2002 and
+      *> 2014 texts' (§2002:7.2.11.1, §2002:7.2.12.1), checked by FlagDirectiveProcessor
+      *> (kb/Work PB5600); this case gates the directive WORD, which the removal record
+      *> supports.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB725NF8.
        PROCEDURE DIVISION.

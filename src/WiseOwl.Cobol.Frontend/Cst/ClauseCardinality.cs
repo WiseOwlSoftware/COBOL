@@ -244,16 +244,13 @@ public static class ClauseCardinalities
             // exempted it; the table counts it, the ONE choice-indicator reader ChoiceIndicators.AtMostOnce reports it as COBOL2104 — ChoiceIndicators: true). The '85 clauses MEMORY SIZE and SEGMENT-LIMIT are not elements of this
             // figure — the removal gate (COBOL0902) refuses them at 2002+ — so they are not counted against it.
             //
-            // ⛔ EARLIER: THE COBOL-85 FIGURE (kb/Work PB3133), in force below 2002. ⚠ DERIVED, NOT QUOTED — the repository
-            // holds no 1985 text (docs/VERSION_CHANGE_REFERENCE.md ratified decision #1; row 7.7 for the clause). ANSI
-            // X3.23-1985 prints `OBJECT-COMPUTER. [ computer-name [ MEMORY SIZE integer-1 { WORDS | CHARACTERS | MODULES } ]
-            // [ PROGRAM COLLATING SEQUENCE IS alphabet-name-1 ] [ SEGMENT-LIMIT IS segment-number ] ] .` — three clauses,
-            // each in its own bracket with no ellipsis and no choice indicators, so each is written at most once and in
-            // that sequence (§2023:5.2.6.2, §2023:5.2.7, §2023:5.2.1 state the conventions); IBM Enterprise COBOL's language reference
-            // prints the same figure for the same paragraph (the precedence of CLAUDE.md rule 1, there being no
-            // GnuCOBOL arm: its parser takes the clauses in any order and any number). CHARACTER CLASSIFICATION is a 2002
-            // introduction, refused at 85 by its own gate, so it is not counted. Overturn here if a 1985 text says
-            // otherwise.
+            // ⛔ EARLIER: THE COBOL-85 FIGURE (kb/Work PB3133), in force below 2002, QUOTED from the 1985 text
+            // (kb/Work PB3965; VERSION_CHANGE_REFERENCE row 7.7): §1985:VI.4.4.2 prints `OBJECT-COMPUTER. [ computer-name
+            // [ MEMORY SIZE integer-1 { WORDS | CHARACTERS | MODULES } ] [ PROGRAM COLLATING SEQUENCE IS alphabet-name-1 ] . ]`
+            // and the composite language skeleton of Section V adds `[ SEGMENT-LIMIT IS segment-number ]` after them —
+            // three clauses, each in its own bracket with no ellipsis and no choice indicators, so each is written at most
+            // once and in that sequence (§2023:5.2.6.2, §2023:5.2.7, §2023:5.2.1 state the conventions). CHARACTER
+            // CLASSIFICATION is a 2002 introduction, refused at 85 by its own gate, so it is not counted.
             [typeof(Core.ObjectComputerClauseContext)] =
                 new("ISO §2023:12.3.6.2", "", "OBJECT-COMPUTER paragraph", None,
                     new HashSet<Type>

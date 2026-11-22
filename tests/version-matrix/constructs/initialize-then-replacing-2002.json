@@ -1,12 +1,12 @@
 {
  "id": "initialize-then-replacing-2002",
- "description": "The INITIALIZE THEN REPLACING connective - a 2002 introduction. Folded from the inline InitializeBinder gate (Exec Step E).",
+ "description": "The INITIALIZE THEN REPLACING connective - a 2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): COBOL-85's INITIALIZE is INITIALIZE {identifier-1}... with at most a REPLACING phrase (§1985:VI.6.17.2), 'The INITIALIZE statement provides the ability to set selected types of data fields to predetermined values' (§1985:VI.6.17.1), and its only phrase is REPLACING, 'The key word following the word REPLACING corresponds to a category of data' (§1985:VI.6.17.4 GR1), with no connective before it ('The same category cannot be repeated in a REPLACING phrase.', §1985:VI.6.17.3 SR3); the 2002 general format writes the phrase as THEN REPLACING category-name DATA BY {identifier-2 | literal-1}..., after the optional VALUE phrase (§2002:14.8.19.1), and keeps REPLACING's meaning, 'The REPLACING phrase is specified and the category of the elementary data item' is one of those named (§2002:14.8.19.3 GR5). THEN is an optional word that arrives with the 2002 format, whose new phrases §2002:F.2 records as items 72 (FILLER) and 73 (VALUE). 2014 and 2023 keep the format (§2014:14.9.19.1, §2023:14.9.20.2). Folded from the inline InitializeBinder gate (Exec Step E).",
  "display": "INITIALIZE THEN REPLACING",
  "diagnosticCode": "COBOL0833",
- "citation": "ISO §2023:14.9.20.2 (the THEN connective is 2002+; REPLACING itself is COBOL-85)",
+ "citation": "§2002:14.8.19.1; §2002:14.8.19.3 GR5; §2014:14.9.19.1; §2014:14.9.19.3 GR5; §2023:14.9.20.2; §2023:14.9.20.4 GR5",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0833",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:14.8.19.1 THEN REPLACING; REPLACING itself is §1985:VI.6.17)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWITRP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC X(3) VALUE \"ABC\".\nPROCEDURE DIVISION.\nMAIN.\n    INITIALIZE A THEN REPLACING ALPHANUMERIC DATA BY \"Z\".\n    STOP RUN.\n"
 }

@@ -500,10 +500,10 @@ globalClause
     : IS? GLOBAL
     ;
 
-// TYPE clause (ISO §2023:13.18.57; the TYPEDEF clause it names is §2023:13.18.58): PROVISIONAL COBOL-2002 edge — the former {is2023()}? gate was
-// PROVABLY wrong (ISO-validation, DEVLOG 582: TYPEDEF has ~33 hits in the 2023 spec body yet ZERO Annex E
-// 2014→2023 change rows ⇒ it predates 2023). The 2002-vs-2014 refinement is blocked on the older standards
-// (roadmap decision 1 provisional policy; tests/version-matrix/constructs/ row type-clause-2002).
+// TYPE clause (ISO §2023:13.18.57; the TYPEDEF clause it names is §2023:13.18.58): a COBOL-2002 introduction, the edge
+// quoted from the edition texts (kb/Work PB3965): §2002:13.16.55 and §2002:F.2 item 137 introduce TYPE and TYPEDEF, and the
+// 1985 TYPE clause is the report writer's alone (§1985:XIII.3.20.1). The former {is2023()}? gate was wrong (DEVLOG 582;
+// tests/version-matrix/constructs/ row type-clause-2002).
 // ⛔ THE OPTIONAL WORD IS `TO`, NOT `IS` (kb/Work PB889). §2023:13.18.57.2 Format 1 prints `TYPE TO type-name-1` with TYPE
 // underlined and TO not (rendered PDF page 524, printed folio 494) — §2023:5.2.3 makes an un-underlined uppercase word an
 // OPTIONAL word. The rule used to read `TYPE IS? IDENTIFIER`, so the standard's own spelling `TYPE TO T` was rejected

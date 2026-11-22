@@ -1,12 +1,12 @@
 {
  "id": "call-returning-2002",
- "description": "CALL ... RETURNING status-item, ISO 14.9.4 - the RETURNING phrase is a 2002 introduction (folded from the inline CallBinder gate, Exec Step E).",
+ "description": "CALL ... RETURNING status-item, ISO §2023:14.9.4 - the RETURNING phrase is a COBOL-2002 introduction (folded from the inline CallBinder gate, Exec Step E). THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the ANSI X3.23-1985 CALL statement names the called program by literal-1 or identifier-1 alone (§1985:X.5.2.2, whose formats print `CALL {identifier-1 | literal-1} [USING ... BY CONTENT { identifier-2 } ...]` then ON OVERFLOW imperative-statement-1 or [NOT] ON EXCEPTION and END-CALL; §1985:X.5.2.4 GR1: \"Literal-1 or the content of the data item referenced by identifier-1 is the name of the called program\"), a result coming back only through a BY REFERENCE parameter, §1985:II.6.4.2.2: \"Thus a parameter passed by reference may be used by a called program to return a result to the calling program whereas a parameter passed by content cannot be so used\"; §2002:F.1 item 6 (\"The following reserved words have been added\") lists RETURNING. Every 2002 CALL format prints `[ RETURNING identifier-3 ]` after the USING phrase, §2002:14.8.4.2 SR7: \"Identifier-3 shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section\" and SR9: \"Identifier-3 is a receiving operand\". §2014:14.9.4.2 SR7 and §2023:14.9.4.3 SR7 carry the rule (2014 drops only the communication section); §2023:14.9.4.4 GR4: \"If a RETURNING phrase is specified, the result of the activated program is placed into identifier-3\".",
  "display": "CALL RETURNING",
  "diagnosticCode": "COBOL0884",
- "citation": "ISO §2023:14.9.4.2 (the RETURNING phrase on CALL is 2002+); §2023:14.9.4.4 GR4",
+ "citation": "§2002:14.8.4.2 SR7; §2002:14.8.4.2 SR9; §2002:F.1 item 6; §2014:14.9.4.2 SR7; §2023:14.9.4.3 SR7; §2023:14.9.4.4 GR4",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0884",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:14.8.4.2 SR7; §2002:F.1 item 6)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWCRET.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 RC PIC 99 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"RWCRSUB\" RETURNING RC.\n    STOP RUN.\nEND PROGRAM RWCRET.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. RWCRSUB.\nDATA DIVISION.\nLINKAGE SECTION.\n01 LR PIC 99.\nPROCEDURE DIVISION RETURNING LR.\nMAIN.\n    MOVE 5 TO LR.\n    GOBACK.\nEND PROGRAM RWCRSUB.\n"
 }

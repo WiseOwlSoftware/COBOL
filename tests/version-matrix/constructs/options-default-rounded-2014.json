@@ -1,10 +1,10 @@
 {
  "id": "options-default-rounded-2014",
- "description": "The DEFAULT ROUNDED clause of the OPTIONS paragraph (§2023:11.9.6) — a 2014 clause of the 2002 paragraph: with the paragraph gate at 2002, each 2014-only clause carries its own introduction arm (P10 Step 12; the 85→2002 clause inventory derives from the M2 catalog — 2002 OPTIONS carried the ARITHMETIC clause)",
+ "description": "The DEFAULT ROUNDED clause of the OPTIONS paragraph (§2023:11.9.6) - a 2014 clause of the 2002 paragraph: with the paragraph gate at 2002, each 2014-only clause carries its own introduction arm (P10 Step 12). THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 2002 paragraph is 'OPTIONS. [ arithmetic-clause ] [ entry-convention-clause ] .' (§2002:11.8.1), with no DEFAULT ROUNDED clause; the 2014 paragraph is 'OPTIONS. [ arithmetic-clause ] [ default-rounded-clause ] [ entry-convention-clause ] …' (§2014:11.9.1) and 'The DEFAULT ROUNDED clause specifies the type of rounding that applies when ROUNDED phrases of arithmetic statements' ... do not specify a rounding mode (§2014:11.9.5); §2014:E.3 item 27 (Rounding enhancements) records it, its a): 'the ability to specify a default rounding mode other than the preexisting nearest-away-from-zero for application in the ROUNDED clause of arithmetic statements'. 2023 keeps the clause (§2023:11.9.6.1).",
  "display": "OPTIONS DEFAULT ROUNDED",
  "diagnosticCode": "COBOL0900",
  "expectDiagnostic": "COBOL0900",
- "citation": "ISO §2023:11.9.6",
+ "citation": "§2002:11.8.1; §2014:11.9.1; §2014:11.9.5; §2014:E.3 item 27a; §2023:11.9.2; §2023:11.9.6.1",
  "introducedIn": 2014,
  "removedIn": null,
  "vcr": "2014 introduction (§2023:11.9.6; a 2014 addition to the 2002 OPTIONS paragraph)",

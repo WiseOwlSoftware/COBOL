@@ -24,6 +24,14 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 
 ### Where we are
 
+- **▶ 1985: TRAIN F, the last 1985 train (2026-11-22, branch train-1985-f, wave 20262132).** Two fix branches and one
+  review lead in one landing, on train E. Group h's records orphan test runs in the gate (PB6022). Every construct row's
+  edition edge is quoted from the edition texts, and `ConstructEdgeProvenanceDriftTests` refuses the old labels (PB3965).
+  PB5683 is closed, and PB5924 narrows to the later editions. Group j's refused file-clause operand is judged once: a refused
+  RELATIVE KEY, RECORD KEY, ALTERNATE RECORD KEY, FILE STATUS or LINAGE operand no longer cascades into its START, READ or
+  external-file rules (PB6041; code read 1985-c04 imported). `cite.py` reads a table continued across pages as one table
+  (R2-1). `python scripts/spec/edition_status.py --edition 1985`: `=== EDITION 1985: COMPLETE ===` (0 of 3,109 rows GAP,
+  0 code reads owed, 0 open work notes, 0 catalog prose holes).
 - **▶ 1985: TRAIN E (2026-11-21, branch train-1985-e, wave 20262132).** Three fix branches in one landing, on train D.
   The citation canonicalizer is safe on message text, and its run over the tree closes PB4976 and PB6000 (PB6035; RESOLVE's
   baseline 6,021 → 1,953 entries, each with its reason). A signed integer-n is refused once by its own rule, COBOL7737

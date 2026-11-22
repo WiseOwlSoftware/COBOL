@@ -1,12 +1,12 @@
 {
  "id": "program-id-recursive-2002",
- "description": "The PROGRAM-ID RECURSIVE attribute - a 2002 introduction. Folded from the inline BinderDriver gate (Exec Step E).",
+ "description": "The PROGRAM-ID RECURSIVE attribute - a 2002 introduction. Folded from the inline BinderDriver gate (Exec Step E). THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 1985 PROGRAM-ID paragraph assigns only the COMMON and INITIAL attributes (§1985:X.3.1.2; 'The COMMON clause specifies that the program is common', §1985:X.3.1.4 GR2; 'The INITIAL clause specifies that the program is initial', GR3); the 2002 Format 1 adds RECURSIVE (§2002:11.9.1): 'The RECURSIVE clause specifies that the program and any programs contained within it are recursive. The program may be called while it is active and may call itself' (§2002:11.9.3 GR4; the RECURSIVE/INITIAL exclusion is §2002:11.9.2 SR6), and §2002:F.2 item 14 records 'CALL recursively. The capability of calling an active COBOL program has been added to COBOL'. 2014 keeps it (§2014:11.10.3 GR4).",
  "display": "PROGRAM-ID RECURSIVE",
  "diagnosticCode": "COBOL0885",
- "citation": "ISO §2023:11.10.2 (the RECURSIVE attribute is 2002+); §2023:11.10.4 GR4",
+ "citation": "§2002:11.9.2 SR6; §2002:11.9.3 GR4; §2002:F.2 item 14; §2014:11.10.3 GR4; §2023:11.10.2; §2023:11.10.4 GR4",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0885",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:11.9.3 GR4 / §2002:F.2 item 14)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWREC IS RECURSIVE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
 }

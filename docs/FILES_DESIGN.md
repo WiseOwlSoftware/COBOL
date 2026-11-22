@@ -1519,7 +1519,7 @@ the same list.
 - **SORT/MERGE GIVING an indexed file** (§2023:14.9.40.3 SR9, §2023:14.9.24.3 SR10) compares the first key with the prime
   key's byte location and size, which a SOURCE-form prime key has only when its windows are one run.
 - **Edition.** ANSI X3.23-1985 prints data-name-1 only, so the phrase is a post-1985 form gated once, on the
-  shared rule (`record-key-source-2002`, VCR row 7.36, a DERIVED provisional 2002 edge; COBOL0900 at 85).
+  shared rule (`record-key-source-2002`, VCR row 7.36, a 2002 edge quoted from §1985:IX.2.7.2 and §2002:F.2 item 110; COBOL0900 at 85).
 Witnesses: `conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source` (a reversed-order prime key, a duplicate alternate key,
 the concatenated uniqueness '22', the sequential order, READ / START / START WITH LENGTH / DELETE on both keys, a
 Format-6 qualified record-key-name), `conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099-record-key-source-85`, and
@@ -1871,7 +1871,7 @@ the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC
   and §2023:14.9.32.2 print the same `FROM { identifier-1 | literal-1 }`, so the three statements share
   `recordFromPhrase : FROM sendingOperand`, and `VersionConformancePass.ParseArm.VisitRecordFromPhrase` refuses
   literal-1 (a figurative constant included) below COBOL-2002 (construct `from-literal-2002`, COBOL0871;
-  VERSION_CHANGE_REFERENCE row 7.34 derives the 1985 edge). It used to be three copies of the rule with the gate
+  VERSION_CHANGE_REFERENCE row 7.34 quotes the 1985 and 2002 texts for the edge). It used to be three copies of the rule with the gate
   on RELEASE's alone, so WRITE and REWRITE took a literal at `--std 85`. The per-verb rules above stay rows of
   `FromPhraseRules`; the edition edge is the same for all three, so it is not a column.
 - **The function's class is read off the BOUND operand, through the Table-16 sender position.**
@@ -2662,7 +2662,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   organization is — kb/Work PB688) and the Sequential-row START cells of
   `conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative`.
 - **START FIRST / LAST IS ONE CONSTRUCT ACROSS THREE ORGANIZATIONS, AND ITS RULES CARRY ONE EDITION BAND** (kb/Work
-  PB870). 14.9.41.2 prints one phrase and `start-first-last-2002` gates it once (the derived 2002 edge, VCR row 7.38), so
+  PB870). 14.9.41.2 prints one phrase and `start-first-last-2002` gates it once (the 2002 edge, quoted from §2002:F.2 item 129 and item 130 in VCR row 7.38), so
   GR11/GR12 (RELATIVE), GR18/GR19 (INDEXED) and GR20/GR21 (SEQUENTIAL) are all 2002,2014,2023; the RELATIVE pair had been
   left at 2014,2023. The abnormal arms of the RELATIVE pair are `conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions`
   (47 on an OUTPUT-mode and on a closed file, 23 with INVALID KEY and without it and the USE procedure, the absent
@@ -2869,7 +2869,7 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
 - **DELETE FILE (14.9.10 Format 2) is NEW in 2023** (rows 58/78; E.3.3 items 15/35): rejected with a
   not-yet-introduced diagnostic under `--std` 85/2002/2014; its statuses 05/37/39/41/62 from DELETE FILE exist only
   at 2023. (Format-1 record DELETE is 85.)
-- **READ PREVIOUS is not COBOL-85** (a 2002 introduction — derive from the 2002 standard): rejected at 85 on
+- **READ PREVIOUS is not COBOL-85** (a 2002 introduction — §2002:F.2 item 109, kb/Work PB3965): rejected at 85 on
   EVERY organization (the gate is one `IBoundRead` arm in the VersionConformancePass; it used to be two arms and
   the sequential one did not carry it — kb/Work PB334). FLAG-14 flags every READ PREVIOUS (row 108).
   ⚠ **The 2014→2023 after-OPEN change (row 29) is the INDEXED leg only.** Annex E.2 item 22 ("READ PREVIOUS
@@ -2963,10 +2963,11 @@ failure branches were fired once before it was trusted.
   arm `RECORD? SEQUENTIAL`: bare `SEQUENTIAL` is the same alternative and stays legal at every edition, and only
   the written-out RECORD token is the 2023 spelling. It binds to the one record-sequential value
   (`FileOrganization.Sequential`), never a fourth organization.
-- **RECORD IS VARYING (13.18.43) is a 2002 introduction** (derive from the 2002 standard) — the 85 RECORD clause has
-  only the CONTAINS forms; at 85 the VARYING phrase is rejected and `RECORD CONTAINS m TO n` drives
-  `IsVaryingRecord`.
-- **Format-2 in-place table SORT (D6) is a 2002 introduction** (derive from the 2002 standard): rejected at 85
+- **RECORD IS VARYING (13.18.43) is a COBOL-85 form**: §1985:VII.3.8.2 prints it as Format 2, `RECORD IS VARYING IN
+  SIZE [ [ FROM integer-2 ] [ TO integer-3 ] CHARACTERS ] [ DEPENDING ON data-name-1 ]`, and §1985:VII.3.8.4 GR4 reads
+  "Format 2 is used to specify variable length records" (kb/Work PB3965; a probe at `--std 85` compiles it). Both it
+  and `RECORD CONTAINS m TO n` drive `IsVaryingRecord`.
+- **Format-2 in-place table SORT (D6) is a 2002 introduction** (§2002:F.2 item 125: "A SORT statement may be used to sort a table"): rejected at 85
   (file-format SORT is 85). Its KEY phrase is BRACKETED (Format 1 braces it — rendered, folio 746), so
   `SORT table-name` alone is conforming when the table's OCCURS clause has a KEY phrase (§2023:14.9.40.3 SR15) and
   sorts on that phrase's keys in their written significance order and direction (§2023:14.9.40.4 GR21), read from

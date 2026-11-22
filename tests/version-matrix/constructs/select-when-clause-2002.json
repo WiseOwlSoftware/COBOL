@@ -1,12 +1,12 @@
 {
  "id": "select-when-clause-2002",
- "description": "The SELECT WHEN clause of a record description entry (the condition-name condition under which the entry is associated with a record during input and output operations), ISO/IEC 1989:2002 13.16.49 and 2023 13.18.51 - introduced 2002 (SELECT WHEN has no COBOL-85 form). kb/Work PB5578.",
+ "description": "The SELECT WHEN clause of a record description entry (the condition-name condition under which the entry is associated with a record during input and output operations), ISO/IEC 1989:2002 13.16.49 and 2023 13.18.51 - a COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): a 1985 record description entry is a data description entry, whose Format 1 offers data-name-1/FILLER, REDEFINES, PICTURE, USAGE, SIGN, OCCURS, SYNCHRONIZED, JUSTIFIED, BLANK WHEN ZERO and VALUE, and no SELECT WHEN clause (§1985:VI.5.3.3 SR2: 'The remaining clauses may be written in any order'); §2002:13.16.49 reads 'The SELECT WHEN clause specifies a condition-name condition under which a record description entry is associated with a record during input and output operations' (§2002:13.16.49.2 SR1: 'A SELECT WHEN clause may be specified only at the 01 level of a record description entry'), and §2002:F.2 states the change, its item 120: 'The SELECT WHEN clause of a record description permits selection of one of several record description entries in the file section during input-output operations.' §2014:13.18.51 and §2014:13.18.51.2 SR1 carry it, so 2014 = 2023. kb/Work PB5578.",
  "display": "the SELECT WHEN clause",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:13.18.51; ISO/IEC 1989:2002 §13.16.49",
+ "citation": "§2002:13.16.49; §2002:13.16.49.2 SR1; §2002:F.2 item 120; §2014:13.18.51; §2014:13.18.51.2 SR1; §2023:13.18.51.1; §2023:13.18.51.3 SR1",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:13.16.49; §2002:F.2 item 120)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SWH9CL.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F1 ASSIGN TO \"swh9cl.dat\".\nDATA DIVISION.\nFILE SECTION.\nFD F1 RECORD IS VARYING IN SIZE FROM 1 TO 20 CHARACTERS\n    FORMAT CHARACTER DATA.\n01 R1 SELECT WHEN IS-A.\n    05 R1-KEY PIC X.\n        88 IS-A VALUE \"A\".\n    05 R1-TXT PIC X(4).\n01 R2 SELECT WHEN OTHER.\n    05 R2-KEY PIC X.\n    05 R2-NUM PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
 }

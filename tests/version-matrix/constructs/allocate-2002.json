@@ -1,13 +1,13 @@
 {
  "id": "allocate-2002",
  "status": "active",
- "description": "ALLOCATE statement (dynamic storage), ISO §2023:14.9.3 - introduced 2002. ACTIVE: both formats bind (n CHARACTERS RETURNING p -> a fresh StorageCell window pointer, GR1 round-up / GR2 <=0 -> NULL no EC / GR6 INITIALIZED zero-fill; based-item -> the implicit pointer takes a cell of the template width, GR3/GR4a/GR4b) and the based INITIALIZED form lowers per GR7 to the spec's INITIALIZE ... WITH FILLER ALL TO VALUE THEN TO DEFAULT expansion (a BoundSequence over the ONE INITIALIZE mechanism; golden 2002/allocate_initialized). INITIALIZED is a phrase of this gated statement - no separate matrix row (the phrase-level precedent).",
+ "description": "ALLOCATE statement (dynamic storage), ISO §2023:14.9.3 - a COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): ALLOCATE is no ANSI X3.23-1985 statement and no 1985 reserved word, since §2002:F.1 item 6 (\"The following reserved words have been added\") lists ALLOCATE; §2002:14.8.3 adds \"The ALLOCATE statement obtains dynamic storage\" (§2002:14.8.3.2 SR1: \"The data item referenced by data-name-1 shall be described with the BASED clause\"), and §2002:F.2 item 47 states the change: \"ALLOCATE and FREE statements are provided for obtaining storage dynamically.\" §2014:14.9.3 and §2023:14.9.3.1 carry the 2002 sentence unchanged. ACTIVE: both formats bind (n CHARACTERS RETURNING p -> a fresh StorageCell window pointer, GR1 round-up / GR2 <=0 -> NULL no EC / GR6 INITIALIZED zero-fill; based-item -> the implicit pointer takes a cell of the template width, GR3/GR4a/GR4b) and the based INITIALIZED form lowers per GR7 to the spec's INITIALIZE ... WITH FILLER ALL TO VALUE THEN TO DEFAULT expansion (a BoundSequence over the ONE INITIALIZE mechanism; golden 2002/allocate_initialized). INITIALIZED is a phrase of this gated statement - no separate matrix row (the phrase-level precedent).",
  "display": "ALLOCATE",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:14.9.3",
+ "citation": "§2002:14.8.3; §2002:14.8.3.2 SR1; §2002:F.1 item 6; §2002:F.2 item 47; §2014:14.9.3; §2023:14.9.3.1",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:F.2 item 47)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. AL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    ALLOCATE 100 CHARACTERS RETURNING P.\n    STOP RUN.\n"
 }

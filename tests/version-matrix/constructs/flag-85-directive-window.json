@@ -1,9 +1,9 @@
 {
  "id": "flag-85-directive-window",
- "description": "The >>FLAG-85 migration-flagging directive - a compiler-directive WINDOW: introduced with the §2023:7.3 facility in COBOL-2002, classified obsolete by the 2014 standard and REMOVED in COBOL-2023. Annex E.2 item 21 ('Obsolete elements') is the removal record: 'The following features that were classified as obsolete in the previous COBOL standard, have been removed from this Working Draft International Standard: - FLAG-85 - FLAG-NATIVE-ARITHMETIC - Standard Arithmetic - ...', which fixes removedIn=2023 and, by 'classified as obsolete in the previous COBOL standard', obsoleteIn=2014. The 2023 text carries NO general format for this directive; the 2002 and 2014 texts print it (§2002:7.2.11.1), and the row's operand is that format, diagnosed and acted on by FlagDirectiveProcessor + FlagConformancePass (kb/Work PB5600). The introducedIn edge rides the same M2-catalog derivation as its sibling arithmetic-standard-2002 (Annex E.2 item 21's other leg; VCR row 28). Below 2002 the word is COBOL0900, at 2023 COBOL0902, at 2014 the COBOL0903 obsolete warning.",
+ "description": "The >>FLAG-85 migration-flagging directive - a compiler-directive WINDOW: introduced in COBOL-2002, classified obsolete by the 2014 standard and REMOVED in COBOL-2023. THE EDGES ARE QUOTED from the edition texts (kb/Work PB3965): COBOL-85 has no compiler directives, its compiler-directing forms being statements (§1985:IV.6.4.2.2.1: 'The compiler directing verbs are COPY, ENTER, REPLACE, and USE'); §2002:7.2.11 introduces the directive: 'The FLAG-85 directive specifies options to flag certain syntax that might be incompatible between the previous COBOL standard and the current COBOL standard', and §2002:F.2 states the change, its item 56: 'A directive, FLAG-85, has been added that causes compiler flagging of language elements that may be incompatible between the previous COBOL standard and this International Standard.' §2014:7.3.12 keeps it and classifies it: 'NOTE The FLAG-85 directive is an obsolete element in this International Standard and is to be deleted from the next edition of standard COBOL' (§2014:F.2 item 1: 'There is no longer a need for the older FLAG-85 directive'), which fixes obsoleteIn=2014; Annex E.2 item 21 ('Obsolete elements') is the removal record: 'The following features that were classified as obsolete in the previous COBOL standard, have been removed from this Working Draft International Standard: - FLAG-85 - FLAG-NATIVE-ARITHMETIC - Standard Arithmetic - ...', which fixes removedIn=2023. The 2023 text carries NO general format for this directive; the 2002 and 2014 texts print it (§2002:7.2.11.1, §2014:7.3.12), and the row's operand is that format, diagnosed and acted on by FlagDirectiveProcessor + FlagConformancePass (kb/Work PB5600). Below 2002 the word is COBOL0900, at 2023 COBOL0902, at 2014 the COBOL0903 obsolete warning.",
  "display": ">>FLAG-85 directive",
  "diagnosticCode": "COBOL0902",
- "citation": "Annex E.2 item 21 (removed in 2023, classified obsolete by the previous standard); the §2023:7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
+ "citation": "§2002:7.2.11; §2002:F.2 item 56; §2014:7.3.12; §2014:F.2 item 1; §2023:E.2 item 21; VCR row 28",
  "directiveWords": [
   "FLAG-85"
  ],
@@ -17,7 +17,7 @@
  "obsoleteIn": 2014,
  "expectDiagnostic": "COBOL0902",
  "expectDiagnosticBelow": "COBOL0900",
- "vcr": "VCR row 28 (Annex E.2 item 21 removal) + the §2023:7.3 facility's 2002 introduction",
+ "vcr": "2002 introduction (§2002:F.2 item 56); obsolete 2014 (§2014:F.2 item 1); removed 2023 (§2023:E.2 item 21, VCR row 28)",
  "source": "       >>FLAG-85 ALL ON\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB725F8.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n",
  "directivePlacement": {
   "rule": "betweenClauses",
