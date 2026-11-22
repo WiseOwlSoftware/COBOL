@@ -1,4 +1,4 @@
-## PB1754 group B: six unifications (record layout advance, collation carrier names, NOT-phrase renderer, invariant emit culture, SR19 verdict, DataBinder seed)
+## Entry 3908 — 2026-11-21 22:39 PST — PB1754 group B: six unifications (record layout advance, collation carrier names, NOT-phrase renderer, invariant emit culture, SR19 verdict, DataBinder seed)
 
 Wave 20262133 group B took eleven R2 notes of the PB1754 architecture review. Six landed here. The other five (PB3236,
 PB3252, PB3235, PB2620, PB2628) are each a mechanism of their own with a wider file set, and go to a successor.
@@ -51,3 +51,4 @@ IDENTICAL over 23351 cases. No inventory rows changed: each note closes none, wi
 culture scope sits at the backend seam. Code: the citations were checked with `cite.py` and `audit_code_citations.py`.
 Performance: the advance adds no allocation, and the OO binders now share one claim scan. Duplication: StrongTypeModel's
 private culture copy is folded into the scope.
+
