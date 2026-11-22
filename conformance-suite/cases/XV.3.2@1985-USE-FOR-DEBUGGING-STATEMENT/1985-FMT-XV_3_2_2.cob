@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: 1985-FMT-XV_3_2_2
-      *> rules: [1985-FMT-XV.3.2.2]
+      *> rules: [1985-FMT-XV.3.2.2, 1985-GR-XV.1.1-p3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

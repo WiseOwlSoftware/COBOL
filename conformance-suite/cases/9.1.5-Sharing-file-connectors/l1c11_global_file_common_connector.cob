@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c11_global_file_common_connector
-      *> rules: [GR-9.1.5-2]
+      *> rules: [GR-9.1.5-2, 1985-GR-X.1.3.7-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

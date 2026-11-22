@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c37_write_eop_spelling
-      *> rules: [SR-14.9.51.3-20]
+      *> rules: [SR-14.9.51.3-20, 1985-SR-VII.4.7.3-9]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

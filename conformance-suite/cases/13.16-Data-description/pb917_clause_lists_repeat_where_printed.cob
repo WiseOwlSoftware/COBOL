@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb917_clause_lists_repeat_where_printed
-      *> rules: [FMT-13.16.2]
+      *> rules: [FMT-13.16.2, 1985-FMT-VI.5.11.2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

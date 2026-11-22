@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1_value_thru_through_equivalent_85
-      *> rules: [SR-13.18.63.3-28]
+      *> rules: [SR-13.18.63.3-28, 1985-SR-VI.5.15.3-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

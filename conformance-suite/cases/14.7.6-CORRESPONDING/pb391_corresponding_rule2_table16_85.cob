@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb391_corresponding_rule2_table16_85
-      *> rules: [GR-14.7.6-2, SR-14.9.25.3-13, GR-14.9.25.4-11]
+      *> rules: [GR-14.7.6-2, SR-14.9.25.3-13, GR-14.9.25.4-11,
+      *>    1985-GR-VI.6.4.3-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

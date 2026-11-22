@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: pb810_read_46_takes_no_at_end
-      *> rules: [GR-14.9.30.4-21, GR-14.9.30.4-24]
+      *> rules: [GR-14.9.30.4-21, GR-14.9.30.4-24, 1985-GR-VII.1.3.5-2,
+      *>    1985-GR-VII.4.4.4-4, 1985-GR-VIII.4.8.4-5,
+      *>    1985-GR-IX.4.5.4-4, 1985-GR-IX.4.7.4-10]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c25_rewrite_length_differs
-      *> rules: [GR-14.9.35.4-18]
+      *> rules: [GR-14.9.35.4-18, 1985-GR-VIII.4.6.4-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

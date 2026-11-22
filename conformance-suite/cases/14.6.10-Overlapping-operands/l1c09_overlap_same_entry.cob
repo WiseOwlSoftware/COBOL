@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c09_overlap_same_entry
-      *> rules: [GR-14.6.10-2]
+      *> rules: [GR-14.6.10-2, 1985-GR-VI.6.8.4-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

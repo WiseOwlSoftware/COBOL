@@ -1,7 +1,8 @@
       *>--- conformance-case
       *> id: g85_bf36_01
       *> rules: [1985-GR-XIII.3.10.6-3, 1985-GR-XIII.3.10.6-5,
-      *>    1985-GR-XIII.3.10.7-3]
+      *>    1985-GR-XIII.3.10.7-3, 1985-GR-XIII.3.10.6-p1,
+      *>    1985-GR-XIII.3.10.7-p1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

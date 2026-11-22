@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb873_signed_argument_image_carried_formal
-      *> rules: [GR-14.2.3-11]
+      *> rules: [GR-14.2.3-11, 1985-GR-X.5.1-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

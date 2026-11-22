@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb131_gr5_transitivity
-      *> rules: [GR-14.9.4.4-5]
+      *> rules: [GR-14.9.4.4-5, 1985-GR-X.5.2.4-12]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

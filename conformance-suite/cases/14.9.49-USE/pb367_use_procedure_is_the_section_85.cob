@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb367_use_procedure_is_the_section_85
-      *> rules: [GR-14.9.49.4-7]
+      *> rules: [GR-14.9.49.4-7, 1985-GR-VIII.4.8.4-6,
+      *>    1985-GR-IX.4.8.4-6, 1985-GR-XIII.4.8.4-6]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

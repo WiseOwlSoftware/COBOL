@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1907_inspect_replacing_overlap
-      *> rules: [GR-14.9.22.4-18]
+      *> rules: [GR-14.9.22.4-18, 1985-GR-VI.6.18.4-16]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

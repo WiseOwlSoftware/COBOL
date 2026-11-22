@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: pb344_use_mode_read_exception_85
-      *> rules: [GR-14.9.49.4-6, DOC-A.1-218]
+      *> rules: [GR-14.9.49.4-6, DOC-A.1-218, 1985-GR-VII.4.6.4-5,
+      *>    1985-GR-VIII.4.8.4-5, 1985-GR-IX.4.8.4-6,
+      *>    1985-GR-XIII.4.8.4-6]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

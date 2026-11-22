@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb524_linage_operand_shapes
-      *> rules: [SR-13.18.34.3-2, SR-13.18.34.3-3]
+      *> rules: [SR-13.18.34.3-2, SR-13.18.34.3-3, 1985-SR-VII.3.7.3-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

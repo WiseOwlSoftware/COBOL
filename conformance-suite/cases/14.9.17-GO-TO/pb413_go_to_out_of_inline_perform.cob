@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb413_go_to_out_of_inline_perform
-      *> rules: [SR-14.9.17.3-2, GR-14.9.17.4-1]
+      *> rules: [SR-14.9.17.3-2, GR-14.9.17.4-1, 1985-SR-VI.6.15.3-4,
+      *>    1985-GR-VI.6.15.4-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

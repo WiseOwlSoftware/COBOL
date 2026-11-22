@@ -1,7 +1,11 @@
       *>--- conformance-case
       *> id: pb141_close_forms
       *> rules: [GR-9.1.13.2-6, SR-14.9.6.3-2, GR-14.9.6.4-2,
-      *>    GR-14.9.6.4-3, GR-14.9.6.4-4, FMT-14.9.6.2, DOC-A.1-24]
+      *>    GR-14.9.6.4-3, GR-14.9.6.4-4, FMT-14.9.6.2, DOC-A.1-24,
+      *>    1985-GR-VII.4.2.4-2, 1985-GR-VIII.4.2.4-3,
+      *>    1985-GR-IX.4.2.4-3, 1985-GR-XIII.4.2.4-2,
+      *>    1985-GR-XIII.4.2.4-4, 1985-GR-XIII.4.2.4-6,
+      *>    1985-GR-XIII.4.5.4-8]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

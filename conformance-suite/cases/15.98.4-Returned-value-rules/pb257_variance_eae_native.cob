@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb257_variance_eae_native
-      *> rules: [RV-15.98.4-1]
+      *> rules: [RV-15.98.4-1, 1989-RV-A.2.45.4-1, 1989-RV-A.2.45.4-2,
+      *>    1989-RV-A.2.45.4-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

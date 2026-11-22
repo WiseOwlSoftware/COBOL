@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: 1985-GR-XIV_3_2_4-1
-      *> rules: [1985-GR-XIV.3.2.4-1]
+      *> rules: [1985-GR-XIV.3.2.4-1, 1985-GR-XIV.1.2-p2,
+      *>    1985-GR-XIV.3.2.1-p1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

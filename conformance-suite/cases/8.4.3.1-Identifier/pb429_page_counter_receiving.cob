@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb429_page_counter_receiving
-      *> rules: [SR-8.4.3.1.3-12, SR-8.4.3.15.3-1, SR-14.9.25.3-4]
+      *> rules: [SR-8.4.3.1.3-12, SR-8.4.3.15.3-1, SR-14.9.25.3-4,
+      *>    1985-SR-VI.6.19.3-1, 1985-SR-XIII.3.5.5-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

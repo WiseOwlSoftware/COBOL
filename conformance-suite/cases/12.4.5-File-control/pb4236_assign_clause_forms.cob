@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb4236_assign_clause_forms
-      *> rules: [FMT-12.4.5.1]
+      *> rules: [FMT-12.4.5.1, 1985-FMT-VII.2.4.2, 1985-GR-VIII.2.3.4-5,
+      *>    1985-GR-IX.2.3.4-6, 1985-FMT-IX.2.4.2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb770_alphabet_repertoire_85
-      *> rules: [GR-12.3.7.4-7]
+      *> rules: [GR-12.3.7.4-7, 1985-SR-VI.4.5.3-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

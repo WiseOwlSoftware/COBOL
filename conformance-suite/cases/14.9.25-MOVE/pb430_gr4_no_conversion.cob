@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb430_gr4_no_conversion
-      *> rules: [GR-14.9.25.4-4, FMT-13.18.45.2]
+      *> rules: [GR-14.9.25.4-4, FMT-13.18.45.2, 1985-FMT-VI.5.11.2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

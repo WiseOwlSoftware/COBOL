@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb397_sequence_placement_legal
-      *> rules: [SR-14.9.14.3-1, SR-14.9.17.3-2, SR-14.9.42.3-1]
+      *> rules: [SR-14.9.14.3-1, SR-14.9.17.3-2, SR-14.9.42.3-1,
+      *>    1985-SR-VI.6.15.3-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

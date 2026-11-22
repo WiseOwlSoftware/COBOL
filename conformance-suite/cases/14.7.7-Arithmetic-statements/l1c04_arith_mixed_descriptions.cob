@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c04_arith_mixed_descriptions
-      *> rules: [GR-14.7.7-1]
+      *> rules: [GR-14.7.7-1, 1985-GR-VI.6.4.4-1, 1985-GR-VI.6.8.4-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

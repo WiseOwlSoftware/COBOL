@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb1000_present_value_rate_near_minus_one
-      *> rules: [AR-15.74.3-2, RV-15.74.4-1]
+      *> rules: [AR-15.74.3-2, RV-15.74.4-1, 1989-AR-A.2.34.3-2,
+      *>    1989-RV-A.2.34.4-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
