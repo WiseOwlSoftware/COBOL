@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;   // IntegerLiteralParts.Digits
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -254,7 +255,7 @@ public sealed partial class FileControlBinder
                             + "\"When multiple integer-1 RECORDS phrases are specified, no two of them may specify the same "
                             + "file-name-2.\")");
                     else if (on is not null && onFile is null)
-                        RecordRerunRecords(counted, on.GetText(), every.integerLiteral().GetText());
+                        RecordRerunRecords(counted, on.GetText(), every.integerLiteral().Digits());
                 }
             }
             else if (every.cobolWord() is { } condition)

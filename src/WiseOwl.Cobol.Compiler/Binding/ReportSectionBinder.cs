@@ -956,11 +956,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // (GR4b of each), and for a body group by nothing: its final LINE-COUNTER setting stops at the FOOTING integer
             // (§1985:XIII.3.10.8 GR6b), and a report with no PAGE clause has no vertical subdivisions (§1985:XIII.3.10.2).
             if (Edition.Edition.Has(2002) && ng.Value > model.VerticalLimit)
-                Violation($"{(absolute ? "integer-1" : "integer-2")} {ngc.integerOperand().GetText()} exceeds {model.VerticalLimitWords}"
+                Violation($"{(absolute ? "integer-1" : "integer-2")} {WrittenSource.Of(ngc.integerOperand())} exceeds {model.VerticalLimitWords}"
                     + "; integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not "
                     + $"divided into pages ({EditionInfo.Designated("§2023:13.18.37.3 SR1")})");
             else if (ExceedsThreeSignificantDigits85(ng.Value))
-                Violation($"{(absolute ? "integer-1" : "integer-2")} {ngc.integerOperand().GetText()} has more than three "
+                Violation($"{(absolute ? "integer-1" : "integer-2")} {WrittenSource.Of(ngc.integerOperand())} has more than three "
                     + "significant digits; integer-1 and integer-2 must not exceed three significant digits in length "
                     + "(§1985:XIII.3.16.3 SR2)");
             if (!model.Paged)
@@ -1478,17 +1478,17 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     {
                         int value = _d.Constants.IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? ConstantEntryBinder.RecoveredIntegerOperand;
                         if (value > model.VerticalLimit)
-                            Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} exceeds {model.VerticalLimitWords}"
+                            Violation($"{(absolute ? "integer-1" : "integer-2")} {WrittenSource.Of(lit)} exceeds {model.VerticalLimitWords}"
                                 + "; neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report "
                                 + $"is not divided into pages ({Edition.Edition.CiteRule("§1985:XIII.3.15.3 SR1", "§2023:13.18.35.3 SR3")})");
                         else if (ExceedsThreeSignificantDigits85(value))
-                            Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} has more than three significant "
+                            Violation($"{(absolute ? "integer-1" : "integer-2")} {WrittenSource.Of(lit)} has more than three significant "
                                 + "digits; integer-1 and integer-2 must not exceed three significant digits in length "
                                 + "(§1985:XIII.3.15.3 SR1)");
                     }
                     if (!model.Paged && (absolute || op.NEXT() is not null))
                         Violation($"the report is not divided into pages, so all its LINE clauses shall be relative — "
-                            + (absolute ? $"LINE {op.integerOperand()!.GetText()}{(op.NEXT() is not null ? " ON NEXT PAGE" : "")} is absolute"
+                            + (absolute ? $"LINE {WrittenSource.Of(op.integerOperand()!)}{(op.NEXT() is not null ? " ON NEXT PAGE" : "")} is absolute"
                                         : "the ON NEXT PAGE operand is not the relative form {PLUS|+} integer-2")
                             + $" ({Edition.Edition.CiteRule("§1985:XIII.3.15.3 SR5", "§2023:13.18.35.3 SR5")})");
                     // SR9 — "If the current report group is a control heading with the OR PAGE phrase, all the LINE
@@ -1496,7 +1496,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     // relative form either, exactly as SR5 reads it (kb/Work PB1248).
                     if (orPageHeading && (absolute || op.NEXT() is not null))
                         Violation("a control heading with the OR PAGE phrase shall have only relative LINE clauses — "
-                            + (absolute ? $"LINE {op.integerOperand()!.GetText()}{(op.NEXT() is not null ? " ON NEXT PAGE" : "")} is absolute"
+                            + (absolute ? $"LINE {WrittenSource.Of(op.integerOperand()!)}{(op.NEXT() is not null ? " ON NEXT PAGE" : "")} is absolute"
                                         : "the ON NEXT PAGE operand is not the relative form {PLUS|+} integer-2")
                             + " (ISO §2023:13.18.35.3 SR9" + NotInCobol85("the OR PAGE phrase") + ")");
                     // §1985:XIII.3.15.3 SR9 — "The first LINE NUMBER clause specified within a PAGE FOOTING report group must be
@@ -1504,7 +1504,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     // the FOOTING integer instead (§2023:13.18.35.4 GR5 b) 4.).
                     if (k == 0 && firstLineClause && !absolute && kind == ReportGroupKindModel.PageFooting && Edition.DialectLevel < 2002)
                         Violation("the first LINE clause of a page footing report group is relative"
-                            + (op.NEXT() is not null ? " (ON NEXT PAGE without an integer-1)" : $" (LINE PLUS {op.integerOperand()?.GetText()})")
+                            + (op.NEXT() is not null ? " (ON NEXT PAGE without an integer-1)" : $" (LINE PLUS {WrittenSource.Of(op.integerOperand(), "")})")
                             + "; the first LINE NUMBER clause specified within a PAGE FOOTING report group must be an absolute "
                             + "LINE NUMBER clause (§1985:XIII.3.15.3 SR9)");
                     if (op.NEXT() is null) continue;

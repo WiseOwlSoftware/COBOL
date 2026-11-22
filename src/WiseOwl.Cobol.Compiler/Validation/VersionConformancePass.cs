@@ -1068,7 +1068,7 @@ internal sealed class VersionConformancePass
             bool asked = construct == Constructs.SegmentNumbersRemoved2002
                 ? Segmentation.MeaningKept(_p._edition) : ConstructRegistry.IsAvailable(_p._edition, construct);
             if (!asked) return;
-            string text = number.GetText();
+            string text = number.Digits();
             // THE SPELLING IS PART OF THE RULE (kb/Work PB5379): §1985:III.2 "A segment-number may be expressed either as a one or
             // two digit number", so 010, 001 and 000000000000000010 are no segment-number though their VALUE is in range; the
             // level-number's form rule (LevelNumberPass.VisitLevelNumber, COBOL1746) is the model. One place for the SEGMENT-LIMIT

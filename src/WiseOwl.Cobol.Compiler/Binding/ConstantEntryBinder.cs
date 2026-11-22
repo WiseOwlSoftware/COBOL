@@ -790,7 +790,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// the operand's integer as digits, the literal as written or the constant's canonical integer, with every refusal
     /// of <see cref="IntegerOperandValue"/> except the host limit, which a full-width slot does not have.</summary>
     internal string? IntegerOperandText(Core.IntegerOperandContext operand, string where) =>
-        operand.integerLiteral() is { } il ? il.GetText() : ConstantIntegerText(operand, operand.cobolWord(), where);
+        operand.integerLiteral() is { } il ? il.Digits() : ConstantIntegerText(operand, operand.cobolWord(), where);
 
     /// <summary>The value of a BARE <c>dataReference</c> that names a constant (<see cref="ConstantOf"/>) where the
     /// format prints "data-name-1 or integer-1" (LINAGE, ISO §2023:13.18.34.2) — the grammar cannot tell the constant-name

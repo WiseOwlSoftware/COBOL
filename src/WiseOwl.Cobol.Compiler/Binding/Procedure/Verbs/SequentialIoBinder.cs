@@ -500,7 +500,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             return FeatureAdvancing(before, name, system);
         }
         BoundOperand lines =
-            wba.integerLiteral() is { } il ? new BoundNumericLiteral(il.GetText())
+            wba.integerLiteral() is { } il ? new BoundNumericLiteral(il.Digits())
             // identifier-2 as a function-identifier (§2023:8.4.3.1.2 Format 1),
             // or as an inline method invocation (§2023:8.4.3.1.2 Format 4) — kb/Work PB1421's sibling sweep —
             // each screened on its temporary item below.
@@ -542,7 +542,10 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             // otherwise specified" (§2023:5.5; §2002:5.4, §2014:5.5 the same), and the rule of this format allows ZERO
             // only ("Integer-1 may be positive or zero, but must not be negative", §1985:VII.4.7.3 SR5; "Integer-1 shall
             // be positive or zero", §2023:14.9.51.3 SR15). Where the standard allows a sign it says so ("Integer-1 may be
-            // signed", §1985:IV.4.3.8.2.3 SR6), so a written '+' is refused as a written '-' is, at every edition.
+            // signed", §1985:IV.4.3.8.2.3 SR6), so a written '+' is refused as a written '-' is, at every edition. A sign
+            // written as the integer literal's leftmost character ('+2') is the integer-n screen's (IntegerOperandPass,
+            // COBOL7737, kb/Work PB6021), which binds the literal by its digits; a sign this arm still sees is a literal
+            // that is not that one character-string ('+ 2', '-1.5').
             case BoundNumericLiteral n when IntrinsicResultType.IsIntegerOperand(n)
                                             && WiseOwl.Cobol.Common.NumericLiteral.IsUnsignedForm(n.Text):
             case BoundFigurative { Kind: 'Z' }:   // ZERO read numerically is the integer 0 (§2023:8.3.3.6.4 GR4)

@@ -10,11 +10,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE SIGNED-INTEGER SLOT INVENTORY (kb/Work PB553). The grammar carries TWO integer-literal rules and the
 /// difference between them is a RULE, not an oversight:
 /// <list type="bullet">
-/// <item><c>integerLiteral : INTEGERLIT</c> is the metalanguage <c>integer-n</c> of a printed general format.
-/// ISO §2023:5.5 1) — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and associated rules, it
+/// <item><c>integerLiteral</c> is the metalanguage <c>integer-n</c> of a printed general format.
+/// ISO §2023:5.5 SR1 — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and associated rules, it
 /// refers to a fixed-point integer literal that shall be unsigned and nonzero unless otherwise specified in
-/// the associated rules." Its UNSIGNED shape IS that rule, so <c>01 T PIC X OCCURS +3.</c> is non-conforming
-/// and its parse error is a CORRECT rejection.</item>
+/// the associated rules." So <c>01 T PIC X OCCURS +3.</c> is non-conforming. Since kb/Work PB6021 the rule PARSES the
+/// sign (one character-string with its digits) so that the one integer-n screen, <c>IntegerOperandPass</c>, refuses it
+/// BY THAT RULE (COBOL7737) instead of a parse error naming a clause list; the sign is still never accepted.</item>
 /// <item><c>signedIntegerLiteral : (PLUS | MINUS)? INTEGERLIT</c> is the other slot: one the standard prints
 /// as something other than <c>integer-n</c> and constrains as an INTEGER NUMERIC LITERAL, which routes through
 /// §2023:5.5 2) a) to §2023:8.3.3.3.2 2) and its signed leftmost character. §2023:13.18.63.2's <c>subscript-1</c> /
@@ -22,12 +23,16 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </list>
 /// <para>PB553's own note proposed the opposite fix — sign <c>integerLiteral</c> once and let every
 /// integer-literal position inherit it — which would have ACCEPTED the OCCURS spelling above. This scrape
-/// pins the decision in BOTH directions so neither can be undone silently: the unsigned rule may not grow a
-/// sign, and a new signed slot may not be added without landing here.</para>
+/// pins the decision in BOTH directions so neither can be undone silently: the integer-n rule's sign is parsed only
+/// to be refused (its one shape, and the screen that refuses it, are both pinned), and a new signed slot may not be
+/// added without landing here.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class SignedIntegerSlotDriftTests
 {
+    private static string CompilerSource(params string[] parts) =>
+        System.IO.File.ReadAllText(System.IO.Path.Combine([TestRepo.Src("WiseOwl.Cobol.Compiler"), .. parts]));
+
     private static string GrammarDir() => TestRepo.Src("WiseOwl.Cobol.Frontend", "Grammar");
 
     private static string[] GrammarFiles() =>
@@ -39,17 +44,44 @@ public sealed class SignedIntegerSlotDriftTests
         Regex.Replace(System.IO.File.ReadAllText(path), @"//[^\r\n]*", string.Empty);
 
     [Fact]
-    public void IntegerLiteral_StaysUnsigned()
+    public void IntegerLiteral_ParsesItsSignOnlyForTheOneScreenToRefuse()
     {
         string src = Body(System.IO.Path.Combine(GrammarDir(), "Core", "CobolExpressions.g4"));
         var m = Regex.Match(src, @"^\s*integerLiteral\s*:(?<body>.*?);", RegexOptions.Multiline | RegexOptions.Singleline);
         Assert.True(m.Success, "the integerLiteral rule is gone from Core/CobolExpressions.g4 — this guard is blind");
-        // The left-edge predicate that keeps the next entry's level-number out of every integer operand (kb/Work PB6011,
-        // AreaAOpeningDriftTests) is no part of the shape: it admits no token, so it is set aside before the shape is read.
-        string body = Regex.Replace(m.Groups["body"].Value, @"\{[^{}]*\}\?", string.Empty).Trim();
-        Assert.Equal("INTEGERLIT", body);
-        Assert.DoesNotContain("PLUS", body);
-        Assert.DoesNotContain("MINUS", body);
+        // The left-edge predicates admit no token, so they are set aside before the shape is read: the one that keeps the
+        // next entry's level-number out of every integer operand (kb/Work PB6011, AreaAOpeningDriftTests), and the one that
+        // takes a sign only as the literal's own leftmost character (§2023:8.3.3.3.2; kb/Work PB6021).
+        Assert.Contains("{signedIntegerAhead()}?", m.Groups["body"].Value);
+        string body = Regex.Replace(Regex.Replace(m.Groups["body"].Value, @"\{[^{}]*\}\?", string.Empty), @"\s+", " ").Trim();
+        Assert.Equal("( (PLUS | MINUS))? INTEGERLIT", body);
+        // ⛔ THE SIGN IS PARSED TO BE REFUSED, NEVER ACCEPTED (§2023:5.5 SR1; §1985:III.2 p142): the one screen asks it of
+        // every integerLiteral with no table (no format permits it), and the binder reads the digits only.
+        string pass = CompilerSource("Validation", "IntegerOperandPass.cs");
+        Assert.Matches(@"if \(ctx\.Sign\(\) is not null\)\s*\{[^}]*DiagnosticCatalog\.IntegerOperandSigned", pass);
+        Assert.Contains("public static string Digits(this CobolParserCore.IntegerLiteralContext literal) => literal.INTEGERLIT().GetText();",
+            System.IO.File.ReadAllText(System.IO.Path.Combine(TestRepo.Src("WiseOwl.Cobol.Frontend"), "Parsing", "IntegerLiteralParts.cs")));
+    }
+
+    [Fact]
+    public void IntegerLiteral_IsReadByItsDigitsOnly()
+    {
+        // ⛔ GetText() of an integerLiteral includes a refused sign; a binder that read '-3' as a value would raise a second
+        // diagnostic from a range rule (or lay out a negative table). Every reader goes through IntegerLiteralParts.Digits or
+        // IntegerOperandRules.HostValue (kb/Work PB6021); a GetText() of the node is only ever a quotation of what was written, in a message.
+        string[] sources = System.IO.Directory.GetFiles(
+            TestRepo.Src("WiseOwl.Cobol.Compiler"), "*.cs", System.IO.SearchOption.AllDirectories);
+        var offenders = new System.Collections.Generic.List<string>();
+        int readers = 0;
+        foreach (string f in sources)
+        {
+            string src = System.IO.File.ReadAllText(f);
+            readers += Regex.Matches(src, @"integerLiteral\s*\(\s*\)[^;\r\n]*?\.Digits\b|\bIntegerOperandRules\.HostValue\s*\(").Count;
+            foreach (Match m in Regex.Matches(src, @"integerLiteral\s*\(\s*\)[^;\r\n]*?\.GetText\s*\("))
+                offenders.Add($"{System.IO.Path.GetFileName(f)}: {m.Value}");
+        }
+        Assert.True(readers > 5, $"only {readers} reader call(s) of IntegerLiteralParts.Digits / IntegerOperandRules.HostValue — the scan is blind");
+        Assert.Empty(offenders);
     }
 
     [Fact]

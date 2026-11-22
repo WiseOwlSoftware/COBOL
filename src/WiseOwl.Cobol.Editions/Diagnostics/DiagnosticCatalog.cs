@@ -7683,6 +7683,22 @@ public static class DiagnosticCatalog
         "ISO §2023:5.5 1)",
         Rule1985: "§1985:III.2");
 
+    /// <summary>ISO §2023:5.5 SR1 / §1985:III.2 p142 — an <c>integer-n</c> operand of a general format is written with a sign
+    /// (kb/Work PB6021). No associated rule of any format permits a sign on an <c>integer-n</c> (a slot that takes a signed
+    /// integer is printed as something else, the <c>signedIntegerLiteral</c> of the Format 2 VALUE subscripts), so the one
+    /// screen, <c>Validation/IntegerOperandPass</c>, refuses it at every such position. Before it, the grammar refused the
+    /// sign as a parse error that named the closed clause list of the entry (COBOL0001 + COBOL1941), not the rule broken.</summary>
+    public static readonly DiagnosticDescriptor IntegerOperandSigned = new(
+        "COBOL7737", "integer-operand-signed", EditionSeverity.Error,
+        "An integer-n operand is written with a sign. ISO §2023:5.5 SR1: 'When the term integer-n (n = 1, 2, ...) is used "
+        + "in a general format and associated rules, it refers to a fixed-point integer literal that shall be unsigned and "
+        + "nonzero unless otherwise specified in the associated rules.' No associated rule permits the sign.",
+        "ISO §2023:5.5 SR1",
+        Title1985: "An integer operand of a general format is written with a sign. §1985:III.2 p142: 'Where the term integer "
+            + "appears in the general formats, integer must be a numeric literal which is an integer, and it must be neither "
+            + "signed nor zero unless explicitly allowed by the rules for that format.' No rule of the format permits the sign.",
+        Rule1985: "§1985:III.2 p142");
+
     /// <summary>COBOL2427 — an <c>integer-n</c> the compiler binds into its model (a table size, a record or
     /// block size, a LINAGE or PAGE line count, a report LINE or COLUMN, an ordinal) exceeds 2,147,483,647, this
     /// implementation's limit. Screened once, pre-bind, by <c>Validation/IntegerOperandPass</c> for EVERY
