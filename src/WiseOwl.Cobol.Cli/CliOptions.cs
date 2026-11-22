@@ -37,6 +37,8 @@ namespace WiseOwl.Cobol.Cli;
 /// <param name="Listing">The source listing (<c>--listing</c>, <c>--listing-output</c>, <c>--listing-format</c>, <c>--listing-sections</c>, <c>--listing-page-length</c>,
 /// <c>--listing-page-width</c>; DESIGN-listing.md section 8), or null for none. On by default at <c>--std 85</c>, which requires
 /// one (§1985:IV.7.1); off by default at the later editions, which leave it to the implementor (§2023:7.3.18.3 GR1).</param>
+/// <param name="Suppress">The warnings not reported (<c>--suppress</c>, repeatable; kb/Work PB2652, owner decision D20): each a code, a
+/// descriptor id or a family key (<see cref="WiseOwl.Cobol.Frontend.Diagnostics.WarningSuppression"/>). Null for none.</param>
 internal sealed record CliOptions(
     string SourcePath,
     string? OutputPath,
@@ -53,4 +55,5 @@ internal sealed record CliOptions(
     IReadOnlyList<string>? RepositoryPaths = null,
     IReadOnlyList<string>? ReferencePaths = null,
     bool RepositoryCheck = true,
-    WiseOwl.Cobol.Listing.ListingRequest? Listing = null);
+    WiseOwl.Cobol.Listing.ListingRequest? Listing = null,
+    IReadOnlyList<string>? Suppress = null);

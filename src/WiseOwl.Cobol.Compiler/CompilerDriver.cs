@@ -72,6 +72,9 @@ public static class CompilerDriver
     /// <param name="Listing">The source listing to produce (DESIGN-listing.md sections 4.2 and 8; kb/Work PB5923), or null for
     /// none and no listing work at all. An OUTPUT selection: it decides what the build writes, never what a source means. The
     /// per-edition default (on at <c>--std 85</c>, §1985:IV.7.1) is the command line's; the library default is no listing.</param>
+    /// <param name="Suppress">The warnings the compilation does not report (CLI <c>--suppress NAME</c>, repeatable; kb/Work PB2652, owner
+    /// decision D20): each a diagnostic code, a catalog descriptor's id or its family key (<see cref="WarningSuppression"/>). An error is
+    /// never muted. Null or empty reports every warning.</param>
     public sealed record Options(
         string SourcePath,
         Editions.EditionInfo Edition,
@@ -87,7 +90,8 @@ public static class CompilerDriver
         IReadOnlyList<string>? RepositoryPaths = null,
         IReadOnlyList<string>? ReferencePaths = null,
         bool RepositoryCheck = true,
-        WiseOwl.Cobol.Listing.ListingRequest? Listing = null)
+        WiseOwl.Cobol.Listing.ListingRequest? Listing = null,
+        IReadOnlyList<string>? Suppress = null)
     {
         /// <summary>The identity this compilation's one class or interface PUBLISHES as an expansion of a parameterized definition: set by
         /// the compilation of an expansion's own assembly (<see cref="ExpansionAssemblies"/>, DESIGN-external-repository §10.5), whose source
@@ -261,7 +265,8 @@ public static class CompilerDriver
                 { Inputs = inputs, Diagnostics = [] };   // a fault of the command line: no source position, no record
 
         // Phase 1 — front-end: preprocess + parse.
-        var diagnostics = new DiagnosticBag();
+        var suppression = WarningSuppression.Of(options.Suppress ?? []);
+        var diagnostics = new DiagnosticBag { Suppression = suppression };
         var frontend = NewFrontend(options, inputs, recordsListing: listing is not null);
         var tree = frontend.Parse(options.SourcePath, diagnostics);
         listing?.DepositFrontend(frontend);   // the listed pass (DESIGN-listing.md section 4.4)
@@ -300,6 +305,8 @@ public static class CompilerDriver
             // kb/Work PB1525: the §2023:4.2.10 warning mechanism rides the same per-compilation object, and is read by
             // EditionContext.Extension alone.
             FlagExtensions = options.FlagExtensions,
+            // kb/Work PB2652: --suppress rides the same object, and is asked by the one way a warning is kept.
+            Suppression = suppression,
             // kb/Work PB4319: --repository-update rides the same per-compilation object to the binder, which writes each
             // published unit's record at the end of the bind. A check-only compile writes no module, so it publishes nothing.
             RepositoryUpdate = options.RepositoryUpdate && !options.CheckOnly,
