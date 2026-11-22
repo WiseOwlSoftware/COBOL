@@ -291,6 +291,19 @@ CASES = [
     ('kill -0 "$pid"', False),
     ('wmic process where processid=1234 delete', False),
     ("git log --grep 'pgrep cobol | xargs kill'", False),                 # quoted text is text
+    # the review of train-1985-c round 2: R2-1, a python -c payload enumerates and kills like a shell line
+    ("python -c \"import os,signal; [os.kill(int(l.split()[1]), signal.SIGTERM) for l in os.popen('tasklist')"
+     ".read().splitlines() if 'cobol' in l]\"", True),
+    ("python -c \"import psutil; [p.kill() for p in psutil.process_iter() if p.name()=='cobol.exe']\"", True),
+    ("py -3 -c \"import subprocess; subprocess.run(['taskkill', '/IM', 'cobol.exe', '/F'])\"", True),
+    ("python3 -c 'import subprocess; subprocess.run([\"pkill\", \"cobol\"])'", True),
+    ("python -c 'import os; os.kill(1234, 9)'", False),                    # one pid, no enumeration
+    ("python -c \"import subprocess; print(subprocess.run(['tasklist'], capture_output=True).stdout)\"", False),
+    ("python scripts/hooks/test_forbidden_commands.py", False),
+    # R2-2: a runner's own options are not its command
+    ("timeout -s KILL 600 python scripts/gate.py && ps aux | grep testhost", False),
+    ("timeout --signal=KILL 600 python scripts/gate.py && pgrep testhost", False),
+    ("timeout -k 5 600 kill $(pgrep cobol)", True),                        # the command timeout runs IS a kill
 ]
 
 
@@ -385,6 +398,14 @@ PS_CASES = [
     ("Get-Process -Id $p.Id -ErrorAction SilentlyContinue | Stop-Process", False),
     ("Get-CimInstance Win32_Process -Filter \"ProcessId=$($p.Id)\" | Invoke-CimMethod -MethodName Terminate", False),
     ("Get-Process cobol | Select-Object Id, StartTime", False),         # listing kills nothing
+    # the review of train-1985-c round 2: R2-1 (a python payload is a command line) and R2-2 (only a command-position
+    # Get-Process enumerates: a quoted search pattern is an argument)
+    ("python -c \"import psutil; [p.terminate() for p in psutil.process_iter(['name']) if p.info['name']=='cobol.exe']\"",
+     True),
+    ("git grep -n 'Get-Process' -- scripts; Stop-Process -Id $p.Id", False),
+    ("Select-String -Path x.ps1 -Pattern 'Get-Process'; $p.Kill()", False),
+    ("rg '\\.Kill\\(' src", False),
+    ("$all = Get-Process cobol; $all.Kill()", True),                    # an assignment's value is in command position
 ]
 
 

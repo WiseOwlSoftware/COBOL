@@ -421,6 +421,14 @@ for _st in STEPS:   # every simple command, in the shell that runs it (`Step.she
 # Allowed: a kill of a pid the agent started, with no enumeration in the line (`$p = Start-Process … -PassThru; Stop-Process
 # -Id $p.Id`, `$p.Kill()`, Bash `kill $pid`, `taskkill /PID n`), and every listing that kills nothing. A line that lists
 # by name AND kills its own pid is refused too: list in one call, kill in the next.
+# A PYTHON `-c` payload is a command line too (the review of train-1985-c, R2-1): `python -c` / `py -c` / `python3 -c`
+# hands Python a program, which enumerates through `psutil.process_iter`, `psutil.pids` or a `tasklist` / `ps` /
+# `pgrep` / `wmic` it runs (`_PY_ENUM`) and kills through `os.kill`, `.kill()`, `.terminate()`, `.send_signal()`,
+# `TerminateProcess` or a `taskkill` / `pkill` / `killall` it runs (`_PY_KILL`); each half counts like the shell's. A script
+# FILE an agent writes is outside the hook (it reads the command line, not files): P18 binds it. And only a WORD IN
+# COMMAND POSITION enumerates (R2-2): a `Get-Process` that is the step's command, an assignment's value (`$p = Get-Process
+# …`) or a `foreach` source (`$p in Get-Process …`), never one a step passes as an argument (`git grep 'Get-Process'`);
+# and a runner's own options are not its command (`timeout -s KILL 600 python …` runs python and kills nothing).
 _PS_STOP = {"stop-process", "spps", "kill"}
 _KILLERS = {"stop-process", "spps", "kill", "taskkill", "tskill", "pkill", "killall", "pskill"}
 _RUNS_A_COMMAND = {"xargs", "parallel", "find", "timeout", "nice", "nohup", "env", "watch"}  # a later word is the command
@@ -434,6 +442,38 @@ _CIM_INVOKE = {"invoke-cimmethod", "invoke-wmimethod", "icim", "iwmi"}      # a 
 _CIM_REMOVE = {"remove-ciminstance", "remove-wmiobject", "rcim", "rwmi"}  # removing a Win32_Process ends it
 _ONE_PID = re.compile(r"\b(?:processid|handle)\s*=", re.I)
 _NAME_FILTER = re.compile(r"\b(?:name|caption|commandline|executablepath)\s*(?:=|like\b|-eq\b|-like\b|-match\b)", re.I)
+_PYTHONS = re.compile(r"^(?:py|pythonw?(?:\d+(?:\.\d+)?)?)$")
+_PY_ENUM = re.compile(r"\bprocess_iter\b|\bpsutil\.pids\b|\b(?:tasklist|pgrep|pidof|wmic)\b|win32_process|getprocesses"
+                      r"|\bps\s+(?:aux|-e|-A|-ef)\b", re.I)
+_PY_KILL = re.compile(r"\bos\.kill(?:pg)?\s*\(|\.(?:kill|terminate|send_signal)\s*\(|terminateprocess"
+                      r"|\b(?:taskkill|pkill|killall)\b", re.I)
+_PY_BY_NAME = re.compile(r"\btaskkill\b[^\n]*?[/-]im\b|\b(?:pkill|killall)\b", re.I)
+_TIMEOUT_VALUED = {"-s", "--signal", "-k", "--kill-after"}
+
+
+def _python_payload(st) -> str | None:
+    """The program a `python -c` / `py -c` step hands Python, or None when the step is no such call (kb/Work PB6034 R2-1)."""
+    w = st.words
+    k = _command_word(w)
+    if k is None or not _PYTHONS.match(shell_location.program(w[k])):
+        return None
+    for i in range(k + 1, len(w)):
+        if w[i] == "-c":
+            return w[i + 1] if i + 1 < len(w) else None
+        if not w[i].startswith("-"):
+            return None          # a script file or `-m module`'s module: the payload is not on the line
+    return None
+
+
+def _runner_command(name: str, args) -> list[str]:
+    """The words a runner (`_RUNS_A_COMMAND`) may run as its command: for `timeout`, the one word after its options, their
+    values and its duration (`-s KILL` chooses the signal for the command it starts, R2-2); for the others, every word."""
+    if name != "timeout":
+        return list(args)
+    i = 0
+    while i < len(args) and args[i].startswith("-"):
+        i += 2 if args[i] in _TIMEOUT_VALUED else 1
+    return list(args[i + 1:i + 2])      # past the duration
 
 
 def _image_filter(args) -> bool:
@@ -453,9 +493,11 @@ def _enumerates(st) -> bool:
     k = _command_word(w)
     if any(_DOTNET_ENUM.search(x) for x in w):
         return True
-    for j, x in enumerate(w):                              # anywhere in the step: `foreach ($p in Get-Process cobol)`
-        if st.shell == shell_location.POWERSHELL and (shell_location.program(x) in _PS_GET_PROCESS
-                                                       or (j == k and x.lower() == "ps")):
+    if (payload := _python_payload(st)) is not None:
+        return bool(_PY_ENUM.search(payload))
+    for j, x in enumerate(w):   # in command position: the command, `$p = Get-Process …`, `foreach ($p in Get-Process …)`
+        if st.shell == shell_location.POWERSHELL and (j == k or (j and w[j - 1].lower() in ("=", "in"))) and (
+                shell_location.program(x) in _PS_GET_PROCESS or (j == k and x.lower() == "ps")):
             return not any(_PS_BY_ID.match(a) for a in w[j + 1:])
     if k is None:
         return False
@@ -478,13 +520,15 @@ def _kills(st) -> bool:
     w = st.words
     if any(_KILL_METHOD.search(x) for x in w):
         return True
+    if (payload := _python_payload(st)) is not None:
+        return bool(_PY_KILL.search(payload))
     k = _command_word(w)
     if k is None:
         return False
     name, args = shell_location.program(w[k]), w[k + 1:]
     if name in _KILLERS or name in _CIM_REMOVE or name in _CIM_INVOKE and any(a.lower() == "terminate" for a in args):
         return True
-    if name in _RUNS_A_COMMAND and any(shell_location.program(a) in _KILLERS for a in args):
+    if name in _RUNS_A_COMMAND and any(shell_location.program(a) in _KILLERS for a in _runner_command(name, args)):
         return True
     return name == "wmic" and any(a.lower() == "delete" or a.lower() == "terminate" for a in args)
 
@@ -496,6 +540,8 @@ def _kills_by_name(st) -> bool:
     if k is None:
         return False
     name, args = shell_location.program(w[k]), w[k + 1:]
+    if (payload := _python_payload(st)) is not None:
+        return bool(_PY_BY_NAME.search(payload))
     if name == "taskkill":
         return _image_filter(args)
     if st.shell == shell_location.BASH and name in ("pkill", "killall"):
