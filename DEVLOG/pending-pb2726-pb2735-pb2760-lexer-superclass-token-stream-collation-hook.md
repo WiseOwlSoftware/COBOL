@@ -1,6 +1,7 @@
-## PB2726, PB2735, PB2760: the lexer gets a C# superclass, every reading of COBOL text shares one token-stream preparation, and the collation start-up hook moves to the control layer
+## PB2726, PB2735, PB2760, PB2648, PB2646: the lexer gets a C# superclass, every reading of COBOL text shares one token-stream preparation, the collation start-up hook moves to the control layer, the subscript rule is raised in one place, and the national codec leaves the BIT codec
 
-Wave 20262135, group E (the PB1754 campaign, three behaviour-neutral R2 restructurings).
+Wave 20262135, group E, replayed onto main and continued by wave 20262139, group C (the PB1754 campaign, five
+behaviour-neutral R2 restructurings).
 
 **PB2760: `CollationRuntime` moves from `Collation/` to `Control/`.** The run unit's text-subsystem start-up hook
 (`Initialize`, `Warmup`, `Status`) sat in `WiseOwl.Cobol.Runtime.Collation`. It was the only reason that namespace
@@ -54,5 +55,29 @@ a `.g4` file, which those sweeps do not read as C#, into `CobolLexerBase.cs`, wh
   with the GAP unchanged.
 - A retirement-prose sweep treated a moved member as deleted. The sweep now reads the two recognizer superclasses.
 
-The predecessor's re-gate at 204b037f44 was GREEN; the replay onto current main re-gates, and its verdict is in the
-branch report.
+The predecessor's re-gate at 204b037f44 was GREEN. The replay onto main 9bfe9e1c44 was gated GREEN at 259c616ffe
+(run 000001-20261122T205303Z: Conformance 29,080/29,080, Unit 42,697/42,697, RepoDrift 231/231, Characterization 37/37).
+
+**PB2648: one subscript-range rule, one OCCURS DEPENDING bound test.** The §2023:8.4.2.3.4 GR2 test and its detail text
+were written four times: in `CobolTable.At`, in `CobolDynTable.RefSending` and `RefReceiving`, and in
+`ReportWriter.SumOccurrence`. The §2023:13.18.38.4 GR7 test was written twice in `CobolTable`. Now
+`CobolTable.Permissible` is the one range test and `CobolTable.SubscriptOutOfRange` the one raise and detail composer;
+all four arms call both. `CobolTable.TestOdoBounds` is the one GR7 test. Every detail text is byte-identical
+(`WideSubscriptDiagnosticTests` pins them), and `SubscriptRangeRuleDriftTests` refuses a second raise of either rule.
+The checking-off continuation stays per arm, as the note requires of a behaviour-neutral wave. The re-probe confirmed
+the arms disagree: `F(0)=[]` for a fixed `PIC X(5)` table, `D(0)=[BBBBB]` for an OCCURS DYNAMIC one. That divergence
+is reported as a lead for the fix lane.
+
+**PB2646: the national storage codec leaves `CobolBits`.** `CobolBits`, the USAGE BIT codec, also held the national
+UTF-16BE codec: `NatBytes`, `PutNat`, `BytesPerNational`, `NatReadWindow`, `NatWriteWindow` and `NatFromStorage`. These
+now form `NationalImage` (`Bytes`, `Put`, `BytesPerNational`, `ReadWindow`, `WriteWindow`, `FromStorage`).
+`NativeCollatingSequence` moves out of `StorageByte.cs` into its own file. Every caller changed, with no forwarder. The
+compiler's emit helpers (`RuntimeApi.NatBytes` and its siblings) keep their names and emit `NationalImage.*`. The
+branch's major bump covers the surface change, and `abi_pin.py repin` measured the hashes. Six inventory rows were
+re-sited (2023 GAP 4 → 4, 1985 GAP 0 → 0).
+
+**Oracle.** `compare_oracle.py --base 9bfe9e1c44` printed `DIFFERENT — 8998 of 23370 cases differ`. No diagnostic
+stream differs, and no case was added or removed. In every differing case, the base's C# with two substitutions applied
+equals the new C#: the runtime version string `"33.0.0.0"` → `"34.0.0.0"`, and `CobolBits.Nat*` → `NationalImage.*`.
+
+The gate verdict for PB2648 and PB2646 is in the branch report.
