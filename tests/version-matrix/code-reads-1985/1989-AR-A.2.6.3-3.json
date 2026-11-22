@@ -2,68 +2,151 @@
  "rule-id": "1989-AR-A.2.6.3-3",
  "rule-digest": "1c89ddabfd1e",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-173",
+  "pin": "ba6aa8b4ae0b3b63a1bb036127c4bf096b45656f",
+  "slice": "1985-c02",
   "sources": {
-   "reader": "6da29e9e8e38e6dd437da9f99f86e2d251cb93917b356e38b5eebe727b16433e",
-   "refuter": "464bbe68abc3e1e2743bb08ddb4c7b086076c4d21839d6a9a68b4b272f52e151"
+   "reader": "40f63b8821485ed038639df970779f5e92687f3b63e3a89258bf226287a50fd3",
+   "refuter": "bbf3fd3f8c7778f779d441c9b5e1058491db2176bfbcabd3b5045cafd06b74cc"
   },
   "imported": {
-   "reader": "bc995dc25e9a5dba8b700c545b08db632a12bdfcb9b6404476e8fc0a2fa36a16",
-   "refuter": "badbccbc6a43e4decc862f58f10c3511671c365d279fd73d41b03d06dc534307"
+   "reader": "5692a29b7cb2bf32223a118805508d9bd1f38e9b00546cf1bb70339ed58f2daa",
+   "refuter": "a26083006a3be5a585fb356b4517e949bcd64cd39d6088056328a32c937bddbe"
   }
  },
  "reader": {
   "rule-id": "1989-AR-A.2.6.3-3",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 argument-2 of ANNUITY must be an integer argument (A.2.2 type (4): an arithmetic expression that always results in an integer, so no numeric function per A.2.3 GR2) with a positive value; every such form (integer item, integer literal, integer function, always-integral expression) must be accepted and give the A.2.6.4 value, while a non-integer form may be refused; per A.1.2.2 and I.1.6 a violation's result is undefined, so refusal is permitted but not mandated. The witness covers literals, an integer item and an integer expression.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NotAlwaysIntegral; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NonIntegralItemReason; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#AnnuityDomain; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#AnnuityDec",
+  "requirement": "At COBOL-85 (1989 amendment) argument-2 of FUNCTION ANNUITY must be an integer argument (§1989:A.2.2 AR4: an arithmetic expression that always results in an integer value; an integer item, integer literal or integer function, never a numeric function per §1989:A.2.3 GR2), which the compiler must refuse when it is not, and its positive value is a permissible-value constraint whose breach leaves the result undefined (§1989:A.2.2 p3); for a legal argument-2 the function returns argument-1/(1-(1+argument-1)**(-argument-2)), or 1/argument-2 when argument-1 is zero.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NonIntegralItemReason; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RawWideArg; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#UndecidedIntegerSite; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Annuity; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#AnnuityDomain; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ArgumentError",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
-    "switches": "ArgPredicate.AppliesAt; the ANNUITY row's position 1 ('i') carries no predicates",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 edition window: sig.IntroducedIn (85 for this function, IntrinsicCatalog row) against ctx.Edition.DialectLevel; the function is available at --std 85",
     "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation",
+    "switches": "edition.AlphabeticIsAlphanumeric (true only at 2002) widens a class-alphanumeric set; the 'i' arm (IntegerViolation) and the numeric class set do not read it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+    "switches": "only the cited rule in the message (IntrinsicCitations.IntegerType / NumericFunctionAsInteger: §1989:A.2.2 AR4 / §1989:A.2.3 at 85, §2023:15.3 AR6 / §2023:8.4.3.2.3 SR11 later); the decision is edition-independent",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year) for a row's predicates (none on this row) and IntrinsicCitations.Clause for the message clause",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#StandardArgument",
+    "switches": "IntrinsicCarrierRules.RoundsStandardArgument(name, DialectLevel), only under ARITHMETIC IS STANDARD, which 1985 lacks; the native arm at 85 is the 2023 arm without it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitProgramClass",
+    "switches": "DialectLevel < 2002 emits ICobolProgram.IsCobol85 => true, which selects the run-time breach answer",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ArgumentError",
+    "switches": "IsCobol85: a value breach terminates the run unit (CobolImplementorFatalException) at 85; from 2002 raises EC-ARGUMENT-FUNCTION (fatal if checking on, else 0). Both permitted: §1989:A.2.2 p3 makes the result undefined",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#EditionRule",
+    "switches": "the rule the run-time breach message cites (§1989 at 85, §2023 later)",
+    "same-arm-as-latest": false
    }
   ],
-  "edition-search": "IntegerViolation, NotAlwaysIntegral and NonIntegralItemReason take no edition input (grep of IntrinsicArgumentRules.cs for Edition/CobolVersion/DialectBehavior/ConstructRegistry/DialectLevel: 0 hits).",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: g85_f33_06 covers only accepted integer forms; not integer functions, the refusal of non-integer forms (literal 2.5, PIC 9V9 item, numeric function, quotient), nor zero",
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: a non-positive argument-2 value terminates the run unit at 85 (ExceptionState.ArgumentError, IsCobol85) and returns 0 with EC-ARGUMENT-FUNCTION unchecked at 2023 (annr_zero.cob at 2023 printed R 0.000000000); the compile-time integer screen is the same code at both editions, only its cited rule differs",
+  "witnesses-cover": "part: g85_f33_06 exercises legal values only; the integer-type refusal (scaled item, P-scaled item, non-integral literal, numeric function, refutable expression) and the non-positive value are not exercised by the listed witness",
   "probes": [
    {
-    "class": "d,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-173/src/annok.cob",
-    "printed": "W-N * 2 -> 0.229607380; FUNCTION INTEGER (2.5) -> 0.576190476; W-EL (W-I + 1) -> 0.576190476; W-N ** 2 -> 0.140690080; FUNCTION MOD (17 5) -> 0.500000000; PIC 9(18) 999999999999999999 -> .000000000000000001",
-    "expected": "accepted integer forms, RV1/RV2 values"
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c02/src/ann1.cob",
+    "printed": "A0-4 0.250000000 / A.1-2 0.576190476 / A.1-S4 0.315470803 / A0-P10 0.100000000 / A0-ODO3 0.333333333 / A0-EXP5 0.200000000 / A0-INTF2 0.500000000 / A0-1 1.000000000 / A0-BIG 0.000000000",
+    "expected": "§1989:A.2.6.4 RV1/RV2: 1/4; 0.1/(1-1.1**-2)=0.576190476; 0.315470803 for 4 periods; 1/10 for PIC 9P; 1/3 from an ODO element; 1/5 for N*2+1; 1/2 for an INTEGER function; 1; about 1E-18, truncated to 0"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-173/src/annbad.cob",
-    "printed": "COBOL1627 for literal 2.5, PIC 9V9 item, FUNCTION SQRT (4) (numeric function), W-N / 2, PIC X item, \"2\", W-S + 1",
-    "expected": "non-integer argument-2 forms; refusal permitted (A.2.2 AR4, A.2.3 GR2)"
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c02/src/annr_pic9v9.cob",
+    "printed": "error COBOL1627: argument-2 is a numeric data item with digits to the right of the decimal point, which §1989:A.2.2 AR4 does not admit",
+    "expected": "refused: not an integer (§1985:III.2, §1989:A.2.2 AR4)"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c02/src/annr_ppscale.cob",
+    "printed": "error COBOL1627 (PIC PP9 not an integer)",
+    "expected": "refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-173/src/annopen2.cob",
-    "printed": "ANNUITY (0 W-S * 3) with PIC 9V9 W-S = 0.5 and ANNUITY (0 (W-N + 1) / 2) with W-N = 2 both compile and print 1.000000000 (argument 1.5 truncated); same at --std 2023; 4 ** W-M (signed) is refused COBOL1627",
-    "expected": "a violating program whose result is undefined (§1985:I.1.6); acceptance is permitted"
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c02/src/annr_lit.cob",
+    "printed": "error COBOL1627: the numeric literal 2.5, whose value is not an integer",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c02/src/annr_numfn.cob",
+    "printed": "error COBOL1627: FUNCTION SQRT, a numeric function, which §1989:A.2.3 bars from an integer operand position",
+    "expected": "refused per §1989:A.2.3 GR2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c02/src/annr_div.cob",
+    "printed": "error COBOL1627: an arithmetic expression whose value is not an integer for every value of its terms: at N = 1 it is 0.25",
+    "expected": "refused: N / 4 does not always result in an integer"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c02/src/annr_alnum.cob",
+    "printed": "error COBOL1627: argument-2 is of class alphanumeric",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c02/src/annr_ordiv.cob",
+    "printed": "accepted; runs, R 0.030303030 (ORD of A / 2 = 33)",
+    "expected": "not decidable at compile time; the 1985 result of a violating value is undefined, a run-time integer check terminates (D-INTEGER-ARGUMENT-SCREEN)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c02/src/annr_lit20.cob",
+    "printed": "accepted, R 0.500000000 (literal 2.0)",
+    "expected": "accepted: an arithmetic expression whose value is an integer"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c02/src/annr_zero.cob",
+    "printed": "abnormal run-unit termination: ANNUITY argument-2 0 is not a positive integer (§1989:A.2.6.3 AR3)",
+    "expected": "undefined (§1989:A.2.2 p3); termination permitted"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c02/src/annr_neg.cob",
+    "printed": "abnormal run-unit termination: argument-2 -3 is not a positive integer",
+    "expected": "undefined; termination permitted"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c02/src/annr_zlit.cob",
+    "printed": "run-unit termination for the literal 0",
+    "expected": "undefined"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-173/src/edarm.cob",
-    "printed": "2.0E0: COBOL0900 floating-point literal requires COBOL-2002; COMP-2 item: COBOL1627 floating-point item not an integer",
-    "expected": "a later-edition literal form is refused at 85"
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c02/src/annc_comp1.cob",
+    "printed": "error COBOL1627: a floating-point numeric data item ... §1989:A.2.2 AR4 does not admit (the same refusal at 2023)",
+    "expected": "refused (COMP-1 is an implementor extension at 85, not an integer)"
    },
    {
-    "class": "b,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-173/src/domain2.cob",
-    "printed": "ANNUITY (0.1 W-ZN) with W-ZN = 0: 0.000000000, EXIT 0",
-    "expected": "non-positive value: undefined"
-   },
-   {
-    "class": "witness",
-    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/A.2.6@1985-ANNUITY-FUNCTION/g85_f33_06.cob",
-    "printed": "EXPECT: MATCH",
-    "expected": "golden"
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c02/src/annc_float.cob",
+    "printed": "--std 85: error COBOL0900: a floating-point numeric literal requires COBOL-2002 (2.0E0); --std 2023: runs, R 0.500000000",
+    "expected": "1985 has no floating-point literal; refused at 85, accepted later"
    }
   ],
   "citations": [
@@ -72,27 +155,31 @@
     "check": "OK  §1989:A.2.6.3 AR3  (2.6.3 Arguments)  the text is in AR3"
    },
    {
+    "cite": "§1989:A.2.6.4 RV2",
+    "check": "OK  §1989:A.2.6.4 RV2  (2.6.4 Returned Values)  the text is in RV2"
+   },
+   {
     "cite": "§1989:A.2.2 AR4",
     "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
+   },
+   {
+    "cite": "§1989:A.2.2 p3",
+    "check": "OK  §1989:A.2.2 p3  (2.2 ARGUMENTS**)  the text is in p3"
    },
    {
     "cite": "§1989:A.2.3 GR2",
     "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
    },
    {
-    "cite": "§1985:I.1.6",
-    "check": "OK  §1985:I.1.6  (1.6 DEFINITION OF A CONFORMING SOURCE PROGRAM)  the text is in the clause"
-   },
-   {
-    "cite": "§1989:A.1.2.2",
-    "check": "OK  §1989:A.1.2.2  (1.2.2 Value Returned by a Function)  the text is in the clause"
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. DEFINITIONS)  the text is in the clause; it lies in item L2.2"
    }
   ],
-  "notes": "The integer screen is sound but not complete by design (kb/Work PB1526 records it fail-open): W-S * 3 over PIC 9V9 and (W-N + 1) / 2 compile and the 1.5 is truncated, the same at 2023. At 1985 this is permitted because §1985:I.1.6 makes the results of violating a rule undefined and A.2.2 AR4 leaves a non-complying argument's result undefined; every provably non-integral literal, item, numeric function and root quotient is refused.",
+  "notes": "The type half of AR3 (integer) is decided at compile time by the edition-independent IntegerViolation screen over the Verified row Schema(['n','i']); every non-integer shape probed is refused with COBOL1627 citing §1989:A.2.2 AR4 at 85. The positive half is a value constraint, undefined on breach at 1985 (§1989:A.2.2 p3), and the run time terminates the run unit through ExceptionState.ArgumentError's IsCobol85 arm. Minor and outside this rule: the COMP-1 refusal at --std 85 still names ISO §2023:14.6.8.3 in its body (the floating arm of NonIntegralItemReason is not edition-designated).",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "",
+  "at-2023": "the same compile-time refusals (citing §2023:15.3 AR6); ANNUITY(0 0) returns 0 with EC-ARGUMENT-FUNCTION checking off",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -101,10 +188,11 @@
  "refuter": {
   "rule-id": "1989-AR-A.2.6.3-3",
   "refutation": "UPHELD",
-  "classes": "b,c,d,f",
-  "evidence": "Attack on the legal side (an always-integral form refused would be rejects-legal-source): rok.cob accepts and values PIC 9PP (=100) -> 0.01, SIGN LEADING SEPARATE S9 +3 -> 1/3, W-N / 1, W-N * 2 / 2, W-P2 / 4 (=25) -> 0.04, FUNCTION LENGTH (W-X) -> 0.25, FUNCTION ORD (\"A\") = 66 -> 0.015151515, qualified W-Q OF G2 -> 0.25, semicolon separator. rint.cob (rint-002): literal 2.0 -> 0.5, W-S * 10 over PIC 9V9 .4 -> 0.25, W-S - W-S + 5 -> 0.2, (W-N / 2) * 2 -> 1/3, W-N / W-N -> 1: all accepted. Refusal side (rbad-001): PIC P9 item, W-EL (1) / 2, FUNCTION RANDOM (numeric function, A.2.3 GR2) refused COBOL1627; index-name refused COBOL1637; BINARY-LONG refused COBOL0900. Class c: FUNCTION ABS (a 2002 function) as argument-2 refused COBOL1502 at 85 (rint-001). Fail-open acceptance of (W-N + 1) / 2 stays permitted by §1985:I.1.6. cite.py: OK §1989:A.2.2 AR4 'An arithmetic expression which will always result in an integer value must be specified'; OK §1989:A.2.3 GR2 'A numeric function may not be referenced where an integer operand is required'; OK §1989:A.2.3 GR3 'An integer function can be referenced where an integer operand is required' (GR2 for this text fails cite.py; GR3 is right).",
+  "classes": "a,b,c,d,f",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/w20262131/coderead/out/refute-1985-c02/src (runs/ beside it). Legal argument-2 forms the reader did not try all ran correctly: integer functions whose type depends on their arguments (intfn.cob ANNUITY(0 FUNCTION SUM(A B)) = 0.142857142 = 1/7; legal2.cob ANNUITY(0 BN) with BN PIC S9(4) BINARY = 0.2, ANNUITY(0 ZERO + 4) = 0.25, ZERO being an arithmetic-expression term at 85 per §1985:VI.6.2.1), wide values (big.cob ANNUITY(0 C) with C = 999999999999999998 -> 0 at 17 places; ANNUITY(0.000000001 1) = 1.000000001, RV2), and an undecided expression FUNCTION ORD(X) / 2 (c_annord.cob, 1/33). Refusal half: argument-2 FUNCTION MIN(A 2.5) (r_annmix.cob, a numeric function by its mixed arguments) and (FUNCTION REM(7 4)) in parentheses (p_ann.cob) are both refused COBOL1627 citing §1989:A.2.3. Class c: FUNCTION ABS/SIGN/BYTE-LENGTH (2002) and BINARY-LONG (2002) refused at 85 (c_abs, c_sign, c_blen, c_binlong). Readings considered and not decisive: (1) the literal 2.0 is accepted though §1985:III.2 Integer (1) excludes a literal with digits right of the decimal point, but §1989:A.2.2 AR4 defines the integer argument as an arithmetic expression that always results in an integer value, which 2.0 is; reading III.2 as exclusive would bar N + 1 too, which AR4 plainly admits. (2) An expression whose term is a numeric function (FUNCTION SQRT(A) * 1, p_mul1.cob) is accepted and checked at run time (c_sqrtv.cob terminates naming 2.732...), as D-INTEGER-ARGUMENT-SCREEN determines; §1985:I.1.6 makes a breach's result undefined, so this is not a conformance failure. cite.py: OK §1989:A.2.6.3 AR3 'Argument-2 must be a positive integer'; OK §1989:A.2.2 AR4 'An arithmetic expression which will always result in an integer value must be specified'; OK §1989:A.2.3 GR2 'A numeric function may not be referenced where an integer operand is required'; OK §1989:A.2.2 p3 'then the result of such a reference is undefined'; OK §1985:VI.6.2.1 'the figurative constant ZERO (ZEROS, ZEROES)'; OK §1985:I.1.6 'The results of violating the formats or rules of Standard COBOL are undefined'.",
   "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult: sig.IntroducedIn gate also fires for a function nested as argument-2 (ABS -> COBOL1502 at 85)"
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandRef: context.IndexDataItemAdmittedAt(DialectLevel), whose 85 arm refuses an index data item as a function argument (COBOL6979, §1985:VI.5.14.3 SR5); behaviour right at 85",
+   "src/WiseOwl.Cobol.Compiler/Binding/IndexNameRule.cs#NotArithmetic: the citation of the index-name refusal (COBOL1637), §1985:VI.5.8.3 SR13 at 85; citation only"
   ],
   "corrected": ""
  }
