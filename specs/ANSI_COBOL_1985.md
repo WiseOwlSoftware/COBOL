@@ -1150,15 +1150,13 @@ Chapter 2: Substantive Changes
 
 xii
 
-# SECTION I: INTRODUCTORY INFORMATION
-
 ## Page 21
 
 # American National Standard for Information Systems –
 
 # Programming Language – COBOL
 
-## <u>SECTION I: INTRODUCTORY INFORMATION</u>
+# <u>SECTION I: INTRODUCTORY INFORMATION</u>
 
 ## 1. <u>INTRODUCTION TO THE STANDARD</u>
 
@@ -1212,7 +1210,7 @@ The Intrinsic Function module provides the capability to reference a data item w
 
 > ⚠ **CORRECTED — see the Errata (C42).** The standard prints `Segmentation level 2 adds the capability for varying the segment limit.` (page 23, folio I-3). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 831, folio A-1), applied in place: "Paragraph 1.2, add the following paragraph after the last paragraph" (kb/Work PB5045). Corrected to the text above.
 
-## 1.3 ORGANIZATION OF DOCUMENT
+### 1.3 ORGANIZATION OF DOCUMENT
 
 This document is divided into nineteen sections. Section I is composed of the introduction, a summary of elements by module, and a summary of elements by COBOL division. Section II presents concepts pertaining to the use and organization of features within the COBOL language. Section III is composed of a glossary defining terms in accordance with their meaning in COBOL.
 
@@ -1230,7 +1228,7 @@ Sections II through XVI and section A comprise the detailed specifications of St
 
 Section XVII contains the appendices to the document. Section XVIII contains the index for the document.
 
-## 1.4 HOW TO USE THE STANDARD
+### 1.4 HOW TO USE THE STANDARD
 
 It is envisioned that the standard will be examined from several different viewpoints. In addition to the table of contents and the index, the summary of elements by module and the summary of elements by COBOL division are also intended to serve as a key to the standard.
 
@@ -1344,13 +1342,13 @@ I-5
 
 Implementation Definition
 
-## 1.5 DEFINITION OF AN IMPLEMENTATION OF STANDARD COBOL
+### 1.5 DEFINITION OF AN IMPLEMENTATION OF STANDARD COBOL
 
 This document provides a definition of the language features that comprise Standard COBOL. Standard COBOL consists of 12 modules, seven of which are required and five of which are optional. (It is the intention of X3J4 to require the Intrinsic Function module in the next complete revision of Standard COBOL.) Paragraph 1.5 and its subparagraphs identify the criteria which must be met in order for a valid claim to be made that an implementation conforms to Standard COBOL.
 
 > ⚠ **CORRECTED — see the Errata (C49).** The standard prints `Standard COBOL consists of 11 modules, seven of which are required and four of which are optional.` (page 26, folio I-6). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-6 (page 834, folio A-4), applied in place: "Paragraph 1.5, second sentence, change 'consists of 11 modules, seven of which are required and four of which are optional.' to ..." (kb/Work PB5045). Corrected to `Standard COBOL consists of 12 modules, seven of which are required and five of which are optional. (It is the intention of X3J4 to require the Intrinsic Function module in the next complete revision of Standard COBOL.)`.
 
-### 1.5.1 Definition of Subsets
+#### 1.5.1 Definition of Subsets
 
 The three subsets of Standard COBOL are: the high subset, the intermediate subset, and the minimum subset. Each subset is composed of a level of the seven required modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, and Source Text Manipulation. In terms of the schematic diagram on page I-5, a subset of Standard COBOL is represented by one of the three horizontal rows within the required module columns. The five optional modules (Report Writer, Communication, Debug, Segmentation, and Intrinsic Function) are not required in the three subsets of Standard COBOL.
 
@@ -1368,7 +1366,7 @@ The intermediate subset of Standard COBOL is composed of all language elements o
 
 The minimum subset of Standard COBOL is composed of all language elements of level 1 of the Nucleus, Sequential I-O, and Inter-Program Communication modules.
 
-### 1.5.2 Definition of a Conforming Implementation
+#### 1.5.2 Definition of a Conforming Implementation
 
 A conforming implementation of Standard COBOL must fully support any of the three subsets defined in paragraph 1.5.1 above and may include none, all, or any combination of the levels of the optional modules.
 
@@ -1384,15 +1382,15 @@ I-6
 
 Implementation Definition
 
-1.5.2.1 Substitute or Additional Language Elements
+##### 1.5.2.1 Substitute or Additional Language Elements
 
 An implementation must not require the inclusion of substitute or additional language elements in the source program in order to accomplish a function identical to that of a Standard COBOL language element. Additionally, throughout the Standard COBOL specification there are certain language elements whose syntax or function is specified to be, in part, implementor defined (see page XVII-87, Implementor-Defined Language Element List). While the implementor specifies the constraints on that portion of each element's syntax or rules that is indicated in Standard COBOL to be implementor defined, such constraints must not include any requirements for the inclusion in the source program of substitute or additional language elements.
 
-1.5.2.2 Acceptance of Standard Language Elements
+##### 1.5.2.2 Acceptance of Standard Language Elements
 
 An implementation must accept the syntax and provide the function for all Standard COBOL language elements as specified in a given level of a module which is claimed as being included in the implementation, except those language elements dependent on specific hardware components which are specifically exempted by paragraph 1.5.2.5.1 on page I-8. When an implementation supports the syntax of Standard COBOL language elements from a given level of a module other than that for which support is claimed, that implementation must provide the function specified in Standard COBOL for that syntax or identify those language elements as nonstandard extensions (see paragraph 1.5.2.5.2 on page I-8).
 
-1.5.2.3 Obsolete Language Elements
+##### 1.5.2.3 Obsolete Language Elements
 
 Obsolete language elements are identified as language elements in Standard COBOL which will be deleted from the next revision of Standard COBOL (see page XVII-81, Obsolete Language Element List). Obsolete language elements have been neither enhanced nor modified during the preparation of Standard COBOL. The interaction between obsolete language elements and other language elements is undefined unless otherwise specified in Standard COBOL. Language elements to be deleted from Standard COBOL will first be identified as obsolete language elements prior to being deleted.
 
@@ -1400,7 +1398,7 @@ A conforming implementation of Standard COBOL is required to support obsolete la
 
 A conforming implementation of Standard COBOL must provide a warning mechanism, which optionally may be invoked by the user at compile time to indicate, if appropriate, that a program contains obsolete language elements (see page XVII-81).
 
-1.5.2.4 Externally Provided Functions
+##### 1.5.2.4 Externally Provided Functions
 
 If any function is provided outside the source program that accomplishes a function specified by a Standard COBOL language element contained in a given level of a module which is claimed as being included in an implementation, then the implementation must not require the specification of the external function in place of, or in addition to, that Standard COBOL language element.
 
@@ -1412,15 +1410,15 @@ Implementation Definition
 
 An implementation may require specifications outside the source program to interface with the operating environment to support functions specified in a source program.
 
-### 1.5.2.5 Qualifications
+##### 1.5.2.5 Qualifications
 
 The following qualifications apply to an implementation of the Standard COBOL specifications:
 
-#### 1.5.2.5.1 Hardware Dependent Language Elements
+###### 1.5.2.5.1 Hardware Dependent Language Elements
 
 There are certain language elements which pertain to specific types of hardware components (see page XVII-94, Hardware Dependent Language Element List). In order for an implementation to meet the requirements for this Standard COBOL, the implementor must specify the hardware components that the implementation supports. Furthermore, when support is claimed for a specific hardware component, all language elements that pertain to that component must be implemented if the module in which they appear is included in the implementation. Language elements that pertain to specific hardware components for which support is not claimed need not be implemented. The absence of such elements from an implementation of Standard COBOL must be specified.
 
-#### 1.5.2.5.2 Extension Language Elements
+###### 1.5.2.5.2 Extension Language Elements
 
 An implementation that includes language elements in addition to the subset and levels of optional modules for which support is claimed meets the requirements of Standard COBOL. This is true even though it may imply the extension of the list of reserved words by the implementor, and thereby may prevent proper translation of some programs that meet the requirements of Standard COBOL.
 
@@ -1430,7 +1428,7 @@ A conforming implementation of Standard COBOL must provide a warning mechanism, 
 
 > ⚠ **CORRECTED — see the Errata (C182).** The standard prints `that a program contains nonstandard extensions that are included in the implementation.` (page 28, folio I-8). Amendment 2 (ANSI X3.23b-1993), its change for page I-8 (page 915, folio B-3), applied in place: "Paragraph 1.5.2.5.2 entitled Extension Language Elements, last paragraph, add the following as the new last sentence" (kb/Work PB5045). Corrected to `that a program contains nonstandard extensions that are included in the implementation. This warning mechanism is required to flag only extensions that are syntactically distinguishable.`.
 
-#### 1.5.2.5.3 Reserved Words
+###### 1.5.2.5.3 Reserved Words
 
 An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specifications of the seven required modules and the five optional modules. (See page IV-45, COBOL Reserved Words.)
 
@@ -1438,7 +1436,7 @@ An implementation of Standard COBOL must recognize as reserved words all of the 
 
 > ⚠ **CORRECTED — see the Errata (C183).** The standard prints `An implementation of Standard COBOL must recognize ... the four optional modules. (See page IV-45, COBOL Reserved Words.) (as printed; Amendment 1 changed it first, C51)` (page 28, folio I-8). Amendment 2 (ANSI X3.23b-1993), its change for page I-8 (page 915, folio B-3), applied in place: "Paragraph 1.5.2.5.3 entitled Reserved Words, change to read"; the paragraph as Amendment 1 changed it (C51) is replaced (kb/Work PB5045). Corrected to `An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specifications of the seven required modules and the five optional modules. (See page IV-45, COBOL Reserved Words.)`.
 
-#### 1.5.2.5.4 Character Substitution
+###### 1.5.2.5.4 Character Substitution
 
 The definition of the COBOL character set on page III-3 presents the complete COBOL character set for Standard COBOL. When an implementation does not provide for a graphic representation for all the COBOL character set, substitute graphics may be specified by the implementor to replace the characters not represented.
 
@@ -1448,11 +1446,11 @@ I-8
 
 Conforming Source Program
 
-1.5.2.5.5 The ENTER Statement
+###### 1.5.2.5.5 The ENTER Statement
 
 An implementation of Standard COBOL may include the ENTER statement or not, at the option of the implementor.
 
-1.6 DEFINITION OF A CONFORMING SOURCE PROGRAM
+### 1.6 DEFINITION OF A CONFORMING SOURCE PROGRAM
 
 A conforming source program is one which does not violate the explicitly stated provisions and specifications of Standard COBOL. In order for a source program to conform to Standard COBOL, it must not include any language elements not specified in this standard. The execution of a program, the source text of which conforms to Standard COBOL, is predictable only to the extent defined in this standard. The results of violating the formats or rules of Standard COBOL are undefined unless otherwise specified in this standard.
 
@@ -1460,7 +1458,7 @@ In order for a source program to conform to a specified subset of Standard COBOL
 
 There are, in Standard COBOL, situations in which the results of executing a statement are undefined or unpredictable (see page XVII-96, Undefined Language Element List). A COBOL source program which allows this to happen may nevertheless be a conforming program, although the resultant execution is not defined by Standard COBOL.
 
-1.7 RELATIONSHIP OF A CONFORMING PROGRAM TO A CONFORMING IMPLEMENTATION
+### 1.7 RELATIONSHIP OF A CONFORMING PROGRAM TO A CONFORMING IMPLEMENTATION
 
 The translation of a conforming source program by a conforming implementation and the subsequent execution of the resultant object program is defined only to the extent specified in Standard COBOL. However, the preceding statement does not imply that the program will be translated or executed successfully; translation and execution depends on other factors, such as the use of implementor-defined language elements, the logical correctness of the program, and the data upon which the program operates.
 
@@ -4095,13 +4093,11 @@ I-63
 
 <!-- This page is blank: it contains no standard text apart from the omitted licence stamp. -->
 
-# SECTION II: CONCEPTS
-
 ## Page 85
 
 Concepts
 
-<u>SECTION II: CONCEPTS</u>
+# <u>SECTION II: CONCEPTS</u>
 
 ## 1. <u>INTRODUCTION</u>
 
@@ -4113,13 +4109,13 @@ A file is a collection of records which may be placed into or retrieved from a s
 
 When describing the capabilities of COBOL programs to manipulate files, the following conventions are used. The term 'file-name' means the user-defined word used in the COBOL source program to reference a file. The terms 'file referenced by file-name' and 'file' mean the physical file regardless of the file-name used in the COBOL program. The term 'file connector' means the entity containing information concerning the file. All accesses to physical files occur through file connectors. In various implementations the file connector is referred to as a file information table, a file control block, etc.
 
-2.1 FILE ATTRIBUTES
+### 2.1 FILE ATTRIBUTES
 
 A file has several attributes which apply to the file at the time it is created and cannot be changed throughout the lifetime of the file. The primary attribute is the organization of the file, which describes its logical structure. There are three organizations: sequential, relative, and indexed. Other fixed attributes of the file provided by the COBOL program are prime record key, alternate record keys, code set, the minimum and maximum logical record size, the record type (fixed or variable), the collating sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character, and the record delimiter.
 
 > ⚠ **CORRECTED — see the Errata (C186).** The standard prints `sequence of the keys for indexed files, the blocking factor, the padding character` (page 85, folio II-1). Amendment 2 (ANSI X3.23b-1993), its change for page II-1 (page 916, folio B-4), applied in place: "Paragraph 2.1 entitled File Attributes, change a portion of the last sentence from 'sequence of the keys for indexed files, the blocking factor, the padding character' to 'sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character'" (kb/Work PB5045). Corrected to `sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character`.
 
-2.1.1 Sequential Organization
+#### 2.1.1 Sequential Organization
 
 Sequential files are organized so that each record, except the last, has a unique successor record; each record, except the first, has a unique predecessor record. The successor relationships are established by the order of execution of WRITE statements when the file is created. Once established, successor relationships do not change except in the case where records are added to the end of a file.
 
@@ -4131,7 +4127,7 @@ Concepts - Files
 
 A sequentially organized mass storage file has the same logical structure as a file on any sequential medium; however, a sequential mass storage file may be updated in place. When this technique is used, new records cannot be added to the file and each replaced record must be the same size as the original record.
 
-### 2.1.2 Relative Organization
+#### 2.1.2 Relative Organization
 
 A file with relative organization is a mass storage file from which any record may be stored or retrieved by providing the value of its relative record number.
 
@@ -4139,7 +4135,7 @@ Conceptually, a file with relative organization comprises a serial string of are
 
 In order to achieve more efficient access to records in a relative file, the number of character positions reserved on the medium to store a particular logical record may be different from the number of character positions in the description of that record in the program.
 
-### 2.1.3 Indexed Organization
+#### 2.1.3 Indexed Organization
 
 A file with indexed organization is a mass storage file from which any record may be accessed by giving the value of a specified key in that record. For each key data item defined for the records of a file, an index is maintained. Each such index represents the set of values from the corresponding key data item in each record. Each index, therefore, is a mechanism which can provide access to any record in the file.
 
@@ -4147,7 +4143,7 @@ Each indexed file has a primary index which represents the prime record key of e
 
 Alternate record keys provide alternative means of retrieval for the records of a file. Such keys are named in the ALTERNATE RECORD KEY clauses of the file control entry. The value of a particular alternate record key in each record need not be unique. When these values may not be unique, the DUPLICATES phrase is specified in the ALTERNATE RECORD KEY clause.
 
-### 2.1.4 Logical Records
+#### 2.1.4 Logical Records
 
 A logical record is the unit of data which is retrieved from or stored into a file. The number of records that may exist in a file is limited only by the capacity of the storage media. There are two types of records: fixed length and variable length. When a file is created, it is declared to contain either fixed length or variable length records. In any case, the content of the record
 
@@ -4159,23 +4155,23 @@ Concepts - Files
 
 area does not reflect any information the implementor may add to the record on the physical storage medium (such as record length headers), nor does the length of the record used by the COBOL programmer reflect these additions.
 
-### 2.1.4.1 Fixed Length Records
+##### 2.1.4.1 Fixed Length Records
 
 Fixed length records must contain the same number of character positions for all the records in the file. All input-output operations on the file can process only this one record size. Fixed length records may be explicitly selected by specifying format 1 of the RECORD clause in the file description entry for the file regardless of the individual record descriptions.
 
-### 2.1.4.2 Variable Length Records
+##### 2.1.4.2 Variable Length Records
 
 Variable length records may contain differing numbers of character positions among the records on the file. To define variable length records explicitly, the VARYING phrase may be specified in the RECORD clause in the file description entry or the sort-merge file description entry for the file. The length of a record is affected by the data item referenced in the DEPENDING phrase of the RECORD clause or the DEPENDING phrase of an OCCURS clause or by the length of the record description entry for the file.
 
-### 2.1.4.3 Implementor-Defined Record Types
+##### 2.1.4.3 Implementor-Defined Record Types
 
 Where no RECORD clause is specified in the file description entry for a file, or where the RECORD clause specifies a range of character positions, it is implementor defined whether fixed length or variable length records are obtained.
 
-## 2.2 FILE PROCESSING
+### 2.2 FILE PROCESSING
 
 A file can be processed by performing operations upon individual records or upon the file as a unit. Unusual conditions that occur during processing are communicated back to the program.
 
-### 2.2.1 Record Operations
+#### 2.2.1 Record Operations
 
 The ACCESS MODE clause of the file description entry specifies the manner in which the object program operates upon records within a file. The access mode may be sequential, random, or dynamic.
 
@@ -4183,7 +4179,7 @@ For files that are organized as relative or indexed, any of the three access mod
 
 The organization, format, and contents of an output report may be specified using the report writer feature. (See page II-8, Report Writer.)
 
-#### 2.2.1.1 Sequential Access Mode
+##### 2.2.1.1 Sequential Access Mode
 
 A file can be accessed sequentially irrespective of the file organization.
 
@@ -4199,17 +4195,17 @@ For relative organization, the order of sequential access is ascending based on 
 
 For indexed organization, the order of sequential access is ascending based on the value of the key of reference according to the collating sequence associated with the native character set. Any of the keys associated with the file may be established as the key of reference during the processing of the file. The order of retrieval from a set of records which have duplicate key of reference values is the original order of arrival of those records into the set. The START statement may be used to establish a starting point within an indexed file for a series of subsequent sequential retrievals.
 
-### 2.2.1.2 Random Access Mode
+##### 2.2.1.2 Random Access Mode
 
 When a file is accessed in random mode, input-output statements are used to access the records in a programmer-specified order. The random access mode may only be used with relative or indexed file organizations.
 
 For a file with relative organization, the programmer specifies the desired record by placing its relative record number in a relative key data item. With the indexed organization, the programmer specifies the desired record by placing the value of one of its record keys in a record key or an alternate record key data item.
 
-### 2.2.1.3 Dynamic Access Mode
+##### 2.2.1.3 Dynamic Access Mode
 
 With dynamic access mode, the programmer may change at will from sequential accessing to random accessing, using appropriate forms of input-output statements. The dynamic access mode may only be used on files with relative or indexed organizations.
 
-### 2.2.1.4 Open Mode
+##### 2.2.1.4 Open Mode
 
 The open mode of the file is related to the actions to be performed upon records in the file. The open modes and purposes are: input, to retrieve records; output, to place records into a file; extend, to append records to an existing file; I-O, to retrieve and update records. The open mode is specified in the OPEN statement.
 
@@ -4229,25 +4225,25 @@ Concepts - Files
 
 entire file into another file (perhaps in a separate area of mass storage) using READ and WRITE statements. However, it is sometimes more efficient to update a mass storage file in place. This mass storage file maintenance technique uses the REWRITE statement to return to their previous locations on the storage medium only those records which have changed. READ and REWRITE statements are the only operations allowed while updating in place sequentially organized files. However, for indexed or relative organized files, the following additional functions may be applied: the START statement may be used in sequential or dynamic access mode to alter the sequence of record retrieval; the DELETE statement may be used with any access mode to remove a record logically from a file; the WRITE statement may be used in random or dynamic access mode to insert a new record into the file.
 
-### 2.2.1.5 Current Volume Pointer
+##### 2.2.1.5 Current Volume Pointer
 
 The current volume pointer is a conceptual entity used in this document to facilitate exact specification of the current physical volume of a sequential file. The status of the current volume pointer is affected by the CLOSE, OPEN, READ, and WRITE statements.
 
-### 2.2.1.6 File Position Indicator
+##### 2.2.1.6 File Position Indicator
 
 The file position indicator is a conceptual entity used in this document to facilitate exact specification of the next record to be accessed within a given file during certain sequences of input-output operations. The setting of the file position indicator is affected only by the OPEN, READ and START statements. The concept of a file position indicator has no meaning for a file opened in the output or extend mode.
 
-### 2.2.1.7 Linage Concepts
+##### 2.2.1.7 Linage Concepts
 
 The LINAGE clause may be used when specifying an output report. It facilitates definition of a logical page, and the positioning within that logical page of top and bottom margins and a footing area. Use of the LINAGE clause implicitly defines an associated special register, the LINAGE-COUNTER, which acts as a pointer to a line within the page body.
 
-### 2.2.2 File Operations
+#### 2.2.2 File Operations
 
 Several COBOL statements operate upon files as entities or as collections of records. These are the CLOSE, MERGE, OPEN, and SORT statements.
 
-### 2.2.2.1 Sorting and Merging
+##### 2.2.2.1 Sorting and Merging
 
-#### 2.2.2.1.1 Sorting
+###### 2.2.2.1.1 Sorting
 
 In many sort applications it is necessary to apply some special processing to the contents of a sort file. The special processing may consist of addition, deletion, creation, altering, editing, or other modification of the individual records in the file. It may be necessary to apply the special processing before or after the records are reordered by the sort, or special processing may be required in both places. The COBOL sort feature allows the user to express these procedures and to specify at which point, before or after the sort, they are to be executed. A COBOL program may contain any number of sorts, and each
 
@@ -4263,7 +4259,7 @@ Within an input procedure, the RELEASE statement is used to create the sort file
 
 The sort file has no label procedures which the programmer can control and the rules for blocking and for allocation of internal storage are peculiar to the SORT statement. The RELEASE and RETURN statements imply nothing with respect to buffer areas, blocks, or reels. A sort file, then may be considered as an internal file which is created (RELEASE statement) from the input file, processed (SORT statement), and then made available (RETURN statement) to the output file. The sort file itself is referred to and accessed only by the SORT statement. A sort-merge file description can be considered to be a particular type of file description. That is, a sort file, like any file, is a set of records.
 
-### 2.2.2.1.2 Merging
+###### 2.2.2.1.2 Merging
 
 In some applications it is necessary to apply some special processing to the contents of a merged file. The special processing may consist of addition, deletion, altering, editing, or other modification of the individual records in the file. The COBOL merge feature allows the user to express an output procedure to be executed as the merged output is created. The merged records are made available from the merge file by use of the RETURN statement in the output procedure.
 
@@ -4271,7 +4267,7 @@ The merge file has no label procedures which the programmer can control and the 
 
 A merge file, then, may be considered as an internal file which is created from input files by combining them (MERGE statement) as the file is made available (RETURN statement) to the output file. The merge file itself is referred to and accessed only by the MERGE statement. A sort-merge file description can be considered to be a particular type of file description. That is, a merge file, like any file, is a set of records.
 
-## 2.2.3 Exception Handling
+#### 2.2.3 Exception Handling
 
 During the execution of any input or output operation, unusual conditions may arise which preclude normal completion of the operation. There are three methods by which these conditions are communicated to the object program; status keys, exception declaratives, and optional phrases associated with the imperative statement.
 
@@ -4281,15 +4277,15 @@ II-6
 
 Concepts - Files
 
-#### 2.2.3.1 I-O Status
+##### 2.2.3.1 I-O Status
 
 I-O status is a conceptual entity used in this document to facilitate exact specification of the status of the execution of an input-output operation. The setting of I-O status is affected only by the CLOSE, DELETE, OPEN, READ, REWRITE, START, and WRITE statements. The I-O status value for a given file is made available to the program via the data-name specified in the FILE STATUS clause of the file control entry for that file. The I-O status value is placed into this data item during the execution of the input-output statement and prior to the execution of any imperative statement associated with that input-output statement or prior to the execution of any exception declarative.
 
-#### 2.2.3.2 Exception Declaratives
+##### 2.2.3.2 Exception Declaratives
 
 A USE AFTER EXCEPTION procedure, when one is specified for the file, is executed whenever an input or output condition arises which results in an unsuccessful input-output operation. However, the exception declarative is not executed if the condition is invalid key and the INVALID KEY phrase is specified, or if the condition is at end and the AT END phrase is specified.
 
-#### 2.2.3.3 Optional Phrases
+##### 2.2.3.3 Optional Phrases
 
 The INVALID KEY phrases may be associated with the DELETE, READ, REWRITE, START, or WRITE statements. Some of the conditions that give rise to an invalid key condition are when a requested key does not exist in the file (DELETE, READ, or START statements), when a key is already in a file and duplicates are not allowed (WRITE statement), and when a key does not exist in the file or when it was not the last key read (REWRITE statement). If the invalid key condition occurs during the execution of a statement for which the INVALID KEY phrase has been specified, the statement identified by that INVALID KEY phrase is executed.
 
@@ -4301,7 +4297,7 @@ II-7
 
 Concepts - Report Writer
 
-### 3. <u>REPORT WRITER</u>
+## 3. <u>REPORT WRITER</u>
 
 The report writer is a special purpose feature which places its emphasis on the organization, format, and contents of an output report. Although a report can be produced using the standard COBOL language, the report writer language features provide a more concise facility for report structuring and report production. Much of the Procedure Division programming which would normally be supplied by the programmer is instead provided automatically by the report writer control system (RWCS). Thus the programmer is relieved of writing procedures for moving data, constructing print lines, counting lines on a page, numbering pages, producing heading and footing lines, recognizing the end of logical data subdivisions, updating sum counters, etc. All these operations are accomplished by the report writer control system as a consequence of source language statements that appear primarily in the Report Section of the Data Division of the source program.
 
@@ -4325,15 +4321,15 @@ II-8
 
 Concepts - Report Writer
 
-### 3.2.1 Vertical Spacing
+#### 3.2.1 Vertical Spacing
 
 The report writer feature allows the user to describe report groups containing multiple lines. The vertical positioning of the lines on a page is specified by the LINE NUMBER clause that is associated with each line. The NEXT GROUP clause indicates how many lines to space after presenting the last line of the group. The first LINE NUMBER clause of the next group indicates additional spacing information to be used in positioning of that group.
 
-### 3.2.2 Horizontal Spacing
+#### 3.2.2 Horizontal Spacing
 
 The report writer allows the user to position the fields of data on a report line by means of the COLUMN NUMBER clause. The report writer control system supplies space fill between all defined fields.
 
-### 3.2.3 Data Manipulation
+#### 3.2.3 Data Manipulation
 
 When the report writer feature is used, data movement to a report group is directed by Report Section clauses rather than Procedure Division statements. The Report Section clauses which effect the manipulation of data are the SOURCE, SUM, and VALUE clauses.
 
@@ -4345,11 +4341,11 @@ The VALUE clause defines a literal that appears in the printable item of a repor
 
 In summary, a data item in a report group is presented only if it has a COLUMN NUMBER clause specifying where it is to be presented. The value that is placed in a printable item is determined by the SOURCE, SUM, or VALUE clause stated in the report group description. Under no circumstances may a report group printable item receive a value directly via a Procedure Division statement.
 
-### 3.2.4 Report Subdivisions
+#### 3.2.4 Report Subdivisions
 
 The physical and logical organization of a report interact to determine what is presented on a page.
 
-#### 3.2.4.1 Physical Subdivision of a Report
+##### 3.2.4.1 Physical Subdivision of a Report
 
 The PAGE clause specifies the length of the page, the size of the heading and footing areas, and the size of the area in which the detail lines will appear. The report writer control system uses the LINE NUMBER and NEXT GROUP clauses to position these report groups, and when necessary, to advance to a new page with automatic production of PAGE HEADING and PAGE FOOTING report groups.
 
@@ -4359,7 +4355,7 @@ II-9
 
 Concepts - Report Writer
 
-### 3.2.4.2 Logical Subdivisions of a Report
+##### 3.2.4.2 Logical Subdivisions of a Report
 
 Detail report groups may be structured into a nested set of control groups. Each control group may begin with a control heading report group and end with a control footing report group.
 
@@ -4373,7 +4369,7 @@ During the execution of a GENERATE statement, the report writer control system u
 
 (3) The detail report group named in the GENERATE statement is presented.
 
-## 3.3 PROCEDURE DIVISION REPORT WRITER STATEMENTS
+### 3.3 PROCEDURE DIVISION REPORT WRITER STATEMENTS
 
 The report writer statements that appear in the Procedure Division are: INITIATE, GENERATE, TERMINATE, SUPPRESS, and USE BEFORE REPORTING.
 
@@ -4474,7 +4470,7 @@ Example 5:
 
 In the general case, to define an n-dimensional table, the OCCURS clause should appear in the data description of the element of the table and in the descriptions of (n - 1) group items which contain the element.
 
-## 4.2 INITIAL VALUES OF TABLES
+### 4.2 INITIAL VALUES OF TABLES
 
 In the Working-Storage Section, initial values of elements within tables are specified in one of the following ways:
 
@@ -4520,7 +4516,7 @@ II-14
 
 Concepts - Table Handling
 
-### 4.4.2 Subscripting Using Index-Names
+#### 4.4.2 Subscripting Using Index-Names
 
 In order to facilitate such operations as table searching and manipulating specific items, a technique called indexing is available. To use this technique, the programmer assigns one or more index-names to an item whose data description entry contains an OCCURS clause. An index associated with an index-name acts as a subscript, and its value corresponds to an occurrence number for the item to which the index-name is associated.
 
@@ -4542,7 +4538,7 @@ II-15
 
 Concepts - Table Handling
 
-### 4.4.3 Subscripting Example
+#### 4.4.3 Subscripting Example
 
 Assuming the following data definition:
 
@@ -4614,11 +4610,11 @@ Concepts - Program Communication
 
 A run unit may also contain object code and data storage areas derived from the compilation of programs written in languages other than COBOL; in this case the requirements for the relationship between the COBOL and the non-COBOL programs are defined by the implementor.
 
-## 6.2 ACCESSING DATA AND FILES
+### 6.2 ACCESSING DATA AND FILES
 
 Some data items have associated with them a storage concept determining where data item values and other attributes of data items are represented with respect to the programs of a run unit. Likewise, file connectors have associated with them a storage concept determining where information concerning the positioning and status of a file and other attributes of file processing are represented with respect to the programs of a run unit.
 
-### 6.2.1 Names
+#### 6.2.1 Names
 
 A data-name names a data item. A file-name names a file connector. These names are classified as either global or local.
 
@@ -4634,7 +4630,7 @@ If a data-name, a file-name, or a condition-name declared in a data description 
 
 Global names are transitive across programs contained within other programs.
 
-### 6.2.2 Objects
+#### 6.2.2 Objects
 
 Accessible data items usually require that certain representations of data be stored. File connectors usually require that certain information concerning
 
@@ -4646,25 +4642,25 @@ Concepts - Program Communication
 
 files be stored. The storage associated with a data item or a file connector may be external or internal to the program in which the object is declared.
 
-6.2.2.1 Object Types
+##### 6.2.2.1 Object Types
 
-6.2.2.1.1 Working Storage Records
+###### 6.2.2.1.1 Working Storage Records
 
 Working storage records are allocations of sufficient storage to satisfy the record description entries in that section. Each record description entry in a program declares a different object. Renaming and redefining do not declare new objects; they provide alternate groupings or descriptions for objects which have already been declared.
 
-6.2.2.1.2 File Connectors
+###### 6.2.2.1.2 File Connectors
 
 File connectors are storage areas which contain information about a file and are used as the linkage between a file-name and a physical file and between a file-name and its associated record area.
 
-6.2.2.1.3 Record Areas for Files
+###### 6.2.2.1.3 Record Areas for Files
 
 No particular record description entry in the File Section is considered to declare the storage area for the record. Rather, the storage area is the maximum required to satisfy associated record description entries. These entries may describe fixed or variable length records. In this presentation, record description entries are said to be associated in two cases. First, when record description entries are subordinate to the same file description entry, they are always associated. Second, when record description entries are subordinate to different file description entries and these file description entries are referenced in the same SAME RECORD AREA clause, they are associated. All associated record description entries are redefinitions of the same storage area.
 
-6.2.2.1.4 Other Objects
+###### 6.2.2.1.4 Other Objects
 
 Examples of other objects declared in COBOL programs are: communication description entries, report description entries, and control information associated with the Communication, Linkage, and Report Sections.
 
-6.2.2.2 Object Attributes
+##### 6.2.2.2 Object Attributes
 
 A data item or file connector is external if the storage associated with that object is associated with the run unit rather than with any particular program within the run unit. An external object may be referenced by any program which describes the object. References to an external object from different programs using separate descriptions of the object are always to the same object.
 
@@ -4678,23 +4674,23 @@ II-20
 
 Concepts - Program Communication
 
-#### 6.2.2.2.1 Working Storage Records
+###### 6.2.2.2.1 Working Storage Records
 
 A data record described in the Working-Storage Section is given the external attribute by the presence of the EXTERNAL clause in its data description entry. Any data item described by a data description entry subordinate to an entry describing an external record also attains the external attribute. If a record or data item does not have the external attribute, it is part of the internal data of the program in which it is described.
 
-#### 6.2.2.2.2 File Connectors
+###### 6.2.2.2.2 File Connectors
 
 A file connector is given the external attribute by the presence of the EXTERNAL clause in the associated file description entry. If the file connector does not have the external attribute, it is internal to the program in which the associated file-name is described.
 
-#### 6.2.2.2.3 Record Areas for Files
+###### 6.2.2.2.3 Record Areas for Files
 
 The data records described subordinate to a file description entry which does not contain the EXTERNAL clause or a sort-merge file description entry, as well as any data items described subordinate to the data description entries for such records, are always internal to the program describing the file-name. If the EXTERNAL clause is included in the file description entry, the data records and the data items attain the external attribute.
 
-#### 6.2.2.2.4 Other Objects
+###### 6.2.2.2.4 Other Objects
 
 Data records, subordinate data items, and various associated control information described in the Linkage, Communication, and Report Sections of a program are always considered to be internal to the program describing that data. Special considerations apply to data described in the Linkage Section whereby an association is made between the data records described and other data items accessible to other programs. (See page II-24, Passing Parameters to Programs.)
 
-### 6.2.3 Name Resolution
+#### 6.2.3 Name Resolution
 
 Certain conventions apply when programs contained within other programs assign the same names to data items, conditions, and file connectors. Consider the situation when program A contains program B which itself contains program C; further, programs A and B, but not program C, contain Data Division entries for a condition-name, data-name, or a file-name named DUPLICATE-NAME.
 
@@ -4714,19 +4710,19 @@ Concepts - Program Communication
 
 (5) If DUPLICATE-NAME in program A is a global name but in program B it is a local name, program C's reference to DUPLICATE-NAME is to the object referenced by the name declared in program A.
 
-## 6.3 PROGRAM CLASSES
+### 6.3 PROGRAM CLASSES
 
 All programs which form part of a run unit may possess none, one, or more of the following attributes: common and initial.
 
-### 6.3.1 Common Programs
+#### 6.3.1 Common Programs
 
 A common program is one which, despite being directly contained within another program, may be called by any program directly or indirectly contained in that other program. The common attribute is attained by specifying the COMMON phrase in a program's Identification Division. The COMMON phrase facilitates the writing of subprograms which are to be used by all the programs contained within a program.
 
-### 6.3.2 Initial Programs
+#### 6.3.2 Initial Programs
 
 An initial program is one whose program state is initialized when the program is called. Thus, whenever an initial program is called, its program state is the same as when the program was first called in that run unit. During the process of initializing an initial program, that program's internal data is initialized; thus an item of the program's internal data whose description contains a VALUE clause is initialized to that defined value, but an item whose description does not contain a VALUE clause is initialized to an undefined value. Files with internal file connectors associated with the program are not in the open mode. The control mechanisms for all PERFORM statements contained in the program are set to their initial states. The initial attribute is attained by specifying the INITIAL phrase in the program's Identification Division.
 
-## 6.4 INTER-PROGRAM COMMUNICATION
+### 6.4 INTER-PROGRAM COMMUNICATION
 
 When the complete solution to a data processing problem is subdivided into more than one program, the constituent programs must be able to communicate with each other. This communication may take four forms: the transfer of control, the passing of parameters, the reference to common data, and the reference to common files. These four inter-program communication forms are provided both when the communicating programs are separately compiled and when one of the communicating programs is contained within the other program. The precise mechanisms provided in the last two cases differ from those in the first two cases; for example, a program contained within another program may reference any data-name or file-name possessing a global name in the containing program. (See page II-19, Names.)
 
@@ -4736,7 +4732,7 @@ II-22
 
 Concepts - Program Communication
 
-### 6.4.1 Transfer of Control
+#### 6.4.1 Transfer of Control
 
 The CALL statement provides the means whereby control may be transferred from one program to another program within a run unit. A called program may itself contain CALL statements.
 
@@ -4744,7 +4740,7 @@ When control is transferred to a called program, execution proceeds from stateme
 
 The CALL statement may be used to call a program which is not written in COBOL, but the return mechanism and inter-program data communication are not specified in this document. A COBOL program may also be called from a program which is not written in COBOL, but the calling mechanism and inter-program data communication are not specified in this document. In both the above cases, only those parts of the parameter passing mechanism which apply to the COBOL program are specified in this document.
 
-#### 6.4.1.1 Names of Programs
+##### 6.4.1.1 Names of Programs
 
 In order to call a program, a CALL statement identifies the program's name. The names assigned to programs which directly or indirectly are contained within another program must be unique.
 
@@ -4752,7 +4748,7 @@ The names assigned to each of the separately compiled programs which constitute 
 
 > ⚠ **CORRECTED — see the Errata (C65).** The standard prints `The names assigned to each of the separately compiled program which constitute` (page 107, folio II-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-23 (T) (page 837, folio A-7), applied in place: "Paragraph 6.4.1.1, entitled 'Names of Programs', second paragraph, first line, change 'compiled program' to 'compiled programs'", a typographical error (kb/Work PB5045). Corrected to `The names assigned to each of the separately compiled programs which constitute`.
 
-#### 6.4.1.2 Scope of the CALL Statement
+##### 6.4.1.2 Scope of the CALL Statement
 
 In the following, the calling program may or may not possess any of the program attributes, it may either be separately compiled or not, and it may either be contained within programs or contain other programs:
 
@@ -4772,7 +4768,7 @@ II-23
 
 Concepts - Program Communication
 
-### 6.4.1.3 Scope of Names of Programs
+##### 6.4.1.3 Scope of Names of Programs
 
 Certain conventions apply when, within a separately compiled program, a name identical to that specified for another separately compiled program in the run unit is specified for a contained program.
 
@@ -4792,11 +4788,11 @@ b. If the program DUPLICATE-NAME contained within program A does not possess the
 
 (4) If any other separately compiled program in the run unit or any other program contained within such a program calls the program DUPLICATE-NAME, the program called is the separately compiled program named DUPLICATE-NAME.
 
-### 6.4.2 Passing Parameters to Programs
+#### 6.4.2 Passing Parameters to Programs
 
 A program calls another program in order to have the called program perform, on behalf of the calling program, some defined part of the solution of a data processing problem. In many cases it is necessary for the calling program to define to the called program the precise part of the problem solution to be executed by making certain data values, which. the called program requires, available to the called program. One method for ensuring the availability of these data values is by passing parameters to a program, as is described in this paragraph. Another method is to share the data. (See page II-25, Sharing Data.) The data values passed as parameters also may identify some data to be shared; hence the two methods are not mutually independent.
 
-#### 6.4.2.1 Identifying Parameters
+##### 6.4.2.1 Identifying Parameters
 
 Data passed as a parameter by a program calling another program must be accessible to the calling program and the data item receiving the data must be declared in the Data Division of the called program. In the called program the parameters required are identified by listing references to the names assigned, in that program's data description entries, to the parameters in that program's Procedure Division header. In the calling program the values of the parameters to be passed by the calling program are identified by listing references in the CALL statement used to call the called program. These lists establish, on a
 
@@ -4830,7 +4826,7 @@ thereby establishing the following correspondence:
 
 Only the positions of the data-names are significant, not the names themselves.
 
-### 6.4.2.2 Values of Parameters
+##### 6.4.2.2 Values of Parameters
 
 The calling program controls the methods by which a called program evaluates the values of the parameters passed to it and by which the called program returns results as modified parameter values.
 
@@ -4840,7 +4836,7 @@ The individual parameters referenced in the CALL statement's USING phrase may be
 
 The parameters referenced in a called program's Procedure Division header must be described in the Linkage Section of that program's Data Division.
 
-### 6.4.3 Sharing Data
+#### 6.4.3 Sharing Data
 
 Two programs in a run unit may reference common data in the following circumstances:
 
@@ -4856,7 +4852,7 @@ Concepts - Program Communication
 
 (3) The mechanism whereby a parameter value is passed by reference from a calling program to a called program establishes a common data item; the called program, which may use a different identifier, may refer to a data item in the calling program.
 
-6.4.4 Sharing Files
+#### 6.4.4 Sharing Files
 
 Two programs in a run unit may reference common file connectors in the following circumstances:
 
@@ -4864,11 +4860,11 @@ Two programs in a run unit may reference common file connectors in the following
 
 (2) If a program is contained within another program, both programs may refer to a common file connector by referring to an associated global file-name either in the containing program or in any program which directly or indirectly contains the containing program. (See page II-19, Names.)
 
-6.5 INTRA-PROGRAM COMMUNICATION
+### 6.5 INTRA-PROGRAM COMMUNICATION
 
 The procedures which constitute the Procedure Division of a program communicate with one another by transferring control or by referring to common data.
 
-6.5.1 Transfer of Control
+#### 6.5.1 Transfer of Control
 
 There are four methods of transferring control within a program:
 
@@ -4884,7 +4880,7 @@ An input-output procedure can be considered as an implicit PERFORM statement whi
 
 Stricter restrictions, than those for the PERFORM statement, apply to declarative procedures.
 
-6.5.2 Shared Data
+#### 6.5.2 Shared Data
 
 All the data declared in a program's Data Division may be referenced by statements in the procedures, input-output procedures, and declaratives which
 
@@ -4944,7 +4940,7 @@ II-28
 
 Concepts - Communication Facility
 
-## 7.3 RELATIONSHIP OF THE COBOL PROGRAM TO THE MESSAGE CONTROL SYSTEM AND COMMUNICATION DEVICES
+### 7.3 RELATIONSHIP OF THE COBOL PROGRAM TO THE MESSAGE CONTROL SYSTEM AND COMMUNICATION DEVICES
 
 The interfaces which exist in a COBOL communication environment are established by the use of a communication description entry (CD entry) in the Communication Section of the Data Division. There are two such interfaces:
 
@@ -5034,11 +5030,11 @@ II-30
 
 Concepts - Communication Facility
 
-7.3.1 Invoking the COBOL Object Program
+#### 7.3.1 Invoking the COBOL Object Program
 
 There are two methods of invoking a COBOL communication object program: scheduled initiation and message control system (MCS) invocation. Regardless of the method of invocation, the only operating difference between the two methods is that MCS invocation causes certain areas in the referenced communication description entry (CD entry) to be filled.
 
-7.3.1.1 Scheduled Initiation of the COBOL Object Program
+##### 7.3.1.1 Scheduled Initiation of the COBOL Object Program
 
 A COBOL object program using the communication facility may be scheduled for execution through the normal means available in the program's operating environment, such as job control language. In that case, the COBOL program can use three methods to determine what messages, if any, are available in the input queues:
 
@@ -5048,13 +5044,13 @@ A COBOL object program using the communication facility may be scheduled for exe
 
 (3) The RECEIVE statement without a NO DATA phrase (in which case a program wait is implied if no data is available).
 
-7.3.1.2 Invocation of the COBOL Object Program by the MCS
+##### 7.3.1.2 Invocation of the COBOL Object Program by the MCS
 
 It is sometimes desirable to schedule a COBOL object communication program only when there is work available for it to do. Such scheduling occurs if the message control system (MCS) determines what COBOL object program is required to process the available message and subsequently causes that program to be scheduled for execution. Each object program scheduled by the MCS establishes a run unit. Prior to the execution of the COBOL object program, the message control system places the symbolic queue and sub-queue names in the associated data items of the communication description entry that specifies the FOR INITIAL INPUT clause, or the message control system places the symbolic terminal name in the associated data item of the communication description entry that specifies the FOR INITIAL I-O clause.
 
 A subsequent RECEIVE statement directed to that communication description entry will result in the available message being passed to the COBOL object program.
 
-7.3.1.3 Determining the Method of Scheduling
+##### 7.3.1.3 Determining the Method of Scheduling
 
 A COBOL source program can be written so that its object program can operate with either of the above two modes of scheduling. In order to determine which method was used to load the COBOL object program, the following is one technique that may be used:
 
@@ -5072,7 +5068,7 @@ If not space filled, the message control system has invoked the COBOL object pro
 
 (3) When the program contains a CD with the FOR INITIAL I-O clause, the Procedure Division may contain statements to test the initial value of the symbolic terminal name in that CD. If it is space filled, job control statements were used to schedule the COBOL object program. If not space filled, the MCS has invoked the COBOL object program and initialized the data item with the symbolic name of the communication terminal that is the source of the message to be processed.
 
-## 7.4 THE CONCEPT OF MESSAGES AND MESSAGE SEGMENTS
+### 7.4 THE CONCEPT OF MESSAGES AND MESSAGE SEGMENTS
 
 A message consists of some arbitrary amount of information, usually character data, whose beginning and end are defined or implied. As such, messages comprise the fundamental but not necessarily the most elementary unit of data to be processed in a COBOL communication environment.
 
@@ -5080,7 +5076,7 @@ Messages may be logically subdivided into smaller units of data called message s
 
 A precedence relationship exists between the indicators EGI, EMI, and ESI. EGI is the most inclusive indicator and ESI is the least inclusive indicator. The existence of an indicator associated with message text implies the association of all less inclusive indicators with that text. For example, the existence of the EGI implies the existence of EMI and ESI.
 
-## 7.5 THE CONCEPT OF QUEUES
+### 7.5 THE CONCEPT OF QUEUES
 
 The following discussion applies only when the COBOL communication environment is established using a communication description entry without the FOR I-O clause.
 
@@ -5098,7 +5094,7 @@ the message control system will not pass a message segment to a COBOL object pro
 
 The process by which messages are placed into a queue is called enqueueing. The process by which messages are removed from a queue is called dequeueing.
 
-### 7.5.1 Independent Enqueueing and Dequeueing
+#### 7.5.1 Independent Enqueueing and Dequeueing
 
 It is possible that a message may be received by the message control system from a communication device prior to the execution of the COBOL object program. As a result, the message control system enqueues the message in the proper input queue (provided that input queue is enabled) until the COBOL object program requests dequeueing with the RECEIVE statement. It is also possible that a COBOL object program will cause the enqueueing of messages in an output queue which are not transmitted to a communication device until after the COBOL object program has terminated. Two common reasons for this occurrence are:
 
@@ -5106,17 +5102,17 @@ It is possible that a message may be received by the message control system from
 
 (2) When the COBOL object program creates output messages at a speed faster than the destination can receive them.
 
-### 7.5.2 Enabling and Disabling Queues
+#### 7.5.2 Enabling and Disabling Queues
 
 Usually, the message control system will enable and disable queues based on time of day, message activity, or other factors unrelated to the COBOL program. However, the COBOL program has the ability to enable and disable queues itself through use of the ENABLE and DISABLE statements.
 
-### 7.5.3 Enqueueing and Dequeueing Methods
+#### 7.5.3 Enqueueing and Dequeueing Methods
 
 In systems that allow the user to specify certain MCS functions, it may be necessary that the user specify to the message control system, prior to execution of programs which reference these facilities, the selection algorithm and other designated MCS functions to be used by the message control system in placing messages in the various queues. A typical selection algorithm, for example, would specify that all messages from a given source be placed in a given input queue, or that all messages to be sent to a given destination be placed in a given output queue.
 
 Dequeueing is often done on a first in, first out basis. Thus messages dequeued from either an input or output queue are those messages which have been in the queue for the longest period of time. However, the message control system can, upon prior specification by the user, dequeue on some other basis, e.g., priority queueing can be employed.
 
-### 7.5.4 Queue Hierarchy
+#### 7.5.4 Queue Hierarchy
 
 In order to control more explicitly the messages being enqueued and dequeued, it is possible to define in the message control system a hierarchy of input
 
@@ -5197,7 +5193,7 @@ For output, the COBOL user specifies only the destination(s) of the message, and
 
 There is no one-to-one relationship between a communication device and a source/destination. A source or destination may consist of one or more physical devices. The device or devices which comprise a source/destination are defined to the message control system.
 
-## 7.6 THE CONCEPT OF TRANSACTION COMMUNICATION
+### 7.6 THE CONCEPT OF TRANSACTION COMMUNICATION
 
 In contrast with the previously described queueing mechanism, some applications require a direct dialogue between a communication device and the object program. In this case, it is unnecessary to queue messages for processing since they are to be processed immediately. It is possible in COBOL to specify this kind of processing by using the CD that specifies the FOR I-O clause. A CD that specifies the FOR I-O clause can communicate with only one terminal; however, a run unit may contain more than one CD that specifies the FOR I-O clause and these CD's can communicate with the same or a different terminal. When the INITIAL phrase is used in a CD that specifies the FOR I-O clause, the program may be scheduled by the MCS.
 
@@ -5215,15 +5211,13 @@ The value returned by a function is considered to be a data value. A mechanism i
 
 > ⚠ **CORRECTED — see the Errata (C188).** The standard prints `If, at the time a function is referenced, ... the returned value for the function is undefined. (Amendment 1's sentence, C67)` (page 120). Amendment 2 (ANSI X3.23b-1993), its change for page II-35 (A-7) (page 916, folio B-4), applied in place: "Paragraph 8 entitled Intrinsic Function Facility, second paragraph, replace the last sentence with the following" (kb/Work PB5045). Corrected to `..., then the result of such a reference is undefined.`.
 
-# SECTION III: GLOSSARY
-
 ## Page 121
 
 Glossary
 
-## <u>SECTION III: GLOSSARY</u>
+# <u>SECTION III: GLOSSARY</u>
 
-### 1. <u>INTRODUCTION</u>
+## 1. <u>INTRODUCTION</u>
 
 The terms in this section are defined in accordance with their meaning in COBOL, and may not have the same meaning for other languages.
 
@@ -5231,7 +5225,7 @@ These definitions are also intended as either reference or introductory material
 
 > ⚠ **CORRECTED — see the Errata (C189).** The standard prints `Complete specifications for elements defined in this section can be located in Sections IV through XVI of this document.` (page 121, folio III-1). Amendment 2 (ANSI X3.23b-1993), its change for page III-1 (page 916, folio B-4), applied in place: "Paragraph 1 entitled Introduction, second paragraph, change the last sentence to read" (kb/Work PB5045). Corrected to `Complete specifications for elements defined in this section can be located in Sections IV through XVI and Section A of this document.`.
 
-### 2. <u>DEFINITIONS</u>
+## 2. <u>DEFINITIONS</u>
 
 <u>Abbreviated Combined Relation Condition</u>. The combined condition that results from the explicit omission of a common subject or a common subject and common relational operator in a consecutive sequence of relation conditions.
 
@@ -6230,21 +6224,19 @@ Glossary
 
 III-26
 
-# SECTION IV: OVERALL LANGUAGE CONSIDERATION
-
 ## Page 147
 
 Notation
 
-## <u>SECTION IV: OVERALL LANGUAGE CONSIDERATION</u>
+# <u>SECTION IV: OVERALL LANGUAGE CONSIDERATION</u>
 
-### 1. <u>INTRODUCTION</u>
+## 1. <u>INTRODUCTION</u>
 
 The language considerations and rules specified in this section, apply to the highest level of Standard COBOL. When a particular level of a module does not allow all of these language concepts, the restrictions will be pointed out in the section describing that language element. Throughout this document, specifications unique to the high level are enclosed in boxes. It should also be noted that restrictions contained in one module might possibly affect other modules. For example, qualification is not allowed in level 1 of the Nucleus; therefore, any module which is combined with level 1 of the Nucleus would have the same restriction. The flowcharts in this document illustrate the logic of the statement under which they are contained and are not meant to dictate implementation.
 
-### 2. <u>NOTATION USED IN FORMATS</u>
+## 2. <u>NOTATION USED IN FORMATS</u>
 
-#### 2.1 DEFINITION OF A GENERAL FORMAT
+### 2.1 DEFINITION OF A GENERAL FORMAT
 
 A general format is the specific arrangement of the elements of a clause or a statement. A clause or a statement consists of elements as defined below. Throughout this document a format is shown adjacent to information defining the clause or statement. When more than one specific arrangement is permitted, the general format is separated into numbered formats. Clauses must be written in the sequence given in the general formats. (Clauses that are optional must appear in the sequence shown if they are used.) In certain cases, stated explicitly in the rules associated with a given format, the clauses may appear in sequences other than that shown. Applications, requirements, or restrictions are shown as rules.
 
@@ -6268,11 +6260,11 @@ Notation
 
 repeated in a general format, a number or letter appended to the term serves to identify that term for explanation or discussion.
 
-2.1.3 Level-Numbers
+#### 2.1.3 Level-Numbers
 
 When specific level-numbers appear in data description entry formats, those specific level-numbers are required when such entries are used in a COBOL program. In this document, the form 01, 02, ... , 09 is used to indicate level-numbers 1 through 9.
 
-2.1.4 Brackets, Braces, and Choice Indicators
+#### 2.1.4 Brackets, Braces, and Choice Indicators
 
 When brackets, [ ] , enclose a portion of a general format, one of the options contained within the brackets may be explicitly specified or that portion of the general format may be omitted.
 
@@ -6282,7 +6274,7 @@ When choice indicators, {| |}, enclose a portion of a general format, one or mor
 
 Options are indicated in a general format or a portion of a general format by vertically stacking alternative possibilities, by a series of brackets, braces, or choice indicators or by a combination of both. An option is selected by specifying one of the possibilities from a stack of alternative possibilities or by specifying a unique combination of possibilities from a series of brackets, braces, or choice indicators.
 
-2.1.5 Ellipsis
+#### 2.1.5 Ellipsis
 
 In text, other than general formats, the ellipsis (...) shows omission of a word or words when such omission does not impair comprehension. This is the conventional meaning of the ellipsis, and the use becomes apparent in context.
 
@@ -6292,7 +6284,7 @@ In the general formats, the ellipsis (...) represents the position at which the 
 
 Given ... (the ellipsis) in a format, scanning right to left, determine the ] (right bracket) or } (right brace) delimiter immediately to the left of the ... (ellipsis); continue scanning right to left and determine the logically matching [ (left bracket) or { (left brace) delimiter; the ... (ellipsis) applies to the portion of the format between the determined pair of delimiters.
 
-2.1.6 Format Punctuation
+#### 2.1.6 Format Punctuation
 
 The separators comma and semicolon may be used anywhere the separator space is used in the formats (see page IV-4, Separators). In the source program, these separators are interchangeable.
 
@@ -6328,7 +6320,7 @@ Language Concepts
 
 ## 4. <u>LANGUAGE CONCEPTS</u>
 
-4.1 CHARACTER SET
+### 4.1 CHARACTER SET
 
 The most basic and indivisible unit of the language is the character. The set of characters used to form COBOL character-strings and separators includes the letters of the alphabet, digits, and special characters. The character set consists of the characters as defined under COBOL Character Set in the glossary on page III-3. In the case of nonnumeric literals, comment-entries, and comment lines, the character set is expanded to include the computer's entire character set. The characters allowable in each type of character-string and as separators are defined in paragraph 4.2 below.
 
@@ -6338,11 +6330,11 @@ When a character set contains fewer than 52 characters (all characters of the CO
 
 > ⚠ **CORRECTED — see the Errata (C82).** The standard prints `When a character set contains fewer than 51 characters, double characters` (page 150, folio IV-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-4 (T) (page 839, folio A-9), applied in place: "Paragraph 4.1, entitled 'Character Set', third paragraph, first line, change 'fewer than 51 characters, double' to 'fewer than 52 characters (all characters of the COBOL character set except the lowercase letters), double'", a typographical error (kb/Work PB5045). Corrected to `When a character set contains fewer than 52 characters (all characters of the COBOL character set except the lowercase letters), double characters`.
 
-4.2 LANGUAGE STRUCTURE
+### 4.2 LANGUAGE STRUCTURE
 
 The individual characters of the language are concatenated to form character-strings and separators. A separator may be concatenated with another separator or with a character-string. A character-string may only be concatenated with a separator. The concatenation of character-strings and separators forms the text of a source program.
 
-4.2.1 Separators
+#### 4.2.1 Separators
 
 A separator is a character or two contiguous characters formed according to the following rules:
 
@@ -6388,11 +6380,11 @@ Any punctuation character which appears as part of the specification of a PICTUR
 
 The rules established for the formation of separators do not apply to the characters which comprise the contents of nonnumeric literals, comment-entries, or comment lines.
 
-### 4.2.2 Character-Strings
+#### 4.2.2 Character-Strings
 
 A character-string is a character or a sequence of contiguous characters which forms a COBOL word, a literal, a PICTURE character-string, or a comment-entry. A character-string is delimited by separators.
 
-#### 4.2.2.1 COBOL Words
+##### 4.2.2.1 COBOL Words
 
 A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. Each character of a COBOL word that is not a special character word is selected from the set of letters, digits, and the hyphen; the hyphen may not appear as the first or last character in such words. Each lowercase letter is
 
@@ -6426,7 +6418,7 @@ b. The COBOL words LENGTH, RANDOM, and SUM form disjoint sets with user-defined 
 
 > ⚠ **CORRECTED — see the Errata (C198).** The standard prints `considered to be equivalent to its corresponding uppercase letter. Within a source program, reserved words and user-defined words form disjoint sets; reserved words and system-names form disjoint sets; reserved words and function-names form disjoint sets; function-names, system-names, and user-defined words form intersecting sets. The same COBOL word may be used as a function-name, as a system-name, and as a user-defined word within a source program; and the class of a specific occurrence of the COBOL word is determined by the context of the clause or phrase in which it occurs. (Amendment 1's text, C85)` (page 152, folio IV-6). Amendment 2 (ANSI X3.23b-1993), its change for page IV-5 (A-9) (page 917, folio B-5), applied in place: "Paragraph 4.2.2.1, entitled COBOL Words, replace the paragraph with the following", its text on page 917 (folio B-5) and page 918 (folio B-6) (kb/Work PB5045). Corrected to `considered to be equivalent to its corresponding uppercase letter. ¶ Within a source program the following apply: (1) a. b. (2) a. b. (above)`.
 
-#### 4.2.2.1.1 User-Defined Words
+###### 4.2.2.1.1 User-Defined Words
 
 A user-defined word is a COBOL word that must be supplied by the user to satisfy the format of a clause or statement. Each character of a user-defined word is selected from the set of characters 'A', 'B', 'C', ... , 'Z', '0', ... , '9', and '-', except that the '-' may not appear as the first or last character.
 
@@ -6480,7 +6472,7 @@ All user-defined words, except segment-numbers and level-numbers, can belong to 
 
 With the exception of section-names, paragraph-names, segment-numbers, and level-numbers, all user-defined words must contain at least one alphabetic character. Segment-numbers and level-numbers need not be unique; a given specification of a segment-number or level-number may be identical to any other segment-number or level-number.
 
-#### 4.2.2.1.1.1 Condition-Name
+###### 4.2.2.1.1.1 Condition-Name
 
 A condition-name is a name which is assigned to a specific value, set of values, or range of values, within a complete set of values that a data item may assume. The data item itself is called a conditional variable.
 
@@ -6488,19 +6480,19 @@ Condition-names may be defined in the Data Division or in the SPECIAL-NAMES para
 
 A condition-name is used in conditions as an abbreviation for the relation condition; this relation condition posits that the associated conditional variable is equal to one of the set of values to which that condition-name is assigned. A condition-name is also used in a SET statement, indicating that the associated value is to be moved to the conditional variable.
 
-#### 4.2.2.1.1.2 Mnemonic-Name
+###### 4.2.2.1.1.2 Mnemonic-Name
 
 A mnemonic-name assigns a user-defined word to an implementor-name. These associations are established in the SPECIAL-NAMES paragraph of the Environment Division (see VI-13, The SPECIAL-NAMES Paragraph).
 
-#### 4.2.2.1.1.3 Paragraph-Name
+###### 4.2.2.1.1.3 Paragraph-Name
 
 A paragraph-name is a word which names a paragraph in the Procedure Division. Paragraph-names are equivalent if, and only if, they are composed of the same sequence of the same number of digits and/or characters.
 
-#### 4.2.2.1.1.4 Section-Name
+###### 4.2.2.1.1.4 Section-Name
 
 A section-name is a word which names a section in the Procedure Division. Section-names are equivalent if, and only if, they are composed of the same sequence of the same number of digits and/or characters.
 
-#### 4.2.2.1.1.5 Other User-Defined Names
+###### 4.2.2.1.1.5 Other User-Defined Names
 
 All other types of user-defined words are defined in the glossary beginning on page III-1.
 
@@ -6510,7 +6502,7 @@ IV-7
 
 System-Names
 
-4.2.2.1.2 System-Names
+###### 4.2.2.1.2 System-Names
 
 A system-name is a COBOL word which is used to communicate with the operating environment. Rules for the formation of a system-name are defined by the implementor, except that each character used in the formation of a system-name must be selected from the set of characters 'A', 'B', 'C', ... , 'Z', '0', ... , '9', and '-', except that the '-' may not appear as the first or last character.
 
@@ -6522,7 +6514,7 @@ There are three types of system-names:
 
 Within a given implementation these three types of system-names form disjoint sets; a given system-name may belong to one and only one of them. The system-names listed above are individually defined in the glossary beginning on page III-1.
 
-4.2.2.1.3 Reserved Words
+###### 4.2.2.1.3 Reserved Words
 
 A reserved word is a COBOL word that is one of a specified list of words which may be used in COBOL source programs, but which must not appear in the programs as user-defined words or system-names. Reserved words can only be used as specified in the general formats. (See page IV-45, COBOL Reserved Words.)
 
@@ -6542,7 +6534,7 @@ There are three types of reserved words:
 2. optional words
 3. special purpose words
 
-4.2.2.1.3.1 Required Words
+###### 4.2.2.1.3.1 Required Words
 
 A required word is a word whose presence is required when the format in which the word appears is used in a source program.
 
@@ -6558,18 +6550,18 @@ Literals
 
 (2) Special character words. These are the arithmetic operators and relation characters.
 
-#### 4.2.2.1.3.2 Optional Words
+###### 4.2.2.1.3.2 Optional Words
 
 Within each format, uppercase words that are not underlined are called optional words and may be specified at the user's option with no effect on the semantics of the format.
 
-#### 4.2.2.1.3.3 Special Purpose Words
+###### 4.2.2.1.3.3 Special Purpose Words
 
 There are two types of special purpose words:
 
 1. special registers
 2. figurative constants
 
-#### 4.2.2.1.3.3.1 Special Registers
+###### 4.2.2.1.3.3.1 Special Registers
 
 Certain reserved words are used to name and reference special registers. Special registers are certain compiler-generated storage areas whose primary use is to store information produced in conjunction with the use of specific COBOL features. Unless specified otherwise in these specifications, one special register of each type is allocated for each program. In the general formats of this specification, a special register may be used, unless otherwise restricted, wherever data-name or identifier is specified provided that the special register is the same category as the data-name or identifier. If qualification is allowed special registers may be qualified as necessary to provide uniqueness. (See page IV-18, Qualification.)
 
@@ -6580,11 +6572,11 @@ There are four special registers:
 3. LINE-COUNTER (see page XIII-1)
 4. PAGE-COUNTER (see page XIII-1)
 
-#### 4.2.2.1.3.3.2 Figurative Constants
+###### 4.2.2.1.3.3.2 Figurative Constants
 
 Certain reserved words are used to name and reference specific constant values. These reserved words are specified on page IV-10, Figurative Constant Values.
 
-#### 4.2.2.1.4 Function-Names
+###### 4.2.2.1.4 Function-Names
 
 A function-name is a word that is one of a specified list of words which may be used in COBOL source programs. With the exception of the words LENGTH, RANDOM, and SUM, a word that is a function-name may appear in different contexts in a program as either a system-name or as a user-defined word. (See page A-29, Definitions of Functions.)
 
@@ -6592,11 +6584,11 @@ A function-name is a word that is one of a specified list of words which may be 
 
 > ⚠ **CORRECTED — see the Errata (C199).** The standard prints `The same word, in a different context, may appear in a program as a user-defined word or a system-name. (Amendment 1's sentence, C86)` (page 155, folio IV-9). Amendment 2 (ANSI X3.23b-1993), its change for page IV-9 (A-10) (page 918, folio B-6), applied in place: "Paragraph 4.2.2.1.4 entitled Function-Names, change the second sentence to read" (kb/Work PB5045). Corrected to `With the exception of the words LENGTH, RANDOM, and SUM, a word that is a function-name may appear in different contexts in a program as either a system-name or as a user-defined word.`.
 
-### 4.2.2.2 Literals
+##### 4.2.2.2 Literals
 
 A literal is a character-string whose value is implied by an ordered set of characters of which the literal is composed or by specification of a reserved word which references a figurative constant. Every literal belongs to one of two types: nonnumeric or numeric.
 
-#### 4.2.2.2.1 Nonnumeric Literals
+###### 4.2.2.2.1 Nonnumeric Literals
 
 A nonnumeric literal is a character-string delimited at the beginning and at the end by the separator quotation mark. The implementor must allow for nonnumeric literals of 1 through 160 characters in length. The length of a nonnumeric literal applies to its representation in the object program.
 
@@ -6606,19 +6598,19 @@ IV-9
 
 Numeric Literals
 
-4.2.2.2.1.1 General Format
+###### 4.2.2.2.1.1 General Format
 
 <pre style="line-height:1">
    "{character-1} …   "
 </pre>
 
-4.2.2.2.1.2 Syntax Rules
+###### 4.2.2.2.1.2 Syntax Rules
 
 (1) Character-1 may be any character in the computer character set.
 
 (2) If character-1 is to represent the quotation mark, two contiguous quotation mark characters must be used to represent a single occurrence of that character.
 
-4.2.2.2.1.3 General Rules
+###### 4.2.2.2.1.3 General Rules
 
 (1) The value of a nonnumeric literal in the object program is the value represented by character-1.
 
@@ -6626,7 +6618,7 @@ Numeric Literals
 
 (3) All nonnumeric literals are of category alphanumeric.
 
-4.2.2.2.2 Numeric Literals
+###### 4.2.2.2.2 Numeric Literals
 
 A numeric literal is a character-string whose characters are selected from the digits '0' through '9', the plus sign, the minus sign, and the decimal point. The implementor must allow for numeric literals of 1 through 18 digits in length. The rules for the formation of numeric literals are as follows:
 
@@ -6640,7 +6632,7 @@ If a literal conforms to the rules for the formation of numeric literals, but is
 
 (4) The value of a numeric literal is the algebraic quantity represented by the characters in the numeric literal. Every numeric literal is category numeric. (See page VI-29, The PICTURE Clause.) The size of a numeric literal in standard data format characters is equal to the number of digits in the string of characters as specified by the user.
 
-4.2.2.2.3 Figurative Constant Values
+###### 4.2.2.2.3 Figurative Constant Values
 
 Figurative constant values are generated by the compiler and referenced through the use of the reserved words given below. These words must not be
 
@@ -6696,13 +6688,13 @@ Except in the SPECIAL-NAMES paragraph, when the figurative constants HIGH-VALUES
 
 Each reserved word which is used to reference a figurative constant value is a distinct character-string with the exception of the constructs using the word ALL, such as ALL literal, ALL SPACES, etc., which are composed of two distinct character-strings.
 
-### 4.2.2.3 PICTURE Character-Strings
+##### 4.2.2.3 PICTURE Character-Strings
 
 A PICTURE character-string consists of certain symbols which are composed of the currency symbol and certain combinations of characters in the COBOL character set. An explanation of the PICTURE character-string and the rules that govern its use are given under the appropriate paragraph. (See page VI-29, The PICTURE Clause.)
 
 Any punctuation character which appears as part of the specification of a PICTURE character-string is not considered as a punctuation character, but rather as a symbol used in the specification of that PICTURE character-string.
 
-### 4.2.2.4 Comment-Entries
+##### 4.2.2.4 Comment-Entries
 
 A comment-entry is an entry in the Identification Division that may be any combination of characters from the computer's character set. Comment-entry is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
 
@@ -6712,15 +6704,15 @@ IV-12
 
 Logical Record Concept
 
-4.3 CONCEPT OF COMPUTER INDEPENDENT DATA DESCRIPTION
+### 4.3 CONCEPT OF COMPUTER INDEPENDENT DATA DESCRIPTION
 
 To make data as computer-independent as possible, the characteristics or properties of the data are described in relation to a standard data format rather than an equipment-oriented format. This standard data format is oriented to general data processing applications and uses the decimal system to represent numbers (regardless of the radix used by the computer) and all characters of the COBOL character set to describe nonnumeric data items.
 
-4.3.1 Logical Record Concept
+#### 4.3.1 Logical Record Concept
 
 In order to separate the logical characteristics of data from the physical characteristics of the data storage media, separate clauses or phrases are used. The following paragraphs discuss the characteristics of files.
 
-4.3.1.1 Physical Aspects of a File
+##### 4.3.1.1 Physical Aspects of a File
 
 The physical aspects of a file describe the data as it appears on the input or output media and include such features as:
 
@@ -6728,7 +6720,7 @@ The physical aspects of a file describe the data as it appears on the input or o
 
 (2) The means by which the file can be identified.
 
-4.3.1.2 Conceptual Characteristics of a File
+##### 4.3.1.2 Conceptual Characteristics of a File
 
 The conceptual characteristics of a file are the explicit definition of each logical entity within the file itself. In a COBOL program, the input or output statements refer to one logical record.
 
@@ -6748,11 +6740,11 @@ Concept of Levels
 
 When a logical record is transferred to or from a physical unit, any translation required by the presence of a CODE-SET clause is accomplished. Padding characters are added or deleted as necessary. None of the clauses used to describe the data in the logical record have any effect on this transfer.
 
-### 4.3.1.3 Record Concepts
+##### 4.3.1.3 Record Concepts
 
 The record description consists of a set of data description entries which describe the characteristics of a particular record. Each data description entry consists of a level-number followed by a data-name, if required, followed by a series of independent clauses, as required.
 
-### 4.3.2 Concept of Levels
+#### 4.3.2 Concept of Levels
 
 A level concept is inherent in the structure of a logical record. This concept arises from the need to specify subdivision of a record for the purpose of data reference. Once a subdivision has been specified, it may be further subdivided to permit more detailed data referral.
 
@@ -6760,7 +6752,7 @@ The most basic subdivisions of a record, that is, those not further subdivided, 
 
 In order to refer to a set of elementary items, the elementary items are combined into groups. Each group consists of a named sequence of one or more elementary items. Groups, in turn, may be combined into groups of two or more groups, etc. Thus, an elementary item may belong to more than one group.
 
-#### 4.3.2.1 Level-Numbers
+##### 4.3.2.1 Level-Numbers
 
 A system of level-numbers shows the organization of elementary items and group items. Since records are the most inclusive data items, level-numbers for records start at 01. Less inclusive data items are assigned higher (not necessarily successive) level-numbers not greater in value than 49. There are special level-numbers, 66, 77, and 88, which are exceptions to this rule (see below). Separate entries are written in the source program for each level-number used.
 
@@ -6786,7 +6778,7 @@ Entries that specify noncontiguous data items, which are not subdivisions of oth
 
 Entries that specify condition-names, to be associated with particular values of a conditional variable, have been assigned the special level-number 88.
 
-### 4.3.3 Concept of Classes of Data
+#### 4.3.3 Concept of Classes of Data
 
 There are five categories of data items. (See page VI-29, The PICTURE Clause.) These are grouped into three classes: alphabetic, numeric, and alphanumeric. For alphabetic and numeric, the classes and categories are synonymous. The alphanumeric class includes the categories of alphanumeric edited, numeric edited, and alphanumeric (without editing). Every elementary item belongs to one of the classes and further to one of the categories. The class of a group item is treated at object time as alphanumeric regardless of the class of elementary items subordinate to that group item.
 
@@ -6809,7 +6801,7 @@ IV-15
 
 Character Representation and Radix
 
-## 4.3.4 Selection of Character Representation and Radix
+#### 4.3.4 Selection of Character Representation and Radix
 
 The value of a numeric item may be represented in either binary or decimal form depending on the equipment. In addition there are several ways of expressing decimal. Since these representations are actually combinations of bits, they are commonly called binary-coded decimal forms. The selection of radix is generally dependent upon the arithmetic capability of the computer. If more than one arithmetic radix is provided, the selection is dependent upon the specification of the USAGE clause. The binary-coded decimal form is also used to represent characters and symbols that are alphanumeric items. The selection of the proper binary-coded alphanumeric or binary-coded decimal form is dependent upon the capability of the computer and its external media.
 
@@ -6823,7 +6815,7 @@ An alphanumeric function is always represented in the standard data format. The 
 
 The size of an elementary data item or a group item is the number of characters in standard data format of the item. Synchronization and usage may cause a difference between this size and that required for internal representation.
 
-## 4.3.5 Algebraic Signs
+#### 4.3.5 Algebraic Signs
 
 Algebraic signs fall into two categories: operational signs, which are associated with signed numeric data items and signed numeric literals to indicate their algebraic properties; and editing signs, which appear (e.g.) on edited reports to identify the sign of the item.
 
@@ -6831,7 +6823,7 @@ The SIGN clause permits the programmer to state explicitly the location of the o
 
 Editing signs are inserted into a data item through the use of the sign control symbols of the PICTURE clause.
 
-## 4.3.6 Standard Alignment Rules
+#### 4.3.6 Standard Alignment Rules
 
 The standard rules for positioning data within an elementary item depend on the category of the receiving item. These rules are:
 
@@ -6853,7 +6845,7 @@ Item Alignment
 
 If the JUSTIFIED clause is specified for the receiving item, these standard rules are modified. (See page VI-24, The JUSTIFIED Clause.)
 
-### 4.3.7 Item Alignment for Increased Object-Code Efficiency
+#### 4.3.7 Item Alignment for Increased Object-Code Efficiency
 
 Some computer memories are organized in such a way that there are natural addressing boundaries in the computer memory (e.g., word boundaries, half-word boundaries, byte boundaries). The way in which data is stored is determined by the object program, and need not respect these natural boundaries.
 
@@ -6869,7 +6861,7 @@ Synchronization can be accomplished in two ways:
 
 Each implementor who provides for special types of alignment will specify the precise interpretations which are to be made. The use of such items within a group may affect the results of statements in which the group is used as an operand. Each implementor who provides for these special types of alignment will describe the effect of the implicit FILLER and the semantics of any statement referencing these groups.
 
-### 4.3.8 Uniqueness of Reference
+#### 4.3.8 Uniqueness of Reference
 
 Every user-defined name in a COBOL program is assigned, by the user, to name a resource which is to be used in solving a data processing problem. (See page IV-6, User-Defined Words.) In order to use a resource, a statement in a COBOL program must contain a reference which uniquely identifies that resource. In order to ensure uniqueness of reference, a user-defined name may be qualified, subscripted, or reference modified as described in the following paragraphs.
 
@@ -6889,7 +6881,7 @@ When the resource named is a function, the function definition may require the u
 
 Unless otherwise specified by the rules for a statement, any subscripting and reference modification are evaluated only once as the first operation of the execution of that statement.
 
-### 4.3.8.1 Qualification
+##### 4.3.8.1 Qualification
 
 Every user-defined name explicitly referenced in a COBOL source program must be uniquely referenced because either:
 
@@ -7003,13 +6995,13 @@ IV-20
 
 Subscripting
 
-4.3.8.2 Subscripting
+##### 4.3.8.2 Subscripting
 
-4.3.8.2.1 Function
+###### 4.3.8.2.1 Function
 
 Subscripts are used when reference is made to an individual element within a table of like elements that have not been assigned individual data-names. (See page VI-26, The OCCURS Clause.)
 
-4.3.8.2.2 General Format
+###### 4.3.8.2.2 General Format
 
 <pre style="line-height:1">
                       ╭ <u>ALL</u>                               ╮
@@ -7025,7 +7017,7 @@ Subscripts are used when reference is made to an individual element within a tab
 
 > ⚠ **CORRECTED — see the Errata (C91).** The standard prints `the general format of subscripting without ALL` (page 167, folio IV-21). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-21 (page 841, folio A-11), applied in place: "Paragraph 4.3.8.2.2, replace the general format with the following" (kb/Work PB5045). Corrected to `the general format above, with ALL`.
 
-4.3.8.2.3 Syntax Rules
+###### 4.3.8.2.3 Syntax Rules
 
 (1) The data description entry containing data-name-1 or the data-name associated with condition-name-1 must contain an OCCURS clause or must be subordinate to a data description entry which contains an OCCURS clause.
 
@@ -7051,7 +7043,7 @@ d. In the KEY IS phrase of an OCCURS clause.
 
 > ⚠ **CORRECTED — see the Errata (C92).** The standard prints `(6) Integer-1 may be signed and, if signed, it must be positive.` (page 167, folio IV-21). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-21 (page 841, folio A-11), applied in place: "Paragraph 4.3.8.2.3, add new syntax rule 7 as follows" (kb/Work PB5045). Corrected to `(7) The subscript ALL may be used only when the subscripted identifier is used as a function argument and may not be used when condition-name-1 is specified. (See page A-28, Arguments.)`.
 
-4.3.8.2.4 General Rules
+###### 4.3.8.2.4 General Rules
 
 (1) The value of the subscript must be a positive integer. The lowest possible occurrence number represented by a subscript is 1. The first element of any given dimension of a table is referenced by an occurrence number of 1. Each successive element within that dimension of the table is referenced by occurrence numbers of 2, 3, ... . The highest permissible occurrence number for
 
@@ -7069,21 +7061,21 @@ any given dimension of the table is the maximum number of occurrences of the ite
 
 (4) If integer-2 or integer-3 is specified, the value of the subscript is determined by incrementing by the value of integer-2 or integer-3 (when the operator + is used) or by decrementing by the value of integer-2 or integer-3 (when the operator - is used) either the occurrence number represented by the value of the index referenced by index-name-1 or the value of the data item referenced by data-name-2.
 
-#### 4.3.8.3 Function-Identifier
+##### 4.3.8.3 Function-Identifier
 
-##### 4.3.8.3.1 Function
+###### 4.3.8.3.1 Function
 
 > ⚠ **CORRECTED — see the Errata (C201).** The standard prints `4.3.8.3.1 Purpose of a Function-Identifier (Amendment 1's title, C95)` (page 168, folio IV-22). Amendment 2 (ANSI X3.23b-1993), its change for page IV-22 (A-11) (page 918, folio B-6), applied in place: "Paragraph 4.3.8.3.1 change the title from Purpose of a Function-Identifier to Function" (kb/Work PB5045). Corrected to `4.3.8.3.1 Function`.
 
 A function-identifier is a syntactically correct combination of character-strings and separators that uniquely references the data item resulting from the evaluation of a function.
 
-##### 4.3.8.3.2 General Format
+###### 4.3.8.3.2 General Format
 
 <pre style="line-height:1">
 <u>FUNCTION</u> function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]
 </pre>
 
-##### 4.3.8.3.3 Syntax Rules
+###### 4.3.8.3.3 Syntax Rules
 
 (1) Argument-1 must be an identifier, a literal, or an arithmetic expression. Specific rules governing the number, class, and category of argument-1 are given in the definition of each function. (See page A-27, Intrinsic Function Module.)
 
@@ -7098,7 +7090,7 @@ b. Where the rules associated with the general formats require the data item bei
 
 (4) A function-identifier which references an integer or numeric function may be used only in an arithmetic expression.
 
-##### 4.3.8.3.4 General Rules
+###### 4.3.8.3.4 General Rules
 
 (1) The class and other characteristics of the function being referenced are determined by the function definition. (See page A-27, Intrinsic Functions.)
 
@@ -7106,17 +7098,17 @@ b. Where the rules associated with the general formats require the data item bei
 
 > ⚠ **CORRECTED — see the Errata (C95).** The standard prints `4.3.8.3 Reference Modification (the paragraph now numbered 4.3.8.4)` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 841, folio A-11), applied in place: "Add the following as new paragraph 4.3.8.3: 4.3.8.3 Function-Identifier", which runs on to page 842 (folio A-12) (kb/Work PB5045). Corrected to `4.3.8.3 Function-Identifier, its Purpose, General Format, Syntax Rules (1) to (4) and General Rules (1) and (2), above`.
 
-#### 4.3.8.4 Reference Modification
+##### 4.3.8.4 Reference Modification
 
 > ⚠ **CORRECTED — see the Errata (C96).** The standard prints `4.3.8.3 Reference Modification` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4, change the title to 'Reference-Modifier'" (kb/Work PB5045). Corrected to `4.3.8.4 Reference-Modifier`.
 
 > ⚠ **CORRECTED — see the Errata (C202).** The standard prints `4.3.8.3 Reference Modification (Amendment 1 renumbered it 4.3.8.4 and retitled it Reference-Modifier, C93, C96)` (page 168, folio IV-22). Amendment 2 (ANSI X3.23b-1993), its change for page IV-22 (A-12) (page 918, folio B-6), applied in place: "Paragraph 4.3.8.4, change the title from Reference-Modifier to Reference Modification" (kb/Work PB5045). Corrected to `4.3.8.4 Reference Modification`.
 
-##### 4.3.8.4.1 Function
+###### 4.3.8.4.1 Function
 
 Reference modification defines a data item by specifying a leftmost character and length for the data item.
 
-##### 4.3.8.4.2 General Format
+###### 4.3.8.4.2 General Format
 
 <pre style="line-height:1">
 ╭ data-name-1                                    ╮
@@ -7128,7 +7120,7 @@ NOTE: Data-name-1 and FUNCTION function-name-1 (argument-1) are shown in the abo
 
 > ⚠ **CORRECTED — see the Errata (C97).** The standard prints `data-name-1 ( leftmost-character-position: [ length ] )` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.2, replace the general format with the following" (kb/Work PB5045). Corrected to `the general format above, with FUNCTION function-name-1, and its NOTE`.
 
-##### 4.3.8.4.3 Syntax Rules
+###### 4.3.8.4.3 Syntax Rules
 
 (1) Data-name-1 must reference a data item whose usage is DISPLAY.
 
@@ -7142,7 +7134,7 @@ NOTE: Data-name-1 and FUNCTION function-name-1 (argument-1) are shown in the abo
 
 > ⚠ **CORRECTED — see the Errata (C98).** The standard prints `(4) Data-name-1 may be qualified or subscripted.` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.3, add the following as new syntax rule 5" (kb/Work PB5045). Corrected to `(5) The function referenced by function-name-1 and its arguments, if any, must be an alphanumeric function.`.
 
-##### 4.3.8.4.4 General Rules
+###### 4.3.8.4.4 General Rules
 
 > ⚠ **CORRECTED — see the Errata (C93).** The standard prints `4.3.8.3 Reference Modification, 4.3.8.3.1 Function, 4.3.8.3.2 General Format, 4.3.8.3.3 Syntax Rules, 4.3.8.3.4 General Rules` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 thru IV-24 (page 841, folio A-11), applied in place: "Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively" (kb/Work PB5045). Corrected to `4.3.8.4, 4.3.8.4.1 to 4.3.8.4.4`.
 
@@ -7184,15 +7176,15 @@ b. The evaluation of length specifies the size of the data item to be used in th
 
 > ⚠ **CORRECTED — see the Errata (C104).** The standard prints `without the JUSTIFIED clause. It has the same class and category` (page 169, folio IV-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.4.4, general rule 5, second sentence, replace the word 'It' by 'When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item'" (kb/Work PB5045). Corrected to `without the JUSTIFIED clause. When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item has the same class and category`.
 
-#### 4.3.8.5 Identifier
+##### 4.3.8.5 Identifier
 
-##### 4.3.8.5.1 Function
+###### 4.3.8.5.1 Function
 
 An identifier is a syntactically correct sequence of character-strings and separators used to reference data uniquely.
 
 When a data item other than a function is being referenced, identifier is a term used to reflect that a data-name, if not unique in a program, must be followed by a syntactically correct combination of qualifiers, subscripts, or reference modifiers necessary for uniqueness of reference. (See page X-4, Scope of Names.)
 
-##### 4.3.8.5.2 General Format
+###### 4.3.8.5.2 General Format
 
 <u>Format 1</u>:
 
@@ -7210,7 +7202,7 @@ data-name-1 │┤  ├ data-name-2 │ …   │┤  ├ ┤file-name-1   ├ �
      [({subscript} …   )] [reference-modifier]
 </pre>
 
-##### 4.3.8.5.3 Syntax Rules
+###### 4.3.8.5.3 Syntax Rules
 
 (1) The words IN and OF are equivalent.
 
@@ -7222,7 +7214,7 @@ IV-23
 
 Condition-Name
 
-### 4.3.8.6 Condition-Name
+##### 4.3.8.6 Condition-Name
 
 > ⚠ **CORRECTED — see the Errata (C94).** The standard prints `### 4.3.8.5 Condition-Name` (page 170, folio IV-24). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 thru IV-24 (page 841, folio A-11), applied in place: "Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively" (kb/Work PB5045). Corrected to `### 4.3.8.6 Condition-Name`.
 
@@ -7242,7 +7234,7 @@ IV-24
 
 Explicit and Implicit Specifications
 
-## 4.4 EXPLICIT AND IMPLICIT SPECIFICATIONS
+### 4.4 EXPLICIT AND IMPLICIT SPECIFICATIONS
 
 There are four types of explicit and implicit specifications that occur in COBOL source programs:
 
@@ -7254,11 +7246,11 @@ There are four types of explicit and implicit specifications that occur in COBOL
 
 (4) Explicit and implicit scope terminators
 
-### 4.4.1 Explicit and Implicit Procedure Division References
+#### 4.4.1 Explicit and Implicit Procedure Division References
 
 A COBOL source program can reference data items either explicitly or implicitly in Procedure Division statements. An explicit reference occurs when the name of the referenced item is written in a Procedure Division statement or when the name of the referenced item is copied into the Procedure Division by the processing of a COPY statement. An implicit reference occurs when the item is referenced by a Procedure Division statement without the name of the referenced item being written in the source statement. An implicit reference also occurs, during the execution of a PERFORM statement, when the index or data item referenced by the index-name or identifier specified in the VARYING, AFTER, or UNTIL phrase is initialized, modified, or evaluated by the control mechanism associated with that PERFORM statement. Such an implicit reference occurs if and only if the data item contributes to the execution of the statement.
 
-### 4.4.2 Explicit and Implicit Transfers of Control
+#### 4.4.2 Explicit and Implicit Transfers of Control
 
 The mechanism that controls program flow transfers control from statement to statement in the sequence in which they were written in the source program unless an explicit transfer of control overrides this sequence or there is no next executable statement to which control can be passed. The transfer of control from statement to statement occurs without the writing of an explicit Procedure Division statement, and, therefore, is an implicit transfer of control.
 
@@ -7304,13 +7296,13 @@ IV-26
 
 Scope Terminators
 
-### 4.4.3 Explicit and Implicit Attributes
+#### 4.4.3 Explicit and Implicit Attributes
 
 Attributes may be implicitly or explicitly specified. Any attribute which has been explicitly specified is called an explicit attribute. If an attribute has not been specified explicitly, then the attribute takes on the default specification. Such an attribute is known as an implicit attribute.
 
 For example, the usage of a data item need not be specified, in which case a data item's usage is DISPLAY.
 
-### 4.4.4 Explicit and Implicit Scope Terminators
+#### 4.4.4 Explicit and Implicit Scope Terminators
 
 Scope terminators serve to delimit the scope of certain Procedure Division statements. (See page IV-39, Delimited Scope Statements.) Scope terminators are of two types: explicit and implicit.
 
@@ -7340,7 +7332,7 @@ IV-27
 
 External Switch
 
-## 4.5 EXTERNAL SWITCH
+### 4.5 EXTERNAL SWITCH
 
 An external switch is a hardware or software device, defined and named by the implementor, which is used to indicate that one of two alternate states exists. These alternate states are referred to as the on status and the off status of the associated external switch.
 
@@ -7395,21 +7387,21 @@ Identification Division
 
 ## 6. <u>DIVISIONS</u>
 
-## 6.1 IDENTIFICATION DIVISION
+### 6.1 IDENTIFICATION DIVISION
 
-### 6.1.1 General Description
+#### 6.1.1 General Description
 
 The Identification Division identifies the program. In addition, the user may include the date the program is written, the date the compilation of the source program is accomplished and such other information as desired under the paragraphs in the general format shown below.
 
-### 6.1.2 Organization
+#### 6.1.2 Organization
 
 Paragraph headers identify the type of information contained in the paragraph. The name of the program must be given in the first paragraph, which is the PROGRAM-ID paragraph. The other paragraphs are optional and may be included in this division at the user's choice, in order of presentation shown by the format below.
 
-### 6.1.3 Structure
+#### 6.1.3 Structure
 
 The following is the general format of the paragraphs in the Identification Division and it defines the order of presentation in the source program.
 
-#### 6.1.3.1 General Format
+##### 6.1.3.1 General Format
 
 <pre style="line-height:1">
 <u>IDENTIFICATION</u> <u>DIVISION</u>.
@@ -7427,13 +7419,13 @@ IV-30
 
 Environment Division
 
-6.2 ENVIRONMENT DIVISION
+### 6.2 ENVIRONMENT DIVISION
 
-## 6.2.1 General Description
+#### 6.2.1 General Description
 
 The Environment Division specifies a standard method of expressing those aspects of a data processing problem that are dependent upon the physical characteristics of a specific computer. This division allows specification of the configuration of the compiling computer and the object computer. In addition, information relative to input-output control, special hardware characteristics, and control techniques can be given.
 
-## 6.2.2 Organization
+#### 6.2.2 Organization
 
 Two sections make up the Environment Division: the Configuration Section and the Input-Output Section.
 
@@ -7441,7 +7433,7 @@ The Configuration Section deals with the characteristics of the source computer 
 
 The Input-Output Section deals with the information needed to control transmission and handling of data between external media and the object program. This section is divided into two paragraphs: the FILE-CONTROL paragraph which names and associates the files with external media; and the I-O-CONTROL paragraph which defines special control techniques to be used in the object program.
 
-## 6.2.3 Structure
+#### 6.2.3 Structure
 
 The following is the general format of the sections and paragraphs in the Environment Division, and defines the order of presentation in the source program.
 
@@ -7451,7 +7443,7 @@ IV-31
 
 Environment Division
 
-6.2.3.1 General Format
+##### 6.2.3.1 General Format
 
 <pre style="line-height:1">
  <u>ENVIRONMENT</u> <u>DIVISION</u>.
@@ -7477,15 +7469,15 @@ IV-32
 
 Data Division
 
-## 6.3 DATA DIVISION
+### 6.3 DATA DIVISION
 
-### 6.3.1 Overall Approach
+#### 6.3.1 Overall Approach
 
 The Data Division describes the data that the object program is to accept as input, to manipulate, to create, or to produce as output.
 
-### 6.3.2 Physical and Logical Aspects of Data Description
+#### 6.3.2 Physical and Logical Aspects of Data Description
 
-#### 6.3.2.1 Data Division Organization
+##### 6.3.2.1 Data Division Organization
 
 The Data Division is subdivided into sections. These are the File, Working-Storage, Linkage, Communication, and Report Sections.
 
@@ -7505,11 +7497,11 @@ IV-33
 
 Data Division
 
-# 6.3.2.2 Data Division Structure
+##### 6.3.2.2 Data Division Structure
 
 The following gives the general format of the sections in the Data Division, and defines the order of their presentation in the source program.
 
-## 6.3.2.2.1 General Format
+###### 6.3.2.2.1 General Format
 
 <pre style="line-height:1">
 <u>DATA</u> <u>DIVISION</u>.
@@ -7547,17 +7539,17 @@ IV-34
 
 Procedure Division
 
-## 6.4 PROCEDURE DIVISION
+### 6.4 PROCEDURE DIVISION
 
-### 6.4.1 General Description
+#### 6.4.1 General Description
 
 The Procedure Division may contain declarative and nondeclarative procedures.
 
-#### 6.4.1.1 Declaratives
+##### 6.4.1.1 Declaratives
 
 Declarative sections must be grouped at the beginning of the Procedure Division preceded by the key word DECLARATIVES and followed by the key words END DECLARATIVES. (See pages VII-50, VIII-35, IX-39, XIII-76, XIII-78, and XV-5 for the USE statement.)
 
-#### 6.4.1.2 Procedures
+##### 6.4.1.2 Procedures
 
 A procedure is composed of a paragraph, or a group of successive paragraphs, or a section, or a group of successive sections within the Procedure Division. If one paragraph is in a section, all paragraphs must be in sections. A procedure-name is a word used to refer to a paragraph or section in the source program in which it occurs. It consists of a paragraph-name (which may be qualified) or a section-name.
 
@@ -7569,7 +7561,7 @@ A statement is a syntactically valid combination of words, literals, and separat
 
 The term 'identifier' is defined as the word or words necessary to make unique reference to a data item.
 
-#### 6.4.1.3 Execution
+##### 6.4.1.3 Execution
 
 Execution begins with the first statement of the Procedure Division, excluding declaratives. Statements are then executed in the order in which they are presented for compilation, except where the rules indicate some other order.
 
@@ -7579,9 +7571,9 @@ IV-35
 
 Procedure Division
 
-#### 6.4.1.4 Procedure Division Structure
+##### 6.4.1.4 Procedure Division Structure
 
-##### 6.4.1.4.1 Procedure Division Header
+###### 6.4.1.4.1 Procedure Division Header
 
 The Procedure Division is identified by, and must begin with, the following header:
 
@@ -7589,7 +7581,7 @@ The Procedure Division is identified by, and must begin with, the following head
 <u>PROCEDURE</u> <u>DIVISION</u> [ <u>USING</u> { data-name-1 } … ] .
 </pre>
 
-##### 6.4.1.4.2 Procedure Division Body
+###### 6.4.1.4.2 Procedure Division Body
 
 The body of the Procedure Division must conform to one of the following formats:
 
@@ -7620,15 +7612,15 @@ IV-36
 
 Statements and Sentences
 
-### 6.4.2 Statements and Sentences
+#### 6.4.2 Statements and Sentences
 
 There are four types of statements: imperative statements, conditional statements, compiler directing statements, and delimited scope statements.
 
 There are three types of sentences: imperative sentences, conditional sentences, and compiler directing sentences.
 
-#### 6.4.2.1 Conditional Statements and Sentences
+##### 6.4.2.1 Conditional Statements and Sentences
 
-##### 6.4.2.1.1 Definition of Conditional Statement
+###### 6.4.2.1.1 Definition of Conditional Statement
 
 A conditional statement specifies that the truth value of a condition is to be determined and that the subsequent action of the object program is dependent on this truth value.
 
@@ -7676,19 +7668,19 @@ Statements and Sentences
 
 (7) ON OVERFLOW, ON EXCEPTION, or NOT ON EXCEPTION phrase when specified within a CALL statement.
 
-#### 6.4.2.1.2 Definition of Conditional Sentence
+###### 6.4.2.1.2 Definition of Conditional Sentence
 
 A conditional sentence is a conditional statement, optionally preceded by an imperative statement, terminated by the separator period.
 
-### 6.4.2.2 Compiler Directing Statements and Compiler Directing Sentences
+##### 6.4.2.2 Compiler Directing Statements and Compiler Directing Sentences
 
-#### 6.4.2.2.1 Definition of Compiler Directing Statement
+###### 6.4.2.2.1 Definition of Compiler Directing Statement
 
 A compiler directing statement consists of a compiler directing verb and its operands. The compiler directing verbs are COPY, ENTER, REPLACE, and USE (see page XII-2, The COPY Statement; page VI-83, The ENTER Statement; page XII-6, The REPLACE Statement; and the USE statement on pages VII-50, VIII-35, IX-39, XIII-76, XIII-78, and XV-5). A compiler directing statement causes the compiler to take a specific action during compilation.
 
 > ⚠ **CORRECTED — see the Errata (C204).** The standard prints `The compiler directing verbs are COPY, REPLACE, and USE (see page XII-2, The COPY Statement; page XII-6, The REPLACE Statement; and the USE Statement on pages VII-50, VIII-35, IX-39, XIII-76, XIII-78, and XV-5).` (page 184, folio IV-38). Amendment 2 (ANSI X3.23b-1993), its change for page IV-38 (page 919, folio B-7), applied in place: "Paragraph 6.4.2.2.1 entitled Definition of Compiler Directing Statement, second sentence, change to read" (kb/Work PB5045). Corrected to the text above.
 
-#### 6.4.2.2.2 Definition of Compiler Directing Sentence
+###### 6.4.2.2.2 Definition of Compiler Directing Sentence
 
 A compiler directing sentence is a single compiler directing statement terminated by the separator period.
 
@@ -7698,9 +7690,9 @@ IV-38
 
 Statements and Sentences
 
-### 6.4.2.3 Imperative Statements and Imperative Sentences
+##### 6.4.2.3 Imperative Statements and Imperative Sentences
 
-#### 6.4.2.3.1 Definition of Imperative Statement
+###### 6.4.2.3.1 Definition of Imperative Statement
 
 An imperative statement begins with an imperative verb and specifies an unconditional action to be taken by the object program or is a conditional statement that is delimited by its explicit scope terminator (delimited scope statement). An imperative statement may consist of a sequence of imperative statements, each possibly separated from the next by a separator. The imperative verbs are:
 
@@ -7731,11 +7723,11 @@ An imperative statement begins with an imperative verb and specifies an uncondit
 
 Whenever 'imperative-statement' appears in the general format of statements, 'imperative-statement' refers to that sequence of consecutive imperative statements that must be ended by a period or by any phrase associated with a statement containing that 'imperative-statement'.
 
-#### 6.4.2.3.2 Definition of Imperative Sentence
+###### 6.4.2.3.2 Definition of Imperative Sentence
 
 An imperative sentence is an imperative statement terminated by the separator period.
 
-### 6.4.2.4 Delimited Scope Statements
+##### 6.4.2.4 Delimited Scope Statements
 
 A delimited scope statement is any statement which includes its explicit scope terminator. (See page IV-27, Explicit and Implicit Scope Terminators.)
 
@@ -7745,7 +7737,7 @@ IV-39
 
 Scope of Statements
 
-## 6.4.3 Scope of Statements
+#### 6.4.3 Scope of Statements
 
 Scope terminators delimit the scope of certain Procedure Division statements. Statements which include their explicit scope terminators are termed delimited scope statements. (See page IV-27, Explicit and Implicit Scope Terminators, and page IV-39, Delimited Scope Statements.) The scope of statements which are contained within statements (nested) may also be implicitly terminated.
 
@@ -7763,9 +7755,9 @@ IV-40
 
 Reference Format
 
-# 7. <u>REFERENCE FORMAT</u>
+## 7. <u>REFERENCE FORMAT</u>
 
-## 7.1 GENERAL DESCRIPTION
+### 7.1 GENERAL DESCRIPTION
 
 The reference format, which provides a standard method of describing COBOL source programs and COBOL library text, is described in terms of character positions in a line on an input-output medium. The meaning of lines and character positions is defined by the implementor. Within these definitions, each compiler accepts source programs written in reference format and produces an output listing of the source program in reference format.
 
@@ -7773,7 +7765,7 @@ The rules for spacing given in the discussion of the reference format take prece
 
 The divisions of a COBOL source program must be ordered as follows: the Identification Division, then the Environment Division, then the Data Division, then the Procedure Division. Each division must be written according to the rules for the reference format.
 
-## 7.2 REFERENCE FORMAT REPRESENTATION
+### 7.2 REFERENCE FORMAT REPRESENTATION
 
 The reference format for a line is represented as follows:
 
@@ -7813,11 +7805,11 @@ Reference Format
 
 implementor; it begins immediately to the right of margin B and terminates immediately to the left of margin R.
 
-### 7.2.1 Sequence Numbers
+#### 7.2.1 Sequence Numbers
 
 The sequence number area may be used to label a source program line. The content of the sequence number area is defined by the user and may consist of any character in the computer's character set. There is no requirement that the content of the sequence number area appears in any particular sequence or be unique.
 
-### 7.2.2 Continuation of Lines
+#### 7.2.2 Continuation of Lines
 
 Any sentence, entry, phrase, or clause may be continued by starting subsequent line(s) in area B. These subsequent lines are called the continuation line(s). The line being continued is called the continued line. Any word, literal, or PICTURE character-string may be broken in such a way that part of it appears on a continuation line.
 
@@ -7827,11 +7819,11 @@ If there is no hyphen in the indicator area of a line, it is assumed that the fi
 
 Both characters composing the separator '==' must be on the same line.
 
-### 7.2.3 Blank Lines
+#### 7.2.3 Blank Lines
 
 A blank line is one that is blank from margin C to margin R, inclusive. A blank line can appear anywhere in the source program. (See paragraph 7.2.2 above.)
 
-### 7.2.4 Comment Lines
+#### 7.2.4 Comment Lines
 
 A comment line is any line with an asterisk or slant in the indicator area of the line. A comment line can appear as any line in a source program after the Identification Division header and as any line in library text of a COBOL library. Any combination of the characters from the computer's character set may be included in area A and area B of that line. The asterisk or slant and the characters in area A and area B will be produced on the listing but serve as documentation only and will not be checked syntactically. The slant in the indicator area causes page ejection prior to printing the comment line in the listing of the source program; an asterisk in the indicator area causes printing of the line at the next available line position in the listing.
 
@@ -7841,25 +7833,25 @@ IV-42
 
 Reference Format
 
-7.2.5 Pseudo-Text
+#### 7.2.5 Pseudo-Text
 
 The text words and the separator space comprising pseudo-text may start in either area A or area B. If, however, there is a hyphen in the indicator area of a line which follows the opening pseudo-text delimiter, area A of the line must be blank; and the normal rules for continuation of lines apply to the formation of text words. (See page IV-42, Continuation of Lines.)
 
 > ⚠ **CORRECTED — see the Errata (C205).** The standard prints `The character-strings and separators comprising pseudo-text` (page 189, folio IV-43). Amendment 2 (ANSI X3.23b-1993), its change for page IV-43 (page 919, folio B-7), applied in place: "Paragraph 7.2.5 entitled Pseudo-Text, change a portion of the first sentence from 'The character-strings and separators comprising' to 'The text words and the separator space comprising'" (kb/Work PB5045). Corrected to `The text words and the separator space comprising pseudo-text`.
 
-7.3 DIVISION, SECTION, PARAGRAPH FORMATS
+### 7.3 DIVISION, SECTION, PARAGRAPH FORMATS
 
-7.3.1 Division Header
+#### 7.3.1 Division Header
 
 The division header must start in area A.
 
-7.3.2 Section Header
+#### 7.3.2 Section Header
 
 The section header must start in area A.
 
 A section consists of zero, one, or more paragraphs in the Environment Division or Procedure Division or zero, one, or more entries in the Data Division.
 
-7.3.3 Paragraph Header, Paragraph-Name, and Paragraph
+#### 7.3.3 Paragraph Header, Paragraph-Name, and Paragraph
 
 A paragraph consists of a paragraph-name followed by the separator period and by zero, one, or more sentences, or a paragraph header followed by one or more entries.
 
@@ -7869,7 +7861,7 @@ The first sentence or entry in a paragraph begins either on the same line as the
 
 When the sentences or entries of a paragraph require more than one line, they may be continued on a subsequent line or lines. (See page IV-42, Continuation of Lines.)
 
-7.4 DATA DIVISION ENTRIES
+### 7.4 DATA DIVISION ENTRIES
 
 Each Data Division entry begins with a level indicator or a level-number, followed by a space, followed by the name of the subject of entry, if specified, followed by a sequence of independent clauses describing the item. The last clause is always terminated by a separator period.
 
@@ -7893,11 +7885,11 @@ In those data description entries that begin with a level-number 01 or 77, the l
 
 Data description entries may be indented. Any indentation is with respect to margin A. Each new data description entry may begin any number of positions to the right of margin A, except data description entries that begin with level-number 01 or 77 must begin in area A. The extent of indentation is determined only by the width of the physical medium. The entries on the output listing need be indented only if the input is indented. Indentation does not affect the magnitude of a level-number.
 
-## 7.5 DECLARATIVES
+### 7.5 DECLARATIVES
 
 The key word DECLARATIVES and the pair of key words END DECLARATIVES that precede and follow, respectively, the declaratives portion of the Procedure Division must each appear on a line by itself. Each must begin in area A and be followed by the separator period.
 
-## 7.6 END PROGRAM HEADER
+### 7.6 END PROGRAM HEADER
 
 The end program header must start in area A.
 
@@ -8032,13 +8024,11 @@ COBOL Reserved Words
 
 IV-46
 
-# SECTION V: COMPOSITE LANGUAGE SKELETON
-
 ## Page 193
 
 Composite Language Skeleton
 
-<u>SECTION V:  COMPOSITE LANGUAGE SKELETON</u>
+# <u>SECTION V:  COMPOSITE LANGUAGE SKELETON</u>
 
 ## 1. <u>GENERAL DESCRIPTION</u>
 
@@ -10195,13 +10185,11 @@ Sequence of Source Programs
 
 V-40
 
-# SECTION VI: NUCLEUS MODULE
-
 ## Page 233
 
 Nucleus - Introduction
 
-<u>SECTION VI: NUCLEUS MODULE</u>
+# <u>SECTION VI: NUCLEUS MODULE</u>
 
 ## 1. <u>INTRODUCTION TO THE NUCLEUS MODULE</u>
 
@@ -10233,25 +10221,25 @@ VI-1
 
 Nucleus - Introduction
 
-### 1.3.3 Figurative Constants
+#### 1.3.3 Figurative Constants
 
 The figurative constants that may be used in level 1 are: ZERO, ZEROS, ZEROES, SPACE, SPACES, HIGH-VALUE, HIGH-VALUES, LOW-VALUE, LOW-VALUES, QUOTE, and QUOTES. ║The figurative constants that may be used in level 2 are: ZERO, ZEROS, ZEROES, SPACE, SPACES, HIGH-VALUE, HIGH-VALUES, LOW-VALUE, LOW-VALUES, QUOTE, QUOTES, symbolic-character, ALL literal, ALL figurative constant, and ALL symbolic-character.║
 
-### 1.3.4 Subscripts
+#### 1.3.4 Subscripts
 
 One, two or three subscripts are permitted in level 1. ║One through seven subscripts are permitted in level 2.║
 
-### 1.3.5 Function-Identifier
+#### 1.3.5 Function-Identifier
 
 The availability of function-identifiers is dependent on whether the Intrinsic Function module is supported by the implementation.
 
 > ⚠ **CORRECTED — see the Errata (C123).** The standard prints `1.3.6 Reference Modification (the paragraph it precedes)` (page 234, folio VI-2). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-2 (page 848, folio A-18), applied in place: "add new paragraph 1.3.5 without boxing as follows: 1.3.5 Function-Identifier" (kb/Work PB5045). Corrected to `1.3.5 Function-Identifier. The availability of function-identifiers is dependent on whether the Intrinsic Function module is supported by the implementation.`.
 
-### ║1.3.6 Reference Modification║
+#### ║1.3.6 Reference Modification║
 
 ║Reference modification is permitted in level 2 only.║
 
-### 1.3.7 Reference Format
+#### 1.3.7 Reference Format
 
 > ⚠ **CORRECTED — see the Errata (C122).** The standard prints `1.3.5 Reference Modification, 1.3.6 Reference Format` (page 234, folio VI-2). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-2 (page 848, folio A-18), applied in place: "Renumber paragraphs 1.3.5 and 1.3.6 to 1.3.6 and 1.3.7, respectively" (kb/Work PB5045). Corrected to `1.3.6 Reference Modification, 1.3.7 Reference Format`.
 
@@ -10322,25 +10310,25 @@ VI-4
 
 Nucleus - End Program Header
 
-## ║2.4 END PROGRAM HEADER║
+### ║2.4 END PROGRAM HEADER║
 
-### ║2.4.1 Function║
+#### ║2.4.1 Function║
 
 ║The end program header indicates the end of the named COBOL source program.║
 
-### ║2.4.2 General Format║
+#### ║2.4.2 General Format║
 
 <pre style="line-height:1">
 <u>END</u> <u>PROGRAM</u> program-name.
 </pre>
 
-### ║2.4.3 Syntax Rules║
+#### ║2.4.3 Syntax Rules║
 
 ║(1) The program-name must conform to the rules for forming a user-defined word.║
 
 ║(2) The program-name must be identical to a program-name declared in a preceding PROGRAM-ID paragraph. (See page VI-7, The PROGRAM-ID Paragraph.)║
 
-### ║2.4.4 General Rules║
+#### ║2.4.4 General Rules║
 
 ║(1) The end program header indicates the end of the specified COBOL source program.║
 
@@ -10422,23 +10410,23 @@ VI-7
 
 Nucleus - DATE-COMPILED
 
-## ║3.4 THE DATE-COMPILED PARAGRAPH║
+### ║3.4 THE DATE-COMPILED PARAGRAPH║
 
-### ║3.4.1 Function║
+#### ║3.4.1 Function║
 
 ║The DATE-COMPILED paragraph provides the compilation date in the Identification Division source program listing. The DATE-COMPILED paragraph is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.║
 
-### ║3.4.2 General Format║
+#### ║3.4.2 General Format║
 
 <pre style="line-height:1">
 <u>DATE-COMPILED</u>. [ comment-entry ] …
 </pre>
 
-### ║3.4.3 Syntax Rules║
+#### ║3.4.3 Syntax Rules║
 
 ║(1) The comment-entry may be any combination of the characters from the computer's character set. The continuation of the comment-entry by the use of the hyphen in the indicator area is not permitted; however, the comment-entry may be contained on one or more lines.║
 
-### ║3.4.4 General Rules║
+#### ║3.4.4 General Rules║
 
 ║(1) The paragraph-name DATE-COMPILED causes the current date to be inserted during program compilation. If a DATE-COMPILED paragraph is present, it is replaced during compilation with a paragraph of the form:║
 
@@ -10484,23 +10472,23 @@ VI-9
 
 Nucleus - SOURCE-COMPUTER
 
-## 4.3 THE SOURCE-COMPUTER PARAGRAPH
+### 4.3 THE SOURCE-COMPUTER PARAGRAPH
 
-### 4.3.1 Function
+#### 4.3.1 Function
 
 The SOURCE-COMPUTER paragraph provides a means of describing the computer upon which the program is to be compiled.
 
-### 4.3.2 General Format
+#### 4.3.2 General Format
 
 <pre style="line-height:1">
 <u>SOURCE-COMPUTER</u>. [ computer-name [ WITH <u>DEBUGGING</u> <u>MODE</u> ] . ]
 </pre>
 
-### 4.3.3 Syntax Rules
+#### 4.3.3 Syntax Rules
 
 (1) Computer-name is a system-name.
 
-### 4.3.4 General Rules
+#### 4.3.4 General Rules
 
 (1) All clauses of the SOURCE-COMPUTER paragraph apply to the program in which they are explicitly or implicitly specified and to any program contained within that program.
 
@@ -10518,13 +10506,13 @@ VI-10
 
 Nucleus - OBJECT-COMPUTER
 
-## 4.4 THE OBJECT-COMPUTER PARAGRAPH
+### 4.4 THE OBJECT-COMPUTER PARAGRAPH
 
-### 4.4.1 Function
+#### 4.4.1 Function
 
 The OBJECT-COMPUTER paragraph provides a means of describing the computer on which the program is to be executed. The MEMORY SIZE clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
 
-### 4.4.2 General Format
+#### 4.4.2 General Format
 
 <pre style="line-height:1">
 <u>OBJECT-COMPUTER</u>. [ computer-name
@@ -10538,11 +10526,11 @@ The OBJECT-COMPUTER paragraph provides a means of describing the computer on whi
 [ PROGRAM COLLATING <u>SEQUENCE</u> IS alphabet-name-1 ] . ]
 </pre>
 
-### 4.4.3 Syntax Rules
+#### 4.4.3 Syntax Rules
 
 (1) Computer-name is a system-name.
 
-### 4.4.4 General Rules
+#### 4.4.4 General Rules
 
 (1) The computer-name may provide a means for identifying equipment configuration, in which case the computer-name and its implied configuration are specified by each implementor. The configuration definition contains specific information concerning the memory size.
 
@@ -10580,13 +10568,13 @@ VI-12
 
 Nucleus - SPECIAL-NAMES
 
-# 4.5 THE SPECIAL-NAMES PARAGRAPH
+### 4.5 THE SPECIAL-NAMES PARAGRAPH
 
-## 4.5.1 Function
+#### 4.5.1 Function
 
 The SPECIAL-NAMES paragraph provides a means for specifying the currency sign; choosing the decimal point; ║specifying symbolic-characters;║ relating implementor-names to user-specified mnemonic-names; relating alphabet-names to character sets or collating sequences; and relating class-names to sets of characters.
 
-## 4.5.2 General Format
+#### 4.5.2 General Format
 
 <pre style="line-height:1">
 <u>SPECIAL-NAMES</u>. [[implementor-name-1                                                      ┐
@@ -10621,7 +10609,7 @@ The SPECIAL-NAMES paragraph provides a means for specifying the currency sign; c
 
 > ⚠ **CORRECTED — see the Errata (C124).** The standard prints `SYMBOLIC CHARACTERS { {symbolic-character-1} ... {IS|ARE} {integer-1} ... } ... [IN alphabet-name-2] } ... (two sets of braces)` (page 245, folio VI-13). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-13 (T) (page 848, folio A-18), applied in place: "Paragraph 4.5.2, SYMBOLIC CHARACTERS clause, delete outermost set of braces", a typographical error (kb/Work PB5045). Corrected to `the format above, its outermost braces deleted`.
 
-## 4.5.3 Syntax Rules
+#### 4.5.3 Syntax Rules
 
 (1) If implementor-name-1 references an external switch, the associated mnemonic-name may be specified only in the SET statement.
 
@@ -10661,7 +10649,7 @@ b. If nonnumeric and associated with a THROUGH phrase, must each be one characte
 
 (12) Literal-6 must not be a figurative constant.
 
-### 4.5.4 General Rules
+#### 4.5.4 General Rules
 
 (1) All clauses specified in the SPECIAL-NAMES paragraph for a program also apply to programs contained within that program. The condition-names specified in the containing program's SPECIAL-NAMES paragraph may be referenced from any contained program.
 
@@ -10803,11 +10791,11 @@ VI-18
 
 Nucleus - Working-Storage Section
 
-### 5.2.3 Record Description Structure
+#### 5.2.3 Record Description Structure
 
 A record description consists of a set of data description entries which describe the characteristics of a particular record. Each data description entry consists of a level-number followed by the data-name or FILLER clause, if specified, followed by a series of independent clauses as required. A record description may have a hierarchical structure and therefore the clauses used within an entry may vary considerably, depending upon whether or not it is followed by subordinate entries. The structure of a record description and the elements allowed in a record description entry are explained on page IV-14, Concept of Levels, and on page VI-20, The Data Description Entry.
 
-### 5.2.4 Initial Values
+#### 5.2.4 Initial Values
 
 The initial value of any data item in the Working-Storage Section except an index data item is specified by associating the VALUE clause with the data item. The initial value of any index data item or any data item not associated with a VALUE clause is undefined.
 
@@ -10817,13 +10805,13 @@ VI-19
 
 Nucleus - Data Description Entry
 
-## 5.3 THE DATA DESCRIPTION ENTRY
+### 5.3 THE DATA DESCRIPTION ENTRY
 
-### 5.3.1 Function
+#### 5.3.1 Function
 
 A data description entry specifies the characteristics of a particular item of data.
 
-### 5.3.2 General Format
+#### 5.3.2 General Format
 
 <u>Format 1</u>:
 
@@ -10898,7 +10886,7 @@ Nucleus - Data Description Entry
 ╚                     ╰ <u>VALUES</u> ARE ╯ ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯     ╝
 </pre>
 
-### 5.3.3 Syntax Rules
+#### 5.3.3 Syntax Rules
 
 (1) Level-number in format 1 may be any number from 01 through 49 or 77.
 
@@ -10908,7 +10896,7 @@ Nucleus - Data Description Entry
 
 (4) The words THRU and THROUGH are equivalent.
 
-### 5.3.4 General Rules
+#### 5.3.4 General Rules
 
 (1) The clauses SYNCHRONIZED, PICTURE, JUSTIFIED, and BLANK WHEN ZERO must not be specified except for an elementary data item.
 
@@ -10930,25 +10918,25 @@ VI-21
 
 Nucleus - BLANK WHEN ZERO
 
-## 5.4 THE BLANK WHEN ZERO CLAUSE
+### 5.4 THE BLANK WHEN ZERO CLAUSE
 
-### 5.4.1 Function
+#### 5.4.1 Function
 
 The BLANK WHEN ZERO clause permits the blanking of an item when its value is zero.
 
-### 5.4.2 General Format
+#### 5.4.2 General Format
 
 <pre style="line-height:1">
 <u>BLANK</u> WHEN <u>ZERO</u>
 </pre>
 
-### 5.4.3 Syntax Rules
+#### 5.4.3 Syntax Rules
 
 (1) The BLANK WHEN ZERO clause can be specified only for an elementary item whose PICTURE is specified as numeric or numeric edited (see page VI-29, The PICTURE Clause).
 
 (2) The numeric or numeric edited data description entry to which the BLANK WHEN ZERO clause applies must be described, either implicitly or explicitly, as USAGE IS DISPLAY.
 
-### 5.4.4 General Rules
+#### 5.4.4 General Rules
 
 (1) When the BLANK WHEN ZERO clause is used, the item will contain nothing but spaces if the value of the item is zero.
 
@@ -10960,13 +10948,13 @@ VI-22
 
 Nucleus - Data-Name or FILLER
 
-## 5.5 THE DATA-NAME OR FILLER CLAUSE
+### 5.5 THE DATA-NAME OR FILLER CLAUSE
 
-### 5.5.1 Function
+#### 5.5.1 Function
 
 A data-name specifies the name of the data item being described. The key word FILLER may be used to specify a data item which is not referenced explicitly.
 
-### 5.5.2 General Format
+#### 5.5.2 General Format
 
 <pre style="line-height:1">
 ┌ data-name-1 ┐
@@ -10974,11 +10962,11 @@ A data-name specifies the name of the data item being described. The key word FI
 └             ┘
 </pre>
 
-### 5.5.3 Syntax Rules
+#### 5.5.3 Syntax Rules
 
 (1) In the File, Working-Storage, Communication, and Linkage Sections, data-name-1 or the key word FILLER, if either is specified, must be the first word following the level-number in each data description entry.
 
-### 5.5.4 General Rules
+#### 5.5.4 General Rules
 
 (1) If this clause is omitted, the data item being described is treated as though FILLER had been specified.
 
@@ -10990,13 +10978,13 @@ VI-23
 
 Nucleus - JUSTIFIED
 
-## 5.6 THE JUSTIFIED CLAUSE
+### 5.6 THE JUSTIFIED CLAUSE
 
-### 5.6.1 Function
+#### 5.6.1 Function
 
 The JUSTIFIED clause permits alternate positioning of data within a receiving data item.
 
-### 5.6.2 General Format
+#### 5.6.2 General Format
 
 <pre style="line-height:1">
 ╭ <u>JUSTIFIED</u> ╮
@@ -11004,7 +10992,7 @@ The JUSTIFIED clause permits alternate positioning of data within a receiving da
 ╰ <u>JUST</u>      ╯
 </pre>
 
-### 5.6.3 Syntax Rules
+#### 5.6.3 Syntax Rules
 
 (1) The JUSTIFIED clause can be specified only at the elementary item level.
 
@@ -11014,7 +11002,7 @@ The JUSTIFIED clause permits alternate positioning of data within a receiving da
 
 (4) The JUSTIFIED clause must not be specified for an index data item.
 
-### 5.6.4 General Rules
+#### 5.6.4 General Rules
 
 (1) When the receiving data item is described with the JUSTIFIED clause and the sending data item is larger than the receiving data item, the leftmost characters are truncated. When the receiving data item is described with the JUSTIFIED clause and it is larger than the sending data item, the data is aligned at the rightmost character position in the data item with space fill for the leftmost character positions.
 
@@ -11026,19 +11014,19 @@ VI-24
 
 Nucleus - Level-Number
 
-5.7 LEVEL-NUMBER
+### 5.7 LEVEL-NUMBER
 
-5.7.1 Function
+#### 5.7.1 Function
 
 The level-number indicates the position of a data item within the hierarchical structure of a logical record. In addition, it is used to identify entries for working storage items, linkage items, ║condition-names, and the RENAMES clause.║
 
-5.7.2 General Format
+#### 5.7.2 General Format
 
 <pre style="line-height:1">
 level-number
 </pre>
 
-5.7.3 Syntax Rules
+#### 5.7.3 Syntax Rules
 
 (1) A level-number is required as the first element in each data description entry.
 
@@ -11046,7 +11034,7 @@ level-number
 
 (3) Data description entries in the Working-Storage Section and Linkage Section must have level-numbers 01 through 49, ║66,║ 77, ║or 88.║
 
-5.7.4 General Rules
+#### 5.7.4 General Rules
 
 (1) The level-number 01 identifies the first entry in each record description.
 
@@ -11066,13 +11054,13 @@ VI-25
 
 Nucleus - OCCURS
 
-# 5.8 THE OCCURS CLAUSE
+### 5.8 THE OCCURS CLAUSE
 
-## 5.8.1 Function
+#### 5.8.1 Function
 
 The OCCURS clause eliminates the need for separate entries for repeated data items and supplies information required for the application of subscripts.
 
-## 5.8.2 General Format
+#### 5.8.2 General Format
 
 <u>Format 1:</u>
 
@@ -11098,7 +11086,7 @@ The OCCURS clause eliminates the need for separate entries for repeated data ite
 ╚ [ <u>INDEXED</u> BY { index-name-1 } … ]                            ╝
 </pre>
 
-## 5.8.3 Syntax Rules
+#### 5.8.3 Syntax Rules
 
 (1) The OCCURS clause must not be specified in a data description entry that:
 
@@ -11138,7 +11126,7 @@ Nucleus - OCCURS
 
 (14) Index-name-1 must be a unique word within the program.
 
-### 5.8.4 General Rules
+#### 5.8.4 General Rules
 
 (1) Except for the OCCURS clause itself, all data description clauses associated with an item whose description includes an OCCURS clause apply to each occurrence of the item described.
 
@@ -11174,13 +11162,13 @@ VI-28
 
 Nucleus - PICTURE
 
-5.9 THE PICTURE CLAUSE
+### 5.9 THE PICTURE CLAUSE
 
-5.9.1 Function
+#### 5.9.1 Function
 
 The PICTURE clause describes the general characteristics and editing requirements of an elementary item.
 
-5.9.2 General Format
+#### 5.9.2 General Format
 
 <pre style="line-height:1">
 ╭ <u>PICTURE</u> ╮
@@ -11188,7 +11176,7 @@ The PICTURE clause describes the general characteristics and editing requirement
 ╰ <u>PIC</u>     ╯
 </pre>
 
-5.9.3 Syntax Rules
+#### 5.9.3 Syntax Rules
 
 (1) A PICTURE clause can be specified only at the elementary item level.
 
@@ -11204,7 +11192,7 @@ The PICTURE clause describes the general characteristics and editing requirement
 
 (7) The asterisk when used as the zero suppression symbol and the clause BLANK WHEN ZERO may not appear in the same entry.
 
-5.9.4 General Rules
+#### 5.9.4 General Rules
 
 (1) There are five categories of data that can be described with a PICTURE clause: alphabetic, numeric, alphanumeric, alphanumeric edited, and numeric edited.
 
@@ -11320,7 +11308,7 @@ Nucleus - PICTURE
 
 character specified in the CURRENCY SIGN clause in the SPECIAL-NAMES paragraph. The currency symbol is counted in the size of the item.
 
-### 5.9.5 Editing Rules
+#### 5.9.5 Editing Rules
 
 (1) There are two general methods of performing editing in the PICTURE clause, either by insertion or by suppression and replacement. There are four types of insertion editing available. They are:
 
@@ -11432,7 +11420,7 @@ If all numeric character positions in the PICTURE character-string are represent
 
 (9) The symbols '+', '-', '\*', 'Z', and the currency symbol, when used as floating replacement characters, are mutually exclusive within a given character-string.
 
-### 5.9.6 Precedence Rules
+#### 5.9.6 Precedence Rules
 
 The chart on page VI-37 shows the order of precedence when using characters as symbols in a character-string. An 'X' at an intersection indicates that the symbol(s) at the top of the column may precede (but not necessarily immediately), in a given character-string, the symbol(s) at the left of the row. Arguments appearing in braces { } indicate that the symbols are mutually exclusive. The currency symbol is indicated by the symbol 'cs'.
 
@@ -11478,13 +11466,13 @@ VI-37
 
 Nucleus - REDEFINES
 
-## 5.10 THE REDEFINES CLAUSE
+### 5.10 THE REDEFINES CLAUSE
 
-### 5.10.1 Function
+#### 5.10.1 Function
 
 The REDEFINES clause allows the same computer storage area to be described by different data description entries.
 
-### 5.10.2 General Format
+#### 5.10.2 General Format
 
 <pre style="line-height:1">
              ┌ data-name-1 ┐
@@ -11494,7 +11482,7 @@ level-number │             │ <u>REDEFINES</u> data-name-2
 
 NOTE: Level-number, data-name-1, and FILLER are shown in the above format to improve clarity. Level-number, data-name-1, and FILLER are not part of the REDEFINES clause.
 
-### 5.10.3 Syntax Rules
+#### 5.10.3 Syntax Rules
 
 (1) The REDEFINES clause, when specified, must immediately follow the subject of the entry.
 
@@ -11528,7 +11516,7 @@ Nucleus - REDEFINES
 
 (12) In level 1, data-name-2 cannot be subordinate to an entry which contains a REDEFINES clause. ║In level 2, data-name-2 may be subordinate to an entry which contains a REDEFINES clause.║
 
-### 5.10.4 General Rules
+#### 5.10.4 General Rules
 
 (1) Storage allocation starts at data-name-2 and continues over a storage area sufficient to contain the number of character positions in the data item referenced by the data-name-1 or FILLER clause.
 
@@ -11540,13 +11528,13 @@ VI-39
 
 Nucleus - RENAMES
 
-## ║5.11 THE RENAMES CLAUSE║
+### ║5.11 THE RENAMES CLAUSE║
 
-### ║5.11.1 Function║
+#### ║5.11.1 Function║
 
 ║The RENAMES clause permits alternative, possibly overlapping, groupings of elementary items.║
 
-### ║5.11.2 General Format║
+#### ║5.11.2 General Format║
 
 <pre style="line-height:1">
 ╔                                    ┌ ╭ <u>THROUGH</u> ╮             ┐   ╗
@@ -11556,7 +11544,7 @@ Nucleus - RENAMES
 
 ║NOTE: Level-number 66 and data-name-1 are shown in the above format to improve clarity. Level-number and data-name-1 are not part of the RENAMES clause.║
 
-### ║5.11.3 Syntax Rules║
+#### ║5.11.3 Syntax Rules║
 
 ║(1) Any number of RENAMES entries may be written for a logical record.║
 
@@ -11580,7 +11568,7 @@ VI-40
 
 Nucleus - RENAMES
 
-## ║5.11.4 General Rules║
+#### ║5.11.4 General Rules║
 
 ║(1) When data-name-3 is specified, data-name-1 is a group item which includes all elementary items starting with data-name-2 (if data-name-2 is an elementary item) or the first elementary item in data-name-2 (if data-name-2 is a group item), and concluding with data-name-3 (if data-name-3 is an elementary item) or the last elementary item in data-name-3 (if data-name-3 is a group item).║
 
@@ -11592,13 +11580,13 @@ VI-41
 
 Nucleus - SIGN
 
-## 5.12 THE SIGN CLAUSE
+### 5.12 THE SIGN CLAUSE
 
-### 5.12.1 Function
+#### 5.12.1 Function
 
 The SIGN clause specifies the position and the mode of representation of the operational sign when it is necessary to describe these properties explicitly.
 
-### 5.12.2 General Format
+#### 5.12.2 General Format
 
 <pre style="line-height:1">
             ╭ <u>LEADING</u>  ╮
@@ -11606,7 +11594,7 @@ The SIGN clause specifies the position and the mode of representation of the ope
             ╰ <u>TRAILING</u> ╯
 </pre>
 
-### 5.12.3 Syntax Rules
+#### 5.12.3 Syntax Rules
 
 (1) The SIGN clause may be specified only for a numeric data description entry whose PICTURE contains the character 'S', or a group item containing at least one such numeric data description entry.
 
@@ -11614,7 +11602,7 @@ The SIGN clause specifies the position and the mode of representation of the ope
 
 (3) If the CODE-SET clause is specified in a file description entry, any signed numeric data description entries associated with that file description entry must be described with the SIGN IS SEPARATE clause.
 
-### 5.12.4 General Rules
+#### 5.12.4 General Rules
 
 (1) The optional SIGN clause, if present, specifies the position and the mode of representation of the operational sign for the numeric data description entry to which it applies, or for each numeric data description entry subordinate to the group to which it applies. The SIGN clause applies only to numeric data description entries whose PICTURE contains the character 'S'; the 'S' indicates the presence of, but neither the representation nor, necessarily, the position of the operational sign.
 
@@ -11654,13 +11642,13 @@ VI-43
 
 Nucleus - SYNCHRONIZED
 
-## 5.13 THE SYNCHRONIZED CLAUSE
+### 5.13 THE SYNCHRONIZED CLAUSE
 
-### 5.13.1 Function
+#### 5.13.1 Function
 
 The SYNCHRONIZED clause specifies the alignment of an elementary item on the natural boundaries of the computer memory (see page IV-17, Item Alignment for Increased Object-Code Efficiency).
 
-### 5.13.2 General Format
+#### 5.13.2 General Format
 
 <pre style="line-height:1">
 ╭ <u>SYNCHRONIZED</u> ╮  ┌ <u>LEFT</u>  ┐
@@ -11668,13 +11656,13 @@ The SYNCHRONIZED clause specifies the alignment of an elementary item on the nat
 ╰ <u>SYNC</u>         ╯  └ <u>RIGHT</u> ┘
 </pre>
 
-### 5.13.3 Syntax Rules
+#### 5.13.3 Syntax Rules
 
 (1) This clause may only appear with an elementary item.
 
 (2) SYNC is an abbreviation for SYNCHRONIZED.
 
-### 5.13.4 General Rules
+#### 5.13.4 General Rules
 
 (1) This clause specifies that the subject data item is to be aligned in the computer such that no other data item occupies any of the character positions between the leftmost and rightmost natural boundaries delimiting this data item. If the number of character positions required to store this data item is less than the number of character positions between those natural boundaries, the unused character positions (or portions thereof) must not be used for any other data item. Such unused character positions, however, are included in:
 
@@ -11789,13 +11777,13 @@ VI-47
 
 Nucleus - VALUE
 
-## 5.15 THE VALUE CLAUSE
+### 5.15 THE VALUE CLAUSE
 
-### 5.15.1 Function
+#### 5.15.1 Function
 
 The VALUE clause defines the initial value of Communication Section and Working-Storage Section data items, ║and the values associated with condition-names.║
 
-### 5.15.2 General Format
+#### 5.15.2 General Format
 
 <u>Format 1</u>:
 
@@ -11811,7 +11799,7 @@ The VALUE clause defines the initial value of Communication Section and Working-
 ╚╰ <u>VALUES</u> ARE ╯ ╰             └ ╰ <u>THRU</u>    ╯           ┘ ╯      ╝
 </pre>
 
-### 5.15.3 Syntax Rules
+#### 5.15.3 Syntax Rules
 
 (1) The words THROUGH and THRU are equivalent.
 
@@ -11821,7 +11809,7 @@ The VALUE clause defines the initial value of Communication Section and Working-
 
 (4) The VALUE clause must not be specified in any entry which is part of the description or redefinition of an external data record. ║The VALUE clause may be specified for condition-name entries associated with such data description entries.║
 
-### 5.15.4 General Rules
+#### 5.15.4 General Rules
 
 (1) The VALUE clause must not conflict with other clauses in the data description of the item or in the data description within the hierarchy of the item. The following rules apply:
 
@@ -11839,13 +11827,13 @@ the size of the data item but have no effect on initialization of the data item 
 
 c. Initialization is not affected by any BLANK WHEN ZERO or JUSTIFIED clause that may be specified.
 
-### ║5.15.5 Condition-Name Rules║
+#### ║5.15.5 Condition-Name Rules║
 
 ║(1) In a condition-name entry, the VALUE clause is required. The VALUE clause and the condition-name itself are the only two clauses permitted in the entry. The characteristics of a condition-name are implicitly those of its conditional variable.║
 
 ║(2) Format 2 can be used only in connection with condition-names (see page IV-7, Condition-Name). Wherever the THRU phrase is used, literal-2 must be less than literal-3.║
 
-### 5.15.6 Data Description Entries Other Than Condition-Names
+#### 5.15.6 Data Description Entries Other Than Condition-Names
 
 (1) Rules governing the use of the VALUE clause differ with the respective sections of the Data Division:
 
@@ -11887,9 +11875,9 @@ VI-50
 
 Nucleus - Arithmetic Expressions
 
-# 6. <u>PROCEDURE DIVISION IN THE NUCLEUS MODULE</u>
+## 6. <u>PROCEDURE DIVISION IN THE NUCLEUS MODULE</u>
 
-## 6.1 GENERAL DESCRIPTION
+### 6.1 GENERAL DESCRIPTION
 
 The Procedure Division contains procedures to be executed by the object program (see page IV-35). The Procedure Division is optional in a COBOL source program.
 
@@ -11912,9 +11900,9 @@ The general formats of the Procedure Division in the Nucleus are shown below.
 [ sentence ] … } …
 </pre>
 
-## ║6.2 ARITHMETIC EXPRESSIONS║
+### ║6.2 ARITHMETIC EXPRESSIONS║
 
-### ║6.2.1 Definition of an Arithmetic Expression║
+#### ║6.2.1 Definition of an Arithmetic Expression║
 
 ║An arithmetic expression can be an identifier of a numeric elementary item, a numeric literal, the figurative constant ZERO (ZEROS, ZEROES), such identifiers, figurative constants, and literals separated by arithmetic operators, two arithmetic expressions separated by an arithmetic operator, or an arithmetic expression enclosed in parentheses. Any arithmetic expression may be preceded by a unary operator. The permissible combinations of identifiers, numeric literals, arithmetic operators, and parentheses are given in table 1, Combination of Symbols in Arithmetic Expressions, on page VI-53.║
 
@@ -11926,7 +11914,7 @@ VI-51
 
 Nucleus - Arithmetic Expressions
 
-### ║6.2.2 Arithmetic Operators║
+#### ║6.2.2 Arithmetic Operators║
 
 ║There are five binary arithmetic operators and two unary arithmetic operators that may be used in arithmetic expressions. They are represented by specific characters that must be preceded by a space and followed by a space.║
 
@@ -11943,7 +11931,7 @@ Nucleus - Arithmetic Expressions
 | ║+ | The effect of multiplication by the numeric literal +1║ |
 | ║- | The effect of multiplication by the numeric literal -1║ |
 
-### ║6.2.3 Formation and Evaluation Rules║
+#### ║6.2.3 Formation and Evaluation Rules║
 
 ║(1) Parentheses may be used in arithmetic expressions to specify the order in which elements are to be evaluated. Expressions within parentheses are evaluated first, and, within nested parentheses, evaluation proceeds from the least inclusive set to the most inclusive set. When parentheses are not used, or parenthesized expressions are at the same level of inclusiveness, the following hierarchical order of execution is implied:║
 
@@ -12009,15 +11997,15 @@ VI-53
 
 Nucleus - Conditional Expressions
 
-## 6.3 CONDITIONAL EXPRESSIONS
+### 6.3 CONDITIONAL EXPRESSIONS
 
 Conditional expressions identify conditions that are tested to enable the object program to select between alternate paths of control depending upon the truth value of the condition. A conditional expression has a truth value represented by either true or false. Conditional expressions are specified in the ║EVALUATE,║ IF, PERFORM, ║and SEARCH║ statements. There are two categories of conditions associated with conditional expressions: simple conditions ║and complex conditions.║ Each may be enclosed within any number of paired parentheses, in which case its category is not changed.
 
-### 6.3.1 Simple Conditions
+#### 6.3.1 Simple Conditions
 
 The simple conditions are the relation, class, ║condition-name,║ switch-status, ║and sign║ conditions. A simple condition has a truth value of true or false. The inclusion in parentheses of simple conditions does not change the simple condition truth value.
 
-#### 6.3.1.1 Relation Condition
+##### 6.3.1.1 Relation Condition
 
 A relation condition causes a comparison of two operands, each of which may be the data item referenced by an identifier, a literal, ║the value resulting from an arithmetic expression,║ or an index-name. A relation condition has a truth value of true if the relation exists between the operands. Comparison of two numeric operands is permitted regardless of the formats specified in their respective USAGE clauses. However, for all other comparisons, the operands must have the same usage. If either of the operands is a group item, the nonnumeric comparison rules apply.
 
@@ -12056,13 +12044,13 @@ executed for truth value. The following relational operators are equivalent: IS 
 | Greater than or equal to | IS <u>GREATER</u> THAN <u>OR</u> <u>EQUAL</u> TO<br>IS &gt;= |
 | Less than or equal to | IS <u>LESS</u> THAN <u>OR</u> <u>EQUAL</u> TO<br>IS &lt;= |
 
-### 6.3.1.1.1 Comparison of Numeric Operands
+###### 6.3.1.1.1 Comparison of Numeric Operands
 
 For operands whose class is numeric, a comparison is made with respect to the algebraic value of the operands. The length of the literal ║or arithmetic expression║ operands, in terms of the number of digits represented, is not significant. Zero is considered a unique value regardless of the sign.
 
 Comparison of these operands is permitted regardless of the manner in which their usage is described. Unsigned numeric operands are considered positive for purposes of comparison.
 
-### 6.3.1.1.2 Comparison of Nonnumeric Operands
+###### 6.3.1.1.2 Comparison of Nonnumeric Operands
 
 For nonnumeric operands, or one numeric and one nonnumeric operand, a comparison is made with respect to a specified collating sequence of characters. (See page VI-11, The OBJECT-COMPUTER Paragraph.) If one of the operands is specified as numeric, it must be an integer data item or an integer literal and:
 
@@ -12088,7 +12076,7 @@ The first encountered pair of unequal characters is compared to determine their 
 
 (2) Operands of unequal size. If the operands are of unequal size, comparison proceeds as though the shorter operand were extended on the right by sufficient spaces to make the operands of equal size.
 
-### 6.3.1.1.3 Comparisons Involving Index-Names and/or Index Data Items
+###### 6.3.1.1.3 Comparisons Involving Index-Names and/or Index Data Items
 
 Relation tests may be made only between:
 
@@ -12100,7 +12088,7 @@ Relation tests may be made only between:
 
 (3) An index data item and an index-name or another index data item. The actual values are compared without conversion.
 
-### 6.3.1.2 Class Condition
+##### 6.3.1.2 Class Condition
 
 The class condition determines whether an operand is numeric, alphabetic, alphabetic-lower, alphabetic-upper, or contains only the characters in the set of characters specified by the CLASS clause as defined in the SPECIAL-NAMES paragraph of the Environment Division. The class of an operand is determined as follows:
 
@@ -12158,7 +12146,7 @@ VI-57
 
 Nucleus - Condition-Name Condition
 
-#### ║6.3.1.3 Condition-Name Condition (Conditional Variable)║
+##### ║6.3.1.3 Condition-Name Condition (Conditional Variable)║
 
 ║In a condition-name condition, a conditional variable is tested to determine whether or not its value is equal to one of the values associated with condition-name-1. The general format for the condition-name condition is as follows:║
 
@@ -12172,7 +12160,7 @@ condition-name-1
 
 ║The result of the test is true if one of the values corresponding to condition-name-1 equals the value of its associated conditional variable.║
 
-#### 6.3.1.4 Switch-Status Condition
+##### 6.3.1.4 Switch-Status Condition
 
 A switch-status condition determines the on or off status of an implementor-defined switch. The implementor-name and the on or off value associated with the condition must be named in the SPECIAL-NAMES paragraph of the Environment Division. The general format for the switch-status condition is as follows:
 
@@ -12182,7 +12170,7 @@ condition-name-1
 
 The result of the test is true if the switch is set to the specified position corresponding to condition-name-1.
 
-#### ║6.3.1.5 Sign Condition║
+##### ║6.3.1.5 Sign Condition║
 
 ║The sign condition determines whether or not the algebraic value of an arithmetic expression is less than, greater than, or equal to zero. The general format for a sign condition is as follows:║
 
@@ -12202,7 +12190,7 @@ VI-58
 
 Nucleus - Complex Conditions
 
-### ║6.3.2 Complex Conditions║
+#### ║6.3.2 Complex Conditions║
 
 ║A complex condition is formed by combining simple conditions and/or complex conditions with logical connectors (logical operators 'AND' and 'OR') or by negating these conditions with logical negation (the logical operator 'NOT'). The truth value of a complex condition, whether parenthesized or not, is that truth value which results from the interaction of the stated logical operators on its constituent conditions.║
 
@@ -12216,7 +12204,7 @@ Nucleus - Complex Conditions
 
 ║The logical operators must be preceded by a space and followed by a space.║
 
-#### ║6.3.2.1 Negated Conditions║
+##### ║6.3.2.1 Negated Conditions║
 
 ║A condition is negated by use of the logical operator 'NOT' which reverses the truth value of the condition to which it is applied. Thus, the truth value of a negated condition is true if and only if the truth value of the condition being negated is false; the truth value of a negated condition is false if and only if the truth value of the condition being negated is true. Including a negated condition in parentheses does not change its truth value.║
 
@@ -12226,7 +12214,7 @@ Nucleus - Complex Conditions
 ║ <u>NOT</u> condition-1 ║
 </pre>
 
-#### ║6.3.2.2 Combined Conditions║
+##### ║6.3.2.2 Combined Conditions║
 
 ║A combined condition results from connecting conditions with one of the logical operators 'AND' or 'OR'. The general format of a combined condition is:║
 
@@ -12242,7 +12230,7 @@ VI-59
 
 Nucleus - Abbreviated Combined Relation Conditions
 
-### ║6.3.2.3 Precedence of Logical Operators and the Use of Parentheses║
+##### ║6.3.2.3 Precedence of Logical Operators and the Use of Parentheses║
 
 ║In the absence of the relevant parentheses in a complex condition, the precedence (i.e., binding power) of the logical operators determines the conditions to which the specified logical operators apply and implies the equivalent parentheses. The order of precedence is 'NOT', 'AND', 'OR'. Thus, specifying 'condition-1 OR NOT condition-2 AND condition-3' implies and is equivalent to specifying 'condition-1 OR ((NOT condition-2) AND condition-3)'.║
 
@@ -12262,7 +12250,7 @@ Nucleus - Abbreviated Combined Relation Conditions
 
 ║Thus, the element pair 'OR NOT' is permissible while the pair 'NOT OR' is not permissible; the pair 'NOT (' is permissible while the pair 'NOT NOT' is not permissible.║
 
-### ║6.3.3 Abbreviated Combined Relation Conditions║
+#### ║6.3.3 Abbreviated Combined Relation Conditions║
 
 ║When simple or negated simple relation conditions are combined with logical connectives in a consecutive sequence such that a succeeding relation condition contains a subject or subject and relational operator that is common with the preceding relation condition, and no parentheses are used within such a consecutive sequence, any relation condition except the first may be abbreviated by:║
 
@@ -12302,7 +12290,7 @@ Nucleus - Order of Evaluation of Conditions
 | ║NOT (a GREATER b OR &lt; c) | NOT ((a GREATER b) OR (a &lt; c))║ |
 | ║NOT (a NOT &gt; b AND c AND NOT d) | NOT ((((a NOT &gt; b) AND (a NOT &gt; c))<br>AND (NOT (a NOT &gt; d))))║ |
 
-### ║6.3.4 Order of Evaluation of Conditions║
+#### ║6.3.4 Order of Evaluation of Conditions║
 
 ║Parentheses, both explicit and implicit, denote a level of inclusiveness within a complex condition. Two or more conditions connected by only the logical operator 'AND' or only the logical operator 'OR' at the same level of inclusiveness establish a hierarchical level within a complex condition. Thus, an entire complex condition may be considered to be a nested structure of hierarchical levels with the entire complex condition itself being the most║
 
@@ -12488,17 +12476,17 @@ VI-66
 
 Nucleus - Options and Rules for Statements
 
-## 6.4 COMMON OPTIONS AND RULES FOR STATEMENTS
+### 6.4 COMMON OPTIONS AND RULES FOR STATEMENTS
 
 Paragraph 6.4 and its subordinate paragraphs provide a description of the common options and conditions that pertain to or appear in several different statements.
 
-### 6.4.1 The ROUNDED Phrase
+#### 6.4.1 The ROUNDED Phrase
 
 If, after decimal point alignment, the number of places in the fractions of the result of an arithmetic operation is greater than the number of places provided for the fraction of the resultant identifier, truncation is relative to the size provided for the resultant identifier. When rounding is requested, the absolute value of the resultant identifier is increased by one in the low-order position whenever the most significant digit of the excess is greater than or equal to five.
 
 When the low-order integer positions in a resultant identifier are represented by the character P in the PICTURE for that resultant identifier, rounding or truncation occurs relative to the rightmost integer position for which storage is allocated.
 
-### 6.4.2 The ON SIZE ERROR Phrase
+#### 6.4.2 The ON SIZE ERROR Phrase
 
 The size error condition occurs under the following circumstances:
 
@@ -12522,7 +12510,7 @@ If the size error condition does not exist after the execution of the arithmetic
 
 ║For the ADD statement with the CORRESPONDING phrase and the SUBTRACT statement with the CORRESPONDING phrase, if any of the individual operations produces a size error condition, imperative-statement-1 in the ON SIZE ERROR phrase is not executed until all of the individual additions or subtractions are completed.║
 
-### ║6.4.3 The CORRESPONDING Phrase║
+#### ║6.4.3 The CORRESPONDING Phrase║
 
 ║For the purpose of this discussion, D1 and D2 must each be identifiers that refer to group items. A pair of data items, one from D1 and one from D2 correspond if the following conditions exist:║
 
@@ -12544,7 +12532,7 @@ VI-68
 
 Nucleus - Options and Rules for Statements
 
-### 6.4.4 The Arithmetic Statements
+#### 6.4.4 The Arithmetic Statements
 
 The arithmetic statements are the ADD, ║COMPUTE,║ DIVIDE, MULTIPLY, and SUBTRACT statements. They have several common features.
 
@@ -12552,11 +12540,11 @@ The arithmetic statements are the ADD, ║COMPUTE,║ DIVIDE, MULTIPLY, and SUBT
 
 (2) The maximum size of each operand is 18 decimal digits. The composite of operands, which is a hypothetical data item resulting from the superimposition of specified operands in a statement aligned on their decimal points (see page VI-73, The ADD Statement; page VI-80, The DIVIDE Statement; page VI-107, The MULTIPLY Statement; and page VI-134, The SUBTRACT Statement), must not contain more than 18 decimal digits.
 
-### 6.4.5 Overlapping Operands
+#### 6.4.5 Overlapping Operands
 
 When a sending and a receiving item in any statement share a part or all of their storage areas, yet are not defined by the same data description entry, the result of the execution of such a statement is undefined. In addition, the results are undefined for some statements in which sending and receiving items are defined by the same data description entry. These cases are addressed in the general rules associated with those statements.
 
-### 6.4.6 Multiple Results in Arithmetic Statements
+#### 6.4.6 Multiple Results in Arithmetic Statements
 
 The ADD, ║COMPUTE,║ DIVIDE, MULTIPLY, and SUBTRACT statements may have multiple results. Such statements behave as though they had been written in the following way:
 
@@ -12601,7 +12589,7 @@ MULTIPLY temp BY a (i)
 
 in both cases, 'temp' is an intermediate result item provided by the implementor.
 
-### 6.4.7 Incompatible Data
+#### 6.4.7 Incompatible Data
 
 Except for the class condition, when the content of a data item is referenced in the Procedure Division and the content of that data item is not compatible with the class specified for that data item by its PICTURE clause or function definition, then the result of such a reference is undefined. (See page VI-56, Class Condition.)
 
@@ -12613,13 +12601,13 @@ VI-70
 
 Nucleus - ACCEPT
 
-## 6.5 THE ACCEPT STATEMENT
+### 6.5 THE ACCEPT STATEMENT
 
-### 6.5.1 Function
+#### 6.5.1 Function
 
 The ACCEPT statement causes low volume data to be made available to the specified data item.
 
-### 6.5.2 General Format
+#### 6.5.2 General Format
 
 <u>Format 1</u>:
 
@@ -12639,11 +12627,11 @@ The ACCEPT statement causes low volume data to be made available to the specifie
 ╚                          ╰ <u>TIME</u>        ╯ ╝
 </pre>
 
-### 6.5.3 Syntax Rules
+#### 6.5.3 Syntax Rules
 
 ║(1) Mnemonic-name-1 in format 1 must also be specified in the SPECIAL-NAMES paragraph of the Environment Division and must be associated with a hardware device.║
 
-### 6.5.4 General Rules
+#### 6.5.4 General Rules
 
 <u>FORMAT 1</u>:
 
@@ -12685,13 +12673,13 @@ VI-72
 
 Nucleus - ADD
 
-## 6.6 THE ADD STATEMENT
+### 6.6 THE ADD STATEMENT
 
-### 6.6.1 Function
+#### 6.6.1 Function
 
 The ADD statement causes two or more numeric operands to be summed and the result to be stored.
 
-### 6.6.2 General Format
+#### 6.6.2 General Format
 
 <u>Format 1</u>:
 
@@ -12730,7 +12718,7 @@ The ADD statement causes two or more numeric operands to be summed and the resul
 ╚ [ <u>END-ADD</u> ]                                                    ╝
 </pre>
 
-### 6.6.3 Syntax Rules
+#### 6.6.3 Syntax Rules
 
 (1) In formats 1 and 2, each identifier must refer to an elementary numeric item, except that in format 2 each identifier following the word GIVING must refer to either an elementary numeric item or an elementary numeric edited item. ║In format 3, each identifier must refer to a group item.║
 
@@ -12752,7 +12740,7 @@ b. In format 2 the composite of operands is determined by using all of the opera
 
 ║(4) CORR is an abbreviation for CORRESPONDING.║
 
-### 6.6.4 General Rules
+#### 6.6.4 General Rules
 
 (1) If format 1 is used, the values of the operands preceding the word TO are added together and the sum is stored in a temporary data item. The value in this temporary data item is added to the value of the data item referenced by identifier-2, storing the result into the data item referenced by identifier-2, and repeating this process for each successive occurrence of identifier-2 in the left-to-right order in which identifier-2 is specified.
 
@@ -12802,13 +12790,13 @@ VI-75
 
 Nucleus - COMPUTE
 
-## ║6.8 THE COMPUTE STATEMENT║
+### ║6.8 THE COMPUTE STATEMENT║
 
-### ║6.8.1 Function║
+#### ║6.8.1 Function║
 
 ║The COMPUTE statement assigns to one or more data items the value of an arithmetic expression.║
 
-### ║6.8.2 General Format║
+#### ║6.8.2 General Format║
 
 <pre style="line-height:1">
 ╔<u>COMPUTE</u> {identifier-1 [<u>ROUNDED</u>]} …    =  arithmetic-expression-1 ╗
@@ -12820,11 +12808,11 @@ Nucleus - COMPUTE
 ╚   [<u>END-COMPUTE</u>]                                                 ╝
 </pre>
 
-### ║6.8.3 Syntax Rules║
+#### ║6.8.3 Syntax Rules║
 
 ║(1) Identifier-1 must reference either an elementary numeric item or an elementary numeric edited item.║
 
-### ║6.8.4 General Rules║
+#### ║6.8.4 General Rules║
 
 ║(1) An arithmetic expression consisting of a single identifier or literal provides a method of setting the value of the data item referenced by identifier-1 equal to the literal or the value of the data item referenced by the single identifier.║
 
@@ -12842,23 +12830,23 @@ VI-76
 
 Nucleus - CONTINUE
 
-## 6.9 THE CONTINUE STATEMENT
+### 6.9 THE CONTINUE STATEMENT
 
-### 6.9.1 Function
+#### 6.9.1 Function
 
 The CONTINUE statement is a no operation statement. It indicates that no executable statement is present.
 
-### 6.9.2 General Format
+#### 6.9.2 General Format
 
 <pre style="line-height:1">
 <u>CONTINUE</u>
 </pre>
 
-### 6.9.3 Syntax Rules
+#### 6.9.3 Syntax Rules
 
 (1) The CONTINUE statement may be used anywhere a conditional statement or an imperative-statement may be used.
 
-### 6.9.4 General Rules
+#### 6.9.4 General Rules
 
 (1) The CONTINUE statement has no effect on the execution of the program.
 
@@ -12868,13 +12856,13 @@ VI-77
 
 Nucleus - DISPLAY
 
-## 6.10 THE DISPLAY STATEMENT
+### 6.10 THE DISPLAY STATEMENT
 
-### 6.10.1 Function
+#### 6.10.1 Function
 
 The DISPLAY statement causes low volume data to be transferred to an appropriate hardware device.
 
-### 6.10.2 General Format
+#### 6.10.2 General Format
 
 <pre style="line-height:1">
         ╭ identifier-1 ╮
@@ -12882,13 +12870,13 @@ The DISPLAY statement causes low volume data to be transferred to an appropriate
         ╰ literal-1    ╯
 </pre>
 
-### 6.10.3 Syntax Rules
+#### 6.10.3 Syntax Rules
 
 ║(1) Mnemonic-name-1 is associated with a hardware device in the SPECIAL-NAMES paragraph in the Environment Division.║
 
 (2) If literal-1 is numeric, then it must be an unsigned integer.
 
-### 6.10.4 General Rules
+#### 6.10.4 General Rules
 
 (1) The DISPLAY statement causes the content of each operand to be transferred to the hardware device in the order listed. Any conversion of data required between literal-1 or the data item referenced by identifier-1 and the hardware device is defined by the implementor.
 
@@ -13017,7 +13005,7 @@ Nucleus - DIVIDE
 ╚    [<u>END-DIVIDE</u>]                                                      ╝
 </pre>
 
-### 6.11.3 Syntax Rules
+#### 6.11.3 Syntax Rules
 
 (1) Each identifier must refer to an elementary numeric item, except that any identifier associated with the GIVING ║or REMAINDER║ phrase must refer to either an elementary numeric item or an elementary numeric edited item.
 
@@ -13025,7 +13013,7 @@ Nucleus - DIVIDE
 
 (3) The composite of operands, which is the hypothetical data item resulting from the superimposition of all receiving data items (except the REMAINDER data item) of a given statement aligned on their decimal points, must not contain more than 18 digits.
 
-### 6.11.4 General Rules
+#### 6.11.4 General Rules
 
 (1) When format 1 is used, literal-1 or the value of the data item referenced by identifier-1 is stored in a temporary data item. The value in this temporary data item is then divided into the value of the data item referenced by identifier-2. The value of the dividend (the value of the data item referenced by identifier-2) is replaced by this quotient; similarly, the temporary data item is divided into each successive occurrence of identifier-2 in the left-to-right order in which identifier-2 is specified.
 
@@ -13095,13 +13083,13 @@ VI-83
 
 Nucleus - EVALUATE
 
-## ║6.13 THE EVALUATE STATEMENT║
+### ║6.13 THE EVALUATE STATEMENT║
 
-### ║6.13.1 Function║
+#### ║6.13.1 Function║
 
 ║The EVALUATE statement describes a multi-branch, multi-join structure. It can cause multiple conditions to be evaluated. The subsequent action of the object program depends on the results of these evaluations.║
 
-### ║6.13.2 General Format║
+#### ║6.13.2 General Format║
 
 <pre style="line-height:1">
 ╔            ╭identifier-1╮ ┌      ╭identifier-2╮ ┐                                             ╗
@@ -13139,7 +13127,7 @@ Nucleus - EVALUATE
 ╚  [<u>END-EVALUATE</u>]                                                                               ╝
 </pre>
 
-### ║6.13.3 Syntax Rules║
+#### ║6.13.3 Syntax Rules║
 
 ║(1) The operands or the words TRUE and FALSE which appear before the first WHEN phrase of the EVALUATE statement are referred to individually as selection subjects and collectively, for all those specified, as the set of selection subjects.║
 
@@ -13165,7 +13153,7 @@ Nucleus - EVALUATE
 
 ║c. The word ANY may correspond to a selection subject of any type.║
 
-### ║6.13.4 General Rules║
+#### ║6.13.4 General Rules║
 
 ║(1) The execution of the EVALUATE statement operates as if each selection subject and selection object were evaluated and assigned a numeric or nonnumeric value, a range of numeric or nonnumeric values, or a truth value. These values are determined as follows:║
 
@@ -13227,23 +13215,23 @@ VI-87
 
 Nucleus - EXIT
 
-## 6.14 THE EXIT STATEMENT
+### 6.14 THE EXIT STATEMENT
 
-### 6.14.1 Function
+#### 6.14.1 Function
 
 The EXIT statement provides a common end point for a series of procedures.
 
-### 6.14.2 General Format
+#### 6.14.2 General Format
 
 <pre style="line-height:1">
 <u>EXIT</u>
 </pre>
 
-### 6.14.3 Syntax Rules
+#### 6.14.3 Syntax Rules
 
 (1) The EXIT statement must appear only in a sentence by itself and comprise the only sentence in the paragraph.
 
-### 6.14.4 General Rules
+#### 6.14.4 General Rules
 
 (1) An EXIT statement serves only to enable the user to assign a procedure-name to a given point in a program. Such an EXIT statement has no other effect on the compilation or execution of the program.
 
@@ -13253,13 +13241,13 @@ VI-88
 
 Nucleus - GO TO
 
-## 6.15 THE GO TO STATEMENT
+### 6.15 THE GO TO STATEMENT
 
-### 6.15.1 Function
+#### 6.15.1 Function
 
 The GO TO statement causes control to be transferred from one part of the Procedure Division to another. The optionality of procedure-name-1 in format 1 of the GO TO statement is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
 
-### 6.15.2 General Format
+#### 6.15.2 General Format
 
 <u>Format 1</u>:
 
@@ -13273,7 +13261,7 @@ The GO TO statement causes control to be transferred from one part of the Proced
 <u>GO</u> TO { procedure-name-1 } … <u>DEPENDING</u> ON identifier-1
 </pre>
 
-### 6.15.3 Syntax Rules
+#### 6.15.3 Syntax Rules
 
 (1) Identifier-1 must reference a numeric elementary data item which is an integer.
 
@@ -13283,7 +13271,7 @@ The GO TO statement causes control to be transferred from one part of the Proced
 
 (4) If a GO TO statement represented by format 1 appears in a consecutive sequence of imperative statements within a sentence, it must appear as the last statement in that sequence.
 
-### 6.15.4 General Rules
+#### 6.15.4 General Rules
 
 (1) When a GO TO statement represented by format 1 is executed, control is transferred to procedure-name-1.
 
@@ -13297,13 +13285,13 @@ VI-89
 
 Nucleus - IF
 
-## 6.16 THE IF STATEMENT
+### 6.16 THE IF STATEMENT
 
-### 6.16.1 Function
+#### 6.16.1 Function
 
 The IF statement causes a condition (see page VI-54, Conditional Expressions) to be evaluated. The subsequent action of the object program depends on whether the value of the condition is true or false.
 
-### 6.16.2 General Format
+#### 6.16.2 General Format
 
 <pre style="line-height:1">
                     ╭ statement-1       ╮ ╭ <u>ELSE</u> statement-2         [<u>END-IF</u>] ╮
@@ -13314,7 +13302,7 @@ The IF statement causes a condition (see page VI-54, Conditional Expressions) to
 
 > ⚠ **CORRECTED — see the Errata (C220).** The standard prints `IF condition-1 THEN { {statement-1} ... | NEXT SENTENCE } { ELSE {statement-2} ... [END-IF] | ... }` (page 322, folio VI-90). Amendment 2 (ANSI X3.23b-1993), its change for page VI-90 (page 921, folio B-9), applied in place: "Paragraph 6.16.2, general format of the IF statement, delete the braces surrounding statement-1; delete the ellipsis following statement-1; delete the braces surrounding statement-2; delete the ellipsis following statement-2" (kb/Work PB5045). Corrected to `IF condition-1 THEN { statement-1 | NEXT SENTENCE } { ELSE statement-2 [END-IF] | ... }`.
 
-### 6.16.3 Syntax Rules
+#### 6.16.3 Syntax Rules
 
 (1) Statement-1 and statement-2 represent ║either║ an imperative statement ║or a conditional statement optionally preceded by an imperative statement.║ A further description of the rules governing statement-1 and statement-2 is given elsewhere. (See page IV-40, Scope of Statements.)
 
@@ -13322,7 +13310,7 @@ The IF statement causes a condition (see page VI-54, Conditional Expressions) to
 
 (3) If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified.
 
-### 6.16.4 General Rules
+#### 6.16.4 General Rules
 
 (1) The scope of the IF statement may be terminated by any of the following:
 
@@ -13368,13 +13356,13 @@ VI-91
 
 Nucleus - INITIALIZE
 
-## ║6.17 THE INITIALIZE STATEMENT║
+### ║6.17 THE INITIALIZE STATEMENT║
 
-### ║6.17.1 Function║
+#### ║6.17.1 Function║
 
 ║The INITIALIZE statement provides the ability to set selected types of data fields to predetermined values, e.g., numeric data to zeros or alphanumeric data to spaces.║
 
-### ║6.17.2 General Format║
+#### ║6.17.2 General Format║
 
 <pre style="line-height:1">
 ╔<u>INITIALIZE</u> {identifier-1} …                                            ╗
@@ -13386,7 +13374,7 @@ Nucleus - INITIALIZE
 ╚  └           ╰ ╰ <u>NUMERIC-EDITED</u>      ╯                          ╯   ┘ ╝
 </pre>
 
-### ║6.17.3 Syntax Rules║
+#### ║6.17.3 Syntax Rules║
 
 ║(1) Literal-1 and the data item referenced by identifier-2 represent the sending area; the data item referenced by identifier-1 represents the receiving area.║
 
@@ -13400,7 +13388,7 @@ Nucleus - INITIALIZE
 
 ║(6) The data description entry for the data item referenced by identifier-1 must not contain a RENAMES clause.║
 
-### ║6.17.4 General Rules║
+#### ║6.17.4 General Rules║
 
 ║(1) The key word following the word REPLACING corresponds to a category of data as defined elsewhere in this document. (See page IV-15, Concept of Classes of Data.)║
 
@@ -13511,7 +13499,7 @@ Nucleus - INSPECT
 ╚    └ ╰ <u>AFTER</u>  ╯         ╰ literal-2    ╯ ┘                            ╝
 </pre>
 
-6.18.3 Syntax Rules
+#### 6.18.3 Syntax Rules
 
 <u>ALL FORMATS</u>:
 
@@ -13549,7 +13537,7 @@ Nucleus - INSPECT
 
 ║(10) The same character must not appear more than once either in literal-4 or in the data item referenced by identifier-6.║
 
-### 6.18.4 General Rules
+#### 6.18.4 General Rules
 
 <u>ALL FORMATS</u>:
 
@@ -13717,7 +13705,7 @@ Nucleus - INSPECT
 
 > ⚠ **CORRECTED — see the Errata (C229).** The standard prints `general rules (17) to (17) as printed` (page 332, folio VI-100). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045). Corrected to `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19`.
 
-### 6.18.5 Examples
+#### 6.18.5 Examples
 
 In each of the following examples of the INSPECT statement, COUNT-n is assumed to be zero immediately prior to execution of the statement. The results shown for each example, except the last, are the result of executing the two successive INSPECT statements shown above them.
 
@@ -13850,13 +13838,13 @@ VI-102
 
 Nucleus - MOVE
 
-## 6.19 THE MOVE STATEMENT
+### 6.19 THE MOVE STATEMENT
 
-### 6.19.1 Function
+#### 6.19.1 Function
 
 The MOVE statement transfers data, in accordance with the rules of editing, to one or more data areas.
 
-### 6.19.2 General Format
+#### 6.19.2 General Format
 
 <u>Format 1</u>:
 
@@ -13874,7 +13862,7 @@ The MOVE statement transfers data, in accordance with the rules of editing, to o
 ╚      ╰ <u>CORR</u>          ╯                              ╝
 </pre>
 
-### 6.19.3 Syntax Rules
+#### 6.19.3 Syntax Rules
 
 (1) Literal-1 or the data item referenced by identifier-1 represents the sending area. The data item referenced by identifier-2 represents the receiving area.
 
@@ -13884,7 +13872,7 @@ The MOVE statement transfers data, in accordance with the rules of editing, to o
 
 (4) An index data item must not appear as an operand of a MOVE statement.
 
-### 6.19.4 General Rules
+#### 6.19.4 General Rules
 
 ║(1) If the CORRESPONDING phrase is used, selected items within identifier-1 are moved to selected items within identifier-2, according to the rules specified under the appropriate paragraph. (See page VI-68, The CORRESPONDING Phrase.) The results are the same as if the user had referred to each pair of corresponding identifiers in separate MOVE statements.║
 
@@ -13985,13 +13973,13 @@ VI-106
 
 Nucleus - MULTIPLY
 
-## 6.20 THE MULTIPLY STATEMENT
+### 6.20 THE MULTIPLY STATEMENT
 
-### 6.20.1 Function
+#### 6.20.1 Function
 
 The MULTIPLY statement causes numeric data items to be multiplied and sets the values of data items equal to the results.
 
-### 6.20.2 General Format
+#### 6.20.2 General Format
 
 <u>Format 1</u>:
 
@@ -14018,7 +14006,7 @@ The MULTIPLY statement causes numeric data items to be multiplied and sets the v
 [ <u>END-MULTIPLY</u> ]
 </pre>
 
-### 6.20.3 Syntax Rules
+#### 6.20.3 Syntax Rules
 
 (1) Each identifier must refer to a numeric elementary item, except that in format 2 each identifier following the word GIVING must refer to either an elementary numeric item or an elementary numeric edited item.
 
@@ -14026,7 +14014,7 @@ The MULTIPLY statement causes numeric data items to be multiplied and sets the v
 
 (3) The composite of operands, which is the hypothetical data item resulting from the superimposition of all receiving data items of a given statement aligned on their decimal points, must not contain more than 18 digits.
 
-### 6.20.4 General Rules
+#### 6.20.4 General Rules
 
 (1) When format 1 is used, literal-1 or the value of the data item referenced by identifier-1 is stored in a temporary data item. The value in this temporary data item is then multiplied by the value of the data item referenced by identifier-2. The value of the multiplier (the value of the data item referenced by identifier-2) is replaced by this product; similarly, the
 
@@ -14048,13 +14036,13 @@ VI-108
 
 Nucleus - PERFORM
 
-## 6.21 THE PERFORM STATEMENT
+### 6.21 THE PERFORM STATEMENT
 
-### 6.21.1 Function
+#### 6.21.1 Function
 
 The PERFORM statement is used to transfer control explicitly to one or more procedures and to return control implicitly whenever execution of the specified procedure is complete. The PERFORM statement is also used to control execution of one or more imperative statements which are within the scope of that PERFORM statement.
 
-### 6.21.2 General Format
+#### 6.21.2 General Format
 
 <u>Format 1</u>:
 
@@ -14130,7 +14118,7 @@ Nucleus - PERFORM
 ╚   [imperative-statement-1 <u>END-PERFORM</u>]                   ╝
 </pre>
 
-### 6.21.3 Syntax Rules
+#### 6.21.3 Syntax Rules
 
 (1) If procedure-name-1 is omitted, imperative-statement-1 and the END-PERFORM phrase must be specified; if procedure-name-1 is specified, imperative-statement-1 and the END-PERFORM phrase must not be specified.
 
@@ -14174,7 +14162,7 @@ Nucleus - PERFORM
 
 ║(12) At least six AFTER phrases must be permitted in format 4 of the PERFORM statement.║
 
-### 6.21.4 General Rules
+#### 6.21.4 General Rules
 
 ║(1) The data items referenced by identifier-4 and identifier-7 must not have a zero value.║
 
@@ -14480,13 +14468,13 @@ VI-121
 
 Nucleus - SEARCH
 
-# ║6.22 THE SEARCH STATEMENT║
+### ║6.22 THE SEARCH STATEMENT║
 
-## ║6.22.1 Function║
+#### ║6.22.1 Function║
 
 ║The SEARCH statement is used to search a table for a table element that satisfies the specified condition and to adjust the value of the associated index to indicate that table element.║
 
-## ║6.22.2 General Format║
+#### ║6.22.2 General Format║
 
 ║<u>Format 1</u>:║
 
@@ -14534,7 +14522,7 @@ VI-122
 
 Nucleus - SEARCH
 
-### ║6.22.3 Syntax Rules║
+#### ║6.22.3 Syntax Rules║
 
 ║(1) In both formats 1 and 2, identifier-1 must not be subscripted or reference modified, but its description must contain an OCCURS clause including an INDEXED BY phrase. The description of identifier-1 in format 2 must also contain the KEY IS phrase in its OCCURS clause.║
 
@@ -14548,7 +14536,7 @@ Nucleus - SEARCH
 
 ║(5) If the END-SEARCH phrase is specified, the NEXT SENTENCE phrase must not be specified.║
 
-### ║6.22.4 General Rules║
+#### ║6.22.4 General Rules║
 
 ║(1) The scope of a SEARCH statement may be terminated by any of the following:║
 
@@ -14640,9 +14628,9 @@ VI-126
 
 Nucleus - SET
 
-# 6.23 THE SET STATEMENT
+### 6.23 THE SET STATEMENT
 
-## 6.23.1 Function
+#### 6.23.1 Function
 
 (1) The SET statement establishes reference points for table handling operations by setting indices associated with table elements.
 
@@ -14650,7 +14638,7 @@ Nucleus - SET
 
 ║(3) The SET statement is also used to alter the value of conditional variables.║
 
-## 6.23.2 General Format
+#### 6.23.2 General Format
 
 <u>Format 1</u>:
 
@@ -14684,7 +14672,7 @@ Nucleus - SET
 ║ <u>SET</u> { condition-name-1 } … <u>TO</u> <u>TRUE</u> ║
 </pre>
 
-## 6.23.3 Syntax Rules
+#### 6.23.3 Syntax Rules
 
 (1) All references to index-name-1, identifier-1, and index-name-3 apply equally to all recursions thereof.
 
@@ -14704,7 +14692,7 @@ VI-127
 
 Nucleus - SET
 
-### 6.23.4 General Rules
+#### 6.23.4 General Rules
 
 <u>FORMATS 1 AND 2</u>:
 
@@ -14779,13 +14767,13 @@ VI-129
 
 Nucleus - STOP
 
-## 6.24 THE STOP STATEMENT
+### 6.24 THE STOP STATEMENT
 
-### 6.24.1 Function
+#### 6.24.1 Function
 
 The STOP statement causes a permanent or temporary suspension of the execution of the run unit. The literal variation of the STOP statement is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
 
-### 6.24.2 General Format
+#### 6.24.2 General Format
 
 <pre style="line-height:1">
 <u>STOP</u> ╭ <u>RUN</u>       ╮
@@ -14793,7 +14781,7 @@ The STOP statement causes a permanent or temporary suspension of the execution o
      ╰ literal-1 ╯
 </pre>
 
-### 6.24.3 Syntax Rules
+#### 6.24.3 Syntax Rules
 
 (1) Literal-1 must not be a figurative constant that begins with the word ALL.
 
@@ -14801,7 +14789,7 @@ The STOP statement causes a permanent or temporary suspension of the execution o
 
 (3) If literal-1 is numeric, then it must be an unsigned integer.
 
-### 6.24.4 General Rules
+#### 6.24.4 General Rules
 
 (1) If the RUN phrase is specified, execution of the run unit ceases and control is transferred to the operating system.
 
@@ -14817,13 +14805,13 @@ VI-130
 
 Nucleus - STRING
 
-## ║6.25 THE STRING STATEMENT║
+### ║6.25 THE STRING STATEMENT║
 
-### ║6.25.1 Function║
+#### ║6.25.1 Function║
 
 ║The STRING statement provides juxtaposition of the partial or complete contents of one or more data items into a single data item.║
 
-### ║6.25.2 General Format║
+#### ║6.25.2 General Format║
 
 <pre style="line-height:1">
 ╔       ╭╭identifier-1╮                   ╭ identifier-2 ╮ ╮   ╗
@@ -14842,7 +14830,7 @@ Nucleus - STRING
 ╚   [<u>END-STRING</u>]                                               ╝
 </pre>
 
-### ║6.25.3 Syntax Rules║
+#### ║6.25.3 Syntax Rules║
 
 ║(1) Literal-1 or literal-2 must not be a figurative constant that begins with the word ALL.║
 
@@ -14858,7 +14846,7 @@ Nucleus - STRING
 
 ║(6) Where identifier-1 or identifier-2 is an elementary numeric data item, it must be described as an integer without the symbol 'P' in its PICTURE character-string.║
 
-### ║6.25.4 General Rules║
+#### ║6.25.4 General Rules║
 
 ║(1) Identifier-1 or literal-1 represents the sending item. Identifier-3 represents the receiving item.║
 
@@ -14914,13 +14902,13 @@ VI-133
 
 Nucleus - SUBTRACT
 
-## 6.26 THE SUBTRACT STATEMENT
+### 6.26 THE SUBTRACT STATEMENT
 
-### 6.26.1 Function
+#### 6.26.1 Function
 
 The SUBTRACT statement is used to subtract one, or the sum of two or more, numeric data items from one or more items, and set the values of one or more items equal to the results.
 
-### 6.26.2 General Format
+#### 6.26.2 General Format
 
 <u>Format 1</u>:
 
@@ -14967,7 +14955,7 @@ VI-134
 
 Nucleus - SUBTRACT
 
-6.26.3 Syntax Rules
+#### 6.26.3 Syntax Rules
 
 (1) Each identifier must refer to a numeric elementary item except that:
 
@@ -14987,7 +14975,7 @@ b. In format 2 the composite of operands is determined by using all of the opera
 
 ║(4) CORR is an abbreviation for CORRESPONDING.║
 
-6.26.4 General Rules
+#### 6.26.4 General Rules
 
 (1) When format 1 is used, the values of the operands preceding the word FROM are added together and the sum is stored in a temporary data item. The value in this temporary data item is subtracted from the value of the data item referenced by identifier-2, storing the result into the data item referenced by identifier-2, and repeating this process for each successive occurrence of identifier-2 in the left-to-right order in which identifier-2 is specified.
 
@@ -15007,13 +14995,13 @@ VI-135
 Nucleus - UNSTRING
 </pre>
 
-║6.27 THE UNSTRING STATEMENT║
+### ║6.27 THE UNSTRING STATEMENT║
 
-║6.27.1 Function║
+#### ║6.27.1 Function║
 
 ║The UNSTRING statement causes contiguous data in a sending field to be separated and placed into multiple receiving fields.║
 
-║6.27.2 General Format║
+#### ║6.27.2 General Format║
 
 <pre style="line-height:1">
 ╔<u>UNSTRING</u> identifier-1                                                              ╗
@@ -15035,7 +15023,7 @@ Nucleus - UNSTRING
 ╚   [ <u>END-UNSTRING</u> ]                                                                ╝
 </pre>
 
-║6.27.3 Syntax Rules║
+#### ║6.27.3 Syntax Rules║
 
 ║(1) Literal-1 and literal-2 must be nonnumeric literals and neither can be a figurative constant that begins with the word ALL.║
 
@@ -15057,7 +15045,7 @@ VI-136
 
 Nucleus - UNSTRING
 
-║6.27.4 General Rules║
+#### ║6.27.4 General Rules║
 
 ║(1) All references to identifier-2 and literal-1 apply equally to identifier-3 and literal-2, respectively, and all recursions thereof.║
 
@@ -15149,13 +15137,13 @@ VI-140
 
 Nucleus - Debugging
 
-# 7. <u>DEBUGGING IN THE NUCLEUS MODULE</u>
+## 7. <u>DEBUGGING IN THE NUCLEUS MODULE</u>
 
-## 7.1 GENERAL DESCRIPTION
+### 7.1 GENERAL DESCRIPTION
 
 Debugging within the Nucleus module provides the user with debugging lines and a compile time switch for debugging lines.
 
-## 7.2 COMPILE TIME SWITCH
+### 7.2 COMPILE TIME SWITCH
 
 The WITH DEBUGGING MODE clause is written as part of the SOURCE-COMPUTER paragraph (see page VI-10, The SOURCE-COMPUTER Paragraph). It serves as a compile time switch over the debugging lines written in the separately compiled program.
 
@@ -15163,7 +15151,7 @@ When the WITH DEBUGGING MODE clause is specified in a separately compiled progra
 
 The presence or absence of the WITH DEBUGGING MODE clause is logically determined after all COPY and REPLACE statements are processed.
 
-## 7.3 DEBUGGING LINES
+### 7.3 DEBUGGING LINES
 
 A debugging line is any line with a 'D' in the indicator area of the line. Any debugging line that consists solely of spaces from margin A to margin R is considered the same as a blank line.
 
@@ -15181,13 +15169,11 @@ VI-141
 
 <!-- This page is blank; it contains no printed text other than the licence stamp. -->
 
-# SECTION VII: SEQUENTIAL I-O MODULE
-
 ## Page 375
 
 Sequential I-O - Introduction
 
-## <u>SECTION VII: SEQUENTIAL I-O MODULE</u>
+# <u>SECTION VII: SEQUENTIAL I-O MODULE</u>
 
 ## 1. <u>INTRODUCTION TO THE SEQUENTIAL I-O MODULE</u>
 
@@ -15219,15 +15205,15 @@ VII-1
 
 Sequential I-O - Introduction
 
-## 1.3.3 Current Volume Pointer
+#### 1.3.3 Current Volume Pointer
 
 The current volume pointer is a conceptual entity used in this document to facilitate exact specification of the current physical volume of a sequential file. The status of the current volume pointer is affected by the CLOSE, OPEN, READ, and WRITE statements.
 
-## 1.3.4 File Position Indicator
+#### 1.3.4 File Position Indicator
 
 The file position indicator is a conceptual entity used in this document to facilitate exact specification of the next record to be accessed within a given file during certain sequences of input-output operations. The setting of the file position indicator is affected only by the CLOSE, OPEN, and READ statements. The concept of a file position indicator has no meaning for a file opened in the output ║or extend║ mode.
 
-## 1.3.5 I-O Status
+#### 1.3.5 I-O Status
 
 The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, OPEN, READ, REWRITE, or WRITE statement and prior to the execution of any imperative statement associated with that input-output statement or prior to the execution of any applicable USE AFTER STANDARD EXCEPTION procedure. The value of the I-O status is made available to the COBOL program through the use of the FILE STATUS clause in the file control entry for the file.
 
@@ -15337,11 +15323,11 @@ h. I-O Status = 49. The execution of a REWRITE statement is attempted on a file 
 
 a. I-O Status = 9x. An implementor-defined condition exists. This condition must not duplicate any condition specified by the I-O status values 00 through 49. The value of x is defined by the implementor.
 
-### 1.3.6 The At End Condition
+#### 1.3.6 The At End Condition
 
 The at end condition can occur as a result of the execution of a READ statement. (See page VII-44. The READ Statement.)
 
-### ║1.3.7 Special Register LINAGE-COUNTER║
+#### ║1.3.7 Special Register LINAGE-COUNTER║
 
 > ⚠ **CORRECTED — see the Errata (C249).** The standard prints `1.3.7 The File Attribute Conflict Condition (its three paragraphs and two numbered items) ... 1.3.8 Special Register LINAGE-COUNTER` (page 379, folio VII-5). Amendment 2 (ANSI X3.23b-1993), its change for page VII-5 (page 924, folio B-12), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition; renumber paragraph 1.3.8 entitled Special Register LINAGE-COUNTER as new paragraph 1.3.7" (kb/Work PB5045). Corrected to `(paragraph 1.3.7 deleted) 1.3.7 Special Register LINAGE-COUNTER`.
 
@@ -15351,7 +15337,7 @@ VII-5
 
 ## Page 380
 
-# Sequential I-O - Input-Output Section
+Sequential I-O - Input-Output Section
 
 ## 2. <u>ENVIRONMENT DIVISION IN THE SEQUENTIAL I-O MODULE</u>
 
@@ -15375,25 +15361,25 @@ VII-6
 
 Sequential I-O - FILE-CONTROL
 
-## 2.2 THE FILE-CONTROL PARAGRAPH
+### 2.2 THE FILE-CONTROL PARAGRAPH
 
-### 2.2.1 Function
+#### 2.2.1 Function
 
 The FILE-CONTROL paragraph allows specification of file-related information.
 
-### 2.2.2 General Format
+#### 2.2.2 General Format
 
 <pre style="line-height:1">
 <u>FILE-CONTROL</u>. { file-control-entry } …
 </pre>
 
-## 2.3 THE FILE CONTROL ENTRY
+### 2.3 THE FILE CONTROL ENTRY
 
-### 2.3.1 Function
+#### 2.3.1 Function
 
 The file control entry declares the relevant physical attributes of a sequential file.
 
-### 2.3.2 General Format
+#### 2.3.2 General Format
 
 <pre style="line-height:1">
 <u>SELECT</u> ║ [ <u>OPTIONAL</u> ] ║ file-name-1
@@ -15421,7 +15407,7 @@ The file control entry declares the relevant physical attributes of a sequential
     [ FILE <u>STATUS</u> IS data-name-2 ] .
 </pre>
 
-### 2.3.3 Syntax Rules
+#### 2.3.3 Syntax Rules
 
 (1) The SELECT clause must be specified first in the file control entry. The clauses which follow the SELECT clause may appear in any order.
 
@@ -15435,7 +15421,7 @@ VII-7
 
 Sequential I-O - FILE-CONTROL
 
-## 2.3.4 General Rules
+#### 2.3.4 General Rules
 
 (1) If the file connector referenced by file-name-1 is an external file connector (see page X-23, The EXTERNAL Clause), all file control entries in the run unit which reference this file connector must have:
 
@@ -15465,19 +15451,19 @@ VII-8
 
 Sequential I-O - ACCESS MODE
 
-## 2.4 THE ACCESS MODE CLAUSE
+### 2.4 THE ACCESS MODE CLAUSE
 
-### 2.4.1 Function
+#### 2.4.1 Function
 
 The ACCESS MODE clause specifies the order in which records are to be accessed in the file.
 
-### 2.4.2 General Format
+#### 2.4.2 General Format
 
 <pre style="line-height:1">
 <u>ACCESS</u> MODE IS <u>SEQUENTIAL</u>
 </pre>
 
-### 2.4.3 General Rules
+#### 2.4.3 General Rules
 
 (1) If the ACCESS MODE clause is not specified, sequential access is assumed.
 
@@ -15491,25 +15477,25 @@ VII-9
 
 Sequential I-O - FILE STATUS
 
-## 2.5 THE FILE STATUS CLAUSE
+### 2.5 THE FILE STATUS CLAUSE
 
-### 2.5.1 Function
+#### 2.5.1 Function
 
 The FILE STATUS clause specifies a data item which contains the status of an input-output operation.
 
-### 2.5.2 General Format
+#### 2.5.2 General Format
 
 <pre style="line-height:1">
 FILE <u>STATUS</u> IS data-name-1
 </pre>
 
-### 2.5.3 Syntax Rules
+#### 2.5.3 Syntax Rules
 
 (1) Data-name-1 may be qualified.
 
 (2) Data-name-1 must be defined in the Data Division as a two-character data item of the category alphanumeric and must not be defined in the File Section, Report Section, or the Communication Section.
 
-### 2.5.4 General Rules
+#### 2.5.4 General Rules
 
 (1) If the FILE STATUS clause is specified, the data item referenced by data-name-1 is always updated to contain the value of the I-O status whenever the I-O status is updated. This value indicates the status of execution of the statement. (See page VII-2, I-O Status.)
 
@@ -15521,19 +15507,19 @@ VII-10
 
 Sequential I-O - ORGANIZATION IS SEQUENTIAL
 
-## 2.6 THE ORGANIZATION IS SEQUENTIAL CLAUSE
+### 2.6 THE ORGANIZATION IS SEQUENTIAL CLAUSE
 
-### 2.6.1 Function
+#### 2.6.1 Function
 
 The ORGANIZATION IS SEQUENTIAL clause specifies sequential organization as the logical structure of a file.
 
-### 2.6.2 General Format
+#### 2.6.2 General Format
 
 <pre style="line-height:1">
 [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u>
 </pre>
 
-### 2.6.3 General Rules
+#### 2.6.3 General Rules
 
 (1) The ORGANIZATION IS SEQUENTIAL clause specifies sequential organization as the logical structure of a file. The file organization is established at the time a file is created and cannot subsequently be changed.
 
@@ -15547,13 +15533,13 @@ VII-11
 
 Sequential I-O - PADDING CHARACTER
 
-## ║2.7 THE PADDING CHARACTER CLAUSE║
+### ║2.7 THE PADDING CHARACTER CLAUSE║
 
-### ║2.7.1 Function║
+#### ║2.7.1 Function║
 
 ║The PADDING CHARACTER clause specifies the character which is to be used for block padding on sequential files.║
 
-### ║2.7.2 General Format║
+#### ║2.7.2 General Format║
 
 <pre style="line-height:1">
 ╔                      ╭ data-name-1 ╮ ╗
@@ -15561,7 +15547,7 @@ Sequential I-O - PADDING CHARACTER
 ╚                      ╰ literal-1   ╯ ╝
 </pre>
 
-### ║2.7.3 Syntax Rules║
+#### ║2.7.3 Syntax Rules║
 
 ║(1) Literal-1 must be a one-character nonnumeric literal.║
 
@@ -15569,7 +15555,7 @@ Sequential I-O - PADDING CHARACTER
 
 ║(3) Data-name-1 must be defined in the Data Division as a one-character data item of the category alphanumeric and must not be defined in the Communication Section, the File Section, or the Report Section.║
 
-### ║2.7.4 General Rules║
+#### ║2.7.4 General Rules║
 
 ║(1) The PADDING CHARACTER clause specifies the character which is to be used for block padding on sequential files. During input operations, any portion of a block which exists beyond the last logical record and consists entirely of padding characters will be bypassed. During input operations, a logical record which consists solely of padding characters will be ignored. During output operations, any portion of a block which exists beyond the last logical record will be filled entirely with padding characters.║
 
@@ -15589,13 +15575,13 @@ VII-12
 
 Sequential I-O - RECORD DELIMITER
 
-## ║2.8 THE RECORD DELIMITER CLAUSE║
+### ║2.8 THE RECORD DELIMITER CLAUSE║
 
-### ║2.8.1 Function║
+#### ║2.8.1 Function║
 
 ║The RECORD DELIMITER clause indicates the method of determining the length of a variable length record on the external medium.║
 
-### ║2.8.2 General Format║
+#### ║2.8.2 General Format║
 
 <pre style="line-height:1">
                     ╭ <u>STANDARD-1</u>         ╮
@@ -15603,13 +15589,13 @@ Sequential I-O - RECORD DELIMITER
                     ╰ implementor-name-1 ╯
 </pre>
 
-### ║2.8.3 Syntax Rules║
+#### ║2.8.3 Syntax Rules║
 
 ║(1) The RECORD DELIMITER clause may be specified only for variable length records.║
 
 ║(2) If the STANDARD-1 phrase is specified, the external medium must be a magnetic tape file.║
 
-### ║2.8.4 General Rules║
+#### ║2.8.4 General Rules║
 
 ║(1) The RECORD DELIMITER clause is used to indicate the method of determining the length of a variable length record on the external medium. Any method used will not be reflected in the record area or the record size used within the program.║
 
@@ -15629,13 +15615,13 @@ VII-13
 
 Sequential I-O - RESERVE
 
-## ║2.9 THE RESERVE CLAUSE║
+### ║2.9 THE RESERVE CLAUSE║
 
-### ║2.9.1 Function║
+#### ║2.9.1 Function║
 
 ║The RESERVE clause allows the user to specify the number of input-output areas allocated.║
 
-### ║2.9.2 General Format║
+#### ║2.9.2 General Format║
 
 <pre style="line-height:1">
 ╔                    ┌ AREA  ┐ ╗
@@ -15643,7 +15629,7 @@ Sequential I-O - RESERVE
 ╚                    └ AREAS ┘ ╝
 </pre>
 
-### ║2.9.3 General Rules║
+#### ║2.9.3 General Rules║
 
 ║(1) The RESERVE clause allows the user to specify the number of input-output areas allocated. If the RESERVE clause is specified, the number of input-output areas allocated is equal to the value of integer-1. If the RESERVE clause is not specified, the number of input-output areas allocated is specified by the implementor.║
 
@@ -15653,13 +15639,13 @@ VII-14
 
 Sequential I-O - I-O-CONTROL
 
-## 2.10 THE I-O-CONTROL PARAGRAPH
+### 2.10 THE I-O-CONTROL PARAGRAPH
 
-### 2.10.1 Function
+#### 2.10.1 Function
 
 The I-O-CONTROL paragraph specifies the points at which rerun is to be established, the memory area which is to be shared by different files, ║and the location of files on a multiple file reel.║ The RERUN clause ║and the MULTIPLE FILE TAPE clause║ within the I-O-CONTROL paragraph are obsolete elements in Standard COBOL because they are to be deleted from the next revision of Standard COBOL.
 
-### 2.10.2 General Format
+#### 2.10.2 General Format
 
 <pre style="line-height:1">
 <u>I-O-CONTROL</u>.
@@ -15676,11 +15662,11 @@ The I-O-CONTROL paragraph specifies the points at which rerun is to be establish
   ║ [ <u>MULTIPLE</u> <u>FILE</u> TAPE CONTAINS { file-name-5 [ <u>POSITION</u> integer-3 ] } … ] … ║ . ]
 </pre>
 
-### 2.10.3 Syntax Rules
+#### 2.10.3 Syntax Rules
 
 (1) The order of appearance of the clauses is immaterial.
 
-### 2.10.4 General Rules
+#### 2.10.4 General Rules
 
 (1) ║The MULTIPLE FILE TAPE clause,║ the RERUN clause, and the SAME clause are presented in alphabetical order on the following pages.
 
@@ -15690,19 +15676,19 @@ VII-15
 
 Sequential I-O - MULTIPLE FILE TAPE
 
-## ║2.11 THE MULTIPLE FILE TAPE CLAUSE║
+### ║2.11 THE MULTIPLE FILE TAPE CLAUSE║
 
-### ║2.11.1 Function║
+#### ║2.11.1 Function║
 
 ║The MULTIPLE FILE TAPE clause specifies the location of files on a multiple file reel. The MULTIPLE FILE TAPE clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.║
 
-### ║2.11.2 General Format║
+#### ║2.11.2 General Format║
 
 <pre style="line-height:1">
 ║ <u>MULTIPLE</u> <u>FILE</u> TAPE CONTAINS { file-name-1 [ <u>POSITION</u> integer-1 ] } … ║
 </pre>
 
-### ║2.11.3 General Rules║
+#### ║2.11.3 General Rules║
 
 ║(1) The MULTIPLE FILE TAPE clause is required when more than one file shares the same physical reel of tape. Regardless of the number of files on a single reel, only those files that are used in the object program need be specified. If all file-names have been listed in consecutive order, the POSITION phrase need not be given. If any file in the sequence is not listed, the position relative to the beginning of the tape must be given. Not more than one file on the same tape reel may be open at one time.║
 
@@ -15712,11 +15698,11 @@ VII-16
 
 Sequential I-O - RERUN
 
-## 2.12 THE RERUN CLAUSE
+### 2.12 THE RERUN CLAUSE
 
 The RERUN clause specifies the points at which rerun is to be established. The RERUN clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
 
-### 2.12.2 General Format
+#### 2.12.2 General Format
 
 <pre style="line-height:1">
                                           ╭ ╭ [<u>END</u> OF] ╭<u>REEL</u>╮   ╮                 ╮
@@ -15728,7 +15714,7 @@ The RERUN clause specifies the points at which rerun is to be established. The R
                                           ╰ condition-name-1                      ╯
 </pre>
 
-### 2.12.3 Syntax Rules
+#### 2.12.3 Syntax Rules
 
 (1) File-name-1 must be a sequentially organized file.
 
@@ -15744,7 +15730,7 @@ b. When multiple END OF REEL or END OF UNIT phrases are specified, no two of the
 
 (5) Only one RERUN clause containing the CLOCK-UNITS phrase may be specified.
 
-### 2.12.4 General Rules
+#### 2.12.4 General Rules
 
 (1) The RERUN clause specifies when and where the rerun information is recorded. Rerun information is recorded in the following ways:
 
@@ -15782,19 +15768,19 @@ VII-18
 
 Sequential I-O - SAME
 
-## 2.13 THE SAME CLAUSE
+### 2.13 THE SAME CLAUSE
 
-### 2.13.1 Function
+#### 2.13.1 Function
 
 The SAME clause specifies the memory area which is to be shared by different files.
 
-### 2.13.2 General Format
+#### 2.13.2 General Format
 
 <pre style="line-height:1">
 <u>SAME</u> ║ [ <u>RECORD</u> ] ║ AREA FOR file-name-1 { file-name-2 } …
 </pre>
 
-### 2.13.3 Syntax Rules
+#### 2.13.3 Syntax Rules
 
 (1) File-name-1 and file-name-2 must be specified in the FILE-CONTROL paragraph of the same program.
 
@@ -15810,7 +15796,7 @@ a. A file-name must not appear in more than one SAME AREA clause.
 
 (4) The files referenced in the SAME AREA ║or SAME RECORD AREA║ clause need not all have the same organization or access.
 
-### 2.13.4 General Rules
+#### 2.13.4 General Rules
 
 (1) The SAME AREA clause specifies that two or more files referenced by file-name-1, file-name-2 that do not represent sort or merge files are to use the same memory area during processing. The area being shared includes all storage areas assigned to the files referenced by file-name-1, file-name-2; therefore, it is not valid to have more than one of these files in the open mode at the same time. (See syntax rule 3c above.)
 
@@ -15860,13 +15846,13 @@ VII-21
 
 Sequential I-O - File Description Entry
 
-## 3.2 THE FILE DESCRIPTION ENTRY
+### 3.2 THE FILE DESCRIPTION ENTRY
 
-### 3.2.1 Function
+#### 3.2.1 Function
 
 The file description entry furnishes information concerning the physical structure, identification, and record-names pertaining to a sequential file.
 
-### 3.2.2. General Format
+#### 3.2.2. General Format
 
 <pre style="line-height:1">
 <u>FD</u>  file-name-1
@@ -15902,7 +15888,7 @@ The file description entry furnishes information concerning the physical structu
     [<u>CODE-SET</u> IS alphabet-name-1].
 </pre>
 
-### 3.2.3 Syntax Rules
+#### 3.2.3 Syntax Rules
 
 (1) The level indicator FD identifies the beginning of a file description entry and must precede file-name-1.
 
@@ -15910,7 +15896,7 @@ The file description entry furnishes information concerning the physical structu
 
 (3) One or more record description entries must follow the file description entry.
 
-### 3.2.4 General Rules
+#### 3.2.4 General Rules
 
 (1) A file description entry associates file-name-1 with a file connector.
 
@@ -15966,25 +15952,25 @@ VII-23
 
 Sequential I-O - CODE-SET
 
-## 3.4 THE CODE-SET CLAUSE
+### 3.4 THE CODE-SET CLAUSE
 
-### 3.4.1 Function
+#### 3.4.1 Function
 
 The CODE-SET clause specifies the character code convention used to represent data on the external media.
 
-### 3.4.2 General Format
+#### 3.4.2 General Format
 
 <pre style="line-height:1">
 <u>CODE-SET</u> IS alphabet-name-1
 </pre>
 
-### 3.4.3 Syntax Rules
+#### 3.4.3 Syntax Rules
 
 (1) If the CODE-SET clause is specified for a file, all data in that file must be described as USAGE IS DISPLAY and any signed numeric data must be described with the SIGN IS SEPARATE clause.
 
 (2) The alphabet-name clause referenced by the CODE-SET clause must not specify the literal phrase.
 
-### 3.4.4 General Rules
+#### 3.4.4 General Rules
 
 (1) If the CODE-SET clause is specified:
 
@@ -16002,13 +15988,13 @@ VII-24
 
 Sequential I-O - DATA RECORDS
 
-## 3.5 THE DATA RECORDS CLAUSE
+### 3.5 THE DATA RECORDS CLAUSE
 
-### 3.5.1 Function
+#### 3.5.1 Function
 
 The DATA RECORDS clause serves only as documentation for the names of data records within their associated file. The DATA RECORDS clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
 
-### 3.5.2 General Format
+#### 3.5.2 General Format
 
 <pre style="line-height:1">
      ╭ <u>RECORD</u> IS   ╮
@@ -16016,11 +16002,11 @@ The DATA RECORDS clause serves only as documentation for the names of data recor
      ╰ <u>RECORDS</u> ARE ╯
 </pre>
 
-### 3.5.3 Syntax Rules
+#### 3.5.3 Syntax Rules
 
 (1) Data-name-1 is the name of a data record and must have an 01 level-number record description, with the same name, associated with it.
 
-### 3.5.4 General Rules
+#### 3.5.4 General Rules
 
 (1) The presence of more than one data-name indicates that the file contains more than one type of data record. These records may be of differing sizes, different formats, etc. The order in which they are listed is not significant.
 
@@ -16032,13 +16018,13 @@ VII-25
 
 Sequential I-O - LABEL RECORDS
 
-## 3.6 THE LABEL RECORDS CLAUSE
+### 3.6 THE LABEL RECORDS CLAUSE
 
-### 3.6.1 Function
+#### 3.6.1 Function
 
 The LABEL RECORDS clause specifies whether labels are present. The LABEL RECORDS clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
 
-### 3.6.2 General Format
+#### 3.6.2 General Format
 
 <pre style="line-height:1">
       ╭ <u>RECORD</u> IS   ╮ ╭ <u>STANDARD</u> ╮
@@ -16046,7 +16032,7 @@ The LABEL RECORDS clause specifies whether labels are present. The LABEL RECORDS
       ╰ <u>RECORDS</u> ARE ╯ ╰ <u>OMITTED</u>  ╯
 </pre>
 
-### 3.6.3 General Rules
+#### 3.6.3 General Rules
 
 (1) OMITTED specifies that no explicit labels exist for the file or the device to which the file is assigned.
 
@@ -16062,13 +16048,13 @@ VII-26
 
 Sequential I-O - LINAGE
 
-## ║3.7 THE LINAGE CLAUSE║
+### ║3.7 THE LINAGE CLAUSE║
 
-### ║3.7.1 Function║
+#### ║3.7.1 Function║
 
 ║The LINAGE clause provides a means for specifying the depth of a logical page in terms of number of lines. It also provides for specifying the size of the top and bottom margins on the logical page, and the line number, within the page body, at which the footing area begins.║
 
-### ║3.7.2 General Format║
+#### ║3.7.2 General Format║
 
 <pre style="line-height:1">
 ╔           ╭ data-name-1 ╮       ┌                 ╭ data-name-2 ╮ ┐  ╗
@@ -16080,7 +16066,7 @@ Sequential I-O - LINAGE
 ╚ └              ╰ integer-3   ╯ ┘ └                 ╰ integer-4   ╯ ┘ ╝
 </pre>
 
-### ║3.7.3 Syntax Rules║
+#### ║3.7.3 Syntax Rules║
 
 ║(1) Data-name-1, data-name-2, data-name-3, data-name-4 must reference elementary unsigned numeric integer data items.║
 
@@ -16090,7 +16076,7 @@ Sequential I-O - LINAGE
 
 ║(4) Integer-3, integer-4 may be zero.║
 
-### ║3.7.4 General Rules║
+#### ║3.7.4 General Rules║
 
 ║(1) The LINAGE clause provides a means for specifying the size of a logical page in terms of number of lines. The logical page size is the sum of the values referenced by each phrase except the FOOTING phrase. If the LINES AT TOP or LINES AT BOTTOM phrases are not specified, the values of these items are zero. If the FOOTING phrase is not specified, no end-of-page condition independent of the page overflow condition exists.║
 
@@ -16162,13 +16148,13 @@ VII-29
 
 Sequential I-O - RECORD
 
-## 3.8 THE RECORD CLAUSE
+### 3.8 THE RECORD CLAUSE
 
-### 3.8.1 Function
+#### 3.8.1 Function
 
 The RECORD clause specifies the number of character positions in a fixed length record, or specifies the range of character positions in a variable length record. If the number of character positions does vary, the clause specifies the minimum and maximum number of character positions.
 
-### 3.8.2 General Format
+#### 3.8.2 General Format
 
 <u>Format 1</u>:
 
@@ -16189,7 +16175,7 @@ The RECORD clause specifies the number of character positions in a fixed length 
 <u>RECORD</u> CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS
 </pre>
 
-### 3.8.3 Syntax Rules
+#### 3.8.3 Syntax Rules
 
 <u>FORMAT 1</u>:
 
@@ -16203,7 +16189,7 @@ The RECORD clause specifies the number of character positions in a fixed length 
 
 ║(4) Data-name-1 must describe an elementary unsigned integer in the Working-Storage or Linkage Section.║
 
-### 3.8.4 General Rules
+#### 3.8.4 General Rules
 
 <u>ALL FORMATS</u>:
 
@@ -16279,13 +16265,13 @@ VII-32
 
 ## Page 407
 
-# 3.9 THE VALUE OF CLAUSE
+### 3.9 THE VALUE OF CLAUSE
 
-## 3.9.1 Function
+#### 3.9.1 Function
 
 The VALUE OF clause particularizes the description of an item in the label records associated with a file. The VALUE OF clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
 
-## 3.9.2 General Format
+#### 3.9.2 General Format
 
 <pre style="line-height:1">
          ╭                       ╭ ║ data-name-1 ║ ╮ ╮
@@ -16294,13 +16280,13 @@ The VALUE OF clause particularizes the description of an item in the label recor
          ╰                       ╰   literal-1     ╯ ╯
 </pre>
 
-## 3.9.3 Syntax Rules
+#### 3.9.3 Syntax Rules
 
 ║(1) Data-name-1 should be qualified when necessary, but cannot be subscripted, nor can data-name-1 be an item described with the USAGE IS INDEX clause.║
 
 ║(2) Data-name-1 must be in the Working-Storage Section.║
 
-## 3.9.4 General Rules
+#### 3.9.4 General Rules
 
 (1) For an input file, the appropriate label routine checks to see if the value of implementor-name-1 is equal to literal-1 ║or the content of the data item referenced by data-name-1, whichever has been specified.║
 
@@ -16515,13 +16501,13 @@ VII-38
 
 Sequential I-O - OPEN
 
-## 4.3 THE OPEN STATEMENT
+### 4.3 THE OPEN STATEMENT
 
-### 4.3.1 Function
+#### 4.3.1 Function
 
 The OPEN statement initiates the processing of files. ║The REVERSED phrase is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.║
 
-### 4.3.2 General Format
+#### 4.3.2 General Format
 
 <pre style="line-height:1">
        ╭ <u>INPUT</u>  ╭            ┌ <u>REVERSED</u>       ┐ ╮     ╮
@@ -16532,7 +16518,7 @@ The OPEN statement initiates the processing of files. ║The REVERSED phrase is 
        ╰║<u>EXTEND</u> {file-name-4}  … ║                    ╯
 </pre>
 
-### 4.3.3 Syntax Rules
+#### 4.3.3 Syntax Rules
 
 ║(1) The REVERSED phrase can only be used with sequential files.║
 
@@ -16542,7 +16528,7 @@ The OPEN statement initiates the processing of files. ║The REVERSED phrase is 
 
 (4) The files referenced in the OPEN statement need not all have the same organization or access.
 
-### 4.3.4 General Rules
+#### 4.3.4 General Rules
 
 (1) The successful execution of an OPEN statement determines the availability of the file and results in the file being in an open mode. The successful execution of an OPEN statement associates the file with the file-name through the file connector.
 
@@ -16709,13 +16695,13 @@ VII-43
 
 Sequential I-O - READ
 
-## 4.4 THE READ STATEMENT
+### 4.4 THE READ STATEMENT
 
-### 4.4.1 Function
+#### 4.4.1 Function
 
 The READ statement makes available the next logical record from a file.
 
-### 4.4.2 General Format
+#### 4.4.2 General Format
 
 <pre style="line-height:1">
 <u>READ</u> file-name-1 ║ [ <u>NEXT</u> ] ║ RECORD [ <u>INTO</u> identifier-1 ]
@@ -16724,13 +16710,13 @@ The READ statement makes available the next logical record from a file.
 [ <u>END-READ</u> ]
 </pre>
 
-### 4.4.3 Syntax Rules
+#### 4.4.3 Syntax Rules
 
 (1) The storage area associated with identifier-1 and the record area associated with file-name-1 must not be the same storage area.
 
 (2) The AT END phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1.
 
-### 4.4.4 General Rules
+#### 4.4.4 General Rules
 
 (1) The file referenced by file-name-1 must be open in the input or I-O mode at the time this statement is executed. (See page VII-39, The OPEN Statement.)
 
@@ -16834,19 +16820,19 @@ VII-47
 
 Sequential I-O - REWRITE
 
-## 4.5 THE REWRITE STATEMENT
+### 4.5 THE REWRITE STATEMENT
 
-### 4.5.1 Function
+#### 4.5.1 Function
 
 The REWRITE statement logically replaces a record existing in a mass storage file.
 
-### 4.5.2 General Format
+#### 4.5.2 General Format
 
 <pre style="line-height:1">
 <u>REWRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ] [ <u>END-REWRITE</u> ]
 </pre>
 
-### 4.5.3 Syntax Rules
+#### 4.5.3 Syntax Rules
 
 (1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
 
@@ -16856,7 +16842,7 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
-### 4.5.4 General Rules
+#### 4.5.4 General Rules
 
 (1) The file referenced by the file-name associated with record-name-1 must be a mass storage file and must be open in the I-O mode at the time of execution of this statement. (See page VII-39, The OPEN Statement.)
 
@@ -16900,13 +16886,13 @@ VII-49
 
 Sequential I-O - USE
 
-## 4.6 THE USE STATEMENT
+### 4.6 THE USE STATEMENT
 
-### 4.6.1 Function
+#### 4.6.1 Function
 
 The USE statement specifies procedures for input-output error handling that are in addition to the standard procedures provided by the input-output control system.
 
-### 4.6.2 General Format
+#### 4.6.2 General Format
 
 <pre style="line-height:1">
                                               ╭ { file-name-1 } ║ … ║  ╮
@@ -16916,7 +16902,7 @@ The USE statement specifies procedures for input-output error handling that are 
                                               ╰ ║ <u>EXTEND</u> ║             ╯
 </pre>
 
-### 4.6.3 Syntax Rules
+#### 4.6.3 Syntax Rules
 
 (1) A USE statement, when present, must immediately follow a section header in the declaratives portion of the Procedure Division and must appear in a sentence by itself. The remainder of the section must consist of zero, one, or more procedural paragraphs that define the procedures to be used.
 
@@ -16932,7 +16918,7 @@ The USE statement specifies procedures for input-output error handling that are 
 
 (6) The INPUT, OUTPUT, I-O, ║and EXTEND║ phrases may each be specified only once in the declaratives portion of a given Procedure Division.
 
-### 4.6.4 General Rules
+#### 4.6.4 General Rules
 
 (1) Declarative procedures may be included in any COBOL source program irrespective of whether the program contains or is contained within another program. A declarative is invoked when any of the conditions described in the USE statement which prefaces the declarative occurs while the program is being executed. Only a declarative within the separately compiled program that contains the statement which caused the qualifying condition is invoked when any of the conditions described in the USE statement which prefaces the declarative occurs while that separately compiled program is being executed. If no qualifying declarative exists in the separately compiled program, no declarative is executed.
 
@@ -16970,13 +16956,13 @@ VII-51
 
 Sequential I-O - WRITE
 
-## 4.7 THE WRITE STATEMENT
+### 4.7 THE WRITE STATEMENT
 
-### 4.7.1 Function
+#### 4.7.1 Function
 
 The WRITE statement releases a logical record for an output file. It can also be used for vertical positioning of lines within a logical page.
 
-### 4.7.2 General Format
+#### 4.7.2 General Format
 
 <pre style="line-height:1">
 <u>WRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
@@ -17001,7 +16987,7 @@ The WRITE statement releases a logical record for an output file. It can also be
 [ <u>END-WRITE</u> ]
 </pre>
 
-### 4.7.3 Syntax Rules
+#### 4.7.3 Syntax Rules
 
 (1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
 
@@ -17031,7 +17017,7 @@ VII-52
 
 Sequential I-O - WRITE
 
-4.7.4 General Rules
+#### 4.7.4 General Rules
 
 (1) The file referenced by the file-name associated with record-name-1 must be open in the output ║or extend║ mode at the time of the execution of this statement. (See page VII-39, The OPEN Statement.)
 
@@ -17143,13 +17129,11 @@ Sequential I-O - WRITE
 
 VII-56
 
-# SECTION VIII: RELATIVE I-O MODULE
-
 ## Page 431
 
 Relative I-O - Introduction
 
-## <u>SECTION VIII: RELATIVE I-O MODULE</u>
+# <u>SECTION VIII: RELATIVE I-O MODULE</u>
 
 ## 1. <u>INTRODUCTION TO THE RELATIVE I-O MODULE</u>
 
@@ -17179,7 +17163,7 @@ VIII-1
 
 Relative I-O - Introduction
 
-### 1.3.2 Access Modes
+#### 1.3.2 Access Modes
 
 For relative organization, the order of sequential access is ascending based on the value of the relative record number. Only records which currently exist in the file are made available. ║The START statement may be used to establish a starting point for a series of subsequent sequential retrievals.║
 
@@ -17187,11 +17171,11 @@ When a file is accessed in random mode, input-output statements are used to acce
 
 ║With dynamic access mode, the programmer may change at will from sequential accessing to random accessing, using appropriate forms of input-output statements.║
 
-### 1.3.3 File Position Indicator
+#### 1.3.3 File Position Indicator
 
 The file position indicator is a conceptual entity used in this document to facilitate exact specification of the next record to be accessed within a given file during certain sequences of input-output operations. The setting of the file position indicator is affected only by the CLOSE, OPEN, READ, ║and START║ statements. The concept of a file position indicator has no meaning for a file opened in the output ║or extend║ mode.
 
-### 1.3.4 I-O Status
+#### 1.3.4 I-O Status
 
 The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, ║START,║ or WRITE statement and prior to the execution of any imperative statement associated with that input-output statement or prior to the execution of any applicable USE AFTER STANDARD EXCEPTION procedure. The value of the I-O status is made available to the COBOL program through the use of the FILE STATUS clause in the file control entry for the file.
 
@@ -17313,7 +17297,7 @@ h. I-O Status = 49. The execution of a DELETE or REWRITE statement is attempted 
 
 a. I-O Status = 9x. An implementor-defined condition exists. This condition must not duplicate any condition specified for the I-O status values 00 through 49. The value of x is defined by the implementor.
 
-### 1.3.5 The Invalid Key Condition
+#### 1.3.5 The Invalid Key Condition
 
 The invalid key condition can occur as a result of the execution of a DELETE, READ, REWRITE, ║START,║ or WRITE statement. When the invalid key condition occurs, execution of the input-output statement which recognized the condition is unsuccessful and the file is not affected. (See page VIII-19, The DELETE Statement; page VIII-26, The READ Statement; page VIII-30, The REWRITE Statement; page VIII-33, The START Statement; and page VIII-37, The WRITE Statement.)
 
@@ -17337,7 +17321,7 @@ If the invalid key condition does not exist after the execution of the input-out
 
 (2) If no exception condition exists, control is transferred to the end of the input-output statement or to the imperative-statement specified in the NOT INVALID KEY phrase if it is specified. In the latter case, execution continues according to the rules for each statement specified in that imperative-statement. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of the imperative-statement in the NOT INVALID KEY phrase, control is transferred to the end of the input-output statement.
 
-### 1.3.6 The At End Condition
+#### 1.3.6 The At End Condition
 
 The at end condition can occur as a result of the execution of a READ statement. (See page VIII-26, The READ Statement.)
 
@@ -17445,13 +17429,13 @@ VIII-9
 
 Relative I-O - ACCESS MODE
 
-## 2.4 THE ACCESS MODE CLAUSE
+### 2.4 THE ACCESS MODE CLAUSE
 
-### 2.4.1 Function
+#### 2.4.1 Function
 
 The ACCESS MODE clause specifies the order in which records are to be accessed in the file.
 
-### 2.4.2 General Format
+#### 2.4.2 General Format
 
 <pre style="line-height:1">
                ╭ <u>SEQUENTIAL</u> [ <u>RELATIVE</u> KEY IS data-name-1 ] ╮
@@ -17461,7 +17445,7 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
                ╰ ╰ ║ <u>DYNAMIC</u> ╯ ║                            ╯
 </pre>
 
-### 2.4.3 Syntax Rules
+#### 2.4.3 Syntax Rules
 
 (1) Data-name-1 may be qualified.
 
@@ -17473,7 +17457,7 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
 
 ║(5) If a relative file is referenced by a START statement, the RELATIVE KEY phrase within the ACCESS MODE clause must be specified for that file.║
 
-### 2.4.4 General Rules
+#### 2.4.4 General Rules
 
 (1) If the ACCESS MODE clause is not specified, sequential access is assumed.
 
@@ -17503,19 +17487,19 @@ VIII-11
 
 Relative I-O - ORGANIZATION IS RELATIVE
 
-## 2.5 THE ORGANIZATION IS RELATIVE CLAUSE
+### 2.5 THE ORGANIZATION IS RELATIVE CLAUSE
 
-### 2.5.1 Function
+#### 2.5.1 Function
 
 The ORGANIZATION IS RELATIVE clause specifies relative organization as the logical structure of a file.
 
-### 2.5.2 General Format
+#### 2.5.2 General Format
 
 <pre style="line-height:1">
 [ <u>ORGANIZATION</u> IS ] <u>RELATIVE</u>
 </pre>
 
-### 2.5.3 General Rules
+#### 2.5.3 General Rules
 
 (1) The ORGANIZATION IS RELATIVE clause specifies relative organization as the logical structure of a file. The file organization is established at the time a file is created and cannot subsequently be changed.
 
@@ -17527,13 +17511,13 @@ VIII-12
 
 Relative I-O - I-O-CONTROL
 
-## 2.6 THE I-O-CONTROL PARAGRAPH
+### 2.6 THE I-O-CONTROL PARAGRAPH
 
-### 2.6.1 Function
+#### 2.6.1 Function
 
 The I-O-CONTROL paragraph specifies the points at which rerun is to be established and the memory area which is to be shared by different files. The RERUN clause within the I-O-CONTROL paragraph is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
 
-### 2.6.2 General Format
+#### 2.6.2 General Format
 
 <pre style="line-height:1">
 <u>I-O-CONTROL</u>.
@@ -17545,7 +17529,7 @@ The I-O-CONTROL paragraph specifies the points at which rerun is to be establish
   [ <u>SAME</u> ║ [ <u>RECORD</u> ] ║ AREA FOR file-name-3 { file-name-4 } … ] … . ]
 </pre>
 
-### 2.6.3 General Rules
+#### 2.6.3 General Rules
 
 (1) The RERUN clause for the Relative I-O module is a subset of the RERUN clause for the Sequential I-O module. Thus the specifications for the RERUN clause are located on page VII-17.
 
@@ -17555,7 +17539,7 @@ VIII-13
 
 ## Page 444
 
-# Relative I-O - File Description Entry
+Relative I-O - File Description Entry
 
 ## 3. <u>DATA DIVISION IN THE RELATIVE I-O MODULE</u>
 
@@ -17657,23 +17641,23 @@ VIII-16
 
 Relative I-O - CLOSE
 
-## 4.2 THE CLOSE STATEMENT
+### 4.2 THE CLOSE STATEMENT
 
-### 4.2.1 Function
+#### 4.2.1 Function
 
 The CLOSE statement terminates the processing of files ║with optional lock.║
 
-### 4.2.2 General Format
+#### 4.2.2 General Format
 
 <pre style="line-height:1">
 <u>CLOSE</u> { file-name-1 ║ [ WITH <u>LOCK</u> ] ║ } …
 </pre>
 
-### 4.2.3 Syntax Rules
+#### 4.2.3 Syntax Rules
 
 (1) The files referenced in the CLOSE statement need not all have the same organization or access.
 
-### 4.2.4 General Rules
+#### 4.2.4 General Rules
 
 (1) A CLOSE statement may only be executed for a file in an open mode.
 
@@ -17723,13 +17707,13 @@ VIII-18
 
 Relative I-O - DELETE
 
-## 4.3 THE DELETE STATEMENT
+### 4.3 THE DELETE STATEMENT
 
-### 4.3.1 Function
+#### 4.3.1 Function
 
 The DELETE statement logically removes a record from a mass storage file.
 
-### 4.3.2 General Format
+#### 4.3.2 General Format
 
 <pre style="line-height:1">
 <u>DELETE</u> file-name-1 RECORD
@@ -17738,13 +17722,13 @@ The DELETE statement logically removes a record from a mass storage file.
 [ <u>END-DELETE</u> ]
 </pre>
 
-### 4.3.3 Syntax Rules
+#### 4.3.3 Syntax Rules
 
 (1) The INVALID KEY and the NOT INVALID KEY phrases must not be specified for a DELETE statement which references a file which is in sequential access mode.
 
 (2) The INVALID KEY phrase must be specified for a DELETE statement which references a file which is not in sequential access mode and for which an applicable USE AFTER STANDARD EXCEPTION procedure is not specified.
 
-### 4.3.4 General Rules
+#### 4.3.4 General Rules
 
 (1) The file referenced by file-name-1 must be a mass storage file and must be open in the I-O mode at the time of the execution of this statement. (See page VIII-21, The OPEN Statement.)
 
@@ -17776,13 +17760,13 @@ VIII-20
 
 Relative I-O - OPEN
 
-# 4.4 THE OPEN STATEMENT
+### 4.4 THE OPEN STATEMENT
 
-## 4.4.1 Function
+#### 4.4.1 Function
 
 The OPEN statement initiates the processing of files.
 
-## 4.4.2 General Format
+#### 4.4.2 General Format
 
 <pre style="line-height:1">
      ╭ <u>INPUT</u> {file-name-1} …     ╮
@@ -17791,13 +17775,13 @@ The OPEN statement initiates the processing of files.
      ╰║<u>EXTEND</u> {file-name-4} …║   ╯
 </pre>
 
-## 4.4.3 Syntax Rules
+#### 4.4.3 Syntax Rules
 
 ║(1) The EXTEND phrase must only be used for files in the sequential access mode.║
 
 (2) The files referenced in the OPEN statement need not all have the same organization or access.
 
-## 4.4.4 General Rules
+#### 4.4.4 General Rules
 
 (1) The successful execution of an OPEN statement determines the availability of the file and results in the file being in an open mode. The successful execution of an OPEN statement associates the file with the file-name through the file connector.
 
@@ -17942,13 +17926,13 @@ VIII-25
 
 Relative I-O - READ
 
-## 4.5 THE READ STATEMENT
+### 4.5 THE READ STATEMENT
 
-### 4.5.1 Function
+#### 4.5.1 Function
 
 For sequential access, the READ statement makes available the next logical record from a file. For random access, the READ statement makes available a specified record from a mass storage file.
 
-### 4.5.2 General Format
+#### 4.5.2 General Format
 
 <u>Format 1</u>:
 
@@ -17968,7 +17952,7 @@ For sequential access, the READ statement makes available the next logical recor
 [ <u>END-READ</u> ]
 </pre>
 
-### 4.5.3 Syntax Rules
+#### 4.5.3 Syntax Rules
 
 (1) The storage area associated with identifier-1 and the record area associated with file-name-1 must not be the same storage area.
 
@@ -17980,7 +17964,7 @@ For sequential access, the READ statement makes available the next logical recor
 
 (5) The INVALID KEY phrase or the AT END phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1.
 
-### 4.5.4 General Rules
+#### 4.5.4 General Rules
 
 (1) The file referenced by file-name-1 must be open in the input or I-O mode at the time this statement is executed. (See page VIII-21, The OPEN Statement.)
 
@@ -18082,13 +18066,13 @@ VIII-29
 
 <pre>Relative I-O - REWRITE</pre>
 
-## 4.6 THE REWRITE STATEMENT
+### 4.6 THE REWRITE STATEMENT
 
-### 4.6.1 Function
+#### 4.6.1 Function
 
 The REWRITE statement logically replaces a record existing in a mass storage file.
 
-### 4.6.2 General Format
+#### 4.6.2 General Format
 
 <pre style="line-height:1">
 <u>REWRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
@@ -18097,7 +18081,7 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 [ <u>END-REWRITE</u> ]
 </pre>
 
-### 4.6.3 Syntax Rules
+#### 4.6.3 Syntax Rules
 
 (1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
 
@@ -18113,7 +18097,7 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 > ⚠ **CORRECTED — see the Errata (C136).** The standard prints `access mode, and for which an appropriate USE AFTER STANDARD EXCEPTION procedure` (page 460, folio VIII-30). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-30 (T) (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 4 in part to read: '...mode for which...'", a typographical error (kb/Work PB5045). Corrected to `access mode for which an appropriate USE AFTER STANDARD EXCEPTION procedure`.
 
-### 4.6.4 General Rules
+#### 4.6.4 General Rules
 
 (1) The file referenced by the file-name associated with record-name-1 must be a mass storage file and must be open in the I-O mode at the time of execution of this statement. (See page VIII-21, The OPEN Statement.)
 
@@ -18171,13 +18155,13 @@ VIII-32
 
 Relative I-O - START
 
-## ║4.7 THE START STATEMENT║
+### ║4.7 THE START STATEMENT║
 
-### ║4.7.1 Function║
+#### ║4.7.1 Function║
 
 ║The START statement provides a basis for logical positioning within a relative file, for subsequent sequential retrieval of records.║
 
-### ║4.7.2 General Format║
+#### ║4.7.2 General Format║
 
 <pre style="line-height:1">
 ╔                  ┌     ╭ IS <u>EQUAL</u> TO                 ╮             ┐ ╗
@@ -18196,7 +18180,7 @@ Relative I-O - START
 ╚   [ <u>END-START</u> ]                                                      ╝
 </pre>
 
-### ║4.7.3 Syntax Rules║
+#### ║4.7.3 Syntax Rules║
 
 ║(1) File-name-1 must be the name of a file with a sequential or dynamic access.║
 
@@ -18206,7 +18190,7 @@ Relative I-O - START
 
 ║(4) Data-name-1, if specified, must be the data item specified in the RELATIVE KEY phrase in the ACCESS MODE clause of the associated file control entry.║
 
-### ║4.7.4 General Rules║
+#### ║4.7.4 General Rules║
 
 ║(1) The file referenced by file-name-1 must be open in the input or I-O mode at the time that the START statement is executed. (See page VIII-21, The OPEN Statement.)║
 
@@ -18316,13 +18300,13 @@ VIII-36
 Relative I-O - WRITE
 </pre>
 
-## 4.9 THE WRITE STATEMENT
+### 4.9 THE WRITE STATEMENT
 
-### 4.9.1 Function
+#### 4.9.1 Function
 
 The WRITE statement releases a logical record for an output or input-output file.
 
-### 4.9.2 GENERAL FORMAT
+#### 4.9.2 GENERAL FORMAT
 
 <pre style="line-height:1">
 <u>WRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
@@ -18331,7 +18315,7 @@ The WRITE statement releases a logical record for an output or input-output file
 [ <u>END-WRITE</u> ]
 </pre>
 
-### 4.9.3 Syntax Rules
+#### 4.9.3 Syntax Rules
 
 (1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
 
@@ -18343,7 +18327,7 @@ The WRITE statement releases a logical record for an output or input-output file
 
 (3) The INVALID KEY phrase must be specified if an applicable USE AFTER STANDARD EXCEPTION procedure is not specified for the associated file-name.
 
-### 4.9.4 General Rules
+#### 4.9.4 General Rules
 
 (1) The file referenced by the file-name associated with record-name-1 must be open in the output, I-O, ║or extend║ mode at the time of the execution of this statement. (See page VIII-21, The OPEN Statement.)
 
@@ -18413,13 +18397,11 @@ VIII-39
 
 <!-- This page is blank in the printed standard. -->
 
-# SECTION IX: INDEXED I-O MODULE
-
 ## Page 471
 
 Indexed I-O - Introduction
 
-<u>SECTION IX: INDEXED I-O MODULE</u>
+# <u>SECTION IX: INDEXED I-O MODULE</u>
 
 ## 1. <u>INTRODUCTION TO THE INDEXED I-O MODULE</u>
 
@@ -18449,7 +18431,7 @@ IX-1
 
 Indexed I-O - Introduction
 
-1.3.2 Access Modes
+#### 1.3.2 Access Modes
 
 For indexed organization, the order of sequential access is ascending based on the value of the key of reference according to the collating sequence of the file. Any of the keys associated with the file may be established as the key of reference during the processing of a file. ║The order of retrieval from a set of records which have duplicate key of reference values is the original order of arrival of those records into that set. The START statement may be used to establish a starting point within an indexed file for a series of subsequent sequential retrievals.║
 
@@ -18457,11 +18439,11 @@ When a file is accessed in random mode, input-output statements are used to acce
 
 ║With dynamic access mode, the programmer may change at will from sequential accessing to random accessing, using appropriate forms of input-output statements.║
 
-1.3.3 File Position Indicator
+#### 1.3.3 File Position Indicator
 
 The file position indicator is a conceptual entity used in this document to facilitate exact specification of the next record to be accessed within a given file during certain sequences of input-output operations. The setting of the file position indicator is affected only by the CLOSE, OPEN, READ, ║and START║ statements. The concept of a file position indicator has no meaning for a file opened in the output ║or extend║ mode.
 
-1.3.4 I-O Status
+#### 1.3.4 I-O Status
 
 The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, ║START,║ or WRITE statement and prior to the execution of any imperative statement associated with that input-output statement or prior to the execution of any applicable USE AFTER STANDARD EXCEPTION procedure. The value of the I-O status is made available to the COBOL program through the use of the FILE STATUS clause in the file control entry for the file.
 
@@ -18603,7 +18585,7 @@ Indexed I-O - Introduction
 
 a. I-O Status = 9x. An implementor-defined condition exists. This condition must not duplicate any condition specified for the I-O status values 00 through 49. The value of x is defined by the implementor.
 
-1.3.5 The Invalid Key Condition
+#### 1.3.5 The Invalid Key Condition
 
 The invalid key condition can occur as a result of the execution of a DELETE, READ, REWRITE, ║START,║ or WRITE statement. When the invalid key condition occurs, execution of the input-output statement which recognized the condition is unsuccessful and the file is not affected. (See page IX-21, The DELETE Statement; page IX-28, The READ Statement; page IX-33, The REWRITE Statement; ║page IX-36, The START Statement;║ and page IX-41, The WRITE Statement.)
 
@@ -18631,7 +18613,7 @@ Indexed I-O - Introduction
 
 causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of the imperative-statement specified in the NOT INVALID KEY phrase, control is transferred to the end of the input-output statement.
 
-### 1.3.6 The At End Condition
+#### 1.3.6 The At End Condition
 
 The at end condition can occur as a result of the execution of a READ statement. (See page IX-28, The READ Statement.)
 
@@ -18702,7 +18684,7 @@ IX-8
 
 Indexed I-O - File Control Entry
 
-2.3.4 General Rules
+#### 2.3.4 General Rules
 
 (1) If the file connector referenced by file-name-1 is an external file connector (see page X-23, The EXTERNAL Clause), all file control entries in the run unit which reference this file connector must have:
 
@@ -18740,13 +18722,13 @@ IX-9
 
 Indexed I-O - ACCESS MODE
 
-## 2.4 THE ACCESS MODE CLAUSE
+### 2.4 THE ACCESS MODE CLAUSE
 
-### 2.4.1 Function
+#### 2.4.1 Function
 
 The ACCESS MODE clause specifies the order in which records are to be accessed in the file.
 
-### 2.4.2 General Format
+#### 2.4.2 General Format
 
 <pre style="line-height:1">
                ╭ <u>SEQUENTIAL</u> ╮
@@ -18754,11 +18736,11 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
                ╰║<u>DYNAMIC</u>║   ╯
 </pre>
 
-### 2.4.3 Syntax Rules
+#### 2.4.3 Syntax Rules
 
 (1) The ACCESS MODE IS RANDOM clause must not be specified for file-names specified in the USING or GIVING phrase of a SORT or MERGE statement.
 
-### 2.4.4 General Rules
+#### 2.4.4 General Rules
 
 (1) If the ACCESS MODE clause is not specified, sequential access is assumed.
 
@@ -18776,19 +18758,19 @@ IX-10
 
 Indexed I-O - ALTERNATE RECORD KEY
 
-## ║2.5 THE ALTERNATE RECORD KEY CLAUSE║
+### ║2.5 THE ALTERNATE RECORD KEY CLAUSE║
 
-### ║2.5.1 Function║
+#### ║2.5.1 Function║
 
 ║The ALTERNATE RECORD KEY clause specifies an alternate record key access path to the records in an indexed file.║
 
-### ║2.5.2 General Format║
+#### ║2.5.2 General Format║
 
 <pre style="line-height:1">
 ║ <u>ALTERNATE</u> <u>RECORD</u> KEY IS data-name-1 [ WITH <u>DUPLICATES</u> ] ║
 </pre>
 
-### ║2.5.3 Syntax Rules║
+#### ║2.5.3 Syntax Rules║
 
 ║(1) Data-name-1 may be qualified.║
 
@@ -18800,7 +18782,7 @@ Indexed I-O - ALTERNATE RECORD KEY
 
 ║(5) If the indexed file contains variable length records, each alternate record key must be contained within the first x character positions of the record, where x equals the minimum record size specified for the file. (See page VII-30, The RECORD Clause.)║
 
-### ║2.5.4 General Rules║
+#### ║2.5.4 General Rules║
 
 ║(1) An ALTERNATE RECORD KEY clause specifies an alternate record key for the file with which this clause is associated.║
 
@@ -18824,19 +18806,19 @@ IX-12
 
 Indexed I-O - ORGANIZATION IS INDEXED
 
-## 2.6 THE ORGANIZATION IS INDEXED CLAUSE
+### 2.6 THE ORGANIZATION IS INDEXED CLAUSE
 
-### 2.6.1 Function
+#### 2.6.1 Function
 
 The ORGANIZATION IS INDEXED clause specifies the indexed organization as the logical structure of a file.
 
-### 2.6.2 General Format
+#### 2.6.2 General Format
 
 <pre style="line-height:1">
 [ <u>ORGANIZATION</u> IS ] <u>INDEXED</u>
 </pre>
 
-### 2.6.3 General Rules
+#### 2.6.3 General Rules
 
 (1) The ORGANIZATION IS INDEXED clause specifies indexed organization as the logical structure of a file. The file organization is established at the time a file is created and cannot subsequently be changed.
 
@@ -18848,19 +18830,19 @@ IX-13
 
 Indexed I-O - RECORD KEY
 
-## 2.7 THE RECORD KEY CLAUSE
+### 2.7 THE RECORD KEY CLAUSE
 
-### 2.7.1 Function
+#### 2.7.1 Function
 
 The RECORD KEY clause specifies the prime record key access path to the records in an indexed file.
 
-### 2.7.2 General Format
+#### 2.7.2 General Format
 
 <pre style="line-height:1">
 <u>RECORD</u> KEY IS data-name-1
 </pre>
 
-### 2.7.3 Syntax Rules
+#### 2.7.3 Syntax Rules
 
 (1) Data-name-1 may be qualified.
 
@@ -18870,7 +18852,7 @@ The RECORD KEY clause specifies the prime record key access path to the records 
 
 ║(4) If the indexed file contains variable length records, the prime record key must be contained within the first x character positions of the record, where x equals the minimum record size specified for the file. (See page VII-30, The RECORD Clause.)║
 
-### 2.7.4 General Rules
+#### 2.7.4 General Rules
 
 (1) The RECORD KEY clause specifies the prime record key for the file with which this clause is associated. The values of the prime record key must be unique among records of the file.
 
@@ -18886,13 +18868,13 @@ IX-14
 
 Indexed I-O - I-O-CONTROL
 
-## 2.8 THE I-O-CONTROL PARAGRAPH
+### 2.8 THE I-O-CONTROL PARAGRAPH
 
-### 2.8.1 Function
+#### 2.8.1 Function
 
 The I-O-CONTROL paragraph specifies the points at which rerun is to be established and the memory area which is to be shared by different files. The RERUN clause within the I-O-CONTROL paragraph is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
 
-### 2.8.2 General Format
+#### 2.8.2 General Format
 
 <pre style="line-height:1">
 <u>I-O-CONTROL</u>.
@@ -18904,7 +18886,7 @@ The I-O-CONTROL paragraph specifies the points at which rerun is to be establish
   [ <u>SAME</u> ║ [ <u>RECORD</u> ] ║ AREA FOR file-name-3 { file-name-4 } … ] … . ]
 </pre>
 
-### 2.8.3 General Rules
+#### 2.8.3 General Rules
 
 (1) The RERUN clause for the Indexed I-O module is a subset of the RERUN clause for the Sequential I-O module. Thus the specifications for the RERUN clause are located on page VII-17.
 
@@ -18989,9 +18971,9 @@ IX-17
 
 Indexed I-O - Procedure Division
 
-# 4. <u>PROCEDURE DIVISION IN THE INDEXED I-O MODULE</u>
+## 4. <u>PROCEDURE DIVISION IN THE INDEXED I-O MODULE</u>
 
-## 4.1 GENERAL DESCRIPTION
+### 4.1 GENERAL DESCRIPTION
 
 The Procedure Division contains declarative procedures when the USE statement from the Indexed I-O module is present in a COBOL source program. Shown below is the general format of the Procedure Division when the USE statement is present.
 
@@ -19014,23 +18996,23 @@ IX-18
 
 Indexed I-O - CLOSE
 
-## 4.2 THE CLOSE STATEMENT
+### 4.2 THE CLOSE STATEMENT
 
-### 4.2.1 Function
+#### 4.2.1 Function
 
 The CLOSE statement terminates the processing of files ║with optional lock.║
 
-### 4.2.2 General Format
+#### 4.2.2 General Format
 
 <pre style="line-height:1">
 <u>CLOSE</u>  {file-name-1 ║[WITH <u>LOCK</u>]║} …
 </pre>
 
-### 4.2.3 Syntax Rules
+#### 4.2.3 Syntax Rules
 
 (1) The files referenced in the CLOSE statement need not all have the same organization or access.
 
-### 4.2.4 General Rules
+#### 4.2.4 General Rules
 
 (1) A CLOSE statement may only be executed for a file in an open mode.
 
@@ -19082,13 +19064,13 @@ IX-20
 
 Indexed I-O - DELETE
 
-## 4.3 THE DELETE STATEMENT
+### 4.3 THE DELETE STATEMENT
 
-### 4.3.1 Function
+#### 4.3.1 Function
 
 The DELETE statement logically removes a record from a mass storage file.
 
-### 4.3.2 General Format
+#### 4.3.2 General Format
 
 <pre style="line-height:1">
 <u>DELETE</u> file-name-1 RECORD
@@ -19097,13 +19079,13 @@ The DELETE statement logically removes a record from a mass storage file.
 [ <u>END-DELETE</u> ]
 </pre>
 
-### 4.3.3 Syntax Rules
+#### 4.3.3 Syntax Rules
 
 (1) The INVALID KEY and the NOT INVALID KEY phrases must not be specified for a DELETE statement which references a file which is in sequential access mode.
 
 (2) The INVALID KEY phrase must be specified for a DELETE statement which references a file which is not in sequential access mode and for which an applicable USE AFTER STANDARD EXCEPTION procedure is not specified.
 
-### 4.3.4 General Rules
+#### 4.3.4 General Rules
 
 (1) The file referenced by file-name-1 must be a mass storage file and must be open in the I-O mode at the time of the execution of this statement. (See page IX-23, The OPEN Statement.)
 
@@ -19135,13 +19117,13 @@ IX-22
 
 Indexed I-O - OPEN
 
-## 4.4 THE OPEN STATEMENT
+### 4.4 THE OPEN STATEMENT
 
-### 4.4.1 Function
+#### 4.4.1 Function
 
 The OPEN statement initiates the processing of files.
 
-### 4.4.2 General Format
+#### 4.4.2 General Format
 
 <pre style="line-height:1">
      ╭ <u>INPUT</u> {file-name-1} …     ╮
@@ -19150,13 +19132,13 @@ The OPEN statement initiates the processing of files.
      ╰║<u>EXTEND</u> {file-name-4} …║   ╯
 </pre>
 
-### 4.4.3 Syntax Rules
+#### 4.4.3 Syntax Rules
 
 ║(1) The EXTEND phrase must only be used for files in the sequential access mode.║
 
 (2) The files referenced in the OPEN statement need not all have the same organization or access.
 
-### 4.4.4 General Rules
+#### 4.4.4 General Rules
 
 (1) The successful execution of an OPEN statement determines the availability of the file and results in the file being in an open mode. The successful execution of an OPEN statement associates the file with the file-name through the file connector.
 
@@ -19308,13 +19290,13 @@ IX-27
 
 Indexed I-O - READ
 
-## 4.5 THE READ STATEMENT
+### 4.5 THE READ STATEMENT
 
-### 4.5.1 Function
+#### 4.5.1 Function
 
 For sequential access, the READ statement makes available the next logical record from a file. For random access, the READ statement makes available a specified record from a mass storage file.
 
-### 4.5.2 General Format
+#### 4.5.2 General Format
 
 <u>Format 1</u>:
 
@@ -19338,7 +19320,7 @@ For sequential access, the READ statement makes available the next logical recor
   [ <u>END-READ</u> ]
 </pre>
 
-### 4.5.3 Syntax Rules
+#### 4.5.3 Syntax Rules
 
 (1) The storage area associated with identifier-1 and the record area associated with file-name-1 must not be the same storage area.
 
@@ -19360,7 +19342,7 @@ IX-28
 
 Indexed I-O - READ
 
-4.5.4 General Rules
+#### 4.5.4 General Rules
 
 (1) The file referenced by file-name-1 must be open in the input or I-O mode at the time this statement is executed. (See page IX-23, The OPEN Statement.)
 
@@ -19468,13 +19450,13 @@ IX-32
 
 Indexed I-O - REWRITE
 
-## 4.6 THE REWRITE STATEMENT
+### 4.6 THE REWRITE STATEMENT
 
-### 4.6.1 Function
+#### 4.6.1 Function
 
 The REWRITE statement logically replaces a record existing in a mass storage file.
 
-### 4.6.2 General Format
+#### 4.6.2 General Format
 
 <pre style="line-height:1">
 <u>REWRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
@@ -19483,7 +19465,7 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 [ <u>END-REWRITE</u> ]
 </pre>
 
-### 4.6.3 Syntax Rules
+#### 4.6.3 Syntax Rules
 
 (1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
 
@@ -19497,7 +19479,7 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 > ⚠ **CORRECTED — see the Errata (C141).** The standard prints `(3) The INVALID KEY and the NOT INVALID KEY phrases must be specified if an applicable USE AFTER STANDARD EXCEPTION procedure is not specified for the associated file-name.` (page 503, folio IX-33). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-33 (T) (page 849, folio A-19), applied in place: "Paragraph 4.6.3 of the REWRITE statement in the Indexed I-O module, syntax rule 3, change to read", a typographical error (kb/Work PB5045). Corrected to `(3) The INVALID KEY phrase must be specified in the REWRITE statement for indexed files for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified.`.
 
-### 4.6.4 General Rules
+#### 4.6.4 General Rules
 
 (1) The file referenced by the file-name associated with record-name-1 must be a mass storage file and must be open in the I-O mode at the time of execution of this statement. (See page IX-23, The OPEN Statement.)
 
@@ -19571,13 +19553,13 @@ IX-35
 
 Indexed I-O - START
 
-## ║4.7 THE START STATEMENT║
+### ║4.7 THE START STATEMENT║
 
-### ║4.7.1 Function║
+#### ║4.7.1 Function║
 
 ║The START statement provides a basis for logical positioning within an indexed file, for subsequent sequential retrieval of records.║
 
-### ║4.7.2 General Format║
+#### ║4.7.2 General Format║
 
 <pre style="line-height:1">
 ╔                  ┌     ╭ IS <u>EQUAL</u> TO                 ╮             ┐ ╗
@@ -19596,7 +19578,7 @@ Indexed I-O - START
 ╚   [ <u>END-START</u> ]                                                      ╝
 </pre>
 
-### ║4.7.3 Syntax Rules║
+#### ║4.7.3 Syntax Rules║
 
 ║(1) File-name-1 must be the name of a file with sequential or dynamic access.║
 
@@ -19610,7 +19592,7 @@ Indexed I-O - START
 
 ║b. Any data item of category alphanumeric whose leftmost character position within a record of the file corresponds to the leftmost character position of a record key associated with file-name-1 and whose length is not greater than the length of that record key.║
 
-### ║4.7.4 General Rules║
+#### ║4.7.4 General Rules║
 
 ║(1) The file referenced by file-name-1 must be open in the input or I-O mode at the time that the START statement is executed. (See page IX-23, The OPEN Statement.)║
 
@@ -19666,13 +19648,13 @@ IX-38
 
 Indexed I-O - USE
 
-## 4.8 THE USE STATEMENT
+### 4.8 THE USE STATEMENT
 
-### 4.8.1 Function
+#### 4.8.1 Function
 
 The USE statement specifies procedures for input-output error handling that are in addition to the standard procedures provided by the input-output control system.
 
-### 4.8.2 General Format
+#### 4.8.2 General Format
 
 <pre style="line-height:1">
                                               ╭ { file-name-1 } ║ … ║  ╮
@@ -19682,7 +19664,7 @@ The USE statement specifies procedures for input-output error handling that are 
                                               ╰ ║ <u>EXTEND</u> ║             ╯
 </pre>
 
-### 4.8.3 Syntax Rules
+#### 4.8.3 Syntax Rules
 
 (1) A USE statement, when present, must immediately follow a section header in the declaratives portion of the Procedure Division and must appear in a sentence by itself. The remainder of the section must consist of zero, one, or more procedural paragraphs that define the procedures to be used.
 
@@ -19698,7 +19680,7 @@ The USE statement specifies procedures for input-output error handling that are 
 
 (6) The INPUT, OUTPUT, I-O, ║and EXTEND║ phrases may each be specified only once in the declaratives portion of a given Procedure Division.
 
-### 4.8.4 General Rules
+#### 4.8.4 General Rules
 
 (1) Declarative procedures may be included in any COBOL source program irrespective of whether the program contains or is contained within another program. A declarative is invoked when any of the conditions described in the USE statement which prefaces the declarative occurs while the program is being executed. Only a declarative within the separately compiled program that contains the statement which caused the qualifying condition is invoked when any of the conditions described in the USE statement which prefaces the declarative occurs while that separately compiled program is being executed. If no qualifying declarative exists in the separately compiled program, no declarative is executed.
 
@@ -19736,13 +19718,13 @@ IX-40
 
 Indexed I-O - WRITE
 
-## 4.9 THE WRITE STATEMENT
+### 4.9 THE WRITE STATEMENT
 
-### 4.9.1 Function
+#### 4.9.1 Function
 
 The WRITE statement releases a logical record for an output or input-output file.
 
-### 4.9.2 General Format
+#### 4.9.2 General Format
 
 <pre style="line-height:1">
 <u>WRITE</u> record-name-1  [<u>FROM</u> identifier-1]
@@ -19754,7 +19736,7 @@ The WRITE statement releases a logical record for an output or input-output file
    [<u>END-WRITE</u>]
 </pre>
 
-### 4.9.3 Syntax Rules
+#### 4.9.3 Syntax Rules
 
 (1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
 
@@ -19766,7 +19748,7 @@ The WRITE statement releases a logical record for an output or input-output file
 
 (3) The INVALID KEY phrase must be specified if an applicable USE AFTER STANDARD EXCEPTION procedure is not specified for the associated file-name.
 
-### 4.9.4 General Rules
+#### 4.9.4 General Rules
 
 (1) The file referenced by the file-name associated with record-name-1 must be open in the output, I-O, ║or extend║ mode at the time of the execution of this statement. (See page IX-23, The OPEN Statement.)
 
@@ -19844,13 +19826,11 @@ IX-43
 
 <!-- This page is blank in the printed standard; it has no text to transcribe. -->
 
-# SECTION X: INTER-PROGRAM COMMUNICATION MODULE
-
 ## Page 515
 
 Inter-Program Communication - Introduction
 
-<u>SECTION X: INTER-PROGRAM COMMUNICATION MODULE</u>
+# <u>SECTION X: INTER-PROGRAM COMMUNICATION MODULE</u>
 
 ## 1. <u>INTRODUCTION TO THE INTER-PROGRAM COMMUNICATION MODULE</u>
 
@@ -19884,7 +19864,7 @@ X-1
 
 Inter-Program Communication - Introduction
 
-### 1.3.3 Global Names and Local Names
+#### 1.3.3 Global Names and Local Names
 
 A data-name names a data item. A file-name names a file connector. These names are classified as ║either global or║ local.
 
@@ -19900,7 +19880,7 @@ If a data-name, a file-name, or a condition-name declared in a data description 
 
 ║Global names are transitive across programs contained within other programs.║
 
-### 1.3.4 External Objects and Internal Objects
+#### 1.3.4 External Objects and Internal Objects
 
 Accessible data items usually require that certain representations of data be stored. File connectors usually require that certain information concerning files be stored. The storage associated with a data item or a file connector may be ║external or║ internal to the program in which the object is declared.
 
@@ -19926,7 +19906,7 @@ The data records described subordinate to a file description entry which does no
 
 Data records, subordinate data items, and various associated control information described in the Linkage, Communication, and Report Sections of a program are always considered to be internal to the program describing that data. Special considerations apply to data described in the Linkage Section whereby an association is made between the data records described and other data items accessible to other programs.
 
-### ║1.3.5 Common Programs and Initial Programs║
+#### ║1.3.5 Common Programs and Initial Programs║
 
 ║All programs which form part of a run unit may possess none, one, or more of the following attributes: common and initial.║
 
@@ -19940,7 +19920,7 @@ X-3
 
 Inter-Program Communication - Introduction
 
-### 1.3.6 Sharing Data
+#### 1.3.6 Sharing Data
 
 Two programs in a run unit may reference common data in the following circumstances:
 
@@ -19950,7 +19930,7 @@ Two programs in a run unit may reference common data in the following circumstan
 
 (3) The mechanism whereby a parameter value is passed by reference from a calling program to a called program establishes a common data item; the called program, which may use a different identifier, may refer to a data item in the calling program.
 
-### ║1.3.7 Sharing Files║
+#### ║1.3.7 Sharing Files║
 
 ║Two programs in a run unit may reference common file connectors in the following circumstances:║
 
@@ -19958,7 +19938,7 @@ Two programs in a run unit may reference common data in the following circumstan
 
 ║(2) If a program is contained within another program, both programs may refer to a common file connector by referring to an associated global file-name either in the containing program or in any program which directly or indirectly contains the containing program.║
 
-### 1.3.8 Scope of Names
+#### 1.3.8 Scope of Names
 
 When programs are directly or indirectly contained within other programs, each program may use identical user-defined words to name objects independent of the use of these user-defined words by other programs. (See page IV-6, User-Defined Words.) When identically named objects exist, a program's reference to such a name, even when it is a different type of user-defined word, is to the object which that program describes rather than to the object, possessing the same name, described in another program.
 
@@ -20005,7 +19985,7 @@ Specific conventions, for declarations and references, apply to the following ty
 6. record-name
 7. report-name
 
-1.3.8.1 Conventions for Program-Names
+##### 1.3.8.1 Conventions for Program-Names
 
 The program-name of a program is declared in the PROGRAM-ID paragraph of the program's Identification Division. A program-name may be referenced only by the CALL statement, ║the CANCEL statement,║ ║and the end program header.║ ║The program-names allocated to programs constituting a run unit are not necessarily unique but, when two programs in a run unit are identically named, at least one of those two programs must be directly or indirectly contained within another separately compiled program which does not contain the other of those two programs.║
 
@@ -20025,7 +20005,7 @@ Inter-Program Communication - Introduction
 
 > ⚠ **CORRECTED — see the Errata (C146).** The standard prints `in the run unit, except programs it directly or indirectly contains.` (page 520, folio X-6). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-6 (T) (page 850, folio A-20), applied in place: "Paragraph 1.3.8.1, entitled 'Conventions for Program-Names', rule 3, box 'except programs it directly or indirectly contains'", a typographical error (kb/Work PB5045). Corrected to `in the run unit, ║except programs it directly or indirectly contains║.`.
 
-### 1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names
+##### 1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names
 
 When condition-names, data-names, file-names, record-names, and report-names are declared in a source program, these names may be referenced only by that program ║except when one or more of the names is global and the program contains other programs.║
 
@@ -20057,7 +20037,7 @@ X-6
 
 Inter-Program Communication - Introduction
 
-### ║1.3.8.3 Conventions for Index-Names║
+##### ║1.3.8.3 Conventions for Index-Names║
 
 ║If a data item possessing the global attribute includes a table described with an index-name, that index-name also possesses the global attribute. Therefore, the scope of an index-name is identical to that of the data-name which names the table whose index is named by that index-name and the scope of name rules for data-names apply. Index-names cannot be qualified.║
 
@@ -20107,7 +20087,7 @@ X-8
 
 Inter-Program Communication - Nested Source Programs
 
-║2.3.2 Syntax Rules║
+#### ║2.3.2 Syntax Rules║
 
 ║(1) End-program-header must be present if:║
 
@@ -20115,7 +20095,7 @@ Inter-Program Communication - Nested Source Programs
 
 ║b. The COBOL source program is contained within another COBOL source program.║
 
-║2.3.3 General Rules║
+#### ║2.3.3 General Rules║
 
 ║(1) The beginning of a division in a program is indicated by the appropriate division header. The end of a division is indicated by one of the following:║
 
@@ -20137,11 +20117,11 @@ X-9
 
 Inter-Program Communication - Initial State of a Program
 
-## 2.4 INITIAL STATE OF A PROGRAM
+### 2.4 INITIAL STATE OF A PROGRAM
 
 The initial state of a program is the state of a program the first time it is called in a run unit.
 
-### 2.4.1 Characteristics of a Program
+#### 2.4.1 Characteristics of a Program
 
 (1) The program's internal data contained in the Working-Storage Section and the Communication Section are initialized. If a VALUE clause is used in the description of the data item, the data item is initialized to the defined value. If a VALUE clause is not associated with a data item, the initial value of the data item is undefined.
 
@@ -20151,7 +20131,7 @@ The initial state of a program is the state of a program the first time it is ca
 
 (4) A GO TO statement referred to by an ALTER statement contained in the same program is set to its initial state.
 
-### 2.4.2 Programs in the Initial State
+#### 2.4.2 Programs in the Initial State
 
 A program is in the initial state:
 
@@ -20171,19 +20151,19 @@ X-10
 
 Inter-Program Communication - End Program Header
 
-## 2.5 END PROGRAM HEADER
+### 2.5 END PROGRAM HEADER
 
-### 2.5.1 Function
+#### 2.5.1 Function
 
 The end program header indicates the end of the named COBOL source program.
 
-### 2.5.2 General Format
+#### 2.5.2 General Format
 
 <pre style="line-height:1">
 <u>END</u> <u>PROGRAM</u> program-name.
 </pre>
 
-### 2.5.3 Syntax Rules
+#### 2.5.3 Syntax Rules
 
 (1) The program-name must conform to the rules for forming a user-defined word.
 
@@ -20191,7 +20171,7 @@ The end program header indicates the end of the named COBOL source program.
 
 ║(3) If a PROGRAM-ID paragraph declaring a specific program-name is stated between the PROGRAM-ID paragraph and the end program header declaring and referencing, respectively, another program-name, the end program header referencing the former program-name must precede that referencing the latter program-name.║
 
-### 2.5.4 General Rules
+#### 2.5.4 General Rules
 
 ║(1) The end program header must be present in every program which either contains or is contained within another program.║
 
@@ -20207,15 +20187,15 @@ X-11
 
 Inter-Program Communication - Identification Division
 
-# ║3. IDENTIFICATION DIVISION IN THE INTER-PROGRAM COMMUNICATION MODULE║
+## ║3. IDENTIFICATION DIVISION IN THE INTER-PROGRAM COMMUNICATION MODULE║
 
-## ║3.1 THE PROGRAM-ID PARAGRAPH AND NESTED SOURCE PROGRAMS║
+### ║3.1 THE PROGRAM-ID PARAGRAPH AND NESTED SOURCE PROGRAMS║
 
-### ║3.1.1 Function║
+#### ║3.1.1 Function║
 
 ║The PROGRAM-ID paragraph specifies the name by which a program is identified and assigns selected program attributes to that program.║
 
-### ║3.1.2 General Format║
+#### ║3.1.2 General Format║
 
 <pre style="line-height:1">
 ╔                          ┌    ╭ │ <u>COMMON</u>  │ ╮         ┐   ╗
@@ -20223,7 +20203,7 @@ Inter-Program Communication - Identification Division
 ╚                          └    ╰ │ <u>INITIAL</u> │ ╯         ┘   ╝
 </pre>
 
-### ║3.1.3 Syntax Rules║
+#### ║3.1.3 Syntax Rules║
 
 ║(1) The program-name must conform to the rules for formation of a user-defined word.║
 
@@ -20231,7 +20211,7 @@ Inter-Program Communication - Identification Division
 
 ║(3) The optional COMMON clause may be used only if the program is contained within another program.║
 
-### ║3.1.4 General Rules║
+#### ║3.1.4 General Rules║
 
 ║(1) The program-name identifies the source program, the object program, and all listings pertaining to a particular program.║
 
@@ -20247,19 +20227,19 @@ X-12
 
 Inter-Program Communication - End Program Header
 
-## 2.5 END PROGRAM HEADER
+### 2.5 END PROGRAM HEADER
 
-### 2.5.1 Function
+#### 2.5.1 Function
 
 The end program header indicates the end of the named COBOL source program.
 
-### 2.5.2 General Format
+#### 2.5.2 General Format
 
 <pre style="line-height:1">
 <u>END</u> <u>PROGRAM</u> program-name.
 </pre>
 
-### 2.5.3 Syntax Rules
+#### 2.5.3 Syntax Rules
 
 (1) The program-name must conform to the rules for forming a user-defined word.
 
@@ -20267,7 +20247,7 @@ The end program header indicates the end of the named COBOL source program.
 
 ║(3) If a PROGRAM-ID paragraph declaring a specific program-name is stated between the PROGRAM-ID paragraph and the end program header declaring and referencing, respectively, another program-name, the end program header referencing the former program-name must precede that referencing the latter program-name.║
 
-### 2.5.4 General Rules
+#### 2.5.4 General Rules
 
 ║(1) The end program header must be present in every program which either contains or is contained within another program.║
 
@@ -20285,15 +20265,15 @@ X-11
 
 Inter-Program Communication - Identification Division
 
-# ║3. IDENTIFICATION DIVISION IN THE INTER-PROGRAM COMMUNICATION MODULE║
+## ║3. IDENTIFICATION DIVISION IN THE INTER-PROGRAM COMMUNICATION MODULE║
 
-## ║3.1 THE PROGRAM-ID PARAGRAPH AND NESTED SOURCE PROGRAMS║
+### ║3.1 THE PROGRAM-ID PARAGRAPH AND NESTED SOURCE PROGRAMS║
 
-### ║3.1.1 Function║
+#### ║3.1.1 Function║
 
 ║The PROGRAM-ID paragraph specifies the name by which a program is identified and assigns selected program attributes to that program.║
 
-### ║3.1.2 General Format║
+#### ║3.1.2 General Format║
 
 <pre style="line-height:1">
 ╔                          ┌    ╭ │ <u>COMMON</u>  │ ╮         ┐   ╗
@@ -20301,7 +20281,7 @@ Inter-Program Communication - Identification Division
 ╚                          └    ╰ │ <u>INITIAL</u> │ ╯         ┘   ╝
 </pre>
 
-### ║3.1.3 Syntax Rules║
+#### ║3.1.3 Syntax Rules║
 
 ║(1) The program-name must conform to the rules for formation of a user-defined word.║
 
@@ -20309,7 +20289,7 @@ Inter-Program Communication - Identification Division
 
 ║(3) The optional COMMON clause may be used only if the program is contained within another program.║
 
-### ║3.1.4 General Rules║
+#### ║3.1.4 General Rules║
 
 ║(1) The program-name identifies the source program, the object program, and all listings pertaining to a particular program.║
 
@@ -20365,11 +20345,11 @@ X-13
 
 Inter-Program Communication - Linkage Section
 
-### 4.1.2 Linkage Records
+#### 4.1.2 Linkage Records
 
 Data elements in the Linkage Section which bear a definite hierarchical relationship to one another must be grouped into records according to the rules for formation of record descriptions. Data elements in the Linkage Section which bear no hierarchical relationship to any other data item may be described as records which are single elementary items.
 
-### 4.1.3 Initial Values
+#### 4.1.3 Initial Values
 
 The VALUE clause must not be specified in the Linkage Section except in condition-name entries (level 88).
 
@@ -20379,13 +20359,13 @@ X-14
 
 Inter-Program Communication - File Description Entry
 
-## 4.2 THE FILE DESCRIPTION ENTRY IN THE INTER-PROGRAM COMMUNICATION MODULE
+### 4.2 THE FILE DESCRIPTION ENTRY IN THE INTER-PROGRAM COMMUNICATION MODULE
 
-### 4.2.1 Function
+#### 4.2.1 Function
 
 Within the Inter-Program Communication module, the file description entry in the File Section determines the internal or external attributes of a file connector, of the associated data records, and of the associated data items. The file description entry also determines whether a file-name is a local name or a global name.
 
-### 4.2.2 General Format
+#### 4.2.2 General Format
 
 <u>Format 1:</u>
 
@@ -20510,7 +20490,7 @@ X-17
 
 Inter-Program Communication - File Description Entry
 
-### 4.2.3 Syntax Rules
+#### 4.2.3 Syntax Rules
 
 (1) Format 1 is the file description entry for a sequential file. The availability of specific clauses in this file description entry is dependent on the level of Sequential I-O module supported by the implementation. (See page VII-22 in the Sequential I-O module.)
 
@@ -20518,7 +20498,7 @@ Inter-Program Communication - File Description Entry
 
 (3) Format 3 is the file description entry for a report file. The availability of the file description entry for a report file is dependent on whether the Report Writer module is supported by the implementation. (See page XIII-7 in the Report Writer module.)
 
-### 4.2.4 General Rules
+#### 4.2.4 General Rules
 
 ║(1) If the file description entry for a sequential file contains the LINAGE clause and the EXTERNAL clause, the LINAGE-COUNTER data item is an external data item. If the file description entry for a sequential file contains the LINAGE clause and the GLOBAL clause, the special register LINAGE-COUNTER is a global name.║
 
@@ -20530,9 +20510,9 @@ X-18
 
 Inter-Program Communication - Data Description Entry
 
-## 4.3 THE DATA DESCRIPTION ENTRY IN THE INTER-PROGRAM COMMUNICATION MODULE
+### 4.3 THE DATA DESCRIPTION ENTRY IN THE INTER-PROGRAM COMMUNICATION MODULE
 
-### 4.3.1 Function
+#### 4.3.1 Function
 
 Within the Inter-Program Communication module, a level 01 data description entry within the Working-Storage Section or File Section determines whether the data record and its subordinate data items have local names ║or global names║.
 
@@ -20548,7 +20528,7 @@ X-19
 
 Inter-Program Communication - Data Description Entry
 
-## 4.3.2 General Format
+#### 4.3.2 General Format
 
 <pre style="line-height:1">
 01           ┌data-name-1┐
@@ -20609,7 +20589,7 @@ X-20
 
 Inter-Program Communication - Data Description Entry
 
-### 4.3.3 Syntax Rules
+#### 4.3.3 Syntax Rules
 
 (1) The availability of specific clauses in the data description entry is dependent on the level of the Nucleus module supported by the implementation. (See page VI-20 in the Nucleus module.)
 
@@ -20623,7 +20603,7 @@ Inter-Program Communication - Data Description Entry
 
 ║(5) Data-name-1 must be specified for any entry containing the GLOBAL or EXTERNAL clause, or for record descriptions associated with a file description entry which contains the EXTERNAL or GLOBAL clause.║
 
-### 4.3.4 General Rules
+#### 4.3.4 General Rules
 
 (1) ║The EXTERNAL clause is presented on page X-23. The GLOBAL clause is presented on page X-24.║ All other clauses in the data description entry are presented in the Nucleus module within these specifications.
 
@@ -20633,13 +20613,13 @@ X-21
 
 Inter-Program Communication - Report Description Entry
 
-## 4.4 THE REPORT DESCRIPTION ENTRY IN THE INTER-PROGRAM COMMUNICATION MODULE
+### 4.4 THE REPORT DESCRIPTION ENTRY IN THE INTER-PROGRAM COMMUNICATION MODULE
 
-### 4.4.1 Function
+#### 4.4.1 Function
 
 Within the Inter-Program Communication module, the report description entry in the Report Section determines whether a report-name is a local name or a global name.
 
-### 4.4.2 General Format
+#### 4.4.2 General Format
 
 <pre style="line-height:1">
 <u>RD</u> report-name-1
@@ -20661,11 +20641,11 @@ Within the Inter-Program Communication module, the report description entry in t
     └      [ <u>FOOTING</u> integer-5 ]                                       ┘ .
 </pre>
 
-### 4.4.3 Syntax Rules
+#### 4.4.3 Syntax Rules
 
 (1) The availability of the report description entry is dependent on whether the Report Writer module is supported by the implementation. (See page XIII-11 in the Report Writer module.)
 
-### 4.4.4 General Rules
+#### 4.4.4 General Rules
 
 ║(1) If the report description entry contains the GLOBAL clause, the special registers LINE-COUNTER and PAGE-COUNTER are global names.║
 
@@ -20677,21 +20657,21 @@ X-22
 
 Inter-Program Communication - EXTERNAL
 
-## ║4.5 THE EXTERNAL CLAUSE║
+### ║4.5 THE EXTERNAL CLAUSE║
 
-### ║4.5.1 Function║
+#### ║4.5.1 Function║
 
 ║The EXTERNAL clause specifies that a data item or a file connector is external. The constituent data items and group data items of an external data record are available to every program in the run unit which describes that record.║
 
 > ⚠ **CORRECTED — see the Errata (C7).** The standard prints `The constitutent data items` (page 539, folio X-23): a misspelling on the printed page. Corrected to `constituent`.
 
-### ║4.5.2 General Format║
+#### ║4.5.2 General Format║
 
 <pre style="line-height:1">
 ║ IS <u>EXTERNAL</u> ║
 </pre>
 
-### ║4.5.3 Syntax Rules║
+#### ║4.5.3 Syntax Rules║
 
 ║(1) The EXTERNAL clause may be specified only in file description entries (see pages X-15 through X-18) or in record description entries in the Working-Storage Section (see pages X-19 through X-21).║
 
@@ -20701,7 +20681,7 @@ Inter-Program Communication - EXTERNAL
 
 > ⚠ **CORRECTED — see the Errata (C290).** The standard prints `║(3) The VALUE clause must not be used in any data description entry which includes, or is subordinate to, an entry which includes the EXTERNAL clause.` (page 539, folio X-23). Amendment 2 (ANSI X3.23b-1993), its change for page X-23 (page 932, folio B-20), applied in place: "Paragraph 4.5.3 of the EXTERNAL clause, syntax rule 3, change the first sentence to read" (shaded: level 2, the rule's box) (kb/Work PB5045). Corrected to `║(3) The VALUE clause must not be used in any data description entry that includes, or is subordinate to an entry that includes, the EXTERNAL clause.`.
 
-### ║4.5.4 General Rules║
+#### ║4.5.4 General Rules║
 
 ║(1) The data contained in the record named by the data-name clause is external and may be accessed and processed by any program in the run unit which describes and, optionally, redefines it subject to the following general rules.║
 
@@ -20717,19 +20697,19 @@ X-23
 
 Inter-Program Communication - GLOBAL
 
-## ║4.6 THE GLOBAL CLAUSE║
+### ║4.6 THE GLOBAL CLAUSE║
 
-### ║4.6.1 Function║
+#### ║4.6.1 Function║
 
 ║The GLOBAL clause specifies that a data-name, a file-name, or a report-name is a global name. A global name is available to every program contained within the program which declares it.║
 
-### ║4.6.2 General Format║
+#### ║4.6.2 General Format║
 
 <pre style="line-height:1">
 ║ IS <u>GLOBAL</u> ║
 </pre>
 
-### ║4.6.3 Syntax Rules║
+#### ║4.6.3 Syntax Rules║
 
 ║(1) The GLOBAL clause may be specified only in data description entries whose level-number is 01 in the File Section or the Working-Storage Section, file description entries, or report description entries.║
 
@@ -20737,7 +20717,7 @@ Inter-Program Communication - GLOBAL
 
 ║(3) If the SAME RECORD AREA clause is specified for several files, the record description entries or the file description entries for these files must not include the GLOBAL clause.║
 
-### ║4.6.4 General Rules║
+#### ║4.6.4 General Rules║
 
 ║(1) A data-name, file-name, or report-name described using a GLOBAL clause is a global name. All data-names subordinate to a global name are global names. All condition-names associated with a global name are global names.║
 
@@ -20801,13 +20781,13 @@ X-26
 
 Inter-Program Communication - CALL
 
-5.2 THE CALL STATEMENT
+### 5.2 THE CALL STATEMENT
 
-5.2.1 Function
+#### 5.2.1 Function
 
 The CALL statement causes control to be transferred from one object program to another, within the run unit.
 
-5.2.2 General Format
+#### 5.2.2 General Format
 
 <u>Format 1</u>:
 
@@ -20835,7 +20815,7 @@ The CALL statement causes control to be transferred from one object program to a
   [ <u>END-CALL</u> ]
 </pre>
 
-5.2.3 Syntax Rules
+#### 5.2.3 Syntax Rules
 
 (1) Literal-1 must be a nonnumeric literal.
 
@@ -20847,7 +20827,7 @@ The CALL statement causes control to be transferred from one object program to a
 
 > ⚠ **CORRECTED — see the Errata (C150).** The standard prints `(3) Each of the operands in the USING phrase ... or an elementary data item.` (page 543, folio X-27). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-27 (page 850, folio A-20), applied in place: "Paragraph 5.2.3, add new syntax rule 4 as follows" (kb/Work PB5045). Corrected to `(4) Identifier-2 must not be a function-identifier.`.
 
-5.2.4 General Rules
+#### 5.2.4 General Rules
 
 (1) Literal-1 ║or the content of the data item referenced by identifier-1║ is the name of the called program. The program in which the CALL statement appears is the calling program. If the program being called is a COBOL program, literal-1 ║or the content of the data item referenced by identifier-1║ must contain the program-name contained in the PROGRAM-ID paragraph of the called program. If the program being called is not a COBOL program, the rules for formation of the program-name are defined by the implementor.
 
@@ -20939,13 +20919,13 @@ X-30
 
 Inter-Program Communication - CANCEL
 
-## ║5.3 THE CANCEL STATEMENT║
+### ║5.3 THE CANCEL STATEMENT║
 
-### ║5.3.1 Function║
+#### ║5.3.1 Function║
 
 ║The CANCEL statement ensures that the next time the referenced program is called it will be in its initial state.║
 
-### ║5.3.2 General Format║
+#### ║5.3.2 General Format║
 
 <pre style="line-height:1">
 ╔        ╭ identifier-1 ╮   ╗
@@ -20953,13 +20933,13 @@ Inter-Program Communication - CANCEL
 ╚        ╰ literal-1    ╯   ╝
 </pre>
 
-### ║5.3.3 Syntax Rules║
+#### ║5.3.3 Syntax Rules║
 
 ║(1) Literal-1 must be a nonnumeric literal.║
 
 ║(2) Identifier-1 must reference an alphanumeric data item.║
 
-### ║5.3.4 General Rules║
+#### ║5.3.4 General Rules║
 
 ║(1) Literal-1 or the content of the data item referenced by identifier-1 identifies the program to be cancelled.║
 
@@ -20997,25 +20977,25 @@ X-32
 
 Inter-Program Communication - EXIT PROGRAM
 
-## 5.4 THE EXIT PROGRAM STATEMENT
+### 5.4 THE EXIT PROGRAM STATEMENT
 
-### 5.4.1 Function
+#### 5.4.1 Function
 
 The EXIT PROGRAM statement marks the logical end of a called program.
 
-### 5.4.2 General Format
+#### 5.4.2 General Format
 
 <pre style="line-height:1">
 <u>EXIT</u> <u>PROGRAM</u>
 </pre>
 
-### 5.4.3 Syntax Rules
+#### 5.4.3 Syntax Rules
 
 (1) If an EXIT PROGRAM statement appears in a consecutive sequence of imperative statements within a sentence, it must appear as the last statement in that sequence.
 
 (2) The EXIT PROGRAM statement must not appear in a declarative procedure in which the GLOBAL phrase is specified.
 
-### 5.4.4 General Rules
+#### 5.4.4 General Rules
 
 (1) If the EXIT PROGRAM statement is executed in a program which is not under the control of a calling program, the EXIT PROGRAM statement causes execution of the program to continue with the next executable statement.
 
@@ -21033,13 +21013,13 @@ X-33
 
 Inter-Program Communication - USE
 
-## ║5.5 THE USE STATEMENT║
+### ║5.5 THE USE STATEMENT║
 
-### ║5.5.1 Function║
+#### ║5.5.1 Function║
 
 ║Within the Inter-Program Communication module, the USE statement determines whether the associated declarative procedures are invoked during the execution of any program contained within the program which includes the USE statement.║
 
-### ║5.5.2 General Format║
+#### ║5.5.2 General Format║
 
 <pre style="line-height:1">
 ╔                                                         ╭ { file-name-1 } … ╮ ╗
@@ -21049,11 +21029,11 @@ Inter-Program Communication - USE
 ╚                                                         ╰ <u>EXTEND</u>            ╯ ╝
 </pre>
 
-### ║5.5.3 Syntax Rules║
+#### ║5.5.3 Syntax Rules║
 
 ║(1) The availability of the multiple file-names and the EXTEND phrase is dependent on the level of Sequential I-O module, Relative I-O module, or Indexed I-O module supported by the implementation. (See page VII-50 in the Sequential I-O module, page VIII-35 in the Relative I-O module, and page IX-39 in the Indexed I-O module.)║
 
-### ║5.5.4 General Rules║
+#### ║5.5.4 General Rules║
 
 ║(1) Special precedence rules are followed when programs are contained within other programs. In applying these rules, only the first qualifying declarative will be selected for execution. The declarative which is selected for execution must satisfy the rules for execution of that declarative. The order of precedence for selecting a declarative is:║
 
@@ -21069,23 +21049,23 @@ X-34
 
 Inter-Program Communication - USE BEFORE REPORTING
 
-## ║5.6 THE USE BEFORE REPORTING STATEMENT║
+### ║5.6 THE USE BEFORE REPORTING STATEMENT║
 
-### ║5.6.1 Function║
+#### ║5.6.1 Function║
 
 ║Within the Inter-Program Communication module, the USE BEFORE REPORTING statement determines whether the associated declarative procedures are invoked during the execution of any program contained within the program which includes the USE BEFORE REPORTING statement.║
 
-### ║5.6.2 General Format║
+#### ║5.6.2 General Format║
 
 <pre style="line-height:1">
 ║ <u>USE</u> [ <u>GLOBAL</u> ] <u>BEFORE</u> <u>REPORTING</u> identifier-1 ║
 </pre>
 
-### ║5.6.3 Syntax Rules║
+#### ║5.6.3 Syntax Rules║
 
 ║(1) The availability of the USE BEFORE REPORTING statement is dependent on whether the Report Writer module is supported by the implementation. (See page XIII-78 in the Report Writer module.)║
 
-### ║5.6.4 General Rules║
+#### ║5.6.4 General Rules║
 
 ║(1) Special precedence rules are followed when programs are contained within other programs. In applying these rules, only the first qualifying declarative will be selected for execution. The declarative which is selected for execution must satisfy the rules for execution of that declarative. The order of precedence for selecting a declarative is:║
 
@@ -21101,13 +21081,11 @@ X-35
 
 <!-- This page is blank in the printed standard; it contains no text to transcribe. -->
 
-# SECTION XI: SORT-MERGE MODULE
-
 ## Page 553
 
 Sort-Merge - Introduction
 
-## <u>SECTION XI: SORT-MERGE MODULE</u>
+# <u>SECTION XI: SORT-MERGE MODULE</u>
 
 ## 1. <u>INTRODUCTION OF THE SORT-MERGE MODULE</u>
 
@@ -21175,13 +21153,13 @@ XI-2
 
 Sort-Merge - I-O-CONTROL
 
-## 2.4 THE I-O-CONTROL PARAGRAPH
+### 2.4 THE I-O-CONTROL PARAGRAPH
 
-### 2.4.1 Function
+#### 2.4.1 Function
 
 The I-O-CONTROL paragraph specifies the memory area which is to be shared by different files including sort or merge files.
 
-### 2.4.2 General Format
+#### 2.4.2 General Format
 
 <pre style="line-height:1">
 <u>I-O-CONTROL</u>.
@@ -21193,11 +21171,11 @@ The I-O-CONTROL paragraph specifies the memory area which is to be shared by dif
 └ └      ╰ <u>SORT-MERGE</u> ╯                                        ┘     ┘
 </pre>
 
-### 2.4.3 Syntax Rules
+#### 2.4.3 Syntax Rules
 
 (1) The availability of the RECORD option of the SAME clause is dependent on the level of Sequential I-O module supported by the implementation.
 
-### 2.4.4 General Rules
+#### 2.4.4 General Rules
 
 (1) The SAME RECORD/SORT/SORT-MERGE AREA clause for the Sort-Merge module is presented on the next page.
 
@@ -21207,13 +21185,13 @@ XI-3
 
 Sort-Merge - SAME RECORD/SORT/SORT-MERGE AREA
 
-## 2.5 THE SAME RECORD/SORT/SORT-MERGE AREA CLAUSE
+### 2.5 THE SAME RECORD/SORT/SORT-MERGE AREA CLAUSE
 
-### 2.5.1 Function
+#### 2.5.1 Function
 
 The SAME RECORD/SORT/SORT-MERGE AREA clause specifies the memory area which is to be shared by different files at least one of which is a sort or merge file.
 
-### 2.5.2 General Format
+#### 2.5.2 General Format
 
 <pre style="line-height:1">
      ╭ <u>RECORD</u>     ╮
@@ -21221,7 +21199,7 @@ The SAME RECORD/SORT/SORT-MERGE AREA clause specifies the memory area which is t
      ╰ <u>SORT-MERGE</u> ╯
 </pre>
 
-### 2.5.3 Syntax Rules
+#### 2.5.3 Syntax Rules
 
 (1) Each file-name specified in the SAME RECORD/SORT/SORT-MERGE AREA clause must be specified in the FILE-CONTROL paragraph of the same program.
 
@@ -21241,7 +21219,7 @@ c. If a file-name that does not represent a sort or merge file appears in a SAME
 
 (6) The files referenced in the SAME RECORD/SORT/SORT-MERGE AREA clause need not all have the same organization or access.
 
-### 2.5.4 General Rules
+#### 2.5.4 General Rules
 
 (1) The SAME RECORD AREA clause specifies that two or more files referenced by file-name-1, file-name-2 are to use the same memory area for processing of the current logical record. All of these files may be in the open mode at the same time. A logical record in the SAME RECORD AREA is considered as a logical record of each file open in the output mode whose file-name appears in this SAME RECORD AREA clause and of the most recently read file open in the input mode whose file-name appears in this SAME RECORD AREA clause. This is equivalent to
 
@@ -21301,13 +21279,13 @@ XI-6
 
 Sort-Merge - Sort-Merge File Description Entry
 
-3.2 THE SORT-MERGE FILE DESCRIPTION ENTRY
+### 3.2 THE SORT-MERGE FILE DESCRIPTION ENTRY
 
-3.2.1 Function
+#### 3.2.1 Function
 
 The sort-merge file description entry furnishes information concerning the physical structure and record-names pertaining to a sort or merge file.
 
-3.2.2 General Format
+#### 3.2.2 General Format
 
 <pre style="line-height:1">
 <u>SD</u> file-name-1
@@ -21325,7 +21303,7 @@ The sort-merge file description entry furnishes information concerning the physi
 └      ╰ <u>RECORDS</u> ARE ╯                   ┘
 </pre>
 
-3.2.3 Syntax Rules
+#### 3.2.3 Syntax Rules
 
 (1) The level indicator SD identifies the beginning of the sort-merge file description entry and must precede file-name-1.
 
@@ -21335,7 +21313,7 @@ The sort-merge file description entry furnishes information concerning the physi
 
 (4) The availability of the VARYING phrase in the RECORD clause is dependent on the level of Sequential I-O module supported by the implementation.
 
-3.2.4 General Rules
+#### 3.2.4 General Rules
 
 (1) The DATA RECORDS clause for the Sort-Merge module is the same as the DATA RECORDS clause for the Sequential I-O module. Thus the specifications for the DATA RECORDS clause are located on page VII-25. The DATA RECORDS clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
 
@@ -21347,15 +21325,15 @@ XI-7
 
 Sort-Merge - MERGE
 
-# 4. <u>PROCEDURE DIVISION IN THE SORT-MERGE MODULE</u>
+## 4. <u>PROCEDURE DIVISION IN THE SORT-MERGE MODULE</u>
 
-## 4.1 THE MERGE STATEMENT
+### 4.1 THE MERGE STATEMENT
 
-### 4.1.1 Function
+#### 4.1.1 Function
 
 The MERGE statement combines two or more identically sequenced files on a set of specified keys, and during the process makes records available, in merged order, to an output procedure or to an output file.
 
-### 4.1.2 General Format
+#### 4.1.2 General Format
 
 <pre style="line-height:1">
                   ╭    ╭ <u>ASCENDING</u>  ╮                     ╮
@@ -21373,7 +21351,7 @@ The MERGE statement combines two or more identically sequenced files on a set of
    ╰ <u>GIVING</u> {file-name-4} …                                                ╯
 </pre>
 
-### 4.1.3 Syntax Rules
+#### 4.1.3 Syntax Rules
 
 (1) A MERGE statement may appear anywhere in the Procedure Division except in the declaratives portion.
 
@@ -21527,19 +21505,19 @@ XI-12
 
 Sort-Merge - RELEASE
 
-## 4.2 THE RELEASE STATEMENT
+### 4.2 THE RELEASE STATEMENT
 
-### 4.2.1 Function
+#### 4.2.1 Function
 
 The RELEASE statement transfers records to the initial phase of a sort operation.
 
-### 4.2.2 General Format
+#### 4.2.2 General Format
 
 <pre style="line-height:1">
 <u>RELEASE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
 </pre>
 
-### 4.2.3 Syntax Rules
+#### 4.2.3 Syntax Rules
 
 (1) Record-name-1 must be the name of a logical record in a sort-merge file description entry and it may be qualified.
 
@@ -21551,7 +21529,7 @@ The RELEASE statement transfers records to the initial phase of a sort operation
 
 > ⚠ **CORRECTED — see the Errata (C298).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 565, folio XI-13). Amendment 2 (ANSI X3.23b-1993), its change for page XI-13 (A-20) (page 934, folio B-22), applied in place: "Paragraph 4.2.3 of the RELEASE statement in the Sort-Merge module, syntax rule 3, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
-### 4.2.4 General Rules
+#### 4.2.4 General Rules
 
 (1) The execution of a RELEASE statement causes the record named by record-name-1 to be released to the initial phase of a sort operation.
 
@@ -21575,13 +21553,13 @@ XI-13
 
 Sort-Merge - RETURN
 
-## 4.3 THE RETURN STATEMENT
+### 4.3 THE RETURN STATEMENT
 
-### 4.3.1 Function
+#### 4.3.1 Function
 
 The RETURN statement obtains either sorted records from the final phase of a sort operation or merged records during a merge operation.
 
-### 4.3.2 General Format
+#### 4.3.2 General Format
 
 <pre style="line-height:1">
 <u>RETURN</u> file-name-1 RECORD [ <u>INTO</u> identifier-1 ]
@@ -21590,7 +21568,7 @@ AT <u>END</u> imperative-statement-1
 [ <u>END-RETURN</u> ]
 </pre>
 
-### 4.3.3 Syntax Rules
+#### 4.3.3 Syntax Rules
 
 (1) The storage area associated with identifier-1 and the record area associated with file-name-1 must not be the same storage area.
 
@@ -21598,7 +21576,7 @@ AT <u>END</u> imperative-statement-1
 
 (3) A RETURN statement may only be used within the range of an output procedure associated with a SORT or MERGE statement for file-name-1.
 
-### 4.3.4 General Rules
+#### 4.3.4 General Rules
 
 (1) When the logical records in a file are described with more than one record description, these records automatically share the same storage area; this is equivalent to an implicit redefinition of the area. The contents of any data items which lie beyond the range of the current data record are undefined at the completion of the execution of the RETURN statement.
 
@@ -21632,13 +21610,13 @@ XI-15
 
 Sort-Merge - SORT
 
-## 4.4 THE SORT STATEMENT
+### 4.4 THE SORT STATEMENT
 
-### 4.4.1 Function
+#### 4.4.1 Function
 
 The SORT statement creates a sort file by executing an input procedure or by transferring records from another file, sorts the records in the sort file on a set of specified keys; and, in the final phase of the sort operation, makes available each record from the sort file, in sorted order, to an output procedure or to an output file.
 
-### 4.4.2 General Format
+#### 4.4.2 General Format
 
 <pre style="line-height:1">
                  ╭    ╭ <u>ASCENDING</u>  ╮                     ╮
@@ -21662,7 +21640,7 @@ The SORT statement creates a sort file by executing an input procedure or by tra
     ╰ <u>GIVING</u> {file-name-3} …                                                ╯
 </pre>
 
-### 4.4.3 Syntax Rules
+#### 4.4.3 Syntax Rules
 
 (1) A SORT statement may appear anywhere in the Procedure Division except in the declarative portion.
 
@@ -21702,7 +21680,7 @@ f. If the file referenced by file-name-1 contains variable length records, all t
 
 (10) If the GIVING phrase is specified and the file referenced by file-name-3 contains variable length records, the size of the records contained in the file referenced by file-name-1 must not be less than the smallest record nor larger than the largest record described for file-name-3. If the file referenced by file-name-3 contains fixed length records, the size of the records contained in the file referenced by file-name-1 must not be larger than the largest record described for the file referenced by file-name-3.
 
-### 4.4.4 General Rules
+#### 4.4.4 General Rules
 
 (1) If the file referenced by file-name-1 contains only fixed length records, any record in the file referenced by file-name-2 containing fewer character positions than that fixed length is space filled on the right beginning with the first character position after the last character in the record when that record is released to the file referenced by file-name-1.
 
@@ -21826,13 +21804,11 @@ XI-21
 
 <!-- This page is blank apart from the omitted licence stamp; there is no other text to transcribe. -->
 
-# SECTION XII: SOURCE TEXT MANIPULATION MODULE
-
 ## Page 575
 
 Source Text Manipulation - Introduction
 
-<u>SECTION XII: SOURCE TEXT MANIPULATION MODULE</u>
+# <u>SECTION XII: SOURCE TEXT MANIPULATION MODULE</u>
 
 ## 1. <u>INTRODUCTION TO THE SOURCE TEXT MANIPULATION MODULE</u>
 
@@ -21905,7 +21881,7 @@ XII-2
 
 Source Text Manipulation - COPY
 
-## 2.4 General Rules
+### 2.4 General Rules
 
 (1) The compilation of a source program containing COPY statements is logically equivalent to processing all COPY statements prior to the processing of the resultant source program.
 
@@ -21979,11 +21955,11 @@ Source Text Manipulation - REPLACE
 
 ## ║3. <u>THE REPLACE STATEMENT</u>║
 
-║3.1 Function║
+### ║3.1 Function║
 
 ║The REPLACE statement is used to replace source program text.║
 
-║3.2 General Format║
+### ║3.2 General Format║
 
 ║<u>Format 1:</u>║
 
@@ -21997,7 +21973,7 @@ Source Text Manipulation - REPLACE
 <u>REPLACE</u> <u>OFF</u>
 </pre>
 
-║3.3 Syntax Rules║
+### ║3.3 Syntax Rules║
 
 ║(1) A REPLACE statement may occur anywhere in the source program where a character-string may occur. It must be preceded by a separator period except when it is the first statement in a separately compiled program.║
 
@@ -22015,7 +21991,7 @@ Source Text Manipulation - REPLACE
 
 ║(8) If the word REPLACE appears in a comment-entry or in the place where a comment-entry may appear, it is considered part of the comment-entry.║
 
-║3.4 General Rules║
+### ║3.4 General Rules║
 
 ║(1) The format 1 REPLACE statement specifies the text of the source program to be replaced by the corresponding text. Each matched occurrence of pseudo-text-1 in the source program is replaced by the corresponding pseudo-text-2.║
 
@@ -22073,13 +22049,11 @@ Source Text Manipulation - REPLACE
 
 XII-8
 
-# SECTION XIII: REPORT WRITER MODULE
-
 ## Page 583
 
 Report Writer - Introduction
 
-<u>SECTION XIII: REPORT WRITER MODULE</u>
+# <u>SECTION XIII: REPORT WRITER MODULE</u>
 
 ## 1. <u>INTRODUCTION TO THE REPORT WRITER MODULE</u>
 
@@ -22113,7 +22087,7 @@ Report Writer - Introduction
 
 representing a range of values from 0 through 999999. The usage is defined by the implementor. The value in LINE-COUNTER is maintained by the report writer control system (RWCS), and is used to determine the vertical positioning of a report. LINE-COUNTER may be referenced only in the SOURCE clause of the Report Section and in Procedure Division statements; however, only the report writer control system (RWCS) may change the value of LINE-COUNTER. (See page XIII-13, LINE-COUNTER Rules.)
 
-1.2.4 Subscripting
+#### 1.2.4 Subscripting
 
 In the Report Section, neither a sum counter nor the special registers LINE-COUNTER and PAGE-COUNTER can be used as a subscript.
 
@@ -22182,7 +22156,7 @@ Report Writer - File Control Entry
 
 (4) The availability of specific clauses in the file control entry for a report file is dependent on the level of Sequential I-O module supported by the implementation. (See page VII-7 in the Sequential I-O module.)
 
-**2.3.4 General Rules**
+#### **2.3.4 General Rules**
 
 (1) If the file connector referenced by file-name-1 is an external file connector (see page X-23, The EXTERNAL Clause), all file control entries in the run unit which reference this file connector must have:
 
@@ -22214,13 +22188,13 @@ XIII-4
 
 Report Writer - I-O-CONTROL
 
-## 2.4 THE I-O-CONTROL PARAGRAPH
+### 2.4 THE I-O-CONTROL PARAGRAPH
 
-### 2.4.1 Function
+#### 2.4.1 Function
 
 The I-O-CONTROL paragraph specifies the memory area which is to be shared by different files and the location of files on a multiple file reel.
 
-### 2.4.2 General Format
+#### 2.4.2 General Format
 
 <pre style="line-height:1">
 <u>I-O-CONTROL</u>.
@@ -22228,7 +22202,7 @@ The I-O-CONTROL paragraph specifies the memory area which is to be shared by dif
 [ <u>MULTIPLE</u> <u>FILE</u> TAPE CONTAINS { file-name-3 [ <u>POSITION</u> integer-1 ] } … ] … . ]
 </pre>
 
-### 2.4.3 Syntax Rules
+#### 2.4.3 Syntax Rules
 
 (1) The order of appearance of the clauses is immaterial.
 
@@ -22236,7 +22210,7 @@ The I-O-CONTROL paragraph specifies the memory area which is to be shared by dif
 
 (3) The availability of specific clauses in the I-O-CONTROL paragraph for a report file is dependent on the level of Sequential I-O module supported by the implementation. (See page VII-15 in the Sequential I-O module.)
 
-### 2.4.4 General Rules
+#### 2.4.4 General Rules
 
 (1) The MULTIPLE FILE TAPE clause is presented on page VII-16 in the Sequential I-O module.
 
@@ -22405,13 +22379,13 @@ XIII-10
 
 Report Writer - Report Description Entry
 
-3.5 THE REPORT DESCRIPTION ENTRY
+### 3.5 THE REPORT DESCRIPTION ENTRY
 
-3.5.1 Function
+#### 3.5.1 Function
 
 The report description entry names a report, specifies any identifying characters to be prefixed to each print line in the report, and describes the physical structure and organization of that report.
 
-3.5.2 General Format
+#### 3.5.2 General Format
 
 <pre style="line-height:1">
 <u>RD</u> report-name-1
@@ -22431,7 +22405,7 @@ The report description entry names a report, specifies any identifying character
     └      [ <u>FOOTING</u> integer-5 ]                                       ┘ .
 </pre>
 
-3.5.3 Syntax Rules
+#### 3.5.3 Syntax Rules
 
 (1) Report-name-1 must appear in one and only one REPORT clause.
 
@@ -22439,7 +22413,7 @@ The report description entry names a report, specifies any identifying character
 
 (3) Report-name-1 is the highest permissible qualifier that may be specified for LINE-COUNTER, PAGE-COUNTER, and all data-names defined within the Report Section.
 
-3.5.4 General Rules
+#### 3.5.4 General Rules
 
 (1) The CODE clause, the CONTROL clause, and the PAGE clause are presented in alphabetical order beginning on page XIII-14.
 
@@ -22449,7 +22423,7 @@ XIII-11
 
 Report Writer - PAGE-COUNTER Rules
 
-3.5.5 PAGE-COUNTER Rules
+#### 3.5.5 PAGE-COUNTER Rules
 
 (1) PAGE-COUNTER is the reserved word used to reference a special register that is automatically created for each report specified in the Report Section. (See page IV-9, Special Registers, and page XIII-1, Special Register PAGE-COUNTER.)
 
@@ -22471,7 +22445,7 @@ XIII-12
 
 Report Writer - LINE-COUNTER Rules
 
-### 3.5.6 LINE-COUNTER Rules
+#### 3.5.6 LINE-COUNTER Rules
 
 (1) LINE-COUNTER is the reserved word used to reference a special register that is automatically created for each report specified in the Report Section. (See page IV-9, Special Registers, and page XIII-1, Special Register LINE-COUNTER.)
 
@@ -22493,25 +22467,25 @@ XIII-13
 
 Report Writer - CODE
 
-## 3.6 THE CODE CLAUSE
+### 3.6 THE CODE CLAUSE
 
-### 3.6.1 Function
+#### 3.6.1 Function
 
 The CODE clause specifies a two-character literal that identifies each print line as belonging to a specific report.
 
-### 3.6.2 General Format
+#### 3.6.2 General Format
 
 <pre style="line-height:1">
 <u>CODE</u> literal-1
 </pre>
 
-### 3.6.3 Syntax Rules
+#### 3.6.3 Syntax Rules
 
 (1) Literal-1 must be a two-character nonnumeric literal.
 
 (2) If the CODE clause is specified for any report in a file, it must be specified for all reports in that file.
 
-### 3.6.4 General Rules
+#### 3.6.4 General Rules
 
 (1) When the CODE clause is specified, literal-1 is automatically placed in the first two character positions of each report writer logical record.
 
@@ -22523,13 +22497,13 @@ XIII-14
 
 Report Writer - CONTROL
 
-## 3.7 THE CONTROL CLAUSE
+### 3.7 THE CONTROL CLAUSE
 
-### 3.7.1 Function
+#### 3.7.1 Function
 
 The CONTROL clause establishes the levels of the control hierarchy for the report.
 
-### 3.7.2 General Format
+#### 3.7.2 General Format
 
 <pre style="line-height:1">
 ╭ <u>CONTROL</u> IS   ╮ ╭ { data-name-1 } …       ╮
@@ -22537,7 +22511,7 @@ The CONTROL clause establishes the levels of the control hierarchy for the repor
 ╰ <u>CONTROLS</u> ARE ╯ ╰ <u>FINAL</u> [ data-name-1 ] … ╯
 </pre>
 
-### 3.7.3 Syntax Rules
+#### 3.7.3 Syntax Rules
 
 (1) Data-name-1 must not be defined in the Report Section. Data-name-1 may be qualified.
 
@@ -22545,7 +22519,7 @@ The CONTROL clause establishes the levels of the control hierarchy for the repor
 
 (3) Data-name-1 must not have subordinate to it a variable occurrence data item.
 
-### 3.7.4 General Rules
+#### 3.7.4 General Rules
 
 (1) Data-name-1 and the word FINAL specify the levels of the control hierarchy. FINAL, if specified, is the highest control, data-name-1 is the major control, the next recurrence of data-name-1 is an intermediate control, etc. The last recurrence of data-name-1 is the minor control.
 
@@ -22577,11 +22551,11 @@ Report Writer - PAGE
 
 ### 3.8 THE PAGE CLAUSE
 
-### 3.8.1 Function
+#### 3.8.1 Function
 
 The PAGE clause defines the length of a page and the vertical subdivisions within which report groups are presented.
 
-### 3.8.2 General Format
+#### 3.8.2 General Format
 
 <pre style="line-height:1">
 <u>PAGE</u>  ┌LIMIT IS  ┐  integer-1  ┌LINE ┐  [<u>HEADING</u> integer-2]
@@ -22593,7 +22567,7 @@ The PAGE clause defines the length of a page and the vertical subdivisions withi
    [<u>FOOTING</u> integer-5]
 </pre>
 
-### 3.8.3 Syntax Rules
+#### 3.8.3 Syntax Rules
 
 (1) The HEADING, FIRST DETAIL, LAST DETAIL, and FOOTING phrases may be written in any order.
 
@@ -22637,7 +22611,7 @@ A report footing report group that is not to be presented on a page by itself, i
 
 (9) All report groups must be described such that they can be presented on one page. The report writer control system (RWCS) never splits a multi-line report group across page boundaries.
 
-3.8.4 General Rules
+#### 3.8.4 General Rules
 
 (1) The vertical format of a report page is established using the integer values specified in the PAGE clause.
 
@@ -22675,7 +22649,7 @@ e. If the LAST DETAIL phrase is specified and the FOOTING phrase is omitted, the
 
 (4) The presentation rules for each type of report group are specified in the appropriate paragraph. (See page XIII-24, Presentation Rules Tables.)
 
-### 3.8.5 Page Regions
+#### 3.8.5 Page Regions
 
 Table 1 below describes the page regions established by the PAGE clause.
 
@@ -22695,13 +22669,13 @@ XIII-19
 
 Report Writer - Report Group Description Entry
 
-## 3.9 THE REPORT GROUP DESCRIPTION ENTRY
+### 3.9 THE REPORT GROUP DESCRIPTION ENTRY
 
-### 3.9.1 Function
+#### 3.9.1 Function
 
 The report group description entry specifies the characteristics of a report group and of the individual items within a report group.
 
-### 3.9.2 General Format
+#### 3.9.2 General Format
 
 <u>Format 1</u>:
 
@@ -22805,7 +22779,7 @@ level-number  [data-name-1]
     [<u>GROUP</u> INDICATE].
 </pre>
 
-3.9.3 Syntax Rules
+#### 3.9.3 Syntax Rules
 
 (1) The report group description entry can appear only in the Report Section.
 
@@ -22889,7 +22863,7 @@ A blank indicates that the clause is not permitted.
 
 Table 1: Permissible Clause Combinations in Format 3 Entries
 
-3.9.4 General Rules
+#### 3.9.4 General Rules
 
 (1) Format 1 is the report group entry. The report group is defined by the contents of this entry and all of its subordinate entries.
 
@@ -22953,7 +22927,7 @@ The next group rules relate to the proper use of the NEXT GROUP clause.
 
 The terminal values that the report writer control system (RWCS) places in LINE-COUNTER after presenting report groups are specified by the final LINE-COUNTER setting rules.
 
-### 3.10.3 LINE NUMBER Clause Notation
+#### 3.10.3 LINE NUMBER Clause Notation
 
 Column 1 of the presentation rules table uses a shorthand notation to describe the sequence of LINE NUMBER clauses that may appear in the description of a report group. The meaning of the abbreviations used in column 1 is as follows:
 
@@ -22971,13 +22945,13 @@ XIII-25
 
 Report Writer - Presentation Rules Tables
 
-### 3.10.4 LINE NUMBER Clause Sequence Substitutions
+#### 3.10.4 LINE NUMBER Clause Sequence Substitutions
 
 Where 'A R' is shown to be a permissible sequence in the presentation rules table, 'A' is also permissible and the same presentation rules are applicable.
 
 Where 'NP R' is shown to be a permissible sequence in the presentation rules table, 'NP' is also permissible and the same presentation rules are applicable.
 
-### 3.10.5 Saved Next Group Integer Description
+#### 3.10.5 Saved Next Group Integer Description
 
 Saved next group integer is a data item that is addressable only by the report writer control system (RWCS). When an absolute NEXT GROUP clause specifies a vertical positioning value which cannot be accommodated on the current page, the RWCS stores that value in saved next group integer. After page advance processing, the RWCS positions the next body group using the value stored in saved next group integer.
 
@@ -22987,7 +22961,7 @@ XIII-26
 
 Report Writer - Report Heading Group Presentation Rules
 
-### 3.10.6 Report Heading Group Presentation Rules
+#### 3.10.6 Report Heading Group Presentation Rules
 
 Table 1 on page XIII-28 points to the appropriate presentation rules for all permissible combinations of LINE NUMBER and NEXT GROUP clauses in a report heading report group. The report heading group presentation rules are as follows:
 
@@ -23098,7 +23072,7 @@ XIII-29
 
 Report Writer - Page Heading Group Presentation Rules
 
-### 3.10.7 Page Heading Group Presentation Rules
+#### 3.10.7 Page Heading Group Presentation Rules
 
 Table 2 shown below points to the appropriate presentation rules for all permissible combinations of LINE NUMBER and NEXT GROUP clauses in a page heading report group.
 
@@ -23170,7 +23144,7 @@ XIII-31
 
 Report Writer - Body Group Presentation Rules
 
-### 3.10.8 Body Group Presentation Rules
+#### 3.10.8 Body Group Presentation Rules
 
 Table 3 on page XIII-33 points to the appropriate presentation rules for all permissible combinations of LINE NUMBER and NEXT GROUP clauses in control heading, detail, and control footing report groups. The body group presentation rules are as follows:
 
@@ -23309,7 +23283,7 @@ XIII-36
 
 Report Writer - Page Footing Presentation Rules
 
-### 3.10.9 Page Footing Presentation Rules
+#### 3.10.9 Page Footing Presentation Rules
 
 Table 4 shown below points to the appropriate presentation rules for all permissible combinations of LINE NUMBER and NEXT GROUP clauses in a page footing report group.
 
@@ -23390,7 +23364,7 @@ XIII-38
 
 Report Writer - Report Footing Presentation Rules
 
-### 3.10.10 Report Footing Presentation Rules
+#### 3.10.10 Report Footing Presentation Rules
 
 Table 5 on page XIII-40 points to the appropriate presentation rules for all permissible combinations of LINE NUMBER and NEXT GROUP clause in a report footing report group. The report footing presentation rules are as follows:
 
@@ -23462,25 +23436,25 @@ XIII-41
 
 Report Writer - COLUMN NUMBER
 
-# 3.11 THE COLUMN NUMBER CLAUSE
+### 3.11 THE COLUMN NUMBER CLAUSE
 
-## 3.11.1 Function
+#### 3.11.1 Function
 
 The COLUMN NUMBER clause identifies a printable item and specifies the position of the item on a print line.
 
-## 3.11.2 General Format
+#### 3.11.2 General Format
 
 <pre style="line-height:1">
 <u>COLUMN</u> NUMBER IS integer-1
 </pre>
 
-## 3.11.3 Syntax Rules
+#### 3.11.3 Syntax Rules
 
 (1) The COLUMN NUMBER clause can be specified only at the elementary level within a report group. The COLUMN NUMBER clause, if present, must appear in or be subordinate to an entry that contains a LINE NUMBER clause.
 
 (2) Within a given print line, the printable items must be defined in ascending column number order such that each printable item defined occupies a unique sequence of contiguous character positions.
 
-## 3.11.4 General Rules
+#### 3.11.4 General Rules
 
 (1) The COLUMN NUMBER clause indicates that the object of a SOURCE clause or the object of a VALUE clause or the sum counter defined by a SUM clause is to be presented on the print line. The absence of a COLUMN NUMBER clause indicates that the entry is not to be presented on a print line.
 
@@ -23496,23 +23470,23 @@ XIII-42
 
 Report Writer - Data-Name
 
-## 3.12 THE DATA-NAME CLAUSE
+### 3.12 THE DATA-NAME CLAUSE
 
-### 3.12.1 Function
+#### 3.12.1 Function
 
 A data-name specifies the name of the data item being described.
 
-### 3.12.2 General Format
+#### 3.12.2 General Format
 
 <pre style="line-height:1">
 data-name-1
 </pre>
 
-### 3.12.3 Syntax Rules
+#### 3.12.3 Syntax Rules
 
 (1) In the Report Section data-name-1 need not appear in a data description entry.
 
-### 3.12.4 General Rules
+#### 3.12.4 General Rules
 
 (1) In the Report Section, data-name-1 must be given in the following cases:
 
@@ -23530,23 +23504,23 @@ XIII-43
 
 Report Writer - GROUP INDICATE
 
-## 3.13 THE GROUP INDICATE CLAUSE
+### 3.13 THE GROUP INDICATE CLAUSE
 
-### 3.13.1 Function
+#### 3.13.1 Function
 
 The GROUP INDICATE clause specifies that the associated printable item is presented only on the first occurrence of its report group after a control break or page advance.
 
-### 3.13.2 General Format
+#### 3.13.2 General Format
 
 <pre style="line-height:1">
 <u>GROUP</u> INDICATE
 </pre>
 
-### 3.13.3 Syntax Rules
+#### 3.13.3 Syntax Rules
 
 (1) The GROUP INDICATE clause must only be specified in a detail report group entry that defines a printable item.
 
-### 3.13.4 General Rules
+#### 3.13.4 General Rules
 
 (1) If a GROUP INDICATE clause is specified, it causes the SOURCE or VALUE clause to be ignored and spaces supplied, except:
 
@@ -23564,25 +23538,25 @@ XIII-44
 
 Report Writer - Level-Number
 
-## 3.14 LEVEL-NUMBER
+### 3.14 LEVEL-NUMBER
 
-### 3.14.1 Function
+#### 3.14.1 Function
 
 The level-number indicates the position of a data item within the hierarchical structure of a report group.
 
-### 3.14.2 General Format
+#### 3.14.2 General Format
 
 <pre style="line-height:1">
 level-number
 </pre>
 
-### 3.14.3 Syntax Rules
+#### 3.14.3 Syntax Rules
 
 (1) A level-number is required as the first element in each data description entry.
 
 (2) Data description entries subordinate to an RD entry must have level-numbers 01 through 49 only.
 
-### 3.14.4 General Rules
+#### 3.14.4 General Rules
 
 (1) The level-number 01 identifies the first entry in a report group.
 
@@ -23638,7 +23612,7 @@ XIII-46
 
 Report Writer - LINE NUMBER
 
-### 3.15.4 General Rules
+#### 3.15.4 General Rules
 
 (1) A LINE NUMBER clause must be specified to establish each print line of a report group.
 
@@ -23957,7 +23931,7 @@ In page heading and page footing report groups, SOURCE clauses and USE statement
 
 (7) The description of a report must include at least one body group.
 
-### 3.20.4 General Rules
+#### 3.20.4 General Rules
 
 (1) Detail report groups are processed by the report writer control system as a direct result of GENERATE statements. If a report group is other than TYPE DETAIL, its processing is an automatic report writer control system function.
 
@@ -24067,19 +24041,19 @@ XIII-59
 
 Report Writer - USAGE
 
-## 3.21 THE USAGE CLAUSE
+### 3.21 THE USAGE CLAUSE
 
-### 3.21.1 Function
+#### 3.21.1 Function
 
 The USAGE clause specifies the format of a data item in the computer storage.
 
-### 3.21.2 General Format
+#### 3.21.2 General Format
 
 <pre style="line-height:1">
 [ <u>USAGE</u> IS ] <u>DISPLAY</u>
 </pre>
 
-### 3.21.3 Syntax Rules
+#### 3.21.3 Syntax Rules
 
 (1) The USAGE clause may be written in any data description entry.
 
@@ -24087,7 +24061,7 @@ The USAGE clause specifies the format of a data item in the computer storage.
 
 (3) The USAGE clause for a report group item can specify only USAGE IS DISPLAY.
 
-### 3.21.4 General Rules
+#### 3.21.4 General Rules
 
 (1) If the USAGE clause is written at a group level, it applies to each elementary item in the group.
 
@@ -24168,13 +24142,13 @@ XIII-62
 
 Report Writer - CLOSE
 
-## 4.2 THE CLOSE STATEMENT
+### 4.2 THE CLOSE STATEMENT
 
-### 4.2.1 Function
+#### 4.2.1 Function
 
 The CLOSE statement terminates the processing of reel/units and files with optional rewind and/or lock or removal where applicable.
 
-### 4.2.2 General Format
+#### 4.2.2 General Format
 
 <pre style="line-height:1">
       ╭             ┌ ╭<u>REEL</u> ╮  [FOR <u>REMOVAL</u>] ┐ ╮
@@ -24186,13 +24160,13 @@ The CLOSE statement terminates the processing of reel/units and files with optio
       ╰             └       ╰ <u>LOCK</u>     ╯     ┘ ╯
 </pre>
 
-### 4.2.3 Syntax Rules
+#### 4.2.3 Syntax Rules
 
 (1) The files referenced in the CLOSE statement need not all have the same organization or access.
 
 (2) The availability of the phrases within the CLOSE statement is dependent on the level of Sequential I-O module supported by the implementation. (See page VII-35 in the Sequential I-O module.)
 
-### 4.2.4 General Rules
+#### 4.2.4 General Rules
 
 Except where otherwise stated in the general rules below, the terms 'reel' and 'unit' are synonymous and completely interchangeable in the CLOSE statement. Treatment of sequential mass storage files is logically equivalent to the treatment of a file on tape or analogous sequential media. Treatment of a file contained in a multiple file tape environment is logically equivalent to the treatment of a sequential single-reel/unit file if the file is wholly contained on one reel.
 
@@ -24378,23 +24352,23 @@ XIII-68
 
 Report Writer - INITIATE
 
-# 4.4 THE INITIATE STATEMENT
+### 4.4 THE INITIATE STATEMENT
 
-## 4.4.1 Function
+#### 4.4.1 Function
 
 The INITIATE statement causes the report writer control system to begin the processing of a report.
 
-## 4.4.2 General Format
+#### 4.4.2 General Format
 
 <pre style="line-height:1">
 <u>INITIATE</u> { report-name-1 } …
 </pre>
 
-## 4.4.3 Syntax Rules
+#### 4.4.3 Syntax Rules
 
 (1) Report-name-1 must be defined by a report description entry in the Report Section of the Data Division.
 
-## 4.4.4 General Rules
+#### 4.4.4 General Rules
 
 (1) The INITIATE statement performs the following initialization functions for each named report:
 
@@ -24416,13 +24390,13 @@ XIII-69
 
 Report Writer - OPEN
 
-4.5 THE OPEN STATEMENT
+### 4.5 THE OPEN STATEMENT
 
-4.5.1 Function
+#### 4.5.1 Function
 
 The OPEN statement initiates the processing of report files.
 
-4.5.2 General Format
+#### 4.5.2 General Format
 
 <pre style="line-height:1">
 <u>OPEN</u> ╭ <u>OUTPUT</u> {file-name-1  [WITH <u>NO</u> <u>REWIND</u>]} …   ╮ …
@@ -24430,13 +24404,13 @@ The OPEN statement initiates the processing of report files.
      ╰ <u>EXTEND</u> {file-name-2} …                     ╯
 </pre>
 
-4.5.3 Syntax Rules
+#### 4.5.3 Syntax Rules
 
 (1) The OPEN statement for a report file must contain only the OUTPUT phrase or the EXTEND phrase.
 
 (2) The availability of the phrases within the OPEN statement is dependent on the level of the Sequential I-O module supported by the implementation. (See page VII-39 in the Sequential I-O module.)
 
-4.5.4 General Rules
+#### 4.5.4 General Rules
 
 (1) The successful execution of an OPEN statement determines the availability of the file and results in the file being in an open mode. The successful execution of an OPEN statement associates the file with the file-name through the file connector.
 
@@ -24551,23 +24525,23 @@ XIII-73
 
 Report Writer - SUPPRESS
 
-## 4.6 THE SUPPRESS STATEMENT
+### 4.6 THE SUPPRESS STATEMENT
 
-### 4.6.1 Function
+#### 4.6.1 Function
 
 The SUPPRESS statement causes the report writer control system to inhibit the presentation of a report group.
 
-### 4.6.2 General Format
+#### 4.6.2 General Format
 
 <pre style="line-height:1">
 <u>SUPPRESS</u> PRINTING
 </pre>
 
-### 4.6.3 Syntax Rules
+#### 4.6.3 Syntax Rules
 
 (1) The SUPPRESS statement may only appear in a USE BEFORE REPORTING procedure.
 
-### 4.6.4 General Rules
+#### 4.6.4 General Rules
 
 (1) The SUPPRESS statement inhibits presentation only for the report group named in the USE procedure within which the SUPPRESS statement appears.
 
@@ -24589,23 +24563,23 @@ XIII-74
 
 Report Writer - TERMINATE
 
-## 4.7 THE TERMINATE STATEMENT
+### 4.7 THE TERMINATE STATEMENT
 
-### 4.7.1 Function
+#### 4.7.1 Function
 
 The TERMINATE statement causes the report writer control system to complete the processing of the specified reports.
 
-### 4.7.2 General Format
+#### 4.7.2 General Format
 
 <pre style="line-height:1">
 <u>TERMINATE</u> { report-name-1 } …
 </pre>
 
-### 4.7.3 Syntax Rules
+#### 4.7.3 Syntax Rules
 
 (1) Report-name-1 must be defined by a report description entry in the Report Section of the Data Division.
 
-### 4.7.4 General Rules
+#### 4.7.4 General Rules
 
 (1) The TERMINATE statement causes the report writer control system to produce all the control footing report groups beginning with the minor control footing report group. Then the report footing report group is produced. The report writer control system makes the prior set of control data item values available to the control footing and report footing SOURCE clauses and USE procedures, as though a control break has been sensed in the most major control data-name.
 
@@ -24625,13 +24599,13 @@ XIII-75
 
 Report Writer - USE AFTER STANDARD EXCEPTION PROCEDURE
 
-## 4.8 THE USE AFTER STANDARD EXCEPTION PROCEDURE STATEMENT
+### 4.8 THE USE AFTER STANDARD EXCEPTION PROCEDURE STATEMENT
 
-### 4.8.1 Function
+#### 4.8.1 Function
 
 The USE AFTER STANDARD EXCEPTION PROCEDURE statement specifies procedures for input-output error handling that are in addition to the standard procedures provided by the input-output control system.
 
-### 4.8.2 General Format
+#### 4.8.2 General Format
 
 <pre style="line-height:1">
                    ╭ <u>EXCEPTION</u> ╮              ╭ {file-name-1} … ╮
@@ -24639,7 +24613,7 @@ The USE AFTER STANDARD EXCEPTION PROCEDURE statement specifies procedures for in
                    ╰ <u>ERROR</u>     ╯              ╰ <u>EXTEND</u>          ╯
 </pre>
 
-### 4.8.3 Syntax Rules
+#### 4.8.3 Syntax Rules
 
 (1) A USE statement, when present, must immediately follow a section header in the declaratives portion of the Procedure Division and must appear in a sentence by itself. The remainder of the section must consist of zero, one, or more procedural paragraphs that define the procedures to be used.
 
@@ -24653,7 +24627,7 @@ The USE AFTER STANDARD EXCEPTION PROCEDURE statement specifies procedures for in
 
 (6) The OUTPUT and EXTEND phrases may each be specified only once in the declaratives portion of a given Procedure Division.
 
-### 4.8.4 General Rules
+#### 4.8.4 General Rules
 
 (1) Declarative procedures may be included in any COBOL source program irrespective of whether the program contains or is contained within another program. A declarative is invoked when any of the conditions described in the USE statement which prefaces the declarative occurs while the program is being executed. Only a declarative within the separately compiled program that contains the statement which caused the qualifying condition is invoked when any of the conditions described in the USE statement which prefaces the declarative occurs while that separately compiled program is being executed. If no qualifying declarative exists in the separately compiled program, no declarative is executed.
 
@@ -24687,19 +24661,19 @@ XIII-77
 
 Report Writer - USE BEFORE REPORTING
 
-## 4.9 THE USE BEFORE REPORTING STATEMENT
+### 4.9 THE USE BEFORE REPORTING STATEMENT
 
-### 4.9.1 Function
+#### 4.9.1 Function
 
 The USE BEFORE REPORTING statement specifies Procedure Division statements that are executed just before a report group named in the Report Section of the Data Division is presented.
 
-### 4.9.2 General Format
+#### 4.9.2 General Format
 
 <pre style="line-height:1">
 <u>USE</u> <u>BEFORE</u> <u>REPORTING</u> identifier-1
 </pre>
 
-### 4.9.3 Syntax Rules
+#### 4.9.3 Syntax Rules
 
 (1) A USE BEFORE REPORTING statement, when present, must immediately follow a section header in the declaratives portion of the Procedure Division and must appear in a sentence by itself. The remainder of the section must consist of zero, one, or more procedural paragraphs that define the procedures to be used.
 
@@ -24713,7 +24687,7 @@ The USE BEFORE REPORTING statement specifies Procedure Division statements that 
 
 (5) The USE BEFORE REPORTING statement itself is never executed; it merely defines the conditions calling for the execution of the USE procedures.
 
-### 4.9.4 General Rules
+#### 4.9.4 General Rules
 
 (1) Declarative procedures may be included in any COBOL source program irrespective of whether the program contains or is contained within another program. A declarative is invoked just before the named report group is produced during the execution of the program. The report group is named by identifier-1 in the USE BEFORE REPORTING statement which prefaces the declaratives.
 
@@ -24736,8 +24710,6 @@ XIII-79
 ## Page 658
 
 <!-- This page is blank apart from the omitted licence stamp. -->
-
-# SECTION XIV: COMMUNICATION MODULE
 
 ## Page 659
 
@@ -24797,13 +24769,13 @@ XIV-2
 
 Communication - CD Entry
 
-## 2.2 THE COMMUNICATION DESCRIPTION ENTRY
+### 2.2 THE COMMUNICATION DESCRIPTION ENTRY
 
-### 2.2.1 Function
+#### 2.2.1 Function
 
 The communication description entry specifies the interface area between the message control system (MCS) and a COBOL program.
 
-### 2.2.2 General Format
+#### 2.2.2 General Format
 
 <u>Format 1</u>:
 
@@ -24876,7 +24848,7 @@ Communication - CD Entry
 
 > ⚠ **CORRECTED — see the Errata (C157).** The standard prints `[data-name-1, data-name-2, data-name-3, data-name-4, data-name-5, data-name-6]` (page 662, folio XIV-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-4 (T) (page 851, folio A-21), applied in place: "Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-6, inclusively, in format 3", a typographical error (kb/Work PB5045). Corrected to `[data-name-1 data-name-2 data-name-3 data-name-4 data-name-5 data-name-6]`.
 
-**2.2.3 Syntax Rules**
+#### **2.2.3 Syntax Rules**
 
 <u>ALL FORMATS</u>:
 
@@ -24932,7 +24904,7 @@ redefinitions of this record are permitted; however, only the first redefinition
 
 (15) Data-name-1, data-name-2, data-name-3, data-name-4, data-name-5, and data-name-6 must be unique within the CD entry. Within this series, any data-name may be replaced by the reserved word FILLER.
 
-### 2.2.4 General Rules
+#### 2.2.4 General Rules
 
 <u>FORMAT 1</u>:
 
@@ -25231,7 +25203,7 @@ c. When more than one of the conditions is satisfied simultaneously, the rule fi
 
 The actual association between the content of the data item referenced by data-name-6 and the status condition itself is defined in table 1 on page XIV-15.
 
-### 2.2.5 Communication Status Key Conditions
+#### 2.2.5 Communication Status Key Conditions
 
 Table 1 on page XIV-15 indicates the possible contents of the data items referenced by data-name-10 for format 1, by data-name-3 for format 2, and by data-name-6 for format 3 at the completion of each statement shown. An 'X' on a line in a statement column indicates that the associated status key value shown for that line is possible for that statement. ║The symbol <sup>2</sup> indicates a level 2 element that is not available in level 1.║
 
@@ -25267,7 +25239,7 @@ XIV-15
 
 Communication - Error Key Values
 
-## 2.2.6 Error Key Values
+#### 2.2.6 Error Key Values
 
 Table 2 below indicates the possible content of the data item referenced by data-name-4 for format 2 at the completion of each statement shown. An 'X' on a line in a statement column indicates that the associated error key value shown for that line is possible for that statement. ║The symbol ² indicates a level 2 element that is not available in level 1.║
 
@@ -25320,13 +25292,13 @@ XIV-17
 
 Communication - DISABLE
 
-## ║3.2 THE DISABLE STATEMENT║
+### ║3.2 THE DISABLE STATEMENT║
 
-### ║3.2.1 Function║
+#### ║3.2.1 Function║
 
 ║The DISABLE statement notifies the message control system (MCS) to inhibit data transfer between specified output queues and destinations for output or between specified sources and input queues for input or between the program and one specified source or destination for input-output. The WITH KEY phrase is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.║
 
-### ║3.2.2 General Format║
+#### ║3.2.2 General Format║
 
 <pre style="line-height:1">
 ╔         ╭ <u>INPUT</u> [ <u>TERMINAL</u> ] ╮                                         ╗
@@ -25336,7 +25308,7 @@ Communication - DISABLE
 ╚         ╰ <u>OUTPUT</u>             ╯                                         ╝
 </pre>
 
-### ║3.2.3 Syntax Rules║
+#### ║3.2.3 Syntax Rules║
 
 ║(1) Cd-name-1 must reference an input CD when the INPUT phrase is specified.║
 
@@ -25346,7 +25318,7 @@ Communication - DISABLE
 
 ║(4) Literal-1 or the content of the data item referenced by identifier-1 must be defined as alphanumeric.║
 
-### ║3.2.4 General Rules║
+#### ║3.2.4 General Rules║
 
 ║(1) The DISABLE statement provides a logical disconnection between the MCS and the specified sources or destinations. When this logical disconnection is already in existence, or is to be handled by some other means external to this program, the DISABLE statement is not required in this program. No action is taken when a DISABLE statement is executed which specifies a source or destination which is already disconnected, except that the value in the status key data item indicates this condition. The logical path for the transfer of data between the COBOL programs and the MCS is not affected by the DISABLE statement.║
 
@@ -25378,13 +25350,13 @@ XIV-19
 
 Communication - ENABLE
 
-║3.3 THE ENABLE STATEMENT║
+### ║3.3 THE ENABLE STATEMENT║
 
-║3.3.1 Function║
+#### ║3.3.1 Function║
 
 ║The ENABLE statement notifies the message control system (MCS) to allow data transfer between specified output queues and destinations for output or between specified sources and input queues for input or between the program and one specified source or destination for input-output. The WITH KEY phrase is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.║
 
-║3.3.2 General Format║
+#### ║3.3.2 General Format║
 
 <pre style="line-height:1">
 ╔        ╭ <u>INPUT</u> [ <u>TERMINAL</u> ] ╮                                         ╗
@@ -25394,7 +25366,7 @@ Communication - ENABLE
 ╚        ╰ <u>OUTPUT</u>             ╯                                         ╝
 </pre>
 
-║3.3.3 Syntax Rules║
+#### ║3.3.3 Syntax Rules║
 
 ║(1) Cd-name-1 must reference an input CD when the INPUT phrase is specified.║
 
@@ -25404,7 +25376,7 @@ Communication - ENABLE
 
 ║(4) Literal-1 or the content of the data item referenced by identifier-1 must be defined as alphanumeric.║
 
-║3.3.4 General Rules║
+#### ║3.3.4 General Rules║
 
 ║(1) The ENABLE statement provides a logical connection between the MCS and the specified sources or destinations. When this logical connection is already in existence, or is to be handled by some other means external to this program, the ENABLE statement is not required in this program. No action is taken when an ENABLE statement is executed which specifies a source or destination which is already connected, except that the value in the status key data item indicates this condition. The logical path for the transfer of data between the COBOL programs and the MCS is not affected by the ENABLE statement.║
 
@@ -25432,23 +25404,23 @@ XIV-21
 
 Communication - PURGE
 
-║3.4 THE PURGE STATEMENT║
+### ║3.4 THE PURGE STATEMENT║
 
-║**3.4.1 Function**║
+#### ║**3.4.1 Function**║
 
 ║The PURGE statement eliminates from the message control system (MCS) a partial message which has been released by one or more SEND statements.║
 
-║**3.4.2 General Format**║
+#### ║**3.4.2 General Format**║
 
 <pre style="line-height:1">
 <u>PURGE</u> cd-name-1
 </pre>
 
-║**3.4.3 Syntax Rules**║
+#### ║**3.4.3 Syntax Rules**║
 
 ║(1) Cd-name-1 must reference an output CD or input-output CD.║
 
-║**3.4.4 General Rules**║
+#### ║**3.4.4 General Rules**║
 
 ║(1) Execution of a PURGE statement causes the MCS to eliminate any partial message awaiting transmission to the destinations specified in the CD referenced by cd-name-1.║
 
@@ -25462,13 +25434,13 @@ XIV-22
 
 Communication - RECEIVE
 
-## 3.5 THE RECEIVE STATEMENT
+### 3.5 THE RECEIVE STATEMENT
 
-### 3.5.1 Function
+#### 3.5.1 Function
 
 The RECEIVE statement makes available a message ║or a message segment║ and information about that data.
 
-### 3.5.2 General Format
+#### 3.5.2 General Format
 
 <pre style="line-height:1">
                   ╭   <u>MESSAGE</u>   ╮
@@ -25479,11 +25451,11 @@ The RECEIVE statement makes available a message ║or a message segment║ and i
 [ <u>END-RECEIVE</u> ]
 </pre>
 
-### 3.5.3 Syntax Rules
+#### 3.5.3 Syntax Rules
 
 (1) Cd-name-1 must reference an input CD or input-output CD.
 
-### 3.5.4 General Rules
+#### 3.5.4 General Rules
 
 (1) If cd-name-1 references an input CD, the contents of the data items specified by data-name-1 (SYMBOLIC QUEUE) ║through data-name-4 (SYMBOLIC SUB-QUEUE-3)║ of the area referenced by cd-name-1 designate the queue structure containing the message. (See page XIV-3, The Communication Description Entry.)
 
@@ -25547,13 +25519,13 @@ XIV-25
 
 Communication - SEND
 
-## 3.6 THE SEND STATEMENT
+### 3.6 THE SEND STATEMENT
 
-### 3.6.1 Function
+#### 3.6.1 Function
 
 The SEND statement causes a message, ║a message segment, or a portion of a message or segment║ to be released to one ║or more║ output queues maintained by the message control system (MCS).
 
-### 3.6.2 General Format
+#### 3.6.2 General Format
 
 <u>Format 1</u>:
 
@@ -25579,7 +25551,7 @@ The SEND statement causes a message, ║a message segment, or a portion of a mes
     ║ [ <u>REPLACING</u> LINE ] ║
 </pre>
 
-### 3.6.3 Syntax Rules
+#### 3.6.3 Syntax Rules
 
 (1) Cd-name-1 must reference an output CD or input-output CD.
 
@@ -25595,7 +25567,7 @@ The SEND statement causes a message, ║a message segment, or a portion of a mes
 
 > ⚠ **CORRECTED — see the Errata (C159).** The standard prints `(5) Integer-1 or the value of the data item referenced by identifier-3 may be zero.` (page 684, folio XIV-26). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-26 (page 851, folio A-21), applied in place: "Paragraph 3.6.3, add new syntax rule 6 as follows" (kb/Work PB5045). Corrected to `(6) If identifier-1 is a function-identifier, it must reference an alphanumeric function.`.
 
-### 3.6.4 General Rules
+#### 3.6.4 General Rules
 
 <u>ALL FORMATS</u>:
 
@@ -25714,8 +25686,6 @@ b. ║If the REPLACING phrase is not specified,║ the characters transmitted by
 
 XIV-30
 
-# SECTION XV: DEBUG MODULE
-
 ## Page 689
 
 Debug - Introduction
@@ -25762,13 +25732,13 @@ XV-1
 
 Debug - Introduction
 
-1.3.3 Compile Time Switch
+#### 1.3.3 Compile Time Switch
 
 The WITH DEBUGGING MODE clause is written as part of the SOURCE-COMPUTER paragraph. It serves as a compile time switch over the debugging statements written in the program.
 
 When the WITH DEBUGGING MODE clause is specified in a program, all debugging sections are compiled as specified in this section of the document. When the WITH DEBUGGING MODE clause is not specified, all debugging sections are compiled as if they were comment lines.
 
-1.3.4 Object Time Switch
+#### 1.3.4 Object Time Switch
 
 An object time switch dynamically activates the debugging code inserted by the compiler. This switch cannot be addressed in the program; it is controlled outside the COBOL environment. If the switch is on, all the effects of the debugging language written in the source program are permitted. If the switch is off, all the effects described in the USE FOR DEBUGGING statement on page XV-5 are inhibited. Recompilation of the source program is not required to provide or take away this facility.
 
@@ -25829,15 +25799,15 @@ XV-4
 
 ## Page 693
 
-# Debug - USE FOR DEBUGGING
+Debug - USE FOR DEBUGGING
 
-## 3.2 THE USE FOR DEBUGGING STATEMENT
+### 3.2 THE USE FOR DEBUGGING STATEMENT
 
-### 3.2.1 Function
+#### 3.2.1 Function
 
 The USE FOR DEBUGGING statement identifies the user items that are to be monitored by the associated debugging section.
 
-### 3.2.2 General Format
+#### 3.2.2 General Format
 
 <pre style="line-height:1">
                      ╭ ╔ cd-name-1                          ╗ ╮
@@ -25851,7 +25821,7 @@ The USE FOR DEBUGGING statement identifies the user items that are to be monitor
                      ╰   <u>ALL</u> <u>PROCEDURES</u>                       ╯
 </pre>
 
-### 3.2.3 Syntax Rules
+#### 3.2.3 Syntax Rules
 
 (1) Debugging section(s), if specified, must appear together immediately after the DECLARATIVES header.
 
@@ -25885,7 +25855,7 @@ XV-5
 
 Debug - USE FOR DEBUGGING
 
-3.2.4 General Rules
+#### 3.2.4 General Rules
 
 (1) Automatic execution of a debugging section is not caused by a statement appearing in a debugging section.
 
@@ -26078,8 +26048,6 @@ c. DEBUG-CONTENTS contains 'FALL THROUGH'.
 
 XV-10
 
-# SECTION XVI: SEGMENTATION MODULE
-
 ## Page 699
 
 Segmentation - Introduction
@@ -26122,7 +26090,7 @@ Segmentation - Introduction
 
 A fixed permanent segment is a segment in the fixed portion which cannot be overlaid by any other part of the program. ║A fixed overlayable segment is a segment in the fixed portion which, although logically treated as if it were always in memory, can be overlaid by another segment to optimize memory utilization. Variation of the number of fixed permanent segments in the fixed portion can be accomplished by using a special facility called the SEGMENT-LIMIT clause (see page XVI-5, The SEGMENT-LIMIT Clause). Such a segment, if called for by the program, is always made available in its last used state.║
 
-### 1.4.3 Independent Segments
+#### 1.4.3 Independent Segments
 
 An independent segment is defined as part of the object program which can overlay, and can be overlaid by, ║either a fixed overlayable segment or║ another independent segment. An independent segment is in its initial state whenever control is transferred (either implicitly or explicitly) to that segment for the first time during the execution of a program. On subsequent transfers of control to the segment, an independent segment is also in its initial state when:
 
@@ -26140,7 +26108,7 @@ On subsequent transfer of control to the segment, an independent segment is in i
 
 See paragraph 4.4.2, Explicit and Implicit Transfers of Control, page IV-25.
 
-## 1.5 SEGMENTATION CLASSIFICATION
+### 1.5 SEGMENTATION CLASSIFICATION
 
 Sections which are to be segmented are classified, using a system of segment-numbers (see page XVI-7, Segment-Numbers) and the following criteria:
 
@@ -26211,23 +26179,23 @@ XVI-4
 
 Segmentation - SEGMENT-LIMIT
 
-## ║2.3 THE SEGMENT-LIMIT CLAUSE║
+### ║2.3 THE SEGMENT-LIMIT CLAUSE║
 
-### ║2.3.1 Function║
+#### ║2.3.1 Function║
 
 ║Ideally, all program segments having segment-numbers ranging from 0 through 49 should be specified as permanent segments. However, when insufficient memory is available to contain all permanent segments plus the largest overlayable segment, it becomes necessary to decrease the number of permanent segments. The SEGMENT-LIMIT feature provides the user with a means by which he can reduce the number of permanent segments in his program, while still retaining the logical properties of fixed portion segments (segment-numbers 0 through 49).║
 
-### ║2.3.2 General Format║
+#### ║2.3.2 General Format║
 
 <pre style="line-height:1">
 <u>SEGMENT-LIMIT</u> IS segment-number
 </pre>
 
-### ║2.3.3 Syntax Rules║
+#### ║2.3.3 Syntax Rules║
 
 ║(1) Segment-number must be an integer ranging in value from 1 through 49.║
 
-### ║2.3.4 General Rules║
+#### ║2.3.4 General Rules║
 
 ║(1) When the SEGMENT-LIMIT clause is specified, only those segments having segment-numbers from 0 up to, but not including, the segment-number designated as the segment-limit, are considered as permanent segments of the object program.║
 
@@ -26309,17 +26277,17 @@ XVI-7
 
 Segmentation - Restrictions
 
-## 3.3 RESTRICTIONS ON PROGRAM FLOW
+### 3.3 RESTRICTIONS ON PROGRAM FLOW
 
 When segmentation is used, the following restrictions are placed on the ALTER, PERFORM, MERGE, and SORT statements.
 
-### 3.3.1 The ALTER Statement
+#### 3.3.1 The ALTER Statement
 
 A GO TO statement in a section whose segment-number is greater than or equal to 50 must not be referred to by an ALTER statement in a section with a different segment-number.
 
 All other uses of the ALTER statement are valid and are performed even if the GO TO to which the ALTER refers is in a fixed overlayable segment.
 
-### 3.3.2 The PERFORM Statement
+#### 3.3.2 The PERFORM Statement
 
 A PERFORM statement that appears in a section that is not in an independent segment can have within its range, in addition to any declarative sections whose execution is caused within that range, only one of the following:
 
@@ -26333,7 +26301,7 @@ A PERFORM statement that appears in an independent segment can have within its r
 
 (2) Sections and/or paragraphs wholly contained in the same independent segment as that PERFORM statement.
 
-### 3.3.3 The MERGE Statement
+#### 3.3.3 The MERGE Statement
 
 If the MERGE statement appears in a section that is not in an independent segment, then any output procedure referenced by that MERGE statement must appear:
 
@@ -26353,7 +26321,7 @@ XVI-8
 
 Segmentation - Restrictions
 
-### 3.3.4 The SORT Statement
+#### 3.3.4 The SORT Statement
 
 If a SORT statement appears in a section that is not an independent segment, then any input procedures or output procedures referenced by that SORT statement must appear:
 
@@ -26375,25 +26343,23 @@ XVI-9
 
 <!-- This page is blank apart from scanning specks. -->
 
-# SECTION XVII: APPENDICES
-
 ## Page 709
 
 History of COBOL
 
-## <u>SECTION XVII: APPENDICES</u>
+# <u>SECTION XVII: APPENDICES</u>
 
-### <u>APPENDIX A: THE HISTORY OF COBOL</u>
+## <u>APPENDIX A: THE HISTORY OF COBOL</u>
 
 ## 1. <u>THE DEVELOPMENT OF COBOL</u>
 
-## 1.1 ORGANIZATION OF COBOL EFFORT
+### 1.1 ORGANIZATION OF COBOL EFFORT
 
 On May 28 and 29, 1959, a meeting was held for the purpose of considering both the desirability and the feasibility of establishing a common language for programming of computers in business data processing applications. This meeting was attended by representatives from users, both in private industry and in government, computer manufacturers, and other interested parties. It was agreed that the language must be open-ended and capable of accepting change and amendment, that it should be problem-oriented and machine-independent, and that it should use simple English or pseudo-English and avoid symbolism as far as possible. The COnference on DAta SYstems Languages (CODASYL) developed out of this meeting.
 
 The original COBOL specifications resulted from the work of a committee of CODASYL. By September 1959 this committee had specified a framework upon which an effective common business language could be built. The name COBOL which suggests a COmmon Business Oriented Language was adopted for these specifications. The final report of this committee was accepted by the Executive Committee of CODASYL and published in April 1960. The document was titled: "COBOL - A Report to the Conference on Data Systems Languages, including Initial Specifications for a Common Business Oriented Language (COBOL) for Programming Electronic Digital Computers". The language described in this report has since become known as COBOL-60.
 
-## 1.2 THE COBOL MAINTENANCE COMMITTEE
+### 1.2 THE COBOL MAINTENANCE COMMITTEE
 
 The Executive Committee of CODASYL recognized that the task of defining the COBOL language was a continuing one and that the COBOL language had to be maintained and improved. To this end, the COBOL Maintenance Committee was created in February 1960. The COBOL Maintenance Committee was charged with the task of answering questions arising from users and implementors of the language and making definitive modifications, including additions, clarifications, and changes to the COBOL language.
 
@@ -26407,7 +26373,7 @@ History of COBOL
 
 The next official COBOL publication was also the product of the COBOL Maintenance Committee and was called COBOL-61 Extended which was published in mid-1963.
 
-## 1.3 THE COBOL COMMITTEE
+### 1.3 THE COBOL COMMITTEE
 
 In January 1964 the COBOL Maintenance Committee was reorganized into the COBOL Committee consisting of three subcommittees: the Language Subcommittee, the Evaluation Subcommittee, and the Publication Subcommittee.
 
@@ -26415,7 +26381,7 @@ The Language Subcommittee's function was much the same as was that of the former
 
 The third official COBOL publication was the product of the COBOL Committee and was called COBOL, Edition 1965.
 
-## 1.4 THE PROGRAMMING LANGUAGE COMMITTEE
+### 1.4 THE PROGRAMMING LANGUAGE COMMITTEE
 
 In July 1968 the CODASYL Executive Committee adopted a revised constitution which elevated the former COBOL Language Subcommittee to full committee status having the name of the Programming Language Committee (PLC).
 
@@ -26423,7 +26389,7 @@ The purpose and objectives of the Programming Language Committee included and ex
 
 The Programming Language Committee produced five official COBOL publications which were entitled: CODASYL COBOL Journal of Development 1968, CODASYL COBOL Journal of Development 1969, CODASYL COBOL Journal of Development 1970, CODASYL COBOL Journal of Development 1973, and CODASYL COBOL Journal of Development 1976.
 
-## 1.5 THE CODASYL COBOL COMMITTEE
+### 1.5 THE CODASYL COBOL COMMITTEE
 
 In May 1977 the CODASYL Executive Committee approved the redesignation of the CODASYL Programming Language Committee as the CODASYL COBOL Committee. This redesignation was made to represent the responsibility of the committee more accurately.
 
@@ -26437,15 +26403,15 @@ History of COBOL
 
 ## 2. <u>THE EVOLUTION OF CODASYL COBOL</u>
 
-2.1 COBOL-60
+### 2.1 COBOL-60
 
 COBOL-60, the first version of the language published, proved that the concept of a common business oriented language was indeed practical.
 
-2.2 COBOL-61
+### 2.2 COBOL-61
 
 COBOL-61, the second official version of COBOL, was not completely compatible with COBOL-60. The changes were in areas such as organization of the Procedure Division rather than the addition of any major functions. The avowed goal of CODASYL in terms of successive versions of the language was to make changes of an evolutionary rather than revolutionary nature. This version was generally implemented and was the basis for many COBOL compilers.
 
-2.3 COBOL-61 EXTENDED
+### 2.3 COBOL-61 EXTENDED
 
 This version of COBOL was generally compatible with COBOL-61. The term 'generally' must be used, not because of any basic changes in the philosophy or organization of the language, but because certain arithmetic extensions and general clarifications did make the syntax for certain statements and entries different from those in COBOL-61.
 
@@ -26457,7 +26423,7 @@ COBOL-61 Extended, then, was generally COBOL-61 with the following major additio
 
 (3) The modification of the arithmetics to include multiple receiving fields and to add the CORRESPONDING option to the ADD and SUBTRACT statements.
 
-2.4 COBOL, EDITION 1965
+### 2.4 COBOL, EDITION 1965
 
 This version of COBOL included COBOL-61 Extended plus certain additions and modifications.
 
@@ -26477,7 +26443,7 @@ XVII-3
 
 History of COBOL
 
-2.5 CODASYL COBOL JOURNAL OF DEVELOPMENT 1968
+### 2.5 CODASYL COBOL JOURNAL OF DEVELOPMENT 1968
 
 This version of COBOL, published in the CODASYL COBOL Journal of Development 1968, was based on COBOL, Edition 1965, with certain additions and deletions.
 
@@ -26503,7 +26469,7 @@ The major changes incorporated in the COBOL specifications within the CODASYL CO
 
 (10) The inclusion of additional abbreviations.
 
-2.6 CODASYL COBOL JOURNAL OF DEVELOPMENT 1969
+### 2.6 CODASYL COBOL JOURNAL OF DEVELOPMENT 1969
 
 This version of COBOL, published in the CODASYL COBOL Journal of Development 1969, was based on the COBOL specifications in the CODASYL COBOL Journal of Development 1968 with certain additions and deletions.
 
@@ -26529,7 +26495,7 @@ History of COBOL
 
 (7) The inclusion of the SIGN clause.
 
-2.7 CODASYL COBOL JOURNAL OF DEVELOPMENT 1970
+### 2.7 CODASYL COBOL JOURNAL OF DEVELOPMENT 1970
 
 This version of COBOL, published in the CODASYL COBOL Journal of Development 1970, was based on the COBOL specifications in the CODASYL COBOL Journal of Development 1969 with certain additions, deletions, and modifications.
 
@@ -26545,7 +26511,7 @@ The major changes incorporated in the COBOL specifications within the CODASYL CO
 
 (5) A complete revision of the report writer function.
 
-2.8 CODASYL COBOL JOURNAL OF DEVELOPMENT 1973
+### 2.8 CODASYL COBOL JOURNAL OF DEVELOPMENT 1973
 
 This version of COBOL, published in the CODASYL COBOL Journal of Development 1973, was based on the COBOL specifications in the CODASYL COBOL Journal of Development 1970 with certain additions, deletions, and modifications.
 
@@ -26573,7 +26539,7 @@ XVII-5
 
 History of COBOL
 
-## 2.9 CODASYL COBOL JOURNAL OF DEVELOPMENT 1976
+### 2.9 CODASYL COBOL JOURNAL OF DEVELOPMENT 1976
 
 This version of COBOL, published in the CODASYL COBOL Journal of Development 1976, was based on the COBOL specifications in the CODASYL COBOL Journal of Development 1973 with certain additions, deletions, and modifications.
 
@@ -26629,7 +26595,7 @@ History of COBOL
 
 (22) The extension of the use of OPTIONAL to all file organizations.
 
-## 2.10 CODASYL COBOL JOURNAL OF DEVELOPMENT 1978
+### 2.10 CODASYL COBOL JOURNAL OF DEVELOPMENT 1978
 
 This version of COBOL, published in the CODASYL COBOL Journal of Development 1978, was based on the COBOL specifications in the CODASYL COBOL Journal of Development 1976 with certain additions, deletions, and modifications.
 
@@ -26683,7 +26649,7 @@ History of COBOL
 
 (21) The deletion of comment-entries.
 
-2.11 CODASYL COBOL JOURNAL OF DEVELOPMENT 1981
+### 2.11 CODASYL COBOL JOURNAL OF DEVELOPMENT 1981
 
 This version of COBOL, published in the CODASYL COBOL Journal of Development 1981, was based on the COBOL specifications in the CODASYL COBOL Journal of Development 1978 with certain additions, deletions, and modifications.
 
@@ -26753,7 +26719,7 @@ History of COBOL
 
 (28) The expansion and addition of various file status codes.
 
-## 2.12 CODASYL COBOL JOURNAL OF DEVELOPMENT 1984
+### 2.12 CODASYL COBOL JOURNAL OF DEVELOPMENT 1984
 
 This version of COBOL, published in the CODASYL COBOL Journal of Development 1984, was based on the COBOL specifications in the CODASYL COBOL Journal of Development 1981 with certain additions, deletions, and modifications.
 
@@ -26815,13 +26781,13 @@ History of COBOL
 
 ## 3. <u>THE STANDARDIZATION OF COBOL</u>
 
-3.1 INITIAL STANDARDIZATION EFFORT
+### 3.1 INITIAL STANDARDIZATION EFFORT
 
 American National Standards Committee on Computers and Information Processing, X3, was established in 1960 under the sponsorship of the Computer and Business Equipment Manufacturers Association. The X3 Committee in turn established the X3.4 Subcommittee to pursue standards in the area of common programming languages. Subsequently, Working Group X3.4.4 with the title "Processor Specification and COBOL Standards" was established to pursue a COBOL standard.
 
 In December 1962 invitations to an organizational meeting of X3.4.4 were sent to manufacturers and user groups who might be interested in participating in the establishment of a COBOL standard. The first meeting of X3.4.4 was held on January 15-16, 1963, in New York City. This meeting established the objective of the X3.4.4 Working Group to be the production of a document which defined the American standard for COBOL. It was agreed that this standard language was to be based upon the specifications contained in the COBOL publication of CODASYL. To accomplish its work, X3.4.4 was divided into subgroups. One of these subgroups was X3.4.4.4 which was responsible for standard language specifications.
 
-3.2 USA STANDARD COBOL 1968
+### 3.2 USA STANDARD COBOL 1968
 
 On August 30, 1966, X3.4.4 completed its work and approved the content and format for a proposed USA Standard COBOL. The proposed USA Standard COBOL was composed of a Nucleus and eight functional processing modules: Table Handling, Sequential Access, Random Access, Random Processing, Sort, Report Writer, Segmentation, and Library. The Nucleus and each of the eight modules were divided into two or three levels. In all cases, the lower levels were subsets of the higher levels within the same module. The minimum proposed standard was defined as the low level of the Nucleus plus the low level of the Table Handling and Sequential Access modules. The highest levels of the Nucleus and the eight modules were defined as the full proposed USA Standard COBOL.
 
@@ -26837,7 +26803,7 @@ History of COBOL
 
 The USA Standard COBOL proposed by X3 was approved by the Information Processing Systems Standards Board of the USA Standards Institute (USASI) on August 23, 1968, as a USA Standard. The specifications of this USA Standard COBOL were published in the USA Standards Institute document X3.23-1968.
 
-## 3.3 AMERICAN NATIONAL STANDARD COBOL 1974
+### 3.3 AMERICAN NATIONAL STANDARD COBOL 1974
 
 The American National Standards Technical Committee X3J4 evolved from the X3.4.4 Working Group and its subordinate working groups which included X3.4.4.4. X3J4 was charged with the responsibility for the maintenance of the American National Standard COBOL X3.23-1968 (formerly called the USA Standard COBOL X3.23-1968). This maintenance responsibility also included the revision of the specifications contained in American National Standard COBOL X3.23-1968.
 
@@ -26849,7 +26815,7 @@ X3 also authorized a letter ballot be taken of the membership of the X3 Committe
 
 The revised X3.23 American National Standard COBOL proposed by X3 was approved by the Standards Review Board of the American National Standards Institute (ANSI) on May 10, 1974, as an American National Standard. The specifications of this American National Standard were published in the American National Standards Institute document X3.23-1974.
 
-## 3.4 AMERICAN NATIONAL STANDARD COBOL 1985
+### 3.4 AMERICAN NATIONAL STANDARD COBOL 1985
 
 The American National Standards Technical Committee X3J4 was charged with the responsibility for the maintenance of the American National Standard COBOL X3.23-1974. Thus X3J4 developed and put into effect procedures to handle
 
@@ -26867,7 +26833,7 @@ In April 1985 X3J4 approved the final version of the draft proposed X3.23 Americ
 
 The revised X3.23 American National Standard COBOL proposed by X3 was approved by the Board of Standards Review of the American National Standards Institute (ANSI) in September 1985 as an American National Standard. The specifications of this American National Standard are published in the American National Standards Institute document X3.23-1985.
 
-## 3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1
+### 3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1
 
 The X3J4 COBOL Technical Committee of the Accredited Standards Committee X3 was charged with the responsibility to develop addenda to American National Standard COBOL X3.23-1985 as a means of adding upward compatible language extensions. In June 1985, X3J4 began the task of preparing the first addendum. Language extensions considered for inclusion in Addendum 1 were taken from the CODASYL COBOL Journal of Development 1984.
 
@@ -26878,7 +26844,7 @@ In October 1988 X3J4 approved the final version of the draft proposed Addendum 1
 Addendum 1 to American National Standard COBOL X3.23-1985 proposed by X3 was approved by the American National Standards Institute on September 13, 1989 as an
  addendum to American National Standard COBOL X3.23-1985. The specifications of this approved Addendum 1 are published in the American National Standards Institute document X3.23a-1989.
 
-## 3.6 AMERICAN NATIONAL STANDARD COBOL 1985, AMENDMENT 2
+### 3.6 AMERICAN NATIONAL STANDARD COBOL 1985, AMENDMENT 2
 
 The X3J4 COBOL Technical Committee of the Accredited Standards Committee X3 was charged with the responsibility of developing an amendment to ANSI X3.23-1985 as a means of resolving ambiguities and correcting errors found therein. In December 1987, X3J4 began the task of preparing an amendment to ANSI X3.23-1985. Errors were corrected which were found during the interpretation of ANSI X3.23-1985.
 
@@ -26920,13 +26886,13 @@ XVII-14
 
 History of COBOL
 
-4.3 ISO STANDARD 1989-1985 FOR COBOL
+### 4.3 ISO STANDARD 1989-1985 FOR COBOL
 
 During X3J4's work on the revision of American National Standard COBOL X3.23-1974, close and continuous liaison was maintained with the international COBOL community through ISO/TC 97/SC 5 COBOL Experts Group (CEG). The draft proposed revision of American National Standard COBOL X3.23-1974 was presented to ISO/TC 97/SC 5 in October 1981 as a proposed revision of ISO 1989-1978, Programming Language - COBOL. ISO/TC 97/SC 5 unanimously approved a resolution to send the proposed revision of ISO 1989-1978 COBOL to the central secretariat for registration as a draft proposal and for circulation to SC 5 primary members for a comment period closing February 13, 1982.
 
 The draft revision of ISO Standard 1989 for COBOL was circulated to all the ISO member bodies for inquiry. This revised ISO Standard 1989 was accepted by the ISO Council in 1985. The resulting ISO Standard was called ISO Standard 1989-1985 for COBOL.
 
-4.4 ISO 1989:1985/Amd.1:1992
+### 4.4 ISO 1989:1985/Amd.1:1992
 
 > ⚠ **CORRECTED — see the Errata (C320).** The standard prints `4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1` (page 723, folio XVII-15). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-15 (A-22) (page 938, folio B-26), applied in place: "Paragraph 4.4, change the heading to read" (paragraph 4.4 is Amendment 1's, C163) (kb/Work PB5045). Corrected to `4.4 ISO 1989:1985/Amd.1:1992`.
 
@@ -26934,7 +26900,7 @@ At its meeting in Vienna, Austria, in February 1984, ISO Technical Committee 97,
 
 During X3J4's work on Addendum 1 for Standard COBOL, close and continuous liaison was maintained with the international community through ISO/IEC JTC1/SC22 Working Group 4. The draft document was presented for review and comment to ISO/IEC JTC1/SC22 in March 1987 as a draft proposed Addendum 1 to ISO Standard 1989-1985 for COBOL. ISO/IEC JTC1/SC22 unanimously approved a resolution to send the proposed Addendum 1 to ISO Standard 1989-1985 for COBOL to the Central Secretariat for registration as a draft international standard (DIS). The DIS Addendum 1 to ISO Standard 1989-1985 for COBOL was circulated to all the ISO member bodies for inquiry. Addendum 1 to ISO Standard 1989-1985 for COBOL was accepted by the ISO Council.
 
-4.5 ISO 1989:1985/Amd.2:1994
+### 4.5 ISO 1989:1985/Amd.2:1994
 
 In February 1987, the convenor of ISO Technical Committee 97, Subcommittee 22, Working Group 4 on COBOL, forwarded to the SC22 Secretariat the results of a letter ballot to subdivide the COBOL project and produce an amendment to ISO 1989:1985 to resolve identified ambiguities and correct identified errors. At the same time ISO/TC97/SC22 Working Group 4 recommended that the United States be requested to provide draft documents for the amendment. The recommendations of ISO/TC97/SC22 Working Group 4 were approved and the work of developing the amendment was assigned to X3J4.
 
@@ -26952,7 +26918,7 @@ Second and Third Standard Differences
 
 ## <u>APPENDIX B: DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL</u>
 
-### 1. <u>SUMMARY OF DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL</u>
+## 1. <u>SUMMARY OF DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL</u>
 
 This first portion of Appendix B contains a summary of all elements in second Standard COBOL and in third Standard COBOL. These elements are organized according to the COBOL divisions.
 
@@ -28577,7 +28543,7 @@ XVII-50
 
 Substantive Changes (Potentially Affecting)
 
-## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)
+### 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)
 
 > ⚠ **CORRECTED — see the Errata (C327).** The standard prints `## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS` (page 759, folio XVII-51). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-51 (page 940, folio B-28), applied in place: "Change the title of paragraph 2.2 to" (kb/Work PB5045). Corrected to `## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)`.
 
@@ -30210,9 +30176,9 @@ Undefined Element List
 
 XVII-98
 
-# SECTION XVIII: INDEX
-
 ## Page 807
+
+# SECTION XVIII: INDEX
 
 Index
 
@@ -30248,7 +30214,7 @@ XVIII-5
 
 ## Page 812
 
-# Index
+Index
 
 XVIII-6
 
@@ -30274,7 +30240,7 @@ XVIII-9
 
 ## Page 816
 
-# Index
+Index
 
 XVIII-10
 
