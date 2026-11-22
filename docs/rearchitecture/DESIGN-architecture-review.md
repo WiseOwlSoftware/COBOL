@@ -2025,8 +2025,16 @@ Roslyn walk (`tools/ArchCensus --member-index`, recorded by `scripts/arch/member
 `<sha>.members.json.gz`: per symbol, the authored product and test files that use it; per type and member, the files
 that declare it; and, for every type and member of the EMITTED SURFACE, the authored files whose string or
 interpolated text writes its name, because `catch (ProgramReturn)` in `DispatchEmitter.cs` is C# text and binds no
-symbol; K1). Every index carries `treeKey`, the hash of what the walk read (the tracked C#, project and solution files
-of `src/` and `tests/`, and the host's sources), and the planner plans only on THE index of its own tree
+symbol; K1). The walk reads the solution's projects and nothing else, so the census and the member index both take
+their scope from ONE function, `census.walk_scope`, which REFUSES a tree that compiles C# outside them (THE WALK
+BOUNDARY, kb/Work PB3201): a tracked C# project that is not a solution project, the host or frozen evidence; a host
+that references a project; and a `<Compile Include>` naming sources outside `src/` and `tests/` or a path it cannot
+resolve. A consumer the walk cannot see (`tools/impact/ImpactTestFramework.cs` derived `GateTestFramework` through
+`ImpactRecording.targets` until PB4328 deleted it) is otherwise outside every rename's file set and breaks far from
+the change. The host's own name for a solution type (the drift tests' path locator, `TestArtifacts.LocatorMetadataName`)
+is a symbol it resolves or refuses, pinned to the type by `ArchCensusDriftTests`. Every index carries `treeKey`, the
+hash of what the walk read (the tracked C#, project and solution files of `src/` and `tests/`, the host's sources, and
+every tracked MSBuild file, which the walk boundary reads), and the planner plans only on THE index of its own tree
 (`member_index.current`: a committed or cached record with that key, else one regenerated into
 `<coord>/member-index/`, else a refusal with `--no-index-regenerate`): a stale index cannot see a type or file a
 landing added (PB833's `OfdRegionLocks.cs` inside PB2251's site folder; K1), and Draft 8's "an older index only widens

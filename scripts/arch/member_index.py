@@ -37,8 +37,8 @@ with every walked file's git blob id), and answers queries against the CURRENT t
 
 CURRENCY (the eighth refuter's K1 (3): PB833 added `IO/Sharing/OfdRegionLocks.cs` inside PB2251's site folder after
 the index was recorded, and the frozen index never saw it). Every index carries `treeKey`, the hash of the inputs it
-was walked from (`tree_key`: the tracked C#, project and solution files under src/ and tests/, and the host's own
-sources). `current()` returns the index whose key is the checkout's: a committed record, or one regenerated into a
+was walked from (`tree_key`: the tracked C#, project and solution files under src/ and tests/, the host's own
+sources, and every tracked MSBuild file, which the walk boundary reads). `current()` returns the index whose key is the checkout's: a committed record, or one regenerated into a
 cache directory (the coordination directory's `member-index/`), or, with regeneration off, a REFUSAL. The planner
 (`plan_wave.py --cluster`) plans only on a current index. The planner's set is still the ADMISSION estimate; the
 GUARANTEE is the landing check (`scripts/orchestrator/landing_check.py`, run by `enqueue.py land`), which compares each
@@ -84,7 +84,10 @@ SUFFIX = ".members.json.gz"   # gzip: the index names every symbol (about 4.5 MB
 HOST = Path("tools/ArchCensus")
 SCANNED_ROOTS = ("src/", "tests/")
 SCHEMA = 2   # 2: `emitted` (names written as C# text) and `treeKey` (PB2118 Draft 9)
-KEY_INPUTS = ("src/", "tests/", "tools/ArchCensus/", "WiseOwl.Cobol.sln")   # what the walk reads: tree_key hashes them
+# What the walk reads, which tree_key hashes: the walked roots, the host, the solution, and EVERY tracked MSBuild file,
+# which census.walk_scope reads for THE WALK BOUNDARY (a C# project added outside the solution changes the key, so the
+# next index is regenerated and refuses it; kb/Work PB3201). A pathspec `*.csproj` matches at any depth.
+KEY_INPUTS = ("src/", "tests/", "tools/ArchCensus/", "WiseOwl.Cobol.sln", "*.csproj", "*.props", "*.targets")
 KEY_EXTS = (".cs", ".csproj", ".props", ".targets", ".sln")
 FROZEN = ("⛔ FROZEN EVIDENCE — the member index of ONE commit, recorded by scripts/arch/member_index.py --record and "
           "never edited (kb/Work PB785, PB2118 Draft 9): a newer measurement is a new file named by its commit. It "
@@ -137,7 +140,7 @@ def record(repo: Path = REPO, out_dir: Path | None = None) -> Path:
     key = tree_key(repo)
     date = git("show", "-s", "--format=%cI", sha, cwd=repo).strip()
     work = Path(tempfile.mkdtemp(prefix="member-index-"))
-    scope = census.scope_of(census.solution_projects((repo / "WiseOwl.Cobol.sln").read_text(encoding="utf-8-sig")))
+    scope = census.walk_scope(repo)
     (work / "scope.json").write_text(json.dumps(scope), encoding="utf-8", newline="\n")
     census.run_logged(["dotnet", "build", "WiseOwl.Cobol.sln", "-c", "Debug", "-v", "quiet"], repo, work / "build.log")
     census.run_logged(["dotnet", "build", str(repo / HOST), "-c", "Release", "-o", str(work / "host"), "-v", "quiet"],
@@ -197,8 +200,8 @@ def current(repo: Path = REPO, cache_dir: Path | None = None, regenerate: bool =
     plans on (PB2118 Draft 9, the eighth refuter's K1 (3))."""
     key = tree_key(repo)
     if key is None:
-        raise StaleIndex("⛔ member index: src/, tests/ or the host has uncommitted changes; an index describes one "
-                         "committed tree: commit, or plan from a clean checkout")
+        raise StaleIndex("⛔ member index: src/, tests/, the host or an MSBuild file has uncommitted changes; an "
+                         "index describes one committed tree: commit, or plan from a clean checkout")
     cached = [_read(p) for p in sorted(cache_dir.glob(f"{key}{SUFFIX}"))] if cache_dir and cache_dir.is_dir() else []
     for doc in _records(repo) + cached:
         if doc.get("treeKey") == key and doc.get("schema") == SCHEMA:
@@ -528,6 +531,15 @@ def self_test() -> int:
         check("landing-makes-stale", "no refusal", "refusal")
     except StaleIndex:
         check("landing-makes-stale", True, True)
+    # the key covers every MSBuild file the walk boundary reads (census.walk_scope; kb/Work PB3201): a project added
+    # outside src/ and tests/ changes it, so the next index is regenerated, and refuses that project, never served stale
+    before = tree_key(root)
+    (root / "tools/X").mkdir(parents=True)
+    (root / "tools/X/X.csproj").write_text("<Project />", encoding="utf-8", newline="\n")
+    check("msbuild-dirty-no-key", tree_key(root), None)
+    scratch.git("add", "-A")
+    scratch.git("commit", "-qm", "c2")
+    check("msbuild-in-key", tree_key(root) not in (before, None), True)
     check("docid", work.note_sites("**Sites:**\n- `M:N.T.M(System.Int32)~N.R @ src/A/T.cs:3`").names,
           ("N.T.M(System.Int32)",))
     check("simple", simple("N.T`1.M``1(System.Int32)"), "N.T.M")
