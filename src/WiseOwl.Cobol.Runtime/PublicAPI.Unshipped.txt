@@ -240,6 +240,9 @@ WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeTruncationChecking.get -> b
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeTruncationChecking.set -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeUnderflowChecking.get -> bool
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeUnderflowChecking.set -> void
+WiseOwl.Cobol.Runtime.Exceptions.IActivationIdentity
+WiseOwl.Cobol.Runtime.Exceptions.IActivationIdentity.ActivatingActivation.get -> long
+WiseOwl.Cobol.Runtime.Exceptions.IActivationIdentity.CurrentActivation.get -> long
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.Action.get -> int
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.File.get -> string!
@@ -1376,6 +1379,3 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
-WiseOwl.Cobol.Runtime.Exceptions.IActivationIdentity
-WiseOwl.Cobol.Runtime.Exceptions.IActivationIdentity.ActivatingActivation.get -> long
-WiseOwl.Cobol.Runtime.Exceptions.IActivationIdentity.CurrentActivation.get -> long
