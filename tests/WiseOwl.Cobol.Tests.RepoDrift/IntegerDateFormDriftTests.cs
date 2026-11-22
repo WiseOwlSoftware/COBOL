@@ -13,6 +13,7 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 /// out at five, and a forgotten copy had already cost two defects (kb/Work R25, PB23). A runtime or compiler source that
 /// spells one of them again fails here.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class IntegerDateFormDriftTests
 {
     private static readonly Regex Spelling = new(
