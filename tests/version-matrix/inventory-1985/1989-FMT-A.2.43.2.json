@@ -1,7 +1,7 @@
 {
  "rule-id": "1989-FMT-A.2.43.2",
  "rule-digest": "82f705c98980",
- "test-ref": "conformance:cases/15.89-TAN/l1-tan-two-arguments",
+ "test-ref": "conformance:cases/15.89-TAN/l1-tan-two-arguments; conformance:cases/A.2.43@1985-TAN-FUNCTION/1989-RV-A_2_43_1-p1",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

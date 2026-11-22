@@ -268,7 +268,7 @@ internal static class BackendContract
         new("L6", ["PB2347"],
         [
             "Bound.StatementBinder.FirstToken()", "Bound.StatementBinder.NestedCallables",
-            "Bound.StatementBinder.InputOutputStatement()", "Bound.StatementBinder.Children()",
+            "Bound.StatementBinder.Children()",
         ]),
         // L9: C# source text, runtime type and member spellings, and C# operators on the model and the bound tree.
         new("L9", ["PB3252"],

@@ -169,10 +169,13 @@ def case_07b_a_paragraph_leaves_the_count_only_on_a_disposition_and_its_record(e
                                   "§1985:VI.2.5": ("not-a-rule", "UPHELD", None),
                                   "§1985:VI.2.6": ("pending", None, None)}.items():
         u = unit[c]
+        # each record upholds the disposition its entry states (text_units.disposition_refusal)
+        judged = {"restates": {"rules": ["1985-GR-VI.2.1-1"]}, "not-a-rule": {"class": "lead-in"}}.get(d, {})
         entries[c] = {"units": [{"unit": u.label, "digest": u.digest, "order": 0, "disposition": d,
-                                 "refuted": records_at}]}
+                                 "refuted": records_at, **judged}]}
         if outcome:
-            records.append({"unit": u.label, "clause": c, "digest": read or u.digest, "outcome": outcome})
+            records.append({"unit": u.label, "clause": c, "digest": read or u.digest, "outcome": outcome,
+                            "disposition": d, **judged})
     manifest.write_text(json.dumps({"blocks": blocks, "paragraph-blocks": entries}), encoding="utf-8", newline="\n")
     (root / records_at).write_text("".join(json.dumps(r) + "\n" for r in records), encoding="utf-8", newline="\n")
     expect.equal("the planted units are the clauses' paragraphs, the held lists none of them",
@@ -186,6 +189,37 @@ def case_07b_a_paragraph_leaves_the_count_only_on_a_disposition_and_its_record(e
                  h.discounted, {"row": 0, "restates": 1, "not-a-rule": 1, "not-rules block": 2})
     expect.equal("an HTML table, a caption below it, a figure's caption and the repeated section title are no prose",
                  h.printed_paragraphs, 10)
+
+
+def case_07c_an_examples_clause_is_units_and_its_code_is_no_prose(expect):
+    # kb/Work PB6001 (wave 20262132 group a): a clause headed "Examples" is text like any other, so its preamble, its
+    # label and its table rows are units disposed on their own records; its fenced code is a display (text_units
+    # .display_mask), no unit and so no hole. On the base the clause had no units and its code lines were holes.
+    import json  # noqa: PLC0415
+    H = C.catalog_prose_holes
+    E = H.extract_rule_catalog
+    lines = F.EXAMPLES_1985.splitlines()
+    root = F.planted_1985(scratch_dir("edition-status-examples-"), [], F.EXAMPLES_1985)
+    _cat, units, _a, _m = E.units_1985(lines, root)
+    expect.equal("the Examples clause is units: its preamble, its label and its table's row; the code is none",
+                 [(u.label, u.shape) for u in units.get("§1985:VI.3.1", [])],
+                 [("p1", "paragraph"), ("p2", "paragraph"), ("T1.1", "table-row")])
+    h = H.holes(1985, root)
+    expect.equal("only the pending preamble is a hole: a fenced code line is no prose", [u.line for u in h.uncovered],
+                 [7])
+    p1 = units["§1985:VI.3.1"][0]
+    records_at = "docs/planted-refute.jsonl"
+    manifest = root / E.UNHARVESTED_OF[1985].relative_to(E.REPO)
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(json.dumps({"blocks": {}, "paragraph-blocks": {"§1985:VI.3.1": {"units": [
+        {"unit": "p1", "digest": p1.digest, "order": 0, "disposition": "restates", "rules": ["1985-GR-VI.3.1-1"],
+         "refuted": records_at}]}}}), encoding="utf-8", newline="\n")
+    (root / records_at).write_text(json.dumps({"unit": "p1", "clause": "§1985:VI.3.1", "digest": p1.digest,
+                                               "outcome": "UPHELD", "disposition": "restates",
+                                               "rules": ["1985-GR-VI.3.1-1"]}) + "\n", encoding="utf-8", newline="\n")
+    h = H.holes(1985, root)
+    expect.equal("disposed on its UPHELD record, the preamble leaves the count", (h.count, h.discounted["restates"]),
+                 (0, 1))
 
 
 def case_08_an_edition_no_reader_reads_is_refused(expect):

@@ -193,7 +193,7 @@ public enum DialectBehavior
     /// unsuccessful with I-O status '34'; the 2014 text carries the same sentence (§2014:14.9.47.3 GR26 b). The 2002 text
     /// (§2002:14.8.47.3 GR25 b) ends that rule after the '22' sentence and knows only the invalid key condition of a write
     /// "beyond the externally defined boundaries of the file", status '24' (§2002:14.8.47.3 GR29 b); the 1985 relative-file
-    /// status list has no '34' at all and gives '24' for the same attempt (§1985:VIII.1.3.4 item (3) c) with the invalid key
+    /// status list has no '34' at all and gives '24' for the same attempt (§1985:VIII.1.3.4 GRL2.3c with the invalid key
     /// condition of §1985:VIII.1.3.5 (kb/Work PB5125). So below 2014 the same test answers '24' and the INVALID KEY phrase
     /// (or the USE procedure) runs; from 2014 it answers '34', the permanent error, and the phrase is skipped. The consumer
     /// is <c>RelativeConnector.Write</c>.</summary>

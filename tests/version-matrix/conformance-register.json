@@ -1258,6 +1258,13 @@
    "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-03.jsonl"
   },
   {
+   "key": "DRV-1985-GR-III.2-p139",
+   "arm": "definitional",
+   "names": "defines the input-output statements of a source program as ACCEPT with the identifier phrase, CLOSE, DELETE, DISABLE, DISPLAY, ENABLE, OPEN, PURGE, READ, RECEIVE, REWRITE, SEND, SET with TO ON or TO OFF, START and WRITE",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-g-03.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-III.2-p147",
    "arm": "definitional",
    "names": "defines an intra-record data structure of a program as the groups and elementary items of a logical record that a contiguous subset of its data description entries describes",
@@ -1727,6 +1734,13 @@
    "refuter": "—"
   },
   {
+   "key": "DRV-1985-GR-VI.6.18.5-p1",
+   "arm": "informative",
+   "names": "describes the standard's examples and how their result tables are read: \"COUNT-n is assumed to be zero immediately prior to execution of the statement\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-e-01.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-VI.6.25.4-12",
    "arm": "undefined-in-rule",
    "names": "\"the result of the execution of this statement is undefined\"",
@@ -1926,13 +1940,6 @@
    "key": "DRV-1989-RV-A.2.22.4-3",
    "arm": "unpopulatable-antecedent",
    "names": "the computer character set is closed at one set, the 65,536 UTF-16 BMP code units (A.1 items 31 and 36), which includes the lowercase letters a through z, and no option or edition selects another",
-   "signature": "claude: 2026-11-16",
-   "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl"
-  },
-  {
-   "key": "DRV-1989-RV-A.2.46.3-3",
-   "arm": "unpopulatable-antecedent",
-   "names": "the set of compilation date-times provided outside the function's own value is empty: the compiler produces no listing in any edition (at 2002, 2014 and 2023 that is the documented choice of A.1 item 117; at 1985 it is the known nonconformance of kb/Work PB5923, which §1985:IV.7.1 requires), and the object code is a deterministic PE whose only compilation time is the WHEN-COMPILED constant itself",
    "signature": "claude: 2026-11-16",
    "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl"
   },

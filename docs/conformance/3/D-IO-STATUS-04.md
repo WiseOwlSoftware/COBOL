@@ -6,7 +6,7 @@
   item 15 2023 delta only clarifies *when* it is set.
   ⚖ **THE MEASURE IS THE FILE'S FIXED ATTRIBUTES, NOT THE READING PROGRAM'S DESCRIPTIONS** (kb/Work PB5238, a determination). §2023:14.9.30.4 GR14
   (and §1985:VII.4.4.4 GR13, §1985:VIII.4.5.4 GR16, §1985:IX.4.5.4 GR18) state the conflict as a record shorter or longer than "the
-  minimum/maximum size specified by the record description entries", while §2023:9.1.13.2 item 3 and §1985:VIII.1.3.4 item 1 b define
+  minimum/maximum size specified by the record description entries", while §2023:9.1.13.2 item 3 and §1985:VIII.1.3.4 GRL2.1b define
   '04' as a record outside "the fixed file attributes", and §2023:9.1.6 makes "the minimum and maximum logical record size" such an
   attribute; §2023:14.9.30.4 NOTE 2 adds that the condition "will occur only when the operating environment does not check either the
   minimum or maximum record length as a fixed file attribute during OPEN processing or when a specific physical record within a

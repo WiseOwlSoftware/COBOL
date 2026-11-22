@@ -24,6 +24,14 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 
 ### Where we are
 
+- **▶ 1985: TRAIN D (2026-11-21, branch train-1985-d, wave 20262132).** Five fix branches in one landing, on train C.
+  They carry the register catching up for 1985, under rulings D-A and D-C (PB5924, PB4995, PB4886, PB5596; eleven notes
+  narrowed), and extent and caption reading in `cite.py` (PB6014, PB6015). They add the `item <n>` citation designator
+  (PB5449; every 1985 item citation checks) and PB5829's new GR25 witness. The §1985:VI.6.18.5 Examples clause is now
+  units, with 0 prose holes left (PB6001). Format rows are witnessed only by accepted cases (PB5740), and WHEN-COMPILED has
+  a listing witness under ruling D-B (PB5926). The input-output statements are an edition fact (PB6032), which closed the
+  last row, 1985-GR-III.2-p139, and PB5453. `python scripts/spec/edition_status.py --edition 1985`:
+  `=== EDITION 1985: NOT COMPLETE — 5 code reads · 13 open work notes ===` (0 inventory GAP, 0 catalog prose holes).
 - **▶ 1985: TRAIN C (2026-11-21, branch train-1985-c, wave 20262131).** Twelve fix branches in one landing: the
   procedure-division area-A recovery (PB6018), the last 175 descriptors' 1985 rules and the run-time citations at 85
   (PB5993, PB6028-PB6030), one run-time answer to an argument breach at 85 (PB6019), the last rows of the 85w mint

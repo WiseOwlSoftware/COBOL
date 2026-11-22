@@ -25,7 +25,7 @@
       *> statement is unsuccessful, and the I O status for the write
       *> file connector is set to '34'." That sentence is new in 2014
       *> (kb/Work PB5125): this COBOL-85 test takes the invalid key
-      *> condition '24' for the same attempt (§1985:VIII.1.3.4 item (3) c),
+      *> condition '24' for the same attempt (§1985:VIII.1.3.4 GRL2.3c,
       *> §1985:VIII.1.3.5); pb5125_relative_write_key_range witnesses 34.
       *> GR15: "If the execution of a WRITE statement is unsuccessful,
       *> the write operation does not take place, the content of the

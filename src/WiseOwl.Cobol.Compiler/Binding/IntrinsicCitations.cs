@@ -36,6 +36,21 @@ internal static class IntrinsicCitations
     /// ("An arithmetic expression which will always result in an integer value must be specified").</summary>
     public static string IntegerType(EditionInfo edition) => edition.Cite("§1989:A.2.2 AR4", "§2023:15.3 AR6");
 
+    /// <summary>What <see cref="IntegerType"/> admits, as a message says it: from COBOL-2002 on "an integer data item or an
+    /// always-integral arithmetic expression" (§2023:15.3 AR6: "An arithmetic expression that will always result in an integer value
+    /// or an integer data item shall be specified"); at COBOL-85 the expression alone (§1989:A.2.2 AR4: "An arithmetic expression
+    /// which will always result in an integer value must be specified", which names no integer data item).</summary>
+    public static string IntegerTypeAdmits(EditionInfo edition) => edition.Cite(
+        "an arithmetic expression that always results in an integer value",
+        "an integer data item or an always-integral arithmetic expression");
+
+    /// <summary>Where a floating-point numeric data item is defined, as a message names it: §2023:14.6.8.3 from COBOL-2002 on
+    /// (the FLOAT-SHORT, FLOAT-LONG and FLOAT-EXTENDED usages); at COBOL-85 nowhere, because the USAGE clause's general format
+    /// (§1985:VI.5.14.2) has no floating-point usage, so COMP-1 and COMP-2 are this implementation's extension there.</summary>
+    public static string FloatingPointItem(EditionInfo edition) => edition.Cite(
+        "USAGE COMP-1 or COMP-2, an extension at COBOL-85, whose USAGE clause (§1985:VI.5.14.2) has no floating-point usage",
+        EditionInfo.Designated("§2023:14.6.8.3"));
+
     /// <summary>The rule that bars a numeric function from a position that needs an integer — §2023:8.4.3.2.3 SR11; at COBOL-85
     /// paragraph A.2.3 of the 1989 module ("A numeric function may not be referenced where an integer operand is required").</summary>
     public static string NumericFunctionAsInteger(EditionInfo edition) =>

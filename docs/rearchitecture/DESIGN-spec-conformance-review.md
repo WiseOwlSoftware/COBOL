@@ -468,13 +468,32 @@ they close nothing.
    a record moving only when its `rule-digest` matches (the renumbering rule of section 10.2 of this document), and the
    audit refuses a catalog whose moves are not applied.
 5. **Citation.** `cite.py --check` takes the designators `p<n>` (`§2023:8.4.2.1 p3`) and `Table <t> row <r>`
-   (`§2023:14.5.1 Table 12 row 2`); the existing `Table <t>` is the whole table. A prose clause's item number has no
-   designator yet: the tree writes `item <n>` both for it and for lists that are no unit (`§2023:5.4 item 2`, `§1985:VIII.1.3.4
-   item 1 b`, six such citations when PB5449 landed), so the form is added when those are re-pointed. A unit that is a
-   row has the catalog's extent (`rule_book`), as every rule has; a pending unit has none yet, so a quotation cited to
-   it is held to its clause. A quotation inside a unit that has no row yet
+   (`§2023:14.5.1 Table 12 row 2`); the existing `Table <t>` is the whole table. **A numbered list item no rule
+   designator names is cited `item <n>`** (`item L<m>.<n>` for an item of a clause's later list, its sub-item path glued
+   as a rule's: `item 3c`; `citation.ITEM_DESIGNATOR`, kb/Work PB5449 item 4), resolved against ONE reading of the items
+   a clause prints (`cite.RuleBook.printed_items`): its rows cited by number, then its item units with no row, and, in a
+   clause where neither exists, its printed top-level labels (`(n)` at 1985, `n)` in the ISO editions, a label that does
+   not continue the run opening the next list): an appendix's list (`§1985:C.2 item 48`), a printed page's
+   (`§1985:p.XVII-94 item 14`), 2023's Annex A.1 (`§2023:A.1 item 218`). An item the catalog holds as a numbered rule is
+   cited by that rule (`§1985:VI.6.4.4 SR2`, an item row `§1985:IV.4.2.2.1.1 GR9`), ONE spelling per printed thing:
+   `item <n>` there is refused `item-is-a-rule`, naming the rule, and `audit_code_citations.py --canonicalize` rewrites it
+   when one list alone prints the item (`cite.item_designator`; `§1985:III.2` prints an item 3 in several lists, so its
+   Text Word's is cited `GRL4.3` by hand); an item no list prints is `no-item`; a loose spelling (`item (3) c)`, `items 9
+   and 10`) is `designator-not-canonical`. **The extent of
+   a row is read from the units the catalog's own mint segments** (`extract_rule_catalog.units_by_locator`, read by
+   `cite.rule_book`; kb/Work PB6014): a row minted from a unit holds exactly its unit's lines (`text_units.Unit.lines`),
+   and a numbered rule holds the lines from its number to the next row's less every line a unit of the clause holds. An
+   extent that ran on to the next row's anchor swallowed every later unit with no row, so `§1985:IV.4.2.2.1.3` "There
+   are three types of reserved words", unit p3 (`not-a-rule`), answered "it lies in p1". A quotation cited to a unit
+   with no row (pending, `restates` or `not-a-rule`) is held to that unit's own lines, and a refusal names the row or
+   the unit that holds the text; a clause citation of text in such a unit answers "it lies in p3" when the clause has
+   no pending unit. In a clause with a pending unit a quotation in no row's text
    answers `OK §<clause> (unnumbered prose, pending)` and never names the rule above it: that is kb/Work PB222's
-   repair. A glued paragraph stays inside its rule's extent until the 2023 mint carves it (point 7), so the "it lies in
+   repair. A numbered prose item with no row is named by its `item <n>` designator (above), and a quotation of it in a
+   clause citation answers "it lies in item <n>". **`Table <t>` is held to the printed caption** (kb/Work PB6015): the caption is the
+   line the segmentation reads as one (`text_units.caption_number`: a short title, a level-2 box `║` stripped, never
+   a sentence that names the table), and it captions the table right above it when that table has no caption of its
+   own (the 1985 style), else the table right below it; "Table 2 shown below points to ..." is no part of Table 2. A glued paragraph stays inside its rule's extent until the 2023 mint carves it (point 7), so the "it lies in
    GR13" and "it lies in SR2" answers disappear in that landing, together with the stored citations that rely on them.
 6. **Every held edition, one mechanism.** 2002 runs the ISO extractor unchanged; 1985's reader
    (`rule_catalog_1985.py`) takes the same segmentation, dispositions and level data (a 1985 unit also carries its
@@ -591,8 +610,8 @@ unit numbered after its clause's lead-ins, while it stays in its rule's text, an
 after a rule the data does not hold; the 1985 pending units went from 911 to 956, every `rules` array byte-identical.
 NOT YET BUILT, each a later landing of PB5449: 2023's reader of the paragraphs after a rule and its data (the mechanism
 takes it as a reader, not a parameter: `READERS`), a decided level-0 paragraph leaving its rule's text and the 1985
-rows minted from decided units (PB5452's mint), a prose clause's `item <n>` designator (point 5), a 1985 unit's `box`,
-and a 2002 unit's `candidate` (point 6).
+rows minted from decided units (PB5452's mint), a prose clause's `item <n>` designator (point 5; built 2026-11-21,
+kb/Work PB5449 item 4), a 1985 unit's `box`, and a 2002 unit's `candidate` (point 6).
 
 **Step 1, corrected (kb/Work PB5998, found by PB5452's pilot).** Three defects of the first two landings, fixed in the
 one segmentation and the one class test: a numbered item started only after a blank line, so the 1985 lists printed
@@ -628,8 +647,8 @@ unit disposed a row kind is a row (`rule_catalog_1985.mint`) placed among its cl
 anchors a clause's rows in that order), with `shape`, `box` read on its printed lines, `level`, `definitional` and, on
 every row of a list a colon unit leads, numbered rules included, the `lead` of point 1. A paragraph or table row is cited
 by its unit designator and never by the rule number its `ordinal` shares (`cite.cited_by_number`); an ITEM's row is cited
-by the numbered rule's designator its id already is (`§1985:IV.4.2.2.1.1 GR1`), since `item <n>` cannot become a
-designator while the tree writes it for lists that are no unit. A paragraph headed "Examples" and a format band on a line
+by the numbered rule's designator its id already is (`§1985:IV.4.2.2.1.1 GR1`); `item <n>` names only an item no row
+holds (point 5). A paragraph headed "Examples" and a format band on a line
 of its own are no unit (point 1's "an example and a general format are never units"). The 1985 pointer grammar reads the
 text's own phrasings (`text_units.POINTER`: "is located on page", "the glossary beginning on page", a footnote's marker
 and purpose, "See paragraph <n>, <title>, page <folio>", "explained elsewhere in these specifications"). A `not-rules`
@@ -1386,8 +1405,8 @@ kb/Work PB5256), its change records do not yet.
 - **The catalog's prose holes** (`scripts/spec/catalog_prose_holes.py`, kb/Work PB5924's measure, PB6001's wiring;
   the fourth term of `edition_status.py`). The unit is a PRINTED paragraph of the normative region (Sections IV, VI to
   XVI and Section A) as `rule_catalog_1985.parse` walks it, its line recorded; tables in either markup, captions and
-  labels (`RULE_LABEL`), a page's repeated section title, headings, `<pre>` blocks and fragments are no prose, as the
-  segmentation reads them. A printed paragraph is COVERED when a row at or under its locator holds every sentence;
+  labels (`RULE_LABEL`), a page's repeated section title, headings, displays (`<pre>` blocks and ``` fences, read by the
+  one `text_units.display_mask` the 1985 unit spans read too) and fragments are no prose, as the segmentation reads them. A printed paragraph is COVERED when a row at or under its locator holds every sentence;
   or when the unit whose text holds its line (`Unit.lines`) is disposed `restates` or `not-a-rule` on an UPHELD refuter
   record of the unit's key (`text_units.record_refusal`); or when no unit holds it and its clause's `not-rules` block
   stands on its record at the digest the text has now (`text_units.block_refusal`: the block's held list). It reads the
@@ -1398,7 +1417,11 @@ kb/Work PB5256), its change records do not yet.
   17 after (3,862 printed paragraphs covered by a row, 235 by a `restates`, 52 by a `not-a-rule`, 22 by a `not-rules`
   block; 31 are no prose: 21 lines of the two HTML tables, 5 captions, 5 section titles); the 17 are the pending
   §1985:IV.4.2.2.1.3 p3 and the 16 printed paragraphs of §1985:VI.6.18.5, a paragraph headed "Examples" that the
-  segmentation keeps out of the units (`EXAMPLES_TITLE`) with no refuter record, so nothing establishes its cover.
+  segmentation then kept out of the units with no refuter record. Wave 20262132 group a removed that exclusion: an
+  Examples paragraph is text like any other (its preamble, its five labels, its prose and its result-table rows are 19
+  units, disposed on their own records); and 14 of the 16 were lines of fenced code the measure read as prose although
+  the segmentation makes no unit of code (the measure had read `<pre>` but not a fence as a display: 38 fenced lines of
+  the region, 24 of them counted covered by a row). 16 became 2, both pending units of VI.6.18.5 (p1, p7), and 0 when the 19 units were disposed on their refuter records (slices 85e-01 to 85e-04: three rows, p1, p7 and T4.1; 5 lead-ins; 11 `restates`).
 - **The scan's own defects.** The scan prints folios X-11 and X-12 twice (PDF pages 527-528); the transcription keeps
   both copies under `citation.SCAN_REPEAT_85`'s comment, and the catalog reads no rule from the repeat.
 - **The scan's missing pages come from another scan** (kb/Work PB4952, PB5789). Our scan lacks printed pages XIII-30,
@@ -2036,8 +2059,10 @@ edition's, and a key of no such family (`pointer-1985`, `clause-2023`) is contex
    refuses it there unless every rule it cites has the edition in its band) runs a program whose output the gate
    compares, and witnesses any rule. A DIAGNOSIS at the edition (a flagged case's `at`, a refusal test's
    `wiseowl/diagnostics/` `refuse-at`) shows only that a program is refused: it witnesses a rule only when the catalog's
-   `kind` of the older rule is one the evidence table (`scripts/spec/data/lineage-evidence-kinds.json`, data: SR and FMT,
-   checked against the catalog's kinds) names as diagnosed, or when the target's verdict is DOCUMENTED-NON-SUPPORT (the
+   `kind` of the older rule is one the evidence table (`scripts/spec/data/lineage-evidence-kinds.json`, data: SR alone,
+   checked against the catalog's kinds) names as diagnosed (a general format, kind FMT, is NOT one: it GRANTS forms, and a
+   refusal of a malformed one shows no granted form compiles at the edition, so an FMT row needs a case ACCEPTED there
+   unless its facility is declined; kb/Work PB5740), or when the target's verdict is DOCUMENTED-NON-SUPPORT (the
    facility is declined) and the read states its `licence-<year>` (`licence-2002` at 2002), the older text's citation that permits declining it:
    the value must OPEN with a citation of the row's own edition, and every citation in it must parse (`citation.py`,
    the one parser), be of that edition and name a unit of its text (`cite.resolve`, the one checker; review R2-2,
@@ -2047,7 +2072,7 @@ edition's, and a key of no such family (`pointer-1985`, `clause-2023`) is contex
    `needs-accepting-case`, review R2-3) needs an ACCEPTED case too: no refusal of a forbidden form shows a permitted one
    accepted. This is a TEXT HEURISTIC THAT FAILS CLOSED: a match sends the rule to an accepted case, so a prohibition
    worded with one of the words (other than "may not") is over-refused, never over-kept; it misses a grant no sentence of
-   the rule states (a form only its general format shows). A rule of ANY kind whose text WITHHOLDS a property from a
+   the rule states, which is why a general format, whose grants are all in its diagram, is no diagnosed kind. A rule of ANY kind whose text WITHHOLDS a property from a
    clause or phrase (the table's `withholding-rules`: "<clause> does not imply", kb/Work PB5783) is diagnosable too,
    when no `needs-accepting-case` pattern matches it (those win): no accepted program can tell the property was
    withheld (§1985:X.4.5.4 GR3, EXTERNAL does not imply GLOBAL, where a contained program's own declaration wins either
@@ -2302,7 +2327,8 @@ and proves 75 of 100 candidate cases at 2002 (24 accepted cases FAIL there and o
 witness 93, no register entry of its own 83, no 2002 licence 3, no code location 1; a row counted under each reason),
 with 25 recorded already; `record_verdicts.py --edition 2002` takes the 2002 GAP from 2,169 to 1,771. After review
 round 1 and the PB5675 merge (main e870f98665): the 11 CONFORMS general-format records whose every 2002 witness is a
-refusal are dropped (kb/Work PB5740: the evidence table counts FMT as a diagnosed kind, though a format grants forms),
+refusal are dropped (kb/Work PB5740: the evidence table then counted FMT as a diagnosed kind, though a format grants forms; it no
+longer does),
 7 rows take main's golden-lane records, 62 test-refs are rewritten to what `Witnesses.search` finds (accepted cases
 only, where any exist); the decisions are unchanged (571 own-verdict rows: 423 recorded, 148 refused for the same
 reasons), and the branch lands 380 own verdicts (CONFORMS 317, DOCUMENTED-NON-SUPPORT 63): 2002 GAP 2,074 to 1,694. `change-batch` on

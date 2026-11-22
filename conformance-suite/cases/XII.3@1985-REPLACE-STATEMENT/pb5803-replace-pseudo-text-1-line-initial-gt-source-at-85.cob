@@ -8,7 +8,7 @@
       *> kb/Work PB5803. §1985:XII.3.3 SR3: "Pseudo-text-1 must contain one or
       *> more text words" (cite.py --check: OK). COBOL-85 has no compiler
       *> directive lines, so the line ">>SOURCE X" that pseudo-text-1 holds
-      *> below is the text words ">>SOURCE" and "X" (§1985:III.2 item 3,
+      *> below is the text words ">>SOURCE" and "X" (§1985:III.2 GRL4.3,
       *> cite.py --check: OK), and the REPLACE statement is legal. It
       *> matches nothing, so the program DISPLAYs "[OK  ]". The leg can
       *> fail: the edition-blind logical conversion discarded the >>SOURCE

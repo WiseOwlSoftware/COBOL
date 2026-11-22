@@ -10,12 +10,12 @@
  "next": 2023,
  "bridge": true,
  "counts": {
-  "rules": 3106,
+  "rules": 3109,
   "paired": 0,
   "exact": 0,
   "normalized": 0,
   "ambiguous": 0,
-  "unpaired": 3106
+  "unpaired": 3109
  },
  "pairs": [],
  "unpaired": [
@@ -1076,6 +1076,9 @@
   "1985-GR-VI.6.18.4-17",
   "1985-GR-VI.6.18.4-18",
   "1985-GR-VI.6.18.4-19",
+  "1985-GR-VI.6.18.5-p1",
+  "1985-GR-VI.6.18.5-T4.1",
+  "1985-GR-VI.6.18.5-p7",
   "1985-FMT-VI.6.19.2",
   "1985-SR-VI.6.19.3-1",
   "1985-SR-VI.6.19.3-2",

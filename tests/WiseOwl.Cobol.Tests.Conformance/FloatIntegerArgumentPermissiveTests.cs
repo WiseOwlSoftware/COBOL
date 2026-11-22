@@ -100,6 +100,22 @@ public sealed class FloatIntegerArgumentPermissiveTests
         EditionHarness.AssertHasDiagnostic(errors, "floating-point numeric data item");
     }
 
+    /// <summary>The refusal cites the text of the edition the program is compiled at (kb/Work PB4950): at COBOL-85 the 1989
+    /// module's integer type, §1989:A.2.2 AR4, which admits only "An arithmetic expression which will always result in an
+    /// integer value", and no floating-point item of the standard's own, for the 1985 USAGE clause (§1985:VI.5.14.2) has no
+    /// floating-point usage; from COBOL-2002 on §2023:15.3 AR6 and §2023:14.6.8.3. The code read of 1989-AR-A.2.6.3-3 found the
+    /// COBOL-85 message naming ISO §2023:14.6.8.3.</summary>
+    [Theory]
+    [InlineData(85, "(USAGE COMP-1 or COMP-2, an extension at COBOL-85, whose USAGE clause (§1985:VI.5.14.2) has no floating-point usage), which §1989:A.2.2 AR4 does not admit — it requires an arithmetic expression that always results in an integer value,")]
+    [InlineData(2023, "(ISO §2023:14.6.8.3), which ISO §2023:15.3 AR6 does not admit — it requires an integer data item or an always-integral arithmetic expression,")]
+    public void FloatAtAnIntegerPosition_CitesItsEditionsText(int edition, string expected)
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(Pb2ModProgram, edition);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, expected);
+        Assert.DoesNotContain(errors, e => edition < 2002 && e.Contains("ISO §", StringComparison.Ordinal));
+    }
+
     /// <summary>
     /// <c>--permissive</c> WARNS and computes, and the computed values are the FIXED-POINT ones. This is PB21's
     /// original assertion, unchanged: every value below is what the same call with an integer operand yields, so

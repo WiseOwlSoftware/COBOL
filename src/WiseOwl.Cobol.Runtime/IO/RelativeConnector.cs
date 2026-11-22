@@ -345,7 +345,7 @@ public sealed class RelativeConnector : KeyedConnector
             if (slot is < 1 or > HighestRelativeRecordNumber)
                 // '34' §2023:14.9.51.4 GR29 b) (from 2014, §2014:14.9.47.3 GR26 b); below 2014 the attempt is a write beyond
                 // the externally defined boundaries of the file, the invalid key condition '24' (§2002:14.8.47.3 GR29 b),
-                // §1985:VIII.1.3.4 item (3) c) — kb/Work PB5125
+                // §1985:VIII.1.3.4 GRL2.3c — kb/Work PB5125
                 return Status = DialectBehaviors.IsActive(DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError, Edition)
                     ? FileStatusCode.PermanentBoundary : FileStatusCode.BoundaryViolation;
             if (_st.Get(slot, out var present) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;

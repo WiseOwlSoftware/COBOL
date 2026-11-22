@@ -1660,6 +1660,25 @@ def units_1985(lines: list[str], root: pathlib.Path = REPO):
     return cat, rule_catalog_1985.units(lines, cat.rules, cat.declared, margin), after, margin
 
 
+def units_by_locator(edition: int, lines: list[str], rows: list[dict], root: pathlib.Path = REPO) -> dict[str, list]:
+    """THE UNITS OF UNNUMBERED TEXT of `edition`, by bare locator, as its catalog's mint reads them: 1985 (and Amendment
+    1's `§1989:` clauses) through `units_1985`, an ISO edition through `iso_units` over `rows`, the committed catalog's
+    rows (its numbered rule rows are the ones the extraction segments around: no unit row, no general format). A
+    citation's extent is read from them (cite.rule_book, kb/Work PB6014): a row minted from a unit holds exactly its
+    unit's lines, and no row holds a line another unit holds."""
+    source = citation.SOURCE_EDITION.get(edition, edition)
+    if source == 1985:
+        out: dict[str, list] = {}
+        for key, units in units_1985(lines, root)[1].items():
+            cited = citation.parse(key)
+            if cited.edition == edition:
+                out[cited.locator] = units
+        return out
+    ed = ISO[source]
+    declared, _blocks = manifest_of(ed)
+    return iso_units(ed, lines, [r for r in rows if "shape" not in r and r["kind"] != "FMT"], declared)
+
+
 def main_1985(args: argparse.Namespace) -> int:
     """The 1985 arm (kb/Work PB4886; DESIGN-spec-conformance-review.md §10): the 1985 document's own structure, read by
     rule_catalog_1985.py. `--check` prints the counts and the findings and writes nothing; otherwise the catalog is

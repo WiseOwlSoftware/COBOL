@@ -1633,13 +1633,15 @@ internal static partial class IntrinsicArgumentRules
         // anyway (class index, §2023:13.18.60 — the 'i' class screen rejects it first), and the primitive excludes it.
         pic is not { Category: PicCategory.Numeric, Usage: not Usage.Index } || pic.IsIntegerDescription ? null
         : pic.IsFloat
-            ? $"is a floating-point numeric data item (ISO §2023:14.6.8.3), which {EditionInfo.Designated(IntrinsicCitations.IntegerType(edition))} does not admit — "
-              + "it requires an integer data item or an always-integral arithmetic expression, and a "
+            // Each edition's own text: where the item is defined (none at COBOL-85, IntrinsicCitations.FloatingPointItem) and
+            // what the integer type admits (no integer data item at COBOL-85, IntrinsicCitations.IntegerTypeAdmits).
+            ? $"is a floating-point numeric data item ({IntrinsicCitations.FloatingPointItem(edition)}), which {EditionInfo.Designated(IntrinsicCitations.IntegerType(edition))} does not admit — "
+              + $"it requires {IntrinsicCitations.IntegerTypeAdmits(edition)}, and a "
               + "floating-point item's declared value set contains non-integers whatever this reference holds"
             // §2023:15.3 type 6 — "an integer data item". A numeric item with digits to the right of the decimal
             // point is not one, and as an arithmetic expression it does not always result in an integer either.
             : $"is a numeric data item with digits to the right of the decimal point, which {EditionInfo.Designated(IntrinsicCitations.IntegerType(edition))} does "
-              + "not admit — it requires an integer data item or an always-integral arithmetic expression";
+              + $"not admit — it requires {IntrinsicCitations.IntegerTypeAdmits(edition)}";
 
     /// <summary>Does this item's DESCRIPTION admit a non-integral value? The boolean face of
     /// <see cref="NonIntegralItemReason"/>, for the expression walks that need the predicate without the prose.</summary>
@@ -1680,8 +1682,8 @@ internal static partial class IntrinsicArgumentRules
         // always results in an integer value. "1.0" and "1.0E2" are left alone — their VALUES are integral and
         // type 6's expression alternative admits them.
         BoundNumericLiteral lit when HasNonIntegralValue(lit.Text) =>
-            $"is the numeric literal {lit.Text}, whose value is not an integer — {EditionInfo.Designated(IntrinsicCitations.IntegerType(edition))} requires an "
-            + "integer data item, an integer literal, or an always-integral arithmetic expression",
+            $"is the numeric literal {lit.Text}, whose value is not an integer — {EditionInfo.Designated(IntrinsicCitations.IntegerType(edition))} requires "
+            + IntrinsicCitations.IntegerTypeAdmits(edition),
         // §2023:15.3 AR6's EXPRESSION alternative (kb/Work PB5889): refused only when ClassifyTypeSix REFUTES it, naming a value of the
         // operands at which it is not an integer; a proven one is accepted, and an undecided one is accepted and checked at run time
         // (NeedsRunTimeIntegerCheck). Its doc states what each outcome covers.

@@ -1614,9 +1614,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // ⚙ Twelve more, added deliberately (kb/Work PB5822, signature `claude: 2026-11-16`): the first derivations on
             // chained rows, each argued one standing on the UPHELD record of an independent cobol-refuter pass,
             // tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl (§8 DRV-1985-… and DRV-1989-RV-…).
+            // Eleven remain: 1989-RV-A.2.46.3-3 left the list when the listing populated its antecedent and the
+            // row took its own witness (kb/Work PB5926, ruling D-B).
             "1985-GR-VI.6.17.4-7", "1985-GR-XI.4.4.4-4", "1985-GR-VI.6.25.4-12", "1985-GR-VI.6.27.4-21",
             "1985-GR-VI.6.10.4-10", "1989-RV-A.2.11.3-2", "1989-RV-A.2.11.3-3", "1989-RV-A.2.22.4-3",
-            "1989-RV-A.2.46.3-3", "1985-GR-XI.4.1.4-10", "1985-GR-XIII.3.21.4-1", "1989-RV-A.2.19.4-3",
+            "1985-GR-XI.4.1.4-10", "1985-GR-XIII.3.21.4-1", "1989-RV-A.2.19.4-3",
             // ⚙ Five more, added deliberately (kb/Work PB5822 and PB5831, signature `claude: 2026-11-16`): two on
             // `unpopulatable-antecedent` over one physical extent, one on D-MEDIUM-85, and two on the sixth arm
             // `unfalsifiable-under-determination` (DOC-A.1-197), each on the UPHELD record of the second and third refuter passes,
@@ -1681,6 +1683,16 @@ public sealed class SpecTraceabilityInventoryDriftTests
             "1985-GR-III.2-p87", "1985-GR-III.2-p88", "1985-GR-III.2-p89", "1985-GR-III.2-p113", "1985-GR-III.2-p166",
             "1985-GR-III.2-p169", "1985-GR-III.2-p178", "1985-GR-III.2-p197", "1985-GR-III.2-p218", "1985-GR-III.2-p248",
             "1985-GR-B.2.1-p1", "1985-GR-B.2.1-p2", "1985-GR-B.2.1-p3",
+            // ⚙ One more, added deliberately (kb/Work PB6032, decision PB6003, signature `claude: 2026-11-21`): Input-Output
+            // Statement, the definitional derivation of read g-03 on its UPHELD refuter record, located at the edition's own
+            // set (InputOutputStatementSet) once PB6032 made the 1985 fifteen a fact of the edition.
+            "1985-GR-III.2-p139",
+            // ⚙ One more, added deliberately (kb/Work PB6001 and PB6012, the `informative` arm, signature `claude: 2026-11-21`):
+            // §1985:VI.6.18.5 p1, the preamble of the INSPECT examples, read in e-01 (tests/version-matrix/lineage-reads-1985/e-01.json)
+            // after its refuter OVERTURNED the definitional proposal (derivation-refutations/w20262132a-1985-p1-definitional.jsonl),
+            // written by `audit_batch.py derivation-batch` on the UPHELD record of
+            // tests/version-matrix/derivation-refutations/lineage-reads-1985-e-01.jsonl.
+            "1985-GR-VI.6.18.5-p1",
         ];
 
         var s = LoadSchema();

@@ -1,0 +1,69 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice e-01 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "e-01",
+ "edition": 1985,
+ "asked": null,
+ "read": {
+  "slice": "e-01",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-VI.6.18.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the examples' counters are zero before each example",
+     "each result but the last is that of the two statements shown"
+    ],
+    "evidence-1985": {
+     "the examples' counters are zero before each example": "not shown: no program can show a statement about the standard's own examples",
+     "each result but the last is that of the two statements shown": "not shown: no program can show a statement about the standard's own examples"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.18.5 p1",
+      "quote": "COUNT-n is assumed to be zero immediately prior to execution of the statement",
+      "check": "OK  §1985:VI.6.18.5 p1  (6.18.5 Examples)  the text is in p1"
+     },
+     {
+      "cite": "§1985:VI.6.18.4 GR11",
+      "quote": "is not initialized by the execution of the INSPECT statement",
+      "check": "OK  §1985:VI.6.18.4 GR11  (6.18.4 General Rules)  the text is in GR11"
+     }
+    ],
+    "reason": "S1 ('In each of the following examples of the INSPECT statement, COUNT-n is assumed to be zero immediately prior to execution of the statement') sets a premise of the standard's own examples; the behaviour behind it, that INSPECT does not initialize identifier-2, is 1985-GR-VI.6.18.4-11 ('is not initialized by the execution of the INSPECT statement'). S2 ('The results shown for each example, except the last, are the result of executing the two successive INSPECT statements shown above them') says where the table values come from; the tallying and replacement behind them are rows -12, -15 and -17, and each result row restates those rules (85e-01 to 85e-04). No sentence says anything of a user's program or obliges a compiler.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own examples, not a program or an obligation on the implementation",
+    "class": "definitional",
+    "needs": "a signed derivation (the informative arm)",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's examples and how their result tables are read: \"COUNT-n is assumed to be zero immediately prior to execution of the statement\"",
+     "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Tally"
+    },
+    "licence-1985": null
+   }
+  ],
+  "leads": []
+ },
+ "refute": null,
+ "derivation-refute": {
+  "slice": "e-01",
+  "cases": [
+   {
+    "rule-id": "1985-GR-VI.6.18.5-p1",
+    "arm": "informative",
+    "names": "describes the standard's examples and how their result tables are read: \"COUNT-n is assumed to be zero immediately prior to execution of the statement\"",
+    "verdict": "UPHELD",
+    "attempt": "Read both sentences of p1 (catalog text and specs/ANSI_COBOL_1985.md line 13722 agree) and looked for a violating compiler or program. S1 ('In each of the following examples ... COUNT-n is assumed to be zero immediately prior to execution'): (a) a compiler that zeroes identifier-2 before TALLYING produces the same table values, because the examples assume zero, so S1 cannot catch it; that compiler violates §1985:VI.6.18.4 GR11 ('is not initialized by the execution of the INSPECT statement', cite.py OK), which has its own row 1985-GR-VI.6.18.4-11. (b) A program whose counters are nonzero before INSPECT does not violate S1: its scope is 'each of the following examples', not user programs. S2 ('The results shown for each example, except the last, are the result of executing the two successive INSPECT statements shown above them'): a compiler giving COUNT-0 = 2 for EFABDBCGABEFGG in Example 1 makes the tables wrong for it, but the requirement it breaks is GR12 (tallying, row -12), GR15 (replacement, row -15) and GR17 (the two-successive-statements reading of format 3, row -17), each cite.py OK. S2 only says where the table values come from; it restates rules that already have rows, as the bounds paragraph allows. Tried 'except the last' as a hidden requirement: it only notes that the last example (rows -T4.1, -p7) is read differently and binds no implementation. Quotation check (worktree cite.py): OK §1985:VI.6.18.5 p1, the text is in p1. Names shape: 'describes the standard's <what>: \"<quotation>\"', <what> = 'examples and how their result tables are read' (over ten characters), quotation 14 words.",
+    "reason": "No compiler behaviour, defective or not, and no program makes either sentence false. S1 sets a premise for the standard's own examples. S2 explains how to read their result tables, and the behaviour behind them is required by rows 1985-GR-VI.6.18.4-11, -12, -15 and -17. Both sentences inform the reader, so the informative arm fits. The catalog row's 'definitional': true flag should not carry this row: p1 defines no property of a user's program (DESIGN-spec-conformance-review.md section 1.1, line 130). Caveat: main's cite.py has no unit p1 yet (the derivation record says FAIL no-unit), so the quotation check passes only on the train85d-examples catalog."
+   }
+  ]
+ },
+ "imported": {
+  "derivation-refute": "3dfef7f4c7e28f4fa324bf20a5ca6cd80a0b279ab6b2535d856d5f0c7c4397f4",
+  "read": "3852ec88be43cad18321312c3fe1fbd959300d5537bd82f04ac5443ed0ff0fbc"
+ }
+}

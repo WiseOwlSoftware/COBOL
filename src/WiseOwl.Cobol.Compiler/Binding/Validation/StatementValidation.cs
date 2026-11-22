@@ -130,7 +130,7 @@ internal readonly record struct CorrespondingOperandRule(
 }
 
 /// <summary>Which of an arithmetic statement's items the COBOL-85 composite of operands superimposes
-/// (§1985:VI.6.4.4 item 2: "the superimposition of specified operands in a statement"; each statement names its
+/// (§1985:VI.6.4.4 SR2: "the superimposition of specified operands in a statement"; each statement names its
 /// own). ADD and SUBTRACT use every operand (§1985:VI.6.6.3 SR3 a, §1985:VI.6.26.3 SR3 a; format 2 less the items
 /// after GIVING, which the caller leaves out of the receivers), MULTIPLY and DIVIDE the RECEIVING items only
 /// (§1985:VI.6.20.3 SR3; DIVIDE except the REMAINDER item, §1985:VI.6.11.3 SR3). From COBOL-2002 on the compiler counts
@@ -1393,7 +1393,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>The per-edition COMPOSITE-OF-OPERANDS check (ISO §2023:14.7.7 rule 2, NATIVE arithmetic, the four
     /// arithmetic statements ONLY — COMPUTE expressions are explicitly exempt, §2023:8.8.1.2 r7): the hypothetical item
     /// superimposing the statement's fixed-point operands aligned on their decimal points shall not exceed the
-    /// edition's digit cap (18 at COBOL-85, §1985:VI.6.4.4 item 2; 31 from 2002). Float/binary-native operands are excluded
+    /// edition's digit cap (18 at COBOL-85, §1985:VI.6.4.4 SR2; 31 from 2002). Float/binary-native operands are excluded
     /// (rule 2b — the composite is then over the remaining operands).</summary>
     public bool CheckComposite(string verb, IEnumerable<BoundExpr> operands, IEnumerable<Receiver> receivers,
         CompositeMembers members = CompositeMembers.AllOperands)
@@ -1454,7 +1454,7 @@ internal sealed class StatementValidation(DataBinder data)
             }
 
         // The cap is the edition's digit capacity: 31 from COBOL-2002 (§2023:14.7.7 rule 2 a)) and 18 at COBOL-85
-        // (§1985:VI.6.4.4 item 2: "must not contain more than 18 decimal digits"). The earlier "31 at every edition"
+        // (§1985:VI.6.4.4 SR2: "must not contain more than 18 decimal digits"). The earlier "31 at every edition"
         // rested on CCVS-85 NC101A (MULTIPLY 9(3)V9(3) BY 9(18)), but at 85 that composite is its one receiver, 18
         // digits (§1985:VI.6.20.3 SR3), so the program conforms to the 18-digit cap (kb/Work PB5075).
         int composite = maxInt + maxFrac;
@@ -1463,7 +1463,7 @@ internal sealed class StatementValidation(DataBinder data)
         data.Edition.Error(DiagnosticCatalog.ArithmeticCompositeTooWide,
             $"{verb}: the composite of operands spans {composite} digits ({maxInt} integer + {maxFrac} fraction); "
             + data.Edition.Edition.Cite(
-                "ISO/IEC 1989:1985 caps the composite of operands at 18 digits (§1985:VI.6.4.4 item 2)",
+                "ISO/IEC 1989:1985 caps the composite of operands at 18 digits (§1985:VI.6.4.4 SR2)",
                 "ISO/IEC 1989 caps the composite of operands at 31 digits (§2023:14.7.7 rule 2 a))"));
         return false;
     }
@@ -1578,9 +1578,10 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>⛔ THE ONE §2023:13.4.6.3 SR4 SCREEN, ASKED OF EVERY INPUT-OUTPUT STATEMENT'S OWN OPERANDS (kb/Work
     /// PB1291) — <i>"A record description entry associated with file-name-1 shall not be specified in an
     /// input-output statement other than following the word FROM or the word INTO."</i> The input-output statements
-    /// are the eight statements §2023:9.1.13.1 names as those whose execution sets the I-O status — CLOSE, DELETE, OPEN, READ,
-    /// REWRITE, START, UNLOCK and WRITE — and the statement binder calls this for each of them from its ONE
-    /// funnel, so a new operand position in any of them is screened by construction.
+    /// are the edition's own set (<see cref="InputOutputStatementForms"/>, kb/Work PB6032): from 2002 the eight statements
+    /// §2023:9.1.13.1 names as those whose execution sets the I-O status — CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK
+    /// and WRITE — and the statement binder calls this for every statement from its ONE funnel, so a new operand position in
+    /// any of them is screened by construction.
     /// <para>It used to be asked only at the WRITE / REWRITE record-name slot (<see cref="ScreenSortMergeFile"/> on
     /// the record's file), so an SD record anywhere else — <c>WRITE IN-REC AFTER ADVANCING SRT-N LINES</c>, a
     /// <c>START … KEY</c>, a RETRY count, a subscript — compiled clean and read a sort record area outside any
@@ -1595,10 +1596,11 @@ internal sealed class StatementValidation(DataBinder data)
     /// naming an SD record's items as an operand of ANOTHER file's statement (<c>WRITE OF-REC AFTER ADVANCING SW-N
     /// LINES</c> needs only an integer item, §1985:VII.4.7.3 SR4). So below 2002 this screen asks nothing, and from
     /// 2002 the message cites the edition's own rule (<see cref="SortMergeRecordRuleCite"/>).</para></summary>
-    public void ScreenSortMergeRecordReferences(Antlr4.Runtime.ParserRuleContext statement, string verb,
-                                                ReferenceResolver refs)
+    public void ScreenSortMergeRecordReferences(Core.StatementContext s, ReferenceResolver refs)
     {
         if (data.Edition.DialectLevel < 2002) return;
+        if (InputOutputStatementForms.Of(s, data.Edition.Edition) is not { } statement) return;
+        string verb = statement.Start.Text.ToUpperInvariant();
         Walk(statement);
 
         void Walk(IParseTree node)
