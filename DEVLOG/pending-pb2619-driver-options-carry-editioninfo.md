@@ -25,6 +25,9 @@ key now renders an edition as its year and its permissive flag, and `EveryOption
 parts on its own, so dropping either from the key fails that test. Design docs updated: VERSION_TEST_MATRIX_DESIGN (decision #2's default
 now lives in the CLI), VALIDATION_DESIGN, INTRINSICS_DESIGN and DESIGN-external-repository.
 
+**Gate.** Run 000002-20261122T175921Z at a804dddc0f: `=== BUILD-LOCAL GATE: GREEN — Conformance 29,080/29,080 ran · Unit
+up to date (run 000001-20261122T175058Z, 42,684 cases) · RepoDrift 230/230 ran · Characterization up to date (37 cases)`.
+
 **Neutral.** `cobol --std 2023 --run` on a DISPLAY program prints `HELLO`, exit 0. The 85 refusal of a sentence before
 the first paragraph is unchanged (COBOL0900). The focused unit classes (CompileStateDriftTests, OptionsSectionDriftTests,
 CliParserTests, CompilerDriverTests, ExternalRepositoryExpansionTests, ReferenceOccurrenceDriftTests) pass: 525 of 525.
