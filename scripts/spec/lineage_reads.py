@@ -1844,6 +1844,16 @@ def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slic
     return list(dict.fromkeys(errs))
 
 
+def unknown_rule_errors(year: int, rules: set[str], slices: Iterable[Slice]) -> list[str]:
+    """Why a read record of `year` reads a rule the edition's catalog `rules` does not hold, AFTER `load` has followed
+    every recorded move (`follow_moves`): a row relabelled with no recorded move (kb/Work PB6022), or a read of a row the
+    catalog dropped. The one test of it, run by the gate's audit (`check`) and by `audit_batch.py import-reads` before it
+    writes anything; before PB6022 only the import ran it, after writing, so `--check` stayed GREEN over orphaned reads."""
+    return [f"{s.name}: {rid}: no rule of the {year} catalog and no recorded move maps it "
+            f"(record the relabel with record_verdicts.py, kb/Work PB6020)"
+            for s in slices for rid in sorted(s.reads) if rid not in rules]
+
+
 def refutation_errors(year: int, slices: Iterable[Slice], repo: pathlib.Path = REPO) -> list[str]:
     """Why a derivation refuter record file generated from the read records (`REFUTATIONS`) no longer is what its slice's
     tracked record gives (`refutation_lines`): edited by hand, or left behind by a slice that no longer has one. A file
@@ -1883,7 +1893,8 @@ def check(years: list[int]) -> int:
         owned = own_reads(ed, slices, lin)
         own = [r for r in rows if not (r.get("next") or {}).get("kind") and r.get("verdict")
                and (r["rule-id"] in owned or OWN_SOURCE.match(r.get("notes") or ""))]
-        errs = stored_errors(ed, rows, slices, Witnesses.of(ed.next_held, suite), lin, schema) \
+        errs = unknown_rule_errors(y, {r["id"] for r in ed.rules()}, slices) \
+            + stored_errors(ed, rows, slices, Witnesses.of(ed.next_held, suite), lin, schema) \
             + refutation_errors(y, slices)
         print(f"{y}: {len(slices)} read record(s), {sum(len(s.reads) for s in slices)} rule(s) read, each record's "
               f"digests verified; {len(from_reads)} stored record(s) from reads; {len(kept)} KEPT record(s), "
