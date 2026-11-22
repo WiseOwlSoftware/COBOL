@@ -164,7 +164,8 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// UNRESTRICTED pointer was stored into a RESTRICTED one and a based item rebased through it read another
     /// type's storage — exactly what §2023:13.18.60.4 GR23's last sentence ("A restricted data-pointer shall contain
     /// only the predefined address NULL or the address of a data item of the specified type") forbids. Both
-    /// routes now call THIS method; there is no second copy of the rule. A THIRD route, the implicit SET of
+    /// routes now call THIS method, which words the verdict of <see cref="StrongTypeModel.DataPointerStore"/>, the one predicate
+    /// the argument lane (<see cref="AddressConformanceReason"/>) asks too (kb/Work PB2625). A THIRD route, the implicit SET of
     /// INITIALIZE … REPLACING (<c>SetBinder.ScreenImplicitSet</c>, §2023:14.9.20.4 GR4; kb/Work PB3966), asks it too and
     /// names the statement and the subordinate receiver through <paramref name="implicitSet"/> — the one place the
     /// receiver is not an operand the user wrote.</para></summary>
@@ -175,15 +176,15 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         string senderText, bool addressSender, string? implicitSet = null)
     {
         var receiverRestriction = StrongTypeModel.PointerRestriction(receiver.Item);
-        if (receiverRestriction.IsRestricted
-            && !StrongTypeModel.SameRestriction(receiverRestriction, sourceRestriction))
+        var fault = StrongTypeModel.DataPointerStore(receiverRestriction, sourceRestriction);
+        if (fault is StrongTypeModel.DataPointerStoreFault.ReceiverRestricted)
         {
             RejectRestriction(implicitSet ?? $"'{senderText}'",
                 $"the receiving data-pointer is restricted to type '{receiverRestriction}', so the sender shall "
                 + "be NULL or a data-pointer restricted to the same type (ISO §2023:14.9.39.3 SR19)");
             return false;
         }
-        if (sourceRestriction.IsRestricted && !receiverRestriction.IsRestricted)
+        if (fault is StrongTypeModel.DataPointerStoreFault.SenderRestricted)
         {
             RejectRestriction(implicitSet ?? $"'{receiverText}'",
                 $"{(addressSender ? $"ADDRESS OF '{senderText}'" : $"'{senderText}'")} is a RESTRICTED "
@@ -314,7 +315,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                     + "so the formal parameter shall be of category data-pointer (ISO §2023:14.8.2.3.2 / §2023:14.8.2.3.3)";
             var argR = StrongTypeModel.AddressOfRestriction(da.Item);
             var formalR = StrongTypeModel.PointerRestriction(formal);
-            return (argR.IsRestricted || formalR.IsRestricted) && !StrongTypeModel.SameRestriction(argR, formalR)
+            return StrongTypeModel.DataPointerStore(formalR, argR) is not StrongTypeModel.DataPointerStoreFault.None
                 ? $"one is a RESTRICTED data-pointer and the other is not restricted to the same type (argument: "
                   + $"{argR}; formal: {formalR}) — if either is a restricted pointer, both shall be restricted and "
                   + "of the same type (ISO §2023:14.8.2.3.2; §2023:8.4.3.11.4 GR2)"

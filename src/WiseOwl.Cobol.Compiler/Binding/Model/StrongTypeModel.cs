@@ -513,6 +513,30 @@ public static class StrongTypeModel
     /// occupy corresponding positions within their declarations.</summary>
     public static bool SameRestriction(TypeRestriction a, TypeRestriction b) => SameRestriction(a, b, new Comparison());
 
+    /// <summary>What is wrong with storing a data-pointer restricted to <paramref name="sender"/> into one restricted to
+    /// <paramref name="receiver"/> (<see cref="DataPointerStoreFault"/>).</summary>
+    public enum DataPointerStoreFault
+    {
+        /// <summary>The store conforms.</summary>
+        None,
+        /// <summary>The receiver is restricted and the sender is not restricted to the same type (SR19, first sentence).</summary>
+        ReceiverRestricted,
+        /// <summary>The sender is restricted and the receiver is not restricted at all (SR19, third sentence).</summary>
+        SenderRestricted,
+    }
+
+    /// <summary>⛔ THE ONE §2023:14.9.39.3 SR19 VERDICT OVER A (RECEIVING, SENDING) DATA-POINTER PAIR (kb/Work PB2625): "If identifier-5
+    /// references a restricted data-pointer, identifier-6 shall be the predefined address NULL or shall reference a data-pointer
+    /// restricted to the same type", and, the other way, a restricted identifier-6 needs an identifier-5 restricted to the same
+    /// type. A SET Format 7 asks it per receiver (<c>PtrBinder.ScreenPointerReceiverRestriction</c>), and so does a
+    /// data-address-identifier argument (<c>PtrBinder.AddressConformanceReason</c>), whose §2023:14.8.2.3.2 rule ("If either is a
+    /// restricted pointer, both shall be restricted and of the same type") is the same relation over the formal (receiver) and
+    /// the argument (sender). The caller words the fault; TO NULL is admitted by SR19 and never asked.</summary>
+    public static DataPointerStoreFault DataPointerStore(TypeRestriction receiver, TypeRestriction sender) =>
+        receiver.IsRestricted && !SameRestriction(receiver, sender) ? DataPointerStoreFault.ReceiverRestricted
+        : sender.IsRestricted && !receiver.IsRestricted ? DataPointerStoreFault.SenderRestricted
+        : DataPointerStoreFault.None;
+
     private static bool SameRestriction(TypeRestriction a, TypeRestriction b, Comparison within) =>
         a.IsRestricted && b.IsRestricted
         && CobolNames.Same(a.Name, b.Name)
