@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -48,7 +49,7 @@ public static class EditionHarness
             src = CompiledProgramCache.StageSource(src, source,   // copybooks staged WITH it (kb/Work PB1755)
                 copybooks?.ToDictionary(c => c.Key, c => Encoding.UTF8.GetBytes(c.Value), StringComparer.Ordinal));
             var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "prog.dll"), DialectLevel: edition, Permissive: permissive,
+                src, EditionInfo.Of(edition, permissive), Path.Combine(dir, "prog.dll"),
                 CopyPaths: copybooks is null ? null : [Path.GetDirectoryName(src)!], SourceFormat: format,
                 FlagExtensions: flagExtensions));
             return observe(dir, r);
@@ -113,7 +114,7 @@ public static class EditionHarness
             string src = Path.Combine(dir, "prog.cob");
             src = CompiledProgramCache.StageSource(src, source);
             string dll = Path.Combine(dir, "prog.dll");
-            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: edition, Permissive: permissive, SourceFormat: format));
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Of(edition, permissive), dll, SourceFormat: format));
             if (!r.Success) return (false, "", $"[compile] {r.Status}: {string.Join("\n", r.Errors)}");
             return CutRunner.Run(dll, dir);
         }

@@ -3,6 +3,7 @@
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.IO;
 using Xunit;
@@ -207,7 +208,7 @@ public sealed class CurrentDateOffsetDeterminationTests : WiseOwlCobolTestBase
         try
         {
             IntrinsicBinder.CompileClock = () => at;
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
+            var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, EditionInfo.Of(2023), SourceFormat: TestSourceFormat.Inline));
             Assert.True(result.Success, string.Join("\n", result.Errors));
             generated = File.ReadAllText(result.GeneratedCsPath!);
         }

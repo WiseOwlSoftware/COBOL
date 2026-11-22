@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -43,7 +44,7 @@ public sealed class DefinitionNameUniquenessTests : WiseOwlCobolTestBase
         string srcPath = Path.Combine(TempDir, "dnu.cob");
         File.WriteAllText(srcPath, source);
         var result = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, Path.Combine(TempDir, "dnu.dll"), DialectLevel: dialectLevel, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+            srcPath, EditionInfo.Of(dialectLevel), Path.Combine(TempDir, "dnu.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
         return result.Success ? "" : string.Join("\n", result.Errors);
     }
 

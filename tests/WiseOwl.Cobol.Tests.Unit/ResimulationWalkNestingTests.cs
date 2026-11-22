@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 using WiseOwl.Cobol.Tests.Shared;
@@ -89,7 +90,7 @@ public sealed class ResimulationWalkNestingTests
             string src = Path.Combine(dir, "pb3489u.cob");
             File.WriteAllText(src, source);
             var result = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb3489u.dll"), DialectLevel: 2014, CheckOnly: true, SourceFormat: InitialReferenceFormat.Free));
+                src, EditionInfo.Of(2014), Path.Combine(dir, "pb3489u.dll"), CheckOnly: true, SourceFormat: InitialReferenceFormat.Free));
             Assert.False(result.Success, "the source is non-conforming and must be rejected");
             return result;
         }

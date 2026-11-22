@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -46,7 +47,7 @@ public sealed class CurrentDateOffsetPinTests
                     DISPLAY CD
                     STOP RUN.
                 """);
-            var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
+            var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2023), dll, SourceFormat: TestSourceFormat.Inline));
             Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
 
             var (ok, stdout, detail) = CutRunner.Run(dll, dir, null,
@@ -79,7 +80,7 @@ public sealed class CurrentDateOffsetPinTests
                     STOP RUN.
                 """);
             string dll = Path.Combine(dir, "DDCDBAD.dll");
-            var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 85, SourceFormat: TestSourceFormat.Inline));
+            var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Of(85), dll, SourceFormat: TestSourceFormat.Inline));
             Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
             var (ok, stdout, detail) = CutRunner.Run(dll, dir, null,
                 new Dictionary<string, string?> { [WiseOwl.Cobol.Runtime.IO.SystemClock.PinVariable] = "not-a-date" });

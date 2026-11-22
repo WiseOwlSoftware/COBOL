@@ -3,6 +3,7 @@
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -60,7 +61,7 @@ public sealed class WhenCompiledStampTests : WiseOwlCobolTestBase
         try
         {
             IntrinsicBinder.CompileClock = () => clock;
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, DialectLevel: dialectLevel, SourceFormat: format));
+            var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, EditionInfo.Of(dialectLevel), SourceFormat: format));
             Assert.True(result.Success, string.Join("\n", result.Errors));
             Assert.NotNull(result.GeneratedCsPath);
             return File.ReadAllText(result.GeneratedCsPath!);
@@ -110,10 +111,10 @@ public sealed class WhenCompiledStampTests : WiseOwlCobolTestBase
         string dir2 = Directory.CreateDirectory(Path.Combine(TempDir, "d2")).FullName;
 
         var r1 = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, OutputPath: Path.Combine(dir1, "out.dll"), DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
+            srcPath, EditionInfo.Of(2023), OutputPath: Path.Combine(dir1, "out.dll"), SourceFormat: TestSourceFormat.Inline));
         Assert.True(r1.Success, string.Join("\n", r1.Errors));
         var r2 = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, OutputPath: Path.Combine(dir2, "out.dll"), DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
+            srcPath, EditionInfo.Of(2023), OutputPath: Path.Combine(dir2, "out.dll"), SourceFormat: TestSourceFormat.Inline));
         Assert.True(r2.Success, string.Join("\n", r2.Errors));
 
         Assert.Equal(

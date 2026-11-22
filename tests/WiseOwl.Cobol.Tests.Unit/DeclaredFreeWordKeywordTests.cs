@@ -161,7 +161,7 @@ public sealed class DeclaredFreeWordKeywordTests
         {
             string src = Path.Combine(dir, "P.cob");
             File.WriteAllText(src, source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: edition, CheckOnly: true,
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(edition), CheckOnly: true,
                 SourceFormat: InitialReferenceFormat.Fixed));
             return new SortedSet<string>(r.Errors.SelectMany(e => Regex.Matches(e, @"COBOL\d{4}").Select(m => m.Value)),
                 StringComparer.Ordinal);

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 using WiseOwl.Cobol.Tests.Shared;
@@ -23,8 +24,7 @@ public sealed class ActivationResourcesTests
     private static void CompileTo(string source, string dir, string name)
     {
         string src = CompiledProgramCache.StageSource(Path.Combine(dir, name + ".cob"), source);
-        var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"),
-            DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
+        var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2023), Path.Combine(dir, name + ".dll"), SourceFormat: TestSourceFormat.Inline));
         Assert.True(r.Success, $"compile {name}: {string.Join("; ", r.Errors)}");
     }
 

@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -231,8 +232,7 @@ public sealed class CodeWriterTests : WiseOwlCobolTestBase
     public void OnAProgramsGeneratedSource_TheFastReadingAgreesWithTheParse()
     {
         string dll = Path.Combine(TempDir, "NC101A.dll");
-        var result = CompilerDriver.Compile(new CompilerDriver.Options(TestRepo.Nist("programs", "NC101A.cob"), dll, NistTestName: "NC101A",
-            DialectLevel: 85));
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(TestRepo.Nist("programs", "NC101A.cob"), EditionInfo.Of(85), dll, NistTestName: "NC101A"));
         Assert.True(result.Success);
         int simple = 0;
         foreach (string line in File.ReadLines(result.GeneratedCsPath!))

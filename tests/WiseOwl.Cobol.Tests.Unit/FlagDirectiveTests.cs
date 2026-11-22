@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 using WiseOwl.Cobol.Tests.Shared;
@@ -202,7 +203,7 @@ public sealed class FlagDirectiveTests
             string src = Path.Combine(dir, "flag.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "flag.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(2023), Path.Combine(dir, "flag.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, string.Join("\n", r.Errors));
             return r.Warnings;
         }
@@ -594,8 +595,8 @@ public sealed class FlagDirectiveTests
                 "       01 G1.\n          05 X PIC X(3).\n       01 G2.\n          05 X PIC X(3).\n",
                 "       >>FLAG-02 MOVE-TO-SAME-NAME ON\n", "MOVE X TO X."));
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "flag.dll"), DialectLevel: 2023, CheckOnly: true,
-                SourceFormat: TestSourceFormat.Inline, Permissive: true));
+                src, EditionInfo.Of(2023, true), Path.Combine(dir, "flag.dll"), CheckOnly: true,
+                SourceFormat: TestSourceFormat.Inline));
             Assert.Equal(2, r.Warnings.Count(w => w.Contains("COBOL1639", StringComparison.Ordinal)));
         }
         finally { ScratchDirectory.Remove(dir); }

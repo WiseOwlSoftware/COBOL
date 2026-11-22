@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -189,7 +190,7 @@ public sealed class ArithmeticModeScreenDriftTests : WiseOwlCobolTestBase
     {
         string src = Path.Combine(TempDir, $"{tag}_{dialect}.cob");
         File.WriteAllText(src, source);
-        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: dialect, SourceFormat: TestSourceFormat.Inline));
+        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(dialect), SourceFormat: TestSourceFormat.Inline));
         // BOTH channels: 0806/0900 are errors, 0903 is a WARNING, and a test that read only Errors would report
         // "the obsolescence flag is missing" for a compiler that emits it perfectly.
         return [.. r.Errors, .. r.Warnings];

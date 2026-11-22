@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Compiler;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -27,7 +28,7 @@ public sealed class EntryConventionGateTests
             string src = Path.Combine(dir, "pb4611w.cob");
             File.WriteAllText(src, Source(convention));
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb4611w.dll"), DialectLevel: dialect, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(dialect), Path.Combine(dir, "pb4611w.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return [.. r.Errors];
         }
         finally { ScratchDirectory.Remove(dir); }

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 using WiseOwl.Cobol.Tests.Shared;
@@ -48,7 +49,7 @@ public sealed class ParseRecoveryParenGroupTests
             string src = Path.Combine(dir, "prpg.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "prpg.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(2023), Path.Combine(dir, "prpg.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             Assert.False(r.Success, "the source holds one syntax error and must be rejected");
             return r.Errors;
         }

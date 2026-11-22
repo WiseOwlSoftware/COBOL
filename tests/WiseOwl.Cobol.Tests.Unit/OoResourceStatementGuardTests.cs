@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 using WiseOwl.Cobol.Tests.Shared;
@@ -57,7 +58,7 @@ public sealed class OoResourceStatementGuardTests
                        END CLASS CNEW.
                 """);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "p.dll"), DialectLevel: 2023, CheckOnly: false, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(2023), Path.Combine(dir, "p.dll"), CheckOnly: false, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, "the program must compile: " + string.Join("; ", r.Errors));
             Assert.NotNull(r.GeneratedCsPath);
             return File.ReadAllText(r.GeneratedCsPath!);

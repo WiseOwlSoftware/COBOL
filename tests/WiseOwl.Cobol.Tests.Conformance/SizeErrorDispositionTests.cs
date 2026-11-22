@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Compiler;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -43,7 +44,7 @@ public sealed class SizeErrorDispositionTests
         {
             string src = Path.Combine(dir, "prog.cob"), dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
-            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Of(dialectLevel), dll, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, "[compile] " + string.Join("\n", r.Errors));
             return CutRunner.RunExit(dll, dir);
         }

@@ -338,8 +338,7 @@ public sealed class CobolWordsDirectiveTests
             string src = Path.Combine(dir, "cw.cob");
             File.WriteAllText(src, source);
             return CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "cw.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline,
-                Permissive: permissive));
+                src, EditionInfo.Of(2023, permissive), Path.Combine(dir, "cw.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
         }
         finally { ScratchDirectory.Remove(dir); }
     }

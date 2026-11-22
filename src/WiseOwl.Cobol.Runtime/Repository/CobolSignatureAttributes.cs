@@ -403,7 +403,7 @@ public sealed class CobolSkeletonAttribute(string source) : Attribute
     /// <summary>The externalized name each resolution stands for (ISO §2023:12.3.8.4 GR2: the literal, else the word).</summary>
     public string[]? ResolutionIdentity { get; set; }
 
-    /// <summary>The ISO edition the definition was compiled under (<c>CompilerDriver.Options.DialectLevel</c>).</summary>
+    /// <summary>The ISO edition the definition was compiled under (the year of <c>CompilerDriver.Options.Edition</c>).</summary>
     public int Edition { get; set; }
 
     /// <summary><c>--permissive</c>.</summary>

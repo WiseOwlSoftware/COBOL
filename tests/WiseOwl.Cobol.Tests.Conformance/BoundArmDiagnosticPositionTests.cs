@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 using WiseOwl.Cobol.Tests.Shared;
@@ -83,8 +84,8 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         File.WriteAllText(Path.Combine(_dir, name), text);
         int line = text.Split('\n').ToList().FindIndex(l => l.TrimStart().StartsWith(bare, StringComparison.Ordinal)) + 1;
         var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
-            Path.Combine(_dir, name), Path.Combine(_dir, "out.dll"), DialectLevel: edition, CheckOnly: true,
-            CopyPaths: [_dir], SourceFormat: InitialReferenceFormat.Fixed, Permissive: permissive));
+            Path.Combine(_dir, name), EditionInfo.Of(edition, permissive), Path.Combine(_dir, "out.dll"), CheckOnly: true,
+            CopyPaths: [_dir], SourceFormat: InitialReferenceFormat.Fixed));
         return (line, r.Success, [.. r.Errors, .. r.Warnings]);
     }
 
@@ -173,8 +174,8 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         string name = "t" + Guid.NewGuid().ToString("N")[..6] + ".cob";
         File.WriteAllText(Path.Combine(_dir, name), text);
         var r = CompiledProgramCache.CompileCold(new CompilerDriver.Options(
-            Path.Combine(_dir, name), Path.Combine(_dir, "flag.dll"), DialectLevel: 2023, CheckOnly: true,
-            CopyPaths: [_dir], SourceFormat: InitialReferenceFormat.Fixed, Permissive: true,
+            Path.Combine(_dir, name), EditionInfo.Of(2023, true), Path.Combine(_dir, "flag.dll"), CheckOnly: true,
+            CopyPaths: [_dir], SourceFormat: InitialReferenceFormat.Fixed,
             Listing: new WiseOwl.Cobol.Listing.ListingRequest(OutputBase: "-")));
         var listing = r.Listing!;
         var merge = Assert.Single(listing.Diagnostics, d => d.Code == "COBOL1572");
@@ -227,7 +228,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         string name = "s" + Guid.NewGuid().ToString("N")[..6] + ".cob";
         File.WriteAllText(Path.Combine(_dir, name), text);
         var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
-            Path.Combine(_dir, name), Path.Combine(_dir, "out.dll"), DialectLevel: edition, CheckOnly: true,
+            Path.Combine(_dir, name), EditionInfo.Of(edition), Path.Combine(_dir, "out.dll"), CheckOnly: true,
             CopyPaths: [_dir], SourceFormat: InitialReferenceFormat.Fixed));
         return (r.Success, [.. r.Errors, .. r.Warnings]);
     }
@@ -261,7 +262,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         string name = "w" + Guid.NewGuid().ToString("N")[..6] + ".cob";
         File.WriteAllText(Path.Combine(_dir, name), text);
         var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
-            Path.Combine(_dir, name), Path.Combine(_dir, "out.dll"), DialectLevel: 2023, CheckOnly: true,
+            Path.Combine(_dir, name), EditionInfo.Of(2023), Path.Combine(_dir, "out.dll"), CheckOnly: true,
             CopyPaths: [_dir], SourceFormat: InitialReferenceFormat.Fixed));
         Assert.False(r.Success);
         AssertAt([.. r.Errors, .. r.Warnings], 1, 8, "error", code);
@@ -297,7 +298,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         string name = "r" + Guid.NewGuid().ToString("N")[..6] + ".cob";
         File.WriteAllText(Path.Combine(_dir, name), text);
         var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
-            Path.Combine(_dir, name), Path.Combine(_dir, "out.dll"), DialectLevel: 85, CheckOnly: true,
+            Path.Combine(_dir, name), EditionInfo.Of(85), Path.Combine(_dir, "out.dll"), CheckOnly: true,
             CopyPaths: [_dir], SourceFormat: InitialReferenceFormat.Fixed));
         Assert.False(r.Success);
         var gates = r.Errors.Where(d => d.Contains("COBOL0900")).ToList();

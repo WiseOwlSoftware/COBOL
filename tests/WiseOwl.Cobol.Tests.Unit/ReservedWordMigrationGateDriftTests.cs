@@ -120,7 +120,7 @@ public sealed class ReservedWordMigrationGateDriftTests
         File.WriteAllText(src, string.Format(ProbeTemplate, tag,
             wordOrEmpty.Length == 0 ? "" : " " + wordOrEmpty));
         return CompilerDriver.Compile(new CompilerDriver.Options(
-            src, Path.Combine(dir, $"p{tag}.dll"), DialectLevel: edition, Permissive: permissive,
+            src, EditionInfo.Of(edition, permissive), Path.Combine(dir, $"p{tag}.dll"),
             CheckOnly: true, SourceFormat: TestSourceFormat.Inline)).Success;
     }
 

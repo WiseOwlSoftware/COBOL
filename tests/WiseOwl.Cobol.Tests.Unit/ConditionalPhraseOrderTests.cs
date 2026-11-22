@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 using WiseOwl.Cobol.Tests.Shared;
@@ -65,7 +66,7 @@ public sealed class ConditionalPhraseOrderTests
         {
             string src = Path.Combine(dir, "MAIN.cob");
             File.WriteAllText(src, source);
-            return CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: edition, CheckOnly: true,
+            return CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(edition), CheckOnly: true,
                 SourceFormat: InitialReferenceFormat.Fixed));
         }
         finally { ScratchDirectory.Remove(dir); }

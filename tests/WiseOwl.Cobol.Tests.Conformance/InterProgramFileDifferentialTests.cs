@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -259,7 +260,7 @@ public sealed class InterProgramFileDifferentialTests
     {
         string src = Path.Combine(dir, name + ".cob");
         src = CompiledProgramCache.StageSource(src, source);
-        var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"), DialectLevel: dialect, SourceFormat: TestSourceFormat.Inline));
+        var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Of(dialect), Path.Combine(dir, name + ".dll"), SourceFormat: TestSourceFormat.Inline));
         Assert.True(r.Success, $"compile {name}: {string.Join("; ", r.Errors)}");
     }
 

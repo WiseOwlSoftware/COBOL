@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 using WiseOwl.Cobol.Tests.Shared;
@@ -150,7 +151,7 @@ public sealed class Flag85DirectiveTests
             string src = Path.Combine(dir, "flag85.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "flag85.dll"), DialectLevel: dialect, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(dialect), Path.Combine(dir, "flag85.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, string.Join("\n", r.Errors));
             return r.Warnings;
         }
@@ -175,7 +176,7 @@ public sealed class Flag85DirectiveTests
             string src = Path.Combine(dir, "flag85.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "flag85.dll"), DialectLevel: 2002, CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
+                src, EditionInfo.Of(2002), Path.Combine(dir, "flag85.dll"), CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
             Assert.Equal(accepted, r.Success);
         }
         finally { ScratchDirectory.Remove(dir); }

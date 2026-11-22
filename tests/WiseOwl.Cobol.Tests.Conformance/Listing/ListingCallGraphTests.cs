@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -50,7 +51,7 @@ public sealed class ListingCallGraphTests : IDisposable
     {
         string path = Path.Combine(_dir, "calls.cob");
         File.WriteAllText(path, string.Join("\n", Source));
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, Path.Combine(_dir, "calls.dll"), DialectLevel: 85,
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, EditionInfo.Of(85), Path.Combine(_dir, "calls.dll"),
             Listing: new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json) { Sections = ListingSectionSet.All }));
         Assert.True(result.Success, string.Join("\n", result.Errors));
         var listing = Assert.IsType<ListingDocument>(result.Listing);
@@ -122,7 +123,7 @@ public sealed class ListingCallGraphTests : IDisposable
     {
         string path = Path.Combine(_dir, $"scope{dialect}.cob");
         File.WriteAllText(path, string.Join("\n", source));
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, Path.Combine(_dir, $"scope{dialect}.dll"), DialectLevel: dialect,
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, EditionInfo.Of(dialect), Path.Combine(_dir, $"scope{dialect}.dll"),
             Listing: new ListingRequest(Formats: ListingFormats.Json) { Sections = ListingSectionSet.All }));
         Assert.True(result.Success, string.Join("\n", result.Errors));
         var listing = Assert.IsType<ListingDocument>(result.Listing);

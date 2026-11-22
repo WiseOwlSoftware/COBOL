@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -24,7 +25,7 @@ public sealed class DifferentialHarness
             string src = Path.Combine(tempDir, "p.cob");
             File.WriteAllText(src,
                 "IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"OK\".\n    STOP RUN.\n");
-            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(tempDir, "p.dll"), SourceFormat: TestSourceFormat.Inline));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Latest, Path.Combine(tempDir, "p.dll"), SourceFormat: TestSourceFormat.Inline));
             Assert.True(result.Success, $"{result.Status}: {string.Join("\n", result.Errors)}");
         }
         finally

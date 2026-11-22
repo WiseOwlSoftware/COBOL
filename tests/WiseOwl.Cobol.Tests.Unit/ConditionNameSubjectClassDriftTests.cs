@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -124,7 +125,7 @@ public sealed class ConditionNameSubjectClassDriftTests
         {
             string src = Path.Combine(dir, "CNDRIFT.cob");
             File.WriteAllText(src, Program(decls, tests));
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2023), SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, $"{klass}: " + string.Join("\n", r.Errors));
             Assert.NotNull(r.GeneratedCsPath);
 
@@ -220,7 +221,7 @@ public sealed class ConditionNameSubjectClassDriftTests
         {
             string src = Path.Combine(dir, "CNDRIFT.cob");
             File.WriteAllText(src, Program(decls, "            CONTINUE."));
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2023), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             var codes = r.Errors
                 .SelectMany(e => e.Split(' ', StringSplitOptions.RemoveEmptyEntries))
                 .Select(w => w.TrimEnd(':'))

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 using WiseOwl.Cobol.Tests.Shared;
@@ -53,8 +54,7 @@ public sealed class ReferenceOperandArithmeticTests
         {
             string src = Path.Combine(dir, "pb1425r.cob");
             File.WriteAllText(src, Source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, "pb1425r.dll"),
-                DialectLevel: 2002, Permissive: permissive, SourceFormat: TestSourceFormat.Inline));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2002, permissive), Path.Combine(dir, "pb1425r.dll"), SourceFormat: TestSourceFormat.Inline));
             Assert.False(r.Success);
             // Both operands are refused by §2023:8.8.1.1 itself, as errors — never handed to the back end.
             Assert.Equal(2, r.Errors.Count(e => e.Contains("error COBOL0844:", StringComparison.Ordinal)));

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 
@@ -267,8 +268,7 @@ internal static class ConformanceSuiteRunner
     {
         if (!InitialReferenceFormatOption.TryParse(sourceFormat, out InitialReferenceFormat format))
             throw new SuiteHarnessException($"source-format '{sourceFormat}' is not one of fixed, free");
-        return WithWiseOwlOptions(new CompilerDriver.Options(source, dll,
-            DialectLevel: int.Parse(edition, CultureInfo.InvariantCulture), CopyPaths: [Path.GetDirectoryName(source)!],
+        return WithWiseOwlOptions(new CompilerDriver.Options(source, EditionInfo.Of(int.Parse(edition, CultureInfo.InvariantCulture)), dll, CopyPaths: [Path.GetDirectoryName(source)!],
             SourceFormat: format, FlagExtensions: flag), wiseOwlOptions);
     }
 
@@ -306,7 +306,7 @@ internal static class ConformanceSuiteRunner
                 // the text listing at its default destination, the assembly's path without its extension: <id>.lst in the run
                 // directory, where the program may read it (kb/Work PB5926)
                 "listing" => options with { Listing = value == "on" ? new WiseOwl.Cobol.Listing.ListingRequest() : null },
-                "std" => options with { DialectLevel = int.Parse(value, CultureInfo.InvariantCulture) },   // a build step's own edition (generate.py STEP_EDITION_OPTION)
+                "std" => options with { Edition = EditionInfo.Of(int.Parse(value, CultureInfo.InvariantCulture), options.Edition.Permissive) },   // a build step's own edition (generate.py STEP_EDITION_OPTION)
                 _ => throw new SuiteHarnessException($"'{key}' is not a WiseOwl compile option"),
             };
         }

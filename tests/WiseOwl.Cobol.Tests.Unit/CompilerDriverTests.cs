@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -53,7 +54,7 @@ public sealed class CompilerDriverTests : WiseOwlCobolTestBase
     public void CompilerDriver_ReportsSourceNotFound()
     {
         var result = CompilerDriver.Compile(new CompilerDriver.Options(
-            Path.Combine(TempDir, "does-not-exist.cob"), SourceFormat: TestSourceFormat.Inline));
+            Path.Combine(TempDir, "does-not-exist.cob"), EditionInfo.Latest, SourceFormat: TestSourceFormat.Inline));
         Assert.Equal(CompilerDriver.Outcome.SourceNotFound, result.Status);
         Assert.False(result.Success);
     }
@@ -76,7 +77,7 @@ public sealed class CompilerDriverTests : WiseOwlCobolTestBase
         if (OperatingSystem.IsWindows()) outputs.Add("NUL");
         foreach (string output in outputs)
         {
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(source, output, SourceFormat: TestSourceFormat.Inline));
+            var result = CompilerDriver.Compile(new CompilerDriver.Options(source, EditionInfo.Latest, output, SourceFormat: TestSourceFormat.Inline));
             Assert.Equal(CompilerDriver.Outcome.OutputNotWritable, result.Status);
             Assert.Contains("names no file in a directory", Assert.Single(result.Errors));
             Assert.Empty(result.OutputFiles);
@@ -99,16 +100,9 @@ public sealed class CompilerDriverTests : WiseOwlCobolTestBase
             """);
         string output = Path.Combine(TempDir, "pb4502w-out", "prog.dll");
         Directory.CreateDirectory(Path.ChangeExtension(output, ".g.cs"));
-        var result = CompilerDriver.Compile(new CompilerDriver.Options(source, output, SourceFormat: TestSourceFormat.Inline));
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(source, EditionInfo.Latest, output, SourceFormat: TestSourceFormat.Inline));
         Assert.Equal(CompilerDriver.Outcome.OutputNotWritable, result.Status);
         Assert.StartsWith($"cannot write the output of '{output}': ", Assert.Single(result.Errors));
         Assert.False(File.Exists(output));
     }
-
-    [Fact]
-    // Owner decision (DEVLOG 519 / VERSION_TEST_MATRIX_DESIGN §10 #2): an unspecified target edition defaults to the
-    // LATEST standard (2023), not 85. Edition-specific callers (the NIST harness, the differential harness, per-edition
-    // conformance) pass DialectLevel explicitly, so this default flip does not affect them.
-    public void CompilerDriver_DefaultsToLatestEdition()
-        => Assert.Equal(2023, new CompilerDriver.Options("x.cob", SourceFormat: TestSourceFormat.Inline).DialectLevel);
 }

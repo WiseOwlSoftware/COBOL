@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -34,7 +35,7 @@ public sealed class DataItemSizeLimitTests
                        MAIN-P.
                            STOP RUN.
                 """);
-            return CompilerDriver.Compile(new CompilerDriver.Options(path, DialectLevel: edition, CheckOnly: true,
+            return CompilerDriver.Compile(new CompilerDriver.Options(path, EditionInfo.Of(edition), CheckOnly: true,
                 SourceFormat: InitialReferenceFormat.Fixed));
         }
         finally { ScratchDirectory.Remove(dir); }

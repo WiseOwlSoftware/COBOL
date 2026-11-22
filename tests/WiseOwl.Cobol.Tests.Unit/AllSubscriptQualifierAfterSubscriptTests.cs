@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 
@@ -46,7 +47,7 @@ public sealed class AllSubscriptQualifierAfterSubscriptTests : WiseOwlCobolTestB
         string srcPath = Path.Combine(TempDir, $"pb5485n{edition}-{statement.Length}.cob");
         File.WriteAllText(srcPath, source);
         var compiled = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, Path.ChangeExtension(srcPath, ".dll"), DialectLevel: edition, SourceFormat: InitialReferenceFormat.Free));
+            srcPath, EditionInfo.Of(edition), Path.ChangeExtension(srcPath, ".dll"), SourceFormat: InitialReferenceFormat.Free));
         Assert.False(compiled.Success);
         Assert.Contains(compiled.Errors, e => e.Contains("COBOL2776"));
         Assert.DoesNotContain(compiled.Errors, e => e.Contains("COBOL2363"));

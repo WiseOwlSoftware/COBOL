@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -138,7 +139,7 @@ public sealed class ProcedureHeaderNameDriftTests
         {
             string src = Path.Combine(dir, $"hdr_{edition}.cob");
             File.WriteAllText(src, source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(edition), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return [.. r.Errors];
         }
         finally { ScratchDirectory.Remove(dir); }

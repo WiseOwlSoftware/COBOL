@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Text;
 using WiseOwl.Cobol.Tests.Shared;
@@ -82,8 +83,7 @@ public sealed class Listing1985Tests : IDisposable
         string copybook = Path.Combine(_dir, "REC85.cpy");
         File.WriteAllText(source, main);
         File.WriteAllText(copybook, Rec);
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(_dir, "outer85.dll"),
-            DialectLevel: 85, CopyPaths: [_dir], Listing: request));
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, EditionInfo.Of(85), Path.Combine(_dir, "outer85.dll"), CopyPaths: [_dir], Listing: request));
         if (result.Listing is { } listing) ListingJsonContract.AssertHolds(listing);   // section 10 item 5: every document
         return (result, source, copybook);
     }
@@ -262,7 +262,7 @@ public sealed class Listing1985Tests : IDisposable
             bind.Listing.Sections.Select(s => (s.Section, s.Produced, s.Reason)));
 
         // No source: nothing was read, so nothing is listed.
-        var missing = CompiledProgramCache.CompileCold(new CompilerDriver.Options(Path.Combine(_dir, "absent.cob"), DialectLevel: 85,
+        var missing = CompiledProgramCache.CompileCold(new CompilerDriver.Options(Path.Combine(_dir, "absent.cob"), EditionInfo.Of(85),
             Listing: new ListingRequest()));
         Assert.Equal(CompilerDriver.Outcome.SourceNotFound, missing.Status);
         Assert.Null(missing.Listing);

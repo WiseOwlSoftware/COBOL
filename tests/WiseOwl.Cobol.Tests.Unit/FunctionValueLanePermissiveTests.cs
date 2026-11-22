@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 
@@ -43,7 +44,7 @@ public sealed class FunctionValueLanePermissiveTests : WiseOwlCobolTestBase
         string dllPath = Path.Combine(TempDir, "pb3268pm.dll");
         File.WriteAllText(srcPath, source);
         var compiled = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, dllPath, DialectLevel: 2023, Permissive: true, SourceFormat: InitialReferenceFormat.Free));
+            srcPath, EditionInfo.Of(2023, true), dllPath, SourceFormat: InitialReferenceFormat.Free));
         Assert.True(compiled.Success, $"({compiled.Status}):\n  {string.Join("\n  ", compiled.Errors)}");
 
         var (ran, stdout, detail) = RunAssembly(dllPath);
