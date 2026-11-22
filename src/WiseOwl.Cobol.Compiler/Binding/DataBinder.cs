@@ -1029,15 +1029,19 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>The capture for an operand written where a general format prints <i>data-name-n</i>: the base
     /// word plus its IN/OF qualifiers (<see cref="KeyReference"/>), SCREENED first by
-    /// <see cref="ScreenClauseOperandShape"/> against the shapes §2023:8.4.2.2.2 Format 1 does not admit.
+    /// <see cref="ScreenDataNameShape"/> against the shapes §2023:8.4.2.2.2 Format 1 does not admit.
     /// <para>⚠ NOT every clause operand goes through here, and the exceptions are principled rather than
     /// historical: §2023:13.18.16.3 SR4's CONTROL operand and its §2023:13.18.57.3 SR10 / §2023:13.18.54.3 SR8 twins EXPRESSLY
     /// permit a reference-modifier, so the data-name-n screen would reject source their own rules allow. Those
     /// three capture with <see cref="KeyReference"/> and apply their own operand rules (kb/Work PB205).</para>
     /// </summary>
-    internal WrittenDataName ClauseDataName(Core.DataReferenceContext dref, string clauseFace)
+    /// <param name="subscriptRule">The clause's OWN rule about a subscript on this operand, in the edition in force
+    /// (<see cref="OperandSubscriptRule(string, string)"/>; empty where the edition's text has none beyond the data-name-n rule
+    /// the screen states itself): the operands differ in whether they may lie under an OCCURS at all, so no one sentence is
+    /// true of all of them (kb/Work PB1281, PB2041).</param>
+    internal WrittenDataName ClauseDataName(Core.DataReferenceContext dref, string clauseFace, string subscriptRule)
     {
-        if (!ScreenClauseOperandShape(dref, clauseFace)) return RefuseClauseOperand(dref);
+        if (!ScreenDataNameShape(dref, clauseFace, Edition, subscriptRule)) return RefuseClauseOperand(dref);
         return KeyReference(dref);
     }
 
@@ -1049,9 +1053,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// (<see cref="ScreenOperandOccurrence"/>). The other editions refuse a subscript exactly as <see cref="ClauseDataName"/>
     /// does, and the subscripts come back empty.</summary>
     internal (WrittenDataName Name, IReadOnlyList<int> Subscripts) ClauseDataNameSubscripted(
-        Core.DataReferenceContext dref, string clauseFace)
+        Core.DataReferenceContext dref, string clauseFace, string subscriptRule)
     {
-        if (!ScreenClauseOperandShape(dref, clauseFace, admitsSubscript2002: true)) return (RefuseClauseOperand(dref), []);
+        if (!ScreenDataNameShape(dref, clauseFace, Edition, subscriptRule, admitsSubscript2002: true))
+            return (RefuseClauseOperand(dref), []);
         return (KeyReference(dref),
             Edition.SubscriptedClauseOperands ? RefModBinder.ReadOperandSuffixes(dref).Subscript.Values : []);
     }
@@ -1095,17 +1100,27 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// data-name and died at OPEN naming a word the programmer never wrote as a data item, while
     /// <c>LINAGE IS T-LINES (2) LINES</c> dropped the subscript and crashed the same way (kb/Work PB489). The
     /// key clauses' own silent drop of a subscript or ref-mod (kb/Work PB205) is the same sentence and ends
-    /// here too.</para></summary>
-    private bool ScreenClauseOperandShape(Core.DataReferenceContext dref, string clauseFace, bool admitsSubscript2002 = false) =>
-        ScreenDataNameShape(dref, clauseFace, Edition, NotSubjectToOccurs, admitsSubscript2002);
+    /// here too. The screen is <see cref="ScreenDataNameShape"/>, and each caller states its own clause's rule about a subscript
+    /// (<see cref="OperandSubscriptRule(string, string)"/>, kb/Work PB2041).</para></summary>
+    internal string OperandSubscriptRule(string y1985, string y2023) => OperandSubscriptRule(Edition.Edition, y1985, y2023);
 
-    /// <summary>The subscript sentence of every caller whose own rule forbids an operand <i>"subject to any OCCURS
-    /// clauses"</i> — the file clauses (§2023:13.18.34.3 SR1, §2023:12.4.5.12.3 SR1, §2023:12.4.5.6.3 SR1, §2023:12.4.5.13.3 SR1) and the
-    /// SORT / MERGE file keys (§2023:14.9.40.3 SR6 b), §2023:14.9.24.3 SR4b). A caller whose operand MAY lie under an OCCURS
-    /// (a table SORT key, a REDEFINES data-name-2) states its own rule instead.</summary>
+    /// <summary>⛔ A CLAUSE OPERAND'S OWN SUBSCRIPT RULE, IN THE EDITION IN FORCE (kb/Work PB2041): <paramref name="y1985"/> at
+    /// COBOL-85 (empty where the 1985 text has no sentence of the clause's own, the data-name rule of §1985:III.2 p69 that the
+    /// screen states being the whole of it) and <paramref name="y2023"/>, quoted with its rule, at COBOL-2023 (empty where the
+    /// 2023 clause has none, the qualified-data-name rule the screen states being the whole of it). The operands differ in
+    /// whether they may lie under an OCCURS at all: a file clause's may not (§2023:12.4.5.8.3 SR1), an OCCURS KEY data-name-2
+    /// does by definition and is only not WRITTEN subscripted (§2023:13.18.38.3 SR2), so the one fixed sentence the screen once
+    /// closed with was false for some (kb/Work PB1281). ⚠ At COBOL-2002 and COBOL-2014 the message keeps the sentence it
+    /// printed before, <see cref="NotSubjectToOccurs"/>: those editions' own rules for each clause are owed to their reads
+    /// (kb/Work PB6038), and no 2023 rule is printed at them.</summary>
+    internal static string OperandSubscriptRule(EditionInfo edition, string y1985, string y2023) =>
+        edition.Cite(y1985, y2023, y2002: NotSubjectToOccurs, y2014: NotSubjectToOccurs);
+
+    /// <summary>The subscript sentence the 2002 and 2014 arms of <see cref="OperandSubscriptRule(EditionInfo, string, string)"/>
+    /// print; the 2023 rule of the SORT / MERGE file keys is its own words (§2023:14.9.40.3 SR6 b), §2023:14.9.24.3 SR4b)).</summary>
     internal const string NotSubjectToOccurs = "the operand shall not be subject to any OCCURS clauses";
 
-    /// <summary>The body of <see cref="ScreenClauseOperandShape"/>, static over the <see cref="EditionContext"/>
+    /// <summary>The ONE data-name-n screen, static over the <see cref="EditionContext"/>
     /// so a PROCEDURE-DIVISION operand written where a general format prints <i>data-name-n</i> is refused by
     /// the SAME screen: the SORT (§2023:14.9.40.2, both formats) and MERGE (§2023:14.9.24.2) KEY phrases print
     /// <c>KEY { data-name-1 } …</c>, and §2023:8.4.3.3.3's NOTE and §2023:14.9.40.3 SR14 b) (<i>"Key data names shall not
@@ -1185,15 +1200,17 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
                 $"{clauseFace} '{WrittenSource.Of(dref)}' is written with a subscript; the clause's general format prints data-name-n"
                 + edition.Edition.Cite(
-                    ", not identifier, which alone is \"a syntactically correct combination of a data-name, with its qualifiers, "
-                        + "subscripts, and reference modifiers\" (§1985:III.2, Identifier), and ",
+                    // The 1985 rule is the data-name definition itself (kb/Work PB2041); the Identifier definition this arm once
+                    // quoted was the pre-Amendment wording of §1985:III.2 p124, and it defines the other term.
+                    "; a data-name in a general format \"represents a word which must not be reference-modified, subscripted, "
+                        + "or qualified unless specifically permitted by the rules of the format\" (§1985:III.2 p69)",
                     // At COBOL-2002 a data-name-n includes subscription (§2002:5.1.3); what refuses it here is the caller's own rule.
                     ", which is a qualified-data-name (ISO §2023:8.4.2.2.2 Format 1) and carries no subscript "
-                        + "— subscripting is §2023:8.4.2.3's qualified-data-name-with-subscripts, an identifier form, and ",
-                    y2002: ", and ",
+                        + "— subscripting is §2023:8.4.2.3's qualified-data-name-with-subscripts, an identifier form",
+                    y2002: "",
                     y2014: ", whose subscripting each clause's own rule restricts (ISO §2014:E.2 item 25, \"Restrictions for "
-                        + "Qualification and Subscripting of data-name-n\"), and ")
-                + subscriptRule);
+                        + "Qualification and Subscripting of data-name-n\")")
+                + (subscriptRule.Length > 0 ? ", and " + subscriptRule : ""));
         else if (refModified)
             ReportReferenceModified(dref, clauseFace, edition);
         return !subscripted && !refModified;
@@ -3087,9 +3104,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // data-name-2 / data-name-3 through the ONE screened data-name-n capture: §2023:13.18.45.3 SR7 — "Data-name-2 and
         // data-name-3 shall not be subscripted" — which the bare-word capture used to satisfy by dropping the
         // subscript in silence (kb/Work PB978's sweep).
-        var fromOperand = ClauseDataName(rc.dataReference(0), $"'{name}' RENAMES");
+        var fromOperand = ClauseDataName(rc.dataReference(0), $"'{name}' RENAMES", OperandSubscriptRule("", "\"Data-name-2 and data-name-3 shall not be subscripted\" (ISO §2023:13.18.45.3 SR7)"));
         WrittenDataName? thruOperand = thru && rc.dataReference().Length > 1
-            ? ClauseDataName(rc.dataReference(1), $"'{name}' RENAMES … THRU")
+            ? ClauseDataName(rc.dataReference(1), $"'{name}' RENAMES … THRU", OperandSubscriptRule("", "\"Data-name-2 and data-name-3 shall not be subscripted\" (ISO §2023:13.18.45.3 SR7)"))
             : null;
         var item = new DataItem
         {
@@ -5730,8 +5747,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         string face = $"'{subject ?? "FILLER"}' REDEFINES";
         ScreenDataNameShape(dref, face, Edition, Edition.Edition.Cite(
-            // COBOL-85 has no sentence of its own: its REDEFINES format prints data-name-2, which the identifier rule above refuses.
-            "the REDEFINES clause's general format writes data-name-2 (§1985:VI.5.10.2)",
+            // COBOL-85's own sentence (kb/Work PB2041's sweep: this arm used to say the 1985 text had none).
+            "\"the reference to data-name-2 in the REDEFINES clause may not be subscripted\" (§1985:VI.5.10.3 SR5)",
             "\"the reference to data-name-2 in the REDEFINES clause shall not be subscripted\" (ISO §2023:13.18.44.3 SR5)"));
         if (dref.dataReferenceSuffix().Any(s => s.qualification() is not null))
         {

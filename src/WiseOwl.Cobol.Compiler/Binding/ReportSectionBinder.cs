@@ -2310,7 +2310,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         Editions.DiagnosticCursor dAt = default;
         if (depending is not null)
         {
-            dn = _d.ClauseDataName(depending, $"{where}: OCCURS DEPENDING ON");
+            dn = _d.ClauseDataName(depending, $"{where}: OCCURS DEPENDING ON", _d.OperandSubscriptRule("", "\"Data-name-1 and data-name-2 shall not be subscripted\" (ISO §2023:13.18.38.3 SR2)"));
             using var _at = Edition.At(depending);
             dAt = Edition.Cursor;
         }

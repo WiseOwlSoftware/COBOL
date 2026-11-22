@@ -120,7 +120,7 @@ public sealed partial class FileControlBinder
                         : "";   // bare `ASSIGN USING …`: no device-name-1/literal-1 exists — UNASSOCIATED until an OPEN
                     if (asg.dataReference() is { } dyn)
                     {
-                        file.AssignUsingOperand = _host.ClauseDataName(dyn, "ASSIGN USING");
+                        file.AssignUsingOperand = _host.ClauseDataName(dyn, "ASSIGN USING", _host.OperandSubscriptRule("", ""));
                         using var __ = Edition.At(dyn);
                         file.AssignUsingAt = Edition.Cursor;   // §2023:12.4.5.2 SR7 reports here, from ResolveFiles
                     }
@@ -132,7 +132,7 @@ public sealed partial class FileControlBinder
                 // resolved the first same-named declaration in order (kb/Work PB489).
                 else if (clauses.fileStatusClause()?.dataReference() is { } fs)
                 {
-                    (file.FileStatusOperand, file.FileStatusSubscripts) = _host.ClauseDataNameSubscripted(fs, "FILE STATUS");
+                    (file.FileStatusOperand, file.FileStatusSubscripts) = _host.ClauseDataNameSubscripted(fs, "FILE STATUS", _host.OperandSubscriptRule("", "\"Data-name-1 shall not be subject to any OCCURS clauses\" (ISO §2023:12.4.5.8.3 SR1)"));
                     using var __ = Edition.At(fs);
                     file.FileStatusAt = Edition.Cursor;   // where its post-build resolution reports
                 }
@@ -143,14 +143,14 @@ public sealed partial class FileControlBinder
                     // PB1099): a null dataReference() taken alone would skip the clause and leave the file KEYLESS.
                     if (rkc.recordKeySourcePhrase() is { } rks)
                     {
-                        file.RecordKeySource = CaptureRecordKeySource(rks, "RECORD KEY");
+                        file.RecordKeySource = CaptureRecordKeySource(rks, "RECORD KEY", _host.OperandSubscriptRule("", "\"Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses\" (ISO §2023:12.4.5.12.3 SR1)"));
                         file.RecordKeyOperand = new WrittenDataName(file.RecordKeySource.Name);
                         using var __ = Edition.At(rks.recordKeyName());
                         file.RecordKeyAt = Edition.Cursor;
                     }
                     else if (rkc.dataReference() is { } rk)
                     {
-                        (file.RecordKeyOperand, file.RecordKeySubscripts) = _host.ClauseDataNameSubscripted(rk, "RECORD KEY");
+                        (file.RecordKeyOperand, file.RecordKeySubscripts) = _host.ClauseDataNameSubscripted(rk, "RECORD KEY", _host.OperandSubscriptRule("", "\"Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses\" (ISO §2023:12.4.5.12.3 SR1)"));
                         using var __ = Edition.At(rk);
                         file.RecordKeyAt = Edition.Cursor;   // §2023:12.4.5.12.3 reports here, from ResolveFiles
                     }
@@ -164,8 +164,8 @@ public sealed partial class FileControlBinder
                     var aks = ak.recordKeySourcePhrase();
                     if (aks is not null || ak.dataReference() is not null)
                     {
-                        var source = aks is null ? null : CaptureRecordKeySource(aks, "ALTERNATE RECORD KEY");
-                        var (an, asub) = source is null ? _host.ClauseDataNameSubscripted(ak.dataReference(), "ALTERNATE RECORD KEY")
+                        var source = aks is null ? null : CaptureRecordKeySource(aks, "ALTERNATE RECORD KEY", _host.OperandSubscriptRule("", "\"Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses\" (ISO §2023:12.4.5.6.3 SR1)"));
+                        var (an, asub) = source is null ? _host.ClauseDataNameSubscripted(ak.dataReference(), "ALTERNATE RECORD KEY", _host.OperandSubscriptRule("", "\"Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses\" (ISO §2023:12.4.5.6.3 SR1)"))
                             : (new WrittenDataName(source.Name), (IReadOnlyList<int>)[]);
                         using var __ = Edition.At(aks?.recordKeyName() ?? (Antlr4.Runtime.ParserRuleContext)ak.dataReference());
                         var clause = new AlternateKeyClause
@@ -182,7 +182,7 @@ public sealed partial class FileControlBinder
                 }
                 else if (clauses.relativeKeyClause()?.dataReference() is { } rlk)
                 {
-                    (file.RelativeKeyOperand, file.RelativeKeySubscripts) = _host.ClauseDataNameSubscripted(rlk, "RELATIVE KEY");   // ISO §2023:12.4.5.13.3 SR3 — outside the record
+                    (file.RelativeKeyOperand, file.RelativeKeySubscripts) = _host.ClauseDataNameSubscripted(rlk, "RELATIVE KEY", _host.OperandSubscriptRule("", "\"Data-name-1 shall not be subject to any OCCURS clauses\" (ISO §2023:12.4.5.13.3 SR1)"));   // ISO §2023:12.4.5.13.3 SR3 — outside the record
                     using var __ = Edition.At(rlk);
                     file.RelativeKeyAt = Edition.Cursor;   // §2023:12.4.5.13.3 reports here, from ResolveFiles
                 }
@@ -403,7 +403,7 @@ public sealed partial class FileControlBinder
     /// <para>ONE capture for BOTH clauses: the two general formats print the SAME brace group, so a second copy
     /// would be the two-arm shape (feedback_two_arm_dispatch). record-key-name-1 is DECLARED here, through the one
     /// declaration funnel, because the phrase is what defines it (§2023:8.3.2.2.24; kb/Work PB1083).</para></summary>
-    private RecordKeySource CaptureRecordKeySource(Core.RecordKeySourcePhraseContext src, string clause)
+    private RecordKeySource CaptureRecordKeySource(Core.RecordKeySourcePhraseContext src, string clause, string subscriptRule)
     {
         string keyName = src.recordKeyName().GetText();
         using (Edition.At(src.recordKeyName()))
@@ -411,7 +411,7 @@ public sealed partial class FileControlBinder
         var operands = new List<KeySourceOperand>();
         foreach (var dref in src.dataReference())
         {
-            var (operand, subscripts) = _host.ClauseDataNameSubscripted(dref, $"{clause} SOURCE");
+            var (operand, subscripts) = _host.ClauseDataNameSubscripted(dref, $"{clause} SOURCE", subscriptRule);
             using var _ = Edition.At(dref);
             operands.Add(new KeySourceOperand { Operand = operand, Subscripts = subscripts, At = Edition.Cursor });
         }
@@ -429,7 +429,7 @@ public sealed partial class FileControlBinder
             // Each key through the ONE data-name-n capture (kb/Work PB1075): qualified names are legal (§2023:8.4.2.2.1),
             // and SR6's "shall not be subscripted" is refused by name there.
             var keys = ctx.dataReference()
-                .Select(d => _host.ClauseDataNameSubscripted(d, "COLLATING SEQUENCE OF"))
+                .Select(d => _host.ClauseDataNameSubscripted(d, "COLLATING SEQUENCE OF", _host.OperandSubscriptRule("", "\"Data-name-1 and record-key-name-1 shall not be subscripted\" (ISO §2023:12.4.5.7.3 SR6)")))
                 .Select(k => new CollatingKeyOperand { Operand = k.Name, Subscripts = k.Subscripts })
                 .ToList();
             var clause = new KeyLevelCollatingClause(keys, ctx.cobolWord(0).GetText(), Edition.Cursor);

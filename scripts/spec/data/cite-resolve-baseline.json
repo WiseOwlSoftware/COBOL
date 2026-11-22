@@ -8,7 +8,7 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 6021,
+ "count": 6018,
  "entries": [
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4",
@@ -246,31 +246,25 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4",
-   "line": 982,
+   "line": 993,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4",
-   "line": 987,
-   "citation": "§2023:5.5",
-   "kind": "designator-not-canonical"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4",
-   "line": 988,
+   "line": 994,
    "citation": "§2023:8.3.3.3.2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4",
-   "line": 1003,
+   "line": 1009,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4",
-   "line": 1007,
+   "line": 1013,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical"
   },
@@ -4398,19 +4392,19 @@
   },
   {
    "file": "docs/REARCHITECTURE_PLAN.md",
-   "line": 437,
+   "line": 445,
    "citation": "§2023:14.6.13.1.3 item 8",
    "kind": "item-is-a-rule"
   },
   {
    "file": "docs/REARCHITECTURE_PLAN.md",
-   "line": 1287,
+   "line": 1295,
    "citation": "§2023:8.5.2.10 item 3",
    "kind": "item-is-a-rule"
   },
   {
    "file": "docs/REARCHITECTURE_PLAN.md",
-   "line": 4090,
+   "line": 4098,
    "citation": "§2023:8.3.5",
    "kind": "designator-not-canonical"
   },
@@ -5526,133 +5520,133 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 1104,
+   "line": 1120,
    "citation": "§2023:14.9.40.3 SR6",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 1111,
+   "line": 1126,
    "citation": "§2023:14.9.40.3 SR14",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 1325,
+   "line": 1342,
    "citation": "§2023:8.4.6.2.1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 1594,
+   "line": 1611,
    "citation": "§2023:8.3.3.6.3 SR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 1819,
+   "line": 1836,
    "citation": "§2023:8.3.3.3.2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 1843,
+   "line": 1860,
    "citation": "§2023:8.3.3.3.2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 1968,
+   "line": 1985,
    "citation": "§2023:8.3.2.1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 1991,
+   "line": 2008,
    "citation": "§2023:8.3.2.1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 2349,
+   "line": 2366,
    "citation": "§2023:13.18.57.4 GR2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 2370,
+   "line": 2387,
    "citation": "§2023:13.18.22.4 GR4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 2487,
+   "line": 2504,
    "citation": "§2023:13.18.22.4 GR4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 2603,
+   "line": 2620,
    "citation": "§2023:8.5.2.5 item 3",
    "kind": "item-is-a-rule"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 2603,
+   "line": 2620,
    "citation": "§2023:8.5.2.10 item 3",
    "kind": "item-is-a-rule"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 3060,
+   "line": 3077,
    "citation": "§2023:13.18.22.4 GR4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 3307,
+   "line": 3324,
    "citation": "§2023:13.18.63.3 SR27",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 3854,
+   "line": 3871,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 4893,
+   "line": 4910,
    "citation": "§2023:8.3.3.3.2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 4981,
+   "line": 4998,
    "citation": "§2023:8.3.3.3.2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 4993,
+   "line": 5010,
    "citation": "§2023:8.3.3.3.2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 5156,
+   "line": 5173,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 5156,
+   "line": 5173,
    "citation": "§2023:8.3.3.3.2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 6096,
+   "line": 6113,
    "citation": "§2023:8.4.6.2.1",
    "kind": "designator-not-canonical"
   },
@@ -5850,13 +5844,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs",
-   "line": 437,
+   "line": 438,
    "citation": "§2023:8.4.6.2.1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs",
-   "line": 466,
+   "line": 467,
    "citation": "§2023:8.4.6.2.1",
    "kind": "designator-not-canonical"
   },
@@ -6126,13 +6120,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs",
-   "line": 1797,
+   "line": 1799,
    "citation": "§2023:15.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs",
-   "line": 1824,
+   "line": 1826,
    "citation": "§2023:15.2",
    "kind": "designator-not-canonical"
   },
@@ -10068,43 +10062,43 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 665,
+   "line": 673,
    "citation": "§2023:14.9.40.3 SR6",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 706,
+   "line": 714,
    "citation": "§2023:14.9.40.3 SR6",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 706,
+   "line": 714,
    "citation": "§2023:14.9.24.3 SR4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 720,
+   "line": 728,
    "citation": "§2023:14.9.40.3 SR6",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 720,
+   "line": 728,
    "citation": "§2023:14.9.24.3 SR4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 1098,
+   "line": 1106,
    "citation": "§2023:14.9.40.3 SR14",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 1100,
+   "line": 1108,
    "citation": "§2023:14.9.40.3 SR14",
    "kind": "designator-not-canonical"
   },
@@ -11328,19 +11322,19 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs",
-   "line": 242,
+   "line": 244,
    "citation": "§2023:8.4.6.2.1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs",
-   "line": 318,
+   "line": 320,
    "citation": "§2023:8.4.6.2.1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs",
-   "line": 527,
+   "line": 532,
    "citation": "§2023:8.3.3.6.4 GR3",
    "kind": "designator-not-canonical"
   },
@@ -15498,55 +15492,49 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs",
-   "line": 17,
+   "line": 18,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs",
-   "line": 38,
+   "line": 39,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs",
-   "line": 51,
+   "line": 52,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs",
-   "line": 98,
+   "line": 110,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs",
-   "line": 151,
+   "line": 163,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs",
-   "line": 210,
+   "line": 222,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs",
-   "line": 403,
+   "line": 416,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs",
-   "line": 409,
-   "citation": "§2023:5.5",
-   "kind": "designator-not-canonical"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs",
-   "line": 415,
+   "line": 422,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical"
   },
@@ -16476,379 +16464,379 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 7722,
+   "line": 7738,
    "citation": "§2023:13.18.27.3 SR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 7752,
+   "line": 7768,
    "citation": "§2023:13.18.38.3 SR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 7754,
+   "line": 7770,
    "citation": "§2023:13.18.27.3 SR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 7766,
+   "line": 7782,
    "citation": "§2023:13.18.27.3 SR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 7766,
+   "line": 7782,
    "citation": "§2023:13.18.38.3 SR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 7898,
+   "line": 7914,
    "citation": "§2023:8.3.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 7904,
+   "line": 7920,
    "citation": "§2023:8.3.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 7913,
+   "line": 7929,
    "citation": "§2023:14.9.23.3 SR4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 7913,
+   "line": 7929,
    "citation": "§2023:14.9.23.3 SR4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8022,
+   "line": 8038,
    "citation": "§2023:8.3.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8030,
+   "line": 8046,
    "citation": "§2023:8.3.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8033,
+   "line": 8049,
    "citation": "§2023:8.3.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8040,
+   "line": 8056,
    "citation": "§2023:8.3.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8043,
+   "line": 8059,
    "citation": "§2023:8.3.5",
-   "kind": "designator-not-canonical"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8053,
-   "citation": "§2023:8.3.5",
-   "kind": "designator-not-canonical"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8058,
-   "citation": "§2023:6.3.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
    "line": 8069,
+   "citation": "§2023:8.3.5",
+   "kind": "designator-not-canonical"
+  },
+  {
+   "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
+   "line": 8074,
    "citation": "§2023:6.3.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8165,
+   "line": 8085,
+   "citation": "§2023:6.3.5",
+   "kind": "designator-not-canonical"
+  },
+  {
+   "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
+   "line": 8181,
    "citation": "§2023:8.4.3.3.4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8172,
+   "line": 8188,
    "citation": "§2023:8.4.3.3.4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8176,
+   "line": 8192,
    "citation": "§2023:14.6.13.1.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8180,
+   "line": 8196,
    "citation": "§2023:8.4.3.3.4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8180,
+   "line": 8196,
    "citation": "§2023:14.6.13.1.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8189,
+   "line": 8205,
    "citation": "§2023:8.4.3.3.4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8191,
+   "line": 8207,
    "citation": "§2023:8.4.3.3.4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8191,
+   "line": 8207,
    "citation": "§2023:14.6.13.1.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8218,
+   "line": 8234,
    "citation": "§2023:11.7.3 SR4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8219,
+   "line": 8235,
    "citation": "§2023:11.7.3 SR4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8570,
+   "line": 8586,
    "citation": "§2023:11.7.3 SR4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8578,
+   "line": 8594,
    "citation": "§2023:11.7.3 SR4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 8943,
+   "line": 8959,
    "citation": "§2023:14.6.13.1.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9026,
+   "line": 9042,
    "citation": "§2023:8.3.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9032,
+   "line": 9048,
    "citation": "§2023:8.3.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9235,
+   "line": 9251,
    "citation": "§2023:13.18.38.3 SR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9238,
+   "line": 9254,
    "citation": "§2023:13.18.38.3 SR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9586,
+   "line": 9602,
    "citation": "§2023:14.7.7",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9589,
+   "line": 9605,
    "citation": "§2023:14.7.7",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9709,
+   "line": 9725,
    "citation": "§2023:15.15.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9711,
+   "line": 9727,
    "citation": "§2023:15.15.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9960,
+   "line": 9976,
    "citation": "§2023:8.8.2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9980,
+   "line": 9996,
    "citation": "§2023:15.19.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9984,
+   "line": 10000,
    "citation": "§2023:15.19.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9990,
+   "line": 10006,
    "citation": "§2023:15.65.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9992,
+   "line": 10008,
    "citation": "§2023:15.65.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10077,
+   "line": 10093,
    "citation": "§2023:15.66.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10079,
+   "line": 10095,
    "citation": "§2023:15.26.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10080,
+   "line": 10096,
    "citation": "§2023:15.66.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10080,
+   "line": 10096,
    "citation": "§2023:15.26.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10184,
+   "line": 10200,
    "citation": "§2023:13.18.40.3 SR12",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10186,
+   "line": 10202,
    "citation": "§2023:13.18.40.3 SR12",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10193,
+   "line": 10209,
    "citation": "§2023:13.18.40.3 SR12",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10195,
+   "line": 10211,
    "citation": "§2023:13.18.40.3 SR12",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10201,
+   "line": 10217,
    "citation": "§2023:15.12.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10204,
+   "line": 10220,
    "citation": "§2023:15.12.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10473,
+   "line": 10489,
    "citation": "§2023:13.18.54.3 SR4",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10539,
+   "line": 10555,
    "citation": "§2023:14.9.30.4 GR24",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10588,
+   "line": 10604,
    "citation": "§2014:E.3",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10646,
+   "line": 10662,
    "citation": "§2002:12.3.4.3 GR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10646,
+   "line": 10662,
    "citation": "§2023:12.4.5.3 GR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10657,
+   "line": 10673,
    "citation": "§2002:12.3.4.3 GR1",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10798,
+   "line": 10814,
    "citation": "§2023:8.4.2.3.3 SR5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10908,
+   "line": 10924,
    "citation": "§2023:13.18.24.4 GR2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10915,
+   "line": 10931,
    "citation": "§2023:13.18.24.4 GR2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 10921,
+   "line": 10937,
    "citation": "§2023:14.9.50.4 GR7",
    "kind": "designator-not-canonical"
   },
@@ -17400,13 +17388,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs",
-   "line": 1585,
+   "line": 1594,
    "citation": "§2023:8.3.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs",
-   "line": 1707,
+   "line": 1716,
    "citation": "§2023:15.3 item 3",
    "kind": "item-is-a-rule"
   },
@@ -19464,13 +19452,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs",
-   "line": 437,
+   "line": 447,
    "citation": "§1985:VI.6.21.4 GR10",
    "kind": "designator-not-canonical"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs",
-   "line": 482,
+   "line": 492,
    "citation": "§2002:14.8.47.3 GR25",
    "kind": "designator-not-canonical"
   },
@@ -26706,7 +26694,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/FloatIntegerArgumentPermissiveTests.cs",
-   "line": 304,
+   "line": 320,
    "citation": "§2023:15.9.4",
    "kind": "designator-not-canonical"
   },
@@ -33492,25 +33480,19 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/SignedIntegerSlotDriftTests.cs",
-   "line": 14,
+   "line": 21,
    "citation": "§2023:5.5",
    "kind": "designator-not-canonical"
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/SignedIntegerSlotDriftTests.cs",
-   "line": 20,
-   "citation": "§2023:5.5",
-   "kind": "designator-not-canonical"
-  },
-  {
-   "file": "tests/WiseOwl.Cobol.Tests.Unit/SignedIntegerSlotDriftTests.cs",
-   "line": 20,
+   "line": 21,
    "citation": "§2023:8.3.3.3.2",
    "kind": "designator-not-canonical"
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Unit/SignedIntegerSlotDriftTests.cs",
-   "line": 87,
+   "line": 119,
    "citation": "§2023:8.3.3.3.2",
    "kind": "designator-not-canonical"
   },

@@ -335,7 +335,7 @@ public sealed partial class FileControlBinder
                     + "MULTIPLE RECORDS applied automatically\"");
                 continue;
             }
-            clause.Identifiers.Add((_host.ClauseDataName(operand, "APPLY COMMIT identifier-1"), Edition.Cursor));
+            clause.Identifiers.Add((_host.ClauseDataName(operand, "APPLY COMMIT identifier-1", _host.OperandSubscriptRule("", "")), Edition.Cursor));
         }
     }
 

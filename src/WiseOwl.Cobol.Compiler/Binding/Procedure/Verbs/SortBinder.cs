@@ -660,7 +660,15 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // identifier: §2023:8.4.3.3.3's NOTE forbids the reference-modifier and §2023:14.9.40.3 SR6 b) the subscript. The one
             // data-name-n screen refuses both BEFORE the resolver, which would otherwise hand back the base item
             // with the modifier dropped and key the file on the whole field (kb/Work PB481).
-            if (!DataBinder.ScreenDataNameShape(dref, "SORT/MERGE key", ctx.Edition, DataBinder.NotSubjectToOccurs))
+            if (!DataBinder.ScreenDataNameShape(dref, "SORT/MERGE key", ctx.Edition, rules == SortKeyRules.Merge
+                    ? DataBinder.OperandSubscriptRule(ctx.Edition.Edition,
+                        "none of the data items identified by key data-names \"can be described by an entry that either contains an "
+                            + "OCCURS clause or is subordinate to an entry that contains an OCCURS clause\" (§1985:XI.4.1.3 SR4e)",
+                        DataBinder.NotSubjectToOccurs + " (ISO §2023:14.9.24.3 SR4b)")
+                    : DataBinder.OperandSubscriptRule(ctx.Edition.Edition,
+                        "none of the data items identified by key data-names \"can be described by an entry which either contains an "
+                            + "OCCURS clause or is subordinate to an entry which contains an OCCURS clause\" (§1985:XI.4.4.3 SR4e)",
+                        DataBinder.NotSubjectToOccurs + " (ISO §2023:14.9.40.3 SR6b)")))
                 return false;
             // ⛔ WHICH ITEMS MAY BE A KEY is the ONE admissibility predicate's (kb/Work PB1173, PB1052): §2023:14.9.40.3 SR6 b)
             // c) d) f) / §2023:14.9.24.3 SR4, asked of the NAMED item before any occurrence is resolved — the resolver's own

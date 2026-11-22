@@ -422,7 +422,7 @@ public sealed partial class FileControlBinder
         Editions.DiagnosticCursor depAt = default;
         if (rc.dataReference() is { } d)
         {
-            dep = _host.ClauseDataName(d, "RECORD DEPENDING ON");
+            dep = _host.ClauseDataName(d, "RECORD DEPENDING ON", _host.OperandSubscriptRule("", ""));
             // The OPERAND's own position, inside the clause cursor kb/Work PB721 pushed at the method top.
             using var _dep = Edition.At(d);
             depAt = Edition.Cursor;
@@ -503,7 +503,7 @@ public sealed partial class FileControlBinder
                 return new LinageOperand(
                     _host.Constants.ConstantOperandValue(d!, "LINAGE clause operand") ?? ConstantEntryBinder.RecoveredIntegerOperand, null) { At = Edition.Cursor };
             }
-            var name = _host.ClauseDataName(d!, "LINAGE clause operand");
+            var name = _host.ClauseDataName(d!, "LINAGE clause operand", _host.OperandSubscriptRule("", "\"Data-name-1, data-name-2, data-name-3, and data-name-4 shall not be subject to any OCCURS clauses\" (ISO §2023:13.18.34.3 SR1)"));
             using var _ = Edition.At(d!);
             return new LinageOperand(null, name) { At = Edition.Cursor };
         }

@@ -112,8 +112,7 @@ public sealed class ClauseOperandCaptureDriftTests
             string src = File.ReadAllText(path);
             if (!Regex.IsMatch(src, @"KeyReference\((?!Core\.)")) continue;   // a call, not the definition
             callers++;
-            Assert.True(src.Contains("ScreenDataNameShape(", StringComparison.Ordinal)
-                        || src.Contains("ScreenClauseOperandShape(", StringComparison.Ordinal),
+            Assert.True(src.Contains("ScreenDataNameShape(", StringComparison.Ordinal),
                 $"{Path.GetFileName(path)} calls KeyReference without the data-name-n shape screen (kb/Work PB481)");
         }
         Assert.True(callers >= 2, "the scan found fewer KeyReference callers than DataBinder + SortBinder — re-derive it");

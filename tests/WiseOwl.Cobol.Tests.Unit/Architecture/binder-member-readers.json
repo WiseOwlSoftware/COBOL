@@ -495,6 +495,11 @@
     "WiseOwl.Cobol.Binding.DataBinder::OoRole": [
       "WiseOwl.Cobol.Compiler.Oo.OoDriver"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::OperandSubscriptRule": [
+      "WiseOwl.Cobol.Binding.FileControlBinder",
+      "WiseOwl.Cobol.Binding.Procedure.SortBinder",
+      "WiseOwl.Cobol.Binding.ReportSectionBinder"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::OwnWords": [
       "WiseOwl.Cobol.Binding.BinderDriver",
       "WiseOwl.Cobol.Binding.SpecialNamesBinder",
