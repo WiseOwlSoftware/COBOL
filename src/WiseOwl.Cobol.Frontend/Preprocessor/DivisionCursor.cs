@@ -32,7 +32,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// words after that, so a reader of the text AS WRITTEN (<paramref name="words"/> null: the converters and the COPY driver)
 /// knows the division only until something it cannot see could have changed what its words mean: a conditional group whose
 /// branches disagree on the division, a <c>&gt;&gt;COBOL-WORDS</c> directive that names a word the cursor reads (it may now be spelled
-/// another way; <see cref="NoteCobolWordsDirective"/>), or a REPLACE statement or <c>COPY … REPLACING</c> that names a word the cursor reads (§2023:7.2.4.4 2): it
+/// another way; <see cref="NoteCobolWordsDirective"/>), or a REPLACE statement or <c>COPY … REPLACING</c> that names a word the cursor reads (§2023:7.2.4.4 GR2: it
 /// "specifies the text to be replaced"). What it does not know it says so, and the converter CARRIES the comment-entry candidate it cannot
 /// place (<see cref="CommentEntryCarrier"/>) for <see cref="CommentEntryResolver"/> to decide on the text every
 /// stage has finished with, read by a cursor that is given the group's word map (<paramref name="words"/>) and so reads
@@ -201,7 +201,7 @@ internal sealed class DivisionCursor(bool? startsInIdentificationDivision, bool 
     {
         if (word.Kind == TextWordKind.DirectiveLine)
         {
-            ReadDirective(word);   // not a text-word (§2023:7.3.4 1)), but it bounds the branches of a conditional group
+            ReadDirective(word);   // not a text-word (§2023:7.3.4 GR1), but it bounds the branches of a conditional group
             return;
         }
         if (_inStatement)
@@ -211,8 +211,8 @@ internal sealed class DivisionCursor(bool? startsInIdentificationDivision, bool 
             {
                 _inStatement = false;
                 _afterIdentification = false;
-                // A replacing action rewrites the words of the text it governs (§2023:7.2.4.4 2): "Pseudo-text-1 specifies the text
-                // to be replaced by pseudo-text-2"; §2023:7.2.4.4 1): the REPLACE statement's source text is "the
+                // A replacing action rewrites the words of the text it governs (§2023:7.2.4.4 GR2): "Pseudo-text-1 specifies the text
+                // to be replaced by pseudo-text-2"; §2023:7.2.4.4 GR1: the REPLACE statement's source text is "the
                 // conditionally-processed compilation group"), and one that names a word this cursor reads — to match it, or
                 // to write it — can change which division words the FINISHED text holds, which a reader of the words as
                 // written cannot tell.

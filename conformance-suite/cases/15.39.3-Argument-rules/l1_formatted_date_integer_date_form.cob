@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.39.3 r3 — "Argument-2 shall be a value in integer date form": the FULL interval, both ends and
+      *> ISO §2023:15.39.3 AR3 — "Argument-2 shall be a value in integer date form": the FULL interval, both ends and
       *> both directions of the violation, for FORMATTED-DATE.
       *>
       *> §2023:15.5.2 is what "integer date form" MEANS, and it states an interval, not a ceiling: "A value in integer
@@ -14,7 +14,7 @@
       *> FUNCTION INTEGER-OF-DATE (99991231), which is 3,067,671." The same clause fixes the epoch — "a starting
       *> date of Monday, January 1, 1601 … integer date 1 was a Monday" — so integer date 1 IS 1601-01-01 and
       *> 3,067,671 IS 9999-12-31, which §2023:15.3.1.2's basic calendar date format renders as 16010101 and 99991231
-      *> (§2023:15.39.4 r1: "a representation of the date contained in argument-2 according to the format in
+      *> (§2023:15.39.4 RV1: "a representation of the date contained in argument-2 according to the format in
       *> argument-1").
       *>
       *> Outside that interval the argument is an incorrect value for the argument, so ISO §2023:15.3 applies: "If the

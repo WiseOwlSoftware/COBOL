@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// digits (§2002:8.8.1.3.2, §2002:8.8.1.3.4, §2002:8.8.1.3.5) in the range 10^-999 through 10^1000 - 10^968
 /// (§2002:8.8.1.3.1.1); 2014 says "as if ARITHMETIC IS STANDARD-DECIMAL were in effect at compile time"
 /// (§2014:7.3.5.2 GR1), the SDIDI decimal engine (34 digits, decimal128 range, §2023:8.8.1.5.2) with the standard-decimal
-/// default intermediate rounding NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3 a); from 2023 the mode is the documented
+/// default intermediate rounding NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3a); from 2023 the mode is the documented
 /// System.Decimal one (§2023:7.3.6.3 GR2; docs/CONFORMANCE.md DOC-A.1-29). Every expected value below is derived from
 /// those rules by hand, then §2023:7.3.6.3 GR3 (truncate the final result to its integer part), never read off the
 /// compiler.
@@ -130,7 +130,7 @@ public sealed class CompileTimeArithmeticModeTests
         Assert.Equal(expected, r!.Value.Literal);
     }
 
-    /// <summary>The standard-decimal default intermediate rounding is NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3 a),
+    /// <summary>The standard-decimal default intermediate rounding is NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3a),
     /// observed at a TIE. 1000000000000000000000000000001 x 10005 = 10005000000000000000000000000010005 exactly -
     /// 35 digits, so the 34-digit SDIDI drops a final 5 with nothing after it: away from zero keeps
     /// …0010010, nearest-even would keep …0010000. Subtracting the exact 10^30 x 10005 exposes the choice:

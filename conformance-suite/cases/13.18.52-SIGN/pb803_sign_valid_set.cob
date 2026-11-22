@@ -13,7 +13,7 @@
       *> (or, respectively, trailing) digit position of the data item to which it applies.
       *> b) The implementor defines what constitutes valid signs for data items."
       *> a) is NORMATIVE and carries no latitude: the sign is associated with a DIGIT position, so
-      *> it adds no character position.  b) is the whole of A.1 item 178, and §2023:8.8.4.4.4 GR3n1.a
+      *> it adds no character position.  b) is the whole of A.1 item 178, and §2023:8.8.4.4.4 GR3n.1.a
       *> delegates the NUMERIC class condition to it: "the condition is true if the presence or
       *> absence of an operational sign in the content of the data item ... is in agreement with the
       *> data description ... and if the content, except for the operational sign, consists entirely

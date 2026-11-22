@@ -84,7 +84,7 @@ public sealed class OperandStringChannelDriftTests
     /// agreement. <c>BoundBoolOperand</c> — a boolean EXPRESSION argument, §2023:8.4.3.2.3 SR8 (kb/Work PB65) — images
     /// through the ONE <c>BooleanRenderer</c>, never a local re-derivation and never a loud stage (it was a stage
     /// before the grammar admitted the argument). <c>BoundNumericLiteral</c> is ADMITTED
-    /// PER-FUNCTION since PB59 (§2023:15.12.3 r1 / §2023:15.18.3 r1 admit numeric literals): the arm must stay
+    /// PER-FUNCTION since PB59 (§2023:15.12.3 AR1 / §2023:15.18.3 AR1 admit numeric literals): the arm must stay
     /// CONDITIONAL — <c>admitNumeric</c> selecting the shared OperandText image, <c>Loud</c> as the DEFAULT —
     /// because NUMVAL/NUMVAL-F carry open rows (AR-15.67.3-1 / AR-15.69.3-1) demanding a compile-time
     /// rejection; an unconditional delegation would turn their wrong-stage defect into a silently-wrong one.
@@ -166,7 +166,7 @@ public sealed class OperandStringChannelDriftTests
         // Every leaf is DELEGATED (the shared rule), DIVERGENT BY DESIGN, or ADMITTED PER-FUNCTION (PB59 —
         // the conditional arm the pin test above owns). A leaf in no bucket is one nobody has decided about,
         // which is how PB25 shipped.
-        // BoundCurrentRecord (kb/Work PB339) is DELEGATED: its image is the ISO §2023:14.9.30.4 GR4 b) current
+        // BoundCurrentRecord (kb/Work PB339) is DELEGATED: its image is the ISO §2023:14.9.30.4 GR4b current
         // record — the record area sliced to the §2023:13.18.43.4 GR16 byte count — written down once in
         // OperandText.CurrentRecordImage, so the intrinsic-argument channel forwards rather than going loud.
         // No intrinsic argument can BE one today (it is built only for a READ/RETURN INTO implicit MOVE), and

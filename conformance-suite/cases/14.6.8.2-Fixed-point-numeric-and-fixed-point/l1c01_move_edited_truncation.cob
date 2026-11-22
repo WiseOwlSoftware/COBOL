@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:14.6.8.2 r5 — numeric-edited receiver: alignment, zero
+      *> ISO §2023:14.6.8.2 GR5 — numeric-edited receiver: alignment, zero
       *> fill AND truncation at both ends, then editing
       *> THE RULE: "If the receiving operand is a fixed-point
       *> numeric-edited item, further alignment, zero fill or

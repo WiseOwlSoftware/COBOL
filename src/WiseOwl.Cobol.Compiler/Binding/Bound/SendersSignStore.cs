@@ -30,9 +30,9 @@ public readonly record struct NumericStore(BoundOperand Sender, DataItem Receive
 }
 
 /// <summary>⛔ THE 1985 AND 2002 SIGN OF A NUMERIC STORE, WRITTEN ONCE (kb/Work PB5852; DESIGN-data-model §2.1.1).
-/// §1985:VI.6.19.4 GR4b1 and §2002:14.8.24.3 GR4b1: "When a signed numeric item is the receiving item, the sign of the sending
+/// §1985:VI.6.19.4 GR4b.1 and §2002:14.8.24.3 GR4b.1: "When a signed numeric item is the receiving item, the sign of the sending
 /// operand is placed in the receiving item." The sign is the OPERAND's, so a sender whose digits all truncate away leaves a
-/// negative zero; from 2014 it is "the sign of the numeric value" (§2014:14.9.24.3 GR6d2a), and nothing here applies.
+/// negative zero; from 2014 it is "the sign of the numeric value" (§2014:14.9.24.3 GR6d.2.a), and nothing here applies.
 /// <para>Two consumers ask these predicates and neither restates them: <c>StorageFormPass</c> promotes the native sign holders
 /// that can be handed a negative zero to their image (<see cref="MayHandNegativeZero"/>, the computed set), and
 /// <c>MoveEmitter.ConvertSource</c> writes the sender's sign into an image-carried sign holder
@@ -60,7 +60,7 @@ internal static class SendersSignStore
     public static bool SenderMayBeNegative(BoundOperand sender) => sender switch
     {
         BoundNumericLiteral lit => lit.Text.StartsWith('-') && NonZeroDigitExponents(lit.Text).Any(),
-        // A reference-modified sender is alphanumeric (§1985:VI.6.19.4 GR4b3's unsigned integer), whatever its item.
+        // A reference-modified sender is alphanumeric (§1985:VI.6.19.4 GR4b.3's unsigned integer), whatever its item.
         BoundFieldOperand { Place.DenotedItem: not null, Place.Item.Pic: { Category: PicCategory.Numeric or PicCategory.NumericEdited, HoldsSign: true } } => true,
         BoundComputedOperand c => c.IsNumericFunctionValue,
         _ => false,

@@ -25,8 +25,8 @@ public sealed class CurrencySignRefusalTests
 
     [Theory]
     [InlineData("SPACE", "COBOL0892", "SR18")]
-    [InlineData("\"   \"", "COBOL0890", "r23a")]
-    [InlineData("\"E1\"", "COBOL0890", "r23b")]
+    [InlineData("\"   \"", "COBOL0890", "SR23a")]
+    [InlineData("\"E1\"", "COBOL0890", "SR23b")]
     [InlineData("NULL", "COBOL2576", "§2023:8.4.3.10.3 SR1")]
     public void ARefusedCurrencyString_IsTheClausesOneDiagnostic(string literal7, string code, string rule)
     {
@@ -53,6 +53,6 @@ public sealed class CurrencySignRefusalTests
         var (ok, errors) = EditionHarness.Compile(source, 2023);
         Assert.False(ok);
         Assert.True(errors.Count == 1, $"expected only the first clause's SR23 b) error; got:\n{string.Join("\n", errors)}");
-        EditionHarness.AssertHasDiagnostic(errors, "r23b");
+        EditionHarness.AssertHasDiagnostic(errors, "SR23b");
     }
 }

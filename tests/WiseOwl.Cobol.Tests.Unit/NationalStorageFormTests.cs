@@ -94,7 +94,7 @@ public sealed class NationalStorageFormTests
         var bit = BindWs("01 B-ITEM PIC 1(4) USAGE BIT.").Forest.ItemNamed("B-ITEM");
         Assert.Equal(PicCategory.Boolean, bit.Pic!.Category);
         Assert.Equal(Usage.Bit, bit.Pic.Usage);
-        Assert.Equal(4, bit.Pic.Length);            // four BOOLEAN positions — what §2023:15.50.4 r1 returns
+        Assert.Equal(4, bit.Pic.Length);            // four BOOLEAN positions — what §2023:15.50.4 RV1 returns
         Assert.Equal(1, bit.ImageWidth);            // ceil(4/8) CHARACTER positions — what it OCCUPIES
         Assert.Equal(1, bit.ByteWidth);
 

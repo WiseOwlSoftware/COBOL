@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// §2023:14.6.13.1.1: "If checking for an exception condition is enabled and an exception status indicator is set as a
 /// result of an exception detected during the execution of a statement, the associated exception condition is
 /// raised", and its NOTE 3: "An exception condition is set to exist only if checking for that condition is enabled".
-/// A condition whose checking is not enabled takes §2023:14.6.13.1.3 item 8's not-enabled disposition, which
+/// A condition whose checking is not enabled takes §2023:14.6.13.1.3 GR8's not-enabled disposition, which
 /// docs/CONFORMANCE.md DOC-A.1-70 documents: the unchecked kernel's value, execution continuing.
 /// <para>A statement WITH a SIZE ERROR phrase takes <see cref="All"/>: §2023:14.7.5 enables checking of "the arithmetic
 /// operations that take place in developing and storing the result", whichever condition they meet. A statement

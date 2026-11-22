@@ -89,7 +89,7 @@ a space (or a line end, or a closing `==`) follows (§2023:8.3.5 2)/3)), so `Z,Z
 is ONE word from its prefix (`X" N" NX" B" BX"`) through its closing delimiter with doubled quotes inside; `&` is a
 word of its own; `==` is the pseudo-text delimiter; a line that begins `>>` is ONE `DirectiveLine` element only where
 the edition has compiler directives (`EditionInfo.HasCompilerDirectives`, from 2002, §2002:7.2.2 SR2): below it the line is ordinary text-words
-(§1985:III.2 item 3), so pseudo-text may hold it (§1985:XII.3.3 SR3, SR4; kb/Work PB5803) and every scanner call takes that answer. Its three consumers:
+(§1985:III.2 GRL4.3), so pseudo-text may hold it (§1985:XII.3.3 SR3, SR4; kb/Work PB5803) and every scanner call takes that answer. Its three consumers:
 
 - **Locating COPY and REPLACE** — `FindStatementKeyword(text, pos, keyword, edition, onGlued)` returns the next text-word
   `COPY` / `REPLACE`, so it cannot fire in a literal, a comment, a directive line or a longer word, and a REPLACE is

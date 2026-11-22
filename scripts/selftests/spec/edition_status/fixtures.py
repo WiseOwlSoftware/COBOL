@@ -117,6 +117,29 @@ Figure 1: The caption of a figure printed in the clause
 """
 
 
+#: A 1985 clause headed "Examples" (§1985:VI.6.18.5's shape, kb/Work PB6001): a preamble, a label, a fenced code display
+#: whose lines are long enough to be sentences, and a result table.
+EXAMPLES_1985 = """## Page 1
+
+# SECTION VI: NUCLEUS MODULE
+
+### 3.1 Examples
+
+In each of the following examples the counter is assumed to be zero before the statement.
+
+<u>Example 1</u>:
+
+```
+INSPECT ITEM TALLYING
+     COUNT-0 FOR ALL "AB" BEFORE "BC" AFTER "DE"
+```
+
+| Initial Value of ITEM | COUNT-0 |
+|---|---|
+| ABABC | 1 |
+"""
+
+
 def planted_1985(root, rows, text=TRANSCRIPTION_1985):
     """`root` holding the planted transcription `text` and a committed 1985 catalog of `rows`."""
     spec = C.catalog_prose_holes.spec_pdf.markdown(1985, root)

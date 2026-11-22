@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:9.3.5.3 item 1 — the method NAME is part of the signature
+      *> ISO §2023:9.3.5.3 GR1 — the method NAME is part of the signature
       *> "The method resolution signature consists of: 1) The method
       *> name"
       *>   cite.py --check 9.3.5.3 "The method name" -> OK  §2023:9.3.5.3 GR1

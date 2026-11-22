@@ -9,7 +9,7 @@
       *> kb/Work PB5803. §1985:XII.2.3 SR3: "Pseudo-text-1 must contain one or
       *> more text words" (cite.py --check: OK). COBOL-85 has no compiler
       *> directive lines, so ">>XYZ" at the head of a line is one text word
-      *> (§1985:III.2 item 3). Pseudo-text-1 below is that word, and the
+      *> (§1985:III.2 GRL4.3). Pseudo-text-1 below is that word, and the
       *> library text PB5803L is that word alone, so COPY ... REPLACING
       *> turns it into the statement the BY operand holds and the program
       *> DISPLAYs "[LIB ]". Each leg can fail: the edition-blind directive

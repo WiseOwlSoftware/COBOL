@@ -166,6 +166,8 @@ internal static class ProcessObserver
 
         using (proc)
         {
+            // The budget kill below runs in this host; a host that dies first must not leave the child running (kb/Work PB5057).
+            HostBoundChildren.Bind(proc);
             // Read both streams asynchronously BEFORE waiting: a child that fills a redirected pipe blocks
             // forever otherwise, which would present as a timeout that is really our own deadlock.
             var outTask = proc.StandardOutput.ReadToEndAsync();

@@ -25,7 +25,7 @@ public static class CtNumeric
     /// every significand of at most 34 digits — every fixed-point literal; only a 35- or 36-digit floating-point
     /// significand (§2023:8.3.3.3.3) rounds, and such a literal reaches the carrier only as a constant entry's sole
     /// operand, whose value is carried by its TEXT. False when the text is not a numeric literal or its value lies
-    /// outside the decimal128 range (§2023:8.8.1.5.2 r2).</summary>
+    /// outside the decimal128 range (§2023:8.8.1.5.2 GR2).</summary>
     public static bool TryParseLiteral(string canonicalText, out CobolDec value)
     {
         value = default;

@@ -161,7 +161,7 @@ public sealed class ReportModel
     /// selector in particular, whose name must agree between a contained program and its containers.</summary>
     public required int Uid { get; init; }
 
-    /// <summary>The RD entry specifies the GLOBAL clause (ISO §2023:13.18.27.3 SR1 e)): the report-name is a global
+    /// <summary>The RD entry specifies the GLOBAL clause (ISO §2023:13.18.27.3 SR1e): the report-name is a global
     /// name, and so is every data-name subordinate to it (§2023:13.18.27.4 GR1) — its report groups and its sum
     /// counters — visible to every program the declaring program contains, directly or indirectly (GR2).</summary>
     public bool IsGlobal { get; set; }
@@ -377,7 +377,7 @@ public sealed class ReportGroupModel
     public bool ControlFinal { get; set; }
 
     /// <summary>A control heading written with the OR PAGE phrase (§2023:13.18.57.2): it is printed "in addition after each
-    /// page advance, following any page heading" (§2023:13.18.57.4 GR6 c)) — the engine's <c>ReportGroup.OrPage</c>.</summary>
+    /// page advance, following any page heading" (§2023:13.18.57.4 GR6c) — the engine's <c>ReportGroup.OrPage</c>.</summary>
     public bool OrPage { get; set; }
 
     /// <summary>The resolved control LEVEL (the index into <see cref="ReportModel.Controls"/>); −1 until
@@ -777,7 +777,7 @@ public sealed record FieldReferenceSource(Antlr4.Runtime.ParserRuleContext Ref, 
 public sealed record FieldComputeSource(Core.ReportValueOperandContext Ctx, string Written) : ReportFieldSource
 {
     /// <summary>The clause's ROUNDED phrase (§2023:13.18.53.2's trailing <c>[ rounded-phrase ]</c>, §2023:14.7.4), or null
-    /// — in which case GR2's implicit COMPUTE has no ROUNDED phrase and the transfer truncates (§2023:14.7.4.3 r2).</summary>
+    /// — in which case GR2's implicit COMPUTE has no ROUNDED phrase and the transfer truncates (§2023:14.7.4.3 GR2).</summary>
     public Core.RoundedPhraseContext? Rounded { get; init; }
 
     /// <summary>The bound expression (procedure phase); null when a screen rejected the operand.</summary>
@@ -880,7 +880,7 @@ public sealed record ReportDetailRef
     public required CobolParserCore.DataReferenceContext Ctx { get; init; }
 
     /// <summary>The report description the resolved <see cref="Detail"/> belongs to — the RD of the SUM entry itself
-    /// for an unqualified operand, ANOTHER report's when SR7's report-name qualifier says so (§2023:13.18.54.4 GR7 c) 2):
+    /// for an unqualified operand, ANOTHER report's when SR7's report-name qualifier says so (§2023:13.18.54.4 GR7c.2):
     /// the GENERATE that adds is then executed against that report's engine).</summary>
     public ReportModel? Owner { get; set; }
 
@@ -932,7 +932,7 @@ public abstract class ReportEntryFamily
     public required IReadOnlyList<ReportOccursSpec> Repetitions { get; init; }
 
     /// <summary>The operand count of the entry's own multiple COLUMN clause — the innermost level — or 1 when the
-    /// entry has no multiple COLUMN clause (§2023:13.18.14.3 SR10 a) keeps an OCCURS clause out of such an entry).</summary>
+    /// entry has no multiple COLUMN clause (§2023:13.18.14.3 SR10a keeps an OCCURS clause out of such an entry).</summary>
     public required int Columns { get; init; }
 
     /// <summary>The occurrence count of each level, outermost first: each of <see cref="Repetitions"/>' integer-2,
@@ -1135,7 +1135,7 @@ public sealed class ReportSumModel
     /// §2023:13.18.54.4 GR4: "If the ROUNDED phrase is specified …, the content of the sum counter is computed
     /// according to the general rules for the COMPUTE statement with the ROUNDED phrase" — the phrase governs the
     /// counter's delivery to the printable item, which is why §2023:13.18.54.3 SR3 admits it only with a COLUMN
-    /// clause. Null (no phrase) ⇒ the transfer truncates (§2023:14.7.4.3 r2).</summary>
+    /// clause. Null (no phrase) ⇒ the transfer truncates (§2023:14.7.4.3 GR2).</summary>
     public Core.RoundedPhraseContext? Rounded { get; set; }
 
     /// <summary>The rounding mode <see cref="Rounded"/> selects (§2023:14.7.4.3), resolved in the procedure phase

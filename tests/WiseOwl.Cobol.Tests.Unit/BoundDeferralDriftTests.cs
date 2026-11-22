@@ -119,7 +119,7 @@ MAIN.
         "COBOL2269", "SEARCH NOT AT END")]
     [InlineData("E", "ENTRY \"PB909ENTRY\".", "COBOL2269", "ENTRY")]
     [InlineData("F", "OPEN OUTPUT IX-FILE. WRITE IX-REC AFTER ADVANCING 1 LINE.", "COBOL1720", "SR3")]
-    [InlineData("G", "SORT TROW ASCENDING KEY TCELL.", "COBOL1757", "SR14 e")]
+    [InlineData("G", "SORT TROW ASCENDING KEY TCELL.", "COBOL1757", "SR14e")]
     public void IllegalShape_IsARefusal_NeverADeferral(string id, string stmt, string code, string text)
     {
         var (ok, errors, warnings) = Compile(string.Format(Head, id) + "    " + stmt + "\nSKIPPER.\n    STOP RUN.\n");

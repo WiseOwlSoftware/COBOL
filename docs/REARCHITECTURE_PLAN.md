@@ -24,6 +24,24 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 
 ### Where we are
 
+- **▶ 1985: TRAIN E (2026-11-21, branch train-1985-e, wave 20262132).** Three fix branches in one landing, on train D.
+  The citation canonicalizer is safe on message text, and its run over the tree closes PB4976 and PB6000 (PB6035; RESOLVE's
+  baseline 6,021 → 1,953 entries, each with its reason). A signed integer-n is refused once by its own rule, COBOL7737
+  (PB6021). The SEARCH ALL messages cite through `EditionInfo.CiteRule` (PB5530), and each data-name-n operand states its
+  own clause's subscript rule at 85 and 2023 (PB2041; 2002/2014 are PB6038). A test's program child dies with its host
+  (PB5057), and a C# witness of a 1985 row compiles fixed form (PB6037). 39 inline edition comparisons moved into 25
+  `DialectBehavior` members, ordinals 36-60 and VCR rows 7.92-7.116, and a ratchet holds the 116 left (PB6031, open,
+  editions `[]`). Group h (PB6022, PB3965, PB5683, PB5924) joins the next train. `python scripts/spec/edition_status.py
+  --edition 1985`: `=== EDITION 1985: NOT COMPLETE — 1 code reads · 4 open work notes ===` (0 inventory GAP, 0 catalog
+  prose holes; the re-read is of 1985-SR-VIII.2.4.3-1, whose member PB2041 folded).
+- **▶ 1985: TRAIN D (2026-11-21, branch train-1985-d, wave 20262132).** Five fix branches in one landing, on train C.
+  They carry the register catching up for 1985, under rulings D-A and D-C (PB5924, PB4995, PB4886, PB5596; eleven notes
+  narrowed), and extent and caption reading in `cite.py` (PB6014, PB6015). They add the `item <n>` citation designator
+  (PB5449; every 1985 item citation checks) and PB5829's new GR25 witness. The §1985:VI.6.18.5 Examples clause is now
+  units, with 0 prose holes left (PB6001). Format rows are witnessed only by accepted cases (PB5740), and WHEN-COMPILED has
+  a listing witness under ruling D-B (PB5926). The input-output statements are an edition fact (PB6032), which closed the
+  last row, 1985-GR-III.2-p139, and PB5453. `python scripts/spec/edition_status.py --edition 1985`:
+  `=== EDITION 1985: NOT COMPLETE — 5 code reads · 13 open work notes ===` (0 inventory GAP, 0 catalog prose holes).
 - **▶ 1985: TRAIN C (2026-11-21, branch train-1985-c, wave 20262131).** Twelve fix branches in one landing: the
   procedure-division area-A recovery (PB6018), the last 175 descriptors' 1985 rules and the run-time citations at 85
   (PB5993, PB6028-PB6030), one run-time answer to an argument breach at 85 (PB6019), the last rows of the 85w mint
@@ -332,7 +350,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   14 of 15; GAP 4138. PB78 registered (OBJECT-COMPUTER's optional computer-name — an edition question).
   **✅ PB60 CLOSED (DEVLOG 1294)** — the CURRENCY SIGN SET + multi-character currency string landed
   (`SpecialNamesBinder.CurrencySigns`, `PicInfo.CurrencyString`, `CobolEdit`'s expand/collapse, COBOL1644 for
-  §2023:15.68.3 r3); 15 of 15 rows CONFORMS; nine inventory rows flipped (GAP 4129).
+  §2023:15.68.3 AR3); 15 of 15 rows CONFORMS; nine inventory rows flipped (GAP 4129).
   **✅ PB58 CLOSED (DEVLOG 1295)** — the argument screen's predicate list (`ArgPredicate`: MinWidth/ExactWidth/
   DataItemOrLiteralOnly/NotStrongGroup), CONCAT's usage arm, the absent rows, the every-function-has-a-row drift
   guard; all 40 rows CONFORMS; GAP 4089.
@@ -348,8 +366,8 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   **✅ Battery (PB58+PB61 batch, tree `24530ea9`, DEVLOG 1297):** Conformance **4616/4616** · Unit
   **4183/4183** · Characterization 33/33 · NIST 353/0 audit-clean · differential 1323 cases with TWO attributed
   flips, both PB58's §2023:15.3 screen rejecting source GnuCOBOL accepts leniently (`run_functions:1725` a LITERAL
-  argument-2 to INTEGER-OF-FORMATTED-DATE, §2023:15.48.3 r3 "shall be a data item"; `run_misc:3305` TRIM over a PIC 99
-  item, §2023:15.96.3 r1) — `--permissive` accepts both with a warning; baseline rows flipped to WE_REJECT_THEY_ACCEPT.
+  argument-2 to INTEGER-OF-FORMATTED-DATE, §2023:15.48.3 AR3 "shall be a data item"; `run_misc:3305` TRIM over a PIC 99
+  item, §2023:15.96.3 AR1) — `--permissive` accepts both with a warning; baseline rows flipped to WE_REJECT_THEY_ACCEPT.
   No gate is owed.
   **✅ PB62 CLOSED (DEVLOG 1298, 2026-08-18)** — the ALL subscript is ONE enumerating operand (`TableAllPlace` +
   `AllCount` Fixed/Odo/Capacity, `CobolTable.AllArgs` at run time — the standard's three ranges, nested dynamic
@@ -434,7 +452,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   NO-VERDICT. No gate is owed.
   **✅ PB77 CLOSED (DEVLOG 1310, 2026-08-18)** — every carrier's landing past the Int128 carrier has TWO forms
   chosen by the LANDING: checked (ON SIZE ERROR / EC-SIZE, intermediate consumers) saturates so the capacity check
-  raises (PB13); unchecked (MOVE §2023:14.6.8.2 r4, the no-phrase store §2023:14.6.13.1.3 item 8, INVOKE BY CONTENT) keeps
+  raises (PB13); unchecked (MOVE §2023:14.6.8.2 GR4, the no-phrase store §2023:14.6.13.1.3 GR8, INVOKE BY CONTENT) keeps
   the low-order digits — `Rescaled(…, checkedLanding)`, `CobolFloat.ToScaledUnchecked` + `LowOrderDigits` (the
   exact binary64 expansion), `FromDouble(…, checkedLanding)`; `RuntimeApi.FloatToScaled` names the landing with no
   default. Four verdicts → CONFORMS, GAP 4011. **PB90 REGISTERED** (analysis: the in-carrier float→fixed manner —
@@ -616,7 +634,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   the ONE `LocaleState` (`LocaleValue` per category, the category SET, `SavedLocalePointer` handles — L4;
   GR21–GR27; COBOL1664/1666/1667/1668), the NAMED `IS LOCALE locale-name-2` alphabet, the EC-LOCALE ambient
   gates (MISSING / INVALID-PTR / INCOMPATIBLE raised and OBSERVED; PB100's name refusal reverted), the SORT/MERGE
-  snapshot (§2023:14.6.6 r5), three construct rows, six goldens + eight negatives, the harness pinning
+  snapshot (§2023:14.6.6 GR5), three construct rows, six goldens + eight negatives, the harness pinning
   `COBOL_USER_LOCALE`/`COBOL_SYSTEM_LOCALE` to the root (T-F); 19 inventory rows CONFORMS — **GAP 3908**.
   ② ✅ **PB64 T4 LANDED (2026-08-19, DEVLOG 1333)** — `LOCALE-COMPARE` / `LOCALE-DATE` / `LOCALE-TIME` /
   `LOCALE-TIME-FROM-SECONDS` (`CobolLocale` over the ONE `LocaleCollation` carrier and `LocaleFacts` — L10 d_fmt /
@@ -624,7 +642,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   golden + three negatives); 34 inventory rows CONFORMS — **GAP 3874**.
   ③ ✅ **PB64 T5 LANDED (2026-08-19, DEVLOG 1334)** — the OBJECT-COMPUTER CHARACTER CLASSIFICATION clause binds
   (`ClassificationSpec` / `LocalePhrase`) and is RESOLVED AT EACH ACTIVATION into the module's `__CLASSIFY`
-  (`CharacterClassification.Resolve` — §2023:12.3.6.4 GR5/GR8, §2023:14.6.6 r2); UPPER-CASE / LOWER-CASE map through a LOCALE
+  (`CharacterClassification.Resolve` — §2023:12.3.6.4 GR5/GR8, §2023:14.6.6 GR2); UPPER-CASE / LOWER-CASE map through a LOCALE
   phrase's named locale (r2, `BindCaseFunctionWithLocale`), the classification (r3) or the invariant tables (r4); the
   class tests ALPHABETIC / -LOWER / -UPPER classify per LC_CTYPE (GR3 b1/c1/d1 — letters only, space NOT alphabetic
   under a classification, documented); `LocaleFacts.Require` is the ONE §2023:8.2.1 gate (EC-LOCALE-MISSING / -INVALID at
@@ -652,8 +670,8 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   read-only workflow + adversarial critic — 12 draft contradictions corrected, 37 gaps closed, zero owner
   questions): `MonetaryFacts` (L12-normalized — the ONE snapshot editing and recognition share) +
   `MonetaryPlacement` (the POSIX renderer; pattern tables DERIVED AT RUNTIME, range DISCOVERED — seventeen
-  negative patterns, round-trip-proved) + `CobolLocaleEdit` (§2023:13.18.40.5 r9–r15; **EC-LOCALE-SIZE's first raise
-  site**, character-based; DeEdit = the §2023:14.6.13.2 r4 image-inverse) + the NUMVAL-C LOCALE scan (§2023:15.68.3 r5,
+  negative patterns, round-trip-proved) + `CobolLocaleEdit` (§2023:13.18.40.5 GR9–r15; **EC-LOCALE-SIZE's first raise
+  site**, character-based; DeEdit = the §2023:14.6.13.2 GR4 image-inverse) + the NUMVAL-C LOCALE scan (§2023:15.68.3 AR5,
   r4 NOT inherited); `PicInfo.LocaleEdit` / `AnalyzeLocaleEdited` (Table 11's closed form; DECIMAL-POINT IS
   COMMA inert per §2023:12.3.7.4 GR14); the ONE emit dispatch (`EditFormatFor` / `EditTryFormatLocale` /
   `ReceiverScaleOf` — two drifted scale copies collapsed) + runtime VALUE/level-88/group images;
@@ -751,7 +769,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   **PB59 FAMILY 5b LANDED (2026-08-09, second landing — FAMILY 5 COMPLETE, 26 of PB59's 28 rows
   CONFORMS, GAP 4159):** the ANY raw-storage channel (`OperandText.AsStorageImage` — one storage
   channel, char==byte, per-shape documented representations; the bind-time ANY→NAT remap DELETED), the
-  §2023:15.19.4 r2/r4 trailing zero-bit padding (r2 = the packed BIT image itself, r4 = the odd-byte zero
+  §2023:15.19.4 RV2/r4 trailing zero-bit padding (r2 = the packed BIT image itself, r4 = the odd-byte zero
   append; `ANUM NAT HEX` of "A" = 4100, `B"101" ANY NAT HEX` = A000 — NOTE 3 b/c both ruled defective
   NOTES), and the RV-15.19.4-2(c) substitution DECIDED as the documented item-209 disposition
   (CONFORMANCE.md item-33 row tail). The runtime signature is UNCHANGED — the packed image made the
@@ -871,7 +889,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   ownership decision, CONFORMANCE.md item 208) · **R14** (the ambient exception-status (statement, location)
   channel + the same-line GR14 `Inclusive` fix) · **R18** (EXP/EXP10/E/PI under the standard modes via the
   ONE `CobolDec.Pow`) · **R24** (the FORMATTED-* seconds channel carrier-total; `AsInt`'s missing Dec arm) ·
-  **R15** (keyword-omitted INSPECT) · **R16** (`COBOL1637` — §2023:13.18.38.3 r7's closed index-name context
+  **R15** (keyword-omitted INSPECT) · **R16** (`COBOL1637` — §2023:13.18.38.3 SR7's closed index-name context
   list; spawned R29) · **R12** (the CALL ABI crosses every native carrier TYPED — `CobolArgAdapt.Num<T>`,
   no image; the probe showed the old wide-tier crossing was UNCOMPILABLE, not silently lossy) · **R17** (the
   signed float literal's lexer twins + `SignedLiteralShapeDriftTests`) · **R19** (`COBOL1638` for phrase
@@ -969,7 +987,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
     NOT an arithmetic operand and NOT an integer argument.** §2023:8.8.1.1 admits "an identifier referencing a
     NUMERIC data item"; §2023:8.5.2.13 calls this a "numeric-edited data item" — a distinct defined term — and
     §2023:8.5.2.1 Table 2 puts that category in class ALPHANUMERIC or NATIONAL, never numeric; §2023:15.3 type 6's only
-    other alternative is "an integer data item"; and de-editing is GRANTED by the MOVE rules (§2023:14.9.25.4 GR6d1)
+    other alternative is "an integer data item"; and de-editing is GRANTED by the MOVE rules (§2023:14.9.25.4 GR6d.1)
     and nowhere extended to arithmetic. The `'n'` arm had already refuted the identical reading, so the two arms
     rested on readings of §2023:8.8.1.1 that could not both be right. Both external oracles agree: no NIST program
     depends on it, and GnuCOBOL exercises de-editing only under MOVE. **The surviving lesson is narrower and
@@ -1106,7 +1124,7 @@ and the two NEXT items are fully planned in their `kb/Work/` notes.**
    literal arguments).
 
 ⭐ **THE SESSION'S FINDING — the premise-failure pattern now stands at 14 of 16:** R04 (the token axis cannot
-name GO TO — `TO` is optional), R05 (the "truncation" was §2023:15.33.3 r1 itself; the real defects were the missing
+name GO TO — `TO` is optional), R05 (the "truncation" was §2023:15.33.3 RV1 itself; the real defects were the missing
 record, the advisory, and a directive-word §2023:8.3.2.1 hole the item's own fact discovered), R09 (already fixed by
 PB25 — closed on a PROBE, not the comment). R06 and R08 are the only two whose premises held as filed.
 Three structural extractions landed en route, each with a drift guard: `Table12StatementNames` (statement-kind →
@@ -1200,15 +1218,15 @@ three times an entry named a lexer-mode cause that a dump refuted (PB8, PB45 ×2
 `evaluateWhenItem` was CORRECT, was honoured, and is now pinned by `EvaluateSelectionObjectArityDriftTests`.
 
 ⚙ **AND THE SPEC-DERIVED GOLDEN FOUND A DEFECT THE REPORT NEVER MENTIONED** — `EVALUATE TRUE / WHEN <level-88>`,
-one of the commonest idioms in COBOL, threw at run time too (fixed; Table 15 + §2023:14.9.13.4 GR4a3). It was found
+one of the commonest idioms in COBOL, threw at run time too (fixed; Table 15 + §2023:14.9.13.4 GR4a.3). It was found
 ONLY because the golden was written from §2023:14.9.13's general format rather than scoped to the reported symptom
 (`feedback_spec_scopes_not_tests`), and neither external oracle could see it: the program COMPILES either way.
 
 ⭐ **THE PATTERN THIS SESSION KEPT FINDING — WORTH CARRYING IN.** THREE separate design comments justified an
 omission by citing a clause that is REAL and answers a DIFFERENT QUESTION, and `cite.py --check` passes on all
 three: D-B1 cited §2023:13.18.40.4 GR14 (the representations AVAILABLE) to avoid §2023:13.18.60.4 GR5 ("bits SHALL be
-used"); PB24's entry cited §2023:15.50.4 r9 (rounding) for a case §2023:8.5.1.6.3 alignment actually decides;
-`ModuleStack` cited §2023:15.65.4 r3/r4 (non-COBOL elements / the FORM of a name) to justify omitting a method frame
+used"); PB24's entry cited §2023:15.50.4 RV9 (rounding) for a case §2023:8.5.1.6.3 alignment actually decides;
+`ModuleStack` cited §2023:15.65.4 RV3/r4 (non-COBOL elements / the FORM of a name) to justify omitting a method frame
 that r5 names outright. **The check that catches this is not mechanical — ask whether the cited rule answers the
 question being asked, and distrust the word "permanently".**
 
@@ -1284,7 +1302,7 @@ case and the defect is a silent **under-rejection** — a different defect needi
 numeric, so its `'i'` arm cannot distinguish them. **A claim about reachability is a measurement, not a
 deduction.**
 ⛔ **THREE OF MY OWN ERRORS, EACH CAUGHT BY RUNNING SOMETHING:** a "sibling defect" I fixed and had to un-fix (a
-group of `PIC N` children is an ALPHANUMERIC group — §2023:8.5.2.10 item 3 needs `GROUP-USAGE NATIONAL`, which is not
+group of `PIC N` children is an ALPHANUMERIC group — §2023:8.5.2.10 GR3 needs `GROUP-USAGE NATIONAL`, which is not
 modelled — so the compiler was already right); a citation `cite.py --check` rejected (§2023:13.18.27 for GROUP-USAGE;
 it is **§2023:13.18.29**); and a new source-form guard that fired on **its own explanatory comment**, found only
 because the guard was proven in the failing direction before being trusted.
@@ -1319,7 +1337,7 @@ state, gates, owner decisions and narrative. It does NOT keep a worklist, and mu
 the later PB24 waves re-gated the corpus (426/426) and the full Unit suite.
 ⭐ **THE WHOLE TWO-ARM-DISPATCH FAMILY IS CLOSED** — PB2 · PB13 · PB14 · PB28 · PB32 · PB38, six items, five of
 which were the same sentence. **All three owner decisions were taken and applied.** PB33/PB34 landed; **PB24 is
-three-quarters done** (ref-mod · variable-length group · PHYSICAL) with §2023:15.50.4 r9 measured and VIOLATED.
+three-quarters done** (ref-mod · variable-length group · PHYSICAL) with §2023:15.50.4 RV9 measured and VIOLATED.
 ⚠ **THE GAP WENT UP, AND THAT IS THE MODEL WORKING:** admitting §2023:8.8.1, §2023:14.7.5, §2023:15.4.1 and the multi-sublist
 clauses added rows while the fixes closed 9. Adjudication OPENS work; only Phase C closes it.
 
@@ -1523,7 +1541,7 @@ OPENS items, fixing CLOSES them, and that session did both.
 
 **⚖ ONE OWNER DECISION WAS TAKEN AND IS NOW LAW (2026-08-02):** a **numeric-edited item is NOT an arithmetic
 operand and NOT an integer argument**. §2023:8.8.1.1 admits "an identifier referencing a NUMERIC data item"; §2023:8.5.2.13
-calls this a "numeric-edited data item", a distinct defined term; and §2023:15.43.3 r1 shows that when the standard
+calls this a "numeric-edited data item", a distinct defined term; and §2023:15.43.3 AR1 shows that when the standard
 means to admit one it says "category numeric **or numeric-edited**" explicitly, which §2023:15.3's integer and numeric
 types do not. De-editing is granted by the MOVE rules (§2023:14.9.25.4 GR5/GR6d1) and nowhere extended to arithmetic.
 Both external oracles agree. **Do not re-argue this** — it was argued three times; DEVLOG 1142 and
@@ -1616,7 +1634,7 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
    3. **The fix queue below**, now that the two-arm family is closed. ⚙ **PB33's digit-cap half + PB34 landed
       2026-08-04 and were ONE defect measured as three** — all three NUMVAL validators enforced the cap and all
       three value producers returned an `Int128` saturation artifact while execution continued past a FATAL
-      condition. **PB33's other half (§2023:15.68.3 r1's two general formats) is still open** and is the natural next
+      condition. **PB33's other half (§2023:15.68.3 AR1's two general formats) is still open** and is the natural next
       item; after it, PB12 · PB15 · PB17 · PB23–PB27 · PB30 · PB31 · PB35 · PB36 + the 16-finding residue.
 
    ⛔ **THE OPEN QUEUE LIVES IN `kb/Work/`, NOT HERE, AND THIS SECTION MUST NEVER REGROW ONE.**
@@ -2721,7 +2739,7 @@ result. Run the long legs ONE AT A TIME.
   Unit **4083 / 4083** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH /
   0 REGRESSION**. The one red was the differential naming EXACTLY ONE flip: `run_file:13011`,
   `AGREE_ACCEPT → WE_REJECT_THEY_ACCEPT`, carrying R16's own `COBOL1637` — the case DISPLAYs an
-  index-name, GnuCOBOL's documented extension, which §2023:13.18.38.3 r7's closed context list makes illegal;
+  index-name, GnuCOBOL's documented extension, which §2023:13.18.38.3 SR7's closed context list makes illegal;
   our pre-R16 "accept" was a compile-clean runtime abort. Baseline regenerated (`--write-baseline`), the TSV
   diff exactly one row, attributed in `c9b9181d`; a fresh differential prints
   **`=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`**. (COBOL1637 is deliberately unconditional — no
@@ -2738,7 +2756,7 @@ result. Run the long legs ONE AT A TIME.
   PB47 run. Its one red was the differential reporting **1 per-case flip**: `run_functions:221`,
   `AGREE_ACCEPT → WE_REJECT_THEY_ACCEPT`, carrying PB40's own `COBOL1627`. §0's mechanical rule classes
   an AGREE→divergence flip a REGRESSION; attributed from the CASE, it is the opposite. The test passes a
-  `PIC S9(4)V9(4)` item to `FUNCTION CHAR`, and §2023:15.15.3 r1 requires an integer while §2023:15.3 type 6 admits
+  `PIC S9(4)V9(4)` item to `FUNCTION CHAR`, and §2023:15.15.3 AR1 requires an integer while §2023:15.3 type 6 admits
   only an integer data item or an always-integral expression — **illegal COBOL that GnuCOBOL accepts and we
   now reject**, with `--permissive` accepting it (verified) so migration is not blocked. Baseline
   regenerated with `--write-baseline`; the diff is EXACTLY ONE ROW and a fresh differential prints
@@ -5186,7 +5204,7 @@ lowering **privately**, and the bound tree it consumes is the SAME neutral tree 
 > `DONE (2026-07-11, DEVLOG 767-775) — all 6 exit criteria verified; final battery 3159 conformance (incl. all
 > OoSpineTests shadowing goldens + the new interface-crossing test) / 281 unit / 32 characterization BYTE-IDENTICAL
 > / FULL legacy guard NIST 353 MATCH / CI GREEN in BOTH configurations. Step 8 extras: the manual CLI smokes ran
-> with SPEC-CORRECT output (OO method-local shadowing per §2023:8.4.6.2.1 r3a; ODO + whole-group image byte-exact); a
+> with SPEC-CORRECT output (OO method-local shadowing per §2023:8.4.6.2.1 GR3a; ODO + whole-group image byte-exact); a
 > 9-agent ADVERSARIAL PHASE REVIEW (5 finders x 2 refuters) confirmed ONE pre-existing latent defect — the
 > crossing-form harmonize missed interface-IMPLEMENTATION pairs (override chains only) — FIXED in the close commit
 > with a proven-to-bite conformance test (DEVLOG 775); and the CI-red retrospective: the Step-6 watermark gate
@@ -5342,7 +5360,7 @@ lowering **privately**, and the bound tree it consumes is the SAME neutral tree 
 > > `exception_file_n` worked example), and the complete Tier-C guard-site inventory. **Its ⚠ gotcha /
 > > discrepancy blocks OVERRIDE this doc where they conflict** (e.g. `ComputeTier` is at
 > > `DataBinder.cs:2376`, not ~1752; BOOLEAN-OF-INTEGER(0, n) is an ambiguity resolved accept-0; left
-> > truncation to argument-2 bits is NORMAL per §2023:15.13.4 r1 + Annex D.10). Do NOT re-scout — read the notes.
+> > truncation to argument-2 bits is NORMAL per §2023:15.13.4 RV1 + Annex D.10). Do NOT re-scout — read the notes.
 > 
 > ---
 

@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public static class EcFunctions
 {
-    /// <summary>FUNCTION EXCEPTION-STATUS (§2023:15.33.3 r1): a 31-character left-justified uppercase
+    /// <summary>FUNCTION EXCEPTION-STATUS (§2023:15.33.3 RV1): a 31-character left-justified uppercase
     /// exception-name (space-filled), or 31 spaces when the last exception status indicates no exception.</summary>
     public static string Status() =>
         (ExceptionState.LastName ?? "").PadRight(31)[..31];
@@ -37,7 +37,7 @@ public static class EcFunctions
             ? new string(' ', 63)
             : ExceptionState.LastStatement.ToUpperInvariant().PadRight(63)[..63];
 
-    /// <summary>FUNCTION EXCEPTION-FILE with no argument (§2023:15.28.4 r1): <c>"00"</c> when the last exception is
+    /// <summary>FUNCTION EXCEPTION-FILE with no argument (§2023:15.28.4 RV1): <c>"00"</c> when the last exception is
     /// not an EC-I-O condition (r1a — including the no-exception state); two spaces when the EC-I-O condition
     /// originated from RAISE / EXIT RAISING / GOBACK RAISING (r1b — there is no file connector); else the
     /// two-character I-O status followed by the file-name as specified in the SELECT clause (r1c). The stored
@@ -58,7 +58,7 @@ public static class EcFunctions
         return (ExceptionState.LastIoStatus ?? "  ") + IO.CobolFile.SelectNameOf(file);   // r1c
     }
 
-    /// <summary>FUNCTION EXCEPTION-FILE-N with no argument (§2023:15.29.4 r1) — the national twin of
+    /// <summary>FUNCTION EXCEPTION-FILE-N with no argument (§2023:15.29.4 RV1) — the national twin of
     /// <see cref="File"/>: two national zeros when the last exception is not an EC-I-O condition (r1a),
     /// two national spaces for a RAISE / EXIT RAISING / GOBACK RAISING origin (r1b), else the two-character
     /// I-O status "in national characters" followed by the SELECT-spelled file-name "converted at runtime to
@@ -69,12 +69,12 @@ public static class EcFunctions
     /// loud compiler-side, like the base function's (VCR rows 68/69).</summary>
     public static string FileN() => CobolIntrinsics.NationalOf(File());
 
-    /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (§2023:15.28.4 r2, COBOL-2023): the NAMED connector's I-O
+    /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (§2023:15.28.4 RV2, COBOL-2023): the NAMED connector's I-O
     /// status + SELECT-spelled name (r2b), or two alphanumeric spaces when it was never opened/attempted/accessed
     /// (r2a). Unlike the no-argument form this reads the connector directly, not the last-exception register.</summary>
     public static string File(string connectorKey) => IO.CobolFile.ExceptionFile(connectorKey);
 
-    /// <summary>FUNCTION EXCEPTION-FILE-N(file-connector-name) (§2023:15.29.4 r2) — the national twin: the SAME
+    /// <summary>FUNCTION EXCEPTION-FILE-N(file-connector-name) (§2023:15.29.4 RV2) — the national twin: the SAME
     /// <see cref="File(string)"/> rendering through the ONE alphanumeric→national repertoire translation.</summary>
     public static string FileN(string connectorKey) => CobolIntrinsics.NationalOf(File(connectorKey));
 

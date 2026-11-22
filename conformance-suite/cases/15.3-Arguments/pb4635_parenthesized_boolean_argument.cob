@@ -8,7 +8,7 @@
       *> kb/Work PB4635 review R2-1. ISO §2023:8.4.3.2.3 SR8: "Argument-1 shall be an identifier, a literal, a boolean expression, or an
       *> arithmetic expression" (cite.py --check OK), and §2023:8.8.2 lists "a boolean expression enclosed in parentheses" among the
       *> boolean expressions (cite.py --check OK). So a class-boolean item written in grouping parentheses is a boolean expression, and
-      *> §2023:15.45.3 r1 ("Argument-1 shall be of class boolean.", cite.py --check OK) admits it exactly as it admits the bare item. The
+      *> §2023:15.45.3 AR1 ("Argument-1 shall be of class boolean.", cite.py --check OK) admits it exactly as it admits the bare item. The
       *> same written shape is also an arithmetic expression (§2023:8.8.1.1), whose operands must be numeric, which is why a parenthesized
       *> ALPHANUMERIC item is refused (pb4635-abs-parenthesized-alphanumeric) while a parenthesized BOOLEAN one is not.
       *>

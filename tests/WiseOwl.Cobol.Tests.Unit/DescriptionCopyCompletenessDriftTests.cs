@@ -25,7 +25,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// initializer, where a clause that is simply absent is invisible — no diagnostic, no site at which the omission can
 /// be read. <c>DataItem.GroupUsage</c>, the one field that makes an item a bit or national group, was in NEITHER
 /// list, so <c>01 R TYPE T</c> over a <c>GROUP-USAGE NATIONAL</c> template bound as an ORDINARY alphanumeric group —
-/// wrong class, wrong category, and <c>FUNCTION LENGTH</c> in the wrong unit (§2023:15.50.4 r1/r2) — and, because
+/// wrong class, wrong category, and <c>FUNCTION LENGTH</c> in the wrong unit (§2023:15.50.4 RV1/r2) — and, because
 /// §2023:13.16.4 GR1/GR2 imply the clause for every SUBORDINATE group, the false antecedent silently re-categorized the
 /// whole subtree. SYNCHRONIZED (§2023:13.18.55), ALIGNED (§2023:13.18.1), ANY LENGTH (§2023:13.18.2) and DYNAMIC LENGTH
 /// (§2023:13.18.19) were lost the same way, each measured against a byte-identical inline control.

@@ -23,7 +23,7 @@ public static class ExternalStore
         => RunUnit.Current.External.Describe(describer, name, desc,
             (Exceptions.ExternalChecks)(Exceptions.ExceptionState.ActivatorExternalMask & selfMask));
 
-    /// <summary>⛔ THE METHOD ACTIVATION BOUNDARY's external-item check (ISO §2023:14.9.23.4 GR7 d); kb/Work PB1138) — the INVOKE
+    /// <summary>⛔ THE METHOD ACTIVATION BOUNDARY's external-item check (ISO §2023:14.9.23.4 GR7d; kb/Work PB1138) — the INVOKE
     /// twin of <c>ProgramTable.CallProgram</c>'s GR3e step, run by a generated method's prologue BEFORE control is
     /// transferred to it (GR7 e). A method has no external items of its own (§2023:13.4.3 SR1 keeps a FILE SECTION out of a
     /// method, and a method WORKING-STORAGE EXTERNAL item is refused), so <paramref name="describe"/> registers the

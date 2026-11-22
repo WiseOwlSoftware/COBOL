@@ -1,5 +1,5 @@
-- **D-NUMVAL-F-EXPONENT-SIGN — NUMVAL-F — the exponent's sign is REQUIRED, and a text without it is refused, not read (§2023:15.69.3 r1 · §2023:15.3 r14 ·
-  A.1 item 90; kb/Work PB3952).** §2023:15.69.3 r1's figure puts the exponent's `+`/`-` in braces (a required choice, unlike
+- **D-NUMVAL-F-EXPONENT-SIGN — NUMVAL-F — the exponent's sign is REQUIRED, and a text without it is refused, not read (§2023:15.69.3 AR1 · §2023:15.3 AR14 ·
+  A.1 item 90; kb/Work PB3952).** §2023:15.69.3 AR1's figure puts the exponent's `+`/`-` in braces (a required choice, unlike
   the bracketed optional leading sign), so `"1.5E2"` and `"1.5e2"` do not conform. GnuCOBOL's NUMVAL-F is lenient and reads
   `"1.5E2"` as 150; the standard is silent on no part of it (the rule speaks), so CLAUDE.md rule 1's GnuCOBOL tier does not
   apply, and the function is not made lenient. `FUNCTION TEST-NUMVAL-F("1.5E2")` is 5 (the digit where the sign belongs),

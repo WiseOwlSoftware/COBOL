@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.40.3 r4 - "Argument-3 shall be a value in standard numeric
+      *> ISO §2023:15.40.3 AR4 - "Argument-3 shall be a value in standard numeric
       *> time form." §2023:15.5.5 IS that form: "A value in standard numeric time
       *> form is a numeric value representing seconds past midnight. If the
       *> LEAP-SECOND directive with the OFF phrase is in effect, the value

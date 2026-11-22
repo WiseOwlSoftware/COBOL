@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para><see cref="RunUnit"/> is "the single owner of all run-unit-lifetime state (ISO §2023:14.6.1)", replacing five
 /// process-global stores — and FUNCTION RANDOM's sequence was a SIXTH the consolidation missed:
 /// <c>private static Random _random</c> on <c>CobolIntrinsics</c>, whose own doc-comment said "ONE current
-/// pseudo-random sequence per run unit". §2023:15.75.3 r4 scopes the implementor seed to "the first reference to this
+/// pseudo-random sequence per run unit". §2023:15.75.3 AR4 scopes the implementor seed to "the first reference to this
 /// function in the run unit", so a second run unit in one .NET process (the <see cref="RunUnit.Run"/> /
 /// <see cref="RunUnit.Begin"/> host shape) must NOT continue the first's sequence — and it did.</para>
 /// <para>kb/Work PB1069 is the same defect on the INSTANCE side: the emitted driver's run-unit start reset a
@@ -32,7 +32,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class RunUnitStateDriftTests
 {
     /// <summary>The note's witness. It needs no knowledge of the implementor seed: it is an INEQUALITY against a
-    /// value §2023:15.75.4 r2 makes deterministic (draw 4 of the seed-7 sequence).</summary>
+    /// value §2023:15.75.4 RV2 makes deterministic (draw 4 of the seed-7 sequence).</summary>
     [Fact]
     public void Random_DoesNotContinueAcrossARunUnitReset()
     {
@@ -50,7 +50,7 @@ public sealed class RunUnitStateDriftTests
     }
 
     /// <summary>The same through the host lifecycle boundary: a fresh <see cref="RunUnit.Run"/> scope begins its
-    /// own sequence, while INSIDE one run unit §2023:15.75.3 r5 continues the current sequence and r3 restarts it.</summary>
+    /// own sequence, while INSIDE one run unit §2023:15.75.3 AR5 continues the current sequence and r3 restarts it.</summary>
     [Fact]
     public void Random_IsScopedToTheRunUnit_AndContinuesWithinIt()
     {
@@ -67,7 +67,7 @@ public sealed class RunUnitStateDriftTests
         var reference = new Random(7);
         Assert.Equal(reference.NextDouble(), first[0]);
         Assert.Equal(reference.NextDouble(), first[1]);     // r5: the NEXT number of the current sequence
-        Assert.Equal(first[0], first[2]);                   // r3 + §2023:15.75.4 r2: same seed, same sequence
+        Assert.Equal(first[0], first[2]);                   // r3 + §2023:15.75.4 RV2: same seed, same sequence
         Assert.NotEqual(new Random(7).Skip(2), secondRunUnit);
     }
 

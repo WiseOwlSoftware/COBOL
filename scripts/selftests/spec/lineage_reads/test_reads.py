@@ -323,6 +323,28 @@ def case_05d_a_rule_that_withholds_a_property_is_witnessed_by_a_refusal(expect):
            F.raises(lambda: R.EvidenceTable.load(bad), "withholding-rules"))
 
 
+def case_05e_a_general_format_is_witnessed_by_an_accepted_case(expect):
+    """kb/Work PB5740: a general format GRANTS forms, so the repository's evidence table names no FMT as a diagnosed
+    kind: a refusal of a malformed form witnesses no FMT row, and the audit holds an FMT KEPT row whose every witness is
+    a refusal to `only a diagnosis`, unless the row's own references hold a case accepted at the edition."""
+    t = R.EvidenceTable.load()
+    expect("FMT is no diagnosed kind of the repository's table", "FMT" not in t.diagnosed)
+    expect("a general format with no granting sentence is still not diagnosable",
+           not t.diagnosable("FMT", "<u>FUNCTION</u> <u>PI</u>"))
+    e85 = R.edition(1985)
+    w = R.Witnesses({"cases/X/fmt-refused": R.CaseInfo("cases/X/fmt-refused", pathlib.Path("r.cob"), ("85",), (), (),
+                                                       ("FMT-1",), None, ("85",)),
+                     "cases/X/fmt-accepted": R.CaseInfo("cases/X/fmt-accepted", pathlib.Path("a.cob"), ("85",),
+                                                        ("85",), (), ("FMT-1",), None)}, {}, {})
+    probs = w.own_problems(e85, ["conformance:cases/X/fmt-refused"], t.diagnosable("FMT", "<u>END</u> <u>PROGRAM</u>"),
+                           None)
+    expect("an FMT row witnessed by a refusal alone is refused: only a diagnosis",
+           len(probs) == 1 and "only a diagnosis at 85" in probs[0])
+    expect.equal("... and stands once its references hold a case accepted at 85 (the refusal is its restriction beside "
+                 "its grant)", w.own_problems(e85, ["conformance:cases/X/fmt-refused", "conformance:cases/X/fmt-accepted"],
+                                              False, None), [])
+
+
 def case_06_the_widening_plans_and_edits_only_what_can_witness_the_rule(expect):
     order = ["85", "2002", "2014", "2023"]
     cases = {"cases/X/a": R.CaseInfo("cases/X/a", R.REPO, ("2023",), ("2023",), (), ("GR-1",), None),
@@ -835,11 +857,11 @@ def case_14_a_read_speaks_of_its_own_edition_and_no_other(expect):
     rid = "1985-GR-IV.4.1-p2"
     s = R.normal_slice("s-01", F.record("s-01", [
         {**F.read(rid, "DIFFERENT", citations="§1985:IV.4.1 p2"), "to": [],
-         "compiler-at-1985": "correct: E:/probes/s-01/p.cob", "licence-1985": "§1985:I.1.5.2.5 item 1"}],
+         "compiler-at-1985": "correct: E:/probes/s-01/p.cob", "licence-1985": "§1985:I.1.5.2.5.1"}],
         edition=1985))
     r = s.reads[rid]
     expect("a 1985 read's compiler-at-1985 and licence-1985 are read",
-           r.compiler == R.Judgment("correct", "correct: E:/probes/s-01/p.cob") and r.licence == "§1985:I.1.5.2.5 item 1")
+           r.compiler == R.Judgment("correct", "correct: E:/probes/s-01/p.cob") and r.licence == "§1985:I.1.5.2.5.1")
     d = R.decide(ed85, [s], None, None, F.lineage([rid]))[0]
     expect.equal("so the row it proved correct is the work item needs-own-witness, never undecided", d.work,
                  R.NEEDS_OWN_WITNESS)

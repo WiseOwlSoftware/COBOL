@@ -5,9 +5,9 @@
 *> portable: unverified
 *>---
       *> kb/Work PB256 — the TEST-NUMVAL-F twin of standard-binary-test-numval-2014.
-      *> §2023:15.95.4 r1 b) 3 ("If standard-binary arithmetic is in effect, the argument contains a
+      *> §2023:15.95.4 RV1b) 3 ("If standard-binary arithmetic is in effect, the argument contains a
       *> significand longer than 35 digits …"), b) 5 and b) 6 each name STANDARD-BINARY beside
-      *> STANDARD-DECIMAL, and §2023:15.69.3 r3's first sentence bounds that mode's significand at 35.
+      *> STANDARD-DECIMAL, and §2023:15.69.3 AR3's first sentence bounds that mode's significand at 35.
       *> ARITHMETIC IS STANDARD-BINARY is DECLINED (owner decision D-A, protocol 2026-08-30,
       *> kb/Work PB198): Annex A.3 item 2 makes the clause processor-dependent and ISO §2023:4.2.6 gives
       *> the implementor the discretion not to claim support, plus the duty to warn at compile time

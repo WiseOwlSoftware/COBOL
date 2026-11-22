@@ -249,11 +249,11 @@ public sealed class FileIoDifferentialTests
         // ("\nL=") - the spurious CLOSE-time line terminator kb/Work PB864 removed (its sibling
         // LinageConformanceTests.Bytes_OverflowWithBeforePhrase_PresentsThenRepositions pinned the same defect).
         // The first record is "AAAA    " CR "BBBB": BEFORE ADVANCING CSP presents the whole record AAAA (kb/Work PB2509)
-        // and then writes the zero advance's carriage return (§2023:14.9.51.4 GR25 c) — an overprint; docs/CONFORMANCE.md
+        // and then writes the zero advance's carriage return (§2023:14.9.51.4 GR25c) — an overprint; docs/CONFORMANCE.md
         // "ADVANCING 0"), and a lone CR is DATA to a line sequential read (kb/Work PB1540), so the DISPLAY shows it.
         // The second record, "CCCC" then "DDDD": AFTER ADVANCING CSP finds no open line (BBBB's own advance ended
         // it), so there is nothing to overprint and nothing is written, and CCCC is presented on a fresh line.
-        // DDDD is a BEFORE write presented while CCCC's line is open (§2023:14.9.51.4 GR25 e): no advance lies
+        // DDDD is a BEFORE write presented while CCCC's line is open (§2023:14.9.51.4 GR25e): no advance lies
         // between the two lines), so it is at the SAME vertical position - an overprint from column 1, a
         // carriage return the read-back shows as data too (kb/Work PB1840). The console comparison keeps a lone CR
         // (CutRunner.Normalize, kb/Work PB5460); it used to fold it into a line break, which hid both CRs here.
@@ -332,7 +332,7 @@ public sealed class FileIoDifferentialTests
         Assert.Equal(viaPage, viaC01);
     }
 
-    /// <summary>READ on a file connector that is NOT open: I-O status '47' (§2023:9.1.13.7 item 7 / §2023:14.9.30.4 GR2),
+    /// <summary>READ on a file connector that is NOT open: I-O status '47' (§2023:9.1.13.7 GR7 / §2023:14.9.30.4 GR2),
     /// the statement is unsuccessful, and AT END does NOT fire ('47' is not the at-end family, §2023:9.1.13.4).
     /// SPEC-PINNED: the record area's content after an unsuccessful READ is spec-UNDEFINED (§2023:14.9.30.4 GR18
     /// "unless otherwise specified…"); WiseOwl COBOL's documented refinement is that the area is UNCHANGED —

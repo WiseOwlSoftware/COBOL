@@ -5,7 +5,7 @@
       *> portable: unverified
       *>---
       *> kb/Work PB5132 item 1 - the MULTIPLY arm of PB5075 on its own.
-      *> §1985:VI.6.4.4 item 2: "The composite of operands, which is a
+      *> §1985:VI.6.4.4 SR2: "The composite of operands, which is a
       *> hypothetical data item resulting from the superimposition of
       *> specified operands in a statement aligned on their decimal
       *> points ... must not contain more than 18 decimal digits." In

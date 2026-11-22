@@ -228,7 +228,7 @@ ifStatement
 //     the ellipsis applies only to the portion between the matching braces immediately to its left, so WHEN
 //     OTHER is outside it — at most once, and only last. Written as a second ALTERNATIVE of the repeated
 //     clause it became admissible any number of times at any position, and EvaluateBinder's `other = body`
-//     silently discarded every earlier one (§2023:14.9.13.4 GR5 b) is written for exactly one such phrase).
+//     silently discarded every earlier one (§2023:14.9.13.4 GR5b is written for exactly one such phrase).
 evaluateStatement
     : EVALUATE evaluateSubject (ALSO evaluateSubject)*
       evaluateWhenClause+
@@ -238,7 +238,7 @@ evaluateStatement
 
 // ⛔ condition-1 IS THE ONE `condition` RULE, NOT A HAND-PICKED SUBSET OF IT (kb/Work PB842). §2023:14.9.13.2's
 // selection-subject brace prints `condition-1` beside identifier-1 / literal-1 / arithmetic-expression-1 /
-// boolean-expression-1 / TRUE / FALSE, and §2023:14.9.13.4 GR3 e) gives it its semantics ("Any selection subject
+// boolean-expression-1 / TRUE / FALSE, and §2023:14.9.13.4 GR3e) gives it its semantics ("Any selection subject
 // specified by condition-1 is assigned a truth value according to the rules for evaluating conditional
 // expressions"). This rule used to be `valueOperand (IS? NOT? className)?` — ONE shape of condition (the class
 // test) spelled as an operand suffix — so `EVALUATE NOT BW` (§2023:8.8.4.3.2's `[ NOT ] boolean-expression-1`),
@@ -251,7 +251,7 @@ evaluateStatement
 // item, exactly as for a bare selection object. `condition` is reached only when the subject has a shape no
 // value operand spells (a relational operator, a class/sign test, NOT, AND/OR, a parenthesised condition), so
 // no subject that parsed before changes its parse.
-// ⛔ boolean-expression-1 (§2023:14.9.13.4 GR3 d) — "Any selection subject in which boolean-expression-1 is specified is
+// ⛔ boolean-expression-1 (§2023:14.9.13.4 GR3d) — "Any selection subject in which boolean-expression-1 is specified is
 // assigned a boolean value according to the rules for evaluating boolean expressions" — IS an alternative here
 // (kb/Work PB1412), behind the SAME `{boolExprAhead()}?` discriminator every other boolean-expression host uses
 // (primaryCondition, callArgument, argument, functionArgument …), because booleanExpression's leaf is valueOperand and
@@ -260,7 +260,7 @@ evaluateStatement
 // operator-bearing expression with no relational tail — `EVALUATE A B-AND C WHEN B"1000"` — is Table 15's
 // Boolean-expression column rather than a condition held to §2023:8.8.4.3.3 SR1's length-1 rule. A boolean RELATION
 // (`EVALUATE A B-AND C = B"1000"`) has a tail the alternative cannot consume and still parses as `condition`.
-// An ADDRESS-IDENTIFIER (§2023:8.4.3.1.2 identifier Format 9) IS identifier-1 / identifier-2, and §2023:14.9.13.3 SR7 a) makes
+// An ADDRESS-IDENTIFIER (§2023:8.4.3.1.2 identifier Format 9) IS identifier-1 / identifier-2, and §2023:14.9.13.3 SR7a makes
 // each subject/object pair "valid operands for comparison … in accordance with 8.8.4.2" — the relation that compares
 // data-pointers (kb/Work PB1060). It is the ONE `addressIdentifier` rule PB1021 gave comparisonOperand, so the
 // storage forcing and the 2002 introduction gate reach this surface unchanged. ADDRESS heads no valueOperand, so
@@ -269,8 +269,8 @@ evaluateSubject
     : booleanLiteral                                     // EVALUATE TRUE / FALSE
     | addressIdentifier                                  // identifier-1 that is an address-identifier (PB1060)
     | valueOperand                                       // identifier-1 / literal-1 / arithmetic-expression-1
-    | {boolExprAhead()}? booleanExpression               // boolean-expression-1 (§2023:14.9.13.4 GR3 d)
-    | condition                                          // condition-1 (§2023:14.9.13.4 GR3 e)
+    | {boolExprAhead()}? booleanExpression               // boolean-expression-1 (§2023:14.9.13.4 GR3d)
+    | condition                                          // condition-1 (§2023:14.9.13.4 GR3e)
     ;
 
 // One or more consecutive WHEN phrases share the following imperative (ISO 1989:1985
@@ -344,7 +344,7 @@ evaluateWhenPhrase
 // identifier-2.
 // partial-expression-1 (§2023:14.9.13.3 SR5) had NO alternative here at all, so `EVALUATE WS-N WHEN > 5` — the first
 // shape SR5's own list names and the ordinary way to write a threshold arm — was a raw parse error, and FIVE rules
-// (SR5, SR7 d), SR8, SR6 e) and §2023:14.9.13.4 GR4 a) 2.) had no code site, with Table 15's Partial-expression row a
+// (SR5, SR7 d), SR8, SR6 e) and §2023:14.9.13.4 GR4a.2) had no code site, with Table 15's Partial-expression row a
 // permanently dead lookup (kb/Work PB398).
 // boolean-expression-2 (§2023:14.9.13.2's `[ NOT ] boolean-expression-2`, kb/Work PB1412) sits between valueOperand and
 // condition for the subject rule's reason: an operator-bearing object with no relational tail is Table 15's
@@ -355,7 +355,7 @@ evaluateWhenItem
     : NOT? valueRange                            // [NOT] range-expression: WHEN 1 THRU 10, WHEN NOT "A" THRU "M" IN ALPH
     | NOT? addressIdentifier                     // [NOT] identifier-2 that is an address-identifier (kb/Work PB1060)
     | NOT? valueOperand                          // [NOT] identifier-2 / literal-2 / arithmetic-expression-2: "A", 1, VAR
-    | {boolExprAhead()}? NOT? booleanExpression  // [NOT] boolean-expression-2: WHEN A B-AND C (§2023:14.9.13.4 GR4 a) 6.)
+    | {boolExprAhead()}? NOT? booleanExpression  // [NOT] boolean-expression-2: WHEN A B-AND C (§2023:14.9.13.4 GR4a.6)
     | NOT? booleanLiteral                        // TRUE / FALSE: a NOT here is refused by name (COBOL3710)
     | condition                                  // condition-2 (EVALUATE TRUE / complex WHEN), owning its leading NOT
     | partialExpression                          // WHEN > 5, WHEN NOT NUMERIC, WHEN > 5 AND < 10 (§2023:14.9.13.3 SR5), owning its NOT

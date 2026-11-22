@@ -68,7 +68,7 @@ public static partial class CobolNum
 
     /// <summary>The size-error-CHECKED sibling of <see cref="Rescale"/> for a numeric-EDITED receiver's final
     /// transfer: under <see cref="CobolRounding.Prohibited"/> an inexact narrowing throws
-    /// <see cref="CobolSizeError"/> (ISO §2023:14.7.4.3 r7), and a WIDENING the carrier cannot form throws the
+    /// <see cref="CobolSizeError"/> (ISO §2023:14.7.4.3 GR7), and a WIDENING the carrier cannot form throws the
     /// §2023:14.7.5 case-3 size error ("if, after radix point alignment and any applicable rounding specifications,
     /// the result of an arithmetic statement is further from zero than permitted for the associated resultant
     /// data item") — the caller's ON SIZE ERROR / EC-SIZE machinery catches either and leaves the receiver
@@ -91,12 +91,12 @@ public static partial class CobolNum
     /// Store an arithmetic result (the unscaled integer <paramref name="value"/> at <paramref name="valueScale"/>)
     /// into the receiver: rescale to the receiver's scale (rounding with <paramref name="mode"/>), drop any
     /// high-order digits beyond the picture (the no-ON-SIZE-ERROR behavior), and apply the unsigned-magnitude rule
-    /// for an unsigned receiver (ISO §2023:14.9.25.4 GR6d2b). Returns the receiver's stored unscaled integer.
+    /// for an unsigned receiver (ISO §2023:14.9.25.4 GR6d.2.b). Returns the receiver's stored unscaled integer.
     /// <para>This IS the determination <c>CONFORMANCE.md</c> DOC-A.1-70 documents for a §2023:14.7.5 case-3 size error
     /// with no SIZE ERROR phrase and EC-SIZE checking off (§2023:14.7.5 no-phrase rule 4 names the condition;
-    /// §2023:14.6.13.1.3 item 8 hands the disposition to the implementor): "execution continues and the resultant
+    /// §2023:14.6.13.1.3 GR8 hands the disposition to the implementor): "execution continues and the resultant
     /// identifier receives the LOW-ORDER digits of the result aligned at its scale". It is the same rule for a
-    /// MOVE, whose §2023:14.6.8.2 r4 alignment is "transferred to the receiving digits with zero fill or truncation on
+    /// MOVE, whose §2023:14.6.8.2 GR4 alignment is "transferred to the receiving digits with zero fill or truncation on
     /// either end".</para>
     /// <para>⛔ kb/Work PB639 — WHY THE WIDENING IS SPLIT BY CAPACITY DISCIPLINE. "Low-order digits" is a DECIMAL
     /// statement for a DISPLAY/COMP/PACKED receiver and the container's two's-complement residue for a
@@ -127,8 +127,8 @@ public static partial class CobolNum
     /// <c>false</c> — leaving <paramref name="stored"/> meaningless and the receiver to be left unchanged by the
     /// caller — when (a) the rescaled value's magnitude exceeds the receiver's digit capacity (high-order overflow,
     /// §2023:14.7.5 case 3), or (b) <paramref name="mode"/> is <see cref="CobolRounding.Prohibited"/> and the rescale is
-    /// inexact (a nonzero fraction would be dropped, §2023:14.7.4.3 r7). Otherwise stores the value (unsigned-magnitude
-    /// rule applied, §2023:14.9.25.4 GR6d2b) and returns <c>true</c>. This is the checked sibling of <see cref="Store"/>, used
+    /// inexact (a nonzero fraction would be dropped, §2023:14.7.4.3 GR7). Otherwise stores the value (unsigned-magnitude
+    /// rule applied, §2023:14.9.25.4 GR6d.2.b) and returns <c>true</c>. This is the checked sibling of <see cref="Store"/>, used
     /// only when an ON SIZE ERROR phrase is present.
     /// <para>⛔ kb/Work PB639: the capacity check must never look at a WRAPPED alignment. The widening multiply
     /// in <see cref="Rescale"/> wraps in the carrier, and a wrap can land back inside the receiver's capacity, so
@@ -138,7 +138,7 @@ public static partial class CobolNum
     public static bool TryStore(Int128 value, int valueScale, in NumProfile receiver, CobolRounding mode, out Int128 stored)
     {
         stored = 0;
-        // PROHIBITED: an inexact rescale is a size error regardless of capacity (§2023:14.7.4.3 r7) — receiver unchanged.
+        // PROHIBITED: an inexact rescale is a size error regardless of capacity (§2023:14.7.4.3 GR7) — receiver unchanged.
         if (mode == CobolRounding.Prohibited && IsInexactAtScale(value, valueScale, receiver.FractionScale))
             return false;
 
@@ -174,7 +174,7 @@ public static partial class CobolNum
         if (HoldsPastInt128(receiver))
         {
             // The UNSIGNED 16-BYTE container (kb/Work PB2966): every magnitude below 2^128 is in its range (DOC-A.1-208),
-            // so only the PROHIBITED-inexact transfer (§2023:14.7.4.3 r7) and a value past every container fail.
+            // so only the PROHIBITED-inexact transfer (§2023:14.7.4.3 GR7) and a value past every container fail.
             try { stored = unchecked((Int128)value.ToUnscaledMagnitude(receiver.FractionScale, mode, checkedTransfer: true)); }
             catch (CobolSizeError) { return false; }
             return true;
@@ -184,7 +184,7 @@ public static partial class CobolNum
         // low-order digits the unchecked ToUnscaled keeps — those passed the capacity check below as 0 and stored,
         // so COMPUTE X5 = 10 ** 100 ON SIZE ERROR ran NOT ON SIZE ERROR under STANDARD-DECIMAL.
         try { v = value.ToUnscaledChecked(receiver.FractionScale, mode); }
-        catch (CobolSizeError) { return false; }   // PROHIBITED-inexact transfer (§2023:14.7.4.3 r7) or the §2023:14.7.5 case-3 overflow
+        catch (CobolSizeError) { return false; }   // PROHIBITED-inexact transfer (§2023:14.7.4.3 GR7) or the §2023:14.7.5 case-3 overflow
         return TryCommit(v, receiver, out stored);
     }
 
@@ -300,7 +300,7 @@ public static partial class CobolNum
     /// storage width — the deterministic no-ON-SIZE-ERROR truncation for COMP-5 / the BINARY-CHAR family (the
     /// width analog of the DigitCount path's <c>%= 10^Digits</c>). A signed receiver folds by modulo 2^bits into
     /// [-2^(bits-1), 2^(bits-1)) (exactly a native sbyte/short/int/long cast); an unsigned receiver stores the
-    /// magnitude (ISO §2023:14.9.25.4 GR6d2b) reduced modulo 2^bits into [0, 2^bits). §2023:13.18.60.4 GR12/GR21 / DOC-A.1-208.
+    /// magnitude (ISO §2023:14.9.25.4 GR6d.2.b) reduced modulo 2^bits into [0, 2^bits). §2023:13.18.60.4 GR12/GR21 / DOC-A.1-208.
     /// <para>⛔ THE 16-BYTE TIER RETURNS CONTAINER BITS (kb/Work R10, F74). A C# <c>Int128</c> shift count is
     /// masked to 7 bits, so the old <c>1 &lt;&lt; 128</c> silently produced modulus 1 and every 16-byte store
     /// collapsed to 0. At bits = 128 the container range equals (unsigned: doubles) the <c>Int128</c> domain, so
@@ -323,7 +323,7 @@ public static partial class CobolNum
 
     /// <summary>Whether a value fits the native two's-complement range of a BinaryCapacity receiver's storage
     /// width — the SIZE ERROR test for COMP-5 / the BINARY-CHAR family: signed [-2^(bits-1), 2^(bits-1));
-    /// unsigned magnitude [0, 2^bits) (§2023:13.18.60.4 GR12 / DOC-A.1-208; §2023:14.9.25.4 GR6d2b for the unsigned-magnitude rule).
+    /// unsigned magnitude [0, 2^bits) (§2023:13.18.60.4 GR12 / DOC-A.1-208; §2023:14.9.25.4 GR6d.2.b for the unsigned-magnitude rule).
     /// At bits = 128 every <c>Int128</c> value is in range — signed because the domains coincide, unsigned
     /// because every magnitude ≤ 2^127 &lt; 2^128 (kb/Work R10, F74 — the shift-mask bug made this leg answer
     /// "[0, 1)" and the signed leg answer "never", so SIZE ERROR fired on every in-range 16-byte store).</summary>
@@ -339,7 +339,7 @@ public static partial class CobolNum
     }
 
     /// <summary>The unsigned BinaryCapacity receiver's stored value for an in-range input: the magnitude
-    /// (§2023:14.9.25.4 GR6 b) as the container's bits in the <see cref="Int128"/> carrier. A magnitude of 2^127
+    /// (§2023:14.9.25.4 GR6b) as the container's bits in the <see cref="Int128"/> carrier. A magnitude of 2^127
     /// (only <see cref="Int128.MinValue"/> has it) is its own bit pattern, which the 16-byte tier's
     /// <c>unchecked((UInt128))</c> store reinterprets exactly (kb/Work R10); every narrower container's
     /// magnitude is below 2^120 and converts unchanged.</summary>
@@ -348,7 +348,7 @@ public static partial class CobolNum
     // ── The UNSIGNED WIDE lane (kb/Work R10 — owner decision 2026-08-07: unsigned COMP-5 carriers are
     // ulong / UInt128, and the item owns its full container range, DOC-A.1-208). A value in
     // (Int128.MaxValue, 2^128) exists ONLY in a 16-byte unsigned BinaryCapacity item; it enters generated code
-    // as a UInt128-typed expression (the item's field read, or the HIGHEST-ALGEBRAIC fold literal §2023:15.43.4 r2),
+    // as a UInt128-typed expression (the item's field read, or the HIGHEST-ALGEBRAIC fold literal §2023:15.43.4 RV2),
     // and the EMITTER routes it here by the operand's static carrier (NumX.U) — the U-suffixed names are
     // deliberate, see FormatDisplayU's remark on the int-constant CS0121 ambiguity an overload pair causes.
     // The VALUE-preserving paths (store, display, compare) take the full range; the ARITHMETIC engine's
@@ -366,8 +366,8 @@ public static partial class CobolNum
                 + "(Int128 — the documented native technique, ISO §2023:8.8.1.3 / CONFORMANCE.md DOC-A.1-123)", "EC-SIZE-OVERFLOW");
 
     /// <summary>Store an unsigned wide value (a 16-byte unsigned COMP-5 item's full-container value, or the
-    /// HIGHEST-ALGEBRAIC fold of one — §2023:15.43.4 r2) into the receiver: rescale to the receiver's scale, then the
-    /// receiver's capacity discipline. The unsigned-magnitude rule (§2023:14.9.25.4 GR6d2b) is a no-op — the sending
+    /// HIGHEST-ALGEBRAIC fold of one — §2023:15.43.4 RV2) into the receiver: rescale to the receiver's scale, then the
+    /// receiver's capacity discipline. The unsigned-magnitude rule (§2023:14.9.25.4 GR6d.2.b) is a no-op — the sending
     /// value is non-negative. Returns the stored unscaled integer; ⛔ for a 16-byte BinaryCapacity receiver the
     /// return is the container's two's-complement BITS (see <see cref="WrapBinary"/>) — the emitted
     /// <c>unchecked((UInt128))</c> store cast reinterprets exactly.</summary>
@@ -385,7 +385,7 @@ public static partial class CobolNum
     {
         stored = 0;
         if (mode == CobolRounding.Prohibited && IsInexactAtScale(value, valueScale, receiver.FractionScale))
-            return false;   // inexact narrowing under PROHIBITED (§2023:14.7.4.3 r7)
+            return false;   // inexact narrowing under PROHIBITED (§2023:14.7.4.3 GR7)
         // Align exactly for the range check: a WIDENING beyond UInt128 already exceeds every capacity below it.
         int up = receiver.FractionScale - valueScale;
         if (!WideningFitsU(value, up)) return false;
@@ -493,7 +493,7 @@ public static partial class CobolNum
     }
 
     /// <summary>The size-error-CHECKED unsigned-wide lane of <see cref="RescaleChecked"/>, for the same edited
-    /// final transfer under ON SIZE ERROR / EC-SIZE checking: a PROHIBITED-inexact narrowing (ISO §2023:14.7.4.3 r7) or a
+    /// final transfer under ON SIZE ERROR / EC-SIZE checking: a PROHIBITED-inexact narrowing (ISO §2023:14.7.4.3 GR7) or a
     /// value whose alignment is past the <see cref="Int128"/> the edit takes, and so past every numeric-edited
     /// receiver's digit capacity (§2023:14.7.5 case 3), throws the EC-SIZE-TRUNCATION <see cref="CobolSizeError"/> that the
     /// statement's machinery catches, leaving the receiver unchanged; an in-range value returns exact, and the
@@ -593,7 +593,7 @@ public static partial class CobolNum
     private static bool IsInexactAtScale(UInt128 value, int fromScale, int toScale) =>
         toScale < fromScale && value % Pow10U(fromScale - toScale) != 0;
 
-    // ── The ORDINAL-POSITION integrality rule (ISO §2023:8.4.2.3.4 GR1b · §2023:8.4.3.3.4 rule 5)c); fix-queue PB41) ──────
+    // ── The ORDINAL-POSITION integrality rule (ISO §2023:8.4.2.3.4 GR1b · §2023:8.4.3.3.4 GR5)c); fix-queue PB41) ──────
     // A subscript and a reference-modifier leftmost-position/length are the VALUE of an arithmetic expression, and
     // BOTH clauses make a non-integer value an exception condition rather than a truncation. A WiseOwl COBOL numeric
     // item stores UNSCALED (PIC 9V9 VALUE 2.0 is the field 20L, scale 1), so the value question and the storage
@@ -604,7 +604,7 @@ public static partial class CobolNum
     // arithmetic lives here.
 
     /// <summary>True when <paramref name="unscaled"/> at <paramref name="scale"/> carries a nonzero fraction —
-    /// i.e. the ordinal position it denotes is NOT an integer (ISO §2023:8.4.2.3.4 GR1b / §2023:8.4.3.3.4 rule 5)c)).
+    /// i.e. the ordinal position it denotes is NOT an integer (ISO §2023:8.4.2.3.4 GR1b / §2023:8.4.3.3.4 GR5)c)).
     /// A scale of zero is the ordinary integer item and can never be fractional.</summary>
     public static bool HasFraction(Int128 unscaled, int scale) =>
         scale > 0 && unscaled % Pow10Wide(scale) != 0;
@@ -686,7 +686,7 @@ public static partial class CobolNum
 
     /// <summary>The integer ordinal position a binary64 value denotes, truncated toward zero and saturated to
     /// <c>long</c>; NaN denotes no position and reads as 0, which every table and every reference modification
-    /// rejects as "less than one" (§2023:8.4.2.3.4 GR2, §2023:8.4.3.3.4 rule 5)c)).</summary>
+    /// rejects as "less than one" (§2023:8.4.2.3.4 GR2, §2023:8.4.3.3.4 GR5)c)).</summary>
     public static long PositionOf(double value) =>
         double.IsNaN(value) ? 0
         : value >= 9.2e18 ? long.MaxValue
@@ -747,7 +747,7 @@ public static partial class CobolNum
     /// ADVANCING or LINAGE line count, an OCCURS DEPENDING current count (kb/Work PB1033). The same rule, the same
     /// reason: those consumers used to take a bare <c>(int)(…)</c> of the integer landing, and a C# cast WRAPS —
     /// <c>GO TO P1 P2 DEPENDING ON G</c> with <c>G = 4294967297</c> went to P1 where ISO §2023:14.9.17.4 GR2 transfers
-    /// nowhere, and a leftmost position of 4294967297 read position 1 where §2023:8.4.3.3.4 5) c) raises
+    /// nowhere, and a leftmost position of 4294967297 read position 1 where §2023:8.4.3.3.4 GR5c raises
     /// EC-BOUND-REF-MOD. Saturation is the out-of-range answer at every one of them, because every range they
     /// test lies strictly inside the carrier: no item, record, page or table in this implementation has
     /// <c>int.MaxValue</c> positions, so a saturated value is still out of range; and the sign survives, so a
@@ -1022,7 +1022,7 @@ public static partial class CobolNum
     /// the scaled value, and never the exponent (a literal with a large exponent must not become thousands of characters);
     /// cobc 3.2.0 does the same for a literal.</para></summary>
     /// <param name="text">A numeric value's text: an optional sign, digits with at most one decimal separator ('.' or ',',
-    /// the program's DECIMAL-POINT mode, §2023:12.3.7.4 GR14 a), and an optional exponent.</param>
+    /// the program's DECIMAL-POINT mode, §2023:12.3.7.4 GR14a, and an optional exponent.</param>
     public static string GroupDigits(string text)
     {
         int end = text.IndexOfAny(['E', 'e']);
@@ -1038,7 +1038,7 @@ public static partial class CobolNum
         return new string(digits);
     }
 
-    // ── THE ALPHANUMERIC SENDING OPERAND (ISO §2023:14.9.25.4 GR6 d) ─────────────────────────────────────────────
+    // ── THE ALPHANUMERIC SENDING OPERAND (ISO §2023:14.9.25.4 GR6d) ─────────────────────────────────────────────
     //
     // GR6 d) governs "when a numeric or numeric-edited item is the receiving item". Its three clauses about an
     // ALPHANUMERIC or NATIONAL sending operand are THREE SEPARATE QUESTIONS, and each has exactly one method
@@ -1067,7 +1067,7 @@ public static partial class CobolNum
     /// undefined, and WiseOwl COBOL's determination is deterministic — a non-digit position contributes no digit, an
     /// all-non-digit or empty image is 0). The unsigned MAGNITUDE only: no operational sign is decoded.
     /// <para>⛔ An ALPHANUMERIC or NATIONAL SENDING OPERAND takes <see cref="FromAlphanumeric"/> instead, which
-    /// applies §2023:14.9.25.4 GR6 d) 3's 31-character size rule before this scan.</para></summary>
+    /// applies §2023:14.9.25.4 GR6d 3's 31-character size rule before this scan.</para></summary>
     public static Int128 DigitMagnitude(string image) => DigitMagnitude(image.AsSpan());
 
     /// <inheritdoc cref="DigitMagnitude(string)"/>
@@ -1083,7 +1083,7 @@ public static partial class CobolNum
     }
 
     /// <summary>⛔ THE SIZE OF AN ALPHANUMERIC SENDING OPERAND, AND THE REASON THE Int128 CARRIER IS UNREACHABLE
-    /// (ISO §2023:14.9.25.4 GR6 d) 3; kb/Work PB426). When the sending operand is described as alphanumeric or
+    /// (ISO §2023:14.9.25.4 GR6d 3; kb/Work PB426). When the sending operand is described as alphanumeric or
     /// national it "is treated as if it were an unsigned integer of category numeric" whose size the standard
     /// CAPS: a) "the number of digits is the number of character positions in the sending data item unless the
     /// number of character positions is greater than 31, in which case the rightmost 31 character positions are
@@ -1105,18 +1105,18 @@ public static partial class CobolNum
         return DigitMagnitude(s.Length > MaxSendingCharacterPositions ? s[^MaxSendingCharacterPositions..] : s);
     }
 
-    /// <summary>§2023:14.9.25.4 GR6 d) 3 a) / c): the number of character positions of an alphanumeric or national
+    /// <summary>§2023:14.9.25.4 GR6d 3 a) / c): the number of character positions of an alphanumeric or national
     /// sending operand that a numeric receiver sees.</summary>
     public const int MaxSendingCharacterPositions = 31;
 
     /// <summary>The CHECKED read of an alphanumeric or national sending operand moving to a numeric or
-    /// numeric-edited receiver (ISO §2023:14.9.25.4 GR6 d) 1's closing sentence; kb/Work PB844): "Otherwise, if the
+    /// numeric-edited receiver (ISO §2023:14.9.25.4 GR6d 1's closing sentence; kb/Work PB844): "Otherwise, if the
     /// content of the sending operand would result in a false value in a numeric class condition, the
     /// EC-DATA-INCOMPATIBLE exception condition is set to exist, and the results of the execution of the MOVE
-    /// statement are undefined." The class condition is §2023:8.8.4.4.4 GR3 n) 2 — a non-numeric-category operand is
+    /// statement are undefined." The class condition is §2023:8.8.4.4.4 GR3n 2 — a non-numeric-category operand is
     /// numeric iff its content "consists entirely of the characters 0, 1, 2, 3, …, 9" — so the ONE predicate
     /// <see cref="CobolClass.IsNumeric"/> answers it, including the zero-length answer (GR1: false).
-    /// <para>The exact twin of <see cref="ParseImageSending"/>, which carries §2023:14.6.13.2 rule 2 for a numeric
+    /// <para>The exact twin of <see cref="ParseImageSending"/>, which carries §2023:14.6.13.2 GR2 for a numeric
     /// sending item; that rule cannot cover this case, because an alphanumeric item holding <c>"Q"</c> is
     /// perfectly valid for its OWN data description — it is the MOVE that asks a numeric question of it. With
     /// checking OFF the flag test short-circuits before the scan and the tolerant decode stands, which is
@@ -1152,7 +1152,7 @@ public static partial class CobolNum
     /// <summary>The sign an item's DISPLAY image CARRIES — the one fact an <see cref="Int128"/> cannot hold for a
     /// zero (there is no negative zero in a value). The same decode <see cref="ParseDisplay"/> performs, stopped
     /// before the magnitude is signed: an unsigned item, an empty image and a positive or unpunched sign answer
-    /// false (ISO §2023:14.9.22.4 GR4 d), kb/Work PB1128).</summary>
+    /// false (ISO §2023:14.9.22.4 GR4d, kb/Work PB1128).</summary>
     public static bool ImageIsNegative(string image, in NumProfile receiver)
     {
         ParseDisplayMagnitude(image, receiver, out bool negative);
@@ -1211,7 +1211,7 @@ public static partial class CobolNum
 
     /// <summary>Reduce the over-punch character at <paramref name="pos"/> (in place) to its underlying digit, setting
     /// <paramref name="negative"/> when the punch is in <paramref name="encoding"/>'s NEGATIVE table (kb/Work PB803 —
-    /// the program's §2023:13.18.52.4 GR5 b) sign set, <see cref="ZonedSign"/>). A character in neither table — a plain
+    /// the program's §2023:13.18.52.4 GR5b sign set, <see cref="ZonedSign"/>). A character in neither table — a plain
     /// digit under the IBM convention, or genuinely incompatible content (§2023:14.6.13.2) — is left as-is and the sign
     /// stays positive.</summary>
     private static void DecodeOverpunch(char[] chars, int pos, ref bool negative, SignEncoding encoding)
@@ -1253,7 +1253,7 @@ public static partial class CobolNum
     /// <para>A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> — §2023:14.7.5 case 2 — checked or NOT: the
     /// condition exists either way, and checking decides only its disposition (the SIZE ERROR phrase, an EC-SIZE
     /// declarative or PERFORM WHEN, else abnormal termination — CONFORMANCE.md DOC-A.1-70's determination for the
-    /// unchecked §2023:14.6.13.1.3 item 8 case). This unchecked kernel returned 0 until kb/Work PB1605, so
+    /// unchecked §2023:14.6.13.1.3 GR8 case). This unchecked kernel returned 0 until kb/Work PB1605, so
     /// <c>COMPUTE A = B / Z</c> stored 000 and the run went on.</para>
     /// </summary>
     public static Int128 Divide(Int128 a, int aScale, Int128 b, int bScale, int resultScale, CobolRounding mode)
@@ -1281,7 +1281,7 @@ public static partial class CobolNum
         if (!fits)
         {
             if (exp is >= 0 and <= 38) return CobolDec.QuotientAtScale(a, b, exp, mode);
-            // ROUNDED MODE IS PROHIBITED asks the EXACT quotient (§2023:14.7.4.3 rule 7), which the SDIDI's 34 digits below
+            // ROUNDED MODE IS PROHIBITED asks the EXACT quotient (§2023:14.7.4.3 GR7), which the SDIDI's 34 digits below
             // may not show: a scale-down alignment leaves the whole (nonzero) dividend as the remainder, and past 10^38
             // the 256-bit remainder answers (kb/Work PB3990 — the test DivideOrThrow made, now the one kernel's).
             if (mode == CobolRounding.Prohibited && (exp < 0 || CobolDec.QuotientHasRemainder(a, b, exp)))
@@ -1326,7 +1326,7 @@ public static partial class CobolNum
     /// <c>Int128.MinValue</c>. The one value only a NEGATIVE quotient can hold is that 2^127; any other quotient past
     /// <c>Int128.MaxValue</c> is the §2023:14.7.5 case-5 size error (EC-SIZE-OVERFLOW), never a wrapped digit string.
     /// PROHIBITED and a nonzero remainder raise <see cref="CobolSizeError.ProhibitedInexact"/> from the one rounding
-    /// decision (§2023:14.7.4.3 rule 7, kb/Work PB3990).</summary>
+    /// decision (§2023:14.7.4.3 GR7, kb/Work PB3990).</summary>
     internal static Int128 LandQuotient(UInt128 q, UInt128 rem, UInt128 divisor, bool negative, CobolRounding mode)
     {
         if (rem != 0 && RoundingRule.Bumps(mode, negative, !UInt128.IsEvenInteger(q), rem, divisor))

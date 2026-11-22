@@ -76,7 +76,7 @@ public static class SoleOperand
     ///
     /// <para><b>It is deliberately NOT <see cref="Primary"/>.</b> Every other member of this class answers
     /// §2023:8.8.4.7.3 SR2's question ("a single data item … not enclosed in parentheses"), for which a leading sign
-    /// makes the operand compound. THIS one answers a different question, and §2023:8.3.3.3.2 rule 2 gives it the
+    /// makes the operand compound. THIS one answers a different question, and §2023:8.3.3.3.2 SR2 gives it the
     /// opposite answer: "A literal shall not contain more than one sign character. If a sign is used, it shall
     /// appear as the leftmost character of the literal" — so a sign written ADJACENT to the digits is INSIDE the
     /// literal, and <c>-5</c> consists of a single literal. (There is no signed data reference and no signed

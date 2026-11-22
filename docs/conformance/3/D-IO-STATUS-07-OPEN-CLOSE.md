@@ -1,4 +1,4 @@
-- **D-IO-STATUS-07-OPEN-CLOSE — I-O status '07' restricted to OPEN/CLOSE (§2023:9.1.13.2 item 6; E.2 item 16)**: **VERIFIED AT EVERY EDITION FROM ITS OWN
+- **D-IO-STATUS-07-OPEN-CLOSE — I-O status '07' restricted to OPEN/CLOSE (§2023:9.1.13.2 GR6; E.2 item 16)**: **VERIFIED AT EVERY EDITION FROM ITS OWN
   TEXT, THE SAME BEHAVIOUR AT EVERY EDITION** (kb/Work PB1515). *2023:* the '07' setters are exactly the three
   phrases item 6 names on the two statements it names, all reaching `FileStatusCode.PhraseOnNonReelMedium` on a
   non-reel/unit medium: `CLOSE … REEL/UNIT [FOR REMOVAL]` and `CLOSE … WITH NO REWIND` through

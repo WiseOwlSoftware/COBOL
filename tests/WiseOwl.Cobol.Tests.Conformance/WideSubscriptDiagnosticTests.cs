@@ -126,7 +126,7 @@ public sealed class WideSubscriptDiagnosticTests
     }
 
     /// <summary>A RECEIVING reference past <c>long</c> is a GROWTH request (§2023:8.5.1.9.3), refused by the implementor
-    /// maximum (§2023:8.5.1.9.6 2): EC-BOUND-TABLE-LIMIT names the capacity the program asked for.</summary>
+    /// maximum (§2023:8.5.1.9.6 GR2): EC-BOUND-TABLE-LIMIT names the capacity the program asked for.</summary>
     [Fact]
     public void DynamicTable_ReceivingReference_NamesTheRequestedCapacity()
     {
@@ -135,7 +135,7 @@ public sealed class WideSubscriptDiagnosticTests
             "OCCURS DYNAMIC growth to 100000000000000000001 exceeds the implementor maximum");
     }
 
-    /// <summary>A NEGATIVE receiving reference is §2023:8.4.2.3.4 2)'s "not a positive integer", not a growth case.</summary>
+    /// <summary>A NEGATIVE receiving reference is §2023:8.4.2.3.4 GR2's "not a positive integer", not a growth case.</summary>
     [Fact]
     public void DynamicTable_ReceivingReference_NegativeWide_NamesTheValue()
     {
@@ -145,7 +145,7 @@ public sealed class WideSubscriptDiagnosticTests
             "subscript -100000000000000000001 is not a positive integer");
     }
 
-    /// <summary>A REPEATING report entry's sum counter is a table (§2023:13.18.54.4 GR8 a); kb/Work PB1271), and its
+    /// <summary>A REPEATING report entry's sum counter is a table (§2023:13.18.54.4 GR8a; kb/Work PB1271), and its
     /// subscript is §2023:8.4.2.3.4 GR2's: <c>CobolReport.SumImage</c> takes the same <c>Occurrence</c> a table accessor does.</summary>
     [Fact]
     public void ReportSumCounter_WideSubscript_NamesTheValue()

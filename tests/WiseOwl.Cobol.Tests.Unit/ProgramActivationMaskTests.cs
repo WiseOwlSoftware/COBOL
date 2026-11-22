@@ -60,7 +60,7 @@ public sealed class ProgramActivationMaskTests
     [Fact]
     public void MethodActivation_PairsTheInvokeFlagsWithTheMethodMask_AndFailsAsAFatalCondition()
     {
-        // §2023:14.9.23.4 GR7 d) (kb/Work PB1138): the method twin of the CALL boundary. A conforming registration first,
+        // §2023:14.9.23.4 GR7d (kb/Work PB1138): the method twin of the CALL boundary. A conforming registration first,
         // then a nonconforming one: with EC-EXTERNAL-FORMAT-CONFLICT enabled in the INVOKE (the flag) AND in the method
         // (the self mask) the invocation is not successful — a CobolFatalException the INVOKE's guard selects on —
         // and the activator half is restored either way.

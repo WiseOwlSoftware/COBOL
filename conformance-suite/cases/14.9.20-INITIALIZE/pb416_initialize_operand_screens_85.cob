@@ -25,7 +25,7 @@
       *>                                          the B inserts a space at position 3 — §2023:13.18.40.5 GR3)
       *>         NUMERIC             BY 42     — Numeric/Integer row x Numeric column      -> NU = 042
       *>         NUMERIC-EDITED      BY 9      — Numeric/Integer row x Numeric column      -> NE = "   9"
-      *>       IX is USAGE INDEX and is SUBORDINATE to identifier-1, so §2023:14.9.20.4 GR5a1 excludes it from the
+      *>       IX is USAGE INDEX and is SUBORDINATE to identifier-1, so §2023:14.9.20.4 GR5a.1 excludes it from the
       *>       receiver set SILENTLY — that exclusion is NOT SR1 and must keep its silence; SR1 is a rule about
       *>       identifier-1 itself.
       *>   T2  the bare COBOL-85 form (GR5c4 + GR6c's fill table): SPACES for the three character categories

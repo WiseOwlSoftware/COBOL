@@ -127,7 +127,7 @@ internal sealed class ValidateBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Stage one's test for one elementary item (§2023:14.9.50.4 GR6 a: "compatibility with the PICTURE, SIGN, and USAGE clauses"): the content
-    /// a numeric item holds is a number (the numeric class test, §2023:8.8.4.4.4 GR3 n), an alphabetic item holds only letters and spaces (GR3 b) and a
+    /// a numeric item holds is a number (the numeric class test, §2023:8.8.4.4.4 GR3n), an alphabetic item holds only letters and spaces (GR3 b) and a
     /// boolean item only 0 and 1 (GR3 e). Null for an item every content suits.</summary>
     private static BoundCondition? FormatTest(Place place, DataItem item)
     {

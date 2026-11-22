@@ -12,9 +12,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// The runtime's two MEDIUM boundaries, pinned where a COBOL golden cannot reach them (kb/Work PB1192, PB690).
 /// <list type="bullet">
-/// <item>The externally-defined boundaries of ISO §2023:9.1.13.5 item 4 ('24', a relative or indexed file — Annex A.1
+/// <item>The externally-defined boundaries of ISO §2023:9.1.13.5 GR4 ('24', a relative or indexed file — Annex A.1
 /// item 107: the host's maximum file size and the keyed store engine's 2^32 pages, met at the statement whose pages the
-/// host refuses to grow the file for) and §2023:9.1.13.6 item 3 ('34', a sequential file — Annex A.1 item 108, the host
+/// host refuses to grow the file for) and §2023:9.1.13.6 GR3 ('34', a sequential file — Annex A.1 item 108, the host
 /// medium's capacity, <see cref="HostFile.IsMediumBoundary"/>).</item>
 /// <item>The file coded character set of Annex A.1 item 31 (owner decision kb/Work R47): ISO/IEC 8859-1, with a
 /// strict encoding so an unrepresentable character can never become a silent <c>?</c>.</item>
@@ -38,10 +38,10 @@ public sealed class FileBoundaryTests : IDisposable
     private static readonly char Euro = (char)0x20AC;
     private static readonly char EAcute = (char)0x00E9;
 
-    // ── §2023:9.1.13.6 item 3 / item 1: the host's write refusal ────────────────────────────────────────────────
+    // ── §2023:9.1.13.6 GR3 / item 1: the host's write refusal ────────────────────────────────────────────────
 
     /// <summary>The host's medium-exhaustion refusals are the sequential boundary ('34'); every other write
-    /// failure is §2023:9.1.13.6 item 1's '30'. The Windows HRESULTs are negative and can never be a Unix errno, so
+    /// failure is §2023:9.1.13.6 GR1's '30'. The Windows HRESULTs are negative and can never be a Unix errno, so
     /// they classify on every host; the raw errnos classify only where the host reports errnos.</summary>
     [Fact]
     public void WriteFailure_MediumExhaustionIs34_AnyOtherFailureIs30()
@@ -80,13 +80,13 @@ public sealed class FileBoundaryTests : IDisposable
             writes++;
         }
         Assert.Equal(FileStatusCode.PermanentBoundary, status);
-        c.Close();   // its own final flush is refused too: §2023:9.1.13.6 item 1's '30' through Close's catch
+        c.Close();   // its own final flush is refused too: §2023:9.1.13.6 GR1's '30' through Close's catch
     }
 
-    /// <summary>§2023:9.1.13.6 item 1 on the READ side (kb/Work PB1512): a host failure while a sequential READ or
+    /// <summary>§2023:9.1.13.6 GR1 on the READ side (kb/Work PB1512): a host failure while a sequential READ or
     /// START FIRST/LAST reads the medium is the permanent error '30' — never an escaping IOException — and the
     /// unsuccessful READ leaves no valid file position, so the next sequential READ is '46' (§2023:14.9.30.4 GR18,
-    /// §2023:9.1.13.7 item 6). The failure is produced by the host itself, measured per host: Linux refuses a read of
+    /// §2023:9.1.13.7 GR6). The failure is produced by the host itself, measured per host: Linux refuses a read of
     /// <c>/proc/self/mem</c> at address 0 with EIO, and Windows refuses a read of a byte range another handle has
     /// LOCKED. A host offering neither must be neither of them, so the test cannot pass on a CI host by not
     /// running.</summary>
@@ -132,7 +132,7 @@ public sealed class FileBoundaryTests : IDisposable
         }
     }
 
-    // ── §2023:9.1.13.5 item 4: the store's capacity ───────────────────────────────────────────────────────────
+    // ── §2023:9.1.13.5 GR4: the store's capacity ───────────────────────────────────────────────────────────
 
     /// <summary>⛔ AN INDEXED RECORD IS n + 1 ENTRIES, ITS ORDINALS IN ITS FRAME AND IN ITS COMPOSITE KEYS
     /// (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4; kb/Work PB3334, PB2693). Read back from the file's own pages
@@ -195,7 +195,7 @@ public sealed class FileBoundaryTests : IDisposable
     }
 
     /// <summary>The host's two refusals at an INDEXED statement (2.2.1.9; the record's n + 1 entries are one statement): a
-    /// page write the host refuses because the file cannot GROW past its maximum size is '24' — §2023:14.9.51.4 GR42 d),
+    /// page write the host refuses because the file cannot GROW past its maximum size is '24' — §2023:14.9.51.4 GR42d,
     /// <i>"When the record that is to be released to the operating environment would reside outside the externally
     /// defined boundaries of the physical file"</i> — and a write refused because the medium is FULL is '30' (§2023:9.1.13.6
     /// item 1), in effect until the CLOSE (§2023:9.1.13.1). Neither releases the record under any key: the next OPEN reads the
@@ -243,14 +243,14 @@ public sealed class FileBoundaryTests : IDisposable
     }
 
     /// <summary>⛔ THE BOUNDARY OF A RELATIVE FILE IS THE HOST'S (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.9,
-    /// docs/CONFORMANCE.md DOC-A.1-107; kb/Work PB3333). The record number's own range is §2023:14.9.51.4 GR29 b)'s: a key
+    /// docs/CONFORMANCE.md DOC-A.1-107; kb/Work PB3333). The record number's own range is §2023:14.9.51.4 GR29b's: a key
     /// below 1 or above 2 147 483 647 is '34', and a key anywhere inside it is one leaf entry of the tree — the record at
     /// the highest permitted number and one in the billions answer '00' and cost a page each, where the whole store
     /// answered '24' for every key past 536 870 887 (its image's capacity). A WRITE whose pages the host refuses to GROW
     /// the file for (<c>ERROR_FILE_TOO_LARGE</c>, <c>EFBIG</c>) is outside the externally defined boundaries — GR33 b)'s
-    /// '24', the invalid key condition — and a medium with no ROOM answers §2023:9.1.13.6 item 1's '30' at that statement;
+    /// '24', the invalid key condition — and a medium with no ROOM answers §2023:9.1.13.6 GR1's '30' at that statement;
     /// both leave the file as the previous statement left it, so the next OPEN reads exactly the records written
-    /// before. The key range's '34' holds from 2014, the first text with GR29 b)'s sentence (§2014:14.9.47.3 GR26 b);
+    /// before. The key range's '34' holds from 2014, the first text with GR29 b)'s sentence (§2014:14.9.47.3 GR26b;
     /// kb/Work PB5125).</summary>
     [Theory]
     [InlineData(2014)]
@@ -279,9 +279,9 @@ public sealed class FileBoundaryTests : IDisposable
         Assert.Equal(["5=K005", "536870888=K888", "2147483647=K647"], Records(host));
     }
 
-    /// <summary>⛔ THE KEY RANGE'S STATUS IS THE EDITION'S (kb/Work PB5125). §2023:14.9.51.4 GR29 b) answers '34' for a key
-    /// below 1 or above the highest permitted number, and so does the 2014 text (§2014:14.9.47.3 GR26 b)); the 2002 text
-    /// (§2002:14.8.47.3 GR29 b)) and §1985:VIII.1.3.4 item (3) c)
+    /// <summary>⛔ THE KEY RANGE'S STATUS IS THE EDITION'S (kb/Work PB5125). §2023:14.9.51.4 GR29b answers '34' for a key
+    /// below 1 or above the highest permitted number, and so does the 2014 text (§2014:14.9.47.3 GR26b); the 2002 text
+    /// (§2002:14.8.47.3 GR29b) and §1985:VIII.1.3.4 GRL2.3c
     /// know only the write beyond the externally defined boundaries, '24', the invalid key condition. Below 2014 the attempt
     /// is therefore no permanent error: the next statement on the file runs, and nothing is released.</summary>
     [Theory]
@@ -304,8 +304,8 @@ public sealed class FileBoundaryTests : IDisposable
 
     /// <summary>The host's two refusals, each at the statement that meets it (2.2.1.9): a page write the host refuses
     /// because the file cannot GROW past its maximum size is '24' — <i>"An attempt is made to write outside the
-    /// externally-defined boundaries of a physical relative or indexed file"</i>, §2023:9.1.13.5 item 4 — and a write the host refuses
-    /// because the medium is FULL is '30' (§2023:9.1.13.6 item 1), which stays in effect until the CLOSE (§2023:9.1.13.1). Neither
+    /// externally-defined boundaries of a physical relative or indexed file"</i>, §2023:9.1.13.5 GR4 — and a write the host refuses
+    /// because the medium is FULL is '30' (§2023:9.1.13.6 GR1), which stays in effect until the CLOSE (§2023:9.1.13.1). Neither
     /// releases the record, and the next OPEN reads the records the earlier statements wrote, byte for byte.</summary>
     [Theory]
     [InlineData(true, false)]
@@ -350,10 +350,10 @@ public sealed class FileBoundaryTests : IDisposable
         Assert.Equal(tooLarge ? ["1=AAAA", "3=CCCC"] : ["1=AAAA"], Records(host));
     }
 
-    /// <summary>⛔ THE BOUNDARY'S '24' IS A RECORD WRITE'S ALONE (review finding R1-1 of kb/Work PB3333). §2023:9.1.13.5 item 4's
+    /// <summary>⛔ THE BOUNDARY'S '24' IS A RECORD WRITE'S ALONE (review finding R1-1 of kb/Work PB3333). §2023:9.1.13.5 GR4's
     /// invalid key condition is <i>"An attempt is made to write outside the externally-defined boundaries of a physical
     /// relative or indexed file"</i>, and §2023:14.9.10.4 gives DELETE no boundary condition, so a DELETE whose copy-on-write
-    /// pages the host refuses to grow the file for (<c>ERROR_FILE_TOO_LARGE</c>, <c>EFBIG</c>) is §2023:9.1.13.6 item 1's '30'
+    /// pages the host refuses to grow the file for (<c>ERROR_FILE_TOO_LARGE</c>, <c>EFBIG</c>) is §2023:9.1.13.6 GR1's '30'
     /// (<i>"A permanent error exists and no further information is available concerning the input-output operation"</i>),
     /// never '24' with the INVALID KEY branch taken; so is an OPEN OUTPUT whose creation the host refuses to grow the file
     /// for. Both leave the file as it was: the DELETE's record is still there at the next OPEN.</summary>
@@ -402,8 +402,8 @@ public sealed class FileBoundaryTests : IDisposable
     /// <summary>⛔ THE INDEXED SIBLING OF THE RELATIVE CASE ABOVE (review finding R1-1 of kb/Work PB3334): the boundary's
     /// '24' is a record WRITE's or REWRITE's alone in an indexed file too (<c>KeyedConnector.RecordWriteFailed</c>, the one
     /// mapping both organizations share). A DELETE whose copy-on-write pages — the prime entry's leaf and the alternate
-    /// entry's — the host refuses to grow the file for (<c>ERROR_FILE_TOO_LARGE</c>, <c>EFBIG</c>) is §2023:9.1.13.6 item 1's
-    /// '30', never §2023:9.1.13.5 item 4's '24' with the INVALID KEY branch taken (§2023:14.9.10.4 gives DELETE the invalid key
+    /// entry's — the host refuses to grow the file for (<c>ERROR_FILE_TOO_LARGE</c>, <c>EFBIG</c>) is §2023:9.1.13.6 GR1's
+    /// '30', never §2023:9.1.13.5 GR4's '24' with the INVALID KEY branch taken (§2023:14.9.10.4 gives DELETE the invalid key
     /// condition only for a record the file does not contain), and the permanent error stays in effect (§2023:9.1.13.1); an
     /// OPEN OUTPUT whose creation the host refuses to grow the file for is '30' as well. The file is unchanged by both:
     /// the record the DELETE named is still there under the prime key AND the alternate key at the next OPEN.</summary>

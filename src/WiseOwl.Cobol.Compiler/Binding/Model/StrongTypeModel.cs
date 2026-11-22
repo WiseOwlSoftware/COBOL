@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Model;
@@ -16,7 +17,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// (<see cref="DataItem.StrongType"/>, <see cref="DataItem.TypeName"/>) that <c>ExpandTypes</c> writes.
 /// <para>⛔ THERE IS ONE "same type" IN THE STANDARD AND ONE PREDICATE HERE. §2023:8.5.3.1 defines it, and eight
 /// separate rules spend it — §2023:14.9.25.3 SR2 (MOVE), §2023:8.8.4.2.3 SR1 + §2023:8.8.4.2.12 (comparison), §2023:14.8.2.2
-/// (arguments), §2023:14.8.3.2 (returning items), §2023:9.3.8.2.3 rule 7 (interface conformance), §2023:8.5.1.12.1's
+/// (arguments), §2023:14.8.3.2 (returning items), §2023:9.3.8.2.3 GR7 (interface conformance), §2023:8.5.1.12.1's
 /// fixed-length sentence, §2023:14.9.30.3 SR2 / §2023:14.9.34.3 SR3 (the record area). Every one of them asks
 /// <see cref="SameType"/>; none of them re-derives the test (kb/Work PB427 — the predicate used to compare a
 /// type-NAME string plus a member-NAME PATH, which is neither of §2023:8.5.3.1's two halves and was wrong in BOTH
@@ -274,10 +275,8 @@ public static class StrongTypeModel
     /// <see cref="EssentialCharacteristicsKey"/> keys the analyzed profile by the record's own text (kb/Work PB3257).</summary>
     private static string InvariantRecordText(object record)
     {
-        var host = CultureInfo.CurrentCulture;
-        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-        try { return record.ToString() ?? ""; }
-        finally { CultureInfo.CurrentCulture = host; }
+        using var invariant = InvariantCultureScope.Enter();
+        return record.ToString() ?? "";
     }
 
     /// <summary>The SYNCHRONIZED clause's letter in <see cref="EssentialCharacteristicsKey"/> — one per form, because
@@ -514,6 +513,30 @@ public static class StrongTypeModel
     /// <see cref="SameType"/>, whose second alternative answers the different question of whether two OPERANDS
     /// occupy corresponding positions within their declarations.</summary>
     public static bool SameRestriction(TypeRestriction a, TypeRestriction b) => SameRestriction(a, b, new Comparison());
+
+    /// <summary>What is wrong with storing a data-pointer restricted to <paramref name="sender"/> into one restricted to
+    /// <paramref name="receiver"/> (<see cref="DataPointerStoreFault"/>).</summary>
+    public enum DataPointerStoreFault
+    {
+        /// <summary>The store conforms.</summary>
+        None,
+        /// <summary>The receiver is restricted and the sender is not restricted to the same type (SR19, first sentence).</summary>
+        ReceiverRestricted,
+        /// <summary>The sender is restricted and the receiver is not restricted at all (SR19, third sentence).</summary>
+        SenderRestricted,
+    }
+
+    /// <summary>⛔ THE ONE §2023:14.9.39.3 SR19 VERDICT OVER A (RECEIVING, SENDING) DATA-POINTER PAIR (kb/Work PB2625): "If identifier-5
+    /// references a restricted data-pointer, identifier-6 shall be the predefined address NULL or shall reference a data-pointer
+    /// restricted to the same type", and, the other way, a restricted identifier-6 needs an identifier-5 restricted to the same
+    /// type. A SET Format 7 asks it per receiver (<c>PtrBinder.ScreenPointerReceiverRestriction</c>), and so does a
+    /// data-address-identifier argument (<c>PtrBinder.AddressConformanceReason</c>), whose §2023:14.8.2.3.2 rule ("If either is a
+    /// restricted pointer, both shall be restricted and of the same type") is the same relation over the formal (receiver) and
+    /// the argument (sender). The caller words the fault; TO NULL is admitted by SR19 and never asked.</summary>
+    public static DataPointerStoreFault DataPointerStore(TypeRestriction receiver, TypeRestriction sender) =>
+        receiver.IsRestricted && !SameRestriction(receiver, sender) ? DataPointerStoreFault.ReceiverRestricted
+        : sender.IsRestricted && !receiver.IsRestricted ? DataPointerStoreFault.SenderRestricted
+        : DataPointerStoreFault.None;
 
     private static bool SameRestriction(TypeRestriction a, TypeRestriction b, Comparison within) =>
         a.IsRestricted && b.IsRestricted

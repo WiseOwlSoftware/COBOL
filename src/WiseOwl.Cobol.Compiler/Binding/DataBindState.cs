@@ -132,7 +132,7 @@ public sealed class DataBindState
     /// be negative (<see cref="Bound.SendersSignStore"/>; kb/Work PB5852), appended at UsageCollected by
     /// <see cref="Passes.UsageCollectionPass"/> from every <see cref="Bound.BoundMove"/> and INITIALIZE store, and read whole by
     /// <c>StorageFormPass</c>, which at 1985 and 2002 promotes to its image each receiver such a store can hand a negative zero
-    /// (§1985:VI.6.19.4 GR4b1 places the sign of the SENDING OPERAND, and a native carrier holds only a value).</summary>
+    /// (§1985:VI.6.19.4 GR4b.1 places the sign of the SENDING OPERAND, and a native carrier holds only a value).</summary>
     public FactSet<Bound.NumericStore> NumericStores { get; }
 
     /// <summary>The parse nodes (and subscript tokens) the binder RESOLVED to a function activation or an object-property

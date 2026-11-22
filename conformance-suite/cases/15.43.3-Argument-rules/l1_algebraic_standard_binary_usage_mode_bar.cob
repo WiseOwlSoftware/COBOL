@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.43.3 r2 — the ADMIT arm of HIGHEST-ALGEBRAIC's standard-binary usage bar.
+      *> ISO §2023:15.43.3 AR2 — the ADMIT arm of HIGHEST-ALGEBRAIC's standard-binary usage bar.
       *> "If standard-decimal arithmetic is in effect, argument-1 shall not be a data item whose data
       *> description entry specifies a standard binary floating-point usage."
       *> (cite.py --check 15.43.3 "If standard-decimal arithmetic is in effect, argument-1 shall not be a
@@ -31,7 +31,7 @@
       *> requires a value. conformance:cases/15.43.3-Argument-rules/pb122_smallest_algebraic_float holds the third cell of the same
       *> table — a NON-§2023:3.166 float (COMP-1 / COMP-2) under STANDARD-DECIMAL, which r2 also admits.
       *>
-      *> The bounds are derived from §2023:15.43.4 r2 ("The value returned is equal to the positive algebraic
+      *> The bounds are derived from §2023:15.43.4 RV2 ("The value returned is equal to the positive algebraic
       *> value of greatest finite magnitude that may be represented in argument-1") with §2023:13.18.60.4 GR14
       *> and GR15 pinning the two usages: GR14 makes FLOAT-BINARY-32 "a floating-point data item in 32-bit
       *> basic binary interchange format (binary32) as specified in ISO/IEC 60559:2020, 3.4" and GR15 says
@@ -46,7 +46,7 @@
       *>   N64  binary64's is 1.7976931348623157E+308. The upper bound is stated on a DIVIDED value
       *>        (x / 1.0E+300 < 1.7976932E+8) because writing 1.7976932E+308 as a literal names a number
       *>        binary64 cannot hold — a property of the probe, not of the answer.
-      *>   L32  §2023:15.58.4 r2 — "The value returned is equal to the lowest finite algebraic value that may be
+      *>   L32  §2023:15.58.4 RV2 — "The value returned is equal to the lowest finite algebraic value that may be
       *>        represented in argument-1" — which for a signed binary format is the negation. The sibling is
       *>        here because all three functions share ONE mode-aware path, so a mode misread moves this
       *>        line too.

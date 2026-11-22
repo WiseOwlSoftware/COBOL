@@ -8,7 +8,7 @@
       *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1192RB.
-      *> ISO/IEC 1989:2023 §2023:9.1.13.5 item 4 and §2023:14.9.51.4 GR29b /
+      *> ISO/IEC 1989:2023 §2023:9.1.13.5 GR4 and §2023:14.9.51.4 GR29b /
       *> GR33 b) — the externally-defined boundary of a RELATIVE file,
       *> tested AT THE WRITE (kb/Work PB1192).
       *>
@@ -25,7 +25,7 @@
       *> statement is unsuccessful, and the I O status for the write
       *> file connector is set to '34'." That sentence is new in 2014
       *> (kb/Work PB5125): this COBOL-85 test takes the invalid key
-      *> condition '24' for the same attempt (§1985:VIII.1.3.4 item (3) c),
+      *> condition '24' for the same attempt (§1985:VIII.1.3.4 GRL2.3c,
       *> §1985:VIII.1.3.5); pb5125_relative_write_key_range witnesses 34.
       *> GR15: "If the execution of a WRITE statement is unsuccessful,
       *> the write operation does not take place, the content of the

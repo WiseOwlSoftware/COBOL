@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.18.5-p7",
+ "rule-digest": "d9a0c54b1c7c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Convert; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Region",
+ "test-ref": "conformance:cases/VI.6.18@1985-INSPECT-STATEMENT/1985-GR-VI_6_18_5-p7",
+ "notes": "Own witness (wave 20262132 group a, kb/Work PB6001). §1985:VI.6.18.5 p7 ('The above INSPECT is equivalent to the following INSPECT'): INSPECT ITEM CONVERTING \"ABCD\" TO \"XYZX\" AFTER QUOTE BEFORE \"#\" acts as the REPLACING of the four ALL phrases printed after it; from AC\"AEBDFBCD#AB\"D both give AC\"XEYXFYZX#AB\"D. The program runs both statements on equal copies and checks the printed value and their agreement (CONVERTING OK, EQUIVALENT OK); run at --std 85 on this build: EXPECT MATCH."
+}

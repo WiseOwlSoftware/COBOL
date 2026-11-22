@@ -27,7 +27,7 @@
       *> unsuccessful."  GR4 leaves the content rules to the
       *> implementor: docs/CONFORMANCE.md DOC-A.1-73 (content that is
       *> empty after space removal names no physical file -> the
-      *> association cannot be made -> '31', §2023:9.1.13.6 item 2).
+      *> association cannot be made -> '31', §2023:9.1.13.6 GR2).
       *> §2023:9.1.13.1: "control is transferred to the end of the statement
       *> that produced the fatal exception condition unless the rules
       *> for that statement define other behavior" (WiseOwl COBOL continues

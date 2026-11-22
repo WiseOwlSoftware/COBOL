@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ THE ASYNCHRONOUS MESSAGING FACILITY ACROSS REAL RUN UNITS (kb/Work PB4744; docs/rearchitecture/DESIGN-message-control.md §7.2 "Across processes", §2023:14.9.38 SEND,
-/// §2023:14.9.31 RECEIVE, §2023:14.6.11 item 7): a server run unit (<c>WISEOWL_COBOL_MCS_SERVER</c>) and a requestor are two compiled programs in two .NET processes sharing one MCS
+/// §2023:14.9.31 RECEIVE, §2023:14.6.11 GR7): a server run unit (<c>WISEOWL_COBOL_MCS_SERVER</c>) and a requestor are two compiled programs in two .NET processes sharing one MCS
 /// directory, ordered by the protocol and by lines each prints and each reads, so nothing sleeps. A <c>Process.Kill</c> is the kill. Every expected value is derived from the
 /// rule it cites; the exchange's byte-level and interleaving cases are <c>MessagingProtocolTests</c> and <c>MessagingPeerTests</c> (Unit).
 /// </summary>
@@ -114,7 +114,7 @@ public sealed class MessagingProcessTests : IDisposable
     [Fact]
     public void ARequestAndItsReplyCrossTwoProcesses_AndTheServerNameMatchesWithoutRegardToCase()
     {
-        // §2023:14.9.38.4 GR4 (the SEND waits until the server run unit receives the message), GR6 (the tag), §2023:14.9.31.4 GR1 a) (the server's RECEIVE of NULL names its requestor),
+        // §2023:14.9.38.4 GR4 (the SEND waits until the server run unit receives the message), GR6 (the tag), §2023:14.9.31.4 GR1a (the server's RECEIVE of NULL names its requestor),
         // GR3 (the length of the message), GR7 (the server answers the requestor it received) and §2023:14.9.31.4 GR1b (the requestor receives the answer by the server tag).
         // D-MCS-SERVER: a server name is compared with trailing spaces removed and without regard to case ("srv " serves SRV).
         Compile("PB4744S1", Server("PB4744S1", 20, ReplyAfter));
@@ -156,7 +156,7 @@ public sealed class MessagingProcessTests : IDisposable
     [Fact]
     public void AServerThatEndsNormallyWithoutReplying_AnswersEcMcsNormalTerminationOfSpaces()
     {
-        // §2023:14.6.11 item 7: an implicit SEND ... RAISING EXCEPTION EC-MCS-NORMAL-TERMINATION for each message the run unit has not replied to, from a temporary
+        // §2023:14.6.11 GR7: an implicit SEND ... RAISING EXCEPTION EC-MCS-NORMAL-TERMINATION for each message the run unit has not replied to, from a temporary
         // item "the size of the receiving data item in the associated RECEIVE statement" (here 12 spaces, the length of the requestor's own buffer so the reply fits), which no statement set.
         Compile("PB4744S3", Server("PB4744S3", 12, ExitAfter));
         Compile("PB4744C3", Requestor("PB4744C3", turn: "       >>TURN EC-MCS-NORMAL-TERMINATION CHECKING ON"));
@@ -174,7 +174,7 @@ public sealed class MessagingProcessTests : IDisposable
     [Fact]
     public void AServerEndingWithoutReplyingToAnAreaWithNoAllocatedMaximum_AnswersSpacesOfTheSizeTheAreaTook()
     {
-        // §2023:14.6.11 item 7 names the temporary's size, "the size of the receiving data item in the associated RECEIVE statement" (review R3-2 of PB4744). The server's
+        // §2023:14.6.11 GR7 names the temporary's size, "the size of the receiving data item in the associated RECEIVE statement" (review R3-2 of PB4744). The server's
         // area holds an OCCURS DYNAMIC table FROM 3, so its RECEIVE recreates the table to the message's one occurrence raised to the minimum of 3 (§2023:14.6.9.2): the
         // area is 3 + 3 = 6 positions after a 4-position message, and the implicit SEND answers 6 spaces - neither the message's 4 nor an empty reply.
         const string server = """
@@ -261,7 +261,7 @@ public sealed class MessagingProcessTests : IDisposable
     {
         // §2023:14.9.31.4 GR2: with the CONTINUE phrase the statement completes when the CONTINUE parameters are completed, "the content of identifier-1 will be all space characters
         // and the RECEIVE statement is assumed to be successful" (Q5: MESSAGE RECEIVED polls; a zero interval polls; a negative interval is zero and sets
-        // EC-CONTINUE-LESS-THAN-ZERO as §2023:14.9.9.4 GR1 b) does for CONTINUE).
+        // EC-CONTINUE-LESS-THAN-ZERO as §2023:14.9.9.4 GR1b does for CONTINUE).
         const string source = """
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4744P1.
@@ -758,7 +758,7 @@ public sealed class MessagingProcessTests : IDisposable
     [Fact]
     public void ASuccessfulReceiveWhoseNonfatalConditionADeclarativeHandled_DoesNotRunItsNotOnExceptionPhrase()
     {
-        // §2023:14.6.13.1.4 3): "If a conditional phrase with a NOT phrase is specified in the interrupted statement, the imperative-statement in that phrase is not executed"
+        // §2023:14.6.13.1.4 GR3: "If a conditional phrase with a NOT phrase is specified in the interrupted statement, the imperative-statement in that phrase is not executed"
         // after a USE declarative handled the nonfatal condition (here EC-CONTINUE-LESS-THAN-ZERO of §2023:14.9.31.4 GR2 on a negative interval); without the declarative the
         // condition interrupts nothing and the NOT phrase runs.
         const string source = """

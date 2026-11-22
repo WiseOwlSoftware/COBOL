@@ -24,16 +24,16 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// on purpose (the native lane's round-to-odd bodies). A STANDARD-DECIMAL operand that may hold more digits — a
     /// 16-byte binary container owns 39 (a 16-byte COMP-5 item's full container, DOC-A.1-208; DOC-A.1-123) —
     /// is converted by <see cref="FromParsed"/> /
-    /// <see cref="FromUnsigned"/>, because §2023:8.8.1.5.2 r1 ROUNDS it to the SDIDI's 34 digits (kb/Work PB2918).</summary>
+    /// <see cref="FromUnsigned"/>, because §2023:8.8.1.5.2 GR1 ROUNDS it to the SDIDI's 34 digits (kb/Work PB2918).</summary>
     public static CobolDec From(Int128 unscaled, int scale) => new(unscaled, -scale);
 
     /// <summary>The ONE standard-decimal OPERAND conversion for a significand that may exceed the SDIDI's 34 digits:
     /// the value significand × 10^<paramref name="exp"/> — an exactly-parsed decimal (a NUMVAL-F argument,
-    /// §2023:15.69.4 r3, fix-queue PB60), a floating-point literal, or a signed binary container of up to 39 digits
-    /// (kb/Work PB2918) — lifted through the ONE rounding funnel. ISO §2023:8.8.1.5.2 r1: "If the operand value cannot be
+    /// §2023:15.69.4 RV3, fix-queue PB60), a floating-point literal, or a signed binary container of up to 39 digits
+    /// (kb/Work PB2918) — lifted through the ONE rounding funnel. ISO §2023:8.8.1.5.2 GR1: "If the operand value cannot be
     /// expressed exactly in an SDIDI, the value is rounded according to the rules in 11.9.11, INTERMEDIATE ROUNDING
     /// clause". A ≤34-digit significand passes exactly (no rounding); a wider one rounds ONCE under
-    /// <paramref name="mode"/> (PROHIBITED ⇒ EC-SIZE-TRUNCATION, §2023:11.9.11.2 r3d). The §2023:8.8.1.5.2 r2 range check
+    /// <paramref name="mode"/> (PROHIBITED ⇒ EC-SIZE-TRUNCATION, §2023:11.9.11.2 GR3d). The §2023:8.8.1.5.2 GR2 range check
     /// applies, which <see cref="From"/> may skip only because a fixed-point operand can never leave the decimal128
     /// range — a 4-digit E-exponent can (10^9999 ⇒ EC-SIZE-OVERFLOW; 10^-9999 rounds onto the 10^-6176 subnormal
     /// quantum under <paramref name="mode"/> and, at zero, EC-SIZE-UNDERFLOW). <c>Int128.MinValue</c> is a legal
@@ -42,38 +42,38 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
 
     /// <summary>The unsigned twin of <see cref="FromParsed"/> for a fixed-point operand (scale
     /// <paramref name="scale"/>) held in a 16-byte UNSIGNED binary container, whose range [0, 2^128) exceeds the
-    /// signed <see cref="Int128"/> the other lift takes (kb/Work PB2918): §2023:8.8.1.5.2 r1 rounds it to 34 digits under
+    /// signed <see cref="Int128"/> the other lift takes (kb/Work PB2918): §2023:8.8.1.5.2 GR1 rounds it to 34 digits under
     /// <paramref name="mode"/> exactly as it does a signed one.</summary>
     public static CobolDec FromUnsigned(UInt128 magnitude, int scale, CobolRounding mode) =>
         Round34Wide(0, magnitude, negative: false, -scale, mode);
 
-    /// <summary>FUNCTION E under a standard arithmetic mode — the EXACT §2023:15.27.3 r3 value
+    /// <summary>FUNCTION E under a standard arithmetic mode — the EXACT §2023:15.27.3 RV3 value
     /// (2.718281828459045235360287471352662, the full 34-digit SDIDI significand; kb/Work R18). The compiler
     /// folds FUNCTION E to THIS constant and evaluates EXP's §2023:15.34.4 equivalent arithmetic expression
     /// (FUNCTION E ** argument-1) over it, so the function and its hand-written EAE agree by construction
     /// (§2023:15.4.1 r1).</summary>
     public static readonly CobolDec E = new(Int128.Parse("2718281828459045235360287471352662"), -33);
 
-    /// <summary>FUNCTION PI under a standard arithmetic mode — the EXACT §2023:15.73.3 r3 value
+    /// <summary>FUNCTION PI under a standard arithmetic mode — the EXACT §2023:15.73.3 RV3 value
     /// (3.141592653589793238462643383279503; kb/Work R18 — the E sibling, same rule shape).</summary>
     public static readonly CobolDec Pi = new(Int128.Parse("3141592653589793238462643383279503"), -33);
 
     /// <summary>⛔ THE ONE LIFT OF A FLOATING-POINT DATA ITEM'S VALUE INTO THE SDIDI (kb/Work PB1606) — the ISO §2023:8.8.1.5.1
     /// implementor-defined conversion of a float-short / float-long / float-extended item, defined here as the
     /// binary64's EXACT algebraic value rounded ONCE to the SDIDI's 34 significant digits under
-    /// <paramref name="mode"/> — the INTERMEDIATE ROUNDING mode, because §2023:8.8.1.5.2 r1 says an operand value that "cannot be
+    /// <paramref name="mode"/> — the INTERMEDIATE ROUNDING mode, because §2023:8.8.1.5.2 GR1 says an operand value that "cannot be
     /// expressed exactly in an SDIDI" is "rounded according to the rules in 11.9.11" and a binary64 is exactly the case
     /// (NOTE 3 of that clause names it). A double is ±man·2^exp and therefore ALWAYS a terminating decimal (at most 767
     /// significant digits), so "the operand value" is never in doubt: a COMP-2 holding 0.1 is
     /// 0.1000000000000000055511151231257827021181583404541015625 and enters as 0.1000000000000000055511151231257827
     /// (NEAREST-AWAY-FROM-ZERO); a value of 34 digits or fewer — 0.5, 0.25, every integer below 10^34 — enters unchanged;
-    /// and under PROHIBITED an inexact one is EC-SIZE-TRUNCATION (§2023:11.9.11.2 r3d), as for every other operand.
+    /// and under PROHIBITED an inexact one is EC-SIZE-TRUNCATION (§2023:11.9.11.2 GR3d), as for every other operand.
     /// This is the manner the program's other arithmetic reads a float item in — a MOVE and a native landing truncate or
     /// round the EXACT value at the receiver's scale (<see cref="CobolFloat.TryExactScaled"/>, kb/Work PB623) — so
     /// <c>COMPUTE D = F</c>, <c>COMPUTE D = F + 0</c> and <c>MOVE F TO D</c> agree on one value. They used not to: a lone
     /// operand landed natively (the exact expansion) and an operand beside an operator converted through the shortest
     /// round-trip decimal, which put <c>.1000000000000000055</c> and <c>.1000000000000000000</c> in one receiver for the same
-    /// item. An infinite operand exceeds the decimal128 range (EC-SIZE-OVERFLOW, §2023:8.8.1.5.2 r2); a NaN operand is the IEC
+    /// item. An infinite operand exceeds the decimal128 range (EC-SIZE-OVERFLOW, §2023:8.8.1.5.2 GR2); a NaN operand is the IEC
     /// 60559 'invalid operation' state (EC-DATA-INCOMPATIBLE, §2023:8.8.1.5.1).
     /// <para>The digits come from the runtime's EXACT formatter (<c>"E766"</c>: .NET renders every digit of the double, not
     /// a rounding of it). The first 38 become the significand (an <see cref="Int128"/> holds them), the rest only the
@@ -182,7 +182,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     }
 
     /// <summary>The two non-finite binary64 states under §2023:8.8.1.5: an infinite operand exceeds the decimal128 range
-    /// (EC-SIZE-OVERFLOW, §2023:8.8.1.5.2 r2); a NaN operand is the IEC 60559 'invalid operation' state
+    /// (EC-SIZE-OVERFLOW, §2023:8.8.1.5.2 GR2); a NaN operand is the IEC 60559 'invalid operation' state
     /// (EC-DATA-INCOMPATIBLE, §2023:8.8.1.5.1).</summary>
     internal static void RejectNonFinite(double d)
     {
@@ -206,7 +206,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// the value is an integer (<see cref="HasFraction"/>) or that truncation is the documented continue.</summary>
     public Int128 TruncatedInteger() => ToUnscaledIntermediate(0, CobolRounding.Truncation);
 
-    /// <summary>The integer part, truncated toward zero, AS AN SDIDI - the §2023:15.49.4 r1 INTEGER-PART value, whose
+    /// <summary>The integer part, truncated toward zero, AS AN SDIDI - the §2023:15.49.4 RV1 INTEGER-PART value, whose
     /// equivalent arithmetic expression is SIGN(x) * INTEGER(ABS(x)), exact and independent of the Int128
     /// carrier (kb/Work PB2630): a value with a non-negative exponent is already an integer and comes back
     /// unchanged, so 10^40 is not "landed" at scale 0 (which kept only its low-order digits and answered 0); any
@@ -220,7 +220,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         return new CobolDec(DivRemPow10(Sig, -Exp).Q, 0);
     }
 
-    /// <summary>The greatest integer not greater than the value, AS AN SDIDI - §2023:15.44.4 r1 INTEGER (kb/Work PB2630),
+    /// <summary>The greatest integer not greater than the value, AS AN SDIDI - §2023:15.44.4 RV1 INTEGER (kb/Work PB2630),
     /// exact and independent of the Int128 carrier: <see cref="TruncateToInteger"/> lowered by one when a negative
     /// value dropped a nonzero fraction. A value with a non-negative exponent is an integer and comes back unchanged.</summary>
     public CobolDec FloorToInteger()
@@ -306,7 +306,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// <summary>§2002:8.8.1.3.1.1: the leading digit's exponent runs from -999 (10^-999) through 999 (9.99…E+999).</summary>
     private const int SidiMinAdjustedExp = -999, SidiMaxAdjustedExp = 999;
 
-    /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF DIVIDE ... GIVING ... REMAINDER ON THE SDIDI (ISO §2023:14.9.12.4 6) c), kb/Work
+    /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF DIVIDE ... GIVING ... REMAINDER ON THE SDIDI (ISO §2023:14.9.12.4 GR6c), kb/Work
     /// PB3017): "a subsidiary quotient is developed that is signed and derived from the quotient by truncation of digits
     /// at the least significant end and that has the same number of digits and the same decimal point location as the
     /// data item referenced by identifier-3" — the SDIDI <paramref name="quotient"/> truncated toward zero at
@@ -333,7 +333,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         return sig == 0 ? Zero(-(long)scale) : new CobolDec(sig, exp);
     }
 
-    /// <summary>The multiplicative identity (the §2023:8.8.1.5.4 r1/r3 constant 1).</summary>
+    /// <summary>The multiplicative identity (the §2023:8.8.1.5.4 GR1/r3 constant 1).</summary>
     private static readonly CobolDec One = new(1, 0);
 
     /// <summary>Exponentiation in standard-decimal arithmetic (ISO §2023:8.8.1.5.4). An INTEGER exponent evaluates by
@@ -343,12 +343,12 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// expression whose every multiplication/division follows the §2023:8.8.1.5.3 IEC 60559 rules; EVERY negative
     /// exponent is r3's 1/(b ** |e|) via <see cref="Div"/>, written once here over
     /// <see cref="PowMagnitude"/>. A NON-integer exponent (positive base only —
-    /// §2023:8.8.1.2 r6c) is the r2e implementor-defined equivalent expression, and THIS implementation's choice is
+    /// §2023:8.8.1.2 GR6c) is the r2e implementor-defined equivalent expression, and THIS implementation's choice is
     /// stated in <see cref="PowCore"/> / <see cref="Half"/>: <c>FUNCTION SQRT(operand-1)</c> at |operand-2| = ½,
     /// and <c>exp(operand-2 × ln operand-1)</c> developed entirely on SDIDI operands everywhere else
     /// (owner decision D-C, 2026-08-30; kb/Work PB167). EC-SIZE-EXPONENTIATION legs: 0 ** 0 (r4),
-    /// zero base with a non-positive exponent (§2023:8.8.1.2 r6a), and a negative base with a non-integer exponent
-    /// (§2023:8.8.1.2 r6c). Every step is range-checked at the decimal128 bounds (§2023:8.8.1.5.2 r2, via the ONE
+    /// zero base with a non-positive exponent (§2023:8.8.1.2 GR6a), and a negative base with a non-integer exponent
+    /// (§2023:8.8.1.2 GR6c). Every step is range-checked at the decimal128 bounds (§2023:8.8.1.5.2 GR2, via the ONE
     /// <see cref="Round34Wide"/> clamp).</summary>
     public static CobolDec Pow(CobolDec b, CobolDec e, CobolRounding mode) => PowDeveloped(b, e, mode, standardIntermediate: false);
 
@@ -362,17 +362,17 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         bool eInt = TryIntegerValue(e, out long eBoundProbe, out bool eNegative, out bool eEven);
         if (b.Sig == 0)
         {
-            // §2023:8.8.1.2 r6a / §2023:8.8.1.5.4 r4: a zero base requires an exponent greater than zero.
+            // §2023:8.8.1.2 GR6a / §2023:8.8.1.5.4 GR4: a zero base requires an exponent greater than zero.
             if (e.Sig <= 0)
                 throw new CobolSizeError("exponentiation of zero with a non-positive exponent "
-                    + "(ISO §2023:8.8.1.2 r6a / §2023:8.8.1.5.4 r4)", "EC-SIZE-EXPONENTIATION");
+                    + "(ISO §2023:8.8.1.2 GR6a / §2023:8.8.1.5.4 r4)", "EC-SIZE-EXPONENTIATION");
             return eInt ? ZeroPower(b, eBoundProbe) : Zero(0);   // a non-integer power is a transcendental, never formed here
         }
-        if (e.Sig == 0) return One;                              // §2023:8.8.1.5.4 r1: b ** 0 = 1 (b ≠ 0)
+        if (e.Sig == 0) return One;                              // §2023:8.8.1.5.4 GR1: b ** 0 = 1 (b ≠ 0)
         if (b.Sig < 0 && !eInt)
             throw new CobolSizeError("exponentiation of a negative base with a non-integer exponent "
-                + "(ISO §2023:8.8.1.2 r6c)", "EC-SIZE-EXPONENTIATION");
-        // ⛔ §2023:8.8.1.5.4 r3 IS THE OUTER CONSTRUCTION, IT IS WRITTEN HERE ONCE, AND NOTHING BELOW EVER SEES A
+                + "(ISO §2023:8.8.1.2 GR6c)", "EC-SIZE-EXPONENTIATION");
+        // ⛔ §2023:8.8.1.5.4 GR3 IS THE OUTER CONSTRUCTION, IT IS WRITTEN HERE ONCE, AND NOTHING BELOW EVER SEES A
         // NEGATIVE EXPONENT (kb/Work PB266). r3 is not implementor latitude — r2's latitude is scoped "When
         // the value of operand-2 is greater than zero" — it is an equivalence: "When operand-2 is less than
         // zero, the result shall be equivalent to the evaluation of the arithmetic expression
@@ -394,7 +394,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         return eNegative ? Div(One, magnitude, mode) : magnitude;
     }
 
-    /// <summary><c>operand-1 ** |operand-2|</c> — §2023:8.8.1.5.4 r1/r2's whole development and never r3's
+    /// <summary><c>operand-1 ** |operand-2|</c> — §2023:8.8.1.5.4 GR1/r2's whole development and never r3's
     /// reciprocal, which is its caller's and is written exactly once.
     /// <para><paramref name="eBoundProbe"/> is the exponent's integer magnitude CLAMPED to
     /// <see cref="long.MaxValue"/>. It is a LOOP-BOUND PROBE and never a value: past the bound the exponent
@@ -404,7 +404,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     {
         // r2e (non-integer exponent, positive base): the implementor's equivalent arithmetic expression, whose
         // operands "shall be in SDIDI form" and whose every add/sub/mul/div "shall be performed in accordance
-        // with the corresponding rules in ISO/IEC 60559:2020" (§2023:8.8.1.5.4 r2e — cite.py-verified).
+        // with the corresponding rules in ISO/IEC 60559:2020" (§2023:8.8.1.5.4 GR2e — cite.py-verified).
         if (!eInt) return PowCore(b, eAbs, mode);
         // |e| is loop-bounded; past the bound the escape is MAGNITUDE-AWARE (kb/Work PB145 — the old
         // escape's guard comment claimed |n·log10|b|| ≥ |n|/34, false within 10⁻³³ of 1, so a near-unit
@@ -414,7 +414,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         {
             // |b| = 1 resolves by the EXACT parity of the exponent's integer value (carried out of
             // TryIntegerValue on the Int128 — the old code took the parity of the CLAMPED long, and
-            // long.MaxValue is odd, so (−1) ** 10²⁰ answered −1; §2023:8.8.1.5.4 r2).
+            // long.MaxValue is odd, so (−1) ** 10²⁰ answered −1; §2023:8.8.1.5.4 GR2).
             if (IsUnitMagnitude(b)) return b.Sig > 0 || eEven ? One : new CobolDec(-1, 0);
             // Past the loop bound the r2e equivalent expression takes over — the SAME SDIDI development the
             // non-integer arm uses (kb/Work PB167: there were two r2e sites and they were two different
@@ -424,7 +424,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
             // replaced by 9223372036854775807 and the answer was for a different expression than the one
             // written: `(1 + 10⁻³³) ** 1.0E+20` answered 1.0000000000000 where 1.0000000000001 is owed, and
             // `0.9999999999999999 ** 1.0E+25` answered a silent 0 where the value is below the decimal128
-            // range (§2023:8.8.1.5.2 r2 owes EC-SIZE-UNDERFLOW). There is nothing to reconstruct — an SDIDI
+            // range (§2023:8.8.1.5.2 GR2 owes EC-SIZE-UNDERFLOW). There is nothing to reconstruct — an SDIDI
             // carries |operand-2| exactly, so eAbs IS the exponent.
             // ⚠ AND THE DISPOSITION IS NOT "|b| ≷ 1 ⇒ out of range". The closest SDIDI value to one is
             // 1 ± 10⁻³³, and (1 + 10⁻³³) ** 10²⁰ = 1.0000000000001 — comfortably in range. Screening a
@@ -461,7 +461,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// 10^(k−1) ≤ |v| &lt; 10^k for v ≠ 0.</summary>
     private static int Order(CobolDec v) => DigitCount(Int128.Abs(v.Sig)) + v.Exp;
 
-    // ── §2023:8.8.1.5.4 r2e — THE equivalent arithmetic expression, developed in SDIDI form ────────────────────────
+    // ── §2023:8.8.1.5.4 GR2e — THE equivalent arithmetic expression, developed in SDIDI form ────────────────────────
     // ⛔ ONE DEVELOPMENT, TWO CALLERS (owner decision D-C, 2026-08-30; kb/Work PB167). Before this there were
     // two r2e sites and they were two DIFFERENT approximations — `FromApproximation(Math.Pow(…))` for a non-integer
     // exponent and a `PowByLogs` binary64 log decomposition for the past-loop-bound integer escape — so the same
@@ -493,7 +493,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     //
     // THE EXPRESSION.  operand-1 ** operand-2  ≡  exp(|operand-2| × ln(operand-1)),  operand-1 > 0, with
     // |operand-2| = ½ short-circuited to FUNCTION SQRT (see the r2e-½ arm above): SQRT is the one §15 function
-    // whose standard-decimal value the standard fixes EXACTLY (§2023:15.84.4 r2 — "the exact square root … rounded to
+    // whose standard-decimal value the standard fixes EXACTLY (§2023:15.84.4 RV2 — "the exact square root … rounded to
     // 34 digits"), so choosing it as the equivalent expression at ½ makes `b ** 0.5` and `FUNCTION SQRT(b)`
     // equal BY CONSTRUCTION rather than by luck — and r3's one reciprocal in <see cref="Pow"/> then gives
     // 1/(b ** ½) at −½ without a second short-circuit to keep in step.
@@ -511,7 +511,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     private static readonly CobolDec Quarter = new(25, -2);
 
     /// <summary>The r2e development: <c>exp(p × ln b)</c> for <c>b &gt; 0</c> and <c>p &gt; 0</c>, every step an
-    /// SDIDI operation. p is a MAGNITUDE — §2023:8.8.1.5.4 r3's reciprocal belongs to <see cref="Pow"/> and is
+    /// SDIDI operation. p is a MAGNITUDE — §2023:8.8.1.5.4 GR3's reciprocal belongs to <see cref="Pow"/> and is
     /// written there once, so this arm never sees a negative exponent and needs no −½ twin: ½ routes to
     /// <see cref="Sqrt"/>, and r3 makes −½ that root's reciprocal by construction.</summary>
     private static CobolDec PowCore(CobolDec b, CobolDec p, CobolRounding mode)
@@ -526,7 +526,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         // ⛔ THE PRODUCT p × ln b CAN ITSELF LEAVE THE DECIMAL128 RANGE, AND ITS OWN CLAMP WOULD THEN NAME THE
         // WRONG CONDITION (kb/Work PB267). Mul lands through Round34Wide → Clamp, which raises
         // EC-SIZE-OVERFLOW for any |p × ln b| past 9.999…E+6144 — whichever direction the RESULT is out of
-        // range in; and when ln b < 0 the result is out of range DOWNWARD, which §2023:8.8.1.5.2 r2 gives its own
+        // range in; and when ln b < 0 the result is out of range DOWNWARD, which §2023:8.8.1.5.2 GR2 gives its own
         // name. It became reachable the moment the escape started carrying the exponent OPERAND rather than a
         // clamped long: `1.0E-6176 ** 1.0E+6144` has |p × ln b| ≈ 1.4E+6148.
         // Decide by ORDER, before the product exists. 10^(Order(v)−1) ≤ |v| < 10^Order(v), so
@@ -561,7 +561,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         CobolRounding.NearestAwayFromZero => Ln10Nearest.Value,      // the §2023:11.9.11 r3a default
         CobolRounding.NearestEven => Ln10NearestEven.Value,
         CobolRounding.Truncation => Ln10Truncation.Value,
-        // ⛔ PROHIBITED IS NEVER CACHED, AND MUST NOT BE. ln 10 has no exact SDIDI form, so §2023:11.9.11.2 r3d
+        // ⛔ PROHIBITED IS NEVER CACHED, AND MUST NOT BE. ln 10 has no exact SDIDI form, so §2023:11.9.11.2 GR3d
         // requires this development to RAISE EC-SIZE-TRUNCATION every time it is asked for — the raise IS the
         // observable, and a cached value would answer where the rule requires an exception.
         // Any other CobolRounding value cannot be an INTERMEDIATE ROUNDING setting (§2023:11.9.11 names four); it
@@ -581,7 +581,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// change the accumulator's 34th digit. Every VALUE-producing operation is <see cref="Add"/>/
     /// <see cref="Sub"/>/<see cref="Mul"/>/<see cref="Div"/> under the CALLER's INTERMEDIATE ROUNDING mode
     /// (§2023:11.9.11), which is what makes INTERMEDIATE ROUNDING IS PROHIBITED report this development as inexact —
-    /// §2023:11.9.11.2 rule 3 d, and the same thing <see cref="Sqrt"/> already did for an inexact root.</para>
+    /// §2023:11.9.11.2 GR3 d, and the same thing <see cref="Sqrt"/> already did for an inexact root.</para>
     /// <para>ln 10 is not a magic constant: it is <see cref="LnReduced"/>(10) — the same series over the same
     /// reduction — so there is nothing here to transcribe wrongly and nothing to re-derive when the development
     /// changes. It is developed once per rounding mode, not once per call (<see cref="Ln10"/>).</para></summary>
@@ -653,7 +653,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// <para>ARGUMENT REDUCTION. n = the nearest integer to x / ln 10, r = x − n·ln 10 with |r| ≤ ½·ln 10 ≈
     /// 1.1513; then e^x = 10^n · e^r, and multiplying by 10^n is EXACT on a decimal carrier — it is an exponent
     /// field adjustment, so the whole decimal128 exponent range is reached without a single rounding. The
-    /// §2023:8.8.1.5.2 r2 range verdict stays <see cref="Clamp"/>'s (one place); n is screened first only so the
+    /// §2023:8.8.1.5.2 GR2 range verdict stays <see cref="Clamp"/>'s (one place); n is screened first only so the
     /// exponent arithmetic cannot itself overflow.</para>
     /// <para>THE SERIES. e^r = Σ rⁿ/n!, accumulated as term ← term·r/n — one multiplication and one division per
     /// term, ~35 terms at the band edge, cut when a term can no longer move the accumulator's 34th digit. No
@@ -813,7 +813,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
             //     the exact magnitude is |near| − |tail|, i.e. one unit below |near| plus a positive remainder, so
             //     the truncated magnitude is |near| − 1 and the remainder is (1 − |tail|) > 0. Folding the tail in as
             //     a bare sticky bit read it as EXCESS in the result's direction, which over-stated the magnitude:
-            //     `1 − 1.0E−50` held 1.000…0 (and TRUNCATION kept it) where §2023:11.9.11.2 GR3 e) owes the nearest SDIDI
+            //     `1 − 1.0E−50` held 1.000…0 (and TRUNCATION kept it) where §2023:11.9.11.2 GR3e owes the nearest SDIDI
             //     value NEARER ZERO, 0.999…9 (34 nines).
             // The jam is exact only while the digits that decide the rounding all come from `near`, i.e. while
             // |near| − 1 still has ≥ 35 digits. That holds whenever the operands are the ≤ 34-digit results every
@@ -867,7 +867,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// raises on a product the Int128 carrier cannot hold, which no fixed-point receiver can hold either (§2023:14.7.5 case 3,
     /// EC-SIZE-TRUNCATION); unchecked, such a product keeps the low-order digits a ≤38-digit store can use, which the
     /// store's own capacity rules then apply to. ROUNDED MODE IS PROHIBITED on an inexact product raises
-    /// <see cref="CobolSizeError.ProhibitedInexact"/> in BOTH forms (§2023:14.7.4.3 r7, kb/Work PB3990), as
+    /// <see cref="CobolSizeError.ProhibitedInexact"/> in BOTH forms (§2023:14.7.4.3 GR7, kb/Work PB3990), as
     /// <see cref="CobolNum.Divide"/> does for a quotient.</para></summary>
     public static Int128 MulAtScale(Int128 a, int aScale, Int128 b, int bScale, int resultScale, CobolRounding mode,
                                     bool checkedTransfer)
@@ -946,7 +946,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         var (q, rem) = DivRem256(hi, lo, den);
         // The rounding and the landing in Int128 are CobolNum.LandQuotient's: on MAGNITUDES, so a divisor of exactly
         // Int128.MinValue (magnitude 2^127, kb/Work PB2641's family) is a divisor like any other, and PROHIBITED with a
-        // nonzero remainder raises from its one rounding decision (§2023:14.7.4.3 r7, kb/Work PB3990).
+        // nonzero remainder raises from its one rounding decision (§2023:14.7.4.3 GR7, kb/Work PB3990).
         return CobolNum.LandQuotient(q, rem, den, negative, mode);
     }
 
@@ -1232,7 +1232,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         return RoundFromRemainder(q, rem, den, mode);
     }
 
-    /// <summary>The SDIDI square root (ISO §2023:15.84.4 r1/r2; kb/Work PB116) — the ONE §15 function whose
+    /// <summary>The SDIDI square root (ISO §2023:15.84.4 RV1/r2; kb/Work PB116) — the ONE §15 function whose
     /// standard-mode returned value the standard fixes EXACTLY: "computed to 34 digits, and the result rounded
     /// to 34 digits according to the rules for standard-decimal arithmetic" (r2), with "argument-1 is not
     /// rounded" (r1 — the EXACT operand enters: a fixed-point operand converts exactly, §2023:8.8.1.5.2). Computed
@@ -1240,7 +1240,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// 36–37-digit integer root carries 2–3 guard digits below the 34-digit rounding position, and the floor
     /// remainder becomes the sticky bit, so <see cref="Round34(Int128, int, bool, CobolRounding)"/>'s landing is
     /// CORRECTLY rounded in every mode (a tie exists only when the root is exact, and then sticky is false).
-    /// Negative arguments are the caller's §2023:15.84.3 r2 screen; a defensive zero comes back for them.</summary>
+    /// Negative arguments are the caller's §2023:15.84.3 AR2 screen; a defensive zero comes back for them.</summary>
     public static CobolDec Sqrt(CobolDec v, CobolRounding mode)
     {
         // The root of a zero is zero at ISO/IEC 60559's preferred exponent for a square root, half the operand's rounded
@@ -1255,7 +1255,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         var n = sig * System.Numerics.BigInteger.Pow(10, k);
         var q = ISqrt(n);
         bool exact = q * q == n;
-        // An EXACT root is held at the preferred exponent, half the operand's rounded down (ISO §2023:15.84.4 r2: "rounded to 34
+        // An EXACT root is held at the preferred exponent, half the operand's rounded down (ISO §2023:15.84.4 RV2: "rounded to 34
         // digits according to the rules for standard-decimal arithmetic", which Annex D.18.2.1 says take SQRT's definition from
         // ISO/IEC 60559; the zero above is held there too), not padded to the 36 digits the scaling gives: `SQRT (4)` is 2,
         // not 2000…0E-35 (kb/Work PB3954; ToPreferredExponent).
@@ -1332,7 +1332,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         }
         else if (inexact)
         {
-            // §2023:11.9.11.2 r3d: PROHIBITED + not exactly representable in SDIDI form ⇒ EC-SIZE-TRUNCATION, results
+            // §2023:11.9.11.2 GR3d: PROHIBITED + not exactly representable in SDIDI form ⇒ EC-SIZE-TRUNCATION, results
             // undefined. The level-3 NAME travels with the raise (kb/Work PB74's sweep): a >>TURN EC-SIZE program
             // selecting on EXCEPTION-STATUS saw the default EC-SIZE-OVERFLOW here.
             if (mode == CobolRounding.Prohibited)
@@ -1367,14 +1367,14 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// Before it the funnel returned every zero at exponent 0, and a value's precision depended on whether it was zero.</summary>
     internal static CobolDec Zero(long exp) => new(0, (int)Math.Clamp(exp, MinExp, MaxExp));
 
-    /// <summary>Zero raised to the positive INTEGER power <paramref name="n"/> (§2023:8.8.1.2 r6a has excluded every other): the
-    /// power is the product of <paramref name="n"/> factors (§2023:8.8.1.5.4 r2 on the SDIDI; native, GnuCOBOL's scale × n,
+    /// <summary>Zero raised to the positive INTEGER power <paramref name="n"/> (§2023:8.8.1.2 GR6a has excluded every other): the
+    /// power is the product of <paramref name="n"/> factors (§2023:8.8.1.5.4 GR2 on the SDIDI; native, GnuCOBOL's scale × n,
     /// <c>CobolExact.Pow</c>), so its zero is held at <paramref name="n"/> times the base's exponent, as a
     /// product of nonzero factors is (<see cref="Mul"/>, <see cref="Zero"/>).</summary>
     internal static CobolDec ZeroPower(CobolDec b, Int128 n) =>
         Zero(b.Exp * (long)Int128.Clamp(n, 0, int.MaxValue));
 
-    /// <summary>The §2023:8.8.1.5.2 r2 decimal128 range check, applied by the ONE rounding funnel to every operation
+    /// <summary>The §2023:8.8.1.5.2 GR2 decimal128 range check, applied by the ONE rounding funnel to every operation
     /// result: a value whose adjusted exponent exceeds +6144 raises the size error condition with
     /// EC-SIZE-OVERFLOW; a value below the smallest subnormal quantum (10^−6176) re-rounds onto that quantum
     /// (the IEC 60559 subnormal range) under the INTERMEDIATE ROUNDING mode — a nonzero value that rounds to
@@ -1390,11 +1390,11 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
             // Re-round onto the 10^−6176 quantum (drop exp − MinExp digits with the true remainder).
             var (q, rem, den) = DivRemPow10(sig, MinExp - exp);
             // Under INTERMEDIATE ROUNDING IS PROHIBITED the below-range re-round is still r2's TOO-SMALL
-            // condition — EC-SIZE-UNDERFLOW, never §2023:14.7.4.3 r7's inexact-transfer TRUNCATION (kb/Work PB145).
+            // condition — EC-SIZE-UNDERFLOW, never §2023:14.7.4.3 GR7's inexact-transfer TRUNCATION (kb/Work PB145).
             // ⚠ THE SCOPE OF THAT RULE IS THIS RE-ROUND, AND ONLY IT. PB145 established one name for one
             // OUT-OF-RANGE condition; it did not make EC-SIZE-TRUNCATION unreachable under PROHIBITED. An
             // in-range intermediate that simply cannot be held exactly in 34 digits is a different physical
-            // condition and §2023:11.9.11.2 r3d REQUIRES the truncation name for it ("If the PROHIBITED phrase is
+            // condition and §2023:11.9.11.2 GR3d REQUIRES the truncation name for it ("If the PROHIBITED phrase is
             // specified and an intermediate value cannot be represented exactly in SDIDI form, the
             // EC-SIZE-TRUNCATION exception condition is set to exist" — cite.py-verified), which is what
             // Round34Wide raises above. The transcendental development reaches that arm on its first inexact
@@ -1484,7 +1484,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// strictly BELOW HALF a unit — the marker is <c>(0, ±1, 4)</c>, i.e. rem/den = ¼ carrying the value's sign.
     /// ⛔ It was <c>(0, 1, 2)</c> — EXACTLY HALF — so <see cref="RoundFromRemainder"/>'s NEAREST arms treated a
     /// value 10⁻⁴⁴ units below the target scale as a tie and lifted it to one unit: under STANDARD-DECIMAL
-    /// <c>COMPUTE R9 ROUNDED = 10 ** -20</c> stored 0.000000001 into <c>V9(9)</c> (§2023:14.7.4.3 r4 — "the nearest value
+    /// <c>COMPUTE R9 ROUNDED = 10 ** -20</c> stored 0.000000001 into <c>V9(9)</c> (§2023:14.7.4.3 GR4 — "the nearest value
     /// that can be represented"; a tie is "two such values equally near", which this is not), and the unsigned
     /// marker turned AWAY-FROM-ZERO / TOWARD-GREATER of a NEGATIVE value toward +∞. The 34-digit significand
     /// makes the shape common (1/10²⁰ is 10³³×10⁻⁵³, 44 places below scale 9); kb/Work PB76.</summary>

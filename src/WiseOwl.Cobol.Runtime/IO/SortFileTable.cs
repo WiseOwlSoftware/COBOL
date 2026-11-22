@@ -14,7 +14,7 @@ internal enum ProcedurePhase { None, Input, Output }
 /// and the statement's procedure phase. ⛔ It holds no record collection of its own (<c>SortWorkBoundDriftTests</c>).</summary>
 internal sealed class SortStore(SortMemory memory)
 {
-    /// <summary>The statement's records, keys and GR5 sequences (the §2023:14.6.6 r5 snapshots), from
+    /// <summary>The statement's records, keys and GR5 sequences (the §2023:14.6.6 GR5 snapshots), from
     /// <see cref="CobolSort.Init(string, CobolSort.Key[], CobolCollation?, CobolCollation?)"/> — a keyless, empty work
     /// until then.</summary>
     public SortWork Work { get; private set; } = new(memory, [], null, null);
@@ -137,13 +137,13 @@ public sealed class SortFileTable
     internal void TerminateOnActivationReturn(string name) => _exitTerminated = name;
 
     /// <summary>⛔ §2023:14.9.40.4 GR17 AT AN ACTIVATION'S RETURN (kb/Work PB1177): when a USE procedure of the returning
-    /// element ended in EXIT PROGRAM or GOBACK — a completion that is not normal (§2023:14.6.13.1.2 1)) — while a format 1
+    /// element ended in EXIT PROGRAM or GOBACK — a completion that is not normal (§2023:14.6.13.1.2 GR1) — while a format 1
     /// SORT whose range activated the element was active, that statement is terminated now, in the activator: the
     /// return has done what a return does (the BY REFERENCE copy-out, the RETURNING delivery), and the
     /// <see cref="SortTerminationSignal"/> unwinds the rest of the range to the statement's landing as a completion
     /// that is not normal. Asked by every emitted activating site AFTER the return has been picked up completely - the
     /// RETURNING delivery and the propagation pickup of a <c>GOBACK ... RAISING</c> the same activation staged
-    /// (§2023:14.9.18.4 GR1 b); kb/Work PB3246): a CALL or function activation and an INVOKE (both
+    /// (§2023:14.9.18.4 GR1b); kb/Work PB3246): a CALL or function activation and an INVOKE (both
     /// <c>CallEmitter.EmitActivationReturned</c>), and the host boundary (<c>ProgramTable.CallFromHost</c>).</summary>
     internal void AfterActivationReturn() => TerminateAfterActivation(TakeActivationReturnTermination());
 

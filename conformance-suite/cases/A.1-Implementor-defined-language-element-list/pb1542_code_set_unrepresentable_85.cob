@@ -16,7 +16,7 @@
       *> A character with NO associated coded character in the
       *> CODE-SET alphabet cannot be replaced, so the WRITE or REWRITE
       *> is unsuccessful with the implementor-defined I-O status '91'
-      *> (§2023:9.1.13.11 item 1; docs/CONFORMANCE.md DOC-A.1-110 — the
+      *> (§2023:9.1.13.11 GR1; docs/CONFORMANCE.md DOC-A.1-110 — the
       *> same condition, and status, as a character with no byte image
       *> in a file with no CODE-SET), nothing reaches the medium and
       *> the record area is unaffected (§2023:14.9.51.4 GR15, §2023:14.9.35.4

@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> §2002:7.2.7.1 SR1a2 - "If literals are specified and they are
+      *> §2002:7.2.7.1 SR1a.2 - "If literals are specified and they are
       *>   not numeric literals, the relational operator shall be"
       *>   IS [NOT] EQUAL TO or IS [NOT] =; < is not.
       *>   The >>IF line violates the rule; the program is refused at

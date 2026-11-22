@@ -9,7 +9,7 @@
       *> described with the ONLY phrase, and the object-class-name specified in the
       *> description of the data item referenced by identifier-4 shall be the same as the
       *> object-class-name specified in the description of the data item referenced by
-      *> identifier-3."  §2023:13.18.60.4 GR22d2.b. is the reason: an ONLY reference "shall
+      *> identifier-3."  §2023:13.18.60.4 GR22d.2.b. is the reason: an ONLY reference "shall
       *> contain … an instance object of the specified class", never a subclass instance —
       *> so the SUBCLASS assignment a)2. permits without ONLY is exactly what a)1. forbids
       *> with it.  The permitted twin (the same SET without ONLY) runs in

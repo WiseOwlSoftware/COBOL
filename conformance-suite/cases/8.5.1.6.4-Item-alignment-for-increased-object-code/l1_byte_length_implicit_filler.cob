@@ -7,7 +7,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.14.4 r3 FUNCTION BYTE-LENGTH - "The returned value shall include the number of implicit filler
+      *> ISO §2023:15.14.4 RV3 FUNCTION BYTE-LENGTH - "The returned value shall include the number of implicit filler
       *> positions, if any, in argument-1" (plus the r4 LEVEL-77 legs, where the standard says filler is NOT
       *> generated and the rounding is therefore the whole answer).
       *>
@@ -29,18 +29,18 @@
       *> SOURCE (b) IS UNOBSERVABLE THROUGH EITHER LENGTH FUNCTION, BY CONSTRUCTION - and this golden says so
       *> instead of claiming a leg for it. All source (b) ever does is complete a PARTIAL TRAILING byte ("as
       *> needed to increase the number of bits to fill an integral number of characters"), and BOTH length rules
-      *> round a partial position up regardless: §2023:15.14.4 r4 - "When argument-1 does not occupy an integral number
-      *> of bytes, the returned value is rounded to the next larger integer value" - and §2023:15.50.4 r9 - "When the
+      *> round a partial position up regardless: §2023:15.14.4 RV4 - "When argument-1 does not occupy an integral number
+      *> of bytes, the returned value is rounded to the next larger integer value" - and §2023:15.50.4 RV9 - "When the
       *> returned value is expressed as a number of alphanumeric character positions and argument-1 does not
       *> occupy an integral number of positions, the returned value is rounded to the next larger integer value".
-      *> Every shape source (b) can reach returns ALPHANUMERIC character positions (§2023:15.50.4 r3; r1's boolean
+      *> Every shape source (b) can reach returns ALPHANUMERIC character positions (§2023:15.50.4 RV3; r1's boolean
       *> positions and r2's national positions belong to the shapes §2023:8.5.1.6.3's NOTE excludes from trailing
       *> filler), so the ceiling absorbs it in both functions. Here: TRAIL is 3 with the trailing run and 3
       *> without it (19 bits), ADJ3 is 2 either way (9 bits), NEST is 3 and 4 either way (17 and 25 bits).
       *> ⛔ AND THE SAME HOLDS FOR THE FUNCTION LENGTH GOLDEN OFTEN CREDITED WITH IT. The MIX=4 leg of
       *> conformance:cases/13.18.60-USAGE/pb43_usage_bit_occupies_bits does NOT discriminate source (b) either - W-MIX is 3 bytes
       *> plus 5 bits, which is 4 character positions with the trailing filler and 4 without it, because r9 rounds.
-      *> §2023:15.50.4 r5 ("The returned length shall include the number of implicit FILLER positions, if any, in
+      *> §2023:15.50.4 RV5 ("The returned length shall include the number of implicit FILLER positions, if any, in
       *> argument-1") is SATISFIED by that leg, not WITNESSED by it - a distinction worth writing down, because
       *> the opposite claim is what this golden inherited before the derivation was re-run against r9.
       *> SOURCE (c) IS EXERCISED, AT ZERO, AND THE LEG DISCRIMINATES (SBIT). It reaches "a bit data item
@@ -55,7 +55,7 @@
       *> a record, data items described with usage display or national" - so nothing but the implementor's own
       *> determination decides it. WiseOwl COBOL's is ZERO filler bit positions, the bit item sitting exactly where
       *> the same item without the clause would (Annex A.1 item 195; CONFORMANCE.md §7 item 195).
-      *> SO THIS GOLDEN CLOSES §2023:15.14.4 r3 ON SOURCES (a) AND (c), and states why (b) is not closable here.
+      *> SO THIS GOLDEN CLOSES §2023:15.14.4 RV3 ON SOURCES (a) AND (c), and states why (b) is not closable here.
       *> BITS PER BYTE. §2023:8.1.2: "The implementor shall specify the number of bits in a byte for each supported
       *> computer." WiseOwl COBOL pins 8 (CONFORMANCE.md DOC-A.1-12; Annex A.1 item 12, "Byte (number of bits in) …
       *> (8.1.2, Computer's coded character set)" — item 209 is USAGE DISPLAY, and this comment inherited that
@@ -100,7 +100,7 @@
       *>         that generated source-(c) filler to byte-align SBB2 answers 8+3 = 11 bits = 2. The leg therefore
       *>         MEASURES the determination instead of restating it, and ADJ3 above is its clause-free control
       *>         (the same sharing, 9 bits, no SYNCHRONIZED anywhere).
-      *> L77   - §2023:15.14.4 r4, on the ONE shape §2023:8.5.1.6.3's NOTE excludes from filler entirely: "No filler is
+      *> L77   - §2023:15.14.4 RV4, on the ONE shape §2023:8.5.1.6.3's NOTE excludes from filler entirely: "No filler is
       *>         generated at the end of a record that is entirely a bit group, at the end of a level 77 item,
       *>         or at the end of a level 1 elementary item." A level-77 PIC 1(12) USAGE BIT therefore occupies
       *>         exactly 12 bits - one and a half bytes - and r4 applies: "When argument-1 does not occupy an

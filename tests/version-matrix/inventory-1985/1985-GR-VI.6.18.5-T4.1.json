@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.18.5-T4.1",
+ "rule-digest": "c3ff21fc1f77",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Region; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#RunCycle; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Tally; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace",
+ "test-ref": "conformance:cases/VI.6.18@1985-INSPECT-STATEMENT/1985-GR-VI_6_18_5-T4_1",
+ "notes": "Own witness (wave 20262132 group a, kb/Work PB6001). Example 4's result row: ITEM ABABABABC, TALLYING COUNT-0 FOR ALL \"AB\" AFTER \"BA\" BEFORE \"BC\" gives 1 and REPLACING ALL \"AB\" BY \"XY\" AFTER \"BA\" BEFORE \"BC\" gives ABABXYABC (COUNT-0 zero before, §1985:VI.6.18.5 p1). The refuter of 85e-01 made the row its own GR: the AB at positions 7-8 runs into the BEFORE BC at 8-9, and only the printed row fixes that it is not counted. CobolInspect#Region fixes each operand's region before the first cycle and RunCycle requires a whole match inside it. The program checks itself (COUNT OK, FINAL OK); run at --std 85 on this build: EXPECT MATCH."
+}

@@ -37,7 +37,7 @@
       *>           rewrite file connector is set to '49'".
       *> Then the EXEMPT statement: OPEN is the one verb the rule
       *> permits on a not-open connector, and it succeeds ('00',
-      *> §2023:9.1.13.2 item 1). The read-back proves the file holds exactly
+      *> §2023:9.1.13.2 GR1). The read-back proves the file holds exactly
       *> the ONE record written after that OPEN. The one forbidden
       *> statement that could have added a record is the WRITE, and its
       *> own rule says it did not — §2023:14.9.51.4 GR15: "If the execution
@@ -46,7 +46,7 @@
       *> (§2023:14.9.27.4 GR25 is NOT the authority for this: its stem is
       *> scoped to "If the execution of the OPEN statement is
       *> unsuccessful", and none of the four forbidden statements is an
-      *> OPEN.) The trailing '10' is §2023:9.1.13.4 item 1a — "NEXT was
+      *> OPEN.) The trailing '10' is §2023:9.1.13.4 GR1a — "NEXT was
       *> specified or implied and the end of the physical file has been
       *> reached".
        IDENTIFICATION DIVISION.

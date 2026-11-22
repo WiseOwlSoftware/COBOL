@@ -18,7 +18,7 @@
       *> at the first COLUMN repetition (§2023:13.18.64.4 GR3a — re-evaluated
       *> per presentation: FROM WS-SEQ), then += BY per repetition
       *> (GR3b), and is the SOURCE item (GR4 NOTE). Placement:
-      *> §2023:13.18.35.4 GR5b3 (first body line on the page → FIRST
+      *> §2023:13.18.35.4 GR5b.3 (first body line on the page → FIRST
       *> DETAIL) / GR7 (subsequent relative lines → LINE-COUNTER + n).
       *> PLACEMENT (kb/Work PB484). The report's FIRST printed line is the first line of the file:
       *> a line number IS a page line number (ISO 13.18.35.4 GR6 - "the report's LINE-COUNTER is set

@@ -13,7 +13,7 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The GLOBAL clause on a report description entry (ISO §2023:13.18.27.3 SR1 e), §2023:13.18.27.4 GR1/GR2) and the Format-2
+/// The GLOBAL clause on a report description entry (ISO §2023:13.18.27.3 SR1e, §2023:13.18.27.4 GR1/GR2) and the Format-2
 /// half of §2023:14.9.49.4 GR4 — the USE BEFORE REPORTING declarative is selected per STATEMENT, from the source element
 /// containing the GENERATE / TERMINATE and then from the GLOBAL declaratives of its containers (kb/Work PB369). The
 /// run-time selection is witnessed by conformance:cases/13.18.27-GLOBAL/pb369_global_report_use_selection; this class pins the bind
@@ -138,7 +138,7 @@ public sealed class GlobalReportScopeTests
         Assert.DoesNotContain(".SumImage(", Inner(hidden));
     }
 
-    /// <summary>§2023:8.4.6.2.1 rule 3 a) — "If the name is declared in source element B, the item in source element B
+    /// <summary>§2023:8.4.6.2.1 GR3a — "If the name is declared in source element B, the item in source element B
     /// is the referenced item": a contained program's OWN report group DET-1 and its own report's PAGE-COUNTER are
     /// referenced, not the same-named group and counter of the container's GLOBAL report — no ambiguity, and the
     /// statement drives the contained program's own engine.</summary>

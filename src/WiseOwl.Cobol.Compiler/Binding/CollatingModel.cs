@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
 /// ⛔ THE ONE literal-phrase collating-sequence / coded-character-set model (ISO §2023:12.3.6 PROGRAM COLLATING
-/// SEQUENCE; §2023:12.3.7.2 ALPHABET; §2023:12.3.7.4 GR7 k) — for the ALPHANUMERIC arm and the <c>FOR NATIONAL</c> arm
+/// SEQUENCE; §2023:12.3.7.2 ALPHABET; §2023:12.3.7.4 GR7k — for the ALPHANUMERIC arm and the <c>FOR NATIONAL</c> arm
 /// ALIKE. GR7 k states ONE set of six sub-rules "where the native coded character set is the type of coded
 /// character set or collating sequence being defined, either alphanumeric or national", and both native sets are
 /// the 65,536 UTF-16 code units on this substrate (implementor item 188 / D-N1), so one table shape serves both.
@@ -31,13 +31,13 @@ namespace WiseOwl.Cobol.Binding;
 /// <param name="Positions">Parallel to <paramref name="Codes"/>: each specified character's 0-based collating
 /// position. ALSO members share one position (§2023:12.3.7.4 GR7 k6).</param>
 /// <param name="RepByPos">Indexed by position 0..<paramref name="NextFree"/>−1: the FIRST character DEFINED at
-/// that position, in SOURCE order — literal-1 of an ALSO group (§2023:15.15.4 r2 / §2023:15.16.4 r2's "first character
+/// that position, in SOURCE order — literal-1 of an ALSO group (§2023:15.15.4 RV2 / §2023:15.16.4 RV2's "first character
 /// defined" / GR7 k6, the CHAR representative; fix-queue PB59 — <c>AlphabetBind</c> computed this into
 /// <c>specOrder</c> and discarded it, so CHAR scanned for the LOWEST-coded member instead).</param>
 /// <param name="NextFree">The first position AFTER the specified block (= the number of DISTINCT positions it
 /// occupies; ALSO groups make it smaller than <c>Codes.Length</c>). Unspecified character <c>c</c> takes position
 /// <c>NextFree + (c − |specified codes &lt; c|)</c> (GR7 k3), giving the sequence
-/// <c>NextFree + (0x10000 − Codes.Length)</c> positions — the §2023:15.15.3 r2 domain bound.</param>
+/// <c>NextFree + (0x10000 − Codes.Length)</c> positions — the §2023:15.15.3 AR2 domain bound.</param>
 /// <param name="HighValue">The runtime HIGH-VALUE character under this sequence (§2023:12.3.7.4 GR8 + §2023:8.3.3.6.4 GR6/7):
 /// the character at the HIGHEST position; a tie (an ALSO group at the top) takes the LAST character specified.
 /// Both classes compute it over the whole 65,536-unit repertoire (owner decision kb/Work R52).</param>
@@ -60,7 +60,7 @@ public sealed record CollatingTable(ushort[] Codes, ushort[] Positions, ushort[]
     /// <param name="specOrder">The specified characters in the order the definition gives them — GR8's "<i>the
     /// last character specified</i>" and GR9's "<i>the first character specified</i>" tie rules read this.</param>
     /// <param name="repByPos">Per position 0…<paramref name="nextFree"/>−1, the FIRST character DEFINED there
-    /// (§2023:12.3.7.4 GR7 k6 / §2023:15.15.4 r2 — an ALSO group's literal-1).</param>
+    /// (§2023:12.3.7.4 GR7 k6 / §2023:15.15.4 RV2 — an ALSO group's literal-1).</param>
     /// <param name="nextFree">The first position after the specified block.</param>
     /// <remarks>⛔ POSITIONS AND COUNTS ARE <see cref="int"/> HERE, AND ONLY THE STORED ARRAYS ARE 16-BIT (kb/Work
     /// PB1557). A position is 0 … <see cref="Repertoire"/> − 1, which a <see cref="ushort"/> holds; the COUNT of
@@ -97,7 +97,7 @@ public sealed record CollatingTable(ushort[] Codes, ushort[] Positions, ushort[]
     /// materializes it in the compiler's own process), so a COMPILE-TIME question about the ordering this
     /// sequence gives is answered by the ONE §2023:12.3.7.4 GR7 k weighting and the ONE §2023:8.8.4.2.7 comparison, never
     /// by a second copy of either.
-    /// <para>Asked by the §2023:13.18.63.3 SR27 b) screen (kb/Work PB555): "<i>when literal-2 is of class alphanumeric
+    /// <para>Asked by the §2023:13.18.63.3 SR27b screen (kb/Work PB555): "<i>when literal-2 is of class alphanumeric
     /// or national, and the runtime collating sequence is known, the value of literal-4 shall not be equal to the
     /// value of any literal-2 or any value in the range of any occurrence of literal-2 through literal-3,
     /// inclusive</i>" — a rule the compiler can only enforce by ordering the literals itself.</para>
@@ -191,7 +191,7 @@ public sealed record CollatingAlphabet(string Name, AlphabetDef? Alphanumeric, N
 /// <param name="Phrase">The defining phrase, for diagnostics ("NATIVE", "STANDARD-1", "STANDARD-2",
 /// "literal-phrase", "LOCALE", or a supported code-name's own spelling).</param>
 /// <param name="CodeName">The <c>ImplementorCodeNames</c> row when the definition is a code-name-1 (ISO
-/// §2023:12.3.7.3 SR15 / §2023:12.3.7.4 GR7 i), else null. It is what carries GR7 i's OTHER two obligations — the set's
+/// §2023:12.3.7.3 SR15 / §2023:12.3.7.4 GR7i, else null. It is what carries GR7 i's OTHER two obligations — the set's
 /// ordinal count and its correspondence with the native set — which <see cref="CodedCharacterSet"/> reads;
 /// the collating half is already in <paramref name="Table"/>.</param>
 public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Locale, string Phrase,
@@ -250,7 +250,7 @@ public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Loc
 /// <param name="Phrase">The defining phrase, for diagnostics ("NATIVE", "UCS-4", "UTF-8", "UTF-16",
 /// "literal-phrase", "LOCALE").</param>
 /// <param name="CodeName">The <c>ImplementorCodeNames</c> row when the definition is a code-name-2 (ISO
-/// §2023:12.3.7.3 SR15 / §2023:12.3.7.4 GR7 j), else null. ⚠ This implementation supports no code-name-2 spelling today,
+/// §2023:12.3.7.3 SR15 / §2023:12.3.7.4 GR7j, else null. ⚠ This implementation supports no code-name-2 spelling today,
 /// so the component is always null in practice — it exists because SR15 states ONE rule for both classes and the
 /// binder asks the SAME table for both, so a national row would work the moment one is added (CLAUDE.md rule 5).</param>
 public sealed record NationalAlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Locale, bool HasCollatingSequence, string Phrase,
@@ -282,7 +282,7 @@ public sealed record NationalAlphabetDef(CollatingTable? Table, LocaleCollatingS
 /// (GR7 k4's implementor determination — the unspecified characters follow the highest specified position in
 /// native relative order, exactly as the collating sequence places them; documented in CONFORMANCE.md).
 /// <b>Determinations:</b> the native alphanumeric set is the UTF-16 repertoire in code-unit order (ordinal n =
-/// code unit n−1 — the same correspondence FUNCTION CHAR / ORD use, §2023:15.15.4 r1 / §2023:15.70.4 r1); STANDARD-1 /
+/// code unit n−1 — the same correspondence FUNCTION CHAR / ORD use, §2023:15.15.4 RV1 / §2023:15.70.4 RV1); STANDARD-1 /
 /// STANDARD-2 are ISO/IEC 646 IRV, 128 characters, the identity correspondence on U+0000–U+007F (GR7 c);
 /// NATIVE / UTF-16 national sets are the UTF-16 code units (GR7 d2/h); UCS-4 / UTF-8 are the ISO/IEC 10646
 /// scalar values (GR7 f/g — an unpaired surrogate is not a character of these sets).
@@ -573,7 +573,7 @@ public static class CollatingSelection
     public static CollatingClass ForComparison(PicCategory? left, PicCategory? right)
     {
         // §2023:8.8.4.2.8 — a boolean comparison is "a comparison of their boolean value, regardless of their usage":
-        // NO sequence, and the shorter operand is boolean-zero extended. §2023:8.8.4.2.1 item 4 defines the comparison
+        // NO sequence, and the shorter operand is boolean-zero extended. §2023:8.8.4.2.1 GR4 defines the comparison
         // only for TWO class-boolean operands and a class mix is bind-rejected (COBOL0844), so either side
         // answering boolean settles it. First, because an alphanumeric weight table that reorders '0' and '1'
         // would otherwise invert a boolean test over the D-B1 character substrate.
@@ -592,7 +592,7 @@ public static class CollatingSelection
         if (left is PicCategory.Numeric && right is PicCategory.Numeric) return CollatingClass.Numeric;
         // §2023:8.8.4.2.7 — everything else is an alphanumeric comparison, "made with respect to the collating sequence
         // of characters specified for the current alphanumeric program collating sequence": two alphanumeric
-        // operands (§2023:8.8.4.2.1 item 3), the §2023:8.8.4.2.1 normalizations (an alphanumeric GROUP and a class
+        // operands (§2023:8.8.4.2.1 GR3), the §2023:8.8.4.2.1 normalizations (an alphanumeric GROUP and a class
         // alphabetic operand are "treated as" elementary alphanumeric — a null category is that group), the edited
         // categories (§2023:8.8.4.2.1 NOTE — "All comparisons involving numeric-edited data items are alphanumeric or
         // national comparisons"), and §2023:8.8.4.2.5's numeric integer against an alphanumeric operand, which is

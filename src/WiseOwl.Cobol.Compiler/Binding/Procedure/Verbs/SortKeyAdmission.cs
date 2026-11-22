@@ -132,7 +132,7 @@ internal static class SortKeyAdmission
         else if (key.IsGroup && DataItem.DescendantsOf(key).Any(d => d.OccursSpec is { Depending: not null }))
             shape = edition.Cite("an occurs-depending group item (a group item that contains a variable occurrence data item)",
                 "an occurs-depending group item (ISO §2023:13.18.38.4 GR8)");
-        // COBOL-85's rule is one sentence about that one shape (§1985:XI.4.4.3 SR4 c), §1985:XI.4.1.3 SR4 c)); the shapes a variable-length
+        // COBOL-85's rule is one sentence about that one shape (§1985:XI.4.4.3 SR4c, §1985:XI.4.1.3 SR4c); the shapes a variable-length
         // group and a dynamic-length item are COBOL-2002's.
         if (shape is not null && edition.Year < 2002)
             return $"{verb} key '{name}' is {shape}: \"The data items identified by key data-names must not be group items that "

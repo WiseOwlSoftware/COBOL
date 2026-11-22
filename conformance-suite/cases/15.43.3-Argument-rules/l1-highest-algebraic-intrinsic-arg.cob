@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.43.3 r1 — "... and shall not be an INTEGER FUNCTION or NUMERIC FUNCTION."
+      *> ISO §2023:15.43.3 AR1 — "... and shall not be an INTEGER FUNCTION or NUMERIC FUNCTION."
       *>
       *> THE EXCLUSION CONJUNCT, written for an INTRINSIC function — the shape the rule's own words name.
       *> conformance:cases/15.43.3-Argument-rules/algebraic-udf-argument already covers a USER-DEFINED function result; this is
@@ -13,7 +13,7 @@
       *> function is integer"), so `FUNCTION HIGHEST-ALGEBRAIC(FUNCTION INTEGER(N))` violates r1 outright.
       *>
       *> ⛔ THE INNER CALL IS DELIBERATELY LEGAL ON ITS OWN. N is PIC S9(4)V99, a numeric data item, so
-      *> FUNCTION INTEGER(N) satisfies §2023:15.44.3 r1 and the ONLY rule this program breaks is §2023:15.43.3 r1 —
+      *> FUNCTION INTEGER(N) satisfies §2023:15.44.3 AR1 and the ONLY rule this program breaks is §2023:15.43.3 AR1 —
       *> a rejection that came from the inner call would be the right error for the wrong reason.
       *> The exclusion has to be written down separately from the category test because §2023:8.5.2.12 gives
       *> function results a category too, so "category numeric" alone would admit this.

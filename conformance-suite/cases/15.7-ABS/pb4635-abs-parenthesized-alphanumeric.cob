@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4635 review R1-1 - ISO §2023:15.7.3 r1: "Argument-1 shall be of class numeric." (cite.py --check 15.7.3 OK). (X9) is "an
+      *> PB4635 review R1-1 - ISO §2023:15.7.3 AR1: "Argument-1 shall be of class numeric." (cite.py --check 15.7.3 OK). (X9) is "an
       *> arithmetic expression enclosed in parentheses" (§2023:8.8.1.1, cite.py --check OK), and §2023:8.8.1.1 admits "an identifier
       *> referencing a numeric data item" in one, so the alphanumeric item is refused as it is when written bare. The grouping
       *> parentheses must not turn the refusal into digit-decoding. (A class-BOOLEAN item is the other reading of the same

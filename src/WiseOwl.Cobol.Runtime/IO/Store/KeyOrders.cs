@@ -63,7 +63,7 @@ internal sealed class OrdinalKeyOrder : IKeyOrder
 }
 
 /// <summary>The WEIGHTED key order: the channel bytes decoded to the native character set — the medium's one byte per
-/// character position, then the CODE-SET conversion's input rule (§2023:13.18.13.4 GR6 a)), then the storage-byte law
+/// character position, then the CODE-SET conversion's input rule (§2023:13.18.13.4 GR6a), then the storage-byte law
 /// (<see cref="FileCharacterSet.FromChannel"/>) — and compared under the key's collating sequence (§2023:12.4.5.7.4) exactly as
 /// <c>IndexedConnector.KeyCompare</c> compares today: native ordinal with no sequence; a locale sequence through its
 /// materialized keys, which its collator's key cache builds once per distinct value (kb/Work PB106); any other declared
@@ -78,7 +78,7 @@ internal sealed class WeightedKeyOrder(CodeSetConversion? codeSet, CobolCollatio
     /// <summary>The decoding is one character per byte position, so a prefix narrows at every length exactly when the
     /// comparison is positional — native ordinal, or a sequence compared by the standard comparison
     /// (<see cref="CobolCollation.UsesStandardComparison"/>) — and otherwise only at the key's whole length, where
-    /// §2023:14.9.41.4 GR17 c) truncates nothing.</summary>
+    /// §2023:14.9.41.4 GR17c truncates nothing.</summary>
     public bool PrefixNarrows(int prefixLength) => _positional || prefixLength >= keyLength;
 
     /// <inheritdoc/>

@@ -47,7 +47,7 @@ public sealed class InitializeLaneDriftTests
         return Regex.Replace(text, @"//[^\r\n]*", "");
     }
 
-    /// <summary>ISO §2023:14.9.20.4 GR5c1b/GR5c1c and GR6a3 are answered for BOTH VALUE carriers by
+    /// <summary>ISO §2023:14.9.20.4 GR5c.1.b/GR5c1c and GR6a3 are answered for BOTH VALUE carriers by
     /// <c>DataItem.ValueAt</c>, so the INITIALIZE binder must never reach past it to a carrier property. Reading
     /// one directly is how the Format-2 carrier went unseen (kb/Work PB418 / PB499); it is also how a third one
     /// would.</summary>
@@ -57,7 +57,7 @@ public sealed class InitializeLaneDriftTests
         string code = CodeOf(BinderPath);
 
         Assert.True(code.Contains(".ValueAt(", StringComparison.Ordinal),
-            "InitializeBinder no longer calls DataItem.ValueAt — §2023:14.9.20.4 GR6a3's sending operand has to come "
+            "InitializeBinder no longer calls DataItem.ValueAt — §2023:14.9.20.4 GR6a.3's sending operand has to come "
             + "from the one carrier-agnostic reader, or a VALUE carrier it does not know about is silently lost.");
 
         // TableValuePlan is the Format-2 carrier the per-occurrence arm legitimately walks (GR5c1c needs the
@@ -67,7 +67,7 @@ public sealed class InitializeLaneDriftTests
             Assert.False(code.Contains(carrier, StringComparison.Ordinal),
                 $"InitializeBinder reads DataItem{carrier} directly. Ask DataItem.ValueAt(subscripts) instead — "
                 + "it is the ONE reader of \"what initializes this item at this occurrence\" and the reason the "
-                + "declaration lane and the INITIALIZE lane cannot disagree (§2023:14.9.20.4 GR6a3).");
+                + "declaration lane and the INITIALIZE lane cannot disagree (§2023:14.9.20.4 GR6a.3).");
     }
 
     /// <summary>Every <c>InitializeAction</c> the bound tree declares has an arm in the emitter. The emitter's

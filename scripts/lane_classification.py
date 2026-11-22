@@ -348,6 +348,13 @@ CLASSIFICATION = Classification(inert={
                                                    "tests (TraceabilityInventory.RowsOf and inventory_view.py --edition "
                                                    "read every held edition's catalog), Unit's EcRaiseSiteDriftTests, "
                                                    "and SuiteManifest's conformance-suite/harness/generate.py",
+    # The 2023 manifest of unharvested rule blocks: a citation's extent is read from the units the catalog's mint
+    # segments (cite.rule_book -> extract_rule_catalog.units_by_locator -> manifest_of, kb/Work PB6014), so every
+    # `cite.check` of a 2023 citation opens it. The 1985 and 2002 manifests are read the same way for their editions'
+    # citations, which no compiler test checks (the watch holds that).
+    "docs/rearchitecture/spec-unharvested-rule-blocks.json": "RepoDrift's ArchReviewFleetDriftTests (r2_collect.py "
+                                                             "--self-test checks its records' 2023 spec_refs through "
+                                                             "cite.check)",
     "specs/ANSI_COBOL_1985.md": "RecordClauseRuleDriftTests (the Since column's 1985 side, kb/Work PB5196)",  # spec_pdf: names-the-file
     "specs/ISO_COBOL_2002.md": "RecordClauseRuleDriftTests (the Since column's 2002 side, kb/Work PB5196) and "  # spec_pdf: names-the-file
                                "CompilerDirectiveWordsDriftTests (its 8.12 table, kb/Work PB5599)",

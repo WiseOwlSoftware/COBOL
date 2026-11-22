@@ -1,0 +1,113 @@
+{
+ "rule-id": "1989-RV-A.2.46.3-3",
+ "rule-digest": "955c6448152b",
+ "read": {
+  "pin": "5441fca8b4b5e095f1f7832c48564682bd42a776",
+  "slice": "1985-c03",
+  "sources": {
+   "reader": "4528547848e2cee1b02b4a51ee6dfa440ba9420e05784bf3c6169bad95e38db8",
+   "refuter": "b0d214b8201e8df0f97597f2d7e43aed317f9519a011e8a03d2a6969b6035226"
+  },
+  "imported": {
+   "reader": "9b9ac3d10be80283f393649628f9cff2f33124aa5346c6cf762f2767f7ebfd1b",
+   "refuter": "4f2bb19b84280563d45f209708deb588f070966072ed725c82543f7e03b5c29c"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.46.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the value FUNCTION WHEN-COMPILED returns must denote the same instant as every compilation date and time the compiler provides in the listing of the source program (the page headings, the DATE-COMPILED paragraph's replacement, in every listing format) and in the generated object code, at whatever representation and precision each one uses; where the object code provides no compilation time, that half of the condition is not engaged.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#ReadCompilationTime; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#ProgramEmitter; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#Format21; src/WiseOwl.Cobol.Compiler/Listing/ListingFacts.cs#CompilationTime; src/WiseOwl.Cobol.Compiler/Listing/ListingBuilder.cs#Build; src/WiseOwl.Cobol.Compiler/Listing/SourceSectionBuilder.cs#ReplaceDateCompiled; src/WiseOwl.Cobol.Listing/ListingRequest.cs#Format; src/WiseOwl.Cobol.Compiler/CompilerDriver.cs#Compile; src/WiseOwl.Cobol.Compiler/CodeGen/RoslynBackend.cs#Compile",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Cli/Program.cs#BuildParser",
+    "switches": "the listing is on by default at --std 85 (std == 85), off by default at 2002/2014/2023; this decides whether the listing half of RV3 is engaged by default, not what instant the listing prints",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 edition window IntroducedIn <= DialectLevel (WHEN-COMPILED IntroducedIn 85 in IntrinsicCatalog), so the function binds at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Listing/ListingBuilder.cs#Build",
+    "switches": "the edition's year and standard name printed in the heading (ListingHeader Edition/EditionName); the instant beside them is the same CompilationInputs value at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep -i for WhenCompiled/WHEN-COMPILED/CompilationTime across src, then Edition|CobolVersion|DialectBehavior in src/WiseOwl.Cobol.Compiler/Listing; the instant's capture (CompilationInputs.ReadCompilationTime), the 21-character form (CobolDate.Format21), the listing form (ListingTimestamp.Format) and the deterministic PE option in RoslynBackend.Compile consult no edition.",
+  "behaviour-differs-by-edition": "yes: only the default of the listing (on at --std 85, off at the later editions unless --listing is named); the shared-instant mechanism and both formats are the same code at every edition",
+  "witnesses-cover": "part: the witness checks only the first page heading of the text listing; not exercised by it are the later page headings, the DATE-COMPILED paragraph replacement, the JSON and HTML listing formats, a contained program's value, and the object-code half (probed here)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c03/runs/pb5926_when_compiled_listing_heading_85-001",
+    "printed": "OK   THE HEADING PRINTS WHEN-COMPILED'S INSTANT (EXPECT: MATCH)",
+    "expected": "the heading denotes the same instant as WHEN-COMPILED (RV3)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c03/runs/wc85a-002",
+    "printed": "OUTER 2026112117243641-0800, INNER 2026112117243641-0800, SAME; all 10 page headings (page length 20, contained program WC85B's page too) print 2026-11-21 17:24:36 -08:00; the DATE-COMPILED paragraph (an 85-only form) is listed as 'DATE-COMPILED. 2026-11-21 17:24:36 -08:00.'; JSON compiledAt 2026-11-21T17:24:36.4139751-08:00 (truncates to the returned .41); HTML Compiled 2026-11-21 17:24:36 -08:00",
+    "expected": "every listing date/time denotes the instant WHEN-COMPILED returns; a contained program returns the containing compilation's value (RV2, RV3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c03/runs/wc85b-001",
+    "printed": "error COBOL1504: FUNCTION WHEN-COMPILED takes 0 argument(s); 1 given; error COBOL0900: an empty function argument list '( )' requires COBOL-2002",
+    "expected": "the 1989 general format FUNCTION WHEN-COMPILED takes no arguments; degenerate forms refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c03/runs/wc85c-001",
+    "printed": "with --listing off: no .lst written; WC 2026112117251380-0800, OFFS -0800 (positions 17-21 by reference modification), SAME  TWO REFERENCES AGREE",
+    "expected": "with no listing provided the listing condition is not engaged; the value stays the compilation instant"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c03/runs/wc85d-001 and wc85d-002",
+    "printed": "two compilations of one program without WHEN-COMPILED: DLL-IDENTICAL, PDB-IDENTICAL; wc85a-002/wc85a.dll PE TimeDateStamp 0xf133c0ba (2098-03-26, a content hash) and the only time in the assembly is the baked UTF-16 literal 2026112117243641-0800",
+    "expected": "the object code provides no compilation time other than WHEN-COMPILED's own value, so RV3's object-code half holds vacuously"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.46.3 RV3",
+    "check": "OK  §1989:A.2.46.3 RV3  (2.46.3 Returned Values)  the text is in RV3"
+   },
+   {
+    "cite": "§1989:A.2.46.3 RV2",
+    "check": "OK  §1989:A.2.46.3 RV2  (2.46.3 Returned Values)  the text is in RV2"
+   },
+   {
+    "cite": "§1989:A.2.46.3 RV1",
+    "check": "OK  §1989:A.2.46.3 RV1  (2.46.3 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1985:VI.3.4.4 GR1",
+    "check": "OK  §1985:VI.3.4.4 GR1  (║3.4.4 General Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:IV.7.1",
+    "check": "OK  §1985:IV.7.1  (7.1 GENERAL DESCRIPTION)  the text is in the clause; it lies in p1"
+   }
+  ],
+  "notes": "One CompilationInputs instance per compilation (CompilerDriver.Compile) holds the one instant: whichever of the emitter's lazy WHEN-COMPILED stamp or the listing reads it first captures it, and the other reads the same value, so the heading, the DATE-COMPILED replacement and all three listing formats agree with the 21-character value; both formats truncate (seconds in the listing, hundredths in the value) from the same DateTimeOffset and offset. The object code is deterministic (PE TimeDateStamp is a hash), so it provides no other compilation time. The seed RoslynBackend.Compile is only the object-code half; the shared instant lives in CompilationInputs.ReadCompilationTime. A side observation, outside this rule: DISPLAY FUNCTION LENGTH (FUNCTION WHEN-COMPILED) is refused at 85 with COBOL0900 (a numeric function outside an arithmetic expression).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "the witness at --std 2023 --listing on prints OK and MATCHES (runs/pb5926_when_compiled_listing_heading_85-002)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.46.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read at tree 5441fca8b4: CompilationInputs.ReadCompilationTime (first read captures, every later read answers the same DateTimeOffset), CompilerDriver.Compile (one CompilationInputs per compilation, shared by ListingFacts and BackendOptions.Inputs -> RoslynBackend -> CSharpEmitter.EmitBound -> ProgramEmitter), IntrinsicRenderer 'WhenCompiled' => the one lazy stamp (the only WHEN-COMPILED value site; grep of CompileClock/WhenCompiledStamp finds no other clock read, and grep of DateTime.Now/UtcNow/LastWriteTime/TimeDateStamp in Compiler, Listing and Cli finds only the CompileClock default and the deterministic-PE comment), CobolDate.Format21 and ListingTimestamp.Format both truncate the same instant (hundredths / seconds), SourceSectionBuilder.ReplaceDateCompiled replaces the whole comment-entry (continuation lines) within its own inclusion. No compiled-output cache in the CLI. Probes at --std 85 (runs under E:/COBOL-coord/scratch/w20262131/coderead/out/refute-1985-c03/runs): rf1-001 (c,d) a 1985 DATE-COMPILED paragraph whose comment-entry spans three lines with stale dates and an interleaved comment line, and WHEN-COMPILED through reference modification, REVERSE(REVERSE()), NUMVAL of positions 1-16 and a direct comparison: 'WC 2026112117284068-0800 ... SAME ALL REFERENCES AGREE'; listing line 3 'DATE-COMPILED. 2026-11-21 17:28:40 -08:00.', the stale lines 4 and 6 not printed (grep STALE|1999 count 0), all 5 page headings 17:28:40 -08:00. rf2-001/rf2-003 (c) two separately compiled programs in one source, each with a DATE-COMPILED paragraph, --listing-sections all, text+json, width 100: 'A 2026112117291477-0800 / B 2026112117291477-0800 / SAME', both DATE-COMPILED lines and all 13 page headings 17:29:14 -08:00, JSON compiledAt 2026-11-21T17:29:14.7793153-08:00, the object-code section's ldstr literals the same 21-character value. rf3-001 (c) DATE-COMPILED supplied by a COPY member: replaced in the listing at the same instant as the page headings. rf4-001 (c, a 2002 form 85 must refuse) REPOSITORY FUNCTION ALL INTRINSIC with WHEN-COMPILED keyword-omitted: refused COBOL0900 'the REPOSITORY FUNCTION entry requires COBOL-2002' and COBOL1639. cite.py: 'OK  §1989:A.2.46.3 RV3  (2.46.3 Returned Values)  the text is in RV3'; 'OK  §1989:A.2.46.3 RV2  (2.46.3 Returned Values)  the text is in RV2'; 'OK  §1985:VI.3.4.4 GR1  (║3.4.4 General Rules║)  the text is in GR1'; 'OK  §1989:A.2.46.3 RV1  (2.46.3 Returned Values)  the text is in RV1'. The object-code half rests on the reading that the deterministic assembly and PDB provide no compilation time of their own (the reader's byte-identical recompilation witness), so RV3's 'if provided' leaves only the listing half engaged, and that half holds in every listing form probed.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para>An operand slot in this compiler used to acquire ISO §2023:8.8.1.1 BY DEFAULT — by being handed to
 /// <c>BindExpr</c> — instead of declaring which rule governs it, and the two questions it actually has to answer
-/// ("does §2023:8.8.1.1's class screen apply here?" and "does §2023:13.18.38.3 r7 admit an index-name here?") were
+/// ("does §2023:8.8.1.1's class screen apply here?" and "does §2023:13.18.38.3 SR7 admit an index-name here?") were
 /// recorded in four different places. All four defects of the cluster are one site answering one axis wrongly or
 /// not at all. <c>OperandContextRules.Rules()</c> is the table; this test is what keeps it total.</para>
 ///
@@ -72,7 +72,7 @@ public sealed class OperandContextRulesTests
     /// transposition hazard the fact exists to catch, one member later. The expectations still have to be
     /// written by hand — they are the CLAUSES, and deriving them from the table under test would measure
     /// nothing — but MEMBERSHIP is now mechanical, so a new member fails here until someone reads §2023:8.8.1.1,
-    /// §2023:13.18.38.3 r7 and §2023:13.18.60.3 SR10 for it.</remarks>
+    /// §2023:13.18.38.3 SR7 and §2023:13.18.60.3 SR10 for it.</remarks>
     private static readonly Dictionary<string, (bool NumericClassScreen, bool IndexNameScreen, bool IndexDataItemAdmitted, bool BooleanOperandAdmitted)>
         ExpectedAxes = new(StringComparer.Ordinal)
         {

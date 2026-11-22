@@ -71,7 +71,7 @@ public sealed partial class SpecialNamesBinder
         _host.Symbols.DeclaresConfigurationName(NameClass.ClassName, name) || IsAlphabetName(name);
 
     /// <summary>Normalize a NUMERIC literal's source text to the canonical dot-decimal form the whole emit-side
-    /// decode pipeline consumes (ISO §2023:12.3.7.4 GR14 a): under DECIMAL-POINT IS COMMA "the character written in
+    /// decode pipeline consumes (ISO §2023:12.3.7.4 GR14a): under DECIMAL-POINT IS COMMA "the character written in
     /// numeric literals to represent the decimal separator shall be the comma" — and §2023:8.3.3.3.2 admits ONLY the
     /// decimal point in a fixed-point literal, so the OTHER separator is diagnosed in each mode; the legacy's
     /// unconditional acceptance of both is a version-invariant non-conformance, not ported). The ONE literal
@@ -80,7 +80,7 @@ public sealed partial class SpecialNamesBinder
     public string NormalizeNumericLiteral(string text)
     {
         // The normalization ALGORITHM is the ONE shared WiseOwl.Cobol.Common.NumericLiteral.Normalize (Frontend), so the
-        // compile-time expression evaluator applies the identical §2023:12.3.7.4 GR14 a) rule; the binder retains ownership
+        // compile-time expression evaluator applies the identical §2023:12.3.7.4 GR14a rule; the binder retains ownership
         // of the COBOL0895 diagnostic (its own channel/descriptor), routing the returned issue to it verbatim.
         string norm = Common.NumericLiteral.Normalize(text, Cfg.DecimalPointIsComma, out var issue);
         switch (issue)
@@ -257,7 +257,7 @@ public sealed partial class SpecialNamesBinder
             using var _ = Edition.At(cur);
             SwitchBindCurrency(cur);
         }
-        Cfg.FinalizeCurrencySigns();   // §2023:12.3.7.3 r25 — the implied '$' clause, once every explicit clause is in
+        Cfg.FinalizeCurrencySigns();   // §2023:12.3.7.3 SR25 — the implied '$' clause, once every explicit clause is in
     }
 
     /// <summary>One switch-name / feature-name / device-name entry (ISO §2023:12.3.7.2). §2023:12.3.7.3 SR8 — "<i>The implementor
@@ -400,7 +400,7 @@ public sealed partial class SpecialNamesBinder
     /// </list>
     /// <para>⚖ The ADVISORY (COBOL1662, a warning): GR17 leaves literal-9's allowable content to the
     /// implementor, so a spelling this implementation cannot resolve is legal source with a defined RUNTIME
-    /// outcome — §2023:15.85.4 r2 sets EC-ORDER-NOT-SUPPORTED at every reference. Rejecting it would refuse a
+    /// outcome — §2023:15.85.4 RV2 sets EC-ORDER-NOT-SUPPORTED at every reference. Rejecting it would refuse a
     /// conforming program; saying nothing would let a program whose every STANDARD-COMPARE is inoperative compile
     /// clean. The resolver consulted here is the SAME one the runtime uses
     /// (<c>CollationEngine.TryGetOrderingTable</c>), so bind-time advice and run-time behaviour cannot drift.</para>
@@ -431,7 +431,7 @@ public sealed partial class SpecialNamesBinder
             return;
         }
         _host.Symbols.DeclareOrderingName(name1.Start, text);
-        // GR17's implementor half, checked against the ONE resolver the runtime uses (§2023:15.85.4 r2 owns the outcome).
+        // GR17's implementor half, checked against the ONE resolver the runtime uses (§2023:15.85.4 RV2 owns the outcome).
         // A site collation file that cannot be used is that resolver's typed failure, named here with its file, never
         // a crash of the compile (kb/Work PB2773).
         if (CollationEngine.TryGetOrderingTable(text, out _)) return;

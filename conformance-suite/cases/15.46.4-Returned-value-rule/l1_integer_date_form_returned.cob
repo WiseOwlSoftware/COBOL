@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:15.46.4 r1 / §2023:15.47.4 r1 — INTEGER-OF-DATE and INTEGER-OF-DAY each
+      *> ISO §2023:15.46.4 RV1 / §2023:15.47.4 RV1 — INTEGER-OF-DATE and INTEGER-OF-DAY each
       *> return a value IN INTEGER DATE FORM, and §2023:15.46.2's one-argument format.
       *>
       *> Both rules are one sentence — "The returned value is in integer date
@@ -24,14 +24,14 @@
       *> other end of the same sentence: 1601-01-01 is the starting date, one day
       *> succeeding December 31, 1600, hence 1.
       *>
-      *> §2023:15.46.3 r1 gives argument-1 as "(YYYY * 10,000) + (MM * 100) + DD" and
-      *> §2023:15.47.3 r1 as "(YYYY * 1000) + DDD", so THE SAME CALENDAR DAY IS WRITTEN
+      *> §2023:15.46.3 AR1 gives argument-1 as "(YYYY * 10,000) + (MM * 100) + DD" and
+      *> §2023:15.47.3 AR1 as "(YYYY * 1000) + DDD", so THE SAME CALENDAR DAY IS WRITTEN
       *> TWO WAYS and must produce the SAME integer — there is one integer date
       *> form, not one per function. Every pair below is that assertion, and it is
       *> the axis a single-function golden cannot see: 1604-02-29 is 1604060,
       *> 1700-02-28 is 1700059, 1700-03-01 is 1700060, 2000-02-29 is 2000060,
       *> 1995-02-15 is 1995046, 9999-12-31 is 9999365 (9999 is not divisible by
-      *> four, so its ordinal year ends at 365 — the §2023:15.47.3 r1b "valid for the
+      *> four, so its ordinal year ends at 365 — the §2023:15.47.3 AR1b "valid for the
       *> year specified" edge).
       *>
       *> THE LEAP BRANCHES, each derived by counting days from 1601-01-01:

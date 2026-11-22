@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class ConditionNameAssociationDriftTests
 {
     // ⛔ SR24 e)'s class test and SR4's phrase reader live on ItemCategory (kb/Work PB391) — the ONE §2023:8.5.2
-    // class/category reader — because §2023:14.7.6 rule 4 names the SAME four classes with the same words and its
+    // class/category reader — because §2023:14.7.6 GR4 names the SAME four classes with the same words and its
     // asker, CorrespondingBinder, is outside DataBinder. Public there, so no reflection.
     private static bool ExcludedClass(DataItem d) => ItemCategory.IsIndexMessageTagObjectOrPointer(d);
 

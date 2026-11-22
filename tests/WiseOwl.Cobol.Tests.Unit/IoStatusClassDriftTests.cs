@@ -45,7 +45,7 @@ public sealed class IoStatusClassDriftTests
     }
 
     /// <summary>The table's three phrase-driving classes, pinned to the values §2023:9.1.13.2, §2023:9.1.13.4 and
-    /// §2023:9.1.13.5 give them — and '46' (§2023:9.1.13.7 6), a logic error) in none of the phrase classes.</summary>
+    /// §2023:9.1.13.5 give them — and '46' (§2023:9.1.13.7 GR6, a logic error) in none of the phrase classes.</summary>
     [Theory]
     [InlineData("00", true, false, false)]
     [InlineData("04", true, false, false)]

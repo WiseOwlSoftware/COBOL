@@ -20,7 +20,7 @@
       *>        §2002:8.6.5)
       *>   CANCEL, CALL "G2CNO5X" ON OVERFLOW OVF (no such program:
       *>        EC-PROGRAM-NOT-FOUND, §2002:14.8.4.3 GR3; control to
-      *>        imperative-statement-1, §2002:14.8.4.3 GR3g1); that
+      *>        imperative-statement-1, §2002:14.8.4.3 GR3g.1); that
       *>        CALL references another program, establishing nothing
       *>   CALL "G2CNO5S" ON OVERFLOW         C=1
       *> Fails if CANCEL does not end the relationship (C=3), if a

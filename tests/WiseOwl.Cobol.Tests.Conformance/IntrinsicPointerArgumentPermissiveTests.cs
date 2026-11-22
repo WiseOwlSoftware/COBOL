@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// extension decodes the CHARACTERS of an argument of the wrong class; an item of class pointer holds a reference
 /// (ISO §2023:8.5.2.1 Table 2), so there is nothing to coerce and every argument-rule violation it draws stays an ERROR
 /// whose text does not offer <c>--permissive</c> (<c>IntrinsicBinder.ReportClass</c>, over the class screen and
-/// CONCAT's §2023:15.18.3 r2/r3 arm alike). Before, the class arm warned and the program died in Roslyn (CS1503), and
+/// CONCAT's §2023:15.18.3 AR2/r3 arm alike). Before, the class arm warned and the program died in Roslyn (CS1503), and
 /// CONCAT's usage arm still said "--permissive accepts it" beside the class error.
 /// </summary>
 /// <remarks>The negative corpus runs strict only, so <c>EditionHarness.CompileFull(…, permissive: true)</c> is the seam

@@ -164,7 +164,7 @@ public static class ZeroTokenRewriter
     /// The token at <paramref name="index"/> is a <c>+</c> or <c>-</c> that is the sign of the numeric literal touching
     /// its right, not an arithmetic operator (kb/Work PB3962). §2023:8.7.1 makes the binary operators characters "that shall
     /// be preceded by a space and followed by a space", so a sign with no space before the digits of the next literal
-    /// is no binary operator, and §2023:8.3.3.3.2 2) makes it the literal's own: "If a sign is used, it shall appear as the
+    /// is no binary operator, and §2023:8.3.3.3.2 SR2 makes it the literal's own: "If a sign is used, it shall appear as the
     /// leftmost character of the literal". The figurative ZERO before it is therefore not an operand of that sign:
     /// <c>DISPLAY ZERO -1</c>, <c>CALL "P" USING ZERO +1</c> and the VALUE list <c>88 C VALUE ZERO -1</c> are operand
     /// lists of two operands, and the ZERO keeps its figurative identity (§2023:8.3.3.6.4 GR4: the value 0 or the character
@@ -186,7 +186,7 @@ public static class ZeroTokenRewriter
         int type = tokens[literal].Type;
         if (type is CobolLexer.INTEGERLIT or CobolLexer.DECIMALLIT || LiteralTokens.FloatingPointTypes.Contains(type))
             return true;
-        // `-,5`: the DECIMAL-POINT IS COMMA literal that opens with its decimal point (§2023:12.3.7.4 GR14 a)).
+        // `-,5`: the DECIMAL-POINT IS COMMA literal that opens with its decimal point (§2023:12.3.7.4 GR14a).
         int fraction = type == CobolLexer.COMMA ? AdjacentIndex(tokens, literal, forward: true) : -1;
         return fraction >= 0 && tokens[fraction].Type == CobolLexer.INTEGERLIT
             && tokens[fraction].StartIndex == tokens[literal].StopIndex + 1;

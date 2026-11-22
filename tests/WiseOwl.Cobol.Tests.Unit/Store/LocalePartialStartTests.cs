@@ -581,7 +581,7 @@ public sealed class LocalePartialStartTests
         }
     }
 
-    /// <summary>⛔ A REFUSED READ ANYWHERE IN THE SEARCH ANSWERS '30' (§2023:9.1.13.6 item 1; 2.2.1.4, a refused read is no
+    /// <summary>⛔ A REFUSED READ ANYWHERE IN THE SEARCH ANSWERS '30' (§2023:9.1.13.6 GR1; 2.2.1.4, a refused read is no
     /// verdict on the page): the root the marks are read from, the descent to the bound, each leaf the run crosses. The
     /// cursor is left with no current entry, and the same START once the medium heals answers GR17's entry.</summary>
     [Fact]

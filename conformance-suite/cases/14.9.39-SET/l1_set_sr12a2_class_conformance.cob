@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:14.9.39.3 SR12a2. — SET format 5 (object-reference
+      *> ISO §2023:14.9.39.3 SR12a.2. — SET format 5 (object-reference
       *> assignment) where identifier-3 is described with an
       *> object-class-name and WITHOUT an ONLY phrase: "the
       *> object-class-name specified in the description of the data

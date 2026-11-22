@@ -107,7 +107,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
     {
         // §2023:13.18.53.3 SR4 — inside a report's own clauses the only sum counters a SOURCE operand may name are those "defined in
         // the current report", so a homonym of another report is no candidate: the reference is unambiguous by the rule
-        // and never needs a qualifier to say so (kb/Work PB1292). §2023:8.4.6.2.1 rule 3 — a counter of a report this source
+        // and never needs a qualifier to say so (kb/Work PB1292). §2023:8.4.6.2.1 GR3 — a counter of a report this source
         // element declares hides a same-named counter of a container's GLOBAL report; only candidates of the NEAREST
         // declaring element can be ambiguous. Both are the ONE lookup's (SymbolTable.Identify, NameClass.SumCounter), which reads
         // the written name and its qualifiers from the reference and the enclosing report from its site.
@@ -132,7 +132,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
                     + data.Edition.Edition.CiteRule("§1985:XIII.3.19.3 SR5", "§2023:8.4.2.2.3 SR4, §2023:8.4.2.2.2 Format 1") + ").");
             return null;
         }
-        // §2023:8.4.6.2.1 3) b) ACROSS NAME CLASSES (kb/Work PB3154 review R3-1): a counter of a container's GLOBAL report
+        // §2023:8.4.6.2.1 GR3b ACROSS NAME CLASSES (kb/Work PB3154 review R3-1): a counter of a container's GLOBAL report
         // is a global name of THAT container (§2023:13.18.27.4 GR1), so a same-spelled name a NEARER source element
         // declares — this element's own or a nearer container's GLOBAL data item, condition-name, index-name, file-name or
         // report-name — is the referenced item, and ordinary resolution takes it. A qualified reference is hidden only by a
@@ -152,7 +152,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         // of the same source element, and §2023:8.4.2.2.3 SR1 — "For each non unique user-defined name that is explicitly
         // referenced, uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity of
         // reference" — counts them TOGETHER. The ordinary items asked about are the ones the SAME written qualifiers
-        // reach in the SAME source element as the counters (§2023:8.4.6.2.1 3): the one candidate set
+        // reach in the SAME source element as the counters (§2023:8.4.6.2.1 GR3): the one candidate set
         // the table's SymbolTable.IdentifyDataName, which the ordinary lookup reads too.
         // Asking only the counters, as this method did, let the counter win every collision with a WORKING-STORAGE item
         // that had no qualifier to tell them apart: a MOVE to the name altered the report total, silently.
@@ -281,7 +281,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         // qualified implicitly by the name of the report in whose report description entry the reference is made": the
         // enclosing RD answers, whatever number of reports the program has (kb/Work PB1456).
         if (refs.EnclosingReport is { } enclosing) return enclosing;
-        // §2023:8.4.6.2.5 — the counters of a GLOBAL report are global; §2023:8.4.6.2.1 rule 3 — the nearest declaring
+        // §2023:8.4.6.2.5 — the counters of a GLOBAL report are global; §2023:8.4.6.2.1 GR3 — the nearest declaring
         // source element's reports hide a container's, so "exactly one report" is asked of the nearest ones.
         var nearest = data.State.Reports.NearestInScope(data.State.Reports.Visible, r => r);
         if (nearest.Count == 1) return nearest[0];

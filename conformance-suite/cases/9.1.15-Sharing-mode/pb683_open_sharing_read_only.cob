@@ -10,14 +10,14 @@
       *> sharing mode."  A connector whose SELECT declares NEITHER a SHARING
       *> clause NOR a LOCK MODE clause is therefore open FOR FILE SHARING
       *> when its own OPEN statement writes SHARING WITH READ ONLY, and
-      *> §2023:9.1.15 item 2 says of that mode "Record locks are in effect".
+      *> §2023:9.1.15 GR2 says of that mode "Record locks are in effect".
       *> §2023:9.1.16 — "While locked by a given file connector, a record is not
       *> accessible to another file connector in the same or a different run
       *> unit, except by the execution of a READ statement with the IGNORING
       *> LOCK phrase."  So the READ below is refused, and §2023:14.9.30.4 GR9/GR10
       *> b) price the refusal: "A value is placed into the I-O status
       *> associated with file-name-1 to indicate the record operation
-      *> conflict condition" — '51' (§2023:9.1.13.8 item 1), and no record is made
+      *> conflict condition" — '51' (§2023:9.1.13.8 GR1), and no record is made
       *> available (GR10 c).
       *>
       *> ⛔ WHY THIS GOLDEN EXISTS (kb/Work PB683).  Every operand of that
@@ -41,7 +41,7 @@
       *> LOCK phrase, legal under MANUAL locking (§2023:12.4.5.9.4 GR5).  B and C
       *> carry NO sharing or locking clause at all and become sharing
       *> participants only through their own OPEN statement.  Table 19
-      *> permits the opens: A is INPUT, and §2023:9.1.15 item 2 refuses a READ
+      *> permits the opens: A is INPUT, and §2023:9.1.15 GR2 refuses a READ
       *> ONLY connector only when another connector's "open mode is other
       *> than input".
        IDENTIFICATION DIVISION.

@@ -35,7 +35,7 @@
       *>               U+0001 is outside the set (d).
       *>  CTRL-EQUAL - U+0001 after "A" is 2 bytes, so only d): '71'.
       *>  S1-AFTER   - a refused REWRITE changes nothing: the line is
-      *>               still AB (§2023:9.1.13.10 item 1).
+      *>               still AB (§2023:9.1.13.10 GR1).
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        SPECIAL-NAMES.

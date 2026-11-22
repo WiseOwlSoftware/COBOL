@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.70.3 r1: "Argument-1 shall be one character position in length and shall be of category
+      *> ISO §2023:15.70.3 AR1: "Argument-1 shall be one character position in length and shall be of category
       *> alphabetic, alphanumeric, or national" (cite.py --check 15.70.3 OK, §2023:15.70.3 AR1).
       *>
       *> CATEGORY-WORDED, SO A ONE-POSITION NUMERIC-EDITED ITEM IS OUT (kb/Work PB658's sibling sweep). PIC Z is one

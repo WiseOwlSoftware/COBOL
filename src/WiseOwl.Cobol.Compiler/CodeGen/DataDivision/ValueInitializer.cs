@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Globalization;
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
@@ -15,7 +16,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <item><see cref="Initialize"/> — the new element of a dynamic-capacity table whose OCCURS carries INITIALIZED:
 /// §2023:8.5.1.9.5, "as though they had been the subject of a statement of the form INITIALIZE … WITH FILLER ALL TO
 /// VALUE THEN TO DEFAULT" — and the whole content of a CONSTANT RECORD, §2023:13.18.15.4 GR1 (kb/Work PB1233,
-/// chosen once at the root by <see cref="ValueInitializer.RecipeFor"/>). §2023:14.9.20.4 GR5 c) 1. b qualifies a leaf by "a data-item format VALUE clause … in the
+/// chosen once at the root by <see cref="ValueInitializer.RecipeFor"/>). §2023:14.9.20.4 GR5c.1 b qualifies a leaf by "a data-item format VALUE clause … in the
 /// data description entry of the ELEMENTARY data item" (so a group-level VALUE is not an INITIALIZE sender), GR6
 /// a) 3. makes that leaf's sender "a literal that, when moved to the receiving-operand with a MOVE statement,
 /// produces the same result as the initial value of the data item as produced by the application of the VALUE
@@ -50,7 +51,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// the content "as though the clause had been omitted and the record had been the subject of an INITIALIZE
     /// statement that is specified with" the FILLER phrase, the VALUE phrase with ALL and the DEFAULT phrase
     /// (§2023:13.18.15.4 GR1) — i.e. <see cref="SeedRecipe.Initialize"/>, not the initial state: a VALUE-less numeric-
-    /// edited item takes the edited ZERO of §2023:14.9.20.4 GR6 c), no OPTIONS INITIALIZE background reaches it (the
+    /// edited item takes the edited ZERO of §2023:14.9.20.4 GR6c), no OPTIONS INITIALIZE background reaches it (the
     /// INITIALIZE overwrites it), and a group-level VALUE is no sender (GR5 c) 1. b). The flag lives on the
     /// level-01 root (<see cref="DataItem.IsConstantRecord"/>) and a root is where every seed starts, so the
     /// choice is made once here and rides the <paramref name="requested"/> recipe down the subtree.</summary>
@@ -110,12 +111,12 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// (<c>GroupImageCodec.CellDynSeeds</c>; kb/Work PB1042). <paramref name="elementAt"/> composes occurrence
     /// <c>o</c>'s element under a recipe. It opens at FROM (min), raised to the §2023:13.18.63.4 GR16 initial capacity when
     /// a table VALUE seeds the initial state (<paramref name="valuesSeedInitialState"/> false only for a PLAIN external
-    /// record, §2023:13.18.63.4 GR4 a) — "If more than one VALUE clause applies, the maximum value thus calculated becomes
+    /// record, §2023:13.18.63.4 GR4a — "If more than one VALUE clause applies, the maximum value thus calculated becomes
     /// the initial capacity"; occurrences within it take their keyed element, and growth beyond re-seeds through the
     /// same function to the VALUE-less default); TO is the expected capacity; an occurrence a statement creates takes
     /// the INITIALIZED phrase's composition when the phrase is written — keyed to ITS occurrence whatever the initial state did,
     /// because §2023:8.5.1.9.5's INITIALIZE … TO VALUE sends "the literal in the VALUE clause that corresponds to the
-    /// occurrence being initialized" (§2023:14.9.20.4 GR6 a) 3.).</summary>
+    /// occurrence being initialized" (§2023:14.9.20.4 GR6a.3).</summary>
     /// <param name="outer">The occurrence context above the table (one subscript per enclosing OCCURS level), from
     /// which <see cref="TableValueRuns.Of"/> reads the runs the per-occurrence seed switch is built over.</param>
     internal static string DynTableNew(DataItem item, string elementType, Func<int, SeedRecipe, string> elementAt,
@@ -159,7 +160,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
 
     /// <summary>⛔ THE ONE NO-VALUE SEED, both lanes, both recipes (kb/Work PB1267 over PB152's choke point): what
     /// a VALUE-less elementary item starts as, or null for the caller's own category baseline (spaces / zero /
-    /// boolean zeros / null — which IS §2023:14.9.20.4 GR6 c)'s figurative constant for every category but one).
+    /// boolean zeros / null — which IS §2023:14.9.20.4 GR6c's figurative constant for every category but one).
     /// <see cref="SeedRecipe.InitialState"/> asks the §2023:14.6.2.3.2 background; <see cref="SeedRecipe.Initialize"/>
     /// never does (an INITIALIZE sends GR6 c)'s constant, not the OPTIONS fill) and answers the one category whose
     /// constant the baseline does not already spell: a numeric-edited item receives "Figurative constant ZEROES"
@@ -218,7 +219,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
             // an INITIALIZE ... TO VALUE reaches its own recipe, not this initial-state reader.
             if (effRaw is not { } dv || InFileSection(item)) return "\"\"";
             if (FigurativeInitializer(dv, pic) is { } figFill) return figFill;
-            return RuntimeApi.DynStore(EmitText.CsLiteral(CobolLiteral.Decode(dv)), item.DynMaxSize.ToString());
+            return RuntimeApi.DynStore(EmitText.CsLiteral(CobolLiteral.Decode(dv)), item.DynMaxSize.ToString(CultureInfo.InvariantCulture));
         }
 
         // CCVS leniency: an ALPHANUMERIC literal VALUE on a NUMERIC item is read AS the numeric literal ISO
@@ -270,7 +271,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // ONE choke point, shared with the Tier-B image arm — see InitialStateBackground.
         if (effRaw is not { } raw) return NoValueSeed(item, pic, recipe) ?? pic.DefaultInitializer;
 
-        // A FORMAT-2 (LOCALE) item's numeric VALUE has NO compile-time image — §2023:13.18.40.5 r11 + §2023:14.6.6 r6 make
+        // A FORMAT-2 (LOCALE) item's numeric VALUE has NO compile-time image — §2023:13.18.40.5 GR11 + §2023:14.6.6 GR6 make
         // the locale the one current AT THE TIME of editing — so the initializer is a RUNTIME CobolLocaleEdit
         // call (the ONE producer, RuntimeApi.LocaleEditCompose; PB64 T6). A quoted literal falls through to the
         // verbatim store below (§2023:13.18.63.3 SR7 — the programmer supplies the edited form).

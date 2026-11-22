@@ -13,7 +13,8 @@
       *> 1985 allows one it says so: §1985:IV.4.3.8.2.3 SR6 "Integer-1
       *> may be signed"). So the written '+' of '+0' below is refused,
       *> though the value is zero; a compiler that judges the value
-      *> alone accepts it and fails. Refused with COBOL2365.
+      *> alone accepts it and fails. Refused with COBOL7737, the one
+      *> integer-n screen (kb/Work PB6021).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5805A.
        ENVIRONMENT DIVISION.

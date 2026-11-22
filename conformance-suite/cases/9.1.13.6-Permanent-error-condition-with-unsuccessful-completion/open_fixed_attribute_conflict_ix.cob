@@ -97,7 +97,7 @@
       *>    native collating sequence (§2023:12.4.5.3 GR6 — no COLLATING
       *>    SEQUENCE clause applies).
       *>    The two records are released in ASCENDING prime key order
-      *>    because the access mode is sequential: §2023:9.1.13.5 item 1
+      *>    because the access mode is sequential: §2023:9.1.13.5 GR1
       *>    makes a violation of "the ascending sequence requirements
       *>    for successive record key values" the '21' sequence error,
       *>    and each WRITE's status is displayed so a golden can never

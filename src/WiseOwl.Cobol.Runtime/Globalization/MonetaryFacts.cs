@@ -15,14 +15,14 @@ namespace WiseOwl.Cobol.Runtime.Globalization;
 /// multi-character in CLDR data — and every string is normalized by <see cref="LocaleFacts.NormalizeLocaleText"/>
 /// (DETERMINATION L12: strip Unicode Cf, map U+00A0/U+202F/U+2009 to the plain space). Unlike LC_TIME patterns
 /// these strings consume CHARACTER POSITIONS of a fixed-width integer-1 item, so a host-varying byte changes the
-/// §2023:13.18.40.5 r14 b) truncation arithmetic and EC-LOCALE-SIZE itself — PB112's disease in monetary data
+/// §2023:13.18.40.5 GR14b truncation arithmetic and EC-LOCALE-SIZE itself — PB112's disease in monetary data
 /// (measured: fr-FR's mon_thousands_sep moved U+00A0 → U+202F at ICU 72; every ar-* currency_symbol carries a
 /// trailing U+200F). U+2212 is NOT mapped — a genuinely different character, not a spacing artifact.</para>
 /// <para>⚖ Documented .NET-mapping determinations (CONFORMANCE.md): <c>int_curr_symbol</c> is
 /// <see cref="RegionInfo.ISOCurrencySymbol"/> + one space, and is NULL for a neutral or invariant culture (no
-/// region — the §2023:15.68.3 r5b.3 international alternative can then never match); <c>int_frac_digits</c> has no
+/// region — the §2023:15.68.3 AR5b.3 international alternative can then never match); <c>int_frac_digits</c> has no
 /// .NET carrier and equals <c>frac_digits</c>; <c>positive_sign</c> is .NET's NUMERIC positive sign ("+" —
-/// POSIX locales usually leave it empty; without it §2023:15.68.3 r5b.4's positive half and §2023:13.18.40.5 r13's
+/// POSIX locales usually leave it empty; without it §2023:15.68.3 AR5b.4's positive half and §2023:13.18.40.5 GR13's
 /// positive half are dead); the placement conventions come from <see cref="MonetaryPlacement"/>'s derived
 /// tables with <c>p_sign_posn</c> = 1.</para>
 /// </summary>
@@ -54,13 +54,13 @@ public sealed class MonetaryFacts
     }
 
     /// <summary>POSIX <c>currency_symbol</c> — the LOCAL currency string, normalized (L12). ⚖ DETERMINATION: this
-    /// (never <c>int_curr_symbol</c>) is what a format-2 EDIT emits — §2023:13.18.40.5 r9 gives the locale "the
+    /// (never <c>int_curr_symbol</c>) is what a format-2 EDIT emits — §2023:13.18.40.5 GR9 gives the locale "the
     /// position, length, and character(s)" without choosing between §2023:8.2.2's two symbols; recognition
-    /// (§2023:15.68.3 r5b.3) matches EITHER.</summary>
+    /// (§2023:15.68.3 AR5b.3) matches EITHER.</summary>
     public string CurrencySymbol { get; }
 
     /// <summary>POSIX <c>int_curr_symbol</c> — the region's ISO 4217 code + one space, or NULL for a neutral or
-    /// invariant culture. §2023:15.68.3 r5b.3 only ever matches "the first three characters".</summary>
+    /// invariant culture. §2023:15.68.3 AR5b.3 only ever matches "the first three characters".</summary>
     public string? IntCurrencySymbol { get; }
 
     /// <summary>POSIX <c>mon_decimal_point</c> (§2023:8.2.2 "decimal delimiter"), normalized.</summary>
@@ -83,8 +83,8 @@ public sealed class MonetaryFacts
     /// the LAST listed size repeated past the list, or 0 = "no such group" (the list terminated —
     /// <see cref="GroupStops"/> — or there is no grouping at all), in which case every digit further left is
     /// ungrouped. ⛔ THE one reading of the size list: format-2 editing's separator placement
-    /// (<c>CobolLocaleEdit</c>, §2023:13.18.40.5 r12), its de-edit (§2023:14.6.13.2 r4) and the NUMVAL-C LOCALE scan
-    /// (§2023:15.68.3 r5b.6) all walk it through here (kb/Work PB835).</summary>
+    /// (<c>CobolLocaleEdit</c>, §2023:13.18.40.5 GR12), its de-edit (§2023:14.6.13.2 GR4) and the NUMVAL-C LOCALE scan
+    /// (§2023:15.68.3 AR5b.6) all walk it through here (kb/Work PB835).</summary>
     public int GroupSize(int g)
     {
         if (ThousandsSep.Length == 0 || GroupSizes.Length == 0) return 0;
@@ -94,7 +94,7 @@ public sealed class MonetaryFacts
 
     /// <summary>Is <paramref name="groups"/> — the digit counts of an integer part's runs, LEFT to right, split at
     /// its <c>mon_thousands_sep</c> occurrences (so <c>groups.Length - 1</c> separators) — grouped "in accordance
-    /// with locale fields mon_thousands_sep and mon_grouping" (§2023:15.68.3 r5b.6)? With
+    /// with locale fields mon_thousands_sep and mon_grouping" (§2023:15.68.3 AR5b.6)? With
     /// <paramref name="complete"/> the runs are the whole integer part and must be EXACTLY the mon_grouping
     /// grouping of its digits: every run but the leftmost is its group's size and the leftmost is 1..its size
     /// (any length once the list has terminated). Without it the runs are a PREFIX still being scanned — the last
@@ -115,8 +115,8 @@ public sealed class MonetaryFacts
 
     /// <summary>Are <paramref name="groups"/> (as for <see cref="GroupingAdmits"/>, the whole integer part) EXACTLY
     /// what format-2 editing writes — every mon_grouping position carries a separator, so a run of more digits
-    /// than the first group's size with NO separator is not a possible result either (the §2023:14.6.13.2 r4 de-edit;
-    /// §2023:13.18.40.5 r12 always inserts them).</summary>
+    /// than the first group's size with NO separator is not a possible result either (the §2023:14.6.13.2 GR4 de-edit;
+    /// §2023:13.18.40.5 GR12 always inserts them).</summary>
     public bool GroupingIsExact(ReadOnlySpan<int> groups)
     {
         int k = groups.Length - 1;
@@ -143,7 +143,7 @@ public sealed class MonetaryFacts
     }
 
     /// <summary>POSIX <c>frac_digits</c> / <c>int_frac_digits</c> (one .NET carrier for both — documented limit).
-    /// ⛔ A RECOGNITION input only (§2023:15.68.3 r5b.5): NO format-2 editing rule reads it — §2023:13.18.40.5 r12 takes
+    /// ⛔ A RECOGNITION input only (§2023:15.68.3 AR5b.5): NO format-2 editing rule reads it — §2023:13.18.40.5 GR12 takes
     /// only the separators and group sizes from LC_MONETARY, and the fraction WIDTH is the picture's.</summary>
     public int FracDigits { get; }
 
@@ -167,8 +167,8 @@ public sealed class MonetaryFacts
     /// <summary>The monetary snapshot of one locale's facts (cached per <see cref="LocaleFacts"/> instance).</summary>
     public static MonetaryFacts Of(LocaleFacts facts) => s_cache.GetValue(facts, static f => new MonetaryFacts(f));
 
-    /// <summary>Resolve the named-else-current LC_MONETARY locale AT USE (§2023:13.18.40.5 r11 / §2023:14.6.6 r6 for the
-    /// edit; §2023:15.68.3 r5a for NUMVAL-C — "If locale-name-1 is not specified, category LC_MONETARY in the current
+    /// <summary>Resolve the named-else-current LC_MONETARY locale AT USE (§2023:13.18.40.5 GR11 / §2023:14.6.6 GR6 for the
+    /// edit; §2023:15.68.3 AR5a for NUMVAL-C — "If locale-name-1 is not specified, category LC_MONETARY in the current
     /// locale is used") through the ONE §2023:8.2.1 gate (<see cref="LocaleFacts.Require"/>): an unavailable locale is
     /// EC-LOCALE-MISSING (checking-gated; the ROOT's monetary content stands when checking is off), incomplete
     /// content EC-LOCALE-INVALID (the invariant stand-in stands).</summary>

@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// activation needs (docs/CONFORMANCE.md DOC-A.1-14, -89, -102; <c>ActivationStack</c>): ISO §2023:14.9.4.4 GR3c and
 /// §2023:8.4.3.2.4 GR6c make it EC-PROGRAM-RESOURCES for a CALL and a function activation, §2023:14.9.23.4 GR7b EC-OO-METHOD for
 /// a method. Each condition here is fatal and unhandled, so the run unit ends through the §2023:14.6.12 abnormal termination
-/// — the documented diagnostic and exit code 1 — and its §2023:14.6.11 2) implicit CLOSE: "An implicit CLOSE statement
+/// — the documented diagnostic and exit code 1 — and its §2023:14.6.11 GR2 implicit CLOSE: "An implicit CLOSE statement
 /// without any phrases is executed for each file that is in the open mode". Before the fix each program died of a CLR
 /// stack overflow at a depth of about 250: no diagnostic a COBOL programmer can act on, and no CLOSE. The CALL arm
 /// with ON EXCEPTION is the golden <c>conformance:cases/14.9.4-CALL/pb2659_call_resources_recursion</c>.

@@ -8,7 +8,8 @@
 *> twin over the Format 3 clause, and the same two halves. The permitting half is
 *> the zero-length-record goldens; this is the rejecting one.
 *> Same mechanism, same citation: 5.5 rule 1 makes integer-4 an unsigned literal, so
-*> RECORD CONTAINS -1 TO 20 is refused where the format writes it. The pair exists
+*> RECORD CONTAINS -1 TO 20 is refused where the format writes it (COBOL7737, the
+*> one integer-n screen, kb/Work PB6021). The pair exists
 *> because a screen written for Format 2 alone is the shape that ships one arm of a
 *> two-format rule (the repository's most reproducible defect). kb/Work PB721.
 IDENTIFICATION DIVISION.

@@ -70,7 +70,7 @@ public sealed partial class FileControlBinder
                 // §2023:13.8.6.2.3 bars the key clause from referring to a report item, the ONE refusal says so, and
                 // SR2's row stays silent about an operand already refused. It is asked before the ambiguity, which it
                 // leaves standing unless a report entry of a NEARER source element hides the data items (kb/Work
-                // PB3767's order, kept by the lookup itself since PB4196, ISO §2023:8.4.6.2.1 3) a)); a key item of the file's own
+                // PB3767's order, kept by the lookup itself since PB4196, ISO §2023:8.4.6.2.1 GR3a); a key item of the file's own
                 // record is never hidden.
                 // At COBOL-85 a sum counter is not refused here: §1985:XIII.3.9.3 SR10d makes it a data-name wherever it is written, so
                 // it is the key's operand and SR2's own row ("within a record description entry associated with the file-name",
@@ -327,7 +327,7 @@ public sealed partial class FileControlBinder
     /// <see cref="WiseOwl.Cobol.CodeGen.FigurativeConstants.FillChar"/> — the fill a <c>MOVE</c> of the same figurative into the key
     /// stores, so a program that moves SPACES into the key is exactly the program that suppressed it.</item>
     /// <item>ALL literal-1 is repeated the same way (GR2 again).</item>
-    /// <item>A literal SHORTER than the key is extended with spaces (§2023:8.8.4.2.7 2) — national spaces for a national
+    /// <item>A literal SHORTER than the key is extended with spaces (§2023:8.8.4.2.7 GR2) — national spaces for a national
     /// key, which the encoder writes as the byte pair <c>00 20</c>); a LONGER one is cut back to the key's size when
     /// every excess position is a space (equal under the same rule) and otherwise kept whole — no key value can
     /// equal it, so it never suppresses.</item>
@@ -373,7 +373,7 @@ public sealed partial class FileControlBinder
     /// predicate every integer-data-item rule reads, which also refuses a floating-point item and an index item
     /// (class index, never numeric). SR3 compares the two LITERALS only: with a data-name on either side the
     /// relation is a value at run time and §2023:13.18.34.4 GR3 is its rule.</para>
-    /// <para>SR4 (integer-3 / integer-4 may be zero) is a permission, honoured by the §2023:5.5 1) integer-n screen
+    /// <para>SR4 (integer-3 / integer-4 may be zero) is a permission, honoured by the §2023:5.5 SR1 integer-n screen
     /// (<c>IntegerOperandPass</c>), which is where a ZERO integer-1 or integer-2 is refused.</para>
     /// </summary>
     private void ResolveLinage(FileModel file)
@@ -451,7 +451,7 @@ public sealed partial class FileControlBinder
         // data division section other than the report section from referring to a report item, so the ONE refusal
         // speaks (as ResolveClauseOperand does for the other file clauses) before "no such data item is described",
         // and before the ambiguity, which it leaves standing unless a report entry of a NEARER source element hides the
-        // data items (kb/Work PB3767's order, kept by the lookup itself since PB4196, ISO §2023:8.4.6.2.1 3) a)). The subject is the head of the refusal, so it
+        // data items (kb/Work PB3767's order, kept by the lookup itself since PB4196, ISO §2023:8.4.6.2.1 GR3a). The subject is the head of the refusal, so it
         // names the phrase as written, never `ASSIGN … USING` (kb/Work PB4160: a head that elides the statement renders
         // `ASSIGN . USING` on the console).
         DataItem? counter = null;

@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <para>
 /// ⛔ WHY THESE EXIST. The F2 family computes in exact base-10 <see cref="Int128"/> at a known decimal scale,
 /// which is right and is the design (deep-dive D1). But a floating-point ARGUMENT is legal for every one of these
-/// functions — ISO §2023:15.7.3 r1 and its siblings require class NUMERIC, and a COMP-2 item is class numeric — and
+/// functions — ISO §2023:15.7.3 AR1 and its siblings require class NUMERIC, and a COMP-2 item is class numeric — and
 /// there was no path for one. The emitter dispatched on the FUNCTION's family (<c>sig.Float</c>) rather than on
 /// the ARGUMENT's type, so a double expression was handed to an <c>Int128</c> parameter and the user saw a raw
 /// Roslyn error escape the compiler:
@@ -58,7 +58,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// </remarks>
 public static partial class CobolIntrinsics
 {
-    // ── NATIVE EXPONENTIATION (ISO §2023:8.8.1.2 rule 6; fix-queue PB18 + PB28) ──────────────────────────────────────
+    // ── NATIVE EXPONENTIATION (ISO §2023:8.8.1.2 GR6; fix-queue PB18 + PB28) ──────────────────────────────────────
 
     /// <summary>
     /// ⛔ THE §2023:8.8.1.2 RULE-6 SCREEN, WRITTEN ONCE FOR EVERY NATIVE ARM (fix-queue PB28).
@@ -245,14 +245,14 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>§2023:15.71 ORD-MAX — the 1-based ORDINAL POSITION of the greatest argument, leftmost on a tie
-    /// (§2023:15.71.4 r3). Returns a position, never a value, so the count — not the arguments — bounds the result.</summary>
+    /// (§2023:15.71.4 RV3). Returns a position, never a value, so the count — not the arguments — bounds the result.</summary>
     public static double OrdMaxReal(params double[] xs) => ExtremeIndex(new ValueOrder<double>(xs), true, "ORD-MAX") + 1;
 
     /// <summary>
-    /// §2023:15.17 COMBINED-DATETIME — <c>argument-1 + (argument-2 / 100000)</c> exactly as §2023:15.17.4 r1 writes it.
+    /// §2023:15.17 COMBINED-DATETIME — <c>argument-1 + (argument-2 / 100000)</c> exactly as §2023:15.17.4 RV1 writes it.
     /// </summary>
     /// <remarks>
-    /// Argument-2 is "in standard numeric time form" (§2023:15.17.3 r2) and §2023:15.6 types it <c>Num2</c>, so it may
+    /// Argument-2 is "in standard numeric time form" (§2023:15.17.3 AR2) and §2023:15.6 types it <c>Num2</c>, so it may
     /// legitimately be a floating-point item — which is why this body is needed even though argument-1 is an
     /// integer date. The exact twin in <c>CobolDate</c> expresses the same expression as a scale shift
     /// (<c>date × 10^(scale+5) + secUnscaled</c> read at scale+5), and the two agree by construction.

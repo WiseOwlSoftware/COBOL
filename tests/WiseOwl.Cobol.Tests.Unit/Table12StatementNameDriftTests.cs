@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ <see cref="Table12StatementNames"/> IS ISO Table 12's 'Statement name' COLUMN, AND THIS RE-DERIVES IT FROM
 /// THE SPEC — BOTH DIRECTIONS.
 ///
-/// <para>§2023:15.32.3 r3 makes the column the answer FUNCTION EXCEPTION-STATEMENT must give, and the resolver keys
+/// <para>§2023:15.32.3 RV3 makes the column the answer FUNCTION EXCEPTION-STATEMENT must give, and the resolver keys
 /// on the parse rule because the spelled-token axis is wrong in a way no token can repair (kb/Work R04:
 /// <c>GO PARA.</c> is a GO TO statement whose tokens never contain TO). A resolver nothing re-derives is a
 /// hand-maintained list (CLAUDE.md rule 5) and a table nothing re-derives has never been contradicted

@@ -12,14 +12,14 @@ namespace WiseOwl.Cobol.Runtime;
 /// kb/Work PB64 T4): <see cref="Compare"/> (§2023:15.51 LOCALE-COMPARE), <see cref="Date"/> (§2023:15.52 LOCALE-DATE),
 /// <see cref="Time"/> (§2023:15.53 LOCALE-TIME), <see cref="TimeFromSeconds"/> (§2023:15.54 LOCALE-TIME-FROM-SECONDS). Each
 /// takes the bound <c>localeTag</c> of an optional locale-name-1 (null = the locale CURRENT for the category —
-/// §2023:14.6.6 r7 LC_COLLATE for the comparison, r8 LC_TIME for the three time functions) and resolves it at USE:
-/// an unavailable named locale is EC-LOCALE-MISSING (§2023:15.51.4 r3 / §2023:15.52.4 r1 / §2023:15.53.4 r1 / §2023:15.54.4 r1;
+/// §2023:14.6.6 GR7 LC_COLLATE for the comparison, r8 LC_TIME for the three time functions) and resolves it at USE:
+/// an unavailable named locale is EC-LOCALE-MISSING (§2023:15.51.4 RV3 / §2023:15.52.4 RV1 / §2023:15.53.4 RV1 / §2023:15.54.4 RV1;
 /// checking-gated per §2023:14.6.13.1.1, the root locale's answer standing when checking is off); an available locale
 /// whose LC_TIME content this environment lacks (no .NET culture data — <see cref="LocaleFacts.HasCultureData"/>)
 /// is EC-LOCALE-INVALID (§2023:8.2.1 "invalid or incomplete", the invariant format standing). The three time functions
 /// render ONLY through the locale's <see cref="TimeFacts"/> (the LC_TIME snapshot, kb/Work PB2764): no culture string
 /// reaches a result except through DETERMINATION L12's normalization.
-/// <para>LOCALE-COMPARE IS the locale-based relation comparison (<see cref="LocaleCollation"/> — §2023:15.51.4 r2's
+/// <para>LOCALE-COMPARE IS the locale-based relation comparison (<see cref="LocaleCollation"/> — §2023:15.51.4 RV2's
 /// trailing-space truncation is §2023:8.8.4.2.11 sentence 1 verbatim; r4 the cultural ordering) plus the sign→character
 /// map of r5; it is deliberately NOT a second comparison implementation.</para>
 /// </summary>
@@ -27,7 +27,7 @@ public static class CobolLocale
 {
     /// <summary>⛔ THE SUBSTITUTED RESULT OF A REJECTED <c>LOCALE-DATE</c> / <c>LOCALE-TIME</c> /
     /// <c>LOCALE-TIME-FROM-SECONDS</c> IS <b>ONE SPACE</b>, NOT A ZERO-LENGTH VALUE (kb/Work PB470) — the number
-    /// of character positions the three §2023:15.3 rule 14 guards below hand back when EC-ARGUMENT-FUNCTION checking
+    /// of character positions the three §2023:15.3 AR14 guards below hand back when EC-ARGUMENT-FUNCTION checking
     /// is off. The class and the length are decided HERE, once, and the guards cite this member.
     /// <para>⚖ The derivation, from docs/CONFORMANCE.md row <c>DOC-A.1-90</c>, which settles the class by asking
     /// what determines the returned item's LENGTH. For these three functions §2023:15.52.4 / §2023:15.53.4 / §2023:15.54.4 rule
@@ -41,13 +41,13 @@ public static class CobolLocale
     /// whose rendered width varies with the VALUE as well as with the format — under <c>fr-FR</c>'s
     /// <c>dd/MM/yyyy</c> it is 10, under <c>en-US</c>'s <c>M/d/yyyy</c> it is 8 for 1 February and 10 for
     /// 31 December — so once the value is rejected the format alone fixes no width to fill. The standard answers
-    /// exactly that shape itself, at §2023:15.30.3 rule 1 for EXCEPTION-LOCATION — an alphanumeric function whose
+    /// exactly that shape itself, at §2023:15.30.3 RV1 for EXCEPTION-LOCATION — an alphanumeric function whose
     /// length is "based on its contents" (rule 2) returns "one alphanumeric space character" when the contents
     /// are absent — and the row adopts that answer here.</para>
     /// <para>⛔ Do NOT "simplify" this back to <c>return "";</c>. Zero length and one space are INDISTINGUISHABLE
     /// through a MOVE (§2023:14.6.8.5 space-fills the receiver from a zero-length sender), which is why the defect
     /// survived from PB64 T4 to PB470 behind a green golden; they differ under DISPLAY (§2023:14.9.11.4 GR1 transfers
-    /// nothing for a zero-length operand) and under FUNCTION LENGTH (§2023:15.50.4 r3), and
+    /// nothing for a zero-length operand) and under FUNCTION LENGTH (§2023:15.50.4 RV3), and
     /// <c>2014/pb470_locale_argument_substitute</c> measures both.</para></summary>
     private const int LocaleSubstitutePositions = 1;
 
@@ -112,7 +112,7 @@ public static class CobolLocale
     /// nanosecond note — a determination, D being informative), trimmed to the argument's scale.</summary>
     public static string TimeFromSeconds(Int128 secUnscaled, int secScale, string? localeTag, bool leapSecond = false)
     {
-        // The predicate has already raised EC-ARGUMENT-FUNCTION (§2023:15.54.3 r1 through §2023:7.3.17.4); this arm owes only
+        // The predicate has already raised EC-ARGUMENT-FUNCTION (§2023:15.54.3 AR1 through §2023:7.3.17.4); this arm owes only
         // the substituted result, and it reads the CLASS rather than spelling a literal (see LocaleSubstitutePositions).
         if (CobolDate.SecondsOutOfStandardFormFor("LOCALE-TIME-FROM-SECONDS", secUnscaled, secScale, leapSecond))
             return ArgumentSubstitute.Spaces(LocaleSubstitutePositions);
@@ -120,7 +120,7 @@ public static class CobolLocale
         Int128 pow = Pow10.AsWide(secScale);
         long whole = (long)(secUnscaled / pow);
         Int128 frac = secUnscaled % pow;
-        // §2023:15.54.4 r2 — "a character-string containing hours, minutes, and seconds of the time specified by
+        // §2023:15.54.4 RV2 — "a character-string containing hours, minutes, and seconds of the time specified by
         // argument-1" (§2023:15.3.3.3: the seconds subfield is up to 60 under LEAP-SECOND ON): the ONE reading of a
         // whole-seconds value as a time of day, which under LEAP-SECOND ON makes 86 400 the leap second 23:59:60
         // (kb/Work PB1379 — it was 24:00:00, a time the day does not have, rendered "12:00:00 AM" in en-US).
@@ -132,17 +132,17 @@ public static class CobolLocale
 
     // ── UPPER-CASE / LOWER-CASE (§2023:15.97 / §2023:15.57; A.4.9 items 13 / 6; T5) ───────────────────────────────────────
 
-    /// <summary>UPPER-CASE with a LOCALE phrase (§2023:15.97.4 r2 — "the correspondence of lowercase to uppercase letters is
+    /// <summary>UPPER-CASE with a LOCALE phrase (§2023:15.97.4 RV2 — "the correspondence of lowercase to uppercase letters is
     /// determined from locale category LC_CTYPE in the locale associated with locale-name-1"): the named locale's
     /// culture case mapping. ⚖ DETERMINATION L9: the mapping is SIMPLE (one code unit to one — <see cref="TextInfo"/>),
-    /// which §2023:15.97.4 r5 admits and ISO 9945's LC_CTYPE toupper is; a letter without an uppercase correspondence is
+    /// which §2023:15.97.4 RV5 admits and ISO 9945's LC_CTYPE toupper is; a letter without an uppercase correspondence is
     /// unchanged (r6). EC-LOCALE-MISSING / EC-LOCALE-INVALID as the other LOCALE functions.</summary>
     public static string UpperCase(string? s, string localeTag) => UpperCase(s, Facts(localeTag, LocaleCategory.Ctype, "UPPER-CASE"));
 
-    /// <summary>LOWER-CASE with a LOCALE phrase (§2023:15.57.4 r2) — the named locale's LC_CTYPE; L9 simple mapping; r6.</summary>
+    /// <summary>LOWER-CASE with a LOCALE phrase (§2023:15.57.4 RV2) — the named locale's LC_CTYPE; L9 simple mapping; r6.</summary>
     public static string LowerCase(string? s, string localeTag) => LowerCase(s, Facts(localeTag, LocaleCategory.Ctype, "LOWER-CASE"));
 
-    /// <summary>UPPER-CASE under the module's CHARACTER CLASSIFICATION (§2023:15.97.4 r3 — a locale in effect for character
+    /// <summary>UPPER-CASE under the module's CHARACTER CLASSIFICATION (§2023:15.97.4 RV3 — a locale in effect for character
     /// classification; §2023:12.3.6.4 GR7a): <paramref name="facts"/> null is the coded character set's correspondence —
     /// the implementor's (r4), <see cref="string.ToUpperInvariant"/> — exactly what the function without any locale
     /// did before T5. A zero-length argument violates §2023:15.97.3 AR1 (<see cref="CobolIntrinsics.UpperCase(string)"/>).</summary>
@@ -153,7 +153,7 @@ public static class CobolLocale
         return facts is null || !facts.HasCultureData ? s.ToUpperInvariant() : facts.TextInfo.ToUpper(s);
     }
 
-    /// <summary>LOWER-CASE under the module's CHARACTER CLASSIFICATION (§2023:15.57.4 r3; r4 when none). A zero-length
+    /// <summary>LOWER-CASE under the module's CHARACTER CLASSIFICATION (§2023:15.57.4 RV3; r4 when none). A zero-length
     /// argument violates §2023:15.57.3 AR1. The function's entry: an internal ANYCASE fold reads <see cref="FoldLower"/>.</summary>
     public static string LowerCase(string? s, LocaleFacts? facts)
     {
@@ -161,8 +161,8 @@ public static class CobolLocale
         return string.IsNullOrEmpty(s) ? CobolIntrinsics.CaseArgumentZeroLength("LOWER-CASE", "§1989:A.2.22.3 AR1", "§2023:15.57.3 AR1") : FoldLowerCore(s, facts);
     }
 
-    /// <summary>The LOWER-CASE correspondence (§2023:15.57.4 r3 / r4) as a FOLD: the ANYCASE matchers of FIND-STRING and
-    /// SUBSTITUTE fold arguments that may be zero length (FIND-STRING returns zero for one, §2023:15.37.4 r5), which is no
+    /// <summary>The LOWER-CASE correspondence (§2023:15.57.4 RV3 / r4) as a FOLD: the ANYCASE matchers of FIND-STRING and
+    /// SUBSTITUTE fold arguments that may be zero length (FIND-STRING returns zero for one, §2023:15.37.4 RV5), which is no
     /// §2023:15.57.3 violation, so they read this and never the function's own entry <see cref="LowerCase(string?, LocaleFacts?)"/>.</summary>
     internal static string FoldLower(string? s, LocaleFacts? facts)
     {
@@ -175,14 +175,14 @@ public static class CobolLocale
 
     // ── resolution ─────────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>The named locale's collating sequence (§2023:15.51.4 r3): EC-LOCALE-MISSING when unavailable — raised by
+    /// <summary>The named locale's collating sequence (§2023:15.51.4 RV3): EC-LOCALE-MISSING when unavailable — raised by
     /// the sequence itself at use (<see cref="LocaleCollation.Resolve"/>).</summary>
     private static LocaleCollation Sequence(string localeTag, string fn) => new(localeTag);
 
     /// <summary>The facts of a function's locale — locale-name-1's when given, else the locale CURRENT for the category
-    /// (§2023:14.6.6 r7/r8) — through the ONE §2023:8.2.1 gate (<see cref="LocaleFacts.Require"/>): EC-LOCALE-MISSING for an
-    /// unavailable named locale (the rule each function states — §2023:15.51.4 r3, §2023:15.52.4 r1, §2023:15.53.4 r1, §2023:15.54.4 r1;
-    /// §2023:15.97.4 r2 / §2023:15.57.4 r2 name the locale without restating the condition), the ROOT's answer standing when
+    /// (§2023:14.6.6 GR7/r8) — through the ONE §2023:8.2.1 gate (<see cref="LocaleFacts.Require"/>): EC-LOCALE-MISSING for an
+    /// unavailable named locale (the rule each function states — §2023:15.51.4 RV3, §2023:15.52.4 RV1, §2023:15.53.4 RV1, §2023:15.54.4 RV1;
+    /// §2023:15.97.4 RV2 / §2023:15.57.4 RV2 name the locale without restating the condition), the ROOT's answer standing when
     /// checking is off; EC-LOCALE-INVALID for incomplete content.</summary>
     private static LocaleFacts Facts(string? localeTag, LocaleCategory category, string fn)
     {

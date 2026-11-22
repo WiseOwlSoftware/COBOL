@@ -32,7 +32,7 @@
       *> EXPECTED:
       *>   A1=[ZZZZ] typed O, no BY phrase: R1 meets SR9, the formal is
       *>             BY REFERENCE, so BY REFERENCE is assumed
-      *>             (§2002:14.8.22.3 GR6a1)
+      *>             (§2002:14.8.22.3 GR6a.1)
       *>   A2=[ZZZZ] universal U, no BY phrase: BY REFERENCE (SR6)
       *>   A3=[ZZZZ] typed O, BY REFERENCE R3 (SR19)
       *>   A4=[CCCC] typed O, BY CONTENT R4: the control - a copy is

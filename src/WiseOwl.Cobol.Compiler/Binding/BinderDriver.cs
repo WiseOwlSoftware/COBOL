@@ -53,7 +53,7 @@ internal sealed class BinderDriver
     /// directive events (ISO §2023:7.3.25) — they build the group's compile-time TurnState (EC deep-dive D10);
     /// null/empty means the GR1 default, EC-ALL CHECKING OFF.</summary>
     /// <param name="repository">The external repository the group's specifiers resolve against when the group cannot
-    /// answer them (ISO §2023:12.3.8.4 GR10 c) / GR11 c); DESIGN-external-repository §8.6, §9.3); none when null.</param>
+    /// answer them (ISO §2023:12.3.8.4 GR10c / GR11 c); DESIGN-external-repository §8.6, §9.3); none when null.</param>
     public BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext edition,
         Frontend.Preprocessor.DirectiveResults? directives = null, RepositorySearchSpace? repository = null,
         ExpansionIdentity? publishAs = null)
@@ -81,7 +81,7 @@ internal sealed class BinderDriver
         // heads. Pre-bind for the level-number screen's reason — a pure syntax rule over the raw tree — and silent from
         // COBOL-2002 on, which has no areas (ISO §2023:6.3.1).
         global::WiseOwl.Cobol.Validation.AreaPlacementPass.Run(tree, edition);
-        // ISO §2023:5.5 1) — every integer-n is NONZERO unless an associated rule says otherwise (kb/Work PB859). Pre-bind
+        // ISO §2023:5.5 SR1 — every integer-n is NONZERO unless an associated rule says otherwise (kb/Work PB859). Pre-bind
         // for the level-number screen's reason: a pure syntax rule over the raw tree, and a zero OCCURS bound left to
         // the binder used to reach Roslyn as CS0029 in generated C#.
         global::WiseOwl.Cobol.Validation.IntegerOperandPass.Run(tree, edition);
@@ -106,7 +106,7 @@ internal sealed class BinderDriver
         // group). Name/edition validation happens here (SR2 + the 2023-only families).
         var turn = TurnState.Build(turnEvents, edition);
         // The group's compile-time REF-MOD-ZERO-LENGTH resolution (ISO §2023:7.3.23) — the per-line zero-length
-        // allowance fold every ReferenceResolver queries when building a ref-mod Place (§2023:8.4.3.3.4 item 5c).
+        // allowance fold every ReferenceResolver queries when building a ref-mod Place (§2023:8.4.3.3.4 GR5c).
         var refModZl = RefModZeroLengthState.Build(refModZlEvents);
         // The group's compile-time >>PROPAGATE resolution (ISO §2023:7.3.21; kb/Work PB1119) — folded once per source
         // element below (program units in BindUnitData, methods in the roster loop).
@@ -149,10 +149,10 @@ internal sealed class BinderDriver
         foreach (var iface in table.ParameterizedInterfaces) oo.BindParameterized(iface);
         foreach (var cls in table.ParameterizedClasses) oo.BindParameterized(cls);
         // The checking slices of every class half and every method (kb/Work PB2296; CheckingFold), folded once every method
-        // symbol exists and before any body binds: §2023:14.9.23.4 GR7 c)'s METHOD-side half at the method's PROCEDURE
+        // symbol exists and before any body binds: §2023:14.9.23.4 GR7c's METHOD-side half at the method's PROCEDURE
         // DIVISION HEADER (TurnState.EnabledAtHeader; kb/Work PB1381), §2023:14.8.4.1's activated-method EC-EXTERNAL mask and
         // §2023:7.3.21.4's automatic propagation; and the group-level Describe gate, which reaches the class halves too (kb/Work
-        // PB1138): a method activation registers its factory's or object's external descriptions (§2023:14.9.23.4 GR7 d)).
+        // PB1138): a method activation registers its factory's or object's external descriptions (§2023:14.9.23.4 GR7d).
         foreach (var cls in table.Classes)
             foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
                 m.Checking = CheckingFold.Method(turn, propagate, m, cls, sources);
@@ -419,7 +419,7 @@ internal sealed class BinderDriver
     /// <para>ISO §2023:11.10.4 GR1 keeps the two names DISTINCT — "Program-name-1 names the program declared by this
     /// program definition. Literal-1, if specified, is the name of the program that is externalized to the
     /// operating environment" — and this used to collapse them onto one field (kb/Work PB303), which would have
-    /// broken §2023:10.7.3 SR2's END PROGRAM match, §2023:14.9.4.3 SR15's AS NESTED lookup and the §2023:15.65.4 r4 MODULE-NAME
+    /// broken §2023:10.7.3 SR2's END PROGRAM match, §2023:14.9.4.3 SR15's AS NESTED lookup and the §2023:15.65.4 RV4 MODULE-NAME
     /// determination the moment the phrase parsed. They are separate fields now.</para></summary>
     private static BoundUnit MakeUnit(
         Core.ProgramUnitContext ctx, BoundUnit? parent, int index, HashSet<string> usedClassNames, EditionContext edition,
@@ -539,7 +539,7 @@ internal sealed class BinderDriver
         // what SR5 reads of a container ("a recursive program"), so an INITIAL containee of a recursive
         // container is the nonconforming source SR5 refuses above — never a legal program carrying both
         // attributes (kb/Work PB1507; this comment used to call that shape legal). This is what lets the legal
-        // R→C→R→C cycle through GR3f's re-entry check and lets a contained program call ITSELF (§2023:8.4.6.3 r1's "in
+        // R→C→R→C cycle through GR3f's re-entry check and lets a contained program call ITSELF (§2023:8.4.6.3 SR1's "in
         // the program itself") — both drew EC-PROGRAM-RECURSIVE-CALL / NOT-FOUND before.
         if (parent is { Recursive: true }) recursive = true;
 
@@ -624,14 +624,13 @@ internal sealed class BinderDriver
     /// <summary>The DATA half of unit binding (phase 1 of the two-phase bind): the unit's DATA DIVISION on a
     /// per-unit <see cref="DataBinder"/> with a disjoint uid band (so nested-class struct/profile names never
     /// shadow a container's), then inject the containers' GLOBAL names (ISO §2023:13.18.27.4 GR1–2 — nearest container
-    /// first, each at its nesting depth; which one a reference names is §2023:8.4.6.2.1 3)'s question, asked at the
+    /// first, each at its nesting depth; which one a reference names is §2023:8.4.6.2.1 GR3's question, asked at the
     /// reference by <c>SymbolTable.NearestDeclaring</c>) and record the <c>ref</c>-bridges the nested class needs to reach the
     /// container's storage. Every unit passes through here BEFORE any unit's procedure binds
     /// (<see cref="BindUnitProcedure"/>) — the forward-reference enabler for user-function signatures.</summary>
     private static void BindUnitData(BoundUnit unit, BindSession session)
     {
         var definition = session.Sources.Of(unit);
-        var edition = session.Edition;
         // The static-WS discriminator (ISO §2023:13.5.4 GR1 + §2023:14.6.2.3.2/.3; the full derivation is on
         // DataBinder.UnitStaticWs): a RECURSIVE-and-not-INITIAL unit — including every FUNCTION-ID unit
         // (§2023:8.6.6 :8821 / §2023:9.4 :12529, the implicit attribute set in MakeUnit) — owns ONE last-used WS copy
@@ -640,25 +639,16 @@ internal sealed class BinderDriver
         // through the `__outer` chain, a STATIC one through the container's class name, which C# requires
         // (CS0176: `instance.staticField` is not a C# expression). BoundUnit.AnchorOf chooses per member, so the
         // composition is one rule in one place (kb/Work PB1133; the staged COBOL0899 refusal is gone).
-        var data = new DataBinder(edition)
-        {
-            OoClasses = session.OoClasses,
-            // The unit's own §2023:8.3.2.2 census, the one its class-name references record into too (kb/Work PB3132).
-            OwnWords = session.OoClasses.CensusOf(definition.identificationDivision()) ?? new(),
-            CopyWords = session.CopyNames.Of(unit),   // below COBOL-2002 a COPY statement's names are this program's user-defined words (kb/Work PB5482)
-            RefModZeroLength = session.RefModZeroLength,
-            CobolWords = session.CobolWords,   // >>COBOL-WORDS intrinsic-function-name synonym/removal (§2023:7.3.10)
-            Retypes = session.Retypes,         // the fragment re-parses read words as the tree does (kb/Work PB655)
-            ClaimScans = session.ClaimScans,   // the group's one storage-claim walk, sliced per element (kb/Work PB4302)
-            LeapSecond = session.LeapSecond.IsOnAt(UnitFirstLine(definition)),   // >>LEAP-SECOND ON at THIS unit — the §2023:15.3 seconds-subfield / time-form bound (§2023:7.3.17, §2023:7.3.4 GR5)
-            CompilationVariables = session.CompilationVariables,   // CONSTANT … FROM reads the >>DEFINE table at its own line (§2023:7.3.11.4 GR1)
+        // The unit's own §2023:8.3.2.2 census is its identification division's, the one its class-name references record into
+        // too (kb/Work PB3132); >>LEAP-SECOND is asked at its first line.
+        var data = session.NewDataBinder(definition.identificationDivision(), UnitFirstLine(definition), new SourceElementFacts(
+            CopyWordList: session.CopyNames.Of(unit),   // below COBOL-2002 a COPY statement's names are this program's user-defined words (kb/Work PB5482)
             // The ANY LENGTH placement facts (ISO §2023:13.18.2.3 SR2–SR4 — the rules differ for a contained
             // program, a function, and an outermost program): the unit kind is known only here.
-            UnitIsContained = unit.Parent is not null,
-            UnitIsFunction = unit.IsFunction,
-            UnitIsRecursive = unit.Recursive,   // §2023:12.4.6.3.3 SR5 (kb/Work PB3338)
-            UnitStaticWs = unit.Recursive && !unit.Initial,
-        };
+            IsContained: unit.Parent is not null,
+            IsFunction: unit.IsFunction,
+            IsRecursive: unit.Recursive,   // §2023:12.4.6.3.3 SR5 (kb/Work PB3338)
+            StaticWs: unit.Recursive && !unit.Initial));
         // §2023:8.4.6.6 / §2023:8.4.6.8 — the no-specifier leg of the two prototype-name scope rules: the ONE set the prototype
         // tables read (ContainingDefinitions; kb/Work PB452/PB817, PB3121), the symbol table's (DESIGN-listing.md section 6.7.1,
         // step 6b slice 7), declared before the unit's data binds so its USAGE TO screen reads it.
@@ -685,7 +675,7 @@ internal sealed class BinderDriver
         session.Binders.Add(unit, data);
 
         // The unit's checking slice (kb/Work PB2296): its EC-EXTERNAL enablement facts (ISO §2023:14.8.4.1), its
-        // EC-PROGRAM-ARG-MISMATCH header fold (§2023:14.9.4.4 GR3 d)), the group-level Describe and EC-BOUND-ODO gates and its
+        // EC-PROGRAM-ARG-MISMATCH header fold (§2023:14.9.4.4 GR3d), the group-level Describe and EC-BOUND-ODO gates and its
         // automatic propagation (§2023:7.3.21.4 GR1/GR3), folded after its data phases and before its procedure division binds.
         data.State.UnitChecking = CheckingFold.Unit(session.Turn, session.Propagate, definition);
 
@@ -846,7 +836,7 @@ internal sealed class BinderDriver
     /// statements bind on its CLASS unit's binder under an entered method scope (<c>BinderContext.SourceElement</c>).
     /// <para>A FUNCTION prototype's procedure division is BOUND by this compiler — the §2023:10.1 general format
     /// admits one and the parser accepts its paragraphs, measured: a prototype carrying <c>EXIT PROGRAM</c>
-    /// reaches <c>BindExit</c> (and is refused there by §2023:10.6.2 SR4 f) — COBOL2272 — before any placement
+    /// reaches <c>BindExit</c> (and is refused there by §2023:10.6.2 SR4f) — COBOL2272 — before any placement
     /// rule matters). A PROGRAM prototype classifies the same way since kb/Work PB894 made §2023:11.10.2 Format 2
     /// writable and <c>MakeUnit</c> read <c>IsPrototype</c> off the shared <c>prototypePhrase</c>.</para></summary>
     private static SourceElementKind SourceElementKindOf(BoundUnit unit) => unit.IsFunction
@@ -856,7 +846,7 @@ internal sealed class BinderDriver
     /// <summary>The AS NESTED callee table for one caller (kb/Work PB131; §2023:14.9.4.3 SR15 + §2023:10.7.2):
     /// name → the callee's bound PD-header SIGNATURE. Directly-contained children first; a COMMON program
     /// contained in an ancestor is visible too (nearest wins on a name clash, matching §2023:10.7.2's scope) — EXCEPT from
-    /// within that common program's own subtree unless it is RECURSIVE (§2023:8.4.6.3 2); kb/Work PB1460), the exception
+    /// within that common program's own subtree unless it is RECURSIVE (§2023:8.4.6.3 SR2; kb/Work PB1460), the exception
     /// the run-time resolver applies through the same <see cref="WiseOwl.Cobol.Runtime.ProgramNameScope"/>.
     /// <para>The key is the child's program-name, and that IS its externalized name: §2023:11.10.3 SR2 ("Literal-1 shall not
     /// be specified in a program that is contained within another program", COBOL1795) means no contained program
@@ -911,7 +901,7 @@ internal sealed class BinderDriver
     /// SR2 — <i>"If a compilation group contains both a program definition and a program prototype definition
     /// with the same externalized name, the signatures of these two compilation units shall be the same"</i> —
     /// and SR3, the function twin. A prototype sharing a definition's externalized name is the shape the
-    /// standard legislates FOR, and §2023:12.3.8.4 GR10 a) is what consumes it.</para></summary>
+    /// standard legislates FOR, and §2023:12.3.8.4 GR10a is what consumes it.</para></summary>
     private static void CheckDefinitionNameUniqueness(IReadOnlyList<BoundUnit> units, IReadOnlyList<OoClassUnit> classes,
                                                       OoClassTable oo, SourceMap sources, EditionContext edition, ElementBinders binders)
     {

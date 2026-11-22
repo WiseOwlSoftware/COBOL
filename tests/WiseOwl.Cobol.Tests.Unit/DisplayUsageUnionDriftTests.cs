@@ -140,7 +140,7 @@ public sealed class DisplayUsageUnionDriftTests
             //      the whole-group / character-channel promotion (IsImagePromotable), now asks
             //      PicInfo.HasImageByteForm minus the national-form numeric (PB646's carriage exclusion) and USAGE
             //      INDEX: a BINARY or PACKED leaf a group MOVE, a READ or a BY REFERENCE crossing reaches holds
-            //      content its native carrier cannot, and the numeric class condition (§2023:8.8.4.4.4 GR3 n) 1. c.)
+            //      content its native carrier cannot, and the numeric class condition (§2023:8.8.4.4.4 GR3n.1.c)
             //      must read that content. UnifyCrossing had left with kb/Work PB187 on the same predicate.
 
             // PAIR (1) — CARRIAGE (DataBindState.ImageForcedItems), the ONE eligibility (IsCharacterImageNumeric) of both of
@@ -178,7 +178,7 @@ public sealed class DisplayUsageUnionDriftTests
 
             // PAIR — SPEC-REQUIRED, verbatim (kb/Work PB1468). §2023:8.8.4.2.5: "The numeric integer operand shall be an
             // integer literal or an integer numeric data item of usage display or national." A COMP/packed/float
-            // item against an alphanumeric operand is not §2023:8.8.4.2.1 item 6's pair — refused COBOL2532.
+            // item against an alphanumeric operand is not §2023:8.8.4.2.1 GR6's pair — refused COBOL2532.
             ["Binding/RelationComparability.cs"] = (0, 1),
 
             // KEEPER — D-U6a's UNIVERSAL box bridge: OoUnivImageBridged asks whether the canonical box is the ZONED

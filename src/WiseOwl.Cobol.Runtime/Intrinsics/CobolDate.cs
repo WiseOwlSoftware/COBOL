@@ -35,7 +35,7 @@ public static class CobolDate
     // ── The four 1989 integer-date conversions (§2023:15.22 / §2023:15.24 / §2023:15.46 / §2023:15.47) ─────────────
     // ⛔ ONE PROLEPTIC GREGORIAN DAY COUNT, AND THE YEAR'S UPPER BOUND IS THE EDITION'S (kb/Work PB5130). From 2002 the
     // integer date form ends at 9999-12-31 (§2023:15.5.2: a value "shall be less than or equal to the value of FUNCTION
-    // INTEGER-OF-DATE (99991231), which is 3,067,671"; §2023:15.46.3 AR1 a) "greater than 1600 and less than 10000"; the
+    // INTEGER-OF-DATE (99991231), which is 3,067,671"; §2023:15.46.3 AR1a "greater than 1600 and less than 10000"; the
     // 2002 text words both the same). The 1989 intrinsic function module bounds the year BELOW only: §1989:A.2.16.3 AR1
     // a. "It must be an integer greater than 1600", §1989:A.2.12.3 AR1 "a positive integer that represents a number of
     // days succeeding December 31, 1600", and the returned value is the number of days the date succeeds December 31,
@@ -105,13 +105,13 @@ public static class CobolDate
     // ── The §2023:15.100/§2023:15.23/§2023:15.25 Y2K WINDOWING TRIO + §2023:15.80 SECONDS-PAST-MIDNIGHT (COBOL-2002) ──────────────
 
     /// <summary>YEAR-TO-YYYY (ISO §2023:15.100.4) — the ONE windowing core the composite pair delegates to
-    /// (§2023:15.23.4 r1 / §2023:15.25.4 r1 are defined BY REFERENCE to this function; singular-pattern rule).
+    /// (§2023:15.23.4 RV1 / §2023:15.25.4 RV1 are defined BY REFERENCE to this function; singular-pattern rule).
     /// <c>maximum-year = argument-2 + argument-3</c> (r1) is the ENDING year of the ALWAYS-100-year window —
     /// argument-2 is a SIGNED offset from argument-3, NOT a window size (the §2023:15.100.4 NOTE-2 fixed-window
     /// guidance). The result is the unique year in <c>[maximum-year−99, maximum-year]</c> whose low-order two
     /// digits equal argument-1: r2a when <c>MOD(maximum-year,100) ≥ argument-1</c>, else r2b. Defaults:
     /// argument-2 omitted = 50 (r3 of §2023:15.100.3); argument-3 omitted = the year at EXECUTION time
-    /// (§2023:15.100.3 r5 — <c>FUNCTION NUMVAL(FUNCTION CURRENT-DATE(1:4))</c>), read from the injectable
+    /// (§2023:15.100.3 AR5 — <c>FUNCTION NUMVAL(FUNCTION CURRENT-DATE(1:4))</c>), read from the injectable
     /// <see cref="RunUnit.Clock"/> (the <paramref name="baseYear"/> 0 sentinel — 0 is outside the legal
     /// 1601..9999, so unambiguous). Argument rules (§2023:15.100.3): argument-1 nonnegative &lt; 100 (r1 — 0 IS
     /// legal); argument-3 in 1601..9999 (r4); argument-2+argument-3 in 1700..9999 (r6). Violations →
@@ -121,7 +121,7 @@ public static class CobolDate
     // `baseYear == 0` sentinel and resolved it to the clock year BEFORE the r4 range test, so a program that
     // WROTE 0 — an r4 violation that must set EC-ARGUMENT-FUNCTION — was silently windowed against the
     // execution year instead. The renderer emits exactly the arguments present, so the arity is compile-time
-    // fact: the two-argument overload IS the omitted form (argument-3 defaults per §2023:15.100.3 r5 to the year of
+    // fact: the two-argument overload IS the omitted form (argument-3 defaults per §2023:15.100.3 AR5 to the year of
     // FUNCTION CURRENT-DATE, read from the ONE injectable clock), and the three-argument overload validates
     // argument-3 EXACTLY AS WRITTEN.
     public static long YearToYyyy(long yy, long off = 50) =>
@@ -129,7 +129,7 @@ public static class CobolDate
 
     public static long YearToYyyy(long yy, long off, long baseYear) => YearToYyyyAt(yy, off, baseYear);
 
-    /// <summary>The ONE windowing core (§2023:15.100.4 r2). Argument rules (§2023:15.100.3): argument-1 nonnegative
+    /// <summary>The ONE windowing core (§2023:15.100.4 RV2). Argument rules (§2023:15.100.3): argument-1 nonnegative
     /// &lt; 100 (r1 — 0 IS legal); argument-3 in 1601..9999 (r4), validated as GIVEN — the omitted default is
     /// supplied by the caller's arity, never inferred from a value; argument-2+argument-3 in 1700..9999 (r6).
     /// Violations → EC-ARGUMENT-FUNCTION (§2023:15.3, documented default 0 — never a legal returned value, since
@@ -143,20 +143,20 @@ public static class CobolDate
             return Exceptions.ExceptionState.ArgumentError($"YEAR-TO-YYYY argument-3 {b} is not greater than 1600 and less than 10000 (§2023:15.100.3 r4)");
         long max = off + b;                                   // r1: maximum-year
         if (max is <= 1699 or >= 10000)
-            return Exceptions.ExceptionState.ArgumentError($"YEAR-TO-YYYY argument-2 + argument-3 = {max} is not greater than 1699 and less than 10000 (§2023:15.100.3 r6)");
+            return Exceptions.ExceptionState.ArgumentError($"YEAR-TO-YYYY argument-2 + argument-3 = {max} is not greater than 1699 and less than 10000 (§2023:15.100.3 AR6)");
         return max % 100 >= yy
             ? yy + 100 * (max / 100)                          // r2a
             : yy + 100 * (max / 100 - 1);                     // r2b
     }
 
-    /// <summary>DATE-TO-YYYYMMDD (ISO §2023:15.23.4 r1): <c>YEAR-TO-YYYY(YY, argument-2, argument-3) × 10000 +
+    /// <summary>DATE-TO-YYYYMMDD (ISO §2023:15.23.4 RV1): <c>YEAR-TO-YYYY(YY, argument-2, argument-3) × 10000 +
     /// mmdd</c> where <c>YY = argument-1 / 10000</c> and <c>mmdd = MOD(argument-1, 10000)</c> — pure delegation
-    /// to the ONE windowing core. §2023:15.23.3 r1: argument-1 a POSITIVE integer &lt; 1,000,000 (0 illegal here,
+    /// to the ONE windowing core. §2023:15.23.3 AR1: argument-1 a POSITIVE integer &lt; 1,000,000 (0 illegal here,
     /// unlike YEAR-TO-YYYY's r1); the function does NOT validate the calendar date (the §2023:15.23.3 NOTE points at
-    /// TEST-DATE-YYYYMMDD). The r6 sum window is argument-2+argument-3 (kb/Work PB311): §2023:15.23.3 r6 words it
+    /// TEST-DATE-YYYYMMDD). The r6 sum window is argument-2+argument-3 (kb/Work PB311): §2023:15.23.3 AR6 words it
     /// on "the year at the time of execution", but §2023:15.23.1 DEFINES that year as argument-3 ("Argument-3
     /// specifies the year at the time of execution"; an omitted argument-3 is the real execution year by r5),
-    /// so it is §2023:15.25.3 r6's / §2023:15.100.3 r6's sum, and the delegated core is the one place it is checked. The
+    /// so it is §2023:15.25.3 AR6's / §2023:15.100.3 AR6's sum, and the delegated core is the one place it is checked. The
     /// machine clock is NOT consulted for r6 when argument-3 is written — a written argument-3 far from the
     /// clock year (8299, 1700) is legal and (7000, 3000) is not; pb311_date_day_windowing_r6_bounds pins both
     /// bounds end to end and CobolDateWindowingTests pins them under a fixed clock.</summary>
@@ -169,15 +169,15 @@ public static class CobolDate
     {
         if (date is < 1 or > 999999)
             return Exceptions.ExceptionState.ArgumentError($"DATE-TO-YYYYMMDD argument-1 {date} is not a positive integer less than 1000000 (§2023:15.23.3 r1)");
-        long y = YearToYyyyAt(date / 10000, off, baseYear);   // §2023:15.23.4 r1 delegation
+        long y = YearToYyyyAt(date / 10000, off, baseYear);   // §2023:15.23.4 RV1 delegation
         // ⛔ AN ERRORED DELEGATION RETURNS THE DOCUMENTED DEFAULT WHOLE (fix-queue PB65): the core's 0 is
         // never a legal windowed year, and composing mmdd onto it manufactured a value out of an evaluation
         // that raised EC-ARGUMENT-FUNCTION.
         return y == 0 ? 0 : y * 10000 + date % 10000;
     }
 
-    /// <summary>DAY-TO-YYYYDDD (ISO §2023:15.25.4 r1): <c>YEAR-TO-YYYY(YY, argument-2, argument-3) × 1000 + nnn</c>
-    /// where <c>YY = argument-1 / 1000</c> and <c>nnn = MOD(argument-1, 1000)</c>. §2023:15.25.3 r1: argument-1 a
+    /// <summary>DAY-TO-YYYYDDD (ISO §2023:15.25.4 RV1): <c>YEAR-TO-YYYY(YY, argument-2, argument-3) × 1000 + nnn</c>
+    /// where <c>YY = argument-1 / 1000</c> and <c>nnn = MOD(argument-1, 1000)</c>. §2023:15.25.3 AR1: argument-1 a
     /// POSITIVE integer &lt; 100,000; ordinal-day validity is NOT checked (the NOTE points at
     /// TEST-DAY-YYYYDDD).</summary>
     public static long DayToYyyyddd(long day, long off = 50) =>
@@ -189,20 +189,20 @@ public static class CobolDate
     {
         if (day is < 1 or > 99999)
             return Exceptions.ExceptionState.ArgumentError($"DAY-TO-YYYYDDD argument-1 {day} is not a positive integer less than 100000 (§2023:15.25.3 r1)");
-        long y = YearToYyyyAt(day / 1000, off, baseYear);     // §2023:15.25.4 r1 delegation
+        long y = YearToYyyyAt(day / 1000, off, baseYear);     // §2023:15.25.4 RV1 delegation
         // The errored delegation returns the documented default WHOLE (see DateToYyyymmddAt — the probe
         // measured SUMHIGH-OFF=0000365, a manufactured value, where the documented default is 0).
         return y == 0 ? 0 : y * 1000 + day % 1000;
     }
 
-    /// <summary>TEST-DATE-YYYYMMDD (ISO §2023:15.90.4 r1) — the if/else-if CHAIN, year before month before day
+    /// <summary>TEST-DATE-YYYYMMDD (ISO §2023:15.90.4 RV1) — the if/else-if CHAIN, year before month before day
     /// (16000230 is 1, not 2): (1) argument-1 outside 16 010 000..99 999 999 — the year subfield is not
     /// 1601..9999 (r1a); (2) else MOD(argument-1, 10000) outside 100..1299 — the month is not 1..12 (r1b);
     /// (3) else the day subfield is not valid for the month of the year, Gregorian leap rules (r1c);
     /// (0) else valid (r1d). Codes confirmed by the informative D.31.3.8.</summary>
     /// <remarks>
     /// ⛔ <b>THE PARAMETER IS <c>Int128</c> BECAUSE THIS FUNCTION IS TOTAL OVER THE INTEGERS</b> (kb/Work
-    /// PB254). §2023:15.90.3 r1 is the WHOLE argument rule — "Argument-1 shall be an integer" — and it places no
+    /// PB254). §2023:15.90.3 AR1 is the WHOLE argument rule — "Argument-1 shall be an integer" — and it places no
     /// constraint on the VALUE; r1a is a CATCH-ALL ("less than 16 010 000 or greater than 99 999 999"), so
     /// every integer, however large, has a defined verdict. §2023:15.3's closing paragraph sets
     /// EC-ARGUMENT-FUNCTION only when "the evaluation of an argument results in an incorrect value for that
@@ -230,12 +230,12 @@ public static class CobolDate
         return 0;                                                             // r1d
     }
 
-    /// <summary>TEST-DAY-YYYYDDD (ISO §2023:15.91.4 r1) — year before day; there is NO code 3 for this function:
+    /// <summary>TEST-DAY-YYYYDDD (ISO §2023:15.91.4 RV1) — year before day; there is NO code 3 for this function:
     /// (1) argument-1 outside 1 601 000..9 999 999 — the year is not 1601..9999 (r1a); (2) else the ordinal
     /// day is not 1..365/366 for the year, Gregorian leap rules (r1b); (0) else valid (r1c). Codes confirmed
     /// by the informative D.31.3.9.</summary>
-    /// <remarks>⛔ <c>Int128</c> for the same reason as <see cref="TestDateYyyymmdd"/>: §2023:15.91.3 r1 constrains
-    /// nothing but integer-ness and §2023:15.91.4 r1a is the catch-all, so the function is TOTAL and a narrowing
+    /// <remarks>⛔ <c>Int128</c> for the same reason as <see cref="TestDateYyyymmdd"/>: §2023:15.91.3 AR1 constrains
+    /// nothing but integer-ness and §2023:15.91.4 RV1a is the catch-all, so the function is TOTAL and a narrowing
     /// intake in front of it is a defect (kb/Work PB254). Past r1a the value is seven digits.</remarks>
     public static long TestDayYyyyddd(Int128 day)
     {
@@ -250,10 +250,10 @@ public static class CobolDate
     /// <summary>SECONDS-PAST-MIDNIGHT (ISO §2023:15.80.3): the current LOCAL time of day in seconds past midnight,
     /// in standard numeric time form — type NUMERIC, fractional seconds intended (r1/r2; the Annex D.31.5.4
     /// example carries 12 fraction digits). Returns the day's tick count = the UNSCALED value at SCALE 7 (the
-    /// renderer's documented contract): the WiseOwl COBOL documented precision (§2023:15.80.3 r3, implementor item 171)
+    /// renderer's documented contract): the WiseOwl COBOL documented precision (§2023:15.80.3 RV3, implementor item 171)
     /// is 100 ns — 7 fraction digits, the .NET <see cref="DateTime"/> resolution. Range [0, 86 400) —
     /// The REPORTED side of §2023:7.3.17 is the implementor's and answered "never" (A.1 item 112 — the .NET clock has no
-    /// leap seconds), so a returned value ≥ 86 400 is unreachable under ON and OFF alike (§2023:15.80.3 r4 answered
+    /// leap seconds), so a returned value ≥ 86 400 is unreachable under ON and OFF alike (§2023:15.80.3 RV4 answered
     /// "no"); the ARGUMENT side of the directive (a 60 in a seconds subfield, a time form up to 86,400.99) is
     /// honoured by the format engine below (kb/Work PB65). Reads the injectable <see cref="RunUnit.Clock"/>
     /// (WISEOWL_COBOL_CLOCK-deterministic — the one seam every now-function shares).</summary>
@@ -355,7 +355,7 @@ public static class CobolDate
     }
 
     /// <summary>Emit a formatted value from integer date form + seconds-past-midnight (unscaled/scale) + a UTC
-    /// offset in minutes (§2023:15.38–15.41). An OMITTED offset arrives as 0: §2023:15.40.3 r7 / §2023:15.41.3 r6 evaluate the
+    /// offset in minutes (§2023:15.38–15.41). An OMITTED offset arrives as 0: §2023:15.40.3 AR7 / §2023:15.41.3 AR6 evaluate the
     /// function "as though 0 were specified", so the omitted and the written 0 are one value on one path (kb/Work
     /// PB2629: a separate "has offset" flag used to skip the UTC adjustment for the omitted form only, and the two
     /// forms disagreed on the leap second). A date-only / time-only format ignores the components it does not
@@ -388,7 +388,7 @@ public static class CobolDate
         // ⛔ THE LEAP SECOND IS SECOND 60 OF ITS MINUTE, NEVER A SECOND OF THE NEXT DAY (kb/Work PB2629). Under
         // >>LEAP-SECOND ON a value in [86 400, 86 401) is the day's leap second (§2023:7.3.17.4 GR4), the time 23:59:60
         // (§2023:15.3.3.3: the seconds subfield is below 61). It is set aside as the second it extends, 23:59:59 plus its
-        // fraction, BEFORE the §2023:15.40.4 r2 / §2023:15.41.4 r2 UTC adjustment, so the modular day roll below never reads
+        // fraction, BEFORE the §2023:15.40.4 RV2 / §2023:15.41.4 RV2 UTC adjustment, so the modular day roll below never reads
         // it as 00:00 of the next day; the adjusted minute (an offset is whole minutes, so its second is still 59)
         // shows it as second 60 again.
         bool leap = leapSecond && secs >= 86400m;
@@ -399,7 +399,7 @@ public static class CobolDate
             secs -= offsetMinutes * 60m;
             while (secs < 0) { secs += 86400m; day--; }
             while (secs >= 86400m) { secs -= 86400m; day++; }
-            // §2023:15.40.4 r2's adjustment can carry the DATE across the integer-date-form range: argument-2 was
+            // §2023:15.40.4 RV2's adjustment can carry the DATE across the integer-date-form range: argument-2 was
             // validated 1..3,067,671 (§2023:15.5.2) BEFORE the roll, and the rolled day is what the date fields
             // render (kb/Work R25 — 3,067,671 with a westward offset threw a raw ArgumentOutOfRangeException
             // out of the epoch arithmetic below, and day 0 emitted year 1600, violating §2023:15.3.1.3 "greater than
@@ -475,7 +475,7 @@ public static class CobolDate
             ? Exceptions.ArgumentSubstitute.ZeroLength
             : EmitFormatted(format, 1, secUnscaled, secScale, offsetMinutes, leapSecond);
 
-    /// <summary>The same screen for another function's argument-1 (LOCALE-TIME-FROM-SECONDS, §2023:15.54.3 r1 — "a numeric
+    /// <summary>The same screen for another function's argument-1 (LOCALE-TIME-FROM-SECONDS, §2023:15.54.3 AR1 — "a numeric
     /// value in standard numeric time form"): ONE rule, one place.</summary>
     internal static bool SecondsOutOfStandardFormFor(string fn, Int128 secUnscaled, int secScale, bool leapSecond)
         => SecondsOutOfStandardForm(fn, "argument-1", secUnscaled, secScale, leapSecond);
@@ -486,9 +486,9 @@ public static class CobolDate
     /// [86 400, 86 401) is the day's leap second and IS the time 23:59:60 (§2023:15.3.3.3 — the seconds subfield may be
     /// 60); OFF never admits such a value (<see cref="SecondsOutOfStandardForm(string, string, CobolDec, bool)"/>
     /// has already refused it). LOCALE-TIME-FROM-SECONDS read 86 400 as <c>24:00:00</c> — a time the day does not
-    /// have — where §2023:15.54.4 r2 returns "a character-string containing hours, minutes, and seconds of the time specified by argument-1",
+    /// have — where §2023:15.54.4 RV2 returns "a character-string containing hours, minutes, and seconds of the time specified by argument-1",
     /// which for the leap second are 23, 59 and 60, exactly what FORMATTED-TIME presents for the same value.
-    /// <para>FORMATTED-TIME and FORMATTED-DATETIME may shift the time by a UTC offset first (§2023:15.40.4 r2 / §2023:15.41.4
+    /// <para>FORMATTED-TIME and FORMATTED-DATETIME may shift the time by a UTC offset first (§2023:15.40.4 RV2 / §2023:15.41.4
     /// r2), so <see cref="EmitFormatted"/> sets the leap second aside before the shift, reads the shifted second it
     /// extends here, and shows that minute's second as 60 (kb/Work PB2629).</para></summary>
     internal static (int Hours, int Minutes, int Seconds) TimeOfDay(long wholeSeconds, bool leapSecond) =>
@@ -530,13 +530,13 @@ public static class CobolDate
     private static readonly CobolDec NegativeSaturatingSeconds = new(-1, 19);
 
     /// <summary>The (unscaled, scale) form of the screen — the exact carrier's spelling of the SAME value, lifted
-    /// through <see cref="CobolDec.From"/> (exact for every fixed-point operand, §2023:8.8.1.5.2 r1) so that both
+    /// through <see cref="CobolDec.From"/> (exact for every fixed-point operand, §2023:8.8.1.5.2 GR1) so that both
     /// carriers ask ONE comparison and cannot drift in their answer or their message (kb/Work PB620; the PB32
     /// lesson, where one rule written into two bodies was corrected in only one).</summary>
     private static bool SecondsOutOfStandardForm(string fn, string argName, Int128 secUnscaled, int secScale, bool leapSecond)
         => SecondsOutOfStandardForm(fn, argName, CobolDec.From(secUnscaled, secScale), leapSecond);
 
-    /// <summary>§2023:15.41.3 r3 / §2023:15.40.3 r4: the seconds argument "shall be a value in STANDARD NUMERIC TIME FORM".
+    /// <summary>§2023:15.41.3 AR3 / §2023:15.40.3 AR4: the seconds argument "shall be a value in STANDARD NUMERIC TIME FORM".
     /// The §2023:7.3.17 LEAP-SECOND directive defines that range — GR5 (OFF, the implied default): "greater than or
     /// equal to zero and less than 86,400"; GR4 (ON): "less than 86,401" — the compilation group's directive state
     /// arrives as <paramref name="leapSecond"/> (kb/Work PB65; before it OFF was the only mode this compiler
@@ -563,10 +563,10 @@ public static class CobolDate
         return true;
     }
 
-    /// <summary>§2023:15.40.3 r5 / §2023:15.41.3 r4: "If argument-4 [argument-3] is specified, the magnitude of the value
+    /// <summary>§2023:15.40.3 AR5 / §2023:15.41.3 AR4: "If argument-4 [argument-3] is specified, the magnitude of the value
     /// shall be less than or equal to 1439." The NOTE explains the bound — 1439 minutes is 23 hours 59 minutes,
     /// one minute short of a day.
-    /// <para>⛔ A RUN-TIME check, unlike its §2023:15.40.3 r6 / §2023:15.41.3 r5 sibling (COBOL1633, bind time): the
+    /// <para>⛔ A RUN-TIME check, unlike its §2023:15.40.3 AR6 / §2023:15.41.3 AR5 sibling (COBOL1633, bind time): the
     /// offset is an ordinary numeric argument, so its VALUE is generally not known until execution. It was
     /// enforced NOWHERE — an offset of 5000 minutes formatted a nonsense zone with no exception condition, which
     /// is the fabricated-value failure mode PB11 exists to close, not mere over-acceptance.</para></summary>
@@ -590,14 +590,14 @@ public static class CobolDate
         // Both predicates have already raised; these arms owe only the substituted result, and they READ row
         // DOC-A.1-90's zero-length class rather than spelling a literal (kb/Work PB383, PB470).
         if (SecondsOutOfStandardForm("FORMATTED-DATETIME", "argument-3", secUnscaled, secScale, leapSecond)) return Exceptions.ArgumentSubstitute.ZeroLength;
-        if (OffsetOutOfRange("FORMATTED-DATETIME", "argument-4", offsetMinutes, "§2023:15.40.3 r5")) return Exceptions.ArgumentSubstitute.ZeroLength;
+        if (OffsetOutOfRange("FORMATTED-DATETIME", "argument-4", offsetMinutes, "§2023:15.40.3 AR5")) return Exceptions.ArgumentSubstitute.ZeroLength;
         return EmitFormatted(format, integerDate, secUnscaled, secScale, offsetMinutes, leapSecond);
     }
 
     /// <summary>FORMATTED-CURRENT-DATE (§2023:15.38): the current system date/time formatted per the combined format a1
-    /// (§2023:15.38.4 r1 — "the current date and time provided by the system on which the function is evaluated"),
+    /// (§2023:15.38.4 RV1 — "the current date and time provided by the system on which the function is evaluated"),
     /// read through the run unit's injectable clock — the same seam CURRENT-DATE and SECONDS-PAST-MIDNIGHT read.
-    /// Time accuracy (§2023:15.38.4 r2 — implementor-defined, A.1 item 87 — docs/CONFORMANCE.md §7): the clock's TICK,
+    /// Time accuracy (§2023:15.38.4 RV2 — implementor-defined, A.1 item 87 — docs/CONFORMANCE.md §7): the clock's TICK,
     /// 100 ns = 7 fraction digits, exactly SECONDS-PAST-MIDNIGHT's precision (item 171); the value is carried at 9
     /// fraction digits (ticks × 100 — integer arithmetic, no binary64 on the way; kb/Work PB65), so a format's
     /// fraction field beyond the 7th digit renders zeros (§2023:15.3.3.2 admits up to 18).</summary>
@@ -620,9 +620,9 @@ public static class CobolDate
     /// <list type="bullet">
     /// <item><b>argument-2 SHORTER than the format.</b> Each <c>pos >= data.Length</c> exit answers
     /// <c>data.Length + 1</c> — one position past the last, the position AT WHICH the error was detected.
-    /// §2023:15.92.4 r1 says "the ordinal character position at which the first error in argument-2 was detected",
-    /// not "the position of the character in error" (which is how §2023:15.93.4 r1 b) words the other case), and
-    /// §2023:15.93.4 r1 c) gives the standard's own answer for an argument that is valid but INCOMPLETE:
+    /// §2023:15.92.4 RV1 says "the ordinal character position at which the first error in argument-2 was detected",
+    /// not "the position of the character in error" (which is how §2023:15.93.4 RV1b words the other case), and
+    /// §2023:15.93.4 RV1c gives the standard's own answer for an argument that is valid but INCOMPLETE:
     /// <c>(FUNCTION LENGTH (argument-1) + 1)</c>. D-TFD1 adopts it so the two TEST- functions answer the same
     /// shape the same way.</item>
     /// <item><b>The §2023:15.92.4 NOTE's lowercase format.</b> The NOTE writes
@@ -724,7 +724,7 @@ public static class CobolDate
         else if (hasOrd) integerDate = IntegerDateForm.Of(new DateTime(yy, 1, 1).AddDays(doy - 1));
         // ⛔ THE WEEK DATE IS COMPUTED IN INTEGER ARITHMETIC, NOT VIA ISOWeek.ToDateTime, AND THAT IS THE FIX
         // (fix-queue PB23). `ISOWeek.ToDateTime(9999, 52, Saturday)` is 10000-01-01 and THROWS
-        // ArgumentOutOfRangeException — a raw CLR fault escaping from three intrinsics, where §2023:15.3 rule 14 permits
+        // ArgumentOutOfRangeException — a raw CLR fault escaping from three intrinsics, where §2023:15.3 AR14 permits
         // only EC-ARGUMENT-FUNCTION or the implementor-defined result. The input is VALID (every §2023:15.3.1.7 subfield
         // rule is met), so the fault cannot be prevented by tightening the range table; the arithmetic must simply
         // not overflow. Week 1 is the week containing Jan 4 (§2023:15.3.1.7: "The first week of a given year is the week
@@ -740,7 +740,7 @@ public static class CobolDate
 
         // §2023:15.5.2 — a value in integer date form "shall be greater than zero and shall be less than or equal to
         // … 3,067,671". A date whose subfields are each permissible can still have NO integer date form; the caller
-        // that must produce one raises EC-ARGUMENT-FUNCTION (§2023:15.3 rule 14, "an incorrect value for that argument
+        // that must produce one raises EC-ARGUMENT-FUNCTION (§2023:15.3 AR14, "an incorrect value for that argument
         // OR FOR THE RETURNED VALUE"), while the callers that only validate the FORMAT are unaffected.
         // ⚠ Applied to EVERY path, not just the week one: the calendar and ordinal paths are bounded today only
         // because the range table correlates day-with-month and day-of-year-with-year (measured — "99990231" and
@@ -759,8 +759,8 @@ public static class CobolDate
         int e = Analyze(format, data, out long id, out _, out _, out bool representable, leapSecond);
         if (e != 0)
             return Exceptions.ExceptionState.ArgumentError($"INTEGER-OF-FORMATTED-DATE: '{data}' is not valid per '{format}' (§2023:15.48.3)");
-        // §2023:15.48.4 r1 makes the returned value "the integer date form equivalent" — and past §2023:15.5.2's 3,067,671
-        // ceiling there is none, so §2023:15.3 rule 14's "incorrect value … for the returned value" arm applies. The
+        // §2023:15.48.4 RV1 makes the returned value "the integer date form equivalent" — and past §2023:15.5.2's 3,067,671
+        // ceiling there is none, so §2023:15.3 AR14's "incorrect value … for the returned value" arm applies. The
         // data itself is VALID (§2023:15.3.1.7), which is why this is a RETURNED-VALUE error and not an argument one.
         return representable
             ? id
@@ -793,7 +793,7 @@ public static class CobolDate
     public static long TestFormattedDatetime(string format, string data, bool leapSecond = false)
         => Analyze(format, data, out _, out _, out _, out _, leapSecond);
 
-    /// <summary>COMBINED-DATETIME (§2023:15.17.4 r1) on the EXACT carrier: <c>a1 + a2/100000</c> as an exact scaled
+    /// <summary>COMBINED-DATETIME (§2023:15.17.4 RV1) on the EXACT carrier: <c>a1 + a2/100000</c> as an exact scaled
     /// value at scale (a2.scale + 5) — the arm an all-fixed-point argument list takes, where the EAE's division
     /// by 10⁵ IS the scale shift and nothing is rounded. A Dec- or float-carried argument-2 takes
     /// <see cref="CombinedDatetimeDec"/> instead (kb/Work PB620). The §2023:15.17.3 argument screen is shared by both
@@ -807,12 +807,12 @@ public static class CobolDate
     }
 
     /// <summary>
-    /// COMBINED-DATETIME on the SDIDI carrier — §2023:15.17.4 r1's equivalent arithmetic expression written out,
+    /// COMBINED-DATETIME on the SDIDI carrier — §2023:15.17.4 RV1's equivalent arithmetic expression written out,
     /// <c>argument-1 + (argument-2 / 100000)</c>, where §2023:15.4.1 r1 requires the returned value to EQUAL it.
     /// </summary>
     /// <remarks>
     /// <para>⛔ THE ARGUMENT IS NOT BOUNDED IN ITS FRACTION DIGITS, so no compile-time working scale may stand in
-    /// front of it (kb/Work PB620). §2023:15.17.3 r2 requires only that argument-2 "shall be in standard numeric time
+    /// front of it (kb/Work PB620). §2023:15.17.3 AR2 requires only that argument-2 "shall be in standard numeric time
     /// form", and §2023:15.5.5 defines that form by MAGNITUDE alone — "a numeric value representing seconds past
     /// midnight", greater than or equal to zero and less than 86,400 (86,401 under &gt;&gt;LEAP-SECOND ON). With
     /// no Dec body this function fell through to the exact Int128 arm, whose LANDED intake truncated an SDIDI
@@ -839,10 +839,10 @@ public static class CobolDate
     /// <para>It had none at all. Measured under native arithmetic with <c>F USAGE COMP-2 VALUE 86400</c>:
     /// <c>FUNCTION COMBINED-DATETIME(1, F)</c> computed 1.8639999999999 and set NO exception condition, while
     /// the identical VALUE in a <c>PIC 9(5)V9(8)</c> item terminated the run unit with EC-ARGUMENT-FUNCTION in
-    /// the same program under the same armed directive. §2023:15.17.3 r2 is a rule about the argument's VALUE — "in
+    /// the same program under the same armed directive. §2023:15.17.3 AR2 is a rule about the argument's VALUE — "in
     /// standard numeric time form", which §2023:15.5.5 defines by magnitude — so the USAGE of the item holding it
     /// cannot decide whether §2023:15.3's "incorrect value for that argument" applies. A float argument is legal
-    /// (§2023:15.17.3 r2 constrains the value, not the class, and a COMP-2 item is class numeric), so the arm stays;
+    /// (§2023:15.17.3 AR2 constrains the value, not the class, and a COMP-2 item is class numeric), so the arm stays;
     /// what it lacked was the rule.</para>
     /// <para>A non-finite operand is screened here rather than passed on: neither §2023:15.5.2's integer date form
     /// nor §2023:15.5.5's standard numeric time form is a range that contains an infinity or a NaN, and screening

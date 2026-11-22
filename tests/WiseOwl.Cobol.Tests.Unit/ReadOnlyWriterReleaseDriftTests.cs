@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ADMITS ANY OTHER FILE CONNECTOR — A READER AS WELL AS A WRITER (kb/Work PB1587).
 ///
 /// <para><b>The derivation.</b> §2023:14.9.51.4 GR12: <i>"The successful execution of a WRITE statement releases a logical
-/// record to the operating environment."</i> §2023:9.1.15 2): <i>"The sharing with read only mode restricts concurrent
+/// record to the operating environment."</i> §2023:9.1.15 GR2: <i>"The sharing with read only mode restricts concurrent
 /// access to a physical file through file connectors other than this one, to input mode."</i> — so the INPUT
 /// connector Table 19 admits beside a <c>SHARING WITH READ ONLY</c> writer exists, and §2023:14.9.30.4 GR21 makes its READ
 /// select from <i>"the physical file"</i>. The standard prints no buffering rule for a WRITE: the release is the
@@ -198,7 +198,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
     }
 
     /// <summary>Table 19 (§2023:14.9.27.4): a reader that states <c>SHARING WITH READ ONLY</c> is refused beside a READ
-    /// ONLY writer, and ANY reader is refused beside a <c>NO OTHER</c> writer — '61' (§2023:9.1.13.9 item 1), the file
+    /// ONLY writer, and ANY reader is refused beside a <c>NO OTHER</c> writer — '61' (§2023:9.1.13.9 GR1), the file
     /// not affected (GR25): the writer's records are still released and an admitted reader still reads them.</summary>
     [Fact]
     public void ARefusedReader_Is61_AndTheWriterIsUnaffected()
@@ -249,7 +249,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
     /// physical-file table nor a host handle with the first, as <c>RunUnitFileLockDriftTests</c> relies on): a record a
     /// <c>SHARING WITH READ ONLY</c> writer's WRITE answered '00' for is READ by the reader at once, before the
     /// writer's CLOSE — the same rule as the sequential arms, §2023:14.9.51.4 GR12 and §2023:9.1.15 2). A rejected WRITE (the
-    /// duplicate key, '22', §2023:14.9.51.4 GR33 a) on a relative file, GR42 b) on an indexed one) releases nothing, so the reader meets
+    /// duplicate key, '22', §2023:14.9.51.4 GR33a on a relative file, GR42 b) on an indexed one) releases nothing, so the reader meets
     /// exactly the records that were accepted.</summary>
     [Theory]
     [InlineData(FileOrg.Relative)]
@@ -280,7 +280,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    /// <summary>§2023:14.9.51.4 GR20 / §2023:9.1.13.6 item 3 at the release: the medium that is full by construction
+    /// <summary>§2023:14.9.51.4 GR20 / §2023:9.1.13.6 GR3 at the release: the medium that is full by construction
     /// (<c>/dev/full</c>, Linux) refuses the flush a <c>READ ONLY</c> writer now makes at each WRITE, so the FIRST
     /// WRITE answers '34' — the record was not released, and the statement did not answer '00' for it. A host without
     /// the device must not be Linux, so this cannot pass on the CI host by not running

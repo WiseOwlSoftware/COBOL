@@ -50,21 +50,21 @@ public sealed class NationalCollationTests
     public void CharAt_IsTheExactInverseOfWeight()
     {
         var nat = Reversed();
-        // The specified block (§2023:15.16.4 r1/r2).
+        // The specified block (§2023:15.16.4 RV1/r2).
         Assert.Equal('C', (char)nat.CharAt(0));
         Assert.Equal('B', (char)nat.CharAt(1));
         Assert.Equal('A', (char)nat.CharAt(2));
         // Unspecified positions round-trip: CharAt(Weight(c)) == c for a sample spread.
         foreach (char c in new[] { '\u0000', ' ', '@', 'D', 'z', '\u0100', '\u4e16', '\ufffe', '\uffff' })
             Assert.Equal(c, (char)nat.CharAt(nat.Weight(c)));
-        // The sequence bounds (§2023:15.16.3 r2 — outside → no character).
+        // The sequence bounds (§2023:15.16.3 AR2 — outside → no character).
         Assert.Equal(0x10000, nat.PositionCount);          // 3 specified + 65,533 unspecified
         Assert.Equal(-1, nat.CharAt(-1));
         Assert.Equal(-1, nat.CharAt(0x10000));
     }
 
     /// <summary>An ALSO group shares ONE position (GR7 k6); CharAt returns the FIRST character defined for it
-    /// (§2023:15.16.4 r2). Sequence: X ALSO Y (position 0), then Z (position 1) — NextFree = 2.</summary>
+    /// (§2023:15.16.4 RV2). Sequence: X ALSO Y (position 0), then Z (position 1) — NextFree = 2.</summary>
     [Fact]
     public void AlsoGroup_SharesOnePosition_CharAtReturnsTheFirstDefined()
     {

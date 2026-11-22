@@ -80,6 +80,38 @@ MARKUP = re.compile(r"^\s*(?:<a\s+id=\"[^\"]*\"></a>|<!--.*-->|!\[)\s*$")
 PRE_OPEN, PRE_CLOSE = re.compile(r"^\s*>?\s*<pre\b"), re.compile(r"</pre>\s*$")
 FENCE = re.compile(r"^\s*>?\s*```")
 
+
+def display_mask(lines: list[str]) -> list[bool]:
+    """THE DISPLAYS OF A TEXT, ONE READING (kb/Work PB6001): for each line, whether it lies in a display that holds no
+    unit text, its opening and closing lines included: a general format or code (`<pre …>` … `</pre>`, or a ``` fence,
+    either closed by `</pre>` or a bare fence, as `segment` reads them) or an HTML table (`<table>` … `</table>`). The
+    readers that must agree with `segment` on what is no unit text read it here: the 1985 unit spans
+    (rule_catalog_1985._spans) and the prose-holes measure (catalog_prose_holes.prose), so a printed code line is never
+    a hole the segmentation cannot make a unit of."""
+    out: list[bool] = []
+    close: re.Pattern[str] | None = None
+    for line in lines:
+        if close is HTML_TABLE_CLOSE:
+            out.append(True)
+            close = None if HTML_TABLE_CLOSE.search(line) else close
+            continue
+        if close is not None:
+            out.append(True)
+            if PRE_CLOSE.search(line) or (FENCE.match(line) and not PRE_OPEN.match(line)):
+                close = None
+            continue
+        if HTML_TABLE_OPEN.match(line):
+            close = None if HTML_TABLE_CLOSE.search(line) else HTML_TABLE_CLOSE
+        elif PRE_OPEN.match(line):
+            close = None if PRE_CLOSE.search(line) else PRE_CLOSE
+        elif FENCE.match(line):
+            close = FENCE
+        else:
+            out.append(False)
+            continue
+        out.append(True)
+    return out
+
 #: The three kinds of table (design point 1): `entries` (each body row states a determination about the subject its
 #: first cell names), `matrix` (both axes are categories, the cells take a few values), `data` (values a rule consumes).
 TABLE_KINDS = ("entries", "matrix", "data")
@@ -135,6 +167,20 @@ def keyed(units: list[Unit]) -> list[tuple[Unit, int]]:
 
 def ends_sentence(text: str) -> bool:
     return bool(SENTENCE_END.search(text))
+
+
+def caption_number(line: str) -> int | None:
+    """THE ONE READING OF A TABLE CAPTION (kb/Work PB6015): the number of the table `line` captions ("**Table 12 -
+    Procedural statements**", "Table 2: Error Key Values"), or None. A caption is a short title, never a sentence: the
+    prose that names a table ("Table 2 shown below points to the appropriate presentation rules ...") is no caption, so
+    a citation's `Table <n>` is held to the caption the page prints (cite.py#_resolve_table), as the segmentation is.
+    A 1985 caption inside a level-2 box ("║Table 1: Combinations of Conditions, ...║") is a caption too: the box marks
+    the level, not the text."""
+    s = line.strip().strip("║").strip()
+    c = CAPTION.match(s)
+    if c is None or len(s.split()) > 16 or ends_sentence(s.rstrip("*")):
+        return None
+    return int(c.group("t"))
 
 
 def open_at_end(text: str) -> bool:
@@ -268,9 +314,7 @@ def segment(lines: list[tuple[int, str]], held: re.Pattern[str] | None = None) -
         if not s or MARKUP.match(line):
             fresh = True
             continue
-        if (c := CAPTION.match(line)) and s.endswith(("**", s.split()[-1])) and len(s.split()) <= 16 \
-                and not ends_sentence(s.rstrip("*")):
-            t = int(c.group("t"))
+        if (t := caption_number(line)) is not None:
             # A caption printed right below a table that had none above names it (the 1985 text captions its tables
             # below them: "Table 2: Page Heading Group Presentation Rules Table", kb/Work PB6001), unless another table
             # of the clause has that number; it is still the caption of a part printed after it (a table continued
@@ -584,10 +628,55 @@ def keyed_to(r: dict, clause: str, e: dict) -> bool:
             and r.get("order", 0) == e.get("order", 0))
 
 
+#: A row id as a disposition spells it ("restates 1985-GR-VI.6.18.4-7,1985-GR-VI.6.18.5-p1").
+ROW_ID = re.compile(r"\b(?:\d{4}-)?(?:SR|GR|AR|RV|DOC|FMT)-[\w.]+(?:-[\w.]+)?")
+
+
+def spelled(text: str) -> tuple[str, str, frozenset[str]]:
+    """A disposition as a record spells it ("GR", "restates <ids>", "not-a-rule lead-in", "not-a-rule/data", "repair"):
+    its kind, its `not-a-rule` class ("" for any other kind) and the row ids it names."""
+    t = str(text or "").strip()
+    kind = re.split(r"[\s/]", t, maxsplit=1)[0] if t else ""
+    rest = t[len(kind):].strip(" /")
+    return kind, rest if kind == NOT_A_RULE else "", frozenset(ROW_ID.findall(rest))
+
+
+def judged(r: dict) -> tuple[str, str, frozenset[str]]:
+    """THE DISPOSITION A REFUTER RECORD JUDGED: its kind, class and rules, from the record's own `class` and `rules` (the
+    import writes the reader record's beside an UPHELD record that spells only the kind, kb/Work PB6036) or else as its
+    `disposition` spells them (`spelled`)."""
+    kind, cls, rules = spelled(r.get("disposition", ""))
+    return kind, r.get("class") or cls, frozenset(r.get("rules") or ()) or rules
+
+
+def disposition_refusal(e: dict, r: dict) -> str | None:
+    """Why the UPHELD refuter record `r` does not uphold the disposition entry `e` states, or None: an UPHELD record
+    upholds one disposition, so an entry edited after its refutation (another kind, another `not-a-rule` class, another
+    `restates` rule list) stands on no record until it is refuted again. A `restates` the import resolved through a chain
+    (`restated_via`: a named unit that itself restates rules) keeps every id its record named but the replaced ones, and
+    the replaced ones are the record's; the rules they brought in are the restated unit's own entry's, refuted there."""
+    kind, cls, rules = judged(r)
+    d = e.get("disposition")
+    if kind != d:
+        return f"its refuter record upheld {kind or 'no disposition'!r}, not {d}: refute the entry's disposition"
+    if d == NOT_A_RULE and cls != e.get("class", ""):
+        return f"its refuter record upheld class {cls or 'none'!r}, not {e.get('class', '')!r}: refute the new class"
+    if d == RESTATES:
+        named, via = set(e.get("rules") or ()), set(e.get("restated_via") or ())
+        if not rules:
+            return "its refuter record states no rule it upheld (`rules`)"
+        held = via <= rules and rules - via <= named if via else rules == named
+        if not held:
+            return (f"its refuter record upheld restates {', '.join(sorted(rules))}, not {', '.join(sorted(named))}"
+                    + (f" (via {', '.join(sorted(via))})" if via else "") + ": refute the edited rule list")
+    return None
+
+
 def record_refusal(e: dict, u: Unit | None, clause: str, records) -> str | None:
     """Why the refuter record a `restates` or `not-a-rule` entry `e` of `clause` names does not let it stand, or None: the
     entry names no record file, the file or the record of this unit (`keyed_to`) is missing, its outcome is not UPHELD,
-    or the digest it read is not the unit's. `records(path)` reads a record file (`Context.records`)."""
+    the digest it read is not the unit's, or the disposition it upheld is not the entry's (`disposition_refusal`; a
+    `not-rules` block's entry states none). `records(path)` reads a record file (`Context.records`)."""
     path = e.get("refuted")
     if not path:
         return "it names no refuter record (`refuted`: the JSON-lines file of an independent refuter's pass)"
@@ -601,6 +690,8 @@ def record_refusal(e: dict, u: Unit | None, clause: str, records) -> str | None:
         return f"its refuter record is {mine[-1].get('outcome')!r}, not {UPHELD}"
     if u is not None and mine[-1]["digest"] != u.digest:
         return "its refuter record read other text"
+    if e.get("disposition") in (RESTATES, NOT_A_RULE):
+        return disposition_refusal(e, mine[-1])
     return None
 
 

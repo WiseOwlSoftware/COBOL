@@ -110,7 +110,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// <summary>The fraction digits of <see cref="FunctionValuePic"/>.</summary>
     private const int ReturnedFractionDigits = 9;
 
-    /// <summary>The §2023:15.4 temporary's description for an INTEGER function's returned value (§2023:15.2 item 5 — "no
+    /// <summary>The §2023:15.4 temporary's description for an INTEGER function's returned value (§2023:15.2 GR5 — "no
     /// digits to the right of the decimal point"): the same 30-digit wide tier as <see cref="FunctionValuePic"/>,
     /// at scale 0, so the temporary's literal-form text image (DOC-A.1-92) is the integer the function renders
     /// directly, with no fraction digits (kb/Work PB1007).</summary>
@@ -149,7 +149,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// (PIC 9V9(15)) stored 3.141592653000000 where `MOVE FUNCTION PI TO Q3` stores 3.141592653589793.
     /// <para>The carrier follows the value, in the order the renderer chooses it:</para>
     /// <list type="number">
-    ///   <item>an INTEGER function (§2023:15.2 item 5) read as TEXT — <see cref="IntegerFunctionValuePic"/> (its image is
+    ///   <item>an INTEGER function (§2023:15.2 GR5) read as TEXT — <see cref="IntegerFunctionValuePic"/> (its image is
     ///     DOC-A.1-92's);</item>
     ///   <item>a function the renderer returns as a BINARY64 (<see cref="FunctionValueLane.ReturnsBinary64"/>, asked of
     ///     the call and its ARGUMENTS' carriers — a floating-point literal argument takes a function with an SDIDI body
@@ -166,7 +166,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     ///     <see cref="WidestFloatEditedPic"/> (kb/Work PB370; PB3268 review R1-1, R1-2): no binary format converts once
     ///     for every such receiver, and no fixed-point window holds a floating-point receiver's range.
     ///     ⛔ AN INTEGER FUNCTION IS ASKED ALL THREE OF THESE BEFORE ITS SCALE-0 ITEM (kb/Work PB3268, review R1-1):
-    ///     §2023:15.2 item 5 fixes the value's type, never its magnitude, so INTEGER of a COMP-2 holding 1.5E50
+    ///     §2023:15.2 GR5 fixes the value's type, never its magnitude, so INTEGER of a COMP-2 holding 1.5E50
     ///     (<c>FloorReal</c>, a binary64) or INTEGER(1.5E40) into COMP-2 receivers is a 41- or 51-digit integer no
     ///     38-digit fixed item holds, and the integer item stored 9.99906754673275E+37 (or 0) where `MOVE … TO C3`
     ///     stores the value whole;</item>
@@ -193,7 +193,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// <summary>⛔ THE INTERMEDIATE OF A VALUE NO RECEIVER BOUNDS, DESCRIBED FOR THE VALUE (an EVALUATE subject, a frozen
     /// function argument; kb/Work PB3974). A computed operand that is an ARITHMETIC EXPRESSION whose value
     /// <see cref="ExpressionExtent"/> bounds is held in the fixed-point item that bound describes, so the intermediate
-    /// compares and passes on the very number the un-hoisted expression yields (§2023:14.9.13.4 GR3 c) assigns the subject "a
+    /// compares and passes on the very number the un-hoisted expression yields (§2023:14.9.13.4 GR3c) assigns the subject "a
     /// numeric value according to the rules for evaluating an arithmetic expression" and GR4 a) 6. compares THAT):
     /// `EVALUATE BIG * BIG WHEN BIG * BIG` over PIC 9(18) took WHEN OTHER through <see cref="ValueOperandPic"/>, which
     /// keeps 21 of the product's 36 integer digits.
@@ -246,14 +246,14 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         c is BoundComputedOperand { Expr: BoundIntrinsicCall call } && FunctionValueLane.ReturnsApproximation(call, ctx.Options.Arithmetic);
 
     /// <summary>The widest floating-point numeric-edited PICTURE (kb/Work PB370): §2023:13.18.40.3 SR15's 36 significand
-    /// digits and §2023:13.18.40.4 GR13 b)'s four exponent digits, the point after the first digit.</summary>
+    /// digits and §2023:13.18.40.4 GR13b's four exponent digits, the point after the first digit.</summary>
     private const string WidestFloatEditedPicture = "+9.9(35)E+9999";
 
     /// <summary>⛔ THE DECIMAL INTERMEDIATE OF A VALUE THAT IS NOT A BINARY64, FOR RECEIVERS NO FIXED-POINT WINDOW
     /// SERVES (kb/Work PB370, merged into PB3268's one description): the widest floating-point numeric-edited item,
     /// <see cref="WidestFloatEditedPicture"/>, analyzed through the one PICTURE analyzer. It holds any decimal value of
     /// at most 36 significant digits wherever its point falls, and a receiver that takes it TRUNCATES it — an edited
-    /// receiver to its own significand (§2023:14.6.8.4 2), a fixed-point one to its own digit positions (§2023:14.6.8.2 4) — and
+    /// receiver to its own significand (§2023:14.6.8.4 GR2), a fixed-point one to its own digit positions (§2023:14.6.8.2 GR4) — and
     /// truncating to 36 digits first changes nothing. Two sets take it: every receiver numeric with at least one
     /// floating-point and no one binary format serving them all (<see cref="FloatingPointNumericSet"/>: a binary64
     /// intermediate cut <c>MOVE FUNCTION NUMVAL ("1.2345678901234567890123") TO D (I)</c> into <c>PIC +9.9(20)E+99</c> to
@@ -296,7 +296,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// format: <see cref="Binary32IntermediatePic"/> when all are binary32, <see cref="Binary64ReturnedValuePic"/> when all
     /// are binary64; otherwise null. ⛔ THE FORMAT IS THE RECEIVERS' OWN, NEVER "ANY FLOAT" (kb/Work PB3268, review R2-1):
     /// an exact value held on a binary64 and then narrowed to a binary32 receiver is rounded TWICE — a value a hair off a
-    /// binary32 midpoint lands ON it in binary64 and the narrowing ties to even, the double rounding ISO §2023:14.6.8.3 rule 2
+    /// binary32 midpoint lands ON it in binary64 and the narrowing ties to even, the double rounding ISO §2023:14.6.8.3 GR2
     /// ("in a manner consistent with the specifications of ISO/IEC 60559:2020") and kb/Work PB1110 forbid. A binary32
     /// receiver BESIDE a binary64 one has no one float format that converts once for both, so this returns null and
     /// <see cref="IntermediatePic"/> asks <see cref="FloatingPointNumericSet"/> next, BEFORE its INTEGER and
@@ -317,7 +317,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         return single is true ? Binary32IntermediatePic : Binary64ReturnedValuePic;
     }
 
-    /// <summary>The intermediate of an INTEGER function's value (§2023:15.2 item 5 — "no digits to the right of the decimal
+    /// <summary>The intermediate of an INTEGER function's value (§2023:15.2 GR5 — "no digits to the right of the decimal
     /// point") for every use but text: the whole <c>Int128</c> carrier at scale 0. The nominal returned-value item's 30 digits
     /// (<see cref="IntegerFunctionValuePic"/>) are IN-ARITHMETIC-RANGE's extremes, not a bound on the value: INTEGER
     /// of a PIC S9(31) item, or SUM over PIC 9(31) elements, is a 31-digit integer that `MOVE … TO R3` stores whole into a
@@ -428,7 +428,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// a literal's cannot suffer. A zero-length literal is held in a dynamic-length item (§2023:8.5.1.10) whose current length
     /// is 0 — §2023:14.9.51.4 GR14 sizes the record from the literal's own length and a length-0 record is legal.
     /// A boolean literal is <c>PIC 1(n)</c> with the USAGE DISPLAY a missing USAGE clause implies (§2023:13.18.24.4 GR2c,
-    /// §2023:13.18.60.3 SR13 b)): one character position per digit, never the packed USAGE BIT.</summary>
+    /// §2023:13.18.60.3 SR13b): one character position per digit, never the packed USAGE BIT.</summary>
     internal Place? MaterializeLiteral(BoundStringLiteral literal, string tag)
     {
         var (category, usage) = literal.Category switch
@@ -474,7 +474,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // kb/Work PB888, but is not the sender's declaration) — report a violation that no rule
         // states. The move itself is an identity copy by construction (the temp's description IS the sender's).
         // ⛔ AN INDEX DATA ITEM IS STORED BY SET, NEVER BY MOVE (kb/Work PB1661). A USAGE INDEX item is class index, not
-        // category numeric (§2023:13.16.3 SR10): §2023:14.9.39.4 GR2 b) is what stores a value into one, and a MOVE into it is not that
+        // category numeric (§2023:13.16.3 SR10): §2023:14.9.39.4 GR2b is what stores a value into one, and a MOVE into it is not that
         // store — `EVALUATE IDA WHEN I2 WHEN I1` materialized its subject into an index clone through a MOVE and
         // then compared a value that never arrived, so it took WHEN OTHER. The identity copy of an index data item into
         // its own class-index clone is the SET it names.
@@ -544,7 +544,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// store (they registered while the condition bound), so the statement hoist runs each of them once, before
     /// the truth value is computed from their temps — the exact §2023:8.4.3.2.4 GR1 cardinality for a window evaluated
     /// once per statement. A non-first AND/OR operand's activations were already attached per evaluation by
-    /// <c>ConditionBinder.BindFlatSequence</c> and travel INSIDE the stored condition (§2023:8.8.4.13 r2).</para>
+    /// <c>ConditionBinder.BindFlatSequence</c> and travel INSIDE the stored condition (§2023:8.8.4.13 GR2).</para>
     /// <para>An already-diagnosed <see cref="BoundConditionError"/> is returned as it stands.</para>
     /// </summary>
     internal BoundCondition MaterializeTruth(BoundCondition truth, string tag)
@@ -564,7 +564,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     }
 
     /// <summary>The BOOLEAN-EXPRESSION arm (kb/Work PB1423): store a boolean expression's value, of
-    /// <paramref name="positions"/> boolean positions (§2023:8.8.2 rule 10 — "the number of boolean positions of the
+    /// <paramref name="positions"/> boolean positions (§2023:8.8.2 GR10 — "the number of boolean positions of the
     /// larger item referenced"), into an intermediate boolean item, as a PRE-op on the same
     /// <c>ProcedureBindState.PendingPreOps</c> — so a function argument that IS a boolean expression is evaluated at its place
     /// in the argument list (§2023:8.4.3.2.4 GR2) and not after a later argument's activation changed an item it reads.
@@ -590,7 +590,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// ⛔ <b>THE EXTENT FREEZE</b> — §2023:14.9.25.4 GR1's "The length of the data item referenced by identifier-1 is
     /// evaluated only once, immediately before the data is moved to the first of the receiving operands", for the
     /// one shape whose length is a run-time value the clone can hold: an <c>OCCURS … DEPENDING ON</c> table
-    /// (§2023:13.18.38 Format 2) beneath the sending group. §2023:13.18.38.4 GR8 a) makes the group's extent "only that part
+    /// (§2023:13.18.38 Format 2) beneath the sending group. §2023:13.18.38.4 GR8a makes the group's extent "only that part
     /// of the table area that is specified by the value of the data item referenced by data-name-1", so the
     /// intermediate's own extent has to be pinned to data-name-1's value AT THE HOIST, not to whatever the value
     /// has become after the first receiver was stored.
@@ -740,12 +740,12 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // length (§2023:8.5.1.10.4). Its class/category/usage are GR6's, read through the ONE reader.
         if (place is RefModPlace rm)
             return CharacterCarrier("__SENDVAL-REFMOD", "__sendvalRefMod", rm.Category, UsageOf(rm.Inner.Item),
-                // ⛔ THE CAPACITY IS COUNTED IN THE POSITIONS REFERENCE MODIFICATION INDEXES (§2023:8.4.3.3.4 GR5 a),
+                // ⛔ THE CAPACITY IS COUNTED IN THE POSITIONS REFERENCE MODIFICATION INDEXES (§2023:8.4.3.3.4 GR5a),
                 // through the ONE reader — never in the item's character OCCUPANCY (kb/Work PB886). A slice of a
                 // USAGE BIT item may be up to its BOOLEAN-position count long and a slice of a DYNAMIC LENGTH item
                 // up to its §2023:13.18.19.4 GR2 LIMIT, both of which ImageWidth answers with a smaller number (1 and 0),
                 // so the intermediate silently truncated the value it exists to preserve. An ANY LENGTH item's
-                // description fixes no bound at all (§2023:13.18.2.4 GR1 b)): its slice's capacity is the carrier's
+                // description fixes no bound at all (§2023:13.18.2.4 GR1b): its slice's capacity is the carrier's
                 // ceiling, never the one position its PICTURE spells (kb/Work PB3128).
                 limit: Math.Max(1, rm.MaximumInnerPositions));
         var item = place.Item;
@@ -761,7 +761,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // neither its limit nor its current length, while a dynamic-capacity table's clone starts at capacity zero
         // (§2023:8.5.1.9) and is not image-capable at all — so the clone's extent is a DIFFERENT number from the
         // sender's, and §2023:14.9.25.4 GR1 requires the sender's. Measured on this tree with a 3-of-5 occurs-depending
-        // group into a JUSTIFIED PIC X(5) receiver: the current-extent answer is "  125" (§2023:13.18.38.4 GR8 a)'s
+        // group into a JUSTIFIED PIC X(5) receiver: the current-extent answer is "  125" (§2023:13.18.38.4 GR8a)'s
         // extent, right-aligned by §2023:13.18.34) and a maximum-extent intermediate gives "125  ".
         // <para>So THIS shape is left UN-MATERIALIZED — its sending operand is still re-read per receiver, the
         // pre-existing state — and is recorded as the residual on row GR-14.9.25.4-1 rather than papered over.
@@ -796,14 +796,14 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     {
         // §2023:15.2 classifies every function; the bound node carries the call's RESOLVED category
         // (BoundIntrinsicCall.ResultCategory — never the declared column, for the twenty argument-typed rows).
-        // A folded arithmetic sum (FUNCTION LENGTH of a variable-length group, §2023:15.50.4 r7) and every other
+        // A folded arithmetic sum (FUNCTION LENGTH of a variable-length group, §2023:15.50.4 RV7) and every other
         // arithmetic-expression operand are numeric by §2023:8.8.1.
         PicCategory cat = c.Expr is BoundIntrinsicCall ic ? ic.ResultCategory : PicCategory.Numeric;
         // ⛔ THE TEMPORARY IS THE RETURNED VALUE, SO IT MUST MOVE AS THE FUNCTION MOVES (kb/Work PB1007). §2023:14.9.25.4
         // GR1's equivalence — MOVE a TO temp / MOVE temp TO b / MOVE temp TO c — is exact only if `MOVE temp TO b`
         // stores what `MOVE a TO b` stores, and for a character receiver that is DOC-A.1-92's literal form of the
         // value: the temporary is FLAGGED (FunctionValueSeparator) so its text image is that form, and an INTEGER
-        // function (§2023:15.2 item 5, "no digits to the right of the decimal point", resolved per call by the ONE
+        // function (§2023:15.2 GR5, "no digits to the right of the decimal point", resolved per call by the ONE
         // IntrinsicResultType reader) is described at scale 0, so the literal form carries no fraction digits — the
         // form the function itself renders. It used to be the 30-digit image of FunctionValuePic, left-justified:
         // `MOVE FUNCTION INTEGER(N) TO A B` stored 0000 in both where `MOVE FUNCTION INTEGER(N) TO A` stores 3.
@@ -836,8 +836,8 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             DynLimit: limit);
 
     /// <summary>The usage of a function result's character carrier: NATIONAL for category national, BIT for category boolean,
-    /// DISPLAY otherwise. ⛔ A boolean function's returned value "is a boolean item of usage bit" (ISO §2023:15.13.4 1), and
-    /// §2023:15.2 2) gives every boolean function "an implicit usage bit" - so the temporary that stands for it has that usage,
+    /// DISPLAY otherwise. ⛔ A boolean function's returned value "is a boolean item of usage bit" (ISO §2023:15.13.4 RV1), and
+    /// §2023:15.2 GR2 gives every boolean function "an implicit usage bit" - so the temporary that stands for it has that usage,
     /// or a MOVE of it into a group (§2023:14.9.25.4 GR4's move "without conversion of data from one form of internal
     /// representation to another") copies its '0'/'1' TEXT, a DISPLAY representation the function never had (kb/Work
     /// PB3562: `MOVE FUNCTION BOOLEAN-OF-INTEGER(255 8) TO G8` stored 00110001, not 11111111).</summary>
@@ -850,7 +850,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
 
     /// <summary>
     /// ⛔ <b>THE CONCEPTUAL SENDING ITEM</b> of a statement whose own general rule DEFINES an elementary sender and
-    /// then stores it "according to the rules for the MOVE statement" (kb/Work PB979). ISO §2023:14.9.48.4 GR11 c):
+    /// then stores it "according to the rules for the MOVE statement" (kb/Work PB979). ISO §2023:14.9.48.4 GR11c:
     /// "The characters examined, excluding any delimiting characters, shall be treated as an elementary national
     /// data item if identifier-1 is of category national, and otherwise as an elementary alphanumeric data item,
     /// and shall be moved into the current receiving area according to the rules for the MOVE statement" — and
@@ -886,7 +886,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// <para>⛔ NOT <c>inner.Pic?.Usage ?? Usage.Display</c>, which is what this was (kb/Work PB411's sibling
     /// sweep). §2023:8.4.3.3.3 SR5 permits reference modification of "a data item of class alphanumeric, boolean, or
     /// national", so identifier-1 may be a GROUP-USAGE NATIONAL group — whose <c>Pic</c> is null and whose usage
-    /// is NATIONAL (§2023:13.18.29.4 GR2 b) — and the raw <c>Pic</c> read gave its intermediate usage DISPLAY beside
+    /// is NATIONAL (§2023:13.18.29.4 GR2b) — and the raw <c>Pic</c> read gave its intermediate usage DISPLAY beside
     /// the category NATIONAL <see cref="RefModPlace.Category"/> already answers: one item, two usages. The
     /// reader settles it once. DISPLAY remains the fallback for the shapes §2023:8.5.2.1 states no usage for (a
     /// strongly-typed or variable-length group), where GR6 still owes the intermediate one.</para></summary>

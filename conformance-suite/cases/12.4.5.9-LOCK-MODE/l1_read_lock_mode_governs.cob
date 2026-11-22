@@ -43,7 +43,7 @@
       *> the SELECT is therefore the only legal carrier, and it keeps
       *> every conjunct of the derivation — it is still "a SHARING
       *> clause in that file control entry" so §2023:12.4.5.9.4 GR1a applies
-      *> verbatim, §2023:9.1.15 item 2 says of it "Record locks are in
+      *> verbatim, §2023:9.1.15 GR2 says of it "Record locks are in
       *> effect" and permits a second connector in INPUT mode (Table 19,
       *> read only/input × READ ONLY/INPUT = normal open) — and it does
       *> not name the ALL phrase, so SR8 never fires.  F3/F4 keep ALL

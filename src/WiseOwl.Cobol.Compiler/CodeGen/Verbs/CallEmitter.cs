@@ -88,7 +88,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         brackets.Identify(receivers);
         // An EC-active group's CALL site consumes a callee-staged RAISING propagation itself (the pickup below
         // runs the §2023:14.9.49 F3 selection and honors RESUME); an EC-free site emits none, and the staging — which
-        // names THIS activation (kb/Work PB892 Arm B) — is then never raised anywhere (§2023:14.9.18.4 GR1 b)).
+        // names THIS activation (kb/Work PB892 Arm B) — is then never raised anywhere (§2023:14.9.18.4 GR1b).
         // §2023:14.9.4.4 GR3d's ACTIVATING half (kb/Work PB133 wave C2b): this statement's TURN state.
         string invocation = InvocationText(c,
             argMismatchChecking: EnabledProgramNames().Contains("EC-PROGRAM-ARG-MISMATCH"));
@@ -114,7 +114,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             w.Line(invocation);
             brackets.Settle(receivers);
             string? propagatedBare = EmitActivationReturned(c, reportRaised: c.NotOnException is not null);
-            if (c.NotOnException is { } notBare) EmitNotOnException(notBare, callErr: null, propagatedBare);
+            if (c.NotOnException is { } notBare)
+                ConditionalPhrase.EmitNot(w, Statements, notBare, NotOnException(callErr: null, propagatedBare));
             return false;
         }
         int id = ctx.Names.NextCall();
@@ -159,26 +160,20 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // CALL's staging — and NOT ON EXCEPTION runs only when the pickup raised nothing. A failed activation
         // stages nothing, so the pickup is a no-op on the ON EXCEPTION path.
         string? propagated = EmitActivationReturned(c, reportRaised: c.NotOnException is not null);
-        if (c.OnException is { } on)
-            using (w.Block($"if (__callErr{id})")) Statements.EmitStatementList(on);
-        if (c.NotOnException is { } not)
-            EmitNotOnException(not, callErr: $"__callErr{id}", propagated);
+        ConditionalPhrase.EmitPair(w, Statements, $"__callErr{id}", c.OnException, c.NotOnException,
+            NotOnException(callErr: $"__callErr{id}", propagated));
         return false;
     }
 
-    /// <summary>The CALL statement's NOT ON EXCEPTION arm — ISO §2023:14.9.4.4 GR3i: imperative-statement-2 runs only
+    /// <summary>The test of the CALL statement's NOT ON EXCEPTION arm (<see cref="ConditionalPhrase"/> renders it) — ISO §2023:14.9.4.4 GR3i: imperative-statement-2 runs only
     /// when the program was successfully called (<paramref name="callErr"/> is false, or null when nothing can
     /// fail the activation catchably) AND no exception condition was propagated from it
     /// (<paramref name="propagated"/>, the pickup's raised flag, or null when the group emits no pickup).
-    /// §2023:14.6.13.1.4 3) says the same from the other side: a nonfatal condition whose declarative completes
+    /// §2023:14.6.13.1.4 GR3 says the same from the other side: a nonfatal condition whose declarative completes
     /// normally leaves "the imperative-statement in that phrase … not executed".</summary>
-    private void EmitNotOnException(IReadOnlyList<BoundStatement> not, string? callErr, string? propagated)
-    {
-        var guards = new[] { callErr, propagated }.OfType<string>().Select(g => "!" + g).ToList();
-        if (guards.Count == 0) { Statements.EmitStatementList(not); return; }
-        using (ctx.Writer.Block($"if ({string.Join(" && ", guards)})   // §2023:14.9.4.4 GR3i — a successful call that propagated nothing"))
-            Statements.EmitStatementList(not);
-    }
+    private static NotPhraseCondition NotOnException(string? callErr, string? propagated) =>
+        new(callErr is null ? null : $"!{callErr}", ComplementsPhrase: true, propagated is null ? null : $"!{propagated}",
+            "§2023:14.9.4.4 GR3i — a successful call that propagated nothing");
 
     /// <summary>§2023:14.9.4.4 GR3a's once-only identification (kb/Work PB133 wave B; PB1123): "item identification is done
     /// for identifier-3 at the beginning of the execution of the CALL statement" and §2023:14.2.3 GR8 fixes each BY
@@ -196,7 +191,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         var ret = c.Returning is { } rp ? PlaceIdentification.Freeze(rp, hoist) : c.Returning;
         return c with { Args = args, Returning = ret };
     }
-    /// <summary>⛔ WHETHER THIS SITE DESCRIBES ITS OPERANDS FOR §2023:14.9.4.4 GR3 d)'s RUN-TIME CONFORMANCE CHECK (kb/Work PB165,
+    /// <summary>⛔ WHETHER THIS SITE DESCRIBES ITS OPERANDS FOR §2023:14.9.4.4 GR3d)'s RUN-TIME CONFORMANCE CHECK (kb/Work PB165,
     /// PB2103): it checks EC-PROGRAM-ARG-MISMATCH, and the element it activates is not a definition this compilation group
     /// compiles (<see cref="BoundCallProgram.CalleeCompiledHere"/> false — a dynamic Format-1 CALL, a program-prototype whose
     /// details §2023:12.3.8.4 GR10 b) or c) took from a prototype or the external repository, a GR11 b) / c) function, a
@@ -325,7 +320,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         string nameTest = string.Join(" || ", ecNames.Select(n => $"__ce{id}.EcName == {CsLiteral(n)}"));
         using (w.Block($"catch (CobolCallException __ce{id}) when (!__ce{id}.ControlTransferred && ({nameTest}))"))
         {
-            // The §2023:15.32.3 r2 pair rides the CALL statement's ambient context (kb/Work R14) — the callee's own
+            // The §2023:15.32.3 RV2 pair rides the CALL statement's ambient context (kb/Work R14) — the callee's own
             // contexts were restored on unwind, so this Set attributes the CALL, not the callee's last statement.
             w.Line($"ExceptionState.Set(__ce{id}.EcName, true);   // §2023:14.6.13.1.1 — every name reachable here is fatal (Table 13)");
             if (phraseFlag is not null)
@@ -342,7 +337,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// the activation has returned and its RETURNING item is delivered, in the one order the standard gives it - the
     /// propagation pickup (<see cref="EmitPropagationPickup"/>), THEN §2023:14.9.40.4 GR17's question. A <c>GOBACK … RAISING</c>
     /// condition is raised in the activating element "after the result, if any, of the activated element is returned"
-    /// (§2023:14.9.18.4 GR1 b)); a USE procedure of the activated element that ended in EXIT PROGRAM / GOBACK while a format 1
+    /// (§2023:14.9.18.4 GR1b); a USE procedure of the activated element that ended in EXIT PROGRAM / GOBACK while a format 1
     /// SORT whose range activated it is active terminates that SORT (§2023:14.9.40.4 GR17), and the termination unwinds the
     /// rest of the range, so it must come last: asked first, it left before the pickup and the staged condition was raised
     /// at the activator's next, unrelated activation. The CALL lane (<see cref="EmitCall"/>, a function activation and a
@@ -380,7 +375,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     }
 
     /// <summary>Emit the activator-side pickup of a callee-staged <c>GOBACK / EXIT PROGRAM / method-return …
-    /// RAISING</c> exception condition — ISO §2023:14.9.18.4 GR1 b), RAISED HERE, in the activating runtime element,
+    /// RAISING</c> exception condition — ISO §2023:14.9.18.4 GR1b, RAISED HERE, in the activating runtime element,
     /// "as if a RAISE statement" at the end of the activating statement (§2023:14.6.13.1.3 #6): test the ACTIVATOR's
     /// checking state for the propagated name, and when it is enabled set the last exception status
     /// (§2023:14.6.13.1.1), run the §2023:14.9.49 Format-3 selection over the DYNAMIC name, honor RESUME and apply the
@@ -421,7 +416,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                     w.Line(propagate + "   // §2023:14.6.13.1.5 item 3");
                 // Item 4 — "as if EXCEPTION EC-OO-EXCEPTION were specified in the RAISING phrase, instead of an
                 // exception object": re-stage it as that NAMED propagation, which the named arm below takes through
-                // §2023:14.9.18.4 GR1 b) — raised HERE only if EC-OO-EXCEPTION checking is enabled HERE, then the F3
+                // §2023:14.9.18.4 GR1b — raised HERE only if EC-OO-EXCEPTION checking is enabled HERE, then the F3
                 // selection and Table 13's fatal default. With checking off nothing is raised and the activation
                 // completes (§2023:14.6.13.1.1: "By default, checking is not enabled for any exception condition").
                 w.Line("ExceptionState.ConvertObjectPropagationToNamed();   // §2023:14.6.13.1.5 item 4");
@@ -472,7 +467,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     ///   <item>a figurative constant or ALL literal — one occurrence, flagged for repetition to the receiver's size
     ///     (§2023:8.3.3.6.4 GR2), ZERO also as the value 0;</item>
     ///   <item>an arithmetic expression, a function-identifier or a boolean expression — read back from the cell it was
-    ///     evaluated into ONCE (§2023:14.9.4.4 GR3 a)), never evaluated again (<c>CobolArgAdapt.WithValueSending</c>); a NUMERIC
+    ///     evaluated into ONCE (§2023:14.9.4.4 GR3a), never evaluated again (<c>CobolArgAdapt.WithValueSending</c>); a NUMERIC
     ///     value is marked <c>MoveSending.Computed</c> (kb/Work PB3969): it has no representation of its own (§2023:15.4.1), so the
     ///     boundary lands it through the formal in GR9's first regime too, never handing the formal the cell's image.</item>
     /// </list>
@@ -627,7 +622,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// facts the activating element's <c>CobolArg</c> states for its receiver — <see cref="BoundaryProfile"/> and
     /// <see cref="BoundaryLength"/> always, and its §2023:14.8.3 <paramref name="description"/> when the unit checks
     /// EC-PROGRAM-ARG-MISMATCH itself (null otherwise; the binder built it, <see cref="BoundUnit.ReturningDescription"/>, kb/Work
-    /// PB165, PB2403) — emitted at the unit's <c>ProgramRegistry.Register</c>, so §2023:14.9.4.4 GR3 d) can compare the pair at call
+    /// PB165, PB2403) — emitted at the unit's <c>ProgramRegistry.Register</c>, so §2023:14.9.4.4 GR3d can compare the pair at call
     /// initiation. Null when it states nothing.</summary>
     internal string? RegisteredReturning(Place p, ActivationDescription? description) =>
         RegisteredBoundary(p, ctx.SignEncoding, BoundaryLength(p), description);
@@ -682,11 +677,11 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// lanes of one crossing cannot disagree about which formals they land (kb/Work PB2549).</summary>
     private static PicInfo? NumericLandingPic(DataItem formal) => formal.Pic is { IsClassNumeric: true } pic ? pic : null;
 
-    /// <summary>⛔ THE ACTIVATING ELEMENT'S STATEMENT OF ONE ARGUMENT for §2023:14.9.4.4 GR3 d)'s run-time comparison (kb/Work
+    /// <summary>⛔ THE ACTIVATING ELEMENT'S STATEMENT OF ONE ARGUMENT for §2023:14.9.4.4 GR3d)'s run-time comparison (kb/Work
     /// PB165) — wrapped around EVERY argument shape <see cref="ArgCarrierText"/> builds, so no arm can be left undescribed:
     /// the argument's storage LENGTH (<see cref="ArgumentLength"/> — §2023:14.8.2.3.2 / §2023:14.8.2.3.3 rule 1's "same length") and
     /// its DESCRIPTION (<see cref="BoundCallArg.Description"/>, built at bind time by the builder the activated unit's
-    /// registration uses). A reference-modified argument's length is its EVALUATED length (§2023:8.4.3.3.4 GR5 c)), so its
+    /// registration uses). A reference-modified argument's length is its EVALUATED length (§2023:8.4.3.3.4 GR5c), so its
     /// description takes the positions of the slice the carrier holds, as a universal INVOKE's does
     /// (<c>CobolInvokeArg.ReferenceModified</c>). Emitted only at a site that describes its arguments (<paramref name="describe"/>:
     /// it checks EC-PROGRAM-ARG-MISMATCH and holds no signature of the activated program), so every other CALL's text is
@@ -702,7 +697,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         return Described(built, length, description);
     }
 
-    /// <summary>⛔ THE ONE RENDERER OF WHAT AN ARGUMENT STATES for §2023:14.9.4.4 GR3 d)'s comparison: the <c>CobolArg</c>
+    /// <summary>⛔ THE ONE RENDERER OF WHAT AN ARGUMENT STATES for §2023:14.9.4.4 GR3d's comparison: the <c>CobolArg</c>
     /// <paramref name="built"/> with its storage <paramref name="length"/> (unless unstated) and its
     /// <paramref name="description"/> (the rendered <c>ActivationDescription</c>, or null). A CALL statement's argument and
     /// a generated host entry's argument (<c>HostEntryEmitter</c>, the .NET counterpart of a CALL, DESIGN-external-repository
@@ -765,7 +760,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         {
             if (rm.Inner is not RedefViewPlace) return null;
             // ⛔ A SLICE WHOSE LENGTH IS A RUN-TIME VALUE STATES ITS EVALUATED EXTENT (kb/Work PB2077 review round 3;
-            // docs/CONFORMANCE.md D-RM1 a)). §2023:14.8.2.2 rule 1 was proved on its MAXIMUM extent, so the evaluated slice
+            // docs/CONFORMANCE.md D-RM1 a)). §2023:14.8.2.2 SR1 was proved on its MAXIMUM extent, so the evaluated slice
             // can be shorter than a group formal, and a formal laid over identifier-1 would then read and write the
             // positions past the slice. The area still states the slice (GR8 — every slice at least as long as the formal
             // is shared storage, so a second argument over the same positions sees the formal's stores), and its extent
@@ -1010,7 +1005,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // positions while its insertion positions keep their own characters.
             case { } sent when sent is not BoundPredefinedNull && MovedFormal(a) is { } record:
                 return MovedArgText($"ManagedPointer<string>.Cell({move.RecordValue(sent, record)})");
-            // ⛔ A national literal (usage national, §2023:8.3.3.5.4 GR3 a)) into a KNOWN GROUP formal is GR4's unconverted move, so
+            // ⛔ A national literal (usage national, §2023:8.3.3.5.4 GR3a) into a KNOWN GROUP formal is GR4's unconverted move, so
             // it crosses as its storage image (kb/Work PB3562: OperandText.NonElementaryMoveSender, the one sending codec);
             // into any other formal it crosses as its characters.
             case BoundStringLiteral s:
@@ -1120,13 +1115,13 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<Int128>.Cell((Int128)({x.Expr})), {ValueMeta(ctx.SignEncoding, 38, x.Scale, signed: true)})";
             }
             // ⛔ NULL IS AN IDENTIFIER, NOT A FILL (kb/Work PB1630). §2023:8.4.3.1.2 Format 8 (predefined-address) and
-            // §2023:8.4.3.10.3 SR1 a) admit it "as an argument in a program-prototype format CALL statement, a
+            // §2023:8.4.3.10.3 SR1a admit it "as an argument in a program-prototype format CALL statement, a
             // function-prototype format function activation", and §2023:14.8.2.3.3 hands it to a pointer / object-reference
             // formal by a SET. This arm used to fall into the figurative fill below and cross as a one-character
             // string, which every slot adapter refused at run time (EC-PROGRAM-ARG-MISMATCH on legal source). It
             // crosses in its OWN mode — BY CONTENT or BY VALUE (§2023:14.9.4.3 SR22 admits class pointer and object) — as
             // the storage-free NULL carrier whose value the formal's own slot adapter supplies, so the crossing is
-            // the same whether or not this activating element knows the formal (§2023:12.3.8.4 GR10 c)).
+            // the same whether or not this activating element knows the formal (§2023:12.3.8.4 GR10c).
             case BoundPredefinedNull:
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, {RuntimeApi.PredefinedNullArgumentCarrier}, null)";
             // ⛔ A FIGURATIVE CONSTANT / ALL LITERAL FILLS THE FORMAL'S ALLOCATED RECORD (kb/Work PB1418 + PB1617) —
@@ -1183,7 +1178,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// length of the corresponding argument", not the one symbol its PICTURE spells (measured: `01 AL PIC 1 ANY LENGTH`
     /// received B"1000" as B"1" while the category test came first). Otherwise §2023:14.8.2.3.3 rule 2d makes the crossing a MOVE
     /// with the argument as its sending operand, so the value is that MOVE's sender (<see cref="BoundBoolOperand"/>, at
-    /// §2023:8.8.2 rule 10's width) and the record is the MOVE's own (<see cref="MoveEmitter.RecordValue"/>): the one receiving
+    /// §2023:8.8.2 GR10's width) and the record is the MOVE's own (<see cref="MoveEmitter.RecordValue"/>): the one receiving
     /// store of every category — a BOOLEAN receiver pads and truncates in boolean ZEROS (§2023:14.6.8.6), an ALPHANUMERIC or
     /// NATIONAL one in spaces with the boolean characters moved as-is (§2023:14.9.25.4 GR6a — "If the sending item is of class
     /// boolean, its boolean value shall be moved"), an alphanumeric-edited or national-edited one EDITS them (GR6 —
@@ -1292,7 +1287,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
 
     // ⛔ WHETHER AN ARGUMENT IS A NUMERIC LITERAL IS THE BINDER'S STATEMENT, NEVER A RECOVERY FROM A BOUND EXPRESSION (kb/Work
     // PB165, PB3760): the emitted carrier and the §2023:14.8.2.3.3 conformance verdict must agree about what §2023:14.9.4.4 GR8 says an
-    // argument IS, and both read the operand's kind. A literal's sign is inside it (§2023:8.3.3.3.2 rule 2), and the parse-tree
+    // argument IS, and both read the operand's kind. A literal's sign is inside it (§2023:8.3.3.3.2 SR2), and the parse-tree
     // reduction that says so (ConditionBinder.SoleNumLiteral) also sees what the bound tree cannot: `-1.234E-5` (a lexer
     // spelling the expression binder takes as BoundNegate(BoundNumLiteral)) is one literal, and `(3)` is an expression.
 
@@ -1709,7 +1704,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         }
     }
 
-    /// <summary>Stage a <c>RAISING</c> phrase's exception condition for the ACTIVATOR (ISO §2023:14.9.18.4 GR1 b) /
+    /// <summary>Stage a <c>RAISING</c> phrase's exception condition for the ACTIVATOR (ISO §2023:14.9.18.4 GR1b) /
     /// §2023:14.9.14.4 GR3 — consumed by the activating statement's pickup; the staging names the activating
     /// ACTIVATION, so when that activator emitted no pickup nothing else can take it — kb/Work PB892 Arm B).
     /// Staging is UNCONDITIONAL and raises nothing here.
@@ -1729,14 +1724,14 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         var w = ctx.Writer;
         if (r.ObjectSource is { } os)
         {
-            // The exception-OBJECT leg (§2023:14.9.18.4 GR1b2; the EC-OO wave): objects are not TURN-gated
+            // The exception-OBJECT leg (§2023:14.9.18.4 GR1b.2; the EC-OO wave): objects are not TURN-gated
             // (§2023:7.3.25 takes names only); the activator's §2023:14.6.13.1.5 rules decide.
             w.Line($"ExceptionState.SetPropagatingObject({RuntimeApi.AsExceptionObject(PlaceRenderer.Read(os))});   // {verb} RAISING identifier-1 — staged for the activator");
             return;
         }
         if (r.IsLast)
         {
-            // §2023:14.9.18.4 GR1b3: the name is the run-unit last exception status (GR1b3b — a clear status stages
+            // §2023:14.9.18.4 GR1b.3: the name is the run-unit last exception status (GR1b3b — a clear status stages
             // nothing), and GR1b3a substitutes EC-RAISING-NOT-SPECIFIED for a level-3 EC-USER condition the
             // containing element's PD-header RAISING phrase does not name. That list crosses to the RUNTIME
             // because only the runtime knows which name is being propagated; the membership test is written
@@ -1751,10 +1746,10 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // implements (§2023:14.6.13.1.5 item 1 — the one census, EcState.PdRaisingObjectCsTypes); otherwise the GOBACK
             // is "as if EXCEPTION EC-OO-EXCEPTION were specified" (kb/Work PB1121).
             w.Line($"ExceptionState.SetPropagatingLast({ec.ObjectApplicableTest("ExceptionState.ExceptionObject")}, {names}{loc});"
-                + "   // RAISING LAST EXCEPTION (§2023:14.9.18.4 GR1b3a — the PD-header RAISING list is GR1b3a's operand; §2023:14.6.13.1.5 item 1 for an object)");
+                + "   // RAISING LAST EXCEPTION (§2023:14.9.18.4 GR1b.3.a — the PD-header RAISING list is GR1b3a's operand; §2023:14.6.13.1.5 item 1 for an object)");
             return;
         }
-        // kb/Work R07: the §2023:15.32.3 r2 / §2023:15.30.3 r2 operands travel WITH the staged condition and are applied by
+        // kb/Work R07: the §2023:15.32.3 RV2 / §2023:15.30.3 RV2 operands travel WITH the staged condition and are applied by
         // the activator-side raise, when THIS name's TURN said WITH LOCATION. §2023:7.3.25.4 GR7 keys them on the
         // directive governing the SOURCE STATEMENT ("all information necessary to identify a source statement …
         // is made available to the run unit"), and that statement is this GOBACK/EXIT — so the RAISING element's

@@ -700,7 +700,7 @@ Pre-commit: full battery + corpus sweep + legacy guard per the standing rules.
   REPLACES the F1/F3 tiers for object raises. GR14 (:33093-33097): source-order scan; class entry matches the
   object's class **or a subclass** (a); interface entry via IMPLEMENTS (b); no match → 14.6.13.1.5. GR15
   (:33099): **upon declarative entry EXCEPTION-OBJECT references the exception object**.
-- **EXCEPTION-STATUS §2023:15.33.3 r1** (:35701): returns the exception-name **or the value 'EXCEPTION-OBJECT'**,
+- **EXCEPTION-STATUS §2023:15.33.3 RV1** (:35701): returns the exception-name **or the value 'EXCEPTION-OBJECT'**,
   31 chars, space-filled; last-exception-status concept incl. "the fact that an exception object was raised"
   (:24481).
 - **EC-RAISING-NOT-SPECIFIED** (:24787) applies to EC-USER names only (already handled, COBOL0717).
@@ -721,7 +721,7 @@ a separate BoundGobackObject node (two nodes for one statement family).
 ### D-EO2. EXCEPTION-OBJECT register = `ExceptionState.ExceptionObject` + the `"EXCEPTION-OBJECT"` LastName sentinel
 `ExceptionState` (src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs) additions:
 ```csharp
-public const string ObjectSentinel = "EXCEPTION-OBJECT";   // §2023:15.33.3 r1's literal returned value
+public const string ObjectSentinel = "EXCEPTION-OBJECT";   // §2023:15.33.3 RV1's literal returned value
 public static void SetObject(object? obj)     // RAISE id / F4 declarative entry (GR15) / GR1b2 activator side
     { LastName = ObjectSentinel; LastFatal = false; LastFile = null; LastIoStatus = null;
       LastStatement = null; LastLocation = null; ExceptionObject = obj; }
@@ -733,7 +733,7 @@ public static bool TakePropagatedObject(out object? obj)  // mirrors TakePropaga
 slot (GR1b3a :27724). `Set(...)` keeps nulling `ExceptionObject` (:24485) and must ALSO clear
 `_propagatedObject` = default; `SetPropagating` clears the object slot (the two slots are mutually exclusive).
 `Clear()` clears both slots. **EXCEPTION-STATUS works with ZERO changes** — `EcFunctions.Status()`
-(EcFunctions.cs:16-17) pads `LastName`, and the sentinel IS the §2023:15.33.3 r1 required string; `Location()`/
+(EcFunctions.cs:16-17) pads `LastName`, and the sentinel IS the §2023:15.33.3 RV1 required string; `Location()`/
 `Statement()`/`File()` degrade correctly (not an IO name → "00"; no location saved → spaces).
 **Rejected:** a separate `LastIsObject` bool (special-cases every EXCEPTION-* function); making the sentinel a
 catalog entry (it is NOT an exception-name — `ExceptionCatalog.TryGet` must keep failing on it, which it does).

@@ -8,7 +8,7 @@
       *> kb/Work PB620 — ISO §2023:15.17 COMBINED-DATETIME under NATIVE arithmetic: the twin of
       *> conformance:cases/15.4.1-Numeric-and-integer-functions/pb620_combined_datetime_eae, and the only place the THIRD carrier is reachable.
       *>
-      *> WHY A SECOND PROGRAM. §2023:15.17.3 r2 is a rule about argument-2's VALUE — "Argument-2 shall be in standard
+      *> WHY A SECOND PROGRAM. §2023:15.17.3 AR2 is a rule about argument-2's VALUE — "Argument-2 shall be in standard
       *> numeric time form", which §2023:15.5.5 defines by magnitude alone — so the USAGE of the item holding that
       *> value cannot decide whether §2023:15.3's "incorrect value for that argument" applies. COMBINED-DATETIME has
       *> three carriers: the exact fixed-point lane, the SDIDI (which claims every floating-point argument under
@@ -52,7 +52,7 @@
        END DECLARATIVES.
        MAIN SECTION.
        MAIN-P.
-      *> A/B/C — the exact carrier, the same value through an arithmetic expression, and §2023:15.17.4 r1's
+      *> A/B/C — the exact carrier, the same value through an arithmetic expression, and §2023:15.17.4 RV1's
       *> equivalent arithmetic expression written out. Under native these are all exact fixed-point.
            COMPUTE WS-A = FUNCTION COMBINED-DATETIME(1, WS-S)
            DISPLAY "A=" WS-A
@@ -67,7 +67,7 @@
            ELSE
                DISPLAY "AGREE=BAD"
            END-IF
-      *> G1/G2 — the §2023:15.17.3 r2 screen from the exact carrier and from an arithmetic expression.
+      *> G1/G2 — the §2023:15.17.3 AR2 screen from the exact carrier and from an arithmetic expression.
            MOVE 9 TO WS-A
            COMPUTE WS-A = FUNCTION COMBINED-DATETIME(1, WS-BAD)
            DISPLAY "G1=" WS-A
@@ -78,7 +78,7 @@
            MOVE 9 TO WS-F
            COMPUTE WS-F = FUNCTION COMBINED-DATETIME(1, F3)
            DISPLAY "G3=" WS-F
-      *> G4 — the complement: a LEGAL float argument is admitted, and §2023:15.17.4 r1 places its value strictly
+      *> G4 — the complement: a LEGAL float argument is admitted, and §2023:15.17.4 RV1 places its value strictly
       *> between 1 (the integer date) and 2 (that date plus 100000/100000 seconds, which r2 excludes).
            COMPUTE WS-F = FUNCTION COMBINED-DATETIME(1, F4)
            IF WS-F > 1 AND WS-F < 2

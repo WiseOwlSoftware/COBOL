@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Globalization;
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
@@ -39,7 +40,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// RESUME redirected control (§2023:14.9.33). A no-op for a declarative-free, checking-off program.
     /// <para><paramref name="notNormalLabel"/> is the ENCLOSING STATEMENT'S end label, supplied only by the
     /// SORT/MERGE implicit transfers (§2023:14.9.40.4 GR12/GR15, §2023:14.9.24.4 GR7/GR12): there the I-O the declarative
-    /// was invoked from is not a statement of the program at all, so §2023:14.9.33.4 GR2 a) 1's "the applicable
+    /// was invoked from is not a statement of the program at all, so §2023:14.9.33.4 GR2a 1's "the applicable
     /// statement is the one in which the exception condition was raised" is the SORT/MERGE itself, and a
     /// declarative that ends in RESUME AT NEXT STATEMENT has to leave the whole statement rather than fall into
     /// its next implicit transfer; MERGE's GR7/GR12 also key on a procedure that "completes normally", so a
@@ -83,9 +84,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             var w = ctx.Writer;
             if (successArm && ec.IoMaskFor(file) == 0) return default;
             // verbDisposes / useCompletedVar — the SORT/MERGE implicit transfers only (kb/Work PB993). verbDisposes
-            // tells __IoCheckEc that the VERB's rules dispose of a fatal status (§2023:14.6.13.1.3 2) precedes 5)/7)), so
+            // tells __IoCheckEc that the VERB's rules dispose of a fatal status (§2023:14.6.13.1.3 GR2 precedes 5)/7)), so
             // it must not end the run unit; useCompletedVar, where the verb's rule turns on it, declares a bool that is
-            // true when an applicable procedure ran and completed normally (§2023:14.9.24.4 GR7 a), GR12 a)/b)). A
+            // true when an applicable procedure ran and completed normally (§2023:14.9.24.4 GR7a, GR12 a)/b)). A
             // not-normal completion never reaches the declaration: the notNormalLabel jump and the RESUME transfer
             // above it have already left.
             void Completed(string expr)
@@ -145,7 +146,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // execution of the run unit" — and CLAUDE.md rule 1 takes GnuCOBOL's, whose default error handler ends the run
             // unit when the file has no FILE STATUS clause (cobc/codegen.c). A program that wrote a FILE STATUS clause sees
             // the status and carries on; so does one with an applicable USE procedure (`noProcedure` is the C# test that
-            // none ran), and a statement's own ON EXCEPTION phrase covers every family (§2023:14.9.10.4 GR20 c): the early
+            // none ran), and a statement's own ON EXCEPTION phrase covers every family (§2023:14.9.10.4 GR20c: the early
             // return above). The test is on the STATUS VALUE (§2023:9.1.13.1 fatal classes) and the CLAUSE, both fixed per
             // file at compile time, so a program whose files all carry FILE STATUS emits nothing new.
             // ⛔ A SORT/MERGE IMPLICIT TRANSFER (`verbDisposes`) ASKS THE SAME QUESTION (kb/Work PB2700). Each as-if
@@ -203,7 +204,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// <summary>The EC-I-O raise of one statement on one file: the <c>__IoCheckEc</c> call under the statement's mask for
     /// the file and the transfer a declarative's RESUME asks for. Returns the call's id (<c>__ior</c>id). The literals
     /// travel whenever ANY pair for the file carries WITH LOCATION; <c>__locMask</c> decides PER RAISED NAME inside
-    /// <c>__IoCheckEc</c> (§2023:15.32.3 r1 per-condition — kb/Work R06). Item 8's question is asked before the call, under
+    /// <c>__IoCheckEc</c> (§2023:15.32.3 RV1 per-condition — kb/Work R06). Item 8's question is asked before the call, under
     /// the statement's own checking for the raised name, and its ROLLBACK runs after it, before the transfer
     /// (<see cref="Item8Applies"/>; <paramref name="file"/> null is another element's file, whose commit control only
     /// the runtime knows).</summary>
@@ -241,7 +242,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// <item><b>Where it can apply</b> (this method, compile-time facts): never on a SORT/MERGE implicit transfer
     /// (<paramref name="verbDisposes"/>; item 2, <i>"If the executed statement is a MERGE or SORT statement, then the
     /// rules for those statements apply"</i>, so item 8 is never reached), never where the statement's ON EXCEPTION
-    /// phrase processes the condition (item 1; §2023:14.9.10.4 GR20 c)), never on a success arm (no fatal status), and on an
+    /// phrase processes the condition (item 1; §2023:14.9.10.4 GR20c), never on a success arm (no fatal status), and on an
     /// explicit statement only for a keyed file the element's clause names. <paramref name="file"/> null is another
     /// element's file (a refused COMMIT or ROLLBACK, <see cref="EmitForeignFileIoCheck"/>): the runtime decides.</item>
     /// <item><b>The question</b> (<see cref="EmitItem8Question"/>), asked at the RAISE, before any declarative runs:
@@ -330,17 +331,13 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         ctx.Writer.Line($"if ({cond}) {RuntimeApi.TerminateOnUncoveredFatalStatus(key, CsLiteral(verb))};");
     }
 
-    /// <summary>A NOT phrase's body, behind <see cref="UseHookResult.NotPhraseGate"/> when the statement's hook can
+    /// <summary>A NOT phrase's body (rendered by <see cref="ConditionalPhrase.EmitNot"/>), behind <see cref="UseHookResult.NotPhraseGate"/> when the statement's hook can
     /// interrupt a successful completion (kb/Work PB1120) — else the bare list, so a build with no enabled EC-I-O
     /// name emits byte-identical text. It takes the whole <paramref name="hook"/>, never its gate string: a caller
     /// with no hook to pass cannot render a NOT phrase here, so the gate cannot be dropped on the way
     /// (kb/Work PB3237, review round 1).</summary>
-    internal void EmitNotPhrase(UseHookResult hook, IReadOnlyList<BoundStatement> body)
-    {
-        string? gate = hook.NotPhraseGate;
-        if (gate is null) { Statements.EmitStatementList(body); return; }
-        using (ctx.Writer.Block($"if ({gate})")) Statements.EmitStatementList(body);
-    }
+    internal void EmitNotPhrase(UseHookResult hook, IReadOnlyList<BoundStatement> body) =>
+        ConditionalPhrase.EmitNot(ctx.Writer, Statements, body, new NotPhraseCondition(null, ComplementsPhrase: false, hook.NotPhraseGate));
 
 
 
@@ -426,7 +423,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// file-name-1"</i> — and both arms name the element that performs it: a) <i>"identified by the specification
     /// of device-name-1 or the value of literal-1 in the source unit that specifies the OPEN, SORT, or MERGE
     /// statement"</i>, b) <i>"identified by the content of the data item referenced by data-name-1 in the runtime
-    /// element that executes the OPEN, SORT, or MERGE statement"</i>. §2023:13.18.34.4 GR6 b) 1 does the same for the
+    /// element that executes the OPEN, SORT, or MERGE statement"</i>. §2023:13.18.34.4 GR6b 1 does the same for the
     /// LINAGE operands at the completion of an OPEN OUTPUT.</para>
     /// <para><b>Why it cannot be installed on the connector.</b> A file connector is not per-element and not
     /// per-activation: an EXTERNAL one is a single object per run unit shared by every describing element
@@ -516,7 +513,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         EmitRerunRegistration(w, file);          // §1985:VII.2.12.4 GR2 d (kb/Work PB5198)
     }
 
-    /// <summary>The I-O-CONTROL RERUN clause's integer-1 RECORDS form (§1985:VII.2.12.4 GR2 d), told to the connector:
+    /// <summary>The I-O-CONTROL RERUN clause's integer-1 RECORDS form (§1985:VII.2.12.4 GR2d), told to the connector:
     /// the device implementor-name-1 names and the number of records of this file (file-name-2) between rerun points.
     /// Emitted ONLY for a file such a clause names, so every other program's registration is unchanged byte for byte;
     /// reached through <see cref="EmitAreaRegistrations"/>, which every registering arm calls.</summary>
@@ -671,7 +668,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     private string LinageOpExpr(LinageOperand? op, string absent)
     {
         if (op is null) return absent;
-        if (op.Literal is { } lit) return lit.ToString();
+        if (op.Literal is { } lit) return lit.ToString(CultureInfo.InvariantCulture);
         if (op.Item is { } item && places.Of(item) is { } p)
             // The integer landing (a P-scaled or unsigned-wide item by VALUE), then the ONE saturating narrowing
             // (kb/Work PB1033) — a bare `(int)` wrapped a 10-digit LINAGE value back into a small page.
@@ -724,7 +721,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     }
 
     /// <summary>⛔ THE ONE RENDERING OF AN OPEN STATEMENT'S BEING-OPENED SCOPE (kb/Work PB5200), shared by the explicit OPEN and the
-    /// SORT/MERGE implicit opens (§2023:14.9.40.4 GR12 a), GR15 a); §2023:14.9.24.4 GR7 a), GR12 a)): <c>CobolFile.BeginOpen</c>, then
+    /// SORT/MERGE implicit opens (§2023:14.9.40.4 GR12a, GR15 a); §2023:14.9.24.4 GR7a, GR12 a)): <c>CobolFile.BeginOpen</c>, then
     /// a <c>try</c> holding the open, its status store and its USE hook, then <c>CobolFile.EndModeScope</c> in the <c>finally</c> — so a
     /// procedure that transfers control away, or a fatal status that ends the run unit, leaves no mode behind. Dispose it after the
     /// hook is emitted.</summary>
@@ -732,8 +729,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         EmitStatementScope(file, RuntimeApi.FileBeginOpen(FileKeyExpr(file), mode));
 
     /// <summary>⛔ THE ONE CLOSE (kb/Work PB5261, PB5847): every CLOSE the program executes, written or implicit, is this
-    /// sequence — the explicit CLOSE (<see cref="EmitClose"/>), the SORT/MERGE implicit closes (§2023:14.9.40.4 GR12 c),
-    /// GR15 c); §2023:14.9.24.4 GR7 c), GR12 c)) and a program's own implicit CLOSE (<see cref="EmitImplicitClose"/>).
+    /// sequence — the explicit CLOSE (<see cref="EmitClose"/>), the SORT/MERGE implicit closes (§2023:14.9.40.4 GR12c),
+    /// GR15 c); §2023:14.9.24.4 GR7c, GR12 c)) and a program's own implicit CLOSE (<see cref="EmitImplicitClose"/>).
     /// <list type="number">
     /// <item>The CLOSE scope, the OPEN scope's twin: the file stays in the mode it was open in through the CLOSE's own USE
     /// procedure, then in none (§2023:14.9.49.4 GR6 b)–e)).</item>
@@ -788,7 +785,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
 
     /// <summary>⛔ THE ONE rendering of a bound SHARING mode as the runtime <c>FileSharing</c> enum member
     /// (Phase 4d). <c>internal</c> rather than private because the SORT/MERGE implicit opens name a sharing mode
-    /// too — §2023:14.9.40.4 GR12 a)/GR15 a) and §2023:14.9.24.4 GR7 a)/GR12 a) render "as if an OPEN statement with the
+    /// too — §2023:14.9.40.4 GR12a/GR15 a) and §2023:14.9.24.4 GR7a/GR12 a) render "as if an OPEN statement with the
     /// … SHARING WITH READ ONLY / NO OTHER phrase" — and a second copy of this switch is a second place a new
     /// <see cref="SharingMode"/> member could be forgotten (kb/Work PB714).</summary>
     internal static string RuntimeSharing(SharingMode m) => m switch
@@ -851,7 +848,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     // used to guess it from (SHARING clause | LOCK MODE clause | the statement's own lock/RETRY/IGNORING
     // phrases) and routed every unphrased verb on such a connector to the UNGOVERNED entry, which reads a record
     // another connector has locked with '00' where §2023:14.9.30.4 GR9/GR10 b) require the record operation conflict
-    // status '51' — and writing `RETRY 0 TIMES`, a behavioural no-op by §2023:14.7.9.3 GR4 a), flipped the answer.
+    // status '51' — and writing `RETRY 0 TIMES`, a behavioural no-op by §2023:14.7.9.3 GR4a, flipped the answer.
     // Every record verb now renders its GOVERNED runtime entry unconditionally; FileRegistry's
     // `_connectorShares` probe is the ONE place governance is decided, one layer below, where the OPEN's own
     // phrase has already been recorded. The ungoverned entries no longer exist to route to.
@@ -913,8 +910,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         EmitPhrasePair(IoStatusClass.InvalidKey(st), ik.Invalid, ik.NotInvalid, IoStatusClass.Successful(st), hook);
     }
 
-    /// <summary>⛔ THE ONE RENDERING OF AN I-O STATEMENT'S CONDITIONAL-PHRASE / NOT-PHRASE PAIR (kb/Work PB3237,
-    /// PB1120): the phrase runs on <paramref name="phraseCond"/> and the NOT phrase on
+    /// <summary>⛔ AN I-O STATEMENT'S CONDITIONAL-PHRASE / NOT-PHRASE PAIR, rendered by <see cref="ConditionalPhrase"/> (kb/Work PB3238,
+    /// PB3237, PB1120): the phrase runs on <paramref name="phraseCond"/> and the NOT phrase on
     /// <paramref name="successCond"/> AND the <see cref="UseHookResult.NotPhraseGate"/> of the statement's
     /// <paramref name="hook"/> (taken whole, so the gate cannot be dropped or defaulted), because "If a conditional phrase with a NOT phrase is specified in the interrupted
     /// statement, the imperative-statement in that phrase is not executed" once a WHEN phrase or a USE declarative
@@ -923,18 +920,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// both render through it, so a NOT phrase cannot have a gate in one pair and none in the other.</summary>
     internal void EmitPhrasePair(string phraseCond, IReadOnlyList<BoundStatement>? phrase,
         IReadOnlyList<BoundStatement>? notPhrase, string successCond, UseHookResult hook)
-    {
-        var w = ctx.Writer;
-        string success = hook.NotPhraseGate is { } gate ? $"{successCond} && {gate}" : successCond;
-        if (phrase is not null)
-        {
-            using (w.Block($"if ({phraseCond})")) Statements.EmitStatementList(phrase);
-            if (notPhrase is not null)
-                using (w.Block($"else if ({success})")) Statements.EmitStatementList(notPhrase);
-        }
-        else if (notPhrase is not null)
-            using (w.Block($"if ({success})")) Statements.EmitStatementList(notPhrase);
-    }
+        => ConditionalPhrase.EmitPair(ctx.Writer, Statements, phraseCond, phrase, notPhrase,
+            new NotPhraseCondition(successCond, ComplementsPhrase: false, hook.NotPhraseGate));
 
     /// <summary>WRITE record [FROM x] [ADVANCING …] (ISO §2023:14.9.51): a FROM operand first MOVEs into the record area,
     /// then the record's character image is written (plain, or with print-control advancing).</summary>
@@ -942,7 +929,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         var w = ctx.Writer;
         if (wr.Unsupported is { } u) { w.Line(LoudStmt(u)); Debug.LandBeforeIo(); return; }
-        if (wr.FromMove is { } fromMove) move.Emit(fromMove);   // §2023:14.9.51.4 GR5 a) — the BOUND implicit MOVE
+        if (wr.FromMove is { } fromMove) move.Emit(fromMove);   // §2023:14.9.51.4 GR5a — the BOUND implicit MOVE
         Debug.LandBeforeIo();   // X3.23-1985 USE FOR DEBUGGING general rule 5 a / 6 a: after the FROM move, before the I-O (docs/CONTROL_FLOW_DESIGN.md D20)
         string name = FileKeyExpr(wr.File);
         string image = SentRecordImage(wr.File, wr.Record);   // THE ONE record-area channel (kb/Work PB327; D-WRT1, PB1907)
@@ -1072,7 +1059,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// record at its current length (GR13 b)/c)).
     /// <para>⛔ A VARIABLE-LENGTH record-name-1 in a FIXED-length file (D-FRA (vi), <see cref="FileModel.FixedFormRecords"/>)
     /// is the size it occupies in the fixed form — every member at its maximum, <see cref="FileModel.MaxRecordSize"/>
-    /// (the sum §2023:13.18.43.4 GR8 b) states) — never <see cref="RecordLayout.PhysicalWidth"/>, which is only the record's FIXED run:
+    /// (the sum §2023:13.18.43.4 GR8b states) — never <see cref="RecordLayout.PhysicalWidth"/>, which is only the record's FIXED run:
     /// a REWRITE of a record that exactly fills the file's integer-1 bytes was refused '44' as "3 bytes".</para></summary>
     private static string RewriteLengthArg(BoundRewrite rw, string? dependingArg) =>
         dependingArg ?? (rw.File.RecordSizeVaries ? "-1"
@@ -1151,7 +1138,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // EC-I-O-WARNING (§2023:9.1.13.1) and, with it enabled (§2023:7.3.25.4 GR4), a WHEN / USE handles it and the NOT
             // phrase below is not executed (§2023:14.6.13.1.4 2)/3, kb/Work PB1120). OPEN and the keyed verbs already did.
             var hook = EmitUseHook(rd.File, "READ", atEndHandled: rd.AtEnd is not null, successArm: true);
-            // READ … INTO is READ then MOVE THE CURRENT RECORD to the target (ISO §2023:14.9.30.4 GR4 b)) — the
+            // READ … INTO is READ then MOVE THE CURRENT RECORD to the target (ISO §2023:14.9.30.4 GR4b) — the
             // move is BOUND (kb/Work PB348), its sender the record sliced to the §2023:13.18.43.4 GR16 byte count
             // through the ONE builder the keyed READ and the sort RETURN also use (kb/Work PB339).
             // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs; rule 2 b: a READ that
@@ -1174,9 +1161,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         {
             EmitStoreFileStatus(rd.File);
             EmitUseHook(rd.File, "READ", atEndHandled: rd.AtEnd is not null);
-            // The AT END imperative runs ONLY for the at end status class (§2023:14.9.30.4 GR24 c) — "If, during the
+            // The AT END imperative runs ONLY for the at end status class (§2023:14.9.30.4 GR24c) — "If, during the
             // execution of the READ statement, the at end condition exists"); every other unsuccessful status,
-            // GR21's '46' included (a LOGIC ERROR, §2023:9.1.13.7 6)), is §2023:14.9.30.4 GR13's "neither an at end nor an invalid
+            // GR21's '46' included (a LOGIC ERROR, §2023:9.1.13.7 GR6), is §2023:14.9.30.4 GR13's "neither an at end nor an invalid
             // key condition" and reaches a USE declarative through §2023:9.1.12 instead. The determination is on
             // IoStatusClass (kb/Work PB810).
             // X3.23-1985 USE FOR DEBUGGING general rule 2 b: the file-name section runs "after the execution of any READ statement (after any
@@ -1199,7 +1186,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         var w = ctx.Writer;
         if (rw.Unsupported is { } u) { w.Line(LoudStmt(u)); Debug.LandBeforeIo(); return; }
-        if (rw.FromMove is { } fromMove) move.Emit(fromMove);   // §2023:14.9.35.4 GR7 a) — the BOUND implicit MOVE
+        if (rw.FromMove is { } fromMove) move.Emit(fromMove);   // §2023:14.9.35.4 GR7a — the BOUND implicit MOVE
         Debug.LandBeforeIo();   // X3.23-1985 USE FOR DEBUGGING general rule 5 a / 6 a: after the FROM move, before the I-O (docs/CONTROL_FLOW_DESIGN.md D20)
         string image = SentRecordImage(rw.File, rw.Record);   // THE ONE record-area channel (kb/Work PB327; D-WRT1, PB1907)
         // §2023:9.1.16/§2023:14.9.35.4 GR11-GR12 (P10 Step 8): EVERY sequential REWRITE routes through the governed runtime
@@ -1211,7 +1198,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // §2023:14.9.35.4 GR6 — the released record is also available as a record of the other files of a SAME RECORD AREA
         // clause: held in a local so the statement and the store after it see the SAME record (kb/Work PB1195).
         string? released = BeginReleasedRecord(rw.File, rw.Record, ref image);
-        // §2023:14.9.35.4 GR17 c)'s space fill keys on record-name-1's category, carried by the statement (kb/Work PB1191).
+        // §2023:14.9.35.4 GR17c's space fill keys on record-name-1's category, carried by the statement (kb/Work PB1191).
         w.Line($"{RuntimeApi.FileRewriteShared(FileKeyExpr(rw.File), image, rwLenArg, RuntimeRecordLock(rw.Lock), retryKind, retryAmount, OperandText.RecordSendExtents(rw.Record), FileModel.IsNationalRecord(rw.Record.Item), NamedRecordEntry(rw.File, rw.Record, rw.FilePhrase))};");
         EndReleasedRecord(rw.File, rw.Record, released, rwLenArg, RuntimeApi.FileStatus(FileKeyExpr(rw.File)));
         // The §2023:9.1.14 status snapshot for a --permissive INVALID KEY phrase, taken before the status store and
@@ -1315,7 +1302,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// unsuccessfully executed because the records are variable in length because of an OCCURS DEPENDING ON clause
     /// in the record in the associated record description entry and the associated DEPENDING ON item contains a
     /// value that makes the number of bytes in the record exceed the value specified or implied by the file
-    /// description entry"</i> — '34'. The record's byte size at a count <c>n</c> is §2023:13.18.43.4 GR13 c)'s: the fixed
+    /// description entry"</i> — '34'. The record's byte size at a count <c>n</c> is §2023:13.18.43.4 GR13c's: the fixed
     /// portion plus the table at <c>n</c> occurrences (the very arithmetic <see cref="OdoModel.WrapGroup"/> sizes a
     /// group operand by, bit-granular when the subtree holds a USAGE BIT leaf), and "the value specified or
     /// implied by the file description entry" is the file's maximum record size (<see cref="FileModel.VaryMax"/>
@@ -1333,7 +1320,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     internal string? OdoRecordExceedsMaximum(FileModel file)
     {
         // ⛔ EDITION (kb/Work PB5811): the rule is 2023's alone — the 1985, 2002 and 2014 permanent-error lists have no such
-        // condition (cite.py --find over each edition: the text is only in §2023:9.1.13.6 4) b)), and §1985:IX.4.5.4 GR18 makes a
+        // condition (cite.py --find over each edition: the text is only in §2023:9.1.13.6 GR4b), and §1985:IX.4.5.4 GR18 makes a
         // READ of a record longer than the file's maximum successful. An older edition's READ is plain success.
         if (ctx.Data.DialectLevel < 2023) return null;
         if (file.Records.Count != 1) return null;
@@ -1396,7 +1383,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// (<c>PlaceTable.RecordArea</c>, the widest record's view over the one shared backing,
     /// §2023:13.18.33.4 GR3), whose leading positions ARE record-name-1. The runtime's <c>Stored</c> then cuts it to the
     /// transferred length or pads it past the backing with spaces, unchanged. The FROM phrase needs no case of its
-    /// own: its implicit MOVE into record-name-1 has already run when this is asked (§2023:14.9.51.4 GR5 a)).</summary>
+    /// own: its implicit MOVE into record-name-1 has already run when this is asked (§2023:14.9.51.4 GR5a).</summary>
     internal string SentRecordImage(FileModel file, Place record) =>
         file.TransfersPastRecord(record.Item) && RecordAreaSendImage(file) is { } area
             ? area
@@ -1501,7 +1488,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         }
         // ⛔ AN ELEMENTARY RECORD AREA DECODES ITS STORAGE BYTES (kb/Work PB1556) — the receiving inverse of
         // OperandText.RecordAreaImage, arm for arm, through THE ONE elementary storage-area store: a record
-        // description entry may be a single elementary item of ANY usage, and §2023:14.9.30.4 GR13 c) / §2023:14.9.34.4
+        // description entry may be a single elementary item of ANY usage, and §2023:14.9.30.4 GR13c / §2023:14.9.34.4
         // GR3 make the record "available in the record area" — its bytes, whatever the item's representation.
         // The area is fitted to the record's BYTE extent (§2023:14.9.30.4 GR14/GR15 measure a record in bytes).
         // ⛔ A NATIONAL record area is NOT fitted first (kb/Work PB327): NatReadWindow fills a position the image

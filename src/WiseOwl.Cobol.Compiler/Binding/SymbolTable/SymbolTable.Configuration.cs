@@ -47,7 +47,7 @@ public sealed partial class SymbolTable
         public IEnumerable<string> Names => _entries.Keys.Select(static k => k.Word);
 
         /// <summary>The inherited names with their containment distances: the tier a same-spelled name declared in a NEARER
-        /// source element hides them at (§2023:8.4.6.2.1 3)).</summary>
+        /// source element hides them at (§2023:8.4.6.2.1 GR3).</summary>
         public IEnumerable<KeyValuePair<string, int>> InheritedDepths =>
             _inherited.Select(static p => KeyValuePair.Create(p.Key.Word, p.Value));
 
@@ -69,7 +69,7 @@ public sealed partial class SymbolTable
         public NameDeclaration<T>? DeclarationOf(CobolName name) => _entries.GetValueOrDefault(name);
 
         /// <summary>-1 when the name is not declared, 0 when THIS source element declares it, n when only the n-th containing
-        /// element did (§2023:8.4.6.2.1 3)).</summary>
+        /// element did (§2023:8.4.6.2.1 GR3).</summary>
         public int ContainmentDepth(CobolName name) => !_entries.ContainsKey(name) ? -1 : _inherited.GetValueOrDefault(name);
 
         /// <summary>Take every entry of a CONTAINING element's table this one does not declare (§2023:12.3.4 GR1), each one level
@@ -237,7 +237,7 @@ public sealed partial class SymbolTable
     internal bool IsLocaleAlphabet(string name) =>
         _alphabets.Of(Key(name)) is { Locale: not null } || _nationalAlphabets.Of(Key(name)) is { Locale: not null };
 
-    /// <summary>The containment tier of the switch-status condition-name <paramref name="name"/> (§2023:8.4.6.2.1 3)): -1 when it
+    /// <summary>The containment tier of the switch-status condition-name <paramref name="name"/> (§2023:8.4.6.2.1 GR3): -1 when it
     /// is not declared, 0 when this element declares it, n when only the n-th containing element did.</summary>
     internal int SwitchConditionDepth(string name) => _switchConditions.ContainmentDepth(Key(name));
 
@@ -273,7 +273,7 @@ public sealed partial class SymbolTable
     internal bool HidesSymbolic(string word) => _hiddenSymbolics.Contains(Key(word));
 
     /// <summary>Hides each inherited symbolic-character that a declaration in a source element NEARER than its container hides
-    /// (<paramref name="declaredNearerThan"/>: the name and the container's distance; §2023:8.4.6.2.1 3) a)). <see cref="InheritStep"/>
+    /// (<paramref name="declaredNearerThan"/>: the name and the container's distance; §2023:8.4.6.2.1 GR3a). <see cref="InheritStep"/>
     /// only.</summary>
     internal void HideShadowedSymbolics(Func<string, int, bool> declaredNearerThan)
     {

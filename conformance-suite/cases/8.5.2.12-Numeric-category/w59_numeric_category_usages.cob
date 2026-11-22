@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:8.5.2.12 item 2 (kb/Work R43 / PB579, the LIVE part of GR-8.5.2.12-2): an elementary data item
+      *> ISO §2023:8.5.2.12 GR2 (kb/Work R43 / PB579, the LIVE part of GR-8.5.2.12-2): an elementary data item
       *> described with one of the usages "binary-char, binary-short, binary-long, binary-double, float-short,
       *> float-long, float-extended, float-binary-32, float-binary-64, float-binary-128, float-decimal-16, or
       *> float-decimal-34" is of CATEGORY NUMERIC. FLOAT-BINARY-128 and FLOAT-DECIMAL-16/-34 are not provided

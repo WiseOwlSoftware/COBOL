@@ -210,7 +210,7 @@ public sealed class ReportLineRefusalConformanceTests
         Assert.Equal(Host("A1B{nl}{nl}AéB{nl}"), Encoding.Latin1.GetString(bytes!));
     }
 
-    /// <summary>The same silence on a medium the host reports full ('34', §2023:9.1.13.6 item 3): Linux's
+    /// <summary>The same silence on a medium the host reports full ('34', §2023:9.1.13.6 GR3): Linux's
     /// <c>/dev/full</c> refuses every write with ENOSPC. The writer buffers, so the refusal surfaces on a LATER line's
     /// write (the 68th plain record in GnuCOBOL), and the report statements that meet it answer the program
     /// nothing: FILE STATUS '00' and no USE procedure after the whole run of GENERATEs and after TERMINATE. (CLOSE is

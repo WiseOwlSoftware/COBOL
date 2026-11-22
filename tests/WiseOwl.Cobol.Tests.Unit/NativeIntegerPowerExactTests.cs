@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// arbitrary-precision oracle independent of the wide form.
 /// <para>The bases 0, 1 and -1 return at once whatever the exponent (kb/Work PB2632): <c>B ** 999999999999999999</c> is a
 /// constant, and a regression is a test run that does not return, which the gate's test-host timeout reports (a wall-clock
-/// assertion in the test itself is forbidden). The §2023:8.8.1.2 rule 6 screen is unchanged: <c>0 ** 0</c> and a zero base with a
+/// assertion in the test itself is forbidden). The §2023:8.8.1.2 GR6 screen is unchanged: <c>0 ** 0</c> and a zero base with a
 /// negative exponent are EC-SIZE-EXPONENTIATION.</para>
 /// </summary>
 public sealed class NativeIntegerPowerExactTests
@@ -112,7 +112,7 @@ public sealed class NativeIntegerPowerExactTests
         Assert.InRange(Pow(Int128.MinValue, 3).ToDouble() / expected, 1 - 1e-12, 1 + 1e-12);
     }
 
-    /// <summary>§2023:8.8.1.5.4 r3's reciprocal: 3 ** -1 is 1 / 3 to the SDIDI's 34 digits where the former double fallback kept 16.</summary>
+    /// <summary>§2023:8.8.1.5.4 GR3's reciprocal: 3 ** -1 is 1 / 3 to the SDIDI's 34 digits where the former double fallback kept 16.</summary>
     [Fact]
     public void ANegativeExponent_IsTheSdidiReciprocal_To34Digits()
     {

@@ -30,7 +30,7 @@ internal static class PlaceRenderer
     /// GR7's "current number of occurrences"), a RECORD VARYING DEPENDING length, a report DEPENDING count — as the
     /// <c>long</c> the runtime positions by. A numeric item reads through its OWN profile
     /// (<c>CobolTable.Occ(x, _P_n)</c>): the count is a numeric SENDING item referenced during item identification,
-    /// so §2023:14.6.13.2 rule 2's EC-DATA-INCOMPATIBLE check applies to a count stored as its character image exactly
+    /// so §2023:14.6.13.2 GR2's EC-DATA-INCOMPATIBLE check applies to a count stored as its character image exactly
     /// as it does to a subscript (kb/Work PB1117 — the profile-less read decoded that image through a tolerant
     /// digit scan, so the condition was unreachable and a signed image's sign was dropped). Every emitter that
     /// needs a count calls THIS, never <c>RuntimeApi.TableOcc(Read(p), …)</c> by hand.</summary>
@@ -88,7 +88,7 @@ internal static class PlaceRenderer
         OdoGroupPlace o => Read(o.Inner),
         // ⛔ A DYNAMIC-LENGTH LINKAGE item is read through a description that does not own its storage (kb/Work
         // PB1118): §2023:14.2.3 GR8 makes a formal occupy "the same storage area as the argument", which the caller wrote
-        // through ITS DYNAMIC LENGTH clause, so §2023:14.6.13.2 rule 5's agreement with THIS one is asked at every sending
+        // through ITS DYNAMIC LENGTH clause, so §2023:14.6.13.2 GR5's agreement with THIS one is asked at every sending
         // read. Every other dynamic-length item was stored only through its own description, whose store truncates
         // to the maximum, so it always agrees and renders the plain field (no scaffolding).
         MemberPlace m when ReadsForeignDynamicLength(m.Item) =>
@@ -124,7 +124,7 @@ internal static class PlaceRenderer
             v.ViewItem.ElementType, v.ViewItem.Pic!.DefaultInitializer),
         // A DYNAMIC-LENGTH member of a cell-backed class (kb/Work PB1026): its content rides the cell's dynamic
         // slot (§2023:8.5.1.10.3 — "located elsewhere"), so every description sharing the cell reads the same content —
-        // and any of them may have written it, so the read asks §2023:14.6.13.2 rule 5's agreement with THIS member's
+        // and any of them may have written it, so the read asks §2023:14.6.13.2 GR5's agreement with THIS member's
         // DYNAMIC LENGTH clause (kb/Work PB1118: an EXTERNAL record described LIMIT 20 in one program and LIMIT 5 in
         // another).
         RedefViewPlace { Coding: DynSlotWindow d } v => RuntimeApi.DynAgree(
@@ -880,7 +880,7 @@ internal static class PlaceRenderer
                     $"(int)({PositionRenderer.Render(v.Offset)})", v.Width, PositionRenderer.Render(g.DynBase), g.DynFixedAt, g.DynTable, g.Odo, CellOdoCount(odo), g.DynElem, byReference),   // kb/Work PB1026, PB1042, PB2496, PB2690
             _ when odo is null || inner.Undecorated is RedefViewPlace { Coding: VarGroupWindow } || !inner.Item.CurrentExtentImageCapable =>
                 EmitText.LoudValue(RuntimeApi.VarGroupType, TierCIsland.Reason(inner.Item, context)),
-            // A STATEMENT's read asks a LINKAGE dynamic-length member to agree with its clause (§2023:14.6.13.2 rule 5,
+            // A STATEMENT's read asks a LINKAGE dynamic-length member to agree with its clause (§2023:14.6.13.2 GR5,
             // kb/Work PB1937); the boundary's own copy-out references nothing, so it passes no flag.
             _ => $"{Read(inner)}.AsVarImage({string.Join(", ", new[] { odo, maximum ? "" : "true", byReference ? "__byReference: true" : "" }.Where(a => a.Length > 0))})",
         };
@@ -926,7 +926,7 @@ internal static class PlaceRenderer
     /// <param name="formalStorage">True for the COPY-IN of a LINKAGE formal (§2023:14.2.3 GR8: the formal "occupies the
     /// same storage area as the argument"): a dynamic-length member keeps the argument's WHOLE content even when
     /// its own LIMIT is smaller, and a read through the formal's description then agrees with that LIMIT
-    /// (§2023:14.6.13.2 rule 5; kb/Work PB1937). Every other store — the copy-back into the caller's own item, a MOVE
+    /// (§2023:14.6.13.2 GR5; kb/Work PB1937). Every other store — the copy-back into the caller's own item, a MOVE
     /// receiver — is a store through the receiving description and truncates (§2023:8.5.1.10.4).</param>
     /// <param name="receivingOperand">True for a STATEMENT's receiving operand (the MOVE, §2023:14.9.25.4 GR9): an OCCURS
     /// DEPENDING table it holds is then used only to its CURRENT count when the DEPENDING item lies outside the group
@@ -1137,7 +1137,7 @@ internal static class PlaceRenderer
     /// <para>Three readers used to spell this dispatch, and one of them did not (kb/Work PB944's sibling sweep):
     /// <c>OperandText.FieldAsString</c> had the bit and national arms, while <c>NumericRenderer.FieldNumCore</c>
     /// decoded EVERY group through the alphanumeric image — so <c>MOVE NG TO PIC 9(3)</c> over a GROUP-USAGE
-    /// NATIONAL group holding N"12" decoded the UTF-16BE BYTES 00 31 00 32 as digits, where §2023:14.9.25.4 GR6 d) 3
+    /// NATIONAL group holding N"12" decoded the UTF-16BE BYTES 00 31 00 32 as digits, where §2023:14.9.25.4 GR6d 3
     /// treats a national sender "as if it were an unsigned integer" of its character positions — and the
     /// GR1 zero-length-item test in <c>MoveEmitter</c> read a national group's STRUCT <c>.Length</c> (CS1061).</para></summary>
     /// <param name="transfer">True for a ONE-WAY consumer of the alphanumeric arm (the digit decode of a group in a numeric
@@ -1292,7 +1292,7 @@ internal static class PlaceRenderer
     /// quantity a read of <c>G (n:m)</c> measures its leftmost position against, because the read slices the SENDING
     /// string (<see cref="SendingGroupValue"/>), whose length is exactly this: bit positions for a bit group
     /// (<see cref="LengthExpr"/>), national positions for a national group (<see cref="NatLengthExpr"/>), character
-    /// positions of the storage image otherwise (<see cref="CharLengthExpr"/>). §2023:8.4.3.3.4 5) tests a position against
+    /// positions of the storage image otherwise (<see cref="CharLengthExpr"/>). §2023:8.4.3.3.4 GR5 tests a position against
     /// "the area of identifier-1", and §2023:13.18.38.4 GR8 makes that area the group's current extent (kb/Work PB1969).
     /// The three arms are the three channels <see cref="SendingGroupValue"/> chooses between, so an operand that needs
     /// the SIZE and not the string — ADDRESS OF — cannot disagree with the read.</summary>
@@ -1301,7 +1301,7 @@ internal static class PlaceRenderer
         : p.Item.GroupUsage is GroupUsage.Bit ? LengthExpr(p)
         : NatLengthExpr(p);
 
-    /// <summary>⛔ THE C# <c>int</c> EXPRESSION OF A SLICE'S EVALUATED LENGTH — §2023:8.4.3.3.4 GR5 c): the specified length,
+    /// <summary>⛔ THE C# <c>int</c> EXPRESSION OF A SLICE'S EVALUATED LENGTH — §2023:8.4.3.3.4 GR5c: the specified length,
     /// through the ONE saturating narrowing of a reference modifier's length (kb/Work PB1033), or for the omitted form
     /// "up to and including the rightmost position of the data item referenced by identifier-1" from the leftmost one,
     /// computed in <c>long</c> so a saturated start cannot overflow it and floored at zero (the slice's own read or write
@@ -1309,7 +1309,7 @@ internal static class PlaceRenderer
     /// its static count (<see cref="RefModPlace.StaticInnerPositions"/>: a SIGN SEPARATE position and a bit group's
     /// as-if positions included) or, for an item whose length is a run-time value, its current one: a
     /// DYNAMIC LENGTH item's (§2023:8.5.1.10.4 "is treated as a fixed-length data item whose length is the dynamic-length
-    /// elementary item's current length") and an ANY LENGTH item's, its argument's (§2023:13.18.2.4 GR1 b)), both the length
+    /// elementary item's current length") and an ANY LENGTH item's, its argument's (§2023:13.18.2.4 GR1b), both the length
     /// of the read (the ANY LENGTH width idiom, <c>ReceivingStore.AnyLengthWidth</c>). The ACCEPT transfer and a CALL /
     /// INVOKE argument's area extent both take it, so the two cannot measure one slice two ways (kb/Work PB3128: ACCEPT
     /// re-spelled identifier-1's positions as its PICTURE length, one position for both run-time-length shapes and one
@@ -1348,7 +1348,7 @@ internal static class PlaceRenderer
 
     /// <summary>True for an elementary DYNAMIC-LENGTH item described in the LINKAGE SECTION — whose storage the
     /// activating element owns and wrote through its own DYNAMIC LENGTH clause (ISO §2023:14.2.3 GR8), so a sending read
-    /// asks §2023:14.6.13.2 rule 5's agreement (kb/Work PB1118). A dynamic-length item cannot be BASED (§2023:13.18.5.3 SR2)
+    /// asks §2023:14.6.13.2 GR5's agreement (kb/Work PB1118). A dynamic-length item cannot be BASED (§2023:13.18.5.3 SR2)
     /// or redefined (§2023:13.18.44.3 SR17), so a LINKAGE one is a formal parameter's storage; the cell-backed twin is
     /// the <c>DynSlotWindow</c> read arm.</summary>
     private static bool ReadsForeignDynamicLength(DataItem item) =>

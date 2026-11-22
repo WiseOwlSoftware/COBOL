@@ -11,9 +11,9 @@ namespace WiseOwl.Cobol.Runtime;
 /// The aligned forms (<c>MaxScaled</c> and siblings) receive arguments pre-widened to the common scale, and
 /// that widening wrapped silently past the Int128 intermediate: <c>FUNCTION MIN(BIGV SMLV)</c> over a
 /// <c>PIC 9(24)</c> and a <c>PIC 9V9(15)</c> — 39 aligned digits — returned a NEGATIVE value, the content of
-/// NO argument (§2023:15.63.4 r1 is violated on its face). Selection needs no alignment at all: the §2023:8.8.4.2
+/// NO argument (§2023:15.63.4 RV1 is violated on its face). Selection needs no alignment at all: the §2023:8.8.4.2
 /// comparison is <see cref="CobolNum.Compare"/>'s exact non-widening compare, the tie keeps the LEFTMOST
-/// argument (§2023:15.59.4 r2 / §2023:15.63.4 r2, first-ordinal for §2023:15.71.4/§2023:15.72.4), and only the ONE selected
+/// argument (§2023:15.59.4 RV2 / §2023:15.63.4 RV2, first-ordinal for §2023:15.71.4/§2023:15.72.4), and only the ONE selected
 /// value rescales to the caller's scale — through <see cref="CobolNum.RescaleEscape"/>, so a result that
 /// genuinely cannot be represented at that scale inside the intermediate is the size-error condition, never
 /// a wrap. The aligned forms remain for all-fitting argument lists (the emitter's capacity choice); the

@@ -28,7 +28,7 @@
       *>     new value of the horizontal counter"  -> OK  9)
       *> Page fit (§2023:13.18.35.4 GR4c): every fit below has the same outcome whether the trial sum adds the
       *> first LINE clause's integer-2 or not, so the derivation does not lean on that reading. The first
-      *> body group on a page lands on FIRST DETAIL (§2023:13.18.35.4 GR5b3).
+      *> body group on a page lands on FIRST DETAIL (§2023:13.18.35.4 GR5b.3).
       *>
       *> WHY EACH LEG CAN FAIL. DA and DB are two detail groups; each has its own condition, so a GENERATE
       *> of one neither reads nor consumes the other's (a report-wide flag prints DB's first line without

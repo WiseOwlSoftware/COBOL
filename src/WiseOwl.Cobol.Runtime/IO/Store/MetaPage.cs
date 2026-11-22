@@ -26,7 +26,7 @@ internal enum StoreFormat
 
     /// <summary>A paged store (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4) one of whose three meta pages
     /// carries this format's magic but neither COMMITTED slot validates: the store's own format, damaged beyond what it
-    /// can repair. It is not a fixed-attribute conflict ('39'); the adoption rule answers it with §2023:9.1.13.6 item 1's
+    /// can repair. It is not a fixed-attribute conflict ('39'); the adoption rule answers it with §2023:9.1.13.6 GR1's
     /// '30' (2.2.1.6 R6 step 1).</summary>
     Damaged,
 
@@ -260,7 +260,7 @@ internal sealed record MetaPage(
     /// adoption rule's '30'), a committed message store is <see cref="StoreFormat.Message"/>, and anything else is
     /// <see cref="StoreFormat.Foreign"/> ('39') — a whole-store file of format 5 included.
     /// <para>An I/O failure answers <see cref="StoreFormat.Empty"/>, never a conflict: this bounded read is bookkeeping,
-    /// and the authority questions (§2023:14.9.27.4 GR3's '37', §2023:9.1.13.6 item 1's '30') are answered in ONE place each — by
+    /// and the authority questions (§2023:14.9.27.4 GR3's '37', §2023:9.1.13.6 GR1's '30') are answered in ONE place each — by
     /// the connector's own handle, <c>HostFile.Probe</c> and <c>FileConnector.Open</c>'s catch — never by guessing
     /// here.</para></summary>
     public static StoreFormat Describes(string path, out FixedFileAttributes? attributes)

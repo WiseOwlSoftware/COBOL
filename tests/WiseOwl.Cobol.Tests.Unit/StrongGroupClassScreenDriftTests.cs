@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A RULE WORDED "AN ALPHANUMERIC (OR NATIONAL) DATA ITEM" ASKS THE CATEGORY READER, NEVER THE CLASS LATTICE'S
 /// ALPHANUMERIC ANSWER (kb/Work PB3355). <c>IntrinsicArgumentRules.ClassOfItem</c> answers ALPHANUMERIC for a
-/// strongly-typed group because ISO §2023:15.3 item 2 says a function ARGUMENT is treated so; §2023:8.5.2.1 makes the class and
+/// strongly-typed group because ISO §2023:15.3 AR2 says a function ARGUMENT is treated so; §2023:8.5.2.1 makes the class and
 /// category of the group its type-name everywhere else. CALL's and CANCEL's identifier-1 (§2023:14.9.4.3 SR1, §2023:14.9.5.3
 /// SR1) and the report CODE clause's identifier-1 (§2023:13.18.12.3 SR2) asked the lattice and accepted the group, which
 /// the call then read as a program-name; the EVALUATE range's same-class rule (§2023:14.9.13.3 SR4) compared the two

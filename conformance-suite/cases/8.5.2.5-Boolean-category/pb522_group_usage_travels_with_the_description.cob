@@ -16,7 +16,7 @@
       *> onto the subject, confirms. §2023:13.18.58.4 GR1 reproduces a type declaration's subordinate entries whole,
       *> so a GROUP-USAGE clause written on a group NESTED inside a TYPEDEF travels too.
       *>
-      *> EXPECTED VALUES, DERIVED — never measured. §2023:8.5.2.5 item 3 / §2023:8.5.2.10 item 3 make a group "explicitly
+      *> EXPECTED VALUES, DERIVED — never measured. §2023:8.5.2.5 GR3 / §2023:8.5.2.10 GR3 make a group "explicitly
       *> or implicitly described with a GROUP-USAGE clause with the BIT [NATIONAL] phrase" of category boolean
       *> [national], and §2023:15.50.4 then fixes the UNIT the LENGTH function counts in:
       *>   r1) a BIT GROUP item -> boolean positions;

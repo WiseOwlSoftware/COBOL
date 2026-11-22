@@ -77,8 +77,8 @@ public sealed class ExceptionCheckingFlagsDriftTests
 
     /// <summary>kb/Work PB2745 — the AMBIENT STATEMENT CONTEXT has the flags' scope because it is part of the same value:
     /// a checking baseline (an activation, a USE procedure, a PERFORMed range) starts with no context, so a raise there
-    /// answers §2023:15.32.3 r1's spaces rather than the activating statement's name, and the restore brings the activating
-    /// statement's context back. ISO §2023:15.32.3 r2 (cite.py OK): "the name of the statement that caused the exception
+    /// answers §2023:15.32.3 RV1's spaces rather than the activating statement's name, and the restore brings the activating
+    /// statement's context back. ISO §2023:15.32.3 RV2 (cite.py OK): "the name of the statement that caused the exception
     /// condition to be raised".</summary>
     [Fact]
     public void PushAllCheckingOff_ClearsTheStatementContext_AndRestoreBringsItBack()

@@ -69,7 +69,7 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>Alphanumeric or national arguments under the program collating sequence: the native one
-    /// (<see cref="CobolString.Compare"/>, §2023:8.8.4.2.7 r2's space padding) when <paramref name="collation"/> is null,
+    /// (<see cref="CobolString.Compare"/>, §2023:8.8.4.2.7 GR2's space padding) when <paramref name="collation"/> is null,
     /// else the alphanumeric or national PCS the emitter passes (CA23).</summary>
     internal readonly struct StringOrder(string[] xs, CobolCollation? collation) : ISelectionOrder
     {

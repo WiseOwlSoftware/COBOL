@@ -16,7 +16,7 @@
       *>   character by character on the right until the size of the
       *>   resultant string is greater than or equal to the number of
       *>   character positions in the associated data item".
-      *> - §1985:VI.6.19.4 GR4b3: "data is moved as if the sending
+      *> - §1985:VI.6.19.4 GR4b.3: "data is moved as if the sending
       *>   operand were described as an unsigned numeric integer", and
       *>   GR4b: "alignment by decimal point and any necessary zero
       *>   filling takes place".

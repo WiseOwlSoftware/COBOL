@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB178. FUNCTION CONVERT's ANY source format over a Tier-B REDEFINES group VIEW.
       *>
-      *> §2023:15.19.3 r7: "When the source-format is ANY, argument-1 shall be of any usage, except index,
+      *> §2023:15.19.3 AR7: "When the source-format is ANY, argument-1 shall be of any usage, except index,
       *> message-tag, object reference, pointer, function-pointer or program-pointer. It is not necessary for
       *> the contents to be valid according to the usage" — the exclusion list is keyed on USAGE and names only
       *> the address/index shapes, so a GROUP is legal argument-1 and r7 asks for its RAW STORAGE.

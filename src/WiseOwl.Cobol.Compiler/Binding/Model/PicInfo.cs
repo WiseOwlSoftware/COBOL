@@ -514,7 +514,7 @@ public sealed record PicInfo(
     /// <summary>PICTURE format 2 — the LOCALE phrase (ISO §2023:13.18.40.2; kb/Work PB64 T6): the item is fixed-point
     /// numeric-edited (§2023:13.18.40.4 GR16) whose length is the SIZE phrase's integer-1 (GR17 — <see cref="Length"/>
     /// carries it; the picture contributes only the digit shape), whose editing/de-editing is the named-else-current
-    /// locale's LC_MONETARY at each use (§2023:13.18.40.5 r9–r15 — <c>CobolLocaleEdit</c>), and whose
+    /// locale's LC_MONETARY at each use (§2023:13.18.40.5 GR9–r15 — <c>CobolLocaleEdit</c>), and whose
     /// <see cref="EditMask"/> is NULL (there is no fixed mask — the currency string, separators and sign are
     /// runtime locale data). ⛔ Like <see cref="IsFloatEdited"/>, every edited store / read dispatches on THIS
     /// property inside the runtime entry helpers (<c>RuntimeApi.EditFormatFor</c> / <c>EditTryFormatFor</c> /
@@ -568,7 +568,7 @@ public sealed record PicInfo(
     public PictureClauseIdentity? Clause { get; init; }
 
     /// <summary>⛔ THE DECIMAL-POINT MODE BELONGS TO THE ITEM, NOT TO THE UNIT THAT HAPPENS TO EMIT IT
-    /// (kb/Work PB2554). ISO §2023:12.3.7.4 GR14 b) makes the comma the decimal separator in a PICTURE character-string
+    /// (kb/Work PB2554). ISO §2023:12.3.7.4 GR14b makes the comma the decimal separator in a PICTURE character-string
     /// and in an edited item "for the basic format of the PICTURE clause" — a property of the source element
     /// that DESCRIBES the item (§2023:12.3.4 GR1 hands it to a CONTAINED unit only), so a separately compiled
     /// class under DECIMAL-POINT IS COMMA keeps it for its formals no matter which unit INVOKEs them. Every editing,
@@ -657,7 +657,7 @@ public sealed record PicInfo(
     /// <summary>True for a class-numeric, fixed-point description whose scale is exactly zero — an integer with no
     /// symbol 'P' and no digit position to the right of the radix point, the shape "an elementary numeric integer data
     /// item without the symbol P" asks of a STRING / UNSTRING POINTER, COUNT IN and TALLYING item (§2023:14.9.43.3 SR7,
-    /// §2023:14.9.48.3 SR5–SR6). ⛔ NOT the bare "integer" of a syntax rule (§2023:13.18.38.3 SR17, §2023:13.18.43.3 SR6): §2023:5.5 2) b)
+    /// §2023:14.9.48.3 SR5–SR6). ⛔ NOT the bare "integer" of a syntax rule (§2023:13.18.38.3 SR17, §2023:13.18.43.3 SR6): §2023:5.5 SR2b
     /// 2. admits a trailing-P description there, and that is <see cref="IsIntegerDescription"/>.
     /// ⛔ NEVER WRITTEN AS <c>Pic is { Category: Numeric, IsFloat: false, Scale: 0 }</c>: that pattern admits USAGE INDEX,
     /// whose storage profile is category Numeric at scale 0 (see <see cref="IsClassNumericFixedPoint"/>), so an index data
@@ -794,7 +794,7 @@ public sealed record PicInfo(
     /// mask arm too, and what it answers is a WORKING-SCALE HINT, not a decimal point location: the item has no fixed
     /// scale (its <see cref="Scale"/> is 0), its value is a significand at its own exponent, and the hint only sizes an
     /// intermediate's landing (<see cref="WiseOwl.Cobol.CodeGen.ReceiverContext.FloatEdited"/>). A rule that needs the item's
-    /// SHAPE - DIVIDE ... REMAINDER's subsidiary quotient, §2023:14.9.12.4 6) c) - asks the form first
+    /// SHAPE - DIVIDE ... REMAINDER's subsidiary quotient, §2023:14.9.12.4 GR6c - asks the form first
     /// (<c>ArithmeticEmitter.SubsidiaryShapeOf</c>), never this scale (kb/Work PB2923).</summary>
     public int ReceiverScale() =>
         LocaleEdit is not null ? Scale

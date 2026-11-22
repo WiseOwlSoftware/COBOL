@@ -37,7 +37,7 @@ public enum DeviceCapability
 }
 
 /// <summary>How a feature-name positions the printed page when its mnemonic is the ADVANCING operand of a WRITE
-/// (§2023:14.9.51.4 GR25 d): "<i>the representation of the printed page is advanced according to the rules specified
+/// (§2023:14.9.51.4 GR25d): "<i>the representation of the printed page is advanced according to the rules specified
 /// by the implementor for that hardware device.</i>"</summary>
 public enum FeatureAdvance
 {

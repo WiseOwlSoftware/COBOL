@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Cli;
 /// <paramref name="Permissive"/>: every edition grants the identical latitude. Defaults to
 /// <see cref="WiseOwl.Cobol.Runtime.SignEncoding.Ibm"/> — IBM / Micro Focus compatibility.</param>
 /// <param name="SourceFormat">The reference format the source starts in (<c>--source-format</c>; kb/Work PB1362):
-/// fixed form, ISO §2023:7.3.24.3 2)'s default, unless <c>free</c> or <c>auto</c> is selected.</param>
+/// fixed form, ISO §2023:7.3.24.3 GR2's default, unless <c>free</c> or <c>auto</c> is selected.</param>
 /// <param name="FlagExtensions">The §2023:4.2.10 warning mechanism (<c>--flag-extensions</c>; kb/Work PB1525): name every
 /// use of a nonstandard extension in the compilation group with a COBOL2894 warning.</param>
 /// <param name="NumericDisplay">The form DISPLAY gives a numeric operand (<c>--numeric-display</c>; kb/Work PB3505,

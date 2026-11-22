@@ -13,16 +13,16 @@
       *> A zero-length operand is legal here and its result is DEFINED, not diagnosed: §2023:8.3.3.1 makes
       *> `""` a zero-length literal ("If the opening and closing delimiters are contiguous, the length
       *> of the literal is zero, and it is known as a zero-length literal"), §2023:15.37.3 states no
-      *> prohibition on one — unlike §2023:15.59.3 r3, §2023:15.63.3 r3, §2023:15.66.3 r3, §2023:15.71.3 r2 and §2023:15.72.3 r2,
-      *> which each read "Argument-1 shall not be a zero-length literal.", and §2023:15.85.3 r4, which reads
+      *> prohibition on one — unlike §2023:15.59.3 AR3, §2023:15.63.3 AR3, §2023:15.66.3 AR3, §2023:15.71.3 AR2 and §2023:15.72.3 AR2,
+      *> which each read "Argument-1 shall not be a zero-length literal.", and §2023:15.85.3 AR4, which reads
       *> "Neither argument-1 nor argument-2 shall be a zero-length literal." — and r5 gives the answer.
       *> So every Z line below must COMPILE and return zero.
       *>
-      *> r5's subject is "argument-1 or argument-2", which §2023:15.37.3 r1 defines as "a data item or
+      *> r5's subject is "argument-1 or argument-2", which §2023:15.37.3 AR1 defines as "a data item or
       *> literal", and §2023:8.5.4 (Zero-length items) lists nine ways to BE one — eight of them DATA
       *> ITEMS, whose length is a RUN-TIME fact rather than a compile-time constant. A file of
       *> zero-length LITERALS alone would leave that whole half unreached, so three species are
-      *> written: the zero-length literal (§2023:8.5.4 item 8 — Z1..Z6), a group containing only an
+      *> written: the zero-length literal (§2023:8.5.4 GR8 — Z1..Z6), a group containing only an
       *> occurs-depending table whose current number of occurrences is zero (item 1 — ZG1/ZG2, whose
       *> extent is set at run time by MOVE 0 TO ZN), and a reference-modified item that has resolved
       *> to a length of zero under >>REF-MOD-ZERO-LENGTH (item 9 — ZR1/ZR2).
@@ -56,7 +56,7 @@
        01 P  PIC 9(4).
        PROCEDURE DIVISION.
        MAIN.
-      *> The population guard — these are NOT zero-length, so §2023:15.37.4 r1 applies: "BC" first at 2,
+      *> The population guard — these are NOT zero-length, so §2023:15.37.4 RV1 applies: "BC" first at 2,
       *> and the national "ABC" first at 1.
            MOVE FUNCTION FIND-STRING(H "BC") TO P.
            DISPLAY "CTRL=" P.
@@ -82,7 +82,7 @@
            DISPLAY "Z5=" P.
            MOVE FUNCTION FIND-STRING(N"" NN) TO P.
            DISPLAY "Z6=" P.
-      *> r5 over a zero-length DATA ITEM (§2023:8.5.4 item 1: a group containing only an occurs-depending
+      *> r5 over a zero-length DATA ITEM (§2023:8.5.4 GR1: a group containing only an occurs-depending
       *> table with zero occurrences). ZGCTRL first reads the SAME group at its full extent — the
       *> three characters "ABC", in which "BC" starts at 2 — so the two zero answers below are known
       *> to come from the extent going to zero and not from the group never being read at all.
@@ -97,7 +97,7 @@
            DISPLAY "ZG1=" P.
            MOVE FUNCTION FIND-STRING(H ZG) TO P.
            DISPLAY "ZG2=" P.
-      *> r5 over the other zero-length DATA ITEM shape (§2023:8.5.4 item 9: a reference-modified item
+      *> r5 over the other zero-length DATA ITEM shape (§2023:8.5.4 GR9: a reference-modified item
       *> resolved to length zero, permitted by the >>REF-MOD-ZERO-LENGTH directive above). If the
       *> slice were read as the whole item these would answer 1, so both discriminate.
            MOVE FUNCTION FIND-STRING(H(1:0) "A") TO P.

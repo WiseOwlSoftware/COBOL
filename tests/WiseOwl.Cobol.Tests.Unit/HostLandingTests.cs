@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE DOOR RULES OF THE .NET HOST ENTRY ARE ONE FUNCTION, AND IT LOSES NOTHING (DESIGN-external-repository §4.3, §17.3
 /// "The door rules are one function"; kb/Work PB2099). ISO §2023:14.2.3 9) and 10) land a host value into a record of the
 /// formal's description by "a COMPUTE statement without the ROUNDED phrase" (numeric) or "a MOVE statement" (otherwise),
-/// and §2023:14.2.3 13) lets the implementor state the restrictions for a non-COBOL activator: the one stated for .NET is that
+/// and §2023:14.2.3 GR13 lets the implementor state the restrictions for a non-COBOL activator: the one stated for .NET is that
 /// the landing must be exact. This pins <see cref="HostLanding"/> on the loss fixture the design names — high order, low
 /// order, sign, P positions, each binary capacity, string length, boolean characters — refused, the exact boundary values
 /// accepted, and the validity decode agreeing with <see cref="CobolNum.IsNumericImage"/> per byte form. Every expected
@@ -137,7 +137,7 @@ public sealed class HostLandingTests
         Assert.Equal("ABCD", HostLanding.LandText("ABCD", 4, justified: false, boolean: false, "T", null));
         Refused(() => HostLanding.LandText("ABCDE", 4, justified: false, boolean: false, "T", null), "T");
         Assert.Throws<ArgumentNullException>(() => HostLanding.LandText(null, 4, justified: false, boolean: false, "T", null));
-        // §2023:13.18.32.4 2): zero fill for boolean positions — on the right ordinarily, on the left under JUSTIFIED.
+        // §2023:13.18.32.4 GR2: zero fill for boolean positions — on the right ordinarily, on the left under JUSTIFIED.
         Assert.Equal("010100", HostLanding.LandText("0101", 6, justified: false, boolean: true, "B", null));
         Assert.Equal("0011", HostLanding.LandText("11", 4, justified: true, boolean: true, "B", null));
         Refused(() => HostLanding.LandText("012", 4, justified: false, boolean: true, "B", null), "B");

@@ -42,7 +42,7 @@ public sealed class SequentialFileIoSpecTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    /// <summary>CA15 — §2023:14.9.30.4 GR15 + NOTE 3 / §2023:9.1.13.2 item 5: an over-length LINE-SEQUENTIAL record is truncated
+    /// <summary>CA15 — §2023:14.9.30.4 GR15 + NOTE 3 / §2023:9.1.13.2 GR5: an over-length LINE-SEQUENTIAL record is truncated
     /// on the right to the record width, the READ is SUCCESSFUL with I-O status '06', the file position indicator
     /// references the next unread character in the record, and the following READ continues the remainder ('00'). The
     /// buggy path reported '00' on the truncated read and silently discarded the tail (the next READ skipped to the
@@ -115,7 +115,7 @@ public sealed class SequentialFileIoSpecTests
     /// line replaces it, '00'; (b) a record of MORE bytes than the line ⇒ '44', the line unchanged. The byte count
     /// compared is record-name-1's — five bytes for every REWRITE REC here, whatever its trailing spaces (kb/Work
     /// PB1168: GR17 has no trailing-space rule — the WRITE statement's is §2023:14.9.51.4 GR21). The space-fill of
-    /// §2023:14.9.35.4 GR17 c), for a record of FEWER bytes, needs a variable-length record and is the golden
+    /// §2023:14.9.35.4 GR17c, for a record of FEWER bytes, needs a variable-length record and is the golden
     /// 2023/pb1168_ls_rewrite_gr17.
     /// The buggy path returned '30' for every line-sequential REWRITE (the seekable in-place branch was guarded
     /// by !_lineSequential).</summary>
@@ -155,7 +155,7 @@ public sealed class SequentialFileIoSpecTests
             Run(prog, ("lsrew.txt", "HELLO\nAB\nCDEFG\n")));
     }
 
-    /// <summary>CA18 — §2023:14.9.35.4 GR17a / §2023:9.1.13.7 item 4d: a REWRITE of a record whose preceding READ transferred
+    /// <summary>CA18 — §2023:14.9.35.4 GR17a / §2023:9.1.13.7 GR4d: a REWRITE of a record whose preceding READ transferred
     /// only PART of it (an over-length line-sequential read that returned '06') is '44'.</summary>
     [Fact]
     public void LineSequential_RewriteAfterOverLengthRead_IsPartial44()
@@ -223,7 +223,7 @@ public sealed class SequentialFileIoSpecTests
         """;
 
     /// <summary>§2023:9.1.14 final rule over a sequential WRITE that <c>--permissive</c> tolerated. The WRITE of a
-    /// 4-character record to a just-opened OUTPUT file succeeds, so the I-O status is '00' (§2023:9.1.13.2 item 1 —
+    /// 4-character record to a just-opened OUTPUT file succeeds, so the I-O status is '00' (§2023:9.1.13.2 GR1 —
     /// "the input-output statement is successfully executed and no further information is available"). §2023:9.1.14's
     /// final rule then decides both branches: its opening sentence — "If the invalid key condition does not
     /// exist … the INVALID KEY phrase is ignored, if specified" — kills the INVALID arm (it can never fire on
@@ -251,7 +251,7 @@ public sealed class SequentialFileIoSpecTests
     /// <summary>The REWRITE twin, one method away in the same binder (§2023:14.9.35.3 SR2 first arm). PB144 landed
     /// the COBOL1720 screen here but still dropped the phrase, reasoning that a sequential REWRITE has no
     /// '2x' condition to carry — true of the INVALID arm, false of the NOT INVALID arm, which §2023:9.1.14's final
-    /// rule item 2 runs on the SUCCESSFUL completion this REWRITE has ('00', §2023:9.1.13.2 item 1). Expected stdout
+    /// rule item 2 runs on the SUCCESSFUL completion this REWRITE has ('00', §2023:9.1.13.2 GR1). Expected stdout
     /// is "R-NIK" then "R=00"; the pre-fix compiler warned and then printed only "R=00".</summary>
     [Fact]
     public void Permissive_SequentialRewriteInvalidKey_RunsTheNotArmOnSuccess_AndWarns()

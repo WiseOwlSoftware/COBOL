@@ -57,11 +57,11 @@ internal static class BitLayout
     /// conjunct, and the round-up both callers already perform does the rest. <b>GR3</b> ("when an ALIGNED clause
     /// is not specified, bit data items are aligned in accordance with 8.5.1.6.3") is the false arm, unchanged.</para>
     ///
-    /// <para><b>§2023:13.18.57.4 GR2 d)</b>: a TYPE subject whose type describes a group "is aligned as though it were a
+    /// <para><b>§2023:13.18.57.4 GR2d</b>: a TYPE subject whose type describes a group "is aligned as though it were a
     /// level 1 item", and §2023:8.5.1.6.3 puts "a level 1 bit group … at the first bit of a byte" — the second conjunct
     /// (<see cref="DataItem.AlignedAsLevelOne"/>; kb/Work PB1569).</para>
     ///
-    /// <para>⛔ <b>A DYNAMIC-CAPACITY TABLE SHARES NO BYTE, NEITHER WAY (kb/Work PB2818).</b> §2023:8.5.1.9.1 3): "table data
+    /// <para>⛔ <b>A DYNAMIC-CAPACITY TABLE SHARES NO BYTE, NEITHER WAY (kb/Work PB2818).</b> §2023:8.5.1.9.1 SR3: "table data
     /// items are not required to be contiguous in physical memory. The size, location, and time of physical allocation
     /// of a dynamic-capacity table are implementor-defined", so its occurrences are out-of-line storage that cannot
     /// continue the bit position of the item before it, and the item after it cannot continue theirs. This
@@ -81,7 +81,7 @@ internal static class BitLayout
     /// alignment of the first item within that group, when the first item is a bit data item, are at the same bit
     /// position in storage" — so a first bit child begins wherever the group begins (mid-byte for a bit group that
     /// shares its predecessor's byte, kb/Work PB3158), unless it is ALIGNED (§2023:13.18.1.4 GR1), a group-typed TYPE
-    /// subject (§2023:13.18.57.4 GR2 d)) or a dynamic-capacity table (§2023:8.5.1.9.1 3)).
+    /// subject (§2023:13.18.57.4 GR2d) or a dynamic-capacity table (§2023:8.5.1.9.1 SR3).
     /// <para>⛔ The same sentence binds the OTHER direction (kb/Work PB3167): a bit group whose first item begins on a
     /// byte boundary begins on that boundary too, so a group keeps its position only when its first item does. Asking
     /// it of the subject alone put <c>05 BA PIC 1(2) USAGE BIT. 05 SUB GROUP-USAGE BIT. 10 TA PIC 1(5) USAGE BIT
@@ -93,7 +93,7 @@ internal static class BitLayout
     public static bool KeepsPosition(DataItem c) =>
         !c.IsDynamicTable                                       // §2023:8.5.1.9.1 — a dynamic-capacity table is out of line
         && !c.IsAligned                                         // §2023:13.18.1.4 GR1 — an ALIGNED subject never shares
-        && !c.AlignedAsLevelOne                                 // §2023:13.18.57.4 GR2 d) — nor does a group-typed subject
+        && !c.AlignedAsLevelOne                                 // §2023:13.18.57.4 GR2d — nor does a group-typed subject
         && IsBitItem(c)
         && (c.IsElementary || c.Children.Count == 0 || KeepsPosition(c.Children[0]));   // §2023:8.5.1.6.3 — a group begins where its first item does
 
@@ -117,7 +117,7 @@ internal static class BitLayout
     /// <para>⛔ A run CONTINUES only where <see cref="SharesByteWith"/> says the member shares its predecessor's
     /// byte — the same predicate the extent and offset walks read. The run's image packs its members' carriers
     /// back to back, so a member the placement walks start on a fresh byte (an ALIGNED one, §2023:13.18.1.4 GR1; a
-    /// group-typed TYPE subject, §2023:13.18.57.4 GR2 d)) must LEAD a new run: continuing the run on a same-level test
+    /// group-typed TYPE subject, §2023:13.18.57.4 GR2d) must LEAD a new run: continuing the run on a same-level test
     /// alone packed <c>05 F PIC 1 USAGE BIT. 05 G PIC 1 USAGE BIT ALIGNED.</c> into ONE byte while
     /// <c>FUNCTION BYTE-LENGTH</c> — the extent walk — counted two (kb/Work PB1569's sibling sweep).</para></summary>
     public static BitRunMap RunsOf(IEnumerable<DataItem> siblings)
@@ -244,7 +244,7 @@ internal static class BitLayout
     ///     maximum extent, which no occurrence owns, and a receiving store moves it with the characters it lies in at every
     ///     count (<c>OdoTail.KeepUnused</c>). At a smaller count the bits that complete the current extent's last character
     ///     are NOT filler: §2023:8.5.1.6.3 puts the filler after "the last data item in a record", the table at its maximum, so
-    ///     those bits are the first unused occurrence's, which §2023:13.18.38.4 7) calls undefined (docs/CONFORMANCE.md USAGE BIT,
+    ///     those bits are the first unused occurrence's, which §2023:13.18.38.4 GR7) calls undefined (docs/CONFORMANCE.md USAGE BIT,
     ///     kb/Work PB3598).</item>
     ///   <item><see cref="BitFillerKind.TablePad"/> — the positions §2023:13.18.1.4 GR2 puts BETWEEN the occurrences of an
     ///     ALIGNED table, or of a table whose elements hold an ALIGNED member (<see cref="StrideBits"/> &gt;
@@ -330,7 +330,7 @@ internal static class BitLayout
     /// <summary>⛔ THE IMPLICIT FILLER OF A GROUP A TIER-B CLASS STORES, AS THE ELEMENTARY BIT ITEMS IT IS (ISO §2023:8.5.1.6.3,
     /// kb/Work PB3564 review R2-1, PB3597). In a REDEFINES area, an EXTERNAL or BASED record or a LINKAGE area the group's bits,
     /// filler included, are bytes of the class's string backing, so <see cref="FillersOf"/> has no field for them; a
-    /// statement that treats the filler as the items §2023:8.5.1.6.3 says it is (INITIALIZE ... WITH FILLER, §2023:14.9.20.4 5) a) 2.)
+    /// statement that treats the filler as the items §2023:8.5.1.6.3 says it is (INITIALIZE ... WITH FILLER, §2023:14.9.20.4 GR5a.2)
     /// addresses it as a window of the backing (<see cref="BitFiller.GapItem"/>). A run's tail is one item; the pad between
     /// the occurrences of a strided table is one item per gap (n - 1 of them: each is its own item in the standard), listed
     /// as the FIRST gap and the count, so a statement walks them with the table's own occurrence displacement (one loop at
@@ -418,13 +418,13 @@ internal static class BitLayout
     /// (GR1), and the stride is the per-occurrence width rounded up to a byte.
     ///
     /// <para>⛔ <b>That includes an ALIGNED MEMBER of a table element</b> (kb/Work PB3167): an item subordinate to an
-    /// OCCURS entry has an occurrence per occurrence of the entry (§2023:13.18.63.4 9) speaks of "every occurrence" of
+    /// OCCURS entry has an occurrence per occurrence of the entry (§2023:13.18.63.4 GR9) speaks of "every occurrence" of
     /// such an item), so GR2 binds it too. A bit group <c>SUB OCCURS 3</c> holding <c>SA PIC 1. TA PIC 1(5) ALIGNED</c>
     /// that begins at bit 2 is 11 bits (SA 2, filler 3-7, TA 8-12); a stride of 11 started the second occurrence at
     /// bit 13 and its TA at bit 19, inside a byte. A whole-byte stride (16) starts every occurrence at the phase of the
     /// first, so every occurrence's TA is on a byte and every occurrence has the one length of "the subject of the
-    /// entry" (§2023:13.18.38.4 7)). The filler that pads an occurrence to the stride lies between occurrences, like the
-    /// implicit FILLER §2023:13.18.55.4 8) b) generates "for each occurrence" of a synchronized table — the DETERMINATION
+    /// entry" (§2023:13.18.38.4 GR7). The filler that pads an occurrence to the stride lies between occurrences, like the
+    /// implicit FILLER §2023:13.18.55.4 GR8b generates "for each occurrence" of a synchronized table — the DETERMINATION
     /// recorded in <c>docs/CONFORMANCE.md</c> (USAGE BIT).</para>
     ///
     /// <para>Because the two coincide for every item with no such member, converting a call site from
@@ -445,17 +445,17 @@ internal static class BitLayout
 
     /// <summary>True when WHERE IN A BYTE an occurrence of <paramref name="item"/> begins changes its layout: the item,
     /// or a member of it at any depth, is placed at "the first bit position of the first available byte"
-    /// (§2023:8.5.1.6.3): an ALIGNED subject (§2023:13.18.1.4 GR1), a group-typed TYPE subject (§2023:13.18.57.4 GR2 d)), a group
+    /// (§2023:8.5.1.6.3): an ALIGNED subject (§2023:13.18.1.4 GR1), a group-typed TYPE subject (§2023:13.18.57.4 GR2d), a group
     /// whose first item is one (<see cref="KeepsPosition"/>), or a member that does not share its predecessor's byte.
     /// Such an occurrence is a whole number of bytes from its first bit to the same bit of the next one
     /// (<see cref="StrideBits"/>), so every occurrence begins at the same phase as the first and lays out as the first
     /// does (kb/Work PB3167). An item with no such member is packed bit by bit wherever it begins, so its stride is its
     /// width. A non-bit item answers false: its width is already a whole number of bytes. A dynamic-capacity table's
-    /// own flag is not asked: it places the table against its NEIGHBOURS (§2023:8.5.1.9.1 3)), not one occurrence against
+    /// own flag is not asked: it places the table against its NEIGHBOURS (§2023:8.5.1.9.1 SR3), not one occurrence against
     /// the next.</summary>
     private static bool HoldsByteStart(DataItem item)
     {
-        if (item.IsAligned || item.AlignedAsLevelOne) return true;   // §2023:13.18.1.4 GR1 / GR2; §2023:13.18.57.4 GR2 d)
+        if (item.IsAligned || item.AlignedAsLevelOne) return true;   // §2023:13.18.1.4 GR1 / GR2; §2023:13.18.57.4 GR2d
         if (!IsBitItem(item) || item.IsElementary) return false;
         DataItem? prev = null;
         foreach (var c in item.Children)
@@ -485,7 +485,7 @@ internal static class BitLayout
     ///         of bits to fill an integral number of characters." §2023:13.18.29.4 GR3 makes every group without a
     ///         GROUP-USAGE clause an alphanumeric group item, so this fires for all of them.</item>
     /// </list>
-    /// <para>⚠ Every filler bit counted above is REQUIRED to be counted by <b>§2023:15.50.4 r5</b> ("the returned
+    /// <para>⚠ Every filler bit counted above is REQUIRED to be counted by <b>§2023:15.50.4 RV5</b> ("the returned
     /// length shall include the number of implicit FILLER positions"). It is counted by construction — the cursor
     /// advances through filler rather than skipping it.</para>
     /// <para>⚠ The NOTE under the trailing-filler rule excludes "the end of a record that is entirely a bit group,
@@ -504,7 +504,7 @@ internal static class BitLayout
         // Rule 4 — the trailing filler: stated for "a record that is an alphanumeric group or strongly-typed group
         // item" (§2023:13.18.29.4 GR3 makes every group WITHOUT a GROUP-USAGE clause alphanumeric), and its NOTE excludes
         // "the end of a record that is entirely a bit group" — so a GROUP-USAGE BIT group (D20/PB79) keeps its EXACT
-        // bit extent (its PICTURE 1(m) length, §2023:15.50.4 r1); its character OCCUPANCY is still Characters(extent).
+        // bit extent (its PICTURE 1(m) length, §2023:15.50.4 RV1); its character OCCUPANCY is still Characters(extent).
         return group.GroupUsage is GroupUsage.Bit ? cursor : RoundUpToByte(cursor);
     }
 
@@ -672,7 +672,7 @@ internal static class BitLayout
     }
 
     /// <summary>The character positions a bit extent occupies — the ceiling, which is also the shape
-    /// <b>§2023:15.50.4 r9</b> requires ("if argument-1 does not occupy an integral number of positions, the returned
+    /// <b>§2023:15.50.4 RV9</b> requires ("if argument-1 does not occupy an integral number of positions, the returned
     /// value is rounded to the next larger integer value"). With rule 4 above the extent is already integral for a
     /// group; the ceiling is what makes an ELEMENTARY bit item's character occupancy right.</summary>
     public static int Characters(int bits) => (int)Characters((long)bits);   // at most int.MaxValue / 8 + 1: always an int
@@ -703,7 +703,7 @@ internal sealed record BitFiller(BitFillerKind Kind, DataItem Subject, string Cl
     /// <summary>⛔ THE FILLER AS THE ELEMENTARY BIT DATA ITEM §2023:8.5.1.6.3 SAYS IT IS ("implicitly described as a filler
     /// elementary bit data item"): a nameless boolean item of <see cref="Bits"/> positions whose <see cref="DataItem.ClrName"/>
     /// is the filler's own hidden field (<see cref="ClrName"/>), so a statement that walks a group's elementary items
-    /// as receivers (INITIALIZE ... WITH FILLER, §2023:14.9.20.4 5) a) 2.) reaches it through the ordinary place cursor and the ordinary MOVE, with no
+    /// as receivers (INITIALIZE ... WITH FILLER, §2023:14.9.20.4 GR5a.2) reaches it through the ordinary place cursor and the ordinary MOVE, with no
     /// second storage law (kb/Work PB3564 review R1-4). It is in no <c>Children</c> list: the owner's layout is the
     /// <see cref="BitLayout.FillersOf"/> list's, never this item's.</summary>
     public DataItem Item => _item ??= new DataItem

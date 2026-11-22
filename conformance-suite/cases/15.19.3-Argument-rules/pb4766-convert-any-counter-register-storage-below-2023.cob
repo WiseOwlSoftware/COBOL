@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4766 review R1-2 (the below-2023 refusal of pb4766-convert-any-counter-register-storage: CONVERT was introduced by 2023, COBOL1502). ISO §2023:15.19.3 r7: "When the source-format is ANY, argument-1 shall be of any usage, except index,
+      *> PB4766 review R1-2 (the below-2023 refusal of pb4766-convert-any-counter-register-storage: CONVERT was introduced by 2023, COBOL1502). ISO §2023:15.19.3 AR7: "When the source-format is ANY, argument-1 shall be of any usage, except index,
       *> message-tag, object reference, pointer, function-pointer or program-pointer." (cite.py --check OK): CONVERT reads the
       *> argument's STORAGE. PAGE-COUNTER and LINAGE-COUNTER reference "temporary unsigned integer data items" (§2023:8.4.3.15.4 GR1,
       *> §2023:8.4.3.14.4 GR1), so each converts the storage of its description (docs/CONFORMANCE.md §3, the counter registers'

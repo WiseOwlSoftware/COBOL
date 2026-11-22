@@ -14,10 +14,10 @@
 *> position, which is what proves the variadic tail rule and not just a declared
 *> leading position is screened.
 *>
-*> MIDRANGE DOES NOT INHERIT MAX'S AND MIN'S LATITUDE. §2023:15.62.4 r1 defines the
+*> MIDRANGE DOES NOT INHERIT MAX'S AND MIN'S LATITUDE. §2023:15.62.4 RV1 defines the
 *> equivalent arithmetic expression as ((FUNCTION MAX (argument-list) + FUNCTION
 *> MIN (argument-list)) / 2), and MAX/MIN admit alphanumeric arguments under
-*> their own §2023:15.59.3 r1 / §2023:15.63.3 r1 negative class lists. MIDRANGE's own r1
+*> their own §2023:15.59.3 AR1 / §2023:15.63.3 AR1 negative class lists. MIDRANGE's own r1
 *> does not: it demands class NUMERIC outright, so an alphanumeric argument that
 *> would be legal inside a bare FUNCTION MAX is illegal here. The equivalent
 *> expression states the VALUE, never the admissible arguments.

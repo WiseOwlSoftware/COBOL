@@ -72,7 +72,7 @@ public sealed class ClosedFormatReservedWordTests
         { "special-names", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           GLOBAL.\n" + Proc,
           "COBOL1970", "'GLOBAL' is not a clause of the SPECIAL-NAMES paragraph" },
         // §2023:12.3.6.2 — the OBJECT-COMPUTER paragraph. A reserved word right after its header (`OBJECT-COMPUTER. GLOBAL.`)
-        // stands where computer-name-1 does and is no system-name (§2023:8.3.2.1 1); §1985:III.2), so it is the computer-name
+        // stands where computer-name-1 does and is no system-name (§2023:8.3.2.1 SR1; §1985:III.2), so it is the computer-name
         // refusal COBOL7654, not a closed-list refusal (kb/Work PB5985): EditionCitationTests.ReservedWordAsComputerName_IsNoSystemName.
         // §2023:12.3.5.2 / §2023:12.3.6.2 AFTER the computer-name (kb/Work PB3370): XYZ could be the name or an unrecognized
         // configuration paragraph, both readings fail at GLOBAL, and the error-time prediction used to take the
@@ -149,7 +149,7 @@ public sealed class ClosedFormatReservedWordTests
         { "data-entry", Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X \"A\".\n" + Proc,
           "COBOL1941", "'\"A\"' is not a clause of the data description entry for 'W-X'" },
         // A LITERAL OF MORE THAN ONE TOKEN is a literal too (kb/Work PB3373, review finding R1-1): a sign-led numeric
-        // literal (ISO §2023:8.3.3.3.2 2), MINUS INTEGERLIT outside the list regions), a concatenation expression (§2023:8.8.3.3
+        // literal (ISO §2023:8.3.3.3.2 SR2), MINUS INTEGERLIT outside the list regions), a concatenation expression (§2023:8.8.3.3
         // 3)) and a DECIMAL-POINT IS COMMA literal. The run opens at a sign-led one and continues through all three,
         // where it used to end at the sign, the `&` or the comma with a bare parse error and a false missing period.
         { "source-computer-signed-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ +1.5.\n" + Proc,
@@ -240,7 +240,7 @@ public sealed class ClosedFormatReservedWordTests
     }
 
     /// <summary>A sign SEPARATED from its digits at the run's opening is screened as it is in every other signed literal
-    /// slot (COBOL2155, ISO §2023:8.3.3.3.2 2) — the run's tail holds <c>signedNumericLiteral</c>, which LiteralScreen
+    /// slot (COBOL2155, ISO §2023:8.3.3.3.2 SR2) — the run's tail holds <c>signedNumericLiteral</c>, which LiteralScreen
     /// already screened), and the run is still refused once, quoting the literal as written.</summary>
     [Fact]
     public void SeparatedSignAtTheOpening_IsScreenedAndRefused()
@@ -538,7 +538,7 @@ public sealed class ClosedFormatReservedWordTests
 
     /// <summary>⛔ A RESERVED WORD WHERE THE ENTRY'S NAME IS DUE IS THE NAME THE SOURCE WROTE (kb/Work PB4604). ISO §2023:13.16.3 SR4
     /// puts the entry-name directly after the level-number, so the first word of <c>01 MOVE PIC X.</c> is read as the
-    /// name and as the first clause, and a word that is no clause is §2023:8.3.2.1 1)'s violation. It used to draw COBOL1941
+    /// name and as the first clause, and a word that is no clause is §2023:8.3.2.1 SR1's violation. It used to draw COBOL1941
     /// "'MOVE' is not a clause of the data description entry". Every level-number of the one entry rule, a verb, a
     /// word no statement begins with, a figurative constant and a word reserved for an extension; the ONLY diagnostic,
     /// at every edition.</summary>
@@ -611,7 +611,7 @@ public sealed class ClosedFormatReservedWordTests
     /// close a header, and no format follows a data-name with either. Where a period lets the header follow, the fault is
     /// that period (ISO §2023:13.16.2 ends the entry with one), one report, with no cascade from the header it used to swallow:
     /// the second-report rows prove the recovery resumes in the procedure division. Where none does, the report is the plain
-    /// one at the word it fails, as after a complete entry. PROCEDURE is reserved at every edition (§2023:8.3.2.1 1)), so it
+    /// one at the word it fails, as after a complete entry. PROCEDURE is reserved at every edition (§2023:8.3.2.1 SR1), so it
     /// names no entry whatever follows it.</summary>
     [Theory]
     [InlineData("01\n" + Proc, 85, "COBOL0307: unexpected 'PROCEDURE'. A period may be missing")]

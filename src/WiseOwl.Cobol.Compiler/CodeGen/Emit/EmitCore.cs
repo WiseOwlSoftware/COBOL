@@ -22,7 +22,7 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
     /// <summary>The C# output writer.</summary>
     public CodeWriter Writer { get; } = writer;
 
-    /// <summary>The COMPILATION-scoped WHEN-COMPILED stamp (§2023:15.99.3 r2) — captured ONCE per
+    /// <summary>The COMPILATION-scoped WHEN-COMPILED stamp (§2023:15.99.3 RV2) — captured ONCE per
     /// <see cref="ProgramEmitter"/> (one compilation of one run unit), so every unit of the run unit — the
     /// containing compilation unit and its contained source units alike — bakes the SAME constant (r2's second
     /// sentence), while the next compilation in the same process gets a FRESH capture (kb/Work PB120: a
@@ -106,14 +106,14 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
     /// ONE <c>CobolCollation</c> carrier — a literal-phrase table or a LOCALE sequence, kb/Work PB101) when a
     /// PROGRAM COLLATING SEQUENCE is active (ISO §2023:12.3.6.4 GR11 — relation and condition-name comparisons), else empty
     /// (the native two-argument <c>CobolString.Compare</c> overload).</summary>
-    public string CollateArg => Data.Configuration.Collating is null ? "" : ", __COLLATE";
+    public string CollateArg => Data.Configuration.Collating is null ? "" : $", {ObjectComputerEmit.ProgramCollation}";
 
     /// <summary>The NATIONAL twin of <see cref="CollateArg"/> — <c>", __COLLATE_NAT"</c> when a NON-native
     /// NATIONAL program collating sequence is active (ISO §2023:12.3.6.4 GR11 / §2023:8.8.4.2.9 — an <c>ALPHABET … FOR
     /// NATIONAL</c> literal phrase; the identity sequences NATIVE/UCS-4 stay null, D-N3), else empty. National
     /// comparisons NEVER take the alphanumeric <c>__COLLATE</c> table (its 256-entry domain would alias national
     /// characters through <c>&amp; 0xFF</c>).</summary>
-    public string NatCollateArg => Data.Configuration.NationalCollating is null ? "" : ", __COLLATE_NAT";
+    public string NatCollateArg => Data.Configuration.NationalCollating is null ? "" : $", {ObjectComputerEmit.NationalProgramCollation}";
 
     /// <summary>The trailing collation argument a relation between operands of categories
     /// <paramref name="leftCategory"/> and <paramref name="rightCategory"/> takes — <see cref="CollateArg"/>,
@@ -152,7 +152,7 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
     /// IS form is admitted (§2023:13.18.40.3 SR12 bars only the FOR form's extended symbols; kb/Work PB866) a dropped
     /// suffix renders the mask LETTER. One producer, so the next edited-store site cannot drop it.</para></summary>
     public string EditCfg(PicInfo? pic) =>
-        // A format-2 (LOCALE) item takes NEITHER argument: the currency string is the LOCALE's (§2023:13.18.40.5 r9)
+        // A format-2 (LOCALE) item takes NEITHER argument: the currency string is the LOCALE's (§2023:13.18.40.5 GR9)
         // and DECIMAL-POINT IS COMMA has no effect on locale editing (§2023:12.3.7.4 GR14) — and CobolLocaleEdit's
         // signature has no such parameters, so leaking either is a generated-code CS1739 (PB64 T6).
         pic?.LocaleEdit is not null ? ""
@@ -175,7 +175,7 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
 /// and <see cref="Dec"/> are mutually exclusive.</param>
 /// <param name="U">True when <see cref="Expr"/> is a <c>UInt128</c>-typed UNSIGNED-WIDE intermediate (kb/Work
 /// R10): a 16-byte unsigned COMP-5 item's field read, or a folded literal beyond <see cref="Int128.MaxValue"/>
-/// (the HIGHEST-ALGEBRAIC container bound, §2023:15.43.4 r2). The VALUE paths (store, display, relation) keep the
+/// (the HIGHEST-ALGEBRAIC container bound, §2023:15.43.4 RV2). The VALUE paths (store, display, relation) keep the
 /// full [0, 2^128) range via the runtime's <c>UInt128</c> overloads; the ARITHMETIC paths funnel through
 /// <c>CobolNum.Widen</c> (loud beyond the documented Int128 intermediate — CONFORMANCE.md DOC-A.1-123), never a
 /// silent wrap. Mutually exclusive with <see cref="Dec"/> and <see cref="Real"/>.</param>
@@ -342,7 +342,7 @@ internal static class EmitText
 
     /// <summary>The carrier-aware form of <see cref="IntLiteral"/>. A SOURCE literal never exceeds 31 digits
     /// (ISO §2023:8.3.3.3.2), but a COMPILER-SYNTHESIZED literal can: the HIGHEST-ALGEBRAIC fold of a 16-byte
-    /// unsigned COMP-5 container is 2^128−1 (39 digits, §2023:15.43.4 r2 — kb/Work R10 F73; the old unconditional
+    /// unsigned COMP-5 container is 2^128−1 (39 digits, §2023:15.43.4 RV2 — kb/Work R10 F73; the old unconditional
     /// <c>Int128.Parse</c> threw <c>OverflowException</c> at run time). A positive magnitude beyond
     /// <see cref="Int128.MaxValue"/> renders as <c>UInt128.Parse</c> and is flagged unsigned-wide (<c>U</c>) so
     /// the renderer routes it down the unsigned lane. (A NEGATIVE value never needs it — the most negative fold,

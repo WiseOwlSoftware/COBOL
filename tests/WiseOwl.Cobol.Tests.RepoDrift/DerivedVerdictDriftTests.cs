@@ -374,7 +374,7 @@ public sealed class DerivedVerdictDriftTests
         Assert.DoesNotContain("SR-11.9.8.3-3", ids);
 
         // Conversely, a rule with BOTH arms keeps its own verdict — it still has reachable content under a mode
-        // we support. §2023:15.67.3 r4 caps digits at 35 under standard-binary AND at 34 under standard-decimal.
+        // we support. §2023:15.67.3 AR4 caps digits at 35 under standard-binary AND at 34 under standard-decimal.
         Assert.DoesNotContain("AR-15.67.3-4", ids);
 
         // And the rule whose only "standard decimal" is a USAGE must still be IN — dropping it was the bug in

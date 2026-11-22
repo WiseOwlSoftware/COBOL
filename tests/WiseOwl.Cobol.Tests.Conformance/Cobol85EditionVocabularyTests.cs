@@ -126,7 +126,7 @@ public sealed class Cobol85EditionVocabularyTests
                    STOP RUN.
         """, "COBOL0900", 2023, "COBOL1504")]
     // Two CURRENCY SIGN clauses and a NUMVAL-C without argument-2: the second clause is the 1985 refusal (COBOL2423);
-    // §2023:15.68.3 r3's "only one currency string" (COBOL1644) is 2002's rule.
+    // §2023:15.68.3 AR3's "only one currency string" (COBOL1644) is 2002's rule.
     [InlineData("""
                IDENTIFICATION DIVISION.
                PROGRAM-ID. Z6028E.

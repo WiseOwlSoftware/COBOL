@@ -433,11 +433,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         int unbuiltMark = data.Edition.UnbuiltMark;
         int deferredMark = data.Edition.ExpansionDeferredMark;
         int controlStoreMark = _controlStoreReports;
-        // ISO §2023:13.4.6.3 SR4 (kb/Work PB1291) — asked HERE, of every input-output statement, because this is the one
-        // funnel every statement passes through: a new operand position in any of the eight is screened without a
-        // verb binder remembering to ask.
-        if (InputOutputStatement(s) is { } io)
-            Ctx.Validation.ScreenSortMergeRecordReferences(io, io.Start.Text.ToUpperInvariant(), Ctx.Refs);
+        // ISO §2023:13.4.6.3 SR4 (kb/Work PB1291) — asked HERE, of every statement, because this is the one funnel every statement
+        // passes through: the screen asks whether the statement is an input-output statement of the edition (kb/Work PB6032), so a
+        // new operand position in any of them is screened without a verb binder remembering to ask.
+        Ctx.Validation.ScreenSortMergeRecordReferences(s, Ctx.Refs);
         // ⛔ BELOW THE MESSAGE-TAG INTRODUCTION A STATEMENT NAMING A GATED TAG IS THE GATE'S, WHATEVER ITS VERB (kb/Work PB4771, PB4836, PB4868): asked
         // HERE, once, because this is the one funnel every statement passes through, so no verb binder has to remember to stay quiet beside COBOL0900.
         var core = NamesGatedMessageTag(s) ? new BoundNop() : BindStatementCore(s);   // no-op: the tag's entry draws COBOL0900 in this compilation
@@ -526,7 +525,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         core = BoundImplicitSeries.Rewrap(core, n => WrapReceiverIdentifications(n, identificationMark));
         core = BoundImplicitSeries.Rewrap(core, n => Udf.UdfWrapCalls(n, marks.PreOps));
         core = BoundImplicitSeries.Rewrap(core, n => Oo.OoWrapPropertyOps(n, marks.PropertyOps));
-        // ISO §2023:14.9.33.4 GR2 a) 2./3. — the statement an operand activation was specified in is where a RESUME AT
+        // ISO §2023:14.9.33.4 GR2a 2./3. — the statement an operand activation was specified in is where a RESUME AT
         // NEXT STATEMENT for the condition it propagates lands. Through Rewrap like the hoist above, so a
         // multi-operand statement's landing is the implicit statement the activation belongs to.
         if (data.Procedure.OperandEvaluations.Current > 0) core = BoundImplicitSeries.Rewrap(core, n => new BoundActivationSite(n));
@@ -601,16 +600,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>How many §2023:14.9.49.3 SR11 violations <see cref="BindStatement"/> has reported — compared across a
     /// statement's bind so an enclosing statement does not report again the store its nested statement reported.</summary>
     private int _controlStoreReports;
-
-    /// <summary>The statement's INPUT-OUTPUT STATEMENT node, or null — the eight statements ISO §2023:9.1.13.1 names as
-    /// those whose execution sets the I-O status (CLOSE, DELETE in both formats, OPEN, READ, REWRITE, START, UNLOCK
-    /// and WRITE), which is the set §2023:13.4.6.3 SR4 speaks about (kb/Work PB1291).</summary>
-    private static Antlr4.Runtime.ParserRuleContext? InputOutputStatement(Core.StatementContext s) =>
-        s.GetChild(0) is Core.OpenStatementContext or Core.CloseStatementContext or Core.ReadStatementContext
-            or Core.WriteStatementContext or Core.RewriteStatementContext or Core.StartStatementContext
-            or Core.DeleteStatementContext or Core.DeleteFileStatementContext or Core.UnlockStatementContext
-            ? (Antlr4.Runtime.ParserRuleContext)s.GetChild(0)
-            : null;
 
     /// <summary>⛔ WHETHER THE INTRODUCTION GATE HAS ALREADY REFUSED THIS STATEMENT'S COMPILE: below 2023 (<c>usage-message-tag-2023</c>, §2023:8.9) a
     /// message-tag entry draws COBOL0900, and DESIGN-message-control.md §7.1 says each refusal also runs at 2014, "where COBOL0900 is the expected
@@ -814,7 +803,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// the one place that executes them is <c>FileRegistry.RetryLoop</c> (docs/FILES_DESIGN.md "D8").
     /// The three forms stay three: GR1's count is a bounded loop, GR2's timeout period is clamped to this
     /// implementation's maximum meaningful value of zero, and GR3's unbounded wait is the only one whose
-    /// failure is reported as the §2023:9.1.13.8 item 2 deadlock — collapsing any two of them upstream is the defect
+    /// failure is reported as the §2023:9.1.13.8 GR2 deadlock — collapsing any two of them upstream is the defect
     /// kb/Work PB346 names.</summary>
     internal RetrySpec BindRetry(Core.RetryPhraseContext rp) =>
         rp.FOREVER() is not null ? new RetrySpec(RetryKind.Forever, null)

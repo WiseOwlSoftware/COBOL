@@ -9,10 +9,10 @@ claimed-module section. The **COBOL1518** by-name refusal is DELETED with the cl
 reallocated).
 
    > ⚖ **A.4.9 items 8 and 12 — PICTURE format 2 (§2023:13.18.40.2) and the `LOCALE` keyword of `NUMVAL-C` /
-   > `TEST-NUMVAL-C` (§2023:15.68.3 r5 / §2023:15.94.3 r1) — ARE IMPLEMENTED** (kb/Work PB64 T6, increment T6 of
+   > `TEST-NUMVAL-C` (§2023:15.68.3 AR5 / §2023:15.94.3 AR1) — ARE IMPLEMENTED** (kb/Work PB64 T6, increment T6 of
    > `docs/rearchitecture/DESIGN-locale-facility.md` §4.6). A format-2 item is fixed-point numeric-edited
    > (§2023:13.18.40.4 GR16) of exactly SIZE integer-1 character positions (GR17 — the picture is not the field size);
-   > its editing/de-editing is the named-else-current locale's LC_MONETARY AT EACH operation (§2023:13.18.40.5 r9–r15;
+   > its editing/de-editing is the named-else-current locale's LC_MONETARY AT EACH operation (§2023:13.18.40.5 GR9–r15;
    > `CobolLocaleEdit`), EC-LOCALE-SIZE raised per r14 b (character-based — a truncated currency character,
    > separator or sign raises; a truncated zero or suppressed-zero space does not; golden
    > `2002/pb64t6_locale_size_ec`); the NUMVAL-C family's LOCALE arm reads argument-1 under the same LC_MONETARY
@@ -36,12 +36,12 @@ reallocated).
    > contain"), and once one appears EVERY `mon_grouping` position carries one — **⚖ DETERMINATION**, the
    > reading "each separator at SOME legal boundary" is rejected; TEST-NUMVAL-C reports the first character no
    > grouped completion admits (a valid-but-short grouping at the character that ends it, or LENGTH+1 — §2023:15.94.4
-   > r1 b/c); the §2023:14.6.13.2 r4 de-edit of a format-2 item holds its content to the SAME walk exactly (every
-   > position, as §2023:13.18.40.5 r12 writes them); the fraction-digit count of argument-1 is not constrained by
+   > r1 b/c); the §2023:14.6.13.2 GR4 de-edit of a format-2 item holds its content to the SAME walk exactly (every
+   > position, as §2023:13.18.40.5 GR12 writes them); the fraction-digit count of argument-1 is not constrained by
    > `frac_digits` (§2023:15.68.1 names "the grouping separator and the decimal separator permitted"; r5b.5 is a
    > permission — the strict reading rejects legal source); spaces are
    > admitted at every token adjacency (a superset of the three `sep_by_space` values); `frac_digits` is NEVER an
-   > editing input — §2023:13.18.40.5 r12 hands the locale only the separators and group sizes, the fraction width is
+   > editing input — §2023:13.18.40.5 GR12 hands the locale only the separators and group sizes, the fraction width is
    > the picture's; §2023:13.18.40.4 GR19's format-validation leg fires only inside a VALIDATE statement and rides the
    > unclaimed VALIDATE facility (A.4.14, §4 item 3); ANYCASE folds ONLY the currency-string comparison, through
    > the LOCALE's own LC_CTYPE (r5b.1/3 — with `LOCALE` written and locale-name-1 omitted, the cross-reference's
@@ -51,7 +51,7 @@ reallocated).
    > strings occupy character positions of a fixed-width item, so a host-varying byte would move EC-LOCALE-SIZE
    > itself; U+2212 is kept — a real character); recognition matches through the same equivalence — ONE
    > per-character fold (`LocaleFacts.TryFoldLocaleChar`) normalizes the snapshot strings AND argument-1 of NUMVAL-C /
-   > TEST-NUMVAL-C LOCALE before the §2023:15.68.3 r5 b scan, so a Cf character in the argument is ignorable (an ar-*
+   > TEST-NUMVAL-C LOCALE before the §2023:15.68.3 AR5 b scan, so a Cf character in the argument is ignorable (an ar-*
    > culture's own formatted currency string, U+200F after the symbol included, is conforming), U+00A0/U+202F/U+2009
    > is a space wherever r5 b 7 or a token adjacency admits one, and §2023:15.94.4's positions stay the original
    > argument's ordinals (kb/Work PB2766). **L12 covers
@@ -60,9 +60,9 @@ reallocated).
    > day and month names and the seconds fraction's decimal point once and renders `d_fmt` / `t_fmt` itself, so ICU's
    > U+200F inside every ar-* date separator and U+00A0 inside the `a. m.` / `p. m.` of es-US, es-CO, es-DO, es-PA,
    > es-PH, es-PR, es-VE, yrl-CO and yrl-VE can no longer reach a result through a pattern L10 had already cleaned.
-   > **DETERMINATION L13:** the date rendered is the GREGORIAN date argument-1 names (§2023:15.52.3 r2: "a date in the same
+   > **DETERMINATION L13:** the date rendered is the GREGORIAN date argument-1 names (§2023:15.52.3 AR2: "a date in the same
    > format as the year, month, and day returned in character positions 1 through 8 by the CURRENT-DATE function") and
-   > `d_fmt` formats it (§2023:15.52.4 r2) — ISO/IEC 9945's `d_fmt` is a strftime format of a Gregorian broken-down time,
+   > `d_fmt` formats it (§2023:15.52.4 RV2) — ISO/IEC 9945's `d_fmt` is a strftime format of a Gregorian broken-down time,
    > its alternative-era rendering being the separate `era_d_fmt` — never the culture's own calendar: .NET defaults fa-*,
    > ps-*, ckb-IR, lrc, mzn and uz-Arab to the Persian calendar, th-* to the Thai Buddhist and ar-SA to Umm al-Qura, so
    > `LOCALE-DATE("20261008")` read 1405/7/16 under fa-IR and 8/10/2569 under th-TH; it is 2026/10/8 and 8/10/2026.
@@ -76,10 +76,10 @@ reallocated).
    > `docs/rearchitecture/DESIGN-locale-facility.md` §4.7/§4.8, 2026-08-19; refused by name with COBOL1518 until
    > then). `LOCALE-COMPARE` IS the locale-based relation comparison (§2023:8.8.4.2.11 through the ONE `LocaleCollation`
    > carrier — r2's trailing-space truncation, r4 the cultural ordering, r5/r6 the one-character result); the three
-   > time functions format per the locale's `d_fmt` / `t_fmt` (§2023:15.52.4 r2 / §2023:15.53.4 r2 / §2023:15.54.4 r2) with
-   > §2023:15.53.3 r3's own ranges (hours 00–24, seconds 00–99) and the §2023:7.3.17 standard-numeric-time-form screen; the
+   > time functions format per the locale's `d_fmt` / `t_fmt` (§2023:15.52.4 RV2 / §2023:15.53.4 RV2 / §2023:15.54.4 RV2) with
+   > §2023:15.53.3 AR3's own ranges (hours 00–24, seconds 00–99) and the §2023:7.3.17 standard-numeric-time-form screen; the
    > optional `locale-name-1` is a SPECIAL-NAMES LOCALE clause's name (§2023:15.3 argument type 8 — COBOL1664
-   > otherwise), else the locale CURRENT for LC_COLLATE / LC_TIME (§2023:14.6.6 r7/r8). **Determinations (documented per
+   > otherwise), else the locale CURRENT for LC_COLLATE / LC_TIME (§2023:14.6.6 GR7/r8). **Determinations (documented per
    > §2023:4.2.7; DETERMINATION L10):** `d_fmt` is the .NET culture's SHORT DATE pattern and `t_fmt` its LONG TIME pattern
    > (the one carrying seconds), read once per locale by `LocaleFacts` — the ONE place a `CultureInfo` is read — from
    > the locale tag's nearest predefined .NET culture (the tag, then its ancestors); **the U+202F / U+2009 spacing
@@ -87,7 +87,7 @@ reallocated).
    > differ, and the same program must print the same bytes on every host; ISO 9945's locale data and GnuCOBOL's
    > strftime rendition both use the plain space); a scaled
    > `LOCALE-TIME-FROM-SECONDS` argument carries its fraction into the seconds (Annex D.31.4.5's nanosecond note);
-   > the result length is run-time-determined (§2023:15.52.4 r3 / §2023:15.53.4 r3 / §2023:15.54.4 r3 — a dynamic-length string).
+   > the result length is run-time-determined (§2023:15.52.4 RV3 / §2023:15.53.4 RV3 / §2023:15.54.4 RV3 — a dynamic-length string).
    > **`EC-LOCALE-INVALID` is raised** (§2023:8.2.1 "invalid or incomplete") when an available locale has no culture data
    > for the category an operation needs — no predefined .NET culture backs the tag, or the process runs in .NET
    > invariant globalization mode (detected once) — the invariant culture's content standing when checking is off;
@@ -102,17 +102,17 @@ reallocated).
    > [locale-phrase-2] | FOR ALPHANUMERIC IS … | FOR NATIONAL IS …`, each phrase `locale-name | LOCALE |
    > SYSTEM-DEFAULT | USER-DEFAULT` (§2023:12.3.6.2; §2023:12.3.6.3 SR3 — COBOL1664 for an undeclared name; at most once —
    > COBOL2104 `choice-alternative-repeated`, counted by the `ClauseCardinalities` OBJECT-COMPUTER row, §2023:5.2.6.4; inherited by contained units, §2023:12.3.6.4 GR1), is RESOLVED AT EACH ACTIVATION of the module
-   > (§2023:12.3.6.4 GR5 a–j; GR8 "effective with the initial state of the runtime modules"; §2023:14.6.6 r2) into the module's
+   > (§2023:12.3.6.4 GR5 a–j; GR8 "effective with the initial state of the runtime modules"; §2023:14.6.6 GR2) into the module's
    > classification — `LOCALE` is the locale current at THAT activation, and a later `SET LOCALE LC_CTYPE` does not
    > move it. Its two consumers (GR7): `UPPER-CASE` / `LOWER-CASE` without a phrase map through the classification
-   > locale's LC_CTYPE (§2023:15.97.4 r3 / §2023:15.57.4 r3), and the class tests `ALPHABETIC` / `ALPHABETIC-LOWER` /
+   > locale's LC_CTYPE (§2023:15.97.4 RV3 / §2023:15.57.4 RV3), and the class tests `ALPHABETIC` / `ALPHABETIC-LOWER` /
    > `ALPHABETIC-UPPER` classify by it (§2023:8.8.4.4.4 GR3 b1 / c1 / d1); with the `LOCALE locale-name-1` phrase the
    > functions map through the NAMED locale's LC_CTYPE whatever the classification (r2 — the construct row
    > `case-function-locale-phrase-2014`); without either, the implementor's correspondence (r4 — the invariant
    > tables, §3 above). **Determinations (documented per §2023:4.2.7):** (a) **DETERMINATION L9 — the LC_CTYPE case
    > correspondence is SIMPLE (one code unit to one)**: .NET's `TextInfo.ToUpper`/`ToLower`, which ISO/IEC 9945's
    > `toupper`/`tolower` also are (§2023:8.2.1 — categories "as specified in ISO/IEC 9945"), so the returned string always
-   > has argument-1's length (§2023:15.97.4 r5 / §2023:15.57.4 r5 — the "may be longer or shorter" sentence is a permission a
+   > has argument-1's length (§2023:15.97.4 RV5 / §2023:15.57.4 RV5 — the "may be longer or shorter" sentence is a permission a
    > one-to-one correspondence does not exercise; `ß` stays `ß`, never `SS`) and a letter without a correspondence is
    > unchanged (r6). (b) **The classification's LC_CTYPE is the .NET culture of the locale tag** (nearest predefined
    > culture, as LC_TIME — `LocaleFacts`): `ALPHABETIC` under a classification is "characters identified as alphabetic
@@ -142,20 +142,20 @@ reallocated).
    > §2023:12.3.7.4 GR1); `SET LOCALE {category… | USER-DEFAULT} TO {identifier-10 | locale-name-1 | USER-DEFAULT |
    > SYSTEM-DEFAULT}` (§2023:14.9.39.4 GR22–GR25 — the category operand is a SET, per the format's choice indicators;
    > SR25–SR27 diagnosed) and `SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT}` (GR26/GR27; SR28) act on the run
-   > unit's ONE locale state (§2023:8.2.1 / §2023:14.6.6 r1/r3/r9; §2023:14.9.39.4 GR25). **Determinations (documented per §2023:4.2.7):**
+   > unit's ONE locale state (§2023:8.2.1 / §2023:14.6.6 GR1/r3/r9; §2023:14.9.39.4 GR25). **Determinations (documented per §2023:4.2.7):**
    > the external identification is a locale TAG — any CLDR locale (BCP-47) or the root spelled `INVARIANT` — with
    > POSIX spellings normalized (`fr_FR.UTF-8` ≡ `fr_FR` ≡ `fr-FR`; an `@modifier` that is a CLDR collation type
    > becomes `-u-co-type`, any other makes the locale unavailable), and availability is a RUN-TIME property — the
    > compiler never resolves it (§2023:8.1.5; L1); a saved locale is a MANAGED HANDLE held by the data-pointer, never an
    > address (L4), and a locale is a value PER CATEGORY (a saved snapshot may name different locales per category);
-   > the system default cannot be set from COBOL (§2023:8.2.1); a callee's SET is not unwound (§2023:14.6.6 r9); a SORT/MERGE
-   > takes its collating sequence when the statement begins (§2023:14.6.6 r5 — a SET LOCALE in an INPUT PROCEDURE has no
+   > the system default cannot be set from COBOL (§2023:8.2.1); a callee's SET is not unwound (§2023:14.6.6 GR9); a SORT/MERGE
+   > takes its collating sequence when the statement begins (§2023:14.6.6 GR5 — a SET LOCALE in an INPUT PROCEDURE has no
    > effect on it). **The EC-LOCALE family of exception-names is LEGAL at every naming site** (item 1 — the PB100
    > refusal is reverted) and four of the conditions are RAISED: `EC-LOCALE-MISSING` (GR24, a named `IS LOCALE`
    > sequence whose locale is unavailable, and the LOCALE functions' locale-name-1), `EC-LOCALE-INVALID-PTR`
    > (GR21), `EC-LOCALE-INCOMPATIBLE` (§2023:8.8.4.2.11, L6) and `EC-LOCALE-INVALID` (§2023:8.2.1, the LOCALE functions — T4)
    > — each checking-gated per §2023:14.6.13.1.1, fatal per §2023:14.6.13.1.6's table, observed by the goldens
-   > the suite tests `pb64t1_*` / `pb64t4_*` (`conformance-suite/cases/`). `EC-LOCALE-SIZE` is RAISED since T6 (§2023:13.18.40.5 r14 b — the ONE raise site is `CobolLocaleEdit.Format`,
+   > the suite tests `pb64t1_*` / `pb64t4_*` (`conformance-suite/cases/`). `EC-LOCALE-SIZE` is RAISED since T6 (§2023:13.18.40.5 GR14 b — the ONE raise site is `CobolLocaleEdit.Format`,
    > observed by `2002/pb64t6_locale_size_ec`, both silent arms pinned);
    > `EC-LOCALE-IMP` is reserved. The construct rows
    > `special-names-locale-2002`, `set-locale-2002`, `set-save-locale-2002` gate the three at the 2002 edition.
@@ -186,13 +186,13 @@ reallocated).
    > consequences for this list: the function is no longer COBOL1518, the SPECIAL-NAMES `ORDER TABLE
    > ordering-name-1 IS literal-9` clause parses and binds (§2023:12.3.7.2; §2023:12.3.7.3 SR9/SR10/SR11; §2023:12.3.7.4 GR17),
    > and **`EC-ORDER-NOT-SUPPORTED` is a legal exception-name again** at every naming site — it is an A.3 item 25
-   > name, not an A.4.9 locale one, and §2023:15.85.4 r2's raise site is live, so refusing it would make a condition
+   > name, not an A.4.9 locale one, and §2023:15.85.4 RV2's raise site is live, so refusing it would make a condition
    > this compiler actually raises unobservable.
    >
    > ⚖ **DETERMINATION — the value of `STANDARD-COMPARE` when EC-ORDER-NOT-SUPPORTED checking is OFF.**
    > §2023:14.6.13.1.1 does not raise an unchecked condition and §2023:14.6.13.1.3 #8 leaves to the implementor "whether or
    > not execution will continue, how it will continue, and how any receiving operands are affected". WiseOwl COBOL
-   > continues and returns `"="` — a value §2023:15.85.4 r6 defines, one character long per r7, the same for every
+   > continues and returns `"="` — a value §2023:15.85.4 RV6 defines, one character long per r7, the same for every
    > invocation. An unresolvable `literal-9` is diagnosed at compile time (COBOL1662, a warning) so this
    > outcome is never a surprise.
 

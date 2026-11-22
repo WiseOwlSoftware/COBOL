@@ -22,8 +22,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A BY REFERENCE INVOKE ARGUMENT GETS ONE VERDICT ON THE TYPED AND THE UNIVERSAL LANE (kb/Work PB2077, decision
-/// PB3098; OO_DESIGN D6 item 6). ISO §2023:14.9.23.4 GR7 b) locates the method for EVERY INVOKE by §2023:9.3.6's match,
-/// and §2023:14.9.23.3 SR5 c) with §2023:14.8.1 asks a typed receiver's §2023:14.8.2 conformance at compile time: one relation, read
+/// PB3098; OO_DESIGN D6 item 6). ISO §2023:14.9.23.4 GR7b locates the method for EVERY INVOKE by §2023:9.3.6's match,
+/// and §2023:14.9.23.3 SR5c with §2023:14.8.1 asks a typed receiver's §2023:14.8.2 conformance at compile time: one relation, read
 /// at two times. The universal switch asks <see cref="ActivationRelations.Matches"/> and
 /// <see cref="ActivationRelations.ParameterViolation"/> at run time; the typed binder
 /// (<c>OoBinder.ByReferenceArgumentReason</c>) asks <see cref="ActivationRelations.MatchViolation"/> and the same
@@ -196,7 +196,7 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
 
     private const string Group4 = "       01 LF.\n          05 LF1 PIC X(4).";
 
-    /// <summary>PB3098's verdict table, typed column (ISO §2023:9.3.6 3 c) / 3 e), §2023:14.8.2.2 rule 1, §2023:9.3.6 4 d),
+    /// <summary>PB3098's verdict table, typed column (ISO §2023:9.3.6 3 c) / 3 e), §2023:14.8.2.2 SR1, §2023:9.3.6 4 d),
     /// §2023:14.8.2.3.2 "Additionally" d); docs/CONFORMANCE.md D-RM1).</summary>
     [Theory]
     [InlineData("       01 LF PIC X(5).", "X(1:5)", false)]           // 3 e): the slice has no PICTURE clause

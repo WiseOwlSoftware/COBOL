@@ -28,7 +28,7 @@ public static partial class CobolEdit
     /// <param name="ExpDigits">The '9' positions of the exponent (§2023:13.18.40.4 GR13 b: 1..4).</param>
     /// <param name="Edits">The item's PICTURE EDITING rules — only the IS form can reach this form (§2023:13.18.40.3
     /// SR12 bars the FOR form's extended editing sign control symbols from a floating-point edited item), and an
-    /// IS-form character-1 is a SIMPLE INSERTION symbol (§2023:13.18.40.5 rule 3), which Table 7 admits in the
+    /// IS-form character-1 is a SIMPLE INSERTION symbol (§2023:13.18.40.5 GR3), which Table 7 admits in the
     /// significand. In comma mode the literals are held PRE-SWAPPED, so the whole-image separator swap on the way
     /// out restores them (§2023:13.18.40.3 SR13 exchanges the SYMBOLS' roles, never a literal's characters; kb/Work
     /// PB866). Null when the clause has no EDITING phrase.</param>
@@ -79,7 +79,7 @@ public static partial class CobolEdit
     }
 
     /// <summary>The disposition of a floating-point edited store — the caller (MOVE vs arithmetic) decides what
-    /// each means (§2023:14.9.25.4 GR6 item 4 vs §2023:14.7.5 cases 3/4). <see cref="Inexact"/> is §2023:14.7.4.3 rule 7's own
+    /// each means (§2023:14.9.25.4 GR6 item 4 vs §2023:14.7.5 cases 3/4). <see cref="Inexact"/> is §2023:14.7.4.3 GR7's own
     /// outcome, reported only for <see cref="CobolRounding.Prohibited"/> (kb/Work PB2638): the significand cannot
     /// be represented exactly in the mask's digits, which is a size error and not a rounding.</summary>
     public enum FloatStoreOutcome { Ok, Overflow, Underflow, Inexact }
@@ -90,10 +90,10 @@ public static partial class CobolEdit
     /// a value nearer to zero than the smallest nonzero the mask can hold "is treated as zero" — the rule-8 zero image,
     /// no exception. <paramref name="value"/> × 10^−<paramref name="valueScale"/> is the sending value.
     /// <para>⛔ <paramref name="mode"/> is the LANDING's, named by the caller (kb/Work PB2638): a MOVE passes
-    /// <see cref="CobolRounding.Truncation"/> (§2023:14.6.8.4 rule 2 aligns and truncates), and the no-phrase
+    /// <see cref="CobolRounding.Truncation"/> (§2023:14.6.8.4 GR2 aligns and truncates), and the no-phrase
     /// ARITHMETIC store passes the receiver's own §2023:14.7.4.3 mode — ROUNDED applies to a floating-point edited
     /// resultant exactly as to any other, at the significand's digit count; a PROHIBITED value the significand cannot
-    /// hold exactly raises <see cref="CobolSizeError.ProhibitedInexact"/> here (§2023:14.7.4.3 rule 7, kb/Work PB3990), where
+    /// hold exactly raises <see cref="CobolSizeError.ProhibitedInexact"/> here (§2023:14.7.4.3 GR7, kb/Work PB3990), where
     /// <see cref="TryFormatFloat(Int128, int, string, out string, CobolRounding, bool, bool, EditRule[])"/> answers false.</para></summary>
     public static string FormatFloatStore(Int128 value, int valueScale, string picture, CobolRounding mode, bool blankWhenZero = false, bool commaMode = false, EditRule[]? edits = null)
         => FormatFloatStoreCore((BigInteger)value, -valueScale, picture, mode, blankWhenZero, commaMode, edits);
@@ -135,7 +135,7 @@ public static partial class CobolEdit
     {
         var m = FloatMask.Parse(picture, commaMode, edits);
         string image = FormatFloatCore(NormalizeFloat(sig, exp10, m, mode), m, blankWhenZero, out var outcome);
-        // §2023:14.7.4.3 rule 7 holds whether or not checking is enabled: a PROHIBITED value the significand cannot hold
+        // §2023:14.7.4.3 GR7 holds whether or not checking is enabled: a PROHIBITED value the significand cannot hold
         // exactly is never stored (kb/Work PB3990 — this store used to land it truncated).
         if (outcome == FloatStoreOutcome.Inexact) throw CobolSizeError.ProhibitedInexact();
         if (outcome == FloatStoreOutcome.Overflow)
@@ -146,7 +146,7 @@ public static partial class CobolEdit
     /// <summary>The ARITHMETIC store (ISO §2023:14.7.5 cases 3 and 4 — both the size error condition, receiver unchanged):
     /// false when the value is farther from zero OR nearer to zero than the mask permits, or when
     /// <paramref name="mode"/> is <see cref="CobolRounding.Prohibited"/> and the significand cannot be represented
-    /// exactly (§2023:14.7.4.3 rule 7: the size error condition exists and the resultant is unchanged) — the caller
+    /// exactly (§2023:14.7.4.3 GR7: the size error condition exists and the resultant is unchanged) — the caller
     /// raises the size error and leaves the receiver alone — else the edited image in <paramref name="image"/>,
     /// the significand rounded to the mask's digits by <paramref name="mode"/> (§2023:14.7.4.3 rules 3 to 10).</summary>
     public static bool TryFormatFloat(Int128 value, int valueScale, string picture, out string image, CobolRounding mode, bool blankWhenZero = false, bool commaMode = false, EditRule[]? edits = null)
@@ -184,7 +184,7 @@ public static partial class CobolEdit
     /// alignment and any applicable rounding specifications", so a significand that rounds up past its last digit
     /// (<c>9.995</c> into <c>+9.99E+99</c> is <c>+1.00E+01</c>) is renormalized and its exponent re-checked against
     /// the mask's capacity, and a value just under the underflow bound that rounds up to the smallest
-    /// representable nonzero is that value and not a size error. A MOVE passes TRUNCATION (§2023:14.6.8.4 rule 2) and
+    /// representable nonzero is that value and not a size error. A MOVE passes TRUNCATION (§2023:14.6.8.4 GR2) and
     /// never carries.</para></summary>
     private static string FormatFloatCore(in NormalizedFloat n, in FloatMask m, bool blankWhenZero, out FloatStoreOutcome outcome)
     {
@@ -200,7 +200,7 @@ public static partial class CobolEdit
 
     /// <summary>A value as the floating-point numeric-edited item holds it: the sign, the <c>SigDigits</c>-digit
     /// significand and the exponent that keeps the value, or zero (<see cref="Zero"/>). On overflow it is the pinned
-    /// saturated image's content (all nines at the maximum exponent); on underflow it is zero (§2023:14.9.25.4 GR6 d) 4 b).</summary>
+    /// saturated image's content (all nines at the maximum exponent); on underflow it is zero (§2023:14.9.25.4 GR6d 4 b).</summary>
     private readonly record struct NormalizedFloat(bool Zero, bool Negative, Int128 Significand, int Exponent,
         FloatStoreOutcome Outcome);
 
@@ -223,7 +223,7 @@ public static partial class CobolEdit
         var tenK = BigInteger.Pow(10, Math.Abs(k));
         // k < 0 drops digits: the SIGNED value goes to the kernel, because TOWARD-GREATER and TOWARD-LESSER depend
         // on the sign and the kernel takes the away-from-zero step from it (§2023:14.7.4.3 rules 3, 8 and 9).
-        // §2023:14.7.4.3 rule 7: PROHIBITED and a nonzero dropped tail is the Inexact OUTCOME, never a rounding — so the kernel,
+        // §2023:14.7.4.3 GR7: PROHIBITED and a nonzero dropped tail is the Inexact OUTCOME, never a rounding — so the kernel,
         // which raises for PROHIBITED (kb/Work PB3990), is asked for the truncation the outcome's image carries, and each
         // caller acts on the outcome (the Try form answers false, the unchecked store raises).
         inexact = k < 0 && mode == CobolRounding.Prohibited && !(a % tenK).IsZero;
@@ -240,18 +240,18 @@ public static partial class CobolEdit
         int maxExp = m.MaxExp;
         if (e > maxExp)   // the pinned saturated image
             return new NormalizedFloat(false, negative, Pow10.AsWide(m.SigDigits) - 1, maxExp, FloatStoreOutcome.Overflow);
-        // §2023:14.9.25.4 GR6 d) 4 b: a value nearer to zero than the receiver permits "is treated as zero" — so
+        // §2023:14.9.25.4 GR6d 4 b: a value nearer to zero than the receiver permits "is treated as zero" — so
         // the value BEING STORED is zero and §2023:13.18.8.4 GR1 blanks.
         if (e < -maxExp) return new NormalizedFloat(true, false, 0, 0, FloatStoreOutcome.Underflow);
         return new NormalizedFloat(false, negative, (Int128)s, e, inexact ? FloatStoreOutcome.Inexact : FloatStoreOutcome.Ok);
     }
 
     /// <summary>⛔ THE VALUE A FLOATING-POINT NUMERIC-EDITED ITEM HOLDS FOR <paramref name="value"/> UNDER TRUNCATION — the
-    /// shape ISO §2023:14.9.12.4 6) c) asks of the subsidiary quotient of <c>DIVIDE ... GIVING identifier-3 REMAINDER</c> when
+    /// shape ISO §2023:14.9.12.4 GR6c asks of the subsidiary quotient of <c>DIVIDE ... GIVING identifier-3 REMAINDER</c> when
     /// identifier-3 is such an item (kb/Work PB2923): "derived from the quotient by truncation of digits at the least
     /// significant end and that has the same number of digits and the same decimal point location as the data item
     /// referenced by identifier-3". A floating-point item has no fixed decimal point location, only a significand of
-    /// <c>SigDigits</c> digits normalized so that its leading digit is nonzero (§2023:14.6.8.4 1)), so the quotient keeps its own
+    /// <c>SigDigits</c> digits normalized so that its leading digit is nonzero (§2023:14.6.8.4 GR1), so the quotient keeps its own
     /// leading <c>SigDigits</c> digits at its own exponent: +9.99E+99 holds 1/3000 as 3.33E-04, not as the 0.00 a fixed
     /// scale would leave. It is <see cref="FormatFloatStore(CobolDec, string, CobolRounding, bool, bool, EditRule[])"/>'s
     /// own normalization (<see cref="NormalizeFloat"/>) with the image left unwritten, so the subsidiary quotient and the
@@ -278,7 +278,7 @@ public static partial class CobolEdit
                 case '9': sb.Append(sigDigits[next++]); break;
                 case '+': sb.Append(negative ? '-' : '+'); break;   // Table 8 fixed insertion
                 case '-': sb.Append(negative ? '-' : ' '); break;
-                // SIMPLE INSERTION from the ONE set (§2023:13.18.40.5 rule 3, Table 7's "Simple insertion … for the
+                // SIMPLE INSERTION from the ONE set (§2023:13.18.40.5 GR3, Table 7's "Simple insertion … for the
                 // significand part") — 'B' inserts a space, '0' '/' ',' insert themselves, and an IS-form PICTURE
                 // EDITING character-1 inserts its WHOLE literal-1 (rule 3: "if literal-1 is specified, character-1"
                 // is a simple insertion symbol; GR14 'es' counts literal-1's size — kb/Work PB866). The FOR form
@@ -301,7 +301,7 @@ public static partial class CobolEdit
     /// and sign, the 'E', the exponent's sign and digits, back to the exact value <c>±S × 10^(E − SigScale)</c>.
     /// An ALL-SPACES image of an item with BLANK WHEN ZERO (<paramref name="blankWhenZero"/>) is that item's zero
     /// (§2023:13.18.8.4 GR3: the sending data item's "value … is considered to be zero"). Under EC-DATA-INCOMPATIBLE
-    /// checking (§2023:14.6.13.2 rule 4: content "not a possible result for any editing operation in that data item"),
+    /// checking (§2023:14.6.13.2 GR4: content "not a possible result for any editing operation in that data item"),
     /// the image is verified to be an editing result by the fixed-point form's own test — <see cref="FormatFloatCore"/>
     /// of the de-edited value, with the item's BLANK WHEN ZERO, must reproduce it, so a significand that §2023:14.6.8.4 GR1
     /// would have normalized (a leading zero on a nonzero value), a nonzero exponent on a zero value and every

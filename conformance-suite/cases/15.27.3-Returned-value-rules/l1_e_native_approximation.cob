@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §2023:15.27.3 r1 — FUNCTION E under NATIVE arithmetic: the returned value is an
+      *> ISO §2023:15.27.3 RV1 — FUNCTION E under NATIVE arithmetic: the returned value is an
       *> implementor-defined approximation of (2 + 0.71828182845904523536028747135 26).
       *>
       *> --check validated:
@@ -66,7 +66,7 @@
            ELSE
                DISPLAY "BARE=OUT"
            END-IF.
-      *> 4 - §2023:15.34.4 r1 makes EXP's equivalent arithmetic expression (FUNCTION E ** argument-1),
+      *> 4 - §2023:15.34.4 RV1 makes EXP's equivalent arithmetic expression (FUNCTION E ** argument-1),
       *> so at argument-1 = 1 that expression IS FUNCTION E: two bodies, one constant.
            COMPUTE W-X = FUNCTION EXP(1).
            IF W-X > 2.7182818 AND W-X < 2.7182819

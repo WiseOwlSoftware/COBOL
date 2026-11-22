@@ -14,12 +14,12 @@ namespace WiseOwl.Cobol.Runtime.Exceptions;
 /// <item><see cref="Normal"/> — the declarative ran and completed normally (§2023:14.6.13.1.2), or no action was needed
 /// (an I-O hook's successful arm).</item>
 /// <item><see cref="ResumeNext"/> — RESUME AT NEXT STATEMENT (§2023:14.9.33.4 GR2): fall through past the raising
-/// statement, which also suppresses a fatal termination (§2023:14.6.13.1.3 5) NOTE 2).</item>
+/// statement, which also suppresses a fatal termination (§2023:14.6.13.1.3 GR5 NOTE 2).</item>
 /// <item><see cref="NoHandler"/> — no qualifying declarative (§2023:14.9.49.4 GR3g tail; GR14 b)).</item>
 /// <item><see cref="HandledNonfatal"/> — a NONFATAL condition raised by a SUCCESSFUL statement that a WHEN phrase or a
 /// USE declarative handled and that completed normally (kb/Work PB1120): §2023:14.6.13.1.4 2)/3) — the statement's NOT
 /// phrase is skipped. Distinct from <see cref="Normal"/> so "handled" and "no condition at all" can be told apart.</item>
-/// <item><see cref="NotNormal"/> — the declarative fell off its end but §2023:14.6.13.1.2 1) says it did not complete
+/// <item><see cref="NotNormal"/> — the declarative fell off its end but §2023:14.6.13.1.2 GR1 says it did not complete
 /// normally ("a fatal exception occurs within the scope of the declarative", or a RESUME that §2023:14.9.33.4 GR1 made a
 /// CONTINUE was executed): <c>__RunUse</c> answers it from the declarative's activation record (kb/Work PB1122 Task B).
 /// Only a rule that KEYS on normal completion distinguishes it — the SORT (§2023:14.9.40.4 GR17) and MERGE (§2023:14.9.24.4 GR7,
@@ -36,7 +36,7 @@ public static class DispatchResult
 
     /// <summary><c>RESUME AT NEXT STATEMENT</c> (§2023:14.9.33.4 GR2): control transfers to the implicit CONTINUE after
     /// the statement that raised the condition — the raise site falls through (suppressing a fatal termination,
-    /// §2023:14.6.13.1.3 5) NOTE 2).</summary>
+    /// §2023:14.6.13.1.3 GR5 NOTE 2).</summary>
     public const int ResumeNext = -2;
 
     /// <summary>No qualifying declarative was selected (§2023:14.9.49.4 GR3g tail, GR14 b)).</summary>
@@ -46,7 +46,7 @@ public static class DispatchResult
     /// (§2023:14.6.13.1.4 2)/3); the statement's NOT phrase is skipped (kb/Work PB1120).</summary>
     public const int HandledNonfatal = -4;
 
-    /// <summary>The declarative fell off its end but did not complete normally (§2023:14.6.13.1.2 1): a fatal exception
+    /// <summary>The declarative fell off its end but did not complete normally (§2023:14.6.13.1.2 GR1): a fatal exception
     /// occurred within its scope, or a RESUME that §2023:14.9.33.4 GR1 made a CONTINUE was executed (kb/Work PB1122 Task B).</summary>
     public const int NotNormal = -5;
 
@@ -54,7 +54,7 @@ public static class DispatchResult
     public static bool IsTransfer(int result) => result >= 0;
 
     /// <summary>Does this result let execution continue past a FATAL condition's raising statement? Only RESUME does
-    /// (§2023:14.6.13.1.3 5) NOTE 2): RESUME AT NEXT STATEMENT, or a RESUME AT procedure-name transfer the landing
+    /// (§2023:14.6.13.1.3 GR5 NOTE 2): RESUME AT NEXT STATEMENT, or a RESUME AT procedure-name transfer the landing
     /// already took.</summary>
     public static bool SuppressesFatal(int result) => result == ResumeNext || result >= 0;
 
@@ -63,7 +63,7 @@ public static class DispatchResult
     /// <see cref="NotNormal"/>ly fell off its end).</summary>
     public static bool TerminatesSortMerge(int result) => result == ResumeNext || result == NotNormal;
 
-    /// <summary>Did the declarative whose action <c>__RunUse</c> returns NOT complete normally (§2023:14.6.13.1.2 1)) — a
+    /// <summary>Did the declarative whose action <c>__RunUse</c> returns NOT complete normally (§2023:14.6.13.1.2 GR1) — a
     /// RESUME of either form (<see cref="ResumeNext"/>, or a RESUME AT procedure-name pc) or a <see cref="NotNormal"/>
     /// fall-off? The question §2023:14.9.40.4 GR17 asks of a USE procedure invoked while a format 1 SORT is active
     /// (<c>CobolSort.AfterUseProcedure</c>, kb/Work PB1177). Unlike <see cref="TerminatesSortMerge"/> it counts the
@@ -72,7 +72,7 @@ public static class DispatchResult
 
     /// <summary>Does a raise site that selected a procedure LET THE INTERRUPTED STATEMENT FINISH? True when no RESUME
     /// redirected control: the procedure fell off its end (<see cref="Normal"/>, or <see cref="NotNormal"/> — how it
-    /// completed does not matter to a statement whose own rule names the continuation, §2023:14.6.13.1.4 3)) or none
+    /// completed does not matter to a statement whose own rule names the continuation, §2023:14.6.13.1.4 GR3) or none
     /// qualified (<see cref="NoHandler"/>, #4).</summary>
     public static bool FinishesStatement(int result) => result is Normal or NoHandler or NotNormal;
 

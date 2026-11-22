@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ORGANIZATIONS. There are two such questions and this class guards both: <c>HostFile.Probe</c> ("is the file
 /// there, and may this process observe it?") and <c>HostFile.PermitsWrite</c> ("may this process write it?").
 /// <para>The presence rule exists because a two-valued probe cannot state the answer the standard requires. ISO
-/// §2023:9.1.13.6 item 5 sets '35' when <i>"the physical file is not present"</i>; §2023:14.9.27.4 GR3 sets '37' when
+/// §2023:9.1.13.6 GR5 sets '35' when <i>"the physical file is not present"</i>; §2023:14.9.27.4 GR3 sets '37' when
 /// <i>"the file ... is present and insufficient authority exists to open the file"</i>. <c>File.Exists</c>
 /// swallows every access error and returns <c>false</c>, so it reports the second case as the first — and
 /// silently, since a program cannot tell an invented empty OPTIONAL file from a real one. Every other file

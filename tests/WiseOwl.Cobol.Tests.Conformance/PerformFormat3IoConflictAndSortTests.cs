@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// applicable. Which of the three runs is pinned for each status here, with the NONFATAL / FATAL split the exception
 /// table (§2023:14.6.13.1.6, the EC-I-O names) gives: 51 (EC-I-O-RECORD-OPERATION), 61 and 62 (EC-I-O-FILE-SHARING), 05 (EC-I-O-WARNING), 10 (EC-I-O-AT-END) and 23
 /// (EC-I-O-INVALID-KEY) are NF and the run goes on; 37 and 39 (EC-I-O-PERMANENT-ERROR) are Fatal.</para>
-/// <para>Expected statuses are the standard's: §2023:9.1.13.8 item 1 ('51': a record another file connector has locked),
+/// <para>Expected statuses are the standard's: §2023:9.1.13.8 GR1 ('51': a record another file connector has locked),
 /// §2023:9.1.13.9 item 1 e) ('61': OPEN OUTPUT of a physical file another file
 /// connector has open) and item 2 ('62': DELETE FILE of a physical file another file connector has open), §2023:9.1.13.6
 /// items 6 and 7 ('37' insufficient authority or a file that will not support the write operation, '39' a fixed-
@@ -112,7 +112,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             checking, use);
     }
 
-    [Fact]   // §2023:9.1.13.9 1) e): OPEN OUTPUT of a physical file another connector has open is '61'; the WHEN is selected
+    [Fact]   // §2023:9.1.13.9 GR1e: OPEN OUTPUT of a physical file another connector has open is '61'; the WHEN is selected
     public void OpenOutputConflict_Retry_WhenFileSharing_RunsHandler_WithStatus61() => AssertRuns(Share("F3SH61N", """
             PERFORM
                 OPEN OUTPUT RETRY 2 TIMES G
@@ -176,7 +176,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """, checking: "", use: ("G", "DISPLAY \"USE \" GS.")), "USE 61\nAFTER 61\nDONE");
 
-    [Fact]   // §2023:9.1.13.9 2): DELETE FILE of a physical file another connector has open is '62'
+    [Fact]   // §2023:9.1.13.9 GR2: DELETE FILE of a physical file another connector has open is '62'
     public void DeleteFileConflict_Retry_WhenFileSharing_RunsHandler_WithStatus62() => AssertRuns(Share("F3SH62N", """
             PERFORM
                 DELETE FILE G RETRY 2 TIMES
@@ -217,7 +217,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """, checking: ""), "AFTER 62\nDONE");
 
-    // ── record lock contention: '51', the record operation conflict (§2023:9.1.13.8 1)) ────────────────────────────
+    // ── record lock contention: '51', the record operation conflict (§2023:9.1.13.8 GR1) ────────────────────────────
 
     /// <summary>Two connectors on ONE relative file, both SHARING WITH ALL OTHER and LOCK MODE IS AUTOMATIC (the
     /// <c>l1_read_lock_mode_governs</c> shape): F's plain READ of record 1 locks it (§2023:12.4.5.9.4 GR4), so G's READ of
@@ -263,7 +263,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             checking, use);
     }
 
-    [Fact]   // §2023:9.1.13.8 1): the READ of a record another connector has locked is '51'; the WHEN is selected
+    [Fact]   // §2023:9.1.13.8 GR1: the READ of a record another connector has locked is '51'; the WHEN is selected
     public void ReadOfALockedRecord_Retry_WhenRecordOperation_RunsHandler_WithStatus51() => AssertRuns(Lock("F3LK51N", """
             PERFORM
                 READ G RETRY 2 TIMES
@@ -341,7 +341,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
 
     /// <summary>A RELATIVE file of 20-byte records, then a second description of the same physical file with 40-byte
     /// records: §2023:14.9.27.4 GR10 compares the attributes the program gives with the file's and answers '39'
-    /// (§2023:9.1.13.6 item 7). <paramref name="proc"/> runs after the 20-byte file has been created.</summary>
+    /// (§2023:9.1.13.6 GR7). <paramref name="proc"/> runs after the 20-byte file has been created.</summary>
     private static string Attribute39(string name, string proc, bool status = true, string checking = On,
         (string File, string Body)? use = null)
     {
@@ -411,7 +411,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """, checking: ""), "AFTER 39\nDONE");
 
-    /// <summary>One OPTIONAL file that is absent (§2023:9.1.13.2 item 4 a: OPEN INPUT is SUCCESSFUL, '05').</summary>
+    /// <summary>One OPTIONAL file that is absent (§2023:9.1.13.2 GR4 a: OPEN INPUT is SUCCESSFUL, '05').</summary>
     private static string Optional05(string name, string proc, bool status = true, string checking = On,
         (string File, string Body)? use = null) => Prog(name,
         select: $"""
@@ -554,7 +554,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             """,
         proc, checking, use);
 
-    [Fact]   // §2023:14.9.6.4 GR1 / §2023:9.1.13.7 item 2: CLOSE of a file not open is '42', Fatal; the USE runs when no WHEN matches
+    [Fact]   // §2023:14.9.6.4 GR1 / §2023:9.1.13.7 GR2: CLOSE of a file not open is '42', Fatal; the USE runs when no WHEN matches
     public void CloseUnopenedFile_UnmatchedWhen_FallsToUseDeclarative() => AssertRuns(OneFile("F3CL42U", """
             PERFORM
                 CLOSE F
@@ -574,7 +574,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """, use: ("F", "DISPLAY \"USE \" FS.")), "EC-I-O-LOGIC-ERROR", "USE 42");
 
-    [Fact]   // §2023:9.1.13.7 item 1: DELETE FILE of a file in an open mode is '41', Fatal
+    [Fact]   // §2023:9.1.13.7 GR1: DELETE FILE of a file in an open mode is '41', Fatal
     public void DeleteFileOfOpenFile_UnmatchedWhen_FallsToUseDeclarative() => AssertRuns(OneFile("F3DF41U", """
             OPEN OUTPUT F
             PERFORM
@@ -875,7 +875,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
         InWhen("SORT SF ASCENDING KEY SK USING H GIVING G" + Nl + "DISPLAY \"NOT REACHED\""), hStatus: false),
         "EC-I-O-PERMANENT-ERROR", "");
 
-    [Fact]   // §2023:14.9.40.4 GR9 a): a USING file in an open mode at the SORT is EC-SORT-MERGE-FILE-OPEN; §2023:14.6.13.1.3 2)
+    [Fact]   // §2023:14.9.40.4 GR9a: a USING file in an open mode at the SORT is EC-SORT-MERGE-FILE-OPEN; §2023:14.6.13.1.3 GR2
              // makes the SORT rules apply, so the declarative runs, the SORT is terminated and the run unit continues
     public void FileSortInWhen_UsingFileOpen_SortMergeFileOpen_TerminatesTheSort() => AssertRuns(Sort("F3ST06",
         "    OPEN INPUT F\n" + InWhen("PERFORM SORT-PARA" + Nl + "DISPLAY \"CONTINUED\"")

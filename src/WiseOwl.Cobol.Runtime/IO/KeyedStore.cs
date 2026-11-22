@@ -95,7 +95,7 @@ internal abstract class KeyedStore
     /// adoption (<c>KeyedConnector.RetakeKeptHandle</c>, kb/Work PB3497) — so the state a CLOSE kept has its handle, its file lock, its
     /// liveness byte and its record locks, and its store has no file until the connector's next OPEN reads it. Neither statement
     /// depends on that OPEN: it adopts through the writable handle the way <see cref="Open"/> does, and answers the medium's own
-    /// refusal if the medium still refuses ('30', §2023:9.1.13.6 item 1). Nothing to do while the store holds its file, holds no
+    /// refusal if the medium still refuses ('30', §2023:9.1.13.6 GR1). Nothing to do while the store holds its file, holds no
     /// transaction, has no writable handle (the refusal the statements already answer) or the medium holds no bytes (a file lost
     /// outside the run unit holds no store to promote or restore). The caller holds the store mutex.</summary>
     private StoreStatus AdoptAgainForTransaction(IKeyOrder holdingsOrder) =>
@@ -470,7 +470,7 @@ internal abstract class KeyedStore
     /// <summary>⛔ COMMIT this run unit's transaction on the file (§2023:14.9.7.4 GR3; 2.2.1.10): the promotion that decides it
     /// (<see cref="PagedFile.Commit"/>). Committed, or reversed by a refused sync 2: the transaction is over and its byte
     /// given back. Refused before the slot write: the transaction stands, intact, for the unconditional ROLLBACK
-    /// (§2023:14.6.13.1.3 item 8). The reversal refused too: the file is MARKED UNACKNOWLEDGED. The caller holds the mutex.</summary>
+    /// (§2023:14.6.13.1.3 GR8). The reversal refused too: the file is MARKED UNACKNOWLEDGED. The caller holds the mutex.</summary>
     internal CommitOutcome Commit(RestoringTreesFactory reverse, IKeyOrder holdingsOrder)
     {
         if (Transaction == 0) return CommitOutcome.Committed;
@@ -640,7 +640,7 @@ internal sealed class RelativeStore : KeyedStore
     }
 
     /// <summary>The lowest (<paramref name="last"/> false) or highest record number the file holds; null when none — the
-    /// highest is §2023:14.9.51.4 GR29 a)'s <i>"the highest relative record number existing in the physical file"</i>.</summary>
+    /// highest is §2023:14.9.51.4 GR29a's <i>"the highest relative record number existing in the physical file"</i>.</summary>
     public StoreStatus Edge(bool last, out long? rrn)
     {
         rrn = null;

@@ -43,7 +43,7 @@ public sealed class PictureCategoryDriftTests
     private const string Alphabet = "AXN91ZP SV0B/,.+-*$";
 
     /// <summary>Shapes an exhaustive 1..3 walk cannot reach: the two-character editing sign control symbols, the
-    /// floating strings (§2023:13.18.40.5 rule 6 needs two adjacent occurrences), the repeat form, the currency-string
+    /// floating strings (§2023:13.18.40.5 GR6 needs two adjacent occurrences), the repeat form, the currency-string
     /// widening of GR14 and the floating-point form of GR13 b.</summary>
     private static readonly string[] LongerShapes =
     [

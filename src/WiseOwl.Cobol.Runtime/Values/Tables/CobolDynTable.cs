@@ -75,7 +75,7 @@ public sealed class CobolDynTable<T>
 
     /// <summary>A SENDING element reference (§2023:8.5.1.9.2): a 1-based occurrence in 1..current-capacity — "the result
     /// of the operation is the same as for a fixed-capacity table whose number of occurrences is the current
-    /// capacity of the table", so an occurrence outside it is §2023:8.4.2.3.4 2)'s out-of-range subscript and sets
+    /// capacity of the table", so an occurrence outside it is §2023:8.4.2.3.4 GR2's out-of-range subscript and sets
     /// EC-BOUND-SUBSCRIPT exactly as <see cref="CobolTable.At{T}"/> does (kb/Work PB1268 — this arm used to return
     /// the scratch slot in silence while the fixed-table accessor raised). With checking off the reference continues
     /// benignly through a fresh scratch slot, the same policy. The subscript is an <see cref="Occurrence"/> (kb/Work
@@ -92,11 +92,11 @@ public sealed class CobolDynTable<T>
     }
 
     /// <summary>A RECEIVING element reference (§2023:8.5.1.9.3): an occurrence &gt; the current capacity GROWS the table to
-    /// it, seeding any skipped intermediate occurrences. An occurrence &lt; 1 is not a growth case — §2023:8.4.2.3.4 2)'s
+    /// it, seeding any skipped intermediate occurrences. An occurrence &lt; 1 is not a growth case — §2023:8.4.2.3.4 GR2's
     /// "not a positive integer" — so it sets EC-BOUND-SUBSCRIPT, as the fixed-table accessor does (kb/Work PB1268),
     /// and with checking off continues through the benign scratch slot. An implicit growth
     /// past the expected capacity (TO integer-5) raises the nonfatal EC-BOUND-OVERFLOW through
-    /// <see cref="RaiseImplicitOverflow"/> — the ONE §2023:8.5.1.9.6 1) raise every implicit capacity change shares — and
+    /// <see cref="RaiseImplicitOverflow"/> — the ONE §2023:8.5.1.9.6 GR1 raise every implicit capacity change shares — and
     /// the growth proceeds regardless, a declarative's RESUME AT NEXT STATEMENT included (kb/Work PB1269). Every
     /// detail text names the subscript's value as the program holds it, even past <c>long</c> (<see cref="Occurrence"/>,
     /// kb/Work PB2695).</summary>
@@ -128,7 +128,7 @@ public sealed class CobolDynTable<T>
         return ref _store[(int)(occ - 1)];
     }
 
-    /// <summary>⛔ THE ONE §2023:8.5.1.9.6 1) RAISE FOR AN IMPLICIT CAPACITY CHANGE — "The nonfatal EC-BOUND-OVERFLOW
+    /// <summary>⛔ THE ONE §2023:8.5.1.9.6 GR1 RAISE FOR AN IMPLICIT CAPACITY CHANGE — "The nonfatal EC-BOUND-OVERFLOW
     /// exception condition shall exist when a dynamic-capacity table has an expected capacity and an operation
     /// causes this expected capacity to be exceeded. If the change in capacity was implicit and the expected
     /// capacity had already been exceeded before the operation, no exception shall exist." Every capacity change
@@ -139,7 +139,7 @@ public sealed class CobolDynTable<T>
     /// already-exceeded exemption.
     /// <para>Called BEFORE the change, like its explicit twin in <see cref="SetCapacity"/>: a declarative that
     /// completes normally, or one that executes RESUME AT NEXT STATEMENT, returns here and the change is made —
-    /// §2023:8.5.1.9.6 1) names that continuation for exactly this condition ("the operation shall be allowed to
+    /// §2023:8.5.1.9.6 GR1) names that continuation for exactly this condition ("the operation shall be allowed to
     /// continue, thus exceeding the receiving table's specified expected capacity"), which is why
     /// <see cref="ExceptionEngine.BoundOverflowError"/> does not unwind on the NEXT STATEMENT resume (kb/Work
     /// PB1269). A RESUME AT procedure-name still transfers control out of the statement.</para></summary>
@@ -154,7 +154,7 @@ public sealed class CobolDynTable<T>
     /// (§2023:8.5.1.9.5). A request the table cannot reach — past <see cref="MaxOccurrences"/>, or past what the
     /// runtime's resources can hold — raises EC-BOUND-TABLE-LIMIT (fatal) with the capacity unchanged
     /// (<see cref="TableLimit"/>). This is the pure grow primitive: EC-BOUND-OVERFLOW on an implicit change
-    /// (§2023:8.5.1.9.6 1)) is raised by <see cref="RaiseImplicitOverflow"/> BEFORE calling here; EC-BOUND-SET on an
+    /// (§2023:8.5.1.9.6 GR1) is raised by <see cref="RaiseImplicitOverflow"/> BEFORE calling here; EC-BOUND-SET on an
     /// explicit SET past the expected capacity (§2023:14.9.39.4 GR30's second arm) is raised by
     /// <see cref="SetCapacity"/> BEFORE the capacity changes, as this one is (kb/Work PB460).</summary>
     /// <remarks>⛔ <paramref name="newCount"/> is <see cref="Int128"/>, and THAT IS THE POINT (kb/Work PB459):
@@ -174,9 +174,9 @@ public sealed class CobolDynTable<T>
         }
         catch (OutOfMemoryException)
         {
-            // ⛔ THE MAXIMUM CAPACITY IS ALSO "CURRENT RESOURCE AVAILABILITY" (kb/Work PB1410). §2023:8.5.1.9.1 3):
+            // ⛔ THE MAXIMUM CAPACITY IS ALSO "CURRENT RESOURCE AVAILABILITY" (kb/Work PB1410). §2023:8.5.1.9.1 SR3:
             // "The actual limit for the current capacity imposed by the implementor and by current resource
-            // availability is referred to as the maximum capacity", and §2023:8.5.1.9.6 2) makes the attempt to pass
+            // availability is referred to as the maximum capacity", and §2023:8.5.1.9.6 GR2 makes the attempt to pass
             // it "based on the resources available at runtime" the fatal EC-BOUND-TABLE-LIMIT — never a .NET
             // OutOfMemoryException killing the process. The larger array, if one was allocated, is dropped and
             // the table keeps its old storage and capacity (the slots seeded above the count are invisible).
@@ -187,7 +187,7 @@ public sealed class CobolDynTable<T>
         _count = target;
     }
 
-    /// <summary>§2023:8.5.1.9.6 2) / §2023:14.9.39.4 GR30 — the fatal EC-BOUND-TABLE-LIMIT with the capacity UNCHANGED. GR30
+    /// <summary>§2023:8.5.1.9.6 GR2 / §2023:14.9.39.4 GR30 — the fatal EC-BOUND-TABLE-LIMIT with the capacity UNCHANGED. GR30
     /// states the outcome outright ("the EC-BOUND-TABLE-LIMIT exception condition is set to exist and the capacity
     /// of the table is unchanged"), so with checking off this returns and the table keeps its capacity, rather
     /// than the unconditional throw that used to abort the run unit; with checking on it throws the fatal
@@ -199,7 +199,7 @@ public sealed class CobolDynTable<T>
     /// <summary>A store at least <paramref name="target"/> long holding <paramref name="store"/>'s occurrences —
     /// doubled for amortized growth, and when the doubled size cannot be allocated, exactly
     /// <paramref name="target"/>: a request the runtime CAN hold is never refused for the headroom this
-    /// implementation would have liked (§2023:8.5.1.9.6 2) is about the capacity requested, not the array's slack).
+    /// implementation would have liked (§2023:8.5.1.9.6 GR2 is about the capacity requested, not the array's slack).
     /// Throws <see cref="OutOfMemoryException"/> only when even the exact size cannot be had.</summary>
     private static T[] Enlarged(T[] store, int target)
     {
@@ -244,7 +244,7 @@ public sealed class CobolDynTable<T>
         // change is made. ⚠ ORDER — the SAME shape as the implicit twin in RefReceiving, and §2023:8.5.1.9.6's model
         // of an exceeded expected capacity ("the operation shall be allowed to continue"): the condition is
         // raised FIRST and the change follows. With checking off, or a declarative that completes normally
-        // (§2023:14.6.13.1.4 3)), the change is made; a RESUME that leaves the statement abandons it with the rest of
+        // (§2023:14.6.13.1.4 GR3), the change is made; a RESUME that leaves the statement abandons it with the rest of
         // the statement. Nonfatal (Table 13) — it records the status only while checking is enabled.
         if (n <= MaxOccurrences && _expected is { } exp && n > exp)
             ExceptionState.BoundSetError(
@@ -263,10 +263,10 @@ public sealed class CobolDynTable<T>
         }
     }
 
-    /// <summary>SET Format 14 <c>… UP BY n</c> (§2023:14.9.39.4 GR30 b): raise the current capacity by n.</summary>
+    /// <summary>SET Format 14 <c>… UP BY n</c> (§2023:14.9.39.4 GR30b): raise the current capacity by n.</summary>
     public void CapacityUpBy(long n) => SetCapacity((Int128)_count + n);
 
-    /// <summary>SET Format 14 <c>… DOWN BY n</c> (§2023:14.9.39.4 GR30 c): lower the current capacity by n.</summary>
+    /// <summary>SET Format 14 <c>… DOWN BY n</c> (§2023:14.9.39.4 GR30c): lower the current capacity by n.</summary>
     public void CapacityDownBy(long n) => SetCapacity((Int128)_count - n);
 
     /// <summary>⛔ A DETACHED COPY OF THE TABLE (kb/Work PB3139): the same description — its FROM minimum, its TO expected
@@ -299,7 +299,7 @@ public sealed class CobolDynTable<T>
     /// <summary>The table's CURRENT-EXTENT character image: every occurrence up to the current capacity,
     /// rendered by <paramref name="imageOf"/> and concatenated in occurrence order (kb/Work PB164 — the
     /// §2023:14.9.11.4 GR7 documented DISPLAY format for a variable-length group renders each dynamic-capacity
-    /// table "at its current capacity", the same extent §2023:15.50.4 r7c counts for FUNCTION LENGTH).</summary>
+    /// table "at its current capacity", the same extent §2023:15.50.4 RV7c counts for FUNCTION LENGTH).</summary>
     public string CurrentImage(Func<T, string> imageOf)
     {
         var sb = new System.Text.StringBuilder();
@@ -354,7 +354,7 @@ public sealed class CobolDynTable<T>
     /// Format 14 primitive, and that was wrong three ways: its minimum clamp KEPT the receiver's stale occurrences
     /// between the sender's count and the minimum instead of creating space-filled ones; it raised the SET's
     /// EC-BOUND-SET, whose checking only a SET statement enables, so the implicit change's EC-BOUND-OVERFLOW
-    /// (§2023:8.5.1.9.6 1)) was never reported; and it applied the SET's no-exemption rule where §2023:8.5.1.9.6 1) exempts
+    /// (§2023:8.5.1.9.6 GR1) was never reported; and it applied the SET's no-exemption rule where §2023:8.5.1.9.6 GR1 exempts
     /// an implicit change to a table already past its expected capacity. The new table is built whole and swapped
     /// in, so a table that cannot be recreated (EC-BOUND-TABLE-LIMIT, <see cref="TableLimit"/>) is left exactly as
     /// it was.</remarks>
@@ -382,7 +382,7 @@ public sealed class CobolDynTable<T>
         }
         catch (OutOfMemoryException)
         {
-            TableLimit(target.ToString(), "the resources available at runtime");   // §2023:8.5.1.9.6 2): the table is unchanged
+            TableLimit(target.ToString(), "the resources available at runtime");   // §2023:8.5.1.9.6 GR2: the table is unchanged
             return;
         }
         _store = fresh;

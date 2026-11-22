@@ -6,7 +6,7 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>Which of the three alternatives of the <c>USAGE OBJECT REFERENCE</c> general format
-/// (ISO §2023:13.18.60.2) a description took — plus the "no optional phrase at all" case §2023:13.18.60.4 GR22 b) names
+/// (ISO §2023:13.18.60.2) a description took — plus the "no optional phrase at all" case §2023:13.18.60.4 GR22b names
 /// UNIVERSAL. The printed format is
 /// <code>
 /// OBJECT REFERENCE [ interface-name-1                            ]
@@ -17,20 +17,20 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// alternatives, so at most one is written).</summary>
 public enum ObjectRefKind
 {
-    /// <summary>No optional phrase — §2023:13.18.60.4 GR22 b): "If none of the optional phrases is specified,
+    /// <summary>No optional phrase — §2023:13.18.60.4 GR22b: "If none of the optional phrases is specified,
     /// this data item is called a universal object reference. Its content may be a reference to any
     /// object."</summary>
     Universal,
 
-    /// <summary>interface-name-1 — §2023:13.18.60.4 GR22 c): "If interface-name-1 is specified, the object
+    /// <summary>interface-name-1 — §2023:13.18.60.4 GR22c: "If interface-name-1 is specified, the object
     /// referenced by this data item shall implement interface-1." Neither FACTORY nor ONLY may accompany it:
     /// this alternative of the general format carries no such phrase.</summary>
     Interface,
 
-    /// <summary>object-class-name-1, optionally FACTORY OF and/or ONLY — §2023:13.18.60.4 GR22 d).</summary>
+    /// <summary>object-class-name-1, optionally FACTORY OF and/or ONLY — §2023:13.18.60.4 GR22d.</summary>
     ObjectClass,
 
-    /// <summary>ACTIVE-CLASS, optionally FACTORY OF — §2023:13.18.60.4 GR22 e): "the object referenced by this
+    /// <summary>ACTIVE-CLASS, optionally FACTORY OF — §2023:13.18.60.4 GR22e: "the object referenced by this
     /// data item shall be of the same class as the object that was used to invoke the method in which this
     /// data description entry is specified". §2023:13.18.60.3 SR16 confines it to a factory definition, an
     /// instance definition, or the linkage or local-storage section of a method definition.</summary>
@@ -68,7 +68,7 @@ public enum ObjectRefKind
 /// class when the entry is written in a factory definition, an instance definition, or a method definition of a
 /// class — and NULL when it is written in a method PROTOTYPE of an interface definition, which §2023:13.18.60.3 SR16 also
 /// admits (a prototype is a method definition) and which has no class: the description is then owner-less
-/// (<see cref="ActiveClass"/>). Otherwise null ONLY for <see cref="ObjectRefKind.Universal"/>. Carrying the containing class here is what lets §2023:14.9.39.3 SR12 b)2.
+/// (<see cref="ActiveClass"/>). Otherwise null ONLY for <see cref="ObjectRefKind.Universal"/>. Carrying the containing class here is what lets §2023:14.9.39.3 SR12b.2
 /// ("the class containing the data item referenced by identifier-4 shall be the same class or a subclass of
 /// …") be asked of the descriptor rather than re-derived from the binder's ambient state at each use.
 /// </param>
@@ -115,7 +115,7 @@ public readonly record struct ObjectRefDescriptor(ObjectRefKind Kind, string? Na
     /// <see cref="ClrName"/>); <paramref name="clrName"/> is null for a symbol of the compilation group.</summary>
     public ObjectRefDescriptor Resolved(string identity, string? clrName) => this with { Identity = identity, ClrName = clrName };
 
-    /// <summary>The bare <c>USAGE OBJECT REFERENCE</c> — §2023:13.18.60.4 GR22 b).</summary>
+    /// <summary>The bare <c>USAGE OBJECT REFERENCE</c> — §2023:13.18.60.4 GR22b.</summary>
     public static ObjectRefDescriptor Universal { get; } = new(ObjectRefKind.Universal, null, false, false);
 
     /// <summary><c>USAGE OBJECT REFERENCE interface-name-1</c> — GR22 c).</summary>
@@ -137,7 +137,7 @@ public readonly record struct ObjectRefDescriptor(ObjectRefKind Kind, string? Na
     /// a class (§2023:13.18.60.3 SR16). It is NULL for the one SR16 placement that has no class — a method PROTOTYPE of an
     /// interface definition (a prototype IS a method definition, §2023:10.6.1 NOTE): the description is OWNER-LESS there,
     /// and rightly so, because the class whose object the phrase names is a property of the activation (GR22 e)), not
-    /// of the description (§2023:9.3.8.2.3 rule 2 d) compares only the phrase and the FACTORY presence).</summary>
+    /// of the description (§2023:9.3.8.2.3 GR2d compares only the phrase and the FACTORY presence).</summary>
     public static ObjectRefDescriptor ActiveClass(string? containing, bool factory = false)
         => new(ObjectRefKind.ActiveClass, containing, factory, false);
 
@@ -171,7 +171,7 @@ public readonly record struct ObjectRefDescriptor(ObjectRefKind Kind, string? Na
     /// <summary>True when the emitted C# type is an INTERFACE (<c>OoEmitter.EmitInterfaceUnit</c>) — the one description
     /// kind C# cannot convert to <see cref="UniversalClrName"/> without a cast (a class type converts up implicitly; an
     /// interface type to a class type does not, CS0266), and so the one a COVARIANT RETURN needs the explicit
-    /// conversion for: §2023:9.3.8.2.3 rule 5 a) admits ANY object reference where interface-2's returning item is
+    /// conversion for: §2023:9.3.8.2.3 GR5a admits ANY object reference where interface-2's returning item is
     /// universal (kb/Work PB1499).</summary>
     public bool IsClrInterface => Kind is ObjectRefKind.Interface;
 

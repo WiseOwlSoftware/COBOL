@@ -34,7 +34,7 @@ public class CobolFatalException(string ecName, string detail)
 
     /// <summary>Set by <c>CobolSort</c> when the SORT or MERGE statement's OWN execution raised this condition — its
     /// statement start, a USING/GIVING open-mode test, the implicit USING release, the sequence phase or the merge
-    /// (kb/Work PB1036). ISO §2023:14.6.13.1.3 2): "If the executed statement is a MERGE or SORT statement, then the
+    /// (kb/Work PB1036). ISO §2023:14.6.13.1.3 GR2: "If the executed statement is a MERGE or SORT statement, then the
     /// rules for those statements apply", ahead of 5)'s and 7)'s run-unit termination, so the SORT/MERGE statement
     /// guard disposes of a condition carrying this mark by the verb's rule — the declarative runs, the statement is
     /// terminated — and re-throws any other: a condition raised by a statement of an input or output procedure

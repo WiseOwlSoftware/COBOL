@@ -92,8 +92,8 @@ internal sealed record PropertyRecord(string Name, string ExternalizedName, bool
 /// as a program's (§2023:6.2 "Anchoring": on the carrier parameter of each formal and on the return value) and index the class
 /// record's tables. <paramref name="ClrName"/> is the CLR method the attributes sit on (its metadata name, never an
 /// attribute argument).</summary>
-/// <param name="Name">The method-name, or an accessor's implementor-defined name (ISO §2023:11.7.4 GR1 a)).</param>
-/// <param name="ExternalizedName">The method's externalized name (ISO §2023:11.7.4 GR1 b)); an accessor's is its property's.</param>
+/// <param name="Name">The method-name, or an accessor's implementor-defined name (ISO §2023:11.7.4 GR1a).</param>
+/// <param name="ExternalizedName">The method's externalized name (ISO §2023:11.7.4 GR1b); an accessor's is its property's.</param>
 /// <param name="IsFactory">A factory method (ISO §2023:11.4).</param>
 /// <param name="Accessor">A get or set property method, or neither (ISO §2023:11.7.2).</param>
 /// <param name="PropertyName">The property an accessor gets or sets.</param>
@@ -128,7 +128,7 @@ internal sealed record StructureRecord(int Index, string Name, RepositoryPrefix 
 /// <summary>A prototype a restricted program- or function-pointer of the record names, with its FULL signature, so the
 /// importer types the pointer by signature (ISO §2023:13.18.60.4 GR25 / GR26; §2023:6.4). Its own restricted-pointer formals index other
 /// rows, so a recursive prototype records as a finite graph. Every prototype has its signature: one whose details ISO
-/// §2023:12.3.8.4 GR10 c) / GR11 c) take from the external repository has the entry's (DESIGN-external-repository §8.2, §6.4).</summary>
+/// §2023:12.3.8.4 GR10c / GR11 c) take from the external repository has the entry's (DESIGN-external-repository §8.2, §6.4).</summary>
 internal sealed record PrototypeRecord(int Index, RepositoryUnitKind Kind, string ExternalizedName,
     RecordList<FormalRecord> Formals, DescriptionRecord? Returning);
 

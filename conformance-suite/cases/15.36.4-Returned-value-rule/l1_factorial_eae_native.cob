@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:15.36.4 r1 — the same three lettered arms of FACTORIAL's equivalent arithmetic
+      *> ISO §2023:15.36.4 RV1 — the same three lettered arms of FACTORIAL's equivalent arithmetic
       *> expression under NATIVE arithmetic, at the EARLIEST edition that has the function.
       *>
       *> --check validated:
@@ -17,7 +17,7 @@
       *>   cite.py --check 11.9.5.2 "it is as if the ARITHMETIC clause were specified with the
       *>     NATIVE phrase" -> OK §2023:11.9.5.2 GR4 - which is what an absent OPTIONS paragraph selects
       *>     and is the ONLY mode reachable at COBOL-85, the OPTIONS paragraph being later.
-      *>   §2023:15.2 item 5: "Integer functions. These are of the class and category numeric. An
+      *>   §2023:15.2 GR5: "Integer functions. These are of the class and category numeric. An
       *>     integer function has an operational sign and no digits to the right of the decimal
       *>     point." - so the returned value carries no fraction in this mode either.
       *>

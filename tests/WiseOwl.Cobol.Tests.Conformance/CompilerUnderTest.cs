@@ -105,7 +105,9 @@ internal static class CutRunner
 /// </summary>
 /// <param name="dialectLevel">The targeted ISO edition (default 85 — the edition the committed differential goldens
 /// were recorded at; spec-pinned tests of post-85 features pass their own, e.g. 2023 for the wide tier).</param>
-public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
+/// <param name="format">The reference format the text is written in (<see cref="TestSourceFormat"/>; a witness of a 1985 row
+/// passes <see cref="InitialReferenceFormat.Fixed"/>, kb/Work PB6037).</param>
+public sealed class WiseOwlCobolCompiler(int dialectLevel = 85, InitialReferenceFormat format = TestSourceFormat.Inline)
 {
     public (bool ok, string stdout, string detail) CompileAndRun(string source,
         IReadOnlyDictionary<string, string?>? env = null)
@@ -117,7 +119,7 @@ public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
             string dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
 
-            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: format));
             if (!result.Success)
                 return (false, "", $"[wiseowl-cobol compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
@@ -146,7 +148,7 @@ public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
             string dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
 
-            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: format));
             if (!result.Success)
                 return (false, "", $"[wiseowl-cobol compile] {result.Status}: {string.Join("\n", result.Errors)}", null);
 
@@ -176,7 +178,7 @@ public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
             string src = Path.Combine(dir, "prog.cob");
             string dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
-            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: format));
             if (!result.Success)
                 return (false, "", $"[wiseowl-cobol compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
@@ -202,7 +204,7 @@ public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
             string csrc = Path.Combine(dir, name + ".cob");
             csrc = CompiledProgramCache.StageSource(csrc, companion);
             var cr = CompiledProgramCache.Compile(new CompilerDriver.Options(
-                csrc, Path.Combine(dir, name + ".dll"), DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
+                csrc, Path.Combine(dir, name + ".dll"), DialectLevel: dialectLevel, SourceFormat: format));
             if (!cr.Success)
                 return $"[wiseowl-cobol compile {name}] {cr.Status}: {string.Join("\n", cr.Errors)}";
         }
@@ -223,7 +225,7 @@ public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
             string dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
 
-            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: format));
             if (!result.Success)
                 return (-1, "", $"[wiseowl-cobol compile] {result.Status}: {string.Join("\n", result.Errors)}");
 

@@ -178,7 +178,7 @@ public sealed class StorageCell
     //  * a dynamic-length elementary item — ISO §2023:8.5.1.10.3: "Dynamic-length elementary items may be physically
     //    located in memory within the record they are subordinate to, or they may be located elsewhere in the
     //    computer's memory";
-    //  * a dynamic-capacity table — ISO §2023:8.5.1.9.1 3): "it may be defined in any place, other than the file section,
+    //  * a dynamic-capacity table — ISO §2023:8.5.1.9.1 SR3: "it may be defined in any place, other than the file section,
     //    in which a fixed-capacity table may be defined", and an EXTERNAL or ADDRESS-OF-taken record is such a place.
     // Each rides a managed slot of the SAME cell, so every description that shares the cell shares the component too
     // (§2023:13.18.22.4 GR1 / GR4 b)). Components are numbered once per OCCURRENCE in storage order (the compiler's
@@ -220,7 +220,7 @@ public sealed class StorageCell
     /// <see cref="StorageCell"/> per occurrence. Every reference to the table and to its elements goes through it —
     /// the element accessors (<c>RefSending</c> / <c>RefReceiving</c>, §2023:8.5.1.9.2 / §2023:8.5.1.9.3), the CAPACITY
     /// register, SET Format 14 — so the table's capacity rules are <see cref="CobolDynTable{T}"/>'s, written once.
-    /// <para>⛔ ISO §2023:14.6.13.2 rule 6 IS ASKED HERE: "When the internal format of a dynamic-capacity table, as defined by
+    /// <para>⛔ ISO §2023:14.6.13.2 GR6 IS ASKED HERE: "When the internal format of a dynamic-capacity table, as defined by
     /// the implementor, is not correctly formed or does not agree with the corresponding OCCURS clause an
     /// EC-DATA-INCOMPATIBLE exception condition is set to exist." A shared area is the one place a table is read
     /// through a description other than the one that built it (two programs describing one EXTERNAL record), so the
@@ -235,13 +235,13 @@ public sealed class StorageCell
         if (SlotAt(TableKey(ordinal)) is CobolDynTable<StorageCell> table)
         {
             if (ExceptionState.DataIncompatibleChecking && Disagreement(table, min, elementWidth) is { } why)
-                ExceptionState.DataIncompatibleError($"a dynamic-capacity table {why} (ISO §2023:14.6.13.2 rule 6)");
+                ExceptionState.DataIncompatibleError($"a dynamic-capacity table {why} (ISO §2023:14.6.13.2 GR6)");
             return table;
         }
         if (ExceptionState.DataIncompatibleChecking)
             ExceptionState.DataIncompatibleError(
                 $"the storage area holds no dynamic-capacity table at component {ordinal}: the area was created by a "
-                + "description that does not agree with this one (ISO §2023:14.6.13.2 rule 6)");
+                + "description that does not agree with this one (ISO §2023:14.6.13.2 GR6)");
         var formed = new CobolDynTable<StorageCell>(() => new StorageCell { Ref = new string(' ', elementWidth) }, min, null, null);
         SetSlotAt(TableKey(ordinal), formed);
         return formed;

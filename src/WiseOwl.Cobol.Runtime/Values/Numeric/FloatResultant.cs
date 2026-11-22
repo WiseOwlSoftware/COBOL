@@ -31,7 +31,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// evaluates in binary64), so a binary64 resultant holds it exactly under every mode and only a binary32 resultant
 /// rounds it.</para>
 /// <para>A NON-FINITE value (NaN, ±Infinity) transfers unchanged and is never the size error: it is not a result
-/// that is "further from zero" than a finite one, it is the §2023:14.6.13.2 item 3 EC-DATA-NOT-FINITE content its
+/// that is "further from zero" than a finite one, it is the §2023:14.6.13.2 GR3 EC-DATA-NOT-FINITE content its
 /// sending read already answers for (CONFORMANCE.md DOC-A.1-70).</para>
 /// <para>COST: a binary64 intermediate into a binary64 resultant is an identity; every other landing is the
 /// nearest binary64 (<see cref="CobolFloat.ScaledToDouble"/> — one IEEE divide, or a decimal parse past 2^53) plus
@@ -50,7 +50,7 @@ public static class FloatResultant
         Unchecked(LandReal(v, mode, single, out Outcome o), o, mode);
 
     /// <summary>The checked landing of a binary64 intermediate: <c>false</c> is the size error condition —
-    /// §2023:14.7.5 case 3 (further from zero than the resultant permits) or §2023:14.7.4.3 rule 7 (PROHIBITED, inexact).</summary>
+    /// §2023:14.7.5 case 3 (further from zero than the resultant permits) or §2023:14.7.4.3 GR7 (PROHIBITED, inexact).</summary>
     public static bool TryFromReal(double v, CobolRounding mode, bool single, out double landed)
     {
         landed = LandReal(v, mode, single, out Outcome o);
@@ -146,13 +146,13 @@ public static class FloatResultant
         RoundingRule.StepOf(mode == CobolRounding.Prohibited ? CobolRounding.Truncation : mode, neg);
 
     /// <summary>Whether a checked store commits: never on an overflow (§2023:14.7.5 case 3), and under PROHIBITED only
-    /// when the value was representable exactly (§2023:14.7.4.3 r7).</summary>
+    /// when the value was representable exactly (§2023:14.7.4.3 GR7).</summary>
     private static bool Admits(Outcome o, CobolRounding mode) =>
         o == Outcome.Exact || (o == Outcome.Rounded && mode != CobolRounding.Prohibited);
 
     /// <summary>The unchecked (no-phrase) landing's disposition: the landed value, an overflow included (ISO/IEC 60559's
     /// overflow result for the mode, CONFORMANCE.md DOC-A.1-70), EXCEPT a PROHIBITED value the format cannot represent
-    /// exactly, which raises <see cref="CobolSizeError.ProhibitedInexact"/> — §2023:14.7.4.3 rule 7 leaves the resultant
+    /// exactly, which raises <see cref="CobolSizeError.ProhibitedInexact"/> — §2023:14.7.4.3 GR7 leaves the resultant
     /// identifier unchanged whether or not checking is enabled (kb/Work PB3990).</summary>
     private static double Unchecked(double landed, Outcome o, CobolRounding mode) =>
         o == Outcome.Rounded && mode == CobolRounding.Prohibited ? throw CobolSizeError.ProhibitedInexact() : landed;

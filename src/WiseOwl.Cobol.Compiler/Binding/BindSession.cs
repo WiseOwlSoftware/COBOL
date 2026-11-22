@@ -92,6 +92,32 @@ internal sealed class BindSession
     /// program it contains (kb/Work PB4302). Every unit's <see cref="DataBinder.ClaimScans"/> is this one.</summary>
     public StorageClaimScan ClaimScans { get; } = new();
 
+    /// <summary>⛔ THE ONE SEEDING OF A SOURCE ELEMENT'S <see cref="DataBinder"/> WITH THE SESSION'S FACTS (kb/Work PB2626): the class
+    /// table, the element's own §2023:8.3.2.2 census (<paramref name="censusElement"/>, the node its class-name references record
+    /// into; a null node gets a census of its own), &gt;&gt;REF-MOD-ZERO-LENGTH, &gt;&gt;COBOL-WORDS, the token retypes, the storage-claim
+    /// walk, &gt;&gt;LEAP-SECOND at the element's first line (<paramref name="firstLine"/>) and the &gt;&gt;DEFINE timeline. A program unit
+    /// (<c>BinderDriver.BindUnitData</c>) and each OO element (<c>OoDriver</c>) both build their binder here and pass only what is
+    /// theirs as <paramref name="element"/>. The four initializers this replaced were kept in step by hand, and one missed
+    /// &gt;&gt;LEAP-SECOND (kb/Work PB1820): a method under it computed SECONDS-FROM-FORMATTED-TIME("hhmmss", "235960") as 0.
+    /// A new session fact is added here once, and <c>DataBinderSeedDriftTests</c> refuses a construction anywhere else.</summary>
+    internal DataBinder NewDataBinder(Antlr4.Runtime.RuleContext? censusElement, int firstLine, SourceElementFacts element) => new(Edition)
+    {
+        OoClasses = OoClasses,
+        OwnWords = OoClasses.CensusOf(censusElement) ?? new(),
+        RefModZeroLength = RefModZeroLength,
+        CobolWords = CobolWords,   // >>COBOL-WORDS intrinsic-function-name synonym/removal (§2023:7.3.10)
+        Retypes = Retypes,         // the fragment re-parses read words as the tree does (kb/Work PB655)
+        ClaimScans = ClaimScans,   // the group's one storage-claim walk, sliced per element (kb/Work PB4302)
+        LeapSecond = LeapSecond.IsOnAt(firstLine),   // >>LEAP-SECOND ON at THIS element (§2023:7.3.17, §2023:7.3.4 GR5)
+        CompilationVariables = CompilationVariables,   // CONSTANT … FROM reads the >>DEFINE table at its own line (§2023:7.3.11.4 GR1)
+        OoRole = element.OoRole,
+        CopyWords = element.CopyWords,
+        UnitIsContained = element.IsContained,
+        UnitIsFunction = element.IsFunction,
+        UnitIsRecursive = element.IsRecursive,
+        UnitStaticWs = element.StaticWs,
+    };
+
     /// <summary>The data binder and reference resolver of each source element of the group (<see cref="ElementBinders"/>;
     /// kb/Work PB2361): the binder-side half the bound model does not carry.</summary>
     public ElementBinders Binders { get; } = new();

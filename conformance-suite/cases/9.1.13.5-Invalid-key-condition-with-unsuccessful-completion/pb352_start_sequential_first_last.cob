@@ -30,7 +30,7 @@
       *>         either the content of the record area …" — AREA= below
       *>         prints the value MOVEd in before the START, unchanged.
       *>   GR1   the open mode shall be input or I-O; Table 20's blank
-      *>         Output/Extend cells are §2023:9.1.13.7 item 7's '47', and
+      *>         Output/Extend cells are §2023:9.1.13.7 GR7's '47', and
       *>         neither INVALID nor NOT INVALID runs for a '4x'
       *>         (§2023:9.1.14 keys the two branches on the invalid key
       *>         condition and on successful completion).

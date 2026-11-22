@@ -20,7 +20,7 @@
       *> output procedure. If such a RETURN statement is executed, the
       *> EC-SORT-MERGE-RETURN exception condition is set to exist".
       *> All three are Table 13 Fatal; under >>TURN ... CHECKING ON the format-3
-      *> declarative runs (§2023:14.6.13.1.3 item 5) and RESUME AT NEXT STATEMENT
+      *> declarative runs (§2023:14.6.13.1.3 GR5) and RESUME AT NEXT STATEMENT
       *> (§2023:14.9.33.4 GR2) continues after the offending statement, which is NOT
       *> executed: the raise precedes its action.
       *>
