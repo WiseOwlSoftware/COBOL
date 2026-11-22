@@ -38,3 +38,12 @@ structs `DataDescriptionCst`, `DataDescriptionClauseCst` and `DataReferenceCst`,
 open extract notes (PB2302, PB2327); PB2724 (one EXTERNAL and one GLOBAL clause rule), PB3231 (the resolver's written-
 reference model) and PB2622 (diagnostic text in the catalog row) are each a mechanism of their own and go back to the
 wave.
+
+**Gate.** Five reds were fixed on the way, each a check doing its job: three 1985 code reads and six inventory rows had
+been hand-edited after PB3212 deleted the members they named (restored, and re-sited through `record_verdicts.py`
+batches that retire the old witness by name), three PB3212 members needed classifying in the backend contract,
+`RangeCollationFields` had grown a pair on a tolerated layering row (it now names identities only), the inventory's two
+code-location resolvers disagree on C# 14 `extension` blocks (classic extension methods instead), and a stale
+citation-baseline entry was dropped. Gate run 000006 at 68ccde0cb8: `BUILD-LOCAL GATE: GREEN — Conformance 29,084/29,084
+ran · Unit 42,689/42,689 ran · RepoDrift 230/230 ran · Characterization 37/37 ran`. No host I/O file changed, so no
+Linux gate ran.
