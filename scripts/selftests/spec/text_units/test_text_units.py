@@ -340,6 +340,18 @@ def case_11_a_table_continued_across_pages_numbers_its_rows_on(expect):
            isinstance(got, str) and "T4.1" in got, got)
 
 
+def case_11b_a_continued_caption_is_read_once(expect):
+    # kb/Work PB6022 review R2-1: cite.py#_resolve_table reads every "(Continued)" part of a table as that table, so the
+    # mark has one reading, beside the caption's (`caption_number`).
+    expect.equal("the 1985, the boxed and the 2002 continued captions, the first parts and a sentence that names one",
+                 [U.continued_caption(x) for x in ("Table 1: Table of Functions (Continued)",
+                                                   "║Table 2: Report Groups (continued)║",
+                                                   "**Table 13 — Procedural statements (Continued)**",
+                                                   "Table 1: Table of Functions", "**Table 13 — Procedural statements**",
+                                                   "Table 22 is continued below (Continued).")],
+                 [True, True, True, False, False, False])
+
+
 def case_12_a_1985_folio_pointer_is_a_cross_reference(expect):
     # kb/Work PB5998 3: the 1985 text points by folio; the pointer resolves when the page prints the title it gives.
     label, kinds = str, (lambda clause: {"SR", "GR"})

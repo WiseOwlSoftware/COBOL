@@ -1112,21 +1112,25 @@ def _resolve_table(book: RuleBook, cited, n: int, needle, text) -> Verdict:
     """A table is no catalog row: its extent is its caption and the table it captions (kb/Work PB6015). The caption is
     the line the segmentation reads as one (`text_units.caption_number`: a short title, never a sentence that names the
     table), and it captions the table printed right above it when that table has no caption of its own above it (the
-    1985 text captions below), else the table printed right below it."""
+    1985 text captions below), else the table printed right below it. A table printed across pages is ONE table: each
+    later caption of its number marked "(Continued)" (`text_units.continued_caption`) captions a further part of it,
+    and a quotation is checked against every part (kb/Work PB6022 review R2-1: the SQRT row of §1989:A.2.4 Table 1
+    sits in its third part, page A-32)."""
     tu = _text_units()
     loc, shown = cited.locator, citation.render(cited)
-    for k, _t, s, e in book.regions:
-        if k != loc and not k.startswith(loc + "."):
-            continue
-        for i in range(s, e):
-            if tu.caption_number(book.lines[i]) != n:
-                continue
-            lo, hi = _captioned_table(book.lines, i, s, e)
-            if needle is None:
-                return Verdict("ok", f"{shown}  table {n} is captioned in {k}; no quotation checked")
-            if needle in norm(" ".join(book.lines[j] for j in range(lo, hi))):
-                return Verdict("ok", f"{shown}  the text is in table {n} ({k})", excerpt=book.lines[i].strip()[:220])
-            return Verdict("text-not-in-rule", f"{shown}: {text!r} is not in table {n} ({k}, lines {lo + 1}-{hi})")
+    captions = [(i, k, s, e) for k, _t, s, e in book.regions if k == loc or k.startswith(loc + ".")
+                for i in range(s, e) if tu.caption_number(book.lines[i]) == n]
+    if captions:
+        captions.sort()
+        first, k = captions[0][0], captions[0][1]
+        parts = [c for c in captions if c[0] == first or (c[0] > first and tu.continued_caption(book.lines[c[0]]))]
+        extents = [_captioned_table(book.lines, i, s, e) for i, _k, s, e in parts]
+        if needle is None:
+            return Verdict("ok", f"{shown}  table {n} is captioned in {k}; no quotation checked")
+        if needle in norm(" ".join(book.lines[j] for lo, hi in extents for j in range(lo, hi))):
+            return Verdict("ok", f"{shown}  the text is in table {n} ({k})", excerpt=book.lines[first].strip()[:220])
+        lines = ", ".join(f"{lo + 1}-{hi}" for lo, hi in extents)
+        return Verdict("text-not-in-rule", f"{shown}: {text!r} is not in table {n} ({k}, lines {lines})")
     where = next((k for k, _t, s, e in book.regions if not k.startswith("p.")
                   for i in range(s, e) if tu.caption_number(book.lines[i]) == n), None)
     if where is not None:
@@ -1136,13 +1140,19 @@ def _resolve_table(book: RuleBook, cited, n: int, needle, text) -> Verdict:
                                f"{cited.edition} transcription")
 
 
+#: A footnote line: one asterisk (escaped or not) and then text, never the `**` of bold markup.
+FOOTNOTE = re.compile(r"^\s*\\?\*(?!\*)\S")
+
+
 def _table_beside(lines: list[str], i: int, s: int, e: int, step: int) -> tuple[int, int] | None:
     """The `[lo, hi)` lines of the table printed right beside line `i` (below it with `step` 1, above it with -1) inside
     `[s, e)`, blank lines between them skipped: `|` lines or one HTML table (`text_units`' two table markups); None
     when the first line with text there is no table line."""
     tu = _text_units()
     j = i + step
-    while s <= j < e and not lines[j].strip():
+    # A table's footnote printed between it and the caption below it is the table's ("*A function that has only
+    # alphabetic arguments is type alphanumeric.", §1989:A.2.4 Table 1's second part): it is skipped, not a stop.
+    while s <= j < e and (not lines[j].strip() or (step < 0 and FOOTNOTE.match(lines[j]))):
         j += step
     if not s <= j < e:
         return None
@@ -1565,6 +1575,15 @@ def self_test() -> int:
          and fails("§1985:XIV.2.2.6 Table 1", None, "no-table")),  # citation-audit: example
         ("a caption above its table holds that table (2023 14.9.27.4 Table 19)",
          v("§2023:14.9.27.4 Table 19", "SHARING WITH NO OTHER EXTEND I-O INPUT OUTPUT Unsuccessful open").ok),
+        # kb/Work PB6022 review R2-1: a table printed across pages is one table; each "(Continued)" caption holds a
+        # part of it (captioned below in 1985, a footnote between, above in 2002 and 2014), and text in no part fails.
+        ("a 1985 table continued on later pages holds every part (1989 A.2.4 Table 1, pages A-30 to A-32)",
+         v("§1989:A.2.4 Table 1", "STANDARD-DEVIATION N1 N Standard deviation of arguments").ok
+         and v("§1989:A.2.4 Table 1", "MEDIAN N1 N Median of arguments").ok
+         and fails("§1989:A.2.4 Table 1", "SQRT N1 N Square root of the arguments", "text-not-in-rule")),
+        ("an ISO table continued on later pages holds every part (2002 14.5.12.1.5 Table 14, 2014 15.6 Table 22)",
+         v("§2002:14.5.12.1.5 Table 14", "EC-VALIDATE-VARYING Fatal VARYING clause expression").ok
+         and v("§2014:15.6 Table 22", "INTEGER Num1 Int The greatest integer not greater").ok),
         ("a paragraph row is cited p<n>", v("§2023:9.1.16 p6", "the LOCK clause and the UNLOCK statement shall not be "
                                                              "specified").message.endswith("the text is in p6")),
         ("a pending unit and a pending table row are cited by their designators",
