@@ -148,10 +148,10 @@ refusing on the landing's own range before a CI run is spent:
                     same reason: a branch cut before the code took the product's name, WiseOwl.Cobol, that merges main
                     cleanly — a new note tagged or worded with a retired name — meets it here; kb/Work PB3837) → exit 6
   code_read_landing.py   (the CODE READS of an older edition, by the MERGED head's own copy: a change that moves or deletes
-                    a member a stored code read names turns an edition that reads COMPLETE on main (edition_status.py)
-                    NOT COMPLETE with every other check green, because the gate's CODE READS audit calls a read owed a
-                    re-read information; the check refuses it naming the rows, unless the branch carries their re-read
-                    (code_reads.py import --replace); an edition not COMPLETE on main is not refused; kb/Work PB6056)
+                    a member a stored code read names leaves that read owed a re-read, a term edition_status.py counts,
+                    with every other check green, because the gate's CODE READS audit calls a read owed a re-read
+                    information; the check refuses it naming the rows, whatever the edition's status on main, unless
+                    the branch carries their re-read (code_reads.py import --replace); kb/Work PB6056)
                     → exit 6
 A check that cannot read its range is exit 2 (NOT RUN, never a pass). No landing check reads a record of one tree
 (kb/Work PB3107): a merge group is built on every group queued ahead of it, so a committed record of the branch's own
