@@ -310,18 +310,8 @@ public static class CobolString
     /// (§2023:8.8.4.2.9/.10, ordinal = the D-N3 default national collating sequence), boolean zero '0' for boolean
     /// operands (§2023:8.8.4.2.8 — value comparison, usage-independent under D-B1). Returns &lt;0, 0, or &gt;0 (ordinal).
     /// </summary>
-    public static int Compare(string? left, string? right, char pad = ' ')
-    {
-        left ??= ""; right ??= "";
-        int n = Math.Max(left.Length, right.Length);
-        for (int i = 0; i < n; i++)
-        {
-            char a = i < left.Length ? left[i] : pad;
-            char b = i < right.Length ? right[i] : pad;
-            if (a != b) return a < b ? -1 : 1;
-        }
-        return 0;
-    }
+    public static int Compare(string? left, string? right, char pad = ' ') =>
+        Compare(SizedOperand.Value(left), SizedOperand.Value(right), pad);
 
     /// <summary>
     /// Compare two character values under a NON-native collating sequence — the ONE <see cref="CobolCollation"/>
@@ -353,12 +343,9 @@ public static class CobolString
     /// no string per evaluation and cannot answer differently from the materialized form
     /// (<c>FigurativeReaderDriftTests</c> compares the two).</para>
     /// </summary>
-    public static int CompareFig(string? left, string? right, bool figIsLeft, char pad = ' ')
-    {
-        left ??= ""; right ??= "";
-        return figIsLeft ? Compare(SizedOperand.Of(left, true, right), SizedOperand.Of(right, false, right), pad)
-                         : Compare(SizedOperand.Of(left, false, left), SizedOperand.Of(right, true, left), pad);
-    }
+    public static int CompareFig(string? left, string? right, bool figIsLeft, char pad = ' ') =>
+        figIsLeft ? Compare(SizedOperand.Of(left, true, right), SizedOperand.Value(right), pad)
+                  : Compare(SizedOperand.Value(left), SizedOperand.Of(right, true, left), pad);
 
     /// <inheritdoc cref="CompareFig(string?,string?,bool,char)"/>
     /// <remarks>The NON-native collating-sequence overload (an <c>ALPHABET</c> literal phrase or a LOCALE-based
@@ -379,11 +366,8 @@ public static class CobolString
     /// VALUE THRU or an EVALUATE WHEN range). When <paramref name="lo"/> collates AFTER <paramref name="hi"/> (rule 2)
     /// the nonfatal EC-RANGE-INVALID is set and the range is treated as EMPTY (returns false); otherwise the inclusive
     /// bound test. The "empty range" behaviour was already emergent from the inclusive test — this adds only the EC.</summary>
-    public static bool ThruMember(string? read, string? lo, string? hi, char pad = ' ')
-    {
-        if (Compare(lo, hi, pad) > 0) { ExceptionState.RangeInvalidError(InvertedRange); return false; }
-        return Compare(read, lo, pad) >= 0 && Compare(read, hi, pad) <= 0;
-    }
+    public static bool ThruMember(string? read, string? lo, string? hi, char pad = ' ') =>
+        ThruMember(SizedOperand.Value(read), SizedOperand.Value(lo), SizedOperand.Value(hi), pad);
 
     /// <inheritdoc cref="ThruMember(string?,string?,string?,char)"/>
     public static bool ThruMember(string? read, string? lo, string? hi, CobolCollation collation) =>
@@ -412,15 +396,8 @@ public static class CobolString
     /// <param name="loFig">Whether <paramref name="lo"/> is a figurative SEED (one fill character, or literal-1 of
     /// an <c>ALL literal-1</c>) rather than a value of its own.</param>
     /// <param name="hiFig">The same question for <paramref name="hi"/>.</param>
-    public static bool ThruMemberFig(string? read, string? lo, string? hi, bool loFig, bool hiFig, char pad = ' ')
-    {
-        read ??= "";
-        var r = SizedOperand.Of(read, false, read);
-        var l = SizedOperand.Of(lo ?? "", loFig, read);
-        var h = SizedOperand.Of(hi ?? "", hiFig, read);
-        if (Compare(l, h, pad) > 0) { ExceptionState.RangeInvalidError(InvertedRange); return false; }
-        return Compare(r, l, pad) >= 0 && Compare(r, h, pad) <= 0;
-    }
+    public static bool ThruMemberFig(string? read, string? lo, string? hi, bool loFig, bool hiFig, char pad = ' ') =>
+        ThruMember(SizedOperand.Value(read), SizedOperand.Of(lo, loFig, read), SizedOperand.Of(hi, hiFig, read), pad);
 
     /// <inheritdoc cref="ThruMemberFig(string?,string?,string?,bool,bool,char)"/>
     /// <remarks>The NON-native collating-sequence overload (an <c>ALPHABET</c> literal phrase or a LOCALE-based
@@ -435,7 +412,15 @@ public static class CobolString
     private static string? SizedFig(string? seed, bool isFig, string? associated) =>
         isFig ? FigToWidth(seed ?? "", (associated ?? "").Length) : seed;
 
-    /// <summary>§2023:8.8.4.2.7's native comparison over two <see cref="SizedOperand"/> views — the shorter extended on the
+    /// <summary>The ONE native THROUGH test (§2023:14.7.8 GR2, then the inclusive bound test) over three
+    /// <see cref="SizedOperand"/> views — the plain and the figurative-aware carriers both walk it.</summary>
+    private static bool ThruMember(in SizedOperand read, in SizedOperand lo, in SizedOperand hi, char pad)
+    {
+        if (Compare(lo, hi, pad) > 0) { ExceptionState.RangeInvalidError(InvertedRange); return false; }
+        return Compare(read, lo, pad) >= 0 && Compare(read, hi, pad) <= 0;
+    }
+
+    /// <summary>The ONE native comparison (§2023:8.8.4.2.7) over two <see cref="SizedOperand"/> views — the shorter extended on the
     /// right with <paramref name="pad"/>, exactly as <see cref="Compare(string?,string?,char)"/> compares two strings.</summary>
     private static int Compare(in SizedOperand left, in SizedOperand right, char pad)
     {
@@ -461,10 +446,13 @@ public static class CobolString
 
         private SizedOperand(string text, bool fig, int length) { _text = text; _fig = fig; Length = length; }
 
+        /// <summary><paramref name="text"/> as it is (a null reads as empty).</summary>
+        public static SizedOperand Value(string? text) => new(text ?? "", false, (text ?? "").Length);
+
         /// <summary><paramref name="text"/> as it is, or (when <paramref name="isFig"/>) the figurative seed it holds sized
         /// to <paramref name="associated"/>'s character positions — GR2's "equal either to 1 or to … whichever is greater".</summary>
-        public static SizedOperand Of(string text, bool isFig, string associated) =>
-            new(text, isFig, isFig ? Math.Max(associated.Length, 1) : text.Length);
+        public static SizedOperand Of(string? text, bool isFig, string? associated) =>
+            isFig ? new(text ?? "", true, Math.Max((associated ?? "").Length, 1)) : Value(text);
 
         /// <summary>The operand's character positions.</summary>
         public int Length { get; }
