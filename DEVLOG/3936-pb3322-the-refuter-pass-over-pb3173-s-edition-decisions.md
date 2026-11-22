@@ -1,4 +1,4 @@
-## PB3322: the refuter pass over PB3173's edition decisions overturns one row
+## Entry 3936 — 2026-11-22 15:53 PST — PB3322: the refuter pass over PB3173's edition decisions overturns one row
 
 PB3173 decided the editions of 215 inventory rows with no separate refuter. This pass is that check. The note's premise
 (the repo holds no 2002 or 2014 text) is stale: `specs/ISO_COBOL_2002.md` and `specs/ISO_COBOL_2014.md` are in the tree,
@@ -16,3 +16,4 @@ PB3173 cited the construct `options-entry-convention-2014`, which is only the CO
 banded 85 by the BASE85 reason are the owner's reading rule (PB3173 lead 2) and are not re-judged here.
 
 No code, no golden: an adjudication of a store field. The gate's verdict line is in the report.
+
