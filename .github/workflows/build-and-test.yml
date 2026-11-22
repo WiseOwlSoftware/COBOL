@@ -675,7 +675,7 @@ jobs:
     # `!failure()`: linux-generate is skipped when the plan generates nothing for this leg, which must not skip the shards.
     if: ${{ !cancelled() && !failure() && needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.linux_targets != '[]' }}
     runs-on: ubuntu-26.04
-    timeout-minutes: 25
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -865,7 +865,7 @@ jobs:
     # `!failure()`: windows-generate is skipped when the plan generates nothing for this leg, which must not skip the shards.
     if: ${{ !cancelled() && !failure() && needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.windows_targets != '[]' }}
     runs-on: windows-2025-vs2026
-    timeout-minutes: 25
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
