@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Cli;
 /// <param name="SourcePath">The COBOL source file to compile.</param>
 /// <param name="OutputPath">Output assembly path (<c>-o</c>); null = the source path with a <c>.dll</c> extension.</param>
 /// <param name="NistTestName">NIST CCVS test name (<c>--nist</c>) enabling placeholder preprocessing; null = off.</param>
-/// <param name="DialectLevel">ISO dialect year (<c>--std</c>): 85 / 2002 / 2014 / 2023.</param>
+/// <param name="DialectLevel">ISO dialect year (<c>--std</c>): one of <see cref="Editions.EditionInfo.All"/>.</param>
 /// <param name="CopyPaths">COPY copybook search directories (<c>--copy</c>), in order.</param>
 /// <param name="Run">Run the compiled assembly after a successful compile (<c>--run</c>).</param>
 /// <param name="Permissive">The strict/permissive severity axis (<c>--permissive</c>, orthogonal to
