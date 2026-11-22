@@ -24,6 +24,12 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 
 ### Where we are
 
+- **▶ THE COBOL-85 CONFORMANCE SUITE (2026-11-22, owner: "focus on creating the WiseOwl comprehensive 1985 test case
+  suite, a better superset of the NIST test cases").** Replanned as revision 4 of `DESIGN-conformance-suite.md` (kb/Work
+  PB6046): Stage 0 measures four denominators (rows, format points, NIST-85 units, second-compiler verdicts; PB6047-PB6050)
+  beside a second independent pass of the 1985 transcription (PB6051), then one pilot end to end (PB3178), then clearing
+  by two compilers, authoring, NIST-85 retired from the gate. Measured at 608ccf507c: 46 of 3,109 1985 rows have a
+  portable suite test; 2,624 tests name a 1985 row, 43 cleared. 2002 Stage 0 waits (owner).
 - **▶ 1985: TRAIN F, the last 1985 train (2026-11-22, branch train-1985-f, wave 20262132).** Two fix branches and one
   review lead in one landing, on train E. Group h's records orphan test runs in the gate (PB6022). Every construct row's
   edition edge is quoted from the edition texts, and `ConstructEdgeProvenanceDriftTests` refuses the old labels (PB3965).
