@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Runtime.Exceptions;
 /// <summary>The §2023:14.6.13.1.4 #3 selection of ONE runtime element, seen from a RUNTIME raise site: the activation
 /// now executing installs its selector in <see cref="ExceptionState.NonfatalDispatcher"/> and restores
 /// its activator's on return, so a nonfatal condition detected inside the runtime selects over the declaratives of
-/// the source element containing the raising statement (§2023:14.9.49.4 GR4 a)) and never its activator's. A PROGRAM
+/// the source element containing the raising statement (§2023:14.9.49.4 GR4a) and never its activator's. A PROGRAM
 /// is its own selector (<see cref="ICobolProgram"/>, installed by <c>ProgramTable</c>); an OO METHOD is a runtime
 /// element too (§2023:15.65.4 r5 — "an INVOKE statement" activates one) and installs a <see cref="NonfatalSelectorFn"/>
 /// over its own selection — or <see cref="NonfatalSelectorFn.None"/> when it declares none (kb/Work PB1010).</summary>
