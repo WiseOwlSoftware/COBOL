@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Tests.Shared;
 
@@ -148,6 +149,5 @@ public static class CorpusManifest
     /// (<see cref="ArchOracle"/>, kb/Work PB2116) compile a NIST program identically.</summary>
     internal static CompilerDriver.Options CompileOptions(
         string testName, string dll, int edition, bool permissive, bool checkOnly) =>
-        new(Path.Combine(Root, "programs", testName + ".cob"), dll, NistTestName: testName, DialectLevel: edition,
-            Permissive: permissive, CheckOnly: checkOnly);
+        new(Path.Combine(Root, "programs", testName + ".cob"), EditionInfo.Of(edition, permissive), dll, NistTestName: testName, CheckOnly: checkOnly);
 }

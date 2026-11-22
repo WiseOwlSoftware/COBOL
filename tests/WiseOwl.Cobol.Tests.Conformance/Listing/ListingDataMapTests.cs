@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Text;
 using WiseOwl.Cobol.Tests.Shared;
@@ -70,8 +71,7 @@ public sealed class ListingDataMapTests : IDisposable
     {
         string path = Path.Combine(_dir, "dmap.cob");
         File.WriteAllText(path, string.Join("\n", source ?? Source));
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, Path.Combine(_dir, "dmap.dll"),
-            DialectLevel: dialect, Listing: new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json) { Sections = sections }));
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, EditionInfo.Of(dialect), Path.Combine(_dir, "dmap.dll"), Listing: new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json) { Sections = sections }));
         if (result.Listing is { } listing) ListingJsonContract.AssertHolds(listing);
         return result;
     }

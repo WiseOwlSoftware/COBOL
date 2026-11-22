@@ -95,7 +95,7 @@ public sealed class ImplementorNameRegistryDriftTests
             string src = Path.Combine(dir, "prog.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "prog.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
+                src, EditionInfo.Of(edition), Path.Combine(dir, "prog.dll"), CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
             return (r.Success, r.Success ? [] : [.. r.Errors]);
         }
         finally { ScratchDirectory.Remove(dir); }

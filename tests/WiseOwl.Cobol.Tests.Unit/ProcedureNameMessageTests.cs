@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -112,7 +113,7 @@ public sealed class ProcedureNameMessageTests
         {
             string src = Path.Combine(dir, "pn.cob");
             File.WriteAllText(src, source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2023), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             var line = (isError ? r.Errors : r.Warnings).Single(l => l.Contains(code, StringComparison.Ordinal));
             Assert.Contains(expectedText, line, StringComparison.Ordinal);
             Assert.DoesNotContain("OFD1", line, StringComparison.Ordinal);

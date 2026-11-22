@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -173,7 +174,7 @@ public sealed class ZeroSignReadingTests
             string src = Path.Combine(dir, "pb4120u.cob");
             File.WriteAllText(src, SlotProgram + "           " + statement + "\n           STOP RUN.\n");
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb4120u.dll"), DialectLevel: 2023, CheckOnly: true,
+                src, EditionInfo.Of(2023), Path.Combine(dir, "pb4120u.dll"), CheckOnly: true,
                 SourceFormat: InitialReferenceFormat.Fixed));
             Assert.True(r.Success, $"{statement} is legal COBOL-2023; got:\n{string.Join("\n", r.Errors)}");
         }

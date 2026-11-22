@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -95,7 +96,7 @@ public sealed class SpecialNamesLocaleEditionTests
                 + "       01 X PIC X(3) VALUE \"AbC\".\n"
                 + "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY X\n           STOP RUN.\n");
             return CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "snloc.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline)).Errors;
+                src, EditionInfo.Of(2023), Path.Combine(dir, "snloc.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline)).Errors;
         }
         finally { ScratchDirectory.Remove(dir); }
     }

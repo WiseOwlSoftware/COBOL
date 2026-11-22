@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Concurrent;
 using System.Globalization;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -1012,8 +1013,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     internal static CompilerDriver.Result Compile(string dir, Spelling s, int edition)
     {
         string src = CompiledProgramCache.StageSource(Path.Combine(dir, s.Unit + ".cob"), s.Source);
-        return CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, s.Unit + ".dll"),
-            DialectLevel: edition, SourceFormat: TestSourceFormat.Inline));
+        return CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Of(edition), Path.Combine(dir, s.Unit + ".dll"), SourceFormat: TestSourceFormat.Inline));
     }
 
     /// <summary>Compile and run one spelling in a scratch directory of its own: its normalized output, or why it did

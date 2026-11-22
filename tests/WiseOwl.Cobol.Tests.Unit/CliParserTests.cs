@@ -92,10 +92,10 @@ public sealed class CliParserTests
     [Fact]
     public void Std_Defaulting()
     {
-        Assert.Equal(2023, Resolve("a.cob").DialectLevel);                 // no --std ⇒ latest
-        Assert.Equal(85, Resolve("a.cob", "--nist").DialectLevel);        // --nist ⇒ COBOL-85 (DEVLOG 519)
-        Assert.Equal(2002, Resolve("a.cob", "--nist", "--std", "2002").DialectLevel);   // explicit --std wins over --nist
-        Assert.Equal(2014, Resolve("a.cob", "--std=2014").DialectLevel);   // inline form
+        Assert.Equal(2023, Resolve("a.cob").Edition.Year);                 // no --std ⇒ latest
+        Assert.Equal(85, Resolve("a.cob", "--nist").Edition.Year);        // --nist ⇒ COBOL-85 (DEVLOG 519)
+        Assert.Equal(2002, Resolve("a.cob", "--nist", "--std", "2002").Edition.Year);   // explicit --std wins over --nist
+        Assert.Equal(2014, Resolve("a.cob", "--std=2014").Edition.Year);   // inline form
     }
 
     [Fact]
@@ -274,8 +274,7 @@ public sealed class CliParserTests
         Assert.Equal("prog.cob", opts.SourcePath);
         Assert.Equal("p.dll", opts.OutputPath);
         Assert.Equal("PROG", opts.NistTestName);
-        Assert.Equal(85, opts.DialectLevel);
-        Assert.True(opts.Permissive);
+        Assert.Equal(EditionInfo.Of(85, permissive: true), opts.Edition);
         Assert.False(opts.Run);
     }
 

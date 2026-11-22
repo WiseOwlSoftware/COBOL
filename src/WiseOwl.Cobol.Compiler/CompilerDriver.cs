@@ -19,15 +19,15 @@ public static class CompilerDriver
     /// <param name="SourcePath">Path to the COBOL source file.</param>
     /// <param name="OutputPath">Output assembly path; defaults to the source path with a <c>.dll</c> extension.</param>
     /// <param name="NistTestName">When set, enables NIST CCVS placeholder preprocessing for that test.</param>
-    /// <param name="DialectLevel">ISO dialect year the parser admits (85 / 2002 / 2014 / 2023). DEFAULTS to the LATEST
-    /// edition (2023) when unspecified — an unflagged compile targets the newest standard (owner decision, DEVLOG 519;
-    /// docs/VERSION_TEST_MATRIX_DESIGN.md §10 #2). Callers that target a specific edition (the NIST harness at 85, the
-    /// differential harness, per-edition conformance) pass it explicitly, so the default flip does not affect them.</param>
+    /// <param name="Edition">The validated edition the compilation targets, with its strict/permissive severity axis
+    /// (<see cref="Editions.EditionInfo"/>; kb/Work PB2619). REQUIRED: the driver has no default edition of its own. The
+    /// command line builds it with <see cref="Editions.EditionInfo.Of(int, bool)"/> from <c>--std</c> (defaulting to
+    /// <see cref="Editions.EditionInfo.Latest"/>, owner decision DEVLOG 519; docs/VERSION_TEST_MATRIX_DESIGN.md §10 #2) and
+    /// <c>--permissive</c>, so a year outside <see cref="Editions.EditionInfo.All"/> is refused at the composition root and is
+    /// unrepresentable here. Permissive accepts constructs the targeted edition REMOVED, emitting a warning and the
+    /// pre-removal semantics (the documented migration mode, VERSION_TEST_MATRIX_DESIGN §10 #1); strict (the default for every
+    /// named <c>--std</c>) rejects them. Introduction gating is unaffected.</param>
     /// <param name="CopyPaths">Directories searched for COPY copybooks, in order.</param>
-    /// <param name="Permissive">The strict/permissive severity axis (CLI <c>--permissive</c>, orthogonal to
-    /// <paramref name="DialectLevel"/>): permissive accepts constructs the targeted edition REMOVED, emitting a
-    /// warning and the pre-removal semantics (the documented migration mode, VERSION_TEST_MATRIX_DESIGN §10 #1).
-    /// Strict (the default for every named <c>--std</c>) rejects them. Introduction gating is unaffected.</param>
     /// <param name="CheckOnly">Parse + bind + the version-conformance pass ONLY — do NOT run the Roslyn C#→IL
     /// backend and write no <c>.dll</c>/<c>.g.cs</c>. Every edition-gating diagnostic (the "does this compile at
     /// edition X" question the INV-1 continuity sweep asks) is produced in Phase 1/2, BEFORE the backend, so a check-only
@@ -38,7 +38,7 @@ public static class CompilerDriver
     /// GR4 leaves the representation to the implementor and GR5 b) the valid-sign set — Annex A.1 items 177 and
     /// 178 — and the owner's answer is both conventions behind one option, defaulting to
     /// <see cref="Runtime.SignEncoding.Ibm"/> (IBM / Micro Focus compatibility). Orthogonal to
-    /// <paramref name="DialectLevel"/>: every edition grants the same latitude.</param>
+    /// <paramref name="Edition"/>: every edition grants the same latitude.</param>
     /// <param name="SourceFormat">The reference format the compilation group starts in (CLI <c>--source-format</c>;
     /// kb/Work PB1362): fixed form, ISO §2023:7.3.24.3 GR2's default, unless free form or the documented auto-detection
     /// extension is selected (§2023:4.2.10 GR3 — docs/CONFORMANCE.md DOC-A.1-158).</param>
@@ -46,12 +46,12 @@ public static class CompilerDriver
     /// "An implementation shall provide a warning mechanism that optionally may be invoked by the user at compile time
     /// to indicate use of a nonstandard extension in a compilation group". When set, every use of a syntactically
     /// distinguishable extension of the register (<see cref="Editions.NonstandardExtensionRegister"/>) is named by a
-    /// COBOL2894 warning. Orthogonal to <paramref name="DialectLevel"/> and <paramref name="Permissive"/>.</param>
+    /// COBOL2894 warning. Orthogonal to <paramref name="Edition"/>.</param>
     /// <param name="NumericDisplay">The form DISPLAY gives a numeric operand (CLI <c>--numeric-display</c>; kb/Work
     /// PB3505, owner decision PB3467). ISO §2023:14.9.11.4 GR1 leaves the device conversion to the implementor (Annex A.1
     /// item 56): the default is <see cref="Binding.NumericDisplayForm.Decimal"/> (the decimal point and a leading
     /// sign, GnuCOBOL 3.2.0's default form) and <see cref="Binding.NumericDisplayForm.Digits"/> keeps the digit image.
-    /// Orthogonal to <paramref name="DialectLevel"/>: every edition grants the same latitude.</param>
+    /// Orthogonal to <paramref name="Edition"/>: every edition grants the same latitude.</param>
     /// <param name="RepositoryUpdate">Whether the compilation updates the external repository (CLI
     /// <c>--repository-update on|off</c>, default on; ISO §2023:8.13: "The implementor shall provide a mechanism that allows the
     /// user to specify whether to update the external repository when a compilation unit is compiled";
@@ -74,11 +74,10 @@ public static class CompilerDriver
     /// per-edition default (on at <c>--std 85</c>, §1985:IV.7.1) is the command line's; the library default is no listing.</param>
     public sealed record Options(
         string SourcePath,
+        Editions.EditionInfo Edition,
         string? OutputPath = null,
         string? NistTestName = null,
-        int DialectLevel = 2023,
         IReadOnlyList<string>? CopyPaths = null,
-        bool Permissive = false,
         bool CheckOnly = false,
         SignEncoding SignEncoding = SignEncoding.Ibm,
         Frontend.Preprocessor.InitialReferenceFormat SourceFormat = Frontend.Preprocessor.InitialReferenceFormat.Fixed,
@@ -131,7 +130,7 @@ public static class CompilerDriver
     /// <param name="GeneratedCsPath">The emitted <c>.g.cs</c> path (set once C# is generated).</param>
     /// <param name="Errors">Human-readable diagnostics for a non-success outcome.</param>
     /// <param name="Warnings">Non-failing edition diagnostics (obsolete/archaic 0903 flags; removed constructs
-    /// under <see cref="Options.Permissive"/>). Present on EVERY outcome, success included — the CLI prints them
+    /// under <see cref="Editions.EditionInfo.Permissive"/> of <see cref="Options.Edition"/>). Present on EVERY outcome, success included — the CLI prints them
     /// to stderr always (P2.1).</param>
     public sealed record Result(
         Outcome Status,
@@ -190,7 +189,7 @@ public static class CompilerDriver
         if (options.Listing is not { } request) return CompileCore(options, new Frontend.CompilationInputs(), listing: null);
         var inputs = new Frontend.CompilationInputs { DigestsFiles = true };
         var facts = new WiseOwl.Cobol.Listing.Building.ListingFacts(request, inputs, options.SourcePath, options.OutputDll(),
-            Editions.EditionInfo.Of(options.DialectLevel, options.Permissive), Binding.Procedure.IntrinsicBinder.CompileClock,
+            options.Edition, Binding.Procedure.IntrinsicBinder.CompileClock,
             request.Sections.Contains(WiseOwl.Cobol.Listing.ListingSection.Options) ? OptionsSectionBuilder.Build(options) : []);
         var result = CompileCore(options, inputs, facts);
         if (facts.Frontend is null) return result;   // no source text was read: nothing to list (DESIGN-listing.md section 4.6)
@@ -224,9 +223,9 @@ public static class CompilerDriver
         {
             Inputs = inputs,
             NistTestName = options.NistTestName,
-            DialectLevel = options.DialectLevel,
+            DialectLevel = options.Edition.Year,
             // The preprocessor-level removal gates (VCR 2/4, W3 — DEVLOG 598) honor the same severity axis.
-            Permissive = options.Permissive,
+            Permissive = options.Edition.Permissive,
             InitialFormat = options.SourceFormat,   // kb/Work PB1362 — §2023:7.3.24.3 GR2 fixed by default
             RecordsListing = recordsListing,   // DESIGN-listing.md section 9: no listing, no listing work
         };
@@ -281,7 +280,7 @@ public static class CompilerDriver
         // or not-yet-introduced construct may have no emit path at all (exit criterion 9: no codegen on an
         // errored tree). frontend.Directives carries the >>TURN directive events (ISO §2023:7.3.25) that build the
         // group's compile-time TurnState (deep-dive D10).
-        var edition = new Binding.EditionContext(options.DialectLevel, options.Permissive)
+        var edition = new Binding.EditionContext(options.Edition.Year, options.Edition.Permissive)
         {
             // kb/Work PB82: bind-time diagnostics and the bound tree's user-facing lines (DEBUG-LINE,
             // EXCEPTION-LOCATION) name the file and line the USER edits, through the frontend's origin map.

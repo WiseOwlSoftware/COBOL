@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -149,7 +150,7 @@ public sealed class StandardModeReturnedValueContainerDriftTests : WiseOwlCobolT
             """;
         string srcPath = Path.Combine(TempDir, programId + ".cob");
         File.WriteAllText(srcPath, source);
-        var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, EditionInfo.Of(2023), SourceFormat: TestSourceFormat.Inline));
         Assert.True(result.Success, $"[{programId}] {reference} must compile: {string.Join("\n", result.Errors)}");
         Assert.NotNull(result.GeneratedCsPath);
         return File.ReadAllText(result.GeneratedCsPath!);

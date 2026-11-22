@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 
@@ -189,7 +190,7 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
         string srcPath = Path.Combine(TempDir, "pb5345shapes.cob");
         File.WriteAllText(srcPath, source);
         var compiled = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, Path.Combine(TempDir, "pb5345shapes.dll"), DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Free));
+            srcPath, EditionInfo.Of(2023), Path.Combine(TempDir, "pb5345shapes.dll"), SourceFormat: InitialReferenceFormat.Free));
 
         string[] lines = source.Split('\n');
         int firstShapeLine = Array.FindIndex(lines, l => l.Contains("COMPUTE R", StringComparison.Ordinal)) + 1;
@@ -222,7 +223,7 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
         string srcPath = Path.Combine(TempDir, "pb5889admitted.cob");
         File.WriteAllText(srcPath, admitted);
         var compiled = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, Path.Combine(TempDir, "pb5889admitted.dll"), DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Free));
+            srcPath, EditionInfo.Of(2023), Path.Combine(TempDir, "pb5889admitted.dll"), SourceFormat: InitialReferenceFormat.Free));
         Assert.True(compiled.Success && compiled.GeneratedCsPath is not null,
             "the admitted shapes did not compile:\n  " + string.Join("\n  ", compiled.Errors));
         string[] cobol = admitted.Split('\n');

@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
@@ -278,7 +279,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         Directory.CreateDirectory(dir);
         string path = Path.Combine(dir, "rtgroup.cob"), dll = Path.Combine(dir, "rtgroup.dll");
         File.WriteAllText(path, source);
-        var result = CompilerDriver.Compile(new CompilerDriver.Options(path, dll, SourceFormat: TestSourceFormat.Inline,
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(path, EditionInfo.Latest, dll, SourceFormat: TestSourceFormat.Inline,
             RepositoryUpdate: repositoryUpdate));
         Assert.True(result.Success, $"{result.Status}: {string.Join("\n", result.Errors)}");
         return (dll, RepositoryCodecTests.BindFile(path, 2023, TestSourceFormat.Inline), result.GeneratedCsPath!);

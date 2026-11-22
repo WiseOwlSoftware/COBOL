@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -295,7 +296,7 @@ public sealed class OoClassTablePositionTests
         {
             string path = Path.Combine(dir, "PT" + label + ".cob");
             File.WriteAllText(path, source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(path, DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(path, EditionInfo.Of(2023), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             Assert.False(r.Success, $"{label}: expected a rejection");
             string all = string.Join("\n", r.Errors);
             var unpositioned = r.Errors.Where(e => e.Contains("error COBOL", StringComparison.Ordinal)

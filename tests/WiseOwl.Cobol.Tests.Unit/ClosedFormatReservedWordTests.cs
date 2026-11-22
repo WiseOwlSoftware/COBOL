@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 using WiseOwl.Cobol.Tests.Shared;
@@ -752,7 +753,7 @@ public sealed class ClosedFormatReservedWordTests
             string src = Path.Combine(dir, "pb4706u.cob");
             File.WriteAllText(src, Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       " + entry + "\n" + Proc);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb4706u.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
+                src, EditionInfo.Of(edition), Path.Combine(dir, "pb4706u.dll"), CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
             Assert.True(r.Success, string.Join("\n", r.Errors));
         }
         finally { ScratchDirectory.Remove(dir); }
@@ -766,7 +767,7 @@ public sealed class ClosedFormatReservedWordTests
             string src = Path.Combine(dir, "pb2533u.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb2533u.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
+                src, EditionInfo.Of(edition), Path.Combine(dir, "pb2533u.dll"), CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
             Assert.False(r.Success, "the source is non-conforming and must be rejected");
             return r.Errors;
         }

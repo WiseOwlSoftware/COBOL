@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Compiler;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -35,7 +36,7 @@ public sealed class ExternalRecordValueGateTests
             string src = Path.Combine(dir, "pb5072r.cob");
             File.WriteAllText(src, Source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb5072r.dll"), DialectLevel: dialect, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(dialect), Path.Combine(dir, "pb5072r.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             Assert.Equal(expected, r.Errors.Count(e => e.Contains("COBOL0900") && e.Contains("an EXTERNAL data item")));
         }
         finally { ScratchDirectory.Remove(dir); }

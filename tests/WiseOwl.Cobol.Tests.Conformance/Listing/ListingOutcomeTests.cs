@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -59,7 +60,7 @@ public sealed class ListingOutcomeTests : IDisposable
     public void CheckOnly_ListsTheSource()
     {
         string source = Source();
-        var result = Compile(new CompilerDriver.Options(source, DialectLevel: 85, CheckOnly: true, Listing: new ListingRequest()));
+        var result = Compile(new CompilerDriver.Options(source, EditionInfo.Of(85), CheckOnly: true, Listing: new ListingRequest()));
         Assert.Equal(CompilerDriver.Outcome.Success, result.Status);
         var listing = Assert.IsType<ListingDocument>(result.Listing);
         Assert.Equal(ListingOutcome.Success, listing.Header.Outcome);
@@ -80,7 +81,7 @@ public sealed class ListingOutcomeTests : IDisposable
         // A directory where the assembly would be written: the host refuses the write.
         string dll = Path.Combine(_dir, "outcome.dll");
         Directory.CreateDirectory(dll);
-        var result = Compile(new CompilerDriver.Options(source, dll, DialectLevel: 85, Listing: new ListingRequest()));
+        var result = Compile(new CompilerDriver.Options(source, EditionInfo.Of(85), dll, Listing: new ListingRequest()));
         Assert.Equal(CompilerDriver.Outcome.OutputNotWritable, result.Status);
         Assert.Contains(result.Errors, e => e.StartsWith("cannot write the output of ", StringComparison.Ordinal));
         var listing = Assert.IsType<ListingDocument>(result.Listing);
@@ -97,7 +98,7 @@ public sealed class ListingOutcomeTests : IDisposable
     {
         string source = Source();
         string root = Path.GetPathRoot(Path.GetFullPath(_dir))!;
-        var result = Compile(new CompilerDriver.Options(source, root, DialectLevel: 85, Listing: new ListingRequest()));
+        var result = Compile(new CompilerDriver.Options(source, EditionInfo.Of(85), root, Listing: new ListingRequest()));
         Assert.Equal(CompilerDriver.Outcome.OutputNotWritable, result.Status);
         Assert.Null(result.Listing);
         Assert.Empty(result.OutputFiles);
@@ -110,7 +111,7 @@ public sealed class ListingOutcomeTests : IDisposable
     {
         string source = Source();
         string missing = Path.Combine(_dir, "no-such-directory", "outcome");
-        var result = Compile(new CompilerDriver.Options(source, Path.Combine(_dir, "outcome.dll"), DialectLevel: 85,
+        var result = Compile(new CompilerDriver.Options(source, EditionInfo.Of(85), Path.Combine(_dir, "outcome.dll"),
             Listing: new ListingRequest(OutputBase: missing)));
         Assert.Equal(CompilerDriver.Outcome.Success, result.Status);
         string error = Assert.Single(result.Errors);
@@ -131,7 +132,7 @@ public sealed class ListingOutcomeTests : IDisposable
     {
         string source = Source(Program.Replace("DISPLAY \"OUTCOME\".", "DISPLAY \"OUTCOME\" FOO BAR BAZ.", StringComparison.Ordinal));
         string dll = Path.Combine(_dir, "new-directory", "outcome.dll");
-        var result = Compile(new CompilerDriver.Options(source, dll, DialectLevel: 85, Listing: new ListingRequest()));
+        var result = Compile(new CompilerDriver.Options(source, EditionInfo.Of(85), dll, Listing: new ListingRequest()));
         Assert.Equal(CompilerDriver.Outcome.BindError, result.Status);
         Assert.DoesNotContain(result.Errors, e => e.StartsWith("cannot write the listing", StringComparison.Ordinal));
         var listing = Assert.IsType<ListingDocument>(result.Listing);
@@ -169,7 +170,7 @@ public sealed class ListingOutcomeTests : IDisposable
             "           STOP RUN.",
         ];
         string source = Source(string.Join("\n", lines));
-        var result = Compile(new CompilerDriver.Options(source, Path.Combine(_dir, "outcome.dll"), Listing: new ListingRequest()));
+        var result = Compile(new CompilerDriver.Options(source, EditionInfo.Latest, Path.Combine(_dir, "outcome.dll"), Listing: new ListingRequest()));
         Assert.Equal(CompilerDriver.Outcome.FrontendError, result.Status);
         // The reported diagnostics are the first pass's: the program's own error, named.
         Assert.Contains(result.Errors, e => e.Contains("'FOO'", StringComparison.Ordinal));

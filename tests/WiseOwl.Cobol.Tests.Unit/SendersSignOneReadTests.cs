@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -28,7 +29,7 @@ public sealed class SendersSignOneReadTests
             string src = Path.Combine(dir, "p.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "p.dll"), DialectLevel: edition, CheckOnly: false, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(edition), Path.Combine(dir, "p.dll"), CheckOnly: false, SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, "the program must compile: " + string.Join("; ", r.Errors));
             Assert.NotNull(r.GeneratedCsPath);
             return File.ReadAllText(r.GeneratedCsPath!);

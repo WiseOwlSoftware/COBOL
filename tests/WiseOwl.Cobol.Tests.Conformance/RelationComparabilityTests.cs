@@ -3,6 +3,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -314,8 +315,7 @@ public sealed class RelationComparabilityTests
         try
         {
             string src = CompiledProgramCache.StageSource(Path.Combine(dir, "prog.cob"), source);
-            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, "prog.dll"),
-                DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Of(edition), Path.Combine(dir, "prog.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return r.Success ? [] : [.. r.Errors.DefaultIfEmpty($"status {r.Status}")];
         }
         finally { ScratchDirectory.Remove(dir); }

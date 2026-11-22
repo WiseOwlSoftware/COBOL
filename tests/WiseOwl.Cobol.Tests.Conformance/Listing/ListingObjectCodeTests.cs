@@ -4,6 +4,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Text;
 using WiseOwl.Cobol.Tests.Shared;
@@ -57,7 +58,7 @@ public sealed class ListingObjectCodeTests : IDisposable
         string path = Path.Combine(_dir, "objmap.cob");
         File.WriteAllText(path, string.Join("\n", source ?? Source));
         File.WriteAllText(Path.Combine(_dir, "OBJCPY.cpy"), Copybook);
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, Path.Combine(_dir, "objmap.dll"),
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, EditionInfo.Latest, Path.Combine(_dir, "objmap.dll"),
             CopyPaths: [_dir], CheckOnly: checkOnly,
             Listing: new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json) { Sections = sections }));
         if (result.Listing is { } listing) ListingJsonContract.AssertHolds(listing);

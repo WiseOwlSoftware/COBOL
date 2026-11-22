@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -36,7 +37,7 @@ public sealed class ListingCopyMemberOrderTests : IDisposable
             "           DISPLAY WS-A ZZ-TOTAL.",
             "           STOP RUN.",
         ]));
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, Path.Combine(_dir, "cpyord.dll"), DialectLevel: 2023,
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, EditionInfo.Of(2023), Path.Combine(_dir, "cpyord.dll"),
             CopyPaths: [_dir], Listing: new ListingRequest(Formats: ListingFormats.Json) { Sections = ListingSectionSet.All }));
         Assert.True(result.Success, string.Join("\n", result.Errors));
         var xref = Assert.IsType<ListingCrossReference>(Assert.IsType<ListingDocument>(result.Listing).CrossReference);

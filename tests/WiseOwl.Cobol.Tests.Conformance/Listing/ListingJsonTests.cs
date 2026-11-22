@@ -3,6 +3,7 @@
 using System.Globalization;
 using System.Text.Json.Nodes;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Json;
 using WiseOwl.Cobol.Tests.Shared;
@@ -53,8 +54,7 @@ public sealed class ListingJsonTests : IDisposable
         string source = Path.Combine(_dir, "json85.cob"), copybook = Path.Combine(_dir, "JREC.cpy");
         File.WriteAllText(source, main);
         File.WriteAllText(copybook, Rec);
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(_dir, "json85.dll"),
-            DialectLevel: 85, CopyPaths: [_dir], Listing: request));
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, EditionInfo.Of(85), Path.Combine(_dir, "json85.dll"), CopyPaths: [_dir], Listing: request));
         if (result.Listing is { } listing) ListingJsonContract.AssertHolds(listing);
         return (result, source, copybook);
     }

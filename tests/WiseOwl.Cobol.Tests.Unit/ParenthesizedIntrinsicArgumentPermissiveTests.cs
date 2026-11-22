@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
 
@@ -43,7 +44,7 @@ public sealed class ParenthesizedIntrinsicArgumentPermissiveTests : WiseOwlCobol
         string dllPath = Path.Combine(TempDir, "pb4635perm.dll");
         File.WriteAllText(srcPath, source);
         var compiled = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, dllPath, DialectLevel: 2023, Permissive: true, SourceFormat: InitialReferenceFormat.Free));
+            srcPath, EditionInfo.Of(2023, true), dllPath, SourceFormat: InitialReferenceFormat.Free));
         Assert.True(compiled.Success, $"({compiled.Status}):\n  {string.Join("\n  ", compiled.Errors)}");
 
         var (ran, stdout, detail) = RunAssembly(dllPath);
@@ -84,7 +85,7 @@ public sealed class ParenthesizedIntrinsicArgumentPermissiveTests : WiseOwlCobol
         string srcPath = Path.Combine(TempDir, "pb4635shape.cob");
         File.WriteAllText(srcPath, source);
         var compiled = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, Path.Combine(TempDir, "pb4635shape.dll"), DialectLevel: 2023, Permissive: true, SourceFormat: InitialReferenceFormat.Free));
+            srcPath, EditionInfo.Of(2023, true), Path.Combine(TempDir, "pb4635shape.dll"), SourceFormat: InitialReferenceFormat.Free));
         Assert.False(compiled.Success, $"{call} compiled under --permissive");
         Assert.Contains("COBOL1627", string.Join("\n", compiled.Errors));
     }
@@ -115,7 +116,7 @@ public sealed class ParenthesizedIntrinsicArgumentPermissiveTests : WiseOwlCobol
         string dllPath = Path.Combine(TempDir, "pb4710perm.dll");
         File.WriteAllText(srcPath, source);
         var compiled = CompilerDriver.Compile(new CompilerDriver.Options(
-            srcPath, dllPath, DialectLevel: 2023, Permissive: true, SourceFormat: InitialReferenceFormat.Free));
+            srcPath, EditionInfo.Of(2023, true), dllPath, SourceFormat: InitialReferenceFormat.Free));
         Assert.True(compiled.Success, $"({compiled.Status}):\n  {string.Join("\n  ", compiled.Errors)}");
 
         var (ran, stdout, detail) = RunAssembly(dllPath);

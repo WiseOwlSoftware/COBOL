@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime.Collation;
 using WiseOwl.Cobol.Runtime.Collation.Cldr;
@@ -162,8 +163,7 @@ public sealed class LocaleCollationFailureTests
             + "       PROCEDURE DIVISION.\n"
             + "           DISPLAY \"OK\"\n"
             + "           STOP RUN.\n");
-        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(site.Path, "ot.dll"),
-            DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2023), Path.Combine(site.Path, "ot.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
         Assert.True(r.Success, string.Join("; ", r.Errors));
         Assert.Contains(r.Warnings, w => w.Contains("COBOL1662") && w.Contains(file) && w.Contains("negated UnicodeSets"));
     }

@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -71,7 +72,7 @@ public sealed class EmittedTextCultureTests : WiseOwlCobolTestBase
         CultureInfo.CurrentCulture = culture;
         try
         {
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, DialectLevel: 2023, SourceFormat: TestSourceFormat.Inline));
+            var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, EditionInfo.Of(2023), SourceFormat: TestSourceFormat.Inline));
             Assert.True(result.Success, string.Join("\n", result.Errors));
             return File.ReadAllText(result.GeneratedCsPath!).Replace(dir, "<dir>", StringComparison.Ordinal);
         }

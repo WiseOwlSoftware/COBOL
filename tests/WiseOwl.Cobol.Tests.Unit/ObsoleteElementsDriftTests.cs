@@ -51,7 +51,7 @@ public sealed class ObsoleteElementsDriftTests
         {
             string src = Path.Combine(dir, "hidden.cob");
             File.WriteAllText(src, source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 85,
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(85),
                 SourceFormat: WiseOwl.Cobol.Frontend.Preprocessor.InitialReferenceFormat.Fixed));
             string warning = Assert.Single(r.Warnings, w => w.Contains("COBOL0903", StringComparison.Ordinal));
             Assert.Contains("hidden.cob(11,8)", warning, StringComparison.Ordinal);

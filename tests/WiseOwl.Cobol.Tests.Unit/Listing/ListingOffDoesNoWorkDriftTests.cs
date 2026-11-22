@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -37,7 +38,7 @@ public sealed class ListingOffDoesNoWorkDriftTests : WiseOwlCobolTestBase
         string src = Path.Combine(TempDir, "nowork.cob");
         File.WriteAllText(src, Source);
         File.WriteAllText(Path.Combine(TempDir, "NOWORKC.cpy"), "       01 X PIC X(4) VALUE \"ABCD\".\n");
-        return (new CompilerDriver.Options(src, DialectLevel: 85, CopyPaths: [TempDir], Listing: listing), src);
+        return (new CompilerDriver.Options(src, EditionInfo.Of(85), CopyPaths: [TempDir], Listing: listing), src);
     }
 
     [Fact]
@@ -102,7 +103,7 @@ public sealed class ListingOffDoesNoWorkDriftTests : WiseOwlCobolTestBase
             "       PROCEDURE DIVISION.",
             "           STOP RUN."));
         File.WriteAllText(Path.Combine(TempDir, "HOOKBOOK.cpy"), "       >>LISTING OFF\n       01 :N: PIC X.\n");
-        return (new CompilerDriver.Options(src, DialectLevel: 2023, CopyPaths: [TempDir], CheckOnly: true, Listing: listing), src);
+        return (new CompilerDriver.Options(src, EditionInfo.Of(2023), CopyPaths: [TempDir], CheckOnly: true, Listing: listing), src);
     }
 
     /// <summary>Without a listing, a program that reaches every step-4a recording point compiles with the front end recording

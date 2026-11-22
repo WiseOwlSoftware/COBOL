@@ -69,7 +69,7 @@ internal static class ExpansionAssemblies
                 string target = placement.HoldingFile!;
                 string name = Path.GetFileNameWithoutExtension(target);
                 var result = CompilerDriver.Compile(new CompilerDriver.Options(
-                    temp, target, NistTestName: null, DialectLevel: state.Edition, CopyPaths: null, Permissive: state.Permissive,
+                    temp, EditionInfo.Of(state.Edition, state.Permissive), target, NistTestName: null, CopyPaths: null,
                     CheckOnly: false, SignEncoding: state.SignEncoding, SourceFormat: Frontend.Preprocessor.InitialReferenceFormat.Free,
                     FlagExtensions: state.FlagExtensions, NumericDisplay: RepositoryVocabulary.FromPersisted(state.NumericDisplay),
                     RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryDirectories(),

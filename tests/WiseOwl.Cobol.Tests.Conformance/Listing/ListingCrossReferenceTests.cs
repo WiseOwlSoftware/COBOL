@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Xml.Linq;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Html;
 using WiseOwl.Cobol.Listing.Text;
@@ -72,7 +73,7 @@ public sealed class ListingCrossReferenceTests : IDisposable
     {
         string path = Path.Combine(_dir, "xref.cob");
         File.WriteAllText(path, string.Join("\n", Source));
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, Path.Combine(_dir, "xref.dll"), DialectLevel: 2023,
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, EditionInfo.Of(2023), Path.Combine(_dir, "xref.dll"),
             Listing: new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Html | ListingFormats.Json) { Sections = ListingSectionSet.All }));
         Assert.True(result.Success, string.Join("\n", result.Errors));
         var listing = Assert.IsType<ListingDocument>(result.Listing);

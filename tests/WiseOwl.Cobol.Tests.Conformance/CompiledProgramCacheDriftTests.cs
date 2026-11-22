@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -39,7 +40,7 @@ public sealed class CompiledProgramCacheDriftTests : IDisposable
 
     private CompilerDriver.Options Options(string src, string runDir = "run", int edition = 2023,
         IReadOnlyList<string>? copyPaths = null) =>
-        new(src, Path.Combine(_dir, runDir, "prog.dll"), DialectLevel: edition, CopyPaths: copyPaths);
+        new(src, EditionInfo.Of(edition), Path.Combine(_dir, runDir, "prog.dll"), CopyPaths: copyPaths);
 
     private (CompilerDriver.Result Result, bool Hit) Through(CompilerDriver.Options o) =>
         CompiledProgramCache.CompileThrough(o, Store);

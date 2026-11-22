@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -159,7 +160,7 @@ public sealed class UseTierEditionInvarianceDriftTests
             string src = Path.Combine(dir, "usetier.cob");
             src = CompiledProgramCache.StageSource(src, Source.Replace("{0}", directives));
             var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "usetier.dll"), DialectLevel: edition, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(edition), Path.Combine(dir, "usetier.dll"), SourceFormat: TestSourceFormat.Inline));
             Assert.True(r.Success, $"--std {edition}: " + string.Join("\n", r.Errors));
             Assert.NotNull(r.GeneratedCsPath);
             return File.ReadAllText(r.GeneratedCsPath!);

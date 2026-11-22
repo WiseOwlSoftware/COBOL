@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -263,7 +264,7 @@ SKIPPER.
             string src = Path.Combine(dir, "pb909.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb909.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(2023), Path.Combine(dir, "pb909.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return (r.Success, r.Errors, r.Warnings);
         }
         finally { ScratchDirectory.Remove(dir); }

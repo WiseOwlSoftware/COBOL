@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -186,7 +187,7 @@ public sealed class ProcedureNameUniquenessDriftTests
         {
             string src = Path.Combine(dir, $"{tag}_{edition}.cob");
             File.WriteAllText(src, source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(edition), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return [.. r.Errors];
         }
         finally { ScratchDirectory.Remove(dir); }

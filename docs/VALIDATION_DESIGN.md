@@ -24,7 +24,7 @@ semantics).
 
 - **Channels** (`Binding/EditionContext.cs`): `Diagnostics` is ERRORS-ONLY (any entry fails the
   compile); `Warnings` never fails; **`Removed(code,msg)` is THE severity seam** — error strict / warning
-  permissive; one policy, every emit site. Carriers: `CompilerDriver.Options.Permissive`,
+  permissive; one policy, every emit site. Carriers: `CompilerDriver.Options.Edition` (its `EditionInfo.Permissive`),
   `Result.Warnings` (every outcome), CLI `--permissive`, warnings always printed to stderr.
 - **The pass** (`Validation/VersionConformancePass.cs`): THE single post-bind edition-conformance pass — a
   TWO-ARM pass over the bound run unit, run as the manifest's NAMED TERMINAL pass (`BindPipeline.GroupTail`;
