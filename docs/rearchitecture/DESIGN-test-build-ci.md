@@ -2288,7 +2288,9 @@ one-file-per-entry DEVLOG stand.
    Then `devlog.py stamp` numbers the entry (once: a stamped entry keeps its number, PB3123) and the landing checks run
    (`enqueue.py checks`): `devlog.py check` (exactly one new entry file, stamped and well-formed), `work.py check` (run by the
    merged head's own copy, so a note main gained after the branch's gate meets a rule the branch added there, never first in
-   CI, PB3389), `rename_diagnostic_prefix.py --check` (PB3575), `rename_retired_names.py --check` (PB3837) and
+   CI, PB3389), `rename_diagnostic_prefix.py --check` (PB3575), `rename_retired_names.py --check` (PB3837),
+   `code_read_landing.py` (the merged head's own copy; a change that moves a member a stored code read of an edition names, while
+   `edition_status.py` reads that edition COMPLETE on main, is refused with the rows and the re-read as the remedy, exit 6, PB6056) and
    `landing_check.py` (a path no landing carries, `coord.NEVER_WORK`; a public-API symbol listed twice, PB3694; two in-flight
    branches editing the same member, PB2118, PB4452). One refusal is an exit that is not a red, retried by the lane: exit 15 when the branch merged a
    predecessor whose pull request is still open and so adds that pull request's stamped DEVLOG entry beside its own
