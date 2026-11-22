@@ -345,7 +345,15 @@ public static class ItemCategory
     public static bool IsEditedCategory(PicInfo pic) =>
         pic.AnalyzedCategory is PicCategory.NumericEdited || pic.IsCharacterEdited;
 
-    private static string CategoryName(Table16Operand operand) => operand.Category switch
+    /// <summary>The Table 2 category of a VALUE that has no PICTURE of its own to refine its <see cref="PicCategory"/> — a
+    /// literal, the literal a constant-name stands for, an intrinsic function's §2023:15.2 result category — or of an
+    /// operand whose category was read without its item (kb/Work PB3229: the messages that spelled the member's C# name,
+    /// "numericedited", "pointer" for data-pointer, "objectreference"). A group is no such value and throws.</summary>
+    public static string CategoryName(PicCategory category) => CategoryName(new Table16Operand(category));
+
+    /// <summary>The Table 2 category of a Table 16 position (<see cref="MoveTable16.SenderPosition"/>): its category refined
+    /// by the alphabetic and edited riders.</summary>
+    public static string CategoryName(Table16Operand operand) => operand.Category switch
     {
         PicCategory.Alphanumeric => operand.IsAlphabetic ? "alphabetic"
             : operand.IsEdited ? "alphanumeric-edited" : ActivationCategory.Alphanumeric,

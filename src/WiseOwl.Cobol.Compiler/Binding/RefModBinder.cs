@@ -225,11 +225,11 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
             { Category: PicCategory.Numeric, Usage: Usage.Display or Usage.National, IsFloat: false } =>
                 underStrong ? "a numeric item subordinate to a strongly-typed group item" : null,
             { Category: PicCategory.Numeric } p =>
-                $"a numeric item of USAGE {p.Usage} (SR1 admits usage "
+                $"a numeric item of USAGE {UsageFamilies.UsageWord(p.Usage)} (SR1 admits usage "
                 + edition.Cite("DISPLAY only", "DISPLAY or NATIONAL only") + ")",
             { Category: PicCategory.ObjectReference } => "an object reference",
             { Category: PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer } => "a pointer",
-            { } p => $"an item of category {p.Category}",
+            { } p => $"an item of category {ItemCategory.CategoryName(p)}",
         };
     }
 

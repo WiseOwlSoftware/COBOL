@@ -378,7 +378,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (probe.Item.Pic?.Category is not PicCategory.Pointer)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocalePointerCategory, $"{first} TO {toTextWritten}: identifier-10 shall reference an elementary data item of category "
-                    + $"data-pointer (ISO §2023:14.9.39.3 SR27) — '{toTextWritten}' is {probe.Item.Pic?.Category.ToString() ?? "a group"}");
+                    + $"data-pointer (ISO §2023:14.9.39.3 SR27) — '{toTextWritten}' is {(probe.Item.Pic is { } pic ? $"of category {ItemCategory.CategoryName(pic)}" : "a group")}");
             }
             if (host.Expr.ResolveSending(to) is var toAnswer && toAnswer.Place is not { } place)
                 return toAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
@@ -961,7 +961,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (place is null)
             ctx.Edition.Error(code,
                 $"{prefix}: identifier-1 shall be of category alphanumeric or national (ISO §2023:{rule}) — '{text}' is of "
-                + $"category {IntrinsicResultType.OperandCategory(operand)?.ToString().ToLowerInvariant() ?? "(none)"}");
+                + $"category {(IntrinsicResultType.OperandCategory(operand) is { } category ? ItemCategory.CategoryName(category) : "(none)")}");
         return null;
     }
 
