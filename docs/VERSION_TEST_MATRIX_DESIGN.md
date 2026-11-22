@@ -157,7 +157,7 @@ they cover ~70% of real dialect collisions and exercise all five gating patterns
 ## 6. Harness design
 
 **6.1 Make the compiler-under-test edition-parameterized (prerequisite).**
-- `CompilerDriver.Options.DialectLevel` already exists and flows to the front-end. **Thread it into the BINDER only**
+- `CompilerDriver.Options.Edition` (a validated `EditionInfo`, kb/Work PB2619) already exists and flows to the front-end. **Thread it into the BINDER only**
   (dual-backend discipline, G4: ALL semantics live in the binder/bound tree behind `ICodeGenBackend`; emitters only
   render): an edition-variant behavior is resolved at bind time and carried in the bound tree in edition-resolved
   form, so the Roslyn emitter AND the future Cecil/CIL backend satisfy INV-3 for free. Do NOT pass `dialectLevel`
@@ -220,8 +220,9 @@ test for the gating implementation (TDD). "Done" = the row's cells are green at 
   (NC101A/NC211A/NC136A compile at later editions). (ALTER was the design's
   example, but ALTER is a lexer token with no greenfield statement rule — removed-construct gating goes through the
   `VersionConformancePass`; DELETE FILE is the cleaner proof since it is fully grammar-gated AND compiles at its intro
-  edition.) **Decision #2 — default `--std`:** the `CompilerDriver.Options.DialectLevel` default is
-  **2023** (`src/WiseOwl.Cobol.Compiler/CompilerDriver.cs`), pinned by a `CompilerDriverTests` regression test; the CLI
+  edition.) **Decision #2 — default `--std`:** the default edition is
+  **2023**, `EditionInfo.Latest`, read by the command line (`src/WiseOwl.Cobol.Cli/Program.cs`; `CompilerDriver.Options.Edition` is
+  required and has no default of its own, kb/Work PB2619), pinned by a `CliParserTests` regression test; the CLI
   `--std` defaults to 2023 and `--nist` without an explicit `--std` targets 85 (`src/WiseOwl.Cobol.Cli/CliOptions.cs`).
   **Phase 1 — seed + continuity ✅ DONE:** the canonical **`tests/version-matrix/constructs/`** (12 seeded rows —
   85 baseline; 2002: ALLOCATE, FREE, INVOKE, GOBACK RETURNING, STOP-status, BASED, PROCEDURE…RETURNING; 2014: JSON
@@ -605,7 +606,7 @@ threaded into `CopyProcessor`/`ReferenceFormatProcessor` today). The COMMUNICATI
    `Default`/`--nist` mode** (mirrors legacy `FlagsFeaturesRemovedAfter85`). The matrix's reject cells for removed
    constructs assert an error at strict editions ≥ `removedIn`, a warning under permissive.
 2. **Default `--std` — RESOLVED:** **COBOL-2023** (the latest) when no `--std` is given. ⚠ This DIFFERS from
-   the legacy default (`StrictCobol85`): the greenfield `CompilerDriver.Options.DialectLevel` default is 2023.
+   the legacy default (`StrictCobol85`): the greenfield default edition is 2023 (`EditionInfo.Latest`, which the command line reads).
    Consequence: an unflagged compile of legacy source may hit new-2023 reserved words / removed
    constructs by default (that is intended — newest-standard-by-default). The test harnesses that target a specific
    edition (NIST at 85, the differential harness, per-edition conformance) **pass the edition explicitly**, so the

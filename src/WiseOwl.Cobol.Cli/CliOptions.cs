@@ -9,16 +9,16 @@ namespace WiseOwl.Cobol.Cli;
 /// <param name="SourcePath">The COBOL source file to compile.</param>
 /// <param name="OutputPath">Output assembly path (<c>-o</c>); null = the source path with a <c>.dll</c> extension.</param>
 /// <param name="NistTestName">NIST CCVS test name (<c>--nist</c>) enabling placeholder preprocessing; null = off.</param>
-/// <param name="DialectLevel">ISO dialect year (<c>--std</c>): one of <see cref="Editions.EditionInfo.All"/>.</param>
+/// <param name="Edition">The targeted edition (<c>--std</c>, one of <see cref="Editions.EditionInfo.All"/>) with its strict/permissive
+/// severity axis (<c>--permissive</c>, orthogonal to <c>--std</c>/<c>--nist</c>: accept constructs the targeted edition removed,
+/// warning instead of rejecting — the documented migration mode, VERSION_TEST_MATRIX_DESIGN §10 #1; owner decision 4). Built by
+/// <see cref="Editions.EditionInfo.Of(int, bool)"/> where the command line is resolved, so it is a validated edition from here on
+/// (kb/Work PB2619).</param>
 /// <param name="CopyPaths">COPY copybook search directories (<c>--copy</c>), in order.</param>
 /// <param name="Run">Run the compiled assembly after a successful compile (<c>--run</c>).</param>
-/// <param name="Permissive">The strict/permissive severity axis (<c>--permissive</c>, orthogonal to
-/// <c>--std</c>/<c>--nist</c>): accept constructs the targeted edition removed, warning instead of rejecting —
-/// the documented migration mode (VERSION_TEST_MATRIX_DESIGN §10 #1; owner decision 4).</param>
 /// <param name="SignEncoding">The DISPLAY over-punch convention (<c>--sign-encoding</c>) for a signed item whose
 /// sign is not written SEPARATE CHARACTER — kb/Work PB803, owner decision 2026-09-09; Annex A.1 items 177 and 178
-/// (ISO §2023:13.18.52.4 GR4 / GR5 b). A REPRESENTATION axis, orthogonal to <paramref name="DialectLevel"/> and
-/// <paramref name="Permissive"/>: every edition grants the identical latitude. Defaults to
+/// (ISO §2023:13.18.52.4 GR4 / GR5 b). A REPRESENTATION axis, orthogonal to <paramref name="Edition"/>: every edition grants the identical latitude. Defaults to
 /// <see cref="WiseOwl.Cobol.Runtime.SignEncoding.Ibm"/> — IBM / Micro Focus compatibility.</param>
 /// <param name="SourceFormat">The reference format the source starts in (<c>--source-format</c>; kb/Work PB1362):
 /// fixed form, ISO §2023:7.3.24.3 GR2's default, unless <c>free</c> or <c>auto</c> is selected.</param>
@@ -41,10 +41,9 @@ internal sealed record CliOptions(
     string SourcePath,
     string? OutputPath,
     string? NistTestName,
-    int DialectLevel,
+    WiseOwl.Cobol.Editions.EditionInfo Edition,
     IReadOnlyList<string> CopyPaths,
     bool Run,
-    bool Permissive,
     WiseOwl.Cobol.Runtime.SignEncoding SignEncoding = WiseOwl.Cobol.Runtime.SignEncoding.Ibm,
     WiseOwl.Cobol.Frontend.Preprocessor.InitialReferenceFormat SourceFormat =
         WiseOwl.Cobol.Frontend.Preprocessor.InitialReferenceFormat.Fixed,

@@ -18,8 +18,8 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// every member of <c>BindSession</c> is a field here, or is named in that test's list of what changes no meaning, with its
 /// reason. A new option that the test does not know is red before it can be silently dropped from a skeleton.</para>
 /// </summary>
-/// <param name="Edition"><c>Options.DialectLevel</c>.</param>
-/// <param name="Permissive"><c>Options.Permissive</c>.</param>
+/// <param name="Edition">The year of <c>CompilerDriver.Options.Edition</c>.</param>
+/// <param name="Permissive">The strict/permissive axis of <c>CompilerDriver.Options.Edition</c>.</param>
 /// <param name="SignEncoding"><c>Options.SignEncoding</c> (the over-punch convention is baked into every emitted profile).</param>
 /// <param name="FlagExtensions"><c>Options.FlagExtensions</c> (it only adds warnings, but a skeleton states every option the
 /// expanding compile could read, so the key and the separate compile agree on it).</param>

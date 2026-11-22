@@ -879,7 +879,7 @@ internal sealed record SkeletonRecord(RecordList<string> Formals, RecordList<boo
 /// EVERY compile-time input that changes what the skeleton's source MEANS (§10.5): the importer re-parses and re-binds under it.
 /// The three text members are DIRECTIVE LINES (free-form source), so the one directive processor that read them the first time reads
 /// them again (CompileInputs.At(line) is the one producer; CobolWordsMap.DirectiveText / FromDirectiveText its words half).
-internal sealed record CompileState(int Edition /* Options.DialectLevel */, bool Permissive, SignEncoding SignEncoding,
+internal sealed record CompileState(int Edition /* Options.Edition.Year */, bool Permissive, SignEncoding SignEncoding,
     bool FlagExtensions, RepositoryNumericDisplay NumericDisplay /* Options.NumericDisplay, PB3505: DISPLAY / ACCEPT's numeric form */,
     string CobolWordsMap /* >>COBOL-WORDS lines, BindSession.CobolWords */,
     string DirectiveFolds /* the >>TURN, >>PROPAGATE, >>REF-MOD-ZERO-LENGTH and >>LEAP-SECOND lines in force at the definition's first line */,

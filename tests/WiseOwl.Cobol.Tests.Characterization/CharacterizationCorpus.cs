@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 
@@ -76,7 +77,7 @@ public static class CompilerProbe
         {
             string dll = Path.Combine(dir, "p.dll");
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                sourcePath, dll, DialectLevel: edition, CheckOnly: !emit, SourceFormat: InitialReferenceFormat.Fixed));   // the corpus is fixed form (kb/Work PB1757)
+                sourcePath, EditionInfo.Of(edition), dll, CheckOnly: !emit, SourceFormat: InitialReferenceFormat.Fixed));   // the corpus is fixed form (kb/Work PB1757)
             var diags = r.Errors.Concat(r.Warnings).ToList();   // errors then warnings; the snapshot sorts for stability
             string? cs = emit && r.GeneratedCsPath is { } p && File.Exists(p) ? File.ReadAllText(p) : null;
             return new ProbeResult(r.Success, diags, cs);

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime;
@@ -54,7 +55,7 @@ public sealed class DebugSwitchTests
                        ADD 1 TO WORK-COUNT.
             """);
         string dll = Path.Combine(dir, ProgramId + ".dll");
-        var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 85, SourceFormat: TestSourceFormat.Inline));
+        var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Of(85), dll, SourceFormat: TestSourceFormat.Inline));
         Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
         return dll;
     }

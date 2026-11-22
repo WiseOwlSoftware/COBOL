@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -213,6 +214,6 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : WiseOwlCobolTestBa
             """;
         string srcPath = Path.Combine(TempDir, programId + ".cob");
         File.WriteAllText(srcPath, source);
-        return CompilerDriver.Compile(new CompilerDriver.Options(srcPath, DialectLevel: 2023, Permissive: true, SourceFormat: TestSourceFormat.Inline));
+        return CompilerDriver.Compile(new CompilerDriver.Options(srcPath, EditionInfo.Of(2023, true), SourceFormat: TestSourceFormat.Inline));
     }
 }

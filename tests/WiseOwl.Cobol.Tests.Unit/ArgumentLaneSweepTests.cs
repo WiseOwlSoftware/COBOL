@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -137,8 +138,7 @@ public sealed class ArgumentLaneSweepTests : WiseOwlCobolTestBase
         File.WriteAllText(path, source);
         try
         {
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(path, Path.Combine(TempDir, name + ".dll"),
-                DialectLevel: edition, SourceFormat: InitialReferenceFormat.Free));
+            var result = CompilerDriver.Compile(new CompilerDriver.Options(path, EditionInfo.Of(edition), Path.Combine(TempDir, name + ".dll"), SourceFormat: InitialReferenceFormat.Free));
             return result.Errors.Count == 0 ? null : string.Join("; ", result.Errors);
         }
         catch (InvalidOperationException e)

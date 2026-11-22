@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Diagnostics;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;                             // ProcessObserver — the ONE child-process observer
 
@@ -35,7 +36,7 @@ public abstract class WiseOwlCobolTestBase : IDisposable
         string dllPath = Path.Combine(TempDir, "prog.dll");
         File.WriteAllText(srcPath, source);
 
-        var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, dllPath, DialectLevel: dialectLevel, SourceFormat: TestSourceFormat.Inline));
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, EditionInfo.Of(dialectLevel), dllPath, SourceFormat: TestSourceFormat.Inline));
         if (!result.Success)
             return (false, "", $"{result.Status}: {string.Join("\n", result.Errors)}");
         return RunAssembly(dllPath);

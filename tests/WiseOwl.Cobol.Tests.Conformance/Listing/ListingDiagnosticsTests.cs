@@ -3,6 +3,7 @@
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Json;
@@ -43,8 +44,7 @@ public sealed class ListingDiagnosticsTests : IDisposable
         string source = Path.Combine(dir, name + ".cob");
         File.WriteAllText(source, string.Join("\n", lines));
         foreach (var (book, text) in copybooks ?? new Dictionary<string, string>()) File.WriteAllText(Path.Combine(dir, book), text);
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(dir, name + ".dll"),
-            DialectLevel: edition, CopyPaths: [dir], FlagExtensions: flagExtensions, Listing: new ListingRequest(Formats: formats)));
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, EditionInfo.Of(edition), Path.Combine(dir, name + ".dll"), CopyPaths: [dir], FlagExtensions: flagExtensions, Listing: new ListingRequest(Formats: formats)));
         if (result.Listing is { } listing) ListingJsonContract.AssertHolds(listing);
         return (result, source);
     }

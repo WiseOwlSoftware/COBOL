@@ -4,6 +4,7 @@ using System.Diagnostics;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Cli;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime.Repository;
 using WiseOwl.Cobol.Tests.Shared;
@@ -110,8 +111,8 @@ public sealed class ExternalRepositoryExpansionTests
         Directory.CreateDirectory(dir);
         string src = Path.Combine(dir, name + ".cob");
         File.WriteAllText(src, source);
-        return CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"), DialectLevel: level,
-            SourceFormat: InitialReferenceFormat.Free, Permissive: permissive));
+        return CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(level, permissive), Path.Combine(dir, name + ".dll"),
+            SourceFormat: InitialReferenceFormat.Free));
     }
 
     /// <summary>Run the compiled program <paramref name="dll"/> in <paramref name="dir"/> (the repository directory is the run unit's
@@ -301,7 +302,7 @@ public sealed class ExternalRepositoryExpansionTests
                 Directory.CreateDirectory(outs);
                 string src = Path.Combine(outs, id + ".cob");
                 File.WriteAllText(src, Client(id));
-                return CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(outs, id + ".dll"), DialectLevel: 2014,
+                return CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2014), Path.Combine(outs, id + ".dll"),
                     SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [holds, boxes, outs]));
             }
             var first = Make("CLIENT1", boxes1);
@@ -404,7 +405,7 @@ public sealed class ExternalRepositoryExpansionTests
                 Directory.CreateDirectory(at);
                 string src = Path.Combine(at, id + ".cob");
                 File.WriteAllText(src, source);
-                return CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(at, id + ".dll"), DialectLevel: 2014,
+                return CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2014), Path.Combine(at, id + ".dll"),
                     SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [.. searched]));
             }
             // HOLD's code uses HELPER; BOX is in two libraries and HELPER in one of them: CLIENT1 holds {LIBB's BOX, LIBA's HELPER},
@@ -439,7 +440,7 @@ public sealed class ExternalRepositoryExpansionTests
                 Directory.CreateDirectory(outs);
                 string src = Path.Combine(outs, id + ".cob");
                 File.WriteAllText(src, Client(id));
-                return CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(outs, id + ".dll"), DialectLevel: level,
+                return CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(level), Path.Combine(outs, id + ".dll"),
                     SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [holds, boxes, outs]));
             }
             Assert.True(Make("CLIENT1", boxes1, 2014).Success);
@@ -642,7 +643,7 @@ public sealed class ExternalRepositoryExpansionTests
         Directory.CreateDirectory(dir);
         string src = Path.Combine(dir, name + ".cob");
         File.WriteAllText(src, source);
-        return CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"), DialectLevel: level,
+        return CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(level), Path.Combine(dir, name + ".dll"),
             SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [repository]));
     }
 
@@ -924,7 +925,7 @@ public sealed class ExternalRepositoryExpansionTests
             Assert.True(Compile(dir, "LIBX", Box + Hold(RelationOfLiterals), level: 2023).Success);
             string src = Path.Combine(dir, "CLIENT1.cob");
             File.WriteAllText(src, Client("CLIENT1"));
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, "CLIENT1.dll"), DialectLevel: 2023,
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2023), Path.Combine(dir, "CLIENT1.dll"),
                 SourceFormat: InitialReferenceFormat.Free, CheckOnly: true));
             Assert.True(r.Success, Codes(r));
             Assert.False(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));
@@ -1027,7 +1028,7 @@ public sealed class ExternalRepositoryExpansionTests
             Assert.True(Compile(dir, "LIBX", Box + Hold(TwoRelationsOfLiterals), level: 2023).Success);
             string src = Path.Combine(dir, "CLIENT1.cob");
             File.WriteAllText(src, Client("CLIENT1"));
-            var checkOnly = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, "CLIENT1.dll"), DialectLevel: 2023,
+            var checkOnly = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2023), Path.Combine(dir, "CLIENT1.dll"),
                 SourceFormat: InitialReferenceFormat.Free, CheckOnly: true));   // the group's bind is the only report
             var ownAssembly = Compile(dir, "CLIENT1", Client("CLIENT1"), level: 2023);   // the expansion's own compilation reports
             Assert.True(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));

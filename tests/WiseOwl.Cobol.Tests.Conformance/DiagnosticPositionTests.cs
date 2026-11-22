@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -31,7 +32,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         string? nist = null, InitialReferenceFormat format = TestSourceFormat.Inline)
     {
         var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
-            Path.Combine(_dir, mainName), Path.Combine(_dir, "out.dll"), NistTestName: nist, DialectLevel: edition,
+            Path.Combine(_dir, mainName), EditionInfo.Of(edition), Path.Combine(_dir, "out.dll"), NistTestName: nist,
             CheckOnly: checkOnly, CopyPaths: [_dir], SourceFormat: format));
         return (r.Success, [.. r.Errors, .. r.Warnings]);
     }

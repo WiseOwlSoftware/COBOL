@@ -107,7 +107,7 @@ public sealed class EditionContextTests
             foreach (bool permissive in new[] { false, true })
             {
                 var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                    src, Path.Combine(dir, "clean.dll"), Permissive: permissive, SourceFormat: TestSourceFormat.Inline));
+                    src, EditionInfo.Latest with { Permissive = permissive }, Path.Combine(dir, "clean.dll"), SourceFormat: TestSourceFormat.Inline));
                 Assert.True(r.Success, string.Join("\n", r.Errors));
                 Assert.NotNull(r.Warnings);
                 Assert.Empty(r.Warnings);

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -283,8 +284,7 @@ public sealed class MessageTagIntroductionGateTests
                     GOBACK.
                 END FUNCTION MTF.
                 """);
-            Assert.True(CompiledProgramCache.Compile(new CompilerDriver.Options(lib, Path.Combine(dir, "MTF.dll"),
-                DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Free)).Success);
+            Assert.True(CompiledProgramCache.Compile(new CompilerDriver.Options(lib, EditionInfo.Of(2023), Path.Combine(dir, "MTF.dll"), SourceFormat: InitialReferenceFormat.Free)).Success);
             string caller = CompiledProgramCache.StageSource(Path.Combine(dir, "MTFCALL.cob"), """
                 IDENTIFICATION DIVISION.
                 PROGRAM-ID. MTFCALL.
@@ -300,8 +300,7 @@ public sealed class MessageTagIntroductionGateTests
                     SET N TO FUNCTION MTF().
                     STOP RUN.
                 """);
-            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(caller, Path.Combine(dir, "MTFCALL.dll"),
-                DialectLevel: edition, SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [dir]));
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(caller, EditionInfo.Of(edition), Path.Combine(dir, "MTFCALL.dll"), SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [dir]));
             Assert.False(r.Success);
             EditionHarness.AssertHasDiagnostic(r.Errors, "COBOL0869");
         }
@@ -337,8 +336,7 @@ public sealed class MessageTagIntroductionGateTests
                 END OBJECT.
                 END CLASS MTP.
                 """);
-            Assert.True(CompiledProgramCache.Compile(new CompilerDriver.Options(lib, Path.Combine(dir, "MTP.dll"),
-                DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Free)).Success);
+            Assert.True(CompiledProgramCache.Compile(new CompilerDriver.Options(lib, EditionInfo.Of(2023), Path.Combine(dir, "MTP.dll"), SourceFormat: InitialReferenceFormat.Free)).Success);
             string caller = CompiledProgramCache.StageSource(Path.Combine(dir, "MTPCALL.cob"), $"""
                 IDENTIFICATION DIVISION.
                 PROGRAM-ID. MTPCALL.
@@ -355,8 +353,7 @@ public sealed class MessageTagIntroductionGateTests
                     {statement}.
                     STOP RUN.
                 """);
-            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(caller, Path.Combine(dir, "MTPCALL.dll"),
-                DialectLevel: edition, SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [dir]));
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(caller, EditionInfo.Of(edition), Path.Combine(dir, "MTPCALL.dll"), SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [dir]));
             Assert.Equal(succeeds, r.Success);
             if (!succeeds) EditionHarness.AssertHasDiagnostic(r.Errors, "COBOL0869");
         }

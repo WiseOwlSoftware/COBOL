@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -57,8 +58,7 @@ public sealed class MoveEditionDifferentialTests
             string src = Path.Combine(dir, "prog.cob");
             string dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
-            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll,
-                DialectLevel: edition, Permissive: permissive, SourceFormat: TestSourceFormat.Inline));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Of(edition, permissive), dll, SourceFormat: TestSourceFormat.Inline));
             if (!result.Success)
                 return (false, "", $"[compile] {result.Status}: {string.Join("\n", result.Errors)}");
             return CutRunner.Run(dll, dir);

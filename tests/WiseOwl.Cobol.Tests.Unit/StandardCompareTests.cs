@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Collation;
 using WiseOwl.Cobol.Runtime.Exceptions;
@@ -268,7 +269,7 @@ public sealed class StandardCompareTests
                 + "       MAIN.\n" + body
                 + "           STOP RUN.\n");
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "sc.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(edition), Path.Combine(dir, "sc.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             return (r.Success, r.Errors, r.Warnings);
         }
         finally { ScratchDirectory.Remove(dir); }

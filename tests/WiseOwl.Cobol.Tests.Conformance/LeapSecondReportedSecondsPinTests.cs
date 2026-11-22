@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -85,7 +86,7 @@ public sealed class LeapSecondReportedSecondsPinTests
                 {formattedLines}
                     STOP RUN.
                 """);
-            var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: InitialReferenceFormat.Free));
+            var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, EditionInfo.Of(dialectLevel), dll, SourceFormat: InitialReferenceFormat.Free));
             Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
 
             var (ok, stdout, detail) = CutRunner.Run(dll, dir, null,

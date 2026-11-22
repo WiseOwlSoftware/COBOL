@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.Json.Nodes;
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Text;
 using WiseOwl.Cobol.Tests.Shared;
@@ -68,8 +69,7 @@ public sealed class ListingSectionsOfACompilationTests : IDisposable
         string source = Path.Combine(_dir, "stats85.cob");
         File.WriteAllText(source, string.Join("\n", main ?? Main));
         File.WriteAllText(Path.Combine(_dir, "STEP85.cpy"), string.Join("\n", Step));
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(_dir, "stats85.dll"),
-            DialectLevel: 85, CopyPaths: [_dir], Listing: request));
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, EditionInfo.Of(85), Path.Combine(_dir, "stats85.dll"), CopyPaths: [_dir], Listing: request));
         if (result.Listing is { } listing) ListingJsonContract.AssertHolds(listing);
         return result;
     }

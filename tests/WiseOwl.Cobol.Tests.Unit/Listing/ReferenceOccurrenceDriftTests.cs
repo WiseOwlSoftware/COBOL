@@ -4,6 +4,7 @@ using System.Reflection;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
@@ -133,7 +134,7 @@ public sealed class ReferenceOccurrenceDriftTests
         var tree = frontend.Parse(options.SourcePath, diagnostics);
         Assert.False(diagnostics.HasErrors, string.Join("\n", diagnostics.Diagnostics));
         Assert.NotNull(tree);
-        var edition = new EditionContext(options.DialectLevel, options.Permissive) { RecordsReferences = true, VerifiesStorePairing = true };
+        var edition = new EditionContext(options.Edition.Year, options.Edition.Permissive) { RecordsReferences = true, VerifiesStorePairing = true };
         var binder = new BinderDriver();
         binder.Bind(tree!, edition, frontend.Directives);
         var store = binder.Session.OoClasses.Entries;
@@ -172,8 +173,8 @@ public sealed class ReferenceOccurrenceDriftTests
     [MemberData(nameof(SequencePointCoverageDriftTests.NistPrograms), MemberType = typeof(SequencePointCoverageDriftTests))]
     public void EveryWrittenReferenceIsRecorded_OnceAtItsPosition_AndEveryStorePairs(string program)
     {
-        var options = new CompilerDriver.Options(TestRepo.Nist("programs", program + ".cob"),
-            Path.Combine(Path.GetTempPath(), "wiseowl-xref-oracle", program + ".dll"), NistTestName: program, DialectLevel: 85);
+        var options = new CompilerDriver.Options(TestRepo.Nist("programs", program + ".cob"), EditionInfo.Of(85),
+            Path.Combine(Path.GetTempPath(), "wiseowl-xref-oracle", program + ".dll"), NistTestName: program);
         var findings = Findings(options);
         Assert.True(findings.Count == 0, $"{program}: {findings.Count} findings\n" + string.Join("\n", findings.Take(30)));
     }

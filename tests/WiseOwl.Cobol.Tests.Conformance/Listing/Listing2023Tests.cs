@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Text;
@@ -254,8 +255,7 @@ public sealed class Listing2023Tests : IDisposable
     {
         string source = Path.Combine(_dir, "nolst.cob");
         File.WriteAllText(source, string.Join("\n", (string[])[.. _cases.Prologue, "       >>DISPLAY \"FIRST\"", "       >>DISPLAY \"SECOND\" UPON LISTING", .. ListingHookCases.Epilogue]));
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(_dir, "nolst.dll"),
-            DialectLevel: 2023, CheckOnly: true));
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, EditionInfo.Of(2023), Path.Combine(_dir, "nolst.dll"), CheckOnly: true));
         Assert.True(result.Success, string.Join("\n", result.Errors));
         Assert.Null(result.Listing);
         Assert.Equal([new CompileOutputLine(CompileOutputStream.Listing, "FIRST"), new CompileOutputLine(CompileOutputStream.Listing, "SECOND")],

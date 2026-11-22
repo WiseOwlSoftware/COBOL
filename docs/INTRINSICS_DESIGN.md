@@ -125,7 +125,7 @@ THE CATALOG (declarative, in WiseOwl.Cobol.Binding):
   readonly record struct IntrinsicSig(string Name, IntrinsicType Type, PicCategory ResultCategory,
       ArgArity Arity, int MinArgs, int? MaxArgs, string RuntimeMethod, IntrinsicBind Bind,
       int IntroducedIn, int? RemovedIn);  // edition window (85/2002/2014/2023) from docs/VERSION_CHANGE_REFERENCE.md;
-      // the binder rejects a FUNCTION outside its window for Options.DialectLevel with a per-edition diagnostic (D8)
+      // the binder rejects a FUNCTION outside its window for the year of Options.Edition with a per-edition diagnostic (D8)
   static class IntrinsicCatalog {
       static readonly Dictionary<string,IntrinsicSig> _t = new(StringComparer.OrdinalIgnoreCase){ ... ~95 rows ... };
       public static bool TryGet(string name, out IntrinsicSig sig) => _t.TryGetValue(name, out sig);

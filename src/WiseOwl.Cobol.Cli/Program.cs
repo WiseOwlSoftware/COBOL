@@ -304,6 +304,8 @@ internal static class Program
             // The validator above has already refused any other spelling, so a false here can only be the ABSENT option.
             int std = TryParseStd(parse.GetValue(stdOption), out int stdYear) ? stdYear
                 : nistEnabled ? NistEdition : EditionInfo.Latest.Year;
+            // The composition root's one construction of the edition: validated here, carried as a value from here on (kb/Work PB2619).
+            var edition = EditionInfo.Of(std, parse.GetValue(permissiveOption));
 
             // The validator above has already refused any unparseable value, so a false here can only be the
             // ABSENT option — the documented IBM default (kb/Work PB803).
@@ -328,7 +330,7 @@ internal static class Program
             string? sections = parse.GetValue(listingSectionsOption);
             bool listingOn = listingNamed ? TryParseOnOff(parse.GetValue(listingOption), out bool on) ? on : true
                 : output is not null || formats is not null || sections is not null || pageLength is not null || pageWidth is not null
-                  || EditionInfo.Of(std).RequiresSourceListing;
+                  || edition.RequiresSourceListing;
             // The validator above has already refused a list it cannot read, so a false here can only be the absent option.
             var sectionSet = sections is not null && WiseOwl.Cobol.Listing.ListingSections.TryParse(sections, out var namedSections, out _)
                 ? namedSections : WiseOwl.Cobol.Listing.ListingSectionSet.Standard;
@@ -340,8 +342,8 @@ internal static class Program
                 : null;
 
             return new CliOptions(
-                source, parse.GetValue(outputOption), nistName, std,
-                parse.GetValue(copyOption) ?? [], parse.GetValue(runOption), parse.GetValue(permissiveOption),
+                source, parse.GetValue(outputOption), nistName, edition,
+                parse.GetValue(copyOption) ?? [], parse.GetValue(runOption),
                 signEncoding, sourceFormat, parse.GetValue(flagExtensionsOption), numericDisplay, repositoryUpdate,
                 repositories, parse.GetValue(referenceOption) ?? [], repositoryCheck, listing);
         }
@@ -412,7 +414,7 @@ internal static class Program
         string? nist = f.Length > 2 && f[2].Length > 0 ? f[2] : null;
         bool permissive = f.Length > 3 && f[3] == "1";
         var r = CompilerDriver.Compile(new CompilerDriver.Options(
-            source, NistTestName: nist, DialectLevel: std, Permissive: permissive, CheckOnly: true));
+            source, EditionInfo.Of(std, permissive), NistTestName: nist, CheckOnly: true));
         return $"{source}\t{std}\t{(r.Success ? "PASS" : "FAIL")}";
     }
 
@@ -473,8 +475,8 @@ internal static class Program
     private static int RunCompile(CliOptions options)
     {
         var result = CompilerDriver.Compile(new CompilerDriver.Options(
-            options.SourcePath, options.OutputPath, options.NistTestName, options.DialectLevel, options.CopyPaths,
-            options.Permissive, SignEncoding: options.SignEncoding, SourceFormat: options.SourceFormat,
+            options.SourcePath, options.Edition, options.OutputPath, options.NistTestName, options.CopyPaths,
+            SignEncoding: options.SignEncoding, SourceFormat: options.SourceFormat,
             FlagExtensions: options.FlagExtensions, NumericDisplay: options.NumericDisplay,
             RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryPaths,
             ReferencePaths: options.ReferencePaths, RepositoryCheck: options.RepositoryCheck, Listing: options.Listing));

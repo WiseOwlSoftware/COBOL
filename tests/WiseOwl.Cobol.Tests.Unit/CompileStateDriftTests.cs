@@ -21,14 +21,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class CompileStateDriftTests
 {
-    /// <summary>Each <c>CompilerDriver.Options</c> member that decides what a source means → the <see cref="CompileState"/> field that holds it.</summary>
-    private static readonly Dictionary<string, string> OptionsMeaning = new()
+    /// <summary>Each <c>CompilerDriver.Options</c> member that decides what a source means → the <see cref="CompileState"/> fields that
+    /// hold it (the edition is two: its year and its strict/permissive axis).</summary>
+    private static readonly Dictionary<string, string[]> OptionsMeaning = new()
     {
-        [nameof(CompilerDriver.Options.DialectLevel)] = nameof(CompileState.Edition),
-        [nameof(CompilerDriver.Options.Permissive)] = nameof(CompileState.Permissive),
-        [nameof(CompilerDriver.Options.SignEncoding)] = nameof(CompileState.SignEncoding),
-        [nameof(CompilerDriver.Options.FlagExtensions)] = nameof(CompileState.FlagExtensions),
-        [nameof(CompilerDriver.Options.NumericDisplay)] = nameof(CompileState.NumericDisplay),
+        [nameof(CompilerDriver.Options.Edition)] = [nameof(CompileState.Edition), nameof(CompileState.Permissive)],
+        [nameof(CompilerDriver.Options.SignEncoding)] = [nameof(CompileState.SignEncoding)],
+        [nameof(CompilerDriver.Options.FlagExtensions)] = [nameof(CompileState.FlagExtensions)],
+        [nameof(CompilerDriver.Options.NumericDisplay)] = [nameof(CompileState.NumericDisplay)],
     };
 
     /// <summary>Each <c>CompilerDriver.Options</c> member that changes no meaning, and why not.</summary>
@@ -102,7 +102,7 @@ public sealed class CompileStateDriftTests
     [Fact]
     public void EveryCompileStateField_HoldsAnInput()
     {
-        var held = OptionsMeaning.Values.Concat(SessionMeaning.Values).ToHashSet();
+        var held = OptionsMeaning.Values.SelectMany(fields => fields).Concat(SessionMeaning.Values).ToHashSet();
         Assert.Equal([], typeof(CompileState).GetProperties().Select(p => p.Name).Where(n => n != "EqualityContract" && !held.Contains(n)).ToList());
     }
 

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Compiler;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -34,7 +35,7 @@ public sealed class SearchIdentifier1GateTests
             string src = Path.Combine(dir, "pb4577w.cob");
             File.WriteAllText(src, Source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb4577w.dll"), DialectLevel: dialect, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(dialect), Path.Combine(dir, "pb4577w.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             var gate = Assert.Single(r.Errors, e => e.Contains("COBOL0900"));
             Assert.Contains("SEARCH H OF G (GI): identifier-1 is subscripted", gate);
             Assert.DoesNotContain("HOFG", gate);
@@ -72,7 +73,7 @@ public sealed class SearchIdentifier1GateTests
             string src = Path.Combine(dir, "pb4609a.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "pb4609a.dll"), DialectLevel: dialect, CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
+                src, EditionInfo.Of(dialect), Path.Combine(dir, "pb4609a.dll"), CheckOnly: true, SourceFormat: TestSourceFormat.Inline));
             string advice = Assert.Single(r.Errors, e => e.Contains("COBOL2075"));
             Assert.Equal(offersSubscripts, advice.Contains("may be written here") || advice.Contains("Write the enclosing subscripts on identifier-1"));
             Assert.Equal(!offersSubscripts, advice.Contains("COBOL-2023 first lets identifier-1 write"));

@@ -3,6 +3,7 @@
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using WiseOwl.Cobol.Benchmarks.Collation;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime.IO;
 using WiseOwl.Cobol.Tests.Shared;
 
@@ -41,7 +42,7 @@ public class GeneratedProgramBenchmarks
         _workDirectory = ScratchDirectory.Create("pb2117-run-");
         string source = ProgramsDirectory(Program + ".cob");
         string dll = Path.Combine(_workDirectory, Program + ".dll");
-        var result = CompilerDriver.Compile(new CompilerDriver.Options(source, dll));
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(source, EditionInfo.Latest, dll));
         if (!result.Success)
             throw new InvalidOperationException(
                 $"{Program}: compile failed ({result.Status}): {string.Join("; ", result.Errors)}");

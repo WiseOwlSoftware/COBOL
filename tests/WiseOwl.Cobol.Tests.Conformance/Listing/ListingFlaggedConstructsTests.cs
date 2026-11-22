@@ -84,8 +84,7 @@ public sealed class ListingFlaggedConstructsTests : IDisposable
     {
         string source = Path.Combine(_dir, "flags1.cob");
         File.WriteAllText(source, string.Join("\n", Source) + "\n");
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(_dir, "flags1.dll"),
-            DialectLevel: 2023, Permissive: true, FlagExtensions: true,
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, EditionInfo.Of(2023, true), Path.Combine(_dir, "flags1.dll"), FlagExtensions: true,
             Listing: new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json | ListingFormats.Html)));
         if (result.Listing is { } listing) ListingJsonContract.AssertHolds(listing);
         return result;
@@ -135,8 +134,7 @@ public sealed class ListingFlaggedConstructsTests : IDisposable
         ];
         string path = Path.Combine(_dir, "flags2.cob");
         File.WriteAllText(path, string.Join("\n", source) + "\n");
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, Path.Combine(_dir, "flags2.dll"),
-            DialectLevel: 2023, Permissive: true, CheckOnly: true,
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, EditionInfo.Of(2023, true), Path.Combine(_dir, "flags2.dll"), CheckOnly: true,
             Listing: new ListingRequest(Formats: ListingFormats.Json)));
         var listing = Assert.IsType<ListingDocument>(result.Listing);
         ListingJsonContract.AssertHolds(listing);
@@ -217,14 +215,12 @@ public sealed class ListingFlaggedConstructsTests : IDisposable
     {
         string source = Path.Combine(_dir, "quiet.cob");
         File.WriteAllText(source, string.Join("\n", Source) + "\n");
-        var withoutSection = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(_dir, "quiet.dll"),
-            DialectLevel: 2023, Permissive: true, FlagExtensions: true,
+        var withoutSection = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, EditionInfo.Of(2023, true), Path.Combine(_dir, "quiet.dll"), FlagExtensions: true,
             Listing: new ListingRequest(Formats: ListingFormats.Json) { Sections = ListingSectionSet.Of(ListingSection.Source) }));
         Assert.Empty(Assert.IsType<ListingDocument>(withoutSection.Listing).FlaggedConstructs);
 
         File.WriteAllText(source, string.Join("\n", Source.Where((_, i) => i < 13 && i != 12).Append("       PROCEDURE DIVISION.").Append("           STOP RUN.")) + "\n");
-        var quiet = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(_dir, "quiet.dll"),
-            DialectLevel: 2023, FlagExtensions: true, Listing: new ListingRequest(Formats: ListingFormats.Json)));
+        var quiet = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, EditionInfo.Of(2023), Path.Combine(_dir, "quiet.dll"), FlagExtensions: true, Listing: new ListingRequest(Formats: ListingFormats.Json)));
         Assert.Equal(CompilerDriver.Outcome.Success, quiet.Status);
         var listing = Assert.IsType<ListingDocument>(quiet.Listing);
         Assert.Empty(listing.FlaggedConstructs);

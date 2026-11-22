@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -46,7 +47,7 @@ public sealed class GroupAtomTableDriftTests : WiseOwlCobolTestBase
         string source = File.ReadAllText(TestRepo.SuiteCase("pb2690_fixed_group_vlg_element_tables_call"));
         string src = Path.Combine(TempDir, "pb2690_atoms.cob");
         File.WriteAllText(src, source);
-        var result = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 2014, SourceFormat: TestSourceFormat.Inline));
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(src, EditionInfo.Of(2014), SourceFormat: TestSourceFormat.Inline));
         Assert.True(result.Success, string.Join("\n", result.Errors));
         string cs = File.ReadAllText(result.GeneratedCsPath!);
 
