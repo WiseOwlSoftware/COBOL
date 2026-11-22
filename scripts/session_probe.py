@@ -147,6 +147,12 @@ def memory_index() -> list[str]:
     return [f"{'⛔ ' if r.rc != 0 else ''}{r.text}"]
 
 
+def stops() -> list[str]:
+    """Every stop file present and its age (kb/Work PB6058): a stop halts whatever reads it until someone lifts it, so a
+    forgotten one halted the loop for six days with no line showing it. The rule and the ⛔ live in coord.py."""
+    return py("scripts/orchestrator/coord.py", "stops").lines
+
+
 # ── 2. Diagnostic band ──────────────────────────────────────────────────────────────────────────────────────────────────
 def diag() -> list[str]:
     """The next-free rule (the CEILING of the src scan, the catalog scan and every code already reserved for an in-flight
@@ -367,6 +373,7 @@ SECTIONS: list[tuple[str, Section]] = [
     ("nightly", nightly),
     ("tree", tree_state),
     ("mailbox", mailbox),
+    ("stops", stops),
     ("memory index", memory_index),
     ("diag", diag),
     ("VCR", vcr),

@@ -48,6 +48,8 @@ Reading its output:
   and re-arm it each time it fires. Only this session can arm it: its exit is what wakes this session (kb/Work PB2814).
   The Stop hook `inbox_guard.py` refuses the turn's end while it is unarmed (kb/Work PB3387). The watcher fires only
   on NEW messages, so it stays armed beside one you have seen and cannot close yet.
+- **`stops  : ⛔ … older than 24 h`** — a stop file halts whatever reads it until someone removes it (kb/Work PB6058).
+  Remove a stale one, unless it is the owner's; if you cannot tell, ask the owner. Never start the loop or a fleet past it unread.
 - **`memory index: <chars>`** — the auto-memory `MEMORY.md` rides every turn of every session and agent, so it is capped
   at 6,000 chars (kb/Work PB3779). On `⛔ … OVER THE CAP`, move the dated decisions, resume notes and lane handoffs to
   `project_history_index.md`, one line each, and keep only the anchors, the START HERE lines and the standing rules.
