@@ -985,7 +985,14 @@ public static partial class ConditionalCompilationProcessor
 
     /// <summary>Format-1 WHEN match (§2023:7.3.13.4 GR4): subject == object, or (with THROUGH/THRU) the subject in the
     /// inclusive NUMERIC range [object, object3] (SR12 — a range requires numeric operands). Non-numeric equality
-    /// is category-aware and length-sensitive (GR7).</summary>
+    /// is category-aware and length-sensitive (GR7).
+    /// <para>⛔ CA1508 IS A FALSE POSITIVE HERE (kb/Work PB2738): it reads the third SR12 term, <c>hi.Category !=
+    /// CtCategory.Numeric</c>, as always false, but <c>&gt;&gt;WHEN 2 THRU "Z"</c> reaches it with a numeric subject and
+    /// object and an alphanumeric object-3, and only that term refuses the range (the pb1364 negative golden,
+    /// conformance-suite/cases/7.3.13-EVALUATE/pb1364-when-after-match-through-non-numeric.cob). The analyzer's code fix
+    /// would delete a spec rule, so the suppression below keeps it and names why.</para></summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA1508:Avoid dead conditional code",
+        Justification = "ISO §2023:7.3.13.3 SR12: the object-3 category test is live (>>WHEN 2 THRU \"Z\"; pb1364 golden); kb/Work PB2738")]
     private static bool MatchWhen(CtValue? subject, string whenText, CompileTimeExpressionEvaluator evaluator,
         DirectiveDiag diag)
     {
