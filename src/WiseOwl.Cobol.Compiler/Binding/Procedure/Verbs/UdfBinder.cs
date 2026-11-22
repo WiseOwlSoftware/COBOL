@@ -191,7 +191,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // formal parameters that are specified with an OPTIONAL phrase in the procedure division header of the
         // activated element and omitted from the list of arguments" — the callee's program-ABI adapters answer a
         // missing trailing slot as the omitted carrier (§2023:8.4.3.2.4 GR7), exactly as they do for CALL.
-        if (operands.Count > fn.Formals.Count || fn.Formals.Skip(operands.Count).Any(f => !f.Optional))
+        if (!ParameterConformance.ArgumentCountConforms(fn.Formals, operands.Count, f => f.Optional))
         {
             ctx.Edition.Error(DiagnosticCatalog.UserFunctionArgumentRule,
                 $"FUNCTION {name.ToUpperInvariant()} takes {fn.Formals.Count} argument(s); {operands.Count} "
@@ -228,6 +228,11 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 callArgs.Add(new BoundCallArg(CobolPassMode.Reference, null, null, Omitted: true) { Formal = fn.Formals[i].Item });
                 continue;
             }
+            // ⛔ An argument the operand binder already answered for (kb/Work PB3227): a refusal reported the rule the source
+            // breaks (an undefined name, a phrase word, an ALL subscript), and an unbuilt shape is on the ledger the statement
+            // funnel announces (COBOL1756). The activation carries that one failure and reports nothing of its own; a second
+            // error here named a capability gap where the source was simply wrong.
+            if (operand is BoundOperandError failed) return BoundExprError.Carry(failed.Feature, failed.IsUnbuilt);
             var formal = fn.Formals[i];
             // §2023:8.4.3.2.3 SR10: when the formal corresponding to argument-1 is specified with a BY VALUE phrase,
             // argument-1 shall be of class numeric, object, or pointer. Checked HERE (the one place the
@@ -245,20 +250,11 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                     + "shall be of class numeric, object, or pointer (ISO §2023:8.4.3.2.3 SR10)");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} argument {i + 1} BY VALUE class");
             }
+            // Every argument FORM §2023:8.4.3.2.3 SR8 names has an arm in UdfArg, so an operand it has no arm for is a bound
+            // shape this binder has not learned: WiseOwl COBOL's gap, announced once by the statement funnel (COBOL1756), never
+            // a source diagnostic (kb/Work PB3227).
             if (UdfArg(operand, argCtxs[i], formal) is not { } arg)
-            {
-                // The operand refused to bind (the segment parser or resolver already classified it — an
-                // unresolvable name, an ALL subscript) — name that ACTUAL shape, never a message claiming a legal
-                // form is illegal. Every argument FORM §2023:8.4.3.2.3 SR8 names has an arm in UdfArg.
-                string what = operand is BoundOperandError err
-                    ? err.Feature
-                    : "this argument form (ISO §2023:8.4.3.2.3 SR8 admits an identifier, a literal, a boolean "
-                      + "expression, or an arithmetic expression)";
-                ctx.Edition.Error(DiagnosticCatalog.UserFunctionArgumentRule,
-                    $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}: {what} is not yet supported for "
-                    + "user-defined function activation");
-                return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} argument {i + 1}");
-            }
+                return BoundExprError.Unbuilt(ctx.Edition, $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}");
             // §2023:8.4.3.2.3 SR14: with a BY REFERENCE formal and a bit data item argument, the argument "shall be
             // described such that it is aligned on a byte boundary", with literal-only subscripts and ref-mod
             // leftmost position — the SAME proof CALL's §2023:14.9.4.3 SR6 asks, so it is the same method.
@@ -334,7 +330,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// constant or ALL literal is a literal wherever 'literal' appears in a rule (§2023:8.3.3.6.3 SR1), and its crossing
     /// fills the formal (<c>CallEmitter.ArgText</c>, §2023:8.3.3.6.4 GR2).</item>
     /// </list>
-    /// Null = the operand itself refused to bind (the caller reports).</summary>
+    /// Null = an operand shape no arm has learned (the caller announces it as unbuilt; a refused operand never reaches here).</summary>
     /// <remarks>Every arm records <see cref="BoundCallArg.Formal"/>: §2023:14.2.3 GR9's second branch names "a
     /// function" outright, so a UDF argument's crossing into a numeric formal is the ACTIVATING element's
     /// COMPUTE (kb/Work PB640), and this binder has always had the formal in hand.</remarks>

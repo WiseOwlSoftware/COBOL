@@ -976,8 +976,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // list of arguments" (§2023:9.3.6 match rule 1 states the same equality for method resolution). The trap-#3
         // rule still holds for everything else: an arity mismatch is LOUD — a silently dropped/extra argument
         // would shift every following slot (the legacy DEVLOG-449 blocker: the first USING bound to RETURNING).
-        if (argCtxs.Count > formals.Count
-            || formals.Skip(argCtxs.Count).FirstOrDefault(f => !f.Optional) is { } required)
+        if (!ParameterConformance.ArgumentCountConforms(formals, argCtxs.Count, f => f.Optional))
         {
             string why = argCtxs.Count > formals.Count ? ""
                 : $" — only trailing OPTIONAL formal parameters may be omitted, and '{formals.Skip(argCtxs.Count).First(f => !f.Optional).Item.CobolName}' is not OPTIONAL";
