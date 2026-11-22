@@ -453,13 +453,13 @@ public enum DialectBehavior
     /// <c>ReportSectionBinder.Cobol85FinalLineCounter</c> and <c>ReportSectionBinder.GroupLimits</c>.</summary>
     ReportGroupVerticalLimits = 42,
     /// <summary>§2002:13.16.33.3 GR5 places a relative first line of a page footing: "If the report group is a page
-    /// footing, the line number is given by (FOOTING integer + integer-2)" (§2023:13.18.35.4 GR5 b) 4. the same).
+    /// footing, the line number is given by (FOOTING integer + integer-2)" (§2023:13.18.35.4 GR5b.4 the same).
     /// §1985:XIII.3.15.3 SR9: "The first LINE NUMBER clause specified within a PAGE FOOTING report group must be an
     /// absolute LINE NUMBER clause". The consumer is <c>ReportSectionBinder</c>'s LINE clause screen.</summary>
     PageFootingFirstLineAbsolute = 43,
-    /// <summary>§2002:13.16.52.2 SR3 f) lists the report groups a SUM may stand in: a control footing, a detail ("The
+    /// <summary>§2002:13.16.52.2 SR3f lists the report groups a SUM may stand in: a control footing, a detail ("The
     /// current report group may be a detail and data-name-1 may be defined in a different detail") and a report footing
-    /// (§2023:13.18.54.3 SR4 f) the same). §1985:XIII.3.19.3 SR3: "A SUM clause can appear only in the description of a
+    /// (§2023:13.18.54.3 SR4f the same). §1985:XIII.3.19.3 SR3: "A SUM clause can appear only in the description of a
     /// control footing report group". The consumer is <c>ReportSectionBinder</c>'s report group entry screen.</summary>
     SumOnlyInControlFooting = 44,
     /// <summary>§2002:13.13.2 holds an elementary report entry to SR10 ("Every elementary entry with a COLUMN clause shall
@@ -517,13 +517,13 @@ public enum DialectBehavior
     RelationOperandNotALiteral = 52,
     /// <summary>§2002:F.1 item 17 records the change: "In the previous COBOL standard, the value obtained for the remainder
     /// when the dividend and divisor have different signs differs depending on whether the receiving operand for the
-    /// quotient is" signed; from 2002 the subsidiary quotient is signed (§2002:14.8.11.3 GR6, §2023:14.9.12.4 GR6 c)).
+    /// quotient is" signed; from 2002 the subsidiary quotient is signed (§2002:14.8.11.3 GR6, §2023:14.9.12.4 GR6c).
     /// §1985:VI.6.11.4 GR6 forms the remainder from "an intermediate field ... which contains the same number of digits,
     /// the same decimal point location, and the same presence or absence of a sign as the quotient", so <c>DIVIDE -11 BY 3
     /// GIVING Q REMAINDER R</c> with an unsigned Q gives -20 at <c>--std 85</c> (kb/Work PB5182). The consumer is
     /// <c>ArithmeticEmitter.UnsignedSubsidiary</c>.</summary>
     DivideRemainderSignedSubsidiary = 53,
-    /// <summary>§2002:13.16.41.3 GR14 b) — "If a RELEASE statement is being executed, the EC-SORT-MERGE-RELEASE exception
+    /// <summary>§2002:13.16.41.3 GR14b — "If a RELEASE statement is being executed, the EC-SORT-MERGE-RELEASE exception
     /// condition is set to exist and the execution of the RELEASE statement is unsuccessful" (§2023:13.18.43.4 GR14b the
     /// same); with the checking off the result is undefined (§2023:14.6.13.1.1) and the record is released (D-SMA (c)).
     /// COBOL-85 has no exception checking and states the outcome: "the output statement is unsuccessful and, except during
