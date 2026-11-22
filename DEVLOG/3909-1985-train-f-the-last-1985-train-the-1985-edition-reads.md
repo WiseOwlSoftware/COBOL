@@ -1,4 +1,4 @@
-## 1985 train F: the last 1985 train; the 1985 edition reads COMPLETE
+## Entry 3909 — 2026-11-22 00:01 PST — 1985 train F: the last 1985 train; the 1985 edition reads COMPLETE
 
 Wave 20262132's train F lands in one pull request on main 5a97013803 (train E, #1935). It carries two fix branches, merged
 into `train-1985-f` and gated once: group h (`train85e-e3-cat`, d6002bf228, reviewed CLEAN) and group j (`train85f-cascade`,
@@ -48,3 +48,4 @@ Table 1s in sibling clauses passes on the head and fails on the base resolver.
 designators inside them were applied again. RESOLVE's baseline took main's side and was rewritten (1,953 → 1,950 entries).
 h's two `usage-object-reference-*-2002` rows carried the old sub-item spelling (GR14d1a), so they are now written
 canonically (GR14d.1.a), and the registry was regenerated.
+
