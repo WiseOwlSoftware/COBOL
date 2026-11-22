@@ -8,7 +8,7 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 6050,
+ "count": 6049,
  "entries": [
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4",
@@ -4065,12 +4065,6 @@
    "line": 3022,
    "citation": "§2023:9.1.13.6 item 1",
    "kind": "item-is-a-rule"
-  },
-  {
-   "file": "docs/rearchitecture/DESIGN-spec-conformance-review.md",
-   "line": 472,
-   "citation": "§2023:5.4 item 2",
-   "kind": "no-item"
   },
   {
    "file": "docs/rearchitecture/pb66-extfloat-design-draft-2026-08-09.md",
@@ -36054,7 +36048,7 @@
   },
   {
    "file": "scripts/spec/cite.py",
-   "line": 310,
+   "line": 313,
    "citation": "§2023:7.2.3.4",
    "kind": "designator-not-canonical"
   },
