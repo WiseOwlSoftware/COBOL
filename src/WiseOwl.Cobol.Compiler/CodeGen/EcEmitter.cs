@@ -832,32 +832,19 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     {
         using (w.Block($"{MemberMod(asLocal)}int __EcDispatch(string __ec, string __f)"))
         {
-            void Tier(string comment, Func<string, Binding.Model.FileModel?, int, string?> condition)
+            // The tiers in GR3's order, source order within each; the tier is the bound entry's and the test is the one
+            // renderer's that the PERFORM Format-3 WHEN matcher shares (§2023:14.9.28.4 GR17; kb/Work PB2723).
+            foreach (var tier in Enum.GetValues<ExceptionSelectionTier>())
             {
                 bool any = false;
                 for (int i = 0; i < decls.Count; i++)
-                {
-                    foreach (var (ec, file) in decls[i].EcEntries ?? [])
-                        if (condition(ec, file, i) is { } cond)
+                    foreach (var entry in decls[i].EcEntries ?? [])
+                        if (entry.Tier == tier)
                         {
-                            if (!any) { w.Line(comment); any = true; }
-                            w.Line($"if ({cond}) return {dispatch.RunUseCall(i, decls[i].Range)};");
+                            if (!any) { w.Line(ExceptionSelectionEmitter.Banner(tier)); any = true; }
+                            w.Line($"if ({ExceptionSelectionEmitter.Test(entry)}) return {dispatch.RunUseCall(i, decls[i].Range)};");
                         }
-                }
             }
-            bool L3(string ec) => ExceptionCatalog.TryGet(ec, out var i) && i.Level == 3;
-            bool L2(string ec) => ExceptionCatalog.TryGet(ec, out var i) && i.Level == 2;
-
-            Tier("// GR3c — file-scoped level-3 entries", (ec, f, i) =>
-                f is not null && L3(ec) ? $"__f == {FileKeyExpr(f)} && __ec == {CsLiteral(ec)}" : null);
-            Tier("// GR3d — file-scoped level-2 entries", (ec, f, i) =>
-                f is not null && L2(ec) ? $"__f == {FileKeyExpr(f)} && ExceptionCatalog.UnderLevel2(__ec, {CsLiteral(ec)})" : null);
-            Tier("// GR3e — level-3 entries", (ec, f, i) =>
-                f is null && L3(ec) ? $"__ec == {CsLiteral(ec)}" : null);
-            Tier("// GR3f — level-2 entries", (ec, f, i) =>
-                f is null && L2(ec) ? $"ExceptionCatalog.UnderLevel2(__ec, {CsLiteral(ec)})" : null);
-            Tier("// GR3g — the level-1 EC-ALL entry", (ec, f, i) =>
-                f is null && CobolNames.Same(ec, ExceptionCatalog.EcAll) ? "true" : null);
             w.Line("return DispatchResult.NoHandler;   // no qualifying declarative (GR3g tail)");
         }
         w.Line();
