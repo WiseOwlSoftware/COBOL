@@ -1,4 +1,4 @@
-## 1985 train C: twelve fix branches in one landing; 1985 is down to one inventory GAP
+## Entry 3905 — 2026-11-21 16:43 PST — 1985 train C: twelve fix branches in one landing; 1985 is down to one inventory GAP
 
 Wave 20262131's second 1985 train lands in one pull request. It carries the fix branches of groups p, q (with h and c),
 r (with l), x (with o, j and e), s, t, u, v, w, y and z. They were merged into `train-1985-c` on top of train B (#1932) and
@@ -73,3 +73,4 @@ pinned by goldens and docs/conformance entries.
 - R1-2: PB904 closed, because de-editing is COBOL-85 (§1985:VI.6.19.4 GR4b; a probe at 85 gives `01234.56`).
 - `backfill-editions` was run on four new notes. PB2041 is [1985, 2023], because group o's addendum adds a 1985 wrong
   citation to its screen.
+
