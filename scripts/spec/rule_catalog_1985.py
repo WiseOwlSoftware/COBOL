@@ -33,8 +33,9 @@ how much of its text is a RECONSTRUCTION of a printed page the scan lacks, cite.
 provisional rule's text is the transcription's, not the standard's, and the inventory row and every verdict built on it
 carry the mark until the printed page's verbatim text replaces the reconstruction). A UNIT OF UNNUMBERED TEXT disposed
 a row kind in the content-keyed manifest is a row too (`mint`, kb/Work PB5452): `-p<n>`, `-T<t>.<r>`, `-T<t>`, an item's
-`-<n>`, with its `shape`, and `definitional` where its disposition says so; every row of a list a colon unit leads
-carries that unit's words as `lead`.
+`-<n>`, with its `shape`; every row of a list a colon unit leads carries that unit's words as `lead`. A row carries no
+derivation arm: the arm that closes a row that obliges nothing (definitional, informative, ...) is its store record's
+derivation, decided and refuted on its own (DESIGN-spec-conformance-review.md section 1.1), never the disposition's guess.
 
 COMPLETENESS (design §7) is held the 2023 way: a rule-shaped heading no kind resolves, a recognised block that yields no
 rule, an ordinal that neither continues its list nor restarts it, a box inside a one-level module, an amendment change
@@ -1000,9 +1001,6 @@ RULE_LABEL = re.compile(rf"{FORMAT_BAND}|^\s*(?:<u>)?(?:Figure|Table)\s+\d+[.:]"
 #: A band naming a format on a line of its own ("<u>Format 1</u>:", page 182) is part of the general-format display it
 #: labels, in prose as in a rule's text: no unit (kb/Work PB5452, reader 85u-05's repair records).
 FORMAT_LABEL = re.compile(FORMAT_BAND, re.I)
-#: A paragraph headed "Examples" (§1985:VI.6.18.5, pages 332-334: a preamble, labelled INSPECT examples and their result
-#: tables) is example text, which is never a unit (decision PB5448 point 1; kb/Work PB5452, reader 85u-12's records).
-EXAMPLES_TITLE = re.compile(r"^(?:[\d.]+\s+)?(?:<u>)?Examples?(?:</u>)?$", re.I)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -1029,14 +1027,14 @@ def _bodies(lines: list[str], rows: list[dict], whole: frozenset[str] = frozense
     wherever it lies (a clause its content-keyed block decides unit by unit, `text_units.UNITS`; kb/Work PB5452), by
     citation, in the order of the text, with the 1985 page furniture removed (`furniture`, the reading `parse` makes: a page heading, a page the scan prints
     twice, an editorial note, a folio and the running header that opens a printed page), every heading and every format
-    band (`FORMAT_LABEL`). A paragraph headed "Examples" has no body (`EXAMPLES_TITLE`). A blank line stays, as the
-    segmentation's separator."""
+    band (`FORMAT_LABEL`). A paragraph headed "Examples" is text like any other (§1985:VI.6.18.5: its prose and its
+    result tables are units, its code is a display; kb/Work PB6001): an example is disposed on its own words, never
+    kept out of the units unrecorded. A blank line stays, as the segmentation's separator."""
     formats = {r["citation"].split(" ")[0] for r in rows if r["kind"] == "FMT"}
-    regions = [(f"§1985:{loc}", s, e) for loc, t, s, e in citation.regions_1985(lines)
-               if (loc.split(".", 1)[0] in NORMATIVE_SECTIONS and "." in loc and not EXAMPLES_TITLE.match(t.strip()))
-               or f"§1985:{loc}" in whole]
-    regions += [(f"§1989:{loc}", s, e) for loc, t, s, e in citation.amendment_regions(lines, 1989)
-                if loc.startswith("A.") and not EXAMPLES_TITLE.match(t.strip())]
+    regions = [(f"§1985:{loc}", s, e) for loc, _t, s, e in citation.regions_1985(lines)
+               if (loc.split(".", 1)[0] in NORMATIVE_SECTIONS and "." in loc) or f"§1985:{loc}" in whole]
+    regions += [(f"§1989:{loc}", s, e) for loc, _t, s, e in citation.amendment_regions(lines, 1989)
+                if loc.startswith("A.")]
     bodies: dict[str, list[tuple[int, str]]] = {}
     furn = furniture(lines)
     for clause, start, end in regions:
@@ -1180,21 +1178,11 @@ def _spans(lines: list[str], cat: Catalog, units: dict[str, list], after: list[B
             # A display among a paragraph's lines (a <pre> figure or code, a fence, a table) is no unit text
             # (text_units.segment): it stays where it was, so §1985:VI.6.3.4's figures stay in rule (2)'s text when
             # the paragraph naming them leaves it, and §1985:VI.6.4.6's code in rule (2)'s.
-            own, display = [], None
-            for i in range(u.line, end):
+            own = []
+            shown = text_units.display_mask(lines[u.line - 1:end - 1])
+            for i, display in zip(range(u.line, end), shown):
                 line = lines[i - 1]
-                if display is not None:
-                    if display.search(line):
-                        display = None
-                    continue
-                if text_units.PRE_OPEN.match(line) or text_units.HTML_TABLE_OPEN.match(line):
-                    closes = text_units.PRE_CLOSE if text_units.PRE_OPEN.match(line) else text_units.HTML_TABLE_CLOSE
-                    display = None if closes.search(line) else closes
-                    continue
-                if text_units.FENCE.match(line):
-                    display = text_units.FENCE
-                    continue
-                if not text_units.TABLE_LINE.match(line) and not FORMAT_LABEL.match(line):
+                if not display and not text_units.TABLE_LINE.match(line) and not FORMAT_LABEL.match(line):
                     own.append(i)   # (a format band labels the display after it, and stays with it)
             out[clause, u.line] = tuple(own)
     return out
@@ -1232,8 +1220,8 @@ def mint(cat: Catalog, lines: list[str], units: dict[str, list], blocks: dict[st
     `-p<n>`, `-T<t>.<r>`, `-T<t>`, an item `-<n>` or `-L<m>.<n>`), its citation the unit's designator (`p3`, `Table 1
     row 2`), an item's the numbered rule's (`GR1`, `GRL2.1`: the id an item mints is the id a numbered rule of that
     designator has, `citation.rule_designator`); `shape` the unit's; `box` read on its printed lines and `level` as a
-    numbered rule's (`add_row`); `definitional` when the disposition says the row obliges nothing (closed through the
-    `definitional` arm, kb/Work PB5453). Every row a list holds, numbered rule or item, then takes the words of the
+    numbered rule's (`add_row`). No arm: a row that obliges nothing closes through the derivation its store record
+    names (definitional, informative, ...; section 1.1), decided after the mint, so the row never pre-judges it. Every row a list holds, numbered rule or item, then takes the words of the
     colon unit that leads its list as its `lead` (outside `text`, so no digest moves; design point 1)."""
     from cite import unit_designator  # noqa: PLC0415
     decided = _decided(blocks)
@@ -1263,8 +1251,6 @@ def mint(cat: Catalog, lines: list[str], units: dict[str, list], blocks: dict[st
                    "folio": recon[u.line - 1] or below[u.line - 1], "band": "", "text": u.text,
                    "provisional": PROVISIONAL[frozenset(recon[i - 1] is not None for i in span
                                                         if lines[i - 1].strip())], "shape": u.shape}
-            if e.get("definitional"):
-                row["definitional"] = True
             minted.append((u.line, row))
     # In the order of the text: a minted row goes before the first row of the catalog that opens after it.
     at_line = {r["id"]: cat.row_line.get(r["id"]) for r in cat.rules}

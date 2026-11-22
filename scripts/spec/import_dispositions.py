@@ -12,7 +12,7 @@ entries name (`refuted`, JSON lines in the tree), and that refutes the manifest'
 
 THE DISPOSITION OF A UNIT is its reader record's, the record of the LATEST slice in `--slices` holding its key winning
 (a re-keyed or re-decided slice after the first), corrected by that slice's refuter: an OVERTURNED record's `corrected`
-disposition wins ("SR", "GR (definitional)", "restates <ids>", "not-a-rule <class>", "repair", "hold"). Refused, each a
+disposition wins ("SR", "GR", "restates <ids>", "not-a-rule <class>", "repair", "hold"). Refused, each a
 failure of the run (nothing is written):
   - a record whose key is no unit of the tree, unless `--skip` lists it (a key a re-segmentation retired);
   - a `--skip` key that IS a unit of the tree (skipping it would hide a unit), or that no record holds;
@@ -92,7 +92,7 @@ def corrected(rec: dict) -> dict:
     c = str(rec.get("corrected", "")).strip()
     head = c.split()[0] if c else ""
     if head in text_units.ROW_KINDS:
-        return {"disposition": head, **({"definitional": True} if "definitional" in c else {})}
+        return {"disposition": head}
     if head == text_units.RESTATES:
         return {"disposition": text_units.RESTATES, "rules": ROW_ID.findall(c)}
     if c.startswith(text_units.NOT_A_RULE):
@@ -166,8 +166,6 @@ def decide(units: dict[str, list[tuple[str, str, int]]], slices: list[tuple[str,
                     e["rules"] = list(r.get("rules") or [])
                 elif r["disposition"] == text_units.NOT_A_RULE:
                     e["class"] = r.get("class", "")
-                elif r.get("definitional"):
-                    e["definitional"] = True
             if e["disposition"] in (text_units.RESTATES, text_units.NOT_A_RULE) and (
                     rec is None or rec.get("outcome") != text_units.UPHELD):
                 out.refusals.append(f"{clause} {label} ({name}): {e['disposition']} with no UPHELD refuter record of "

@@ -420,6 +420,17 @@ def case_16_a_record_is_keyed_by_clause_digest_and_order_never_by_label(expect):
            any("holds no record" in f for f in U.audit(after, blocks, label, kinds, _context(second))))
 
 
+def case_17_one_reading_of_the_displays(expect):
+    # kb/Work PB6001 (wave 20262132 group a): the measure and the 1985 spans read a display as `segment` does, so a
+    # fenced code line is no unit text anywhere; a <pre> or a fence closes on </pre> or a bare fence, a table on </table>.
+    text = ["Prose one.", "```", "CODE LINE", "```", "After two.", '<pre style="x">', "FORMAT", "</pre>", "<pre>one</pre>",
+            "<table>", "<tr><td>c</td></tr>", "</table>", "End three."]
+    expect.equal("every display line, its fences and tags included, and nothing else", U.display_mask(text),
+                 [False, True, True, True, False, True, True, True, True, True, True, True, False])
+    expect.equal("segment makes no unit of code; the HTML table is read as a table (its unit)",
+                 [x.text for x in _seg("\n".join(text))], ["Prose one.", "After two.", "c", "End three."])
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))
