@@ -69,4 +69,6 @@ selected NaN landing as 0 through `RealResult`'s EC-ARGUMENT-FUNCTION screen wit
 RepoDrift 217/217 ran · Characterization 37/37 ran (skipped 0) ===`, after four reds each fixed at its cause (the Unshipped
 API order, the new drift test's Sweep trait, a non-canonical designator with the cite-resolve baseline shrinking 6029 to
 6026, and EXCEPTION-FILE's r1b two spaces named as the rule's result once EcFunctions joined the Intrinsics folder that
-ArgumentSubstituteDriftTests reads).
+ArgumentSubstituteDriftTests reads). After review-a round 1, run 000007 at 7f712021f8: `=== BUILD-LOCAL GATE: GREEN — Conformance 29,000/29,000 ran ·
+Unit 42,652/42,652 ran · RepoDrift 217/217 ran · Characterization 37/37 ran (skipped 0) ===` (the two new rows are the
+2014 and 2023 runs of the NaN-selection golden).
