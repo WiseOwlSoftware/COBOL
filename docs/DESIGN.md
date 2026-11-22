@@ -175,7 +175,10 @@ other, not just against the committed goldens.
 (`throw new NotImplementedCobolFeature(...)`), never a silent `// TODO` no-op. ⛔ The deferral is for LEGAL
 source only. A statement the SOURCE got wrong — a shape no general format prints, an operand its syntax rules
 exclude — binds to `BoundRejected`, whose factories record the error before they return (`BoundRejected.Report`)
-or put the refusal on the ledger for a callee that reported it (`BoundRejected.Reported`), so a refusal can be
+or put the refusal on the ledger for a callee that reported it (`BoundRejected.Reported`), or, for a statement whose
+meaning rests on a file control entry clause refused and reported where that clause is written, stand for it without a
+second verdict (`BoundRejected.OnRefusedClause`, kb/Work PB6041: a refused operand is never judged again by its users;
+the compile-wide backstop fails a compile that recorded no error), so a refusal can be
 neither silent nor compiled (`StatementEmitter` throws if one arrives). ⛔ **THE REFUSAL LEDGER (kb/Work PB1029).**
 Every node that stands for something the binder could not give a meaning to is obtainable only through a factory
 that records itself on `EditionContext`: `BoundRejected`, and the operand-level `BoundExprError` /

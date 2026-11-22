@@ -156,7 +156,11 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                     || keyPlace.ConstantOccurrence() is not { } keyOccurrence
                     || Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem, keyOccurrence) is not { } ki)
                 {
-                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {WrittenSource.Of(keyRef)} on '{file.CobolName}': the "
+                    // A key clause of the file was refused where it is written, so the set SR11 names is not the program's: the
+                    // operand may name the very key refused, and SR11 is not asked of it (kb/Work PB6041). The bind continues with
+                    // the default key of reference, as SR10's refusal above; the clause's error fails the compile.
+                    if (file.RecordKeyClauseRefused) keyIndex = -1;
+                    else return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {WrittenSource.Of(keyRef)} on '{file.CobolName}': the "
                         + $"operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file ({ctx.Edition.Edition.CiteRule("§1985:IX.4.5.3 SR2", "§2023:14.9.30.3 SR11")})");
                 }
                 else keyIndex = ki;
@@ -435,6 +439,11 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
 
         if (file.Organization == FileOrganization.Relative)
         {
+            // ⛔ A REFUSED RELATIVE KEY IS NO KEY TO JUDGE THE STATEMENT AGAINST (kb/Work PB6041). The clause's refusal was reported
+            // where it is written; SR4/SR5's identity below would add a second verdict about the same operand (naming the key
+            // '(none)', or the very item the clause's own rule refused), and GR8's substitution has no key to substitute. Every
+            // rule of the statement's own text was asked above.
+            if (file.RelativeKeyRefused) return BoundRejected.OnRefusedClause(ctx.Edition);
             // ⛔ "SHALL BE THE DATA ITEM" IS AN IDENTITY OVER DATA ITEMS, SO IT ASKS DenotedItem (kb/Work PB602).
             // Asked of Place.Item — which answers about the ATTRIBUTES AND STORAGE a reference reads — a
             // reference-modified slice of the relative key reported the key itself and `START RLF KEY IS =
@@ -492,6 +501,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 || (Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem, keyOccurrence)
                     ?? Model.RecordLayout.GenericKeyIndex(file, keyItem, keyOccurrence)) is not { } ki)
             {
+                // The file's keys are not the program's when one of its key clauses was refused (kb/Work PB6041): the operand may
+                // name the refused key, so SR6 is not asked of it.
+                if (file.RecordKeyClauseRefused) return BoundRejected.OnRefusedClause(ctx.Edition);
                 string written = WrittenSource.Of(kp?.dataReference(), operand.Item.CobolName ?? "data-name-1");
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': '{written}' is neither a "
                     + "record key of the file nor an item that begins at the leftmost character position of one "
@@ -509,6 +521,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             operand = file.PrimeKey is { Item: { } pk } primeKey ? ctx.Refs.Places.ResolveOccurrence(pk, primeKey.Subscripts) : null;
             primeKeyImplied = true;
         }
+        if (operand is null && namedKey is null && file.RecordKeyClauseRefused)
+            return BoundRejected.OnRefusedClause(ctx.Edition);   // GR15's prime key was refused where it is written (kb/Work PB6041)
         if (operand is null && namedKey is null)
             return new BoundUnsupported($"START on '{name}' with no resolvable RECORD KEY item");
         return new BoundKeyedStart(file, KeyedStartMode.Key, op, keyIndex, operand, length, invalid)
