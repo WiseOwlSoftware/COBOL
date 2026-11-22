@@ -26,7 +26,7 @@ public sealed class WarningSuppression
 
     private readonly HashSet<string> _names;
 
-    private WarningSuppression(IEnumerable<string> names) => _names = new(names, StringComparer.OrdinalIgnoreCase);
+    private WarningSuppression(IEnumerable<string> names) => _names = new(names, StringComparer.OrdinalIgnoreCase);   // not a COBOL word: a diagnostic code, id or suppress key
 
     /// <summary>The suppression of <paramref name="names"/>, each of which <see cref="Problem"/> accepts; a name it refuses is a fault
     /// of the caller (the command line refuses it first, with the problem's words).</summary>
@@ -61,7 +61,7 @@ public sealed class WarningSuppression
 
     private static HashSet<string> BuildKnown()
     {
-        var known = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var known = new HashSet<string>(StringComparer.OrdinalIgnoreCase);   // not a COBOL word: a diagnostic code, id or suppress key
         foreach (var d in DiagnosticCatalog.All)
         {
             known.Add(d.Code);
