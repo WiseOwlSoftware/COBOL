@@ -90,7 +90,9 @@ def normalize(doc: dict, name: str, log: list[str], schema: Schema) -> dict:
 
         refs, dropped = [], []
         prev_class: str | None = None            # for a bare `#Method` continuation — see below
-        for part in (rec.get("test-ref") or "").split(";"):
+        # Both lists are split and joined by the schema's own separators (`Schema.test_ref_sep`, `code_location_sep`),
+        # never a literal of this file's (kb/Work PB3210): the schema is the one home of the test-ref form table.
+        for part in (rec.get("test-ref") or "").split(schema.test_ref_sep.strip()):
             # ⚠ A BARE `#Method` INHERITS THE PRECEDING REF'S CLASS. Agents write
             # `tests/.../XTests.cs#A; #B` meaning two methods of ONE class, and dropping the second loses a
             # real reference. The inference is safe because it is CHECKED: the battery gate
@@ -111,14 +113,14 @@ def normalize(doc: dict, name: str, log: list[str], schema: Schema) -> dict:
             elif why:
                 dropped.append(why)
                 log.append(f"  {name}[{i}] {rec.get('rule-id','?')}: {why}")
-        rec["test-ref"] = "; ".join(refs)
+        rec["test-ref"] = schema.test_ref_sep.join(refs)
         if dropped:
             notes = f"{notes} [{'; '.join(dropped)}]".strip()
 
-        # A canonical code-location is `path[#Symbol]`, joined with "; " — it never contains a space, so the
-        # same commentary-stripping rule applies as for test-ref ("…#IntrinsicCatalog (the MAX row)").
+        # A canonical code-location is `path[#Symbol]`, joined by the schema's separator — it never contains a space,
+        # so the same commentary-stripping rule applies as for test-ref ("…#IntrinsicCatalog (the MAX row)").
         locs, loc_notes = [], []
-        for part in (rec.get("code-location") or "").split(";"):
+        for part in (rec.get("code-location") or "").split(schema.code_location_sep.strip()):
             part = part.strip()
             if not part:
                 continue
@@ -141,7 +143,7 @@ def normalize(doc: dict, name: str, log: list[str], schema: Schema) -> dict:
                     head = fixed
             locs.append(head)
         if locs:
-            rec["code-location"] = "; ".join(locs)
+            rec["code-location"] = schema.code_location_sep.join(locs)
         if loc_notes:
             notes = f"{notes} [{'; '.join(loc_notes)}]".strip()
 

@@ -62,7 +62,6 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SCHEMA = inventory_schema.SCHEMA_PATH
 PB = re.compile(r"\b(PB\d+[a-z]?)\b")
 #: The one sentence a back-filled empty answer carries. It names its own provenance on purpose: a reader can
 #: then tell a DERIVED "nothing" from an implementer's stated one, and re-derive it rather than believe it.
@@ -73,12 +72,6 @@ DERIVED_REASON = ("no inventory row is attributable to this landing — derived 
 def git(*args: str, repo: pathlib.Path = REPO) -> str:
     return subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True,
                           encoding="utf-8", errors="replace", check=True).stdout
-
-
-def resolving_verdicts() -> set[str]:
-    """The verdicts the SCHEMA marks as resolving — never a list written here (`feedback_one_rule_one_place`)."""
-    schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
-    return {k for k, v in schema["verdicts"].items() if v.get("resolves")}
 
 
 def pb_ids(text: str) -> set[str]:
@@ -303,7 +296,7 @@ def self_test() -> int:
     sr = ScratchRepo.init(scratch_dir("backfill-history-") / "repo")
     sr.commit("base", {f"{store}/R-1.json": json.dumps({"rule-id": "R-1", "section": "1.1", "ordinal": 1, "verdict": "", "state": "GAP"})})
     sr.git("checkout", "-q", "-b", "side")
-    old_schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+    old_schema = json.loads(inventory_schema.SCHEMA_PATH.read_text(encoding="utf-8"))
     old_schema["editions"].pop("of")
     sr.commit("PB9001: WIP", {f"{store}/R-1.json": json.dumps({"rule-id": "R-1", "rule-digest": "d", "verdict": "CONFORMS"}),
                               inventory_schema.SCHEMA_REL: json.dumps(old_schema)})
@@ -435,8 +428,11 @@ def main() -> int:
     if args.self_test:
         return self_test()
 
-    resolving = resolving_verdicts()
-    rows = work_inventory.held_rows(inventory_schema.load_schema())   # every held edition's (kb/Work PB5094)
+    schema = inventory_schema.load_schema()
+    #: The resolving verdicts are `Schema.resolving`, the schema's one reader's derivation from each verdict's `resolves`
+    #: flag, never a set read or written here (kb/Work PB3206).
+    resolving = schema.resolving
+    rows = work_inventory.held_rows(schema)   # every held edition's (kb/Work PB5094)
     state_now = {r["rule-id"]: r.get("state") or "" for r in rows}
     items = work.load()
 
