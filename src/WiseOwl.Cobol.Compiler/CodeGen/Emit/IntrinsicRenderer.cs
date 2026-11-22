@@ -1789,7 +1789,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <c>__COLLATE_NAT</c> table; the two never coexist on one call — CHAR/alphanumeric-ORD read the
     /// alphanumeric sequence, CHAR-NATIONAL/national-ORD the national one, §2023:15.15.4/§2023:15.16.4/§2023:15.70.4).</summary>
     private static string Collate(BoundIntrinsicCall ic) =>
-        ic.Collate ? ", __COLLATE" : ic.CollateNat ? ", __COLLATE_NAT" : "";
+        ic.Collate ? $", {ObjectComputerEmit.ProgramCollation}" : ic.CollateNat ? $", {ObjectComputerEmit.NationalProgramCollation}" : "";
 
     /// <summary>The LEADING weights argument for a PCS-flagged MAX/MIN/ORD-MAX/ORD-MIN string form — collate goes
     /// FIRST (a <c>params string[]</c> can take no trailing param), selecting the <c>MaxString(ushort[]|NationalCollation,
@@ -1797,7 +1797,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private static string CollatePrefix(BoundIntrinsicCall ic) =>
         // The MAX/MIN family takes the program's CobolCollation carrier, exactly as CHAR/ORD do (PB101 — the
         // ushort[] raw-table overload is gone; the carrier's Compare is the order-equivalent tail, PB59).
-        ic.Collate ? "__COLLATE, " : ic.CollateNat ? "__COLLATE_NAT, " : "";
+        ic.Collate ? $"{ObjectComputerEmit.ProgramCollation}, " : ic.CollateNat ? $"{ObjectComputerEmit.NationalProgramCollation}, " : "";
 
     // ── The STRING channel (instance — reached through OperandText.AsString with the per-unit renderer) ─────
 

@@ -270,24 +270,36 @@ internal static class RecordLayout
         // PB43 records the sub-byte redefiner as explicitly OUT of scope and loud rather than rounded.
         if (item.HasBitDescendant) return BitLayout.Characters(BitLayout.ExactExtentBits(item));
         long w = 0;
-        foreach (var c in item.Children)
-        {
-            // The class-backing substitution applies ONLY where the child is a top-level class MEMBER (the
-            // overlay root) — a SUBORDINATE of a member carries an inherited .Class link but occupies its own
-            // positions inside the member's window (the P5.8 area-class find: skipping subordinates of a
-            // multi-record FD's synthesized AREA class collapsed the record width to 0). The CANONICAL member —
-            // which may itself be a REDEFINER (the classifier picks the class's storage owner, not necessarily
-            // the target) — contributes the ONE backing at class-max width; other members contribute nothing.
-            if (c.Class is { Tier: RedefinesTier.StringCanonical } cls && cls.Members.Contains(c))
-            {
-                if (c.IsCanonical) w = Plus(w, cls.Width);
-                continue;
-            }
-            if (c.Class is { Tier: RedefinesTier.Alias } clsA && clsA.Members.Contains(c) && !c.IsCanonical)
-                continue;   // a forwarded view
-            w = Plus(w, Times(ExactPhysicalOccurrenceWidth(c), c));
-        }
+        foreach (var c in item.Children) w = Plus(w, ExactPhysicalAdvance(c));
         return w;
+    }
+
+    /// <summary>⛔ THE ONE PER-CHILD PHYSICAL ADVANCE (kb/Work PB3256): the bytes <paramref name="child"/> adds to its parent's
+    /// running position on the codec basis — what <see cref="PhysicalWidth"/> sums and what every offset walk here
+    /// (<see cref="OffsetInRootWithEveryIndexOne"/>, <see cref="ContiguousPlaceOf"/>) advances by, so a record's width and the
+    /// offsets inside it cannot disagree. It was written three times and the copies had drifted: the width had no redefiner
+    /// arm, so a redefining child outside a class (any redefiner asked before <c>ClassifyRedefinesClassesPass</c> runs, which
+    /// this phase-free type admits) added its width to the record while adding nothing to the offsets after it.
+    /// <list type="bullet">
+    ///   <item>A top-level member of a Tier-B (<see cref="RedefinesTier.StringCanonical"/>) class: the CANONICAL member —
+    ///     which may itself be a REDEFINER (the classifier picks the class's storage owner, not necessarily the target) —
+    ///     contributes the ONE backing at class-max width; every other member nothing. The substitution applies ONLY where
+    ///     the child is a class MEMBER (the overlay root): a SUBORDINATE of a member carries an inherited <c>.Class</c> link
+    ///     but occupies its own positions inside the member's window (the P5.8 area-class find: skipping subordinates of a
+    ///     multi-record FD's synthesized AREA class collapsed the record width to 0).</item>
+    ///   <item>A non-canonical member of a Tier-A (<see cref="RedefinesTier.Alias"/>) class: a forwarded view, nothing.</item>
+    ///   <item>Any other REDEFINING child: it overlays its target (§2023:13.18.44.4 GR1, "Storage association for the subject
+    ///     of the entry starts at the first bit of the data item referenced by data-name-2"), nothing.</item>
+    ///   <item>Everything else: one occurrence's <see cref="PhysicalOccurrenceWidth"/> times its OCCURS count.</item>
+    /// </list></summary>
+    private static long ExactPhysicalAdvance(DataItem child)
+    {
+        if (child.Class is { Tier: RedefinesTier.StringCanonical } cls && cls.Members.Contains(child))
+            return child.IsCanonical ? cls.Width : 0;
+        if (child.Class is { Tier: RedefinesTier.Alias } alias && alias.Members.Contains(child) && !child.IsCanonical)
+            return 0;
+        if (child.RedefinesTargetName is not null) return 0;
+        return Times(ExactPhysicalOccurrenceWidth(child), child);
     }
 
     /// <summary>ONE OCCURRENCE of <paramref name="item"/> on the PHYSICAL (codec, byte) basis — the per-child
@@ -355,19 +367,7 @@ internal static class RecordLayout
                 long cOff = c.RedefinesTarget is { } t && offsets.TryGetValue(t, out long tOff) ? tOff : running;
                 Walk(c, cOff);
                 if (found is not null) return;
-                // The advance mirrors PhysicalWidth's per-child contribution exactly (the codec layout):
-                // a StringCanonical class MEMBER contributes the ONE backing (class-max) at the CANONICAL —
-                // which may itself be a redefiner — and nothing at the other members; any other redefining
-                // child overlays its target (no advance); everything else its physical extent.
-                if (c.Class is { Tier: RedefinesTier.StringCanonical } cls && cls.Members.Contains(c))
-                {
-                    if (c.IsCanonical) running = Plus(running, cls.Width);
-                    continue;
-                }
-                if (c.Class is { Tier: RedefinesTier.Alias } clsA && clsA.Members.Contains(c) && !c.IsCanonical)
-                    continue;                                             // a forwarded view
-                if (c.RedefinesTargetName is not null) continue;          // overlays its target — no advance
-                running = Plus(running, Times(ExactPhysicalOccurrenceWidth(c), c));
+                running = Plus(running, ExactPhysicalAdvance(c));
             }
         }
     }
@@ -512,7 +512,7 @@ internal static class RecordLayout
     /// <paramref name="root"/>'s FIXED run (every variable-length member contributing ZERO — the §2023:8.5.1.12.3
     /// accounting the emitted layout's <c>FixedAt</c> uses, flattened through nested variable-length groups the
     /// same way), how many variable-length members precede it, and their summed MAXIMUM byte extents. The fixed
-    /// members advance exactly as <see cref="OffsetOf"/> advances (the codec basis), so the offset is the one the
+    /// members advance by <see cref="ExactPhysicalAdvance"/>, as <see cref="OffsetOf"/> does (the codec basis), so the offset is the one the
     /// layout's take step starts from.</summary>
     private static (int FixedOffset, int Preceding, long PrecedingMaxBytes)? ContiguousPlaceOf(DataItem root, DataItem key)
     {
@@ -548,15 +548,7 @@ internal static class RecordLayout
                 }
                 Walk(c, cStart);
                 if (found is not null) return running;
-                if (c.Class is { Tier: RedefinesTier.StringCanonical } cls && cls.Members.Contains(c))
-                {
-                    if (c.IsCanonical) running = Plus(running, cls.Width);
-                    continue;
-                }
-                if (c.Class is { Tier: RedefinesTier.Alias } clsA && clsA.Members.Contains(c) && !c.IsCanonical)
-                    continue;
-                if (c.RedefinesTargetName is not null) continue;
-                running = Plus(running, Times(ExactPhysicalOccurrenceWidth(c), c));
+                running = Plus(running, ExactPhysicalAdvance(c));
             }
             return running;
         }

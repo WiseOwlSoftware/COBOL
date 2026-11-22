@@ -759,14 +759,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         if (ecnVar is not null)
             ec.EmitSizeHandling(flag, ecnVar, ecSize, hasPhrase: sizeErr?.OnError is not null);
 
-        if (sizeErr?.OnError is { } on)
-        {
-            using (w.Block($"if ({flag})")) Statements.EmitStatementList(on);
-            if (sizeErr.NotOnError is { } notAlso)
-                using (w.Block("else")) Statements.EmitStatementList(notAlso);
-        }
-        else if (sizeErr?.NotOnError is { } not)
-            using (w.Block($"if (!{flag})")) Statements.EmitStatementList(not);
+        ConditionalPhrase.EmitPair(w, Statements, flag, sizeErr?.OnError, sizeErr?.NotOnError,
+            new NotPhraseCondition($"!{flag}", ComplementsPhrase: true, Gate: null));
     }
 
     /// <summary>Store an arithmetic result into a numeric target place, rounding to the receiver scale with
