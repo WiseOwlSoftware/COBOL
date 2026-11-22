@@ -1,4 +1,4 @@
-## render_figure resolves the clause that owns a figure once, and the review sheet titles each figure by it (PB3211)
+## Entry 3933 — 2026-11-22 15:35 PST — render_figure resolves the clause that owns a figure once, and the review sheet titles each figure by it (PB3211)
 
 **The mechanism.** `render_figure.py` decided which clause owns a general-format figure in three places with three
 rules: `find_figures` took the heading above a band on its own page, `figure_key` walked back for a continuation band to
@@ -27,3 +27,4 @@ clause. No compiler code changed, so the C# oracle has nothing to compare. Witne
 left (grep for `headings(doc[` finds only `open_region`); `Figure` keeps index access for `build`'s callers.
 
 **Gate.** See the report of wave 20262139 H.
+
