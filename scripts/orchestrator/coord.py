@@ -637,7 +637,8 @@ def _self_test() -> int:
         for rel, age in (("STOP", 7 * 86400), ("STOP-UNIT", 60), ("scratch/STOP", 2 * 86400), ("scratch/STOP-loop", 60),
                          ("scratch/w1/STOP-w1", 60), ("scratch/w1/STOP.cob", 9 * 86400),
                          ("scratch/w1/STOPPED-ROWS.md", 9 * 86400), ("scratch/w1/stop-test.log", 9 * 86400), ("scratch/w1/deep/STOP-x", 9 * 86400)):
-            (root / rel).write_text("", encoding="utf-8")
+            (root / rel).write_text("", encoding="utf-8", newline="
+")
             os.utime(root / rel, (now - age, now - age))
         got = {str(p.relative_to(root)).replace("\\", "/") for p, _ in stop_signals(str(root), now)}
         want = {"STOP", "STOP-UNIT", "scratch/STOP", "scratch/STOP-loop", "scratch/w1/STOP-w1"}
