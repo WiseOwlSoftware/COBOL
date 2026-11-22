@@ -179,22 +179,10 @@ public static partial class CobolIntrinsics
     // ── Variadic statistics over scale-ALIGNED unscaled values (ISO §2023:15.59–§2023:15.63, §2023:15.71–72, §2023:15.76, §2023:15.88) ──
 
     /// <summary>MAX (§2023:15.59.4): the greatest argument value, at the common scale.</summary>
-    public static Int128 MaxScaled(params Int128[] xs)
-    {
-        RequireArguments(xs.Length, "MAX");
-        Int128 m = xs[0];
-        foreach (var x in xs) if (x > m) m = x;
-        return m;
-    }
+    public static Int128 MaxScaled(params Int128[] xs) => xs[ExtremeIndex(new ValueOrder<Int128>(xs), true, "MAX")];
 
     /// <summary>MIN (§2023:15.63.4): the least argument value, at the common scale.</summary>
-    public static Int128 MinScaled(params Int128[] xs)
-    {
-        RequireArguments(xs.Length, "MIN");
-        Int128 m = xs[0];
-        foreach (var x in xs) if (x < m) m = x;
-        return m;
-    }
+    public static Int128 MinScaled(params Int128[] xs) => xs[ExtremeIndex(new ValueOrder<Int128>(xs), false, "MIN")];
 
     /// <summary>SUM (§2023:15.88.4): Σ arguments, at the common scale, EXACT in Int128 or not at all. (MEAN's numerator is
     /// not this body's: MEAN is the SDIDI quotient in every mode, kb/Work PB3860 - <see cref="MeanDec"/>.)</summary>
@@ -328,59 +316,34 @@ public static partial class CobolIntrinsics
 
     /// <summary>ORD-MAX (§2023:15.71.4): the 1-based ordinal position of the greatest argument; ties take the FIRST
     /// occurrence (strictly-greater update — the legacy-proven rule the NIST goldens encode).</summary>
-    public static long OrdMax(params Int128[] xs)
-    {
-        RequireArguments(xs.Length, "ORD-MAX");
-        Int128 m = xs[0];
-        long idx = 1;
-        for (int i = 1; i < xs.Length; i++) if (xs[i] > m) { m = xs[i]; idx = i + 1; }
-        return idx;
-    }
+    public static long OrdMax(params Int128[] xs) => ExtremeIndex(new ValueOrder<Int128>(xs), true, "ORD-MAX") + 1;
 
     /// <summary>ORD-MIN (§2023:15.72.4): the 1-based ordinal position of the least argument; ties take the FIRST.</summary>
-    public static long OrdMin(params Int128[] xs)
-    {
-        RequireArguments(xs.Length, "ORD-MIN");
-        Int128 m = xs[0];
-        long idx = 1;
-        for (int i = 1; i < xs.Length; i++) if (xs[i] < m) { m = xs[i]; idx = i + 1; }
-        return idx;
-    }
+    public static long OrdMin(params Int128[] xs) => ExtremeIndex(new ValueOrder<Int128>(xs), false, "ORD-MIN") + 1;
 
     // ── MAX/MIN/ORD-MAX/ORD-MIN over all-alphanumeric/national arguments (category-polymorphic; §2023:15.59/§2023:15.63/§2023:15.71/§2023:15.72) ──
     // §2023:15.59.4 r1 etc.: the greatest/least is determined by §2023:8.8.4.2 simple-condition rules — the alphanumeric PROGRAM
     // COLLATING SEQUENCE (§2023:8.8.4.2.7) or national PCS (§2023:8.8.4.2.9), WITH §2023:8.8.4.2.7 r2 space-padding of unequal-length
     // operands. All realized by CobolString.Compare, NEVER string.CompareOrdinal (which ignores the PCS and does not
-    // space-pad). Three collation variants funnel through ONE selection helper (singular pattern): the native sequence
-    // (the parameterless pad-compare body), a non-identity alphanumeric PCS (weights table — the emitter passes
-    // __COLLATE first), and a non-native national PCS (the emitter passes __COLLATE_NAT first). (CA23.)
-
-    /// <summary>The 0-based index of the extreme (greatest if <paramref name="max"/>, else least) under
-    /// <paramref name="cmp"/>; first-wins on a tie (strict &gt;/&lt;). The one selection algorithm the MAX/MIN/
-    /// ORD-MAX/ORD-MIN families and their three collation variants all share.</summary>
-    private static int ExtremeIndex(string[] xs, bool max, Func<string, string, int> cmp)
-    {
-        RequireArguments(xs.Length, max ? "MAX / ORD-MAX" : "MIN / ORD-MIN");
-        int k = 0;
-        for (int i = 1; i < xs.Length; i++) { int c = cmp(xs[i], xs[k]); if (max ? c > 0 : c < 0) k = i; }
-        return k;
-    }
+    // space-pad). Three collation variants funnel through the ONE selection rule (ExtremeIndex over a StringOrder): the
+    // native sequence (the parameterless pad-compare body), a non-identity alphanumeric PCS (weights table — the emitter
+    // passes __COLLATE first), and a non-native national PCS (the emitter passes __COLLATE_NAT first). (CA23.)
 
     /// <summary>MAX (§2023:15.59) — the greatest argument per the effective collating sequence; the value IS the selected string.</summary>
-    public static string MaxString(params string[] xs) => xs[ExtremeIndex(xs, true, static (a, b) => CobolString.Compare(a, b))];
-    public static string MaxString(CobolCollation collation, params string[] xs) => xs[ExtremeIndex(xs, true, collation.Compare)];
+    public static string MaxString(params string[] xs) => xs[ExtremeIndex(new StringOrder(xs, null), true, "MAX")];
+    public static string MaxString(CobolCollation collation, params string[] xs) => xs[ExtremeIndex(new StringOrder(xs, collation), true, "MAX")];
 
     /// <summary>MIN (§2023:15.63) — the least argument per the effective collating sequence.</summary>
-    public static string MinString(params string[] xs) => xs[ExtremeIndex(xs, false, static (a, b) => CobolString.Compare(a, b))];
-    public static string MinString(CobolCollation collation, params string[] xs) => xs[ExtremeIndex(xs, false, collation.Compare)];
+    public static string MinString(params string[] xs) => xs[ExtremeIndex(new StringOrder(xs, null), false, "MIN")];
+    public static string MinString(CobolCollation collation, params string[] xs) => xs[ExtremeIndex(new StringOrder(xs, collation), false, "MIN")];
 
     /// <summary>ORD-MAX (§2023:15.71) — 1-based position of the greatest; tie = first.</summary>
-    public static long OrdMaxString(params string[] xs) => ExtremeIndex(xs, true, static (a, b) => CobolString.Compare(a, b)) + 1;
-    public static long OrdMaxString(CobolCollation collation, params string[] xs) => ExtremeIndex(xs, true, collation.Compare) + 1;
+    public static long OrdMaxString(params string[] xs) => ExtremeIndex(new StringOrder(xs, null), true, "ORD-MAX") + 1;
+    public static long OrdMaxString(CobolCollation collation, params string[] xs) => ExtremeIndex(new StringOrder(xs, collation), true, "ORD-MAX") + 1;
 
     /// <summary>ORD-MIN (§2023:15.72) — 1-based position of the least; tie = first.</summary>
-    public static long OrdMinString(params string[] xs) => ExtremeIndex(xs, false, static (a, b) => CobolString.Compare(a, b)) + 1;
-    public static long OrdMinString(CobolCollation collation, params string[] xs) => ExtremeIndex(xs, false, collation.Compare) + 1;
+    public static long OrdMinString(params string[] xs) => ExtremeIndex(new StringOrder(xs, null), false, "ORD-MIN") + 1;
+    public static long OrdMinString(CobolCollation collation, params string[] xs) => ExtremeIndex(new StringOrder(xs, collation), false, "ORD-MIN") + 1;
 
     // ── NUMVAL / NUMVAL-C (ISO §2023:15.67 / §2023:15.68) ───────────────────────────────────────────────────────────────
 
