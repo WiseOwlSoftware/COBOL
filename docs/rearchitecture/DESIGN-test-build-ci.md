@@ -1,6 +1,6 @@
 # DESIGN — Test, Build & CI Architecture
 
-Status: AS BUILT. Section 0 is the pipeline as it is (kb/Work PB4323, 2026-10-31); CLAUDE.md "Testing" states its rule.
+Status: AS BUILT. Section 0 is the pipeline as it is (kb/Work PB4323, 2026-10-31); the `gate` skill states its rule (THE RULE, owner 2026-10-31).
 Every later section describes the mechanism it names as it is now; how it got here lives in `DEVLOG/` and in git.
 Scope: the harness, build and CI machinery that keeps the battery green: the three test projects, the NIST and
 characterization nets, the verdict-evidence rules every harness obeys, the gate and its slot cap, the compiled-program
@@ -13,7 +13,7 @@ renumbers: a section that was retired leaves its number unused.
 
 ## 0. THE PIPELINE AS IT IS (owner decisions 2026-10-31, kb/Work PB4323; steps 1 to 9 of PIPELINE-REVIEW.md §10)
 
-The CLAUDE.md "Testing" section is the rule; this section is the design it rests on, in the order a change meets it.
+THE RULE in the `gate` skill is the rule; this section is the design it rests on, in the order a change meets it.
 Every later section describes one mechanism of it in detail.
 
 1. **The one gate, at the branch's head** (`pwsh scripts/build-local.ps1 -Priority BelowNormal`, `scripts/gate.py`;
@@ -1342,7 +1342,7 @@ does not match; and the names in a directory listing. Only dataflow analysis cou
 time-sounding identifiers would be a hand-kept heuristic, so none is kept; `self_tests.py`'s self-test pins it as known
 behaviour (an arm a change that closes the gap must update). An edit to one of those reuses a proof it may have changed.
 What bounds it: the unshifted run still runs on every re-run, so today's answer is always tested and only the
-400-day-ahead answer is reused; every CI run (the merge group's Windows self-tests, class (d) of CLAUDE.md's Testing
+400-day-ahead answer is reused; every CI run (the merge group's Windows self-tests, class (d) of THE RULE in the `gate` skill
 rule, and the nightly) runs both runs fresh, so such a change is caught before main, at the price of a bounce. The detector over-approximates elsewhere on purpose
 (`import time` for a duration puts a file in the key): an extra shifted run is the cost.
 *The opt-out, declared.* A self-test that compares the Python clock with a REAL one the shift cannot move declares it, with
@@ -1478,7 +1478,7 @@ depends on, its passes in one store every worktree shares, and a re-gate runs on
 (kb/Work PB5207 stages 1 and 2, PB5218, PB5231; PB5205; PB5099, owner
 2026-11-09: "If only one test failed, any retry should test only that one case"; owner 2026-11-10: "This is precisely what
 the Unix make and Windows MSBuild utilities are for. They rerun only what is required due to changes.").** THE RULE
-(CLAUDE.md "Testing", 2026-10-31) asks that every case the merge group runs on Windows already ran green AT THE PUSHED HEAD on
+(THE RULE, `gate` skill, 2026-10-31) asks that every case the merge group runs on Windows already ran green AT THE PUSHED HEAD on
 this host under the same `toolchain.env`, never that it ran green in ONE run or in one worktree. Wave 20261972's gate of tree
 fc15c9ace5 went RED on one harness non-observation among 63,000 cases and the re-gate of the same tree spent 58 more minutes
 running the 63,000 again; records-85's gate of tree 241f5fbb05 passed all 64,465 cases and was RED only because the
