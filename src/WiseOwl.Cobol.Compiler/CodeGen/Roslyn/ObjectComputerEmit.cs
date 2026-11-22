@@ -23,6 +23,15 @@ namespace WiseOwl.Cobol.CodeGen;
 /// </summary>
 internal static class ObjectComputerEmit
 {
+    /// <summary>⛔ THE ONE SPELLING of the type's ALPHANUMERIC program collating carrier field (ISO §2023:12.3.6; kb/Work PB3215):
+    /// <see cref="EmitMembers"/> declares it and every renderer that passes the program collating sequence names it through this
+    /// constant, so the declaration and its readers cannot drift apart (a rename of one alone was a CS0103 in every program with a
+    /// non-native PROGRAM COLLATING SEQUENCE).</summary>
+    public const string ProgramCollation = "__COLLATE";
+
+    /// <summary>The NATIONAL twin of <see cref="ProgramCollation"/> (ISO §2023:12.3.6.4 GR9/GR11).</summary>
+    public const string NationalProgramCollation = "__COLLATE_NAT";
+
     /// <summary>The per-type members: the collating carriers and, for a program type, the <c>__CLASSIFY</c> field.</summary>
     public static void EmitMembers(DataBindResult data, CodeWriter w, bool classificationField)
     {
@@ -31,7 +40,7 @@ internal static class ObjectComputerEmit
             // carrier (kb/Work PB101): an AlphanumericCollation for a literal phrase (positions + the §2023:15.15.4 r2
             // representative array + NextFree + the GR8/GR9 extremes — PB59) or a LocaleCollation for the LOCALE
             // phrase; every comparison consumer, MAX/MIN, CHAR/ORD take the object.
-            w.Line($"private static readonly CobolCollation __COLLATE = {CollationEmit.New(collate)};");
+            w.Line($"private static readonly CobolCollation {ProgramCollation} = {CollationEmit.New(collate)};");
         if (classificationField && data.Configuration.Classification is not null)
             // The OBJECT-COMPUTER CHARACTER CLASSIFICATION in effect for this runtime module (ISO §2023:12.3.6.4 GR5–GR8;
             // kb/Work PB64 T5): resolved at EVERY activation (GR8; §2023:14.6.6 r2), in __Activate's prologue, so the word
@@ -42,7 +51,7 @@ internal static class ObjectComputerEmit
             // The NON-native NATIONAL program collating sequence (ISO §2023:12.3.6.4 GR9/GR11): a SPARSE NationalCollation
             // for an ALPHABET … FOR NATIONAL literal phrase (the runtime computes every unspecified character's
             // §2023:12.3.7.4 GR7 1.3 position arithmetically) or a LocaleCollation.
-            w.Line($"private static readonly CobolCollation __COLLATE_NAT = {CollationEmit.New(nat)};");
+            w.Line($"private static readonly CobolCollation {NationalProgramCollation} = {CollationEmit.New(nat)};");
         // The collating sequences NAMED by a THROUGH range's `IN alphabet-name-1` phrase (ISO §2023:14.7.8 GR2 —
         // EVALUATE's range-expression and the VALUE clause's condition-name list). One carrier per named alphabet
         // per type, so the range test itself is a field read rather than a per-evaluation table allocation; the
@@ -59,9 +68,9 @@ internal static class ObjectComputerEmit
     public static string? RangeCollationField(RangeCollationId id) => id.Sequence switch
     {
         RangeCollationSequence.Native => null,
-        RangeCollationSequence.ProgramCollating => "__COLLATE",
-        RangeCollationSequence.NationalProgramCollating => "__COLLATE_NAT",
-        RangeCollationSequence.Own => $"__COLLATE_R{id.Ordinal}",
+        RangeCollationSequence.ProgramCollating => ProgramCollation,
+        RangeCollationSequence.NationalProgramCollating => NationalProgramCollation,
+        RangeCollationSequence.Own => $"{ProgramCollation}_R{id.Ordinal}",
         _ => throw new InvalidOperationException($"range collation '{id.Name}': no spelling for {id.Sequence}"),
     };
 
