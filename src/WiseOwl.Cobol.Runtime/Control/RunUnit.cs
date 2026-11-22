@@ -40,9 +40,9 @@ public sealed class RunUnit
         Exceptions = new ExceptionEngine(Modules);   // the staged-RAISING slot names its activation (kb/Work PB892)
         Programs = new ProgramTable(this);
         Transactions = new TransactionControl(Files, Modules, SortFiles, Exceptions);
-        // The text-processing subsystems' cheap, idempotent initialization (Collation/CollationRuntime.cs): the key
+        // The text-processing subsystems' cheap, idempotent initialization (Control/CollationRuntime.cs): the key
         // cache configuration from the environment; the derived tables stay lazy unless COBOL_COLLATION_WARMUP asks.
-        Collation.CollationRuntime.Initialize();
+        CollationRuntime.Initialize();
     }
 
     /// <summary>The run-unit program registry (name resolution, §2023:14.6.2.3 state model, CANCEL).</summary>

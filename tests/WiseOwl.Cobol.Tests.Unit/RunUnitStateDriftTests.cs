@@ -165,11 +165,11 @@ public sealed class RunUnitStateDriftTests
     {
         ["WiseOwl.Cobol.Runtime.IO.StandardStreams::_applied"] =
             "the console encoding is a property of the PROCESS's standard streams, applied once",
-        ["WiseOwl.Cobol.Runtime.Collation.CollationRuntime::s_initialized"] =
+        ["WiseOwl.Cobol.Runtime.CollationRuntime::s_initialized"] =
             "idempotence latch for the process-wide collation subsystem initialization",
-        ["WiseOwl.Cobol.Runtime.Collation.CollationRuntime::s_hostConfigured"] =
+        ["WiseOwl.Cobol.Runtime.CollationRuntime::s_hostConfigured"] =
             "records that the HOST configured the process-wide collation caches",
-        ["WiseOwl.Cobol.Runtime.Collation.CollationRuntime::s_lastWarmup"] =
+        ["WiseOwl.Cobol.Runtime.CollationRuntime::s_lastWarmup"] =
             "diagnostic status of the process-wide collation warm-up",
         ["WiseOwl.Cobol.Runtime.Collation.Cache.CollationKeyCache::s_defaultConfig"] =
             "process-wide cache sizing for collation keys derived from immutable collators",

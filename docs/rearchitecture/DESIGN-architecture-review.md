@@ -781,6 +781,16 @@ R0-0229–R0-0234) and the measured cycles `Runtime ↔ Runtime.IO` (10 and 49),
 give it them, and the first census after those waves writes the runtime's own layer table into the same file (values
 ← exceptions ← control ← I-O, verbs and intrinsics, the order `DESIGN-runtime-library.md` §2 already states), with
 its own tolerated rows. The front end's internal order is in the file now because its namespaces exist.
+The text subsystems' start-up hook is not one of those cycles: `CollationRuntime` (the cheap per-run-unit
+initialization and the eager warm-up over the collation engine, the CLDR loader, the key cache, the normalizer, the
+grapheme table and the run unit's default locale) lives in `Control/` in `WiseOwl.Cobol.Runtime`, beside `RunUnit`, its
+one product caller, and its `RuntimeConfig` row (kb/Work PB2760). `WiseOwl.Cobol.Runtime.Collation` therefore names no
+type of the root namespace, of `.Unicode`, `.Unicode.Segmentation` or `.Collation.Locale`, and sits below values in the
+runtime's layer table. One edge remains to place: `.Collation.Locale` reads the run unit's locale state
+(`LocaleManager` → `RunUnit.Current.Locale`, `LocaleConfig` → `LocaleState`), and the control layer's warm-up resolves
+the default locale through `LocaleManager`, so `Runtime ↔ Runtime.Collation.Locale` is one layer, control, by
+placement, as `Runtime ↔ Runtime.IO` is until the Move waves give `Control/` its namespace and the locale selector its
+place in it.
 
 **The drift test.** `ArchitectureEdgesDriftTests` (tests/WiseOwl.Cobol.Tests.Unit) is a metadata walk over the built
 product assemblies, not a source scan and not an MSBuild workspace, so it costs about a second per gate:
