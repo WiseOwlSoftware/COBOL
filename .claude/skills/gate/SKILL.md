@@ -120,8 +120,12 @@ a shared file included (kb/Work PB4331), and the landing lane classifies every r
 (INFRA and RUNNER re-queued once, MERGE and GENUINE to a finisher, kb/Work PB4271). A gate of the worktree that
 runs when the landing would write it is exit 12, GATE BUSY, whatever record exists (kb/Work PB4204).
 
-⛔ **THE RULE (owner 2026-10-31, CLAUDE.md "Testing", replacing the CI invariant of 2026-10-04): every case the merge
-group runs on Windows already ran green at the pushed head, on this host, under the same `toolchain.env`.** The merge
+⛔ **THE RULE (owner 2026-10-31, replacing the CI invariant of 2026-10-04; this skill states it since CLAUDE.md was trimmed,
+kb/Work PB6052): every case the merge group runs on Windows already ran green at the pushed head, on this host, under the
+same `toolchain.env`, or is byte-identical in every input to a case that ran green on this host** (the program
+differential, kb/Work PB4333, `scripts/gate_differential.py`). It asks that each case ran green at that tree, not that all
+ran in one run (kb/Work PB5099). CI and every local host run the same tool versions, the latest releases, from the one
+manifest `toolchain.env`. The merge
 group is the FIRST run of (a) the merged tree, (b) Linux, (c) Release with a cold compile cache, (d) the Windows tooling
 self-tests on a tooling change and (e) GitHub's runners; a red there is one of those five, a flake or infrastructure,
 never an untested case. A red of class (b), (c) or (e) is also a finding against the pipeline's record of that class,

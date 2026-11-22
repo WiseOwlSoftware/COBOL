@@ -1,11 +1,12 @@
 # The per-edition conformance suites — design (kb/Work PB3160, PB4614)
 
-**Status: Revision 3, APPROVED by the owner 2026-11-04** (decisions 1-17 and 17a-17j, §1.1). It replaces revision 2
-(approved 2026-10-14), whose slices S0a to S2 built the tree it extends (§13). Revision 3 answers kb/Work PB4614: what a test covers (§3.4), how a diagnosis is judged (§3.2), how
-a test is placed at each edition (§3.5), how completeness and NIST-85 subsumption are measured (§4.1, §6.3), and how
-every test is derived from the text (§6.1, §6.2). Seventeen owner decisions and the seventeenth's ten
-sub-decisions bind it (§1.1). Figures were measured on main at 33f2c1ecc, decision 17's at 022838e99, by the scripts in
-`E:/COBOL-coord/scratch/pb4614/`, to which a path below with no root is relative.
+**Status: Revision 4, decided 2026-11-22 (kb/Work PB6046)** on the owner's "replan the test suite. Lots has changed", after
+1985 read COMPLETE (#1937; five code reads moved since, kb/Work PB6053). It keeps revision 3's tool contracts (§3-§5, the case file, the site judgment, the adapters and the
+verdicts) and the owner's decisions 1-17 (§1.1) except decision 15, whose order §8 replaces, and replaces its order of work (§8) and its slices (§13) for COBOL-85:
+the 85 suite's unit is the 1985 catalog's row; four denominators are measured first; one pilot runs end to end; tests clear
+mechanically where two compilers agree. Revision 3 (approved 2026-11-04) answered kb/Work PB4614; its figures, measured on
+main at 33f2c1ecc by the scripts in `E:/COBOL-coord/scratch/pb4614/`, stand in §2-§7 as that revision's measurement, and
+revision 4's own are in §2's first paragraph and PB6046.
 
 ## 1. The direction and the decisions
 
@@ -59,7 +60,7 @@ version." And: "Fuzz generation is random and we want a comprehensive ISO spec t
 | 12 | WiseOwl implements the Communication facility at 85 and 2002 (NIST's CM module), so the suites can witness it; its current refusal gets a kb/Work note | §3.5, §6.3 |
 | 13 | Intake programs (fuzz, vetting and report repros) are committed as source material holding provenance only; their target rows and status live in their kb/Work notes | §6.2 |
 | 14 | The portable 2014 suite withholds the four unproven 2014 edges (picture-63, the float format phrase, OPTIONS FLOAT-BINARY, OPTIONS FLOAT-DECIMAL) and the rows resting on them, listed as unplaced at 2014 with their evidence | §3.5 |
-| 15 | The pilot (S3, PB3178) runs after S5-S8 and before the coverage-point catalog, and sets its scope | §8 |
+| 15 | The pilot (S3, PB3178) runs after S5-S8 and before the coverage-point catalog, and sets its scope. **Superseded by revision 4** (PB6046): the pilot runs after Stage 0's measurements, which include the 1985 point catalog | §8 |
 | 16 | The tool slices (generator, point extractor, NIST crosswalk) may start now as pilot work; the GAP rise they cause is reported as newly measured scope, not regression | §4.1, §8 |
 | 17 | Fewer files: "We should reduce the number of files in the test suites by colocating closely related COBOL features in the same source file." The unit of the tree is a case file holding the tests of closely related features | §3-§6, §9, §13 |
 
@@ -76,6 +77,13 @@ Decision 17's sub-decisions, approved by the owner 2026-11-04 ("approve 17a-17j"
 - 17j. **The WiseOwl layer** (§3.2, §4): a file per case file, keyed by test id.
 
 ## 2. What exists (main at 33f2c1ecc)
+
+**Revision 4's measurement (main 608ccf507c, 2026-11-22, kb/Work PB6046).** 11,098 tests (against 6,323 below) and 5,329
+WiseOwl diagnosis files (3,370). The 1985 catalog holds 3,109 rows (GR 1,861, SR 874, FMT 213, RV 91, AR 70), all closed;
+2,624 tests in 293 `cases/<clause>@1985-<Name>/` folders name one, 43 of them cleared. By row: 46 have a suite test,
+1,973 only an uncleared accepted test, 325 only a refusal test, 647 no test header naming them, 113 a derivation, 5
+documented non-support. The generator's completeness report counts the 2023 rows banded at 85 (33 of 1,870 observable)
+and not the 1985 catalog, which revision 4's status line corrects (§13). The figures that follow are revision 3's.
 
 Revision 1's adapter passed 5 of 40 positive 2002 programs on GnuCOBOL 3.2, mostly not for GnuCOBOL non-conformances,
 which shaped revision 2's portable model. GnuCOBOL's `-std` (no 2023) selects "warnings/features for a specific
@@ -809,6 +817,13 @@ regression test.
 
 ### 6.3 Subsuming and replacing NIST-85
 
+**Revision 4 (kb/Work PB6046) changes this section's premises:** the 1985 text is held, so NIST's ANSI-REFERENCE settings
+resolve through `cite.py --edition 1985` and the map starts mechanically (PB6049); the 1985 catalog holds Segmentation,
+Debug and ALTER, so no unit takes the `unit` disposition; the suite need not follow NIST's model (NIST-85 is a coverage
+floor, never a template); and the exit is an invariant: a compiler that passes the WiseOwl 85 suite passes every NIST-85
+unit not excluded, so a NIST failure beside a WiseOwl pass is a suite defect closed by a WiseOwl test. The text below is
+revision 3's where it says otherwise.
+
 **A feature map, not a copy** (decision 3). Subsumption is a property of the suite: a rule is covered when the suite
 holds a validated 85 test of it that some compiler has passed.
 
@@ -865,21 +880,28 @@ with the excluded units listed. Only then does §6 step 5 retire `tests/nist/` f
 
 ## 8. Order of work
 
-1. **Now** ("Pilot now, rest after GAP"): the tool slices of §13 are released as pilot work (decision 16) in §13's
-   `blocked_by` order, so S14 and S15 follow S3 and S20 waits for the 2027 text. They change no test's expected
-   behaviour, and the GAP their new rows and points add is reported as newly measured scope (§4.1).
-2. **The pilot, S3, runs after S5-S8 and S5b and before S14 and S15, and sets their scope** (decision 15). It runs §6
-   steps 3 and 4 at all four editions on WiseOwl and GnuCOBOL, crediting points by hand, for clause 11 (114 rows),
-   §2023:14.9.8 COMPUTE and one file statement (`pb355_start_length_past_operand`), plus one sample per long pole of the 85
-   path: crosswalk programs needing `rows`, `unit` and `differs`, new 85 tests, MOVE's Table 16 as one control, and
-   `restricts` for its SR rows. It compiles the 1,074 85 candidates at 85, checks the driver as entry and each edition's
-   return on both compilers, and measures the compiles grouping saves, the cost per obligation and the share of step 3's
-   outcomes.
-3. **After zero GAP and zero known defects, COBOL-85 first** (decision 4): the 85 clause passes, the new 85 tests and
-   the crosswalk, until §6.3's report reads that the suite subsumes NIST-85, after S5, S12, S13 and the Communication
-   facility (decision 12). Then 2002, 2014 and 2023 in turn, each running forward over the tests earlier editions
-   cleared.
-4. **2027**, once published: the schema is ready (S5), and its differences are found from the text first (S20).
+Revision 4 (kb/Work PB6046) orders the work in stages, COBOL-85 first (decision 4), each with a measured exit:
+0. **Measure.** `harness/suite_status.py --edition 85` and the four denominators: rows (each observable 1985 row has a
+   cleared accepted test WiseOwl passes at 85), points (every alternative of every 1985 general format, decisions 1 and
+   7), NIST (every unit dispositioned and subsumed, §6.3), second compiler (every cleared test has a recorded GnuCOBOL
+   verdict, each FAIL classified with a citation). The line prints `=== SUITE 85: COMPLETE ===` only when all are zero
+   and the 1985 transcription's second independent pass has found nothing (owner 2026-11-22).
+1. **The pilot** (PB3178, re-scoped): one slice of about 100 rows end to end with the real tools; its cost per row, per
+   test cleared, per test written and per NIST unit sets the stop rule of every later stage (above twice: redesign).
+2. **Clear the existing tests.** A test clears when the portability lint passes, WiseOwl passes it at 85, its expected
+   output is the one the 1985 reads recorded for its row, and its GnuCOBOL verdict is recorded; two compilers agreeing
+   clear it with no agent. The residue is bucketed by cause, one fix train per bucket.
+3. **Write what is missing**, only for a measured obligation (§6.1's authoring lane, PB4697).
+4. **NIST-85 subsumed** (§6.3, PB4696): the mechanical map's residue adjudicated with a refuter; then `tests/nist/`
+   leaves the gate and the nightly guard.
+5. **The shipped shape**: case files (decision 17, S5b, PB4685) over the 85 folders, held neutral by both compilers'
+   verdicts; results; the archive (S4, PB3179, held for the license, PB3159).
+
+**At 85 the portable suite flags only obsolete elements and nonstandard extensions.** 1985 requires those two warning
+mechanisms (§1985:I.1.5.2.3, §1985:I.1.5.2.5.2) and no diagnosis of a syntax-rule violation, so a test of a violation at
+85 is judged at its site (§3.2) in a diagnosis layer reported apart and never a FAIL. Stage 0's tooling may change no
+test's expected behaviour. The 2002, 2014 and 2023 suites, and the slices only they need (S5, S10-S13, S20), are planned
+after the 85 suite, each from its own edition's catalog.
 
 ## 9. Drift tests
 
@@ -950,11 +972,23 @@ Decision 17's case file (§3-§6, §9, §13) was then revised against a checker'
 text before it is `DESIGN-conformance-suite.rev3c.md.pre17`. §1.1's "Lands in" column maps each decision to its
 sections.
 
+### 12.1 What revision 4 changed and why (kb/Work PB6046)
+
+The 1985 text is held and its catalog complete, so the 85 suite is counted on the 1985 rows, not on 2023 rows banded at
+85, and a 1985 row's test runs at 85 alone, which takes the cross-edition slices (S5, S10-S13) off the 85 path. NIST's
+ANSI-REFERENCE settings resolve in the held 1985 text (`cite.py --edition 1985`), so the crosswalk starts mechanically and
+its `unit` disposition goes: the 1985 catalog holds Segmentation, Debug and ALTER. The tree doubled (11,098 tests), so
+revision 3's whole-tree migrations (S5b, S7) move after the suite they package. Denominators come first (the owner's
+lesson from 1985, 2026-11-22), so the point catalog (S14, S15) moves into Stage 0, cut to the 1985 figures.
+
 ## 13. Implementation slices
 
-Each slice is one kb/Work note in the PB3160 campaign, ordered by `blocked_by`; the notes hold status, this section
-scope. Every slice ships its tests and drift tests and corrects this document where it proves it wrong (CLAUDE.md
-rules 2, 5, 6).
+**Revision 4's stage notes** (kb/Work, cluster PB3160; the notes hold status, §8 scope): Stage 0 is PB6047 (the status
+line and the 1985 completeness count), PB6048 (the 1985 row obligations and the 647 unnamed rows), PB6049 (the NIST-85
+unit list and its mechanical map, S17's first half), PB6050 (the 1985 coverage-point catalog and its credit from the
+parse, S14 and S15 cut to 85), PB6054 (the second-compiler denominator: GnuCOBOL at 85, its baseline and buckets) and PB6051 (the second independent pass of `specs/ANSI_COBOL_1985.md`). Stage 1 is
+PB3178; Stage 3's authoring lane is PB4697; Stage 4 is PB4696; Stage 5 is PB4685 (S5b) and PB3179 (S4). The slices
+below that revision 4 did not name are revision 3's, planned with the editions after 85.
 
 **Landed:** S0a-S2 (PB3172-PB3177). **Held:** S4 (PB3179), the release archives, until the owner chooses the license
 (PB3159).
