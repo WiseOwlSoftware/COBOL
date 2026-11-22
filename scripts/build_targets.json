@@ -84,6 +84,7 @@
         "conformance-suite/harness/generate.py|removed_corpus_files|f.is_file()": "each path the traced walk of tests/conformance/ returned",
         "conformance-suite/harness/config.py|load_adapter|hook_path.is_file()": "a hook beside its adapter: conformance-suite/adapters/",
         "conformance-suite/harness/config.py|load_baseline|path.is_file()": "check_tree's conformance-suite/baselines/<compiler>.json",
+        "conformance-suite/harness/measurements.py|load|path.is_file()": "check_tree's conformance-suite/measurements/<compiler>.json (root is SUITE)",
         "conformance-suite/harness/config.py|check_tree|(root / 'profiles' / f'{adapter.profile}.json').is_file()": "conformance-suite/profiles/<profile>.json (root is SUITE)",
         "scripts/live_tools.py|tracked|(root / p).is_file()": "not on the --out path: tracked() serves standard_streams' --check and scratch_repo's audit; the generator calls only standard_streams.ensure_utf8",
         "scripts/scratch_repo.py|remove_tree|os.path.lexists(path)": "reached only from the self-tests that import scratch_repo: a scratch directory, never a repository path",
