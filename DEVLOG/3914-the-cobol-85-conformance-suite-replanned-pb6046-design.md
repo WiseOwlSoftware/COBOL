@@ -1,4 +1,4 @@
-## The COBOL-85 conformance suite, replanned (PB6046, design revision 4)
+## Entry 3914 — 2026-11-22 11:11 PST — The COBOL-85 conformance suite, replanned (PB6046, design revision 4)
 
 With 1985 COMPLETE, the owner made the COBOL-85 conformance suite the focus ("a better superset of the NIST test
 cases") and asked for a replan, since much had changed since revision 3 (2026-11-04). Measured at 608ccf507c, the suite
@@ -9,3 +9,4 @@ the crosswalk starts mechanically; at 85 the portable suite flags only obsolete 
 the two warnings §1985:I.1.5.2.3 and §1985:I.1.5.2.5.2 require. Stage 0 (PB6047-PB6050) measures four denominators beside
 a second independent pass of the 1985 transcription (PB6051, the owner's yes); the pilot (PB3178) follows. The 14 slice
 notes whose titles a citation rewrite of 2026-11-06 had turned into ISO citations now cite the design's sections.
+
