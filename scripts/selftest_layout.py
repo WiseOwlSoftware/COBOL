@@ -190,7 +190,6 @@ REMAINING: tuple[str, ...] = (
     "scripts/spec/test_wf_spec_reconcile.py",
     "scripts/spec/verify_acknowledgment.py",
     "scripts/spec/verify_publishable.py",
-    "scripts/spec/work.py",
     "scripts/spec/work_inventory.py",
     "scripts/standard_streams.py",
     "scripts/statusline_tap.py",

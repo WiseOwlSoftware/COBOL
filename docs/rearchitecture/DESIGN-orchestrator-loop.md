@@ -2468,7 +2468,7 @@ resolves to a real clause of the standard's "Standard classes", so no audit coul
 | 24 | PB5440 | `scripts/t*.py`–`scripts/v*.py` (about 1,900); `test_population.py` and `test_leg_report.py` renamed; `test_held_analyzer_output.py` → `_tree/` | the same, every caller of the two renamed tools | the same; the two tools' CLI outputs the same |
 | 25 | PB5404 | `scripts/spec/a*.py`–`d*.py`; `DerivedVerdictDriftTests.cs`'s arm read → `DECLARED` | the same, that C# test | the same |
 | 26 | PB5405 | `scripts/spec/e*.py`–`l*.py`, with `test_figure_*.py`; `AnnexA2UndefinedListDriftTests.cs`'s run → `DECLARED` | the same, that C# test | the same |
-| 27 | PB5406 | `scripts/spec/m*.py`–`w*.py`, with `test_render_figure.py`, `test_text_layer.py`, `test_transcribe_pdf.py`, `test_wf_spec_reconcile.py` | the same | the same |
+| 27 | PB5406 | `scripts/spec/m*.py`–`w*.py` (`work.py`'s cases moved by PB3202: `scripts/selftests/spec/work/`), with `test_render_figure.py`, `test_text_layer.py`, `test_transcribe_pdf.py`, `test_wf_spec_reconcile.py` | the same | the same |
 | 28 | PB5407 | `scripts/orchestrator/[a-r]*.py` (about 2,850 self-test lines; `enqueue`, `land_lane` done) | the same | the same |
 | 29 | PB5441 | `scripts/orchestrator/[s-z]*.py` with its standalone `test_*.py` files but the planner cases (about 2,000) | the same | the same |
 | 30 | PB5408 | `scripts/arch/`, `scripts/hooks/`, `scripts/semgrep/`, `scripts/models/`, `conformance-suite/harness/`, `.claude/`; `ArchCensusDriftTests.cs` and `ArchReviewFleetDriftTests.cs` → `DECLARED`, `SelfTestArmSource.cs` deleted | the same, those C# tests | the same |
