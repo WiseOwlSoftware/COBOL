@@ -137,6 +137,20 @@ def ends_sentence(text: str) -> bool:
     return bool(SENTENCE_END.search(text))
 
 
+def caption_number(line: str) -> int | None:
+    """THE ONE READING OF A TABLE CAPTION (kb/Work PB6015): the number of the table `line` captions ("**Table 12 -
+    Procedural statements**", "Table 2: Error Key Values"), or None. A caption is a short title, never a sentence: the
+    prose that names a table ("Table 2 shown below points to the appropriate presentation rules ...") is no caption, so
+    a citation's `Table <n>` is held to the caption the page prints (cite.py#_resolve_table), as the segmentation is.
+    A 1985 caption inside a level-2 box ("║Table 1: Combinations of Conditions, ...║") is a caption too: the box marks
+    the level, not the text."""
+    s = line.strip().strip("║").strip()
+    c = CAPTION.match(s)
+    if c is None or len(s.split()) > 16 or ends_sentence(s.rstrip("*")):
+        return None
+    return int(c.group("t"))
+
+
 def open_at_end(text: str) -> bool:
     """Does `text` stop where no paragraph can, inside a parenthesis it opened and did not close? The 1985 text breaks a
     sentence there across a page ("... (see page VI-127," / page 247: "The SET Statement). The implementor defines ...";
@@ -268,9 +282,7 @@ def segment(lines: list[tuple[int, str]], held: re.Pattern[str] | None = None) -
         if not s or MARKUP.match(line):
             fresh = True
             continue
-        if (c := CAPTION.match(line)) and s.endswith(("**", s.split()[-1])) and len(s.split()) <= 16 \
-                and not ends_sentence(s.rstrip("*")):
-            t = int(c.group("t"))
+        if (t := caption_number(line)) is not None:
             # A caption printed right below a table that had none above names it (the 1985 text captions its tables
             # below them: "Table 2: Page Heading Group Presentation Rules Table", kb/Work PB6001), unless another table
             # of the clause has that number; it is still the caption of a part printed after it (a table continued
