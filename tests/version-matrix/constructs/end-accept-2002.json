@@ -1,12 +1,12 @@
 {
  "id": "end-accept-2002",
- "description": "END-ACCEPT explicit scope terminator (ISO §2023:14.9.1) — introduced 2002. the current acceptStatement grammar (ACCEPT dataReference (FROM acceptSource)?) has no END_ACCEPT, so the binder gate (COBOL0816, folded to ConstructRegistry.Check in P2.6b) is presently UNREACHABLE — the matrix SKIPS its compile assertion until END-ACCEPT parsing lands and this row flips active with a real fixture. ACTIVATED by kb/Work PB134: the terminator finally parses, so the gate and the matrix assertions are live.",
+ "description": "END-ACCEPT explicit scope terminator (ISO §2023:14.9.1.2: `ACCEPT identifier-1 [ FROM mnemonic-name-1 ] [ END-ACCEPT ]` and the other ACCEPT formats) - a COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the ANSI X3.23-1985 ACCEPT formats are `ACCEPT identifier-1 [ FROM mnemonic-name-1 ]` and `ACCEPT identifier-2 FROM { DATE | DAY | DAY-OF-WEEK | TIME }` (§1985:VI.6.5.2), with no terminator, and §1985:IV.4.4.4 'The explicit scope terminators are the following' lists END-ADD, END-CALL, END-COMPUTE, END-DELETE, END-DIVIDE, END-EVALUATE, END-IF, END-MULTIPLY, END-PERFORM, END-READ, END-RECEIVE, END-RETURN, END-REWRITE, END-SEARCH, END-START, END-STRING, END-SUBTRACT, END-UNSTRING and END-WRITE; §2002:14.8.1.1 prints `ACCEPT identifier-1 [ FROM mnemonic-name-1 ] [ END-ACCEPT ]`, and §2002:14.4 Table 13 pairs `ACCEPT | [NOT] ON EXCEPTION | END-ACCEPT`, the conditional phrase of the screen ACCEPT 2002 adds (§2002:F.2 item 1: 'The ACCEPT statement is extended to allow a screen item specified in the screen section to be used for operator input at a terminal'). §2014:14.9.1.1 prints the 2002 format unchanged, so 2014 = 2023. The gate is COBOL0816 through ConstructRegistry.Check; kb/Work PB134 made the terminator parse, so the gate and the matrix assertions are live.",
  "display": "END-ACCEPT (explicit scope terminator)",
  "diagnosticCode": "COBOL0816",
- "citation": "ISO §2023:14.9.1.2 (END-ACCEPT in the ACCEPT general formats)",
+ "citation": "§2002:14.8.1.1; §2002:14.4; §2002:F.2 item 1; §2014:14.9.1.1; §2023:14.9.1.2",
  "introducedIn": 2002,
  "removedIn": null,
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:14.8.1.1, §2002:14.4 Table 13; no VCR row)",
  "status": "active",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(4).\nPROCEDURE DIVISION.\nMAIN.\n    ACCEPT W END-ACCEPT.\n    STOP RUN.\n",
  "expectDiagnostic": "COBOL0816"

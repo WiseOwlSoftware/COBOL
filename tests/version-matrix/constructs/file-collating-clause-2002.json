@@ -1,12 +1,12 @@
 {
  "id": "file-collating-clause-2002",
- "description": "The file-control COLLATING SEQUENCE clause (ISO 12.4.5.7) - the collating sequence for the record keys of an INDEXED file (Format 1 file-level IS/FOR ALPHANUMERIC/FOR NATIONAL, Format 2 key-level OF key... IS alphabet). 2002 introduction (programmable indexed-key collating); 0900 below 2002. Parses at all editions (superset), introduction-gated post-bind by VersionConformancePass.",
+ "description": "The file-control COLLATING SEQUENCE clause (ISO 12.4.5.7) - the collating sequence for the record keys of an INDEXED file (Format 1 file-level IS/FOR ALPHANUMERIC/FOR NATIONAL, Format 2 key-level OF key... IS alphabet). A COBOL-2002 introduction (programmable indexed-key collating); 0900 below 2002. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the ANSI X3.23-1985 indexed file control entry ends `RECORD KEY IS data-name-1 [ ALTERNATE RECORD KEY IS data-name-2 [ WITH DUPLICATES ] ] … [ FILE STATUS IS data-name-3 ] .` (§1985:IX.2.3.2), and §1985:IX.2.3.4 GR3 fixes the key order: 'For an indexed file, the collating sequence associated with the native character set is assumed'; §2002:12.3.4.6 introduces the clause: 'The COLLATING SEQUENCE clause specifies the collating sequence to be used for the ordering of record keys and alternate record keys for an indexed file' (§2002:12.3.4.6.3 GR1: 'Each collating sequence is a fixed file attribute'). §2002:F.2 has no item that names the clause; its item 24 records the change it belongs to: 'For each use of a collating sequence, language is provided for specifying either an alphanumeric collating sequence or a national collating sequence, or both.' §2014:12.4.4.6 carries the 2002 sentence unchanged, so 2014 = 2023. Parses at all editions (superset), introduction-gated post-bind by VersionConformancePass.",
  "display": "the file COLLATING SEQUENCE clause",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:12.4.5.7; 2002 introduction (expanded indexed I-O)",
+ "citation": "§2002:12.3.4.6; §2002:12.3.4.6.3 GR1; §2002:F.2 item 24; §2014:12.4.4.6; §2023:12.4.5.7.1",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+ "vcr": "2002 introduction (§2002:12.3.4.6; no VCR row)",
  "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWCOL.\n       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           ALPHABET AL IS \"ABCDEFGHIJKLMNOPQRSTUVWXYZ\".\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS INDEXED\n               RECORD KEY IS R-KEY\n               COLLATING SEQUENCE IS AL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R.\n          05 R-KEY PIC X(4).\n          05 R-D   PIC X(4).\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
 }

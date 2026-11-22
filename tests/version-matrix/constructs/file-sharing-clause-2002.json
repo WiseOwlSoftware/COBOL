@@ -1,12 +1,12 @@
 {
  "id": "file-sharing-clause-2002",
- "description": "The SHARING clause / OPEN SHARING phrase (ISO 12.4.5.15 / 14.9.27) - governs whether another file connector may open the same physical file (Table 19 -> status 61). 2002 introduction; {is2002()}?-gated, so below 2002 the W1.5 parse-layer mapping names the edition (0900).",
+ "description": "The SHARING clause / OPEN SHARING phrase (ISO 12.4.5.15 / 14.9.27) - governs whether another file connector may open the same physical file (Table 19 -> status 61). A COBOL-2002 introduction; {is2002()}?-gated, so below 2002 the W1.5 parse-layer mapping names the edition (0900). THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the ANSI X3.23-1985 sequential file control entry ends `[ ACCESS MODE IS SEQUENTIAL ] [ FILE STATUS IS data-name-2 ] .` (§1985:VII.2.3.2) and its OPEN is `OPEN { INPUT file-name-1 [ REVERSED | WITH NO REWIND ] … | OUTPUT { file-name-2 [ WITH NO REWIND ] } … | I-O { file-name-3 } … | EXTEND { file-name-4 } … } …` (§1985:VII.4.3.2), with no sharing phrase in either; §2002:12.3.4.15 introduces the clause: 'The SHARING clause indicates that a file is to participate in file sharing and record locking', §2002:14.8.26.3 GR22 the OPEN phrase: 'The SHARING phrase overrides any SHARING clause in the file control entry of file-name-1', and §2002:F.2 states the change, its item 52: 'File sharing provides a cooperative environment that allows the user to permit or deny access by concurrent file connectors to a physical file.' §2014:12.4.4.14 and §2014:14.9.26.3 GR22 carry the 2002 text unchanged, so 2014 = 2023 (VCR row 7.39 records the facility's behavior at 85).",
  "display": "the SHARING clause / OPEN SHARING phrase",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:12.4.5.15 / §2023:14.9.27; 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)",
+ "citation": "§2002:12.3.4.15; §2002:14.8.26.3 GR22; §2002:F.2 item 52; §2014:12.4.4.14; §2014:14.9.26.3 GR22; §2023:12.4.5.15.1; §2023:14.9.27.4 GR23; VCR row 7.39",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+ "vcr": "2002 introduction (§2002:12.3.4.15, §2002:F.2 item 52; VCR row 7.39)",
  "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWSH.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS SEQUENTIAL\n               SHARING WITH ALL OTHER LOCK MODE IS MANUAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(8).\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
 }

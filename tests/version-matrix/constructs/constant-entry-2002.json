@@ -1,13 +1,13 @@
 {
  "id": "constant-entry-2002",
  "status": "active",
- "description": "Constant entry (01 name CONSTANT [IS GLOBAL] AS {literal | arith-expr | LENGTH OF} | FROM cv, §2023:13.10) — mandatory 2002-era core (roadmap D5); PROVISIONAL pre-2023 edge (zero Annex E hits ⇒ predates 2023). ACTIVE as of P10 Step 15: a COMPILE-TIME substitution (§2023:13.10.4 GR1/GR3 — references substitute the literal; no storage) bound into ConstantEntryBinder.cs; the §2023:13.10 SRs are COBOL1547; the introduction gate is the VersionConformancePass parse arm (VisitConstantEntryBody).",
+ "description": "Constant entry (01 name CONSTANT [IS GLOBAL] AS {literal | arith-expr | LENGTH OF} | FROM cv, §2023:13.10) - a COBOL-2002 introduction (roadmap D5). THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the ANSI X3.23-1985 data description entry (§1985:VI.5.3.2, whose printed format runs `IS character-string BINARY COMPUTATIONAL COMP` ...) offers after the level-number and data-name-1 or FILLER only the REDEFINES, PICTURE, USAGE (BINARY, COMPUTATIONAL, DISPLAY, INDEX, PACKED-DECIMAL), SIGN, OCCURS, SYNCHRONIZED, JUSTIFIED, BLANK WHEN ZERO and VALUE clauses (the Inter-Program Communication module's level-01 entry adds IS EXTERNAL and IS GLOBAL, §1985:X.4.3.1: \"a level 01 data description entry within the Working-Storage Section or File Section determines whether the data record and its subordinate data items have local names\"), with the level-number of §1985:VI.5.3.3 SR1 (\"Level-number in format 1 may be any number from 01 through 49 or 77\"), and no CONSTANT clause; §2002:F.1 item 6 (\"The following reserved words have been added\") lists CONSTANT. §2002:13.9 adds \"A constant entry defines a constant. A constant may be used in place of a literal\" (§2002:13.9.3 GR1: \"the effect of specifying constant-name-1 in other than this entry is as if literal-1\" were written there), and §2002:F.2 item 34 states the change: \"The user may define constants in the data division with constant entries.\" §2014:13.10 and §2023:13.10.1 carry the 2002 sentence unchanged. ACTIVE as of P10 Step 15: a COMPILE-TIME substitution (§2023:13.10.4 GR1/GR3 - references substitute the literal; no storage) bound into ConstantEntryBinder.cs; the §2023:13.10 SRs are COBOL1547; the introduction gate is the VersionConformancePass parse arm (VisitConstantEntryBody).",
  "display": "constant entry (01 … CONSTANT AS)",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:13.10",
+ "citation": "§2002:13.9; §2002:13.9.3 GR1; §2002:F.1 item 6; §2002:F.2 item 34; §2014:13.10; §2023:13.10.1; §2023:13.10.4 GR1",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "ISO-validation D5 (§2023:13.10 constant entry); provisional edge per decision 1",
+ "vcr": "2002 introduction (§2002:F.2 item 34; ISO-validation D5)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 K CONSTANT AS 42.\n01 W PIC 99.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE K TO W.\n    DISPLAY W.\n    STOP RUN.\n"
 }

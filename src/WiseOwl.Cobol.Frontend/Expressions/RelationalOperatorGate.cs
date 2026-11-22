@@ -9,8 +9,8 @@ namespace WiseOwl.Cobol.Frontend.Expressions;
 /// <summary>
 /// ⭐ THE relational-operator INTRODUCTION gate — ONE rule, asked by BOTH lanes. The symbol <c>&lt;&gt;</c> is "an
 /// abbreviation for NOT EQUAL" (ISO §2023:8.7.5.2 SR11) and a COBOL-2014 introduction: the 2002 text's clause 8.7.5.2 ends its
-/// abbreviation rules at <c>&lt;=</c>, and Annex D.3 (2002→2014 changes) item 16 of the 2009 committee draft adds "The symbol
-/// &lt;&gt; … as an extended relational operator" (kb/Work PB3604; row <c>not-equal-operator-2014</c>). Checked through the ONE
+/// abbreviation rules at <c>&lt;=</c> (§2002:8.7.5.2 SR8), and §2014:E.3 item 23 adds "The symbol
+/// &lt;&gt; … as an extended relational operator" (kb/Work PB3604, PB3965; row <c>not-equal-operator-2014</c>). Checked through the ONE
 /// <see cref="ConstructRegistry"/> funnel so the code and the §2023:4.2 severity are the registry's.
 /// <para><b>One node to recognize.</b> Every relation — a condition's, an EVALUATE <c>WHEN</c> partial expression's, a
 /// constant-conditional-expression's — spells its operator through the one <c>comparisonOperator</c> grammar rule, the only

@@ -1445,10 +1445,13 @@ def import_reads(year: int, reads: pathlib.Path, asked: pathlib.Path | None, rec
     if ed.next_held is None:
         raise SystemExit(f"{TOOL}: import-reads --edition {year}: the newest held edition has no change records")
     by_rule = {r["id"]: r for r in ed.rules()}
+    # an earlier import's record reading a rule the catalog no longer holds (a relabel with no recorded move, kb/Work
+    # PB6022) is refused BEFORE anything is written; the new slices' own reads `import_records` refuses itself
+    if unknown := lineage_reads.unknown_rule_errors(year, set(by_rule), lineage_reads.load(year, record)):
+        raise SystemExit(f"{TOOL}: {len(unknown)} read(s) of {record} cannot be imported over; nothing is written:\n  "
+                         + "\n  ".join(unknown))
     written = lineage_reads.import_records(year, reads, asked, record, set(by_rule))
     slices = lineage_reads.load(year, record)
-    if unknown := sorted(rid for s in slices for rid in s.reads if rid not in by_rule):   # an earlier import's record
-        raise SystemExit(f"{TOOL}: {len(unknown)} read rule(s) of {record} are no rule of the {year} catalog: {unknown[:5]}")
     decisions = lineage_reads.decide(ed, slices, lineage_screen.committed(year), None, lineage_reads.Lineage.of(ed))
     state.mkdir(parents=True)
     write_atomic(state / READS, json.dumps({"edition": year, "record": str(record.resolve()),

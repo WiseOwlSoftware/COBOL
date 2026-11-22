@@ -1,12 +1,12 @@
 {
  "id": "record-lock-phrase-2002",
- "description": "A record-lock phrase on READ/WRITE/REWRITE (ISO 14.9.30/14.9.51/14.9.35; WITH LOCK / WITH NO LOCK / IGNORING LOCK / ADVANCING ON LOCK) - explicit MANUAL locking + the IGNORING-LOCK bypass. 2002 introduction; 0900 below 2002.",
+ "description": "A record-lock phrase on READ/WRITE/REWRITE (§2023:14.9.30/§2023:14.9.51/§2023:14.9.35; WITH LOCK / WITH NO LOCK / IGNORING LOCK / ADVANCING ON LOCK) - explicit MANUAL locking + the IGNORING-LOCK bypass. 2002 introduction; 0900 below 2002. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 1985 formats carry no lock phrase - 'READ file-name-1 [NEXT] RECORD [INTO identifier-1]' (§1985:IX.4.5.2), 'REWRITE record-name-1 [ FROM identifier-1 ] [ INVALID KEY imperative-statement-1 ]' (§1985:IX.4.6.2), 'WRITE record-name-1 [FROM identifier-1] [INVALID KEY imperative-statement-1]' (§1985:IX.4.9.2); 2002 adds them: 'The LOCK phrase shall not be specified in the same READ statement as the IGNORING LOCK phrase' (§2002:14.8.29.2 SR4), 'If automatic locking has been specified for file-name-1, none of the phrases IGNORING LOCK, WITH LOCK, or WITH NO LOCK shall be specified' (SR5), 'If automatic locking has been specified for the rewrite file, neither the WITH LOCK phrase nor the WITH NO LOCK phrase shall be specified' (§2002:14.8.33.2 SR5; the write file, §2002:14.8.47.2 SR21), and §2002:F.2 item 111 records 'Record locking. Record locking allows control of record access for shared files'. 2014 keeps them (§2014:14.9.29.2 SR3; §2014:14.9.33.2 SR4; §2014:14.9.47.2 SR21).",
  "display": "a record-lock phrase (WITH LOCK / WITH NO LOCK / IGNORING LOCK / ADVANCING ON LOCK)",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:14.9.30.2 / §2023:14.9.51.2 / §2023:14.9.35.2 (the LOCK phrases of the general formats); 2002 introduction; §2023:14.9.30.3 SR4",
+ "citation": "§2002:14.8.29.2 SR4; §2002:14.8.29.2 SR5; §2002:14.8.33.2 SR5; §2002:14.8.47.2 SR21; §2002:F.2 item 111; §2014:14.9.29.2 SR3; §2014:14.9.33.2 SR4; §2014:14.9.47.2 SR21; §2023:14.9.30.3 SR3; §2023:14.9.30.3 SR4; §2023:14.9.35.3 SR4; §2023:14.9.51.3 SR22",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+ "vcr": "2002 introduction (§2002:14.8.29.2 SR4 / §2002:F.2 item 111)",
  "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWRL.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS RELATIVE\n               ACCESS MODE IS RANDOM RELATIVE KEY IS K\n               LOCK MODE IS MANUAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(8).\n       WORKING-STORAGE SECTION.\n       01 K PIC 9(4).\n       PROCEDURE DIVISION.\n       MAIN.\n           MOVE 1 TO K.\n           READ F WITH LOCK.\n           STOP RUN.\n"
 }

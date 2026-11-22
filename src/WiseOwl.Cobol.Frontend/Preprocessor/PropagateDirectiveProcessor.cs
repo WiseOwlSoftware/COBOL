@@ -30,9 +30,10 @@ public sealed record PropagateEvent(int Line, bool On);
 /// <c>DirectivePlacementPass</c> (COBOL2652, kb/Work PB1378) — not here: this pre-parse, line-based stage has no
 /// compilation-unit-boundary model. For legal source the fold at an element's first line is also the state at its
 /// containing compilation unit's first line, because no directive may intervene.</para>
-/// <para>Its INTRODUCTION edition is PROVISIONAL COBOL-2002 (the roadmap decision-1 policy, as for TYPEDEF / the FLOAT
-/// trio): §2023:7.3.21 is live in the 2023 spec — Annex E lists no removal — and it belongs to the 2002-era EC /
-/// compiler-directive facility (the same era as <c>&gt;&gt;TURN</c>, gated at 2002).</para>
+/// <para>Its INTRODUCTION edition is COBOL-2002, QUOTED from the edition texts (kb/Work PB3965): §2002:7.2.17.2 SR1
+/// "A PROPAGATE directive shall not be specified within a compilation unit" is the 2002 directive, COBOL-85 has no
+/// compiler directives (§1985:IV.6.4.2.2.1), and §2002:F.2 lists the facility (its item 29: "to cause propagation
+/// of an exception condition to an activating runtime element"); §2023:7.3.21 keeps it.</para>
 /// </summary>
 public static class PropagateDirectiveProcessor
 {

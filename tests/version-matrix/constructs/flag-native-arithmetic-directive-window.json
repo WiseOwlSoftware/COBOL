@@ -1,9 +1,9 @@
 {
  "id": "flag-native-arithmetic-directive-window",
- "description": "The >>FLAG-NATIVE-ARITHMETIC directive - the second leg of Annex E.2 item 21, on the identical window and the identical derivation as flag-85-directive-window: introduced with the §2023:7.3 facility in COBOL-2002, classified obsolete by the 2014 standard, REMOVED in COBOL-2023. Its operand syntax is the 2002 and 2014 texts' (§2002:7.2.12.1), diagnosed and acted on by FlagDirectiveProcessor + FlagConformancePass (kb/Work PB5600); the row gates the directive WORD by edition. Below 2002 COBOL0900, at 2023 COBOL0902, at 2014 the COBOL0903 obsolete warning. (VCR row 28's third and fourth legs, Standard Arithmetic and MOVE QUOTE, were already rowed.)",
+ "description": "The >>FLAG-NATIVE-ARITHMETIC directive - the second leg of Annex E.2 item 21, on the identical window as flag-85-directive-window: introduced in COBOL-2002, classified obsolete by the 2014 standard, REMOVED in COBOL-2023. THE EDGES ARE QUOTED from the edition texts (kb/Work PB3965): COBOL-85 has no compiler directives (§1985:IV.6.4.2.2.1: 'The compiler directing verbs are COPY, ENTER, REPLACE, and USE'); §2002:7.2.12 introduces the directive: 'The FLAG-NATIVE-ARITHMETIC directive specifies that when standard arithmetic has been specified or implied for the source unit, any arithmetic operation that uses native arithmetic shall be flagged', and §2002:F.2 item 29 lists among the new compiler directives one 'to request the flagging of syntax that might require native arithmetic when standard arithmetic is in effect'; §2014:7.3.13 keeps it and classifies it: 'NOTE The FLAG-NATIVE-ARITHMETIC directive is an obsolete element in this International Standard and is to be deleted in the next edition of standard COBOL', which fixes obsoleteIn=2014; §2023:E.2 item 21 removes it: 'The following features that were classified as obsolete in the previous COBOL standard, have been removed from this Working Draft International Standard: - FLAG-85 - FLAG-NATIVE-ARITHMETIC - ...', which fixes removedIn=2023. Its operand syntax is the 2002 and 2014 texts' (§2002:7.2.12.1), diagnosed and acted on by FlagDirectiveProcessor + FlagConformancePass (kb/Work PB5600); the row gates the directive WORD by edition. Below 2002 COBOL0900, at 2023 COBOL0902, at 2014 the COBOL0903 obsolete warning. (VCR row 28's third and fourth legs, Standard Arithmetic and MOVE QUOTE, were already rowed.)",
  "display": ">>FLAG-NATIVE-ARITHMETIC directive",
  "diagnosticCode": "COBOL0902",
- "citation": "Annex E.2 item 21 (removed in 2023, classified obsolete by the previous standard); the §2023:7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
+ "citation": "§2002:7.2.12; §2002:F.2 item 29; §2014:7.3.13; §2023:E.2 item 21; VCR row 28",
  "directiveWords": [
   "FLAG-NATIVE-ARITHMETIC"
  ],
@@ -17,7 +17,7 @@
  "obsoleteIn": 2014,
  "expectDiagnostic": "COBOL0902",
  "expectDiagnosticBelow": "COBOL0900",
- "vcr": "VCR row 28 (Annex E.2 item 21 removal) + the §2023:7.3 facility's 2002 introduction",
+ "vcr": "2002 introduction (§2002:7.2.12, §2002:F.2 item 29); obsolete 2014 (§2014:7.3.13); removed 2023 (§2023:E.2 item 21, VCR row 28)",
  "source": "       >>FLAG-NATIVE-ARITHMETIC ON\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB725FN.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n",
  "directivePlacement": {
   "rule": "betweenClauses",

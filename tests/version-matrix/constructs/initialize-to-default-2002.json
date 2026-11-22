@@ -1,12 +1,12 @@
 {
  "id": "initialize-to-default-2002",
- "description": "The INITIALIZE THEN TO DEFAULT phrase - a 2002 introduction. Folded from the inline InitializeBinder gate (Exec Step E).",
+ "description": "The INITIALIZE THEN TO DEFAULT phrase - a 2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): COBOL-85's INITIALIZE is INITIALIZE {identifier-1}... with at most a REPLACING phrase (§1985:VI.6.17.2), 'The INITIALIZE statement provides the ability to set selected types of data fields to predetermined values' (§1985:VI.6.17.1), and its only phrase is REPLACING, 'The key word following the word REPLACING corresponds to a category of data' (§1985:VI.6.17.4 GR1); the 2002 general format ends with [THEN TO DEFAULT] (§2002:14.8.19.1), whose effect is §2002:14.8.19.3 GR5's 'The DEFAULT phrase is specified; or' (every possible receiving operand is one), and §2002:F.1 item 6 lists DEFAULT under 'Reserved words. The following reserved words have been added'. 2014 and 2023 keep it (§2014:14.9.19.3 GR5, §2023:14.9.20.4 GR5). Folded from the inline InitializeBinder gate (Exec Step E).",
  "display": "INITIALIZE TO DEFAULT",
  "diagnosticCode": "COBOL0832",
- "citation": "ISO §2023:14.9.20.2 (the DEFAULT phrase is 2002+); §2023:14.9.20.4 GR5",
+ "citation": "§2002:14.8.19.1; §2002:14.8.19.3 GR5; §2002:F.1 item 6; §2014:14.9.19.3 GR5; §2023:14.9.20.2; §2023:14.9.20.4 GR5",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0832",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:14.8.19.1 THEN TO DEFAULT; §2002:F.1 item 6 DEFAULT reserved)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWIDEF.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC X(3) VALUE \"ABC\".\nPROCEDURE DIVISION.\nMAIN.\n    INITIALIZE A THEN TO DEFAULT.\n    STOP RUN.\n"
 }

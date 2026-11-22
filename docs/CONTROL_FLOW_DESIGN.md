@@ -459,9 +459,9 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
 | Construct | 85 | 2002 | 2014 | 2023 | Gating source |
 |---|---|---|---|---|---|
 | GO TO (simple/DEPENDING), out-of-line + inline PERFORM (TIMES/UNTIL/VARYING/AFTER, TEST BEFORE/AFTER), bare EXIT, CONTINUE, NEXT SENTENCE, STOP RUN | ✔ | ✔ | ✔ | ✔ (NEXT SENTENCE archaic-flagged) | invariant; NEXT SENTENCE archaic = row 127 (Annex F.1 #2) |
-| GOBACK | ✘ diagnose not-in-edition | ✔ | ✔ | ✔ | 2002 introduction (derive from the 2002 standard) |
+| GOBACK | ✘ diagnose not-in-edition | ✔ | ✔ | ✔ | 2002 introduction (§2002:F.2 item 62: "A GOBACK statement has been added") |
 | GOBACK with STOP-style status phrase (main program only) | ✘ | ✘ | ✘ | ✔ | row 75 (E.3.3 item 32) |
-| EXIT PERFORM [CYCLE], EXIT PARAGRAPH, EXIT SECTION | ✘ diagnose not-in-edition | ✔ | ✔ | ✔ | 2002 introduction (derive from the 2002 standard) |
+| EXIT PERFORM [CYCLE], EXIT PARAGRAPH, EXIT SECTION | ✘ diagnose not-in-edition | ✔ | ✔ | ✔ | 2002 introduction (§2002:14.8.13 Formats 5 and 6; §2002:F.2 item 49) |
 | PERFORM … UNTIL EXIT | ✘ | ✘ | ✘ | ✔ | row 80 (E.3.3 item 37) |
 | Exception-checking PERFORM variant | ✘ | ✘ | ✘ | ✔ (owned by the EC deep-dive) | row 79 (E.3.3 item 36) |
 | ALTER + alterable GO TO | ✔ (obsolete element; warning channel pending) | ✘ REJECTED as deleted (COBOL0810/0811 — ISO/IEC 1989:2002 deleted ALTER and the target-less GO TO) | same as 2002 | same as 2002 (the 2023 standard has no ALTER; §2023:14.9.17 F1–F2 only) | ISO history (2002 deletion); ANSI X3.23-1985; §18 #10 (reconciled) |

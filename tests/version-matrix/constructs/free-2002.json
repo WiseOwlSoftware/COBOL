@@ -1,13 +1,13 @@
 {
  "id": "free-2002",
  "status": "active",
- "description": "FREE statement (release ALLOCATEd storage), ISO §2023:14.9.15 - introduced 2002. ACTIVE as of Phase-4b increment 2 (DEVLOG 617): per-operand GR1 three-way (release-and-null / NULL no-op / nonfatal EC-STORAGE-NOT-ALLOC through the TurnState-gated status block); SR1 data-pointer operands only (the vendor FREE based-item form rejects 0869); a freed cell's dangling aliases fail loud at the next dereference (EC-BOUND-PTR).",
+ "description": "FREE statement (release ALLOCATEd storage), ISO §2023:14.9.15 - a COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): ANSI X3.23-1985 has no pointer data, so no operand FREE could take (§1985:IV.4.3.3: 'There are five categories of data items ... These are grouped into three classes: alphabetic, numeric, and alphanumeric'); §2002:14.8.14 introduces the statement: 'The FREE statement releases dynamic storage previously obtained with an ALLOCATE statement', §2002:14.8.14.2 SR1 'The data item referenced by data-name-1 shall be of category data-pointer', and §2002:F.2 states both changes, its item 47: 'ALLOCATE and FREE statements are provided for obtaining storage dynamically' and its item 103: 'A new class of data is introduced, a pointer type which holds data and program addresses in a machine-specific or system-specific way.' §2014:14.9.14 and §2014:14.9.14.2 SR1 carry the 2002 text unchanged, so 2014 = 2023 (§2023:14.9.15.3 SR1). ACTIVE as of Phase-4b increment 2 (DEVLOG 617): per-operand GR1 three-way (release-and-null / NULL no-op / nonfatal EC-STORAGE-NOT-ALLOC through the TurnState-gated status block); SR1 data-pointer operands only (the vendor FREE based-item form rejects 0869); a freed cell's dangling aliases fail loud at the next dereference (EC-BOUND-PTR).",
  "display": "FREE",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:14.9.15",
+ "citation": "§2002:14.8.14; §2002:14.8.14.2 SR1; §2002:F.2 item 47; §2002:F.2 item 103; §2014:14.9.14; §2014:14.9.14.2 SR1; §2023:14.9.15.1; §2023:14.9.15.3 SR1",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:14.8.14, §2002:F.2 item 47; no VCR row)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    FREE P.\n    STOP RUN.\n"
 }

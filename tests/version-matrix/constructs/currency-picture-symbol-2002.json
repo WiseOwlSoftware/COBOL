@@ -1,12 +1,12 @@
 {
  "id": "currency-picture-symbol-2002",
- "description": "CURRENCY SIGN … WITH PICTURE SYMBOL, ISO §2023:12.3.7 — the symbol-separate form is 2002+; COBOL-85 had only the bare single-character CURRENCY SIGN",
+ "description": "CURRENCY SIGN ... WITH PICTURE SYMBOL, ISO §2023:12.3.7 - the symbol-separate form is a COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the ANSI X3.23-1985 SPECIAL-NAMES paragraph prints the bare clause (§1985:VI.4.5.2: `[CURRENCY SIGN IS literal-6]`), and §1985:VI.4.5.4 GR11 limits it to one character that is itself the PICTURE symbol: \"The literal must be nonnumeric and is limited to a single character\"; §2002:12.2.6.2 SR20 adds \"If the PICTURE SYMBOL phrase is specified, literal-7 may have any length\" (SR19: \"If the PICTURE SYMBOL phrase is not specified, literal-7 shall consist of a single character\"), and §2002:F.2 item 44 states the change: \"The CURRENCY SIGN clause has been extended to allow for national characters and for multiple distinct currency signs, which may have any length.\" §2014:12.3.6.2 SR23 and §2023:12.3.7.3 SR23 carry it: \"If the PICTURE SYMBOL phrase is specified, literal-7 is the currency string and literal-8 is the associated currency symbol\". Pinned pre-band code COBOL0893 (VCR Table 7 row 7.3).",
  "display": "CURRENCY SIGN WITH PICTURE SYMBOL",
  "diagnosticCode": "COBOL0893",
- "citation": "ISO §2023:12.3.7.2 (the WITH PICTURE SYMBOL phrase of the CURRENCY clause); pinned pre-band code (VCR Table 7 row 7.3); §2023:12.3.7.3 SR23",
+ "citation": "§2002:12.2.6.2 SR20; §2002:12.2.6.2 SR19; §2002:F.2 item 44; §2014:12.3.6.2 SR23; §2023:12.3.7.3 SR23; VCR row 7.3",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0893",
- "vcr": "2002 introduction (VERSION_CHANGE_REFERENCE Table 7; derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:F.2 item 44; VCR row 7.3)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CPS.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    CURRENCY SIGN IS \"F\" WITH PICTURE SYMBOL \"F\".\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 E PICTURE FF9.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE 5 TO E.\n    DISPLAY E.\n    STOP RUN.\n"
 }

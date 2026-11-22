@@ -1,13 +1,13 @@
 {
  "id": "usage-float-extended-2002",
  "status": "active",
- "description": "USAGE FLOAT-EXTENDED (implementor-defined extended-precision float, mapped to native double — .NET has no quad) - PROVISIONAL 2002 edge (D16). LIVE (P12 step 2): compiles at 2002+, COBOL0900 below. Representation implementor-defined per §2023:13.18.60.4 GR13/GR21 (GR13 requires float-extended to hold every float-long value; double satisfies the subset nesting).",
+ "description": "USAGE FLOAT-EXTENDED (implementor-defined extended-precision float, mapped to native double — .NET has no quad) - a COBOL-2002 introduction (D16). LIVE (P12 step 2): compiles at 2002+, COBOL0900 below. Representation implementor-defined per §2023:13.18.60.4 GR13/GR21 (GR13 requires float-extended to hold every float-long value; double satisfies the subset nesting). THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 1985 USAGE clause offers BINARY, COMPUTATIONAL, COMP, DISPLAY, INDEX and PACKED-DECIMAL only (§1985:VI.5.14.3 SR3: 'a USAGE clause specifying BINARY, COMPUTATIONAL, or PACKED-DECIMAL must be declared with a PICTURE character-string that describes a numeric item'; §1985:VI.5.14.4 GR6: 'If the USAGE clause is not specified for an elementary item, or for any group to which the item belongs, the usage is implicitly DISPLAY'), and no FLOAT word is a 1985 reserved word (§1985:IV.8 runs FIRST, FOOTING: its rows '| CH | DETAIL | FIRST | LINKAGE |' and '| CHARACTER | DISABLE | FOOTING | LOCK |'); §2002:13.16.58.3 GR12 reads 'Any value that may be held in a data item of usage float-long shall also be expressible in a data item of usage float-extended' and GR13 'The representation and length of a data item described with USAGE BINARY-CHAR, BINARY-SHORT, BINARY-LONG, BINARY-DOUBLE, FLOAT-SHORT, FLOAT-LONG, or FLOAT-EXTENDED is implementor-defined', §2002:F.1 item 6 adds FLOAT-EXTENDED to the reserved words, and §2002:F.2 states the change, its item 7: 'Two new representations of numeric data type are introduced, a binary representation which holds data in a machine-specific way and is not restricted to decimal ranges of values, and a floating-point representation.' §2014:13.18.60.3 GR12 and GR20 carry it, so 2014 = 2023.",
  "display": "USAGE FLOAT-EXTENDED",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:13.18.60.4 GR13 (USAGE clause; implementor-defined, mapped to double)",
+ "citation": "§2002:13.16.58.3 GR12; §2002:13.16.58.3 GR13; §2002:F.1 item 6; §2002:F.2 item 7; §2014:13.18.60.3 GR12; §2014:13.18.60.3 GR20; §2023:13.18.60.4 GR13; §2023:13.18.60.4 GR21",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "D16 float-family split (provisional 2002)",
+ "vcr": "D16 float-family split; 2002 introduction (§2002:13.16.58.3 GR13; §2002:F.2 item 7)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FX.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-EXTENDED.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
 }

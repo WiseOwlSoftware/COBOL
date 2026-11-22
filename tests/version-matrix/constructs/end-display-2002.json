@@ -1,12 +1,12 @@
 {
  "id": "end-display-2002",
- "description": "The explicit DISPLAY scope terminator END-DISPLAY (ISO 14.9.11.2) - a COBOL-2002 addition like the whole 2002 scope-terminator wave. The registered end-accept twin had a gate and END-DISPLAY had NONE, so `DISPLAY X END-DISPLAY` was silently accepted at 85 (kb/Work PB134).",
+ "description": "The explicit DISPLAY scope terminator END-DISPLAY (ISO 14.9.11.2) - a COBOL-2002 introduction, with END-ACCEPT. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the ANSI X3.23-1985 format is `DISPLAY { identifier-1 | literal-1 } … [ UPON mnemonic-name-1 ] [ WITH NO ADVANCING ]` (§1985:VI.6.10.2), with no terminator, and §1985:IV.4.4.4 'The explicit scope terminators are the following' lists nineteen (END-ADD through END-WRITE) without END-DISPLAY; §2002:14.8.10.1 Format 1 prints `[ UPON mnemonic-name-1 ] [ WITH NO ADVANCING ] [ END-DISPLAY ]`, and §2002:14.4 Table 13 pairs `DISPLAY | [NOT] ON EXCEPTION | END-DISPLAY`, the conditional phrase of the screen DISPLAY 2002 adds (§2002:F.2 item 45: 'The DISPLAY statement is extended to allow a screen item specified in the screen section to be used for output to the operator of a terminal'). §2014:14.9.10.1 prints the 2002 format unchanged, so 2014 = 2023. The registered end-accept twin had a gate and END-DISPLAY had NONE, so `DISPLAY X END-DISPLAY` was silently accepted at 85 (kb/Work PB134).",
  "display": "the END-DISPLAY scope terminator",
  "diagnosticCode": "COBOL0816",
- "citation": "ISO §2023:14.9.11.2 - COBOL-2002 scope terminator",
+ "citation": "§2002:14.8.10.1; §2002:14.4; §2002:F.2 item 45; §2014:14.9.10.1; §2023:14.9.11.2",
  "introducedIn": 2002,
  "removedIn": null,
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:14.8.10.1, §2002:14.4 Table 13; no VCR row)",
  "status": "active",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W134D.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(4) VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W END-DISPLAY\n    STOP RUN.\n",
  "expectDiagnostic": "COBOL0816"

@@ -518,7 +518,7 @@ threaded into `CopyProcessor`/`ReferenceFormatProcessor` today). The COMMUNICATI
 > documented and not mirrored (legacy CBL0906 compile-rejects QUOTE/HIGH/LOW→numeric at every standard;
 > legacy DISPLAYs a space-filled numeric as empty). A multi-character ALL literal
 > is NOT on these rows: §2023:8.3.3.6.3 SR3 bars its association with a numeric/numeric-edited item, removed 2002
-> (`all-literal-multichar-numeric-removed-2002`, VCR Table 7 row 7.13 — a derived edge; kb/Work PB422).
+> (`all-literal-multichar-numeric-removed-2002`, VCR Table 7 row 7.13 — an edge quoted from §1985:IV.4.2.2.2.3 SRL3.2 and §2002:F.1 item 1; kb/Work PB422, PB3965).
 > **(b) The loud-guard sweep** — `PictureAnalyzer.ParseUsage`/`Analyze` take `(EditionContext, where)`: the silent
 > Display catch-all is dead; the 2002+ recognized-but-unimplemented inventory (NATIONAL, BIT, POINTER, OBJECT
 > REFERENCE, BINARY-CHAR family, FLOAT-SHORT/LONG/EXTENDED, PIC N/1/E) routes its registry row (0900 below

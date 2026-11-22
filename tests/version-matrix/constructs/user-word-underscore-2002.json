@@ -1,14 +1,14 @@
 {
  "id": "user-word-underscore-2002",
  "status": "active",
- "description": "The UNDERSCORE as a character of a COBOL word (a user-defined word here) — ISO §2023:8.3.2.1: \"Each character of a COBOL word … shall be selected from the set of basic letters, basic digits, extended letters, and the basic special characters hyphen and underscore. The hyphen or underscore shall not appear as the first or last character in such words.\" A COBOL-2002 introduction: the '85 word character set has the hyphen only. Parsed at EVERY edition (superset-parse / bind-narrow) so the below-2002 rejection is this named gate rather than a raw `no viable alternative`. fix-queue R02.",
+ "description": "The UNDERSCORE as a character of a COBOL word (a user-defined word here) — ISO §2023:8.3.2.1: \"Each character of a COBOL word … shall be selected from the set of basic letters, basic digits, extended letters, and the basic special characters hyphen and underscore. The hyphen or underscore shall not appear as the first or last character in such words.\" A COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): §1985:IV.4.2.2.1: 'Each character of a COBOL word that is not a special character word is selected from the set of letters, digits, and the hyphen; the hyphen may not appear as the first or last character in such words', and §1985:IV.4.2.2.1.1: 'Each character of a user-defined word is selected from the set of characters 'A', 'B', 'C', ... , 'Z', '0', ... , '9', and '-'' (the 1985 COBOL character set lists no underscore); §2002:8.3.1.1: 'Each character of a COBOL word that is not a special character word shall be selected from the set of basic letters, basic digits, extended letters, and the basic special characters hyphen and underscore. The hyphen or underscore shall not appear as the first or last character in such words.' §2002:F.2 item 138 states the change: 'Underscore (_) character. The basic special characters of the COBOL character repertoire have been expanded to include the underscore (_) character, which can be used in the formation of COBOL words.' §2014:8.3.1.1 keeps the sentence, so 2014 = 2023. Parsed at EVERY edition (superset-parse / bind-narrow) so the below-2002 rejection is this named gate rather than a raw `no viable alternative`. fix-queue R02.",
  "display": "the underscore in a COBOL word",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:8.3.2.1 (word character set: hyphen AND underscore; neither first nor last) — 2002 introduction, the '85 set being hyphen-only",
+ "citation": "§2002:8.3.1.1; §2002:F.2 item 138; §2014:8.3.1.1; §2023:8.3.2.1",
  "rule1985": "§1985:IV.4.2.2.1.1 (a user-defined word's characters: letters, digits and the hyphen)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard); the word-character-set half of §2023:8.3.2.1, whose other half (the 63-character length ceiling) is the 2023 RELAXATION checked inline as COBOL1567 rather than as a construct row",
+ "vcr": "2002 introduction (§2002:8.3.1.1; §2002:F.2 item 138); the word-character-set half of §2023:8.3.2.1, whose other half (the 63-character length ceiling) is the 2023 RELAXATION checked inline as COBOL1567 rather than as a construct row",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KUWUS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 MY_NAME PIC X(5) VALUE \"hello\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY MY_NAME.\n    STOP RUN.\n"
 }

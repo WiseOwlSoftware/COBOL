@@ -1,13 +1,13 @@
 {
  "id": "same-as-clause-2002",
  "status": "active",
- "description": "SAME AS clause in a data description entry — the subject takes the SAME description as data-name-1's entry, subordinates included (ISO §2023:13.18.49 GR1/GR2; levels renumber relative to the subject). PROVISIONAL 2002 edge (the TYPEDEF-family decision-1 policy — SAME AS predates 2023 with zero Annex E 2014→2023 rows). LIVE (P10 Step 16): expansion rides the ONE ExpandTypes/CloneItem machinery (ExpandSameAs); §2023:13.16.3 SR12 composition + the §2023:13.18.49.3 SRs enforce as COBOL1555/1556/1557.",
+ "description": "SAME AS clause in a data description entry — the subject takes the SAME description as data-name-1's entry, subordinates included (ISO §2023:13.18.49.4 GR1/GR2; levels renumber relative to the subject). A COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 1985 data description entry's Format 1 offers data-name-1/FILLER, REDEFINES, PICTURE, USAGE, SIGN, OCCURS, SYNCHRONIZED, JUSTIFIED, BLANK WHEN ZERO and VALUE, and no SAME AS clause (§1985:VI.5.3.3 SR2: 'The remaining clauses may be written in any order'), and AS is no 1985 reserved word (§1985:IV.8 runs AREAS, ASCENDING: its rows '| AREAS | DE | EOP | JUSTIFIED |' and '| ASCENDING | DEBUG-CONTENTS | EQUAL | |'); §2002:13.16.47 reads 'The SAME AS clause specifies that a data-name has the same description as that specified by another data description entry' (§2002:13.16.47.3 GR1: 'The effect of the SAME AS clause is as though the data description identified by data-name-1 had been coded in place of the SAME AS clause'), §2002:F.1 item 6 adds AS to the reserved words, and §2002:F.2 states the change, its item 117: 'The SAME AS clause indicates that the description of a data item is identical to that of another item.' §2014:13.18.49 and §2014:13.18.49.3 GR1 carry the 2002 text, so 2014 = 2023. LIVE (P10 Step 16): expansion rides the ONE ExpandTypes/CloneItem machinery (ExpandSameAs); §2023:13.16.3 SR12 composition + the §2023:13.18.49.3 SRs enforce as COBOL1555/1556/1557.",
  "display": "SAME AS clause",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:13.18.49; provisional 2002 per the decision-1 policy (the TYPEDEF-family edge)",
+ "citation": "§2002:13.16.47; §2002:13.16.47.3 GR1; §2002:F.1 item 6; §2002:F.2 item 117; §2014:13.18.49; §2014:13.18.49.3 GR1; §2023:13.18.49.1; §2023:13.18.49.4 GR1; §2023:13.18.49.4 GR2",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard; the TYPEDEF/SAME AS data-description family)",
+ "vcr": "2002 introduction (§2002:13.16.47; §2002:F.2 item 117; the TYPEDEF/SAME AS data-description family)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 PROTO PIC 9(3).\n01 W SAME AS PROTO.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE 7 TO W.\n    DISPLAY W.\n    STOP RUN.\n"
 }

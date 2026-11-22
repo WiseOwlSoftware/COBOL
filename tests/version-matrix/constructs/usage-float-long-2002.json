@@ -1,13 +1,13 @@
 {
  "id": "usage-float-long-2002",
  "status": "active",
- "description": "USAGE FLOAT-LONG (implementor-defined double-precision float, mapped to native double) - PROVISIONAL 2002 edge (D16: the short/long/extended trio is the presumed-2002 half of the float family split). LIVE (P12 step 2): compiles at 2002+, COBOL0900 below. Representation implementor-defined per §2023:13.18.60.4 GR13/GR21.",
+ "description": "USAGE FLOAT-LONG (implementor-defined double-precision float, mapped to native double). LIVE (P12 step 2): compiles at 2002+, COBOL0900 below. Representation implementor-defined per §2023:13.18.60.4 GR13/GR21. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the 1985 USAGE clause's general format (§1985:VI.5.14.2) is `[ USAGE IS ] { BINARY | COMPUTATIONAL | COMP | DISPLAY | INDEX | PACKED-DECIMAL }` and nothing else, its §1985:VI.5.14.3 SR3 naming the numeric usages it has: 'a USAGE clause specifying BINARY, COMPUTATIONAL, or PACKED-DECIMAL must be declared with a PICTURE character-string that describes a numeric item'; §2002:13.16.58.3 GR12 has the trio: 'The usages float-short, float-long and float-extended define signed numeric data items that are held in a floating-point format suitable for the machine on which the runtime module is to run', §2002:13.16.58.3 GR13 makes their 'representation and length' implementor-defined, §2002:F.1 item 6 lists FLOAT-SHORT, FLOAT-LONG and FLOAT-EXTENDED among 'The following reserved words have been added', and §2002:F.2 item 7 states the change: 'The floating-point type exists both in a numeric form, with a machine-specific representation, and in a numeric-edited form.' §2014:13.18.60.3 GR12 and GR20 carry the 2002 rules unchanged, so 2014 = 2023 (the ISO-60559-pinned FLOAT-BINARY-*/FLOAT-DECIMAL-* family is a separate 2014 row).",
  "display": "USAGE FLOAT-LONG",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:13.18.60.4 GR13 (USAGE clause; the implementor-defined float trio)",
+ "citation": "§2002:13.16.58.3 GR12; §2002:13.16.58.3 GR13; §2002:F.1 item 6; §2002:F.2 item 7; §2014:13.18.60.3 GR12; §2014:13.18.60.3 GR20; §2023:13.18.60.4 GR13; §2023:13.18.60.4 GR21",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "D16 float-family split (provisional 2002)",
+ "vcr": "2002 introduction (§2002:13.16.58.3 GR12; §2002:F.2 item 7)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-LONG.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
 }

@@ -1,12 +1,12 @@
 {
  "id": "aligned-clause-2002",
- "description": "ALIGNED clause (the subject of the entry is aligned on the first bit of the first available byte boundary, with implicit filler bits per 8.5.1.6.3), ISO 13.18.1 - introduced 2002 (ALIGNED is a 2002 reserved word per 8.9). kb/Work PB487.",
+ "description": "ALIGNED clause (the subject of the entry is aligned on the first bit of the first available byte boundary, with implicit filler bits per 8.5.1.6.3), ISO §2023:13.18.1 - a COBOL-2002 introduction. THE EDGE IS QUOTED from the edition texts (kb/Work PB3965): the ANSI X3.23-1985 data description entry (§1985:VI.5.3.2, whose printed format runs `IS character-string BINARY COMPUTATIONAL COMP` ...) offers after the level-number and data-name-1 or FILLER only the REDEFINES, PICTURE, USAGE (BINARY, COMPUTATIONAL, DISPLAY, INDEX, PACKED-DECIMAL), SIGN, OCCURS, SYNCHRONIZED, JUSTIFIED, BLANK WHEN ZERO and VALUE clauses (the Inter-Program Communication module's level-01 entry adds IS EXTERNAL and IS GLOBAL, §1985:X.4.3.1: \"a level 01 data description entry within the Working-Storage Section or File Section determines whether the data record and its subordinate data items have local names\"), and 1985 has no bit data at all; §2002:13.16.1 adds \"The ALIGNED clause specifies that a bit group item or an elementary bit data item is to be aligned at the first bit of the first available byte\" (§2002:13.16.1.3 GR1: \"An ALIGNED clause causes the subject of the entry to be aligned on the first bit of the first available byte boundary\"), §2002:F.1 item 6 (\"The following reserved words have been added\") lists ALIGNED, and §2002:F.2 item 8 states the bit facility it serves: \"The capability of defining bit strings and setting or testing boolean values is added.\" §2014:13.18.1 and §2023:13.18.1.1 carry the 2002 sentence unchanged. kb/Work PB487.",
  "display": "ALIGNED clause",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:13.18.1",
+ "citation": "§2002:13.16.1; §2002:13.16.1.3 GR1; §2002:F.1 item 6; §2002:F.2 item 8; §2014:13.18.1; §2023:13.18.1.1",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
- "vcr": "2002 introduction (derive from the 2002 standard)",
+ "vcr": "2002 introduction (§2002:F.2 item 8; §2002:F.1 item 6)",
  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. ALGN9AL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G.\n   05 B1 PIC 1(4) USAGE BIT.\n   05 B2 PIC 1(4) USAGE BIT ALIGNED.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"LEN=\" FUNCTION LENGTH(G).\n    STOP RUN.\n"
 }
