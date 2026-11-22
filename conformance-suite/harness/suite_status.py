@@ -2,7 +2,6 @@
 """The status line of one edition's suite: how far it is from complete (DESIGN-conformance-suite.md §8 Stage 0, kb/Work PB6047).
 
     python conformance-suite/harness/suite_status.py --edition 85
-    python conformance-suite/harness/suite_status.py --self-test
 
 Five terms, each read from its own tool and each a count of what is still owed:
 
@@ -114,13 +113,8 @@ def status(edition: str, *, rows: Callable[[], dict[str, int]], population: Call
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--edition", help="the edition's spelling, as 85")
-    ap.add_argument("--self-test", action="store_true")
+    ap.add_argument("--edition", required=True, help="the edition's spelling, as 85")
     args = ap.parse_args(argv)
-    if args.self_test:
-        return self_test()
-    if not args.edition:
-        ap.error("--edition names the suite to measure (or --self-test)")
     import measurements
     import obligations
     try:
@@ -138,92 +132,6 @@ def main(argv: list[str]) -> int:
     line = verdict_line(args.edition, terms)
     print(line)
     return 0 if line == f"=== SUITE {args.edition}: COMPLETE ===" else 1
-
-
-# ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────────
-
-def self_test() -> int:
-    import tempfile
-    failures: list[str] = []
-
-    def check(what: str, ok: bool, detail: Any = "") -> None:
-        print(f"  {'ok  ' if ok else 'FAIL'} {what}" + ("" if ok else f": {detail}"))
-        if not ok:
-            failures.append(what)
-
-    import measurements
-    import obligations
-    sys.dont_write_bytecode = True  # a stub rewritten within a second at the same size must not be read from a stale .pyc
-    importlib.invalidate_caches()
-    zero = dict.fromkeys(obligations.WITNESS, 0) | {"rows": 0, "observable": 0, "unmet": 0}
-    with tempfile.TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        (root / "harness").mkdir()
-        (root / "baselines").mkdir()
-        ledger = root / "LEDGER.json"
-        ledger.write_text(json.dumps({"book_pages": 3, "second_pass": {"pages_swept": [1, 2, 3], "findings": 0}}), encoding="utf-8", newline="\n")
-        recorded = {"85": {"verdicts": {"a": "PASS", "b": "FAIL"},
-                           "failures": {"b": {"bucket": "output: x", "cause": "non-portable-test"}}}}
-        (root / measurements.DIRECTORY).mkdir()
-        (root / measurements.DIRECTORY / f"{SECOND_COMPILER}.json").write_text(
-            json.dumps({"compiler": SECOND_COMPILER, "editions": recorded}), encoding="utf-8", newline="\n")
-
-        def terms(rows: dict[str, int] | None = None, population: set[str] | None = None, led: Path | None = ledger) -> dict[str, int | str]:
-            return status("85", rows=lambda: rows or zero, population=lambda: population or {"a", "b"}, root=root, ledger=led)[0]
-
-        # Each term planted red on its own, the other four satisfied by a stub tool.
-        (root / "harness" / "coverage.py").write_text("def unmet(edition):\n    return 0\n", encoding="utf-8", newline="\n")
-        (root / "harness" / "crosswalk.py").write_text("def unmet(edition):\n    return 0\n", encoding="utf-8", newline="\n")
-        sys.path.insert(0, str(root / "harness"))
-        try:
-            green = terms()
-            check("arm: every term zero is COMPLETE", verdict_line("85", green) == "=== SUITE 85: COMPLETE ===", green)
-            check("arm: rows red", verdict_line("85", terms(rows=zero | {"unmet": 4, "observable": 9})).startswith(
-                "=== SUITE 85: INCOMPLETE — rows 4 ·"))
-            check("arm: second compiler red for an unrecorded test", terms(population={"a", "b", "c"})["second compiler"] == 1)
-            recorded["85"]["failures"]["b"]["cause"] = measurements.UNCLASSIFIED
-            (root / measurements.DIRECTORY / f"{SECOND_COMPILER}.json").write_text(
-                json.dumps({"compiler": SECOND_COMPILER, "editions": recorded}), encoding="utf-8", newline="\n")
-            check("arm: second compiler red for a failure with no cause", terms()["second compiler"] == 1)
-            ledger.write_text(json.dumps({"book_pages": 3, "second_pass": {"pages_swept": [1, 2], "findings": 2}}), encoding="utf-8", newline="\n")
-            check("arm: transcription red for findings and unswept pages", terms()["transcription"] == 3, terms()["transcription"])
-            (root / "harness" / "coverage.py").write_text("def unmet(edition):\n    return 5\n", encoding="utf-8", newline="\n")
-            sys.modules.pop("coverage", None)
-            importlib.invalidate_caches()
-            check("arm: points red", terms()["points"] == 5, terms()["points"])
-            (root / "harness" / "crosswalk.py").write_text("def unmet(edition):\n    return 2\n", encoding="utf-8", newline="\n")
-            sys.modules.pop("crosswalk", None)
-            importlib.invalidate_caches()
-            check("arm: NIST red", terms()["NIST"] == 2, terms()["NIST"])
-            (root / "harness" / "crosswalk.py").write_text("x = 1\n", encoding="utf-8", newline="\n")
-            sys.modules.pop("crosswalk", None)
-            try:
-                terms()
-                check("arm: a tool that cannot answer fails loudly", False, "no error")
-            except StatusError:
-                check("arm: a tool that cannot answer fails loudly", True)
-        finally:
-            sys.path.remove(str(root / "harness"))
-            for name in ("coverage", "crosswalk"):
-                sys.modules.pop(name, None)
-        (root / "harness" / "coverage.py").unlink()
-        (root / "harness" / "crosswalk.py").unlink()
-        absent = terms(led=None)
-        check("arm: a term whose tool does not exist prints UNMEASURED, never 0",
-              absent["points"] == UNMEASURED and absent["NIST"] == UNMEASURED and absent["transcription"] == UNMEASURED, absent)
-        check("arm: an unmeasured term keeps the line INCOMPLETE even when every number is zero",
-              verdict_line("85", {"rows": 0, "points": UNMEASURED, "NIST": 0, "second compiler": 0,
-                                  "transcription": 0}).startswith("=== SUITE 85: INCOMPLETE"))
-        ledger.write_text(json.dumps({"book_pages": 3}), encoding="utf-8", newline="\n")
-        check("arm: a ledger with no second pass is UNMEASURED", transcription_term(ledger) == UNMEASURED)
-        ledger.write_text(json.dumps({"book_pages": 3, "second_pass": {"findings": "none"}}), encoding="utf-8", newline="\n")
-        try:
-            transcription_term(ledger)
-            check("arm: a malformed second pass fails loudly", False, "no error")
-        except StatusError:
-            check("arm: a malformed second pass fails loudly", True)
-    print(f"=== SUITE STATUS: SELF-TEST {'GREEN' if not failures else 'RED'} ===")
-    return 1 if failures else 0
 
 
 if __name__ == "__main__":

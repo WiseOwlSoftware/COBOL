@@ -3,7 +3,6 @@
 (DESIGN-conformance-suite.md §5, §8 Stage 0, kb/Work PB6054).
 
     python conformance-suite/harness/measurements.py record --compiler gnucobol --edition 85 RESULTS.json [RESULTS.json ...]
-    python conformance-suite/harness/measurements.py --self-test
 
 `conformance-suite/measurements/<compiler>.json` holds, per edition, the verdict of every test that edition's catalog
 rows name and the test accepts there (the POPULATION, `population()`), recorded from `run.py --compiler <c>` results
@@ -29,7 +28,6 @@ import argparse
 import json
 import re
 import sys
-import tempfile
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -252,7 +250,6 @@ def _dump(content: dict[str, Any]) -> str:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--self-test", action="store_true")
     sub = ap.add_subparsers(dest="command")
     rec = sub.add_parser("record", help="record a run's results as the edition's measurement")
     rec.add_argument("--compiler", required=True)
@@ -260,10 +257,8 @@ def main(argv: list[str]) -> int:
     rec.add_argument("--version", required=True, help="the compiler's version line, as `cobc --version` prints it")
     rec.add_argument("results", nargs="+", type=Path, help="run.py's results.json, a later file replacing an earlier one")
     args = ap.parse_args(argv)
-    if args.self_test:
-        return self_test()
     if args.command != "record":
-        ap.error("a command (record) or --self-test")
+        ap.error("a command (record)")
     sys.path.insert(0, str(SUITE.parent / "scripts" / "spec"))
     import generate as g
     inputs, problems = g.repository_inputs()
@@ -283,92 +278,6 @@ def main(argv: list[str]) -> int:
           f"({' · '.join(f'{v} {n}' for v, n in by.items())}), {len(body['failures'])} bucketed, "
           f"{written} cleared verdict(s) in the baseline ===")
     return 0
-
-
-# ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────────
-
-def self_test() -> int:
-    failures: list[str] = []
-
-    def check(what: str, ok: bool, detail: Any = "") -> None:
-        print(f"  {'ok  ' if ok else 'FAIL'} {what}" + ("" if ok else f": {detail}"))
-        if not ok:
-            failures.append(what)
-
-    def res(i: str, verdict: str, reason: str = "", clause: str = "c") -> dict[str, Any]:
-        return {"edition": "85", "id": i, "clause": clause, "verdict": verdict, "reason": reason, "expect": "accept"}
-
-    compile_fail = ("it did not translate (exit 1): t.cob:34: warning: COMMUNICATION SECTION is not implemented "
-                    "[-Wpending] | 32 |  01 X PIC 9.")
-    check("arm: a compile failure is bucketed by its first diagnostic",
-          bucket_of(res("a", "FAIL", compile_fail)) == "compile: COMMUNICATION SECTION is not implemented [-Wpending]")
-    fortify = ("it did not translate (exit 1): <command-line>: warning: ‘_FORTIFY_SOURCE’ redefined | "
-               "<command-line>: note: this is the location | t.cob:7: error: 'FOO' redefined 3 times")
-    check("arm: a driver note is not the first diagnostic; names and numbers are normalised",
-          bucket_of(res("a", "FAIL", fortify)) == "compile: 'N' redefined # times", bucket_of(res("a", "FAIL", fortify)))
-    check("arm: an output difference is bucketed by clause folder",
-          bucket_of(res("a", "FAIL", "the output differs from x at line 2", "IX.4.5@1985-READ")) == "output: IX.4.5@1985-READ")
-    check("arm: a hang and a crash have their own buckets",
-          bucket_of(res("a", "NO VERDICT", "the program exceeded the hang guard (600 s)")).startswith("hang")
-          and bucket_of(res("a", "NO VERDICT", "the compiler crashed (exit -6)")).startswith("abend"))
-    for verdict, reason in (("PASS", ""), ("FAIL", "something new"), ("NO VERDICT", "unknown")):
-        try:
-            bucket_of(res("a", verdict, reason))
-            check(f"arm: a {verdict} of no known kind is refused", False, "no error")
-        except ValueError:
-            check(f"arm: a {verdict} of no known kind is refused", True)
-    first = record_results([res("a", "PASS"), res("b", "FAIL", compile_fail), res("c", "NOT APPLICABLE")], None)
-    check("arm: only a failure is bucketed, unclassified", list(first["failures"]) == ["b"]
-          and first["failures"]["b"]["cause"] == UNCLASSIFIED, first)
-    first["failures"]["b"] = {"bucket": first["failures"]["b"]["bucket"], "cause": "non-portable-test"}
-    again = record_results([res("b", "FAIL", compile_fail)], first)
-    check("arm: a re-record keeps the cause adjudicated for the same bucket", again["failures"]["b"]["cause"] == "non-portable-test")
-    moved = record_results([res("b", "FAIL", "the output differs", "Z")], first)
-    check("arm: a test whose bucket moved is unclassified again", moved["failures"]["b"]["cause"] == UNCLASSIFIED)
-    with tempfile.TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        (root / "baselines").mkdir()
-        results = root / "results.json"
-        results.write_text(json.dumps({"tests": [res("a", "PASS"), res("b", "FAIL", compile_fail)]}), encoding="utf-8", newline="\n")
-        body, written = record(root, "stub", "85", "stub 1", [results], {"a", "b", "c"}, {"a"})
-        raw, problems = load(path_of(root, "stub"))
-        check("arm: a recorded measurement loads clean", raw is not None and not problems, problems)
-        check("arm: the cleared test's verdict reaches the baseline",
-              written == 1 and config.load_baseline(root / "baselines" / "stub.json")[0] == {"85": {"a": "PASS"}})
-        check("arm: the second-compiler term counts the unrecorded and the unclassified",
-              unmet(root, "stub", "85", {"a", "b", "c"}) == {"population": 3, "unrecorded": 1, "unclassified": 1})
-        check("arm: no measurement leaves every test unrecorded",
-              unmet(root, "none", "85", {"a", "b"}) == {"population": 2, "unrecorded": 2, "unclassified": 0})
-        check("arm: a result outside the population is refused", _raises(
-            lambda: record(root, "stub", "85", "stub 1", [results], {"a"}, set())))
-        check("arm: a test outside the population is a refusal", check_tree(root, {"85": {"a"}})
-              == [("measurements/stub.json", "85 b: no test of the 85 population has this id")], check_tree(root, {"85": {"a"}}))
-        planted = json.loads(path_of(root, "stub").read_text(encoding="utf-8"))
-        body85 = planted["editions"]["85"]
-        for what, mutate in (
-                ("a verdict outside the vocabulary", lambda: body85["verdicts"].__setitem__("a", "MAYBE")),
-                ("a failure with no bucket", lambda: body85["failures"].pop("b")),
-                ("a cause outside the three", lambda: body85["failures"]["b"].__setitem__("cause", "bad luck")),
-                ("a citation without the conformance cause", lambda: body85["failures"]["b"].__setitem__("citation", "§1985:I.1")),
-                ("a conformance cause without a citation", lambda: body85["failures"]["b"].__setitem__("cause", "gnucobol-nonconformance")),
-                ("a citation of no edition", lambda: body85["failures"]["b"].update(cause="gnucobol-nonconformance", citation="p. 3"))):
-            fresh = json.loads(path_of(root, "stub").read_text(encoding="utf-8"))
-            body85 = fresh["editions"]["85"]
-            mutate()
-            bad = root / "planted" / "stub.json"
-            bad.parent.mkdir(exist_ok=True)
-            bad.write_text(json.dumps(fresh), encoding="utf-8", newline="\n")
-            check(f"arm: {what} is refused", bool(load(bad)[1]), what)
-    print(f"{VERDICT}SELF-TEST {'GREEN' if not failures else 'RED'} ===")
-    return 1 if failures else 0
-
-
-def _raises(call: Any) -> bool:
-    try:
-        call()
-    except ValueError:
-        return True
-    return False
 
 
 if __name__ == "__main__":

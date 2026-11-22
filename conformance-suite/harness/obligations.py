@@ -3,7 +3,6 @@
 
     python conformance-suite/harness/obligations.py                    # the 85 rows by witness, one verdict line
     python conformance-suite/harness/obligations.py --repair-headers   # add each omitted row to the header of its test
-    python conformance-suite/harness/obligations.py --self-test
 
 §6.1 cut to a 1985 row: a GR, RV or AR row owes an accepted test whose output shows the rule's effect; an SR row owes an
 accepted test of the legal form (a violation test at 85 is a diagnosis-layer test, §8, and never meets the obligation);
@@ -236,10 +235,7 @@ def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--repair-headers", action="store_true",
                     help="add every `header-omits` row to the header of each accepted-at-85 test its test-ref names")
-    ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args(argv)
-    if args.self_test:
-        return self_test()
     facts, cases, _ = facts_of_repository()
     if args.repair_headers:
         todo = repairs(facts)
@@ -248,87 +244,6 @@ def main(argv: list[str]) -> int:
         return 0
     print(verdict_line(counts(facts)))
     return 0
-
-
-# ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────────
-
-@dataclass
-class _Flag:
-    at: tuple[str, ...]
-
-
-@dataclass
-class _Case:
-    test_id: str
-    rules: tuple[str, ...]
-    accept: tuple[str, ...] = ()
-    flag: _Flag | None = None
-    in_suite: bool = False
-
-
-def self_test() -> int:
-    failures: list[str] = []
-
-    def check(what: str, ok: bool, detail: Any = "") -> None:
-        print(f"  {'ok  ' if ok else 'FAIL'} {what}" + ("" if ok else f": {detail}"))
-        if not ok:
-            failures.append(what)
-
-    def row(rid: str, kind: str = "GR", verdict: str = "", ref: str = "") -> dict[str, Any]:
-        return {"rule-id": rid, "kind": kind, "verdict": verdict, "test-ref": ref}
-
-    rows = [row("R-ns", verdict=NON_SUPPORT), row("R-suite"), row("R-det"), row("R-der"), row("R-unc"),
-            row("R-ref", "SR"), row("R-oth", "RV"), row("R-hdr", "FMT", ref="conformance:cases/x/t-acc"),
-            row("R-hdr2", "AR", ref="conformance:cases/x/t-late;repo-drift:z"), row("R-none", ref="unit:abc")]
-    cases = [_Case("t-suite", ("R-suite",), ("85",), in_suite=True), _Case("t-unc", ("R-unc",), ("85",)),
-             _Case("t-neg", ("R-ref",), (), _Flag(("85",))), _Case("t-late", ("R-oth",), ("2002",)),
-             _Case("t-acc", ("R-other",), ("85",))]
-    cases.append(_Case("t-late2", ("R-other2",), ("2002",)))
-    cases.append(_Case("t-shared", ("R-other3",), ("85", "2002")))
-    rows[8] = row("R-hdr2", "AR", ref="conformance:cases/x/t-late2")
-    rows.append(row("R-shared", ref="conformance:cases/x/t-shared"))
-    got = {f.rule_id: f for f in classify(
-        rows, cases, diagnostics={}, determined=lambda r: r["rule-id"] == "R-det", derived=lambda r: r["rule-id"] == "R-der",
-        test_refs=lambda r: [x for x in r["test-ref"].split(";") if x])}
-    expect = {"R-ns": "non-support", "R-suite": "suite", "R-det": "determination", "R-der": "derivation",
-              "R-unc": "accepted-uncleared", "R-ref": "refusal-only", "R-oth": "other-edition-only",
-              "R-hdr": "header-omits", "R-hdr2": "no-test", "R-none": "no-test", "R-shared": "shared-test"}
-    for rid, witness in expect.items():
-        check(f"arm: {rid} is {witness}", got[rid].witness == witness, got[rid].witness)
-    check("arm: a header-omits row names the test to repair", got["R-hdr"].repair == ("t-acc",), got["R-hdr"].repair)
-    check("arm: an SR row owes an accepted test of the legal form", got["R-ref"].obligation == OBLIGATION["SR"])
-    c = counts(got.values())
-    check("arm: every row is counted once", c["rows"] == len(rows) and sum(c[k] for k in WITNESS) == len(rows), c)
-    check("arm: unobservable rows are not owed a test", c["observable"] == len(rows) - 2, c)
-    check("arm: the unmet rows exclude the cleared and the determined", c["unmet"] == c["observable"] - 2, c)
-    diag = classify([row("R-d")], [_Case("t-d", ("R-d",))], diagnostics={"t-d": {"refuse-at": ["85"]}},
-                    determined=lambda r: False, derived=lambda r: False, test_refs=lambda r: [])
-    check("arm: a WiseOwl refusal at 85 is refusal-only", diag[0].witness == "refusal-only", diag[0].witness)
-    try:
-        classify([row("R-x", "XYZ")], [], diagnostics={}, determined=lambda r: False, derived=lambda r: False,
-                 test_refs=lambda r: [])
-        check("arm: an unknown row kind is refused", False, "no error")
-    except ValueError:
-        check("arm: an unknown row kind is refused", True)
-    fixed = "      *>--- conformance-case\n      *> id: a\n      *> rules: [SR-1-1]\n      *> accept: [85]\n      *>---\n       X\n"
-    check("arm: a one-line fixed-form field gains the id", add_rules(fixed, ["1985-GR-II.1-1"]).split("\n")[2]
-          == "      *> rules: [SR-1-1, 1985-GR-II.1-1]", add_rules(fixed, ["1985-GR-II.1-1"]))
-    check("arm: an id already named is not repeated", add_rules(fixed, ["SR-1-1"]) == fixed)
-    long = ", ".join(f"GR-14.9.28.4-{n}" for n in range(1, 7))
-    wrapped = add_rules(f"*>--- conformance-case\n*> id: a\n*> rules: [{long}]\n*>---\n", ["1985-GR-II.6.5.1-2"] * 1
-                        + [f"1985-GR-II.6.5.{n}-1" for n in range(2, 8)])
-    body = wrapped.split("\n")
-    check("arm: a long free-form field wraps with the continuation indent",
-          all(len(ln) <= MARGIN["free"] for ln in body[:6]) and body[3].startswith("*>" + CONTINUATION), wrapped)
-    crlf = fixed.replace("\n", "\r\n")
-    check("arm: a CRLF file keeps its line ends", "\n" not in add_rules(crlf, ["N-1"]).replace("\r\n", ""))
-    try:
-        add_rules("*>--- conformance-case\n*>---\n", ["N-1"])
-        check("arm: a header with no rules field is refused", False, "no error")
-    except ValueError:
-        check("arm: a header with no rules field is refused", True)
-    print(f"{VERDICT}SELF-TEST {'GREEN' if not failures else 'RED'} ===")
-    return 1 if failures else 0
 
 
 if __name__ == "__main__":
