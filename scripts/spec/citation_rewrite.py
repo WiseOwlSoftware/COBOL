@@ -608,5 +608,6 @@ def canonicalize(prefixes: list[str], dry_run: bool = False, report_path: str | 
     for reason, n in rep["refusals"]:
         print(f"  left ({n}): {reason}")
     if report_path:
-        pathlib.Path(report_path).write_text(json.dumps(rep, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+        pathlib.Path(report_path).write_text(json.dumps(rep, indent=1, ensure_ascii=False) + "\n", encoding="utf-8",
+                                          newline="\n")
     return 0
