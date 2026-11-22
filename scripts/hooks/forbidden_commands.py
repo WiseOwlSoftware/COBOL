@@ -427,7 +427,12 @@ for _st in STEPS:   # every simple command, in the shell that runs it (`Step.she
 # options before them), plus the heredoc bodies a step introduces; an ENUMERATION and a KILL anywhere in it, in any order,
 # pipe, substitution, loop, script block or payload, is refused. Three things are text and never judged: the arguments of a
 # program that only SEARCHES or PRINTS text (`_TEXT_ONLY`: grep, rg, Select-String, findstr, git, echo, Write-Output, ...),
-# so `git grep -n 'Get-Process'` and `git log --grep 'pgrep cobol | xargs kill'` pass; a string literal a payload only
+# so `git grep -n 'Get-Process'` and `git log --grep 'pgrep cobol | xargs kill'` pass, but ONLY WHILE ITS OUTPUT IS
+# TEXT (`_output_stays_text`, the branch review of train-1985-d R2-1: `echo "<kill>" | python`, `iex (Write-Output
+# '<kill>')`, `echo '<kill>' > k.sh && bash k.sh` and git's `!` alias each RUN the printed words): its step stands at the
+# command line's own level (a step inside a substitution, an expression or a payload hands its output to a command the
+# model cannot always see, `iex ( ... )` among them), redirects nothing to a file, is no git `!` alias, and pipes only
+# into text-only programs and pure filters (`_TEXT_FILTERS`); a string literal a payload only
 # prints (`_PRINTED`: `print('kill tasklist')`); and a signal a runner chooses for the command it starts (`timeout -s
 # KILL 600 python ...` kills nothing). Allowed: a kill of a pid the agent started, with
 # no enumeration in the line (`$p = Start-Process ... -PassThru; Stop-Process -Id $p.Id`, `$p.Kill()`, Bash `kill $pid`,
@@ -437,6 +442,12 @@ for _st in STEPS:   # every simple command, in the shell that runs it (`Step.she
 _TEXT_ONLY = {"grep", "egrep", "fgrep", "zgrep", "rg", "ag", "ack", "findstr", "select-string", "sls", "git", "echo",
               "printf", "write-output", "write-host", "write", "write-error", "write-warning", "write-verbose",
               "write-information", "write-debug"}
+#: The programs a text-only step's output may be piped into and stay text: they print, count or reorder lines and run
+#: none (no tee or Out-File, which write a file a later step can run; no awk or sed, which can run a command).
+_TEXT_FILTERS = {"cat", "head", "tail", "sort", "uniq", "wc", "cut", "tr", "column", "nl", "less", "more", "fold",
+                 "select-object", "select", "sort-object", "measure-object", "measure", "format-table", "ft",
+                 "format-list", "fl", "out-string", "out-null", "out-host"}
+_REDIRECT = re.compile(r"^(?:\d|&)?>>?")
 _W = r"(?<![\w$.-])"                      # a word starts here: not inside a name, a variable or a member access
 _PS_ID_PARAM = r"\s-(?:id|pid|i(?:n(?:p(?:u(?:t(?:o(?:b(?:j(?:e(?:c(?:t)?)?)?)?)?)?)?)?)?)?)\b"   # -Id, -InputObject
 _COMMAND_POSITION = r"(?:^|[|;&({}\[,=`'\"]|\$\()\s*"
@@ -471,11 +482,36 @@ _PRINTED = re.compile(r"\b(?:print|echo|printf|puts|say|console\.log|write-outpu
 _PS_KILL_BY_NAME = re.compile(_W + r"kill\b[^|;)}\n]*\s-(?:n|na|nam|name|processname)(?![\w-])", re.I)  # Bash's kill -n is a signal
 
 
-def _code_text(st) -> str:
-    """The text of one step that a shell or an interpreter may run: every word (a quoted payload whole) and the bodies of
-    the heredocs it introduces; empty for a program that only searches or prints text (`_TEXT_ONLY`)."""
+def _program(st) -> str | None:
     k = _command_word(st.words)
-    if k is not None and shell_location.program(st.words[k]) in _TEXT_ONLY:
+    return None if k is None else shell_location.program(st.words[k])
+
+
+def _output_stays_text(i: int) -> bool:
+    """Whether what step `STEPS[i]` prints reaches nothing that runs it (the branch review of train-1985-d R2-1): it stands
+    at the command line's own level, redirects nothing, is no git `!` alias, and every later side of its pipeline is a
+    text-only program or a pure filter (`_TEXT_FILTERS`)."""
+    st = STEPS[i]
+    if st.depth or any(_REDIRECT.match(w) for w in st.words):
+        return False
+    if _program(st) == "git" and any(w.startswith("!") or "=!" in w for w in st.words):
+        return False             # `git -c alias.k='!…' k`: git hands a `!` alias to the shell
+    while st.sep == "|":
+        i = next((j for j in range(i + 1, len(STEPS)) if STEPS[j].depth == st.depth), None)
+        if i is None:
+            return False
+        st = STEPS[i]
+        if _program(st) not in _TEXT_ONLY | _TEXT_FILTERS:
+            return False
+    return True
+
+
+def _code_text(i: int) -> str:
+    """The text of step `STEPS[i]` that a shell or an interpreter may run: every word (a quoted payload whole) and the
+    bodies of the heredocs it introduces; empty for a program that only searches or prints text (`_TEXT_ONLY`) while its
+    output stays text (`_output_stays_text`)."""
+    st = STEPS[i]
+    if _program(st) in _TEXT_ONLY and _output_stays_text(i):
         return ""
     return _PRINTED.sub(" ", "\n".join((" ".join(st.words), *st.heredocs)))
 
@@ -497,7 +533,7 @@ def _kills_by_name(st, text: str) -> bool:
         st.shell == shell_location.POWERSHELL and bool(_PS_KILL_BY_NAME.search(text)))
 
 
-_TEXTS = [(st, _code_text(st)) for st in STEPS]
+_TEXTS = [(st, _code_text(i)) for i, st in enumerate(STEPS)]
 _BY_NAME_STEP = next((st for st, t in _TEXTS if _kills_by_name(st, t)), None)
 _ENUMERATION = next((st for st, t in _TEXTS if _enumerates(t)), None)
 _KILL = next((st for st, t in _TEXTS if _kills(t)), None)

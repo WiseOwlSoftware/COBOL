@@ -320,6 +320,14 @@ CASES = [
     ("python -X utf8 -c 'import os; os.kill(1234, 9)'", False),            # one pid, no enumeration
     ("node -e \"process.kill(1234)\"", False),
     ("git commit -m 'rule 8: pgrep cobol | xargs kill is refused'", False),  # a message is text
+    # R2-1: a text-only step's words are text only while its output is (it runs nothing of what it prints)
+    ("echo \"import psutil; [p.kill() for p in psutil.process_iter()]\" | python", True),
+    ("git -c alias.k='!pgrep cobol | xargs kill' k", True),               # git hands a `!` alias to the shell
+    ("echo 'pgrep cobol | xargs kill' > k.sh && bash k.sh", True),        # a file written is a script run
+    ("echo 'pgrep cobol | xargs kill' | cat | node -", True),            # a filter, then an interpreter
+    ("python -c \"$(echo 'import psutil; [p.kill() for p in psutil.process_iter()]')\"", True),
+    ("echo 'pgrep cobol | xargs kill' | head -1", False),                 # printed, filtered, printed
+    ("git log --oneline | grep -i 'pgrep.*kill'", False),
 ]
 
 
@@ -429,6 +437,12 @@ PS_CASES = [
     ("pwsh -NoProfile -c \"& { gps cobol } | % Kill\"", True),
     ("Start-Process python -ArgumentList '-c', 'import psutil; [p.kill() for p in psutil.process_iter()]'", True),
     ("Write-Host 'gps cobol | Stop-Process is refused'", False),
+    # R2-1
+    ("Write-Output 'import psutil; [p.kill() for p in psutil.process_iter()]' | python -", True),
+    ("iex (Write-Output 'Get-Process cobol | Stop-Process')", True),
+    ("Invoke-Expression $(Write-Output 'gps cobol | spps')", True),
+    ("Write-Output 'Get-Process cobol | Stop-Process' | Out-File k.ps1; pwsh -File k.ps1", True),
+    ("Write-Output 'Get-Process cobol | Stop-Process' | Select-Object -First 1", False),
 ]
 
 

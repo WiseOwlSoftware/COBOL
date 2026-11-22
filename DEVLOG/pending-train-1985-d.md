@@ -59,7 +59,7 @@ payload is now read as a command line, so a kill by name through psutil or a par
 `python -W ignore -c`, `env python -c` and `timeout 60 python -c` each killed by name unrefused, because the rule still
 parsed how Python was started. The rule now parses no invocation at all. It looks for its two ingredients, a listing by
 name and a kill, in the text of every step's words and heredoc bodies, whatever program a quoted payload is handed to.
-The words of a program that only searches or prints are text, and so is a string a payload only prints. The self-test
+The words of a program that only searches or prints are text, and so is a string a payload only prints. Round 2 found that this exemption also covered printed text another step runs (`echo "<kill>" | python`, `iex (Write-Output ...)`, a git `!` alias). The words now count as text only while the output stays text: no pipe into anything but a text filter, no redirect to a file, no git `!` alias, and not inside a substitution. The self-test
 grew from 383 to 402 cases. The 14 new blocking cases were each allowed by the hook before this change. A refuter record
 also stood for any disposition of its unit, so a `restates` list edited after its refutation kept its old record and
 could hide a prose hole. Now a record upholds the disposition it judged: its kind, its class and its rule list. The 672
