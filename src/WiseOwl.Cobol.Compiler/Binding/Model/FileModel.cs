@@ -403,6 +403,11 @@ public sealed class FileModel
     /// <summary>The resolved FILE STATUS data item (set post-build), or null if the file has no FILE STATUS clause.</summary>
     public DataItem? FileStatusItem { get; set; }
 
+    /// <summary>Whether the FILE STATUS clause's data-name-1 was refused and reported while it was resolved: the clause is written
+    /// and names no item, which the resolution leaves only after it has reported why (an unresolved or ambiguous name, a refused
+    /// occurrence). A rule about the item asks this first, so it never speaks again about an operand already refused (kb/Work PB6041).</summary>
+    public bool FileStatusRefused => FileStatusOperand is not null && FileStatusItem is null;
+
     /// <summary>The FD's record description(s), in declaration order. The first is the canonical storage area; every
     /// other shares it (synthesized REDEFINES).</summary>
     public List<DataItem> Records { get; } = [];
@@ -449,6 +454,16 @@ public sealed class FileModel
     /// <summary>Whether the RECORD KEY clause's data-name-1 was refused and reported while it was resolved
     /// (<see cref="AlternateKeyClause.Refused"/>).</summary>
     public bool RecordKeyRefused { get; set; }
+
+    /// <summary>Whether a key clause that names a record key of this file (the RECORD KEY clause or an ALTERNATE RECORD KEY clause,
+    /// data-name-1 or a data-name-2 of its SOURCE phrase) was refused and reported while it was resolved, so the file's set of
+    /// record keys is not the set the program wrote. A statement whose KEY operand is judged against that set (READ's
+    /// §2023:14.9.30.3 SR11, START's SR6, the prime key GR15 substitutes) cannot be judged: its operand may name the very key
+    /// that was refused, and a second verdict about it would be a cascade of the first (kb/Work PB6041).</summary>
+    public bool RecordKeyClauseRefused =>
+        RecordKeyRefused
+        || (RecordKeySource?.Operands.Any(o => o.Refused) ?? false)
+        || AlternateKeyNames.Any(a => a.Refused || (a.Source?.Operands.Any(o => o.Refused) ?? false));
 
     /// <summary>The source position of the RECORD KEY clause's data-name-1 — where §2023:12.4.5.12.3's syntax rules
     /// report, since they are screened post-build (the operand resolves only once the data forest is indexed).</summary>
@@ -568,6 +583,13 @@ public sealed class FileModel
 
     /// <summary>The resolved RELATIVE KEY item (an unsigned integer item, ISO §2023:12.4.5.13.3 SR2).</summary>
     public DataItem? RelativeKeyItem { get; set; }
+
+    /// <summary>Whether the RELATIVE KEY clause was refused and reported: its data-name-1 while it was resolved (no item), or the
+    /// resolved item by one of the clause's own syntax rules (§2023:12.4.5.13.3, <see cref="FileControlKeyRules"/>; the item is
+    /// kept for the rules beside it). The file then has no relative key the program may use, so no statement of the file is
+    /// judged against it: START's "data-name-1 shall be the RELATIVE KEY item" (§1985:VIII.4.7.3 SR4, §2023:14.9.41.3 SR5) and
+    /// its substituted key (GR8), and the external file's RELATIVE KEY agreement (kb/Work PB6041).</summary>
+    public bool RelativeKeyRefused { get; set; }
 
     /// <summary>True once an FD or SD was matched to this SELECT. A SELECT that never gets one is ISO §2023:12.4.5.2 SR3's
     /// error, reported by <c>FileControlBinder.ScreenSelectsHaveDescriptions</c> (kb/Work PB1077).</summary>

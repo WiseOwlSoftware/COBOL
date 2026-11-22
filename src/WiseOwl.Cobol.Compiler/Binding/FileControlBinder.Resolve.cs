@@ -139,6 +139,9 @@ public sealed partial class FileControlBinder
                 file.RelativeKeyItem = _host.ResolveClauseOperand(rl, "RELATIVE KEY", file.RelativeKeyAt);
                 if (!ScreenClauseOperandOccurrence(file.RelativeKeyItem, file.RelativeKeySubscripts, "RELATIVE KEY", rl, file.RelativeKeyAt))
                     file.RelativeKeyItem = null;
+                // A written operand left with no item was reported by its resolution (kb/Work PB6041); FileControlKeyRules.Screen
+                // below marks the clause refused too when one of its own syntax rules refuses the resolved item.
+                file.RelativeKeyRefused = file.RelativeKeyItem is null;
             }
             if (file.Padding is { DataName: { } pn } pad)
             {

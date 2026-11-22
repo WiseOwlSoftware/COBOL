@@ -71,12 +71,17 @@ internal static class ExternalFileConnectorRules
         {
             string externalName = group.Key.ToUpperInvariant();   // the name as the diagnostics show it; equality was the fold's above
             var conns = group.ToList();
+            // ⛔ AN OPERAND REFUSED WHERE ITS CLAUSE IS WRITTEN IS NOT JUDGED AGAIN HERE (kb/Work PB6041): a FILE STATUS, RELATIVE KEY
+            // or LINAGE operand that names no item was reported by its resolution, and "shall be an external data item" about it
+            // would be a second verdict about the same operand; the agreement rules below skip a group one of whose describers
+            // was refused, for the same reason.
             foreach (var f in conns)
             {
-                if (is2023 && f.FileStatusOperand is not null && f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts) is null)
+                if (is2023 && f.FileStatusOperand is not null && f.FileStatusItem is { } status
+                    && status.ExternalItemIdentity(f.FileStatusSubscripts) is null)
                     NotExternal(edition, externalName, f.ClauseOrEntryAt(f.FileStatusAt), "FILE STATUS", f.FileStatusOperand.Value.Name,
                         newIn2023, "ISO §2023:14.8.4.2; Annex E.2 item 9");
-                if (f.Organization == FileOrganization.Relative && f.RelativeKeyOperand is not null
+                if (f.Organization == FileOrganization.Relative && f.RelativeKeyOperand is not null && !f.RelativeKeyRefused
                     && f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts) is null)
                     NotExternal(edition, externalName, f.ClauseOrEntryAt(f.RelativeKeyAt), "RELATIVE KEY", f.RelativeKeyOperand.Value.Name,
                         EditionSeverity.Error, edition.Edition.CiteRule("§1985:VIII.2.4.4 GR8", "§2023:12.4.5.3 GR1h", y2002: "§2002:12.3.4.3 GR1i"));
@@ -88,7 +93,7 @@ internal static class ExternalFileConnectorRules
                 // and 2014 waits for the other editions (kb/Work PB5982).
                 if ((is2023 || edition.DialectLevel < 2002) && f.Linage is { } lin)
                     foreach (var op in lin.Operands)
-                        if (op.DataName is { } opName && op.Item?.ExternalItemIdentity() is null)   // literal operands are exempt
+                        if (op.DataName is { } opName && op.Item is { } linageItem && linageItem.ExternalItemIdentity() is null)   // literal operands are exempt
                             NotExternal(edition, externalName, f.ClauseOrEntryAt(op.At), "LINAGE", opName.Name,
                                 is2023 ? newIn2023 : EditionSeverity.Error,
                                 edition.Edition.CiteRule("§1985:VII.3.7.4 GR11c", "§2023:14.8.4.2; Annex E.2 item 9"));
@@ -104,7 +109,7 @@ internal static class ExternalFileConnectorRules
 
             // FILE STATUS (VCR 18, new in 2023): if ANY corresponding SELECT specifies FILE STATUS, ALL shall, each naming
             // the same corresponding external data item (§2023:12.4.5.3 GR1i).
-            if (is2023 && conns.Any(f => f.FileStatusOperand is not null))
+            if (is2023 && conns.Any(f => f.FileStatusOperand is not null) && !conns.Any(f => f.FileStatusRefused))
                 SameItem(edition, conns, f => f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts), f => f.ClauseOrEntryAt(f.FileStatusAt),
                     DiagnosticCatalog.ExternalFileStatusConsistency, newIn2023,
                     $"external file '{externalName}': all corresponding SELECT statements in the run unit shall "
@@ -117,7 +122,8 @@ internal static class ExternalFileConnectorRules
             // the same storage (§2023:14.8.4.2 "shall refer to the same corresponding storage"): ExternalItemIdentity carries the
             // item's character positions in the external record beside the record and the item's own name (kb/Work PB5857), and
             // never the names of the groups between them (kb/Work PB5888).
-            if (conns.Any(f => f.Organization == FileOrganization.Relative) && conns.Any(f => f.RelativeKeyOperand is not null))
+            if (conns.Any(f => f.Organization == FileOrganization.Relative) && conns.Any(f => f.RelativeKeyOperand is not null)
+                && !conns.Any(f => f.RelativeKeyRefused))
                 SameItem(edition, conns, f => f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts), f => f.ClauseOrEntryAt(f.RelativeKeyAt),
                     DiagnosticCatalog.ExternalRelativeKeyConsistency, EditionSeverity.Error,
                     $"external relative file '{externalName}': all corresponding SELECT statements in the run unit "

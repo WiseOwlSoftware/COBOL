@@ -1149,6 +1149,9 @@ internal static class FileControlKeyRules
                         || !rule.Applies(file) || !rule.Violated(file, op)) continue;
                     using var _ = edition.At(file.ClauseOrEntryAt(op.At));
                     edition.Error(rule.Diagnostic, rule.Message(file, op));
+                    // A refused RELATIVE KEY item is no key the file's statements may be judged against (kb/Work PB6041):
+                    // START's SR4/SR5 identity would otherwise tell the program to name the very item this rule refuses.
+                    if (role == FileKeyRole.RelativeKey && op.Name is not null) file.RelativeKeyRefused = true;
                 }
             }
         }
@@ -1222,7 +1225,7 @@ internal static class FileControlKeyRules
                 break;
             case FileKeyRole.RelativeKey:
                 yield return new FileKeyOperand(role, "RELATIVE KEY", file.RelativeKeyOperand?.Name, file.RelativeKeyItem,
-                    file.RelativeKeyAt);
+                    file.RelativeKeyAt, Refused: file.RelativeKeyRefused);
                 break;
             case FileKeyRole.Entry:
                 // Exactly one, with no name and no item: the ENTRY is the subject, and the rows on this role

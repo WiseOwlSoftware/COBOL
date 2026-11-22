@@ -69,8 +69,10 @@ public sealed class BoundDeferralDriftTests
     }
 
     /// <summary>The refusal cannot be constructed around its diagnostic: no public or internal constructor, and
-    /// <see cref="BoundRejected.Report"/> (a descriptor) and <see cref="BoundRejected.Reported"/> (a callee
-    /// reported; the statement funnel verifies it — kb/Work PB1029) are the only factories.</summary>
+    /// <see cref="BoundRejected.Report"/> (a descriptor), <see cref="BoundRejected.Reported"/> (a callee
+    /// reported; the statement funnel verifies it — kb/Work PB1029) and <see cref="BoundRejected.OnRefusedClause"/> (a file
+    /// control entry clause the statement rests on was refused where it is written; the compile-wide backstop verifies an error
+    /// exists — kb/Work PB6041) are the only factories.</summary>
     [Fact]
     public void BoundRejected_IsObtainableOnlyThroughReport()
     {
@@ -78,7 +80,7 @@ public sealed class BoundDeferralDriftTests
         Assert.All(ctors, c => Assert.True(c.IsPrivate, $"{c} is not private"));
         var factories = typeof(BoundRejected).GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
             .Where(m => m.ReturnType == typeof(BoundRejected)).Select(m => m.Name).ToList();
-        Assert.Equal(["Report", "Reported"], factories.Order(StringComparer.Ordinal));
+        Assert.Equal(["OnRefusedClause", "Report", "Reported"], factories.Order(StringComparer.Ordinal));
     }
 
     private const string Head = """
