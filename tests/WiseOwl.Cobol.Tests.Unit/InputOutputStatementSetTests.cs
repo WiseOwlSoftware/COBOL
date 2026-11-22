@@ -53,11 +53,12 @@ public sealed class InputOutputStatementSetTests
         return Union(Regex.Split(m.Groups["list"].Value, @",\s*(?:and\s+)?"));
     }
 
-    /// <summary>A later edition's list: the statements the first sentence of its I-O status clause (the heading
+    /// <summary>A later edition's list, read from <paramref name="spec"/> (its transcription's path, which each caller spells,
+    /// so the build-targets audit resolves every read): the statements the first sentence of its I-O status clause (the heading
     /// <paramref name="heading"/>) says set the I-O status, "during the execution of a X, Y ... or Z statement".</summary>
     private static IoStatementForms ReadIoStatus(string spec, string heading)
     {
-        var lines = File.ReadAllLines(TestRepo.Specs(spec));
+        var lines = File.ReadAllLines(spec);
         int at = Array.FindIndex(lines, l => l.Trim() == heading);
         Assert.True(at >= 0, $"{spec} has no heading '{heading}'");
         string sentence = lines.Skip(at + 1).First(l => l.Contains("I-O status", StringComparison.Ordinal));
@@ -70,7 +71,7 @@ public sealed class InputOutputStatementSetTests
     public void TheReader_IsAbleToFail_ItReadsFifteenAndEight()
     {
         Assert.Equal(15, System.Numerics.BitOperations.PopCount((uint)Read1985()));
-        Assert.Equal(8, System.Numerics.BitOperations.PopCount((uint)ReadIoStatus("ISO_COBOL_2023.md", "##### 9.1.13.1 General")));
+        Assert.Equal(8, System.Numerics.BitOperations.PopCount((uint)ReadIoStatus(TestRepo.Specs("ISO_COBOL_2023.md"), "##### 9.1.13.1 General")));
         Assert.Throws<InvalidOperationException>(() => Printed("MOVE (with the CORRESPONDING phrase)"));
     }
 
@@ -79,15 +80,15 @@ public sealed class InputOutputStatementSetTests
 
     [Fact]
     public void Cobol2002_IsTheEightThatSetTheIoStatus() =>
-        Assert.Equal(ReadIoStatus("ISO_COBOL_2002.md", "##### 9.1.12 I-O status"), InputOutputStatementSet.Of(2002));
+        Assert.Equal(ReadIoStatus(TestRepo.Specs("ISO_COBOL_2002.md"), "##### 9.1.12 I-O status"), InputOutputStatementSet.Of(2002));
 
     [Fact]
     public void Cobol2014_IsTheEightThatSetTheIoStatus() =>
-        Assert.Equal(ReadIoStatus("ISO_COBOL_2014.md", "##### 9.1.12 I-O status"), InputOutputStatementSet.Of(2014));
+        Assert.Equal(ReadIoStatus(TestRepo.Specs("ISO_COBOL_2014.md"), "##### 9.1.12 I-O status"), InputOutputStatementSet.Of(2014));
 
     [Fact]
     public void Cobol2023_IsTheEightThatSetTheIoStatus() =>
-        Assert.Equal(ReadIoStatus("ISO_COBOL_2023.md", "##### 9.1.13.1 General"), InputOutputStatementSet.Of(2023));
+        Assert.Equal(ReadIoStatus(TestRepo.Specs("ISO_COBOL_2023.md"), "##### 9.1.13.1 General"), InputOutputStatementSet.Of(2023));
 
     [Fact]
     public void EveryEdition_HasAValue()
