@@ -1937,13 +1937,6 @@
    "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl"
   },
   {
-   "key": "DRV-1989-RV-A.2.46.3-3",
-   "arm": "unpopulatable-antecedent",
-   "names": "the set of compilation date-times provided outside the function's own value is empty: the compiler produces no listing in any edition (at 2002, 2014 and 2023 that is the documented choice of A.1 item 117; at 1985 it is the known nonconformance of kb/Work PB5923, which §1985:IV.7.1 requires), and the object code is a deterministic PE whose only compilation time is the WHEN-COMPILED constant itself",
-   "signature": "claude: 2026-11-16",
-   "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl"
-  },
-  {
    "key": "DRV-DOC-A.1-19",
    "arm": "indistinguishable-consequent",
    "names": "GR-14.9.5.4-7",

@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// <param name="Control">A flagged test's control: the accepted twin with the violation removed.</param>
 /// <param name="InSuite">Whether the per-edition suites carry it (the rest are WiseOwl's own tests).</param>
 /// <param name="Options">A WiseOwl test's WiseOwl compile options (<c>conformance-suite/wiseowl/options/</c>), by
-/// option: <c>sign-encoding</c>, <c>numeric-display</c>, <c>flag-extensions</c>, <c>repository-update</c>; empty for every other test.</param>
+/// option: <c>sign-encoding</c>, <c>numeric-display</c>, <c>flag-extensions</c>, <c>repository-update</c>, <c>listing</c>; empty for every other test.</param>
 /// <param name="Build">A multi-unit WiseOwl test's compilation steps in order (the test's own source among them, where its
 /// header's <c>build</c> puts it); null for a test that is one compilation (DESIGN-external-repository §17.1).</param>
 /// <param name="Servers">A WiseOwl test's message servers in the header's order: the run units the runner starts, each serving its name, before

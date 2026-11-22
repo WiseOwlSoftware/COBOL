@@ -17,8 +17,7 @@
   "has a planted case in scripts/selftests/spec/lineage_reads/test_reads.py."
  ],
  "diagnosed-kinds": {
-  "SR": "a syntax rule states what a conforming program may write: a program can violate it, and the compiler satisfies it by diagnosing the violation",
-  "FMT": "a general format states the syntax a program may write: a program outside it is diagnosed"
+  "SR": "a syntax rule states what a conforming program may write: a program can violate it, and the compiler satisfies it by diagnosing the violation"
  },
  "needs-accepting-case": [
   {"pattern": "\\bmay\\b(?!\\s+not\\b)", "why": "\"may be specified\", \"may appear\": a permission, which a refusal of another form does not show"},

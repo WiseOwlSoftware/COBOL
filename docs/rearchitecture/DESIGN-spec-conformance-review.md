@@ -2059,8 +2059,10 @@ edition's, and a key of no such family (`pointer-1985`, `clause-2023`) is contex
    refuses it there unless every rule it cites has the edition in its band) runs a program whose output the gate
    compares, and witnesses any rule. A DIAGNOSIS at the edition (a flagged case's `at`, a refusal test's
    `wiseowl/diagnostics/` `refuse-at`) shows only that a program is refused: it witnesses a rule only when the catalog's
-   `kind` of the older rule is one the evidence table (`scripts/spec/data/lineage-evidence-kinds.json`, data: SR and FMT,
-   checked against the catalog's kinds) names as diagnosed, or when the target's verdict is DOCUMENTED-NON-SUPPORT (the
+   `kind` of the older rule is one the evidence table (`scripts/spec/data/lineage-evidence-kinds.json`, data: SR alone,
+   checked against the catalog's kinds) names as diagnosed (a general format, kind FMT, is NOT one: it GRANTS forms, and a
+   refusal of a malformed one shows no granted form compiles at the edition, so an FMT row needs a case ACCEPTED there
+   unless its facility is declined; kb/Work PB5740), or when the target's verdict is DOCUMENTED-NON-SUPPORT (the
    facility is declined) and the read states its `licence-<year>` (`licence-2002` at 2002), the older text's citation that permits declining it:
    the value must OPEN with a citation of the row's own edition, and every citation in it must parse (`citation.py`,
    the one parser), be of that edition and name a unit of its text (`cite.resolve`, the one checker; review R2-2,
@@ -2070,7 +2072,7 @@ edition's, and a key of no such family (`pointer-1985`, `clause-2023`) is contex
    `needs-accepting-case`, review R2-3) needs an ACCEPTED case too: no refusal of a forbidden form shows a permitted one
    accepted. This is a TEXT HEURISTIC THAT FAILS CLOSED: a match sends the rule to an accepted case, so a prohibition
    worded with one of the words (other than "may not") is over-refused, never over-kept; it misses a grant no sentence of
-   the rule states (a form only its general format shows). A rule of ANY kind whose text WITHHOLDS a property from a
+   the rule states, which is why a general format, whose grants are all in its diagram, is no diagnosed kind. A rule of ANY kind whose text WITHHOLDS a property from a
    clause or phrase (the table's `withholding-rules`: "<clause> does not imply", kb/Work PB5783) is diagnosable too,
    when no `needs-accepting-case` pattern matches it (those win): no accepted program can tell the property was
    withheld (§1985:X.4.5.4 GR3, EXTERNAL does not imply GLOBAL, where a contained program's own declaration wins either
@@ -2325,7 +2327,8 @@ and proves 75 of 100 candidate cases at 2002 (24 accepted cases FAIL there and o
 witness 93, no register entry of its own 83, no 2002 licence 3, no code location 1; a row counted under each reason),
 with 25 recorded already; `record_verdicts.py --edition 2002` takes the 2002 GAP from 2,169 to 1,771. After review
 round 1 and the PB5675 merge (main e870f98665): the 11 CONFORMS general-format records whose every 2002 witness is a
-refusal are dropped (kb/Work PB5740: the evidence table counts FMT as a diagnosed kind, though a format grants forms),
+refusal are dropped (kb/Work PB5740: the evidence table then counted FMT as a diagnosed kind, though a format grants forms; it no
+longer does),
 7 rows take main's golden-lane records, 62 test-refs are rewritten to what `Witnesses.search` finds (accepted cases
 only, where any exist); the decisions are unchanged (571 own-verdict rows: 423 recorded, 148 refused for the same
 reasons), and the branch lands 380 own verdicts (CONFORMS 317, DOCUMENTED-NON-SUPPORT 63): 2002 GAP 2,074 to 1,694. `change-batch` on
