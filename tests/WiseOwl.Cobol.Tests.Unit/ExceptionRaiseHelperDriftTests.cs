@@ -170,7 +170,7 @@ public sealed class ExceptionRaiseHelperDriftTests
     /// <summary>kb/Work PB1138 — the EC-EXTERNAL activating-half flags are read by the activation boundary through
     /// <see cref="ExceptionEngine.ExternalActivatingMask"/>, so the pairing a raise helper proves for the other gates
     /// is proved here the same BEHAVIOURAL way: the flag the emitter sets for an EC-EXTERNAL name, ALONE, turns on
-    /// exactly that name's <see cref="WiseOwl.Cobol.Runtime.ExternalChecks"/> bit — never a neighbour's, and never none.</summary>
+    /// exactly that name's <see cref="WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks"/> bit — never a neighbour's, and never none.</summary>
     [Fact]
     public void EveryExternalActivatingFlag_SetsItsOwnBitOfTheActivatingMask()
     {
@@ -184,10 +184,10 @@ public sealed class ExceptionRaiseHelperDriftTests
             foreach (var f in FlagProperties) f.SetValue(engine, string.Equals(f.Name, flag, StringComparison.Ordinal));
             var expected = ec switch
             {
-                "EC-EXTERNAL-FORMAT-CONFLICT" => WiseOwl.Cobol.Runtime.ExternalChecks.FormatConflict,
-                "EC-EXTERNAL-DATA-MISMATCH" => WiseOwl.Cobol.Runtime.ExternalChecks.DataMismatch,
-                "EC-EXTERNAL-FILE-MISMATCH" => WiseOwl.Cobol.Runtime.ExternalChecks.FileMismatch,
-                _ => WiseOwl.Cobol.Runtime.ExternalChecks.None,
+                "EC-EXTERNAL-FORMAT-CONFLICT" => WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks.FormatConflict,
+                "EC-EXTERNAL-DATA-MISMATCH" => WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks.DataMismatch,
+                "EC-EXTERNAL-FILE-MISMATCH" => WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks.FileMismatch,
+                _ => WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks.None,
             };
             Assert.Equal((int)expected, engine.ExternalActivatingMask);
         }

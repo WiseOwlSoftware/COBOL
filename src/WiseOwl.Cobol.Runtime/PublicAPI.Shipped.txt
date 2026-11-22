@@ -887,7 +887,7 @@ WiseOwl.Cobol.Runtime.Exceptions.EcFatality.Fatal = 1 -> WiseOwl.Cobol.Runtime.E
 WiseOwl.Cobol.Runtime.Exceptions.EcFatality.Hierarchy = 3 -> WiseOwl.Cobol.Runtime.Exceptions.EcFatality
 WiseOwl.Cobol.Runtime.Exceptions.EcFatality.Imp = 2 -> WiseOwl.Cobol.Runtime.Exceptions.EcFatality
 WiseOwl.Cobol.Runtime.Exceptions.EcFatality.Nonfatal = 0 -> WiseOwl.Cobol.Runtime.Exceptions.EcFatality
-WiseOwl.Cobol.Runtime.Exceptions.EcFunctions
+WiseOwl.Cobol.Runtime.EcFunctions
 WiseOwl.Cobol.Runtime.Exceptions.EcInfo
 WiseOwl.Cobol.Runtime.Exceptions.EcInfo.Deconstruct(out string! Name, out int Level, out string? Level2Parent, out WiseOwl.Cobol.Runtime.Exceptions.EcFatality Fatality, out int IntroducedIn) -> void
 WiseOwl.Cobol.Runtime.Exceptions.EcInfo.EcInfo() -> void
@@ -948,7 +948,7 @@ WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.DeclarativeNotNormal(int token)
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.EnterDeclarative(object! owner) -> int
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.EnterStatement(string! stmt, string! loc, string![]! locNames) -> (string? Stmt, string? Loc, string![]? Names)
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.ExceptionEngine() -> void
-WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.ExceptionEngine(WiseOwl.Cobol.Runtime.ModuleStack! activations) -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.ExceptionEngine(WiseOwl.Cobol.Runtime.Exceptions.IActivationIdentity! activations) -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.ExceptionObject.get -> WiseOwl.Cobol.Runtime.CobolObject?
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.ExitStatement((string? Stmt, string? Loc, string![]? Names) prior) -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.ExternalActivatingMask.get -> int
@@ -1008,7 +1008,7 @@ WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.LocaleSizeChecking.get -> bool
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.LocaleSizeChecking.set -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.LocaleSizeError(string! detail) -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.MarkDeclarativesNotNormal(object? owner) -> void
-WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.NonfatalDispatcher.get -> WiseOwl.Cobol.Runtime.INonfatalSelector?
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.NonfatalDispatcher.get -> WiseOwl.Cobol.Runtime.Exceptions.INonfatalSelector?
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.NonfatalDispatcher.set -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.OdoError(string! detail) -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.OoArgOmittedChecking.get -> bool
@@ -1125,12 +1125,12 @@ WiseOwl.Cobol.Runtime.Exceptions.RaiseResumeSignal.TargetPc.get -> int
 WiseOwl.Cobol.Runtime.Exceptions.ResumeSignal
 WiseOwl.Cobol.Runtime.Exceptions.ResumeSignal.ResumeSignal(int targetPc) -> void
 WiseOwl.Cobol.Runtime.Exceptions.ResumeSignal.TargetPc.get -> int
-WiseOwl.Cobol.Runtime.ExternalChecks
-WiseOwl.Cobol.Runtime.ExternalChecks.DataMismatch = 2 -> WiseOwl.Cobol.Runtime.ExternalChecks
-WiseOwl.Cobol.Runtime.ExternalChecks.FileMismatch = 4 -> WiseOwl.Cobol.Runtime.ExternalChecks
-WiseOwl.Cobol.Runtime.ExternalChecks.FormatConflict = 1 -> WiseOwl.Cobol.Runtime.ExternalChecks
-WiseOwl.Cobol.Runtime.ExternalChecks.Imp = 8 -> WiseOwl.Cobol.Runtime.ExternalChecks
-WiseOwl.Cobol.Runtime.ExternalChecks.None = 0 -> WiseOwl.Cobol.Runtime.ExternalChecks
+WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks
+WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks.DataMismatch = 2 -> WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks
+WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks.FileMismatch = 4 -> WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks
+WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks.FormatConflict = 1 -> WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks
+WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks.Imp = 8 -> WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks
+WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks.None = 0 -> WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks
 WiseOwl.Cobol.Runtime.ExternalDescriptor
 WiseOwl.Cobol.Runtime.ExternalDescriptor.<Clone>$() -> WiseOwl.Cobol.Runtime.ExternalDescriptor!
 WiseOwl.Cobol.Runtime.ExternalDescriptor.ByteCount.get -> int
@@ -1159,7 +1159,7 @@ WiseOwl.Cobol.Runtime.ExternalSwitches
 WiseOwl.Cobol.Runtime.ExternalTable
 WiseOwl.Cobol.Runtime.ExternalTable.Cell(string! name, System.Func<WiseOwl.Cobol.Runtime.StorageCell!>! create) -> WiseOwl.Cobol.Runtime.StorageCell!
 WiseOwl.Cobol.Runtime.ExternalTable.Cell(string! name, string! initialImage) -> WiseOwl.Cobol.Runtime.StorageCell!
-WiseOwl.Cobol.Runtime.ExternalTable.Describe(string! describer, string! name, WiseOwl.Cobol.Runtime.ExternalDescriptor! desc, WiseOwl.Cobol.Runtime.ExternalChecks gate) -> void
+WiseOwl.Cobol.Runtime.ExternalTable.Describe(string! describer, string! name, WiseOwl.Cobol.Runtime.ExternalDescriptor! desc, WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks gate) -> void
 WiseOwl.Cobol.Runtime.ExternalTable.ExternalTable() -> void
 WiseOwl.Cobol.Runtime.ExternalizedNames
 WiseOwl.Cobol.Runtime.FloatClassTest
@@ -1293,8 +1293,8 @@ WiseOwl.Cobol.Runtime.ICobolProgram.Call(WiseOwl.Cobol.Runtime.CobolArg[]! args,
 WiseOwl.Cobol.Runtime.ICobolProgram.CloseFiles() -> void
 WiseOwl.Cobol.Runtime.ICobolProgram.DescribeExternals() -> void
 WiseOwl.Cobol.Runtime.ICobolProgram.EndStorage(WiseOwl.Cobol.Runtime.StorageEnd reason) -> void
-WiseOwl.Cobol.Runtime.INonfatalSelector
-WiseOwl.Cobol.Runtime.INonfatalSelector.NonfatalDispatch(string! ec) -> int
+WiseOwl.Cobol.Runtime.Exceptions.INonfatalSelector
+WiseOwl.Cobol.Runtime.Exceptions.INonfatalSelector.NonfatalDispatch(string! ec) -> int
 WiseOwl.Cobol.Runtime.IO.CloseFormat
 WiseOwl.Cobol.Runtime.IO.CloseFormat.NoRewind = 1 -> WiseOwl.Cobol.Runtime.IO.CloseFormat
 WiseOwl.Cobol.Runtime.IO.CloseFormat.Normal = 0 -> WiseOwl.Cobol.Runtime.IO.CloseFormat
@@ -1835,9 +1835,9 @@ WiseOwl.Cobol.Runtime.MoveValidity
 WiseOwl.Cobol.Runtime.NationalCollation
 WiseOwl.Cobol.Runtime.NationalCollation.NationalCollation(ushort[]! codes, ushort[]! positions, ushort[]! repByPos, int nextFree, char highValue = '\uffff', char lowValue = '\0') -> void
 WiseOwl.Cobol.Runtime.NativeCollatingSequence
-WiseOwl.Cobol.Runtime.NonfatalSelectorFn
-WiseOwl.Cobol.Runtime.NonfatalSelectorFn.NonfatalDispatch(string! ec) -> int
-WiseOwl.Cobol.Runtime.NonfatalSelectorFn.NonfatalSelectorFn(System.Func<string!, int>! select) -> void
+WiseOwl.Cobol.Runtime.Exceptions.NonfatalSelectorFn
+WiseOwl.Cobol.Runtime.Exceptions.NonfatalSelectorFn.NonfatalDispatch(string! ec) -> int
+WiseOwl.Cobol.Runtime.Exceptions.NonfatalSelectorFn.NonfatalSelectorFn(System.Func<string!, int>! select) -> void
 WiseOwl.Cobol.Runtime.NotImplemented
 WiseOwl.Cobol.Runtime.NotImplementedCobolFeatureException
 WiseOwl.Cobol.Runtime.NotImplementedCobolFeatureException.Feature.get -> string!
@@ -3099,14 +3099,14 @@ static WiseOwl.Cobol.Runtime.Exceptions.DispatchResult.SuppressesFatal(int resul
 static WiseOwl.Cobol.Runtime.Exceptions.DispatchResult.TerminatesSortMerge(int result) -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile.FromEvents(System.Collections.Generic.IEnumerable<(string! Ec, bool On)>! events) -> WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile!
 static WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile.Of(string? encoded) -> WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile!
-static WiseOwl.Cobol.Runtime.Exceptions.EcFunctions.File() -> string!
-static WiseOwl.Cobol.Runtime.Exceptions.EcFunctions.File(string! connectorKey) -> string!
-static WiseOwl.Cobol.Runtime.Exceptions.EcFunctions.FileN() -> string!
-static WiseOwl.Cobol.Runtime.Exceptions.EcFunctions.FileN(string! connectorKey) -> string!
-static WiseOwl.Cobol.Runtime.Exceptions.EcFunctions.Location() -> string!
-static WiseOwl.Cobol.Runtime.Exceptions.EcFunctions.LocationN() -> string!
-static WiseOwl.Cobol.Runtime.Exceptions.EcFunctions.Statement() -> string!
-static WiseOwl.Cobol.Runtime.Exceptions.EcFunctions.Status() -> string!
+static WiseOwl.Cobol.Runtime.EcFunctions.File() -> string!
+static WiseOwl.Cobol.Runtime.EcFunctions.File(string! connectorKey) -> string!
+static WiseOwl.Cobol.Runtime.EcFunctions.FileN() -> string!
+static WiseOwl.Cobol.Runtime.EcFunctions.FileN(string! connectorKey) -> string!
+static WiseOwl.Cobol.Runtime.EcFunctions.Location() -> string!
+static WiseOwl.Cobol.Runtime.EcFunctions.LocationN() -> string!
+static WiseOwl.Cobol.Runtime.EcFunctions.Statement() -> string!
+static WiseOwl.Cobol.Runtime.EcFunctions.Status() -> string!
 static WiseOwl.Cobol.Runtime.Exceptions.EcInfo.operator !=(WiseOwl.Cobol.Runtime.Exceptions.EcInfo left, WiseOwl.Cobol.Runtime.Exceptions.EcInfo right) -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.EcInfo.operator ==(WiseOwl.Cobol.Runtime.Exceptions.EcInfo left, WiseOwl.Cobol.Runtime.Exceptions.EcInfo right) -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionCatalog.DirectiveCovers(string! directiveName, string! level3) -> bool
@@ -3218,7 +3218,7 @@ static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.LocaleSizeChecking.get ->
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.LocaleSizeChecking.set -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.LocaleSizeError(string! detail) -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.MarkDeclarativesNotNormal(object? owner) -> void
-static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.NonfatalDispatcher.get -> WiseOwl.Cobol.Runtime.INonfatalSelector?
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.NonfatalDispatcher.get -> WiseOwl.Cobol.Runtime.Exceptions.INonfatalSelector?
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.NonfatalDispatcher.set -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.OdoError(string! detail) -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.OoArgOmittedChecking.get -> bool
@@ -3619,7 +3619,7 @@ static readonly WiseOwl.Cobol.Runtime.IO.FileRegistry.RetryInterval -> System.Ti
 static readonly WiseOwl.Cobol.Runtime.IO.SystemClock.Instance -> WiseOwl.Cobol.Runtime.IO.SystemClock!
 static readonly WiseOwl.Cobol.Runtime.IO.Table19.StandardModes -> WiseOwl.Cobol.Runtime.IO.FileSharing[]!
 static readonly WiseOwl.Cobol.Runtime.ManagedPointer.Null -> WiseOwl.Cobol.Runtime.ManagedPointer!
-static readonly WiseOwl.Cobol.Runtime.NonfatalSelectorFn.None -> WiseOwl.Cobol.Runtime.NonfatalSelectorFn!
+static readonly WiseOwl.Cobol.Runtime.Exceptions.NonfatalSelectorFn.None -> WiseOwl.Cobol.Runtime.Exceptions.NonfatalSelectorFn!
 static readonly WiseOwl.Cobol.Runtime.PredefinedNullArgument.Instance -> WiseOwl.Cobol.Runtime.PredefinedNullArgument!
 static readonly WiseOwl.Cobol.Runtime.ProgramPointer.Null -> WiseOwl.Cobol.Runtime.ProgramPointer
 virtual WiseOwl.Cobol.Runtime.BASE.__FactoryObject() -> WiseOwl.Cobol.Runtime.CobolObject?

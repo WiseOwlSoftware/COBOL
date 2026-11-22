@@ -3392,7 +3392,7 @@ internal static class RuntimeApi
 
     /// <summary>A last-exception interrogation read (§2023:15.28–15.33) — <c>EcFunctions.{method}(args)</c>.</summary>
     public static string EcFn(string method, string args = "") =>
-        $"{nameof(Runtime.Exceptions.EcFunctions)}.{method}({args})";
+        $"{nameof(Runtime.EcFunctions)}.{method}({args})";
 
     /// <summary>The predefined object reference EXCEPTION-OBJECT (ISO §2023:8.4.3.6.4 GR1/GR2 — "the current
     /// exception object", one instance per run unit), read from the run unit's ONE exception state.

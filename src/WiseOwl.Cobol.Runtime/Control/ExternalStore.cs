@@ -21,7 +21,7 @@ public static class ExternalStore
     /// own before-Environment-division TURN mask — each EC-EXTERNAL condition pairs independently, bitwise.</summary>
     public static void Describe(string describer, string name, ExternalDescriptor desc, int selfMask)
         => RunUnit.Current.External.Describe(describer, name, desc,
-            (ExternalChecks)(Exceptions.ExceptionState.ActivatorExternalMask & selfMask));
+            (Exceptions.ExternalChecks)(Exceptions.ExceptionState.ActivatorExternalMask & selfMask));
 
     /// <summary>⛔ THE METHOD ACTIVATION BOUNDARY's external-item check (ISO §2023:14.9.23.4 GR7 d); kb/Work PB1138) — the INVOKE
     /// twin of <c>ProgramTable.CallProgram</c>'s GR3e step, run by a generated method's prologue BEFORE control is

@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Runtime.Exceptions;
+
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
@@ -29,7 +31,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// misreading was three wrong answers inside every method: CURRENT returned the CALLER, STACK omitted the method,
 /// and ACTIVATING returned the single space r5 reserves for a MAIN PROGRAM.
 /// </summary>
-public sealed class ModuleStack
+public sealed class ModuleStack : IActivationIdentity
 {
     private readonly record struct Frame(string Name, string Outermost, bool IsNested, bool IsMain, bool Recursive, long Activation);
 

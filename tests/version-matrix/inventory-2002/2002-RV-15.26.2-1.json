@@ -2,7 +2,7 @@
  "rule-id": "2002-RV-15.26.2-1",
  "rule-digest": "056a2d1ec998",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#WithLocation; src/WiseOwl.Cobol.Runtime/Exceptions/EcFunctions.cs#LocationN",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#WithLocation; src/WiseOwl.Cobol.Runtime/Intrinsics/EcFunctions.cs#LocationN",
  "test-ref": "conformance:cases/15.31.3-Returned-value-rules/exception_file_n",
- "notes": "Own verdict from the read lineage-reads-2002/u-31.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.31.3-1, witnessed at 2002 by the cases test-ref names. The read: As 15.25.2 RV1, national. 2002 is the TURN-only subset. Cited: §2002:15.26.2 RV1."
+ "notes": "Own verdict from the read lineage-reads-2002/u-31.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.31.3-1, witnessed at 2002 by the cases test-ref names. The read: As 15.25.2 RV1, national. 2002 is the TURN-only subset. Cited: §2002:15.26.2 RV1. retired-witness: src/WiseOwl.Cobol.Runtime/Exceptions/EcFunctions.cs#LocationN (EcFunctions moved from Runtime/Exceptions to Runtime/Intrinsics (kb/Work PB2743); the same member at the new path witnesses the rule)"
 }

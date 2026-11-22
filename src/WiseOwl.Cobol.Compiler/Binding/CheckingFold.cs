@@ -69,9 +69,9 @@ internal static class CheckingFold
     /// group's TurnState has enabled at <paramref name="divLine"/>, the element's first division header after its
     /// identification. A program unit and a method both take it, so the two cannot answer the rule differently.</summary>
     private static int ExternalMaskAt(TurnState turn, int divLine) =>
-        (turn.Enabled("EC-EXTERNAL-FORMAT-CONFLICT", null, divLine) ? (int)Runtime.ExternalChecks.FormatConflict : 0)
-        | (turn.Enabled("EC-EXTERNAL-DATA-MISMATCH", null, divLine) ? (int)Runtime.ExternalChecks.DataMismatch : 0)
-        | (turn.Enabled("EC-EXTERNAL-FILE-MISMATCH", null, divLine) ? (int)Runtime.ExternalChecks.FileMismatch : 0);
+        (turn.Enabled("EC-EXTERNAL-FORMAT-CONFLICT", null, divLine) ? (int)Runtime.Exceptions.ExternalChecks.FormatConflict : 0)
+        | (turn.Enabled("EC-EXTERNAL-DATA-MISMATCH", null, divLine) ? (int)Runtime.Exceptions.ExternalChecks.DataMismatch : 0)
+        | (turn.Enabled("EC-EXTERNAL-FILE-MISMATCH", null, divLine) ? (int)Runtime.Exceptions.ExternalChecks.FileMismatch : 0);
 
     /// <summary>Any EC-EXTERNAL enabling event anywhere in the group (the zero-scaffolding gate of <see
     /// cref="UnitChecking.ExternalDescribe"/>).</summary>
