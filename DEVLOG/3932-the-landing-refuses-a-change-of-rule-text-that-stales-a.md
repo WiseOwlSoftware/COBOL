@@ -1,4 +1,4 @@
-## The landing refuses a change of rule text that stales a stored code read (PB6090)
+## Entry 3932 — 2026-11-22 15:30 PST — The landing refuses a change of rule text that stales a stored code read (PB6090)
 
 PR #1953 corrected the 1985 transcription of six rules. Each row's `rule-digest` changed, so each stored code read went `stale`
 (`code_read_store.outcome`), and `edition_status.py` 1985 gained six code-read terms with every landing check green. PB6056's landing
@@ -19,3 +19,4 @@ corrected text). A branch that carries the re-read passes; a change of no rule t
 Self-tests `case_23` to `case_25` (predicate; digest change refused; carried re-read and no text change pass). Docs: the code_reads.py and
 code_read_landing.py docstrings, enqueue.py's check list, DESIGN-spec-conformance-review 10.6.1, DESIGN-test-build-ci, DOC_INDEX,
 MANDATORY-PRACTICES L1, and a note, kb/Work/PB6090.md.
+
