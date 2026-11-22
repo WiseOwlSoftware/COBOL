@@ -80,8 +80,8 @@ def main() -> int:
             note = f"editions {BAND} (kb/Work PB3319; was {r['editions']}): {REASON}"
             records.append({"rule-id": r["rule-id"], "verdict": r["verdict"], "editions": BAND,
                             "notes": r["notes"].rstrip() + " || " + note})
-    out.write_text(json.dumps({"batch": "pb3319-screen-editions", "records": records}, indent=1, ensure_ascii=False)
-                   + "\n", encoding="utf-8")
+    with out.open("w", encoding="utf-8", newline="\n") as f:
+        f.write(json.dumps({"batch": "pb3319-screen-editions", "records": records}, indent=1, ensure_ascii=False) + "\n")
     print(f"{len(records)} records, {checked} evidence items checked, all OK -> {out}")
     return 0
 
