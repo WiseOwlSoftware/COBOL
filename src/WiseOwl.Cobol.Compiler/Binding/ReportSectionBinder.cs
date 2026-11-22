@@ -1501,7 +1501,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                             + " (ISO §2023:13.18.35.3 SR9" + NotInCobol85("the OR PAGE phrase") + ")");
                     // §1985:XIII.3.15.3 SR9 — "The first LINE NUMBER clause specified within a PAGE FOOTING report group must be
                     // an absolute LINE NUMBER clause." COBOL-2002 and later place a relative first line of a page footing from
-                    // the FOOTING integer instead (§2023:13.18.35.4 GR5 b) 4.).
+                    // the FOOTING integer instead (§2023:13.18.35.4 GR5b.4).
                     if (k == 0 && firstLineClause && !absolute && kind == ReportGroupKindModel.PageFooting && !DialectBehaviors.IsActive(DialectBehavior.PageFootingFirstLineAbsolute, Edition.DialectLevel))
                         Violation("the first LINE clause of a page footing report group is relative"
                             + (op.NEXT() is not null ? " (ON NEXT PAGE without an integer-1)" : $" (LINE PLUS {WrittenSource.Of(op.integerOperand(), "")})")
@@ -1687,7 +1687,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     + "group, so neither of them, nor any other clause, may be written between two SUM groups ("
                     + Edition.Edition.CiteRule("§1985:XIII.3.19.2", "§2023:13.18.54.2") + ")");
             // §1985:XIII.3.19.3 SR3 — "A SUM clause can appear only in the description of a control footing report group."
-            // COBOL-2002 lifts it (§2023:13.18.54.3 SR4 f) names a detail, report footing and page footing as SUM groups).
+            // COBOL-2002 lifts it (§2023:13.18.54.3 SR4f names a detail, report footing and page footing as SUM groups).
             if (sum && !DialectBehaviors.IsActive(DialectBehavior.SumOnlyInControlFooting, Edition.DialectLevel) && groupKind != ReportGroupKindModel.ControlFooting)
                 Edition.Error(DiagnosticCatalog.ReportSumNotInControlFooting, $"{where} writes a SUM clause in a "
                     + $"{ReportGroupTypeWords(groupKind)} report group; a SUM clause can appear only in the description of a "

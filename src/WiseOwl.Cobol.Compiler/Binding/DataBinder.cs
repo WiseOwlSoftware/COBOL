@@ -1117,7 +1117,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         edition.Cite(y1985, y2023, y2002: NotSubjectToOccurs, y2014: NotSubjectToOccurs);
 
     /// <summary>The subscript sentence the 2002 and 2014 arms of <see cref="OperandSubscriptRule(EditionInfo, string, string)"/>
-    /// print; the 2023 rule of the SORT / MERGE file keys is its own words (§2023:14.9.40.3 SR6 b), §2023:14.9.24.3 SR4b)).</summary>
+    /// print; the 2023 rule of the SORT / MERGE file keys is its own words (§2023:14.9.40.3 SR6b, §2023:14.9.24.3 SR4b)).</summary>
     internal const string NotSubjectToOccurs = "the operand shall not be subject to any OCCURS clauses";
 
     /// <summary>The ONE data-name-n screen, static over the <see cref="EditionContext"/>
