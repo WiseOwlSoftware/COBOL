@@ -15,7 +15,16 @@ namespace WiseOwl.Cobol.Tools.ArchCensus;
 internal static class TestArtifacts
 {
     private const string DriftSuffix = "DriftTests.cs";
-    private const string Locator = "TestRepo";
+
+    /// <summary>
+    /// The metadata name of the repository-path locator the drift tests call (<c>tests/_shared/TestRepo.cs</c>): the
+    /// locator is the SYMBOL a call binds to, never an identifier's text, so an alias or a <c>using static</c> call is
+    /// read and a same-named type elsewhere is not (kb/Work PB3201). RepoDrift's <c>ArchCensusDriftTests</c> pins this
+    /// string to <c>typeof(TestRepo).FullName</c>, so a rename of the locator is red at the gate, and
+    /// <see cref="DriftLiterals"/> refuses a solution whose drift tests compile no such type instead of recording every
+    /// path they build as an unchecked literal.
+    /// </summary>
+    internal const string LocatorMetadataName = "WiseOwl.Cobol.Tests.Shared.TestRepo";
 
     public static IReadOnlyList<RawScaffold> Scaffolds(LoadedSolution solution, ReferenceIndex index)
     {
@@ -75,18 +84,26 @@ internal static class TestArtifacts
     }
 
     /// <summary>Every string literal in a drift test, classified (<see cref="RawLiteral"/>), and every repository
-    /// path a <c>TestRepo</c> call with only literal arguments builds. The locator's prefixes are READ from its own expression bodies (<c>Src(..)</c> is
-    /// <c>At(["src", .. segments])</c>), never restated here.</summary>
+    /// path a call of the locator (<see cref="LocatorMetadataName"/>) with only literal arguments builds. The locator's
+    /// prefixes are READ from its own expression bodies (<c>Src(..)</c> is <c>At(["src", .. segments])</c>), never
+    /// restated here. Refuses (<see cref="CensusRefusal"/>) a solution with drift tests in which no project compiles the
+    /// locator, and a locator none of whose methods has a shape the census reads: either would leave every path a drift
+    /// test builds unchecked, with no sign.</summary>
     public static IReadOnlyList<RawLiteral> DriftLiterals(LoadedSolution solution)
     {
         var literals = new SortedSet<RawLiteral>(Comparer<RawLiteral>.Create((a, b) =>
             string.CompareOrdinal($"{a.File}\0{a.Line:D6}\0{a.Kind}\0{a.Text}", $"{b.File}\0{b.Line:D6}\0{b.Kind}\0{b.Text}")));
+        bool driftTests = false, located = false;
         foreach (LoadedProject project in solution.Projects.Where(p => !p.IsCensus))
         {
-            IReadOnlyDictionary<string, string> prefixes = LocatorPrefixes(project);
+            INamedTypeSymbol? locator = project.Compilation.Assembly.GetTypeByMetadataName(LocatorMetadataName);
+            IReadOnlyDictionary<string, string> prefixes = locator is null ? new Dictionary<string, string>() : LocatorPrefixes(locator);
+            located |= locator is not null;
             foreach (LoadedDocument document in project.Documents.Where(d => !d.Generated
                          && d.RepoPath.EndsWith(DriftSuffix, StringComparison.Ordinal)))
             {
+                driftTests = true;
+                SemanticModel? model = null;
                 foreach (SyntaxNode node in document.Tree.GetRoot().DescendantNodes())
                 {
                     int line = node.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
@@ -95,13 +112,14 @@ internal static class TestArtifacts
                         literals.Add(new RawLiteral(document.RepoPath, line, literal.Token.ValueText,
                             InStaticList(literal) ? "list" : "other"));
                     }
-                    else if (node is InvocationExpressionSyntax
-                             {
-                                 Expression: MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.Text: Locator } } call,
-                             } invocation
-                             && prefixes.TryGetValue(call.Name.Identifier.Text, out string? prefix)
+                    else if (locator is not null
+                             && node is InvocationExpressionSyntax invocation
                              && invocation.ArgumentList.Arguments.Count > 0
-                             && invocation.ArgumentList.Arguments.All(a => a.Expression.IsKind(SyntaxKind.StringLiteralExpression)))
+                             && invocation.ArgumentList.Arguments.All(a => a.Expression.IsKind(SyntaxKind.StringLiteralExpression))
+                             && (model ??= project.Compilation.GetSemanticModel(document.Tree)).GetSymbolInfo(invocation).Symbol
+                                 is IMethodSymbol method
+                             && SymbolEqualityComparer.Default.Equals(method.ContainingType, locator)
+                             && prefixes.TryGetValue(method.Name, out string? prefix))
                     {
                         IEnumerable<string> parts = invocation.ArgumentList.Arguments
                             .Select(a => ((LiteralExpressionSyntax)a.Expression).Token.ValueText);
@@ -109,6 +127,13 @@ internal static class TestArtifacts
                     }
                 }
             }
+        }
+
+        if (driftTests && !located)
+        {
+            throw new CensusRefusal($"no project of the solution compiles the drift tests' path locator {LocatorMetadataName} "
+                                    + "(renamed or moved? re-point TestArtifacts.LocatorMetadataName): every path a drift "
+                                    + "test builds would be recorded unchecked");
         }
 
         return [.. literals];
@@ -122,25 +147,23 @@ internal static class TestArtifacts
         && literal.Ancestors().Any(a => a is CollectionExpressionSyntax or InitializerExpressionSyntax);
 
     /// <summary>
-    /// The path prefix of each <c>TestRepo</c> method whose body is <c>At(...)</c> itself (<c>Path.Combine([Root, ..
+    /// The path prefix of each locator method whose body is <c>At(...)</c> itself (<c>Path.Combine([Root, ..
     /// segments])</c>, the empty prefix) or a call to another such method with literal segments before the spread —
-    /// resolved from the locator's own source. A method of any other shape is left out, so its calls are reported
-    /// only as their literal arguments.
+    /// resolved from the locator's own source (every partial declaration of the symbol). A method of any other shape
+    /// is left out, so its calls are reported only as their literal arguments; a locator with NO method of these shapes
+    /// is a refusal, never an empty map.
     /// </summary>
-    private static IReadOnlyDictionary<string, string> LocatorPrefixes(LoadedProject project)
+    private static IReadOnlyDictionary<string, string> LocatorPrefixes(INamedTypeSymbol locator)
     {
         var bodies = new Dictionary<string, ExpressionSyntax>(StringComparer.Ordinal);
-        foreach (LoadedDocument document in project.Documents)
+        foreach (TypeDeclarationSyntax declaration in locator.DeclaringSyntaxReferences.Select(r => r.GetSyntax())
+                     .OfType<TypeDeclarationSyntax>())
         {
-            foreach (ClassDeclarationSyntax locator in document.Tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>()
-                         .Where(c => c.Identifier.Text == Locator))
+            foreach (MethodDeclarationSyntax method in declaration.Members.OfType<MethodDeclarationSyntax>())
             {
-                foreach (MethodDeclarationSyntax method in locator.Members.OfType<MethodDeclarationSyntax>())
+                if (method.ExpressionBody?.Expression is { } body)
                 {
-                    if (method.ExpressionBody?.Expression is { } body)
-                    {
-                        bodies[method.Identifier.Text] = body;
-                    }
+                    bodies[method.Identifier.Text] = body;
                 }
             }
         }
@@ -154,7 +177,11 @@ internal static class TestArtifacts
             }
         }
 
-        return prefixes;
+        return prefixes.Count > 0
+            ? prefixes
+            : throw new CensusRefusal($"the path locator {LocatorMetadataName} has no method of a shape the census reads "
+                                      + "(Path.Combine([Root, .. segments]), or a call of one with literal segments "
+                                      + "before the spread): TestArtifacts.Resolve must learn its new shape");
     }
 
     private static string? Resolve(string method, Dictionary<string, ExpressionSyntax> bodies, int depth)
