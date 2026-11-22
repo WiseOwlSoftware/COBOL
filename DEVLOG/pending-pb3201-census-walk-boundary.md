@@ -41,3 +41,10 @@ the solution in Debug, but Tests.Unit references the analyzer with `SetConfigura
 analyzer dll is missing, and the host crashes in `Reachability.StrongestUseAsync` with UnresolvedAnalyzerReference.
 This is the same root as PB6043. Also, `scripts/buildgraph.py` restates TestRepo's helper prefixes by hand
 (`TESTREPO_BASES`) and finds calls by the text `TestRepo.`.
+
+**Gate.** Run 1 was RED in the INERT LANE audit: the new drift test reads tools/ArchCensus/TestArtifacts.cs, so
+`lane_classification.CODE_READS` now names that reader. Run 2 was RED in SELF-TESTS: the walk-boundary arm reads every
+tracked MSBuild file, so census.py declares `# SELF-TEST-POPULATION: tree`. Self-review also found that the boundary's
+patterns read only double-quoted attributes, so a single-quoted Include would have passed; both quote characters are
+now read, with a planted arm. Run 000003-20261122T191952Z: `=== BUILD-LOCAL GATE: GREEN — ... RepoDrift 231/231 ran
+... ===`, with `ArchCensusDriftTests.CensusHost_NamesTheLocatorTheDriftTestsCall` Passed.
