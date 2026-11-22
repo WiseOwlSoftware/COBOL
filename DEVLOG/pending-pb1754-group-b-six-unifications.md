@@ -9,6 +9,12 @@ one decision, and `PhysicalAdvanceDriftTests` pins the behaviour and refuses a s
 showed the copies really disagreed in a compiled program. In `pb5729_fd_later_record_redefines` (all four editions),
 record `RC` holds `CR REDEFINES CA` and `CB REDEFINES CA` inside an FD area class, so the inner class dissolves. The file
 was registered with a 12-byte maximum record for a 4-byte record area (§2023:13.18.44.4 GR1). It is now registered at 4.
+The branch review (R1-1) found that no golden pinned it: pb5729 only DISPLAYs, which reads the same 4 bytes at either
+length. `pb3256_fd_record_size_redefiners_add_nothing` (2002, 2014, 2023) and its `_85` twin now witness it in the
+program's own I-O statuses. A second FD writes one 6-byte record to the same file. Read through F's 4-byte record, that
+is a full record (`00`) and a short final record of 2 (`04`, §2023:14.9.30.4 GR14; §1985:VII.4.4.4 GR13), then the AT
+END phrase with `10`, then `46` with the USE declarative. At a 12-byte record the first READ is the short one, so the
+case fails there (probed with a true 12-byte record added to the FD).
 
 **PB3215: the program collating carriers spelled once.** Eleven string literals spelled `__COLLATE` / `__COLLATE_NAT`
 beside the one declaration. `ObjectComputerEmit.ProgramCollation` and `NationalProgramCollation` are now the only spelling,
