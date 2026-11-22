@@ -496,7 +496,7 @@ internal static class OperandText
     /// convention is char==byte (the <c>CobolBits.Pack</c> image convention), one representation per leaf shape,
     /// each THE mechanism that already defines that shape's storage (<c>GroupImageCodec.AsImageOf</c>'s recipes —
     /// never a second codec): a group is its generated <c>AsImage()</c>; a national leaf its UTF-16BE bytes
-    /// (<c>CobolBits.NatBytes</c>, D-N1); a USAGE BIT leaf its packed bits (<c>CobolBits.Pack</c> — which also
+    /// (<c>NationalImage.Bytes</c>, D-N1); a USAGE BIT leaf its packed bits (<c>CobolBits.Pack</c> — which also
     /// materializes §2023:15.19.4 RV2's trailing zero-bit pad); a zoned/character leaf its carrier (the sign-AWARE
     /// image — storage, so no GR6a de-sign); a BINARY/PACKED/COMP-5 leaf its radix-2/BCD bytes
     /// (<c>CobolNum.FormatImage</c>, V59/§2023:14.4); a float leaf its IEEE interchange bytes

@@ -2131,7 +2131,6 @@ const WiseOwl.Cobol.Runtime.ActivationDescription.Unrestricted = "*" -> string!
 const WiseOwl.Cobol.Runtime.ActivationStack.ActivationReserveBytes = 1048576 -> int
 const WiseOwl.Cobol.Runtime.ActivationStack.RunUnitThreadStackBytes = 402653184 -> int
 const WiseOwl.Cobol.Runtime.CobolArg.Unstated = -1 -> int
-const WiseOwl.Cobol.Runtime.CobolBits.BytesPerNational = 2 -> int
 const WiseOwl.Cobol.Runtime.CobolDynString.MaxLength = 1073741791 -> int
 const WiseOwl.Cobol.Runtime.CobolDynTable<T>.MaxOccurrences = 1073741823 -> int
 const WiseOwl.Cobol.Runtime.CobolIndex.MaxIndex = 9223372036854775807 -> long
@@ -2462,9 +2461,6 @@ static WiseOwl.Cobol.Runtime.CobolArgAdapt.Unbound(WiseOwl.Cobol.Runtime.Managed
 static WiseOwl.Cobol.Runtime.CobolArgAdapt.VarGroup(WiseOwl.Cobol.Runtime.CobolArg[]! args, int i, WiseOwl.Cobol.Runtime.GroupAtom![]! formalAtoms) -> WiseOwl.Cobol.Runtime.ManagedPointer<WiseOwl.Cobol.Runtime.CobolVarGroup!>!
 static WiseOwl.Cobol.Runtime.CobolArgAdapt.VarGroupValue(WiseOwl.Cobol.Runtime.CobolArg[]! args, int i, WiseOwl.Cobol.Runtime.GroupAtom![]! formalAtoms) -> WiseOwl.Cobol.Runtime.ManagedPointer<WiseOwl.Cobol.Runtime.CobolVarGroup!>!
 static WiseOwl.Cobol.Runtime.CobolArgAdapt.WithValueSending(WiseOwl.Cobol.Runtime.CobolArg arg, System.Func<string!, string!>? storageImage = null) -> WiseOwl.Cobol.Runtime.CobolArg
-static WiseOwl.Cobol.Runtime.CobolBits.NatBytes(string! s) -> string!
-static WiseOwl.Cobol.Runtime.CobolBits.NatReadWindow(string! image, int startByte, int positions) -> string!
-static WiseOwl.Cobol.Runtime.CobolBits.NatWriteWindow(string! image, int startByte, int positions, string! value) -> string!
 static WiseOwl.Cobol.Runtime.CobolBits.Pack(string! bits) -> string!
 static WiseOwl.Cobol.Runtime.CobolBits.Pack(string! bits, int count) -> string!
 static WiseOwl.Cobol.Runtime.CobolBits.ReadWindow(string! image, int startBit, int count) -> string!

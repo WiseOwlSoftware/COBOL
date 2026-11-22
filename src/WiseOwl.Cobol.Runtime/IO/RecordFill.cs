@@ -14,7 +14,7 @@ internal static class RecordFill
     /// two bytes 0x00 0x20 (§2023:13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins two, UTF-16BE), written as
     /// the pair aligned to the AREA's own even byte boundary: national positions start at even offsets, and an odd
     /// short image leaves a half position whose content §2023:14.9.30.4 GR14/GR15 do not define. Padding the bytes with
-    /// 0x20 instead would manufacture U+2020 characters (the trap <c>CobolBits.NatWriteWindow</c> documents on the
+    /// 0x20 instead would manufacture U+2020 characters (the trap <c>NationalImage.WriteWindow</c> documents on the
     /// write side). Truncation is identical in both arms (GR15's over-length arm, in bytes).</summary>
     public static string Fit(string image, int width, bool national)
     {

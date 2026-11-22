@@ -73,7 +73,7 @@ public static class LineSequentialEncoding
     /// <summary>The CHARACTERS of a native record image: a national area's UTF-16BE pairs decoded (D-N1), an
     /// alphanumeric area as it is.</summary>
     private static string Characters(string native, bool nationalArea) =>
-        nationalArea ? CobolBits.NatReadWindow(native, 0, native.Length / CobolBits.BytesPerNational) : native;
+        nationalArea ? NationalImage.ReadWindow(native, 0, native.Length / NationalImage.BytesPerNational) : native;
 
     /// <summary>The code point at <paramref name="i"/>: a surrogate pair as its one scalar value (the index moves past
     /// the pair), a lone surrogate as its own code unit.</summary>
@@ -96,7 +96,7 @@ public static class LineSequentialEncoding
             i += n;
         }
         string text = sb.ToString();
-        return nationalArea ? CobolBits.NatBytes(text) : text;
+        return nationalArea ? NationalImage.Bytes(text) : text;
     }
 
     /// <summary>The well-formed UTF-8 sequence starting at <paramref name="at"/> (Unicode 15 Table 3-7): its length

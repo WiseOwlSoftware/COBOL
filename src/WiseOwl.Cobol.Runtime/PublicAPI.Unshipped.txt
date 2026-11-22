@@ -1035,7 +1035,6 @@ static WiseOwl.Cobol.Runtime.AsyncMessaging.TagOf(string! image, WiseOwl.Cobol.R
 static WiseOwl.Cobol.Runtime.CobolArgAdapt.SdidiValue(WiseOwl.Cobol.Runtime.CobolPassMode mode, WiseOwl.Cobol.Runtime.CobolDec value, WiseOwl.Cobol.Runtime.SignEncoding signEncoding) -> WiseOwl.Cobol.Runtime.CobolArg
 static WiseOwl.Cobol.Runtime.CobolArgAdapt.StoreReturn(WiseOwl.Cobol.Runtime.CobolArg? ret, WiseOwl.Cobol.Runtime.MessageTag value) -> void
 static WiseOwl.Cobol.Runtime.CobolArgAdapt.WithValueSending(WiseOwl.Cobol.Runtime.CobolArg arg, System.Func<string!, string!>? storageImage = null, bool approximate = false) -> WiseOwl.Cobol.Runtime.CobolArg
-static WiseOwl.Cobol.Runtime.CobolBits.NatFromStorage(string! image) -> string!
 static WiseOwl.Cobol.Runtime.CobolBits.StridePads(string! carrier, int at, int width, int stride, int count) -> string!
 static WiseOwl.Cobol.Runtime.CobolBits.Strided(string![]! occurrences, int stride, string! pads) -> string!
 static WiseOwl.Cobol.Runtime.CobolBits.WriteWindowInto(char[]! buffer, int startBit, string! bits) -> void
@@ -1430,3 +1429,9 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+WiseOwl.Cobol.Runtime.NationalImage
+const WiseOwl.Cobol.Runtime.NationalImage.BytesPerNational = 2 -> int
+static WiseOwl.Cobol.Runtime.NationalImage.Bytes(string! s) -> string!
+static WiseOwl.Cobol.Runtime.NationalImage.FromStorage(string! image) -> string!
+static WiseOwl.Cobol.Runtime.NationalImage.ReadWindow(string! image, int startByte, int positions) -> string!
+static WiseOwl.Cobol.Runtime.NationalImage.WriteWindow(string! image, int startByte, int positions, string! value) -> string!

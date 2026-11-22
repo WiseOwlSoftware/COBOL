@@ -2657,7 +2657,7 @@ result. Run the long legs ONE AT A TIME.
   **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential
   **`0 PER-CASE FLIP(S)`**. Covers the accumulated 5a+5b batch: CONVERT's positional walk + the
   r4–r7 usage screens + the catalog MinArgs correction (5a), the ANY raw-storage channel + the
-  r2/r4 zero-bit padding + the deleted ANY→NAT remap + the `CobolBits.NatBytes` serializer (5b),
+  r2/r4 zero-bit padding + the deleted ANY→NAT remap + the `NationalImage.Bytes` serializer (5b),
   the corrected `argument_rule_equivalences_batch1` golden, and the eleven-row `intrinsics_convert`.
 - **⛔ PRIOR BATTERY REFERENCE — the PB59 families-3+4+6 tree `527fe612` (2026-08-09 19:20).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run:** FULL greenfield

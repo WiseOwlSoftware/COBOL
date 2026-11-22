@@ -1066,7 +1066,7 @@ public sealed record PicInfo(
         // makes each of those digits a NATIONAL character position rather than an alphanumeric one, and
         // §2023:13.18.60.4 GR8 pins what a national character position occupies (two bytes, D-N1). The doubling is
         // therefore a property of the CHARACTER→BYTE transform, applied once by the one national coding
-        // (NationalWindow / CobolBits.NatBytes) at every byte boundary, never a second numeric byte form: a
+        // (NationalWindow / NationalImage.Bytes) at every byte boundary, never a second numeric byte form: a
         // "NationalZoned" form would have to re-derive every digit, sign and de-edit rule Zoned already owns.
         // USAGE BIT and the carrier usages never reach this property.
         Usage.Display or Usage.National => NumericByteForm.Zoned,
@@ -1139,7 +1139,7 @@ public sealed record PicInfo(
     /// implicit or explicit USAGE NATIONAL clause specifies that a national coded character set shall be used to
     /// represent a data item in the storage of the computer") speaks of usage, and a usage-national item may be of
     /// category boolean, national, national-edited, numeric or numeric-edited — so a usage-national position is
-    /// <c>CobolBits.BytesPerNational</c> bytes (D-N1: UTF-16) and every other character position one. A byte count
+    /// <c>NationalImage.BytesPerNational</c> bytes (D-N1: UTF-16) and every other character position one. A byte count
     /// keyed on <c>PicCategory.National</c> sent a boolean usage-national slice one byte per position
     /// (<c>BYTE-LENGTH(BN(1:2))</c> = 2); <c>NationalUnitDriftTests</c> keeps this the only spelling. A usage-bit
     /// position is a BIT, not a byte fraction: <see cref="RefModPlace.PositionBits"/> owns that unit.</summary>
@@ -1148,7 +1148,7 @@ public sealed record PicInfo(
     /// <summary><see cref="BytesPerPosition"/> for a usage that is known without a picture — a national GROUP's
     /// as-if usage (§2023:13.18.29.4 GR2b), which <c>RecordLayout</c> asks before usage propagation has run.</summary>
     public static int BytesPerPositionOf(Usage usage) =>
-        usage is Usage.National ? WiseOwl.Cobol.Runtime.CobolBits.BytesPerNational : 1;
+        usage is Usage.National ? WiseOwl.Cobol.Runtime.NationalImage.BytesPerNational : 1;
 
     /// <summary>The item's storage width in BYTES for every usage that has one of its own — the width its
     /// <see cref="ByteForm"/> lays out, the width <c>FUNCTION BYTE-LENGTH</c> reports, and the width it

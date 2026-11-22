@@ -777,7 +777,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void Convert_AnyOverNational_ResolvesToNatStorage_2023()
         // §2023:15.19.3 AR7 — ANY takes the operand's RAW storage bits. A national item's storage is UTF-16BE
-        // (D-N1), delivered by the compiler's storage channel (OperandText.AsStorageImage → CobolBits.NatBytes
+        // (D-N1), delivered by the compiler's storage channel (OperandText.AsStorageImage → NationalImage.Bytes
         // — PB59 family 5b; the former bind-time ANY→NAT remap that used to produce this same value is
         // DELETED, so this test now pins the real channel). N"A" = U+0041 ⇒ "0041" (not "41").
         => AssertSpec(Program("01 N PIC N VALUE N\"A\".\n           01 R PIC X(8).",

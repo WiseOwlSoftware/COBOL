@@ -282,7 +282,7 @@ public static partial class CobolIntrinsics
     //       unit > 0xFF — the r1/r3-ANALOGOUS behavior extended to the serialization legs, a DOCUMENTED
     //       determination (item 209; RV-15.19.4-2): §2023:15.19.4 RV2's silence about an unrepresentable unit exists
     //       because the spec's model assumes a total serialization, and ours is partial above 0xFF.
-    //       National is UTF-16BE, one char/position (D-N1; CobolBits.NatBytes is the ONE serializer).
+    //       National is UTF-16BE, one char/position (D-N1; NationalImage.Bytes is the ONE serializer).
     //       ⛔ Source ANY = the item's RAW STORAGE byte image, emitted by the compiler's storage channel
     //       (OperandText.AsStorageImage — §2023:15.19.3 AR7 "it is not necessary for the contents to be valid
     //       according to the usage"): char==byte, a sub-byte USAGE BIT source arrives PRE-PACKED high-order-
@@ -325,7 +325,7 @@ public static partial class CobolIntrinsics
         {
             // national → UTF-16BE through the ONE serializer (2 bytes/position, the r4 basis); every serialized
             // char is ≤ 0xFF by construction, so the shared reduction below can never substitute here.
-            NAT => RawBytes(CobolBits.NatBytes(arg)),
+            NAT => RawBytes(NationalImage.Bytes(arg)),
             HEX => HexDigitsToBytes(arg),                            // a string of hex digits representing complete bytes (SR4)
             // ANUM = the characters under the 1-byte serialization; ANY = the RAW STORAGE byte image the
             // compiler emitted (char==byte — a wide char can only arrive through an alphanumeric CARRIER whose

@@ -2339,7 +2339,7 @@ public sealed partial class SequentialConnector : FileConnector
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         // c) space-fills to the replaced record's byte length: one space per missing byte — the space is one byte in
         // every encoding, and a NATIONAL area's space is a two-char pair in the image but one UTF-8 byte on the medium.
-        int perByte = MediumEncoding is MediumEncoding.Utf8 && national ? CobolBits.BytesPerNational : 1;
+        int perByte = MediumEncoding is MediumEncoding.Utf8 && national ? NationalImage.BytesPerNational : 1;
         return OverwriteInPlace(stream, _lastLineStart, FitRecord(record, len + ((_lastLineBytes - bytes) * perByte), national), national);   // '00' GR17 c)
     }
 
