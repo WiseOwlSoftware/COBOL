@@ -4,6 +4,7 @@
 is refused; each outcome of the one outcome function; the work and adjudication writers; the plan; and the audit of a
 stored record (a hand edit, a digest's shape, a contradicted record with no note)."""
 import contextlib
+import inspect
 import io
 import json
 import sys
@@ -561,42 +562,66 @@ def case_19_moved_by_names_the_reads_a_change_moved_and_no_other(expect):
                      C.moved_by(ctx, records, pins.at(head), pins.at(head)), [])
 
 
-def case_20_the_landing_check_refuses_a_move_of_a_complete_edition(expect):
+def case_20_the_landing_check_refuses_a_move_whatever_the_editions_status_on_main(expect):
+    """kb/Work PB6056, decision 2026-11-22: an edition that does NOT read COMPLETE on main is refused too. The base of the
+    planted change holds an open note (`F.tree`'s PB1), so its edition is not COMPLETE there, and the move is refused; the
+    check has no input of main's status at all, so no status can let a move through."""
     repo, ctx, records, base, head = _moving_change()
-    asked, lines = [], []
-
-    def complete(year, ref, root):
-        asked.append((year, ref))
-        return True
-    rc = L.check(repo.path, head, base, complete, lines.append, lambda root: [(ctx, records)])
+    lines = []
+    rc = L.check(repo.path, head, base, lines.append, lambda root, rev: [(ctx, records)])
     text = "\n".join(lines)
-    expect("refused (exit 1) for an edition COMPLETE on main", rc == 1, text)
+    expect("refused (exit 1) though the edition is open on main (an open note at the base)", rc == 1, text)
     expect("the refusal names the edition, both rows, the moved member and the remedy",
            "edition 1985" in text and F.GR8 in text and F.GR12 in text and "'BindEntry'" in text
            and "import --replace" in text and "re-read" in text, text)
-    expect.equal("main's status was asked once, of the edition the change re-opens, at the base", asked, [(1985, base)])
+    expect("the check reads no status of main: no parameter of it and no reader of `edition_status.py` in the module",
+           list(inspect.signature(L.check).parameters) == ["root", "rev", "base", "say", "reads"]
+           and "edition_status.py --" not in inspect.getsource(L) and not hasattr(L, "complete_on_main"),
+           str(inspect.signature(L.check)))
 
 
-def case_21_the_landing_check_passes_a_carried_reread_an_open_edition_and_a_change_that_moves_nothing(expect):
+def case_21_the_landing_check_passes_a_carried_reread_and_a_change_that_moves_nothing(expect):
     repo, ctx, records, base, head = _moving_change()
-
-    def never(year, ref, root):
-        raise AssertionError("main's status is asked only when a read's code moved")
     lines = []
-    expect.equal("a change that moves no read's code passes and never asks main's status (the common landing pays nothing)",
-                 L.check(repo.path, base, base, never, lines.append, lambda root: [(ctx, records)]), 0)
-    rc = L.check(repo.path, head, base, lambda year, ref, root: False, lines.append, lambda root: [(ctx, records)])
-    expect("an edition that does not read COMPLETE on main is not re-opened by the change: not refused, and says so",
-           rc == 0 and any("does not read COMPLETE on main" in ln and "not refused" in ln for ln in lines), str(lines))
+    expect.equal("a change that moves no read's code passes",
+                 L.check(repo.path, base, base, lines.append, lambda root, rev: [(ctx, records)]), 0)
     repo, ctx, carried, base, head = _moving_change(carry_reread=True)
     expect.equal("a change that carries the re-read passes (its records' entries resolve at the head)",
-                 L.check(repo.path, head, base, never, lines.append, lambda root: [(ctx, carried)]), 0)
+                 L.check(repo.path, head, base, lines.append, lambda root, rev: [(ctx, carried)]), 0)
     try:
-        L.check(repo.path, "0" * 40, base, never, lines.append, lambda root: [(ctx, carried)])
+        L.check(repo.path, "0" * 40, base, lines.append, lambda root, rev: [(ctx, carried)])
         raised = False
     except L.NotRun:
         raised = True
     expect("a revision that is no commit is NOT RUN, never a pass", raised)
+
+
+def case_22_the_landing_check_reads_the_store_at_the_revision_it_judges(expect):
+    """kb/Work PB6056 branch review R1-2: `stored_reads` reads the store as committed at `--rev`, the revision `moved_by`
+    resolves in, so a dirty working-tree store does not change the verdict, either way."""
+    repo, ctx, stale, base, head = _moving_change()
+    _, _, carried, _, _ = _moving_change(carry_reread=True)
+    rel = C.store.store_rel(1985)
+    C.store.write(stale, repo.path / rel)
+    repo.commit("the head commits the stale store (records read at the base)")
+    committed_stale = repo.git("rev-parse", "HEAD").strip()
+
+    def reads(root, rev):
+        return L.stored_reads(root, rev, F.SCHEMA, lambda year, r, v: ctx)
+    lines = []
+    expect.equal("the committed store is read: the stale reads, refused", L.check(repo.path, committed_stale, base,
+                                                                                  lines.append, reads), 1)
+    C.store.write(carried, repo.path / rel)   # the working tree now holds the re-read, uncommitted
+    expect("the working tree's store is dirty", bool(repo.git("status", "--porcelain", "--", rel)))
+    expect.equal("an uncommitted re-read does not pass the committed stale store", L.check(repo.path, committed_stale, base,
+                                                                                           lines.append, reads), 1)
+    repo.commit("the head commits the re-read")
+    committed_carried = repo.git("rev-parse", "HEAD").strip()
+    C.store.write(stale, repo.path / rel)     # and back: the working tree holds the stale store, uncommitted
+    expect.equal("an uncommitted stale store does not refuse the committed re-read", L.check(repo.path, committed_carried,
+                                                                                             base, lines.append, reads), 0)
+    expect.equal("at a revision with no store, no edition is read", list(L.stored_reads(repo.path, base, F.SCHEMA,
+                                                                                         lambda year, r, v: ctx)), [])
 
 
 if __name__ == "__main__":

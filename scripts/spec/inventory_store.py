@@ -124,10 +124,38 @@ def read_store(directory: pathlib.Path) -> dict[str, dict[str, Any]]:
     unadjudicated."""
     if not directory.is_dir():
         return {}
-    records, problems = _problems_of(directory.iterdir(), lambda f: json.loads(f.read_text(encoding="utf-8")))
+    return _store_of(*_problems_of(directory.iterdir(), lambda f: json.loads(f.read_text(encoding="utf-8"))),
+                     str(directory))
+
+
+def read_store_at(tree: Tree, rel: str) -> dict[str, dict[str, Any]]:
+    """`read_store` of the store at `rel` (repository-relative) as committed at `tree.rev`: the same records and the same
+    refusals, read from the commit and never from a working tree (kb/Work PB6056 branch review R1-2: a check that judges a
+    commit reads that commit's store, so an uncommitted edit cannot change its verdict). A commit with no such directory
+    holds no record; a `rev` that names no commit is a SystemExit. The blobs are read in one batch (`git_batch.blobs`)."""
+    listing = tree.git("ls-tree", "-z", f"{tree.rev}^{{commit}}", "--", rel.rstrip("/") + "/")
+    if listing is None:
+        raise SystemExit(f"inventory: {tree.rev} names no commit of {tree.root}")
+    entries: dict[pathlib.PurePosixPath, tuple[str, str]] = {}
+    for rec in listing.decode("utf-8").split("\0"):
+        if rec:
+            meta, _, path = rec.partition("\t")
+            _, kind, oid = meta.split()
+            entries[pathlib.PurePosixPath(path)] = (kind, oid)
+    data = dict(git_batch.blobs(tree.root, [oid for kind, oid in entries.values() if kind == "blob"]))
+
+    def parse(f: pathlib.PurePosixPath) -> Any:
+        kind, oid = entries[f]
+        if kind != "blob":
+            raise ValueError(f"a {kind}, not a file")
+        return json.loads(data[oid].decode("utf-8"))
+    return _store_of(*_problems_of(entries, parse), f"{rel} at {tree.rev}")
+
+
+def _store_of(records: list[dict[str, Any]], problems: list[str], where: str) -> dict[str, dict[str, Any]]:
+    """The records by rule id, or the SystemExit naming every problem of the store at `where`."""
     if problems:
-        raise SystemExit("inventory: " + str(len(problems)) + " problem(s) in " + str(directory) + ":\n  "
-                         + "\n  ".join(problems))
+        raise SystemExit("inventory: " + str(len(problems)) + " problem(s) in " + where + ":\n  " + "\n  ".join(problems))
     return {r["rule-id"]: r for r in records}
 
 

@@ -2479,18 +2479,19 @@ event names, a string literal's anchor, a grammar rule and a document's anchor) 
 (for every tracked C# file under `src/`, Roslyn's declared names and code words and the Python engine's, one digest per
 file). (2) A MOVED READ IS OWED A RE-READ: `code_reads.moved_since(record, ctx)` is the entries of the record that no
 longer resolve in the working tree. (3) `--check` never resolves a location: it prints the count of reads owed a
-re-read as information (the audit judges one tree and cannot know what main reads). (4) A LANDING MAY NOT MOVE THE CODE A COMPLETE
-EDITION'S READS NAME (kb/Work PB6056): a read owed a re-read is information to the audit and a term of `edition_status.py`'s CODE READS
+re-read as information (the audit judges one tree and cannot know what main reads). (4) A LANDING MAY NOT MOVE THE CODE A STORED READ
+NAMES (kb/Work PB6056): a read owed a re-read is information to the audit and a term of `edition_status.py`'s CODE READS
 part, so a landing that renamed a member a read names (PB2635, five rows; PR #1946, two) turned an edition that read COMPLETE on main NOT
 COMPLETE with every check green. The landing's own check, `code_read_landing.py` (run by `enqueue.py checks` from the merged head's tree,
 exit 6), refuses the change from origin/main to the merged head when `code_reads.moved_by` finds a stored read of an older edition with a
-`code-location` entry that resolves in main and no longer resolves in the head, and `edition_status.py` at main reads that edition COMPLETE
-(asked only then, by main's own copy in a detached worktree of main). It names the rows and the remedy, the re-read on the branch
-(`plan`, a reader and a refuter, `import --replace`); a branch that carries it passes, an edition not COMPLETE on main is not refused, and
-code that moved before main is `moved_since`'s. The gate's CODE READS audit stays information: it holds one tree. The other terms of
+`code-location` entry that resolves in main and no longer resolves in the head, whatever that edition's status on main (decision
+2026-11-22 in the note: a pass for an edition not COMPLETE on main let un-resolved pins accumulate while the edition was open for other
+reasons). The store, the rows and the schema are read as committed at the head it judges, never from a working tree. It names the rows and
+the remedy, the re-read on the branch (`plan`, a reader and a refuter, `import --replace`); a branch that carries it passes, and code that
+moved before main is `moved_since`'s. The gate's CODE READS audit stays information: it holds one tree. The other terms of
 `edition_status.py` (the inventory GAP, the open notes, the prose holes) change only by a verdict, a filed note or an edited transcription,
 each visible in its own diff, so none has this check. A stale record (its rule's text changed) and a withdrawn one are the same split,
-changed only by a deliberate catalog or store edit. Self-tests: `case_19` to `case_21` of `scripts/selftests/spec/code_reads/test_code_reads.py`.
+changed only by a deliberate catalog or store edit. Self-tests: `case_19` to `case_22` of `scripts/selftests/spec/code_reads/test_code_reads.py`.
 `verify-pins` (above) is the one hand verb for the records imported before the import resolved
 at the pin; it is no part of `--check`, because a pin's commit may be absent from a shallow CI checkout. The inventory's
 own `code-location` cells are unchanged: they describe the current compiler, `EveryCodeLocation_ResolvesInTheTree` still
