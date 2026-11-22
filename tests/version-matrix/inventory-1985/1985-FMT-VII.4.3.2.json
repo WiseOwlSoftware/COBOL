@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-FMT-VII.4.3.2",
- "rule-digest": "a2e2e686c54b",
+ "rule-digest": "e653039638e3",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openFileSpec; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openMode; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenTapePhrase; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#OpenTapePhraseRule; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOpenFileSpec; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOpenStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRetryPhrase; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen",
  "test-ref": "conformance:cases/VII.4.3@1985-OPEN-STATEMENT/1985-FMT-VII_4_3_2",

@@ -1,0 +1,16 @@
+{
+  "batch": [899, 900, 901, 902, 903, 904, 905, 906, 907, 908, 909, 910],
+  "pages_checked": [899, 900, 901, 902, 903, 904, 905, 906, 907, 908, 909, 910],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p903-1",
+      "page": 903,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "2.44 THE UPPER-CASE FUNCTION / 2.44.1 Description / 2.44.2 General Format / 2.44.3 Arguments / 2.44.4 Returned Values (printed in the same style as 2.43 THE TAN FUNCTION and 2.45 THE VARIANCE FUNCTION and their subclauses)",
+      "markdown_says": "### 2.44 THE UPPER-CASE FUNCTION\n\n#### 2.44.1 Description ... #### 2.44.2 General Format ... #### 2.44.3 Arguments ... #### 2.44.4 Returned Values",
+      "why_it_matters": "Every sibling function clause (2.30 through 2.43, 2.45, 2.46) is '## 2.nn THE ... FUNCTION' with '###' subclauses; 2.44 and its four subclauses are one level too deep, so an outline or a section-number parser places UPPER-CASE under the TAN function (2.43) instead of as its peer."
+    }
+  ]
+}

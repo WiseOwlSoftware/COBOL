@@ -1,0 +1,13 @@
+{
+  "claim_id": "p427-1",
+  "claim_key": "759b3d119d83b317",
+  "page": 427,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p427-1", "page": 427, "kind": "missing-heading", "severity": "structural", "pdf_says": "4.7.4 General Rules", "markdown_says": "4.7.4 General Rules", "why_it_matters": "The printed clause heading 4.7.4 General Rules (WRITE statement, Sequential I-O) is transcribed as a plain paragraph instead of a '### 4.7.4 General Rules' heading, as its siblings 4.5.4 (REWRITE, page 422) and 4.6.4 (USE, page 424) are. Tools that locate a rule by its clause heading (cite.py, section slicing) cannot find the WRITE general rules under §1985:VII.4.7.4."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of page 427 (folio VII-53) prints '4.7.4 General Rules' at the top as a clause heading, in the same style as every other N.N.4 General Rules heading. The page markdown (page-427.md line 5) has it as a plain line, and specs/ANSI_COBOL_1985.md line 17034 reads '4.7.4 General Rules' with no heading marker. Its own sibling '### 4.7.3 Syntax Rules' (line 17004) and '### 4.6.4 General Rules' (line 16935) in the same Sequential I-O module are '###' headings. The words match, but the heading level is missing, so the WRITE general rules do not exist as a section of the document structure. That is a structural transcription defect, not reflow or page furniture. The claim describes it correctly.",
+    "corrected_description": null
+  }
+}

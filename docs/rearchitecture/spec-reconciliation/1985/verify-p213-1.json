@@ -1,0 +1,13 @@
+{
+  "claim_id": "p213-1",
+  "claim_key": "f4f632be6d85acf4",
+  "page": 213,
+  "kind": "incorrect-text",
+  "severity": "cosmetic",
+  "claim": {"id": "p213-1", "page": 213, "kind": "incorrect-text", "severity": "cosmetic", "pdf_says": "SW CLOSE {file-name-1 [ {REEL|UNIT} [FOR REMOVAL] / WITH {NO REWIND|LOCK} ] } ... (one outer brace enclosing file-name-1 and the bracket, ellipsis after the closing brace)", "markdown_says": "         ╭             ┌╭<u>REEL</u> ╮  [FOR <u>REMOVAL</u>] ┐ ╮\n         ┤             │┤     ├                │ ├\n         │             │╰<u>UNIT</u> ╯                │ │\nSW        <u>CLOSE</u> ┤ file-name-1   │                      │ ├ …\n         │             │      ╭ <u>NO</u> <u>REWIND</u>╮     │ │\n         ┤             │      ┤          ├     │ ├\n         ╰             └WITH  ╰ <u>LOCK</u>     ╯     ┘ ╯", "why_it_matters": "The drawn figure is malformed: the outer brace carries three middle points on each side (┤ on rows 2, 4 and 6; ├ likewise) and the row holding CLOSE shifts the brace and the bracket out of their columns, so the drawing can read as several stacked braces rather than one brace enclosing file-name-1 and its optional bracket. The words, underlining and ellipsis position survive, but the figure should be redrawn with one outer brace."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page V-21 (PDF p213) shows SW CLOSE with one tall outer brace on each side enclosing file-name-1 and a bracket whose two stacked options are {REEL|UNIT} [FOR REMOVAL] and WITH {NO REWIND|LOCK}, followed by an ellipsis. The markdown has every word, every underline (CLOSE, REEL, UNIT, REMOVAL, NO, REWIND, LOCK), the inner braces, the optional bracket's two rows and the ellipsis after the closing brace. The outer brace column runs as one unbroken glyph (╭ ┤ │ ┤ │ ┤ ╰, and the mirror on the right) with no ╰/╭ break, so it does not form stacked braces. The extra cusps and the CLOSE row's column offset (┤ at col 16 and │ at col 32 against col 9 and col 23 on the other rows) are drawing and alignment defects only. Under §1985:IV.2.1.4 the syntax reads the same: one brace holding one option, repeatable by the ellipsis, with an optional bracket choosing at most one of its two rows. No content or meaning differs, so this is formatting, not a content discrepancy.",
+    "corrected_description": ""
+  }
+}

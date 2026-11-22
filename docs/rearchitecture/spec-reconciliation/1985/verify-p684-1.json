@@ -1,0 +1,13 @@
+{
+  "claim_id": "p684-1",
+  "claim_key": "92978d977587c57d",
+  "page": 684,
+  "kind": "missing-text",
+  "severity": "normative",
+  "claim": {"id": "p684-1", "page": 684, "kind": "missing-text", "severity": "normative", "pdf_says": "Format 2 general format: the level-2 box drawn inside the first brace encloses BOTH stacked lines 'WITH identifier-2' and 'WITH ESI' (the box's bottom edge runs under 'WITH ESI'); 'WITH EMI' and 'WITH EGI' are outside the box.", "markdown_says": "╭ ║ WITH identifier-2 ║ ╮\n┤   WITH <u>ESI</u>            ├", "why_it_matters": "Only 'WITH identifier-2' carries the level-2 marker; 'WITH ESI' is shown as level-1 although the PDF boxes it as level 2 (consistent with general rules 10 and 11, where ESI text is boxed)."},
+  "verdict": {
+    "real": true,
+    "reasoning": "On the 300 dpi render of page 684 (folio XIV-26), the Format 2 SEND diagram has one rectangle inside the left brace. Its top edge is above 'WITH identifier-2', its right edge runs down past both lines, and its bottom edge is under 'WITH ESI'. 'WITH EMI' and 'WITH EGI' sit below the rectangle, outside it. The markdown puts the level-2 markers (║...║) around 'WITH identifier-2' only and leaves 'WITH ESI' unmarked, so it shows ESI as level 1. That changes which module level the WITH ESI phrase belongs to, so the defect is normative. The claim quotes both sources accurately.",
+    "corrected_description": ""
+  }
+}

@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-FMT-XII.3.2",
- "rule-digest": "50697371fb1c",
+ "rule-digest": "c3b9166ba01e",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReplaceStates",
  "test-ref": "conformance:cases/XII.3@1985-REPLACE-STATEMENT/1985-FMT-XII_3_2; conformance:cases/XII.3@1985-REPLACE-STATEMENT/pb5608-replace-text-word-non-cobol-character-refused-85",

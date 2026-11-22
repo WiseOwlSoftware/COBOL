@@ -1,0 +1,13 @@
+{
+  "claim_id": "p533-1",
+  "claim_key": "3a89cc1f42710605",
+  "page": 533,
+  "kind": "incorrect-text",
+  "severity": "normative",
+  "claim": {"id": "p533-1", "page": 533, "kind": "incorrect-text", "severity": "normative", "pdf_says": "BLOCK CONTAINS [integer-1 TO] integer-2 {RECORDS / CHARACTERS} -- RECORDS is underlined, CHARACTERS is NOT underlined", "markdown_says": "╰<u>CHARACTERS</u>╯┘", "why_it_matters": "Format 3 FD BLOCK CONTAINS clause: underlining added to CHARACTERS, the same defect as p531-1."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of page 533 (X-17, Inter-Program Communication FD Format 3) shows the BLOCK CONTAINS choice braces stacking RECORDS, which is underlined, above CHARACTERS, which is not. Lines 14-16 of page-533.md show both <u>RECORDS</u> and <u>CHARACTERS</u>. Underlining marks a required key word. Under §1985:IV.2.1.4, braces without choice indicators allow the selected option to be implicitly selected, so a non-underlined CHARACTERS can be omitted (BLOCK CONTAINS n with CHARACTERS implied). The markdown underlines it and so turns an optional word into a required one. That is a normative notation discrepancy, and the claim quotes both sources correctly.",
+    "corrected_description": ""
+  }
+}

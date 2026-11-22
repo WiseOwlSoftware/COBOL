@@ -1,0 +1,13 @@
+{
+  "claim_id": "p92-1",
+  "claim_key": "216332278b1f4149",
+  "page": 92,
+  "kind": "missing-heading",
+  "severity": "cosmetic",
+  "claim": {"id": "p92-1", "page": 92, "kind": "missing-heading", "severity": "cosmetic", "pdf_says": "3. REPORT WRITER", "markdown_says": "### 3. <u>REPORT WRITER</u>", "why_it_matters": "The top-level section 3 is at level 3 while its peers \"## 1. <u>INTRODUCTION</u>\", \"## 2. <u>FILES</u>\" and \"## 4. <u>TABLE HANDLING</u>\" are level 2, and its own child \"## 3.3 PROCEDURE DIVISION REPORT WRITER STATEMENTS\" (page 94) sits above it; the outline nests section 3 under section 2."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The 300 dpi render of page 92 (II-8) prints the heading '3. REPORT WRITER' with REPORT WRITER underlined. The transcription carries the same heading with the same number, the same words and the same underline ('### 3. <u>REPORT WRITER</u>'), followed by the same body text, 3.1 REPORT SECTION and 3.2 REPORT STRUCTURE. Nothing is missing, so the kind 'missing-heading' does not fit. The one difference is the markdown heading level (### where the peers 1, 2 and 4 use ##). The PDF has no heading levels. It shows the hierarchy through the printed section numbers, and the transcription keeps those intact. The transcription's heading levels are also inconsistent across this whole chapter: 2.2 FILE PROCESSING and 2.2.3 Exception Handling are ##, 2.2.1.2 is ###, and 3.3 is ##. So the level is markdown formatting that does not carry the standard's structure, and the standard's content and meaning are unchanged. That is formatting only, so the claim is rejected.",
+    "corrected_description": ""
+  }
+}

@@ -63,7 +63,7 @@ class Edition:
 #: offset, 24, is measured the same way from the footer folio of each of its 926 arabic-numbered pages (PDF 25 to 951).
 #: 1985's is measured when its run needs it (PB4812), so a tool that needs it exits naming this table until then.
 EDITIONS: dict[int, Edition] = {
-    1985: Edition("ANSI_COBOL_1985.pdf", "ANSI_COBOL_1985.md", "raster", None, "# SECTION I: INTRODUCTORY INFORMATION",
+    1985: Edition("ANSI_COBOL_1985.pdf", "ANSI_COBOL_1985.md", "raster", None, "# <u>SECTION I: INTRODUCTORY INFORMATION</u>",
                     976),
     2002: Edition("ISO_COBOL_2002.pdf", "ISO_COBOL_2002.md", "vector", 22, "# Clauses 1 to 16", 882),
     2014: Edition("ISO_COBOL_2014.pdf", "ISO_COBOL_2014.md", "vector", 24, "# Clauses 1 to 16", 952),

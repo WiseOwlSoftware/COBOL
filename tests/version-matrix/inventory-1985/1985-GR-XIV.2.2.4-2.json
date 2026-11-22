@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-2",
- "rule-digest": "213bafbe0ad6",
+ "rule-digest": "a42c32f94087",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CommunicationFormats; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#ReadClauses; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BuildArea; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CheckRecords; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#QueuePath; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetMessageCount; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetStatus",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-2",
@@ -11,6 +11,7 @@
   "to": [],
   "bridge": true,
   "reason": "1985: \"For each input CD entry, a record area of 87 contiguous character positions is allocated.\"; 2023: \"No candidate covers CD entries; the communication module and the communication description entry are absent from 2023.\". No 2023 candidate covers the communication description entry or the MCS record layout. The communication feature is dropped in 2023, so the requirement is removed.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {}
  }
 }

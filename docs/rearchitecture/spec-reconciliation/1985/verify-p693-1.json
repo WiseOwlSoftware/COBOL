@@ -1,0 +1,13 @@
+{
+  "claim_id": "p693-1",
+  "claim_key": "3ac465faa9eb115c",
+  "page": 693,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p693-1", "page": 693, "kind": "missing-heading", "severity": "structural", "pdf_says": "Debug - USE FOR DEBUGGING", "markdown_says": "# Debug - USE FOR DEBUGGING", "why_it_matters": "The running page header is promoted to a level-1 heading, ranking it above SECTION XV and the clause headings; on every other page it is plain text."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300-dpi render of PDF page 693 (XV-5) shows 'Debug - USE FOR DEBUGGING' only as the right-aligned running page header, in the same plain style as on neighbouring pages. The transcription's page-693.md renders it as '# Debug - USE FOR DEBUGGING', a level-1 heading, while page-692.md ('Debug - Procedure Division') and page-694.md ('Debug - USE FOR DEBUGGING') carry the same running header as plain text. That makes page furniture the top node of the heading tree, above '## 3.2 THE USE FOR DEBUGGING STATEMENT'. No wording is lost, so this is a structural (heading-level) defect, not a normative one. The claim quotes both sources accurately.",
+    "corrected_description": ""
+  }
+}

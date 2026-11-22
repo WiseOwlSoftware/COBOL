@@ -60,6 +60,12 @@ read none of whose citations is of the rule's own edition, its catalog citation'
 adjudication whose `ref` is no file of the tree; a contradicted record whose `work` is no note of kb/Work, or is a note
 already `landed` at the record's own pin (`landed_at_pin_problem`). Stale, undecided and owed are counted, never red, and so
 are the reads owed a RE-READ (`reread`: fixed since, kb/Work PB5854, or moved since, kb/Work PB5863).
+
+THE LANDING, NOT THE AUDIT, REFUSES A MOVE OF A READ'S CODE (kb/Work PB6056). The audit holds one tree, so a read owed a re-read
+is information to it; `edition_status.py` counts the same row, so a landing that moves a member a read names re-opens the edition with
+every check green. `moved_by` (the change from a base to a head: the entries that resolve in the base and not in the head) is the
+predicate, and `code_read_landing.py` the landing check that asks it (the merged head's own copy, run by `enqueue.py checks`), for every
+edition whatever its status on main, with the store read at the head it judges.
 """
 from __future__ import annotations
 
@@ -143,8 +149,11 @@ class Context:
 
     @classmethod
     def of(cls, year: int, root: pathlib.Path = REPO, schema: Schema | None = None,
-           rows: Iterable[dict[str, Any]] | None = None) -> "Context":
-        """The context of the older held edition `year`; the newest edition is refused: its rows carry their own verdicts."""
+           rows: Iterable[dict[str, Any]] | None = None,
+           targets: Iterable[dict[str, Any]] | None = None) -> "Context":
+        """The context of the older held edition `year`; the newest edition is refused: its rows carry their own verdicts.
+        `rows` and `targets` (the next held edition's rows) are the working tree's views by default; a caller that judges a
+        commit passes that commit's (`inventory_view.inventory_at`, as `code_read_landing.stored_reads` does)."""
         schema = schema or inventory_schema.load_schema()
         ed = schema.edition(year)
         if ed.newest:
@@ -155,8 +164,8 @@ class Context:
                              "read confirms")
         rows = inventory_view.inventory(year, schema) if rows is None else rows
         by_id = {r["rule-id"]: r for r in rows}
-        targets = {r["rule-id"]: r for r in inventory_view.inventory(ed.next_held, schema)}
-        return cls(ed, schema, by_id, root, store.shared_verdicts(by_id, schema, targets))
+        targets = inventory_view.inventory(ed.next_held, schema) if targets is None else targets
+        return cls(ed, schema, by_id, root, store.shared_verdicts(by_id, schema, {r["rule-id"]: r for r in targets}))
 
 
 # -- the shape of a read: the ONE place the reader's and the refuter's records are checked ------------------------------
@@ -743,6 +752,29 @@ def moved_since(record: dict[str, Any], ctx: Context, tree: code_location.Tree |
     import's rule), so an entry that does not resolve now names code that moved since the read: the row is owed a re-read,
     and nothing is wrong with the record."""
     return location_problems(record["reader"], tree or code_location.working_tree(ctx.root), ctx)
+
+
+def moved_by(ctx: Context, records: dict[str, dict[str, Any]], head: code_location.Tree,
+             base: code_location.Tree) -> list["ReRead"]:
+    """THE PREDICATE of kb/Work PB6056: the DECIDED reads (confirmed or contradicted, as `reread` takes them) whose code
+    the change from `base` to `head` MOVED, in the catalog's order: each has an entry of its `code-location` that resolves
+    in `base` and does not resolve in `head`, and the ReRead names those entries (`moved`, as `moved_since` words them in
+    `head`). An entry that does not resolve in `base` either moved before: that is `moved_since`'s, never this change's.
+    A change that carries the re-read (`import --replace`) holds a record whose entries resolve in `head`, so it is none."""
+    sep, pattern, kinds = ctx.schema.code_location_sep, ctx.schema.code_location_re, code_location.document_kinds()
+    out = []
+    with pins_open(ctx.root):
+        for rid in ctx.rows:
+            record = records.get(rid)
+            if record is None or outcome(record, ctx) not in (CONFIRMED, CONTRADICTED):
+                continue
+            entries = ctx.schema.split(record["reader"].get("code-location") or "", sep)
+            gone = [p for e in entries
+                    if (p := code_location.location_problem(e, head, pattern, kinds))
+                    and code_location.location_problem(e, base, pattern, kinds) is None]
+            if gone:
+                out.append(ReRead(rid, None, gone))
+    return out
 
 
 @dataclasses.dataclass(frozen=True)

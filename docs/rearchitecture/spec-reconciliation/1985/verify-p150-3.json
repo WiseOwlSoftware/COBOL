@@ -1,0 +1,13 @@
+{
+  "claim_id": "p150-3",
+  "claim_key": "30f554d5b36afd37",
+  "page": 150,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p150-3", "page": 150, "kind": "missing-heading", "severity": "structural", "pdf_says": "4.2.1 Separators", "markdown_says": "4.2.1 Separators", "why_it_matters": "Plain paragraph rather than a heading, while its sibling 4.2.2 on page 151 is '### 4.2.2 Character-Strings'; the outline loses the Separators clause IV.4.2.1."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (IV-4) shows '4.2.1 Separators' on its own line, in the same plain typeface as '4.1 CHARACTER SET' and '4.2 LANGUAGE STRUCTURE'. The markdown (specs/ANSI_COBOL_1985.md line 6345) carries the same text, '4.2.1 Separators', on its own line with no word missing or changed. The only difference is markdown heading markup: it is a plain paragraph while '### 4.2.2 Character-Strings' (line 6391) has a '###' marker. That is formatting and does not change the standard's content or meaning. The claim's own pdf_says and markdown_says are identical. It also misses that 4.1 and 4.2 on the same page (lines 6331, 6341) have the same plain-paragraph treatment, so this is a page-wide markup inconsistency, not a content discrepancy in clause 4.2.1.",
+    "corrected_description": ""
+  }
+}

@@ -62,6 +62,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from cite import CORRECTION_NOTE  # noqa: E402  — ONE definition of what an editorial correction note looks like
 import cite  # noqa: E402  (THE reconstruction notes and their reader, kb/Work PB4952)
 import citation  # noqa: E402  (THE printed folio of the 1985 structure)
+import heading_levels  # noqa: E402  (THE level of a 1985 heading, derived from the printed contents, kb/Work PB6057)
 import reserved_word_order  # noqa: E402  (THE order of a reserved-word list, kb/Work PB5060)
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
@@ -616,6 +617,11 @@ def main(edition: int = spec_pdf.DEFAULT_EDITION) -> int:
     failures.extend(check_reconstructions(text.splitlines(), edition))
     if edition in LEDGER:
         failures.extend(check_ledger(text, json.loads((REPO / LEDGER[edition]).read_text(encoding="utf-8"))))
+    if edition == 1985:
+        levels = heading_levels.check(text)
+        print("\nheading levels — every heading at its number's depth, derived from the printed contents (kb/Work PB6057):")
+        print("\n".join(f"  ✗ {finding}" for finding in levels[:20]) or "  ✓ every heading of the standard at its derived level")
+        failures.extend(levels)
     if edition in reserved_word_order.LISTS:
         order = reserved_word_order.check(text, edition)
         print("\nreserved-word list — in the printed order:")
@@ -714,12 +720,12 @@ def self_test() -> int:
           len(quietly(check_text, good_2014.replace("COBOL is an industry language", "COBOL is a language"), 2014)) >= 1
           and quietly(check_text, good, 2014) != [])
     good_1985 =good.replace("ISO/IEC 1989:2023", "American National Standard X3.23-1985").replace(
-        '<a id="section-1"></a>\n\n## 1 Scope', "# SECTION I: INTRODUCTORY INFORMATION\n\n## Page 21").replace(
+        '<a id="section-1"></a>\n\n## 1 Scope', "# <u>SECTION I: INTRODUCTORY INFORMATION</u>\n\n## Page 21").replace(
         "# Addendum\n", "# Errata\n")
     check("a clean 1985 text passes, its body opening at Section I", quietly(check_text, good_1985, 1985) == [])
     check("1985 reads its own body line: 2023's text, which has no Section I heading, has no 1985 front matter",
           any(f.startswith("the body's opening line") for f in quietly(check_text, good, 1985)))
-    section_i = "# SECTION I: INTRODUCTORY INFORMATION\n"
+    section_i = "# <u>SECTION I: INTRODUCTORY INFORMATION</u>\n"
     body_only = good_1985.replace(section_i, "").replace("# Preface\n", "# Preface\n\n" + section_i)
     check("a text whose acknowledgment is only in the body is refused",
           "the acknowledgment appears in the body but NOT in the preface" in quietly(check_text, body_only, 1985))

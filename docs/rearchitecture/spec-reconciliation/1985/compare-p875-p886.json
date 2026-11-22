@@ -1,0 +1,16 @@
+{
+  "batch": [875, 876, 877, 878, 879, 880, 881, 882, 883, 884, 885, 886],
+  "pages_checked": [875, 876, 877, 878, 879, 880, 881, 882, 883, 884, 885, 886],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p877-1",
+      "page": 877,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "2.18 THE INTEGER-PART FUNCTION / 2.18.1 Description / 2.18.2 General Format / 2.18.3 Arguments / 2.18.4 Returned Values (printed in the same style and level as 2.17 THE INTEGER-OF-DAY FUNCTION and 2.19 THE LENGTH FUNCTION)",
+      "markdown_says": "### 2.18 THE INTEGER-PART FUNCTION\n\n#### 2.18.1 Description ... #### 2.18.2 General Format ... #### 2.18.3 Arguments ... #### 2.18.4 Returned Values",
+      "why_it_matters": "Wrong heading level: every sibling function section (2.15-2.17, 2.19-2.29) is '## 2.n' with '### 2.n.m' subheadings; 2.18 alone is demoted one level (### / ####), so it nests under 2.17 INTEGER-OF-DAY in the document outline. Text and the general format are otherwise correct."
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p189-3",
+  "claim_key": "e5ed1536709fff2c",
+  "page": 189,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p189-3", "page": 189, "kind": "missing-heading", "severity": "structural", "why_it_matters": "A heading at the wrong level (or none) misplaces the clause in the outline that page_workunit, citation and section lookups read, so the clause is attributed to the wrong parent or not found as a section.", "pdf_says": "7.3.1 Division Header", "markdown_says": "7.3.1 Division Header", "note": "Section heading printed in the PDF is transcribed as a plain paragraph with no Markdown heading marker, so it is lost from the document outline; should be '### 7.3.1 Division Header' (siblings such as 7.2.4 / 7.2 carry headings)."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of page 189 (folio IV-43) prints '7.3.1 Division Header' as a numbered clause heading on its own line, laid out like 7.2.5, 7.3, 7.3.2, 7.3.3 and 7.4. In specs/ANSI_COBOL_1985.md, line 7852 holds '7.3.1 Division Header' as a plain paragraph with no '#' marker. The siblings just before it are headings: '## 7.2 REFERENCE FORMAT REPRESENTATION' (line 7776) and '### 7.2.1' through '### 7.2.4' (lines 7816-7834). So the clause is missing from the outline. The text itself is transcribed correctly; the discrepancy is structural only. The other headings on this page (7.2.5, 7.3, 7.3.2, 7.3.3, 7.4 at lines 7844-7872) are also unmarked, which belongs to the same defect pattern. The heading level for 7.3.1 should follow its 7.2.x siblings ('###'), under 7.3 at '##'.",
+    "corrected_description": null
+  }
+}

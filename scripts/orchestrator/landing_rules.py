@@ -261,10 +261,10 @@ DECLARED: dict[str, tuple[str, ...]] = {
         "GitHub's refusal of the pull request list, the pull request or the queue is exit 9, never 0",
         'HEAD beside origin/main is refused (main brought in first), and HEAD on main is refused before any check',
         'HEAD at origin/main has nothing to land; an empty title or body is a usage error',
-        'checks runs the five landing scripts in order, the range only to the two that read one, and maps each '
+        'checks runs the six landing scripts in order, the range only to the three that read one, and maps each '
             'refusal to its own code: DEVLOG 6, landing check 3, register 6, diagnostic prefix 6, retired names 6, '
-            'unreadable 2',
-        "the register check and the two rename audits run the worktree's own scripts (exit {code})",
+            'code reads 6, unreadable 2',
+        "the register check, the two rename audits and the code-read check run the worktree's own scripts (exit {code})",
         'land: the migrating landing (the whole history added as files) titles its pull request from its ONE new '
             "entry, the landing rule's own (devlog.landing_entries)",
         'land: a dirty worktree is refused (exit 2) before anything is fetched, merged or gated',

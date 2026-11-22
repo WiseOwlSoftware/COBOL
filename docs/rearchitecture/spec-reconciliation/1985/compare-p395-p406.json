@@ -1,0 +1,16 @@
+{
+  "batch": [395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406],
+  "pages_checked": [395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p397-1",
+      "page": 397,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "3.3 THE BLOCK CONTAINS CLAUSE",
+      "markdown_says": "### 3.3 THE BLOCK CONTAINS CLAUSE",
+      "why_it_matters": "Its siblings 3.2 and 3.4 through 3.8 in the same chapter are '##' headings (e.g. '## 3.2 THE FILE DESCRIPTION ENTRY' on page 396, '## 3.4 THE CODE-SET CLAUSE' on page 398), and their subclauses are '###'; 3.3 is one level lower and its subclauses ('#### 3.3.1 Function') two levels below 3.4.1, so the outline nests 3.3 under 3.2."
+    }
+  ]
+}

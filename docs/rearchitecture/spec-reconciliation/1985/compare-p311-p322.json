@@ -1,0 +1,25 @@
+{
+  "batch": [311, 312, 313, 314, 315, 316, 317, 318, 319, 320, 321, 322],
+  "pages_checked": [311, 312, 313, 314, 315, 316, 317, 318, 319, 320, 321, 322],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p313-1",
+      "page": 313,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.11.3 Syntax Rules",
+      "markdown_says": "### 6.11.3 Syntax Rules",
+      "why_it_matters": "A heading nested at the wrong level breaks the section tree a clause lookup walks: 6.11.3 reads as a sibling of 6.11 instead of its child.", "note": "Heading at the wrong level: its parent 6.11 THE DIVIDE STATEMENT is '### 6.11' on page 312 and its siblings 6.11.1/6.11.2 are '####', so 6.11.3 is rendered at the same level as its parent section instead of '####'."
+    },
+    {
+      "id": "p313-2",
+      "page": 313,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.11.4 General Rules",
+      "markdown_says": "### 6.11.4 General Rules",
+      "why_it_matters": "A heading nested at the wrong level breaks the section tree a clause lookup walks: 6.11.4 reads as a sibling of 6.11 instead of its child.", "note": "Heading at the wrong level: same as p313-1; parent '### 6.11' and siblings '#### 6.11.1', '#### 6.11.2' on page 312, so 6.11.4 should be '####'."
+    }
+  ]
+}

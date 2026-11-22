@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-GR-XVI.2.3.4-2",
- "rule-digest": "7938562eaf79",
+ "rule-digest": "bf2535a9dbe1",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#segmentLimitClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSegmentLimitClause; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitFields; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitAlter; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitGoTo",
  "test-ref": "conformance:cases/XVI.2.3@1985-SEGMENT-LIMIT-CLAUSE/1985-GR-XVI_2_3_4-2",
@@ -11,6 +11,7 @@
   "to": [],
   "bridge": true,
   "reason": "1985: \"Those segments having segment-numbers from the segment-limit through 49 are considered as overlayable fixed segments.\"; 2023: \"No candidate covers segmentation or the SEGMENT-LIMIT clause; the module is absent from 2023.\". The Segmentation module and the SEGMENT-LIMIT clause are not in 2023. The 'fixed' candidates concern source format, OCCURS and COLUMN, not overlayable segments.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {}
  }
 }

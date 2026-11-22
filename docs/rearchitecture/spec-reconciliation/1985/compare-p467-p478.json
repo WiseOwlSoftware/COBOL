@@ -1,0 +1,47 @@
+{
+  "batch": [467, 468, 469, 470, 471, 472, 473, 474, 475, 476, 477, 478],
+  "pages_checked": [467, 468, 469, 470, 471, 472, 473, 474, 475, 476, 477, 478],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p472-1",
+      "page": 472,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "why_it_matters": "The heading is invisible to the outline and to any tool that locates clauses by heading, so citations to §1985:IX.1.3.x cannot be resolved to this text by structure.",
+      "pdf_says": "1.3.2 Access Modes",
+      "markdown_says": "1.3.2 Access Modes",
+      "detail": "Printed as a numbered subsection heading (sibling of 1.3.1 Organization, which the markdown on page 471 renders as `#### 1.3.1 Organization`); the markdown renders it as a plain paragraph line with no heading marker, so it drops out of the document outline. The Relative I-O module renders the same heading as `### 1.3.2 Access Modes`."
+    },
+    {
+      "id": "p472-2",
+      "page": 472,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "why_it_matters": "The heading is invisible to the outline and to any tool that locates clauses by heading, so citations to §1985:IX.1.3.x cannot be resolved to this text by structure.",
+      "pdf_says": "1.3.3 File Position Indicator",
+      "markdown_says": "1.3.3 File Position Indicator",
+      "detail": "Numbered subsection heading demoted to a plain paragraph line (no heading marker)."
+    },
+    {
+      "id": "p472-3",
+      "page": 472,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "why_it_matters": "The heading is invisible to the outline and to any tool that locates clauses by heading, so citations to §1985:IX.1.3.x cannot be resolved to this text by structure.",
+      "pdf_says": "1.3.4 I-O Status",
+      "markdown_says": "1.3.4 I-O Status",
+      "detail": "Numbered subsection heading demoted to a plain paragraph line (no heading marker)."
+    },
+    {
+      "id": "p476-1",
+      "page": 476,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "why_it_matters": "The heading is invisible to the outline and to any tool that locates clauses by heading, so citations to §1985:IX.1.3.x cannot be resolved to this text by structure.",
+      "pdf_says": "1.3.5 The Invalid Key Condition",
+      "markdown_says": "1.3.5 The Invalid Key Condition",
+      "detail": "Numbered subsection heading demoted to a plain paragraph line (no heading marker); its sibling 1.3.6 on page 477 is `### 1.3.6 The At End Condition`."
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p920-2",
+  "claim_key": "db348c62ed422e98",
+  "page": 920,
+  "kind": "missing-text",
+  "severity": "structural",
+  "claim": {"id": "p920-2", "page": 920, "kind": "missing-text", "severity": "structural", "pdf_says": "4) If a character code set is being specified, the implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase.  [printed SHADED]", "markdown_says": "4) If a character code set is being specified, the implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase.", "why_it_matters": "The new subitem 4 is printed shaded (level 2 only per the page-913 preamble); the markdown omits the ║...║ shading marker it uses elsewhere (pages 919, 922)."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300-dpi render of page 920 (B-8) shows the whole inserted subitem '4) If a character code set ... by the literal-1 phrase.' printed on a dotted grey shading background across all three lines. The page-913 preamble of X3.23b-1993 states 'Shading is used in this amendment to indicate specifications unique to level 2 (boxing was used for this purpose in third Standard COBOL)'. The transcription's own Notation header (specs/ANSI_COBOL_1985.md lines ~70-77) draws every level-2 specification as ║...║ and says 'The amendments draw boxes the same way', and page 919's transcription does so (e.g. '║The character code set and/or collating sequence identified║'). Page 920's transcription carries the words verbatim but has no ║ markers, so the level-2-only status of the new subitem is lost. The text is present; the defect is the missing level marker, which changes meaning (level assignment). Quotes from both sources are accurate. Note: the replacement THROUGH sentence in the preceding VI-16 entry (and the quoted 'If the THROUGH phrase is specified') is shaded on the page and likewise unmarked; that is a sibling of this finding, not part of this claim.",
+    "corrected_description": "Accurate as described, except that the kind is better stated as a missing level-2 marker than missing text: the subitem's words are transcribed verbatim, but the shading the PDF prints over all of it (level 2 only) is not rendered as ║...║ per the transcription's Notation convention."
+  }
+}

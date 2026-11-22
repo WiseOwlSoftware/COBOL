@@ -28,7 +28,7 @@
   "",
   "    ┌                                          ╭<u>RECORDS</u>   ╮┐",
   "    │<u>BLOCK</u> CONTAINS ║[integer-1 <u>TO</u>]║ integer-2 ┤          ├│",
-  "    └                                          ╰<u>CHARACTERS</u>╯┘",
+  "    └                                          ╰CHARACTERS╯┘",
   "",
   "    ┌       ╭ CONTAINS integer-3 CHARACTERS                                    ╮ ┐",
   "    │<u>RECORD</u> ┤╔IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS] ╗├ │",
@@ -47,5 +47,5 @@
   "    │<u>DATA</u> ┤           ├ {data-name-3} …  │ .",
   "    └     ╰<u>RECORDS</u> ARE╯                  ┘"
  ],
- "reason": "The printed page sets the relative FD entry with level-2 boxes round [integer-1 TO], round the IS VARYING IN SIZE alternative with its DEPENDING ON line, and round data-name-2; the batch lost them and set closers a column off. Drawn from the page, as the sequential FD entry of page 396 without its LINAGE and CODE-SET clauses."
+ "reason": "The printed page sets the relative FD entry with level-2 boxes round [integer-1 TO], round the IS VARYING IN SIZE alternative with its DEPENDING ON line, and round data-name-2; the batch lost them and set closers a column off. Drawn from the page, as the sequential FD entry of page 396 without its LINAGE and CODE-SET clauses. Second pass (kb/Work PB6051, claim p444-1): CHARACTERS in the BLOCK CONTAINS braces is printed without an underline."
 }

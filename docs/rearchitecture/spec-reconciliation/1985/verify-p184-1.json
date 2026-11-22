@@ -1,0 +1,22 @@
+{
+  "claim_id": "p184-1",
+  "claim_key": "0cfa15a526f83a6f",
+  "page": 184,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {
+    "id": "p184-1",
+    "page": 184,
+    "kind": "missing-heading",
+    "severity": "structural",
+    "why_it_matters": "A heading at the wrong level (or none) misplaces the clause in the outline that page_workunit, citation and section lookups read, so the clause is attributed to the wrong parent or not found as a section.",
+    "pdf_says": "6.4.2.1.2 Definition of Conditional Sentence",
+    "markdown_says": "#### 6.4.2.1.2 Definition of Conditional Sentence",
+    "note": "Heading at the wrong level: the transcription's convention is one '#' per numbering component (7. is '#', 7.1 '##', 6.4.1 '###', 6.4.2.1 '####', 6.4.2.1.1 '#####'); its sibling 6.4.2.1.1 is '#####' on page 183, so this should be '#####'."
+  },
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page (folio IV-38) shows '6.4.2.1.2 Definition of Conditional Sentence' as a numbered subclause heading. The transcription renders it '#### 6.4.2.1.2', the same level as its parent '#### 6.4.2.1 Conditional Statements and Sentences' (page 183), while its sibling '##### 6.4.2.1.1' (page 183) is level 5. The file's convention in this clause is one '#' per numbering component (## 6.4, ### 6.4.1, #### 6.4.1.1, ##### 6.4.1.4.1), so 6.4.2.1.2 should be '#####'. As written, an outline reader makes it a sibling of 6.4.2.1 rather than its child. The heading text is correct; only the level is wrong.",
+    "corrected_description": "The heading is present but one level too shallow: '#### 6.4.2.1.2' should be '##### 6.4.2.1.2' (wrong level, not missing). The same page has the same one-level drift for its siblings: '### 6.4.2.2' should be '####', and '#### 6.4.2.2.1' and '#### 6.4.2.2.2' should be '#####'. The same is true of '### 6.4.2.3' and '#### 6.4.2.3.1' on page 185."
+  }
+}

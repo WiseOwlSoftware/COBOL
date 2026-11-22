@@ -1,0 +1,13 @@
+{
+  "claim_id": "p97-1",
+  "claim_key": "8dec1a12c5211cbc",
+  "page": 97,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p97-1", "page": 97, "kind": "missing-heading", "severity": "structural", "pdf_says": "4.2 INITIAL VALUES OF TABLES", "markdown_says": "## 4.2 INITIAL VALUES OF TABLES", "why_it_matters": "Heading at the wrong level: 4.2 is a subsection of 4. TABLE HANDLING, but the markdown gives it the same level (##) as its parent '## 4. <u>TABLE HANDLING</u>' while its siblings 4.1 and 4.3 are at ###. The outline makes 4.2 a peer of clause 4 rather than its child."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page II-13 (PDF p97) shows '4.2 INITIAL VALUES OF TABLES' in the same plain uppercase subsection style as 4.1 and 4.3. The markdown (specs/ANSI_COBOL_1985.md) has '## 4. <u>TABLE HANDLING</u>', '### 4.1 TABLE DEFINITION', '## 4.2 INITIAL VALUES OF TABLES', '### 4.3 REFERENCES TO TABLE ITEMS', '### 4.4 SUBSCRIPTING' - so 4.2 alone is at level 2, the level of its parent clause 4 and of the '## Page N' markers. The heading text is present and correct; the defect is its outline level, which misplaces 4.2 in the document's section structure. Confirmed as a structural (non-normative) defect; the kind 'missing-heading' is inaccurate.",
+    "corrected_description": "Heading level wrong, not missing: '## 4.2 INITIAL VALUES OF TABLES' should be '### 4.2 INITIAL VALUES OF TABLES' to match its siblings 4.1 and 4.3 under '## 4. TABLE HANDLING'. Text is identical to the PDF; structural only, no normative content affected."
+  }
+}

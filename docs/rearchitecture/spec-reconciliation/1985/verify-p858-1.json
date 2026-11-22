@@ -1,0 +1,13 @@
+{
+  "claim_id": "p858-1",
+  "claim_key": "8bc472ea17149160",
+  "page": 858,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p858-1", "page": 858, "kind": "missing-heading", "severity": "structural", "pdf_says": "2.1.1 Date Conversion Function", "markdown_says": "**2.1.1 Date Conversion Function**", "why_it_matters": "The PDF prints this as a numbered subsection heading of 2.1 (styled like 1.2.1 on page 857, which the markdown renders as '####'); here it is demoted to bold text, so the clause is invisible to heading-based navigation and section lookup."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The 300 dpi render of page 858 (folio A-28) prints '2.1.1 Date Conversion Function' in bold at the head of the page, and page-858.md carries exactly that text, '**2.1.1 Date Conversion Function**', in the same position, followed by the same paragraph word for word. No text is missing and nothing is misquoted. The only difference is the markdown markup: bold rather than a '####' heading, while page 857 uses '#'-level headings for 1.2.1 and 2.1. That is formatting. It does not change the standard's content or meaning, and the rubric rejects formatting-only differences. The same page also has '**2.2 ARGUMENTS**' as bold rather than '###', which the claim does not mention. If the project wants consistent heading levels for navigation, that is cleanup for both lines, not a content discrepancy.",
+    "corrected_description": ""
+  }
+}

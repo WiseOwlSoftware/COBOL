@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-GR-VI.5.7.4-2",
- "rule-digest": "40785f5241e0",
+ "rule-digest": "fa6fd4b114d9",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueClauseFalsePhrase",
  "test-ref": "conformance:cases/VI.5.7@1985-LEVEL-NUMBER/1985-GR-VI_5_7_4-2",

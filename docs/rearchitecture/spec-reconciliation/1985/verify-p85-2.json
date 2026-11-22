@@ -1,0 +1,13 @@
+{
+  "claim_id": "p85-2",
+  "claim_key": "fec47fc183fe0343",
+  "page": 85,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p85-2", "page": 85, "kind": "missing-heading", "severity": "structural", "pdf_says": "2.1.1 Sequential Organization", "markdown_says": "2.1.1 Sequential Organization", "why_it_matters": "The heading 2.1.1 is a plain paragraph line, while its siblings are headings (\"### 2.1.2 Relative Organization\", \"### 2.1.3 Indexed Organization\" on page 86); section lookup of II.2.1.1 misses it."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page 85 (folio II-1) sets '2.1.1 Sequential Organization' as a numbered subsection heading on its own line, in the same style as its siblings. In specs/ANSI_COBOL_1985.md it is a plain paragraph (line 4122), while '### 2.1.2 Relative Organization' (4134), '### 2.1.3 Indexed Organization' (4142) and '### 2.1.4 Logical Records' (4150) are markdown headings. The words are all present. What is missing is the heading markup, so a tool that looks up sections by heading cannot find II.2.1.1. This is a structural defect and does not change the meaning of the text. Related defect on the same page: '2.1 FILE ATTRIBUTES' (line 4116) is also a plain line rather than a heading.",
+    "corrected_description": "Accurate as stated. On the same page, the parent heading '2.1 FILE ATTRIBUTES' is also a plain paragraph line and should be a heading too."
+  }
+}
