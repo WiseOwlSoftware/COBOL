@@ -25,7 +25,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// not (ACCEPT MESSAGE COUNT, a SET of an index, a MOVE), and asks each statement's form and its membership at every edition.</item>
 /// </list>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class InputOutputStatementSetTests
 {
     // ── The drift guard ──────────────────────────────────────────────────────────────────────────────────────
