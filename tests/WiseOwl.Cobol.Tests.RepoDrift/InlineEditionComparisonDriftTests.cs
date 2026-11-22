@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 /// <c>&lt; 2002 =&gt;</c>, <c>Year is 2002 or 2014</c>) writes the edge where it is used and nowhere else: no ledger names it and
 /// nothing fails when a second site writes the same edge differently.</para>
 /// <para>PB6031 measured 155 such comparisons in 61 source files on 2026-11-21 and moved the Report Writer's into
-/// <c>DialectBehaviors</c>; <see cref="Unmoved"/> lists the rest per file. It RATCHETS DOWN ONLY: a file may not gain a
+/// <c>DialectBehaviors</c> with the first data, file, statement, comparison and currency edges; <see cref="Unmoved"/> lists the rest per file. It RATCHETS DOWN ONLY: a file may not gain a
 /// comparison and a file not listed may hold none (move the edge into the register instead), and a file whose count fell
 /// fails until its entry is lowered in the same change, so the list is never stale.</para>
 /// </summary>
@@ -87,7 +87,7 @@ public sealed class InlineEditionComparisonDriftTests
         ["src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortKeyAdmission.cs"] = 1,
         ["src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs"] = 1,
         ["src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs"] = 1,
-        ["src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs"] = 7,
+        ["src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs"] = 4,
         ["src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs"] = 1,
         ["src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Reports.cs"] = 1,
         ["src/WiseOwl.Cobol.Compiler/Binding/Validation/RecordAreaRule.cs"] = 1,

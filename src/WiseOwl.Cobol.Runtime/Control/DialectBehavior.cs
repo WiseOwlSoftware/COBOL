@@ -555,6 +555,16 @@ public enum DialectBehavior
     /// algebraic value of the operands", so at <c>--std 85</c> a float operand lifts to its exact value and compares
     /// decimally (kb/Work PB5835). The consumer is <c>ConditionRenderer</c>'s numeric relation.</summary>
     NativeArithmeticComparison = 58,
+    /// <summary>§2014:12.3.6.2 SR19 — "If literal-7 is an alphanumeric or national literal in hexadecimal format, the
+    /// PICTURE SYMBOL phrase shall be present in the CURRENCY SIGN clause", and its NOTE exempts such a literal from the
+    /// character limits ("Literals in hexadecimal format specified as literal-7 represent characters from the computer's
+    /// runtime coded character set"); SR26 says of literal-8: "It shall be neither a figurative constant nor a hexadecimal
+    /// literal". COBOL-2002 names no hexadecimal form: "Literal-7 shall be an alphanumeric or national literal that is not
+    /// a figurative constant" (§2002:12.2.6.2 SR18), and "Literal-8 shall be an alphanumeric literal consisting of a single
+    /// character. It shall not be a figurative constant" (§2002:12.2.6.2 SR22), so below 2014 a hexadecimal literal's
+    /// decoded characters are checked like any other's (kb/Work PB5595). The consumers are <c>SpecialNamesBinder</c>'s
+    /// CURRENCY SIGN binding (the literal-8 screen, the PICTURE SYMBOL requirement and the character exemption).</summary>
+    CurrencyHexadecimalLiteralRules = 59,
 }
 
 /// <summary>
@@ -847,6 +857,11 @@ public static class DialectBehaviors
             "7.114", "§2002:8.8.4.1.1.3", "§1985:VI.6.3.1.1.1",
             "a floating-point operand under native arithmetic is compared by the rules of native arithmetic only from "
             + "COBOL-2002; COBOL-85 compares the algebraic values"),
+        new(DialectBehavior.CurrencyHexadecimalLiteralRules, "currency-hexadecimal-literal-rules", 2014,
+            "7.115", "§2014:12.3.6.2 SR19", "§2002:12.2.6.2 SR18",
+            "a hexadecimal currency literal-7 requires the PICTURE SYMBOL phrase and is exempt from the currency "
+            + "string's character limits, and literal-8 may not be hexadecimal, only from COBOL-2014; COBOL-2002 asks "
+            + "an alphanumeric literal that is no figurative constant and checks its characters whatever its form"),
     ];
 
     static DialectBehaviors()

@@ -70,6 +70,11 @@
       "changedIn": 2002
     },
     {
+      "id": "currency-hexadecimal-literal-rules",
+      "vcrRow": "7.115",
+      "changedIn": 2014
+    },
+    {
       "id": "divide-remainder-signed-subsidiary",
       "vcrRow": "7.109",
       "changedIn": 2002
