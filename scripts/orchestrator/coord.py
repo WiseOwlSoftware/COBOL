@@ -300,15 +300,21 @@ def stop_unit(override: str | None = None) -> pathlib.Path:
 # anywhere showing them. A stop lives for one wind-down, so one older than STALE_STOP_S was forgotten. The session probe
 # prints this (its `stops` line), so the next session start sees every stop and the age of each.
 STALE_STOP_S = 24 * 3600
+#: The land lane's directory under the coordination directory and its HALT file, written when a landing ends QUEUE NOT
+#: ACTIVE; no landing starts while it exists (land_lane.py `clear-halt` lifts it). Their home is here so stop_signals
+#: finds the HALT without importing the lane.
+LAND_LANE_DIR = "land-lane"
+LAND_HALT = "HALT"
 
 
 def stop_signals(override: str | None = None, now: float | None = None) -> list[tuple[pathlib.Path, float]]:
     """Every stop file present, with its age in seconds, oldest first: the loop's `<coord>\\STOP` and `STOP-UNIT`, the
-    owner's global `scratch\\STOP` and each `STOP-<scope>` (fleet_stop's name) in `scratch` or one directory below it,
-    where every fleet's scratch directory lives. Never creates anything."""
+    land lane's HALT, the owner's global `scratch\\STOP` and each `STOP-<scope>` (fleet_stop's name) in `scratch` or one
+    directory below it, where every fleet's scratch directory lives. Never creates anything."""
     root = coord_path(override)
     scratch = root / "scratch"
-    found = [p for p in (root / "STOP", stop_unit(override), global_stop(override)) if p.is_file()]
+    found = [p for p in (root / "STOP", stop_unit(override), root / LAND_LANE_DIR / LAND_HALT, global_stop(override))
+             if p.is_file()]
     for d in [scratch] + (sorted(p for p in scratch.iterdir() if p.is_dir()) if scratch.is_dir() else []):
         found += [p for p in sorted(d.glob("STOP-*")) if p.is_file() and p.name.startswith("STOP-")  # the glob ignores case on Windows
                   and STOP_SCOPE.fullmatch(p.name[len("STOP-"):])]
@@ -628,20 +634,22 @@ def _self_test() -> int:
     if not runs_python(os.getpid(), "coord.py") or runs_python(os.getpid(), "not-this-script.py"):
         fails.append("runs_python: this process must run coord.py and must not run not-this-script.py")
     fails += _exited_but_listed_arm()
-    # the stop signals (kb/Work PB6058): every stop name in its place is found and aged; archives, other names and a
-    # directory deeper than one below scratch are not; a stop past STALE_STOP_S is stale
+    # the stop signals (kb/Work PB6058): every stop name in its place is found and aged; other names (a different case
+    # included) and a directory deeper than one below scratch are not; a stop past STALE_STOP_S is stale
     with tempfile.TemporaryDirectory() as d:
         root = pathlib.Path(d)
         (root / "scratch" / "w1" / "deep").mkdir(parents=True)
+        (root / LAND_LANE_DIR).mkdir()
         now = time.time()
-        for rel, age in (("STOP", 7 * 86400), ("STOP-UNIT", 60), ("scratch/STOP", 2 * 86400), ("scratch/STOP-loop", 60),
+        for rel, age in (("STOP", 7 * 86400), ("STOP-UNIT", 60), (f"{LAND_LANE_DIR}/{LAND_HALT}", 60),
+                         ("scratch/STOP", 2 * 86400), ("scratch/STOP-loop", 60),
                          ("scratch/w1/STOP-w1", 60), ("scratch/w1/STOP.cob", 9 * 86400),
                          ("scratch/w1/STOPPED-ROWS.md", 9 * 86400), ("scratch/w1/stop-test.log", 9 * 86400),
                          ("scratch/w1/deep/STOP-x", 9 * 86400)):
             (root / rel).write_text("", encoding="utf-8", newline="\n")
             os.utime(root / rel, (now - age, now - age))
         got = {str(p.relative_to(root)).replace("\\", "/") for p, _ in stop_signals(str(root), now)}
-        want = {"STOP", "STOP-UNIT", "scratch/STOP", "scratch/STOP-loop", "scratch/w1/STOP-w1"}
+        want = {"STOP", "STOP-UNIT", f"{LAND_LANE_DIR}/{LAND_HALT}", "scratch/STOP", "scratch/STOP-loop", "scratch/w1/STOP-w1"}
         if got != want:
             fails.append(f"stop_signals: found {sorted(got)}, want {sorted(want)}")
         n, lines = stop_report(str(root), now)

@@ -30,7 +30,6 @@ from fixtures import Fake, finish, fresh, row
 ll = selftest_cases.subject(__file__)   # scripts/orchestrator/land_lane.py
 ATTEMPTS = ll.ATTEMPTS
 FREE = ll.FREE
-HALT = ll.HALT
 MAIN = ll.MAIN
 REARM = ll.REARM
 SURVEY = ll.SURVEY
@@ -394,7 +393,7 @@ def case_021_exit_8_stops_all_attempts_none_starts_the_other(expect):
     pathlib.Path(attempts(c6)[0]["log"]).write_text("", encoding="utf-8", newline="\n")
     f6.rows.append(row("w5b", "WAITING TO LAND", "r1"))
     expect("exit 8 stops all attempts: none starts, the other ready branch included", f6.tick(c6) == [] and
-           (lane_dir(c6) / HALT).exists(), f"{f6.started} {f6.said}")
+           (lane_dir(c6) / coord.LAND_HALT).exists(), f"{f6.started} {f6.said}")
 
 
 def case_022_exit_8_is_named_to_the_operator_one_mailbox_mess(expect):
@@ -406,7 +405,7 @@ def case_022_exit_8_is_named_to_the_operator_one_mailbox_mess(expect):
 
 
 def case_023_after_clear_halt_both_branches_start_the_halted(expect):
-    (lane_dir(c6) / HALT).unlink()
+    (lane_dir(c6) / coord.LAND_HALT).unlink()
     expect("after clear-halt both branches start, the halted one again at its head",
            sorted(f6.tick(c6)) == ["w5a", "w5b"], str(f6.started))
 
