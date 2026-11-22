@@ -2480,7 +2480,7 @@ event names, a string literal's anchor, a grammar rule and a document's anchor) 
 file). (2) A MOVED READ IS OWED A RE-READ: `code_reads.moved_since(record, ctx)` is the entries of the record that no
 longer resolve in the working tree. (3) `--check` never resolves a location: it prints the count of reads owed a
 re-read as information (the audit judges one tree and cannot know what main reads). (4) A LANDING MAY NOT MOVE THE CODE A STORED READ
-NAMES (kb/Work PB6056): a read owed a re-read is information to the audit and a term of `edition_status.py`'s CODE READS
+NAMES NOR CHANGE THE RULE TEXT IT COVERS (kb/Work PB6056, PB6090): a read owed a re-read is information to the audit and a term of `edition_status.py`'s CODE READS
 part, so a landing that renamed a member a read names (PB2635, five rows; PR #1946, two) turned an edition that read COMPLETE on main NOT
 COMPLETE with every check green. The landing's own check, `code_read_landing.py` (run by `enqueue.py checks` from the merged head's tree,
 exit 6), refuses the change from origin/main to the merged head when `code_reads.moved_by` finds a stored read of an older edition with a
@@ -2490,8 +2490,12 @@ reasons). The store, the rows and the schema are read as committed at the head i
 the remedy, the re-read on the branch (`plan`, a reader and a refuter, `import --replace`); a branch that carries it passes, and code that
 moved before main is `moved_since`'s. The gate's CODE READS audit stays information: it holds one tree. The other terms of
 `edition_status.py` (the inventory GAP, the open notes, the prose holes) change only by a verdict, a filed note or an edited transcription,
-each visible in its own diff, so none has this check. A stale record (its rule's text changed) and a withdrawn one are the same split,
-changed only by a deliberate catalog or store edit. Self-tests: `case_19` to `case_22` of `scripts/selftests/spec/code_reads/test_code_reads.py`.
+each visible in its own diff, so none has this check. A withdrawn record changes only by a deliberate store edit. A STALE record (its rule's
+text changed) is the second way a landing turns a read owed with no diff line showing it (kb/Work PB6090: PR #1953 corrected the 1985 transcription
+of six rules, their `rule-digest`s changed, and 1985 gained six code-read terms with every check green), so the same check asks
+`code_reads.staled_by` (a record that decided its row at main, by `outcome`, and leaves the row `owed` at the head: the audit's and
+`edition_status.py`'s own predicates, no second one) and refuses it naming each row with both digests and the same remedy, the re-read
+on the branch (`import --replace` against the corrected text); a branch that carries it passes. Self-tests: `case_19` to `case_25` of `scripts/selftests/spec/code_reads/test_code_reads.py`.
 `verify-pins` (above) is the one hand verb for the records imported before the import resolved
 at the pin; it is no part of `--check`, because a pin's commit may be absent from a shallow CI checkout. The inventory's
 own `code-location` cells are unchanged: they describe the current compiler, `EveryCodeLocation_ResolvesInTheTree` still

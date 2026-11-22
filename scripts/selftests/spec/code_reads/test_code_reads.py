@@ -568,14 +568,14 @@ def case_20_the_landing_check_refuses_a_move_whatever_the_editions_status_on_mai
     check has no input of main's status at all, so no status can let a move through."""
     repo, ctx, records, base, head = _moving_change()
     lines = []
-    rc = L.check(repo.path, head, base, lines.append, lambda root, rev: [(ctx, records)])
+    rc = L.check(repo.path, head, base, lines.append, lambda root, rev: [(ctx, records)], lambda y, r, v: ctx)
     text = "\n".join(lines)
     expect("refused (exit 1) though the edition is open on main (an open note at the base)", rc == 1, text)
     expect("the refusal names the edition, both rows, the moved member and the remedy",
            "edition 1985" in text and F.GR8 in text and F.GR12 in text and "'BindEntry'" in text
            and "import --replace" in text and "re-read" in text, text)
     expect("the check reads no status of main: no parameter of it and no reader of `edition_status.py` in the module",
-           list(inspect.signature(L.check).parameters) == ["root", "rev", "base", "say", "reads"]
+           list(inspect.signature(L.check).parameters) == ["root", "rev", "base", "say", "reads", "context"]
            and "edition_status.py --" not in inspect.getsource(L) and not hasattr(L, "complete_on_main"),
            str(inspect.signature(L.check)))
 
@@ -584,12 +584,12 @@ def case_21_the_landing_check_passes_a_carried_reread_and_a_change_that_moves_no
     repo, ctx, records, base, head = _moving_change()
     lines = []
     expect.equal("a change that moves no read's code passes",
-                 L.check(repo.path, base, base, lines.append, lambda root, rev: [(ctx, records)]), 0)
+                 L.check(repo.path, base, base, lines.append, lambda root, rev: [(ctx, records)], lambda y, r, v: ctx), 0)
     repo, ctx, carried, base, head = _moving_change(carry_reread=True)
     expect.equal("a change that carries the re-read passes (its records' entries resolve at the head)",
-                 L.check(repo.path, head, base, lines.append, lambda root, rev: [(ctx, carried)]), 0)
+                 L.check(repo.path, head, base, lines.append, lambda root, rev: [(ctx, carried)], lambda y, r, v: ctx), 0)
     try:
-        L.check(repo.path, "0" * 40, base, lines.append, lambda root, rev: [(ctx, carried)])
+        L.check(repo.path, "0" * 40, base, lines.append, lambda root, rev: [(ctx, carried)], lambda y, r, v: ctx)
         raised = False
     except L.NotRun:
         raised = True
@@ -608,20 +608,84 @@ def case_22_the_landing_check_reads_the_store_at_the_revision_it_judges(expect):
 
     def reads(root, rev):
         return L.stored_reads(root, rev, F.SCHEMA, lambda year, r, v: ctx)
+
+    def at(year, root, rev):
+        return ctx
     lines = []
     expect.equal("the committed store is read: the stale reads, refused", L.check(repo.path, committed_stale, base,
-                                                                                  lines.append, reads), 1)
+                                                                                  lines.append, reads, at), 1)
     C.store.write(carried, repo.path / rel)   # the working tree now holds the re-read, uncommitted
     expect("the working tree's store is dirty", bool(repo.git("status", "--porcelain", "--", rel)))
     expect.equal("an uncommitted re-read does not pass the committed stale store", L.check(repo.path, committed_stale, base,
-                                                                                           lines.append, reads), 1)
+                                                                                           lines.append, reads, at), 1)
     repo.commit("the head commits the re-read")
     committed_carried = repo.git("rev-parse", "HEAD").strip()
     C.store.write(stale, repo.path / rel)     # and back: the working tree holds the stale store, uncommitted
     expect.equal("an uncommitted stale store does not refuse the committed re-read", L.check(repo.path, committed_carried,
-                                                                                             base, lines.append, reads), 0)
+                                                                                             base, lines.append, reads, at), 0)
     expect.equal("at a revision with no store, no edition is read", list(L.stored_reads(repo.path, base, F.SCHEMA,
                                                                                          lambda year, r, v: ctx)), [])
+
+
+NEW_DIGEST = "5c0ffee5ba5e"
+
+
+def _retexted_change(carry_reread=False):
+    """Two confirmed reads made at the commit `base` against the digest `0b2e58f8a250`, and the change that corrects the text of
+    both rules, so the rows' digests are `NEW_DIGEST` at the head (kb/Work PB6090: PR #1953). Returns the repository, the base's
+    and the head's contexts, the store the head holds (the stale records, or with `carry_reread` the change's own re-read, made
+    against the new text), and the two commits. The change moves no code."""
+    repo, base = F.tree()
+    base_ctx, head_ctx = F.context(repo.path), F.context(repo.path, NEW_DIGEST)
+    first = repo.path / "reads"
+    F.plant(first, "s-01", [F.read(F.GR8), F.read(F.GR12)], [F.refute(F.GR8), F.refute(F.GR12)])
+    records = C.import_reads(base_ctx, first, repo.path / "store", base)[0]
+    repo.commit("the change corrects the text of two rules", {"docs/x.md": "the corrected text\n"})
+    head = repo.git("rev-parse", "HEAD").strip()
+    if carry_reread:
+        again = repo.path / "reads-2"
+        F.plant(again, "s-01", [F.read(F.GR8), F.read(F.GR12)], [F.refute(F.GR8), F.refute(F.GR12)])
+        records = C.import_reads(head_ctx, again, repo.path / "store-2", head)[0]
+    return repo, base_ctx, head_ctx, records, base, head
+
+
+def case_23_staled_by_names_the_reads_a_changed_rule_text_made_stale_and_no_other(expect):
+    """kb/Work PB6090: a read that decided its row at the base and leaves it owed at the head (the audit's `outcome` and `owed`)."""
+    _, base_ctx, head_ctx, stale, _, _ = _retexted_change()
+    _, _, _, carried, _, _ = _retexted_change(carry_reread=True)
+    expect.equal("both rows' reads went stale: each row, the digest the read covers and the digest of the row now",
+                 C.staled_by(head_ctx, base_ctx, stale),
+                 [(F.GR8, "0b2e58f8a250", NEW_DIGEST), (F.GR12, "0b2e58f8a250", NEW_DIGEST)])
+    expect.equal("a change that changed no rule text (head context = base context) stales no read",
+                 C.staled_by(base_ctx, base_ctx, stale), [])
+    expect.equal("a record made against the new text covers its row: the carried re-read stales none",
+                 C.staled_by(head_ctx, base_ctx, carried), [])
+    expect.equal("a read already stale on main (the base holds the new text too) is not this change's",
+                 C.staled_by(head_ctx, head_ctx, stale), [])
+
+
+def case_24_the_landing_check_refuses_a_changed_rule_text_that_stales_a_read(expect):
+    """kb/Work PB6090: a digest change is refused, naming the rows, both digests and the remedy, whatever main's status."""
+    repo, base_ctx, head_ctx, stale, base, head = _retexted_change()
+    lines = []
+    rc = L.check(repo.path, head, base, lines.append, lambda root, rev: [(head_ctx, stale)], lambda y, r, v: base_ctx)
+    text = "\n".join(lines)
+    expect("refused (exit 1) though the change moves no code", rc == 1, text)
+    expect("names the edition, both rows, both digests and the remedy",
+           "edition 1985" in text and F.GR8 in text and F.GR12 in text and "0b2e58f8a250" in text and NEW_DIGEST in text
+           and "import --replace" in text and "rule text" in text, text)
+
+
+def case_25_the_landing_check_passes_a_carried_reread_of_the_new_text_and_a_change_of_no_text(expect):
+    repo, base_ctx, head_ctx, carried, base, head = _retexted_change(carry_reread=True)
+    lines = []
+    expect.equal("a change that carries the re-read of the corrected text passes",
+                 L.check(repo.path, head, base, lines.append, lambda root, rev: [(head_ctx, carried)],
+                         lambda y, r, v: base_ctx), 0)
+    repo, base_ctx, _, records, base, head = _retexted_change()
+    expect.equal("a change that changes no rule text (the head's rows are the base's) passes",
+                 L.check(repo.path, head, base, lines.append, lambda root, rev: [(base_ctx, records)],
+                         lambda y, r, v: base_ctx), 0)
 
 
 if __name__ == "__main__":
