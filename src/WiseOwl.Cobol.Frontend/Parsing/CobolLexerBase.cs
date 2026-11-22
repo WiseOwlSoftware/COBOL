@@ -156,7 +156,7 @@ public abstract class CobolLexerBase : Lexer
 
     private void ApplyEditionSpelling(IToken token)
     {
-        if (_caseMappingEdition >= 2023 || token.Type != IDENTIFIER
+        if (!CobolNames.HasEditionSpelling(_caseMappingEdition) || token.Type != IDENTIFIER
             || token is not CommonToken word) return;
         // A word of basic characters has one spelling at every edition: look at the input, build no text.
         bool basic = true;

@@ -45,4 +45,12 @@ no rule count increased. The arch oracle (`compare_oracle.py`, baseline 608ccf50
 cases differ`. Every difference is a C# difference of exactly four lines per case (35,992 lines in all), and every
 one of those lines is the runtime version string (`"32.0.0.0"` → `"33.0.0.0"` in `CobolRepositoryAttribute` and
 `RegisterModule`). That is the expected result of PB2760's major bump. No diagnostic stream differs, and no case was
-added or removed. The gate verdict is in the branch report.
+added or removed. The first gate was RED in RepoDrift on three sweeps. Each failure came from code that moved out of
+a `.g4` file, which those sweeps do not read as C#, into `CobolLexerBase.cs`, which they do:
+- `ApplyEditionSpelling` wrote the Annex C edge inline as `>= 2023`. It now asks `CobolNames.HasEditionSpelling`, the
+  rule's one predicate.
+- 16 inventory rows cited `CobolLexer.g4#<member>`. `record_verdicts` batches re-sited them for 2023, 1985 and 2002,
+  with the GAP unchanged.
+- A retirement-prose sweep treated a moved member as deleted. The sweep now reads the two recognizer superclasses.
+
+The re-gate verdict is in the branch report.

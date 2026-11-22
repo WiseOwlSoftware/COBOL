@@ -2,8 +2,8 @@
  "rule-id": "FMT-15.56.2",
  "rule-digest": "1d0ad8849bbc",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FLOATLIT; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FN_SIGNED_DECIMALLIT; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SignedLiteralCanStart",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FLOATLIT; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FN_SIGNED_DECIMALLIT; src/WiseOwl.Cobol.Frontend/Parsing/CobolLexerBase.cs#SignedLiteralCanStart",
  "test-ref": "conformance:cases/15.56-LOG10/l1_log10_format; conformance:cases/15.56-LOG10/l1-log10-two-arguments",
  "editions": "85,2002,2014,2023",
- "notes": "15.56.2 'FUNCTION LOG10 ( argument-1 )' over every 15.3 type-10 argument shape plus the signed integer and signed-exponent floating literals, values exact from 15.56.4 r1 (log10 of powers of ten); the complement -- a second argument the format has no place for -- rejects with COBOL1504."
+ "notes": "15.56.2 'FUNCTION LOG10 ( argument-1 )' over every 15.3 type-10 argument shape plus the signed integer and signed-exponent floating literals, values exact from 15.56.4 r1 (log10 of powers of ten); the complement -- a second argument the format has no place for -- rejects with COBOL1504. retired-witness: src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SignedLiteralCanStart (kb/Work PB2726 moved the lexer's @members out of CobolLexer.g4 into its superclass Parsing/CobolLexerBase.cs; the same member under its new path)"
 }
