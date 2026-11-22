@@ -73,8 +73,8 @@ public sealed partial class SpecialNamesBinder
             def.Table, def.Locale, National: true);
 
     /// <summary>⛔ THE EDITION GATE OF THE <c>[ IN alphabet-name-1 ]</c> RANGE PHRASE — a COBOL-2002 addition
-    /// (the construct catalogue <c>range-in-alphabet-2002</c>; the edge is DERIVED and the derivation is the row's, kb/Work
-    /// PB1015). It sits at the one resolver and not in the parse arm because the phrase is decided by SYMBOL: IN is
+    /// (the construct catalogue <c>range-in-alphabet-2002</c>; the edge is QUOTED in the row from §1985:VI.6.13.4 GR1g, §2002:14.6.7 and §2002:F.2 item 136,
+    /// kb/Work PB1015, PB3965). It sits at the one resolver and not in the parse arm because the phrase is decided by SYMBOL: IN is
     /// an optional word (PB983), so `THRU "M" AL` is the phrase only when AL names an alphabet, and an EVALUATE
     /// identifier-4 `IN AL` parses as a qualification until EvaluateBinder peels it (PB843). No recognition-time
     /// arm can see those spellings; every spelling reaches here once it IS the phrase. The VALUE clause's

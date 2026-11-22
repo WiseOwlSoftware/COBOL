@@ -1437,7 +1437,7 @@ reference formats, and the only place source comments are recognized. Its model:
   (COBOL3735 "begins in area A" stays the report for every area-A operand that writes no header). From COBOL-2002 on the
   set is empty and the parse and its diagnostics are unchanged.
   **The one half the pass cannot ask is the CONTINUATION line** (kb/Work PB3168): X3.23-1985 also requires "Area A of a
-  continuation line must be blank" (IBM Enterprise COBOL states it outright; VCR row 7.35), the same
+  continuation line must be blank" (§1985:IV.7.2.2; VCR row 7.35), the same
   `fixed-form-text-in-area-a-2002` row. A continued literal's tail is no token's start, and a resultant position has no
   inverse to the physical line, so only the §2023:6.5 logical conversion — which alone sees the hyphen — can name the line:
   `LogicalLineBuilder.Add` asks `FixedFormLine.IsAreaAOffset` of the first character of every fixed continuation line and

@@ -25,11 +25,10 @@ namespace WiseOwl.Cobol.Binding;
 /// 85/2002/2014 and under a diagnostic naming the wrong rule at 2023, and no comparison was screened at any
 /// edition.</para>
 ///
-/// <para>⚠ DETERMINATION — THE EDITION EDGE (VCR Table 7 row 7.13; the repository holds no 1985/2002/2014 text,
-/// ratified decision #1, so the edge is DERIVED and stated so it can be overturned in one line): the association
-/// is an OBSOLETE element of ANSI X3.23-1985 and was deleted with the rest of that list by ISO/IEC 1989:2002 —
-/// the posture of every other Table-7 row (DATA RECORDS, VALUE OF, ALTER …). The 2023 rule carries no edition
-/// qualifier and Annex E (the 2014→2023 delta) does not list it, so 2014 and 2023 agree; CCVS-85 carries the
+/// <para>⚠ THE EDITION EDGE, QUOTED (VCR Table 7 row 7.13; kb/Work PB3965): the association is an OBSOLETE element of
+/// ANSI X3.23-1985 (§1985:IV.4.2.2.2.3 SRL3.2, "an obsolete feature in Standard COBOL") and §2002:F.1 item 1 deletes
+/// it with the rest of that list — the posture of every other Table-7 row (DATA RECORDS, VALUE OF, ALTER …);
+/// §2002:8.3.1.2.5.2 SR3 and §2014:8.3.1.2.5.2 SR3 print the 2023 rule word for word, so 2002, 2014 and 2023 agree; CCVS-85 carries the
 /// '74 tests of the shape (NC105A MOVE-TEST-176..178) only as "DELETED BY FCCTS" — consistent with the
 /// designation, not a proof of it. Hence the registry row
 /// <c>all-literal-multichar-numeric-removed-2002</c>: accepted at 85 with the §2023:8.3.3.6.4 GR2 repeat-and-truncate
@@ -121,9 +120,9 @@ public static class FigurativeAssociation
     /// numeric literal, the only figurative constant permitted is ZERO (ZEROS, ZEROES) WITHOUT the ALL phrase."
     /// The caller has established both facts — the position is numeric-restricted (the VALUE clause of a numeric
     /// subject, §2023:13.18.63.3 SR2; an arithmetic-expression operand, §2023:8.8.1.1) and the operand is ZERO written WITH
-    /// the word ALL — and this reports it through the construct registry. ⚠ DETERMINATION (VCR Table 7 row 7.28,
-    /// a DERIVED edge like SR3's row 7.13 above): accepted at 85, where ALL before a figurative word is redundant
-    /// and CCVS-85 writes <c>VALUE ALL ZEROS</c> on <c>PIC 999</c> (NC201A); COBOL0902 at 2002 and later, a
+    /// the word ALL — and this reports it through the construct registry. ⚠ THE EDITION EDGE, QUOTED (VCR Table 7 row 7.28,
+    /// kb/Work PB3965): accepted at 85, where ALL before a figurative word is redundant (§1985:IV.4.2.2.2.3 SRL3.3)
+    /// and CCVS-85 writes <c>VALUE ALL ZEROS</c> on <c>PIC 999</c> (NC201A); COBOL0902 at 2002 and later (§2002:8.3.1.2.5.2 SR1a: "without the ALL phrase"), a
     /// warning under <c>--permissive</c>. Where it is admitted the operand IS the figurative ZERO: the caller
     /// keeps the value zero either way, because a refused compile reaches no output.</summary>
     public static void GateAllZeroAsNumeric(EditionInfo edition, IDiagnosticSink sink, string where) =>

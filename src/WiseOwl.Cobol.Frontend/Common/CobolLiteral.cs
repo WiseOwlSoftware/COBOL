@@ -307,11 +307,11 @@ public static class CobolLiteral
     /// rules, one number, one symbol. The edition's own bound is <see cref="MaxPositions"/>.</summary>
     public const int MaxLiteralPositions = 8191;
 
-    /// <summary>The bound below the edition that relaxed it — 160 character positions. ⚠ THE EDGE IS DERIVED, NOT QUOTED
-    /// (kb/Work PB1615; docs/VERSION_CHANGE_REFERENCE.md row 7.43): the repository holds no 1985, 2002 or 2014 text, so the
-    /// method of owner decision kb/Work R61 dates it — GnuCOBOL 3.2's per-standard dialect files carry
-    /// <c>literal-length: 160</c> in <c>cobol85.conf</c> AND <c>cobol2002.conf</c> and 8191 in <c>cobol2014.conf</c>, and
-    /// Annex E (2014 to 2023) lists no change, so 2014 already had 8,191.</summary>
+    /// <summary>The bound below the edition that relaxed it — 160 character positions. THE EDGE IS QUOTED
+    /// (kb/Work PB1615, PB3965; docs/VERSION_CHANGE_REFERENCE.md row 7.43): §1985:IV.4.2.2.2.1 allows "nonnumeric literals
+    /// of 1 through 160 characters", §2002:8.3.1.2.1.2 SR1 bounds a literal at "less than or equal to 160 alphanumeric
+    /// character positions", and §2014:8.3.1.2.1.2 SR1 at 8,191, §2014:E.3 item 15 recording the increase "from 160
+    /// character positions to 8,191 character positions".</summary>
     public const int MaxLiteralPositionsBeforeRelaxation = 160;
 
     /// <summary>⭐ THE EDITION-KEYED LITERAL BOUND, in one place beside <see cref="CobolWordRule.MaxLength"/>: how many

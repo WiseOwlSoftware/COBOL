@@ -204,7 +204,8 @@ public static class LiteralScreen
     /// row 7.37, kb/Work PB674): asked of the TOKEN (<see cref="LiteralTokens.FloatingPointTypes"/>), position-blind, so a
     /// COMPUTE operand, a MOVE source, a VALUE, a relation operand, a FUNCTION argument, a subscript and a CALL argument
     /// are one question with one answer and the next grammar position that admits a numeric literal needs no arm. The
-    /// edge is DERIVED, the repository holding no 1985, 2002 or 2014 text; the derivation is the VCR row's. A numeric
+    /// edge is QUOTED (kb/Work PB3965): §1985:IV.4.2.2.2.2 forms a numeric literal from digits, a sign and a decimal point
+    /// alone, and §2002:8.3.1.2.2.2 adds the floating-point form. A numeric
     /// literal has none of the delimited literals' own syntax rules (<see cref="CobolLiteral.SyntaxViolation"/>), so
     /// this is the format gate alone and the literal's value is left intact.</summary>
     private static void GateFloatingPoint(ITerminalNode t, EditionInfo edition, IDiagnosticSink sink)

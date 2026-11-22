@@ -1019,8 +1019,8 @@ internal sealed class VersionConformancePass
         /// and none is PADDING, and the word appears nowhere in the 2023 text (§2023:8.9's list runs PACKED-DECIMAL →
         /// PAGE). Parsed-and-ignored at 85/2002 (a compiler with no blocking model has nothing to pad — the
         /// MULTIPLE FILE / RERUN posture, and NIST SQ216A/SQ217A both write the clause), gated here: the registry row
-        /// carries obsolete 2002 (COBOL0903) and removed 2014 (COBOL0902), GnuCOBOL's edges, the repository
-        /// holding no 2002/2014 text (kb/Work PB656; VCR row 7.20).
+        /// carries obsolete 2002 (COBOL0903; §2002:12.3.4.10, "an obsolete element in this International Standard") and
+        /// removed 2014 (COBOL0902; §2014:E.2 item 19), both quoted from the edition texts (kb/Work PB656, PB3965; VCR row 7.20).
         /// <para>⛔ THE ABSENCE OF THIS ARM WAS THE DEFECT (kb/Work PB300): the clause parsed at EVERY edition
         /// with nothing reading the rule, so `--std 2023` accepted a clause the targeted standard does not
         /// contain and said nothing — the one leniency in the compiler that was on neither dialect axis.</para></summary>
@@ -1195,8 +1195,9 @@ internal sealed class VersionConformancePass
 
         /// <summary>A PERFORM varying-phrase whose BY phrase is OMITTED — ISO §2023:14.9.28.4 GR12, "For any BY phrase that is
         /// omitted, the augment value is 1" — is a post-1985 form (perform-varying-by-omitted-2002; VCR row 7.42, kb/Work
-        /// PB2282): the 2002 text states the same rule, and COBOL-85's VARYING and AFTER phrases each write BY (the edge
-        /// below 2002 is derived, as row 7.31 derived the STRING DELIMITED edge). The VARYING phrase and each AFTER phrase
+        /// PB2282): §2002:14.8.27.3 GR9 states the same rule, and COBOL-85's VARYING and AFTER phrases each write BY
+        /// (§1985:VI.6.21.4 GR10d augments by "literal-2 or the value of the data item referenced by identifier-4"; the
+        /// edge is quoted, kb/Work PB3965). The VARYING phrase and each AFTER phrase
         /// is its own BY site, so each is reported where it is written.</summary>
         public override object? VisitPerformVarying(CobolParserCore.PerformVaryingContext ctx)
         {
@@ -1703,10 +1704,10 @@ internal sealed class VersionConformancePass
         /// drop-proof reason as the table format above: the binder abandons literal-4 on a §2023:13.18.63.3 SR2/SR4/SR5
         /// category violation and on a non-literal operand, so a bound-arm gate would lose the 0900 on exactly
         /// the paths that already went wrong. kb/Work PB555.
-        /// <para>⚠ The edge is DERIVED, not quoted, and the derivation is one line so it can be overturned in
-        /// one: the repo holds no 2002 or 2014 text, the 2023 Annex E carries no 85→2002 VALUE row (the A.1
-        /// authority gap, D18), and the reserved-word evidence cannot date it because FALSE is already reserved
-        /// at COBOL-85 for the EVALUATE statement.</para></summary>
+        /// <para>The edge is QUOTED (kb/Work PB3965): COBOL-85's condition-name VALUE clause is Format 2 with no FALSE
+        /// phrase (§1985:VI.5.15.5 GR2), §2002:13.16.61.3 GR17 places "the value of literal-4 from the FALSE phrase" in the
+        /// conditional variable, and §2002:F.2 item 144 states the change ("The WHEN SET TO FALSE phrase allows
+        /// specification of a FALSE condition value").</para></summary>
         public override object? VisitValueClauseFalsePhrase(CobolParserCore.ValueClauseFalsePhraseContext ctx)
         {
             _p.Check(Constructs.ValueFalsePhrase2002, "the VALUE clause's WHEN SET TO FALSE phrase");
@@ -2297,10 +2298,10 @@ internal sealed class VersionConformancePass
         /// a COBOL-2002 introduction, on BOTH arms of <c>assignClause</c>: the <c>TO … USING data-name-1</c> tail and
         /// the bare <c>ASSIGN USING data-name-1</c>. One token test covers both, because USING is the only token the
         /// two arms share past ASSIGN and no other file-control rule spells it.
-        /// <para>THE EDGE IS DERIVED, NOT QUOTED (kb/Work PB746; the construct catalogue <c>assign-using-2002</c> and VCR row 7.27
-        /// carry the derivation): Annex E never names the phrase, so it predates 2023, and GnuCOBOL's per-standard
-        /// dialect files place it at 2002 (cobol85.conf <c>assign-using-variable: unconformable</c>, cobol2002.conf
-        /// <c>ok</c>). Recognition-fire on the clause, so a SELECT that also fails to bind still names its edition.</para></summary>
+        /// <para>THE EDGE IS QUOTED (kb/Work PB746, PB3965; the construct catalogue <c>assign-using-2002</c> and VCR row 7.27
+        /// carry the quotations): §1985:VII.2.3.4 GR3 associates the file with "a storage medium referenced by
+        /// implementor-name-1 or literal-1" only; §2002:12.3.4.3 GR3b adds the USING phrase, and §2002:F.2 item 119
+        /// states the change. Recognition-fire on the clause, so a SELECT that also fails to bind still names its edition.</para></summary>
         public override object? VisitAssignClause(CobolParserCore.AssignClauseContext ctx)
         {
             if (ctx.USING() is not null)
@@ -2343,7 +2344,8 @@ internal sealed class VersionConformancePass
         { _p.Check(Constructs.AlternateKeySuppressWhen2023, "the SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause"); return base.VisitChildren(ctx); }
 
         /// <summary>The SOURCE phrase of the RECORD KEY and ALTERNATE RECORD KEY clauses (ISO §2023:12.4.5.12.2 /
-        /// §2023:12.4.5.6.2) — a post-1985 form on the provisional 2002 edge (VCR row 7.36, derived). ONE arm for both
+        /// §2023:12.4.5.6.2) — a COBOL-2002 introduction, quoted: §1985:IX.2.7.2 prints <c>RECORD KEY IS data-name-1</c>
+        /// only and §2002:F.2 item 110 states the change (VCR row 7.36, kb/Work PB3965). ONE arm for both
         /// clauses: they share the one grammar rule, so neither can be gated without the other (kb/Work PB1099).</summary>
         public override object? VisitRecordKeySourcePhrase(CobolParserCore.RecordKeySourcePhraseContext ctx)
         { _p.Check(Constructs.RecordKeySource2002, "the SOURCE phrase of the RECORD KEY or ALTERNATE RECORD KEY clause"); return base.VisitChildren(ctx); }
@@ -3382,15 +3384,12 @@ internal sealed class VersionConformancePass
         /// the misnamed shape the grammar had; the REAL construct is led by the §2023:8.7.4 invocation operator
         /// <c>::</c>, which is unambiguous with everything — so a below-2002 inline invocation names the
         /// edition instead of failing as punctuation.</para>
-        /// <para>⚠ THE EDITION EDGE IS DERIVED, NOT QUOTED (the VERSION_CHANGE_REFERENCE discipline — the repo
-        /// holds no 2002 or 2014 text). Three legs: (a) §2023:A.4.10 lists exactly three OPTIONAL
-        /// object-orientation elements — CLASS-ID INHERITS repetition, INTERFACE-ID INHERITS repetition and
-        /// parametric polymorphism — and inline method invocation is NOT among them, so it is mandatory
-        /// surface of the object-orientation facility, whose every other element this compiler gates at
-        /// 2002 (CLASS-ID, INVOKE, USAGE OBJECT REFERENCE …);
-        /// (b) Annex E itemizes the 2014→2023 delta and lists no inline invocation, so it predates 2023;
-        /// (c) §2023:8.4.3.4.4 GR1 defines it in terms of the INVOKE statement, a 2002 introduction — a construct
-        /// cannot be defined by one that does not exist yet.</para></summary>
+        /// <para>THE EDITION EDGE IS QUOTED from the edition texts (kb/Work PB3965): §2002:8.4.2.4 defines the
+        /// construct ("Inline method invocation references a temporary data item returned from invocation of a
+        /// method") on an operand "of class object" (§2002:8.4.2.4.2 SR2); COBOL-85's identifier is a function-identifier
+        /// or a qualified, subscripted, reference-modified data-name (§1985:IV.4.3.8.5), over three classes of data,
+        /// "alphabetic, numeric, and alphanumeric" (§1985:IV.4.3.3 p1); and §2002:F.2 item 82 states the change:
+        /// "Support for object oriented programming has been added."</para></summary>
         public override object? VisitInlineMethodInvocation(CobolParserCore.InlineMethodInvocationContext ctx)
         {
             _p.Check(Constructs.InlineMethodInvocation2002, "an inline method invocation (the '::' operator)");
@@ -3398,9 +3397,9 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>The object-view (ISO §2023:8.4.3.5, identifier Format 5 — <c>identifier-1 AS …</c>; kb/Work PB1425), gated
-        /// on RECOGNITION like its Format-4 sibling above, and for the same three derived reasons: A.4.10's optional OO
-        /// list does not name it, Annex E's 2014→2023 delta does not list it, and it re-describes an object reference,
-        /// a 2002 introduction. The receiving superset parse (§2023:8.4.3.5.3 SR2, a <c>nonReceivableIdentifier</c> carrying
+        /// on RECOGNITION like its Format-4 sibling above, and on the same quoted edge (kb/Work PB3965): §2002:8.4.2.5
+        /// defines it on an operand "of class object" (§2002:8.4.2.5.2 SR1), COBOL-85's identifier and its three classes of
+        /// data have no such form (§1985:IV.4.3.8.5, §1985:IV.4.3.3 p1), and §2002:F.2 item 82 states the change. The receiving superset parse (§2023:8.4.3.5.3 SR2, a <c>nonReceivableIdentifier</c> carrying
         /// the AS phrase) is the same construct written where it is refused, so it is gated alike and a COBOL-85 program
         /// is told the edition.</summary>
         public override object? VisitObjectView(CobolParserCore.ObjectViewContext ctx)

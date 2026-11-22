@@ -1519,7 +1519,7 @@ the same list.
 - **SORT/MERGE GIVING an indexed file** (§2023:14.9.40.3 SR9, §2023:14.9.24.3 SR10) compares the first key with the prime
   key's byte location and size, which a SOURCE-form prime key has only when its windows are one run.
 - **Edition.** ANSI X3.23-1985 prints data-name-1 only, so the phrase is a post-1985 form gated once, on the
-  shared rule (`record-key-source-2002`, VCR row 7.36, a DERIVED provisional 2002 edge; COBOL0900 at 85).
+  shared rule (`record-key-source-2002`, VCR row 7.36, a 2002 edge quoted from §1985:IX.2.7.2 and §2002:F.2 item 110; COBOL0900 at 85).
 Witnesses: `conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source` (a reversed-order prime key, a duplicate alternate key,
 the concatenated uniqueness '22', the sequential order, READ / START / START WITH LENGTH / DELETE on both keys, a
 Format-6 qualified record-key-name), `conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099-record-key-source-85`, and

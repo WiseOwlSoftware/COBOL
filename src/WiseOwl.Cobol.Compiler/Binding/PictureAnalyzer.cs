@@ -811,13 +811,13 @@ public static class PictureAnalyzer
     /// <see cref="Analyze"/>'s prologue.</summary>
     internal const int MaxPictureStringLength = 63;
 
-    /// <summary>The bound at COBOL-2002 — 50 characters. QUOTED: the 2002 text's own 13.16.38.2 SR4 reads "The maximum
+    /// <summary>The bound at COBOL-2002 — 50 characters. QUOTED: §2002:13.16.38.2 SR4 reads "The maximum
     /// number of characters allowed in character-string-1 is 50" and its Annex F.2 item 94 records the increase "from 30
     /// to 50" (kb/Work PB4304; docs/VERSION_CHANGE_REFERENCE.md row 7.46).</summary>
     internal const int MaxPictureStringLength2002 = 50;
 
-    /// <summary>The bound at COBOL-85 — 30 characters (the "from 30 to 50" of the 2002 text's Annex F.2 item 94; GnuCOBOL
-    /// <c>cobol85.conf</c> carries <c>pic-length: 30</c>).</summary>
+    /// <summary>The bound at COBOL-85 — 30 characters (§1985:VI.5.9.3 SR4: "The maximum number of characters allowed in the
+    /// character-string is 30."; the "from 30 to 50" of §2002:F.2 item 94; kb/Work PB3965).</summary>
     internal const int MaxPictureStringLength85 = 30;
 
     /// <summary>⭐ THE EDITION-KEYED CHARACTER-STRING BOUND, in one place beside <see cref="CobolWordRule.MaxLength"/> and
