@@ -690,7 +690,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// report them, X3.23-1985), so that operand is the data item the trigger watches, not one the
     /// COBOL2270 "shall be subscripted" rule (ISO §2023:8.4.2.3.3 SR5) judges (kb/Work PB4363, review round 1).</summary>
     private bool NamesDataItem(Core.DataReferenceContext operand) =>
-        new DataReferenceCst(operand).Register != SpecialRegister.None || ctx.Refs.ProbeDeclaration(operand) is not null
+        operand.Register() != SpecialRegister.None || ctx.Refs.ProbeDeclaration(operand) is not null
         || SumCounterOf(operand) is not null;
 
     /// <summary>The register of the REPORT SECTION sum counter the operand names, or null: the item every reference to the counter carries
@@ -698,7 +698,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// admits it by name: "Identifier-1 must not reference any data item defined in the Report Section except sum counters" (kb/Work PB4858).
     /// A silent probe, like <see cref="NamesDataItem"/>.</summary>
     private DataItem? SumCounterOf(Core.DataReferenceContext operand) =>
-        new DataReferenceCst(operand).Register == SpecialRegister.None && operand.cobolWord() is not null
+        operand.Register() == SpecialRegister.None && operand.cobolWord() is not null
         && ctx.Refs.Counters.SumCounterFamilyFor(operand, report: false) is (_, { } family)
             ? family.Register : null;
 
@@ -844,7 +844,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         string phrase = kind is DebugTargetKind.AllReferences ? $"ON ALL REFERENCES OF '{written}'" : $"ON '{written}'";
         DataItem? item;
         BoundExpr? register = null;
-        if (new DataReferenceCst(operand).Register is var special and not SpecialRegister.None)
+        if (operand.Register() is var special and not SpecialRegister.None)
         {
             (item, register) = CounterRegisterOf(operand, special);
             if (register is null) return;   // the resolver reported why

@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
+using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -330,14 +331,14 @@ public sealed partial class DataBinder
     /// clause's ORDINAL in the entry: the entry-name and level-number are not in the list, which makes "immediately
     /// follows" exactly "is its FIRST clause". (A TYPEDEF entry without a data-name is SR15's, asked by
     /// <c>RegisterTypeDecl</c>; REDEFINES beside TYPEDEF is SR3's, so such an entry draws both.)</summary>
-    private void ScreenLeadingClausePosition(DataDescriptionCst entry, string? cobolName)
+    private void ScreenLeadingClausePosition(Core.DataDescriptionEntryContext entry, string? cobolName)
     {
-        var clauses = entry.Clauses;
+        var clauses = entry.Clauses();
         for (int i = 1; i < clauses.Count; i++)
             foreach (var (kind, rule, rule1985, code) in LeadingClauses)
-                if (clauses[i].Kind == kind)
+                if (clauses[i].Kind() == kind)
                     Edition.Error(code, $"'{cobolName ?? "FILLER"}': the {DataClauseKinds.Name(kind)} clause follows "
-                        + $"{DataClauseKinds.Name(clauses[0].Kind)} but shall immediately follow the entry-name clause"
+                        + $"{DataClauseKinds.Name(clauses[0].Kind())} but shall immediately follow the entry-name clause"
                         + (kind == DataClauseKind.Redefines
                             ? ", or the level-number when the entry-name clause is not specified" : "")
                         + $" ({Edition.Edition.CiteRule(rule1985, rule)})");

@@ -3,7 +3,8 @@
 Status: DESIGN — substantially implemented. The dead-grammar/JSON-XML deletions, the single-sourced
 context-sensitive word set, the shared-lowest `WiseOwl.Cobol.Editions` registry, and the one `VersionConformancePass`
 edition gate are all in the tree; the §8 questions are resolved as decided. Remaining frontend work: completing the
-`Cst/` typed-façade migration (§3.7, paced by the binder track), the D10 SUBSCRIPT-mode removal (§9, scheduled for
+`Cst/` read discipline (§3.7: extension members on the generated contexts, which the binder reads through
+`frontend.parse`, DESIGN-architecture-review §8.1; kb/Work PB2731), the D10 SUBSCRIPT-mode removal (§9, scheduled for
 PHASE 15), and the residual preprocessor namespace / `using Core =` alias cleanup.
 Scope: `src/WiseOwl.Cobol.Frontend/**` — the ANTLR lexer/parser grammars (`Grammar/**/*.g4`), the hand-written
 preprocessor (`Preprocessor/`), the parse-stage machinery (`Parsing/`), the diagnostics model
@@ -233,10 +234,10 @@ binder:
 │   Preprocessor/   (ns → WiseOwl.Cobol.Frontend) │   │   Binding/ (via façade only) │
 │   Grammar/        (2 generated units)      │   │ Validation/VersionConformance│
 │   Generated/      (ns → WiseOwl.Cobol.Frontend. │──▶│     Pass (sole edition gate) │
-│                    Generated)              │   │   … consumes Cst façade,     │
-│                                            │   │      not raw contexts        │
+│                    Generated)              │   │   … reads generated ctxs     │
+│                                            │   │      + Cst extension members │
 │   Parsing/        (ParseSession, recovery) │   └──────────────────────────────┘
-│   Cst/            (NEW typed façade layer) │
+│   Cst/            (rule-bearing reads)     │
 │   Diagnostics/    (one Diagnostic model)   │
 └────────────────────────────────────────────┘
 ```
@@ -265,8 +266,12 @@ Key decisions, each expanded below:
 - **D5. Delete the 5 dead grammars; split the JSON/XML fragment** — move the live
   `inlineMethodInvocationStatement` into `Core/CobolOO.g4`, delete the non-ISO JSON/XML rules and their
   dispatch arms, delete the now-empty fragment.
-- **D6. Introduce a `Cst/` typed façade** (thin wrappers over the generated contexts) as the ONLY surface the
-  binder consumes — retire the ~336 `GetText()` hand-walks incrementally behind it.
+- **D6. Put the rule-bearing reads in `Cst/`** as EXTENSION MEMBERS on the generated contexts (amended, kb/Work
+  PB2731). The binder and the validation passes read the generated contexts through `frontend.parse`, the boundary
+  DESIGN-architecture-review §8.1 approves; what crosses into `compiler.model` and `compiler.bound` is decided there
+  (kb/Work PB2398: no parse context past binding). The wrapper-struct façade this decision first named, with its
+  implicit conversions and its `Context` escape hatch, is deleted: two sanctioned ways to read one clause was one
+  too many.
 - **D7. One `Diagnostic` type end-to-end**, one `ParseSession` orchestrator, narrowed exception handling,
   fail-hard portable regen unchanged in behavior but with the package name in an MSBuild property.
 - **D8. Bring the generated-namespace rename forward** to `WiseOwl.Cobol.Frontend.Generated` (it is free and
@@ -1602,34 +1607,33 @@ code:
   FORMAT directive in the false path of an IF/EVALUATE to be processed, which is why the normalizer runs over the
   whole text before conditional compilation (kb/Work PB1006, retired).
 
-### 3.7 Parse-tree consumption — a typed `Cst/` façade (D6)
+### 3.7 Parse-tree consumption — `Cst/` extension members (D6)
 
-**Contract problem:** the binder reaches into raw generated contexts with ~336 `GetText()` calls. Renaming a
-grammar rule silently breaks dozens of string-keyed walks.
+**Contract problem:** a read the binder repeats over a raw generated context (a positional `GetText()`, a clause
+classification) written at each site drifts when a grammar rule changes.
 
-**Target:** a `Cst/` (Concrete-Syntax-Tree façade) namespace in `WiseOwl.Cobol.Frontend` that wraps the generated
-contexts in **thin, typed, read-only accessors** — the ONE surface the binder consumes. Not a re-parse: each
-façade type holds the generated context and exposes typed properties instead of positional `GetText()`:
+**Target (amended, kb/Work PB2731):** the binder and the validation passes read the generated contexts directly,
+through `frontend.parse` (DESIGN-architecture-review §8.1 places `Cst` and `Generated` in that one layer and allows
+`compiler.binding` and `compiler.validation` to depend on it). A read that carries a RULE, and that more than one site
+would otherwise write, lives in `Cst/` as an extension method of the generated context it reads (a classic `this` extension:
+the inventory's two code-location resolvers name a member of a static class, and a C# 14 `extension` block has no
+name they agree on, kb/Work PB2731), beside the rule tables (`DataClauseKind`, `ClosedFormats`, `ClauseCardinalities`, `ParagraphPeriods`):
 
 ```csharp
-// Cst/DataDescriptionCst.cs  (wraps CobolParserCore.DataDescriptionEntryContext)
-public readonly struct DataDescriptionCst(CobolParserCore.DataDescriptionEntryContext ctx)
+// Cst/DataDescriptionCst.cs
+public static class DataDescriptionCst
 {
-    public int Level          => ParseLevel(ctx.levelNumber());        // was int.Parse(x.GetText())
-    public string? Name       => ctx.entryName()?.GetText();
-    public PictureCst? Picture => ctx.pictureClause() is {} p ? new(p) : null;
-    public UsageCst? Usage    => …;
-    public bool IsTypedef     => ctx.typedefClause() is not null;
-    …
+    public static int? Level(this CobolParserCore.DataDescriptionEntryContext ctx) => …;
+    public static IReadOnlyList<CobolParserCore.DataDescriptionClauseContext> Clauses(this CobolParserCore.DataDescriptionEntryContext ctx) => …;
+    public static DataClauseKind WrittenClauses(this CobolParserCore.DataDescriptionEntryContext ctx) => …;   // §2023:13.16.3's permitted-set rules
+    public static DataClauseKind Kind(this CobolParserCore.DataDescriptionClauseContext ctx) => …;
 }
 ```
 
-The façade is generated-context-shaped (1:1 with grammar rules), so it does NOT re-introduce a parallel model
-— it is the *typed reading discipline* over the parse tree. Migration is incremental (§8): the binder can mix
-raw-context and façade access during transition; the end state is that `Grammar/Generated` types are
-`internal` to `WiseOwl.Cobol.Frontend` and only `Cst/` types cross the assembly boundary. This makes a grammar
-rule rename a **compile error in one façade file** instead of a silent `GetText()` drift, and it is the
-enabling step for the binder's "consume a typed tree, not strings" reorg.
+There is no wrapper type: the presence-only predicates are the generated accessors themselves, and a typed read sits on
+the same object, so a binder has ONE way to read a clause. Members are 1:1 with grammar rules and hold no semantic
+state. A grammar rule rename is a compile error in the one `Cst/` file that reads it. What crosses past binding into the
+model and the bound tree is not a parse context (kb/Work PB2398).
 
 The `VersionConformancePass` does not consume the parse tree at all — it walks the *bound* tree (each bound
 node carries a `.Syntax` back-reference for spans and construct ids), so it needs neither the façade nor the
@@ -1638,7 +1642,8 @@ generated visitor. The façade is for the *binder*.
 ### 3.8 Diagnostics model — one `Diagnostic` type
 
 The frontend already has the good pieces: `Diagnostics/DiagnosticDescriptor` (a typed
-`{Code, Severity, MessageTemplate}` record) and `DiagnosticDescriptors` (a registry:
+`{Code, MessageTemplate}` record whose `Format` is the one composition of its message; every frontend descriptor is an
+error, so it declares no severity, kb/Work PB2624) and `DiagnosticDescriptors` (a registry:
 `COBOL0303`, `COBOL2072`, `CBL3620`, …) — `Diagnostics/DiagnosticDescriptors.cs`. This is exactly the
 model the *compiler* side lacks (its 163 codes are bare strings — the understandability-critique HIGH). The
 target:
@@ -3073,7 +3078,7 @@ alternative-of-a-slot tokens. A test that reads a rule's shape from the grammar'
 | create | — | `WiseOwl.Cobol.Editions` assembly | shared lowest layer both Frontend + Compiler reference (§2 D4) — owned by DESIGN-edition-framework.md |
 | move | `EditionGateHints` metadata / preprocessor severity copies | `WiseOwl.Cobol.Editions` (`ConstructRegistry`, `EditionSeverityPolicy`) | one edition-metadata + one severity source (§1.5, §3.6) |
 | move | `Diagnostics/DiagnosticBag.cs` ns → `WiseOwl.Cobol.Frontend.Diagnostics` | become the ONE pipeline diagnostic bag | one diagnostic model (§3.8) |
-| create | — | `Cst/` façade namespace (`DataDescriptionCst`, `StatementCst`, …) | typed narrow contract; retire ~336 `GetText()` walks (§3.7) |
+| create | — | `Cst/` extension members and rule tables (`DataDescriptionCst`, `DataReferenceCst`, `ClosedFormats`, …) | the rule-bearing reads of the generated contexts, written once (§3.7; kb/Work PB2731) |
 | edit | `Frontend.cs:135` `catch (Exception)` | `catch (ParseCanceledException)` + `RecognitionException` | stop masking predicate/lexer-action bugs (§3.5) |
 | edit | `Frontend.cs:16` stale banner; `:103-105` throw | correct banner; record internal diagnostic | doc drift + exception-boundary consistency (§1.7, §3.6) |
 | edit | `Invoke-Antlr4CSharp.ps1`, csproj | `-PackageName $(AntlrNamespace)` | package name in one MSBuild property (§3.5) |
@@ -3134,11 +3139,10 @@ the version-matrix rows for those constructs still emit COBOL0900 with the same 
 duplicate-diagnostic case the dossier reproduced is now single. This is the biggest correctness win and the
 most steps — do it incrementally, never as one batch.
 
-**M8 — `Cst/` façade.** Introduce the façade types alongside the binder rearchitecture (this step is paced
-by the binder work, not the frontend). Migrate binder `GetText()` sites to façade accessors incrementally;
-when a rule's consumers are all on the façade, that rule's context can be considered migrated. End state:
-generated contexts `internal`, `Cst/` the only cross-assembly surface. Verify continuously: the binder's
-output bound tree is unchanged (differential oracle + conformance).
+**M8 — `Cst/` reads.** A read that carries a rule and is repeated over a generated context moves into `Cst/` as an
+extension member of that context, paced by the binder work. The generated contexts stay public to `frontend.parse`'s
+consumers (DESIGN-architecture-review §8.1); the wrapper structs are deleted (kb/Work PB2731). Verify continuously:
+the binder's output bound tree is unchanged (differential oracle + conformance).
 
 **Rollback posture:** M1–M4 are trivially revertible. M5/M7 are the risk points — each is gated behind its
 own drift/matrix test and the full legacy guard, and each is landed as the *only* change in its commit so a
@@ -3164,9 +3168,9 @@ regression bisects to one step.
 - **R4 (M3, portability):** the package-name property + regen must work identically on Windows and Linux
   (the flat-output hazard). Mitigation: the existing portable-regen logic is untouched; only the
   `-package` argument value changes; verify on WSL per `reference_wsl_linux_repro.md`.
-- **R5 (M8, scope creep):** the `Cst/` façade could balloon into a second data model. Mitigation: façade
-  types are strictly 1:1 with grammar rules and hold the context (no computed/semantic state) — enforced by
-  code review; semantic facts belong to the binder's model, not the façade.
+- **R5 (M8, scope creep):** `Cst/` could balloon into a second data model. Mitigation: its extension members are
+  strictly 1:1 with grammar rules and compute no semantic state — enforced by code review; semantic facts belong to
+  the binder's model.
 - **R6 (cross-doc coupling):** M6/M7 depend on `WiseOwl.Cobol.Editions` (DESIGN-edition-framework.md). If that assembly
   slips, M7 blocks. Mitigation: M1–M5 + M8 are independent of it and deliver most of the frontend cleanup;
   sequence M6/M7 after the editions assembly lands.
@@ -3256,10 +3260,8 @@ regression bisects to one step.
    annotation still works — `ConstructId` is the only shared type the grammar needs; introduction editions
    are read solely by the `VersionConformancePass`. Which dependency shape?
    (DESIGN-edition-framework.md needs the same answer.)
-3. **`Cst/` façade timing (M8).** The façade is most valuable *with* the binder rearchitecture and risky to
-   land before it. Should the frontend ship M1–M7 first and defer M8 to the binder track, or co-develop the
-   façade as the binder's first refactor? Recommendation: defer M8 to the binder track; it is enabling
-   infrastructure for that work, not standalone frontend cleanup.
+3. **`Cst/` timing (M8) — RESOLVED (kb/Work PB2731).** M8 is paced by the binder track, and its end state is the
+   DESIGN-architecture-review §8.1 boundary: extension members on the generated contexts, no wrapper façade.
 4. **Generated-namespace rename timing (M3 vs G8) — RESOLVED.** The `Generated` namespace rename was brought forward
    (PHASE 01); it renames only the front-end's generated code and was independent of the legacy assembly, which is now deleted.
 5. **SUBSCRIPT-mode elimination — D10 = FULLY REMOVE (§9 below is the design).** The owner ruled the SUBSCRIPT
