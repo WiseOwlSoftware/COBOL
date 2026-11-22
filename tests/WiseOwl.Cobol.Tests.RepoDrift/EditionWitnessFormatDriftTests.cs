@@ -25,7 +25,6 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 [Trait("Sweep", "tree")]
 public sealed class EditionWitnessFormatDriftTests
 {
-    private const string Inventory1985 = "tests/version-matrix/inventory-1985/";
 
     /// <summary>The harness entries whose reference format is <c>TestSourceFormat.Inline</c> unless the caller passes one.</summary>
     private static readonly Regex InlineByDefault = new(
@@ -37,6 +36,13 @@ public sealed class EditionWitnessFormatDriftTests
     private static readonly Regex FixedNamed = new(@"\bInitialReferenceFormat\s*\.\s*Fixed\b|\bTestSourceFormat\s*\.\s*OfSuiteCase\b",
         RegexOptions.CultureInvariant);
 
+    /// <summary>The 1985 inventory's rows, the scans' declared scopes (TrackedTreeScopeDriftTests reads them as literals).</summary>
+    private static readonly TreeScope Inventory1985Rows = new(Under: ["tests/version-matrix/inventory-1985/"], Kinds: [".json"]);
+
+    private static readonly TreeScope UnitSources = new(Under: ["tests/WiseOwl.Cobol.Tests.Unit/"], Kinds: [".cs"]);
+
+    private static readonly TreeScope ConformanceTestSources = new(Under: ["tests/WiseOwl.Cobol.Tests.Conformance/"], Kinds: [".cs"]);
+
     private static readonly (string Prefix, string Project)[] Kinds =
     [
         ("unit:", "tests/WiseOwl.Cobol.Tests.Unit/"),
@@ -46,10 +52,15 @@ public sealed class EditionWitnessFormatDriftTests
     [Fact]
     public void EveryCSharpWitnessOfA1985Row_CompilesFixedFormOrNoText()
     {
-        var rows = TrackedTree.Files(new TreeScope(Under: [Inventory1985], Kinds: [".json"]));
+        var rows = TrackedTree.Files(Inventory1985Rows);
         Assert.True(rows.Count > 1000, $"the 1985 inventory listing found only {rows.Count} rows; it is broken");
-        var sources = Kinds.ToDictionary(k => k.Prefix, k => TrackedTree.Files(new TreeScope(Under: [k.Project], Kinds: [".cs"]))
-            .Select(f => File.ReadAllText(Path.Combine(TestRepo.Root, f))).ToList());
+        static List<string> Texts(IEnumerable<string> files) => [.. files.Select(f => File.ReadAllText(Path.Combine(TestRepo.Root, f)))];
+        var sources = new Dictionary<string, List<string>>
+        {
+            ["unit:"] = Texts(TrackedTree.Files(UnitSources)),
+            ["conformance-test:"] = Texts(TrackedTree.Files(ConformanceTestSources)),
+        };
+        Assert.Equal(Kinds.Select(k => k.Prefix).Order(), sources.Keys.Order());
 
         var offenders = new List<string>();
         int witnesses = 0;
