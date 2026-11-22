@@ -329,7 +329,7 @@ def self_test() -> int:
         root = Path(tmp)
         (root / "baselines").mkdir()
         results = root / "results.json"
-        results.write_text(json.dumps({"tests": [res("a", "PASS"), res("b", "FAIL", compile_fail)]}), encoding="utf-8")
+        results.write_text(json.dumps({"tests": [res("a", "PASS"), res("b", "FAIL", compile_fail)]}), encoding="utf-8", newline="\n")
         body, written = record(root, "stub", "85", "stub 1", [results], {"a", "b", "c"}, {"a"})
         raw, problems = load(path_of(root, "stub"))
         check("arm: a recorded measurement loads clean", raw is not None and not problems, problems)
@@ -357,7 +357,7 @@ def self_test() -> int:
             mutate()
             bad = root / "planted" / "stub.json"
             bad.parent.mkdir(exist_ok=True)
-            bad.write_text(json.dumps(fresh), encoding="utf-8")
+            bad.write_text(json.dumps(fresh), encoding="utf-8", newline="\n")
             check(f"arm: {what} is refused", bool(load(bad)[1]), what)
     print(f"{VERDICT}SELF-TEST {'GREEN' if not failures else 'RED'} ===")
     return 1 if failures else 0

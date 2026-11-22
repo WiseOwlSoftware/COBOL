@@ -161,19 +161,19 @@ def self_test() -> int:
         (root / "harness").mkdir()
         (root / "baselines").mkdir()
         ledger = root / "LEDGER.json"
-        ledger.write_text(json.dumps({"book_pages": 3, "second_pass": {"pages_swept": [1, 2, 3], "findings": 0}}), encoding="utf-8")
+        ledger.write_text(json.dumps({"book_pages": 3, "second_pass": {"pages_swept": [1, 2, 3], "findings": 0}}), encoding="utf-8", newline="\n")
         recorded = {"85": {"verdicts": {"a": "PASS", "b": "FAIL"},
                            "failures": {"b": {"bucket": "output: x", "cause": "non-portable-test"}}}}
         (root / measurements.DIRECTORY).mkdir()
         (root / measurements.DIRECTORY / f"{SECOND_COMPILER}.json").write_text(
-            json.dumps({"compiler": SECOND_COMPILER, "editions": recorded}), encoding="utf-8")
+            json.dumps({"compiler": SECOND_COMPILER, "editions": recorded}), encoding="utf-8", newline="\n")
 
         def terms(rows: dict[str, int] | None = None, population: set[str] | None = None, led: Path | None = ledger) -> dict[str, int | str]:
             return status("85", rows=lambda: rows or zero, population=lambda: population or {"a", "b"}, root=root, ledger=led)[0]
 
         # Each term planted red on its own, the other four satisfied by a stub tool.
-        (root / "harness" / "coverage.py").write_text("def unmet(edition):\n    return 0\n", encoding="utf-8")
-        (root / "harness" / "crosswalk.py").write_text("def unmet(edition):\n    return 0\n", encoding="utf-8")
+        (root / "harness" / "coverage.py").write_text("def unmet(edition):\n    return 0\n", encoding="utf-8", newline="\n")
+        (root / "harness" / "crosswalk.py").write_text("def unmet(edition):\n    return 0\n", encoding="utf-8", newline="\n")
         sys.path.insert(0, str(root / "harness"))
         try:
             green = terms()
@@ -183,19 +183,19 @@ def self_test() -> int:
             check("arm: second compiler red for an unrecorded test", terms(population={"a", "b", "c"})["second compiler"] == 1)
             recorded["85"]["failures"]["b"]["cause"] = measurements.UNCLASSIFIED
             (root / measurements.DIRECTORY / f"{SECOND_COMPILER}.json").write_text(
-                json.dumps({"compiler": SECOND_COMPILER, "editions": recorded}), encoding="utf-8")
+                json.dumps({"compiler": SECOND_COMPILER, "editions": recorded}), encoding="utf-8", newline="\n")
             check("arm: second compiler red for a failure with no cause", terms()["second compiler"] == 1)
-            ledger.write_text(json.dumps({"book_pages": 3, "second_pass": {"pages_swept": [1, 2], "findings": 2}}), encoding="utf-8")
+            ledger.write_text(json.dumps({"book_pages": 3, "second_pass": {"pages_swept": [1, 2], "findings": 2}}), encoding="utf-8", newline="\n")
             check("arm: transcription red for findings and unswept pages", terms()["transcription"] == 3, terms()["transcription"])
-            (root / "harness" / "coverage.py").write_text("def unmet(edition):\n    return 5\n", encoding="utf-8")
+            (root / "harness" / "coverage.py").write_text("def unmet(edition):\n    return 5\n", encoding="utf-8", newline="\n")
             sys.modules.pop("coverage", None)
             importlib.invalidate_caches()
             check("arm: points red", terms()["points"] == 5, terms()["points"])
-            (root / "harness" / "crosswalk.py").write_text("def unmet(edition):\n    return 2\n", encoding="utf-8")
+            (root / "harness" / "crosswalk.py").write_text("def unmet(edition):\n    return 2\n", encoding="utf-8", newline="\n")
             sys.modules.pop("crosswalk", None)
             importlib.invalidate_caches()
             check("arm: NIST red", terms()["NIST"] == 2, terms()["NIST"])
-            (root / "harness" / "crosswalk.py").write_text("x = 1\n", encoding="utf-8")
+            (root / "harness" / "crosswalk.py").write_text("x = 1\n", encoding="utf-8", newline="\n")
             sys.modules.pop("crosswalk", None)
             try:
                 terms()
@@ -214,9 +214,9 @@ def self_test() -> int:
         check("arm: an unmeasured term keeps the line INCOMPLETE even when every number is zero",
               verdict_line("85", {"rows": 0, "points": UNMEASURED, "NIST": 0, "second compiler": 0,
                                   "transcription": 0}).startswith("=== SUITE 85: INCOMPLETE"))
-        ledger.write_text(json.dumps({"book_pages": 3}), encoding="utf-8")
+        ledger.write_text(json.dumps({"book_pages": 3}), encoding="utf-8", newline="\n")
         check("arm: a ledger with no second pass is UNMEASURED", transcription_term(ledger) == UNMEASURED)
-        ledger.write_text(json.dumps({"book_pages": 3, "second_pass": {"findings": "none"}}), encoding="utf-8")
+        ledger.write_text(json.dumps({"book_pages": 3, "second_pass": {"findings": "none"}}), encoding="utf-8", newline="\n")
         try:
             transcription_term(ledger)
             check("arm: a malformed second pass fails loudly", False, "no error")
