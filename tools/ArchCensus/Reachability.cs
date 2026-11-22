@@ -39,7 +39,7 @@ internal sealed class Reachability(LoadedSolution solution, TypeInventory invent
                                    + "System.Text.Json.Serialization, DynamicDependency, UnmanagedCallersOnly, xunit, "
                                    + "BenchmarkDotNet)",
         ["serialized"] = "a property of a type that reaches System.Text.Json serialization",
-        ["emitted-text"] = "a member of the emitted surface (the runtime generated programs call) whose name is written "
+        ["emitted-text"] = "a member of the emitted surface (the runtime generated programs call) whose name (a constructor: its type's) is written "
                            + "inside a string literal or interpolated text of a code-generating project",
         ["named-in-string"] = "a type whose full name is a string literal somewhere in the solution (found by name)",
         ["record-positional"] = "a positional record property: the synthesized Equals, GetHashCode, ToString and "
@@ -189,7 +189,7 @@ internal sealed class Reachability(LoadedSolution solution, TypeInventory invent
             return ("serialized", null);
         }
 
-        if (emittedSurface.Contains(type.Project.Compilation.AssemblyName ?? "") && index.EmittedIdentifiers.Contains(member.Name))
+        if (emittedSurface.Contains(type.Project.Compilation.AssemblyName ?? "") && index.EmittedIdentifiers.Contains(EmittedName(member)))
         {
             return ("emitted-text", null);
         }
@@ -207,6 +207,15 @@ internal sealed class Reachability(LoadedSolution solution, TypeInventory invent
 
         return (null, null);
     }
+
+    /// <summary>⛔ THE NAME EMITTED TEXT WRITES FOR <paramref name="member"/> (kb/Work PB2756): its own name, except a
+    /// constructor, whose metadata name is <c>.ctor</c> but which generated code reaches as <c>new TypeName(…)</c>, so the
+    /// identifier the text holds is the containing type's simple name. Before it every runtime type that only generated
+    /// code constructs (the whole Report Writer engine, <c>CobolArg</c>, <c>ExternalDescriptor</c>, <c>LinagePage</c>,
+    /// <c>CobolSort.Key</c>) had its constructors reported unreachable. <see cref="MemberIndex"/> keys its emitted map by
+    /// the same name.</summary>
+    internal static string EmittedName(ISymbol member) =>
+        member is IMethodSymbol { MethodKind: MethodKind.Constructor } ctor ? ctor.ContainingType.Name : member.Name;
 
     private string? TypeExclusion(CensusType type)
     {

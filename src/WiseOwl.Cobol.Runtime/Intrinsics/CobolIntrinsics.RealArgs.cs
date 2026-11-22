@@ -172,11 +172,11 @@ public static partial class CobolIntrinsics
     /// once <c>b·⌊a/b⌋</c> passes 2⁵³ (fix-queue PB65's sweep).</summary>
     public static double RemReal(double a, double b) => b == 0 ? RemZeroDivisor() : a % b;
 
-    /// <summary>§2023:15.59 MAX — the greatest argument value.</summary>
-    public static double MaxReal(params double[] xs) { RequireArguments(xs.Length, "MAX"); return xs.Max(); }
+    /// <summary>§2023:15.59 MAX — the leftmost argument with the greatest value (the one selection rule, kb/Work PB2635).</summary>
+    public static double MaxReal(params double[] xs) => xs[ExtremeIndex(new ValueOrder<double>(xs), true, "MAX")];
 
-    /// <summary>§2023:15.63 MIN — the least argument value.</summary>
-    public static double MinReal(params double[] xs) { RequireArguments(xs.Length, "MIN"); return xs.Min(); }
+    /// <summary>§2023:15.63 MIN — the leftmost argument with the least value.</summary>
+    public static double MinReal(params double[] xs) => xs[ExtremeIndex(new ValueOrder<double>(xs), false, "MIN")];
 
     // ⛔ THE binary64 LIST BODIES FORM THEIR EQUIVALENT ARITHMETIC EXPRESSION IN THE binary64 INTERMEDIATE (kb/Work
     // PB1581), so a sum or a half-sum that leaves binary64's range is §2023:14.7.5 case 5 — EC-SIZE-OVERFLOW, or
@@ -213,7 +213,7 @@ public static partial class CobolIntrinsics
     public static double RangeReal(params double[] xs)
     {
         RequireArguments(xs.Length, "RANGE");
-        return ListInRange(xs.Max() - xs.Min(), xs, nonzero: false, "RANGE");
+        return ListInRange(MaxReal(xs) - MinReal(xs), xs, nonzero: false, "RANGE");
     }
 
     /// <summary>§2023:15.61 MEDIAN — the middle value of the sorted arguments; the mean of the two middle values when
@@ -231,7 +231,7 @@ public static partial class CobolIntrinsics
     public static double MidrangeReal(params double[] xs)
     {
         RequireArguments(xs.Length, "MIDRANGE");
-        return HalfSumInRange(xs.Max(), xs.Min(), xs, "MIDRANGE");
+        return HalfSumInRange(MaxReal(xs), MinReal(xs), xs, "MIDRANGE");
     }
 
     /// <summary>§2023:15.60 MEAN — the arithmetic mean of the arguments.</summary>
@@ -246,13 +246,7 @@ public static partial class CobolIntrinsics
 
     /// <summary>§2023:15.71 ORD-MAX — the 1-based ORDINAL POSITION of the greatest argument, leftmost on a tie
     /// (§2023:15.71.4 RV3). Returns a position, never a value, so the count — not the arguments — bounds the result.</summary>
-    public static double OrdMaxReal(params double[] xs)
-    {
-        RequireArguments(xs.Length, "ORD-MAX");
-        int at = 0;
-        for (int i = 1; i < xs.Length; i++) if (xs[i] > xs[at]) at = i;
-        return at + 1;
-    }
+    public static double OrdMaxReal(params double[] xs) => ExtremeIndex(new ValueOrder<double>(xs), true, "ORD-MAX") + 1;
 
     /// <summary>
     /// §2023:15.17 COMBINED-DATETIME — <c>argument-1 + (argument-2 / 100000)</c> exactly as §2023:15.17.4 RV1 writes it.
@@ -276,11 +270,5 @@ public static partial class CobolIntrinsics
             : integerDate + (seconds / 100000.0);
 
     /// <summary>§2023:15.72 ORD-MIN — the 1-based ordinal position of the least argument, leftmost on a tie.</summary>
-    public static double OrdMinReal(params double[] xs)
-    {
-        RequireArguments(xs.Length, "ORD-MIN");
-        int at = 0;
-        for (int i = 1; i < xs.Length; i++) if (xs[i] < xs[at]) at = i;
-        return at + 1;
-    }
+    public static double OrdMinReal(params double[] xs) => ExtremeIndex(new ValueOrder<double>(xs), false, "ORD-MIN") + 1;
 }

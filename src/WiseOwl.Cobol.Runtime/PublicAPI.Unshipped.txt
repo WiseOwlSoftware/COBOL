@@ -266,6 +266,9 @@ WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeTruncationChecking.get -> b
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeTruncationChecking.set -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeUnderflowChecking.get -> bool
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeUnderflowChecking.set -> void
+WiseOwl.Cobol.Runtime.Exceptions.IActivationIdentity
+WiseOwl.Cobol.Runtime.Exceptions.IActivationIdentity.ActivatingActivation.get -> long
+WiseOwl.Cobol.Runtime.Exceptions.IActivationIdentity.CurrentActivation.get -> long
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.Action.get -> int
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.File.get -> string!

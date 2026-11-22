@@ -23,9 +23,9 @@ public sealed class ExceptionEngine
     /// <summary>The run unit's engine, linked to the run unit's ONE activation record (<see cref="ModuleStack"/>)
     /// so a staged <c>GOBACK / EXIT … RAISING</c> condition can name the activation it was staged FOR
     /// (§2023:14.9.18.4 GR1b; kb/Work PB892 Arm B).</summary>
-    public ExceptionEngine(ModuleStack activations) => _activations = activations;
+    public ExceptionEngine(IActivationIdentity activations) => _activations = activations;
 
-    private readonly ModuleStack? _activations;
+    private readonly IActivationIdentity? _activations;
     /// <summary>The last raised level-3 exception-name (uppercase), or null when no exception condition exists.</summary>
     public string? LastName { get; private set; }
 

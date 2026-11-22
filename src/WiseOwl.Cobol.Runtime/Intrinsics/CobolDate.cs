@@ -14,17 +14,6 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public static class CobolDate
 {
-    private static readonly DateTime Epoch = new(1601, 1, 1);   // integer date 1 (ISO §2023:15.5.2)
-
-    /// <summary>The largest value in integer date form, fixed by ISO §2023:15.5.2: a value "shall be greater than zero
-    /// and shall be less than or equal to the value of FUNCTION INTEGER-OF-DATE (99991231), which is 3,067,671" —
-    /// i.e. 9999-12-31. Pinned against the epoch arithmetic by <c>CobolDateRangeTests</c>.
-    /// <para>⛔ IT IS REACHABLE FROM VALID INPUT, WHICH IS THE WHOLE POINT (fix-queue PB23). A WEEK date's subfields
-    /// are each in range (§2023:15.3.1.7: year ≤ 9999, week ≤ 52/53, day 1–7) while their COMBINATION lands past
-    /// 9999-12-31 — 9999-12-31 IS ISO 9999-W52-5, so 9999-W52-6 and -7 are 10000-01-01/02. Two days, and the
-    /// per-subfield range table cannot see them because no single subfield is wrong.</para></summary>
-    private const long MaxIntegerDate = 3_067_671;
-
     /// <summary>The §2023:15.21.3 / §2023:15.99.3 21-character timestamp layout: positions 1–16 <c>yyyyMMddHHmmss</c> +
     /// hundredths; 17 the offset sign ('+' when local time is at or ahead of UTC, '−' behind — '0' reserved for
     /// systems without an offset facility, which .NET always has); 18–19 offset hours; 20–21 offset minutes.
@@ -56,80 +45,32 @@ public static class CobolDate
     // years are 146,097 days, and 1601-01-01 starts such a cycle. The one remaining limit is the carrier's: a returned
     // value the 64-bit result cannot hold is an incorrect value (§2023:15.3), the default 0.
 
-    /// <summary>The days of a 400-year Gregorian cycle, of each of its three short centuries, of a 4-year group and of a
-    /// common year.</summary>
-    private const long DaysPer400Years = 146_097, DaysPer100Years = 36_524, DaysPer4Years = 1_461, DaysPerYear = 365;
-
-    /// <summary>The days of a common year before each month (index 0 = January), and the year's total at index 12.</summary>
-    private static readonly int[] DaysBeforeMonth = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365];
-
-    /// <summary>The Gregorian leap-year rule (§2023:15.5.1).</summary>
-    private static bool IsLeapYear(long year) => year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
-
-    /// <summary>The days before month <paramref name="month"/> (1-12) of <paramref name="year"/>.</summary>
-    private static int DaysBefore(long year, int month) =>
-        DaysBeforeMonth[month - 1] + (month > 2 && IsLeapYear(year) ? 1 : 0);
-
-    /// <summary>The days of month <paramref name="month"/> (1-12) of <paramref name="year"/>.</summary>
-    private static int DaysInMonth(long year, int month) =>
-        DaysBeforeMonth[month] - DaysBeforeMonth[month - 1] + (month == 2 && IsLeapYear(year) ? 1 : 0);
-
-    /// <summary>The days of the years 1601 through <paramref name="year"/> − 1 (<paramref name="year"/> ≥ 1601).</summary>
-    private static long DaysBeforeYear(long year)
-    {
-        long y = year - 1601;
-        return DaysPerYear * y + y / 4 - y / 100 + y / 400;
-    }
-
-    /// <summary>The year and day of year of integer date <paramref name="integerDate"/> (≥ 1).</summary>
-    private static (long Year, int DayOfYear) YearAndDayOf(long integerDate)
-    {
-        long n = integerDate - 1;                                     // days after 1601-01-01
-        long cycles = n / DaysPer400Years;
-        n %= DaysPer400Years;
-        long centuries = Math.Min(n / DaysPer100Years, 3);            // the fourth century of a cycle has the extra day
-        n -= centuries * DaysPer100Years;
-        long groups = n / DaysPer4Years;
-        n -= groups * DaysPer4Years;
-        long years = Math.Min(n / DaysPerYear, 3);                    // the fourth year of a group is its leap year
-        n -= years * DaysPerYear;
-        return (1601 + 400 * cycles + 100 * centuries + 4 * groups + years, (int)n + 1);
-    }
-
-    /// <summary>Is <paramref name="integerDate"/> in integer date form for the compilation's edition: positive, and from 2002
-    /// at most 3,067,671?</summary>
-    private static bool InIntegerDateForm(long integerDate, bool unbounded) =>
-        integerDate >= 1 && (unbounded || integerDate <= MaxIntegerDate);
-
-    /// <summary>Is <paramref name="year"/> a year the edition's argument rules admit: above 1600, and from 2002 below 10000?</summary>
-    private static bool InYearRange(long year, bool unbounded) => year > 1600 && (unbounded || year < 10000);
-
     /// <summary>DATE-OF-INTEGER (§2023:15.22.4; §1989:A.2.12): integer date form → standard date form YYYYMMDD. An argument
     /// outside the edition's integer date form, or a date whose YYYYMMDD the result cannot hold → 0 (EC default,
     /// §2023:15.3). <paramref name="unbounded"/> is the 1989 module's form (see the family comment above).</summary>
     public static long DateOfInteger(long integerDate, bool unbounded = false)
     {
-        if (!InIntegerDateForm(integerDate, unbounded))           // EC-ARGUMENT-FUNCTION raise point / §2023:15.3 default 0
+        if (!IntegerDateForm.InIntegerDateForm(integerDate, unbounded))           // EC-ARGUMENT-FUNCTION raise point / §2023:15.3 default 0
             return Exceptions.ExceptionState.ArgumentError(unbounded
                 ? $"DATE-OF-INTEGER argument {integerDate} is not a positive integer (§1989:A.2.12.3 AR1)"
                 : $"DATE-OF-INTEGER argument {integerDate} outside 1..3,067,671 (§2023:15.5.2)");
-        var (year, dayOfYear) = YearAndDayOf(integerDate);
+        var (year, dayOfYear) = IntegerDateForm.YearAndDayOf(integerDate);
         if (year > (long.MaxValue - 1231) / 10000)
             return Exceptions.ExceptionState.ArgumentError(
                 $"DATE-OF-INTEGER argument {integerDate} is in year {year}, whose YYYYMMDD the returned value cannot hold ({Exceptions.ExceptionState.EditionRule("§1989:A.2.2 p3", "§2023:15.3")})");
         int month = 1;
-        while (month < 12 && dayOfYear > DaysBefore(year, month + 1)) month++;   // the last month whose start is not past the day
-        return year * 10000 + month * 100L + (dayOfYear - DaysBefore(year, month));
+        while (month < 12 && dayOfYear > IntegerDateForm.DaysBefore(year, month + 1)) month++;   // the last month whose start is not past the day
+        return year * 10000 + month * 100L + (dayOfYear - IntegerDateForm.DaysBefore(year, month));
     }
 
     /// <summary>DAY-OF-INTEGER (§2023:15.24.4; §1989:A.2.13): integer date form → Julian date form YYYYDDD (§2023:15.5.4).</summary>
     public static long DayOfInteger(long integerDate, bool unbounded = false)
     {
-        if (!InIntegerDateForm(integerDate, unbounded))           // EC-ARGUMENT-FUNCTION raise point / §2023:15.3 default 0
+        if (!IntegerDateForm.InIntegerDateForm(integerDate, unbounded))           // EC-ARGUMENT-FUNCTION raise point / §2023:15.3 default 0
             return Exceptions.ExceptionState.ArgumentError(unbounded
                 ? $"DAY-OF-INTEGER argument {integerDate} is not a positive integer (§1989:A.2.13.3 AR1)"
                 : $"DAY-OF-INTEGER argument {integerDate} outside 1..3,067,671 (§2023:15.5.2)");
-        var (year, dayOfYear) = YearAndDayOf(integerDate);
+        var (year, dayOfYear) = IntegerDateForm.YearAndDayOf(integerDate);
         if (year > (long.MaxValue - 366) / 1000)
             return Exceptions.ExceptionState.ArgumentError(
                 $"DAY-OF-INTEGER argument {integerDate} is in year {year}, whose YYYYDDD the returned value cannot hold ({Exceptions.ExceptionState.EditionRule("§1989:A.2.2 p3", "§2023:15.3")})");
@@ -142,11 +83,11 @@ public static class CobolDate
     {
         long year = yyyymmdd / 10000;
         int month = (int)(yyyymmdd / 100 % 100), day = (int)(yyyymmdd % 100);
-        if (!InYearRange(year, unbounded) || month is < 1 or > 12 || day < 1 || day > DaysInMonth(year, month))
+        if (!IntegerDateForm.InYearRange(year, unbounded) || month is < 1 or > 12 || day < 1 || day > IntegerDateForm.DaysInMonth(year, month))
             return Exceptions.ExceptionState.ArgumentError(unbounded
                 ? $"INTEGER-OF-DATE argument {yyyymmdd} is not a valid standard date (§1989:A.2.16.3 AR1)"
                 : $"INTEGER-OF-DATE argument {yyyymmdd} is not a valid standard date (§2023:15.46.3)");
-        return DaysBeforeYear(year) + DaysBefore(year, month) + day;
+        return IntegerDateForm.DaysBeforeYear(year) + IntegerDateForm.DaysBefore(year, month) + day;
     }
 
     /// <summary>INTEGER-OF-DAY (§2023:15.47.4; §1989:A.2.17): Julian date form YYYYDDD → integer date form. An invalid ordinal
@@ -154,11 +95,11 @@ public static class CobolDate
     public static long IntegerOfDay(long yyyyddd, bool unbounded = false)
     {
         long year = yyyyddd / 1000, day = yyyyddd % 1000;
-        if (!InYearRange(year, unbounded) || day < 1 || day > (IsLeapYear(year) ? 366 : 365))
+        if (!IntegerDateForm.InYearRange(year, unbounded) || day < 1 || day > (IntegerDateForm.DaysInYear(year)))
             return Exceptions.ExceptionState.ArgumentError(unbounded
                 ? $"INTEGER-OF-DAY argument {yyyyddd} is not a valid Julian date (§1989:A.2.17.3 AR1)"
                 : $"INTEGER-OF-DAY argument {yyyyddd} is not a valid Julian date (§2023:15.47.3)");
-        return DaysBeforeYear(year) + day;
+        return IntegerDateForm.DaysBeforeYear(year) + day;
     }
 
     // ── The §2023:15.100/§2023:15.23/§2023:15.25 Y2K WINDOWING TRIO + §2023:15.80 SECONDS-PAST-MIDNIGHT (COBOL-2002) ──────────────
@@ -279,12 +220,12 @@ public static class CobolDate
     /// </remarks>
     public static long TestDateYyyymmdd(Int128 date)
     {
-        if (date < 16010000 || date > 99999999) return 1;                     // r1a — year (the CATCH-ALL arm)
+        if (date < IntegerDateForm.FirstYear * 10000L || date > 99999999) return 1;   // r1a — year (the CATCH-ALL arm)
         int d = (int)date;                                                    // exact — r1a bounds d to 16010000..99999999
         int mmdd = d % 10000;
         if (mmdd is < 100 or > 1299) return 2;                                // r1b — month
         int day = d % 100;
-        if (day < 1 || day > DateTime.DaysInMonth(d / 10000, mmdd / 100))
+        if (day < 1 || day > IntegerDateForm.DaysInMonth(d / 10000, mmdd / 100))
             return 3;                                                         // r1c — day
         return 0;                                                             // r1d
     }
@@ -298,10 +239,10 @@ public static class CobolDate
     /// intake in front of it is a defect (kb/Work PB254). Past r1a the value is seven digits.</remarks>
     public static long TestDayYyyyddd(Int128 day)
     {
-        if (day < 1601000 || day > 9999999) return 1;                         // r1a — year (the CATCH-ALL arm)
+        if (day < IntegerDateForm.FirstYear * 1000L || day > 9999999) return 1;      // r1a — year (the CATCH-ALL arm)
         int v = (int)day;                                                     // exact — r1a bounds v to 1601000..9999999
         int ddd = v % 1000;
-        if (ddd < 1 || ddd > (DateTime.IsLeapYear(v / 1000) ? 366 : 365))
+        if (ddd < 1 || ddd > IntegerDateForm.DaysInYear(v / 1000))
             return 2;                                                         // r1b — day-of-year
         return 0;                                                             // r1c
     }
@@ -461,10 +402,10 @@ public static class CobolDate
             // §2023:15.40.4 RV2's adjustment can carry the DATE across the integer-date-form range: argument-2 was
             // validated 1..3,067,671 (§2023:15.5.2) BEFORE the roll, and the rolled day is what the date fields
             // render (kb/Work R25 — 3,067,671 with a westward offset threw a raw ArgumentOutOfRangeException
-            // out of Epoch.AddDays below, and day 0 emitted year 1600, violating §2023:15.3.1.3 "greater than
+            // out of the epoch arithmetic below, and day 0 emitted year 1600, violating §2023:15.3.1.3 "greater than
             // 1600"). A rolled date outside the form is EC-ARGUMENT-FUNCTION and the §2023:15.3 default, exactly
             // as an out-of-range argument-2 is; a TIME-ONLY format never reads the day, so it rolls freely.
-            if (hasDate && day is < 1 or > 3067671)
+            if (hasDate && !IntegerDateForm.Contains(day))
                 return Exceptions.ExceptionState.ArgumentErrorZeroLength(
                     $"the UTC adjustment (§2023:15.40.4 r2) moves the date to integer date form {day}, outside "
                     + "1..3,067,671 (§2023:15.5.2) — the year would leave the §2023:15.3.1.3 range 1601..9999");
@@ -473,7 +414,7 @@ public static class CobolDate
         int yy = 0, mo = 0, dm = 0, doy = 0, isoY = 0, isoW = 0, isoD = 0;
         if (hasDate)
         {
-            DateTime dt = Epoch.AddDays(day - 1);                      // §2023:15.5.2 epoch
+            DateTime dt = IntegerDateForm.ToDate(day);
             yy = dt.Year; mo = dt.Month; dm = dt.Day; doy = dt.DayOfYear;
             isoY = ISOWeek.GetYear(dt); isoW = ISOWeek.GetWeekOfYear(dt);
             isoD = ((int)dt.DayOfWeek + 6) % 7 + 1;                    // Mon=1..Sun=7 (§2023:15.3.1.7)
@@ -515,7 +456,7 @@ public static class CobolDate
     /// outside 1..3,067,671 → the §2023:15.3 default ("").</summary>
     public static string FormattedDate(string format, long integerDate)
     {
-        if (integerDate is < 1 or > 3067671)
+        if (!IntegerDateForm.Contains(integerDate))
             return Exceptions.ExceptionState.ArgumentErrorZeroLength(
                 $"FORMATTED-DATE argument {integerDate} outside 1..3,067,671 (§2023:15.5.2; CONFORMANCE.md row DOC-A.1-90)");
         return EmitFormatted(format, integerDate, 0, 0, 0);
@@ -643,7 +584,7 @@ public static class CobolDate
     public static string FormattedDatetime(string format, long integerDate, Int128 secUnscaled, int secScale,
                                            long offsetMinutes, bool leapSecond = false)
     {
-        if (integerDate is < 1 or > 3067671)
+        if (!IntegerDateForm.Contains(integerDate))
             return Exceptions.ExceptionState.ArgumentErrorZeroLength(
                 $"FORMATTED-DATETIME argument {integerDate} outside 1..3,067,671 (§2023:15.5.2; CONFORMANCE.md row DOC-A.1-90)");
         // Both predicates have already raised; these arms owe only the substituted result, and they READ row
@@ -663,7 +604,7 @@ public static class CobolDate
     public static string FormattedCurrentDate(string format)
     {
         DateTimeOffset now = RunUnit.Current.Clock.Now();
-        long id = (now.Date - Epoch).Days + 1;
+        long id = IntegerDateForm.Of(now.Date);
         long unscaled = now.TimeOfDay.Ticks * 100;                    // seconds past local midnight at 9 fraction digits (tick = 100 ns)
         long offMin = (long)now.Offset.TotalMinutes;
         return EmitFormatted(format, id, unscaled, 9, offMin);
@@ -691,7 +632,7 @@ public static class CobolDate
     /// own program does not compile here and that every fixture spells the format in uppercase.</item>
     /// </list></remarks>
     /// <param name="dateRepresentable">False when the data is VALID per the format but the date it denotes has no
-    /// integer date form (§2023:15.5.2's 3,067,671 ceiling — see <see cref="MaxIntegerDate"/>). Distinct from the return
+    /// integer date form (§2023:15.5.2's 3,067,671 ceiling — see <see cref="IntegerDateForm.Max"/>). Distinct from the return
     /// value on purpose: only the caller that must PRODUCE an integer date form cares, so TEST-FORMATTED-DATETIME
     /// still answers 0 (§2023:15.92.4 — it reports "the ordinal character position at which the first error … was
     /// detected", and no CHARACTER of "9999W526" is in error; the identical '6' in "2009W526" is valid) and
@@ -724,11 +665,11 @@ public static class CobolDate
             }
             (int lo, int hi) = s.Field switch
             {
-                Fld.Year       => (1601, 9999),                       // §2023:15.3.1.3 (> 1600)
+                Fld.Year       => (IntegerDateForm.FirstYear, IntegerDateForm.LastYear),   // §2023:15.3.1.3 (> 1600)
                 Fld.Month      => (1, 12),
-                Fld.DayOfMonth => (1, DateTime.DaysInMonth(Math.Clamp(yy, 1601, 9999), Math.Clamp(mo, 1, 12))),
-                Fld.DayOfYear  => (1, DateTime.IsLeapYear(Math.Clamp(yy, 1601, 9999)) ? 366 : 365),
-                Fld.Week       => (1, LongIsoYear(Math.Clamp(yy, 1601, 9999)) ? 53 : 52),
+                Fld.DayOfMonth => (1, IntegerDateForm.DaysInMonth(IntegerDateForm.ClampYear(yy), Math.Clamp(mo, 1, 12))),
+                Fld.DayOfYear  => (1, IntegerDateForm.DaysInYear(IntegerDateForm.ClampYear(yy))),
+                Fld.Week       => (1, LongIsoYear(IntegerDateForm.ClampYear(yy)) ? 53 : 52),
                 Fld.WeekDay    => (1, 7),
                 Fld.Hour       => (0, 23),                            // §2023:15.3.3.3 — "a value from 00 to 23 inclusive"
                 // ⛔ TWO CLAUSES MEET ON THIS ONE ARM AND ONLY ONE WAS EVER CITED (kb/Work PB255). §2023:15.3.3.3
@@ -779,8 +720,8 @@ public static class CobolDate
         bool hasWeek = segs.Any(x => x.IsField && x.Field == Fld.Week);
         bool hasOrd  = segs.Any(x => x.IsField && x.Field == Fld.DayOfYear);
         bool hasCal  = segs.Any(x => x.IsField && x.Field == Fld.DayOfMonth);
-        if (hasCal) integerDate = (new DateTime(yy, mo, dm) - Epoch).Days + 1;
-        else if (hasOrd) integerDate = (new DateTime(yy, 1, 1).AddDays(doy - 1) - Epoch).Days + 1;
+        if (hasCal) integerDate = IntegerDateForm.Of(new DateTime(yy, mo, dm));
+        else if (hasOrd) integerDate = IntegerDateForm.Of(new DateTime(yy, 1, 1).AddDays(doy - 1));
         // ⛔ THE WEEK DATE IS COMPUTED IN INTEGER ARITHMETIC, NOT VIA ISOWeek.ToDateTime, AND THAT IS THE FIX
         // (fix-queue PB23). `ISOWeek.ToDateTime(9999, 52, Saturday)` is 10000-01-01 and THROWS
         // ArgumentOutOfRangeException — a raw CLR fault escaping from three intrinsics, where §2023:15.3 AR14 permits
@@ -793,7 +734,7 @@ public static class CobolDate
         {
             var jan4 = new DateTime(yy, 1, 4);
             int isoDow = ((int)jan4.DayOfWeek + 6) % 7;                  // Monday = 0 … Sunday = 6
-            long week1Monday = (jan4 - Epoch).Days - isoDow + 1;         // integer date form of week 1's Monday
+            long week1Monday = IntegerDateForm.Of(jan4) - isoDow;        // integer date form of week 1's Monday
             integerDate = week1Monday + ((long)wk - 1) * 7 + (wd - 1);
         }
 
@@ -805,7 +746,7 @@ public static class CobolDate
         // because the range table correlates day-with-month and day-of-year-with-year (measured — "99990231" and
         // "9999366" are both rejected at the right character). This keeps that a property of ONE check rather than
         // of three separate range expressions that must each stay right.
-        dateRepresentable = integerDate is > 0 and <= MaxIntegerDate || (!hasCal && !hasOrd && !hasWeek);
+        dateRepresentable = IntegerDateForm.Contains(integerDate) || (!hasCal && !hasOrd && !hasWeek);
 
         secondsScaled = (Int128)((long)hh * 3600 + mi * 60 + ss) * Pow10.AsWide(fracDigits) + frac;  // §2023:15.79.4 - Int128: 86 400 x 10^18 is 8.6E+22, past long
         return 0;
@@ -929,7 +870,7 @@ public static class CobolDate
     /// FormattedDatetime's (fix-queue PB65, the one-of-two-callers shape).</summary>
     private static bool CombinedDatetimeOutOfRange(long integerDate, CobolDec seconds, bool leapSecond)
     {
-        if (integerDate is < 1 or > 3067671)
+        if (!IntegerDateForm.Contains(integerDate))
         {
             Exceptions.ExceptionState.ArgumentError(
                 $"COMBINED-DATETIME argument-1 {integerDate} outside 1..3,067,671 (§2023:15.17.3 r1 / §2023:15.5.2)");

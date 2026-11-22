@@ -22,22 +22,6 @@ namespace WiseOwl.Cobol.Runtime;
 /// </remarks>
 public static partial class CobolIntrinsics
 {
-    private static int SelectMax(Int128[] v, int[] s)
-    {
-        int best = 0;
-        for (int i = 1; i < v.Length; i++)
-            if (CobolNum.Compare(v[i], s[i], v[best], s[best]) > 0) best = i;
-        return best;
-    }
-
-    private static int SelectMin(Int128[] v, int[] s)
-    {
-        int best = 0;
-        for (int i = 1; i < v.Length; i++)
-            if (CobolNum.Compare(v[i], s[i], v[best], s[best]) < 0) best = i;
-        return best;
-    }
-
     /// <summary>§2023:15.59 MAX by value selection — the leftmost greatest argument, rescaled to
     /// <paramref name="toScale"/>. A RECEIVER-BOUND result (<paramref name="store"/>) rescales with the
     /// store-cap (§2023:14.9.25.4 GR6 high-order truncation semantics — the receiver's own capacity mod finishes
@@ -45,7 +29,7 @@ public static partial class CobolIntrinsics
     /// capped value would silently compare the wrong number.</summary>
     public static Int128 MaxAt(int toScale, bool store, Int128[] v, int[] s)
     {
-        int i = SelectMax(v, s);
+        int i = ExtremeIndex(new ScaledOrder(v, s), true, "MAX");
         return store ? CobolNum.RescaleStoreCap(v[i], s[i], toScale, CobolRounding.Truncation)
                      : CobolNum.RescaleEscape(v[i], s[i], toScale, CobolRounding.Truncation);
     }
@@ -54,15 +38,15 @@ public static partial class CobolIntrinsics
     /// <see cref="MaxAt"/>).</summary>
     public static Int128 MinAt(int toScale, bool store, Int128[] v, int[] s)
     {
-        int i = SelectMin(v, s);
+        int i = ExtremeIndex(new ScaledOrder(v, s), false, "MIN");
         return store ? CobolNum.RescaleStoreCap(v[i], s[i], toScale, CobolRounding.Truncation)
                      : CobolNum.RescaleEscape(v[i], s[i], toScale, CobolRounding.Truncation);
     }
 
     /// <summary>§2023:15.71 ORD-MAX — the 1-based ordinal of the first greatest argument. Pure selection: no
     /// rescale ever, so every legal argument list has its defined answer.</summary>
-    public static long OrdMaxAt(Int128[] v, int[] s) => SelectMax(v, s) + 1;
+    public static long OrdMaxAt(Int128[] v, int[] s) => ExtremeIndex(new ScaledOrder(v, s), true, "ORD-MAX") + 1;
 
     /// <summary>§2023:15.72 ORD-MIN — the 1-based ordinal of the first least argument.</summary>
-    public static long OrdMinAt(Int128[] v, int[] s) => SelectMin(v, s) + 1;
+    public static long OrdMinAt(Int128[] v, int[] s) => ExtremeIndex(new ScaledOrder(v, s), false, "ORD-MIN") + 1;
 }

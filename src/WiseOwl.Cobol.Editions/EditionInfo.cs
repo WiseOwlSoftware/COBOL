@@ -199,9 +199,15 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
         return all[..n];
     }
 
+    /// <summary>⛔ WHETHER THE EDITION REQUIRES A SOURCE LISTING (kb/Work PB5923, PB2619): COBOL-85 asks every compiler for "an
+    /// output listing of the source program in reference format" (§1985:IV.7.1), so the CLI produces one by default there; the
+    /// later editions leave the listing to the implementor (§2023:7.3.18.3), so it is produced on request. The CLI's default and
+    /// its help text both read it.</summary>
+    public bool RequiresSourceListing => Year < 2002;
+
     private static int Validate(int y)
     {
         foreach (int v in All) if (v == y) return y;
-        throw new ArgumentOutOfRangeException(nameof(y), y, "edition must be 85/2002/2014/2023");
+        throw new ArgumentOutOfRangeException(nameof(y), y, $"edition must be one of {string.Join("/", All.ToArray())}");
     }
 }

@@ -296,7 +296,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         int drop = DigitCount(UAbs(Sig)) - SidiRoundedDigits;
         if (Sig == 0 || drop <= 0) return this;
         var (q, rem, den) = DivRemPow10(Sig, drop);
-        var rounded = new CobolDec(RoundFromRemainder(q, rem, den, sticky: false, mode), Exp + drop);
+        var rounded = new CobolDec(RoundFromRemainder(q, rem, den, mode), Exp + drop);
         if (rounded.AdjustedExponent > SidiMaxAdjustedExp)
             throw new CobolSizeError("standard intermediate data item exceeds its magnitude range after rounding "
                 + "(ISO §2002:8.8.1.3.1.3 situation 3)", "EC-SIZE-OVERFLOW");
@@ -900,17 +900,10 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
                 if (hi == 0 && lo == 0) { roundDigit = 0; break; }   // only zero digits remain: the tail adds nothing
                 (hi, lo, roundDigit) = DivRem10_256(hi, lo);
             }
-            if (roundDigit != 0 || sticky)
-            {
-                // ONE rounding table (RoundFromRemainder), asked with the quotient's parity alone — the one fact of the
-                // quotient NEAREST-EVEN reads: the round digit over 10 is the fraction dropped, `sticky` says the exact
-                // value lies a little further from zero than that digit shows, and a tail that is only sticky is a
-                // fraction below one half carrying the value's sign, which a zero quotient cannot.
-                Int128 parity = negative ? -(Int128)(lo & 1) : (Int128)(lo & 1);
-                Int128 rem = roundDigit != 0 ? (negative ? -roundDigit : roundDigit) : (negative ? -1 : 1);
-                if (RoundFromRemainder(parity, rem, 10, sticky, mode) != parity)   // PROHIBITED raises in here
-                    if (++lo == 0) hi++;                                           // the magnitude grows by one unit
-            }
+            // The ONE rounding decision (RoundingRule), asked with the dropped run's round digit and sticky tail and the
+            // kept magnitude's parity — the one fact of it NEAREST-EVEN reads. PROHIBITED raises in there.
+            if ((roundDigit != 0 || sticky) && RoundingRule.BumpsOnDigit(mode, negative, (lo & 1) != 0, roundDigit, sticky))
+                if (++lo == 0) hi++;                                               // the magnitude grows by one unit
         }
         else if (shift < 0)
         {
@@ -1236,7 +1229,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
             return sig * Pow10.AsWide(shift);
         }
         var (q, rem, den) = DivRemPow10(Sig, -shift);
-        return RoundFromRemainder(q, rem, den, sticky: false, mode);
+        return RoundFromRemainder(q, rem, den, mode);
     }
 
     /// <summary>The SDIDI square root (ISO §2023:15.84.4 RV1/r2; kb/Work PB116) — the ONE §15 function whose
@@ -1339,23 +1332,18 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         }
         else if (inexact)
         {
-            switch (mode)
-            {
-                case CobolRounding.Prohibited:
-                    // §2023:11.9.11.2 GR3d: PROHIBITED + not exactly representable in SDIDI form ⇒ EC-SIZE-TRUNCATION,
-                    // results undefined. The level-3 NAME travels with the raise (kb/Work PB74's sweep): a
-                    // >>TURN EC-SIZE program selecting on EXCEPTION-STATUS saw the default EC-SIZE-OVERFLOW here.
-                    throw new CobolSizeError("INTERMEDIATE ROUNDING IS PROHIBITED: inexact standard-decimal intermediate "
-                        + "(ISO §2023:11.9.11.2 r3d — EC-SIZE-TRUNCATION)", "EC-SIZE-TRUNCATION");
-                case CobolRounding.Truncation:
-                    break;
-                case CobolRounding.NearestEven:
-                    if (roundDigit > 5 || (roundDigit == 5 && (sticky || sig % 2 != 0))) sig++;
-                    break;
-                default:   // NearestAwayFromZero — the §2023:11.9.11 r3a default
-                    if (roundDigit >= 5) sig++;
-                    break;
-            }
+            // §2023:11.9.11.2 GR3d: PROHIBITED + not exactly representable in SDIDI form ⇒ EC-SIZE-TRUNCATION, results
+            // undefined. The level-3 NAME travels with the raise (kb/Work PB74's sweep): a >>TURN EC-SIZE program
+            // selecting on EXCEPTION-STATUS saw the default EC-SIZE-OVERFLOW here.
+            if (mode == CobolRounding.Prohibited)
+                throw new CobolSizeError("INTERMEDIATE ROUNDING IS PROHIBITED: inexact standard-decimal intermediate "
+                    + "(ISO §2023:11.9.11.2 r3d — EC-SIZE-TRUNCATION)", "EC-SIZE-TRUNCATION");
+            // Every other mode is the ONE rounding decision (kb/Work PB2644): this walk was its own copy of the table and
+            // rounded every mode but TRUNCATION and NEAREST-EVEN as NEAREST-AWAY-FROM-ZERO. Every caller passes the
+            // INTERMEDIATE ROUNDING mode (§2023:11.9.11.1: NEAREST-AWAY-FROM-ZERO, NEAREST-EVEN, PROHIBITED or TRUNCATION,
+            // each of which the old walk already rounded right) or TRUNCATION with the round-to-odd jam, never a
+            // statement's ROUNDED MODE, so the directed-mode arms were latent and no program's output changed.
+            if (RoundingRule.BumpsOnDigit(mode, negative, sig % 2 != 0, roundDigit, sticky)) sig++;
             if (sig == (Int128)Limit34) { sig /= 10; exp++; }   // 999…9 rounded up → 100…0 × 10
         }
         return Clamp(negative ? -sig : sig, exp, mode);
@@ -1415,7 +1403,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
             if (mode == CobolRounding.Prohibited && rem != 0)
                 throw new CobolSizeError("standard-decimal intermediate is below the decimal128 range "
                     + "(ISO §2023:8.8.1.5.2 r2; INTERMEDIATE ROUNDING IS PROHIBITED)", "EC-SIZE-UNDERFLOW");
-            Int128 r = RoundFromRemainder(q, rem, den, sticky: false, mode);
+            Int128 r = RoundFromRemainder(q, rem, den, mode);
             if (r == 0)
                 throw new CobolSizeError("standard-decimal intermediate is below the decimal128 range "
                     + "(ISO §2023:8.8.1.5.2 r2)", "EC-SIZE-UNDERFLOW");
@@ -1424,27 +1412,15 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         return new CobolDec(sig, exp);
     }
 
-    private static Int128 RoundFromRemainder(Int128 q, Int128 rem, Int128 den, bool sticky, CobolRounding mode)
+    /// <summary>The truncated quotient <paramref name="q"/> of a division by the positive power of ten
+    /// <paramref name="den"/> rounded by its remainder <paramref name="rem"/> (<see cref="DivRemPow10"/>'s triple) with
+    /// the ONE rounding decision (<see cref="RoundingRule"/>; PROHIBITED with a nonzero remainder raises there).
+    /// |<paramref name="rem"/>| &lt; <paramref name="den"/> ≤ 10^38, so its magnitude is representable.</summary>
+    private static Int128 RoundFromRemainder(Int128 q, Int128 rem, Int128 den, CobolRounding mode)
     {
-        if (rem == 0 && !sticky) return q;
-        // 2·|rem| against den, written without the doubling — |rem| < den may be as large as 2^127, where 2·|rem| wraps.
-        Int128 absRem = Int128.Abs(rem), rest = den - absRem;
-        bool above = absRem > rest, half = absRem == rest;
-        int sign = q < 0 || rem < 0 ? -1 : 1;
-        return mode switch
-        {
-            // §2023:14.7.4.3 GR7 — the one raise, EC-SIZE-TRUNCATION (PB74's sweep: the default name latched OVERFLOW).
-            CobolRounding.Prohibited => throw CobolSizeError.ProhibitedInexact(),
-            CobolRounding.Truncation => q,
-            CobolRounding.AwayFromZero => q + sign,
-            CobolRounding.TowardGreater => sign > 0 ? q + 1 : q,
-            CobolRounding.TowardLesser => sign < 0 ? q - 1 : q,
-            // A tie is exact only without a sticky tail: with one the value lies ABOVE the half and rounds away, as the
-            // NEAREST-TOWARD-ZERO arm below already reads it (MulAtScale is the one caller that passes a tail).
-            CobolRounding.NearestEven => above || (half && (sticky || q % 2 != 0)) ? q + sign : q,
-            CobolRounding.NearestTowardZero => above || (half && sticky) ? q + sign : q,
-            _ => above || half ? q + sign : q,   // NearestAwayFromZero
-        };
+        if (rem == 0) return q;
+        bool negative = q < 0 || rem < 0;
+        return RoundingRule.Bumps(mode, negative, q % 2 != 0, Int128.Abs(rem), den) ? (negative ? q - 1 : q + 1) : q;
     }
 
     // ── wide scratch primitives (256-bit as UInt128 hi:lo) ──────────────────────────────────────────────────

@@ -1,5 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Globalization;
+using WiseOwl.Cobol.Runtime.Exceptions;
+
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>How a CALL argument is passed (ISO §2023:14.9.4 / §2023:14.2.3 GR8–10).</summary>
@@ -396,31 +399,6 @@ public interface ICobolProgram : INonfatalSelector
     /// that declares no USE AFTER EXCEPTION CONDITION declarative and every non-COBOL implementation of this
     /// interface.</para></summary>
     int INonfatalSelector.NonfatalDispatch(string ec) => Exceptions.DispatchResult.NoHandler;
-}
-
-/// <summary>The §2023:14.6.13.1.4 #3 selection of ONE runtime element, seen from a RUNTIME raise site: the activation
-/// now executing installs its selector in <see cref="Exceptions.ExceptionState.NonfatalDispatcher"/> and restores
-/// its activator's on return, so a nonfatal condition detected inside the runtime selects over the declaratives of
-/// the source element containing the raising statement (§2023:14.9.49.4 GR4a) and never its activator's. A PROGRAM
-/// is its own selector (<see cref="ICobolProgram"/>, installed by <c>ProgramTable</c>); an OO METHOD is a runtime
-/// element too (§2023:15.65.4 RV5 — "an INVOKE statement" activates one) and installs a <see cref="NonfatalSelectorFn"/>
-/// over its own selection — or <see cref="NonfatalSelectorFn.None"/> when it declares none (kb/Work PB1010).</summary>
-public interface INonfatalSelector
-{
-    /// <summary>The <see cref="Exceptions.DispatchResult"/> protocol: <c>Normal</c> completed normally, <c>ResumeNext</c> RESUME AT NEXT STATEMENT,
-    /// <c>NoHandler</c> no qualifying declarative, a value <c>≥ 0</c> RESUME AT that pc (see <see cref="ICobolProgram"/>).</summary>
-    int NonfatalDispatch(string ec);
-}
-
-/// <summary>A method activation's <see cref="INonfatalSelector"/> — the method's own generated selection (a local
-/// function capturing the activation's data) behind the runtime's one interface (kb/Work PB1010).</summary>
-public sealed class NonfatalSelectorFn(Func<string, int> select) : INonfatalSelector
-{
-    /// <summary>The selector of an element that declares no USE procedures and no exception-checking PERFORM:
-    /// "no qualifying declarative", shared, allocation-free.</summary>
-    public static readonly NonfatalSelectorFn None = new(static _ => Exceptions.DispatchResult.NoHandler);
-
-    public int NonfatalDispatch(string ec) => select(ec);
 }
 
 /// <summary>
@@ -1401,7 +1379,7 @@ public static class CobolArgAdapt
     /// exactly wrong for a character image.</remarks>
     public static void StoreReturn(CobolArg? ret, UInt128 value)
     {
-        if (ret is { Carrier: ManagedPointer<string> sp } r) { sp.Value = FitToReceiver(value.ToString(), r); return; }
+        if (ret is { Carrier: ManagedPointer<string> sp } r) { sp.Value = FitToReceiver(value.ToString(CultureInfo.InvariantCulture), r); return; }
         StoreReturnNum(ret, unchecked((Int128)value), null);
     }
 
@@ -1453,7 +1431,7 @@ public static class CobolArgAdapt
             // so the two are one. A non-conforming pair under unchecked GR3 d) is stored under the RECEIVER's own
             // description (the value a native-cell receiver would take), never the sender's, so the item's image
             // keeps its own width (kb/Work PB1040).
-            sp.Value = (r.Num ?? sent) is { } s ? CobolNum.FormatImage(value, s) : FitToReceiver(value.ToString(), r);
+            sp.Value = (r.Num ?? sent) is { } s ? CobolNum.FormatImage(value, s) : FitToReceiver(value.ToString(CultureInfo.InvariantCulture), r);
             return;
         }
         Undeliverable(c, $"the numeric result {value}");
@@ -1517,13 +1495,13 @@ public static class CobolArgAdapt
             return;
         }
         string t = value.Trim();
-        if (Int128.TryParse(t, out Int128 v))
+        if (Int128.TryParse(t, NumberStyles.Integer, CultureInfo.InvariantCulture, out Int128 v))
         {
             if (WriteNumericCell(c, v)) return;
             if (c is ManagedPointer<string> ns && r.Num is { } rn) { ns.Value = CobolNum.FormatImage(v, rn); return; }
         }
-        if (double.TryParse(t, System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture, out double d) && WriteRealCell(c, d)) return;
+        if (double.TryParse(t, NumberStyles.Float,
+                CultureInfo.InvariantCulture, out double d) && WriteRealCell(c, d)) return;
         Undeliverable(c, $"the character result \"{value}\"");
     }
 

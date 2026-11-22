@@ -783,7 +783,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition exists, and the content of the
         // resultant identifier is unchanged": every landing an arm below writes asks it in its own rounding decision,
         // checked or not — a Try form answers false, any other raises CobolSizeError.ProhibitedInexact before a value
-        // exists to store (CobolNum.BumpsMagnitude, CobolDec.RoundFromRemainder, FloatResultant, CobolEdit's floating
+        // exists to store (RoundingRule over CobolNum.RoundDiv, CobolDec.RoundFromRemainder, FloatResultant, CobolEdit's floating
         // store). A gate written here once tested a binary64 value before the store landed it, which wrote the value
         // twice (PB654) and covered only the checked statement; the unchecked one stored the value cut. GuardedStore
         // keeps the receiver of an unchecked statement unchanged (KeepsOnProhibitedInexact). The value is read ONCE.

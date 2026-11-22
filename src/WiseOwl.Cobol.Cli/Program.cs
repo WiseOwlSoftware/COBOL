@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Cli;
 /// WiseOwl.Cobol.Compiler library (so it is testable without an exe).
 /// </summary>
 /// <remarks>
-/// Usage: <c>cobol &lt;source.cob&gt; [-o out.dll] [--nist [NAME]] [--std 85|2002|2014|2023] [--permissive]
+/// Usage: <c>cobol &lt;source.cob&gt; [-o out.dll] [--nist [NAME]] [--std YEAR] [--permissive]
 /// [--copy DIR] [--run] [--sign-encoding ibm|ascii] [--numeric-display decimal|digits] [--source-format fixed|free|auto] [--flag-extensions] [--repository-update on|off]
 /// [--repository DIR] [--reference FILE.dll] [--repository-check on|off] [--listing [on|off]] [--listing-output BASE]
 /// [--listing-format text|json|html]... [--listing-sections LIST] [--listing-page-length N] [--listing-page-width N]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
@@ -77,7 +77,7 @@ internal static class Program
         // InvalidOperationException instead of reporting a usage error.
         var stdOption = new Option<string?>("--std")
         {
-            Description = $"Target ISO edition: {string.Join(", ", StdSpellings[..^1])}, or {StdSpellings[^1]} (default: 2023, or 85 with --nist).",
+            Description = $"Target ISO edition: {string.Join(", ", StdSpellings[..^1])}, or {StdSpellings[^1]} (default: {EditionInfo.Latest.Year}, or {NistEdition} with --nist).",
             HelpName = "YEAR",
         };
         stdOption.Validators.Add(result =>
@@ -212,8 +212,8 @@ internal static class Program
         // implementor (§2023:7.3.18.3 GR1), so it is produced there on request. Every value is checked here, an argument error.
         var listingOption = new Option<string?>("--listing")
         {
-            Description = "Produce a source listing (BASE.lst): on (bare --listing) or off. Default: on at --std 85, off at 2002, "
-                + "2014 and 2023.",
+            Description = $"Produce a source listing (BASE.lst): on (bare --listing) or off. Default: on at --std {ListingDefault(on: true)}, "
+                + $"off at {ListingDefault(on: false)}.",
             Arity = ArgumentArity.ZeroOrOne,   // a bare `--listing` is on
             HelpName = string.Join("|", OnOffSpellings),
         };
@@ -300,9 +300,10 @@ internal static class Program
             string? nistName = nistEnabled
                 ? parse.GetValue(nistOption) ?? Path.GetFileNameWithoutExtension(source)
                 : null;
-            // --std wins when given; else the NIST CCVS corpus is COBOL-85, otherwise the 2023 default (DEVLOG 519).
+            // --std wins when given; else the NIST CCVS corpus is COBOL-85, otherwise the latest edition (DEVLOG 519).
             // The validator above has already refused any other spelling, so a false here can only be the ABSENT option.
-            int std = TryParseStd(parse.GetValue(stdOption), out int stdYear) ? stdYear : nistEnabled ? 85 : 2023;
+            int std = TryParseStd(parse.GetValue(stdOption), out int stdYear) ? stdYear
+                : nistEnabled ? NistEdition : EditionInfo.Latest.Year;
 
             // The validator above has already refused any unparseable value, so a false here can only be the
             // ABSENT option — the documented IBM default (kb/Work PB803).
@@ -327,7 +328,7 @@ internal static class Program
             string? sections = parse.GetValue(listingSectionsOption);
             bool listingOn = listingNamed ? TryParseOnOff(parse.GetValue(listingOption), out bool on) ? on : true
                 : output is not null || formats is not null || sections is not null || pageLength is not null || pageWidth is not null
-                  || std == 85;
+                  || EditionInfo.Of(std).RequiresSourceListing;
             // The validator above has already refused a list it cannot read, so a false here can only be the absent option.
             var sectionSet = sections is not null && WiseOwl.Cobol.Listing.ListingSections.TryParse(sections, out var namedSections, out _)
                 ? namedSections : WiseOwl.Cobol.Listing.ListingSectionSet.Standard;
@@ -398,14 +399,14 @@ internal static class Program
     }
 
     /// <summary>The verdict line of one check-batch manifest entry, <c>source TAB std TAB PASS|FAIL</c>. An absent std field is
-    /// the 2023 default; a PRESENT field that is not an edition (<see cref="TryParseStd"/>) is a FAIL entry that compiles
-    /// nothing, never silently checked as 2023 (kb/Work PB4126).</summary>
+    /// the default edition (<see cref="EditionInfo.Latest"/>); a PRESENT field that is not an edition (<see cref="TryParseStd"/>)
+    /// is a FAIL entry that compiles nothing, never silently checked at the default (kb/Work PB4126).</summary>
     internal static string CheckBatchVerdict(string manifestLine)
     {
         string[] f = manifestLine.Split('\t');
         string source = f[0];
         bool stdGiven = f.Length > 1 && f[1].Length > 0;
-        int std = 2023;
+        int std = EditionInfo.Latest.Year;
         if (stdGiven && !TryParseStd(f[1], out std))
             return $"{source}\t{f[1]}\tFAIL";
         string? nist = f.Length > 2 && f[2].Length > 0 ? f[2] : null;
@@ -420,6 +421,18 @@ internal static class Program
     /// never retyped: an edition added to <see cref="EditionInfo.All"/> is accepted here with no second edit.</summary>
     internal static readonly string[] StdSpellings = EditionInfo.All.ToArray()
         .Select(year => year.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+
+    /// <summary>The edition of the NIST CCVS corpus, <c>--nist</c>'s default <c>--std</c>: the suite is COBOL-85's.</summary>
+    internal const int NistEdition = 85;
+
+    /// <summary>The <c>--std</c> spellings at which the listing is on (or off) by default — <see cref="EditionInfo.RequiresSourceListing"/>
+    /// read over <see cref="EditionInfo.All"/>, so the help text cannot drift from the default it describes (kb/Work PB2619).</summary>
+    private static string ListingDefault(bool on)
+    {
+        string[] years = StdSpellings.Where(y => EditionInfo.Of(int.Parse(y, System.Globalization.CultureInfo.InvariantCulture))
+            .RequiresSourceListing == on).ToArray();
+        return years.Length <= 1 ? string.Concat(years) : $"{string.Join(", ", years[..^1])} and {years[^1]}";
+    }
 
     /// <summary>Parse a <c>--std</c> value (or a check-batch manifest's std field) to its edition year; an absent value answers
     /// false.</summary>

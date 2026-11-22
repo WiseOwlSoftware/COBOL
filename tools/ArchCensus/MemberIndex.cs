@@ -73,14 +73,15 @@ internal static class MemberIndex
             }
         }
 
-        // The emitted surface's names written as text: a type by its simple name, a member by its own.
+        // The emitted surface's names written as text: a type by its simple name, a member by its own (a constructor by its
+        // type's, Reachability.EmittedName).
         var emitted = new SortedDictionary<string, SortedSet<string>>(StringComparer.Ordinal);
         foreach (CensusType type in inventory.Types.Where(t => emittedSurface.Contains(t.Project.Compilation.AssemblyName ?? "")))
         {
             AddEmitted(emitted, NameOf(type.Key), type.Symbol.Name, index);
             foreach (ISymbol member in TypeInventory.AuthoredMembers(type.Symbol))
             {
-                AddEmitted(emitted, NameOf(SymbolKeys.Key(member) ?? ""), member.Name, index);
+                AddEmitted(emitted, NameOf(SymbolKeys.Key(member) ?? ""), Reachability.EmittedName(member), index);
             }
         }
 

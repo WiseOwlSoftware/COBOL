@@ -139,22 +139,11 @@ public static class FloatResultant
     /// further from zero than the resultant permits (§2023:14.7.5 case 3).</summary>
     private enum Outcome { Exact, Rounded, Overflow }
 
-    /// <summary>A §2023:14.7.4.3 mode restated on the MAGNITUDE (the sign is re-applied after the rounding): which of the
-    /// two representable magnitudes bracketing an inexact value a mode takes, and for the NEAREST-* modes which
-    /// one a tie takes.</summary>
-    private enum Dir { Down, Up, NearestEven, NearestUp, NearestDown }
-
-    private static Dir DirOf(CobolRounding mode, bool neg) => mode switch
-    {
-        CobolRounding.Truncation or CobolRounding.Prohibited => Dir.Down,   // r10 (r7's inexact value is never stored)
-        CobolRounding.AwayFromZero => Dir.Up,                               // r3
-        CobolRounding.TowardGreater => neg ? Dir.Down : Dir.Up,             // r8 — the nearest LARGER value
-        CobolRounding.TowardLesser => neg ? Dir.Up : Dir.Down,              // r9 — the nearest SMALLER value
-        CobolRounding.NearestAwayFromZero => Dir.NearestUp,                 // r4
-        CobolRounding.NearestEven => Dir.NearestEven,                       // r5
-        CobolRounding.NearestTowardZero => Dir.NearestDown,                 // r6
-        _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "not a §2023:14.7.4.2 rounding mode"),
-    };
+    /// <summary>The §2023:14.7.4.3 mode on the landing's magnitude — the ONE rounding decision's step
+    /// (<see cref="RoundingRule.StepOf"/>, kb/Work PB2644), with PROHIBITED landing as TRUNCATION: r7's inexact value is
+    /// never stored, and this lane measures first and lets <see cref="Admits"/> / <see cref="Unchecked"/> refuse it.</summary>
+    private static MagnitudeStep StepOf(CobolRounding mode, bool neg) =>
+        RoundingRule.StepOf(mode == CobolRounding.Prohibited ? CobolRounding.Truncation : mode, neg);
 
     /// <summary>Whether a checked store commits: never on an overflow (§2023:14.7.5 case 3), and under PROHIBITED only
     /// when the value was representable exactly (§2023:14.7.4.3 GR7).</summary>
@@ -176,7 +165,7 @@ public static class FloatResultant
         outcome = Outcome.Exact;
         if (!single || !double.IsFinite(v) || v == 0) return v;
         bool neg = v < 0;
-        return Signed(neg, LandBinary32(Math.Abs(v), 0, DirOf(mode, neg), out outcome));
+        return Signed(neg, LandBinary32(Math.Abs(v), 0, StepOf(mode, neg), out outcome));
     }
 
     /// <summary>An EXACT value <c>±magnitude × 10^(−scale)</c>: its correctly rounded binary64 (the nearest,
@@ -202,8 +191,8 @@ public static class FloatResultant
     {
         double near = x.NearestBinary64();
         int sticky = double.IsInfinity(near) ? 1 : -x.SignAgainst(near);   // sign(|V| − near)
-        Dir dir = DirOf(mode, neg);
-        double landed = single ? LandBinary32(near, sticky, dir, out outcome) : LandBinary64(near, sticky, x, dir, out outcome);
+        MagnitudeStep step = StepOf(mode, neg);
+        double landed = single ? LandBinary32(near, sticky, step, out outcome) : LandBinary64(near, sticky, x, step, out outcome);
         return Signed(neg, landed);
     }
 
@@ -216,11 +205,11 @@ public static class FloatResultant
     /// <summary>Round the magnitude <c>near + sticky·ε</c> (<paramref name="near"/> ≥ 0 a binary64 or +∞; ε smaller
     /// than any binary64 spacing, so <paramref name="sticky"/> only breaks a tie or decides an exact landing) to
     /// binary32. Everything is exact in binary64: two adjacent binary32 values and their midpoint all are.</summary>
-    private static double LandBinary32(double near, int sticky, Dir dir, out Outcome outcome)
+    private static double LandBinary32(double near, int sticky, MagnitudeStep step, out Outcome outcome)
     {
         double lo, hi;
         if (near > Binary32Top || (near == Binary32Top && sticky >= 0))
-            return Overflowed(dir, float.MaxValue, out outcome);           // at or past 2^128: every mode overflows
+            return Overflowed(step, float.MaxValue, out outcome);           // at or past 2^128: every mode overflows
         if (near > float.MaxValue) { lo = float.MaxValue; hi = Binary32Top; }
         else
         {
@@ -233,20 +222,11 @@ public static class FloatResultant
             else if (f > near) { lo = DownBinary32(f); hi = f; }
             else { lo = f; hi = UpBinary32(f); }
         }
-        double pick = dir switch
-        {
-            Dir.Down => lo,
-            Dir.Up => hi,
-            _ => CompareToMidpoint(near, sticky, lo, hi) switch
-            {
-                < 0 => lo,
-                > 0 => hi,
-                _ => dir == Dir.NearestUp ? hi
-                   : dir == Dir.NearestDown ? lo
-                   : (BitConverter.SingleToInt32Bits((float)lo) & 1) == 0 ? lo : hi,   // r5: the even significand
-            },
-        };
-        if (pick == Binary32Top) return Overflowed(dir, float.MaxValue, out outcome);
+        // The ONE rounding decision between the two binary32 neighbours: the midpoint measures the value, and r5's even
+        // choice is the one whose significand's last bit is 0.
+        bool loIsOdd = (BitConverter.SingleToInt32Bits((float)lo) & 1) != 0;
+        double pick = RoundingRule.Bumps(step, loIsOdd, CompareToMidpoint(near, sticky, lo, hi)) ? hi : lo;
+        if (pick == Binary32Top) return Overflowed(step, float.MaxValue, out outcome);
         outcome = Outcome.Rounded;
         return pick;
     }
@@ -267,7 +247,7 @@ public static class FloatResultant
     /// and which lies on the <paramref name="sticky"/> side of it. The two representable neighbors are
     /// <paramref name="near"/> and its successor/predecessor; the nearest-even choice is <paramref name="near"/>
     /// itself, and the other two nearest modes differ from it only on an exact tie (<see cref="ExactMagnitude.IsBinary64Tie"/>).</summary>
-    private static double LandBinary64<T>(double near, int sticky, in T x, Dir dir, out Outcome outcome)
+    private static double LandBinary64<T>(double near, int sticky, in T x, MagnitudeStep step, out Outcome outcome)
         where T : struct, IBinary64Magnitude
     {
         if (double.IsInfinity(near))
@@ -275,23 +255,25 @@ public static class FloatResultant
             // |V| ≥ MaxValue + ½ulp. At or past 2^1024 every mode overflows; below it the neighbors are MaxValue and
             // the virtual 2^1024, and a nearest mode takes the virtual one unless the value is exactly the tie and
             // the mode rounds a tie toward zero.
-            if (x.AtLeastTwoTo1024()) return Overflowed(dir, double.MaxValue, out outcome);
-            bool down = dir == Dir.Down || (dir == Dir.NearestDown && x.IsBinary64Tie());
-            if (!down) return Overflowed(dir, double.MaxValue, out outcome);
+            if (x.AtLeastTwoTo1024()) return Overflowed(step, double.MaxValue, out outcome);
+            // The value lies at or above the midpoint of MaxValue (an odd significand) and 2^1024; only a nearest mode
+            // asks which (IsBinary64Tie is an exact computation).
+            int againstHalf = step is MagnitudeStep.Down or MagnitudeStep.Up || !x.IsBinary64Tie() ? 1 : 0;
+            if (RoundingRule.Bumps(step, truncatedIsOdd: true, againstHalf)) return Overflowed(step, double.MaxValue, out outcome);
             outcome = Outcome.Rounded;
             return double.MaxValue;
         }
         if (sticky == 0) { outcome = Outcome.Exact; return near; }
         double lo = sticky > 0 ? near : Math.BitDecrement(near);
         double hi = sticky > 0 ? Math.BitIncrement(near) : near;             // MaxValue's successor is +∞ (virtual)
-        double pick = dir switch
-        {
-            Dir.Down => lo,
-            Dir.Up => hi,
-            Dir.NearestEven => near,
-            _ => !x.IsBinary64Tie() ? near : dir == Dir.NearestUp ? hi : lo,
-        };
-        if (double.IsInfinity(pick)) return Overflowed(dir, double.MaxValue, out outcome);
+        // A nearest mode takes `near` — the correctly rounded binary64 IS the nearer neighbour, and on a tie IS r5's even
+        // choice — unless the value is an exact tie, where the ONE rounding decision picks; a directed mode always picks.
+        // (Only those cases ask IsBinary64Tie, an exact computation.)
+        double pick = step == MagnitudeStep.NearestTieEven
+                      || (step is not (MagnitudeStep.Down or MagnitudeStep.Up) && !x.IsBinary64Tie())
+            ? near
+            : RoundingRule.Bumps(step, truncatedIsOdd: false, againstHalf: 0) ? hi : lo;
+        if (double.IsInfinity(pick)) return Overflowed(step, double.MaxValue, out outcome);
         outcome = Outcome.Rounded;
         return pick;
     }
@@ -299,10 +281,10 @@ public static class FloatResultant
     /// <summary>An overflow (§2023:14.7.5 case 3). The checked store rejects it; the unchecked one stores ISO/IEC
     /// 60559's overflow result for the direction — the largest finite magnitude when the mode rounds toward zero,
     /// +∞ otherwise.</summary>
-    private static double Overflowed(Dir dir, double max, out Outcome outcome)
+    private static double Overflowed(MagnitudeStep step, double max, out Outcome outcome)
     {
         outcome = Outcome.Overflow;
-        return dir == Dir.Down ? max : double.PositiveInfinity;
+        return step == MagnitudeStep.Down ? max : double.PositiveInfinity;
     }
 
     /// <summary>The exact magnitude <c>Mag × 10^(−Scale)</c> and the three exact questions the rounding asks of it —

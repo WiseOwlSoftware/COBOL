@@ -120,7 +120,7 @@ public sealed class ExternalFileEntryIdentityTests
     public void RecordDelimiter_TheRunTimeCheck_IsPairwise()
     {
         var table = new WiseOwl.Cobol.Runtime.ExternalTable();
-        var gate = WiseOwl.Cobol.Runtime.ExternalChecks.FileMismatch;
+        var gate = WiseOwl.Cobol.Runtime.Exceptions.ExternalChecks.FileMismatch;
         WiseOwl.Cobol.Runtime.ExternalDescriptor Desc(string? delimiter) => new("file", SelectFingerprint: "F", RecordDelimiter: delimiter);
         table.Describe("P0", "XF", Desc(null), gate);
         table.Describe("P1", "XF", Desc("STANDARD-1"), gate);

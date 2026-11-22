@@ -1,0 +1,7 @@
+X IS NAN
+MAX (Y X) 1
+MIN (Y X) 1
+ORD-MAX (Y X) 1
+ORD-MIN (Y X) 1
+ORD-MAX (X Y) 1
+ORD-MIN (X Y) 1

@@ -127,8 +127,8 @@ public sealed class EmptyArgumentListDriftTests
     /// says not to put where a structure belongs. The scope is the NUMERIC carriers — <c>double</c>,
     /// <c>CobolDec</c> and <c>Int128</c>, the three copies of the same ten statistical functions — because a
     /// variadic STRING list is a different question: §2023:15.18 CONCAT and §2023:15.96 TRIM have returned-value rules
-    /// that define their own empty cases, and the string extremes reach the invariant through their one
-    /// selection helper instead.</para></remarks>
+    /// that define their own empty cases. The extremes of every carrier reach the invariant through the one
+    /// selection rule, <c>ExtremeIndex</c>, whose own first statement the fact asserts (kb/Work PB2635).</para></remarks>
     [Fact]
     public void EveryVariadicNumericIntrinsicBody_AssertsTheAtLeastOneArgumentInvariant()
     {
@@ -156,7 +156,10 @@ public sealed class EmptyArgumentListDriftTests
                                   || (anyDecl.IsMatch(b) && !IsComment(b.Trim())))) break;
                     body += b + "\n";
                 }
-                if (!body.Contains($"RequireArguments({arr}.Length", StringComparison.Ordinal))
+                // A selection body (MAX / MIN / ORD-MAX / ORD-MIN) asserts it through the ONE selection rule, which the
+                // fact below holds to the assertion (kb/Work PB2635): a call SHAPE, not an exemption list.
+                if (!body.Contains($"RequireArguments({arr}.Length", StringComparison.Ordinal)
+                    && !body.Contains("ExtremeIndex(new ", StringComparison.Ordinal))
                     offenders.Add($"{Path.GetRelativePath(TestRepo.Root, file)}:{i + 1}  {t}");
             }
         }
@@ -164,6 +167,8 @@ public sealed class EmptyArgumentListDriftTests
         // ⛔ A RUN MUST ASSERT ITS POPULATION: a scan that found no `params` declaration at all would report
         // "no offenders" about nothing (feedback_verdict_evidence_invariant). Three carriers × the ten
         // statistical functions plus the two PRESENT-VALUE bodies is thirty-odd; twenty is the floor.
+        string kernel = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Runtime", "Intrinsics", "CobolIntrinsics.Selection.cs"));
+        Assert.Matches(@"int ExtremeIndex<TOrder>\([^)]*\)[^{]*\{\s*RequireArguments\(order\.Count, function\);", kernel);
         Assert.True(measured >= 20,
             $"only {measured} variadic numeric intrinsic body(ies) were measured — the scan found nothing to "
             + "check, which is not the same as finding nothing wrong");

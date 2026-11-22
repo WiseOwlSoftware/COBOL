@@ -113,13 +113,12 @@ public static partial class CobolNum
     public static Int128 Store(Int128 value, int valueScale, in NumProfile receiver,
         CobolRounding mode = CobolRounding.Truncation)
     {
-        if (receiver.Truncation == NumericTruncation.BinaryCapacity)
-            // Native two's-complement width (COMP-5 / BINARY-CHAR family): 2^bits divides the carrier's own
-            // 2^128 wrap, so the aligned residue is exact without a decimal cap.
-            return WrapBinary(Rescale(value, valueScale, receiver.FractionScale, mode), receiver);
-        Int128 v = RescaleStoreCap(value, valueScale, receiver.FractionScale, mode);
-        v %= Pow10Wide(receiver.Digits);      // high-order digit truncation (DISPLAY / COMP / BINARY)
-        return receiver.Signed ? v : Int128.Abs(v);
+        // Native two's-complement width (COMP-5 / BINARY-CHAR family): 2^bits divides the carrier's own 2^128 wrap, so
+        // the plain alignment's residue is exact without a decimal cap.
+        Int128 aligned = receiver.Truncation == NumericTruncation.BinaryCapacity
+            ? Rescale(value, valueScale, receiver.FractionScale, mode)
+            : RescaleStoreCap(value, valueScale, receiver.FractionScale, mode);
+        return Commit(aligned, receiver);
     }
 
     /// <summary>
@@ -147,27 +146,7 @@ public static partial class CobolNum
         // than ANY fixed-point receiver permits (kb/Work PB639) — storing rule 2 leaves the receiver unchanged.
         if (!WideningFits(value, receiver.FractionScale - valueScale)) return false;
 
-        Int128 v = Rescale(value, valueScale, receiver.FractionScale, mode);
-
-        // BinaryCapacity (COMP-5 / BINARY-CHAR family): the SIZE ERROR boundary is the native two's-complement
-        // range of the byte width (§2023:13.18.60.4 GR12 / DOC-A.1-208) — signed [-2^(bits-1), 2^(bits-1)), unsigned magnitude
-        // [0, 2^bits) (§2023:14.9.25.4 GR6d.2.b for the unsigned-magnitude rule).
-        if (receiver.Truncation == NumericTruncation.BinaryCapacity)
-        {
-            if (!InBinaryRange(v, receiver)) return false;
-            stored = receiver.Signed ? v : BinaryMagnitude(v);
-            return true;
-        }
-
-        // High-order capacity check by digit count (DISPLAY/COMP/BINARY). The compare avoids
-        // Math.Abs(long.MinValue) by bounding both signs against the positive limit.
-        Int128 limit = Pow10Wide(receiver.Digits);   // Digits ≤ 38 within the wide engine
-        if (v >= limit || v <= -limit) return false;
-
-        // Unsigned receiver stores the magnitude (§2023:14.9.25.4 GR6d.2.b); v is bounded (it passed the capacity check),
-        // so Math.Abs is safe.
-        stored = receiver.Signed ? v : Int128.Abs(v);
-        return true;
+        return TryCommit(Rescale(value, valueScale, receiver.FractionScale, mode), receiver, out stored);
     }
 
     /// <summary>Store a STANDARD-DECIMAL intermediate (§2023:8.8.1.5) into the receiver: the §2023:14.7 final transfer —
@@ -178,11 +157,7 @@ public static partial class CobolNum
         // The UNSIGNED 16-BYTE container (kb/Work PB2966): its magnitude range [0, 2^128) is past the Int128 landing.
         if (HoldsPastInt128(receiver))
             return unchecked((Int128)value.ToUnscaledMagnitude(receiver.FractionScale, mode, checkedTransfer: false));
-        Int128 v = value.ToUnscaled(receiver.FractionScale, mode);
-        if (receiver.Truncation == NumericTruncation.BinaryCapacity)
-            return WrapBinary(v, receiver);
-        v %= Pow10Wide(receiver.Digits);
-        return receiver.Signed ? v : Int128.Abs(v);
+        return Commit(value.ToUnscaled(receiver.FractionScale, mode), receiver);
     }
 
     /// <summary>Does this receiver's container hold a value past <see cref="Int128.MaxValue"/> — an UNSIGNED 16-byte
@@ -210,16 +185,7 @@ public static partial class CobolNum
         // so COMPUTE X5 = 10 ** 100 ON SIZE ERROR ran NOT ON SIZE ERROR under STANDARD-DECIMAL.
         try { v = value.ToUnscaledChecked(receiver.FractionScale, mode); }
         catch (CobolSizeError) { return false; }   // PROHIBITED-inexact transfer (§2023:14.7.4.3 GR7) or the §2023:14.7.5 case-3 overflow
-        if (receiver.Truncation == NumericTruncation.BinaryCapacity)
-        {
-            if (!InBinaryRange(v, receiver)) return false;
-            stored = receiver.Signed ? v : BinaryMagnitude(v);
-            return true;
-        }
-        Int128 limit = Pow10Wide(receiver.Digits);
-        if (v >= limit || v <= -limit) return false;
-        stored = receiver.Signed ? v : Int128.Abs(v);
-        return true;
+        return TryCommit(v, receiver, out stored);
     }
 
     /// <summary>⛔ THE RAISING FINAL TRANSFER — the store for a receiver whose statement has EC-SIZE checking
@@ -263,6 +229,72 @@ public static partial class CobolNum
     private static CobolSizeError SizeTruncation(in NumProfile receiver) =>
         new($"the value is further from zero than the {receiver.Digits}-digit receiving item permits "
             + "(ISO §2023:14.7.5 case 3 — EC-SIZE-TRUNCATION)", "EC-SIZE-TRUNCATION");
+
+    // ── ⛔ THE RECEIVER'S CAPACITY DISCIPLINE (kb/Work PB2644): ONE truncating commit and ONE checked commit over a value
+    // already ALIGNED at the receiver's scale. The capacity of a receiver is a property of its NumProfile, never of the
+    // carrier the result arrived on: every Store / TryStore / StoreOrRaise lane (Int128, the SDIDI's CobolDec, the
+    // unsigned-wide UInt128) does only its own alignment and ends here, and the class test's range half
+    // (CobolNum.Image's IsNumericImage, its binary and packed arms) asks the same Fits. Before it the discipline was written once per lane and a
+    // fourth time for the class test, and the R10/F74 shift-mask bug had to be found and fixed in each copy. ──────────
+
+    /// <summary>Whether a value ALIGNED at the receiver's scale is within the receiver's capacity — the §2023:14.7.5 GR3
+    /// test ("further from zero than permitted for the associated resultant data item"). A BinaryCapacity receiver
+    /// (COMP-5 / the BINARY-CHAR family) is bounded by the native two's-complement range of its byte width
+    /// (§2023:13.18.60.4 GR12 / DOC-A.1-208, <see cref="InBinaryRange"/>); every other by its digit count, 10^Digits.
+    /// MinValue-safe: the digit bound is taken on <see cref="CobolDec.UAbs"/>, never <c>Int128.Abs</c>.</summary>
+    private static bool Fits(Int128 aligned, in NumProfile receiver) =>
+        receiver.Truncation == NumericTruncation.BinaryCapacity
+            ? InBinaryRange(aligned, receiver)
+            : CobolDec.UAbs(aligned) < (UInt128)Pow10Wide(receiver.Digits);
+
+    /// <summary>The truncating commit — the no-ON-SIZE-ERROR disposition (<c>CONFORMANCE.md</c> DOC-A.1-70: the
+    /// LOW-ORDER digits): a BinaryCapacity receiver keeps the container's residue (<see cref="WrapBinary"/>), every other
+    /// the value modulo 10^Digits; an unsigned receiver then stores the magnitude (§2023:14.9.25.4 GR6d.2.b).</summary>
+    private static Int128 Commit(Int128 aligned, in NumProfile receiver) =>
+        receiver.Truncation == NumericTruncation.BinaryCapacity
+            ? WrapBinary(aligned, receiver)
+            : StoredSign(aligned % Pow10Wide(receiver.Digits), receiver);
+
+    /// <summary>The checked commit — the ON SIZE ERROR disposition (§2023:14.7.5 storing rule 2, the receiver unchanged): false when the value
+    /// does not <see cref="Fits"/> (the caller leaves the receiver unchanged), else the stored value with the
+    /// unsigned-magnitude rule applied.</summary>
+    private static bool TryCommit(Int128 aligned, in NumProfile receiver, out Int128 stored)
+    {
+        bool fits = Fits(aligned, receiver);
+        stored = fits ? StoredSign(aligned, receiver) : 0;
+        return fits;
+    }
+
+    /// <summary>The unsigned-magnitude rule (§2023:14.9.25.4 GR6d.2.b: "When an unsigned numeric item is the receiving item,
+    /// the absolute value of the sending value is used") on a value inside the receiver's capacity, as the container's
+    /// bits (<see cref="BinaryMagnitude"/>: total over <see cref="Int128"/>, and equal to the magnitude below 2^127).</summary>
+    private static Int128 StoredSign(Int128 v, in NumProfile receiver) => receiver.Signed ? v : BinaryMagnitude(v);
+
+    /// <summary>The unsigned-wide lane's entry to <see cref="Commit"/>: a value past <see cref="Int128.MaxValue"/> is
+    /// reduced to what the receiver keeps first — a 16-byte container keeps it whole as its two's-complement BITS (kb/Work
+    /// R10), a narrower container its residue modulo 2^bits, a digit-count receiver its low-order 38 digits (10^Digits
+    /// divides 10^38).</summary>
+    private static Int128 CommitU(UInt128 aligned, in NumProfile receiver)
+    {
+        if (aligned > (UInt128)Int128.MaxValue)
+        {
+            bool binary = receiver.Truncation == NumericTruncation.BinaryCapacity;
+            if (binary && 8 * receiver.StorageLength >= 128) return unchecked((Int128)aligned);
+            aligned %= binary ? BinaryModulusU(8 * receiver.StorageLength) : Pow10U(38);
+        }
+        return Commit((Int128)aligned, receiver);
+    }
+
+    /// <summary>The unsigned-wide lane's entry to <see cref="TryCommit"/>: only an UNSIGNED 16-byte container holds a
+    /// value past <see cref="Int128.MaxValue"/> (<see cref="HoldsPastInt128"/>; DOC-A.1-208), as its bits; it exceeds
+    /// every other capacity (10^38 − 1 and 2^127 − 1 are both below it).</summary>
+    private static bool TryCommitU(UInt128 aligned, in NumProfile receiver, out Int128 stored)
+    {
+        if (aligned <= (UInt128)Int128.MaxValue) return TryCommit((Int128)aligned, receiver, out stored);
+        bool fits = HoldsPastInt128(receiver);
+        stored = fits ? unchecked((Int128)aligned) : 0;
+        return fits;
+    }
 
     /// <summary>Reduce an unscaled value to the native two's-complement range of a BinaryCapacity receiver's
     /// storage width — the deterministic no-ON-SIZE-ERROR truncation for COMP-5 / the BINARY-CHAR family (the
@@ -342,16 +374,9 @@ public static partial class CobolNum
     public static Int128 StoreU(UInt128 value, int valueScale, in NumProfile receiver,
         CobolRounding mode = CobolRounding.Truncation)
     {
-        bool binary = receiver.Truncation == NumericTruncation.BinaryCapacity;
-        UInt128 v = RescaleU(value, valueScale, receiver.FractionScale, mode,
-            binary ? BinaryModulusU(8 * receiver.StorageLength) : Pow10U(receiver.Digits));
-        if (binary)
-        {
-            UInt128 m = BinaryModulusU(8 * receiver.StorageLength);
-            UInt128 residue = m == 0 ? v : v % m;               // m == 0 encodes modulus 2^128
-            return unchecked((Int128)residue);                   // ≤ 8-byte: exact; 16-byte: container bits
-        }
-        return (Int128)(v % Pow10U(receiver.Digits));            // DigitCount / PackedDecimal: ≤ 10^31 fits Int128
+        UInt128 capacity = receiver.Truncation == NumericTruncation.BinaryCapacity
+            ? BinaryModulusU(8 * receiver.StorageLength) : Pow10U(receiver.Digits);
+        return CommitU(RescaleU(value, valueScale, receiver.FractionScale, mode, capacity), receiver);
     }
 
     /// <summary>The SIZE-ERROR-checked sibling of <see cref="StoreU"/>: false on capacity overflow or a
@@ -361,28 +386,20 @@ public static partial class CobolNum
         stored = 0;
         if (mode == CobolRounding.Prohibited && IsInexactAtScale(value, valueScale, receiver.FractionScale))
             return false;   // inexact narrowing under PROHIBITED (§2023:14.7.4.3 GR7)
-        // Rescale exactly for the range check: a WIDENING beyond UInt128 already exceeds every capacity below it.
+        // Align exactly for the range check: a WIDENING beyond UInt128 already exceeds every capacity below it.
         int up = receiver.FractionScale - valueScale;
-        if (up > 0 && value != 0 && (up > 38 || value > UInt128.MaxValue / Pow10U(up))) return false;
+        if (!WideningFitsU(value, up)) return false;
         UInt128 v = up > 0 ? value * Pow10U(up)
                   : up < 0 ? RoundDiv(value, Pow10U(-up), mode)
                   : value;
-        if (receiver.Truncation == NumericTruncation.BinaryCapacity)
-        {
-            int bits = 8 * receiver.StorageLength;
-            // Signed container: v ≤ 2^(bits−1) − 1 (the sending value is non-negative). Unsigned: v < 2^bits;
-            // at bits = 128 every UInt128 is in range.
-            UInt128 signedMax = ((UInt128)1 << (Math.Min(bits, 128) - 1)) - 1;
-            if (receiver.Signed && v > signedMax) return false;
-            if (!receiver.Signed && bits < 128 && v >= (UInt128)1 << bits) return false;
-            UInt128 m = BinaryModulusU(bits);
-            stored = unchecked((Int128)(m == 0 ? v : v % m));
-            return true;
-        }
-        if (v >= Pow10U(receiver.Digits)) return false;
-        stored = (Int128)v;
-        return true;
+        return TryCommitU(v, receiver, out stored);
     }
+
+    /// <summary>The unsigned-wide twin of <see cref="WideningFits"/>: whether <paramref name="value"/> × 10^<paramref name="up"/>
+    /// is representable in <see cref="UInt128"/> — the one test <see cref="TryStoreU"/>, <see cref="RescaleCheckedU"/> and
+    /// <see cref="RescaleU"/> share.</summary>
+    private static bool WideningFitsU(UInt128 value, int up) =>
+        up <= 0 || value == 0 || (up <= 38 && value <= UInt128.MaxValue / Pow10U(up));
 
     /// <summary>2^bits as a <see cref="UInt128"/> capacity modulus, with <c>0</c> encoding the full 2^128 (which
     /// <see cref="UInt128"/> cannot represent; a C# shift count is masked, so <c>1 &lt;&lt; 128</c> would silently
@@ -485,8 +502,7 @@ public static partial class CobolNum
     public static Int128 RescaleCheckedU(UInt128 value, int fromScale, int toScale, CobolRounding mode)
     {
         int up = toScale - fromScale;
-        bool fits = up <= 0 || value == 0 || (up <= 38 && value <= UInt128.MaxValue / Pow10U(up));
-        UInt128 v = !fits ? UInt128.MaxValue
+        UInt128 v = !WideningFitsU(value, up) ? UInt128.MaxValue
             : up > 0 ? value * Pow10U(up)
             : up < 0 ? RoundDiv(value, Pow10U(-up), mode)
             : value;
@@ -555,7 +571,7 @@ public static partial class CobolNum
         if (toScale == fromScale || value == 0) return value;
         if (toScale < fromScale) return RoundDiv(value, Pow10U(fromScale - toScale), mode);
         int k = toScale - fromScale;
-        if (k <= 38 && value <= UInt128.MaxValue / Pow10U(k)) return value * Pow10U(k);
+        if (WideningFitsU(value, k)) return value * Pow10U(k);
         // The exact product exceeds UInt128 — reduce modulo the receiver's capacity one decade at a time (each
         // step's operand stays below capacity × 10 ≤ 2^128); modulus 2^128 arrives encoded as 0, where the
         // unchecked multiply IS the reduction.
@@ -1297,47 +1313,13 @@ public static partial class CobolNum
         if (rem == T.Zero) return q;
         bool neg = value < T.Zero;
         // The away-from-zero unit is ±1 (the subtraction keeps the unsigned carrier from ever negating a UInt128).
-        return BumpsMagnitude(neg, q % (T.One + T.One) != T.Zero, T.Abs(rem), divisor, mode)
+        return RoundingRule.Bumps(mode, neg, q % (T.One + T.One) != T.Zero, T.Abs(rem), divisor)
             ? (neg ? q - T.One : q + T.One)
             : q;
     }
 
-    /// <summary>⛔ THE ONE ROUNDING DECISION (§2023:14.7.4.3 GR2–GR8): does a NONZERO remainder move the truncated quotient's
-    /// MAGNITUDE one unit away from zero? Every divide kernel asks it — <see cref="RoundDiv{T}"/> over any signed or
-    /// unsigned carrier, and <see cref="LandQuotient"/> over the unsigned magnitudes of the two kernels that must
-    /// hold <c>Int128.MinValue</c>'s magnitude 2^127 — so the mode table is written once.
-    /// <para>The NEAREST arms compare <paramref name="absRem"/> with its COMPLEMENT <c>divisor − |rem|</c>, never
-    /// <c>2·|rem|</c> with the divisor (kb/Work PB2640): <c>|rem| &lt; divisor</c>, so the complement is positive and cannot
-    /// overflow on any carrier, where doubling the remainder wrapped NEGATIVE on <see cref="Int128"/> once the divisor
-    /// passed 2^126 (a 16-byte COMP-5 quotient: 9.025e37 ÷ 9.409e37 stored 0 under ROUNDED). <c>|rem| ≷ complement ⇔
-    /// 2·|rem| ≷ divisor</c>, so above-half and tie are the same tests (§2023:14.7.4.3 GR4/GR5/GR6: "the nearest value that
-    /// can be represented", a tie being two values equally near).</para></summary>
-    /// <param name="negative">The quotient's sign: it decides the direction of the TOWARD-GREATER / TOWARD-LESSER arms.</param>
-    /// <param name="quotientIsOdd">Whether the TRUNCATED quotient is odd — NEAREST-EVEN's tie-break.</param>
-    /// <param name="absRem">The remainder's magnitude, in <c>(0, divisor)</c>.</param>
-    /// <param name="divisor">The divisor's magnitude, positive.</param>
-    internal static bool BumpsMagnitude<T>(bool negative, bool quotientIsOdd, T absRem, T divisor, CobolRounding mode)
-        where T : System.Numerics.INumber<T>
-    {
-        T rest = divisor - absRem;
-        bool above = absRem > rest, tie = absRem == rest;
-        return mode switch
-        {
-            CobolRounding.AwayFromZero => true,
-            CobolRounding.TowardGreater => !negative,                        // ceiling
-            CobolRounding.TowardLesser => negative,                          // floor
-            CobolRounding.NearestAwayFromZero => above || tie,
-            CobolRounding.NearestTowardZero => above,
-            CobolRounding.NearestEven => above || (tie && quotientIsOdd),
-            // §2023:14.7.4.3 GR7: PROHIBITED is no direction — a nonzero remainder means the value cannot be represented
-            // exactly, and no landing, checked or not, stores it cut (kb/Work PB3990; CobolSizeError.ProhibitedInexact).
-            CobolRounding.Prohibited => throw CobolSizeError.ProhibitedInexact(),
-            _ => false,                                                      // TRUNCATION
-        };
-    }
-
     /// <summary>⛔ THE LANDING OF A QUOTIENT FORMED ON UNSIGNED MAGNITUDES (kb/Work PB2640's sibling sweep): rounds the
-    /// truncated magnitude <paramref name="q"/> once by its true remainder (<see cref="BumpsMagnitude"/>) and returns it
+    /// truncated magnitude <paramref name="q"/> once by its true remainder (<see cref="RoundingRule"/>) and returns it
     /// as an <see cref="Int128"/> with the sign applied. Signs are applied AFTER the magnitude arithmetic because the
     /// magnitude of <c>Int128.MinValue</c> is 2^127, which no <see cref="Int128"/> holds: negating the signed value left
     /// it NEGATIVE, so <c>Int128.MinValue ÷ −3</c> came out negative and <c>Int128.MinValue ÷ −1</c> came out
@@ -1347,7 +1329,7 @@ public static partial class CobolNum
     /// decision (§2023:14.7.4.3 GR7, kb/Work PB3990).</summary>
     internal static Int128 LandQuotient(UInt128 q, UInt128 rem, UInt128 divisor, bool negative, CobolRounding mode)
     {
-        if (rem != 0 && BumpsMagnitude(negative, !UInt128.IsEvenInteger(q), rem, divisor, mode))
+        if (rem != 0 && RoundingRule.Bumps(mode, negative, !UInt128.IsEvenInteger(q), rem, divisor))
         {
             if (q == UInt128.MaxValue) throw CobolDec.QuotientOverflow();
             q++;

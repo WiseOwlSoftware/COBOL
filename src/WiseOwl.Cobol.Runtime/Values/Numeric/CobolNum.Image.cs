@@ -339,8 +339,8 @@ public static partial class CobolNum
     /// <item>BINARY — GR3 n)1.c's second half. Every two's-complement byte pattern IS a valid representation, so
     /// the only test left is the range one: "if a PICTURE clause is specified, the numeric value is within the
     /// range of values implied by the PICTURE clause". That range is the item's own capacity discipline
-    /// (<see cref="NumProfile.Truncation"/> — the SAME discipline <c>TryStore</c> bounds a store by, never a
-    /// second opinion): 10^Digits for <see cref="NumericTruncation.DigitCount"/>/<see cref="NumericTruncation.PackedDecimal"/>,
+    /// (<see cref="NumProfile.Truncation"/> — the SAME discipline, the one <see cref="Fits"/> every store's checked
+    /// commit asks, never a second opinion; kb/Work PB2644): 10^Digits for <see cref="NumericTruncation.DigitCount"/>/<see cref="NumericTruncation.PackedDecimal"/>,
     /// and for <see cref="NumericTruncation.BinaryCapacity"/> the CONTAINER range — a COMP-5 / BINARY-* item's
     /// value range is its storage, so testing it against a picture would condemn values the item legitimately
     /// holds.</item>
@@ -354,7 +354,7 @@ public static partial class CobolNum
         NumericByteForm.Zoned => IsNumericZonedImage(image, item),
         NumericByteForm.Packed or NumericByteForm.PackedNoSign => IsNumericPackedImage(image, item),
         NumericByteForm.Binary => image is not null && image.Length >= Width(item)
-                                  && InPictureRange(ParseBinaryImage(image, item), item),
+                                  && Fits(ParseBinaryImage(image, item), item),
         // Ieee32/Ieee64 (rule 3's subject) and None (a construction bug the codec's own guard catches) are not
         // this rule's question — never claim incompatibility we have not tested for.
         _ => true,
@@ -396,17 +396,8 @@ public static partial class CobolNum
         // The storage-byte law's byte of each position — the one ParsePackedImage decodes — so the class test and the
         // value agree on a position holding a character with no byte image (kb/Work PB547).
         if (hasSignNibble && (StorageByte.ToByte(image[n - 1]) & 0x0F) < 0x0A) return false;
-        return InPictureRange(ParsePackedImage(image, item), item);
+        return Fits(ParsePackedImage(image, item), item);
     }
-
-    /// <summary>§2023:8.8.4.4.4 GR3n.1c's range half — "the numeric value is within the range of values implied by the
-    /// PICTURE clause" — expressed as the item's OWN capacity discipline, the same one
-    /// <see cref="CobolNum.TryStore"/> bounds a store by. A <see cref="NumericTruncation.BinaryCapacity"/> item
-    /// (COMP-5 / BINARY-CHAR..DOUBLE) takes its value range from its storage, not from a picture
-    /// (§2023:13.18.60.4 GR12 "the implementor may allow a wider range" / DOC-A.1-208), so every container value is in range.</summary>
-    private static bool InPictureRange(Int128 unscaled, in NumProfile item) =>
-        item.Truncation == NumericTruncation.BinaryCapacity
-        || CobolDec.UAbs(unscaled) < (UInt128)Pow10Wide(item.Digits);
 
     /// <summary>An item with no byte representation (<see cref="NumericByteForm.None"/> — no shipping
     /// numeric usage since the R40 INDEX pin; the guard for an unstated future usage) reached a byte boundary. That is a

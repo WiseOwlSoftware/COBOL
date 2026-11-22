@@ -114,44 +114,16 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>§2023:15.59 MAX — the leftmost argument with the greatest value (§2023:15.59.4 RV1/r2).</summary>
-    public static CobolDec MaxDec(params CobolDec[] xs)
-    {
-        RequireArguments(xs.Length, "MAX");
-        CobolDec best = xs[0];
-        for (int i = 1; i < xs.Length; i++)
-            if (CobolDec.Compare(xs[i], best) > 0) best = xs[i];
-        return best;
-    }
+    public static CobolDec MaxDec(params CobolDec[] xs) => xs[ExtremeIndex(new DecOrder(xs), true, "MAX")];
 
     /// <summary>§2023:15.63 MIN — the leftmost argument with the least value (§2023:15.63.4 RV1/r2).</summary>
-    public static CobolDec MinDec(params CobolDec[] xs)
-    {
-        RequireArguments(xs.Length, "MIN");
-        CobolDec best = xs[0];
-        for (int i = 1; i < xs.Length; i++)
-            if (CobolDec.Compare(xs[i], best) < 0) best = xs[i];
-        return best;
-    }
+    public static CobolDec MinDec(params CobolDec[] xs) => xs[ExtremeIndex(new DecOrder(xs), false, "MIN")];
 
     /// <summary>§2023:15.71 ORD-MAX — the 1-based ordinal of the first greatest argument (§2023:15.71.4 RV1/r2).</summary>
-    public static long OrdMaxDec(params CobolDec[] xs)
-    {
-        RequireArguments(xs.Length, "ORD-MAX");
-        int best = 0;
-        for (int i = 1; i < xs.Length; i++)
-            if (CobolDec.Compare(xs[i], xs[best]) > 0) best = i;
-        return best + 1;
-    }
+    public static long OrdMaxDec(params CobolDec[] xs) => ExtremeIndex(new DecOrder(xs), true, "ORD-MAX") + 1;
 
     /// <summary>§2023:15.72 ORD-MIN — the 1-based ordinal of the first least argument (§2023:15.72.4 RV1/r2).</summary>
-    public static long OrdMinDec(params CobolDec[] xs)
-    {
-        RequireArguments(xs.Length, "ORD-MIN");
-        int best = 0;
-        for (int i = 1; i < xs.Length; i++)
-            if (CobolDec.Compare(xs[i], xs[best]) < 0) best = i;
-        return best + 1;
-    }
+    public static long OrdMinDec(params CobolDec[] xs) => ExtremeIndex(new DecOrder(xs), false, "ORD-MIN") + 1;
 
     /// <summary>§2023:15.88 SUM — the §2023:15.88.4 RV1 addition chain, per-op intermediate rounding.</summary>
     public static CobolDec SumDec(DecArithmetic ar, params CobolDec[] xs)
