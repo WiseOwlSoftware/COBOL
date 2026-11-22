@@ -46,9 +46,12 @@ public static class EcFunctions
     /// <c>::</c>, stripped here so the one stored key serves both dispatch and display.</summary>
     public static string File()
     {
+        // r1b's result, two spaces: a RETURNED VALUE the rule defines, not a §2023:15.3 substitute for a broken argument
+        // (ArgumentSubstituteDriftTests reads the Intrinsics folder, which this family joined by kb/Work PB2743).
+        const string NoFileConnector = "  ";
         string? name = ExceptionState.LastName;
         if (name is null || !ExceptionCatalog.IsIoName(name)) return "00";          // r1a
-        if (ExceptionState.LastFile is not { } file) return "  ";                   // r1b — RAISE-originated
+        if (ExceptionState.LastFile is not { } file) return NoFileConnector;         // r1b — RAISE-originated
         // r1c — "the file-name exactly as specified in the SELECT clause": the connector's registered SelectName
         // (kb/Work PB63 — a "::" strip of the registry KEY used to upper-case an EXTERNAL name and keep an OBJECT
         // file's per-instance "#N" suffix).
