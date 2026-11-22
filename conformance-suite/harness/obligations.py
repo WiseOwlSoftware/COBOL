@@ -40,6 +40,8 @@ HERE = Path(__file__).resolve().parent
 SUITE = HERE.parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(SUITE.parent / "scripts" / "spec"))
+sys.path.append(str(Path(__file__).resolve().parents[2] / "scripts"))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 VERDICT = "=== OBLIGATIONS 85: "
 
@@ -247,4 +249,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

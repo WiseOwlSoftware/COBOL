@@ -34,6 +34,8 @@ from typing import Any, Iterable
 HERE = Path(__file__).resolve().parent
 SUITE = HERE.parent
 sys.path.insert(0, str(HERE))
+sys.path.append(str(Path(__file__).resolve().parents[2] / "scripts"))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 import config  # noqa: E402  (this directory's: the verdict vocabulary and the baseline's writer)
 
@@ -281,4 +283,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

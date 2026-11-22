@@ -30,6 +30,8 @@ SUITE = HERE.parent
 REPO = SUITE.parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(REPO / "scripts" / "spec"))
+sys.path.append(str(Path(__file__).resolve().parents[2] / "scripts"))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 UNMEASURED = "UNMEASURED"
 #: edition -> the ledger of its text's reconciliation against the rendered pages (spec-reconciliation README).
@@ -135,4 +137,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))
