@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: l1c26_rewrite_relative_invalid_key
-      *> rules: [GR-14.9.35.4-19, GR-14.9.35.4-20, GR-14.9.35.4-21]
+      *> rules: [GR-14.9.35.4-19, GR-14.9.35.4-20, GR-14.9.35.4-21,
+      *>    1985-GR-VIII.4.6.4-10, 1985-GR-VIII.4.6.4-12,
+      *>    1985-GR-IX.4.6.4-10, 1985-GR-IX.4.6.4-12]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

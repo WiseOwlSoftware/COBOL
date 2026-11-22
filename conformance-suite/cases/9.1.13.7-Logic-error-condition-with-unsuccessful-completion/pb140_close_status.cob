@@ -1,7 +1,13 @@
       *>--- conformance-case
       *> id: pb140_close_status
       *> rules: [GR-9.1.13.7-2, GR-14.9.6.4-1, GR-14.9.6.4-4,
-      *>    GR-14.9.6.4-6, GR-14.9.6.4-8]
+      *>    GR-14.9.6.4-6, GR-14.9.6.4-8, 1985-GR-VII.4.2.4-1,
+      *>    1985-GR-VII.4.2.4-5, 1985-GR-VII.4.2.4-7,
+      *>    1985-GR-VIII.4.2.4-1, 1985-GR-VIII.4.2.4-3,
+      *>    1985-GR-VIII.4.2.4-4, 1985-GR-VIII.4.2.4-6,
+      *>    1985-GR-IX.4.2.4-1, 1985-GR-IX.4.2.4-3, 1985-GR-IX.4.2.4-4,
+      *>    1985-GR-IX.4.2.4-6, 1985-GR-XIII.4.2.4-1,
+      *>    1985-GR-XIII.4.2.4-4, 1985-GR-XIII.4.2.4-6]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c31_global_indirect_container
-      *> rules: [GR-8.6.7-2]
+      *> rules: [GR-8.6.7-2, 1985-GR-X.1.3.6-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

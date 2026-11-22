@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: w73a_separator_context_conforming
-      *> rules: [SR-8.3.5-2, SR-8.3.5-3, SR-8.3.5-5]
+      *> rules: [SR-8.3.5-2, SR-8.3.5-3, SR-8.3.5-5,
+      *>    1985-SR-IV.2.1.6-p1, 1985-SR-IV.4.2.1-3, 1985-SR-XII.3.3-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

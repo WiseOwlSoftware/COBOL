@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c04_corr_arith_numeric_pairs
-      *> rules: [GR-14.7.6-3]
+      *> rules: [GR-14.7.6-3, 1985-GR-VI.6.4.3-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

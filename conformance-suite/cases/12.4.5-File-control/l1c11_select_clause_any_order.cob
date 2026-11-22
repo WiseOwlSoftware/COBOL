@@ -1,6 +1,8 @@
       *>--- conformance-case
       *> id: l1c11_select_clause_any_order
-      *> rules: [SR-12.4.5.2-1]
+      *> rules: [SR-12.4.5.2-1, 1985-SR-VII.2.3.3-1,
+      *>    1985-SR-VIII.2.3.3-1, 1985-SR-IX.2.3.3-1,
+      *>    1985-SR-XIII.2.3.3-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

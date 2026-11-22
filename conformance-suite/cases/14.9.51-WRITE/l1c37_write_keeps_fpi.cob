@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: l1c37_write_keeps_fpi
-      *> rules: [GR-14.9.51.4-2]
+      *> rules: [GR-14.9.51.4-2, 1985-GR-VII.4.7.4-5,
+      *>    1985-GR-VIII.4.9.4-5, 1985-GR-IX.4.9.4-5]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

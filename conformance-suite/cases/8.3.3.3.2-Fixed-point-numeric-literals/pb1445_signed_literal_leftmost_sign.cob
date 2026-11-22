@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1445_signed_literal_leftmost_sign
-      *> rules: [SR-8.3.3.3.2-2]
+      *> rules: [SR-8.3.3.3.2-2, 1985-SR-IV.4.2.2.2.2-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

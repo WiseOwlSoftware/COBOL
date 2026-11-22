@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb5924-line-counter-range-85
-      *> rules: [1985-GR-XIII.1.2.3-p1]
+      *> rules: [1985-GR-XIII.1.2.3-p1, 1985-GR-XIII.3.10.2-p5,
+      *>    1985-GR-XIII.3.10.2-p7]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

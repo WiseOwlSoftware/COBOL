@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c30_alphabet_count_at_native_bound
-      *> rules: [SR-12.3.7.3-14]
+      *> rules: [SR-12.3.7.3-14, 1985-SR-VI.4.5.3-3, 1985-SR-VI.4.5.3-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

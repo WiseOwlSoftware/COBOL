@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb229_corresponding_filler_group_rule4
-      *> rules: [GR-14.7.6-1, GR-14.7.6-4, GR-14.7.6-5, GR-14.9.2.4-5]
+      *> rules: [GR-14.7.6-1, GR-14.7.6-4, GR-14.7.6-5, GR-14.9.2.4-5,
+      *>    1985-GR-VI.6.4.3-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

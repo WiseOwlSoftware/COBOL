@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: 1985-GR-VI_6_8_4-1
-      *> rules: [1985-GR-VI.6.8.4-1]
+      *> rules: [1985-GR-VI.6.8.4-1, 1985-GR-VI.6.8.1-p1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

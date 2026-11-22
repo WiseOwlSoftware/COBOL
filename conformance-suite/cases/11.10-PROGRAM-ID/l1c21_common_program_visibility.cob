@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c21_common_program_visibility
-      *> rules: [GR-11.10.4-2]
+      *> rules: [GR-11.10.4-2, 1985-GR-X.3.1.4-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

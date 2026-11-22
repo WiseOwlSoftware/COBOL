@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1468_relation_defined_pairs
       *> rules: [GR-8.8.4.2.1-6, GR-8.8.4.2.1-8, GR-8.8.4.2.13-2,
-      *>    GR-8.8.4.2.13-3]
+      *>    GR-8.8.4.2.13-3, 1985-GR-VI.6.3.1.1.3-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

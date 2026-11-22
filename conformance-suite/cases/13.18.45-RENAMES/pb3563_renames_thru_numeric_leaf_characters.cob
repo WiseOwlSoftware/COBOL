@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb3563_renames_thru_numeric_leaf_characters
-      *> rules: [GR-13.18.45.4-2, GR-14.9.25.4-4]
+      *> rules: [GR-13.18.45.4-2, GR-14.9.25.4-4, 1985-GR-VI.5.11.4-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

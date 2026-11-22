@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb501_condition_name_entry_format
-      *> rules: [GR-13.16.4-3]
+      *> rules: [GR-13.16.4-3, 1985-GR-IV.4.2.2.1.1.1-p1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

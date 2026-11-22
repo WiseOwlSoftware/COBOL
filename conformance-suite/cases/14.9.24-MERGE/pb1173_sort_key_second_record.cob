@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1173_sort_key_second_record
-      *> rules: [SR-14.9.24.3-4, SR-14.9.40.3-6]
+      *> rules: [SR-14.9.24.3-4, SR-14.9.40.3-6, 1985-SR-XI.4.1.3-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

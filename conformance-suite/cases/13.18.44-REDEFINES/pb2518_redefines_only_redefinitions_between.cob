@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb2518_redefines_only_redefinitions_between
-      *> rules: [SR-13.18.44.3-10]
+      *> rules: [SR-13.18.44.3-10, 1985-SR-VI.5.10.3-11]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

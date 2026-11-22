@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb399_evaluate_selection_set_shapes
-      *> rules: [SR-14.9.13.3-2, SR-14.9.13.3-4, SR-14.9.13.3-9]
+      *> rules: [SR-14.9.13.3-2, SR-14.9.13.3-4, SR-14.9.13.3-9,
+      *>    1985-SR-VI.6.13.3-5]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

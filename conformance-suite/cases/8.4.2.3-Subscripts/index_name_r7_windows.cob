@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: index_name_r7_windows
-      *> rules: [GR-8.4.2.3.4-1, SR-13.18.38.3-1, FMT-8.4.2.3.2]
+      *> rules: [GR-8.4.2.3.4-1, SR-13.18.38.3-1, FMT-8.4.2.3.2,
+      *>    1985-GR-IV.4.3.8.2.4-2, 1985-GR-IV.4.3.8.2.4-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

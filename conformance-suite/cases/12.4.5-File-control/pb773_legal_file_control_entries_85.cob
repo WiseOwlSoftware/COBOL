@@ -1,6 +1,9 @@
       *>--- conformance-case
       *> id: pb773_legal_file_control_entries_85
-      *> rules: [SR-12.4.5.2-11, SR-12.4.5.2-13, SR-12.4.5.6.3-4]
+      *> rules: [SR-12.4.5.2-11, SR-12.4.5.2-13, SR-12.4.5.6.3-4,
+      *>    1985-GR-VIII.2.3.4-5, 1985-SR-XI.2.3.3-1,
+      *>    1985-SR-XIII.2.3.3-2, 1985-SR-XIII.2.3.3-4,
+      *>    1985-GR-XIII.2.3.4-4, 1985-SR-XIII.3.2.3-3]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

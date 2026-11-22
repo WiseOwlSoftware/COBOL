@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c37_relative_io_insert
-      *> rules: [GR-14.9.51.4-32]
+      *> rules: [GR-14.9.51.4-32, 1985-GR-VIII.4.9.4-13]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

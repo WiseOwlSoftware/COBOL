@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb602_start_key_identity
-      *> rules: [SR-14.9.41.3-5]
+      *> rules: [SR-14.9.41.3-5, 1985-SR-VIII.4.7.3-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

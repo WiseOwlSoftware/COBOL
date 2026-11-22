@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: l1m8_rewrite_format_85
-      *> rules: [FMT-14.9.35.2]
+      *> rules: [FMT-14.9.35.2, 1985-GR-VII.4.5.4-9,
+      *>    1985-GR-VIII.4.6.4-11, 1985-GR-IX.4.6.4-11]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

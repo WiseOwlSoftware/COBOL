@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb1153_counter_register_character_image
-      *> rules: [GR-8.4.3.14.4-1, GR-8.4.3.15.4-1, FMT-8.4.3.1.2]
+      *> rules: [GR-8.4.3.14.4-1, GR-8.4.3.15.4-1, FMT-8.4.3.1.2,
+      *>    1985-GR-XIII.3.5.5-1, 1985-GR-XIII.3.5.6-1]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

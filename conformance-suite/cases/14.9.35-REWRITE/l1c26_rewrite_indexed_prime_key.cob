@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c26_rewrite_indexed_prime_key
-      *> rules: [GR-14.9.35.4-22, GR-14.9.35.4-23]
+      *> rules: [GR-14.9.35.4-22, GR-14.9.35.4-23, 1985-GR-IX.4.6.4-14]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
